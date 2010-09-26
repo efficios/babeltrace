@@ -1,0 +1,26 @@
+Common Trace Format - Licensing
+Mathieu Desnoyers
+September 26, 2010
+
+
+* LGPLv2.1
+
+The library part is distributed under LGPLv2.1 or later. See lgpl-2.1.txt for
+details. This applies to all files, except when otherwise specified within the
+files.
+
+
+* MIT license :
+
+A MIT license that is intended to allow use in both free and proprietary
+software is applied to some headers. See mit-license.txt for details.
+
+This license applies to :
+
+bitfield.h
+
+
+* GPLv2
+
+Library test code is distributed under the GPLv2 license, as specified in the
+per-file license. See gpl-2.0.txt for details.
