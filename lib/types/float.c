@@ -105,7 +105,7 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 	bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
 				dest->byte_order, tmp);
 
-	/* mantissa (except sign). No sign extend. */
+	/* mantissa (without leading 1). No sign extend. */
 	tmp = bitfield_unsigned_read(ptr, srcpos.mantissa_start,
 				     src->mantissa_len - 1, src->byte_order);
 	bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
