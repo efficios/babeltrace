@@ -140,7 +140,7 @@ int run_test_unsigned(void)
 		for (l = nrbits; l < (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			ctf_bitfield_write(target.c, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 0);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -150,7 +150,7 @@ int run_test_unsigned(void)
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			ctf_bitfield_write(target.s, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 0);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -160,7 +160,7 @@ int run_test_unsigned(void)
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			ctf_bitfield_write(target.i, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 0);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -170,7 +170,7 @@ int run_test_unsigned(void)
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			ctf_bitfield_write(target.l, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 0);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -180,7 +180,7 @@ int run_test_unsigned(void)
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			ctf_bitfield_write(target.ll, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 0);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -222,7 +222,7 @@ int run_test_signed(void)
 		for (l = nrbits; l < (8 * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			ctf_bitfield_write(target.c, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 1);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -232,7 +232,7 @@ int run_test_signed(void)
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			ctf_bitfield_write(target.s, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 1);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -242,7 +242,7 @@ int run_test_signed(void)
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			ctf_bitfield_write(target.i, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 1);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -252,7 +252,7 @@ int run_test_signed(void)
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			ctf_bitfield_write(target.l, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 1);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -262,7 +262,7 @@ int run_test_signed(void)
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			ctf_bitfield_write(target.ll, s, l, src);
-			readval = _ctf_bitfield_read_64(target.c, s, l, BYTE_ORDER, 1);
+			ctf_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -363,7 +363,7 @@ int main(int argc, char **argv)
 	printf("lluwise\n");
 	print_byte_array(target.c, 8);
 
-	readval = _ctf_bitfield_read_64(target.c, shift, len, BYTE_ORDER, 0);
+	ctf_bitfield_read(target.c, shift, len, &readval);
 	printf("read: %llX\n", readval);
 
 	ret = run_test();

@@ -14,14 +14,33 @@
 #include <ctf/bitfield.h>
 #include <endian.h>
 
-/*
- * ctf_bitfield_unsigned_read and ctf_bitfield_signed_read are defined by
- * bitfield.h.
- *
- * The write primitives below are provided as wrappers over
- * ctf_bitfield_write_le and ctf_bitfield_write_be to specify per-byte write of
- * signed/unsigned integers through a standard API.
- */
+static inline
+uint64_t ctf_bitfield_unsigned_read(const uint8_t *ptr,
+				    unsigned long start, unsigned long len,
+				    int byte_order)
+{
+	uint64_t v;
+
+	if (byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(ptr, start, len, &v);
+	else
+		ctf_bitfield_read_be(ptr, start, len, &v);
+	return v;
+}
+
+static inline
+int64_t ctf_bitfield_signed_read(const uint8_t *ptr,
+				 unsigned long start, unsigned long len,
+				 int byte_order)
+{
+	int64_t v;
+
+	if (byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(ptr, start, len, &v);
+	else
+		ctf_bitfield_read_be(ptr, start, len, &v);
+	return v;
+}
 
 static inline
 size_t ctf_bitfield_unsigned_write(uint8_t *ptr,
