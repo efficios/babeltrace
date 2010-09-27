@@ -74,8 +74,11 @@ struct pos_len {
 void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 		    const unsigned char *src, const struct ctf_float *src)
 {
-	unsigned long long tmp;
 	struct pos_len destpos, srcpos;
+	union {
+		unsigned long long u;
+		long long s;
+	} tmp;
 
 	destpos.len = dest.exp_len + dest.mantissa_len;
 	if (dest.byte_order == LITTLE_ENDIAN) {
@@ -100,22 +103,22 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 	}
 
 	/* sign */
-	tmp = bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
-				     src->byte_order);
+	tmp.u = bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
+				       src->byte_order);
 	bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
-				dest->byte_order, tmp);
+				dest->byte_order, tmp.u);
 
 	/* mantissa (without leading 1). No sign extend. */
-	tmp = bitfield_unsigned_read(ptr, srcpos.mantissa_start,
-				     src->mantissa_len - 1, src->byte_order);
+	tmp.u = bitfield_unsigned_read(ptr, srcpos.mantissa_start,
+				       src->mantissa_len - 1, src->byte_order);
 	bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
-				dest->mantissa_len - 1, dest->byte_order, tmp);
+				dest->mantissa_len - 1, dest->byte_order, tmp.u);
 
 	/* exponent, with sign-extend. */
-	tmp = bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
-				   src->byte_order);
+	tmp.s = bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
+				     src->byte_order);
 	bitfield_signed_write(&u.bits, destpos.exp_start, dest->exp_len,
-			      dest->byte_order, tmp);
+			      dest->byte_order, tmp.s);
 }
 
 double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
