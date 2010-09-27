@@ -3,7 +3,7 @@
  *
  * Common Trace Format - bitfield test program
  *
- * Copyright February 2009 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

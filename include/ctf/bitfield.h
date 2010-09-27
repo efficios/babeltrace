@@ -205,7 +205,7 @@ do {									\
 	_ctf_bitfield_write_le(ptr, _start, _length, _v)
 	
 #define ctf_bitfield_write_be(ptr, _start, _length, _v)			\
-	_ctf_bitfield_write_be((uint8_t *) (ptr), _start, _length, _v)
+	_ctf_bitfield_write_be((unsigned char *) (ptr), _start, _length, _v)
 
 #elif (BYTE_ORDER == BIG_ENDIAN)
 
@@ -213,7 +213,7 @@ do {									\
 	_ctf_bitfield_write_be(ptr, _start, _length, _v)
 
 #define ctf_bitfield_write_le(ptr, _start, _length, _v)			\
-	_ctf_bitfield_write_le((uint8_t *) (ptr), _start, _length, _v)
+	_ctf_bitfield_write_le((unsigned char *) (ptr), _start, _length, _v)
 	
 #define ctf_bitfield_write_be(ptr, _start, _length, _v)			\
 	_ctf_bitfield_write_be(ptr, _start, _length, _v)
@@ -368,7 +368,7 @@ do {									\
 	_ctf_bitfield_read_le(ptr, _start, _length, _vptr)
 	
 #define ctf_bitfield_read_be(ptr, _start, _length, _vptr)		\
-	_ctf_bitfield_read_be((const uint8_t *) (ptr), _start, _length, _vptr)
+	_ctf_bitfield_read_be((const unsigned char *) (ptr), _start, _length, _vptr)
 
 #elif (BYTE_ORDER == BIG_ENDIAN)
 
@@ -376,7 +376,7 @@ do {									\
 	_ctf_bitfield_read_be(ptr, _start, _length, _vptr)
 
 #define ctf_bitfield_read_le(ptr, _start, _length, _vptr)		\
-	_ctf_bitfield_read_le((const uint8_t *) (ptr), _start, _length, _vptr)
+	_ctf_bitfield_read_le((const unsigned char *) (ptr), _start, _length, _vptr)
 	
 #define ctf_bitfield_read_be(ptr, _start, _length, _vptr)		\
 	_ctf_bitfield_read_be(ptr, _start, _length, _vptr)

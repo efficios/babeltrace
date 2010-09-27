@@ -6,16 +6,28 @@
  *
  * Bitfields read/write functions.
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
- * Dual LGPL v2.1/GPL v2 license.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 #include <ctf/bitfield.h>
 #include <endian.h>
 
 static inline
-uint64_t ctf_bitfield_unsigned_read(const uint8_t *ptr,
+uint64_t ctf_bitfield_unsigned_read(const unsigned char *ptr,
 				    unsigned long start, unsigned long len,
 				    int byte_order)
 {
@@ -29,7 +41,7 @@ uint64_t ctf_bitfield_unsigned_read(const uint8_t *ptr,
 }
 
 static inline
-int64_t ctf_bitfield_signed_read(const uint8_t *ptr,
+int64_t ctf_bitfield_signed_read(const unsigned char *ptr,
 				 unsigned long start, unsigned long len,
 				 int byte_order)
 {
@@ -43,7 +55,7 @@ int64_t ctf_bitfield_signed_read(const uint8_t *ptr,
 }
 
 static inline
-size_t ctf_bitfield_unsigned_write(uint8_t *ptr,
+size_t ctf_bitfield_unsigned_write(unsigned char *ptr,
 				   unsigned long start, unsigned long len,
 				   int byte_order, uint64_t v)
 {
@@ -58,7 +70,7 @@ end:
 }
 
 static inline
-size_t ctf_bitfield_signed_write(uint8_t *ptr,
+size_t ctf_bitfield_signed_write(unsigned char *ptr,
 				 unsigned long start, unsigned long len,
 				 int byte_order, int64_t v)
 {

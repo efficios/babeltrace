@@ -3,16 +3,35 @@
  *
  * Floating point read/write functions.
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  * Reference: ISO C99 standard 5.2.4
- *
- * Dual LGPL v2.1/GPL v2 license.
  */
 
 #include <ctf/ctf-types.h>
 #include <glib.h>
+#include <float.h>	/* C99 floating point definitions */
 #include <endian.h>
+
+/*
+ * This library is limited to binary representation of floating point values.
+ * Sign-extension of the exponents is assumed to keep the NaN, +inf, -inf
+ * values, but this should be double-checked (TODO).
+ */
 
 /*
  * Aliasing float/double and unsigned long is not strictly permitted by strict
@@ -24,14 +43,11 @@
 #define HAS_TYPE_PRUNING
 #endif
 
-union floatIEEE754 {
-	float v;
-#ifdef HAS_TYPE_PRUNING
-	unsigned long bits[(sizeof(float) + sizeof(unsigned long) - 1) / sizeof(unsigned long)];
-#else
-	unsigned char bits[sizeof(float)];
+#if (FLT_RADIX != 2)
+
+#error "Unsupported floating point radix"
+
 #endif
-};
 
 union doubleIEEE754 {
 	double v;
@@ -42,179 +58,125 @@ union doubleIEEE754 {
 #endif
 };
 
-double float_read(const uint8_t *ptr, size_t len, int byte_order)
+union ldoubleIEEE754 {
+	long double v;
+#ifdef HAS_TYPE_PRUNING
+	unsigned long bits[(sizeof(long double) + sizeof(unsigned long) - 1) / sizeof(unsigned long)];
+#else
+	unsigned char bits[sizeof(long double)];
+#endif
+};
+
+struct pos_len {
+	size_t sign_start, exp_start, mantissa_start, len;
+};
+
+void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
+		    const unsigned char *src, const struct ctf_float *src)
 {
-	int rbo = (byte_order != __FLOAT_WORD_ORDER);	/* reverse byte order */
+	unsigned long long tmp;
+	struct pos_len destpos, srcpos;
 
-	switch (len) {
-	case 32:
-	{
-		union floatIEEE754 u;
-		uint32_t tmp;
+	destpos.len = dest.exp_len + dest.mantissa_len;
+	if (dest.byte_order == LITTLE_ENDIAN) {
+		destpos.sign_start = destpos.len - 1;
+		destpos.exp_start = destpos.sign_start - dest->exp_len;
+		destpos.mantissa_start = 0;
+	} else {
+		destpos.sign_start = 0;
+		destpos.exp_start = 1;
+		destpos.mantissa_start = destpos.exp_start + dest->exp_len;
+	}
 
-		if (!rbo)
-			return (double) *(const float *) ptr;
-		/*
-		 * Need to reverse byte order. Read the opposite from our
-		 * architecture.
-		 */
-		if (__FLOAT_WORD_ORDER == LITTLE_ENDIAN) {
-			/* Read big endian */
-			tmp = bitfield_unsigned_read(ptr, 0, 1, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 31, 1, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 1, 8, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 23, 8, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 9, 23, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 23, LITTLE_ENDIAN,
-						tmp);
-		} else {
-			/* Read little endian */
-			tmp = bitfield_unsigned_read(ptr, 31, 1, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 1, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 23, 8, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 1, 8, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 0, 23, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 9, 23, BIG_ENDIAN,
-						tmp);
-		}
-		return (double) u.v;
+	srcpos.len = src.exp_len + src.mantissa_len;
+	if (src.byte_order == LITTLE_ENDIAN) {
+		srcpos.sign_start = srcpos.len - 1;
+		srcpos.exp_start = srcpos.sign_start - src->exp_len;
+		srcpos.mantissa_start = 0;
+	} else {
+		srcpos.sign_start = 0;
+		srcpos.exp_start = 1;
+		srcpos.mantissa_start = srcpos.exp_start + src->exp_len;
 	}
-	case 64:
-	{
-		union doubleIEEE754 u;
-		uint64_t tmp;
 
-		if (!rbo)
-			return (double) *(const double *) ptr;
-		/*
-		 * Need to reverse byte order. Read the opposite from our
-		 * architecture.
-		 */
-		if (__FLOAT_WORD_ORDER == LITTLE_ENDIAN) {
-			/* Read big endian */
-			tmp = bitfield_unsigned_read(ptr, 0, 1, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 63, 1, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 1, 11, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 52, 11, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 12, 52, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 52, LITTLE_ENDIAN,
-						tmp);
-		} else {
-			/* Read little endian */
-			tmp = bitfield_unsigned_read(ptr, 63, 1, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 1, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 52, 11, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 1, 11, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 0, 52, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 12, 52, BIG_ENDIAN,
-						tmp);
-		}
-		return u.v;
-	}
-	default:
-		printf("float read unavailable for size %u\n", len);
-		assert(0);
-	}
+	/* sign */
+	tmp = bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
+				     src->byte_order);
+	bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
+				dest->byte_order, tmp);
+
+	/* mantissa (except sign). No sign extend. */
+	tmp = bitfield_unsigned_read(ptr, srcpos.mantissa_start,
+				     src->mantissa_len - 1, src->byte_order);
+	bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
+				dest->mantissa_len - 1, dest->byte_order, tmp);
+
+	/* exponent, with sign-extend. */
+	tmp = bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
+				   src->byte_order);
+	bitfield_signed_write(&u.bits, destpos.exp_start, dest->exp_len,
+			      dest->byte_order, tmp);
 }
 
-size_t float_write(uint8_t *ptr, size_t len, int byte_order, double v)
+double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
 {
-	int rbo = (byte_order != __FLOAT_WORD_ORDER);	/* reverse byte order */
+	union doubleIEEE754 u;
+	struct ctf_float dest = {
+		.exp_len = sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
+		.mantissa_len = DBL_MANT_DIG,
+		.byte_order = BYTE_ORDER,
+	};
+
+	float_copy(&u.bits, &dest, ptr, src);
+	return u.v;
+}
+
+size_t ctf_double_write(unsigned char *ptr, const struct ctf_float *dest,
+		        double v)
+{
+	union doubleIEEE754 u;
+	struct ctf_float src = {
+		.exp_len = sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
+		.mantissa_len = DBL_MANT_DIG,
+		.byte_order = BYTE_ORDER,
+	};
 
 	if (!ptr)
 		goto end;
+	u.v = v;
+	float_copy(ptr, dest, &u.bits, &src);
+end:
+	return len;
+}
 
-	switch (len) {
-	case 32:
-	{
-		union floatIEEE754 u;
-		uint32_t tmp;
+long double ctf_ldouble_read(const unsigned char *ptr,
+			     const struct ctf_float *src)
+{
+	union ldoubleIEEE754 u;
+	struct ctf_float dest = {
+		.exp_len = sizeof(double) * CHAR_BIT - LDBL_MANT_DIG,
+		.mantissa_len = LDBL_MANT_DIG,
+		.byte_order = BYTE_ORDER,
+	};
 
-		if (!rbo) {
-			*(float *) ptr = (float) v;
-			break;
-		}
-		u.v = v;
-		/*
-		 * Need to reverse byte order. Write the opposite from our
-		 * architecture.
-		 */
-		if (__FLOAT_WORD_ORDER == LITTLE_ENDIAN) {
-			/* Write big endian */
-			tmp = bitfield_unsigned_read(ptr, 31, 1, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 1, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 23, 8, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 1, 8, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 0, 23, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 9, 23, BIG_ENDIAN,
-						tmp);
-		} else {
-			/* Write little endian */
-			tmp = bitfield_unsigned_read(ptr, 0, 1, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 31, 1, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 1, 8, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 23, 8, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 9, 23, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 23, LITTLE_ENDIAN,
-						tmp);
-		}
-		break;
-	}
-	case 64:
-	{
-		union doubleIEEE754 u;
-		uint64_t tmp;
+	float_copy(&u.bits, &dest, ptr, src);
+	return u.v;
+}
 
-		if (!rbo) {
-			*(double *) ptr = v;
-			break;
-		}
-		u.v = v;
-		/*
-		 * Need to reverse byte order. Write the opposite from our
-		 * architecture.
-		 */
-		if (__FLOAT_WORD_ORDER == LITTLE_ENDIAN) {
-			/* Write big endian */
-			tmp = bitfield_unsigned_read(ptr, 63, 1, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 1, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 52, 11, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 1, 11, BIG_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 0, 52, LITTLE_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 12, 52, BIG_ENDIAN,
-						tmp);
-		} else {
-			/* Write little endian */
-			tmp = bitfield_unsigned_read(ptr, 0, 1, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 63, 1, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 1, 11, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 52, 11, LITTLE_ENDIAN,
-						tmp);
-			tmp = bitfield_unsigned_read(ptr, 12, 52, BIG_ENDIAN);
-			bitfield_unsigned_write(&u.bits, 0, 52, LITTLE_ENDIAN,
-						tmp);
-		}
-		break;
-	}
-	default:
-		printf("float write unavailable for size %u\n", len);
-		assert(0);
-	}
+size_t ctf_ldouble_write(unsigned char *ptr, const struct ctf_float *dest,
+		         long double v)
+{
+	union ldoubleIEEE754 u;
+	struct ctf_float src = {
+		.exp_len = sizeof(double) * CHAR_BIT - LDBL_MANT_DIG,
+		.mantissa_len = LDBL_MANT_DIG,
+		.byte_order = BYTE_ORDER,
+	};
+
+	if (!ptr)
+		goto end;
+	u.v = v;
+	float_copy(ptr, dest, &u.bits, &src);
 end:
 	return len;
 }

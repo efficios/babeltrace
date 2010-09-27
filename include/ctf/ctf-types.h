@@ -6,24 +6,39 @@
  *
  * Type header
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
- * Dual LGPL v2.1/GPL v2 license.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 #include <stdint.h>
 #include <glib.h>
 
 /*
- * All write primitives,(as well as read for dynamically sized entities, can
+ * IMPORTANT: All lengths (len) and offsets (start, end) are expressed in bits,
+ *            *not* in bytes.
+ *
+ * All write primitives, as well as read for dynamically sized entities, can
  * receive a NULL ptr/dest parameter. In this case, no write is performed, but
  * the size is returned.
  */
 
-uint64_t ctf_uint_read(const uint8_t *ptr, int byte_order, size_t len);
-int64_t ctf_int_read(const uint8_t *ptr, int byte_order, size_t len);
-size_t ctf_uint_write(uint8_t *ptr, int byte_order, size_t len, uint64_t v);
-size_t ctf_int_write(uint8_t *ptr, int byte_order, size_t len, int64_t v);
+uint64_t ctf_uint_read(const unsigned char *ptr, int byte_order, size_t len);
+int64_t ctf_int_read(const unsigned char *ptr, int byte_order, size_t len);
+size_t ctf_uint_write(unsigned char *ptr, int byte_order, size_t len, uint64_t v);
+size_t ctf_int_write(unsigned char *ptr, int byte_order, size_t len, int64_t v);
 
 /*
  * ctf-types-bitfield.h declares:
@@ -35,10 +50,22 @@ size_t ctf_int_write(uint8_t *ptr, int byte_order, size_t len, int64_t v);
  */
 #include <ctf/ctf-types-bitfield.h>
 
-double ctf_float_read(const uint8_t *ptr, int byte_order, size_t len);
-size_t ctf_float_write(uint8_t *ptr, int byte_order, size_t len, double v);
+double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
+size_t ctf_double_write(unsigned char *ptr, const struct ctf_float *dest,
+		        double v);
+long double ctf_ldouble_read(const unsigned char *ptr,
+			     const struct ctf_float *src)
+size_t ctf_ldouble_write(unsigned char *ptr, const struct ctf_float *dest,
+		         long double v);
+struct ctf_float {
+	size_t exp_len;
+	size_t mantissa_len;	/* Including sign bit */
+	int byte_order;
+};
+void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
+		    const unsigned char *srcp, const struct ctf_float *src);
 
-size_t ctf_string_copy(char *dest, const char *src);
+size_t ctf_string_copy(unsigned char *dest, const unsigned char *src);
 
 /*
  * A GQuark can be translated to/from strings with g_quark_from_string() and
