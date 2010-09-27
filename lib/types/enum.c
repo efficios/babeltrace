@@ -160,10 +160,10 @@ struct enum_table *enum_new(void)
 	struct enum_table *table;
 
 	table = g_new(struct enum_table, 1);
-	table->value_to_quark = g_hash_table_new_full(enum_val_hash,
-						      enum_val_equal,
-						      enum_val_free, NULL);
-	table->quark_to_value = g_hash_table_new(g_direct_hash, g_direct_equal);
+	table->value_to_quark = g_hash_table(enum_val_hash, enum_val_equal);
+	table->quark_to_value = g_hash_table_new_full(g_direct_hash,
+						      g_direct_equal,
+						      NULL, enum_val_free);
 }
 
 void enum_destroy(struct enum_table *table)
