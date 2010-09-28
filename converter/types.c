@@ -1,5 +1,5 @@
 /*
- * Common Trace Format
+ * Common Trace Format - Converter
  *
  * Types registry.
  *
