@@ -1,0 +1,7 @@
+BabelTrace - Trace Format Babel Tower
+Mathieu Desnoyers, EfficiOS Inc.
+September 2010
+
+This project provides trace read and write libraries, as well as a trace
+converter. A plugin can be created for any trace format to allow its conversion
+to/from another trace format.

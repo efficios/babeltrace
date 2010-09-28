@@ -1,7 +1,10 @@
+#ifndef _BABELTRACE_TYPES_H
+#define _BABELTRACE_TYPES_H
+
 /*
- * Common Trace Format
+ * BabelTrace
  *
- * Strings read/write functions.
+ * Type header
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -20,16 +23,4 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <babeltrace/ctf/types.h>
-#include <string.h>
-
-size_t string_copy(char *dest, const char *src)
-{
-	size_t len = strlen(src) + 1;
-
-	if (!dest)
-		goto end;
-	strcpy(dest, src);
-end:
-	return len * 8;
-}
+#endif /* _BABELTRACE_TYPES_H */

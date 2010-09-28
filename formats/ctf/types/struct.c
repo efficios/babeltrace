@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <ctf/ctf-types.h>
+#include <babeltrace/ctf/types.h>
 #include <glib.h>
 
 

@@ -22,7 +22,7 @@
  * Reference: ISO C99 standard 5.2.4
  */
 
-#include <ctf/ctf-types.h>
+#include <babeltrace/ctf/types.h>
 #include <glib.h>
 #include <float.h>	/* C99 floating point definitions */
 #include <endian.h>
@@ -103,22 +103,24 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 	}
 
 	/* sign */
-	tmp.u = bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
-				       src->byte_order);
-	bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
-				dest->byte_order, tmp.u);
+	tmp.u = ctf_bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
+					   src->byte_order);
+	ctf_bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
+				    dest->byte_order, tmp.u);
 
 	/* mantissa (without leading 1). No sign extend. */
-	tmp.u = bitfield_unsigned_read(ptr, srcpos.mantissa_start,
-				       src->mantissa_len - 1, src->byte_order);
-	bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
-				dest->mantissa_len - 1, dest->byte_order, tmp.u);
+	tmp.u = ctf_bitfield_unsigned_read(ptr, srcpos.mantissa_start,
+					   src->mantissa_len - 1,
+					   src->byte_order);
+	ctf_bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
+				    dest->mantissa_len - 1, dest->byte_order,
+				    tmp.u);
 
 	/* exponent, with sign-extend. */
-	tmp.s = bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
-				     src->byte_order);
-	bitfield_signed_write(&u.bits, destpos.exp_start, dest->exp_len,
-			      dest->byte_order, tmp.s);
+	tmp.s = ctf_bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
+					 src->byte_order);
+	ctf_bitfield_signed_write(&u.bits, destpos.exp_start, dest->exp_len,
+				  dest->byte_order, tmp.s);
 }
 
 double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
@@ -130,7 +132,7 @@ double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
 		.byte_order = BYTE_ORDER,
 	};
 
-	float_copy(&u.bits, &dest, ptr, src);
+	ctf_float_copy(&u.bits, &dest, ptr, src);
 	return u.v;
 }
 
@@ -147,7 +149,7 @@ size_t ctf_double_write(unsigned char *ptr, const struct ctf_float *dest,
 	if (!ptr)
 		goto end;
 	u.v = v;
-	float_copy(ptr, dest, &u.bits, &src);
+	ctf_float_copy(ptr, dest, &u.bits, &src);
 end:
 	return len;
 }
@@ -162,7 +164,7 @@ long double ctf_ldouble_read(const unsigned char *ptr,
 		.byte_order = BYTE_ORDER,
 	};
 
-	float_copy(&u.bits, &dest, ptr, src);
+	ctf_float_copy(&u.bits, &dest, ptr, src);
 	return u.v;
 }
 
@@ -179,7 +181,7 @@ size_t ctf_ldouble_write(unsigned char *ptr, const struct ctf_float *dest,
 	if (!ptr)
 		goto end;
 	u.v = v;
-	float_copy(ptr, dest, &u.bits, &src);
+	ctf_float_copy(ptr, dest, &u.bits, &src);
 end:
 	return len;
 }

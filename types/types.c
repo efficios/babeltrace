@@ -1,5 +1,5 @@
 /*
- * Common Trace Format - Converter
+ * BabelTrace - Converter
  *
  * Types registry.
  *

@@ -1,5 +1,5 @@
-#ifndef _CTF_TYPES_BITFIELD_H
-#define _CTF_TYPES_BITFIELD_H
+#ifndef _BABELTRACE_CTF_TYPES_BITFIELD_H
+#define _BABELTRACE_CTF_TYPES_BITFIELD_H
 
 /*
  * Common Trace Format
@@ -84,4 +84,4 @@ end:
 	return len;
 }
 
-#endif /* _CTF_TYPES_BITFIELD_H */
+#endif /* _BABELTRACE_CTF_TYPES_BITFIELD_H */

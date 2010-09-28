@@ -1,5 +1,5 @@
-#ifndef _CTF_TYPES_H
-#define _CTF_TYPES_H
+#ifndef _BABELTRACE_CTF_TYPES_H
+#define _BABELTRACE_CTF_TYPES_H
 
 /*
  * Common Trace Format
@@ -80,4 +80,4 @@ void ctf_enum_unsigned_insert(struct enum_table *table, uint64_t v, GQuark q);
 struct enum_table *ctf_enum_new(void);
 void ctf_enum_destroy(struct enum_table *table);
 
-#endif /* _CTF_TYPES_H */
+#endif /* _BABELTRACE_CTF_TYPES_H */

@@ -1,7 +1,7 @@
 /*
  * test-bitfield.c
  *
- * Common Trace Format - bitfield test program
+ * BabelTrace - bitfield test program
  *
  * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -21,7 +21,7 @@
  */
 
 #define _GNU_SOURCE
-#include <ctf/bitfield.h>
+#include <babeltrace/bitfield.h>
 #include <stdio.h>
 
 unsigned int glob;
@@ -32,7 +32,7 @@ unsigned int glob;
  */
 void fct(void)
 {
-	ctf_bitfield_write(&glob, 12, 15, 0x12345678);
+	bt_bitfield_write(&glob, 12, 15, 0x12345678);
 }
 
 /* Test array size, in bytes */
@@ -139,8 +139,8 @@ int run_test_unsigned(void)
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
 		for (l = nrbits; l < (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
-			ctf_bitfield_write(target.c, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.c, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -149,8 +149,8 @@ int run_test_unsigned(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
-			ctf_bitfield_write(target.s, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.s, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -159,8 +159,8 @@ int run_test_unsigned(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
-			ctf_bitfield_write(target.i, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.i, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -169,8 +169,8 @@ int run_test_unsigned(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
-			ctf_bitfield_write(target.l, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.l, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -179,8 +179,8 @@ int run_test_unsigned(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
-			ctf_bitfield_write(target.ll, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.ll, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -221,8 +221,8 @@ int run_test_signed(void)
 	for (s = 0; s < 8 * TEST_LEN; s++) {
 		for (l = nrbits; l < (8 * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0x0);
-			ctf_bitfield_write(target.c, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.c, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -231,8 +231,8 @@ int run_test_signed(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
-			ctf_bitfield_write(target.s, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.s, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -241,8 +241,8 @@ int run_test_signed(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
-			ctf_bitfield_write(target.i, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.i, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -251,8 +251,8 @@ int run_test_signed(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
-			ctf_bitfield_write(target.l, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.l, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -261,8 +261,8 @@ int run_test_signed(void)
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
-			ctf_bitfield_write(target.ll, s, l, src);
-			ctf_bitfield_read(target.c, s, l, &readval);
+			bt_bitfield_write(target.ll, s, l, src);
+			bt_bitfield_read(target.c, s, l, &readval);
 			if (readval != src) {
 				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
 				       src, readval, s, l);
@@ -335,35 +335,35 @@ int main(int argc, char **argv)
 
 	target.i[0] = 0xFFFFFFFF;
 	target.i[1] = 0xFFFFFFFF;
-	ctf_bitfield_write(target.c, shift, len, src);
+	bt_bitfield_write(target.c, shift, len, src);
 	printf("bytewise\n");
 	print_byte_array(target.c, 8);
 
 	target.i[0] = 0xFFFFFFFF;
 	target.i[1] = 0xFFFFFFFF;
-	ctf_bitfield_write(target.s, shift, len, src);
+	bt_bitfield_write(target.s, shift, len, src);
 	printf("shortwise\n");
 	print_byte_array(target.c, 8);
 
 	target.i[0] = 0xFFFFFFFF;
 	target.i[1] = 0xFFFFFFFF;
-	ctf_bitfield_write(target.i, shift, len, src);
+	bt_bitfield_write(target.i, shift, len, src);
 	printf("intwise\n");
 	print_byte_array(target.c, 8);
 
 	target.i[0] = 0xFFFFFFFF;
 	target.i[1] = 0xFFFFFFFF;
-	ctf_bitfield_write(target.l, shift, len, src);
+	bt_bitfield_write(target.l, shift, len, src);
 	printf("longwise\n");
 	print_byte_array(target.c, 8);
 
 	target.i[0] = 0xFFFFFFFF;
 	target.i[1] = 0xFFFFFFFF;
-	ctf_bitfield_write(target.ll, shift, len, src);
+	bt_bitfield_write(target.ll, shift, len, src);
 	printf("lluwise\n");
 	print_byte_array(target.c, 8);
 
-	ctf_bitfield_read(target.c, shift, len, &readval);
+	bt_bitfield_read(target.c, shift, len, &readval);
 	printf("read: %llX\n", readval);
 
 	ret = run_test();

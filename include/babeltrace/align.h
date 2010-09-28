@@ -1,8 +1,8 @@
-#ifndef _CTF_ALIGN_H
-#define _CTF_ALIGN_H
+#ifndef _BABELTRACE_ALIGN_H
+#define _BABELTRACE_ALIGN_H
 
 /*
- * align.h - alignment header
+ * BabelTrace align.h - alignment header
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -69,4 +69,4 @@
 		(((align_drift) - (alignment)) & ((alignment) - 1);	       \
 	})
 
-#endif /* _CTF_ALIGN_H */
+#endif /* _BABELTRACE_ALIGN_H */
