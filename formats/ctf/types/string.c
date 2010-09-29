@@ -21,6 +21,7 @@
  */
 
 #include <babeltrace/ctf/types.h>
+#include <limits.h>		/* C99 limits */
 #include <string.h>
 
 size_t string_copy(char *dest, const char *src)
@@ -31,5 +32,5 @@ size_t string_copy(char *dest, const char *src)
 		goto end;
 	strcpy(dest, src);
 end:
-	return len * 8;
+	return len * CHAR_BIT;
 }
