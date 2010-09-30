@@ -50,3 +50,5 @@ void ctf_init(void)
 	ret = bt_register_format(&ctf_format);
 	assert(!ret);
 }
+
+/* TODO: finalize */

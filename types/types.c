@@ -25,31 +25,26 @@
 #include <errno.h>
 
 /*
- * Type class hash table contains the registered type classes. Type class
- * registration is typically performed by a plugin.
- * TODO: support plugin unload (unregistration of type classes).
+ * Type hash table contains the registered types. Type registration is typically
+ * performed by a type plugin.
+ * TODO: support plugin unload (unregistration of types).
  */
-GHashTable *type_classes;
+GHashTable *types;
 
-struct type_class *ctf_lookup_type_class(GQuark qname)
+struct type_class *ctf_lookup_type(GQuark qname)
 {
 	return g_hash_table_lookup(type_classes,
 				   (gconstpointer) (unsigned long) qname)
 }
 
-int ctf_register_type_class(const char *name,
-			    void (*read)(),
-			    void (*write)())
+int ctf_register_type(struct type_class *type_class)
 {
-	struct type_class tc = g_new(struct type_class, 1);
-	GQuark qname = g_quark_from_string(name);
-
-	if (ctf_lookup_type_class(qname))
+	if (ctf_lookup_type_class(type_class->name))
 		return -EEXIST;
 
 	g_hash_table_insert(type_classes,
-			    (gconstpointer) (unsigned long) qname,
-			    tc);
+			    (gconstpointer) (unsigned long) type_class->name,
+			    type_class);
 	return 0;
 }
 

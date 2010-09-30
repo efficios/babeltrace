@@ -44,10 +44,16 @@ struct type_class_integer {
 	int signedness;
 };
 
+int integer_type_new(const char *name, size_t len, int byte_order,
+		     int signedness);
+
 struct type_class_bitfield {
 	struct type_class_integer p;
 	size_t start_offset;	/* offset from base address, in bits */
 };
+
+int bitfield_type_new(const char *name, size_t start_offset,
+		      size_t len, int byte_order, int signedness);
 
 struct type_class_float {
 	struct type_class p;
@@ -65,5 +71,8 @@ struct type_class_struct {
 	struct type_class p;
 	/* TODO */
 };
+
+struct type_class *ctf_lookup_type(GQuark qname);
+int ctf_register_type(struct type_class *type_class);
 
 #endif /* _BABELTRACE_TYPES_H */

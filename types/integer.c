@@ -19,26 +19,54 @@
  */
 
 #include <babeltrace/compiler.h>
+#include <babeltrace/align.h>
 #include <stdint.h>
 
-size_t copy_integer(unsigned char *dest, const struct format *fdest, 
+size_t integer_copy(unsigned char *dest, const struct format *fdest, 
 		    const unsigned char *src, const struct format *fsrc,
 		    const struct type_class *type_class)
 {
 	struct type_class_integer *int_class =
 		container_of(type_class, struct type_class_integer, p);
 
+	if (fsrc->p.alignment)
+		src = PTR_ALIGN(src, fsrc->p.alignment / CHAR_BIT);
+	if (fdest->p.alignment)
+		dest = PTR_ALIGN(dest, fdest->p.alignment / CHAR_BIT);
+
 	if (!int_class->signedness) {
 		uint64_t v;
 
-		v = fsrc->uint_read(src, int_class->byte_order, int_class->len);
-		return fdest->uint_write(dest, int_class->byte_order,
-					 int_class->len, v);
+		v = fsrc->uint_read(src, int_class->len, int_class->byte_order);
+		return fdest->uint_write(dest, int_class->len, int_class->byte_order, v);
 	} else {
 		int64_t v;
 
-		v = fsrc->int_read(src, int_class->byte_order, int_class->len);
-		return fdest->int_write(dest, int_class->byte_order,
-					int_class->len, v);
+		v = fsrc->int_read(src, int_class->len, int_class->byte_order);
+		return fdest->int_write(dest, int_class->len, int_class->byte_order, v);
 	}
 }
+
+int integer_type_new(const char *name, size_t alignment, size_t len,
+		     int byte_order, int signedness)
+{
+	struct type_class_integer int_class;
+	int ret;
+
+	/*
+	 * Freed when type is unregistered.
+	 */
+	int_class = g_new(struct type_class_integer, 1);
+	int_class->p.name = g_quark_from_string(name);
+	int_class->p.alignment = alignment;
+	int_class->p.copy = integer_copy;
+	int_class->len = len;
+	int_class->byte_order = byte_order;
+	int_class->signedness = signedness;
+	ret = ctf_register_type(&int_class.p);
+	if (ret)
+		g_free(int_class);
+	return ret;
+}
+
+/* TODO: integer_type_free */
