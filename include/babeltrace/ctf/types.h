@@ -53,11 +53,11 @@ size_t ctf_bitfield_signed_write(unsigned char *ptr,
 				 unsigned long start, unsigned long len,
 				 int byte_order, int64_t v);
 
-double ctf_double_read(const unsigned char *ptr, const struct type_class_float *src)
+double ctf_double_read(const unsigned char *ptr, const struct type_class_float *src);
 size_t ctf_double_write(unsigned char *ptr, const struct type_class_float *dest,
 		        double v);
 long double ctf_ldouble_read(const unsigned char *ptr,
-			     const struct type_class_float *src)
+			     const struct type_class_float *src);
 size_t ctf_ldouble_write(unsigned char *ptr, const struct type_class_float *dest,
 		         long double v);
 void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,

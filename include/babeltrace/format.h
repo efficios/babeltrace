@@ -50,6 +50,10 @@ struct format {
 
 	void (*float_copy)(unsigned char *destp, const struct type_class_float *dest,
 		    const unsigned char *srcp, const struct type_class_float *src);
+	double (*double_read)(const unsigned char *ptr, const struct type_class_float *src);
+	size_t (*double_write)(unsigned char *ptr, const struct type_class_float *dest,
+		        double v);
+
 
 	size_t (*string_copy)(unsigned char *dest, const unsigned char *src);
 

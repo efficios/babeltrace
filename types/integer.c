@@ -47,10 +47,13 @@ size_t integer_copy(unsigned char *dest, const struct format *fdest,
 	}
 }
 
-int integer_type_new(const char *name, size_t alignment, size_t len,
-		     int byte_order, int signedness)
+struct type_class_integer *integer_type_new(const char *name,
+					    size_t start_offset,
+					    size_t len, int byte_order,
+					    int signedness,
+					    size_t alignment)
 {
-	struct type_class_integer int_class;
+	struct type_class_integer *int_class;
 	int ret;
 
 	/*
@@ -63,10 +66,18 @@ int integer_type_new(const char *name, size_t alignment, size_t len,
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
-	ret = ctf_register_type(&int_class.p);
-	if (ret)
-		g_free(int_class);
-	return ret;
+	if (int_class->p.name) {
+		ret = ctf_register_type(&int_class.p);
+		if (ret) {
+			g_free(int_class);
+			return NULL;
+		}
+	}
+	return int_class;
 }
 
-/* TODO: integer_type_free */
+void integer_type_free(struct type_class_integer *int_class)
+{
+	if (!int_class->name)
+		g_free(int_class);
+}

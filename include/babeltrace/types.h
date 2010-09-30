@@ -44,22 +44,17 @@ struct type_class_integer {
 	int signedness;
 };
 
-int integer_type_new(const char *name, size_t len, int byte_order,
-		     int signedness);
-
 struct type_class_bitfield {
 	struct type_class_integer p;
 	size_t start_offset;	/* offset from base address, in bits */
 };
-
-int bitfield_type_new(const char *name, size_t start_offset,
-		      size_t len, int byte_order, int signedness);
 
 struct type_class_float {
 	struct type_class p;
 	size_t mantissa_len;
 	size_t exp_len;
 	int byte_order;
+	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
 
 struct type_class_enum {
@@ -74,5 +69,25 @@ struct type_class_struct {
 
 struct type_class *ctf_lookup_type(GQuark qname);
 int ctf_register_type(struct type_class *type_class);
+
+/* Nameless types can be created by passing a NULL name */
+
+struct type_class_integer *integer_type_new(const char *name,
+					    size_t start_offset,
+					    size_t len, int byte_order,
+					    int signedness);
+void integer_type_free(struct type_class_integer *int_class);
+
+struct type_class_bitfield *bitfield_type_new(const char *name,
+					      size_t start_offset,
+					      size_t len, int byte_order,
+					      int signedness);
+void bitfield_type_free(struct type_class_bitfield *bitfield_class);
+
+struct type_class_float *float_type_new(const char *name,
+					size_t mantissa_len,
+					size_t exp_len, int byte_order,
+					size_t alignment);
+void float_type_free(struct type_class_float *float_class);
 
 #endif /* _BABELTRACE_TYPES_H */
