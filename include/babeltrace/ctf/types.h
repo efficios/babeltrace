@@ -65,17 +65,9 @@ void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,
 
 size_t ctf_string_copy(unsigned char *dest, const unsigned char *src);
 
-/*
- * A GQuark can be translated to/from strings with g_quark_from_string() and
- * g_quark_to_string().
- */
-GQuark ctf_enum_uint_to_quark(const struct enum_table *table, uint64_t v);
-GQuark ctf_enum_int_to_quark(const struct enum_table *table, uint64_t v);
-uint64_t ctf_enum_quark_to_uint(size_t len, int byte_order, GQuark q);
-int64_t ctf_enum_quark_to_int(size_t len, int byte_order, GQuark q);
-void ctf_enum_signed_insert(struct enum_table *table, int64_t v, GQuark q);
-void ctf_enum_unsigned_insert(struct enum_table *table, uint64_t v, GQuark q);
-struct enum_table *ctf_enum_new(void);
-void ctf_enum_destroy(struct enum_table *table);
+GQuark ctf_enum_read(const unsigned char *ptr,
+		     const struct type_class_enum *src);
+size_t ctf_enum_write(unsigned char *ptr, const struct type_class_enum *dest,
+		      GQuark q);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

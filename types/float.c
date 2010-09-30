@@ -19,6 +19,7 @@
  */
 
 #include <babeltrace/compiler.h>
+#include <babeltrace/types.h>
 
 size_t float_copy(unsigned char *dest, const struct format *fdest, 
 		  const unsigned char *src, const struct format *fsrc,
@@ -46,9 +47,6 @@ struct type_class_float *float_type_new(const char *name,
 	struct type_class_float *float_class;
 	int ret;
 
-	/*
-	 * Freed when type is unregistered.
-	 */
 	float_class = g_new(struct type_class_float, 1);
 	float_class->p.name = g_quark_from_string(name);
 	float_class->p.alignment = alignment;
@@ -67,6 +65,5 @@ struct type_class_float *float_type_new(const char *name,
 
 void float_type_free(struct type_class_float *float_class)
 {
-	if (!float_class->name)
-		g_free(float_class);
+	g_free(float_class);
 }

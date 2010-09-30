@@ -38,10 +38,8 @@ static const struct format ctf_format = {
 	.double_write = ctf_double_write,
 	.float_copy = ctf_float_copy,
 	.string_copy = ctf_string_copy,
-	.enum_uint_to_quark = ctf_enum_uint_to_quark,
-	.enum_int_to_quark = ctf_enum_int_to_quark,
-	.enum_quark_to_uint = ctf_enum_quark_to_uint,
-	.enum_quark_to_int = ctf_enum_quark_to_int,
+	.enum_read = ctf_enum_read,
+	.enum_write = ctf_enum_write,
 };
 
 void ctf_init(void)

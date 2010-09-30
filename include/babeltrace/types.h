@@ -57,9 +57,14 @@ struct type_class_float {
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
 
+struct enum_table {
+	GHashTable *value_to_quark;	/* Tuples (value, GQuark) */
+	GHashTable *quark_to_value;	/* Tuples (GQuark, value) */
+};
+
 struct type_class_enum {
-	struct type_class_bitfield;	/* inherit from bitfield */
-	struct enum_table *table;
+	struct type_class_bitfield p;	/* inherit from bitfield */
+	struct enum_table table;
 };
 
 struct type_class_struct {
@@ -89,5 +94,27 @@ struct type_class_float *float_type_new(const char *name,
 					size_t exp_len, int byte_order,
 					size_t alignment);
 void float_type_free(struct type_class_float *float_class);
+
+/*
+ * A GQuark can be translated to/from strings with g_quark_from_string() and
+ * g_quark_to_string().
+ */
+GQuark enum_uint_to_quark(const struct type_class_enum *enum_class, uint64_t v);
+GQuark enum_int_to_quark(const struct type_class_enum *enum_class, uint64_t v);
+uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
+			    size_t len, int byte_order, GQuark q);
+int64_t enum_quark_to_int(const struct type_class_enum *enum_class,
+			  size_t len, int byte_order, GQuark q);
+void enum_signed_insert(struct type_class_enum *enum_class,
+			int64_t v, GQuark q);
+void enum_unsigned_insert(struct type_class_enum *enum_class,
+			  uint64_t v, GQuark q);
+
+struct type_class_enum *enum_type_new(const char *name,
+				      size_t start_offset,
+				      size_t len, int byte_order,
+				      int signedness,
+				      size_t alignment);
+void enum_type_free(struct type_class_enum *enum_class);
 
 #endif /* _BABELTRACE_TYPES_H */

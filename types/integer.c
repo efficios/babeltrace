@@ -20,6 +20,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 
 size_t integer_copy(unsigned char *dest, const struct format *fdest, 
@@ -56,9 +57,6 @@ struct type_class_integer *integer_type_new(const char *name,
 	struct type_class_integer *int_class;
 	int ret;
 
-	/*
-	 * Freed when type is unregistered.
-	 */
 	int_class = g_new(struct type_class_integer, 1);
 	int_class->p.name = g_quark_from_string(name);
 	int_class->p.alignment = alignment;
@@ -78,6 +76,5 @@ struct type_class_integer *integer_type_new(const char *name,
 
 void integer_type_free(struct type_class_integer *int_class)
 {
-	if (!int_class->name)
-		g_free(int_class);
+	g_free(int_class);
 }

@@ -19,6 +19,7 @@
  */
 
 #include <babeltrace/compiler.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 
 /*
@@ -83,9 +84,6 @@ struct type_class_bitfield *bitfield_type_new(const char *name,
 	struct type_class_integer *int_class;
 	int ret;
 
-	/*
-	 * Freed when type is unregistered.
-	 */
 	bitfield_class = g_new(struct type_class_bitfield, 1);
 	int_class = &bitfield_class->p;
 	int_class->p.name = g_quark_from_string(name);
@@ -106,6 +104,5 @@ struct type_class_bitfield *bitfield_type_new(const char *name,
 
 void bitfield_type_free(struct type_class_bitfield *bitfield_class)
 {
-	if (!bitfield_class->name)
-		g_free(bitfield_class);
+	g_free(bitfield_class);
 }
