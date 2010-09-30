@@ -39,6 +39,18 @@ size_t float_copy(unsigned char *dest, const struct format *fdest,
 	}
 }
 
+void float_type_free(struct type_class_float *float_class)
+{
+	g_free(float_class);
+}
+
+static void _float_type_free(struct type_class *type_class)
+{
+	struct type_class_float *float_class =
+		container_of(type_class, struct type_class_float, p);
+	float_type_free(float_class);
+}
+
 struct type_class_float *float_type_new(const char *name,
 					size_t mantissa_len,
 					size_t exp_len, int byte_order,
@@ -50,6 +62,8 @@ struct type_class_float *float_type_new(const char *name,
 	float_class = g_new(struct type_class_float, 1);
 	float_class->p.name = g_quark_from_string(name);
 	float_class->p.alignment = alignment;
+	float_class->p.copy = float_copy;
+	float_class->p.free = _float_type_free;
 	float_class->mantissa_len = mantissa_len;
 	float_class->exp_len = exp_len;
 	float_class->byte_order = byte_order;
@@ -61,9 +75,4 @@ struct type_class_float *float_type_new(const char *name,
 		}
 	}
 	return float_class;
-}
-
-void float_type_free(struct type_class_float *float_class)
-{
-	g_free(float_class);
 }

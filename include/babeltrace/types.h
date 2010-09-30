@@ -35,6 +35,7 @@ struct type_class {
 	size_t (*copy)(unsigned char *dest, const struct format *fdest, 
 		       const unsigned char *src, const struct format *fsrc,
 		       const struct type_class *type_class);
+	void (*free)(struct type_class *type_class);
 };
 
 struct type_class_integer {

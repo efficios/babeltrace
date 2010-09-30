@@ -37,6 +37,11 @@ struct type_class *ctf_lookup_type(GQuark qname)
 				   (gconstpointer) (unsigned long) qname)
 }
 
+static void free_type(struct type_class *type_class)
+{
+	type_class->free(type_class);
+}
+
 int ctf_register_type(struct type_class *type_class)
 {
 	if (ctf_lookup_type_class(type_class->name))
@@ -51,7 +56,7 @@ int ctf_register_type(struct type_class *type_class)
 int ctf_init_types(void)
 {
 	type_classes = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-					     NULL, g_free);
+					     NULL, free_type);
 	if (!type_classes)
 		return -ENOMEM;
 	return 0;

@@ -48,6 +48,18 @@ size_t integer_copy(unsigned char *dest, const struct format *fdest,
 	}
 }
 
+void integer_type_free(struct type_class_integer *int_class)
+{
+	g_free(int_class);
+}
+
+static void _integer_type_free(struct type_class *type_class)
+{
+	struct type_class_integer *int_class =
+		container_of(type_class, struct type_class_integer, p);
+	integer_type_free(int_class);
+}
+
 struct type_class_integer *integer_type_new(const char *name,
 					    size_t start_offset,
 					    size_t len, int byte_order,
@@ -61,6 +73,7 @@ struct type_class_integer *integer_type_new(const char *name,
 	int_class->p.name = g_quark_from_string(name);
 	int_class->p.alignment = alignment;
 	int_class->p.copy = integer_copy;
+	int_class->p.free = _integer_type_free;
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
@@ -72,9 +85,4 @@ struct type_class_integer *integer_type_new(const char *name,
 		}
 	}
 	return int_class;
-}
-
-void integer_type_free(struct type_class_integer *int_class)
-{
-	g_free(int_class);
 }

@@ -74,6 +74,18 @@ size_t bitfield_copy(unsigned char *dest, const struct format *fdest,
 	}
 }
 
+void bitfield_type_free(struct type_class_bitfield *bitfield_class)
+{
+	g_free(bitfield_class);
+}
+
+static void _bitfield_type_free(struct type_class *type_class)
+{
+	struct type_class_bitfield *bitfield_class =
+		container_of(type_class, struct type_class_bitfield, p);
+	bitfield_type_free(bitfield_class);
+}
+
 struct type_class_bitfield *bitfield_type_new(const char *name,
 					      size_t start_offset,
 					      size_t len, int byte_order,
@@ -88,6 +100,8 @@ struct type_class_bitfield *bitfield_type_new(const char *name,
 	int_class = &bitfield_class->p;
 	int_class->p.name = g_quark_from_string(name);
 	int_class->p.alignment = alignment;
+	int_class->p.copy = bitfield_copy;
+	int_class->p.free = _bitfield_type_free;
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
@@ -100,9 +114,4 @@ struct type_class_bitfield *bitfield_type_new(const char *name,
 		}
 	}
 	return bitfield_class;
-}
-
-void bitfield_type_free(struct type_class_bitfield *bitfield_class)
-{
-	g_free(bitfield_class);
 }
