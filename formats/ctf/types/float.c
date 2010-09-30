@@ -72,8 +72,8 @@ struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
 
-void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
-		    const unsigned char *src, const struct ctf_float *src)
+void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,
+		    const unsigned char *src, const struct type_class_float *src)
 {
 	struct pos_len destpos, srcpos;
 	union {
@@ -81,8 +81,8 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 		long long s;
 	} tmp;
 
-	destpos.len = dest.exp_len + dest.mantissa_len;
-	if (dest.byte_order == LITTLE_ENDIAN) {
+	destpos.len = dest->exp_len + dest->mantissa_len;
+	if (dest->byte_order == LITTLE_ENDIAN) {
 		destpos.sign_start = destpos.len - 1;
 		destpos.exp_start = destpos.sign_start - dest->exp_len;
 		destpos.mantissa_start = 0;
@@ -92,8 +92,8 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 		destpos.mantissa_start = destpos.exp_start + dest->exp_len;
 	}
 
-	srcpos.len = src.exp_len + src.mantissa_len;
-	if (src.byte_order == LITTLE_ENDIAN) {
+	srcpos.len = src->exp_len + src->mantissa_len;
+	if (src->byte_order == LITTLE_ENDIAN) {
 		srcpos.sign_start = srcpos.len - 1;
 		srcpos.exp_start = srcpos.sign_start - src->exp_len;
 		srcpos.mantissa_start = 0;
@@ -124,7 +124,7 @@ void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
 				  dest->byte_order, tmp.s);
 }
 
-double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
+double ctf_double_read(const unsigned char *ptr, const struct type_class_float *src)
 {
 	union doubleIEEE754 u;
 	struct ctf_float dest = {
@@ -137,7 +137,7 @@ double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
 	return u.v;
 }
 
-size_t ctf_double_write(unsigned char *ptr, const struct ctf_float *dest,
+size_t ctf_double_write(unsigned char *ptr, const struct type_class_float *dest,
 		        double v)
 {
 	union doubleIEEE754 u;
@@ -156,7 +156,7 @@ end:
 }
 
 long double ctf_ldouble_read(const unsigned char *ptr,
-			     const struct ctf_float *src)
+			     const struct type_class_float *src)
 {
 	union ldoubleIEEE754 u;
 	struct ctf_float dest = {
@@ -169,7 +169,7 @@ long double ctf_ldouble_read(const unsigned char *ptr,
 	return u.v;
 }
 
-size_t ctf_ldouble_write(unsigned char *ptr, const struct ctf_float *dest,
+size_t ctf_ldouble_write(unsigned char *ptr, const struct type_class_float *dest,
 		         long double v)
 {
 	union ldoubleIEEE754 u;

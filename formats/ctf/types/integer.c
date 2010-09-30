@@ -25,7 +25,7 @@
 #include <glib.h>
 #include <endian.h>
 
-uint64_t uint_read(const uint8_t *ptr, size_t len, int byte_order)
+uint64_t ctf_uint_read(const uint8_t *ptr, size_t len, int byte_order)
 {
 	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
 
@@ -63,7 +63,7 @@ uint64_t uint_read(const uint8_t *ptr, size_t len, int byte_order)
 	}
 }
 
-int64_t int_read(const uint8_t *ptr, size_t len, int byte_order)
+int64_t ctf_int_read(const uint8_t *ptr, size_t len, int byte_order)
 {
 	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
 
@@ -101,7 +101,7 @@ int64_t int_read(const uint8_t *ptr, size_t len, int byte_order)
 	}
 }
 
-size_t uint_write(uint8_t *ptr, size_t len, int byte_order, uint64_t v)
+size_t ctf_uint_write(uint8_t *ptr, size_t len, int byte_order, uint64_t v)
 {
 	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
 
@@ -129,7 +129,7 @@ end:
 	return len;
 }
 
-size_t int_write(uint8_t *ptr, size_t len, int byte_order, int64_t v)
+size_t ctf_int_write(uint8_t *ptr, size_t len, int byte_order, int64_t v)
 {
 	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
 

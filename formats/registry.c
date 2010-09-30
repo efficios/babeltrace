@@ -1,7 +1,7 @@
 /*
- * BabelTrace - Converter
+ * BabelTrace
  *
- * Types registry.
+ * Format Registry
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -20,49 +20,50 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <ctf/ctf-types.h>
 #include <glib.h>
 #include <errno.h>
 
-/*
- * Type class hash table contains the registered type classes. Type class
- * registration is typically performed by a plugin.
- * TODO: support plugin unload (unregistration of type classes).
- */
-GHashTable *type_classes;
+static int init_done;
+void __attribute__((constructor)) format_init(void);
+void __attribute__((destructor)) format_finalize(void);
 
-struct type_class *ctf_lookup_type_class(GQuark qname)
+/*
+ * Format registry hash table contains the registered formats. Format
+ * registration is typically performed by a format plugin.
+ * TODO: support plugin unload (unregistration of formats).
+ */
+GHashTable *format_registry;
+
+struct format *bt_lookup_format(GQuark qname)
 {
-	return g_hash_table_lookup(type_classes,
+	if (!init_done)
+		return NULL;
+	return g_hash_table_lookup(format_registry,
 				   (gconstpointer) (unsigned long) qname)
 }
 
-int ctf_register_type_class(const char *name,
-			    void (*read)(),
-			    void (*write)())
+int bt_register_format(const struct format *format)
 {
-	struct type_class tc = g_new(struct type_class, 1);
-	GQuark qname = g_quark_from_string(name);
+	if (!init_done)
+		format_init();
 
-	if (ctf_lookup_type_class(qname))
+	if (bt_lookup_format(qname))
 		return -EEXIST;
 
-	g_hash_table_insert(type_classes,
-			    (gconstpointer) (unsigned long) qname,
-			    tc);
+	g_hash_table_insert(format_registry,
+			    (gconstpointer) (unsigned long) format->name,
+			    format);
 	return 0;
 }
 
-int ctf_init_types(void)
+void format_init(void)
 {
-	type_classes = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-					     NULL, g_free);
-	if (!type_classes)
-		return -ENOMEM;
-	return 0;
+	format_registry = g_hash_table_new(g_direct_hash, g_direct_equal);
+	assert(format_registry);
+	init_done = 1;
 }
 
-int ctf_finalize_types(void)
+int format_finalize(void)
 {
-	g_hash_table_destroy(type_classes);
+	g_hash_table_destroy(format_registry);
 }

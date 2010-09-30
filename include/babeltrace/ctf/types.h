@@ -40,30 +40,28 @@ int64_t ctf_int_read(const unsigned char *ptr, int byte_order, size_t len);
 size_t ctf_uint_write(unsigned char *ptr, int byte_order, size_t len, uint64_t v);
 size_t ctf_int_write(unsigned char *ptr, int byte_order, size_t len, int64_t v);
 
-/*
- * ctf-types-bitfield.h declares:
- *
- * ctf_bitfield_unsigned_read
- * ctf_bitfield_signed_read
- * ctf_bitfield_unsigned_write
- * ctf_bitfield_signed_write
- */
-#include <ctf/ctf-types-bitfield.h>
+uint64_t ctf_bitfield_unsigned_read(const unsigned char *ptr,
+				    unsigned long start, unsigned long len,
+				    int byte_order);
+int64_t ctf_bitfield_signed_read(const unsigned char *ptr,
+				 unsigned long start, unsigned long len,
+				 int byte_order);
+size_t ctf_bitfield_unsigned_write(unsigned char *ptr,
+				   unsigned long start, unsigned long len,
+				   int byte_order, uint64_t v);
+size_t ctf_bitfield_signed_write(unsigned char *ptr,
+				 unsigned long start, unsigned long len,
+				 int byte_order, int64_t v);
 
-double ctf_double_read(const unsigned char *ptr, const struct ctf_float *src)
-size_t ctf_double_write(unsigned char *ptr, const struct ctf_float *dest,
+double ctf_double_read(const unsigned char *ptr, const struct type_class_float *src)
+size_t ctf_double_write(unsigned char *ptr, const struct type_class_float *dest,
 		        double v);
 long double ctf_ldouble_read(const unsigned char *ptr,
-			     const struct ctf_float *src)
-size_t ctf_ldouble_write(unsigned char *ptr, const struct ctf_float *dest,
+			     const struct type_class_float *src)
+size_t ctf_ldouble_write(unsigned char *ptr, const struct type_class_float *dest,
 		         long double v);
-struct ctf_float {
-	size_t exp_len;
-	size_t mantissa_len;	/* Including sign bit */
-	int byte_order;
-};
-void ctf_float_copy(unsigned char *destp, const struct ctf_float *dest,
-		    const unsigned char *srcp, const struct ctf_float *src);
+void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,
+		    const unsigned char *srcp, const struct type_class_float *src);
 
 size_t ctf_string_copy(unsigned char *dest, const unsigned char *src);
 

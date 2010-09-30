@@ -4,7 +4,7 @@
 /*
  * BabelTrace
  *
- * Type header
+ * Type Header
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -22,5 +22,48 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+#include <babeltrace/format.h>
+
+struct type_class {
+	GQuark name;		/* type name */
+	size_t alignment;	/* type alignment, in bits */
+	/*
+	 * Type copy function. Knows how to find the child type_class from the
+	 * parent type_class.
+	 */
+	size_t (*copy)(unsigned char *dest, const struct format *fdest, 
+		       const unsigned char *src, const struct format *fsrc,
+		       const struct type_class *type_class);
+};
+
+struct type_class_integer {
+	struct type_class p;
+	size_t len;		/* length, in bits. */
+	int byte_order;		/* byte order */
+	int signedness;
+};
+
+struct type_class_bitfield {
+	struct type_class_integer p;
+	size_t start_offset;	/* offset from base address, in bits */
+};
+
+struct type_class_float {
+	struct type_class p;
+	size_t mantissa_len;
+	size_t exp_len;
+	int byte_order;
+};
+
+struct type_class_enum {
+	struct type_class_bitfield;	/* inherit from bitfield */
+	struct enum_table *table;
+};
+
+struct type_class_struct {
+	struct type_class p;
+	/* TODO */
+};
 
 #endif /* _BABELTRACE_TYPES_H */
