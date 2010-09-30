@@ -41,8 +41,12 @@ size_t bitfield_copy(unsigned char *dest, const struct format *fdest,
 
 	if (!(int_class->p.alignment % CHAR_BIT)
 	    && !(int_class->len % CHAR_BIT)
-	    && !(bitfield_class->start_offset))
+	    && !(bitfield_class->start_offset % CHAR_BIT)) {
+		size_t offset = bitfield_class->start_offset / CHAR_BIT;
+		dest += offset;
+		src += offset;
 		return integer_copy(dest, fdest, src, fsrc, type_class);
+	}
 
 	if (!int_class->signedness) {
 		uint64_t v;
