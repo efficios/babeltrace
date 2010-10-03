@@ -38,6 +38,9 @@ static const struct format ctf_format = {
 	.double_write = ctf_double_write,
 	.float_copy = ctf_float_copy,
 	.string_copy = ctf_string_copy,
+	.string_read = ctf_string_read,
+	.string_write = ctf_string_write,
+	.string_free_temp = ctf_string_free_temp,
 	.enum_read = ctf_enum_read,
 	.enum_write = ctf_enum_write,
 };

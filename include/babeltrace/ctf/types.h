@@ -72,6 +72,11 @@ void ctf_float_copy(struct stream_pos *destp, const struct type_class_float *des
 
 void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
 		     const struct type_class_string *string_class);
+void ctf_string_read(unsigned char **dest, struct stream_pos *src,
+		     const struct type_class_string *string_class);
+void ctf_string_write(struct stream_pos *dest, const unsigned char *src,
+		      const struct type_class_string *string_class);
+void ctf_string_free_temp(unsigned char *string);
 
 GQuark ctf_enum_read(struct stream_pos *pos,
 		const struct type_class_enum *src);

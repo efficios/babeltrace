@@ -63,6 +63,11 @@ struct format {
 
 	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
 			    const struct type_class_string *string_class);
+	void (*string_read)(unsigned char **dest, struct stream_pos *src,
+			    const struct type_class_string *string_class);
+	void (*string_write)(struct stream_pos *dest, const unsigned char *src,
+			     const struct type_class_string *string_class);
+	void (*string_free_temp)(unsigned char *string);
 
 	GQuark (*enum_read)(struct stream_pos *pos,
 			    const struct type_class_enum *src);
