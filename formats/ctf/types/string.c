@@ -24,13 +24,21 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-size_t string_copy(char *dest, const char *src)
+void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
+		     const struct type_class_string *string_class)
 {
-	size_t len = strlen(src) + 1;
+	size_t len;
+	unsigned char *destaddr, *srcaddr;
 
+	align_pos(src, string_class->p.alignment);
+	srcaddr = get_pos_addr(src);
+	len = strlen(srcaddr) + 1;
 	if (!dest)
 		goto end;
+	align_pos(dest, string_class->p.alignment);
+	destaddr = get_pos_addr(dest);
 	strcpy(dest, src);
+	move_pos(dest, len);
 end:
-	return len * CHAR_BIT;
+	move_pos(src, len);
 }

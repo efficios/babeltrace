@@ -25,37 +25,44 @@
 #include <glib.h>
 #include <endian.h>
 
-uint64_t ctf_uint_read(const uint8_t *ptr, size_t len, int byte_order)
+uint64_t ctf_uint_read(struct stream_pos *pos,
+		       const struct type_class_integer *int_class)
 {
-	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	switch (len) {
+	align_pos(pos, int_class->p.alignment);
+	assert(!(pos->offset % CHAR_BIT));
+	switch (int_class->len) {
 	case 8:
 	{
 		uint8_t v;
 
-		v = *(const uint8_t *)ptr;
+		v = *(const uint8_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return v;
 	}
 	case 16:
 	{
 		uint16_t v;
 
-		v = *(const uint16_t *)ptr;
+		v = *(const uint16_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT16_SWAP_LE_BE(v) : v;
 	}
 	case 32:
 	{
 		uint32_t v;
 
-		v = *(const uint32_t *)ptr;
+		v = *(const uint32_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT32_SWAP_LE_BE(v) : v;
 	}
 	case 64:
 	{
 		uint64_t v;
 
-		v = *(const uint64_t *)ptr;
+		v = *(const uint64_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT64_SWAP_LE_BE(v) : v;
 	}
 	default:
@@ -63,37 +70,44 @@ uint64_t ctf_uint_read(const uint8_t *ptr, size_t len, int byte_order)
 	}
 }
 
-int64_t ctf_int_read(const uint8_t *ptr, size_t len, int byte_order)
+int64_t ctf_int_read(struct stream_pos *pos,
+		     const struct type_class_integer *int_class)
 {
-	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	switch (len) {
+	align_pos(pos, int_class->p.alignment);
+	assert(!(pos->offset % CHAR_BIT));
+	switch (int_class->len) {
 	case 8:
 	{
 		int8_t v;
 
-		v = *(const int8_t *)ptr;
+		v = *(const int8_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return v;
 	}
 	case 16:
 	{
 		int16_t v;
 
-		v = *(const int16_t *)ptr;
+		v = *(const int16_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT16_SWAP_LE_BE(v) : v;
 	}
 	case 32:
 	{
 		int32_t v;
 
-		v = *(const int32_t *)ptr;
+		v = *(const int32_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT32_SWAP_LE_BE(v) : v;
 	}
 	case 64:
 	{
 		int64_t v;
 
-		v = *(const int64_t *)ptr;
+		v = *(const int64_t *)pos->base;
+		move_pos(pos, int_class->len);
 		return rbo ? GUINT64_SWAP_LE_BE(v) : v;
 	}
 	default:
@@ -101,58 +115,73 @@ int64_t ctf_int_read(const uint8_t *ptr, size_t len, int byte_order)
 	}
 }
 
-size_t ctf_uint_write(uint8_t *ptr, size_t len, int byte_order, uint64_t v)
+void ctf_uint_write(struct stream_pos *pos,
+		    const struct type_class_integer *int_class,
+		    uint64_t v)
 {
-	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	if (!ptr)
+	align_pos(pos, int_class->p.alignment);
+	assert(!(pos->offset % CHAR_BIT));
+	if (pos->dummy)
 		goto end;
 
-	switch (len) {
-	case 8:	*(uint8_t *)ptr = (uint8_t) v;
+	switch (int_class->len) {
+	case 8:	*(uint8_t *) get_pos_addr(pos) = (uint8_t) v;
 		break;
 	case 16:
-		*(uint16_t *)ptr = rbo ? GUINT16_SWAP_LE_BE((uint16_t) v) :
+		*(uint16_t *) get_pos_addr(pos) = rbo ?
+					 GUINT16_SWAP_LE_BE((uint16_t) v) :
 					 (uint16_t) v;
 		break;
 	case 32:
-		*(uint32_t *)ptr = rbo ? GUINT32_SWAP_LE_BE((uint32_t) v) :
+		*(uint32_t *) get_pos_addr(pos) = rbo ?
+					 GUINT32_SWAP_LE_BE((uint32_t) v) :
 					 (uint32_t) v;
 		break;
 	case 64:
-		*(uint64_t *)ptr = rbo ? GUINT64_SWAP_LE_BE(v) : v;
+		*(uint64_t *) get_pos_addr(pos) = rbo ?
+					 GUINT64_SWAP_LE_BE(v) : v;
 		break;
 	default:
 		assert(0);
 	}
 end:
-	return len;
+	move_pos(pos, int_class->len);
 }
 
-size_t ctf_int_write(uint8_t *ptr, size_t len, int byte_order, int64_t v)
+void ctf_int_write(struct stream_pos *pos,
+		   const struct type_class_integer *int_class,
+		   int64_t v)
 {
-	int rbo = (byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	if (!ptr)
+	align_pos(pos, int_class->p.alignment);
+	assert(!(pos->offset % CHAR_BIT));
+	if (pos->dummy)
 		goto end;
 
-	switch (len) {
-	case 8:	*(int8_t *)ptr = (int8_t) v;
+	switch (int_class->len) {
+	case 8:	*(int8_t *) get_pos_addr(pos) = (int8_t) v;
 		break;
 	case 16:
-		*(int16_t *)ptr = rbo ? GUINT16_SWAP_LE_BE((int16_t) v) :
+		*(int16_t *) get_pos_addr(pos) = rbo ?
+					 GUINT16_SWAP_LE_BE((int16_t) v) :
 					 (int16_t) v;
 		break;
 	case 32:
-		*(int32_t *)ptr = rbo ? GUINT32_SWAP_LE_BE((int32_t) v) :
+		*(int32_t *) get_pos_addr(pos) = rbo ?
+					 GUINT32_SWAP_LE_BE((int32_t) v) :
 					 (int32_t) v;
 		break;
 	case 64:
-		*(int64_t *)ptr = rbo ? GUINT64_SWAP_LE_BE(v) : v;
+		*(int64_t *) get_pos_addr(pos) = rbo ?
+					 GUINT64_SWAP_LE_BE(v) : v;
 		break;
 	default:
 		assert(0);
 	}
 end:
-	return len;
+	move_pos(pos, int_class->len);
+	return;
 }

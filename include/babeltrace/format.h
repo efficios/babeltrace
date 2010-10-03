@@ -29,46 +29,46 @@
 struct format {
 	GQuark name;
 
-	uint64_t (*uint_read)(const uint8_t *ptr, size_t len, int byte_order);
-	int64_t (*int_read)(const uint8_t *ptr, size_t len, int byte_order);
-	size_t (*uint_write)(uint8_t *ptr, size_t len, int byte_order,
-			     uint64_t v);
-	size_t (*int_write)(uint8_t *ptr, size_t len, int byte_order,
-			    int64_t v);
+	uint64_t (*uint_read)(struct stream_pos *pos,
+			const struct type_class_integer *int_class);
+	int64_t (*int_read)(struct stream_pos *pos,
+			const struct type_class_integer *int_class);
+	void (*uint_write)(struct stream_pos *pos,
+			   const struct type_class_integer *int_class,
+			   uint64_t v);
+	void (*int_write)(struct stream_pos *pos,
+			  const struct type_class_integer *int_class,
+			  int64_t v);
 
-	uint64_t (*bitfield_unsigned_read)(const unsigned char *ptr,
-					   unsigned long start,
-					   unsigned long len,
-					   int byte_order);
-	int64_t (*bitfield_signed_read)(const unsigned char *ptr,
-					unsigned long start, unsigned long len,
-					int byte_order);
-	size_t (*bitfield_unsigned_write)(unsigned char *ptr,
-					  unsigned long start,
-					  unsigned long len,
-					  int byte_order, uint64_t v);
-	size_t (*bitfield_signed_write)(unsigned char *ptr,
-					unsigned long start,
-					unsigned long len,
-					int byte_order, int64_t v);
+	uint64_t (*bitfield_unsigned_read)(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class);
+	int64_t (*bitfield_signed_read)(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class);
+	void (*bitfield_unsigned_write)(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class,
+			uint64_t v);
+	void (*bitfield_signed_write)(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class,
+			int64_t v);
 
-	void (*float_copy)(unsigned char *destp,
+	void (*float_copy)(struct stream_pos *destp,
 			   const struct type_class_float *dest,
-			   const unsigned char *srcp,
-			    const struct type_class_float *src);
-	double (*double_read)(const unsigned char *ptr,
+			   struct stream_pos *srcp,
+			   const struct type_class_float *src);
+	double (*double_read)(struct stream_pos *pos,
 			      const struct type_class_float *src);
-	size_t (*double_write)(unsigned char *ptr,
-			       const struct type_class_float *dest,
-			       double v);
+	void (*double_write)(struct stream_pos *pos,
+			     const struct type_class_float *dest,
+			     double v);
 
-	size_t (*string_copy)(unsigned char *dest, const unsigned char *src);
+	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
+			    const struct type_class_string *string_class);
 
-	GQuark (*enum_read)(const unsigned char *ptr,
+	GQuark (*enum_read)(struct stream_pos *pos,
 			    const struct type_class_enum *src);
-	size_t (*enum_write)(unsigned char *ptr,
-			     const struct type_class_enum *dest,
-			     GQuark q);
+	void (*enum_write)(struct stream_pos *pos,
+			   const struct type_class_enum *dest,
+			   GQuark q);
 
 };
 

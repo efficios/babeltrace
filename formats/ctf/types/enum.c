@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <glib.h>
 
-GQuark ctf_enum_read(const unsigned char *ptr,
+GQuark ctf_enum_read(struct stream_pos *pos,
 		     const struct type_class_enum *src)
 {
 	struct type_class_bitfield *bitfield_class = &src->p;
@@ -33,23 +33,18 @@ GQuark ctf_enum_read(const unsigned char *ptr,
 	if (!int_class->signedness) {
 		uint64_t v;
 
-		v = ctf_bitfield_unsigned_read(src,
-					bitfield_class->start_offset,
-					int_class->len,
-					int_class->byte_order);
+		v = ctf_bitfield_unsigned_read(pos, bitfield_class);
 		return enum_uint_to_quark(src, v);
 	} else {
 		int64_t v;
 
-		v = fsrc->bitfield_signed_read(src,
-					bitfield_class->start_offset,
-					int_class->len,
-					int_class->byte_order);
+		v = fsrc->bitfield_signed_read(pos, bitfield_class);
 		return enum_int_to_quark(src, v);
 	}
 }
 
-size_t ctf_enum_write(unsigned char *ptr, const struct type_class_enum *dest,
+size_t ctf_enum_write(struct stream_pos *pos,
+		      const struct type_class_enum *dest,
 		      GQuark q)
 {
 	struct type_class_bitfield *bitfield_class = &dest->p;
@@ -59,17 +54,11 @@ size_t ctf_enum_write(unsigned char *ptr, const struct type_class_enum *dest,
 		uint64_t v;
 
 		v = enum_quark_to_uint(dest, q);
-		return ctf_bitfield_unsigned_write(src,
-					bitfield_class->start_offset,
-					int_class->len,
-					int_class->byte_order, v);
+		return ctf_bitfield_unsigned_write(pos, bitfield_class, v);
 	} else {
 		int64_t v;
 
 		v = enum_quark_to_int(dest, q);
-		return ctf_bitfield_signed_write(src,
-					bitfield_class->start_offset,
-					int_class->len,
-					int_class->byte_order, v);
+		return ctf_bitfield_signed_write(pos, bitfield_class, v);
 	}
 }

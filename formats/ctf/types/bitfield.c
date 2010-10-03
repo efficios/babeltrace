@@ -23,56 +23,69 @@
 #include <ctf/bitfield.h>
 #include <endian.h>
 
-uint64_t ctf_bitfield_unsigned_read(const unsigned char *ptr,
-				    unsigned long start, unsigned long len,
-				    int byte_order)
+uint64_t ctf_bitfield_unsigned_read(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class)
 {
 	uint64_t v;
 
-	if (byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_read_le(ptr, start, len, &v);
+	align_pos(pos, bitfield_class->p.p.alignment);
+	if (bitfield_class->p.byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(pos->base, pos->offset,
+				     bitfield_class->p.len, &v);
 	else
-		ctf_bitfield_read_be(ptr, start, len, &v);
+		ctf_bitfield_read_be(pos->base, pos->offset,
+				     bitfield_class->p.len, &v);
+	move_pos(pos, bitfield_class->p.len);
 	return v;
 }
 
-int64_t ctf_bitfield_signed_read(const unsigned char *ptr,
-				 unsigned long start, unsigned long len,
-				 int byte_order)
+int64_t ctf_bitfield_signed_read(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class)
 {
 	int64_t v;
 
-	if (byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_read_le(ptr, start, len, &v);
+	align_pos(pos, bitfield_class->p.p.alignment);
+
+	if (bitfield_class->p.byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(pos->base, pos->offset,
+				     bitfield_class->p.len, &v);
 	else
-		ctf_bitfield_read_be(ptr, start, len, &v);
+		ctf_bitfield_read_be(pos->base, pos->offset,
+				     bitfield_class->p.len, &v);
+	move_pos(pos, bitfield_class->p.len);
 	return v;
 }
 
-size_t ctf_bitfield_unsigned_write(unsigned char *ptr,
-				   unsigned long start, unsigned long len,
-				   int byte_order, uint64_t v)
+void ctf_bitfield_unsigned_write(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class,
+			uint64_t v)
 {
-	if (!ptr)
+	align_pos(pos, bitfield_class->p.p.alignment);
+	if (pos->dummy)
 		goto end;
-	if (byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_write_le(ptr, start, len, v);
+	if (bitfield_class->p.byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_write_le(pos->base, pos->offset,
+				      bitfield_class->p.len, v);
 	else
-		ctf_bitfield_write_be(ptr, start, len, v);
+		ctf_bitfield_write_be(pos->base, pos->offset,
+				      bitfield_class->p.len,, v);
 end:
-	return len;
+	move_pos(pos, bitfield_class->p.len);
 }
 
-size_t ctf_bitfield_signed_write(unsigned char *ptr,
-				 unsigned long start, unsigned long len,
-				 int byte_order, int64_t v)
+void ctf_bitfield_signed_write(struct stream_pos *pos,
+			const struct type_class_bitfield *bitfield_class,
+			int64_t v)
 {
-	if (!ptr)
+	align_pos(pos, bitfield_class->p.p.alignment);
+	if (pos->dummy)
 		goto end;
-	if (byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_write_le(ptr, start, len, v);
+	if (bitfield_class->p.byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_write_le(pos->base, pos->offset,
+				      bitfield_class->p.len, v);
 	else
-		ctf_bitfield_write_be(ptr, start, len, v);
+		ctf_bitfield_write_be(pos->base, pos->offset,
+				      bitfield_class->p.len, v);
 end:
-	return len;
+	move_pos(pos, bitfield_class->p.len);
 }

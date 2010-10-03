@@ -30,21 +30,16 @@ size_t integer_copy(unsigned char *dest, const struct format *fdest,
 	struct type_class_integer *int_class =
 		container_of(type_class, struct type_class_integer, p);
 
-	if (fsrc->p.alignment)
-		src = PTR_ALIGN(src, fsrc->p.alignment / CHAR_BIT);
-	if (fdest->p.alignment)
-		dest = PTR_ALIGN(dest, fdest->p.alignment / CHAR_BIT);
-
 	if (!int_class->signedness) {
 		uint64_t v;
 
-		v = fsrc->uint_read(src, int_class->len, int_class->byte_order);
-		return fdest->uint_write(dest, int_class->len, int_class->byte_order, v);
+		v = fsrc->uint_read(src, int_class);
+		return fdest->uint_write(dest, int_class, v);
 	} else {
 		int64_t v;
 
-		v = fsrc->int_read(src, int_class->len, int_class->byte_order);
-		return fdest->int_write(dest, int_class->len, int_class->byte_order, v);
+		v = fsrc->int_read(src, int_class);
+		return fdest->int_write(dest, int_class, v);
 	}
 }
 
@@ -61,7 +56,6 @@ static void _integer_type_free(struct type_class *type_class)
 }
 
 struct type_class_integer *integer_type_new(const char *name,
-					    size_t start_offset,
 					    size_t len, int byte_order,
 					    int signedness,
 					    size_t alignment)
@@ -78,7 +72,7 @@ struct type_class_integer *integer_type_new(const char *name,
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
 	if (int_class->p.name) {
-		ret = ctf_register_type(&int_class.p);
+		ret = ctf_register_type(&int_class->p);
 		if (ret) {
 			g_free(int_class);
 			return NULL;

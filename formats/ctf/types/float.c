@@ -72,6 +72,8 @@ struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
 
+/* TODO */
+
 void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,
 		    const unsigned char *src, const struct type_class_float *src)
 {

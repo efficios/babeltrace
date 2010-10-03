@@ -24,6 +24,61 @@
  */
 
 #include <babeltrace/format.h>
+#include <babeltrace/align.h>
+#include <string.h>
+
+/*
+ * Always update stream_pos with move_pos and init_pos.
+ */
+struct stream_pos {
+	unsigned char *base;	/* Base address */
+	size_t offset;		/* Offset from base, in bits */
+	int dummy;		/* Dummy position, for length calculation */
+};
+
+static inline
+void init_pos(struct stream_pos *pos, unsigned char *base)
+{
+	pos->base = base;	/* initial base, page-aligned */
+	pos->offset = 0;
+	pos->dummy = false;
+}
+
+/*
+ * move_pos - move position of a relative bit offset
+ *
+ * TODO: allow larger files by updating base too.
+ */
+static inline
+void move_pos(struct stream_pos *pos, size_t offset)
+{
+	pos->offset = pos->offset + offset;
+}
+
+/*
+ * align_pos - align position on a bit offset (> 0)
+ *
+ * TODO: allow larger files by updating base too.
+ */
+static inline
+void align_pos(struct stream_pos *pos, size_t offset)
+{
+	pos->offset += offset_align(pos->offset, offset);
+}
+
+static inline
+void copy_pos(struct stream_pos *dest, struct stream_pos *src)
+{
+	memcpy(dest, src, sizeof(struct stream_pos));
+}
+
+static inline
+unsigned char *get_pos_addr(struct stream_pos *pos)
+{
+	/* Only makes sense to get the address after aligning on CHAR_BIT */
+	assert(!(pos->alignment % CHAR_BIT));
+	return pos->base + (pos->offset / CHAR_BIT);
+}
 
 struct type_class {
 	GQuark name;		/* type name */
@@ -32,8 +87,8 @@ struct type_class {
 	 * Type copy function. Knows how to find the child type_class from the
 	 * parent type_class.
 	 */
-	size_t (*copy)(unsigned char *dest, const struct format *fdest, 
-		       const unsigned char *src, const struct format *fsrc,
+	size_t (*copy)(struct stream_pos *dest, const struct format *fdest, 
+		       struct stream_pos *src, const struct format *fsrc,
 		       const struct type_class *type_class);
 	void (*free)(struct type_class *type_class);
 };
@@ -45,15 +100,19 @@ struct type_class_integer {
 	int signedness;
 };
 
+/*
+ * Because we address in bits, bitfields end up being exactly the same as
+ * integers, except that their read/write functions must be able to deal with
+ * read/write non aligned on CHAR_BIT.
+ */
 struct type_class_bitfield {
 	struct type_class_integer p;
-	size_t start_offset;	/* offset from base address, in bits */
 };
 
 struct type_class_float {
 	struct type_class p;
-	size_t mantissa_len;
-	size_t exp_len;
+	struct bitfield_class *mantissa;
+	struct bitfield_class *exp;
 	int byte_order;
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
@@ -66,6 +125,10 @@ struct enum_table {
 struct type_class_enum {
 	struct type_class_bitfield p;	/* inherit from bitfield */
 	struct enum_table table;
+};
+
+struct type_class_string {
+	struct type_class p;
 };
 
 struct type_class_struct {

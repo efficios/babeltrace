@@ -21,21 +21,20 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/types.h>
 
-size_t float_copy(unsigned char *dest, const struct format *fdest, 
-		  const unsigned char *src, const struct format *fsrc,
-		  const struct type_class *type_class)
+void float_copy(struct stream_pos *dest, const struct format *fdest, 
+		struct stream_pos *src, const struct format *fsrc,
+		const struct type_class *type_class)
 {
 	struct type_class_float *float_class =
 		container_of(type_class, struct type_class_float, p);
 
 	if (fsrc->float_copy == fdest->float_copy) {
 		fsrc->float_copy(dest, float_class, src, float_class);
-		return float_class->mantissa_len + float_class->exp_len;
 	} else {
 		double v;
 
 		v = fsrc->double_read(src, fsrc);
-		return fdest->double_write(dest, fdest, v);
+		fdest->double_write(dest, fdest, v);
 	}
 }
 
@@ -57,22 +56,41 @@ struct type_class_float *float_type_new(const char *name,
 					size_t alignment)
 {
 	struct type_class_float *float_class;
+	struct type_class_bitfield *bitfield_class;
+	struct type_class_integer *int_class;
+	struct type_class *type_class;
 	int ret;
 
 	float_class = g_new(struct type_class_float, 1);
-	float_class->p.name = g_quark_from_string(name);
-	float_class->p.alignment = alignment;
-	float_class->p.copy = float_copy;
-	float_class->p.free = _float_type_free;
-	float_class->mantissa_len = mantissa_len;
-	float_class->exp_len = exp_len;
+	type_class = &float_class->p;
+
+	type_class->name = g_quark_from_string(name);
+	type_class->alignment = alignment;
+	type_class->copy = float_copy;
+	type_class->free = _float_type_free;
 	float_class->byte_order = byte_order;
+
+	float_class->mantissa = bitfield_type_new(NULL, mantissa_len,
+						  byte_order, false, 1);
+	if (!float_class->mantissa)
+		goto error_mantissa;
+	float_class->exp = bitfield_type_new(NULL, exp_len,
+					     byte_order, true, 1);
+	if (!float_class->exp)
+		goto error_exp;
+
 	if (float_class->p.name) {
 		ret = ctf_register_type(&float_class->p);
-		if (ret) {
-			g_free(float_class);
-			return NULL;
-		}
+		if (ret)
+			goto error_register;
 	}
 	return float_class;
+
+error_register:
+	bitfield_type_free(float_class->exp);
+error_exp:
+	bitfield_type_free(float_class->mantissa);
+error_mantissa:
+	g_free(float_class);
+	return NULL;
 }
