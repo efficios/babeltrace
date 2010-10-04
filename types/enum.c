@@ -196,7 +196,6 @@ void _enum_type_free(struct type_class *type_class)
 }
 
 struct type_class_enum *enum_type_new(const char *name,
-				      size_t start_offset,
 				      size_t len, int byte_order,
 				      int signedness,
 				      size_t alignment)
@@ -212,7 +211,6 @@ struct type_class_enum *enum_type_new(const char *name,
 							g_direct_equal,
 							NULL, enum_val_free);
 	bitfield_class = &enum_class->p;
-	bitfield_class->start_offset = start_offset;
 	int_class = &bitfield_class->p;
 	int_class->p.name = g_quark_from_string(name);
 	int_class->p.alignment = alignment;
@@ -221,7 +219,6 @@ struct type_class_enum *enum_type_new(const char *name,
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
-	bitfield_class->start_offset = start_offset;
 	if (int_class->p.name) {
 		ret = register_type(&int_class->p);
 		if (ret) {

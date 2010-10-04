@@ -111,6 +111,7 @@ struct type_class_bitfield {
 
 struct type_class_float {
 	struct type_class p;
+	struct bitfield_class *sign;
 	struct bitfield_class *mantissa;
 	struct bitfield_class *exp;
 	int byte_order;
@@ -142,17 +143,21 @@ int ctf_register_type(struct type_class *type_class);
 /* Nameless types can be created by passing a NULL name */
 
 struct type_class_integer *integer_type_new(const char *name,
-					    size_t start_offset,
 					    size_t len, int byte_order,
-					    int signedness);
+					    int signedness,
+					    size_t alignment);
 void integer_type_free(struct type_class_integer *int_class);
 
 struct type_class_bitfield *bitfield_type_new(const char *name,
-					      size_t start_offset,
 					      size_t len, int byte_order,
-					      int signedness);
+					      int signedness,
+					      size_t alignment);
 void bitfield_type_free(struct type_class_bitfield *bitfield_class);
 
+/*
+ * mantissa_len is the length of the number of bytes represented by the mantissa
+ * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
+ */
 struct type_class_float *float_type_new(const char *name,
 					size_t mantissa_len,
 					size_t exp_len, int byte_order,
@@ -175,7 +180,6 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 			  uint64_t v, GQuark q);
 
 struct type_class_enum *enum_type_new(const char *name,
-				      size_t start_offset,
 				      size_t len, int byte_order,
 				      int signedness,
 				      size_t alignment);

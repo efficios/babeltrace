@@ -72,119 +72,119 @@ struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
 
-/* TODO */
-
-void ctf_float_copy(unsigned char *destp, const struct type_class_float *dest,
-		    const unsigned char *src, const struct type_class_float *src)
+void _ctf_float_copy(struct stream_pos *destp,
+		     const struct type_class_float *dest_class,
+		     struct stream_pos *srcp,
+		     const struct type_class_float *src_class)
 {
-	struct pos_len destpos, srcpos;
-	union {
-		unsigned long long u;
-		long long s;
-	} tmp;
+	uint8_t sign;
+	int64_t exp;
+	uint64_t mantissa;
 
-	destpos.len = dest->exp_len + dest->mantissa_len;
-	if (dest->byte_order == LITTLE_ENDIAN) {
-		destpos.sign_start = destpos.len - 1;
-		destpos.exp_start = destpos.sign_start - dest->exp_len;
-		destpos.mantissa_start = 0;
-	} else {
-		destpos.sign_start = 0;
-		destpos.exp_start = 1;
-		destpos.mantissa_start = destpos.exp_start + dest->exp_len;
-	}
-
-	srcpos.len = src->exp_len + src->mantissa_len;
+	/* Read */
 	if (src->byte_order == LITTLE_ENDIAN) {
-		srcpos.sign_start = srcpos.len - 1;
-		srcpos.exp_start = srcpos.sign_start - src->exp_len;
-		srcpos.mantissa_start = 0;
+		mantissa = ctf_bitfield_unsigned_read(srcp,
+						      src_class->mantissa);
+		exp = ctf_bitfield_signed_read(srcp, src_class->exp);
+		sign = ctf_bitfield_unsigned_read(srcp, src_class->sign);
 	} else {
-		srcpos.sign_start = 0;
-		srcpos.exp_start = 1;
-		srcpos.mantissa_start = srcpos.exp_start + src->exp_len;
+		sign = ctf_bitfield_unsigned_read(srcp, src_class->sign);
+		exp = ctf_bitfield_signed_read(srcp, src_class->exp);
+		mantissa = ctf_bitfield_unsigned_read(srcp,
+						      src_class->mantissa);
 	}
-
-	/* sign */
-	tmp.u = ctf_bitfield_unsigned_read(ptr, srcpos.sign_start, 1,
-					   src->byte_order);
-	ctf_bitfield_unsigned_write(&u.bits, destpos.sign_start, 1,
-				    dest->byte_order, tmp.u);
-
-	/* mantissa (without leading 1). No sign extend. */
-	tmp.u = ctf_bitfield_unsigned_read(ptr, srcpos.mantissa_start,
-					   src->mantissa_len - 1,
-					   src->byte_order);
-	ctf_bitfield_unsigned_write(&u.bits, destpos.mantissa_start,
-				    dest->mantissa_len - 1, dest->byte_order,
-				    tmp.u);
-
-	/* exponent, with sign-extend. */
-	tmp.s = ctf_bitfield_signed_read(ptr, srcpos.exp_start, src->exp_len,
-					 src->byte_order);
-	ctf_bitfield_signed_write(&u.bits, destpos.exp_start, dest->exp_len,
-				  dest->byte_order, tmp.s);
+	/* Write */
+	if (dest->byte_order == LITTLE_ENDIAN) {
+		ctf_bitfield_unsigned_write(destp, dest_class->mantissa,
+					    mantissa);
+		ctf_bitfield_signed_write(destp, dest_class->exp, exp);
+		ctf_bitfield_unsigned_write(destp, dest_class->sign, sign);
+	} else {
+		ctf_bitfield_unsigned_write(destp, dest_class->sign, sign);
+		ctf_bitfield_signed_write(destp, dest_class->exp, exp);
+		ctf_bitfield_unsigned_write(destp, dest_class->mantissa,
+					    mantissa);
+	}
 }
 
-double ctf_double_read(const unsigned char *ptr, const struct type_class_float *src)
+void ctf_float_copy(struct stream_pos *dest, struct stream_pos *src,
+		    const struct type_class_float *float_class)
+{
+	align_pos(src, float_class->p.alignment);
+	align_pos(dest, float_class->p.alignment);
+	_ctf_float_copy(dest, float_class, src, float_class);
+}
+
+double ctf_double_read(struct stream_pos *srcp,
+		       const struct type_class_float *float_class)
 {
 	union doubleIEEE754 u;
-	struct ctf_float dest = {
-		.exp_len = sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
-		.mantissa_len = DBL_MANT_DIG,
-		.byte_order = BYTE_ORDER,
-	};
+	struct ctf_float *dest_class = float_type_new(NULL,
+				DBL_MANT_DIG,
+				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
+				BYTE_ORDER,
+				__alignof__(double));
+	struct stream_pos destp;
 
-	ctf_float_copy(&u.bits, &dest, ptr, src);
+	align_pos(srcp, float_class->p.alignment);
+	init_pos(&destp, &u.bits);
+	_ctf_float_copy(&destp, dest_class, srcp, float_class);
+	float_type_free(dest_class);
 	return u.v;
 }
 
-size_t ctf_double_write(unsigned char *ptr, const struct type_class_float *dest,
-		        double v)
+void ctf_double_write(struct stream_pos *destp,
+		      const struct type_class_float *float_class,
+		      double v)
 {
 	union doubleIEEE754 u;
-	struct ctf_float src = {
-		.exp_len = sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
-		.mantissa_len = DBL_MANT_DIG,
-		.byte_order = BYTE_ORDER,
-	};
+	struct ctf_float *src_class = float_type_new(NULL,
+				DBL_MANT_DIG,
+				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
+				BYTE_ORDER,
+				__alignof__(double));
+	struct stream_pos srcp;
 
-	if (!ptr)
-		goto end;
 	u.v = v;
-	ctf_float_copy(ptr, dest, &u.bits, &src);
-end:
-	return len;
+	align_pos(destp, float_class->p.alignment);
+	init_pos(&srcp, &u.bits);
+	_ctf_float_copy(destp, float_class, &srcp, src_class);
+	float_type_free(src_class);
 }
 
-long double ctf_ldouble_read(const unsigned char *ptr,
-			     const struct type_class_float *src)
+long double ctf_ldouble_read(struct stream_pos *srcp,
+			     const struct type_class_float *float_class)
 {
 	union ldoubleIEEE754 u;
-	struct ctf_float dest = {
-		.exp_len = sizeof(double) * CHAR_BIT - LDBL_MANT_DIG,
-		.mantissa_len = LDBL_MANT_DIG,
-		.byte_order = BYTE_ORDER,
-	};
+	struct ctf_float *dest_class = float_type_new(NULL,
+				LDBL_MANT_DIG,
+				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
+				BYTE_ORDER,
+				__alignof__(long double));
+	struct stream_pos destp;
 
-	ctf_float_copy(&u.bits, &dest, ptr, src);
+	align_pos(srcp, float_class->p.alignment);
+	init_pos(&destp, &u.bits);
+	_ctf_float_copy(&destp, dest_class, srcp, float_class);
+	float_type_free(dest_class);
 	return u.v;
 }
 
-size_t ctf_ldouble_write(unsigned char *ptr, const struct type_class_float *dest,
-		         long double v)
+void ctf_ldouble_write(struct stream_pos *destp,
+		       const struct type_class_float *float_class,
+		       long double v)
 {
 	union ldoubleIEEE754 u;
-	struct ctf_float src = {
-		.exp_len = sizeof(double) * CHAR_BIT - LDBL_MANT_DIG,
-		.mantissa_len = LDBL_MANT_DIG,
-		.byte_order = BYTE_ORDER,
-	};
+	struct ctf_float *src_class = float_type_new(NULL,
+				LDBL_MANT_DIG,
+				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
+				BYTE_ORDER,
+				__alignof__(long double));
+	struct stream_pos srcp;
 
-	if (!ptr)
-		goto end;
 	u.v = v;
-	ctf_float_copy(ptr, dest, &u.bits, &src);
-end:
-	return len;
+	align_pos(destp, float_class->p.alignment);
+	init_pos(&srcp, &u.bits);
+	_ctf_float_copy(destp, float_class, &srcp, src_class);
+	float_type_free(src_class);
 }

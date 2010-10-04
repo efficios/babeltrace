@@ -29,12 +29,12 @@ void float_copy(struct stream_pos *dest, const struct format *fdest,
 		container_of(type_class, struct type_class_float, p);
 
 	if (fsrc->float_copy == fdest->float_copy) {
-		fsrc->float_copy(dest, float_class, src, float_class);
+		fsrc->float_copy(dest, src, float_class);
 	} else {
 		double v;
 
-		v = fsrc->double_read(src, fsrc);
-		fdest->double_write(dest, fdest, v);
+		v = fsrc->double_read(src, float_class);
+		fdest->double_write(dest, float_class, v);
 	}
 }
 
@@ -70,7 +70,11 @@ struct type_class_float *float_type_new(const char *name,
 	type_class->free = _float_type_free;
 	float_class->byte_order = byte_order;
 
-	float_class->mantissa = bitfield_type_new(NULL, mantissa_len,
+	float_class->sign = bitfield_type_new(NULL, 1,
+					      byte_order, false, 1);
+	if (!float_class->mantissa)
+		goto error_sign;
+	float_class->mantissa = bitfield_type_new(NULL, mantissa_len - 1,
 						  byte_order, false, 1);
 	if (!float_class->mantissa)
 		goto error_mantissa;
@@ -91,6 +95,8 @@ error_register:
 error_exp:
 	bitfield_type_free(float_class->mantissa);
 error_mantissa:
+	bitfield_type_free(float_class->sign);
+error_sign:
 	g_free(float_class);
 	return NULL;
 }

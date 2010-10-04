@@ -51,14 +51,13 @@ struct format {
 			const struct type_class_bitfield *bitfield_class,
 			int64_t v);
 
-	void (*float_copy)(struct stream_pos *destp,
-			   const struct type_class_float *dest,
-			   struct stream_pos *srcp,
+	void (*float_copy)(struct stream_pos *dest,
+			   struct stream_pos *src,
 			   const struct type_class_float *src);
 	double (*double_read)(struct stream_pos *pos,
-			      const struct type_class_float *src);
+			      const struct type_class_float *float_class);
 	void (*double_write)(struct stream_pos *pos,
-			     const struct type_class_float *dest,
+			     const struct type_class_float *float_class,
 			     double v);
 
 	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
