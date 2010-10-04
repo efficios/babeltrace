@@ -172,8 +172,7 @@ size_t enum_copy(unsigned char *dest, const struct format *fdest,
 {
 	struct type_class_enum *enum_class =
 		container_of(type_class, struct type_class_enum, p);
-	struct type_class_bitfield *bitfield_class = &enum_class->p;
-	struct type_class_integer *int_class = &bitfield_class->p;
+	struct type_class_integer *int_class = &enum_class->p;
 	GQuark v;
 
 	v = fsrc->enum_read(src, enum_class)
@@ -200,18 +199,16 @@ struct type_class_enum *enum_type_new(const char *name,
 				      int signedness,
 				      size_t alignment)
 {
-	struct type_class_bitfield *bitfield_class;
 	struct type_class_integer *int_class;
 	int ret;
 
-	enum_class = g_new(struct type_class_bitfield, 1);
+	enum_class = g_new(struct type_class_enum, 1);
 	enum_class->table.value_to_quark = g_hash_table(enum_val_hash,
 							enum_val_equal);
 	enum_class->table.quark_to_value = g_hash_table_new_full(g_direct_hash,
 							g_direct_equal,
 							NULL, enum_val_free);
-	bitfield_class = &enum_class->p;
-	int_class = &bitfield_class->p;
+	int_class = &enum_class->p;
 	int_class->p.name = g_quark_from_string(name);
 	int_class->p.alignment = alignment;
 	int_class->p.copy = enum_copy;

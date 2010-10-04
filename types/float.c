@@ -56,7 +56,6 @@ struct type_class_float *float_type_new(const char *name,
 					size_t alignment)
 {
 	struct type_class_float *float_class;
-	struct type_class_bitfield *bitfield_class;
 	struct type_class_integer *int_class;
 	struct type_class *type_class;
 	int ret;
@@ -70,16 +69,16 @@ struct type_class_float *float_type_new(const char *name,
 	type_class->free = _float_type_free;
 	float_class->byte_order = byte_order;
 
-	float_class->sign = bitfield_type_new(NULL, 1,
-					      byte_order, false, 1);
+	float_class->sign = integer_type_new(NULL, 1,
+					     byte_order, false, 1);
 	if (!float_class->mantissa)
 		goto error_sign;
-	float_class->mantissa = bitfield_type_new(NULL, mantissa_len - 1,
-						  byte_order, false, 1);
+	float_class->mantissa = integer_type_new(NULL, mantissa_len - 1,
+						 byte_order, false, 1);
 	if (!float_class->mantissa)
 		goto error_mantissa;
-	float_class->exp = bitfield_type_new(NULL, exp_len,
-					     byte_order, true, 1);
+	float_class->exp = integer_type_new(NULL, exp_len,
+					    byte_order, true, 1);
 	if (!float_class->exp)
 		goto error_exp;
 
@@ -91,11 +90,11 @@ struct type_class_float *float_type_new(const char *name,
 	return float_class;
 
 error_register:
-	bitfield_type_free(float_class->exp);
+	integer_type_free(float_class->exp);
 error_exp:
-	bitfield_type_free(float_class->mantissa);
+	integer_type_free(float_class->mantissa);
 error_mantissa:
-	bitfield_type_free(float_class->sign);
+	integer_type_free(float_class->sign);
 error_sign:
 	g_free(float_class);
 	return NULL;

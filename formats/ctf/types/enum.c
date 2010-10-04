@@ -27,18 +27,17 @@
 GQuark ctf_enum_read(struct stream_pos *pos,
 		     const struct type_class_enum *src)
 {
-	struct type_class_bitfield *bitfield_class = &src->p;
-	struct type_class_integer *int_class = &bitfield_class->p;
+	struct type_class_integer *int_class = &src->p;
 
 	if (!int_class->signedness) {
 		uint64_t v;
 
-		v = ctf_bitfield_unsigned_read(pos, bitfield_class);
+		v = ctf_uint_read(pos, int_class);
 		return enum_uint_to_quark(src, v);
 	} else {
 		int64_t v;
 
-		v = fsrc->bitfield_signed_read(pos, bitfield_class);
+		v = fsrc->ctf_int_read(pos, int_class);
 		return enum_int_to_quark(src, v);
 	}
 }
@@ -47,18 +46,17 @@ size_t ctf_enum_write(struct stream_pos *pos,
 		      const struct type_class_enum *dest,
 		      GQuark q)
 {
-	struct type_class_bitfield *bitfield_class = &dest->p;
-	struct type_class_integer *int_class = &bitfield_class->p;
+	struct type_class_integer *int_class = &dest->p;
 
 	if (!int_class->signedness) {
 		uint64_t v;
 
 		v = enum_quark_to_uint(dest, q);
-		return ctf_bitfield_unsigned_write(pos, bitfield_class, v);
+		return ctf_uint_write(pos, int_class, v);
 	} else {
 		int64_t v;
 
 		v = enum_quark_to_int(dest, q);
-		return ctf_bitfield_signed_write(pos, bitfield_class, v);
+		return ctf_int_write(pos, int_class, v);
 	}
 }

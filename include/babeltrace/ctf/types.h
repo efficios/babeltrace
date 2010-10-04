@@ -46,17 +46,6 @@ void ctf_int_write(struct stream_pos *pos,
 		const struct type_class_integer *int_class,
 		int64_t v);
 
-uint64_t ctf_bitfield_unsigned_read(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class);
-int64_t ctf_bitfield_signed_read(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class);
-void ctf_bitfield_unsigned_write(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class,
-			uint64_t v);
-void ctf_bitfield_signed_write(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class,
-			int64_t v);
-
 double ctf_double_read(struct stream_pos *pos,
 			const struct type_class_float *src);
 void ctf_double_write(struct stream_pos *pos,

@@ -93,6 +93,11 @@ struct type_class {
 	void (*free)(struct type_class *type_class);
 };
 
+/*
+ * Because we address in bits, bitfields end up being exactly the same as
+ * integers, except that their read/write functions must be able to deal with
+ * read/write non aligned on CHAR_BIT.
+ */
 struct type_class_integer {
 	struct type_class p;
 	size_t len;		/* length, in bits. */
@@ -100,20 +105,11 @@ struct type_class_integer {
 	int signedness;
 };
 
-/*
- * Because we address in bits, bitfields end up being exactly the same as
- * integers, except that their read/write functions must be able to deal with
- * read/write non aligned on CHAR_BIT.
- */
-struct type_class_bitfield {
-	struct type_class_integer p;
-};
-
 struct type_class_float {
 	struct type_class p;
-	struct bitfield_class *sign;
-	struct bitfield_class *mantissa;
-	struct bitfield_class *exp;
+	struct int_class *sign;
+	struct int_class *mantissa;
+	struct int_class *exp;
 	int byte_order;
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
@@ -124,7 +120,7 @@ struct enum_table {
 };
 
 struct type_class_enum {
-	struct type_class_bitfield p;	/* inherit from bitfield */
+	struct type_class_int p;	/* inherit from integer */
 	struct enum_table table;
 };
 
@@ -147,12 +143,6 @@ struct type_class_integer *integer_type_new(const char *name,
 					    int signedness,
 					    size_t alignment);
 void integer_type_free(struct type_class_integer *int_class);
-
-struct type_class_bitfield *bitfield_type_new(const char *name,
-					      size_t len, int byte_order,
-					      int signedness,
-					      size_t alignment);
-void bitfield_type_free(struct type_class_bitfield *bitfield_class);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa

@@ -83,27 +83,23 @@ void _ctf_float_copy(struct stream_pos *destp,
 
 	/* Read */
 	if (src->byte_order == LITTLE_ENDIAN) {
-		mantissa = ctf_bitfield_unsigned_read(srcp,
-						      src_class->mantissa);
-		exp = ctf_bitfield_signed_read(srcp, src_class->exp);
-		sign = ctf_bitfield_unsigned_read(srcp, src_class->sign);
+		mantissa = ctf_uint_read(srcp, src_class->mantissa);
+		exp = ctf_int_read(srcp, src_class->exp);
+		sign = ctf_uint_read(srcp, src_class->sign);
 	} else {
-		sign = ctf_bitfield_unsigned_read(srcp, src_class->sign);
-		exp = ctf_bitfield_signed_read(srcp, src_class->exp);
-		mantissa = ctf_bitfield_unsigned_read(srcp,
-						      src_class->mantissa);
+		sign = ctf_uint_read(srcp, src_class->sign);
+		exp = ctf_int_read(srcp, src_class->exp);
+		mantissa = ctf_uint_read(srcp, src_class->mantissa);
 	}
 	/* Write */
 	if (dest->byte_order == LITTLE_ENDIAN) {
-		ctf_bitfield_unsigned_write(destp, dest_class->mantissa,
-					    mantissa);
-		ctf_bitfield_signed_write(destp, dest_class->exp, exp);
-		ctf_bitfield_unsigned_write(destp, dest_class->sign, sign);
+		ctf_uint_write(destp, dest_class->mantissa, mantissa);
+		ctf_int_write(destp, dest_class->exp, exp);
+		ctf_uint_write(destp, dest_class->sign, sign);
 	} else {
-		ctf_bitfield_unsigned_write(destp, dest_class->sign, sign);
-		ctf_bitfield_signed_write(destp, dest_class->exp, exp);
-		ctf_bitfield_unsigned_write(destp, dest_class->mantissa,
-					    mantissa);
+		ctf_uint_write(destp, dest_class->sign, sign);
+		ctf_int_write(destp, dest_class->exp, exp);
+		ctf_uint_write(destp, dest_class->mantissa, mantissa);
 	}
 }
 

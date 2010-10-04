@@ -21,11 +21,13 @@
  */
 
 #include <ctf/ctf-types.h>
+#include <ctf/bitfield.h>
 #include <stdint.h>
 #include <glib.h>
 #include <endian.h>
 
-uint64_t ctf_uint_read(struct stream_pos *pos,
+static
+uint64_t _aligned_uint_read(struct stream_pos *pos,
 		       const struct type_class_integer *int_class)
 {
 	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
@@ -70,7 +72,8 @@ uint64_t ctf_uint_read(struct stream_pos *pos,
 	}
 }
 
-int64_t ctf_int_read(struct stream_pos *pos,
+static
+int64_t _aligned_int_read(struct stream_pos *pos,
 		     const struct type_class_integer *int_class)
 {
 	int rbo = (int_class->byte_order != BYTE_ORDER);	/* reverse byte order */
@@ -115,7 +118,8 @@ int64_t ctf_int_read(struct stream_pos *pos,
 	}
 }
 
-void ctf_uint_write(struct stream_pos *pos,
+static
+void _aligned_uint_write(struct stream_pos *pos,
 		    const struct type_class_integer *int_class,
 		    uint64_t v)
 {
@@ -150,7 +154,8 @@ end:
 	move_pos(pos, int_class->len);
 }
 
-void ctf_int_write(struct stream_pos *pos,
+static
+void _aligned_int_write(struct stream_pos *pos,
 		   const struct type_class_integer *int_class,
 		   int64_t v)
 {
@@ -184,4 +189,70 @@ void ctf_int_write(struct stream_pos *pos,
 end:
 	move_pos(pos, int_class->len);
 	return;
+}
+
+uint64_t ctf_uint_read(struct stream_pos *pos,
+			const struct type_class_bitfield *int_class)
+{
+	uint64_t v;
+
+	align_pos(pos, int_class->p.alignment);
+	if (int_class->byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(pos->base, pos->offset,
+				     int_class->len, &v);
+	else
+		ctf_bitfield_read_be(pos->base, pos->offset,
+				     int_class->len, &v);
+	move_pos(pos, int_class->len);
+	return v;
+}
+
+int64_t ctf_int_read(struct stream_pos *pos,
+			const struct type_class_bitfield *int_class)
+{
+	int64_t v;
+
+	align_pos(pos, int_class->p.alignment);
+	if (int_class->byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_read_le(pos->base, pos->offset,
+				     int_class->len, &v);
+	else
+		ctf_bitfield_read_be(pos->base, pos->offset,
+				     int_class->len, &v);
+	move_pos(pos, int_class->len);
+	return v;
+}
+
+void ctf_uint_write(struct stream_pos *pos,
+			const struct type_class_bitfield *int_class,
+			uint64_t v)
+{
+	align_pos(pos, int_class->p.alignment);
+	if (pos->dummy)
+		goto end;
+	if (int_class->byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_write_le(pos->base, pos->offset,
+				      int_class->len, v);
+	else
+		ctf_bitfield_write_be(pos->base, pos->offset,
+				      int_class->len,, v);
+end:
+	move_pos(pos, int_class->len);
+}
+
+void ctf_int_write(struct stream_pos *pos,
+			const struct type_class_bitfield *int_class,
+			int64_t v)
+{
+	align_pos(pos, int_class->p.alignment);
+	if (pos->dummy)
+		goto end;
+	if (int_class->byte_order == LITTLE_ENDIAN)
+		ctf_bitfield_write_le(pos->base, pos->offset,
+				      int_class->len, v);
+	else
+		ctf_bitfield_write_be(pos->base, pos->offset,
+				      int_class->len, v);
+end:
+	move_pos(pos, int_class->len);
 }

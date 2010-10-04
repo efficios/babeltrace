@@ -40,17 +40,6 @@ struct format {
 			  const struct type_class_integer *int_class,
 			  int64_t v);
 
-	uint64_t (*bitfield_unsigned_read)(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class);
-	int64_t (*bitfield_signed_read)(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class);
-	void (*bitfield_unsigned_write)(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class,
-			uint64_t v);
-	void (*bitfield_signed_write)(struct stream_pos *pos,
-			const struct type_class_bitfield *bitfield_class,
-			int64_t v);
-
 	void (*float_copy)(struct stream_pos *dest,
 			   struct stream_pos *src,
 			   const struct type_class_float *src);
