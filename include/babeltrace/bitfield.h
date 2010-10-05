@@ -241,52 +241,52 @@ do {									\
 	end = start + length;						\
 	start_unit = start / ts;					\
 	end_unit = (end + (ts - 1)) / ts;				\
- \
-	this_unit = end_unit - 1; \
-	if (_bt_is_signed_type(typeof(v)) \
+									\
+	this_unit = end_unit - 1;					\
+	if (_bt_is_signed_type(typeof(v))				\
 	    && ((ptr)[this_unit] & ((typeof(*(ptr))) 1 << ((end % ts ? : ts) - 1)))) \
-		v = ~(typeof(v)) 0; \
-	else \
-		v = 0; \
-	if (start_unit == end_unit - 1) { \
-		cmask = (ptr)[this_unit]; \
-		cmask >>= (start % ts); \
-		if ((end - start) % ts) { \
+		v = ~(typeof(v)) 0;					\
+	else								\
+		v = 0;							\
+	if (start_unit == end_unit - 1) {				\
+		cmask = (ptr)[this_unit];				\
+		cmask >>= (start % ts);					\
+		if ((end - start) % ts) {				\
 			mask = ~((~(typeof(*(ptr))) 0) << (end - start)); \
-			cmask &= mask; \
-		} \
-		v = _bt_piecewise_lshift(v, end - start); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-		*(vptr) = v; \
-		break; \
-	} \
-	if (end % ts) { \
-		cshift = end % ts; \
-		mask = ~((~(typeof(*(ptr))) 0) << cshift); \
-		cmask = (ptr)[this_unit]; \
-		cmask &= mask; \
-		v = _bt_piecewise_lshift(v, cshift); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-		end -= cshift; \
-		this_unit--; \
-	} \
+			cmask &= mask;					\
+		}							\
+		v = _bt_piecewise_lshift(v, end - start);		\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+		*(vptr) = v;						\
+		break;							\
+	}								\
+	if (end % ts) {							\
+		cshift = end % ts;					\
+		mask = ~((~(typeof(*(ptr))) 0) << cshift);		\
+		cmask = (ptr)[this_unit];				\
+		cmask &= mask;						\
+		v = _bt_piecewise_lshift(v, cshift);			\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+		end -= cshift;						\
+		this_unit--;						\
+	}								\
 	for (; (long) this_unit >= (long) start_unit + 1; this_unit--) { \
-		v = _bt_piecewise_lshift(v, ts); \
-		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]); \
-		end -= ts; \
-	} \
-	if (start % ts) { \
-		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts))); \
-		cmask = (ptr)[this_unit]; \
-		cmask >>= (start % ts); \
-		cmask &= mask; \
-		v = _bt_piecewise_lshift(v, ts - (start % ts)); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-	} else { \
-		v = _bt_piecewise_lshift(v, ts); \
-		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]); \
-	} \
-	*(vptr) = v; \
+		v = _bt_piecewise_lshift(v, ts);			\
+		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]);	\
+		end -= ts;						\
+	}								\
+	if (start % ts) {						\
+		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts)));	\
+		cmask = (ptr)[this_unit];				\
+		cmask >>= (start % ts);					\
+		cmask &= mask;						\
+		v = _bt_piecewise_lshift(v, ts - (start % ts));		\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+	} else {							\
+		v = _bt_piecewise_lshift(v, ts);			\
+		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]);	\
+	}								\
+	*(vptr) = v;							\
 } while (0)
 
 #define _bt_bitfield_read_be(ptr, _start, _length, vptr)		\
@@ -306,51 +306,51 @@ do {									\
 	end = start + length;						\
 	start_unit = start / ts;					\
 	end_unit = (end + (ts - 1)) / ts;				\
- \
+									\
 	this_unit = start_unit;						\
 	if (_bt_is_signed_type(typeof(v))				\
 	    && ((ptr)[this_unit] & ((typeof(*(ptr))) 1 << (ts - (start % ts) - 1)))) \
-		v = ~(typeof(v)) 0; \
-	else \
-		v = 0; \
-	if (start_unit == end_unit - 1) { \
-		cmask = (ptr)[this_unit]; \
-		cmask >>= (ts - (end % ts)) % ts; \
-		if ((end - start) % ts) {\
+		v = ~(typeof(v)) 0;					\
+	else								\
+		v = 0;							\
+	if (start_unit == end_unit - 1) {				\
+		cmask = (ptr)[this_unit];				\
+		cmask >>= (ts - (end % ts)) % ts;			\
+		if ((end - start) % ts) {				\
 			mask = ~((~(typeof(*(ptr))) 0) << (end - start)); \
-			cmask &= mask; \
-		} \
-		v = _bt_piecewise_lshift(v, end - start); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-		*(vptr) = v; \
-		break; \
-	} \
-	if (start % ts) { \
-		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts))); \
-		cmask = (ptr)[this_unit]; \
-		cmask &= mask; \
-		v = _bt_piecewise_lshift(v, ts - (start % ts)); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-		start += ts - (start % ts); \
-		this_unit++; \
-	} \
-	for (; this_unit < end_unit - 1; this_unit++) { \
-		v = _bt_piecewise_lshift(v, ts); \
-		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]); \
-		start += ts; \
-	} \
-	if (end % ts) { \
-		mask = ~((~(typeof(*(ptr))) 0) << (end % ts)); \
-		cmask = (ptr)[this_unit]; \
-		cmask >>= ts - (end % ts); \
-		cmask &= mask; \
-		v = _bt_piecewise_lshift(v, end % ts); \
-		v |= _bt_unsigned_cast(typeof(v), cmask); \
-	} else { \
-		v = _bt_piecewise_lshift(v, ts); \
-		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]); \
-	} \
-	*(vptr) = v; \
+			cmask &= mask;					\
+		}							\
+		v = _bt_piecewise_lshift(v, end - start);		\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+		*(vptr) = v;						\
+		break;							\
+	}								\
+	if (start % ts) {						\
+		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts)));	\
+		cmask = (ptr)[this_unit];				\
+		cmask &= mask;						\
+		v = _bt_piecewise_lshift(v, ts - (start % ts));		\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+		start += ts - (start % ts);				\
+		this_unit++;						\
+	}								\
+	for (; this_unit < end_unit - 1; this_unit++) {			\
+		v = _bt_piecewise_lshift(v, ts);			\
+		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]);	\
+		start += ts;						\
+	}								\
+	if (end % ts) {							\
+		mask = ~((~(typeof(*(ptr))) 0) << (end % ts));		\
+		cmask = (ptr)[this_unit];				\
+		cmask >>= ts - (end % ts);				\
+		cmask &= mask;						\
+		v = _bt_piecewise_lshift(v, end % ts);			\
+		v |= _bt_unsigned_cast(typeof(v), cmask);		\
+	} else {							\
+		v = _bt_piecewise_lshift(v, ts);			\
+		v |= _bt_unsigned_cast(typeof(v), (ptr)[this_unit]);	\
+	}								\
+	*(vptr) = v;							\
 } while (0)
 
 /*
