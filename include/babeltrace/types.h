@@ -150,7 +150,7 @@ struct type_class_array {
 
 struct type_class_sequence {
 	struct type_class p;
-	struct type_class_integer *len;
+	struct type_class_integer *len_class;
 	struct type_class *elem;
 };
 
@@ -228,7 +228,7 @@ void array_type_free(struct type_class_array *array_class);
  * need to free them explicitely.
  */
 struct type_class_sequence *sequence_type_new(const char *name,
-					struct type_class_integer *int_class, 
+					struct type_class_integer *len_class, 
 					struct type_class *elem_class);
 void sequence_type_free(struct type_class_sequence *sequence_class);
 

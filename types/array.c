@@ -77,6 +77,7 @@ struct type_class_array *array_type_new(const char *name, size_t len,
 	return array_class;
 
 error_register:
+	array_class->elem->free(&array_class->elem->p);
 	g_free(array_class);
 	return NULL;
 }
