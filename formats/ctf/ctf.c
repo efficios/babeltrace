@@ -39,6 +39,8 @@ static const struct format ctf_format = {
 	.string_free_temp = ctf_string_free_temp,
 	.enum_read = ctf_enum_read,
 	.enum_write = ctf_enum_write,
+	.struct_begin = ctf_struct_begin,
+	.struct_end = ctf_struct_end,
 };
 
 void ctf_init(void)

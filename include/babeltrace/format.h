@@ -62,7 +62,10 @@ struct format {
 	void (*enum_write)(struct stream_pos *pos,
 			   const struct type_class_enum *dest,
 			   GQuark q);
-
+	void (*struct_begin)(struct stream_pos *pos,
+			     const struct type_class_struct *struct_class);
+	void (*struct_end)(struct stream_pos *pos,
+			   const struct type_class_struct *struct_class);
 };
 
 struct format *bt_lookup_format(GQuark qname);

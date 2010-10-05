@@ -203,8 +203,8 @@ struct type_class_enum *enum_type_new(const char *name,
 	int ret;
 
 	enum_class = g_new(struct type_class_enum, 1);
-	enum_class->table.value_to_quark = g_hash_table(enum_val_hash,
-							enum_val_equal);
+	enum_class->table.value_to_quark = g_hash_table_new(enum_val_hash,
+							    enum_val_equal);
 	enum_class->table.quark_to_value = g_hash_table_new_full(g_direct_hash,
 							g_direct_equal,
 							NULL, enum_val_free);

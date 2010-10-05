@@ -72,5 +72,9 @@ GQuark ctf_enum_read(struct stream_pos *pos,
 void ctf_enum_write(struct stream_pos *pos,
 		const struct type_class_enum *dest,
 		GQuark q);
+void ctf_struct_begin(struct stream_pos *pos,
+		      const struct type_class_struct *struct_class);
+void ctf_struct_end(struct stream_pos *pos,
+		    const struct type_class_struct *struct_class);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

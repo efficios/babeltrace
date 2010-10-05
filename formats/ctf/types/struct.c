@@ -1,7 +1,7 @@
 /*
  * Common Trace Format
  *
- * Structure write/access functions.
+ * Structure format access functions.
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -23,4 +23,13 @@
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
+void ctf_struct_begin(struct stream_pos *pos,
+		      const struct type_class_struct *struct_class)
+{
+	align_pos(pos, struct_class->p.alignment);
+}
 
+void ctf_struct_end(struct stream_pos *pos,
+		    const struct type_class_struct *struct_class)
+{
+}

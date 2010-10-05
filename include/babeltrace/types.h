@@ -27,6 +27,9 @@
 #include <babeltrace/align.h>
 #include <string.h>
 
+/* Preallocate this many fields for structures */
+#define DEFAULT_NR_STRUCT_FIELDS 8
+
 /*
  * Always update stream_pos with move_pos and init_pos.
  */
@@ -128,9 +131,27 @@ struct type_class_string {
 	struct type_class p;
 };
 
+struct field {
+	GQuark name;
+	struct type_class *type_class;
+};
+
 struct type_class_struct {
 	struct type_class p;
-	/* TODO */
+	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
+	GArray *fields;			/* Array of fields */
+};
+
+struct type_class_array {
+	struct type_class p;
+	size_t len;
+	struct type_class *elem;
+};
+
+struct type_class_sequence {
+	struct type_class p;
+	struct type_class_integer *len;
+	struct type_class *elem;
 };
 
 struct type_class *ctf_lookup_type(GQuark qname);
@@ -174,5 +195,33 @@ struct type_class_enum *enum_type_new(const char *name,
 				      int signedness,
 				      size_t alignment);
 void enum_type_free(struct type_class_enum *enum_class);
+
+struct type_class_struct *struct_type_new(const char *name);
+void struct_type_free(struct type_class_struct *struct_class);
+void struct_type_add_field(struct type_class_struct *struct_class,
+			   GQuark field_name,
+			   struct type_class *type_class);
+/*
+ * Returns the index of a field within a structure.
+ */
+unsigned long
+struct_type_lookup_field_index(struct type_class_struct *struct_class,
+			       GQuark field_name);
+/*
+ * field returned only valid as long as the field structure is not appended to.
+ */
+struct field *
+struct_type_get_field_from_index(struct type_class_struct *struct_class,
+				 unsigned long index);
+
+struct type_class_array *array_type_new(const char *name,
+					size_t len,
+					struct type_class *elem_class);
+void array_type_free(struct type_class_array *array_class);
+
+struct type_class_sequence *sequence_type_new(const char *name,
+					struct type_class_integer *int_class, 
+					struct type_class *elem_class);
+void array_type_free(struct type_class_array *array_class);
 
 #endif /* _BABELTRACE_TYPES_H */
