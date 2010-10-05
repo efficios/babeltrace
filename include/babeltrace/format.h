@@ -66,6 +66,14 @@ struct format {
 			     const struct type_class_struct *struct_class);
 	void (*struct_end)(struct stream_pos *pos,
 			   const struct type_class_struct *struct_class);
+	void (*array_begin)(struct stream_pos *pos,
+			     const struct type_class_array *array_class);
+	void (*array_end)(struct stream_pos *pos,
+			   const struct type_class_array *array_class);
+	void (*sequence_begin)(struct stream_pos *pos,
+			     const struct type_class_sequence *sequence_class);
+	void (*sequence_end)(struct stream_pos *pos,
+			   const struct type_class_sequence *sequence_class);
 };
 
 struct format *bt_lookup_format(GQuark qname);

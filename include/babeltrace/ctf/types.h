@@ -76,5 +76,13 @@ void ctf_struct_begin(struct stream_pos *pos,
 		      const struct type_class_struct *struct_class);
 void ctf_struct_end(struct stream_pos *pos,
 		    const struct type_class_struct *struct_class);
+void ctf_array_begin(struct stream_pos *pos,
+		     const struct type_class_array *array_class);
+void ctf_array_end(struct stream_pos *pos,
+		   const struct type_class_array *array_class);
+void ctf_sequence_begin(struct stream_pos *pos,
+			const struct type_class_sequence *sequence_class);
+void ctf_sequence_end(struct stream_pos *pos,
+		      const struct type_class_sequence *sequence_class);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

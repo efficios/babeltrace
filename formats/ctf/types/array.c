@@ -1,7 +1,7 @@
 /*
  * Common Trace Format
  *
- * Structure format access functions.
+ * Array format access functions.
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -22,13 +22,13 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_struct_begin(struct stream_pos *pos,
-		      const struct type_class_struct *struct_class)
+void ctf_array_begin(struct stream_pos *pos,
+		     const struct type_class_array *array_class)
 {
-	align_pos(pos, struct_class->p.alignment);
+	/* No need to align, because the first field will align itself. */
 }
 
-void ctf_struct_end(struct stream_pos *pos,
-		    const struct type_class_struct *struct_class)
+void ctf_array_end(struct stream_pos *pos,
+		   const struct type_class_array *array_class)
 {
 }

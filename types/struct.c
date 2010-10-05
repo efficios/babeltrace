@@ -37,7 +37,7 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 						     struct field, i);
 		struct type_class *field_class = field->type_class;
 
-		field_class->copy(dest, fdest, src, fsrc, type_class);
+		field_class->copy(dest, fdest, src, fsrc, &field_class->p);
 
 	}
 	fsrc->struct_end(src, struct_class);

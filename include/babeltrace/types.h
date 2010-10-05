@@ -214,14 +214,22 @@ struct field *
 struct_type_get_field_from_index(struct type_class_struct *struct_class,
 				 unsigned long index);
 
+/*
+ * elem_class passed as parameter now belongs to the array. No need to free it
+ * explicitely.
+ */
 struct type_class_array *array_type_new(const char *name,
 					size_t len,
 					struct type_class *elem_class);
 void array_type_free(struct type_class_array *array_class);
 
+/*
+ * int_class and elem_class passed as parameter now belongs to the sequence. No
+ * need to free them explicitely.
+ */
 struct type_class_sequence *sequence_type_new(const char *name,
 					struct type_class_integer *int_class, 
 					struct type_class *elem_class);
-void array_type_free(struct type_class_array *array_class);
+void sequence_type_free(struct type_class_sequence *sequence_class);
 
 #endif /* _BABELTRACE_TYPES_H */

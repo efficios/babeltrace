@@ -40,6 +40,9 @@ void float_copy(struct stream_pos *dest, const struct format *fdest,
 
 void float_type_free(struct type_class_float *float_class)
 {
+	integer_type_free(float_class->exp);
+	integer_type_free(float_class->mantissa);
+	integer_type_free(float_class->sign);
 	g_free(float_class);
 }
 

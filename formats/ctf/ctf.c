@@ -41,6 +41,10 @@ static const struct format ctf_format = {
 	.enum_write = ctf_enum_write,
 	.struct_begin = ctf_struct_begin,
 	.struct_end = ctf_struct_end,
+	.array_begin = ctf_array_begin,
+	.array_end = ctf_array_end,
+	.sequence_begin = ctf_sequence_begin,
+	.sequence_end = ctf_sequence_end,
 };
 
 void ctf_init(void)

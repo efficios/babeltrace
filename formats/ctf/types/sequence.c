@@ -1,7 +1,7 @@
 /*
  * Common Trace Format
  *
- * Structure format access functions.
+ * Sequence format access functions.
  *
  * Copyright (c) 2010 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -22,13 +22,13 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_struct_begin(struct stream_pos *pos,
-		      const struct type_class_struct *struct_class)
+void ctf_sequence_begin(struct stream_pos *pos,
+			const struct type_class_sequence *sequence_class)
 {
-	align_pos(pos, struct_class->p.alignment);
+	align_pos(pos, sequence_class->p.alignment);
 }
 
-void ctf_struct_end(struct stream_pos *pos,
-		    const struct type_class_struct *struct_class)
+void ctf_sequence_end(struct stream_pos *pos,
+		      const struct type_class_sequence *sequence_class)
 {
 }
