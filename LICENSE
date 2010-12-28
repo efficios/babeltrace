@@ -3,21 +3,10 @@ Mathieu Desnoyers
 September 26, 2010
 
 
-* LGPLv2.1
-
-The library part is distributed under LGPLv2.1 or later. See lgpl-2.1.txt for
-details. This applies to all files, except when otherwise specified within the
-files.
-
-
 * MIT license :
 
-A MIT license that is intended to allow use in both free and proprietary
-software is applied to some headers. See mit-license.txt for details.
-
-This license applies to :
-
-bitfield.h
+This library is distributed under the MIT license. It is intended to allow use
+in both free and proprietary software. See mit-license.txt for details.
 
 
 * GPLv2
