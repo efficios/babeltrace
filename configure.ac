@@ -44,6 +44,7 @@ AC_CONFIG_FILES([
 	formats/Makefile
 	formats/ctf/Makefile
 	formats/ctf/types/Makefile
+	converter/Makefile
 	tests/Makefile
 ])
 AC_OUTPUT

@@ -16,6 +16,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <babeltrace/format.h>
 #include <glib.h>
 #include <errno.h>
 
@@ -35,19 +36,19 @@ struct format *bt_lookup_format(GQuark qname)
 	if (!init_done)
 		return NULL;
 	return g_hash_table_lookup(format_registry,
-				   (gconstpointer) (unsigned long) qname)
+				   (gconstpointer) (unsigned long) qname);
 }
 
-int bt_register_format(const struct format *format)
+int bt_register_format(struct format *format)
 {
 	if (!init_done)
 		format_init();
 
-	if (bt_lookup_format(qname))
+	if (bt_lookup_format(format->name))
 		return -EEXIST;
 
 	g_hash_table_insert(format_registry,
-			    (gconstpointer) (unsigned long) format->name,
+			    (gpointer) (unsigned long) format->name,
 			    format);
 	return 0;
 }
@@ -59,7 +60,7 @@ void format_init(void)
 	init_done = 1;
 }
 
-int format_finalize(void)
+void format_finalize(void)
 {
 	g_hash_table_destroy(format_registry);
 }

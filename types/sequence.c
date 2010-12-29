@@ -17,7 +17,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 
 void sequence_copy(struct stream_pos *dest, const struct format *fdest, 
 		   struct stream_pos *src, const struct format *fsrc,
@@ -36,7 +36,7 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 
 	for (i = 0; i < len; i++) {
 		struct type_class *elem_class = sequence_class->elem;
-		elem_class->copy(dest, fdest, src, fsrc, &elem_class->p);
+		elem_class->copy(dest, fdest, src, fsrc, elem_class);
 	}
 	fsrc->sequence_end(src, sequence_class);
 	fdest->sequence_end(dest, sequence_class);
@@ -44,13 +44,15 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 
 void sequence_type_free(struct type_class_sequence *sequence_class)
 {
-	sequence_class->elem->free(&sequence_class->elem->p);
+	sequence_class->elem->free(sequence_class->elem);
+	type_unref(&sequence_class->len_class->p);
+	type_unref(sequence_class->elem);
 	g_free(sequence_class);
 }
 
 static void _sequence_type_free(struct type_class *type_class)
 {
-	struct type_class_struct *sequence_class =
+	struct type_class_sequence *sequence_class =
 		container_of(type_class, struct type_class_sequence, p);
 	sequence_type_free(sequence_class);
 }
@@ -60,19 +62,24 @@ sequence_type_new(const char *name, struct type_class_integer *len_class,
 		  struct type_class *elem)
 {
 	struct type_class_sequence *sequence_class;
+	struct type_class *type_class;
 	int ret;
 
 	sequence_class = g_new(struct type_class_sequence, 1);
-	type_class = &float_class->p;
+	type_class = &sequence_class->p;
 
 	assert(!len_class->signedness);
 
-	sequence_class->len = len;
+	type_ref(&len_class->p);
+	sequence_class->len_class = len_class;
+	type_ref(elem);
+	sequence_class->elem = elem;
 	type_class->name = g_quark_from_string(name);
 	type_class->alignment = max(len_class->p.alignment,
-				    elem->p.alignment);
+				    elem->alignment);
 	type_class->copy = sequence_copy;
 	type_class->free = _sequence_type_free;
+	type_class->ref = 1;
 
 	if (type_class->name) {
 		ret = ctf_register_type(type_class);
@@ -82,8 +89,8 @@ sequence_type_new(const char *name, struct type_class_integer *len_class,
 	return sequence_class;
 
 error_register:
-	len_class->p.free(&len_class->p);
-	sequence_class->elem->free(&sequence_class->elem->p);
+	type_unref(&len_class->p);
+	type_unref(elem);
 	g_free(sequence_class);
 	return NULL;
 }

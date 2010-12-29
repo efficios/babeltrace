@@ -17,22 +17,24 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 
-void float_copy(struct stream_pos *dest, const struct format *fdest, 
-		struct stream_pos *src, const struct format *fsrc,
+void float_copy(struct stream_pos *destp,
+		const struct format *fdest,
+		struct stream_pos *srcp,
+		const struct format *fsrc,
 		const struct type_class *type_class)
 {
 	struct type_class_float *float_class =
 		container_of(type_class, struct type_class_float, p);
 
 	if (fsrc->float_copy == fdest->float_copy) {
-		fsrc->float_copy(dest, src, float_class);
+		fsrc->float_copy(destp, srcp, float_class);
 	} else {
 		double v;
 
-		v = fsrc->double_read(src, float_class);
-		fdest->double_write(dest, float_class, v);
+		v = fsrc->double_read(srcp, float_class);
+		fdest->double_write(destp, float_class, v);
 	}
 }
 
@@ -68,6 +70,7 @@ struct type_class_float *float_type_new(const char *name,
 	type_class->alignment = alignment;
 	type_class->copy = float_copy;
 	type_class->free = _float_type_free;
+	type_class->ref = 1;
 	float_class->byte_order = byte_order;
 
 	float_class->sign = integer_type_new(NULL, 1,

@@ -19,6 +19,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <babeltrace/types.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -52,8 +53,9 @@ long double ctf_ldouble_read(struct stream_pos *pos,
 void ctf_ldouble_write(struct stream_pos *pos,
 		const struct type_class_float *dest,
 		long double v);
-void ctf_float_copy(struct stream_pos *destp, const struct type_class_float *dest,
-		struct stream_pos *srcp, const struct type_class_float *src);
+void ctf_float_copy(struct stream_pos *destp,
+		struct stream_pos *srcp,
+		const struct type_class_float *float_class);
 
 void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
 		     const struct type_class_string *string_class);

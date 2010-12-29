@@ -1,1 +1,5 @@
 tests/test-bitfield
+*.o
+*.a
+Makefile
+Makefile.in

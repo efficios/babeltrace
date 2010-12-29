@@ -18,7 +18,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 
 void string_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
@@ -60,6 +60,7 @@ struct type_class_string *string_type_new(const char *name)
 	string_class->p.alignment = CHAR_BIT;
 	string_class->p.copy = string_copy;
 	string_class->p.free = _string_type_free;
+	string_class->p.ref = 1;
 	if (string_class->p.name) {
 		ret = ctf_register_type(&string_class->p);
 		if (ret) {

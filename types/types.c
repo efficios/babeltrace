@@ -18,7 +18,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <ctf/ctf-types.h>
+#include <babeltrace/format.h>
 #include <glib.h>
 #include <errno.h>
 
@@ -27,12 +27,12 @@
  * performed by a type plugin.
  * TODO: support plugin unload (unregistration of types).
  */
-GHashTable *types;
+GHashTable *type_classes;
 
-struct type_class *ctf_lookup_type(GQuark qname)
+struct type_class *lookup_type(GQuark qname)
 {
 	return g_hash_table_lookup(type_classes,
-				   (gconstpointer) (unsigned long) qname)
+				   (gconstpointer) (unsigned long) qname);
 }
 
 static void free_type(struct type_class *type_class)
@@ -40,27 +40,38 @@ static void free_type(struct type_class *type_class)
 	type_class->free(type_class);
 }
 
-int ctf_register_type(struct type_class *type_class)
+int register_type(struct type_class *type_class)
 {
 	if (ctf_lookup_type_class(type_class->name))
 		return -EEXIST;
 
 	g_hash_table_insert(type_classes,
-			    (gconstpointer) (unsigned long) type_class->name,
+			    (gpointer) (unsigned long) type_class->name,
 			    type_class);
 	return 0;
 }
 
-int ctf_init_types(void)
+void type_ref(struct type_class *type_class)
+{
+	type_class->ref++;
+}
+
+void type_unref(struct type_class *type_class)
+{
+	if (!--type_class->ref)
+		free_type(type_class);
+}
+
+int init_types(void)
 {
 	type_classes = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-					     NULL, free_type);
+					     NULL, (GDestroyNotify) free_type);
 	if (!type_classes)
 		return -ENOMEM;
 	return 0;
 }
 
-int ctf_finalize_types(void)
+int finalize_types(void)
 {
 	g_hash_table_destroy(type_classes);
 }

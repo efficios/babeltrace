@@ -18,12 +18,12 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 #include <stdint.h>
 
-size_t integer_copy(unsigned char *dest, const struct format *fdest, 
-		    const unsigned char *src, const struct format *fsrc,
-		    const struct type_class *type_class)
+void integer_copy(struct stream_pos *dest, const struct format *fdest, 
+		  struct stream_pos *src, const struct format *fsrc,
+		  const struct type_class *type_class)
 {
 	struct type_class_integer *int_class =
 		container_of(type_class, struct type_class_integer, p);
@@ -32,12 +32,12 @@ size_t integer_copy(unsigned char *dest, const struct format *fdest,
 		uint64_t v;
 
 		v = fsrc->uint_read(src, int_class);
-		return fdest->uint_write(dest, int_class, v);
+		fdest->uint_write(dest, int_class, v);
 	} else {
 		int64_t v;
 
 		v = fsrc->int_read(src, int_class);
-		return fdest->int_write(dest, int_class, v);
+		fdest->int_write(dest, int_class, v);
 	}
 }
 
@@ -66,6 +66,7 @@ struct type_class_integer *integer_type_new(const char *name,
 	int_class->p.alignment = alignment;
 	int_class->p.copy = integer_copy;
 	int_class->p.free = _integer_type_free;
+	int_class->p.ref = 1;
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;

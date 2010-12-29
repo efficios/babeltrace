@@ -21,7 +21,7 @@
 
 void __attribute__((constructor)) ctf_init(void);
 
-static const struct format ctf_format = {
+static struct format ctf_format = {
 	.uint_read = ctf_uint_read,
 	.int_read = ctf_int_read,
 	.uint_write = ctf_uint_write,
@@ -47,7 +47,7 @@ void ctf_init(void)
 {
 	int ret;
 
-	ctf_format->name = g_quark_from_static_string("ctf");
+	ctf_format.name = g_quark_from_static_string("ctf");
 	ret = bt_register_format(&ctf_format);
 	assert(!ret);
 }

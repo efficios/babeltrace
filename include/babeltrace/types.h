@@ -19,9 +19,12 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <babeltrace/format.h>
 #include <babeltrace/align.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <limits.h>
 #include <string.h>
+#include <glib.h>
 
 /* Preallocate this many fields for structures */
 #define DEFAULT_NR_STRUCT_FIELDS 8
@@ -75,20 +78,23 @@ static inline
 unsigned char *get_pos_addr(struct stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
-	assert(!(pos->alignment % CHAR_BIT));
+	assert(!(pos->offset % CHAR_BIT));
 	return pos->base + (pos->offset / CHAR_BIT);
 }
+
+struct format;
 
 struct type_class {
 	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
+	int ref;		/* number of references to the type */
 	/*
 	 * Type copy function. Knows how to find the child type_class from the
 	 * parent type_class.
 	 */
-	size_t (*copy)(struct stream_pos *dest, const struct format *fdest, 
-		       struct stream_pos *src, const struct format *fsrc,
-		       const struct type_class *type_class);
+	void (*copy)(struct stream_pos *dest, const struct format *fdest, 
+		     struct stream_pos *src, const struct format *fsrc,
+		     const struct type_class *type_class);
 	void (*free)(struct type_class *type_class);
 };
 
@@ -106,9 +112,9 @@ struct type_class_integer {
 
 struct type_class_float {
 	struct type_class p;
-	struct int_class *sign;
-	struct int_class *mantissa;
-	struct int_class *exp;
+	struct type_class_integer *sign;
+	struct type_class_integer *mantissa;
+	struct type_class_integer *exp;
 	int byte_order;
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
@@ -119,7 +125,7 @@ struct enum_table {
 };
 
 struct type_class_enum {
-	struct type_class_int p;	/* inherit from integer */
+	struct type_class_integer p;	/* inherit from integer */
 	struct enum_table table;
 };
 
@@ -150,8 +156,11 @@ struct type_class_sequence {
 	struct type_class *elem;
 };
 
-struct type_class *ctf_lookup_type(GQuark qname);
-int ctf_register_type(struct type_class *type_class);
+struct type_class *lookup_type(GQuark qname);
+int register_type(struct type_class *type_class);
+
+void type_ref(struct type_class *type_class);
+void type_unref(struct type_class *type_class);
 
 /* Nameless types can be created by passing a NULL name */
 
@@ -178,9 +187,9 @@ void float_type_free(struct type_class_float *float_class);
 GQuark enum_uint_to_quark(const struct type_class_enum *enum_class, uint64_t v);
 GQuark enum_int_to_quark(const struct type_class_enum *enum_class, uint64_t v);
 uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
-			    size_t len, int byte_order, GQuark q);
+			    GQuark q);
 int64_t enum_quark_to_int(const struct type_class_enum *enum_class,
-			  size_t len, int byte_order, GQuark q);
+			  GQuark q);
 void enum_signed_insert(struct type_class_enum *enum_class,
 			int64_t v, GQuark q);
 void enum_unsigned_insert(struct type_class_enum *enum_class,
@@ -195,7 +204,7 @@ void enum_type_free(struct type_class_enum *enum_class);
 struct type_class_struct *struct_type_new(const char *name);
 void struct_type_free(struct type_class_struct *struct_class);
 void struct_type_add_field(struct type_class_struct *struct_class,
-			   GQuark field_name,
+			   const char *field_name,
 			   struct type_class *type_class);
 /*
  * Returns the index of a field within a structure.

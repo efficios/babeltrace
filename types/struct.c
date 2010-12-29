@@ -17,7 +17,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 
 void struct_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
@@ -35,7 +35,7 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 						     struct field, i);
 		struct type_class *field_class = field->type_class;
 
-		field_class->copy(dest, fdest, src, fsrc, &field_class->p);
+		field_class->copy(dest, fdest, src, fsrc, field_class);
 
 	}
 	fsrc->struct_end(src, struct_class);
@@ -44,7 +44,15 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 
 void struct_type_free(struct type_class_struct *struct_class)
 {
+	unsigned int i;
+
 	g_hash_table_destroy(struct_class->fields_by_name);
+
+	for (i = 0; i < struct_class->fields->len; i++) {
+		struct field *field = &g_array_index(struct_class->fields,
+						     struct field, i);
+		type_unref(field->type_class);
+	}
 	g_array_free(struct_class->fields, true);
 	g_free(struct_class);
 }
@@ -59,20 +67,22 @@ static void _struct_type_free(struct type_class *type_class)
 struct type_class_struct *struct_type_new(const char *name)
 {
 	struct type_class_struct *struct_class;
+	struct type_class *type_class;
 	int ret;
 
 	struct_class = g_new(struct type_class_struct, 1);
-	type_class = &float_class->p;
+	type_class = &struct_class->p;
 
 	struct_class->fields_by_name = g_hash_table_new(g_direct_hash,
 							g_direct_equal);
 	struct_class->fields = g_array_sized_new(false, false,
 						 sizeof(struct field),
-						 DEFAULT_NR_STRUCT_FIELDS)
+						 DEFAULT_NR_STRUCT_FIELDS);
 	type_class->name = g_quark_from_string(name);
 	type_class->alignment = 1;
 	type_class->copy = struct_copy;
 	type_class->free = _struct_type_free;
+	type_class->ref = 1;
 
 	if (type_class->name) {
 		ret = ctf_register_type(type_class);
@@ -97,6 +107,7 @@ void struct_type_add_field(struct type_class_struct *struct_class,
 	index = struct_class->fields->len - 1;	/* last field (new) */
 	field = &g_array_index(struct_class->fields, struct field, index);
 	field->name = g_quark_from_string(field_name);
+	type_ref(type_class);
 	field->type_class = type_class;
 	/* Keep index in hash rather than pointer, because array can relocate */
 	g_hash_table_insert(struct_class->fields_by_name,
@@ -117,7 +128,7 @@ struct_type_lookup_field_index(struct type_class_struct *struct_class,
 	unsigned long index;
 
 	index = (unsigned long) g_hash_table_lookup(struct_class->fields_by_name,
-						    field_name);
+						    (gconstpointer) (unsigned long) field_name);
 	return index;
 }
 

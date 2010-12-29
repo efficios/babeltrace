@@ -48,10 +48,8 @@ void ctf_string_read(unsigned char **dest, struct stream_pos *src,
 	align_pos(src, string_class->p.alignment);
 	srcaddr = get_pos_addr(src);
 	len = strlen(srcaddr) + 1;
-	if (dest->dummy)
-		goto end;
 	*dest = g_realloc(*dest, len);
-	strcpy(dest, srcaddr);
+	strcpy(*dest, srcaddr);
 end:
 	move_pos(src, len);
 }

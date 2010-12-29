@@ -19,6 +19,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <babeltrace/types.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -36,9 +37,9 @@ struct format {
 			  const struct type_class_integer *int_class,
 			  int64_t v);
 
-	void (*float_copy)(struct stream_pos *dest,
-			   struct stream_pos *src,
-			   const struct type_class_float *src);
+	void (*float_copy)(struct stream_pos *destp,
+			   struct stream_pos *srcp,
+			   const struct type_class_float *float_class);
 	double (*double_read)(struct stream_pos *pos,
 			      const struct type_class_float *float_class);
 	void (*double_write)(struct stream_pos *pos,
@@ -73,7 +74,7 @@ struct format {
 };
 
 struct format *bt_lookup_format(GQuark qname);
-int bt_register_format(const struct format *format);
+int bt_register_format(struct format *format);
 
 /* TBD: format unregistration */
 

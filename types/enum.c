@@ -17,14 +17,9 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/types.h>
+#include <babeltrace/format.h>
 #include <stdint.h>
 #include <glib.h>
-
-struct enum_table {
-	GHashTable *value_to_quark;	/* Tuples (value, GQuark) */
-	GHashTable *quark_to_value;	/* Tuples (GQuark, value) */
-};
 
 #if (__WORDSIZE == 32)
 GQuark enum_uint_to_quark(const struct type_class_enum *enum_class, uint64_t v)
@@ -42,7 +37,7 @@ GQuark enum_int_to_quark(const struct type_class_enum *enum_class, uint64_t v)
 }
 
 uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
-			    size_t len, int byte_order, GQuark q)
+			    GQuark q)
 {
 	gconstpointer v = g_hash_table_lookup(enum_class->table.quark_to_value,
 					      (gconstpointer) q);
@@ -50,7 +45,7 @@ uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
 }
 
 int64_t enum_quark_to_int(const struct type_class_enum *enum_class,
-			  size_t len, int byte_order, GQuark q)
+			  GQuark q)
 {
 	gconstpointer v = g_hash_table_lookup(enum_class->table.quark_to_value,
 					      (gconstpointer) q);
@@ -81,7 +76,7 @@ void enum_signed_insert(struct type_class_enum *enum_class, int64_t v, GQuark q)
 {
 	int64_t *valuep = g_new(int64_t, 1);
 
-	g_hash_table_insert(enum_class->table>value_to_quark, valuep,
+	g_hash_table_insert(enum_class->table.value_to_quark, valuep,
 			    (gpointer) (unsigned long) q);
 	g_hash_table_insert(enum_class->table.quark_to_value,
 			    (gpointer) (unsigned long) q,
@@ -114,7 +109,7 @@ GQuark enum_int_to_quark(const struct type_class_enum *enum_class, uint64_t v)
 }
 
 uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
-			    size_t len, int byte_order, GQuark q)
+			    GQuark q)
 {
 	gconstpointer v = g_hash_table_lookup(enum_class->table.quark_to_value,
 					      (gconstpointer) (unsigned long) q);
@@ -122,7 +117,7 @@ uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
 }
 
 int64_t enum_quark_to_int(const struct type_class_enum *enum_class,
-			  size_t len, int byte_order, GQuark q)
+			  GQuark q)
 {
 	gconstpointer v = g_hash_table_lookup(enum_class->table.quark_to_value,
 					      (gconstpointer) (unsigned long) q);
@@ -164,16 +159,16 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 }
 #endif	/* __WORDSIZE != 32 */
 
-size_t enum_copy(unsigned char *dest, const struct format *fdest, 
-		 const unsigned char *src, const struct format *fsrc,
-		 const struct type_class *type_class)
+void enum_copy(struct stream_pos *dest, const struct format *fdest, 
+	       struct stream_pos *src, const struct format *fsrc,
+	       const struct type_class *type_class)
 {
 	struct type_class_enum *enum_class =
-		container_of(type_class, struct type_class_enum, p);
+		container_of(type_class, struct type_class_enum, p.p);
 	struct type_class_integer *int_class = &enum_class->p;
 	GQuark v;
 
-	v = fsrc->enum_read(src, enum_class)
+	v = fsrc->enum_read(src, enum_class);
 	return fdest->enum_write(dest, enum_class, v);
 }
 
@@ -188,7 +183,7 @@ static
 void _enum_type_free(struct type_class *type_class)
 {
 	struct type_class_enum *enum_class =
-		container_of(type_class, struct type_class_enum, p);
+		container_of(type_class, struct type_class_enum, p.p);
 	enum_type_free(enum_class);
 }
 
@@ -197,6 +192,7 @@ struct type_class_enum *enum_type_new(const char *name,
 				      int signedness,
 				      size_t alignment)
 {
+	struct type_class_enum *enum_class;
 	struct type_class_integer *int_class;
 	int ret;
 
@@ -211,6 +207,7 @@ struct type_class_enum *enum_type_new(const char *name,
 	int_class->p.alignment = alignment;
 	int_class->p.copy = enum_copy;
 	int_class->p.free = _enum_type_free;
+	int_class->p.ref = 1;
 	int_class->len = len;
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;

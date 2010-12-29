@@ -23,7 +23,7 @@
 GQuark ctf_enum_read(struct stream_pos *pos,
 		     const struct type_class_enum *src)
 {
-	struct type_class_integer *int_class = &src->p;
+	const struct type_class_integer *int_class = &src->p;
 
 	if (!int_class->signedness) {
 		uint64_t v;
@@ -33,26 +33,26 @@ GQuark ctf_enum_read(struct stream_pos *pos,
 	} else {
 		int64_t v;
 
-		v = fsrc->ctf_int_read(pos, int_class);
+		v = ctf_int_read(pos, int_class);
 		return enum_int_to_quark(src, v);
 	}
 }
 
-size_t ctf_enum_write(struct stream_pos *pos,
+void ctf_enum_write(struct stream_pos *pos,
 		      const struct type_class_enum *dest,
 		      GQuark q)
 {
-	struct type_class_integer *int_class = &dest->p;
+	const struct type_class_integer *int_class = &dest->p;
 
 	if (!int_class->signedness) {
 		uint64_t v;
 
 		v = enum_quark_to_uint(dest, q);
-		return ctf_uint_write(pos, int_class, v);
+		ctf_uint_write(pos, int_class, v);
 	} else {
 		int64_t v;
 
 		v = enum_quark_to_int(dest, q);
-		return ctf_int_write(pos, int_class, v);
+		ctf_int_write(pos, int_class, v);
 	}
 }

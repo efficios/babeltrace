@@ -16,8 +16,8 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <ctf/ctf-types.h>
-#include <ctf/bitfield.h>
+#include <babeltrace/ctf/types.h>
+#include <babeltrace/bitfield.h>
 #include <stdint.h>
 #include <glib.h>
 #include <endian.h>
@@ -188,7 +188,7 @@ end:
 }
 
 uint64_t ctf_uint_read(struct stream_pos *pos,
-			const struct type_class_bitfield *int_class)
+			const struct type_class_integer *int_class)
 {
 	uint64_t v;
 
@@ -204,7 +204,7 @@ uint64_t ctf_uint_read(struct stream_pos *pos,
 }
 
 int64_t ctf_int_read(struct stream_pos *pos,
-			const struct type_class_bitfield *int_class)
+			const struct type_class_integer *int_class)
 {
 	int64_t v;
 
@@ -220,7 +220,7 @@ int64_t ctf_int_read(struct stream_pos *pos,
 }
 
 void ctf_uint_write(struct stream_pos *pos,
-			const struct type_class_bitfield *int_class,
+			const struct type_class_integer *int_class,
 			uint64_t v)
 {
 	align_pos(pos, int_class->p.alignment);
@@ -231,13 +231,13 @@ void ctf_uint_write(struct stream_pos *pos,
 				      int_class->len, v);
 	else
 		ctf_bitfield_write_be(pos->base, pos->offset,
-				      int_class->len,, v);
+				      int_class->len, v);
 end:
 	move_pos(pos, int_class->len);
 }
 
 void ctf_int_write(struct stream_pos *pos,
-			const struct type_class_bitfield *int_class,
+			const struct type_class_integer *int_class,
 			int64_t v)
 {
 	align_pos(pos, int_class->p.alignment);
