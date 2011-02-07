@@ -145,7 +145,7 @@ void enum_signed_insert(struct type_class_enum *enum_class,
 			    (gpointer) (unsigned long) q);
 	g_hash_table_insert(enum_class->table.quark_to_value,
 			    (gpointer) (unsigned long) q,
-			    valuep);
+			    (gpointer) v);
 }
 
 void enum_unsigned_insert(struct type_class_enum *enum_class,
@@ -155,7 +155,7 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 			    (gpointer) (unsigned long) q);
 	g_hash_table_insert(enum_class->table.quark_to_value,
 			    (gpointer) (unsigned long) q,
-			    valuep);
+			    (gpointer) v);
 }
 #endif	/* __WORDSIZE != 32 */
 

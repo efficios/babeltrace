@@ -25,6 +25,7 @@
 #include <limits.h>
 #include <string.h>
 #include <glib.h>
+#include <assert.h>
 
 /* Preallocate this many fields for structures */
 #define DEFAULT_NR_STRUCT_FIELDS 8
