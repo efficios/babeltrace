@@ -18,6 +18,8 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+AC_PROG_YACC
+AC_PROG_LEX
 
 AM_PATH_GLIB_2_0(2.4.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
 
@@ -44,6 +46,7 @@ AC_CONFIG_FILES([
 	formats/Makefile
 	formats/ctf/Makefile
 	formats/ctf/types/Makefile
+	formats/ctf/metadata/Makefile
 	converter/Makefile
 	tests/Makefile
 ])
