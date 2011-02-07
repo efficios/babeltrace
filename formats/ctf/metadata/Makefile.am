@@ -5,3 +5,6 @@ AM_YFLAGS = -t -d
 noinst_LIBRARIES = libctf-parser.a
 
 libctf_parser_a_SOURCES = ctf-lexer.l ctf-parser.y
+
+bin_PROGRAMS = ctf-parser-test
+ctf_parser_test_SOURCES = ctf-parser-test.c ctf-lexer.l ctf-parser.y

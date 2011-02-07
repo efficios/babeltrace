@@ -12,31 +12,25 @@
 #include <assert.h>
 #include <helpers/list.h>
 #include <glib.h>
+#include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
 #define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, args)
 #define printf_dbg_noarg(fmt)	fprintf(stderr, "%s: " fmt, __func__)
 
-int yyparse(void);
-int yylex(void);
+int yyparse(struct ctf_scanner *scanner);
+int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
+int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
+int yylex_destroy(yyscan_t yyscanner) ;
+void yyset_in(FILE * in_str, yyscan_t scanner);
 
-static CDS_LIST_HEAD(allocated_strings);
 int yydebug;
-
-struct scope;
-struct scope {
-	struct scope *parent;
-	GHashTable *types;
-};
 
 struct gc_string {
 	struct cds_list_head gc;
 	char s[];
 };
-
-struct scope root_scope;
-struct scope *cs = &root_scope;	/* current scope */
 
 char *strredup(char **dest, const char *src)
 {
@@ -49,19 +43,19 @@ char *strredup(char **dest, const char *src)
 	return *dest;
 }
 
-static struct gc_string *gc_string_alloc(size_t len)
+static struct gc_string *gc_string_alloc(struct ctf_scanner *scanner, size_t len)
 {
 	struct gc_string *gstr;
 
 	gstr = malloc(sizeof(*gstr) + len);
-	cds_list_add(&gstr->gc, &allocated_strings);
+	cds_list_add(&gstr->gc, &scanner->allocated_strings);
 	return gstr;
 }
 
-void setstring(const char *src)
+void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src)
 {
-	yylval.gs = gc_string_alloc(strlen(src) + 1);
-	strcpy(yylval.gs->s, src);
+	lvalp->gs = gc_string_alloc(scanner, strlen(src) + 1);
+	strcpy(lvalp->gs->s, src);
 }
 
 static void init_scope(struct scope *scope, struct scope *parent)
@@ -76,28 +70,28 @@ static void finalize_scope(struct scope *scope)
 	g_hash_table_destroy(scope->types);
 }
 
-static void push_scope(void)
+static void push_scope(struct ctf_scanner *scanner)
 {
 	struct scope *ns;
 
 	printf_dbg_noarg("push scope\n");
 	ns = malloc(sizeof(struct scope));
-	init_scope(ns, cs);
-	cs = ns;
+	init_scope(ns, scanner->cs);
+	scanner->cs = ns;
 }
 
-static void pop_scope(void)
+static void pop_scope(struct ctf_scanner *scanner)
 {
 	struct scope *os;
 
 	printf_dbg_noarg("pop scope\n");
-	os = cs;
-	cs = os->parent;
+	os = scanner->cs;
+	scanner->cs = os->parent;
 	finalize_scope(os);
 	free(os);
 }
 
-int lookup_type(struct scope *s, const char *id)
+static int lookup_type(struct scope *s, const char *id)
 {
 	int ret;
 
@@ -106,12 +100,12 @@ int lookup_type(struct scope *s, const char *id)
 	return ret;
 }
 
-int is_type(const char *id)
+int is_type(struct ctf_scanner *scanner, const char *id)
 {
 	struct scope *it;
 	int ret = 0;
 
-	for (it = cs; it != NULL; it = it->parent) {
+	for (it = scanner->cs; it != NULL; it = it->parent) {
 		if (lookup_type(it, id)) {
 			ret = 1;
 			break;
@@ -121,18 +115,18 @@ int is_type(const char *id)
 	return ret;
 }
 
-static void add_type(const char *id)
+static void add_type(struct ctf_scanner *scanner, const char *id)
 {
 	char *type_id = NULL;
 
 	printf_dbg("add type %s\n", id);
-	if (lookup_type(cs, id))
+	if (lookup_type(scanner->cs, id))
 		return;
 	strredup(&type_id, id);
-	g_hash_table_insert(cs->types, type_id, type_id);
+	g_hash_table_insert(scanner->cs->types, type_id, type_id);
 }
 
-void yyerror(const char *str)
+void yyerror(struct ctf_scanner *scanner, const char *str)
 {
 	fprintf(stderr, "error %s\n", str);
 }
@@ -142,26 +136,87 @@ int yywrap(void)
 	return 1;
 } 
 
-static void free_strings(void)
+static void free_strings(struct cds_list_head *list)
 {
 	struct gc_string *gstr, *tmp;
 
-	cds_list_for_each_entry_safe(gstr, tmp, &allocated_strings, gc)
+	cds_list_for_each_entry_safe(gstr, tmp, list, gc)
 		free(gstr);
 }
 
-int main(int argc, char **argv)
+static struct ctf_ast *ctf_ast_alloc(void)
 {
-	yydebug = 1;
-	init_scope(&root_scope, NULL);
-	yyparse();
-	finalize_scope(&root_scope);
-	free_strings();
-	return 0;
-} 
+	struct ctf_ast *ast;
+
+	ast = malloc(sizeof(*ast));
+	if (!ast)
+		return NULL;
+	memset(ast, 0, sizeof(*ast));
+	return ast;
+}
+
+static void ctf_ast_free(struct ctf_ast *ast)
+{
+}
+
+int ctf_scanner_append_ast(struct ctf_scanner *scanner)
+{
+	return yyparse(scanner);
+}
+
+struct ctf_scanner *ctf_scanner_alloc(FILE *input)
+{
+	struct ctf_scanner *scanner;
+	int ret;
+
+	scanner = malloc(sizeof(*scanner));
+	if (!scanner)
+		return NULL;
+	memset(scanner, 0, sizeof(*scanner));
+
+	ret = yylex_init_extra(scanner, &scanner->scanner);
+	if (ret) {
+		fprintf(stderr, "yylex_init error\n");
+		goto cleanup_scanner;
+	}
+	yyset_in(input, scanner);
+
+	scanner->ast = ctf_ast_alloc();
+	if (!scanner->ast)
+		goto cleanup_lexer;
+	init_scope(&scanner->root_scope, NULL);
+	CDS_INIT_LIST_HEAD(&scanner->allocated_strings);
+
+	return scanner;
+
+cleanup_lexer:
+	ret = yylex_destroy(scanner->scanner);
+	if (!ret)
+		fprintf(stderr, "yylex_destroy error\n");
+cleanup_scanner:
+	free(scanner);
+	return NULL;
+}
+
+void ctf_scanner_free(struct ctf_scanner *scanner)
+{
+	int ret;
+
+	finalize_scope(&scanner->root_scope);
+	free_strings(&scanner->allocated_strings);
+	ctf_ast_free(scanner->ast);
+	ret = yylex_destroy(scanner->scanner);
+	if (ret)
+		fprintf(stderr, "yylex_destroy error\n");
+	free(scanner);
+}
 
 %}
 
+%define api.pure
+	/* %locations */
+%parse-param {struct ctf_scanner *scanner}
+%lex-param {struct ctf_scanner *scanner}
 %start file
 %token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT
 %token <gs> IDENTIFIER ID_TYPE
@@ -283,14 +338,14 @@ event_declaration:
 event_declaration_begin:
 		EVENT LBRAC
 		{
-			push_scope();
+			push_scope(scanner);
 		}
 	;
 
 event_declaration_end:
 		RBRAC SEMICOLON
 		{
-			pop_scope();
+			pop_scope(scanner);
 		}
 	;
 
@@ -303,14 +358,14 @@ stream_declaration:
 stream_declaration_begin:
 		STREAM LBRAC
 		{
-			push_scope();
+			push_scope(scanner);
 		}
 	;
 
 stream_declaration_end:
 		RBRAC SEMICOLON
 		{
-			pop_scope();
+			pop_scope(scanner);
 		}
 	;
 
@@ -323,14 +378,14 @@ trace_declaration:
 trace_declaration_begin:
 		TRACE LBRAC
 		{
-			push_scope();
+			push_scope(scanner);
 		}
 	;
 
 trace_declaration_end:
 		RBRAC SEMICOLON
 		{
-			pop_scope();
+			pop_scope(scanner);
 		}
 	;
 
@@ -386,14 +441,14 @@ struct_type_specifier:
 struct_declaration_begin:
 		LBRAC
 		{
-			push_scope();
+			push_scope(scanner);
 		}
 	;
 
 struct_declaration_end:
 		RBRAC
 		{
-			pop_scope();
+			pop_scope(scanner);
 		}
 	;
 
@@ -416,14 +471,14 @@ variant_type_specifier:
 variant_declaration_begin:
 		LBRAC
 		{
-			push_scope();
+			push_scope(scanner);
 		}
 	;
 
 variant_declaration_end:
 		RBRAC
 		{
-			pop_scope();
+			pop_scope(scanner);
 		}
 	;
 
@@ -540,7 +595,7 @@ type_declarator:
 direct_type_declarator:
 		IDENTIFIER
 		{
-			add_type($1->s);
+			add_type(scanner, $1->s);
 		}
 	|	LPAREN type_declarator RPAREN
 	|	direct_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
@@ -555,7 +610,7 @@ direct_abstract_type_declarator:
 		/* empty */
 	|	IDENTIFIER
 		{
-			add_type($1->s);
+			add_type(scanner, $1->s);
 		}
 	|	LPAREN abstract_type_declarator RPAREN
 	|	direct_abstract_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC

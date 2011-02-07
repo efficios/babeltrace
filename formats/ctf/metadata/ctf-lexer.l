@@ -1,13 +1,20 @@
 %{
 #include <stdio.h>
+#include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-extern YYSTYPE yylval;
-extern void setstring(const char *src);
+extern void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
+
+#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, args)
+#define printf_dbg_noarg(fmt)	fprintf(stderr, "%s: " fmt, __func__)
+
 %}
 
 %x comment_ml comment_sl string_lit char_const
+%option reentrant yylineno noyywrap bison-bridge
+%option extra-type="struct ctf_scanner *"
+	/* bison-locations */
 INTEGER_SUFFIX			[ \n\t]*(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
 DIGIT				[0-9]
 NONDIGIT			[a-zA-Z_]
@@ -92,7 +99,7 @@ _Imaginary			return _IMAGINARY;
 [1-9]{DIGIT}*{INTEGER_SUFFIX}?	return DECIMAL_CONSTANT;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	return OCTAL_CONSTANT;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	return HEXADECIMAL_CONSTANT;
-{IDENTIFIER}			printf_dbg("<IDENTIFIER %s>\n", yytext); setstring(yytext); if (is_type(yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			printf_dbg("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\n]+			; /* ignore */
 .				return ERROR;
 %%
