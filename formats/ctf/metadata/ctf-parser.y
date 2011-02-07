@@ -163,7 +163,6 @@ int main(int argc, char **argv)
 %}
 
 %start file
-/* %glr-parser */
 %token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
@@ -175,12 +174,6 @@ int main(int argc, char **argv)
 	struct ctf_node *n;
 }
 
-/* %token <c>UPPERCASE_L LOWERCASE_L _U _NONDIGIT */
-/*%type <n> decl type_decl event_decl stream_decl trace_decl type_def
-%type <n> event_attrib field_attrib assign_attrib 
-%type <n> event_attrib_list attrib_list field_list appendval_list
-%type <n> field value type_expr typename typename_postfix
-%type <gs> typename_prefix identifier */
 %%
 
 file:

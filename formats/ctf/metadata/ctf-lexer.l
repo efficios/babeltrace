@@ -92,7 +92,7 @@ _Imaginary			return _IMAGINARY;
 [1-9]{DIGIT}*{INTEGER_SUFFIX}?	return DECIMAL_CONSTANT;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	return OCTAL_CONSTANT;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	return HEXADECIMAL_CONSTANT;
-{IDENTIFIER}			fprintf(stderr, "<IDENTIFIER %s>\n", yytext); setstring(yytext); if (is_type(yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			printf_dbg("<IDENTIFIER %s>\n", yytext); setstring(yytext); if (is_type(yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\n]+			; /* ignore */
 .				return ERROR;
 %%
