@@ -22,7 +22,12 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-extern void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
+extern
+void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
+
+static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
+	__attribute__((unused));
+static int input (yyscan_t yyscanner) __attribute__((unused));
 
 #define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, args)
 #define printf_dbg_noarg(fmt)	fprintf(stderr, "%s: " fmt, __func__)

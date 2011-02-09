@@ -9,11 +9,17 @@
 typedef void* yyscan_t;
 #endif
 
+struct ctf_scanner_scope;
+struct ctf_scanner_scope {
+	struct ctf_scanner_scope *parent;
+	GHashTable *types;
+};
+
 struct ctf_scanner {
 	yyscan_t scanner;
 	struct ctf_ast *ast;
-	struct scope root_scope;
-	struct scope *cs;
+	struct ctf_scanner_scope root_scope;
+	struct ctf_scanner_scope *cs;
 	struct cds_list_head allocated_strings;
 };
 

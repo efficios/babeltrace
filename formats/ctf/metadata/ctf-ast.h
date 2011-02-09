@@ -37,12 +37,6 @@ struct ctf_node {
 	struct cds_list_head gc;
 };
 
-struct scope;
-struct scope {
-	struct scope *parent;
-	GHashTable *types;
-};
-
 struct ctf_ast {
 	struct ctf_node root;
 };

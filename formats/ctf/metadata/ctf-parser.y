@@ -70,31 +70,32 @@ void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src)
 	strcpy(lvalp->gs->s, src);
 }
 
-static void init_scope(struct scope *scope, struct scope *parent)
+static void init_scope(struct ctf_scanner_scope *scope,
+		       struct ctf_scanner_scope *parent)
 {
 	scope->parent = parent;
 	scope->types = g_hash_table_new_full(g_str_hash, g_str_equal,
 					     (GDestroyNotify) free, NULL);
 }
 
-static void finalize_scope(struct scope *scope)
+static void finalize_scope(struct ctf_scanner_scope *scope)
 {
 	g_hash_table_destroy(scope->types);
 }
 
 static void push_scope(struct ctf_scanner *scanner)
 {
-	struct scope *ns;
+	struct ctf_scanner_scope *ns;
 
 	printf_dbg_noarg("push scope\n");
-	ns = malloc(sizeof(struct scope));
+	ns = malloc(sizeof(struct ctf_scanner_scope));
 	init_scope(ns, scanner->cs);
 	scanner->cs = ns;
 }
 
 static void pop_scope(struct ctf_scanner *scanner)
 {
-	struct scope *os;
+	struct ctf_scanner_scope *os;
 
 	printf_dbg_noarg("pop scope\n");
 	os = scanner->cs;
@@ -103,7 +104,7 @@ static void pop_scope(struct ctf_scanner *scanner)
 	free(os);
 }
 
-static int lookup_type(struct scope *s, const char *id)
+static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 {
 	int ret;
 
@@ -114,7 +115,7 @@ static int lookup_type(struct scope *s, const char *id)
 
 int is_type(struct ctf_scanner *scanner, const char *id)
 {
-	struct scope *it;
+	struct ctf_scanner_scope *it;
 	int ret = 0;
 
 	for (it = scanner->cs; it != NULL; it = it->parent) {
