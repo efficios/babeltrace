@@ -350,16 +350,12 @@ event_declaration:
 
 event_declaration_begin:
 		EVENT LBRAC
-		{
-			push_scope(scanner);
-		}
+		{	push_scope(scanner);	}
 	;
 
 event_declaration_end:
 		RBRAC SEMICOLON
-		{
-			pop_scope(scanner);
-		}
+		{	pop_scope(scanner);	}
 	;
 
 
@@ -370,16 +366,12 @@ stream_declaration:
 
 stream_declaration_begin:
 		STREAM LBRAC
-		{
-			push_scope(scanner);
-		}
+		{	push_scope(scanner);	}
 	;
 
 stream_declaration_end:
 		RBRAC SEMICOLON
-		{
-			pop_scope(scanner);
-		}
+		{	pop_scope(scanner);	}
 	;
 
 
@@ -390,16 +382,12 @@ trace_declaration:
 
 trace_declaration_begin:
 		TRACE LBRAC
-		{
-			push_scope(scanner);
-		}
+		{	push_scope(scanner);	}
 	;
 
 trace_declaration_end:
 		RBRAC SEMICOLON
-		{
-			pop_scope(scanner);
-		}
+		{	pop_scope(scanner);	}
 	;
 
 declaration_specifiers:
@@ -453,16 +441,12 @@ struct_type_specifier:
 
 struct_declaration_begin:
 		LBRAC
-		{
-			push_scope(scanner);
-		}
+		{	push_scope(scanner);	}
 	;
 
 struct_declaration_end:
 		RBRAC
-		{
-			pop_scope(scanner);
-		}
+		{	pop_scope(scanner);	}
 	;
 
 variant_type_specifier:
@@ -483,16 +467,12 @@ variant_type_specifier:
 
 variant_declaration_begin:
 		LBRAC
-		{
-			push_scope(scanner);
-		}
+		{	push_scope(scanner);	}
 	;
 
 variant_declaration_end:
 		RBRAC
-		{
-			pop_scope(scanner);
-		}
+		{	pop_scope(scanner);	}
 	;
 
 type_specifier_or_integer_constant:
@@ -607,9 +587,7 @@ type_declarator:
 
 direct_type_declarator:
 		IDENTIFIER
-		{
-			add_type(scanner, $1->s);
-		}
+		{	add_type(scanner, $1->s);	}
 	|	LPAREN type_declarator RPAREN
 	|	direct_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
 	;
@@ -622,9 +600,7 @@ abstract_type_declarator:
 direct_abstract_type_declarator:
 		/* empty */
 	|	IDENTIFIER
-		{
-			add_type(scanner, $1->s);
-		}
+		{	add_type(scanner, $1->s);	}
 	|	LPAREN abstract_type_declarator RPAREN
 	|	direct_abstract_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
 	|	direct_abstract_type_declarator LSBRAC RSBRAC
