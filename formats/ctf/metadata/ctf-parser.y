@@ -28,8 +28,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, args)
-#define printf_dbg_noarg(fmt)	fprintf(stderr, "%s: " fmt, __func__)
+#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, ## args)
 
 int yyparse(struct ctf_scanner *scanner);
 int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
@@ -87,7 +86,7 @@ static void push_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *ns;
 
-	printf_dbg_noarg("push scope\n");
+	printf_dbg("push scope\n");
 	ns = malloc(sizeof(struct ctf_scanner_scope));
 	init_scope(ns, scanner->cs);
 	scanner->cs = ns;
@@ -97,7 +96,7 @@ static void pop_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *os;
 
-	printf_dbg_noarg("pop scope\n");
+	printf_dbg("pop scope\n");
 	os = scanner->cs;
 	scanner->cs = os->parent;
 	finalize_scope(os);
