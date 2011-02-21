@@ -151,3 +151,5 @@ struct event_header_2 {
   } v;
 };
 
+typedef int rootscopetest;
+
