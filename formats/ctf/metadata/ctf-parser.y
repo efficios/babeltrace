@@ -704,6 +704,7 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 	if (!scanner->ast)
 		goto cleanup_lexer;
 	init_scope(&scanner->root_scope, NULL);
+	scanner->cs = &scanner->root_scope;
 	CDS_INIT_LIST_HEAD(&scanner->allocated_strings);
 
 	return scanner;
