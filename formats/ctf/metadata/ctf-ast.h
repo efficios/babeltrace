@@ -25,6 +25,7 @@ enum node_type {
 	NODE_TRACE,
 
 	NODE_CTF_EXPRESSION,
+	NODE_UNARY_EXPRESSION,
 
 	NODE_TYPEDEF,
 	NODE_TYPEALIAS_TARGET,
@@ -32,7 +33,6 @@ enum node_type {
 	NODE_TYPEALIAS,
 
 	NODE_TYPE_SPECIFIER,
-	NODE_DECLARATION_SPECIFIER,
 	NODE_POINTER,
 	NODE_TYPE_DECLARATOR,
 
@@ -49,6 +49,9 @@ enum node_type {
 };
 
 struct ctf_node {
+	/*
+	 * Parent node is only set on demand by specific visitor.
+	 */
 	struct ctf_node *parent;
 	struct cds_list_head siblings;
 	struct cds_list_head gc;
@@ -67,57 +70,64 @@ struct ctf_node {
 		} root;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef or
-			 * typealias.
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and declaration specifiers.
 			 */
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
-			struct cds_list_head ctf_expression;
-			struct cds_list_head declaration_specifier;
+			struct cds_list_head declaration_list;
 		} event;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef or
-			 * typealias.
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and declaration specifiers.
 			 */
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
-			struct cds_list_head ctf_expression;
-			struct cds_list_head declaration_specifier;
+			struct cds_list_head declaration_list;
 		} stream;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef or
-			 * typealias.
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and declaration specifiers.
 			 */
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
-			struct cds_list_head ctf_expression;
-			struct cds_list_head declaration_specifier;
+			struct cds_list_head declaration_list;
 		} trace;
 		struct {
-			char *left_id;
-			enum {
-				EXP_UNKNOWN = 0,
-				EXP_ID,
-				EXP_TYPE,
-			} type;
-			union {
-				char *id;
-				struct ctf_node *type;
-			} right;
+			struct ctf_node *left;	/* Should be string */
+			struct ctf_node *right;	/* Unary exp. or type */
 		} ctf_expression;
 		struct {
-			struct ctf_node *declaration_specifier;
+			enum {
+				UNARY_UNKNOWN = 0,
+				UNARY_STRING,
+				UNARY_SIGNED_CONSTANT,
+				UNARY_UNSIGNED_CONSTANT,
+				UNARY_SBRAC,
+			} type;
+			union {
+				/*
+				 * string for identifier, id_type, keywords,
+				 * string literals and character constants.
+				 */
+				char *string;
+				uint64_t unsigned_constant;
+				int64_t signed_constant;
+				struct ctf_node *sbrac_exp;
+			} u;
+			enum {
+				UNARY_LINK_UNKNOWN = 0,
+				UNARY_DOTLINK,
+				UNARY_ARROWLINK,
+			} link;
+		} unary_expression;
+		struct {
+			struct cds_list_head declaration_specifier;
 			struct cds_list_head type_declarators;
 		} _typedef;
 		/* new type is "alias", existing type "target" */
 		struct {
-			struct ctf_node *declaration_specifier;
+			struct cds_list_head declaration_specifier;
 			struct cds_list_head type_declarators;
 		} typealias_target;
 		struct {
-			struct ctf_node *declaration_specifier;
+			struct cds_list_head declaration_specifier;
 			struct cds_list_head type_declarators;
 		} typealias_alias;
 		struct {
@@ -138,30 +148,13 @@ struct ctf_node {
 				TYPESPEC_UNSIGNED,
 				TYPESPEC_BOOL,
 				TYPESPEC_COMPLEX,
+				TYPESPEC_CONST,
 				TYPESPEC_ID_TYPE,
-
-				TYPESPEC_FLOATING_POINT,
-				TYPESPEC_INTEGER,
-				TYPESPEC_STRING,
-				TYPESPEC_ENUM,
-				TYPESPEC_VARIANT,
-				TYPESPEC_STRUCT,
 			} type;
-			union {
-				struct ctf_node *floating_point;
-				struct ctf_node *integer;
-				struct ctf_node *string;
-				struct ctf_node *_enum;
-				struct ctf_node *variant;
-				struct ctf_node *_struct;
-			} u;
+			const char *id_type;
 		} type_specifier;
 		struct {
-			/* drop "const" specifier */
-			/* Children nodes are type_specifiers */
-			struct cds_list_head type_specifiers;
-		} declaration_specifier;
-		struct {
+			unsigned int const_qualifier;
 		} pointer;
 		struct {
 			struct cds_list_head pointers;
@@ -175,19 +168,13 @@ struct ctf_node {
 				struct {
 					/* typedec has no pointer list */
 					struct ctf_node *type_declarator;
-					struct {
-						enum {
-							TYPEDEC_TYPE_UNKNOWN = 0,
-							TYPEDEC_TYPE_VALUE, /* must be > 0 */
-							TYPEDEC_TYPE_TYPE,
-						} type;
-						union {
-							uint64_t value;
-							struct ctf_node *declaration_specifier;
-						} u;
-					} length;
+					/* value or first node of declaration specifier list */
+					struct ctf_node *length;
+					/* for abstract type declarator */
+					unsigned int abstract_array;
 				} nested;
 			} u;
+			struct ctf_node *bitfield_len;
 		} type_declarator;
 		struct {
 			/* Children nodes are ctf_expression. */
@@ -203,43 +190,29 @@ struct ctf_node {
 		} string;
 		struct {
 			char *id;
-			union {		/* inclusive start/end of range */
-				struct {
-					int64_t start, end;
-				} _signed;
-				struct {
-					uint64_t start, end;
-				} _unsigned;
-			} u;
+			/* first node of range list or single node */
+			struct ctf_node *values;
 		} enumerator;
 		struct {
 			char *enum_id;
-			struct {
-				enum {
-					ENUM_TYPE_UNKNOWN = 0,
-					ENUM_TYPE_VALUE, /* must be > 0 */
-					ENUM_TYPE_TYPE,
-				} type;
-				union {
-					uint64_t value;
-					struct ctf_node *declaration_specifier;
-				} u;
-			} container_type;
+			/* NULL, value or declaration specifier */
+			struct ctf_node *container_type;
 			struct cds_list_head enumerator_list;
 		} _enum;
 		struct {
-			struct ctf_node *declaration_specifier;
+			struct cds_list_head declaration_specifier;
 			struct cds_list_head type_declarators;
 		} struct_or_variant_declaration;
 		struct {
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
+			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
+			char *name;
+			char *choice;
 		} variant;
 		struct {
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
+			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
+			char *name;
 		} _struct;
 	} u;
 };
