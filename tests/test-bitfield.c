@@ -127,7 +127,7 @@ int run_test_unsigned(void)
 		unsigned long l[TEST_LEN/sizeof(unsigned long)];
 		unsigned long long ll[TEST_LEN/sizeof(unsigned long long)];
 	} target;
-	uint64_t readval;
+	unsigned long long readval;
 	unsigned int s, l;
 	int err = 0;
 
@@ -206,7 +206,7 @@ int run_test_signed(void)
 		long l[TEST_LEN/sizeof(long)];
 		long long ll[TEST_LEN/sizeof(long long)];
 	} target;
-	int64_t readval;
+	long long readval;
 	unsigned int s, l;
 	int err = 0;
 
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
 		unsigned long l[2];
 		unsigned long long ll[1];
 	} target;
-	uint64_t readval;
+	unsigned long long readval;
 
 	if (argc > 1)
 		src = atoi(argv[1]);

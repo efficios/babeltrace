@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <glib.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <babeltrace/list.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
@@ -153,7 +154,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 {
 	int ret;
 
-	ret = (int) g_hash_table_lookup(s->types, id);
+	ret = (int) (long) g_hash_table_lookup(s->types, id);
 	printf_dbg("lookup %p %s %d\n", s, id, ret);
 	return ret;
 }
@@ -925,21 +926,21 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "%llu",
+			sscanf(yylval.gs->s, "%" PRIu64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	|	OCTAL_CONSTANT
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0%llo",
+			sscanf(yylval.gs->s, "0%" PRIo64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	|	HEXADECIMAL_CONSTANT
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0x%llx",
+			sscanf(yylval.gs->s, "0x%" PRIx64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	|	STRING_LITERAL_START DQUOTE
@@ -1465,21 +1466,21 @@ type_specifier_or_integer_constant:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "%llu",
+			sscanf(yylval.gs->s, "%" PRIu64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	|	OCTAL_CONSTANT
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0%llo",
+			sscanf(yylval.gs->s, "0%" PRIo64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	|	HEXADECIMAL_CONSTANT
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0x%llx",
+			sscanf(yylval.gs->s, "0x%" PRIx64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
 	;

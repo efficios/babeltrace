@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <glib.h>
+#include <inttypes.h>
 #include <errno.h>
 #include <babeltrace/list.h>
 #include "ctf-scanner.h"
@@ -73,13 +74,13 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 	case UNARY_SIGNED_CONSTANT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<unary_expression value=");
-		fprintf(fd, "%lld", node->u.unary_expression.u.signed_constant);
+		fprintf(fd, "%" PRId64, node->u.unary_expression.u.signed_constant);
 		fprintf(fd, " />\n");
 		break;
 	case UNARY_UNSIGNED_CONSTANT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<unary_expression value=");
-		fprintf(fd, "%llu", node->u.unary_expression.u.signed_constant);
+		fprintf(fd, "%" PRIu64, node->u.unary_expression.u.signed_constant);
 		fprintf(fd, " />\n");
 		break;
 	case UNARY_SBRAC:

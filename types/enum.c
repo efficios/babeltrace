@@ -202,7 +202,7 @@ void enum_signed_insert_value_to_quark_set(struct type_class_enum *enum_class,
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
 		g_hash_table_insert(enum_class->table.value_to_quark_set,
-				    (gconstpointer) v, array);
+				    (gpointer) v, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
@@ -222,7 +222,7 @@ void enum_unsigned_insert_value_to_quark_set(struct type_class_enum *enum_class,
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
 		g_hash_table_insert(enum_class->table.value_to_quark_set,
-				    (gconstpointer) v, array);
+				    (gpointer) v, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
