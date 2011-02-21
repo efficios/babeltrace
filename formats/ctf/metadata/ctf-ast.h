@@ -54,6 +54,7 @@ struct ctf_node {
 	 */
 	struct ctf_node *parent;
 	struct cds_list_head siblings;
+	struct cds_list_head tmp_head;
 	struct cds_list_head gc;
 
 	enum node_type type;
@@ -90,8 +91,8 @@ struct ctf_node {
 			struct cds_list_head declaration_list;
 		} trace;
 		struct {
-			struct ctf_node *left;	/* Should be string */
-			struct ctf_node *right;	/* Unary exp. or type */
+			struct cds_list_head left;	/* Should be string */
+			struct cds_list_head right;	/* Unary exp. or type */
 		} ctf_expression;
 		struct {
 			enum {
@@ -100,6 +101,7 @@ struct ctf_node {
 				UNARY_SIGNED_CONSTANT,
 				UNARY_UNSIGNED_CONSTANT,
 				UNARY_SBRAC,
+				UNARY_NESTED,
 			} type;
 			union {
 				/*
@@ -110,11 +112,13 @@ struct ctf_node {
 				int64_t signed_constant;
 				uint64_t unsigned_constant;
 				struct ctf_node *sbrac_exp;
+				struct ctf_node *nested_exp;
 			} u;
 			enum {
 				UNARY_LINK_UNKNOWN = 0,
 				UNARY_DOTLINK,
 				UNARY_ARROWLINK,
+				UNARY_DOTDOTDOT,
 			} link;
 		} unary_expression;
 		struct {
@@ -190,8 +194,8 @@ struct ctf_node {
 		} string;
 		struct {
 			char *id;
-			/* first node of range list or single node */
-			struct ctf_node *values;
+			/* range list or single value node */
+			struct cds_list_head values;
 		} enumerator;
 		struct {
 			char *enum_id;

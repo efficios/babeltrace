@@ -153,3 +153,5 @@ struct event_header_2 {
 
 typedef int rootscopetest;
 
+event { a.b.c.d.e = f.g.h->i->j; };
+

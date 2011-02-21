@@ -42,42 +42,6 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 {
 	int ret = 0;
 
-	switch (node->u.unary_expression.type) {
-	case UNARY_STRING:
-		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression value=");
-		fprintf(fd, "\"%s\"", node->u.unary_expression.u.string);
-		fprintf(fd, "/>\n");
-		break;
-	case UNARY_SIGNED_CONSTANT:
-		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression value=");
-		fprintf(fd, "%lld", node->u.unary_expression.u.signed_constant);
-		fprintf(fd, "/>\n");
-		break;
-	case UNARY_UNSIGNED_CONSTANT:
-		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression value=");
-		fprintf(fd, "%llu", node->u.unary_expression.u.signed_constant);
-		fprintf(fd, "/>\n");
-		break;
-	case UNARY_SBRAC:
-		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression_sbrac>");
-		ret = ctf_visitor_print_unary_expression(fd, depth + 1,
-			node->u.unary_expression.u.sbrac_exp);
-		if (ret)
-			return ret;
-		print_tabs(fd, depth);
-		fprintf(fd, "</unary_expression_sbrac>");
-		break;
-
-	case UNARY_UNKNOWN:
-	default:
-		fprintf(stderr, "[error] %s: unknown expression type %d\n", __func__,
-			(int) node->u.unary_expression.type);
-		return -EINVAL;
-	}
 	switch (node->u.unary_expression.link) {
 	case UNARY_LINK_UNKNOWN:
 		break;
@@ -89,9 +53,60 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 		print_tabs(fd, depth);
 		fprintf(fd, "<arrowlink/>\n");
 		break;
+	case UNARY_DOTDOTDOT:
+		print_tabs(fd, depth);
+		fprintf(fd, "<dotdotdot/>\n");
+		break;
 	default:
 		fprintf(stderr, "[error] %s: unknown expression link type %d\n", __func__,
 			(int) node->u.unary_expression.link);
+		return -EINVAL;
+	}
+
+	switch (node->u.unary_expression.type) {
+	case UNARY_STRING:
+		print_tabs(fd, depth);
+		fprintf(fd, "<unary_expression value=");
+		fprintf(fd, "\"%s\"", node->u.unary_expression.u.string);
+		fprintf(fd, " />\n");
+		break;
+	case UNARY_SIGNED_CONSTANT:
+		print_tabs(fd, depth);
+		fprintf(fd, "<unary_expression value=");
+		fprintf(fd, "%lld", node->u.unary_expression.u.signed_constant);
+		fprintf(fd, " />\n");
+		break;
+	case UNARY_UNSIGNED_CONSTANT:
+		print_tabs(fd, depth);
+		fprintf(fd, "<unary_expression value=");
+		fprintf(fd, "%llu", node->u.unary_expression.u.signed_constant);
+		fprintf(fd, " />\n");
+		break;
+	case UNARY_SBRAC:
+		print_tabs(fd, depth);
+		fprintf(fd, "<unary_expression_sbrac>");
+		ret = ctf_visitor_print_unary_expression(fd, depth + 1,
+			node->u.unary_expression.u.sbrac_exp);
+		if (ret)
+			return ret;
+		print_tabs(fd, depth);
+		fprintf(fd, "</unary_expression_sbrac>");
+		break;
+	case UNARY_NESTED:
+		print_tabs(fd, depth);
+		fprintf(fd, "<unary_expression_nested>");
+		ret = ctf_visitor_print_unary_expression(fd, depth + 1,
+			node->u.unary_expression.u.nested_exp);
+		if (ret)
+			return ret;
+		print_tabs(fd, depth);
+		fprintf(fd, "</unary_expression_nested>");
+		break;
+
+	case UNARY_UNKNOWN:
+	default:
+		fprintf(stderr, "[error] %s: unknown expression type %d\n", __func__,
+			(int) node->u.unary_expression.type);
 		return -EINVAL;
 	}
 	return 0;
@@ -100,7 +115,7 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 {
 	print_tabs(fd, depth);
-	fprintf(fd, "<type_specifier =\"");
+	fprintf(fd, "<type_specifier \"");
 
 	switch (node->u.type_specifier.type) {
 	case TYPESPEC_VOID:
@@ -162,23 +177,25 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 	fprintf(fd, "<type_declarator>\n");
 	depth++;
 
-	print_tabs(fd, depth);
-	fprintf(fd, "<pointers>\n");
-	cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
-				siblings) {
-		ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-		if (ret)
-			return ret;
+	if (!cds_list_empty(&node->u.type_declarator.pointers)) {
+		print_tabs(fd, depth);
+		fprintf(fd, "<pointers>\n");
+		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+					siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		print_tabs(fd, depth);
+		fprintf(fd, "</pointers>\n");
 	}
-	print_tabs(fd, depth);
-	fprintf(fd, "</pointers>\n");
 
 	switch (node->u.type_declarator.type) {
 	case TYPEDEC_ID:
 		print_tabs(fd, depth);
 		fprintf(fd, "<id \"");
 		fprintf(fd, "%s", node->u.type_declarator.u.id);
-		fprintf(fd, "<\" />\n");
+		fprintf(fd, "\" />\n");
 		break;
 	case TYPEDEC_NESTED:
 		if (node->u.type_declarator.u.nested.type_declarator) {
@@ -316,17 +333,22 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		depth++;
 		print_tabs(fd, depth);
 		fprintf(fd, "<left>\n");
-		ret = ctf_visitor_print_xml(fd, depth + 1, node->u.ctf_expression.left);
-		if (ret)
-			return ret;
+		cds_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+
 		print_tabs(fd, depth);
 		fprintf(fd, "</left>\n");
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<right>\n");
-		ret = ctf_visitor_print_xml(fd, depth + 1, node->u.ctf_expression.right);
-		if (ret)
-			return ret;
+		cds_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		print_tabs(fd, depth);
 		fprintf(fd, "</right>\n");
 		depth--;
@@ -491,14 +513,13 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		if (node->u.enumerator.id)
 			fprintf(fd, " id=\"%s\"", node->u.enumerator.id);
 		fprintf(fd, ">\n");
-		if (node->u.enumerator.values) {
-			ret = ctf_visitor_print_xml(fd, depth + 1,
-				node->u.enumerator.values);
+		cds_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</enumerator>");
+		fprintf(fd, "</enumerator>\n");
 		break;
 	case NODE_ENUM:
 		print_tabs(fd, depth);
@@ -511,23 +532,23 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		if (node->u._enum.container_type) {
 			print_tabs(fd, depth);
-			fprintf(fd, "<container_type>");
+			fprintf(fd, "<container_type>\n");
 			ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
 			if (ret)
 				return ret;
 			print_tabs(fd, depth);
-			fprintf(fd, "</container_type>");
+			fprintf(fd, "</container_type>\n");
 		}
 
 		print_tabs(fd, depth);
-		fprintf(fd, "<enumerator_list>");
+		fprintf(fd, "<enumerator_list>\n");
 		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</enumerator_list>");
+		fprintf(fd, "</enumerator_list>\n");
 
 		depth--;
 		print_tabs(fd, depth);
