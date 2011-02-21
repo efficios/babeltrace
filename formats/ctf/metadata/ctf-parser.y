@@ -194,6 +194,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	node->type = type;
 	CDS_INIT_LIST_HEAD(&node->tmp_head);
 	cds_list_add(&node->gc, &ast->allocated_nodes);
+	cds_list_add(&node->siblings, &node->tmp_head);
 
 	switch (type) {
 	case NODE_ROOT:
@@ -906,21 +907,18 @@ postfix_expression:
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.gs->s;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.gs->s;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	keywords
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.gs->s;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 
 	|	DECIMAL_CONSTANT
@@ -929,7 +927,6 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
 			sscanf(yylval.gs->s, "%llu",
 			       &$$->u.unary_expression.u.unsigned_constant);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	OCTAL_CONSTANT
 		{
@@ -937,7 +934,6 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
 			sscanf(yylval.gs->s, "0%llo",
 			       &$$->u.unary_expression.u.unsigned_constant);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	HEXADECIMAL_CONSTANT
 		{
@@ -945,35 +941,30 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
 			sscanf(yylval.gs->s, "0x%llx",
 			       &$$->u.unary_expression.u.unsigned_constant);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	STRING_LITERAL_START DQUOTE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = "";
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	STRING_LITERAL_START s_char_sequence DQUOTE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = $2->s;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	CHARACTER_CONSTANT_START c_char_sequence SQUOTE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = $2->s;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	LPAREN unary_expression RPAREN
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_NESTED;
 			$$->u.unary_expression.u.nested_exp = $2;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	postfix_expression LSBRAC unary_expression RSBRAC
 		{
@@ -1110,12 +1101,10 @@ event_declaration:
 		event_declaration_begin event_declaration_end
 		{
 			$$ = make_node(scanner, NODE_EVENT);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	event_declaration_begin ctf_assignment_expression_list event_declaration_end
 		{
 			$$ = make_node(scanner, NODE_EVENT);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 			if (set_parent_node($2, $$))
 				reparent_error(scanner, "event_declaration");
 		}
@@ -1136,12 +1125,10 @@ stream_declaration:
 		stream_declaration_begin stream_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STREAM);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	stream_declaration_begin ctf_assignment_expression_list stream_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STREAM);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 			if (set_parent_node($2, $$))
 				reparent_error(scanner, "stream_declaration");
 		}
@@ -1162,12 +1149,10 @@ trace_declaration:
 		trace_declaration_begin trace_declaration_end
 		{
 			$$ = make_node(scanner, NODE_TRACE);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	trace_declaration_begin ctf_assignment_expression_list trace_declaration_end
 		{
 			$$ = make_node(scanner, NODE_TRACE);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 			if (set_parent_node($2, $$))
 				reparent_error(scanner, "trace_declaration");
 		}
@@ -1188,13 +1173,9 @@ declaration_specifiers:
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_CONST;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	type_specifier
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	declaration_specifiers CONST
 		{
 			struct ctf_node *node;
@@ -1213,10 +1194,7 @@ declaration_specifiers:
 
 type_declarator_list:
 		type_declarator
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	type_declarator_list COMMA type_declarator
 		{
 			$$ = $1;
@@ -1226,10 +1204,7 @@ type_declarator_list:
 
 abstract_type_declarator_list:
 		abstract_type_declarator
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	abstract_type_declarator_list COMMA abstract_type_declarator
 		{
 			$$ = $1;
@@ -1675,13 +1650,9 @@ specifier_qualifier_list:
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_CONST;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	type_specifier
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	specifier_qualifier_list CONST
 		{
 			struct ctf_node *node;
@@ -1700,10 +1671,7 @@ specifier_qualifier_list:
 
 struct_or_variant_declarator_list:
 		struct_or_variant_declarator
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	struct_or_variant_declarator_list COMMA struct_or_variant_declarator
 		{
 			$$ = $1;
@@ -1726,10 +1694,7 @@ struct_or_variant_declarator:
 
 enumerator_list:
 		enumerator
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	enumerator_list COMMA enumerator
 		{
 			$$ = $1;
@@ -1797,10 +1762,7 @@ enumerator:
 
 abstract_declarator_list:
 		abstract_declarator
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	abstract_declarator_list COMMA abstract_declarator
 		{
 			$$ = $1;
@@ -1968,20 +1930,17 @@ pointer:
 		STAR
 		{
 			$$ = make_node(scanner, NODE_POINTER);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	STAR pointer
 		{
 			$$ = make_node(scanner, NODE_POINTER);
 			cds_list_splice(&($2)->tmp_head, &($$)->tmp_head);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	|	STAR type_qualifier_list pointer
 		{
 			$$ = make_node(scanner, NODE_POINTER);
 			$$->u.pointer.const_qualifier = 1;
 			cds_list_splice(&($3)->tmp_head, &($$)->tmp_head);
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
 		}
 	;
 
@@ -1995,10 +1954,7 @@ type_qualifier_list:
 
 ctf_assignment_expression_list:
 		ctf_assignment_expression SEMICOLON
-		{
-			$$ = $1;
-			cds_list_add(&($$)->siblings, &($$)->tmp_head);
-		}
+		{	$$ = $1;	}
 	|	ctf_assignment_expression_list ctf_assignment_expression SEMICOLON
 		{
 			$$ = $1;

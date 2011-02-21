@@ -155,3 +155,5 @@ typedef int rootscopetest;
 
 event { a.b.c.d.e = f.g.h->i->j; };
 
+typealias integer { size = 32; align = 32; signed = false; } : unsigned long long *;
+typealias integer { size = 32; align = 32; signed = false; } : unsigned const long [];

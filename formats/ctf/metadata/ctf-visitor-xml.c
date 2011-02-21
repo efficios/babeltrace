@@ -192,10 +192,12 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 
 	switch (node->u.type_declarator.type) {
 	case TYPEDEC_ID:
-		print_tabs(fd, depth);
-		fprintf(fd, "<id \"");
-		fprintf(fd, "%s", node->u.type_declarator.u.id);
-		fprintf(fd, "\" />\n");
+		if (node->u.type_declarator.u.id) {
+			print_tabs(fd, depth);
+			fprintf(fd, "<id \"");
+			fprintf(fd, "%s", node->u.type_declarator.u.id);
+			fprintf(fd, "\" />\n");
+		}
 		break;
 	case TYPEDEC_NESTED:
 		if (node->u.type_declarator.u.nested.type_declarator) {
