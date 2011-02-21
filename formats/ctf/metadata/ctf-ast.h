@@ -2,9 +2,9 @@
 #define _CTF_PARSER_H
 
 #include <stdint.h>
-#include <helpers/list.h>
 #include <stdio.h>
 #include <glib.h>
+#include <babeltrace/list.h>
 
 // the parameter name (of the reentrant 'yyparse' function)
 // data is a pointer to a 'SParserParam' structure

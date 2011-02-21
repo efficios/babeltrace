@@ -22,9 +22,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <helpers/list.h>
 #include <glib.h>
 #include <errno.h>
+#include <babeltrace/list.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
