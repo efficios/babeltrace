@@ -30,7 +30,7 @@ void string_copy(struct stream_pos *dest, const struct format *fdest,
 	if (fsrc->string_copy == fdest->string_copy) {
 		fsrc->string_copy(dest, src, string_class);
 	} else {
-		unsigned char *tmp = NULL;
+		char *tmp = NULL;
 
 		fsrc->string_read(&tmp, src, string_class);
 		fdest->string_write(dest, tmp, string_class);

@@ -20,8 +20,8 @@
 #include <stdint.h>
 #include <glib.h>
 
-GQuark ctf_enum_read(struct stream_pos *pos,
-		     const struct type_class_enum *src)
+GArray *ctf_enum_read(struct stream_pos *pos,
+		      const struct type_class_enum *src)
 {
 	const struct type_class_integer *int_class = &src->p;
 
@@ -29,30 +29,33 @@ GQuark ctf_enum_read(struct stream_pos *pos,
 		uint64_t v;
 
 		v = ctf_uint_read(pos, int_class);
-		return enum_uint_to_quark(src, v);
+		return enum_uint_to_quark_set(src, v);
 	} else {
 		int64_t v;
 
 		v = ctf_int_read(pos, int_class);
-		return enum_int_to_quark(src, v);
+		return enum_int_to_quark_set(src, v);
 	}
 }
 
+/*
+ * Arbitrarily choose the start of the first matching range.
+ */
 void ctf_enum_write(struct stream_pos *pos,
-		      const struct type_class_enum *dest,
-		      GQuark q)
+		    const struct type_class_enum *dest,
+		    GQuark q)
 {
 	const struct type_class_integer *int_class = &dest->p;
+	GArray *array;
+
+	array = enum_quark_to_range_set(dest, q);
+	assert(array);
 
 	if (!int_class->signedness) {
-		uint64_t v;
-
-		v = enum_quark_to_uint(dest, q);
+		uint64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
 		ctf_uint_write(pos, int_class, v);
 	} else {
-		int64_t v;
-
-		v = enum_quark_to_int(dest, q);
+		int64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
 		ctf_int_write(pos, int_class, v);
 	}
 }

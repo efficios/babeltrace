@@ -24,7 +24,7 @@ void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
 		     const struct type_class_string *string_class)
 {
 	size_t len;
-	unsigned char *destaddr, *srcaddr;
+	char *destaddr, *srcaddr;
 
 	align_pos(src, string_class->p.alignment);
 	srcaddr = get_pos_addr(src);
@@ -39,26 +39,25 @@ end:
 	move_pos(src, len);
 }
 
-void ctf_string_read(unsigned char **dest, struct stream_pos *src,
+void ctf_string_read(char **dest, struct stream_pos *src,
 		     const struct type_class_string *string_class)
 {
 	size_t len;
-	unsigned char *srcaddr;
+	char *srcaddr;
 
 	align_pos(src, string_class->p.alignment);
 	srcaddr = get_pos_addr(src);
 	len = strlen(srcaddr) + 1;
 	*dest = g_realloc(*dest, len);
 	strcpy(*dest, srcaddr);
-end:
 	move_pos(src, len);
 }
 
-void ctf_string_write(struct stream_pos *dest, const unsigned char *src,
+void ctf_string_write(struct stream_pos *dest, const char *src,
 		      const struct type_class_string *string_class)
 {
 	size_t len;
-	unsigned char *destaddr;
+	char *destaddr;
 
 	align_pos(dest, string_class->p.alignment);
 	len = strlen(src) + 1;
@@ -70,7 +69,7 @@ end:
 	move_pos(dest, len);
 }
 
-void ctf_string_free_temp(unsigned char *string)
+void ctf_string_free_temp(char *string)
 {
 	g_free(string);
 }

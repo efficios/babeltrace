@@ -119,7 +119,7 @@ double ctf_double_read(struct stream_pos *srcp,
 	struct stream_pos destp;
 
 	align_pos(srcp, float_class->p.alignment);
-	init_pos(&destp, (unsigned char *) u.bits);
+	init_pos(&destp, (char *) u.bits);
 	_ctf_float_copy(&destp, dest_class, srcp, float_class);
 	float_type_free(dest_class);
 	return u.v;
@@ -139,7 +139,7 @@ void ctf_double_write(struct stream_pos *destp,
 
 	u.v = v;
 	align_pos(destp, float_class->p.alignment);
-	init_pos(&srcp, (unsigned char *) u.bits);
+	init_pos(&srcp, (char *) u.bits);
 	_ctf_float_copy(destp, float_class, &srcp, src_class);
 	float_type_free(src_class);
 }
@@ -156,7 +156,7 @@ long double ctf_ldouble_read(struct stream_pos *srcp,
 	struct stream_pos destp;
 
 	align_pos(srcp, float_class->p.alignment);
-	init_pos(&destp, (unsigned char *) u.bits);
+	init_pos(&destp, (char *) u.bits);
 	_ctf_float_copy(&destp, dest_class, srcp, float_class);
 	float_type_free(dest_class);
 	return u.v;
@@ -176,7 +176,7 @@ void ctf_ldouble_write(struct stream_pos *destp,
 
 	u.v = v;
 	align_pos(destp, float_class->p.alignment);
-	init_pos(&srcp, (unsigned char *) u.bits);
+	init_pos(&srcp, (char *) u.bits);
 	_ctf_float_copy(destp, float_class, &srcp, src_class);
 	float_type_free(src_class);
 }

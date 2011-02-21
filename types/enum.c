@@ -233,9 +233,8 @@ void enum_unsigned_insert_value_to_quark_set(struct type_class_enum *enum_class,
 GArray *enum_quark_to_range_set(const struct type_class_enum *enum_class,
 				GQuark q)
 {
-	gconstpointer v = g_hash_table_lookup(enum_class->table.quark_to_range_set,
-					      (gconstpointer) (unsigned long) q);
-	return (GArray *) v;
+	return g_hash_table_lookup(enum_class->table.quark_to_range_set,
+				   (gconstpointer) (unsigned long) q);
 }
 
 static
@@ -339,9 +338,17 @@ void enum_copy(struct stream_pos *dest, const struct format *fdest,
 {
 	struct type_class_enum *enum_class =
 		container_of(type_class, struct type_class_enum, p.p);
+	GArray *array;
 	GQuark v;
 
-	v = fsrc->enum_read(src, enum_class);
+	array = fsrc->enum_read(src, enum_class);
+	assert(array);
+	/*
+	 * Arbitrarily choose the first one.
+	 * TODO: use direct underlying type read/write intead. Not doing it for
+	 * now to test enum read and write code.
+	 */
+	v = g_array_index(array, GQuark, 0);
 	return fdest->enum_write(dest, enum_class, v);
 }
 

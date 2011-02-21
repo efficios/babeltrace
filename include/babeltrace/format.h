@@ -48,13 +48,17 @@ struct format {
 
 	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
 			    const struct type_class_string *string_class);
-	void (*string_read)(unsigned char **dest, struct stream_pos *src,
+	void (*string_read)(char **dest, struct stream_pos *src,
 			    const struct type_class_string *string_class);
-	void (*string_write)(struct stream_pos *dest, const unsigned char *src,
+	void (*string_write)(struct stream_pos *dest, const char *src,
 			     const struct type_class_string *string_class);
-	void (*string_free_temp)(unsigned char *string);
+	void (*string_free_temp)(char *string);
 
-	GQuark (*enum_read)(struct stream_pos *pos,
+	/*
+	 * enum_read returns a GArray of GQuark. Must be released with
+	 * g_array_unref().
+	 */
+	GArray *(*enum_read)(struct stream_pos *pos,
 			    const struct type_class_enum *src);
 	void (*enum_write)(struct stream_pos *pos,
 			   const struct type_class_enum *dest,

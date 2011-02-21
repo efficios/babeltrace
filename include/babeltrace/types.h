@@ -35,13 +35,13 @@
  * Always update stream_pos with move_pos and init_pos.
  */
 struct stream_pos {
-	unsigned char *base;	/* Base address */
+	char *base;		/* Base address */
 	size_t offset;		/* Offset from base, in bits */
 	int dummy;		/* Dummy position, for length calculation */
 };
 
 static inline
-void init_pos(struct stream_pos *pos, unsigned char *base)
+void init_pos(struct stream_pos *pos, char *base)
 {
 	pos->base = base;	/* initial base, page-aligned */
 	pos->offset = 0;
@@ -77,7 +77,7 @@ void copy_pos(struct stream_pos *dest, struct stream_pos *src)
 }
 
 static inline
-unsigned char *get_pos_addr(struct stream_pos *pos)
+char *get_pos_addr(struct stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	assert(!(pos->offset % CHAR_BIT));
@@ -219,15 +219,25 @@ void float_type_free(struct type_class_float *float_class);
  * A GQuark can be translated to/from strings with g_quark_from_string() and
  * g_quark_to_string().
  */
+
+/*
+ * Returns a GArray of GQuark or NULL.
+ * Caller must release the GArray with g_array_unref().
+ */
 GArray *enum_uint_to_quark_set(const struct type_class_enum *enum_class,
 			       uint64_t v);
 
 /*
- * Returns a GArray or NULL.
+ * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
 GArray *enum_int_to_quark_set(const struct type_class_enum *enum_class,
 			      uint64_t v);
+
+/*
+ * Returns a GArray of struct enum_range or NULL.
+ * Caller must release the GArray with g_array_unref().
+ */
 GArray *enum_quark_to_range_set(const struct type_class_enum *enum_class,
 				GQuark q);
 void enum_signed_insert(struct type_class_enum *enum_class,

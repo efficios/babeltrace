@@ -59,14 +59,14 @@ void ctf_float_copy(struct stream_pos *destp,
 
 void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
 		     const struct type_class_string *string_class);
-void ctf_string_read(unsigned char **dest, struct stream_pos *src,
+void ctf_string_read(char **dest, struct stream_pos *src,
 		     const struct type_class_string *string_class);
-void ctf_string_write(struct stream_pos *dest, const unsigned char *src,
+void ctf_string_write(struct stream_pos *dest, const char *src,
 		      const struct type_class_string *string_class);
-void ctf_string_free_temp(unsigned char *string);
+void ctf_string_free_temp(char *string);
 
-GQuark ctf_enum_read(struct stream_pos *pos,
-		const struct type_class_enum *src);
+GArray *ctf_enum_read(struct stream_pos *pos,
+		      const struct type_class_enum *src);
 void ctf_enum_write(struct stream_pos *pos,
 		const struct type_class_enum *dest,
 		GQuark q);

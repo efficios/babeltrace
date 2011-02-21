@@ -74,11 +74,11 @@
  * Also, consecutive bitfields are placed from higher to lower bits.
  */
 
-#define _bt_bitfield_write_le(ptr, _start, _length, _v)			\
+#define _bt_bitfield_write_le(ptr, type, _start, _length, _v)		\
 do {									\
 	typeof(_v) v = (_v);						\
-	typeof(*(ptr)) mask, cmask;					\
-	unsigned long ts = sizeof(typeof(*(ptr))) * CHAR_BIT; /* type size */ \
+	type mask, cmask;						\
+	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
 	unsigned long start = (_start), length = (_length);		\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
@@ -97,10 +97,10 @@ do {									\
 	/* We can now append v with a simple "or", shift it piece-wise */ \
 	this_unit = start_unit;						\
 	if (start_unit == end_unit - 1) {				\
-		mask = ~((~(typeof(*(ptr))) 0) << (start % ts));	\
+		mask = ~((~(type) 0) << (start % ts));			\
 		if (end % ts)						\
-			mask |= (~(typeof(*(ptr))) 0) << (end % ts);	\
-		cmask = (typeof(*(ptr))) v << (start % ts);		\
+			mask |= (~(type) 0) << (end % ts);		\
+		cmask = (type) v << (start % ts);			\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
@@ -108,8 +108,8 @@ do {									\
 	}								\
 	if (start % ts) {						\
 		cshift = start % ts;					\
-		mask = ~((~(typeof(*(ptr))) 0) << cshift);		\
-		cmask = (typeof(*(ptr))) v << cshift;			\
+		mask = ~((~(type) 0) << cshift);			\
+		cmask = (type) v << cshift;				\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
@@ -118,26 +118,26 @@ do {									\
 		this_unit++;						\
 	}								\
 	for (; this_unit < end_unit - 1; this_unit++) {			\
-		(ptr)[this_unit] = (typeof(*(ptr))) v;			\
+		(ptr)[this_unit] = (type) v;				\
 		v = _bt_piecewise_rshift(v, ts);			\
 		start += ts;						\
 	}								\
 	if (end % ts) {							\
-		mask = (~(typeof(*(ptr))) 0) << (end % ts);		\
-		cmask = (typeof(*(ptr))) v;				\
+		mask = (~(type) 0) << (end % ts);			\
+		cmask = (type) v;					\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
 	} else								\
-		(ptr)[this_unit] = (typeof(*(ptr))) v;			\
+		(ptr)[this_unit] = (type) v;				\
 } while (0)
 
-#define _bt_bitfield_write_be(ptr, _start, _length, _v)			\
+#define _bt_bitfield_write_be(ptr, type, _start, _length, _v)		\
 do {									\
 	typeof(_v) v = (_v);						\
-	typeof(*(ptr)) mask, cmask;					\
-	unsigned long ts = sizeof(typeof(*(ptr))) * CHAR_BIT; /* type size */ \
-	unsigned long start = _start, length = _length;			\
+	type mask, cmask;						\
+	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
+	unsigned long start = (_start), length = (_length);		\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
 									\
@@ -155,10 +155,10 @@ do {									\
 	/* We can now append v with a simple "or", shift it piece-wise */ \
 	this_unit = end_unit - 1;					\
 	if (start_unit == end_unit - 1) {				\
-		mask = ~((~(typeof(*(ptr))) 0) << ((ts - (end % ts)) % ts)); \
+		mask = ~((~(type) 0) << ((ts - (end % ts)) % ts));	\
 		if (start % ts)						\
-			mask |= (~((typeof(*(ptr))) 0)) << (ts - (start % ts)); \
-		cmask = (typeof(*(ptr))) v << ((ts - (end % ts)) % ts);	\
+			mask |= (~((type) 0)) << (ts - (start % ts));	\
+		cmask = (type) v << ((ts - (end % ts)) % ts);		\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
@@ -166,8 +166,8 @@ do {									\
 	}								\
 	if (end % ts) {							\
 		cshift = end % ts;					\
-		mask = ~((~(typeof(*(ptr))) 0) << (ts - cshift));	\
-		cmask = (typeof(*(ptr))) v << (ts - cshift);		\
+		mask = ~((~(type) 0) << (ts - cshift));			\
+		cmask = (type) v << (ts - cshift);			\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
@@ -176,18 +176,18 @@ do {									\
 		this_unit--;						\
 	}								\
 	for (; (long) this_unit >= (long) start_unit + 1; this_unit--) { \
-		(ptr)[this_unit] = (typeof(*(ptr))) v;			\
+		(ptr)[this_unit] = (type) v;				\
 		v = _bt_piecewise_rshift(v, ts);			\
 		end -= ts;						\
 	}								\
 	if (start % ts) {						\
-		mask = (~(typeof(*(ptr))) 0) << (ts - (start % ts));	\
-		cmask = (typeof(*(ptr))) v;				\
+		mask = (~(type) 0) << (ts - (start % ts));		\
+		cmask = (type) v;					\
 		cmask &= ~mask;						\
 		(ptr)[this_unit] &= mask;				\
 		(ptr)[this_unit] |= cmask;				\
 	} else								\
-		(ptr)[this_unit] = (typeof(*(ptr))) v;			\
+		(ptr)[this_unit] = (type) v;				\
 } while (0)
 
 /*
@@ -198,25 +198,25 @@ do {									\
 
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 
-#define bt_bitfield_write(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_le(ptr, _start, _length, _v)
+#define bt_bitfield_write(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_le(ptr, type, _start, _length, _v)
 
-#define bt_bitfield_write_le(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_le(ptr, _start, _length, _v)
+#define bt_bitfield_write_le(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_le(ptr, type, _start, _length, _v)
 	
-#define bt_bitfield_write_be(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_be((unsigned char *) (ptr), _start, _length, _v)
+#define bt_bitfield_write_be(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_be(ptr, unsigned char, _start, _length, _v)
 
 #elif (BYTE_ORDER == BIG_ENDIAN)
 
-#define bt_bitfield_write(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_be(ptr, _start, _length, _v)
+#define bt_bitfield_write(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_be(ptr, type, _start, _length, _v)
 
-#define bt_bitfield_write_le(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_le((unsigned char *) (ptr), _start, _length, _v)
+#define bt_bitfield_write_le(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_le(ptr, unsigned char, _start, _length, _v)
 	
-#define bt_bitfield_write_be(ptr, _start, _length, _v)			\
-	_bt_bitfield_write_be(ptr, _start, _length, _v)
+#define bt_bitfield_write_be(ptr, type, _start, _length, _v)		\
+	_bt_bitfield_write_be(ptr, type, _start, _length, _v)
 
 #else /* (BYTE_ORDER == PDP_ENDIAN) */
 
@@ -224,12 +224,12 @@ do {									\
 
 #endif
 
-#define _bt_bitfield_read_le(ptr, _start, _length, vptr)		\
+#define _bt_bitfield_read_le(ptr, type, _start, _length, vptr)		\
 do {									\
 	typeof(*(vptr)) v;						\
-	typeof(*(ptr)) mask, cmask;					\
-	unsigned long ts = sizeof(typeof(*(ptr))) * CHAR_BIT; /* type size */ \
-	unsigned long start = _start, length = _length;			\
+	type mask, cmask;						\
+	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
+	unsigned long start = (_start), length = (_length);		\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
 									\
@@ -244,7 +244,7 @@ do {									\
 									\
 	this_unit = end_unit - 1;					\
 	if (_bt_is_signed_type(typeof(v))				\
-	    && ((ptr)[this_unit] & ((typeof(*(ptr))) 1 << ((end % ts ? : ts) - 1)))) \
+	    && ((ptr)[this_unit] & ((type) 1 << ((end % ts ? : ts) - 1)))) \
 		v = ~(typeof(v)) 0;					\
 	else								\
 		v = 0;							\
@@ -252,7 +252,7 @@ do {									\
 		cmask = (ptr)[this_unit];				\
 		cmask >>= (start % ts);					\
 		if ((end - start) % ts) {				\
-			mask = ~((~(typeof(*(ptr))) 0) << (end - start)); \
+			mask = ~((~(type) 0) << (end - start));		\
 			cmask &= mask;					\
 		}							\
 		v = _bt_piecewise_lshift(v, end - start);		\
@@ -262,7 +262,7 @@ do {									\
 	}								\
 	if (end % ts) {							\
 		cshift = end % ts;					\
-		mask = ~((~(typeof(*(ptr))) 0) << cshift);		\
+		mask = ~((~(type) 0) << cshift);			\
 		cmask = (ptr)[this_unit];				\
 		cmask &= mask;						\
 		v = _bt_piecewise_lshift(v, cshift);			\
@@ -276,7 +276,7 @@ do {									\
 		end -= ts;						\
 	}								\
 	if (start % ts) {						\
-		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts)));	\
+		mask = ~((~(type) 0) << (ts - (start % ts)));		\
 		cmask = (ptr)[this_unit];				\
 		cmask >>= (start % ts);					\
 		cmask &= mask;						\
@@ -289,12 +289,12 @@ do {									\
 	*(vptr) = v;							\
 } while (0)
 
-#define _bt_bitfield_read_be(ptr, _start, _length, vptr)		\
+#define _bt_bitfield_read_be(ptr, type, _start, _length, vptr)		\
 do {									\
 	typeof(*(vptr)) v;						\
-	typeof(*(ptr)) mask, cmask;					\
-	unsigned long ts = sizeof(typeof(*(ptr))) * CHAR_BIT; /* type size */ \
-	unsigned long start = _start, length = _length;			\
+	type mask, cmask;						\
+	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
+	unsigned long start = (_start), length = (_length);		\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
 									\
@@ -309,7 +309,7 @@ do {									\
 									\
 	this_unit = start_unit;						\
 	if (_bt_is_signed_type(typeof(v))				\
-	    && ((ptr)[this_unit] & ((typeof(*(ptr))) 1 << (ts - (start % ts) - 1)))) \
+	    && ((ptr)[this_unit] & ((type) 1 << (ts - (start % ts) - 1)))) \
 		v = ~(typeof(v)) 0;					\
 	else								\
 		v = 0;							\
@@ -317,7 +317,7 @@ do {									\
 		cmask = (ptr)[this_unit];				\
 		cmask >>= (ts - (end % ts)) % ts;			\
 		if ((end - start) % ts) {				\
-			mask = ~((~(typeof(*(ptr))) 0) << (end - start)); \
+			mask = ~((~(type) 0) << (end - start));		\
 			cmask &= mask;					\
 		}							\
 		v = _bt_piecewise_lshift(v, end - start);		\
@@ -326,12 +326,13 @@ do {									\
 		break;							\
 	}								\
 	if (start % ts) {						\
-		mask = ~((~(typeof(*(ptr))) 0) << (ts - (start % ts)));	\
+		cshift = start % ts;					\
+		mask = ~((~(type) 0) << (ts - cshift));			\
 		cmask = (ptr)[this_unit];				\
 		cmask &= mask;						\
-		v = _bt_piecewise_lshift(v, ts - (start % ts));		\
+		v = _bt_piecewise_lshift(v, ts - cshift);		\
 		v |= _bt_unsigned_cast(typeof(v), cmask);		\
-		start += ts - (start % ts);				\
+		start += ts - cshift;					\
 		this_unit++;						\
 	}								\
 	for (; this_unit < end_unit - 1; this_unit++) {			\
@@ -340,7 +341,7 @@ do {									\
 		start += ts;						\
 	}								\
 	if (end % ts) {							\
-		mask = ~((~(typeof(*(ptr))) 0) << (end % ts));		\
+		mask = ~((~(type) 0) << (end % ts));			\
 		cmask = (ptr)[this_unit];				\
 		cmask >>= ts - (end % ts);				\
 		cmask &= mask;						\
@@ -361,25 +362,25 @@ do {									\
 
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 
-#define bt_bitfield_read(ptr, _start, _length, _vptr)			\
-	_bt_bitfield_read_le(ptr, _start, _length, _vptr)
+#define bt_bitfield_read(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_le(ptr, type, _start, _length, _vptr)
 
-#define bt_bitfield_read_le(ptr, _start, _length, _vptr)		\
-	_bt_bitfield_read_le(ptr, _start, _length, _vptr)
+#define bt_bitfield_read_le(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_le(ptr, type, _start, _length, _vptr)
 	
-#define bt_bitfield_read_be(ptr, _start, _length, _vptr)		\
-	_bt_bitfield_read_be((const unsigned char *) (ptr), _start, _length, _vptr)
+#define bt_bitfield_read_be(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_be(ptr, unsigned char, _start, _length, _vptr)
 
 #elif (BYTE_ORDER == BIG_ENDIAN)
 
-#define bt_bitfield_read(ptr, _start, _length, _vptr)			\
-	_bt_bitfield_read_be(ptr, _start, _length, _vptr)
+#define bt_bitfield_read(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_be(ptr, type, _start, _length, _vptr)
 
-#define bt_bitfield_read_le(ptr, _start, _length, _vptr)		\
-	_bt_bitfield_read_le((const unsigned char *) (ptr), _start, _length, _vptr)
+#define bt_bitfield_read_le(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_le(ptr, unsigned char, _start, _length, _vptr)
 	
-#define bt_bitfield_read_be(ptr, _start, _length, _vptr)		\
-	_bt_bitfield_read_be(ptr, _start, _length, _vptr)
+#define bt_bitfield_read_be(ptr, type, _start, _length, _vptr)		\
+	_bt_bitfield_read_be(ptr, type, _start, _length, _vptr)
 
 #else /* (BYTE_ORDER == PDP_ENDIAN) */
 

@@ -190,15 +190,15 @@ end:
 uint64_t ctf_uint_read(struct stream_pos *pos,
 			const struct type_class_integer *int_class)
 {
-	uint64_t v;
+	uint64_t v = 0;
 
 	align_pos(pos, int_class->p.alignment);
 	if (int_class->byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_read_le(pos->base, pos->offset,
-				     int_class->len, &v);
+		bt_bitfield_read_le(pos->base, unsigned long, pos->offset,
+				    int_class->len, &v);
 	else
-		ctf_bitfield_read_be(pos->base, pos->offset,
-				     int_class->len, &v);
+		bt_bitfield_read_be(pos->base, unsigned long, pos->offset,
+				    int_class->len, &v);
 	move_pos(pos, int_class->len);
 	return v;
 }
@@ -206,15 +206,15 @@ uint64_t ctf_uint_read(struct stream_pos *pos,
 int64_t ctf_int_read(struct stream_pos *pos,
 			const struct type_class_integer *int_class)
 {
-	int64_t v;
+	int64_t v = 0;
 
 	align_pos(pos, int_class->p.alignment);
 	if (int_class->byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_read_le(pos->base, pos->offset,
-				     int_class->len, &v);
+		bt_bitfield_read_le(pos->base, unsigned long, pos->offset,
+				    int_class->len, &v);
 	else
-		ctf_bitfield_read_be(pos->base, pos->offset,
-				     int_class->len, &v);
+		bt_bitfield_read_be(pos->base, unsigned long, pos->offset,
+				    int_class->len, &v);
 	move_pos(pos, int_class->len);
 	return v;
 }
@@ -227,11 +227,11 @@ void ctf_uint_write(struct stream_pos *pos,
 	if (pos->dummy)
 		goto end;
 	if (int_class->byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_write_le(pos->base, pos->offset,
-				      int_class->len, v);
+		bt_bitfield_write_le(pos->base, unsigned long, pos->offset,
+				     int_class->len, v);
 	else
-		ctf_bitfield_write_be(pos->base, pos->offset,
-				      int_class->len, v);
+		bt_bitfield_write_be(pos->base, unsigned long, pos->offset,
+				     int_class->len, v);
 end:
 	move_pos(pos, int_class->len);
 }
@@ -244,11 +244,11 @@ void ctf_int_write(struct stream_pos *pos,
 	if (pos->dummy)
 		goto end;
 	if (int_class->byte_order == LITTLE_ENDIAN)
-		ctf_bitfield_write_le(pos->base, pos->offset,
-				      int_class->len, v);
+		bt_bitfield_write_le(pos->base, unsigned long, pos->offset,
+				     int_class->len, v);
 	else
-		ctf_bitfield_write_be(pos->base, pos->offset,
-				      int_class->len, v);
+		bt_bitfield_write_be(pos->base, unsigned long, pos->offset,
+				     int_class->len, v);
 end:
 	move_pos(pos, int_class->len);
 }
