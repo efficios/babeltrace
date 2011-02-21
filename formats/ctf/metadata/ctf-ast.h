@@ -107,8 +107,8 @@ struct ctf_node {
 				 * string literals and character constants.
 				 */
 				char *string;
-				uint64_t unsigned_constant;
 				int64_t signed_constant;
+				uint64_t unsigned_constant;
 				struct ctf_node *sbrac_exp;
 			} u;
 			enum {
@@ -204,15 +204,15 @@ struct ctf_node {
 			struct cds_list_head type_declarators;
 		} struct_or_variant_declaration;
 		struct {
-			/* list of typedef, typealias and declarations */
-			struct cds_list_head declaration_list;
 			char *name;
 			char *choice;
-		} variant;
-		struct {
 			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
+		} variant;
+		struct {
 			char *name;
+			/* list of typedef, typealias and declarations */
+			struct cds_list_head declaration_list;
 		} _struct;
 	} u;
 };
@@ -221,5 +221,7 @@ struct ctf_ast {
 	struct ctf_node root;
 	struct cds_list_head allocated_nodes;
 };
+
+int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node);
 
 #endif /* _CTF_PARSER_H */

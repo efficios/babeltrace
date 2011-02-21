@@ -28,6 +28,7 @@ extern int yydebug;
 int main(int argc, char **argv)
 {
 	struct ctf_scanner *scanner;
+	int ret = 0;
 
 	yydebug = 1;
 	scanner = ctf_scanner_alloc(stdin);
@@ -36,8 +37,14 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	ctf_scanner_append_ast(scanner);
+
+	if (ctf_visitor_print_xml(stdout, 0, &scanner->ast->root)) {
+		fprintf(stderr, "error visiting AST for XML output\n");
+		ret = -1;
+	}
 	ctf_scanner_free(scanner);
-	return 0;
+
+	return ret;
 } 
 
 
