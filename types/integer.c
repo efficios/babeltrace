@@ -71,7 +71,7 @@ struct type_class_integer *integer_type_new(const char *name,
 	int_class->byte_order = byte_order;
 	int_class->signedness = signedness;
 	if (int_class->p.name) {
-		ret = ctf_register_type(&int_class->p);
+		ret = register_type(&int_class->p);
 		if (ret) {
 			g_free(int_class);
 			return NULL;

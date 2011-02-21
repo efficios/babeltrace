@@ -59,7 +59,6 @@ struct type_class_float *float_type_new(const char *name,
 					size_t alignment)
 {
 	struct type_class_float *float_class;
-	struct type_class_integer *int_class;
 	struct type_class *type_class;
 	int ret;
 
@@ -87,7 +86,7 @@ struct type_class_float *float_type_new(const char *name,
 		goto error_exp;
 
 	if (float_class->p.name) {
-		ret = ctf_register_type(&float_class->p);
+		ret = register_type(&float_class->p);
 		if (ret)
 			goto error_register;
 	}

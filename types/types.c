@@ -42,7 +42,7 @@ static void free_type(struct type_class *type_class)
 
 int register_type(struct type_class *type_class)
 {
-	if (ctf_lookup_type_class(type_class->name))
+	if (lookup_type(type_class->name))
 		return -EEXIST;
 
 	g_hash_table_insert(type_classes,
@@ -74,4 +74,5 @@ int init_types(void)
 int finalize_types(void)
 {
 	g_hash_table_destroy(type_classes);
+	return 0;
 }

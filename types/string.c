@@ -62,7 +62,7 @@ struct type_class_string *string_type_new(const char *name)
 	string_class->p.free = _string_type_free;
 	string_class->p.ref = 1;
 	if (string_class->p.name) {
-		ret = ctf_register_type(&string_class->p);
+		ret = register_type(&string_class->p);
 		if (ret) {
 			g_free(string_class);
 			return NULL;

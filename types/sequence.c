@@ -19,6 +19,10 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
 
+#ifndef max
+#define max(a, b)	((a) < (b) ? (b) : (a))
+#endif
+
 void sequence_copy(struct stream_pos *dest, const struct format *fdest, 
 		   struct stream_pos *src, const struct format *fsrc,
 		   const struct type_class *type_class)
@@ -82,7 +86,7 @@ sequence_type_new(const char *name, struct type_class_integer *len_class,
 	type_class->ref = 1;
 
 	if (type_class->name) {
-		ret = ctf_register_type(type_class);
+		ret = register_type(type_class);
 		if (ret)
 			goto error_register;
 	}

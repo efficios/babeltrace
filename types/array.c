@@ -72,7 +72,7 @@ struct type_class_array *array_type_new(const char *name, size_t len,
 	type_class->ref = 1;
 
 	if (type_class->name) {
-		ret = ctf_register_type(type_class);
+		ret = register_type(type_class);
 		if (ret)
 			goto error_register;
 	}
