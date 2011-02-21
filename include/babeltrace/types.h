@@ -20,6 +20,7 @@
  */
 
 #include <babeltrace/align.h>
+#include <babeltrace/list.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -120,9 +121,42 @@ struct type_class_float {
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
 
+/*
+ * enum_val_equal assumes that signed and unsigned memory layout overlap.
+ */
+struct enum_range {
+	union {
+		int64_t _signed;
+		uint64_t _unsigned;
+	} start;	/* lowest range value */
+	union {
+		int64_t _signed;
+		uint64_t _unsigned;
+	} end;		/* highest range value */
+};
+
+struct enum_range_to_quark {
+	struct cds_list_head node;
+	struct enum_range range;
+	GQuark quark;
+};
+
+/*
+ * We optimize the common case (range of size 1: single value) by creating a
+ * hash table mapping values to quark sets. We then lookup the ranges to
+ * complete the quark set.
+ *
+ * TODO: The proper structure to hold the range to quark set mapping would be an
+ * interval tree, with O(n) size, O(n*log(n)) build time and O(log(n)) query
+ * time. Using a simple O(n) list search for now for implementation speed and
+ * given that we can expect to have a _relatively_ small number of enumeration
+ * ranges. This might become untrue if we are fed with symbol tables often
+ * required to lookup function names from instruction pointer value.
+ */
 struct enum_table {
-	GHashTable *value_to_quark;	/* Tuples (value, GQuark) */
-	GHashTable *quark_to_value;	/* Tuples (GQuark, value) */
+	GHashTable *value_to_quark_set;		/* (value, GQuark GArray) */
+	struct cds_list_head range_to_quark;	/* (range, GQuark) */
+	GHashTable *quark_to_range_set;		/* (GQuark, range GArray) */
 };
 
 struct type_class_enum {
@@ -185,16 +219,21 @@ void float_type_free(struct type_class_float *float_class);
  * A GQuark can be translated to/from strings with g_quark_from_string() and
  * g_quark_to_string().
  */
-GQuark enum_uint_to_quark(const struct type_class_enum *enum_class, uint64_t v);
-GQuark enum_int_to_quark(const struct type_class_enum *enum_class, uint64_t v);
-uint64_t enum_quark_to_uint(const struct type_class_enum *enum_class,
-			    GQuark q);
-int64_t enum_quark_to_int(const struct type_class_enum *enum_class,
-			  GQuark q);
+GArray *enum_uint_to_quark_set(const struct type_class_enum *enum_class,
+			       uint64_t v);
+
+/*
+ * Returns a GArray or NULL.
+ * Caller must release the GArray with g_array_unref().
+ */
+GArray *enum_int_to_quark_set(const struct type_class_enum *enum_class,
+			      uint64_t v);
+GArray *enum_quark_to_range_set(const struct type_class_enum *enum_class,
+				GQuark q);
 void enum_signed_insert(struct type_class_enum *enum_class,
-			int64_t v, GQuark q);
+                        int64_t start, int64_t end, GQuark q);
 void enum_unsigned_insert(struct type_class_enum *enum_class,
-			  uint64_t v, GQuark q);
+			  uint64_t start, uint64_t end, GQuark q);
 
 struct type_class_enum *enum_type_new(const char *name,
 				      size_t len, int byte_order,
