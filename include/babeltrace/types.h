@@ -236,7 +236,8 @@ GArray *enum_int_to_quark_set(const struct type_class_enum *enum_class,
 
 /*
  * Returns a GArray of struct enum_range or NULL.
- * Caller must release the GArray with g_array_unref().
+ * Callers do _not_ own the returned GArray (and therefore _don't_ need to
+ * release it).
  */
 GArray *enum_quark_to_range_set(const struct type_class_enum *enum_class,
 				GQuark q);

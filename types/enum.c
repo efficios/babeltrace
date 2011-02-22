@@ -62,8 +62,10 @@ GArray *enum_uint_to_quark_set(const struct type_class_enum *enum_class,
 			g_array_index(ranges, struct enum_range, ranges->len) = iter->range;
 		}
 	}
-	if (!ranges)
+	if (!ranges) {
 		ranges = qs;
+		g_array_ref(ranges);
+	}
 	return ranges;
 }
 
@@ -101,8 +103,10 @@ GArray *enum_int_to_quark_set(const struct type_class_enum *enum_class, uint64_t
 			g_array_index(ranges, struct enum_range, ranges->len) = iter->range;
 		}
 	}
-	if (!ranges)
+	if (!ranges) {
 		ranges = qs;
+		g_array_ref(ranges);
+	}
 	return ranges;
 }
 
