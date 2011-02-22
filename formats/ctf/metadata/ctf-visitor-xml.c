@@ -85,23 +85,23 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 		break;
 	case UNARY_SBRAC:
 		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression_sbrac>");
+		fprintf(fd, "<unary_expression_sbrac>\n");
 		ret = ctf_visitor_print_unary_expression(fd, depth + 1,
 			node->u.unary_expression.u.sbrac_exp);
 		if (ret)
 			return ret;
 		print_tabs(fd, depth);
-		fprintf(fd, "</unary_expression_sbrac>");
+		fprintf(fd, "</unary_expression_sbrac>\n");
 		break;
 	case UNARY_NESTED:
 		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression_nested>");
+		fprintf(fd, "<unary_expression_nested>\n");
 		ret = ctf_visitor_print_unary_expression(fd, depth + 1,
 			node->u.unary_expression.u.nested_exp);
 		if (ret)
 			return ret;
 		print_tabs(fd, depth);
-		fprintf(fd, "</unary_expression_nested>");
+		fprintf(fd, "</unary_expression_nested>\n");
 		break;
 
 	case UNARY_UNKNOWN:
