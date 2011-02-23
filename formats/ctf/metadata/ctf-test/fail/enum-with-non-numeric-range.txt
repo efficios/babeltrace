@@ -1,1 +1,1 @@
-enum{X = array[2].N ... 1, };
+enum test {X = array[2].N ... 1, };

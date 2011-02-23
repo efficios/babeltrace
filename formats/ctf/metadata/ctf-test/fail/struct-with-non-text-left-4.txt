@@ -1,0 +1,1 @@
+struct test { array[1] = blah; };
