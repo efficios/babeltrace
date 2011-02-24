@@ -9,4 +9,6 @@ libctf_parser_a_SOURCES = ctf-lexer.l ctf-parser.y
 bin_PROGRAMS = ctf-parser-test
 ctf_parser_test_SOURCES = \
 			ctf-parser-test.c ctf-visitor-xml.c \
+			ctf-visitor-parent-links.c \
+			ctf-visitor-semantic-validator.c \
 			ctf-lexer.l ctf-parser.y

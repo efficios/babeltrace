@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <glib.h>
+#include <errno.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -34,16 +35,23 @@ int main(int argc, char **argv)
 	scanner = ctf_scanner_alloc(stdin);
 	if (!scanner) {
 		fprintf(stderr, "Error allocating scanner\n");
-		return -1;
+		return -ENOMEM;
 	}
 	ctf_scanner_append_ast(scanner);
 
-	if (ctf_visitor_print_xml(stdout, 0, &scanner->ast->root)) {
+	ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
+	if (ret) {
 		fprintf(stderr, "error visiting AST for XML output\n");
-		ret = -1;
+		goto end;
 	}
-	ctf_scanner_free(scanner);
 
+	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
+	if (ret) {
+		fprintf(stderr, "CTF semantic validation error %d\n", ret);
+		goto end;
+	}
+end:
+	ctf_scanner_free(scanner);
 	return ret;
 } 
 

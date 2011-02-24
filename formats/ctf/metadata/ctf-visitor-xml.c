@@ -31,7 +31,8 @@
 
 #define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, ## args)
 
-static void print_tabs(FILE *fd, int depth)
+static
+void print_tabs(FILE *fd, int depth)
 {
 	int i;
 
@@ -39,6 +40,7 @@ static void print_tabs(FILE *fd, int depth)
 		fprintf(fd, "\t");
 }
 
+static
 int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 {
 	int ret = 0;
@@ -113,6 +115,7 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 	return 0;
 }
 
+static
 int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 {
 	print_tabs(fd, depth);
@@ -169,6 +172,7 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	return 0;
 }
 
+static
 int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 {
 	int ret = 0;

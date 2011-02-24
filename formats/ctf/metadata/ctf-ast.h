@@ -194,7 +194,10 @@ struct ctf_node {
 		} string;
 		struct {
 			char *id;
-			/* range list or single value node */
+			/*
+			 * Range list or single value node. Contains unary
+			 * expressions.
+			 */
 			struct cds_list_head values;
 		} enumerator;
 		struct {
@@ -227,5 +230,7 @@ struct ctf_ast {
 };
 
 int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node);
+int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
+int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
 
 #endif /* _CTF_PARSER_H */
