@@ -74,7 +74,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;			/* OK */
 	case NODE_ENUMERATOR:
-		/* The enumerator parent has validated our validity already. */
+		/* The enumerator's parent has validated its validity already. */
 		break;			/* OK */
 
 	case NODE_UNARY_EXPRESSION:
@@ -107,24 +107,37 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 
 	switch (node->u.unary_expression.link) {
 	case UNARY_LINK_UNKNOWN:
-		break;
+		/* We don't allow empty link except on the first node of the list */
+		if (_cds_list_first_entry(is_ctf_exp_left ?
+					  &node->parent->u.ctf_expression.left :
+					  &node->parent->u.ctf_expression.right,
+					  struct ctf_node,
+					  siblings) != node)
+			goto errperm;
+		break;			/* OK */
 	case UNARY_DOTLINK:
 	case UNARY_ARROWLINK:
 		/* We only allow -> and . links between children of ctf_expression. */
 		if (node->parent->type != NODE_CTF_EXPRESSION)
-			return -EPERM;
+			goto errperm;
 		/* We don't allow link on the first node of the list */
 		if (_cds_list_first_entry(is_ctf_exp_left ?
 					  &node->parent->u.ctf_expression.left :
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) == node)
-			return -EPERM;
+			goto errperm;
+		/*
+		 * Only strings can be separated linked by . or ->.
+		 * This includes "", '' and non-quoted identifiers.
+		 */
+		if (node->u.unary_expression.type != UNARY_STRING)
+			goto errperm;
 		break;
 	case UNARY_DOTDOTDOT:
 		/* We only allow ... link between children of enumerator. */
 		if (node->parent->type != NODE_ENUMERATOR)
-			return -EPERM;
+			goto errperm;
 		/* We don't allow link on the first node of the list */
 		if (_cds_list_first_entry(&node->parent->u.enumerator.values,
 					  struct ctf_node,
