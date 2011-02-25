@@ -37,17 +37,21 @@ int main(int argc, char **argv)
 		fprintf(stdout, "Error allocating scanner\n");
 		return -ENOMEM;
 	}
-	ctf_scanner_append_ast(scanner);
+	ret = ctf_scanner_append_ast(scanner);
+	if (ret) {
+		fprintf(stdout, "Error creating AST\n");
+		goto end;
+	}
 
 	ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "error visiting AST for XML output\n");
+		fprintf(stdout, "Error visiting AST for XML output\n");
 		goto end;
 	}
 
 	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "CTF semantic validation error %d\n", ret);
+		fprintf(stdout, "Error in CTF semantic validation %d\n", ret);
 		goto end;
 	}
 end:
