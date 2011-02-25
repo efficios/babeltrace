@@ -59,6 +59,39 @@ struct gc_string {
 	char s[];
 };
 
+static const char *node_type_to_str[] = {
+	[ NODE_UNKNOWN ] = "NODE_UNKNOWN",
+	[ NODE_ROOT ] = "NODE_ROOT",
+	[ NODE_EVENT ] = "NODE_EVENT",
+	[ NODE_STREAM ] = "NODE_STREAM",
+	[ NODE_TRACE ] = "NODE_TRACE",
+	[ NODE_CTF_EXPRESSION ] = "NODE_CTF_EXPRESSION",
+	[ NODE_UNARY_EXPRESSION ] = "NODE_UNARY_EXPRESSION",
+	[ NODE_TYPEDEF ] = "NODE_TYPEDEF",
+	[ NODE_TYPEALIAS_TARGET ] = "NODE_TYPEALIAS_TARGET",
+	[ NODE_TYPEALIAS_ALIAS ] = "NODE_TYPEALIAS_ALIAS",
+	[ NODE_TYPEALIAS ] = "NODE_TYPEALIAS",
+	[ NODE_TYPE_SPECIFIER ] = "NODE_TYPE_SPECIFIER",
+	[ NODE_POINTER ] = "NODE_POINTER",
+	[ NODE_TYPE_DECLARATOR ] = "NODE_TYPE_DECLARATOR",
+	[ NODE_FLOATING_POINT ] = "NODE_FLOATING_POINT",
+	[ NODE_INTEGER ] = "NODE_INTEGER",
+	[ NODE_STRING ] = "NODE_STRING",
+	[ NODE_ENUMERATOR ] = "NODE_ENUMERATOR",
+	[ NODE_ENUM ] = "NODE_ENUM",
+	[ NODE_STRUCT_OR_VARIANT_DECLARATION ] = "NODE_STRUCT_OR_VARIANT_DECLARATION",
+	[ NODE_VARIANT ] = "NODE_VARIANT",
+	[ NODE_STRUCT ] = "NODE_STRUCT",
+};
+
+const char *node_type(struct ctf_node *node)
+{
+	if (node->type < NR_NODE_TYPES)
+		return node_type_to_str[node->type];
+	else
+		return NULL;
+}
+
 static struct gc_string *gc_string_alloc(struct ctf_scanner *scanner,
 					 size_t len)
 {

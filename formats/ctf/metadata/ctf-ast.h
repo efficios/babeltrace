@@ -229,6 +229,8 @@ struct ctf_ast {
 	struct cds_list_head allocated_nodes;
 };
 
+const char *node_type(struct ctf_node *node);
+
 int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);

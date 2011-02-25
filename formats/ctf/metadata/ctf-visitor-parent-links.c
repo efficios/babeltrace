@@ -29,7 +29,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-#define printf_dbg(fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
+#define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
 
 static
 int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
@@ -347,9 +347,6 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_ENUMERATOR:
-		if (node->u.enumerator.id)
-			fprintf(fd, " id=\"%s\"", node->u.enumerator.id);
-		fprintf(fd, ">\n");
 		cds_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -358,11 +355,6 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_ENUM:
-		if (node->u._struct.name)
-			fprintf(fd, "<enum name=\"%s\">\n",
-				node->u._enum.enum_id);
-		else
-			fprintf(fd, "<enum >\n");
 		depth++;
 
 		if (node->u._enum.container_type) {
@@ -395,8 +387,6 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_VARIANT:
-		if (node->u.variant.choice)
-			fprintf(fd, " choice=\"%s\"", node->u.variant.choice);
 		cds_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);

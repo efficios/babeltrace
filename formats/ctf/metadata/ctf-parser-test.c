@@ -34,20 +34,20 @@ int main(int argc, char **argv)
 	yydebug = 1;
 	scanner = ctf_scanner_alloc(stdin);
 	if (!scanner) {
-		fprintf(stderr, "Error allocating scanner\n");
+		fprintf(stdout, "Error allocating scanner\n");
 		return -ENOMEM;
 	}
 	ctf_scanner_append_ast(scanner);
 
 	ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stderr, "error visiting AST for XML output\n");
+		fprintf(stdout, "error visiting AST for XML output\n");
 		goto end;
 	}
 
 	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stderr, "CTF semantic validation error %d\n", ret);
+		fprintf(stdout, "CTF semantic validation error %d\n", ret);
 		goto end;
 	}
 end:

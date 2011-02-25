@@ -32,7 +32,7 @@
 #define _cds_list_first_entry(ptr, type, member)	\
 	cds_list_entry((ptr)->next, type, member)
 
-#define printf_dbg(fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
+#define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
 
 static
 int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
@@ -41,10 +41,11 @@ static
 int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 {
 	struct ctf_node *iter;
-	int is_ctf_exp_left = 0;
+	int is_ctf_exp = 0, is_ctf_exp_left = 0;
 
 	switch (node->parent->type) {
 	case NODE_CTF_EXPRESSION:
+		is_ctf_exp = 1;
 		cds_list_for_each_entry(iter, &node->parent->u.ctf_expression.left,
 					siblings) {
 			if (iter == node) {
@@ -53,23 +54,28 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 				 * We are a left child of a ctf expression.
 				 * We are only allowed to be a string.
 				 */
-				if (node->u.unary_expression.type != UNARY_STRING)
+				if (node->u.unary_expression.type != UNARY_STRING) {
+					fprintf(fd, "[error]: semantic error (left child of a ctf expression is only allowed to be a string)\n");
+
 					goto errperm;
+				}
 				break;
 			}
 		}
 		/* Right child of a ctf expression can be any type of unary exp. */
 		break;			/* OK */
 	case NODE_TYPE_DECLARATOR:
+	case NODE_ENUM:
 		/*
-		 * We are the length of a type declarator. We can only be
-		 * a numeric constant.
+		 * We are the length of a type declarator or the size of an enum
+		 * container. We can only be a numeric constant.
 		 */
 		switch (node->u.unary_expression.type) {
 		case UNARY_SIGNED_CONSTANT:
 		case UNARY_UNSIGNED_CONSTANT:
 			break;
 		default:
+			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be numeric constants)\n");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -82,6 +88,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		 * We disallow nested unary expressions and "sbrac" unary
 		 * expressions.
 		 */
+		fprintf(fd, "[error]: semantic error (nested unary expressions not allowed ( () and [] ))\n");
 		goto errperm;
 
 	case NODE_ROOT:
@@ -96,7 +103,6 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_POINTER:
 	case NODE_FLOATING_POINT:
 	case NODE_INTEGER:
-	case NODE_ENUM:
 	case NODE_STRING:
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 	case NODE_VARIANT:
@@ -108,41 +114,53 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	switch (node->u.unary_expression.link) {
 	case UNARY_LINK_UNKNOWN:
 		/* We don't allow empty link except on the first node of the list */
-		if (_cds_list_first_entry(is_ctf_exp_left ?
+		if (is_ctf_exp && _cds_list_first_entry(is_ctf_exp_left ?
 					  &node->parent->u.ctf_expression.left :
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
-					  siblings) != node)
+					  siblings) != node) {
+			fprintf(fd, "[error]: semantic error (empty link not allowed except on first node of unary expression (need to separate nodes with \".\" or \"->\")\n");
 			goto errperm;
+		}
 		break;			/* OK */
 	case UNARY_DOTLINK:
 	case UNARY_ARROWLINK:
 		/* We only allow -> and . links between children of ctf_expression. */
-		if (node->parent->type != NODE_CTF_EXPRESSION)
+		if (node->parent->type != NODE_CTF_EXPRESSION) {
+			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are only allowed as children of ctf expression)\n");
 			goto errperm;
-		/* We don't allow link on the first node of the list */
-		if (_cds_list_first_entry(is_ctf_exp_left ?
-					  &node->parent->u.ctf_expression.left :
-					  &node->parent->u.ctf_expression.right,
-					  struct ctf_node,
-					  siblings) == node)
-			goto errperm;
+		}
 		/*
 		 * Only strings can be separated linked by . or ->.
 		 * This includes "", '' and non-quoted identifiers.
 		 */
-		if (node->u.unary_expression.type != UNARY_STRING)
+		if (node->u.unary_expression.type != UNARY_STRING) {
+			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are only allowed to separate strings and identifiers)\n");
 			goto errperm;
+		}
+		/* We don't allow link on the first node of the list */
+		if (is_ctf_exp && _cds_list_first_entry(is_ctf_exp_left ?
+					  &node->parent->u.ctf_expression.left :
+					  &node->parent->u.ctf_expression.right,
+					  struct ctf_node,
+					  siblings) == node) {
+			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are not allowed before first node of the unary expression list)\n");
+			goto errperm;
+		}
 		break;
 	case UNARY_DOTDOTDOT:
 		/* We only allow ... link between children of enumerator. */
-		if (node->parent->type != NODE_ENUMERATOR)
+		if (node->parent->type != NODE_ENUMERATOR) {
+			fprintf(fd, "[error]: semantic error (link \"...\" is only allowed within enumerator)\n");
 			goto errperm;
+		}
 		/* We don't allow link on the first node of the list */
 		if (_cds_list_first_entry(&node->parent->u.enumerator.values,
 					  struct ctf_node,
-					  siblings) == node)
-			return -EPERM;
+					  siblings) == node) {
+			fprintf(fd, "[error]: semantic error (link \"...\" is not allowed on the first node of the unary expression list)\n");
+			goto errperm;
+		}
 		break;
 	default:
 		fprintf(fd, "[error] %s: unknown expression link type %d\n", __func__,
@@ -152,11 +170,13 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	return 0;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %d for node type %d\n", __func__,
-		(int) node->parent->type, (int) node->type);
+	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
+	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -170,6 +190,7 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_TYPEALIAS_TARGET:
 	case NODE_TYPEALIAS_ALIAS:
 	case NODE_ENUM:
+	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		break;			/* OK */
 
 	case NODE_ROOT:
@@ -184,7 +205,6 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_INTEGER:
 	case NODE_STRING:
 	case NODE_ENUMERATOR:
-	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 	case NODE_VARIANT:
 	case NODE_STRUCT:
 	default:
@@ -192,8 +212,8 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	}
 	return 0;
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %d for node type %d\n", __func__,
-		(int) node->parent->type, (int) node->type);
+	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 }
 
@@ -281,11 +301,13 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	return 0;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %d for node type %d\n", __func__,
-		(int) node->parent->type, (int) node->type);
+	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
+	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -683,20 +705,24 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		{
 			int count = 0;
 
-			cds_list_for_each_entry(iter, &node->parent->u.enumerator.values,
+			cds_list_for_each_entry(iter, &node->u.enumerator.values,
 						siblings) {
 				switch (count++) {
 				case 0:	if (iter->type != NODE_UNARY_EXPRESSION
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
-					    || iter->u.unary_expression.link != UNARY_LINK_UNKNOWN)
+					    || iter->u.unary_expression.link != UNARY_LINK_UNKNOWN) {
+						fprintf(fd, "[error]: semantic error (first unary expression of enumerator is unexpected)\n");
 						goto errperm;
+					}
 					break;
 				case 1:	if (iter->type != NODE_UNARY_EXPRESSION
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
-					    || iter->u.unary_expression.link != UNARY_DOTDOTDOT)
+					    || iter->u.unary_expression.link != UNARY_DOTDOTDOT) {
+						fprintf(fd, "[error]: semantic error (second unary expression of enumerator is unexpected)\n");
 						goto errperm;
+					}
 					break;
 				default:
 					goto errperm;
@@ -857,11 +883,13 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 	return ret;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %d for node type %d\n", __func__,
-		(int) node->parent->type, (int) node->type);
+	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
+	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -874,8 +902,15 @@ int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 	 * take the safe route and recreate them at each validation, just in
 	 * case the structure has changed.
 	 */
+	fprintf(fd, "CTF visitor: parent links creation... ");
 	ret = ctf_visitor_parent_links(fd, depth, node);
 	if (ret)
 		return ret;
-	return _ctf_visitor_semantic_check(fd, depth, node);
+	fprintf(fd, "done.\n");
+	fprintf(fd, "CTF visitor: semantic check... ");
+	ret = _ctf_visitor_semantic_check(fd, depth, node);
+	if (ret)
+		return ret;
+	fprintf(fd, "done.\n");
+	return ret;
 }

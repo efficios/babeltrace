@@ -29,7 +29,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, ## args)
+#define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
 
 static
 void print_tabs(FILE *fd, int depth)
