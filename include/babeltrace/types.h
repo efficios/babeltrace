@@ -87,6 +87,13 @@ char *get_pos_addr(struct stream_pos *pos)
 struct format;
 struct type;
 
+/* Type declaration scope */
+struct declaration_scope {
+	/* Hash table mapping type name GQuark to struct type_class */
+	GHashTable *type_classes;
+	struct declaration_scope *parent_scope;
+};
+
 struct type_class {
 	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
@@ -275,13 +282,6 @@ struct type_sequence {
 	struct declaration_scope *scope;
 	struct type_integer *len;
 	struct field current_element;		/* struct field */
-};
-
-/* Type declaration scope */
-struct declaration_scope {
-	/* Hash table mapping type name GQuark to struct type_class */
-	GHashTable *type_classes;
-	struct declaration_scope *parent_scope;
 };
 
 struct type_class *lookup_type_class(GQuark qname,

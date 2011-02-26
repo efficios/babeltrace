@@ -111,7 +111,7 @@ double ctf_double_read(struct stream_pos *srcp,
 		       const struct type_class_float *float_class)
 {
 	union doubleIEEE754 u;
-	struct type_class_float *dest_class = float_type_new(NULL,
+	struct type_class_float *dest_class = float_type_class_new(NULL,
 				DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
@@ -121,7 +121,7 @@ double ctf_double_read(struct stream_pos *srcp,
 	align_pos(srcp, float_class->p.alignment);
 	init_pos(&destp, (char *) u.bits);
 	_ctf_float_copy(&destp, dest_class, srcp, float_class);
-	float_type_free(dest_class);
+	type_class_unref(&dest_class->p);
 	return u.v;
 }
 
@@ -130,7 +130,7 @@ void ctf_double_write(struct stream_pos *destp,
 		      double v)
 {
 	union doubleIEEE754 u;
-	struct type_class_float *src_class = float_type_new(NULL,
+	struct type_class_float *src_class = float_type_class_new(NULL,
 				DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
@@ -141,14 +141,14 @@ void ctf_double_write(struct stream_pos *destp,
 	align_pos(destp, float_class->p.alignment);
 	init_pos(&srcp, (char *) u.bits);
 	_ctf_float_copy(destp, float_class, &srcp, src_class);
-	float_type_free(src_class);
+	type_class_unref(&src_class->p);
 }
 
 long double ctf_ldouble_read(struct stream_pos *srcp,
 			     const struct type_class_float *float_class)
 {
 	union ldoubleIEEE754 u;
-	struct type_class_float *dest_class = float_type_new(NULL,
+	struct type_class_float *dest_class = float_type_class_new(NULL,
 				LDBL_MANT_DIG,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
@@ -158,7 +158,7 @@ long double ctf_ldouble_read(struct stream_pos *srcp,
 	align_pos(srcp, float_class->p.alignment);
 	init_pos(&destp, (char *) u.bits);
 	_ctf_float_copy(&destp, dest_class, srcp, float_class);
-	float_type_free(dest_class);
+	type_class_unref(&dest_class->p);
 	return u.v;
 }
 
@@ -167,7 +167,7 @@ void ctf_ldouble_write(struct stream_pos *destp,
 		       long double v)
 {
 	union ldoubleIEEE754 u;
-	struct type_class_float *src_class = float_type_new(NULL,
+	struct type_class_float *src_class = float_type_class_new(NULL,
 				LDBL_MANT_DIG,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
@@ -178,5 +178,5 @@ void ctf_ldouble_write(struct stream_pos *destp,
 	align_pos(destp, float_class->p.alignment);
 	init_pos(&srcp, (char *) u.bits);
 	_ctf_float_copy(destp, float_class, &srcp, src_class);
-	float_type_free(src_class);
+	type_class_unref(&src_class->p);
 }

@@ -74,6 +74,10 @@ void ctf_struct_begin(struct stream_pos *pos,
 		      const struct type_class_struct *struct_class);
 void ctf_struct_end(struct stream_pos *pos,
 		    const struct type_class_struct *struct_class);
+void ctf_variant_begin(struct stream_pos *pos,
+		       const struct type_class_variant *variant_class);
+void ctf_variant_end(struct stream_pos *pos,
+		     const struct type_class_variant *variant_class);
 void ctf_array_begin(struct stream_pos *pos,
 		     const struct type_class_array *array_class);
 void ctf_array_end(struct stream_pos *pos,
