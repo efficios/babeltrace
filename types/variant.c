@@ -243,5 +243,6 @@ variant_type_get_current_field(struct type_variant *variant)
 	tag = g_array_index(tag_array, GQuark, 0);
 	index = (unsigned long) g_hash_table_lookup(variant_class->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
-	return &g_array_index(variant_class->fields, struct field, index);
+	variant->current_field = &g_array_index(variant_class->fields, struct field, index);
+	return variant->current_field;
 }
