@@ -3,7 +3,7 @@
  *
  * Format registration.
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,8 @@ static struct format ctf_format = {
 	.enum_write = ctf_enum_write,
 	.struct_begin = ctf_struct_begin,
 	.struct_end = ctf_struct_end,
+	.variant_begin = ctf_variant_begin,
+	.variant_end = ctf_variant_end,
 	.array_begin = ctf_array_begin,
 	.array_end = ctf_array_end,
 	.sequence_begin = ctf_sequence_begin,

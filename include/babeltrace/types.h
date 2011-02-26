@@ -6,7 +6,7 @@
  *
  * Type Header
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,19 +85,34 @@ char *get_pos_addr(struct stream_pos *pos)
 }
 
 struct format;
+struct type;
 
 struct type_class {
 	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
-	int ref;		/* number of references to the type */
+	int ref;		/* number of references to the type class */
 	/*
-	 * Type copy function. Knows how to find the child type_class from the
-	 * parent type_class.
+	 * class_free called with type class ref is decremented to 0.
+	 */
+	void (*class_free)(struct type_class *type_class);
+	struct type *(*type_new)(struct type_class *_class,
+				 struct declaration_scope *parent_scope);
+	/*
+	 * type_free called with type ref is decremented to 0.
+	 */
+	void (*type_free)(struct type *type);
+	/*
+	 * Type copy function. Knows how to find the child type from the parent
+	 * type.
 	 */
 	void (*copy)(struct stream_pos *dest, const struct format *fdest, 
 		     struct stream_pos *src, const struct format *fsrc,
-		     const struct type_class *type_class);
-	void (*free)(struct type_class *type_class);
+		     struct type *type);
+};
+
+struct type {
+	struct type_class *_class;
+	int ref;		/* number of references to the type instance */
 };
 
 /*
@@ -112,6 +127,16 @@ struct type_class_integer {
 	int signedness;
 };
 
+struct type_integer {
+	struct type p;
+	struct type_class_integer *_class;
+	/* Last values read */
+	union {
+		uint64_t _unsigned;
+		int64_t _signed;
+	} value;
+};
+
 struct type_class_float {
 	struct type_class p;
 	struct type_class_integer *sign;
@@ -119,6 +144,13 @@ struct type_class_float {
 	struct type_class_integer *exp;
 	int byte_order;
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
+};
+
+struct type_float {
+	struct type p;
+	struct type_class_float *_class;
+	/* Last values read */
+	long double value;
 };
 
 /*
@@ -164,19 +196,58 @@ struct type_class_enum {
 	struct enum_table table;
 };
 
+struct type_enum {
+	struct type p;
+	struct type_class_enum *_class;
+	/* Last GQuark values read. Keeping a reference on the GQuark array. */
+	GArray *value;
+};
+
 struct type_class_string {
 	struct type_class p;
 };
 
-struct field {
+struct type_string {
+	struct type p;
+	struct type_class_string *_class;
+	char *value;	/* freed at type_string teardown */
+};
+
+struct type_class_field {
 	GQuark name;
 	struct type_class *type_class;
+};
+
+struct field {
+	struct type *type;
 };
 
 struct type_class_struct {
 	struct type_class p;
 	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
-	GArray *fields;			/* Array of fields */
+	GArray *fields;			/* Array of type_class_field */
+};
+
+struct type_struct {
+	struct type p;
+	struct type_class_struct *_class;
+	struct declaration_scope *scope;
+	GArray *fields;			/* Array of struct field */
+};
+
+struct type_class_variant {
+	struct type_class p;
+	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
+	GArray *fields;			/* Array of type_class_field */
+};
+
+struct type_variant {
+	struct type p;
+	struct type_class_variant *_class;
+	struct declaration_scope *scope;
+	struct type *tag;
+	GArray *fields;			/* Array of struct field */
+	struct field *current_field;	/* Last field read */
 };
 
 struct type_class_array {
@@ -185,35 +256,64 @@ struct type_class_array {
 	struct type_class *elem;
 };
 
+struct type_array {
+	struct type p;
+	struct type_class_array *_class;
+	struct declaration_scope *scope;
+	struct field current_element;		/* struct field */
+};
+
 struct type_class_sequence {
 	struct type_class p;
 	struct type_class_integer *len_class;
 	struct type_class *elem;
 };
 
-struct type_class *lookup_type(GQuark qname);
-int register_type(struct type_class *type_class);
+struct type_sequence {
+	struct type p;
+	struct type_class_sequence *_class;
+	struct declaration_scope *scope;
+	struct type_integer *len;
+	struct field current_element;		/* struct field */
+};
 
-void type_ref(struct type_class *type_class);
-void type_unref(struct type_class *type_class);
+/* Type declaration scope */
+struct declaration_scope {
+	/* Hash table mapping type name GQuark to struct type_class */
+	GHashTable *type_classes;
+	struct declaration_scope *parent_scope;
+};
+
+struct type_class *lookup_type_class(GQuark qname,
+				     struct declaration_scope *scope);
+int register_type_class(struct type_class *type_class,
+			struct declaration_scope *scope);
+
+void type_class_ref(struct type_class *type_class);
+void type_class_unref(struct type_class *type_class);
+
+struct declaration_scope *
+new_declaration_scope(struct declaration_scope *parent_scope);
+void free_declaration_scope(struct declaration_scope *scope);
+
+void type_ref(struct type *type);
+void type_unref(struct type *type);
 
 /* Nameless types can be created by passing a NULL name */
 
-struct type_class_integer *integer_type_new(const char *name,
+struct type_class_integer *integer_type_class_new(const char *name,
 					    size_t len, int byte_order,
 					    int signedness,
 					    size_t alignment);
-void integer_type_free(struct type_class_integer *int_class);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
  * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
  */
-struct type_class_float *float_type_new(const char *name,
+struct type_class_float *float_type_class_new(const char *name,
 					size_t mantissa_len,
 					size_t exp_len, int byte_order,
 					size_t alignment);
-void float_type_free(struct type_class_float *float_class);
 
 /*
  * A GQuark can be translated to/from strings with g_quark_from_string() and
@@ -245,47 +345,72 @@ void enum_signed_insert(struct type_class_enum *enum_class,
                         int64_t start, int64_t end, GQuark q);
 void enum_unsigned_insert(struct type_class_enum *enum_class,
 			  uint64_t start, uint64_t end, GQuark q);
+size_t enum_get_nr_enumerators(struct type_class_enum *enum_class);
 
-struct type_class_enum *enum_type_new(const char *name,
+struct type_class_enum *enum_type_class_new(const char *name,
 				      size_t len, int byte_order,
 				      int signedness,
 				      size_t alignment);
-void enum_type_free(struct type_class_enum *enum_class);
 
-struct type_class_struct *struct_type_new(const char *name);
-void struct_type_free(struct type_class_struct *struct_class);
-void struct_type_add_field(struct type_class_struct *struct_class,
-			   const char *field_name,
-			   struct type_class *type_class);
+struct type_class_struct *struct_type_class_new(const char *name);
+void struct_type_class_add_field(struct type_class_struct *struct_class,
+				 const char *field_name,
+				 struct type_class *type_class);
 /*
  * Returns the index of a field within a structure.
  */
 unsigned long
-struct_type_lookup_field_index(struct type_class_struct *struct_class,
-			       GQuark field_name);
+struct_type_class_lookup_field_index(struct type_class_struct *struct_class,
+				     GQuark field_name);
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
+struct type_class_field *
+struct_type_class_get_field_from_index(struct type_class_struct *struct_class,
+				       unsigned long index);
 struct field *
-struct_type_get_field_from_index(struct type_class_struct *struct_class,
+struct_type_get_field_from_index(struct type_struct *_struct,
 				 unsigned long index);
 
 /*
- * elem_class passed as parameter now belongs to the array. No need to free it
- * explicitely.
+ * The tag enumeration is validated to ensure that it contains only mappings
+ * from numeric values to a single tag. Overlapping tag value ranges are
+ * therefore forbidden.
  */
-struct type_class_array *array_type_new(const char *name,
+struct type_class_variant *variant_type_class_new(const char *name);
+void variant_type_class_add_field(struct type_class_variant *variant_class,
+				  const char *tag_name,
+				  struct type_class *type_class);
+struct type_class_field *
+variant_type_class_get_field_from_tag(struct type_class_variant *variant_class,
+				      GQuark tag);
+/*
+ * Returns 0 on success, -EPERM on error.
+ */
+int variant_type_set_tag(struct type_variant *variant,
+			 struct type *enum_tag_instance);
+/*
+ * Returns the field selected by the current tag value.
+ * field returned only valid as long as the variant structure is not appended
+ * to.
+ */
+struct field *
+variant_type_get_current_field(struct type_variant *variant);
+
+/*
+ * elem_class passed as parameter now belongs to the array. No need to free it
+ * explicitly. "len" is the number of elements in the array.
+ */
+struct type_class_array *array_type_class_new(const char *name,
 					size_t len,
 					struct type_class *elem_class);
-void array_type_free(struct type_class_array *array_class);
 
 /*
  * int_class and elem_class passed as parameter now belongs to the sequence. No
- * need to free them explicitely.
+ * need to free them explicitly.
  */
-struct type_class_sequence *sequence_type_new(const char *name,
+struct type_class_sequence *sequence_type_class_new(const char *name,
 					struct type_class_integer *len_class, 
 					struct type_class *elem_class);
-void sequence_type_free(struct type_class_sequence *sequence_class);
 
 #endif /* _BABELTRACE_TYPES_H */

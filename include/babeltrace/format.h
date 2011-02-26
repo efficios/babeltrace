@@ -6,7 +6,7 @@
  *
  * Trace Format Header
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,6 +67,10 @@ struct format {
 			     const struct type_class_struct *struct_class);
 	void (*struct_end)(struct stream_pos *pos,
 			   const struct type_class_struct *struct_class);
+	void (*variant_begin)(struct stream_pos *pos,
+			      const struct type_class_variant *variant_class);
+	void (*variant_end)(struct stream_pos *pos,
+			    const struct type_class_variant *variant_class);
 	void (*array_begin)(struct stream_pos *pos,
 			     const struct type_class_array *array_class);
 	void (*array_end)(struct stream_pos *pos,

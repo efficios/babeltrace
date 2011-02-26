@@ -5,7 +5,7 @@
  *
  * Types registry.
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,57 +22,87 @@
 #include <glib.h>
 #include <errno.h>
 
-/*
- * Type hash table contains the registered types. Type registration is typically
- * performed by a type plugin.
- * TODO: support plugin unload (unregistration of types).
- */
-GHashTable *type_classes;
-
-struct type_class *lookup_type(GQuark qname)
+static
+struct type_class *lookup_type_class_scope(GQuark qname,
+					   struct declaration_scope *scope)
 {
-	return g_hash_table_lookup(type_classes,
+	return g_hash_table_lookup(scope->type_classes,
 				   (gconstpointer) (unsigned long) qname);
 }
 
-static void free_type(struct type_class *type_class)
+struct type_class *lookup_type_class(GQuark qname,
+				     struct declaration_scope *scope)
 {
-	type_class->free(type_class);
+	struct type_class *tc;
+
+	while (scope) {
+		tc = lookup_type_class_scope(qname, scope);
+		if (tc)
+			return tc;
+		scope = scope->parent_scope;
+	}
+	return NULL;
 }
 
-int register_type(struct type_class *type_class)
+static void free_type_class(struct type_class *type_class)
 {
-	if (lookup_type(type_class->name))
+	type_class->class_free(type_class);
+}
+
+static void free_type(struct type *type)
+{
+	type->p.type_free(type);
+}
+
+int register_type_class(struct type_class *type_class,
+			struct declaration_scope *scope)
+{
+	/* Only lookup in local scope */
+	if (lookup_type_class_scope(type_class->name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(type_classes,
+	g_hash_table_insert(scope->type_classes,
 			    (gpointer) (unsigned long) type_class->name,
 			    type_class);
 	return 0;
 }
 
-void type_ref(struct type_class *type_class)
+void type_class_ref(struct type_class *type_class)
 {
 	type_class->ref++;
 }
 
-void type_unref(struct type_class *type_class)
+void type_class_unref(struct type_class *type_class)
 {
 	if (!--type_class->ref)
-		free_type(type_class);
+		free_type_class(type_class);
 }
 
-int init_types(void)
+void type_ref(struct type *type)
 {
-	type_classes = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-					     NULL, (GDestroyNotify) free_type);
-	if (!type_classes)
-		return -ENOMEM;
-	return 0;
+	type->ref++;
 }
 
-int finalize_types(void)
+void type_unref(struct type *type)
 {
-	g_hash_table_destroy(type_classes);
-	return 0;
+	if (!--type->ref)
+		free_type(type);
+}
+
+struct declaration_scope *
+new_declaration_scope(struct declaration_scope *parent_scope)
+{
+	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
+
+	scope->type_classes = g_hash_table_new_full(g_direct_hash,
+					g_direct_equal, NULL,
+					(GDestroyNotify) type_class_unref);
+	scope->parent_scope = parent_scope;
+	return scope;
+}
+
+void free_declaration_scope(struct declaration_scope *scope)
+{
+	g_hash_table_destroy(scope->type_classes);
+	g_free(scope);
 }

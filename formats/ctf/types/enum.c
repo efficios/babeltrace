@@ -3,7 +3,7 @@
  *
  * Enumeration mapping strings (quarks) from/to integers.
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,9 @@
 #include <stdint.h>
 #include <glib.h>
 
+/*
+ * The caller should unref the GArray.
+ */
 GArray *ctf_enum_read(struct stream_pos *pos,
 		      const struct type_class_enum *src)
 {
