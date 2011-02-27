@@ -63,7 +63,6 @@ struct type_float *
 {
 	struct type_float *float_type;
 	struct type *type;
-	int ret;
 
 	float_type = g_new(struct type_float, 1);
 	type = &float_type->p;
@@ -78,33 +77,11 @@ struct type_float *
 
 	float_type->sign = integer_type_new(NULL, 1,
 					    byte_order, false, 1);
-	if (!float_type->mantissa)
-		goto error_sign;
 	float_type->mantissa = integer_type_new(NULL, mantissa_len - 1,
 						byte_order, false, 1);
-	if (!float_type->mantissa)
-		goto error_mantissa;
 	float_type->exp = integer_type_new(NULL, exp_len,
 					   byte_order, true, 1);
-	if (!float_type->exp)
-		goto error_exp;
-
-	if (float_type->p.name) {
-		ret = register_type(&float_type->p);
-		if (ret)
-			goto error_register;
-	}
 	return float_type;
-
-error_register:
-	type_unref(&float_type->exp->p);
-error_exp:
-	type_unref(&float_type->mantissa->p);
-error_mantissa:
-	type_unref(&float_type->sign->p);
-error_sign:
-	g_free(float_type);
-	return NULL;
 }
 
 static
@@ -117,8 +94,9 @@ struct declaration *
 	struct declaration_float *_float;
 
 	_float = g_new(struct declaration_float, 1);
-	type_ref(&_float_type->p);
-	_float->p.type= _float_type;
+	type_ref(&float_type->p);
+	_float->p.type= type;
+	_float->type= float_type;
 	_float->p.ref = 1;
 	_float->value = 0.0;
 	return &_float->p;

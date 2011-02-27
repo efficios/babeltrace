@@ -10,4 +10,5 @@ libtypes_a_SOURCES = \
 	sequence.c \
 	string.c \
 	struct.c \
+	variant.c \
 	types.c

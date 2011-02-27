@@ -44,9 +44,9 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		struct type *field_type = field->type->p.type;
+		struct type *field_type = field->declaration->type;
 
-		field_type->copy(dest, fdest, src, fsrc, &field->type->p);
+		field_type->copy(dest, fdest, src, fsrc, field->declaration);
 
 	}
 	fsrc->struct_end(src, struct_type);
@@ -63,10 +63,10 @@ void _struct_type_free(struct type *type)
 	g_hash_table_destroy(struct_type->fields_by_name);
 
 	for (i = 0; i < struct_type->fields->len; i++) {
-		struct field *type_field =
+		struct type_field *type_field =
 			&g_array_index(struct_type->fields,
 				       struct type_field, i);
-		type_unref(field->type);
+		type_unref(type_field->type);
 	}
 	g_array_free(struct_type->fields, true);
 	g_free(struct_type);
@@ -76,7 +76,6 @@ struct type_struct *struct_type_new(const char *name)
 {
 	struct type_struct *struct_type;
 	struct type *type;
-	int ret;
 
 	struct_type = g_new(struct type_struct, 1);
 	type = &struct_type->p;
@@ -92,19 +91,7 @@ struct type_struct *struct_type_new(const char *name)
 	type->declaration_new = _struct_declaration_new;
 	type->declaration_free = _struct_declaration_free;
 	type->ref = 1;
-
-	if (type->name) {
-		ret = register_type(type);
-		if (ret)
-			goto error_register;
-	}
 	return struct_type;
-
-error_register:
-	g_hash_table_destroy(struct_type->fields_by_name);
-	g_array_free(struct_type->fields, true);
-	g_free(struct_type);
-	return NULL;
 }
 
 static
@@ -118,7 +105,8 @@ struct declaration *
 
 	_struct = g_new(struct declaration_struct, 1);
 	type_ref(&struct_type->p);
-	_struct->p.type = struct_type;
+	_struct->p.type = type;
+	_struct->type = struct_type;
 	_struct->p.ref = 1;
 	_struct->scope = new_declaration_scope(parent_scope);
 	_struct->fields = g_array_sized_new(FALSE, TRUE,

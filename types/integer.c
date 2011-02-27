@@ -32,7 +32,7 @@ void integer_copy(struct stream_pos *dest, const struct format *fdest,
 		  struct declaration *declaration)
 {
 	struct declaration_integer *integer =
-		container_of(type, struct declaration_integer, p);
+		container_of(declaration, struct declaration_integer, p);
 	struct type_integer *integer_type = integer->type;
 
 	if (!integer_type->signedness) {
@@ -61,7 +61,6 @@ struct type_integer *
 			 int signedness, size_t alignment)
 {
 	struct type_integer *integer_type;
-	int ret;
 
 	integer_type = g_new(struct type_integer, 1);
 	integer_type->p.name = g_quark_from_string(name);
@@ -74,13 +73,6 @@ struct type_integer *
 	integer_type->len = len;
 	integer_type->byte_order = byte_order;
 	integer_type->signedness = signedness;
-	if (integer_type->p.name) {
-		ret = register_type(&integer_type->p);
-		if (ret) {
-			g_free(integer_type);
-			return NULL;
-		}
-	}
 	return integer_type;
 }
 
@@ -95,7 +87,8 @@ struct declaration *
 
 	integer = g_new(struct declaration_integer, 1);
 	type_ref(&integer_type->p);
-	integer->p.type = integer_type;
+	integer->p.type = type;
+	integer->type = integer_type;
 	integer->p.ref = 1;
 	integer->value._unsigned = 0;
 	return &integer->p;

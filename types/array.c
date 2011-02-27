@@ -38,8 +38,8 @@ void array_copy(struct stream_pos *dest, const struct format *fdest,
 	fdest->array_begin(dest, array_type);
 
 	for (i = 0; i < array_type->len; i++) {
-		struct type *elem_type = array->current_element.type;
-		elem_type->p.type->copy(dest, fdest, src, fsrc, elem_type);
+		struct declaration *elem = array->current_element.declaration;
+		elem->type->copy(dest, fdest, src, fsrc, elem);
 	}
 	fsrc->array_end(src, array_type);
 	fdest->array_end(dest, array_type);
@@ -60,7 +60,6 @@ struct type_array *
 {
 	struct type_array *array_type;
 	struct type *type;
-	int ret;
 
 	array_type = g_new(struct type_array, 1);
 	type = &array_type->p;
@@ -75,18 +74,7 @@ struct type_array *
 	type->declaration_new = _array_declaration_new;
 	type->declaration_free = _array_declaration_free;
 	type->ref = 1;
-
-	if (type->name) {
-		ret = register_type(type);
-		if (ret)
-			goto error_register;
-	}
 	return array_type;
-
-error_register:
-	type_unref(array_type->elem);
-	g_free(array_type);
-	return NULL;
 }
 
 static
@@ -100,24 +88,25 @@ struct declaration *
 
 	array = g_new(struct declaration_array, 1);
 	type_ref(&array_type->p);
-	array->p.type = array_type;
+	array->p.type = type;
+	array->type = array_type;
 	array->p.ref = 1;
 	array->scope = new_declaration_scope(parent_scope);
 	array->current_element.declaration =
-		array_type->elem.p->declaration_new(&array_type->elem.p,
-						    parent_scope);
+		array_type->elem->declaration_new(array_type->elem,
+						  parent_scope);
 	return &array->p;
 }
 
 static
 void _array_declaration_free(struct declaration *declaration)
 {
-	struct type_array *array =
-		container_of(declaration, struct type_array, p);
+	struct declaration_array *array =
+		container_of(declaration, struct declaration_array, p);
 	struct declaration *elem_declaration =
 		array->current_element.declaration;
 
-	elem_type->p.type->declaration_free(elem_type);
+	elem_declaration->type->declaration_free(elem_declaration);
 	free_declaration_scope(array->scope);
 	type_unref(array->p.type);
 	g_free(array);

@@ -9,4 +9,5 @@ libctf_types_a_SOURCES = \
 	integer.c \
 	sequence.c \
 	string.c \
-	struct.c
+	struct.c \
+	variant.c

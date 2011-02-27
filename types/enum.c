@@ -361,7 +361,7 @@ void enum_copy(struct stream_pos *dest, const struct format *fdest,
 	assert(array);
 	/* unref previous array */
 	if (_enum->value)
-		g_array_unref(_enum->value, TRUE);
+		g_array_unref(_enum->value);
 	_enum->value = array;
 	/*
 	 * Arbitrarily choose the first one.
@@ -376,7 +376,7 @@ static
 void _enum_type_free(struct type *type)
 {
 	struct type_enum *enum_type =
-		container_of(type, struct enum_type, p);
+		container_of(type, struct type_enum, p);
 	struct enum_range_to_quark *iter, *tmp;
 
 	g_hash_table_destroy(enum_type->table.value_to_quark_set);
@@ -385,7 +385,7 @@ void _enum_type_free(struct type *type)
 		g_free(iter);
 	}
 	g_hash_table_destroy(enum_type->table.quark_to_range_set);
-	type_unref(enum_type->integer_type);
+	type_unref(&enum_type->integer_type->p);
 	g_free(enum_type);
 }
 
@@ -393,7 +393,6 @@ struct type_enum *
 	_enum_type_new(const char *name, struct type_integer *integer_type)
 {
 	struct type_enum *enum_type;
-	int ret;
 
 	enum_type = g_new(struct type_enum, 1);
 
@@ -405,7 +404,7 @@ struct type_enum *
 	enum_type->table.quark_to_range_set = g_hash_table_new_full(g_int_hash,
 							g_int_equal,
 							NULL, enum_range_set_free);
-	type_ref(integer_type);
+	type_ref(&integer_type->p);
 	enum_type->integer_type = integer_type;
 	enum_type->p.name = g_quark_from_string(name);
 	enum_type->p.alignment = 1;
@@ -414,19 +413,7 @@ struct type_enum *
 	enum_type->p.declaration_new = _enum_declaration_new;
 	enum_type->p.declaration_free = _enum_declaration_free;
 	enum_type->p.ref = 1;
-	if (enum_type->p.name) {
-		ret = register_type(&enum_type->p);
-		if (ret)
-			goto register_error;
-	}
 	return enum_type;
-
-register_error:
-	g_hash_table_destroy(enum_type->table.value_to_quark_set);
-	g_hash_table_destroy(enum_type->table.quark_to_range_set);
-	type_unref(enum_type->integer_type);
-	g_free(enum_type);
-	return NULL;
 }
 
 static
@@ -437,11 +424,12 @@ struct declaration *
 	struct type_enum *enum_type =
 		container_of(type, struct type_enum, p);
 	struct declaration_enum *_enum;
-	struct declaration_integer_parent *declaration_integer_parent;
+	struct declaration *declaration_integer_parent;
 
 	_enum = g_new(struct declaration_enum, 1);
 	type_ref(&enum_type->p);
-	_enum->p.type = enum_type;
+	_enum->p.type = type;
+	_enum->type = enum_type;
 	_enum->p.ref = 1;
 	_enum->value = NULL;
 	declaration_integer_parent =
@@ -458,9 +446,9 @@ void _enum_declaration_free(struct declaration *declaration)
 	struct declaration_enum *_enum =
 		container_of(declaration, struct declaration_enum, p);
 
-	declaration_unref(_enum->integer);
+	declaration_unref(&_enum->integer->p);
 	type_unref(_enum->p.type);
 	if (_enum->value)
-		g_array_unref(_enum->value, TRUE);
+		g_array_unref(_enum->value);
 	g_free(_enum);
 }

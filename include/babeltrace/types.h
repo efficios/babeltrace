@@ -229,7 +229,7 @@ struct type_field {
 };
 
 struct field {
-	struct declaration *type;
+	struct declaration *declaration;
 };
 
 struct type_struct {
@@ -255,7 +255,7 @@ struct declaration_variant {
 	struct declaration p;
 	struct type_variant *type;
 	struct declaration_scope *scope;
-	struct declaration *tag;
+	struct declaration *enum_tag;
 	GArray *fields;			/* Array of struct field */
 	struct field *current_field;	/* Last field read */
 };

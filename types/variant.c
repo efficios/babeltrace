@@ -18,7 +18,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
-
+#include <errno.h>
 
 static
 struct declaration *_variant_declaration_new(struct type *type,
@@ -35,14 +35,13 @@ void variant_copy(struct stream_pos *dest, const struct format *fdest,
 	struct type_variant *variant_type = variant->type;
 	struct field *field;
 	struct type *field_type;
-	unsigned long i;
 
 	fsrc->variant_begin(src, variant_type);
 	fdest->variant_begin(dest, variant_type);
 
 	field = variant_get_current_field(variant);
-	field_type = field->type->p.type;
-	field_type->copy(dest, fdest, src, fsrc, &field->type->p);
+	field_type = field->declaration->type;
+	field_type->copy(dest, fdest, src, fsrc, field->declaration);
 
 	fsrc->variant_end(src, variant_type);
 	fdest->variant_end(dest, variant_type);
@@ -58,10 +57,10 @@ void _variant_type_free(struct type *type)
 	g_hash_table_destroy(variant_type->fields_by_tag);
 
 	for (i = 0; i < variant_type->fields->len; i++) {
-		struct field *type_field =
+		struct type_field *type_field =
 			&g_array_index(variant_type->fields,
 				       struct type_field, i);
-		type_unref(field->type);
+		type_unref(type_field->type);
 	}
 	g_array_free(variant_type->fields, true);
 	g_free(variant_type);
@@ -71,7 +70,6 @@ struct type_variant *variant_type_new(const char *name)
 {
 	struct type_variant *variant_type;
 	struct type *type;
-	int ret;
 
 	variant_type = g_new(struct type_variant, 1);
 	type = &variant_type->p;
@@ -87,19 +85,7 @@ struct type_variant *variant_type_new(const char *name)
 	type->declaration_new = _variant_declaration_new;
 	type->declaration_free = _variant_declaration_free;
 	type->ref = 1;
-
-	if (type->name) {
-		ret = register_type(type);
-		if (ret)
-			goto error_register;
-	}
 	return variant_type;
-
-error_register:
-	g_hash_table_destroy(variant_type->fields_by_tag);
-	g_array_free(variant_type->fields, true);
-	g_free(variant_type);
-	return NULL;
 }
 
 static
@@ -113,7 +99,8 @@ struct declaration *
 
 	variant = g_new(struct declaration_variant, 1);
 	type_ref(&variant_type->p);
-	variant->p.type = variant_type;
+	variant->p.type = type;
+	variant->type = variant_type;
 	variant->p.ref = 1;
 	variant->scope = new_declaration_scope(parent_scope);
 	variant->fields = g_array_sized_new(FALSE, TRUE,
@@ -124,7 +111,7 @@ struct declaration *
 }
 
 static
-void variant_declaration_free(struct declaration *declaration)
+void _variant_declaration_free(struct declaration *declaration)
 {
 	struct declaration_variant *variant =
 		container_of(declaration, struct declaration_variant, p);
@@ -154,7 +141,7 @@ void variant_type_add_field(struct type_variant *variant_type,
 	type_ref(tag_type);
 	field->type = tag_type;
 	/* Keep index in hash rather than pointer, because array can relocate */
-	g_hash_table_insert(variant_type->fields_by_name,
+	g_hash_table_insert(variant_type->fields_by_tag,
 			    (gpointer) (unsigned long) field->name,
 			    (gpointer) index);
 	/*
@@ -227,7 +214,7 @@ struct field *variant_get_current_field(struct declaration_variant *variant)
 {
 	struct declaration_enum *_enum =
 		container_of(variant->enum_tag, struct declaration_enum, p);
-	struct variant_type *variant_type = variant->type;
+	struct type_variant *variant_type = variant->type;
 	unsigned long index;
 	GArray *tag_array;
 	GQuark tag;

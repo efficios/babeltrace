@@ -49,11 +49,14 @@ static void free_type(struct type *type)
 
 static void free_declaration(struct declaration *declaration)
 {
-	declaration->p.declaration_free(declaration);
+	declaration->type->declaration_free(declaration);
 }
 
 int register_type(struct type *type, struct declaration_scope *scope)
 {
+	if (!type->name)
+		return -EPERM;
+
 	/* Only lookup in local scope */
 	if (lookup_type_scope(type->name, scope))
 		return -EEXIST;

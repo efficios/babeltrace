@@ -56,7 +56,6 @@ void _string_type_free(struct type *type)
 struct type_string *string_type_new(const char *name)
 {
 	struct type_string *string_type;
-	int ret;
 
 	string_type = g_new(struct type_string, 1);
 	string_type->p.name = g_quark_from_string(name);
@@ -64,15 +63,8 @@ struct type_string *string_type_new(const char *name)
 	string_type->p.copy = string_copy;
 	string_type->p.type_free = _string_type_free;
 	string_type->p.declaration_new = _string_declaration_new;
-	string_type->p.declaration_free = _strin_declaration_free;
+	string_type->p.declaration_free = _string_declaration_free;
 	string_type->p.ref = 1;
-	if (string_type->p.name) {
-		ret = register_type(&string_type->p);
-		if (ret) {
-			g_free(string_type);
-			return NULL;
-		}
-	}
 	return string_type;
 }
 
@@ -87,7 +79,8 @@ struct declaration *
 
 	string = g_new(struct declaration_string, 1);
 	type_ref(&string_type->p);
-	string->p.type = string_type;
+	string->p.type = type;
+	string->type = string_type;
 	string->p.ref = 1;
 	string->value = NULL;
 	return &string->p;
