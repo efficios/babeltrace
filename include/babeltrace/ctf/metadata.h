@@ -27,19 +27,34 @@ struct ctf_stream;
 struct ctf_event;
 
 struct ctf_trace {
-	struct declaration_scope *scope;
+	struct declaration_scope *scope;	/* root scope */
+	GArray *streams;	/* Array of struct ctf_stream */
+
+	uint64_t major;
+	uint64_t minor;
+	uint8_t uuid[16];
+	uint64_t word_size;
 };
 
 struct ctf_stream {
-	struct declaration_scope *scope;
+	struct declaration_scope *scope;	/* parent is trace scope */
 	GArray *events_by_id;	/* Array of struct ctf_event indexed by id */
 	GHashTable *event_quark_to_id;	/* GQuark to numeric id */
+
+	uint64_t stream_id;
+	struct declaration_struct *event_header;
+	struct declaration_struct *event_context;
+	struct declaration_struct *packet_context;
 };
 
 
 struct ctf_event {
-	struct declaration_scope *scope;
-	GQuark qname;
+	struct declaration_scope *scope;	/* parent is stream scope */
+	GQuark name;
+	uint64_t id;	/* Numeric identifier within the stream */
+	uint64_t stream_id;
+	struct declaration_struct *context;
+	struct declaration_struct *fields;
 };
 
 #endif /* _BABELTRACE_CTF_METADATA_H */
