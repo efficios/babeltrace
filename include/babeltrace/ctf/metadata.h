@@ -47,7 +47,6 @@ struct ctf_stream {
 	struct declaration_struct *packet_context;
 };
 
-
 struct ctf_event {
 	struct declaration_scope *scope;	/* parent is stream scope */
 	GQuark name;
