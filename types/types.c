@@ -23,33 +23,24 @@
 #include <errno.h>
 
 static
-struct type *lookup_type_scope(GQuark qname, struct declaration_scope *scope)
+struct type *
+	lookup_type_scope(GQuark type_name, struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->types,
-				   (gconstpointer) (unsigned long) qname);
+				   (gconstpointer) (unsigned long) type_name);
 }
 
-struct type *lookup_type(GQuark qname, struct declaration_scope *scope)
+struct type *lookup_type(GQuark type_name, struct declaration_scope *scope)
 {
 	struct type *type;
 
 	while (scope) {
-		type = lookup_type_scope(qname, scope);
+		type = lookup_type_scope(type_name, scope);
 		if (type)
 			return type;
 		scope = scope->parent_scope;
 	}
 	return NULL;
-}
-
-static void free_type(struct type *type)
-{
-	type->type_free(type);
-}
-
-static void free_declaration(struct declaration *declaration)
-{
-	declaration->type->declaration_free(declaration);
 }
 
 int register_type(struct type *type, struct declaration_scope *scope)
@@ -64,6 +55,46 @@ int register_type(struct type *type, struct declaration_scope *scope)
 	g_hash_table_insert(scope->types,
 			    (gpointer) (unsigned long) type->name,
 			    type);
+	type_ref(type);
+	return 0;
+}
+
+static
+struct declaration *
+	lookup_declaration_scope(GQuark field_name, struct declaration_scope *scope)
+{
+	return g_hash_table_lookup(scope->declarations,
+				   (gconstpointer) (unsigned long) field_name);
+}
+
+struct declaration *
+	lookup_declaration(GQuark field_name, struct declaration_scope *scope)
+{
+	struct declaration *declaration;
+
+	while (scope) {
+		declaration = lookup_declaration_scope(field_name, scope);
+		if (declaration)
+			return declaration;
+		scope = scope->parent_scope;
+	}
+	return NULL;
+}
+
+int register_declaration(GQuark field_name, struct declaration *declaration,
+			 struct declaration_scope *scope)
+{
+	if (!field_name)
+		return -EPERM;
+
+	/* Only lookup in local scope */
+	if (lookup_declaration_scope(field_name, scope))
+		return -EEXIST;
+
+	g_hash_table_insert(scope->declarations,
+			    (gpointer) (unsigned long) field_name,
+			    declaration);
+	declaration_ref(declaration);
 	return 0;
 }
 
@@ -75,7 +106,7 @@ void type_ref(struct type *type)
 void type_unref(struct type *type)
 {
 	if (!--type->ref)
-		free_type(type);
+		type->type_free(type);
 }
 
 void declaration_ref(struct declaration *declaration)
@@ -86,7 +117,7 @@ void declaration_ref(struct declaration *declaration)
 void declaration_unref(struct declaration *declaration)
 {
 	if (!--declaration->ref)
-		free_declaration(declaration);
+		declaration->type->declaration_free(declaration);
 }
 
 struct declaration_scope *
@@ -97,12 +128,16 @@ struct declaration_scope *
 	scope->types = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) type_unref);
+	scope->declarations = g_hash_table_new_full(g_direct_hash,
+					g_direct_equal, NULL,
+					(GDestroyNotify) declaration_unref);
 	scope->parent_scope = parent_scope;
 	return scope;
 }
 
 void free_declaration_scope(struct declaration_scope *scope)
 {
+	g_hash_table_destroy(scope->declarations);
 	g_hash_table_destroy(scope->types);
 	g_free(scope);
 }

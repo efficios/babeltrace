@@ -91,6 +91,8 @@ struct declaration;
 struct declaration_scope {
 	/* Hash table mapping type name GQuark to struct type */
 	GHashTable *types;
+	/* Hash table mapping field name GQuark to struct declaration */
+	GHashTable *declarations;
 	struct declaration_scope *parent_scope;
 };
 
@@ -229,6 +231,7 @@ struct type_field {
 };
 
 struct field {
+	GQuark name;
 	struct declaration *declaration;
 };
 
@@ -287,8 +290,13 @@ struct declaration_sequence {
 	struct field current_element;		/* struct field */
 };
 
-struct type *lookup_type(GQuark qname, struct declaration_scope *scope);
+struct type *lookup_type(GQuark type_name, struct declaration_scope *scope);
 int register_type(struct type *type, struct declaration_scope *scope);
+
+struct declaration *
+	lookup_declaration(GQuark field_name, struct declaration_scope *scope);
+int register_declaration(GQuark field_name, struct declaration *declaration,
+			 struct declaration_scope *scope);
 
 void type_ref(struct type *type);
 void type_unref(struct type *type);

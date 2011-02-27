@@ -96,6 +96,7 @@ struct declaration *
 	struct type_variant *variant_type =
 		container_of(type, struct type_variant, p);
 	struct declaration_variant *variant;
+	unsigned long i;
 
 	variant = g_new(struct declaration_variant, 1);
 	type_ref(&variant_type->p);
@@ -106,6 +107,19 @@ struct declaration *
 	variant->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
+	g_array_set_size(variant->fields, variant_type->fields->len);
+	for (i = 0; i < variant_type->fields->len; i++) {
+		struct type_field *type_field =
+			&g_array_index(variant_type->fields,
+				       struct type_field, i);
+		struct field *field = &g_array_index(variant->fields,
+						     struct field, i);
+
+		field->name = type_field->name;
+		field->declaration =
+			type_field->type->declaration_new(type_field->type,
+							  variant->scope);
+	}
 	variant->current_field = NULL;
 	return &variant->p;
 }
@@ -117,6 +131,7 @@ void _variant_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_variant, p);
 	unsigned long i;
 
+	assert(variant->fields->len == variant->type->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
 		struct field *field = &g_array_index(variant->fields,
 						     struct field, i);

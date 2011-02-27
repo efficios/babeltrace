@@ -102,6 +102,8 @@ struct declaration *
 	struct type_struct *struct_type =
 		container_of(type, struct type_struct, p);
 	struct declaration_struct *_struct;
+	unsigned long i;
+	int ret;
 
 	_struct = g_new(struct declaration_struct, 1);
 	type_ref(&struct_type->p);
@@ -112,6 +114,22 @@ struct declaration *
 	_struct->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
+	g_array_set_size(_struct->fields, struct_type->fields->len);
+	for (i = 0; i < struct_type->fields->len; i++) {
+		struct type_field *type_field =
+			&g_array_index(struct_type->fields,
+				       struct type_field, i);
+		struct field *field = &g_array_index(_struct->fields,
+						     struct field, i);
+
+		field->name = type_field->name;
+		field->declaration =
+			type_field->type->declaration_new(type_field->type,
+							  _struct->scope);
+		ret = register_declaration(field->name,
+					   field->declaration, _struct->scope);
+		assert(!ret);
+	}
 	return &_struct->p;
 }
 
@@ -122,6 +140,7 @@ void _struct_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_struct, p);
 	unsigned long i;
 
+	assert(_struct->fields->len == _struct->type->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
