@@ -24,19 +24,19 @@
  * The caller should unref the GArray.
  */
 GArray *ctf_enum_read(struct stream_pos *pos,
-		      const struct type_class_enum *src)
+		      const struct type_enum *src)
 {
-	const struct type_class_integer *int_class = &src->p;
+	const struct type_integer *integer_type = src->integer_type;
 
-	if (!int_class->signedness) {
+	if (!integer_type->signedness) {
 		uint64_t v;
 
-		v = ctf_uint_read(pos, int_class);
+		v = ctf_uint_read(pos, integer_type);
 		return enum_uint_to_quark_set(src, v);
 	} else {
 		int64_t v;
 
-		v = ctf_int_read(pos, int_class);
+		v = ctf_int_read(pos, integer_type);
 		return enum_int_to_quark_set(src, v);
 	}
 }
@@ -45,20 +45,20 @@ GArray *ctf_enum_read(struct stream_pos *pos,
  * Arbitrarily choose the start of the first matching range.
  */
 void ctf_enum_write(struct stream_pos *pos,
-		    const struct type_class_enum *dest,
+		    const struct type_enum *dest,
 		    GQuark q)
 {
-	const struct type_class_integer *int_class = &dest->p;
+	const struct type_integer *integer_type = dest->integer_type;
 	GArray *array;
 
 	array = enum_quark_to_range_set(dest, q);
 	assert(array);
 
-	if (!int_class->signedness) {
+	if (!integer_type->signedness) {
 		uint64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
-		ctf_uint_write(pos, int_class, v);
+		ctf_uint_write(pos, integer_type, v);
 	} else {
 		int64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
-		ctf_int_write(pos, int_class, v);
+		ctf_int_write(pos, integer_type, v);
 	}
 }

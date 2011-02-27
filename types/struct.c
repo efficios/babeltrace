@@ -24,100 +24,101 @@
 #endif
 
 static
-struct type *_struct_type_new(struct type_class *type_class,
-			     struct declaration_scope *parent_scope);
+struct declaration *_struct_declaration_new(struct type *type,
+				struct declaration_scope *parent_scope);
 static
-void _struct_type_free(struct type *type);
+void _struct_declaration_free(struct declaration *declaration);
 
 void struct_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
-		 struct type *type)
+		 struct declaration *declaration)
 {
-	struct type_struct *_struct = container_of(type, struct type_struct, p);
-	struct type_class_struct *struct_class = _struct->_class;
+	struct declaration_struct *_struct =
+		container_of(declaration, struct declaration_struct, p);
+	struct type_struct *struct_type = _struct->type;
 	unsigned long i;
 
-	fsrc->struct_begin(src, struct_class);
-	fdest->struct_begin(dest, struct_class);
+	fsrc->struct_begin(src, struct_type);
+	fdest->struct_begin(dest, struct_type);
 
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		struct type_class *field_class = field->type->p._class;
+		struct type *field_type = field->type->p.type;
 
-		field_class->copy(dest, fdest, src, fsrc, &field->type->p);
+		field_type->copy(dest, fdest, src, fsrc, &field->type->p);
 
 	}
-	fsrc->struct_end(src, struct_class);
-	fdest->struct_end(dest, struct_class);
+	fsrc->struct_end(src, struct_type);
+	fdest->struct_end(dest, struct_type);
 }
 
 static
-void _struct_type_class_free(struct type_class *type_class)
+void _struct_type_free(struct type *type)
 {
-	struct type_class_struct *struct_class =
-		container_of(type_class, struct type_class_struct, p);
+	struct type_struct *struct_type =
+		container_of(type, struct type_struct, p);
 	unsigned long i;
 
-	g_hash_table_destroy(struct_class->fields_by_name);
+	g_hash_table_destroy(struct_type->fields_by_name);
 
-	for (i = 0; i < struct_class->fields->len; i++) {
-		struct field *type_class_field =
-			&g_array_index(struct_class->fields,
-				       struct type_class_field, i);
-		type_class_unref(field->type_class);
+	for (i = 0; i < struct_type->fields->len; i++) {
+		struct field *type_field =
+			&g_array_index(struct_type->fields,
+				       struct type_field, i);
+		type_unref(field->type);
 	}
-	g_array_free(struct_class->fields, true);
-	g_free(struct_class);
+	g_array_free(struct_type->fields, true);
+	g_free(struct_type);
 }
 
-struct type_class_struct *
-struct_type_class_new(const char *name)
+struct type_struct *struct_type_new(const char *name)
 {
-	struct type_class_struct *struct_class;
-	struct type_class *type_class;
+	struct type_struct *struct_type;
+	struct type *type;
 	int ret;
 
-	struct_class = g_new(struct type_class_struct, 1);
-	type_class = &struct_class->p;
-	struct_class->fields_by_name = g_hash_table_new(g_direct_hash,
-							g_direct_equal);
-	struct_class->fields = g_array_sized_new(FALSE, TRUE,
-						 sizeof(struct type_class_field),
-						 DEFAULT_NR_STRUCT_FIELDS);
-	type_class->name = g_quark_from_string(name);
-	type_class->alignment = 1;
-	type_class->copy = struct_copy;
-	type_class->class_free = _struct_type_class_free;
-	type_class->type_new = _struct_type_new;
-	type_class->type_free = _struct_type_free;
-	type_class->ref = 1;
+	struct_type = g_new(struct type_struct, 1);
+	type = &struct_type->p;
+	struct_type->fields_by_name = g_hash_table_new(g_direct_hash,
+						       g_direct_equal);
+	struct_type->fields = g_array_sized_new(FALSE, TRUE,
+						sizeof(struct type_field),
+						DEFAULT_NR_STRUCT_FIELDS);
+	type->name = g_quark_from_string(name);
+	type->alignment = 1;
+	type->copy = struct_copy;
+	type->type_free = _struct_type_free;
+	type->declaration_new = _struct_declaration_new;
+	type->declaration_free = _struct_declaration_free;
+	type->ref = 1;
 
-	if (type_class->name) {
-		ret = register_type(type_class);
+	if (type->name) {
+		ret = register_type(type);
 		if (ret)
 			goto error_register;
 	}
-	return struct_class;
+	return struct_type;
 
 error_register:
-	g_hash_table_destroy(struct_class->fields_by_name);
-	g_array_free(struct_class->fields, true);
-	g_free(struct_class);
+	g_hash_table_destroy(struct_type->fields_by_name);
+	g_array_free(struct_type->fields, true);
+	g_free(struct_type);
 	return NULL;
 }
 
 static
-struct type_struct *_struct_type_new(struct type_class *type_class,
-				     struct declaration_scope *parent_scope)
+struct declaration *
+	_struct_declaration_new(struct type *type,
+				struct declaration_scope *parent_scope)
 {
-	struct type_class_struct *_struct_class =
-		container_of(type_class, struct type_class_struct, p);
-	struct type_struct *_struct;
+	struct type_struct *struct_type =
+		container_of(type, struct type_struct, p);
+	struct declaration_struct *_struct;
 
-	_struct = g_new(struct type_struct, 1);
-	type_class_ref(&_struct_class->p);
-	_struct->p._class = _struct_class;
+	_struct = g_new(struct declaration_struct, 1);
+	type_ref(&struct_type->p);
+	_struct->p.type = struct_type;
 	_struct->p.ref = 1;
 	_struct->scope = new_declaration_scope(parent_scope);
 	_struct->fields = g_array_sized_new(FALSE, TRUE,
@@ -127,53 +128,54 @@ struct type_struct *_struct_type_new(struct type_class *type_class,
 }
 
 static
-void _struct_type_free(struct type *type)
+void _struct_declaration_free(struct declaration *declaration)
 {
-	struct type_struct *_struct = container_of(type, struct type_struct, p);
+	struct declaration_struct *_struct =
+		container_of(declaration, struct declaration_struct, p);
 	unsigned long i;
 
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		type_unref(field->type);
+		declaration_unref(field->declaration);
 	}
 	free_declaration_scope(_struct->scope);
-	type_class_unref(_struct->p._class);
+	type_unref(_struct->p.type);
 	g_free(_struct);
 }
 
-void struct_type_class_add_field(struct type_class_struct *struct_class,
-				 const char *field_name,
-				 struct type_class *type_class)
+void struct_type_add_field(struct type_struct *struct_type,
+			   const char *field_name,
+			   struct type *field_type)
 {
-	struct type_class_field *field;
+	struct type_field *field;
 	unsigned long index;
 
-	g_array_set_size(struct_class->fields, struct_class->fields->len + 1);
-	index = struct_class->fields->len - 1;	/* last field (new) */
-	field = &g_array_index(struct_class->fields, struct type_class_field, index);
+	g_array_set_size(struct_type->fields, struct_type->fields->len + 1);
+	index = struct_type->fields->len - 1;	/* last field (new) */
+	field = &g_array_index(struct_type->fields, struct type_field, index);
 	field->name = g_quark_from_string(field_name);
-	type_ref(type_class);
-	field->type_class = type_class;
+	type_ref(field_type);
+	field->type = field_type;
 	/* Keep index in hash rather than pointer, because array can relocate */
-	g_hash_table_insert(struct_class->fields_by_name,
+	g_hash_table_insert(struct_type->fields_by_name,
 			    (gpointer) (unsigned long) field->name,
 			    (gpointer) index);
 	/*
 	 * Alignment of structure is the max alignment of types contained
 	 * therein.
 	 */
-	struct_class->p.alignment = max(struct_class->p.alignment,
-					type_class->alignment);
+	struct_type->p.alignment = max(struct_type->p.alignment,
+				       field_type->alignment);
 }
 
 unsigned long
-struct_type_class_lookup_field_index(struct type_class_struct *struct_class,
-				     GQuark field_name)
+	struct_type_lookup_field_index(struct type_struct *struct_type,
+				       GQuark field_name)
 {
 	unsigned long index;
 
-	index = (unsigned long) g_hash_table_lookup(struct_class->fields_by_name,
+	index = (unsigned long) g_hash_table_lookup(struct_type->fields_by_name,
 						    (gconstpointer) (unsigned long) field_name);
 	return index;
 }
@@ -181,19 +183,19 @@ struct_type_class_lookup_field_index(struct type_class_struct *struct_class,
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct type_class_field *
-struct_type_class_get_field_from_index(struct type_class_struct *struct_class,
-				       unsigned long index)
+struct type_field *
+	struct_type_get_field_from_index(struct type_struct *struct_type,
+					 unsigned long index)
 {
-	return &g_array_index(struct_class->fields, struct type_class_field, index);
+	return &g_array_index(struct_type->fields, struct type_field, index);
 }
 
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
 struct field *
-struct_type_get_field_from_index(struct type_struct *struct_type,
-				 unsigned long index)
+struct_declaration_get_field_from_index(struct declaration_struct *_struct,
+					unsigned long index)
 {
-	return &g_array_index(struct_type->fields, struct field, index);
+	return &g_array_index(_struct->fields, struct field, index);
 }

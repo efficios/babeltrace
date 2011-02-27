@@ -19,12 +19,12 @@
 #include <babeltrace/ctf/types.h>
 
 void ctf_sequence_begin(struct stream_pos *pos,
-			const struct type_class_sequence *sequence_class)
+			const struct type_sequence *sequence_type)
 {
-	align_pos(pos, sequence_class->p.alignment);
+	align_pos(pos, sequence_type->p.alignment);
 }
 
 void ctf_sequence_end(struct stream_pos *pos,
-		      const struct type_class_sequence *sequence_class)
+		      const struct type_sequence *sequence_type)
 {
 }

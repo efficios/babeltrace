@@ -21,99 +21,99 @@
 
 
 static
-struct type *variant_type_new(struct type_class *type_class,
-			      struct declaration_scope *parent_scope);
+struct declaration *_variant_declaration_new(struct type *type,
+				struct declaration_scope *parent_scope);
 static
-void variant_type_free(struct type *type);
+void _variant_declaration_free(struct declaration *declaration);
 
 void variant_copy(struct stream_pos *dest, const struct format *fdest, 
 		  struct stream_pos *src, const struct format *fsrc,
-		  struct type *type)
+		  struct declaration *declaration)
 {
-	struct type_variant *variant = container_of(type, struct type_variant,
-						    p);
-	struct type_class_variant *variant_class = variant->_class;
+	struct declaration_variant *variant =
+		container_of(declaration, struct declaration_variant, p);
+	struct type_variant *variant_type = variant->type;
 	struct field *field;
-	struct type_class *field_class;
+	struct type *field_type;
 	unsigned long i;
 
-	fsrc->variant_begin(src, variant_class);
-	fdest->variant_begin(dest, variant_class);
+	fsrc->variant_begin(src, variant_type);
+	fdest->variant_begin(dest, variant_type);
 
-	field = variant_type_get_current_field(variant);
-	field_class = field->type->p._class;
-	field_class->copy(dest, fdest, src, fsrc, &field->type->p);
+	field = variant_get_current_field(variant);
+	field_type = field->type->p.type;
+	field_type->copy(dest, fdest, src, fsrc, &field->type->p);
 
-	fsrc->variant_end(src, variant_class);
-	fdest->variant_end(dest, variant_class);
+	fsrc->variant_end(src, variant_type);
+	fdest->variant_end(dest, variant_type);
 }
 
 static
-void variant_type_class_free(struct type_class *type_class)
+void _variant_type_free(struct type *type)
 {
-	struct type_class_variant *variant_class =
-		container_of(type_class, struct type_class_variant, p);
+	struct type_variant *variant_type =
+		container_of(type, struct type_variant, p);
 	unsigned long i;
 
-	g_hash_table_destroy(struct_class->fields_by_tag);
+	g_hash_table_destroy(variant_type->fields_by_tag);
 
-	for (i = 0; i < variant_class->fields->len; i++) {
-		struct field *type_class_field =
-			&g_array_index(variant_class->fields,
-				       struct type_class_field, i);
-		type_class_unref(field->type_class);
+	for (i = 0; i < variant_type->fields->len; i++) {
+		struct field *type_field =
+			&g_array_index(variant_type->fields,
+				       struct type_field, i);
+		type_unref(field->type);
 	}
-	g_array_free(variant_class->fields, true);
-	g_free(variant_class);
+	g_array_free(variant_type->fields, true);
+	g_free(variant_type);
 }
 
-struct type_class_variant *
-variant_type_class_new(const char *name)
+struct type_variant *variant_type_new(const char *name)
 {
-	struct type_class_variant *variant_class;
-	struct type_class *type_class;
+	struct type_variant *variant_type;
+	struct type *type;
 	int ret;
 
-	variant_class = g_new(struct type_class_variant, 1);
-	type_class = &variant_class->p;
-	variant_class->fields_by_tag = g_hash_table_new(g_direct_hash,
-							g_direct_equal);
-	variant_class->fields = g_array_sized_new(FALSE, TRUE,
-						  sizeof(struct type_class_field),
-						  DEFAULT_NR_STRUCT_FIELDS);
-	type_class->name = g_quark_from_string(name);
-	type_class->alignment = 1;
-	type_class->copy = variant_copy;
-	type_class->class_free = _variant_type_class_free;
-	type_class->type_new = _variant_type_new;
-	type_class->type_free = _variant_type_free;
-	type_class->ref = 1;
+	variant_type = g_new(struct type_variant, 1);
+	type = &variant_type->p;
+	variant_type->fields_by_tag = g_hash_table_new(g_direct_hash,
+						       g_direct_equal);
+	variant_type->fields = g_array_sized_new(FALSE, TRUE,
+						 sizeof(struct type_field),
+						 DEFAULT_NR_STRUCT_FIELDS);
+	type->name = g_quark_from_string(name);
+	type->alignment = 1;
+	type->copy = variant_copy;
+	type->type_free = _variant_type_free;
+	type->declaration_new = _variant_declaration_new;
+	type->declaration_free = _variant_declaration_free;
+	type->ref = 1;
 
-	if (type_class->name) {
-		ret = register_type(type_class);
+	if (type->name) {
+		ret = register_type(type);
 		if (ret)
 			goto error_register;
 	}
-	return struct_class;
+	return variant_type;
 
 error_register:
-	g_hash_table_destroy(variant_class->fields_by_tag);
-	g_array_free(variant_class->fields, true);
-	g_free(variant_class);
+	g_hash_table_destroy(variant_type->fields_by_tag);
+	g_array_free(variant_type->fields, true);
+	g_free(variant_type);
 	return NULL;
 }
 
 static
-struct type_variant *_variant_type_new(struct type_class *type_class,
-				       struct declaration_scope *parent_scope)
+struct declaration *
+	_variant_declaration_new(struct type *type,
+				 struct declaration_scope *parent_scope)
 {
-	struct type_class_variant *variant_class =
-		container_of(type_class, struct type_class_variant, p);
-	struct type_struct *variant;
+	struct type_variant *variant_type =
+		container_of(type, struct type_variant, p);
+	struct declaration_variant *variant;
 
-	variant = g_new(struct type_variant, 1);
-	type_class_ref(&variant_class->p);
-	variant->p._class = variant_class;
+	variant = g_new(struct declaration_variant, 1);
+	type_ref(&variant_type->p);
+	variant->p.type = variant_type;
 	variant->p.ref = 1;
 	variant->scope = new_declaration_scope(parent_scope);
 	variant->fields = g_array_sized_new(FALSE, TRUE,
@@ -124,37 +124,37 @@ struct type_variant *_variant_type_new(struct type_class *type_class,
 }
 
 static
-void variant_type_free(struct type *type)
+void variant_declaration_free(struct declaration *declaration)
 {
-	struct type_variant *variant = container_of(type, struct type_variant,
-						    p);
+	struct declaration_variant *variant =
+		container_of(declaration, struct declaration_variant, p);
 	unsigned long i;
 
 	for (i = 0; i < variant->fields->len; i++) {
 		struct field *field = &g_array_index(variant->fields,
 						     struct field, i);
-		type_unref(field->type);
+		declaration_unref(field->declaration);
 	}
 	free_declaration_scope(variant->scope);
-	type_class_unref(variant->p._class);
+	type_unref(variant->p.type);
 	g_free(variant);
 }
 
-void variant_type_class_add_field(struct type_class_variant *variant_class,
-				  const char *tag_name,
-				  struct type_class *type_class)
+void variant_type_add_field(struct type_variant *variant_type,
+			    const char *tag_name,
+			    struct type *tag_type)
 {
-	struct type_class_field *field;
+	struct type_field *field;
 	unsigned long index;
 
-	g_array_set_size(variant_class->fields, variant_class->fields->len + 1);
-	index = variant_class->fields->len - 1;	/* last field (new) */
-	field = &g_array_index(variant_class->fields, struct type_class_field, index);
+	g_array_set_size(variant_type->fields, variant_type->fields->len + 1);
+	index = variant_type->fields->len - 1;	/* last field (new) */
+	field = &g_array_index(variant_type->fields, struct type_field, index);
 	field->name = g_quark_from_string(tag_name);
-	type_ref(type_class);
-	field->type_class = type_class;
+	type_ref(tag_type);
+	field->type = tag_type;
 	/* Keep index in hash rather than pointer, because array can relocate */
-	g_hash_table_insert(variant_class->fields_by_name,
+	g_hash_table_insert(variant_type->fields_by_name,
 			    (gpointer) (unsigned long) field->name,
 			    (gpointer) index);
 	/*
@@ -164,26 +164,25 @@ void variant_type_class_add_field(struct type_class_variant *variant_class,
 	 */
 }
 
-struct type_class_field *
-struct_type_class_get_field_from_tag(struct type_class_variant *variant_class,
-				     GQuark tag)
+struct type_field *
+struct_type_get_field_from_tag(struct type_variant *variant_type, GQuark tag)
 {
 	unsigned long index;
 
-	index = (unsigned long) g_hash_table_lookup(variant_class->fields_by_tag,
+	index = (unsigned long) g_hash_table_lookup(variant_type->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
-	return &g_array_index(variant_class->fields, struct type_class_field, index);
+	return &g_array_index(variant_type->fields, struct type_field, index);
 }
 
 /*
  * tag_instance is assumed to be an enumeration.
  */
-int variant_type_set_tag(struct type_variant *variant,
-			 struct type *enum_tag_instance)
+int variant_declaration_set_tag(struct declaration_variant *variant,
+				struct declaration *enum_tag)
 {
-	struct type_enum *_enum =
-		container_of(struct type_enum, variant->enum_tag, p);
-	struct type_class_enum *enum_class = _enum->_class;
+	struct declaration_enum *_enum =
+		container_of(variant->enum_tag, struct declaration_enum, p);
+	struct type_enum *enum_type = _enum->type;
 	int missing_field = 0;
 	unsigned long i;
 
@@ -193,14 +192,14 @@ int variant_type_set_tag(struct type_variant *variant,
 	 * variant choice map to an enumerator too. We then validate that the
 	 * number of enumerators equals the number of variant choices.
 	 */
-	if (variant->_class->fields->len != enum_get_nr_enumerators(enum_class))
+	if (variant->type->fields->len != enum_get_nr_enumerators(enum_type))
 		return -EPERM;
 
-	for (i = 0; i < variant->_class->fields->len; i++) {
-		struct type_class_field *field_class =
-			&g_array_index(variant->_class->fields,
-				       struct type_class_field, i);
-		if (!enum_quark_to_range_set(enum_class, field_class->name)) {
+	for (i = 0; i < variant->type->fields->len; i++) {
+		struct type_field *field_type =
+			&g_array_index(variant->type->fields,
+				       struct type_field, i);
+		if (!enum_quark_to_range_set(enum_type, field_type->name)) {
 			missing_field = 1;
 			break;
 		}
@@ -217,19 +216,18 @@ int variant_type_set_tag(struct type_variant *variant,
 	 */
 
 	/* Set the enum tag field */
-	variant->enum_tag = enum_tag_instance;
+	variant->enum_tag = enum_tag;
 	return 0;
 }
 
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct field *
-variant_type_get_current_field(struct type_variant *variant)
+struct field *variant_get_current_field(struct declaration_variant *variant)
 {
-	struct type_enum *_enum =
-		container_of(struct type_enum, variant->enum_tag, p);
-	struct variat_type_class *variant_class = variant->_class;
+	struct declaration_enum *_enum =
+		container_of(variant->enum_tag, struct declaration_enum, p);
+	struct variant_type *variant_type = variant->type;
 	unsigned long index;
 	GArray *tag_array;
 	GQuark tag;
@@ -241,8 +239,8 @@ variant_type_get_current_field(struct type_variant *variant)
 	 */
 	assert(tag_array->len == 1);
 	tag = g_array_index(tag_array, GQuark, 0);
-	index = (unsigned long) g_hash_table_lookup(variant_class->fields_by_tag,
+	index = (unsigned long) g_hash_table_lookup(variant_type->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
-	variant->current_field = &g_array_index(variant_class->fields, struct field, index);
+	variant->current_field = &g_array_index(variant->fields, struct field, index);
 	return variant->current_field;
 }

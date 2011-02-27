@@ -22,10 +22,10 @@
 #include <glib.h>
 
 static
-struct type_enum *_enum_type_new(struct type_class *type_class,
+struct declaration *_enum_declaration_new(struct type *type,
 				 struct declaration_scope *parent_scope);
 static
-void _enum_type_free(struct type *type);
+void _enum_declaration_free(struct declaration *declaration);
 
 static
 void enum_range_set_free(void *ptr)
@@ -37,17 +37,17 @@ void enum_range_set_free(void *ptr)
  * Returns a GArray or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_uint_to_quark_set(const struct type_class_enum *enum_class,
+GArray *enum_uint_to_quark_set(const struct type_enum *enum_type,
 			       uint64_t v)
 {
 	struct enum_range_to_quark *iter;
 	GArray *qs, *ranges = NULL;
 
 	/* Single values lookup */
-	qs = g_hash_table_lookup(enum_class->table.value_to_quark_set, &v);
+	qs = g_hash_table_lookup(enum_type->table.value_to_quark_set, &v);
 
 	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_class->table.range_to_quark, node) {
+	cds_list_for_each_entry(iter, &enum_type->table.range_to_quark, node) {
 		if (iter->range.start._unsigned > v || iter->range.end._unsigned < v)
 			continue;
 		if (!ranges) {
@@ -79,16 +79,16 @@ GArray *enum_uint_to_quark_set(const struct type_class_enum *enum_class,
  * Returns a GArray or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_int_to_quark_set(const struct type_class_enum *enum_class, uint64_t v)
+GArray *enum_int_to_quark_set(const struct type_enum *enum_type, uint64_t v)
 {
 	struct enum_range_to_quark *iter;
 	GArray *qs, *ranges = NULL;
 
 	/* Single values lookup */
-	qs = g_hash_table_lookup(enum_class->table.value_to_quark_set, &v);
+	qs = g_hash_table_lookup(enum_type->table.value_to_quark_set, &v);
 
 	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_class->table.range_to_quark, node) {
+	cds_list_for_each_entry(iter, &enum_type->table.range_to_quark, node) {
 		if (iter->range.start._signed > v || iter->range.end._signed < v)
 			continue;
 		if (!ranges) {
@@ -141,20 +141,20 @@ void enum_val_free(void *ptr)
 }
 
 static
-void enum_signed_insert_value_to_quark_set(struct type_class_enum *enum_class,
+void enum_signed_insert_value_to_quark_set(struct type_enum *enum_type,
 			int64_t v, GQuark q)
 {
 	int64_t *valuep;
 	GArray *array;
 
-	array = g_hash_table_lookup(enum_class->table.value_to_quark_set, &v);
+	array = g_hash_table_lookup(enum_type->table.value_to_quark_set, &v);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
 		valuep = g_new(int64_t, 1);
 		*valuep = v;
-		g_hash_table_insert(enum_class->table.value_to_quark_set, valuep, array);
+		g_hash_table_insert(enum_type->table.value_to_quark_set, valuep, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
@@ -162,20 +162,20 @@ void enum_signed_insert_value_to_quark_set(struct type_class_enum *enum_class,
 }
 
 static
-void enum_unsigned_insert_value_to_quark_set(struct type_class_enum *enum_class,
+void enum_unsigned_insert_value_to_quark_set(struct type_enum *enum_type,
 			 uint64_t v, GQuark q)
 {
 	uint64_t *valuep;
 	GArray *array;
 
-	array = g_hash_table_lookup(enum_class->table.value_to_quark_set, &v);
+	array = g_hash_table_lookup(enum_type->table.value_to_quark_set, &v);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
 		valuep = g_new(uint64_t, 1);
 		*valuep = v;
-		g_hash_table_insert(enum_class->table.value_to_quark_set, valuep, array);
+		g_hash_table_insert(enum_type->table.value_to_quark_set, valuep, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
@@ -200,18 +200,18 @@ void enum_val_free(void *ptr)
 }
 
 static
-void enum_signed_insert_value_to_quark_set(struct type_class_enum *enum_class,
+void enum_signed_insert_value_to_quark_set(struct type_enum *enum_type,
 			int64_t v, GQuark q)
 {
 	GArray *array;
 
-	array = g_hash_table_lookup(enum_class->table.value_to_quark_set,
+	array = g_hash_table_lookup(enum_type->table.value_to_quark_set,
 				    (gconstpointer) v);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
-		g_hash_table_insert(enum_class->table.value_to_quark_set,
+		g_hash_table_insert(enum_type->table.value_to_quark_set,
 				    (gpointer) v, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
@@ -220,18 +220,18 @@ void enum_signed_insert_value_to_quark_set(struct type_class_enum *enum_class,
 }
 
 static
-void enum_unsigned_insert_value_to_quark_set(struct type_class_enum *enum_class,
+void enum_unsigned_insert_value_to_quark_set(struct type_enum *enum_type,
 			 uint64_t v, GQuark q)
 {
 	GArray *array;
 
-	array = g_hash_table_lookup(enum_class->table.value_to_quark_set,
+	array = g_hash_table_lookup(enum_type->table.value_to_quark_set,
 				    (gconstpointer) v);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
-		g_hash_table_insert(enum_class->table.value_to_quark_set,
+		g_hash_table_insert(enum_type->table.value_to_quark_set,
 				    (gpointer) v, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
@@ -240,47 +240,47 @@ void enum_unsigned_insert_value_to_quark_set(struct type_class_enum *enum_class,
 }
 #endif /* __WORDSIZE != 32 */
 
-GArray *enum_quark_to_range_set(const struct type_class_enum *enum_class,
+GArray *enum_quark_to_range_set(const struct type_enum *enum_type,
 				GQuark q)
 {
-	return g_hash_table_lookup(enum_class->table.quark_to_range_set,
+	return g_hash_table_lookup(enum_type->table.quark_to_range_set,
 				   (gconstpointer) (unsigned long) q);
 }
 
 static
-void enum_signed_insert_range_to_quark(struct type_class_enum *enum_class,
+void enum_signed_insert_range_to_quark(struct type_enum *enum_type,
                         int64_t start, int64_t end, GQuark q)
 {
 	struct enum_range_to_quark *rtoq;
 
 	rtoq = g_new(struct enum_range_to_quark, 1);
-	cds_list_add(&rtoq->node, &enum_class->table.range_to_quark);
+	cds_list_add(&rtoq->node, &enum_type->table.range_to_quark);
 	rtoq->range.start._signed = start;
 	rtoq->range.end._signed = end;
 	rtoq->quark = q;
 }
 
 static
-void enum_unsigned_insert_range_to_quark(struct type_class_enum *enum_class,
+void enum_unsigned_insert_range_to_quark(struct type_enum *enum_type,
                         uint64_t start, uint64_t end, GQuark q)
 {
 	struct enum_range_to_quark *rtoq;
 
 	rtoq = g_new(struct enum_range_to_quark, 1);
-	cds_list_add(&rtoq->node, &enum_class->table.range_to_quark);
+	cds_list_add(&rtoq->node, &enum_type->table.range_to_quark);
 	rtoq->range.start._unsigned = start;
 	rtoq->range.end._unsigned = end;
 	rtoq->quark = q;
 }
 
-void enum_signed_insert(struct type_class_enum *enum_class,
+void enum_signed_insert(struct type_enum *enum_type,
                         int64_t start, int64_t end, GQuark q)
 {
 	GArray *array;
 	struct enum_range *range;
 
 	if (start == end) {
-		enum_signed_insert_value_to_quark_set(enum_class, start, q);
+		enum_signed_insert_value_to_quark_set(enum_type, start, q);
 	} else {
 		if (start > end) {
 			uint64_t tmp;
@@ -289,15 +289,15 @@ void enum_signed_insert(struct type_class_enum *enum_class,
 			start = end;
 			end = tmp;
 		}
-		enum_signed_insert_range_to_quark(enum_class, start, end, q);
+		enum_signed_insert_range_to_quark(enum_type, start, end, q);
 	}
 
-	array = g_hash_table_lookup(enum_class->table.quark_to_range_set,
+	array = g_hash_table_lookup(enum_type->table.quark_to_range_set,
 				    (gconstpointer) (unsigned long) q);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE,
 					  sizeof(struct enum_range), 1);
-		g_hash_table_insert(enum_class->table.quark_to_range_set,
+		g_hash_table_insert(enum_type->table.quark_to_range_set,
 				    (gpointer) (unsigned long) q,
 				    array);
 	}
@@ -307,7 +307,7 @@ void enum_signed_insert(struct type_class_enum *enum_class,
 	range->end._signed = end;
 }
 
-void enum_unsigned_insert(struct type_class_enum *enum_class,
+void enum_unsigned_insert(struct type_enum *enum_type,
 			  uint64_t start, uint64_t end, GQuark q)
 {
 	GArray *array;
@@ -315,7 +315,7 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 
 
 	if (start == end) {
-		enum_unsigned_insert_value_to_quark_set(enum_class, start, q);
+		enum_unsigned_insert_value_to_quark_set(enum_type, start, q);
 	} else {
 		if (start > end) {
 			uint64_t tmp;
@@ -324,15 +324,15 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 			start = end;
 			end = tmp;
 		}
-		enum_unsigned_insert_range_to_quark(enum_class, start, end, q);
+		enum_unsigned_insert_range_to_quark(enum_type, start, end, q);
 	}
 
-	array = g_hash_table_lookup(enum_class->table.quark_to_range_set,
+	array = g_hash_table_lookup(enum_type->table.quark_to_range_set,
 				    (gconstpointer) (unsigned long) q);
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE,
 					  sizeof(struct enum_range), 1);
-		g_hash_table_insert(enum_class->table.quark_to_range_set,
+		g_hash_table_insert(enum_type->table.quark_to_range_set,
 				    (gpointer) (unsigned long) q,
 				    array);
 	}
@@ -342,21 +342,22 @@ void enum_unsigned_insert(struct type_class_enum *enum_class,
 	range->end._unsigned = end;
 }
 
-size_t enum_get_nr_enumerators(struct type_class_enum *enum_class)
+size_t enum_get_nr_enumerators(struct type_enum *enum_type)
 {
-	return g_hash_table_size(enum_class->table.quark_to_range_set);
+	return g_hash_table_size(enum_type->table.quark_to_range_set);
 }
 
 void enum_copy(struct stream_pos *dest, const struct format *fdest, 
 	       struct stream_pos *src, const struct format *fsrc,
-	       struct type *type)
+	       struct declaration *declaration)
 {
-	struct type_enum *_enum = container_of(type, struct type_enum, p);
-	struct type_class_enum *enum_class = _enum->_class;
+	struct declaration_enum *_enum =
+		container_of(declaration, struct declaration_enum, p);
+	struct type_enum *enum_type= _enum->type;
 	GArray *array;
 	GQuark v;
 
-	array = fsrc->enum_read(src, enum_class);
+	array = fsrc->enum_read(src, enum_type);
 	assert(array);
 	/* unref previous array */
 	if (_enum->value)
@@ -368,97 +369,97 @@ void enum_copy(struct stream_pos *dest, const struct format *fdest,
 	 * now to test enum read and write code.
 	 */
 	v = g_array_index(array, GQuark, 0);
-	return fdest->enum_write(dest, enum_class, v);
-}
-
-static
-void _enum_type_class_free(struct type_class *type_class)
-{
-	struct type_class_enum *enum_class =
-		container_of(type_class, struct enum_type_class, p);
-	struct enum_range_to_quark *iter, *tmp;
-
-	g_hash_table_destroy(enum_class->table.value_to_quark_set);
-	cds_list_for_each_entry_safe(iter, tmp, &enum_class->table.range_to_quark, node) {
-		cds_list_del(&iter->node);
-		g_free(iter);
-	}
-	g_hash_table_destroy(enum_class->table.quark_to_range_set);
-	g_free(enum_class);
-}
-
-struct type_class_enum *
-_enum_type_class_new(const char *name, size_t len, int byte_order,
-		     int signedness, size_t alignment)
-{
-	struct type_class_enum *enum_class;
-	struct type_class_integer *int_class;
-	int ret;
-
-	enum_class = g_new(struct type_class_enum, 1);
-	enum_class->table.value_to_quark_set = g_hash_table_new_full(enum_val_hash,
-							    enum_val_equal,
-							    enum_val_free,
-							    enum_range_set_free);
-	CDS_INIT_LIST_HEAD(&enum_class->table.range_to_quark);
-	enum_class->table.quark_to_range_set = g_hash_table_new_full(g_int_hash,
-							g_int_equal,
-							NULL, enum_range_set_free);
-	int_class = &enum_class->p;
-	int_class->p.name = g_quark_from_string(name);
-	int_class->p.alignment = alignment;
-	int_class->p.copy = enum_copy;
-	int_class->p.class_free = _enum_type_class_free;
-	int_class->p.type_new = _enum_type_new;
-	int_class->p.type_free = _enum_type_free;
-	int_class->p.ref = 1;
-	int_class->len = len;
-	int_class->byte_order = byte_order;
-	int_class->signedness = signedness;
-	if (int_class->p.name) {
-		ret = register_type(&int_class->p);
-		if (ret)
-			goto register_error;
-	}
-	return enum_class;
-
-register_error:
-	{
-		struct enum_range_to_quark *iter, *tmp;
-
-		cds_list_for_each_entry_safe(iter, tmp, &enum_class->table.range_to_quark, node) {
-			cds_list_del(&iter->node);
-			g_free(iter);
-		}
-	}
-	g_hash_table_destroy(enum_class->table.value_to_quark_set);
-	g_hash_table_destroy(enum_class->table.quark_to_range_set);
-	g_free(enum_class);
-	return NULL;
-}
-
-static
-struct type_enum *_enum_type_new(struct type_class *type_class,
-				 struct declaration_scope *parent_scope)
-{
-	struct type_class_enum *enum_class =
-		container_of(type_class, struct type_class_enum, p);
-	struct type_enum *_enum;
-
-	_enum = g_new(struct type_enum, 1);
-	type_class_ref(&enum_class->p);
-	_enum->p._class = enum_class;
-	_enum->p.ref = 1;
-	_enum->value = NULL;
-	return &_enum->p;
+	return fdest->enum_write(dest, enum_type, v);
 }
 
 static
 void _enum_type_free(struct type *type)
 {
-	struct type_enum *_enum = container_of(type, struct type_enum, p);
+	struct type_enum *enum_type =
+		container_of(type, struct enum_type, p);
+	struct enum_range_to_quark *iter, *tmp;
 
-	type_class_unref(_enum->p._class);
+	g_hash_table_destroy(enum_type->table.value_to_quark_set);
+	cds_list_for_each_entry_safe(iter, tmp, &enum_type->table.range_to_quark, node) {
+		cds_list_del(&iter->node);
+		g_free(iter);
+	}
+	g_hash_table_destroy(enum_type->table.quark_to_range_set);
+	type_unref(enum_type->integer_type);
+	g_free(enum_type);
+}
+
+struct type_enum *
+	_enum_type_new(const char *name, struct type_integer *integer_type)
+{
+	struct type_enum *enum_type;
+	int ret;
+
+	enum_type = g_new(struct type_enum, 1);
+
+	enum_type->table.value_to_quark_set = g_hash_table_new_full(enum_val_hash,
+							    enum_val_equal,
+							    enum_val_free,
+							    enum_range_set_free);
+	CDS_INIT_LIST_HEAD(&enum_type->table.range_to_quark);
+	enum_type->table.quark_to_range_set = g_hash_table_new_full(g_int_hash,
+							g_int_equal,
+							NULL, enum_range_set_free);
+	type_ref(integer_type);
+	enum_type->integer_type = integer_type;
+	enum_type->p.name = g_quark_from_string(name);
+	enum_type->p.alignment = 1;
+	enum_type->p.copy = enum_copy;
+	enum_type->p.type_free = _enum_type_free;
+	enum_type->p.declaration_new = _enum_declaration_new;
+	enum_type->p.declaration_free = _enum_declaration_free;
+	enum_type->p.ref = 1;
+	if (enum_type->p.name) {
+		ret = register_type(&enum_type->p);
+		if (ret)
+			goto register_error;
+	}
+	return enum_type;
+
+register_error:
+	g_hash_table_destroy(enum_type->table.value_to_quark_set);
+	g_hash_table_destroy(enum_type->table.quark_to_range_set);
+	type_unref(enum_type->integer_type);
+	g_free(enum_type);
+	return NULL;
+}
+
+static
+struct declaration *
+	_enum_declaration_new(struct type *type,
+			      struct declaration_scope *parent_scope)
+{
+	struct type_enum *enum_type =
+		container_of(type, struct type_enum, p);
+	struct declaration_enum *_enum;
+	struct declaration_integer_parent *declaration_integer_parent;
+
+	_enum = g_new(struct declaration_enum, 1);
+	type_ref(&enum_type->p);
+	_enum->p.type = enum_type;
+	_enum->p.ref = 1;
+	_enum->value = NULL;
+	declaration_integer_parent =
+		enum_type->integer_type->p.declaration_new(&enum_type->integer_type->p,
+							   parent_scope);
+	_enum->integer = container_of(declaration_integer_parent,
+				      struct declaration_integer, p);
+	return &_enum->p;
+}
+
+static
+void _enum_declaration_free(struct declaration *declaration)
+{
+	struct declaration_enum *_enum =
+		container_of(declaration, struct declaration_enum, p);
+
+	declaration_unref(_enum->integer);
+	type_unref(_enum->p.type);
 	if (_enum->value)
 		g_array_unref(_enum->value, TRUE);
 	g_free(_enum);

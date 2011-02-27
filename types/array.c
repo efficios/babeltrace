@@ -20,102 +20,105 @@
 #include <babeltrace/format.h>
 
 static
-struct type *_array_type_new(struct type_class *type_class,
-			     struct declaration_scope *parent_scope);
+struct declaration *_array_declaration_new(struct type *type,
+			struct declaration_scope *parent_scope);
 static
-void _array_type_free(struct type *type);
+void _array_declaration_free(struct declaration *declaration);
 
 void array_copy(struct stream_pos *dest, const struct format *fdest, 
 		struct stream_pos *src, const struct format *fsrc,
-		struct type *type)
+		struct declaration *declaration)
 {
-	struct type_sequence *array = container_of(type, struct type_array, p);
-	struct type_class_array *array_class = array->_class;
+	struct declaration_array *array =
+		container_of(declaration, struct declaration_array, p);
+	struct type_array *array_type = array->type;
 	uint64_t i;
 
-	fsrc->array_begin(src, array_class);
-	fdest->array_begin(dest, array_class);
+	fsrc->array_begin(src, array_type);
+	fdest->array_begin(dest, array_type);
 
-	for (i = 0; i < array_class->len; i++) {
-		struct type_class *elem_class = array->current_element.type;
-		elem_type->p._class->copy(dest, fdest, src, fsrc, elem_type);
+	for (i = 0; i < array_type->len; i++) {
+		struct type *elem_type = array->current_element.type;
+		elem_type->p.type->copy(dest, fdest, src, fsrc, elem_type);
 	}
-	fsrc->array_end(src, array_class);
-	fdest->array_end(dest, array_class);
-}
-
-static
-void _array_type_class_free(struct type_class *type_class)
-{
-	struct type_class_array *array_class =
-		container_of(type_class, struct type_class_array, p);
-
-	type_class_unref(array_class->elem);
-	g_free(array_class);
-}
-
-struct type_class_array *
-array_type_class_new(const char *name, size_t len, struct type_class *elem)
-{
-	struct type_class_array *array_class;
-	struct type_class *type_class;
-	int ret;
-
-	array_class = g_new(struct type_class_array, 1);
-	type_class = &array_class->p;
-	array_class->len = len;
-	type_ref(elem);
-	array_class->elem = elem;
-	type_class->name = g_quark_from_string(name);
-	/* No need to align the array, the first element will align itself */
-	type_class->alignment = 1;
-	type_class->copy = array_copy;
-	type_class->class_free = _array_type_class_free;
-	type_class->type_new = _array_type_new;
-	type_class->type_free = _array_type_free;
-	type_class->ref = 1;
-
-	if (type_class->name) {
-		ret = register_type(type_class);
-		if (ret)
-			goto error_register;
-	}
-	return array_class;
-
-error_register:
-	type_class_unref(array_class->elem);
-	g_free(array_class);
-	return NULL;
-}
-
-static
-struct type_array *_array_type_new(struct type_class *type_class,
-				   struct declaration_scope *parent_scope)
-{
-	struct type_class_array *array_class =
-		container_of(type_class, struct type_class_array, p);
-	struct type_array *array;
-
-	array = g_new(struct type_array, 1);
-	type_class_ref(&array_class->p);
-	array->p._class = array_class;
-	array->p.ref = 1;
-	array->scope = new_declaration_scope(parent_scope);
-	array->current_element.type =
-		array_class->elem.p->type_new(&array_class->elem.p,
-						 parent_scope);
-	return &array->p;
+	fsrc->array_end(src, array_type);
+	fdest->array_end(dest, array_type);
 }
 
 static
 void _array_type_free(struct type *type)
 {
-	struct type_array *array =
+	struct type_array *array_type =
 		container_of(type, struct type_array, p);
-	struct type *elem_type = array->current_element.type;
 
-	elem_type->p._class->type_free(elem_type);
+	type_unref(array_type->elem);
+	g_free(array_type);
+}
+
+struct type_array *
+	array_type_new(const char *name, size_t len, struct type *elem_type)
+{
+	struct type_array *array_type;
+	struct type *type;
+	int ret;
+
+	array_type = g_new(struct type_array, 1);
+	type = &array_type->p;
+	array_type->len = len;
+	type_ref(elem_type);
+	array_type->elem = elem_type;
+	type->name = g_quark_from_string(name);
+	/* No need to align the array, the first element will align itself */
+	type->alignment = 1;
+	type->copy = array_copy;
+	type->type_free = _array_type_free;
+	type->declaration_new = _array_declaration_new;
+	type->declaration_free = _array_declaration_free;
+	type->ref = 1;
+
+	if (type->name) {
+		ret = register_type(type);
+		if (ret)
+			goto error_register;
+	}
+	return array_type;
+
+error_register:
+	type_unref(array_type->elem);
+	g_free(array_type);
+	return NULL;
+}
+
+static
+struct declaration *
+	_array_declaration_new(struct type *type,
+			       struct declaration_scope *parent_scope)
+{
+	struct type_array *array_type =
+		container_of(type, struct type_array, p);
+	struct declaration_array *array;
+
+	array = g_new(struct declaration_array, 1);
+	type_ref(&array_type->p);
+	array->p.type = array_type;
+	array->p.ref = 1;
+	array->scope = new_declaration_scope(parent_scope);
+	array->current_element.declaration =
+		array_type->elem.p->declaration_new(&array_type->elem.p,
+						    parent_scope);
+	return &array->p;
+}
+
+static
+void _array_declaration_free(struct declaration *declaration)
+{
+	struct type_array *array =
+		container_of(declaration, struct type_array, p);
+	struct declaration *elem_declaration =
+		array->current_element.declaration;
+
+	elem_type->p.type->declaration_free(elem_type);
 	free_declaration_scope(array->scope);
-	type_class_unref(array->p._class);
+	type_unref(array->p.type);
 	g_free(array);
 }

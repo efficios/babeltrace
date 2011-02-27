@@ -21,84 +21,85 @@
 #include <babeltrace/format.h>
 
 static
-struct type_string *_string_type_new(struct type_class *type_class,
-				     struct declaration_scope *parent_scope);
+struct declaration *_string_declaration_new(struct type *type,
+				struct declaration_scope *parent_scope);
 static
-void _string_type_free(struct type *type);
+void _string_declaration_free(struct declaration *declaration);
 
 void string_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
-		 struct type *type)
+		 struct declaration *declaration)
 {
-	struct type_string *string = container_of(type, struct type_string, p);
-	struct type_class_string *string_class = string->_class;
+	struct declaration_string *string =
+		container_of(declaration, struct declaration_string, p);
+	struct type_string *string_type = string->type;
 
 	if (fsrc->string_copy == fdest->string_copy) {
-		fsrc->string_copy(dest, src, string_class);
+		fsrc->string_copy(dest, src, string_type);
 	} else {
 		char *tmp = NULL;
 
-		fsrc->string_read(&tmp, src, string_class);
-		fdest->string_write(dest, tmp, string_class);
+		fsrc->string_read(&tmp, src, string_type);
+		fdest->string_write(dest, tmp, string_type);
 		fsrc->string_free_temp(tmp);
 	}
 }
 
 static
-void _string_type_class_free(struct type_class_string *string_class)
+void _string_type_free(struct type *type)
 {
-	struct type_class_string *string_class =
-		container_of(type_class, struct type_class_string, p);
-	g_free(string_class);
+	struct type_string *string_type =
+		container_of(type, struct type_string, p);
+	g_free(string_type);
 }
 
-struct type_class_string *
-string_type_class_new(const char *name)
+struct type_string *string_type_new(const char *name)
 {
-	struct type_class_string *string_class;
+	struct type_string *string_type;
 	int ret;
 
-	string_class = g_new(struct type_class_string, 1);
-	string_class->p.name = g_quark_from_string(name);
-	string_class->p.alignment = CHAR_BIT;
-	string_class->p.copy = string_copy;
-	string_class->p.class_free = _string_type_class_free;
-	string_class->p.type_new = _string_type_new;
-	string_class->p.type_free = _string_type_free;
-	string_class->p.ref = 1;
-	if (string_class->p.name) {
-		ret = register_type(&string_class->p);
+	string_type = g_new(struct type_string, 1);
+	string_type->p.name = g_quark_from_string(name);
+	string_type->p.alignment = CHAR_BIT;
+	string_type->p.copy = string_copy;
+	string_type->p.type_free = _string_type_free;
+	string_type->p.declaration_new = _string_declaration_new;
+	string_type->p.declaration_free = _strin_declaration_free;
+	string_type->p.ref = 1;
+	if (string_type->p.name) {
+		ret = register_type(&string_type->p);
 		if (ret) {
-			g_free(string_class);
+			g_free(string_type);
 			return NULL;
 		}
 	}
-	return string_class;
+	return string_type;
 }
 
 static
-struct type_string *_string_type_new(struct type_class *type_class,
-				     struct declaration_scope *parent_scope)
+struct declaration *
+	_string_declaration_new(struct type *type,
+				struct declaration_scope *parent_scope)
 {
-	struct type_class_string *string_class =
-		container_of(type_class, struct type_class_string, p);
-	struct type_string *string;
+	struct type_string *string_type =
+		container_of(type, struct type_string, p);
+	struct declaration_string *string;
 
-	string = g_new(struct type_string, 1);
-	type_class_ref(&string_class->p);
-	string->p._class = string_class;
+	string = g_new(struct declaration_string, 1);
+	type_ref(&string_type->p);
+	string->p.type = string_type;
 	string->p.ref = 1;
 	string->value = NULL;
 	return &string->p;
 }
 
 static
-void _string_type_free(struct type *type)
+void _string_declaration_free(struct declaration *declaration)
 {
-	struct type_string *string =
-		container_of(type, struct type_string, p);
+	struct declaration_string *string =
+		container_of(declaration, struct declaration_string, p);
 
-	type_class_unref(string->p._class);
+	type_unref(string->p.type);
 	g_free(string->value);
 	g_free(string);
 }

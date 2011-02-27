@@ -27,31 +27,31 @@ struct format {
 	GQuark name;
 
 	uint64_t (*uint_read)(struct stream_pos *pos,
-			const struct type_class_integer *int_class);
+			const struct type_integer *integer_type);
 	int64_t (*int_read)(struct stream_pos *pos,
-			const struct type_class_integer *int_class);
+			const struct type_integer *integer_type);
 	void (*uint_write)(struct stream_pos *pos,
-			   const struct type_class_integer *int_class,
+			   const struct type_integer *integer_type,
 			   uint64_t v);
 	void (*int_write)(struct stream_pos *pos,
-			  const struct type_class_integer *int_class,
+			  const struct type_integer *integer_type,
 			  int64_t v);
 
 	void (*float_copy)(struct stream_pos *destp,
 			   struct stream_pos *srcp,
-			   const struct type_class_float *float_class);
+			   const struct type_float *float_type);
 	double (*double_read)(struct stream_pos *pos,
-			      const struct type_class_float *float_class);
+			      const struct type_float *float_type);
 	void (*double_write)(struct stream_pos *pos,
-			     const struct type_class_float *float_class,
+			     const struct type_float *float_type,
 			     double v);
 
 	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
-			    const struct type_class_string *string_class);
+			    const struct type_string *string_type);
 	void (*string_read)(char **dest, struct stream_pos *src,
-			    const struct type_class_string *string_class);
+			    const struct type_string *string_type);
 	void (*string_write)(struct stream_pos *dest, const char *src,
-			     const struct type_class_string *string_class);
+			     const struct type_string *string_type);
 	void (*string_free_temp)(char *string);
 
 	/*
@@ -59,26 +59,26 @@ struct format {
 	 * g_array_unref().
 	 */
 	GArray *(*enum_read)(struct stream_pos *pos,
-			    const struct type_class_enum *src);
+			    const struct type_enum *src);
 	void (*enum_write)(struct stream_pos *pos,
-			   const struct type_class_enum *dest,
+			   const struct type_enum *dest,
 			   GQuark q);
 	void (*struct_begin)(struct stream_pos *pos,
-			     const struct type_class_struct *struct_class);
+			     const struct type_struct *struct_type);
 	void (*struct_end)(struct stream_pos *pos,
-			   const struct type_class_struct *struct_class);
+			   const struct type_struct *struct_type);
 	void (*variant_begin)(struct stream_pos *pos,
-			      const struct type_class_variant *variant_class);
+			      const struct type_variant *variant_type);
 	void (*variant_end)(struct stream_pos *pos,
-			    const struct type_class_variant *variant_class);
+			    const struct type_variant *variant_type);
 	void (*array_begin)(struct stream_pos *pos,
-			     const struct type_class_array *array_class);
+			     const struct type_array *array_type);
 	void (*array_end)(struct stream_pos *pos,
-			   const struct type_class_array *array_class);
+			   const struct type_array *array_type);
 	void (*sequence_begin)(struct stream_pos *pos,
-			     const struct type_class_sequence *sequence_class);
+			     const struct type_sequence *sequence_type);
 	void (*sequence_end)(struct stream_pos *pos,
-			   const struct type_class_sequence *sequence_class);
+			   const struct type_sequence *sequence_type);
 };
 
 struct format *bt_lookup_format(GQuark qname);
