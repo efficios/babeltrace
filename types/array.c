@@ -51,12 +51,14 @@ void _array_type_free(struct type *type)
 	struct type_array *array_type =
 		container_of(type, struct type_array, p);
 
+	free_type_scope(array_type->scope);
 	type_unref(array_type->elem);
 	g_free(array_type);
 }
 
 struct type_array *
-	array_type_new(const char *name, size_t len, struct type *elem_type)
+	array_type_new(const char *name, size_t len, struct type *elem_type,
+		       struct type_scope *parent_scope)
 {
 	struct type_array *array_type;
 	struct type *type;
@@ -66,6 +68,7 @@ struct type_array *
 	array_type->len = len;
 	type_ref(elem_type);
 	array_type->elem = elem_type;
+	array_type->scope = new_type_scope(parent_scope);
 	type->name = g_quark_from_string(name);
 	/* No need to align the array, the first element will align itself */
 	type->alignment = 1;

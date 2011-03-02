@@ -87,10 +87,15 @@ char *get_pos_addr(struct stream_pos *pos)
 struct format;
 struct declaration;
 
-/* Type declaration scope */
-struct declaration_scope {
+/* type scope */
+struct type_scope {
 	/* Hash table mapping type name GQuark to struct type */
 	GHashTable *types;
+	struct type_scope *parent_scope;
+};
+
+/* declaration scope */
+struct declaration_scope {
 	/* Hash table mapping field name GQuark to struct declaration */
 	GHashTable *declarations;
 	struct declaration_scope *parent_scope;
@@ -238,6 +243,7 @@ struct field {
 struct type_struct {
 	struct type p;
 	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
+	struct type_scope *scope;
 	GArray *fields;			/* Array of type_field */
 };
 
@@ -251,6 +257,7 @@ struct declaration_struct {
 struct type_variant {
 	struct type p;
 	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
+	struct type_scope *scope;
 	GArray *fields;			/* Array of type_field */
 };
 
@@ -267,6 +274,7 @@ struct type_array {
 	struct type p;
 	size_t len;
 	struct type *elem;
+	struct type_scope *scope;
 };
 
 struct declaration_array {
@@ -280,6 +288,7 @@ struct type_sequence {
 	struct type p;
 	struct type_integer *len_type;
 	struct type *elem;
+	struct type_scope *scope;
 };
 
 struct declaration_sequence {
@@ -290,20 +299,22 @@ struct declaration_sequence {
 	struct field current_element;		/* struct field */
 };
 
-struct type *lookup_type(GQuark type_name, struct declaration_scope *scope);
-int register_type(struct type *type, struct declaration_scope *scope);
+int register_type(GQuark type_name, struct type *type,
+		  struct type_scope *scope);
+struct type *lookup_type(GQuark type_name, struct type_scope *scope);
+struct type_scope *new_type_scope(struct type_scope *parent_scope);
+void free_type_scope(struct type_scope *scope);
 
 struct declaration *
 	lookup_declaration(GQuark field_name, struct declaration_scope *scope);
 int register_declaration(GQuark field_name, struct declaration *declaration,
 			 struct declaration_scope *scope);
-
-void type_ref(struct type *type);
-void type_unref(struct type *type);
-
 struct declaration_scope *
 	new_declaration_scope(struct declaration_scope *parent_scope);
 void free_declaration_scope(struct declaration_scope *scope);
+
+void type_ref(struct type *type);
+void type_unref(struct type *type);
 
 void declaration_ref(struct declaration *declaration);
 void declaration_unref(struct declaration *declaration);
@@ -355,7 +366,8 @@ size_t enum_get_nr_enumerators(struct type_enum *enum_type);
 struct type_enum *enum_type_new(const char *name,
 				struct type_integer *integer_type);
 
-struct type_struct *struct_type_new(const char *name);
+struct type_struct *struct_type_new(const char *name,
+				    struct type_scope *parent_scope);
 void struct_type_add_field(struct type_struct *struct_type,
 			   const char *field_name, struct type *field_type);
 /*
@@ -378,7 +390,8 @@ struct_get_field_from_index(struct declaration_struct *struct_declaration,
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct type_variant *variant_type_new(const char *name);
+struct type_variant *variant_type_new(const char *name,
+				      struct type_scope *parent_scope);
 void variant_type_add_field(struct type_variant *variant_type,
 			    const char *tag_name, struct type *tag_type);
 struct type_field *
@@ -401,7 +414,8 @@ variant_get_current_field(struct declaration_variant *variant);
  * explicitly. "len" is the number of elements in the array.
  */
 struct type_array *array_type_new(const char *name,
-				  size_t len, struct type *elem_type);
+				  size_t len, struct type *elem_type,
+				  struct type_scope *parent_scope);
 
 /*
  * int_type and elem_type passed as parameter now belong to the sequence. No
@@ -409,6 +423,7 @@ struct type_array *array_type_new(const char *name,
  */
 struct type_sequence *sequence_type_new(const char *name,
 					struct type_integer *len_type, 
-					struct type *elem_type);
+					struct type *elem_type,
+					struct type_scope *parent_scope);
 
 #endif /* _BABELTRACE_TYPES_H */

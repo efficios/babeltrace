@@ -59,6 +59,7 @@ void _sequence_type_free(struct type *type)
 	struct type_sequence *sequence_type =
 		container_of(type, struct type_sequence, p);
 
+	free_type_scope(sequence_type->scope);
 	type_unref(&sequence_type->len_type->p);
 	type_unref(sequence_type->elem);
 	g_free(sequence_type);
@@ -66,7 +67,8 @@ void _sequence_type_free(struct type *type)
 
 struct type_sequence *
 	sequence_type_new(const char *name, struct type_integer *len_type,
-			  struct type *elem_type)
+			  struct type *elem_type,
+			  struct type_scope *parent_scope)
 {
 	struct type_sequence *sequence_type;
 	struct type *type;
@@ -78,6 +80,7 @@ struct type_sequence *
 	sequence_type->len_type = len_type;
 	type_ref(elem_type);
 	sequence_type->elem = elem_type;
+	sequence_type->scope = new_type_scope(parent_scope);
 	type->name = g_quark_from_string(name);
 	type->alignment = max(len_type->p.alignment, elem_type->alignment);
 	type->copy = sequence_copy;

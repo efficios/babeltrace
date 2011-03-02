@@ -24,13 +24,13 @@
 
 static
 struct type *
-	lookup_type_scope(GQuark type_name, struct declaration_scope *scope)
+	lookup_type_scope(GQuark type_name, struct type_scope *scope)
 {
 	return g_hash_table_lookup(scope->types,
 				   (gconstpointer) (unsigned long) type_name);
 }
 
-struct type *lookup_type(GQuark type_name, struct declaration_scope *scope)
+struct type *lookup_type(GQuark type_name, struct type_scope *scope)
 {
 	struct type *type;
 
@@ -43,17 +43,19 @@ struct type *lookup_type(GQuark type_name, struct declaration_scope *scope)
 	return NULL;
 }
 
-int register_type(struct type *type, struct declaration_scope *scope)
+int register_type(GQuark name, struct type *type, struct type_scope *scope)
 {
-	if (!type->name)
+	g_assert(name == type->name);
+
+	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_type_scope(type->name, scope))
+	if (lookup_type_scope(name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->types,
-			    (gpointer) (unsigned long) type->name,
+			    (gpointer) (unsigned long) name,
 			    type);
 	type_ref(type);
 	return 0;
@@ -120,14 +122,29 @@ void declaration_unref(struct declaration *declaration)
 		declaration->type->declaration_free(declaration);
 }
 
+struct type_scope *
+	new_type_scope(struct type_scope *parent_scope)
+{
+	struct type_scope *scope = g_new(struct type_scope, 1);
+
+	scope->types = g_hash_table_new_full(g_direct_hash,
+					g_direct_equal, NULL,
+					(GDestroyNotify) type_unref);
+	scope->parent_scope = parent_scope;
+	return scope;
+}
+
+void free_type_scope(struct type_scope *scope)
+{
+	g_hash_table_destroy(scope->types);
+	g_free(scope);
+}
+
 struct declaration_scope *
 	new_declaration_scope(struct declaration_scope *parent_scope)
 {
 	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
 
-	scope->types = g_hash_table_new_full(g_direct_hash,
-					g_direct_equal, NULL,
-					(GDestroyNotify) type_unref);
 	scope->declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) declaration_unref);
@@ -138,6 +155,5 @@ struct declaration_scope *
 void free_declaration_scope(struct declaration_scope *scope)
 {
 	g_hash_table_destroy(scope->declarations);
-	g_hash_table_destroy(scope->types);
 	g_free(scope);
 }

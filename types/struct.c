@@ -60,6 +60,7 @@ void _struct_type_free(struct type *type)
 		container_of(type, struct type_struct, p);
 	unsigned long i;
 
+	free_type_scope(struct_type->scope);
 	g_hash_table_destroy(struct_type->fields_by_name);
 
 	for (i = 0; i < struct_type->fields->len; i++) {
@@ -72,7 +73,8 @@ void _struct_type_free(struct type *type)
 	g_free(struct_type);
 }
 
-struct type_struct *struct_type_new(const char *name)
+struct type_struct *struct_type_new(const char *name,
+				    struct type_scope *parent_scope)
 {
 	struct type_struct *struct_type;
 	struct type *type;
@@ -84,6 +86,7 @@ struct type_struct *struct_type_new(const char *name)
 	struct_type->fields = g_array_sized_new(FALSE, TRUE,
 						sizeof(struct type_field),
 						DEFAULT_NR_STRUCT_FIELDS);
+	struct_type->scope = new_type_scope(parent_scope);
 	type->name = g_quark_from_string(name);
 	type->alignment = 1;
 	type->copy = struct_copy;

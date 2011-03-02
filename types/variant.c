@@ -54,6 +54,7 @@ void _variant_type_free(struct type *type)
 		container_of(type, struct type_variant, p);
 	unsigned long i;
 
+	free_type_scope(variant_type->scope);
 	g_hash_table_destroy(variant_type->fields_by_tag);
 
 	for (i = 0; i < variant_type->fields->len; i++) {
@@ -66,7 +67,8 @@ void _variant_type_free(struct type *type)
 	g_free(variant_type);
 }
 
-struct type_variant *variant_type_new(const char *name)
+struct type_variant *variant_type_new(const char *name,
+				      struct type_scope *parent_scope)
 {
 	struct type_variant *variant_type;
 	struct type *type;
@@ -78,6 +80,7 @@ struct type_variant *variant_type_new(const char *name)
 	variant_type->fields = g_array_sized_new(FALSE, TRUE,
 						 sizeof(struct type_field),
 						 DEFAULT_NR_STRUCT_FIELDS);
+	variant_type->scope = new_type_scope(parent_scope);
 	type->name = g_quark_from_string(name);
 	type->alignment = 1;
 	type->copy = variant_copy;
