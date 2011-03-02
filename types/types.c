@@ -45,8 +45,6 @@ struct type *lookup_type(GQuark type_name, struct type_scope *scope)
 
 int register_type(GQuark name, struct type *type, struct type_scope *scope)
 {
-	g_assert(name == type->name);
-
 	if (!name)
 		return -EPERM;
 
