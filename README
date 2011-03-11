@@ -6,8 +6,29 @@ This project provides trace read and write libraries, as well as a trace
 converter. A plugin can be created for any trace format to allow its conversion
 to/from another trace format.
 
+BUILDING
+--------
 
-* For Developers
+	./bootstrap (skip if using tarball)
+	./configure
+	make
+	make install
+
+
+DEPENDENCIES
+------------
+
+To compile Babeltrace, you will need:
+
+	gcc 3.2 or better
+	glib 2.16 or better development libraries
+	  (Debian : libglib2.0-0, libglib2.0-dev)
+	  (Fedora : glib2, glib2-devel)
+	libc6 development librairies
+	  (Debian : libc6, libc6-dev)
+	  (Fedora : glibc, glibc)
+
+For developers using the git tree:
 
 This source tree is based on the autotools suite from GNU to simplify
 portability. Here are some things you should have on your system in order to
