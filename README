@@ -5,3 +5,19 @@ September 2010
 This project provides trace read and write libraries, as well as a trace
 converter. A plugin can be created for any trace format to allow its conversion
 to/from another trace format.
+
+
+* For Developers
+
+This source tree is based on the autotools suite from GNU to simplify
+portability. Here are some things you should have on your system in order to
+compile the git repository tree :
+
+- GNU autotools (automake >=1.7, autoconf >=2.50, autoheader >=2.50)
+  (make sure your system wide "automake" points to a recent version!)
+- GNU Libtool
+  (for more information, go to http://www.gnu.org/software/autoconf/)
+
+If you get the tree from the repository, you will need to use the "bootstrap"
+script in the root of the tree. It calls all the GNU tools needed to prepare the
+tree configuration.
