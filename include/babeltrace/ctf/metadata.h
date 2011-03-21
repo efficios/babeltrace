@@ -20,40 +20,108 @@
  */
 
 #include <babeltrace/types.h>
+#include <uuid/uuid.h>
+#include <assert.h>
 #include <glib.h>
 
 struct ctf_trace;
 struct ctf_stream;
 struct ctf_event;
 
+#define CTF_TRACE_SET_FIELD(ctf_trace, field, value)			\
+	do {								\
+		(ctf_trace)->(field) = (value);				\
+		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
+	} while (0)
+
+#define CTF_TRACE_FIELD_IS_SET(ctf_trace, field)			\
+		((ctf_trace)->field_mask & CTF_TRACE_ ## field)
+
+#define CTF_TRACE_GET_FIELD(ctf_trace, field)				\
+	({								\
+		assert(CTF_TRACE_FIELD_IS_SET(ctf_trace, field));	\
+		(ctf_trace)->(field);					\
+	})
+
 struct ctf_trace {
 	struct declaration_scope *scope;	/* root scope */
-	GArray *streams;	/* Array of struct ctf_stream */
+	GArray *streams;			/* Array of struct ctf_stream */
 
 	uint64_t major;
 	uint64_t minor;
-	uint8_t uuid[16];
+	uuid_t uuid;
 	uint64_t word_size;
+
+	enum {					/* Fields populated mask */
+		CTF_TRACE_major	=	(1U << 0),
+		CTF_TRACE_minor =	(1U << 1),
+		CTF_TRACE_uuid	=	(1U << 2),
+		CTF_TRACE_word_size =	(1U << 3),
+	} field_mask;
 };
 
+#define CTF_STREAM_SET_FIELD(ctf_stream, field, value)			\
+	do {								\
+		(ctf_stream)->(field) = (value);			\
+		(ctf_stream)->field_mask |= CTF_STREAM_ ## field;	\
+	} while (0)
+
+#define CTF_STREAM_FIELD_IS_SET(ctf_stream, field)			\
+		((ctf_stream)->field_mask & CTF_STREAM_ ## field)
+
+#define CTF_STREAM_GET_FIELD(ctf_stream, field)				\
+	({								\
+		assert(CTF_STREAM_FIELD_IS_SET(ctf_stream, field));	\
+		(ctf_stream)->(field);					\
+	})
+
 struct ctf_stream {
+	struct ctf_trace *trace;
 	struct declaration_scope *scope;	/* parent is trace scope */
 	GArray *events_by_id;	/* Array of struct ctf_event indexed by id */
-	GHashTable *event_quark_to_id;	/* GQuark to numeric id */
+	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
 
-	uint64_t stream_id;
 	struct declaration_struct *event_header;
 	struct declaration_struct *event_context;
 	struct declaration_struct *packet_context;
+
+	uint64_t stream_id;
+
+	enum {					/* Fields populated mask */
+		CTF_STREAM_stream_id =	(1 << 0),
+	} field_mask;
 };
 
+#define CTF_EVENT_SET_FIELD(ctf_event, field, value)			\
+	do {								\
+		(ctf_event)->(field) = (value);				\
+		(ctf_event)->field_mask |= CTF_EVENT_ ## field;		\
+	} while (0)
+
+#define CTF_EVENT_FIELD_IS_SET(ctf_event, field)			\
+		((ctf_event)->field_mask & CTF_EVENT_ ## field)
+
+#define CTF_EVENT_GET_FIELD(ctf_event, field)				\
+	({								\
+		assert(CTF_EVENT_FIELD_IS_SET(ctf_event, field));	\
+		(ctf_event)->(field);					\
+	})
+
 struct ctf_event {
+	struct ctf_stream *stream;		/* stream mapped by stream_id */
 	struct declaration_scope *scope;	/* parent is stream scope */
-	GQuark name;
-	uint64_t id;	/* Numeric identifier within the stream */
-	uint64_t stream_id;
 	struct declaration_struct *context;
 	struct declaration_struct *fields;
+
+	GQuark name;
+	uint64_t id;		/* Numeric identifier within the stream */
+	uint64_t stream_id;
+
+	enum {					/* Fields populated mask */
+		CTF_EVENT_name	=	(1 << 0),
+		CTF_EVENT_id 	= 	(1 << 1),
+		CTF_EVENT_stream_id = 	(1 << 2),
+	} field_mask;
 };
 
 #endif /* _BABELTRACE_CTF_METADATA_H */
