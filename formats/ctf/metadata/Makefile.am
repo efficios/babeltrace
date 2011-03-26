@@ -11,4 +11,5 @@ ctf_parser_test_SOURCES = \
 			ctf-parser-test.c ctf-visitor-xml.c \
 			ctf-visitor-parent-links.c \
 			ctf-visitor-semantic-validator.c \
+			ctf-visitor-generate-io-struct.c \
 			ctf-lexer.l ctf-parser.y

@@ -81,6 +81,7 @@ struct type_sequence *
 	type_ref(elem_type);
 	sequence_type->elem = elem_type;
 	sequence_type->scope = new_type_scope(parent_scope);
+	type->id = CTF_TYPE_SEQUENCE;
 	type->name = g_quark_from_string(name);
 	type->alignment = max(len_type->p.alignment, elem_type->alignment);
 	type->copy = sequence_copy;

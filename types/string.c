@@ -58,6 +58,7 @@ struct type_string *string_type_new(const char *name)
 	struct type_string *string_type;
 
 	string_type = g_new(struct type_string, 1);
+	string_type->p.id = CTF_TYPE_STRING;
 	string_type->p.name = g_quark_from_string(name);
 	string_type->p.alignment = CHAR_BIT;
 	string_type->p.copy = string_copy;

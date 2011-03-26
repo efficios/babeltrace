@@ -81,6 +81,7 @@ struct type_variant *variant_type_new(const char *name,
 						 sizeof(struct type_field),
 						 DEFAULT_NR_STRUCT_FIELDS);
 	variant_type->scope = new_type_scope(parent_scope);
+	type->id = CTF_TYPE_VARIANT;
 	type->name = g_quark_from_string(name);
 	type->alignment = 1;
 	type->copy = variant_copy;

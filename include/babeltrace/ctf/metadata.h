@@ -43,9 +43,16 @@ struct ctf_event;
 		(ctf_trace)->(field);					\
 	})
 
+
 struct ctf_trace {
-	struct declaration_scope *scope;	/* root scope */
-	GArray *streams;			/* Array of struct ctf_stream */
+	/* root scope */
+	struct type_scope *root_type_scope;
+	/* root scope */
+	struct declaration_scope *root_declaration_scope;
+
+	struct type_scope *type_scope;
+	struct declaration_scope *declaration_scope;
+	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
 
 	uint64_t major;
 	uint64_t minor;
@@ -77,8 +84,11 @@ struct ctf_trace {
 
 struct ctf_stream {
 	struct ctf_trace *trace;
-	struct declaration_scope *scope;	/* parent is trace scope */
-	GArray *events_by_id;	/* Array of struct ctf_event indexed by id */
+	/* parent is lexical scope conaining the stream scope */
+	struct type_scope *type_scope;
+	/* parent is trace scope */
+	struct declaration_scope *declaration_scope;
+	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
 	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
 
 	struct declaration_struct *event_header;
@@ -92,9 +102,8 @@ struct ctf_stream {
 	} field_mask;
 };
 
-#define CTF_EVENT_SET_FIELD(ctf_event, field, value)			\
+#define CTF_EVENT_SET_FIELD(ctf_event, field)				\
 	do {								\
-		(ctf_event)->(field) = (value);				\
 		(ctf_event)->field_mask |= CTF_EVENT_ ## field;		\
 	} while (0)
 
@@ -108,8 +117,12 @@ struct ctf_stream {
 	})
 
 struct ctf_event {
-	struct ctf_stream *stream;		/* stream mapped by stream_id */
-	struct declaration_scope *scope;	/* parent is stream scope */
+	/* stream mapped by stream_id */
+	struct ctf_stream *stream;
+	/* parent is lexical scope conaining the event scope */
+	struct type_scope *type_scope;
+	/* parent is stream scope */
+	struct declaration_scope *declaration_scope;
 	struct declaration_struct *context;
 	struct declaration_struct *fields;
 

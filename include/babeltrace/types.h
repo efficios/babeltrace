@@ -101,7 +101,21 @@ struct declaration_scope {
 	struct declaration_scope *parent_scope;
 };
 
+enum ctf_type_id {
+	CTF_TYPE_UNKNOWN = 0,
+	CTF_TYPE_INTEGER,
+	CTF_TYPE_FLOAT,
+	CTF_TYPE_ENUM,
+	CTF_TYPE_STRING,
+	CTF_TYPE_STRUCT,
+	CTF_TYPE_VARIANT,
+	CTF_TYPE_ARRAY,
+	CTF_TYPE_SEQUENCE,
+	NR_CTF_TYPES,
+};
+
 struct type {
+	enum ctf_type_id id;
 	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
 	int ref;		/* number of references to the type */

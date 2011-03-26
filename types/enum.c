@@ -406,6 +406,7 @@ struct type_enum *
 							NULL, enum_range_set_free);
 	type_ref(&integer_type->p);
 	enum_type->integer_type = integer_type;
+	enum_type->p.id = CTF_TYPE_ENUM;
 	enum_type->p.name = g_quark_from_string(name);
 	enum_type->p.alignment = 1;
 	enum_type->p.copy = enum_copy;

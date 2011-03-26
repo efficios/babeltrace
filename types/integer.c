@@ -63,6 +63,7 @@ struct type_integer *
 	struct type_integer *integer_type;
 
 	integer_type = g_new(struct type_integer, 1);
+	integer_type->p.id = CTF_TYPE_INTEGER;
 	integer_type->p.name = g_quark_from_string(name);
 	integer_type->p.alignment = alignment;
 	integer_type->p.copy = integer_copy;

@@ -69,6 +69,7 @@ struct type_array *
 	type_ref(elem_type);
 	array_type->elem = elem_type;
 	array_type->scope = new_type_scope(parent_scope);
+	type->id = CTF_TYPE_ARRAY;
 	type->name = g_quark_from_string(name);
 	/* No need to align the array, the first element will align itself */
 	type->alignment = 1;

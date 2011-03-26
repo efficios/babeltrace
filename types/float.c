@@ -66,6 +66,7 @@ struct type_float *
 
 	float_type = g_new(struct type_float, 1);
 	type = &float_type->p;
+	type->id = CTF_TYPE_FLOAT;
 	type->name = g_quark_from_string(name);
 	type->alignment = alignment;
 	type->copy = float_copy;
