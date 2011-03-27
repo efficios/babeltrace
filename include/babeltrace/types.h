@@ -89,14 +89,20 @@ struct declaration;
 
 /* type scope */
 struct type_scope {
-	/* Hash table mapping type name GQuark to struct type */
-	GHashTable *types;
+	/* Hash table mapping type name GQuark to "struct declaration" */
+	GHashTable *type_declarations;
+	/* Hash table mapping struct name GQuark to "struct type_struct" */
+	GHashTable *struct_types;
+	/* Hash table mapping variant name GQuark to "struct type_variant" */
+	GHashTable *variant_types;
+	/* Hash table mapping enum name GQuark to "struct type_enum" */
+	GHashTable *enum_types;
 	struct type_scope *parent_scope;
 };
 
 /* declaration scope */
 struct declaration_scope {
-	/* Hash table mapping field name GQuark to struct declaration */
+	/* Hash table mapping field name GQuark to "struct declaration" */
 	GHashTable *declarations;
 	struct declaration_scope *parent_scope;
 };
@@ -313,16 +319,48 @@ struct declaration_sequence {
 	struct field current_element;		/* struct field */
 };
 
-int register_type(GQuark type_name, struct type *type,
-		  struct type_scope *scope);
-struct type *lookup_type(GQuark type_name, struct type_scope *scope);
+/*
+ * type_declaration is for typedef and typealias. They are registered
+ * into type scopes.
+ */
+int register_type_declaration(GQuark type_name, struct declaration *declaration,
+			      struct type_scope *scope);
+struct declaration *lookup_type_declaration(GQuark type_name,
+					    struct type_scope *scope);
+
+/*
+ * Type scopes also contain a separate registry for struct, variant and
+ * enum types. Those register types rather than type declarations, so
+ * that a named variant can be declared without specifying its target
+ * "choice" tag field immediately.
+ */
+int register_struct_type(GQuark struct_name, struct type_struct *struct_type,
+			 struct type_scope *scope);
+struct type_struct *lookup_struct_type(GQuark struct_name,
+				       struct type_scope *scope);
+int register_variant_type(GQuark variant_name,
+			  struct type_variant *variant_type,
+		          struct type_scope *scope);
+struct type_variant *lookup_variant_type(GQuark variant_name,
+					 struct type_scope *scope);
+int register_enum_type(GQuark enum_name, struct type_enum *enum_type,
+		       struct type_scope *scope);
+struct type_enum *lookup_enum_type(GQuark enum_name,
+				   struct type_scope *scope);
+
 struct type_scope *new_type_scope(struct type_scope *parent_scope);
 void free_type_scope(struct type_scope *scope);
 
+/*
+ * field_declaration is for field declarations. They are registered into
+ * declaration scopes.
+ */
 struct declaration *
-	lookup_declaration(GQuark field_name, struct declaration_scope *scope);
-int register_declaration(GQuark field_name, struct declaration *declaration,
-			 struct declaration_scope *scope);
+	lookup_field_declaration(GQuark field_name,
+				 struct declaration_scope *scope);
+int register_field_declaration(GQuark field_name,
+			       struct declaration *declaration,
+			       struct declaration_scope *scope);
 struct declaration_scope *
 	new_declaration_scope(struct declaration_scope *parent_scope);
 void free_declaration_scope(struct declaration_scope *scope);
