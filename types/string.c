@@ -21,7 +21,7 @@
 #include <babeltrace/format.h>
 
 static
-struct definition *_string_definition_new(struct type *type,
+struct definition *_string_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope);
 static
 void _string_definition_free(struct definition *definition);
@@ -32,56 +32,56 @@ void string_copy(struct stream_pos *dest, const struct format *fdest,
 {
 	struct definition_string *string =
 		container_of(definition, struct definition_string, p);
-	struct type_string *string_type = string->type;
+	struct declaration_string *string_declaration = string->declaration;
 
 	if (fsrc->string_copy == fdest->string_copy) {
-		fsrc->string_copy(dest, src, string_type);
+		fsrc->string_copy(dest, src, string_declaration);
 	} else {
 		char *tmp = NULL;
 
-		fsrc->string_read(&tmp, src, string_type);
-		fdest->string_write(dest, tmp, string_type);
+		fsrc->string_read(&tmp, src, string_declaration);
+		fdest->string_write(dest, tmp, string_declaration);
 		fsrc->string_free_temp(tmp);
 	}
 }
 
 static
-void _string_type_free(struct type *type)
+void _string_declaration_free(struct declaration *declaration)
 {
-	struct type_string *string_type =
-		container_of(type, struct type_string, p);
-	g_free(string_type);
+	struct declaration_string *string_declaration =
+		container_of(declaration, struct declaration_string, p);
+	g_free(string_declaration);
 }
 
-struct type_string *string_type_new(const char *name)
+struct declaration_string *string_declaration_new(const char *name)
 {
-	struct type_string *string_type;
+	struct declaration_string *string_declaration;
 
-	string_type = g_new(struct type_string, 1);
-	string_type->p.id = CTF_TYPE_STRING;
-	string_type->p.name = g_quark_from_string(name);
-	string_type->p.alignment = CHAR_BIT;
-	string_type->p.copy = string_copy;
-	string_type->p.type_free = _string_type_free;
-	string_type->p.definition_new = _string_definition_new;
-	string_type->p.definition_free = _string_definition_free;
-	string_type->p.ref = 1;
-	return string_type;
+	string_declaration = g_new(struct declaration_string, 1);
+	string_declaration->p.id = CTF_TYPE_STRING;
+	string_declaration->p.name = g_quark_from_string(name);
+	string_declaration->p.alignment = CHAR_BIT;
+	string_declaration->p.copy = string_copy;
+	string_declaration->p.declaration_free = _string_declaration_free;
+	string_declaration->p.definition_new = _string_definition_new;
+	string_declaration->p.definition_free = _string_definition_free;
+	string_declaration->p.ref = 1;
+	return string_declaration;
 }
 
 static
 struct definition *
-	_string_definition_new(struct type *type,
+	_string_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope)
 {
-	struct type_string *string_type =
-		container_of(type, struct type_string, p);
+	struct declaration_string *string_declaration =
+		container_of(declaration, struct declaration_string, p);
 	struct definition_string *string;
 
 	string = g_new(struct definition_string, 1);
-	type_ref(&string_type->p);
-	string->p.type = type;
-	string->type = string_type;
+	declaration_ref(&string_declaration->p);
+	string->p.declaration = declaration;
+	string->declaration = string_declaration;
 	string->p.ref = 1;
 	string->value = NULL;
 	return &string->p;
@@ -93,7 +93,7 @@ void _string_definition_free(struct definition *definition)
 	struct definition_string *string =
 		container_of(definition, struct definition_string, p);
 
-	type_unref(string->p.type);
+	declaration_unref(string->p.declaration);
 	g_free(string->value);
 	g_free(string);
 }

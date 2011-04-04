@@ -88,16 +88,16 @@ struct format;
 struct definition;
 
 /* type scope */
-struct type_scope {
+struct declaration_scope {
 	/* Hash table mapping type name GQuark to "struct declaration" */
-	GHashTable *type_definitions;
-	/* Hash table mapping struct name GQuark to "struct type_struct" */
-	GHashTable *struct_types;
-	/* Hash table mapping variant name GQuark to "struct type_variant" */
-	GHashTable *variant_types;
+	GHashTable *typedef_declarations;
+	/* Hash table mapping struct name GQuark to "struct declaration_struct" */
+	GHashTable *struct_declarations;
+	/* Hash table mapping variant name GQuark to "struct declaration_variant" */
+	GHashTable *variant_declarations;
 	/* Hash table mapping enum name GQuark to "struct type_enum" */
-	GHashTable *enum_types;
-	struct type_scope *parent_scope;
+	GHashTable *enum_declarations;
+	struct declaration_scope *parent_scope;
 };
 
 /* definition scope */
@@ -120,17 +120,17 @@ enum ctf_type_id {
 	NR_CTF_TYPES,
 };
 
-struct type {
+struct declaration {
 	enum ctf_type_id id;
 	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
 	int ref;		/* number of references to the type */
 	/*
-	 * type_free called with type ref is decremented to 0.
+	 * declaration_free called with declaration ref is decremented to 0.
 	 */
-	void (*type_free)(struct type *type);
+	void (*declaration_free)(struct declaration *declaration);
 	struct definition *
-		(*definition_new)(struct type *type,
+		(*definition_new)(struct declaration *declaration,
 				  struct definition_scope *parent_scope);
 	/*
 	 * definition_free called with definition ref is decremented to 0.
@@ -146,7 +146,7 @@ struct type {
 };
 
 struct definition {
-	struct type *type;
+	struct declaration *declaration;
 	int ref;		/* number of references to the definition */
 };
 
@@ -155,8 +155,8 @@ struct definition {
  * integers, except that their read/write functions must be able to deal with
  * read/write non aligned on CHAR_BIT.
  */
-struct type_integer {
-	struct type p;
+struct declaration_integer {
+	struct declaration p;
 	size_t len;		/* length, in bits. */
 	int byte_order;		/* byte order */
 	int signedness;
@@ -164,7 +164,7 @@ struct type_integer {
 
 struct definition_integer {
 	struct definition p;
-	struct type_integer *type;
+	struct declaration_integer *declaration;
 	/* Last values read */
 	union {
 		uint64_t _unsigned;
@@ -172,18 +172,18 @@ struct definition_integer {
 	} value;
 };
 
-struct type_float {
-	struct type p;
-	struct type_integer *sign;
-	struct type_integer *mantissa;
-	struct type_integer *exp;
+struct declaration_float {
+	struct declaration p;
+	struct declaration_integer *sign;
+	struct declaration_integer *mantissa;
+	struct declaration_integer *exp;
 	int byte_order;
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
 
 struct definition_float {
 	struct definition p;
-	struct type_float *type;
+	struct declaration_float *declaration;
 	/* Last values read */
 	long double value;
 };
@@ -226,33 +226,33 @@ struct enum_table {
 	GHashTable *quark_to_range_set;		/* (GQuark, range GArray) */
 };
 
-struct type_enum {
-	struct type p;
-	struct type_integer *integer_type;
+struct declaration_enum {
+	struct declaration p;
+	struct declaration_integer *integer_declaration;
 	struct enum_table table;
 };
 
 struct definition_enum {
 	struct definition p;
 	struct definition_integer *integer;
-	struct type_enum *type;
+	struct declaration_enum *declaration;
 	/* Last GQuark values read. Keeping a reference on the GQuark array. */
 	GArray *value;
 };
 
-struct type_string {
-	struct type p;
+struct declaration_string {
+	struct declaration p;
 };
 
 struct definition_string {
 	struct definition p;
-	struct type_string *type;
+	struct declaration_string *declaration;
 	char *value;	/* freed at definition_string teardown */
 };
 
-struct type_field {
+struct declaration_field {
 	GQuark name;
-	struct type *type;
+	struct declaration *declaration;
 };
 
 struct field {
@@ -260,71 +260,72 @@ struct field {
 	struct definition *definition;
 };
 
-struct type_struct {
-	struct type p;
+struct declaration_struct {
+	struct declaration p;
 	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
-	struct type_scope *scope;
-	GArray *fields;			/* Array of type_field */
+	struct declaration_scope *scope;
+	GArray *fields;			/* Array of declaration_field */
 };
 
 struct definition_struct {
 	struct definition p;
-	struct type_struct *type;
+	struct declaration_struct *declaration;
 	struct definition_scope *scope;
 	GArray *fields;			/* Array of struct field */
 };
 
-struct type_variant {
-	struct type p;
+struct declaration_variant {
+	struct declaration p;
 	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
-	struct type_scope *scope;
-	GArray *fields;			/* Array of type_field */
+	struct declaration_scope *scope;
+	GArray *fields;			/* Array of declaration_field */
 	GQuark tag_name;		/* TODO */
 	/* Tag name must be nonzero and must exist when defining the variant */
 };
 
 struct definition_variant {
 	struct definition p;
-	struct type_variant *type;
+	struct declaration_variant *declaration;
 	struct definition_scope *scope;
 	struct definition *enum_tag;
 	GArray *fields;			/* Array of struct field */
 	struct field *current_field;	/* Last field read */
 };
 
-struct type_array {
-	struct type p;
+struct declaration_array {
+	struct declaration p;
 	size_t len;
-	struct type *elem;
-	struct type_scope *scope;
+	struct declaration *elem;
+	struct declaration_scope *scope;
 };
 
 struct definition_array {
 	struct definition p;
-	struct type_array *type;
+	struct declaration_array *declaration;
 	struct definition_scope *scope;
 	struct field current_element;		/* struct field */
 };
 
-struct type_sequence {
-	struct type p;
-	struct type_integer *len_type;
-	struct type *elem;
-	struct type_scope *scope;
+struct declaration_sequence {
+	struct declaration p;
+	struct declaration_integer *len_declaration;
+	struct declaration *elem;
+	struct declaration_scope *scope;
 };
 
 struct definition_sequence {
 	struct definition p;
-	struct type_sequence *type;
+	struct declaration_sequence *declaration;
 	struct definition_scope *scope;
 	struct definition_integer *len;
 	struct field current_element;		/* struct field */
 };
 
-int register_type(GQuark type_name, struct definition *definition,
-		  struct type_scope *scope);
-struct definition *lookup_type(GQuark type_name,
-			       struct type_scope *scope);
+int register_declaration(GQuark declaration_name,
+			 struct declaration *declaration,
+			 struct declaration_scope *scope);
+struct declaration *lookup_declaration(GQuark declaration_name,
+				       struct declaration_scope *scope);
 
 /*
  * Type scopes also contain a separate registry for struct, variant and
@@ -332,22 +333,27 @@ struct definition *lookup_type(GQuark type_name,
  * that a named variant can be declared without specifying its target
  * "choice" tag field immediately.
  */
-int register_struct_type(GQuark struct_name, struct type_struct *struct_type,
-			 struct type_scope *scope);
-struct type_struct *lookup_struct_type(GQuark struct_name,
-				       struct type_scope *scope);
-int register_variant_type(GQuark variant_name,
-			  struct type_variant *variant_type,
-		          struct type_scope *scope);
-struct type_variant *lookup_variant_type(GQuark variant_name,
-					 struct type_scope *scope);
-int register_enum_type(GQuark enum_name, struct type_enum *enum_type,
-		       struct type_scope *scope);
-struct type_enum *lookup_enum_type(GQuark enum_name,
-				   struct type_scope *scope);
+int register_struct_declaration(GQuark struct_name,
+				struct declaration_struct *struct_declaration,
+				struct declaration_scope *scope);
+struct declaration_struct *
+	lookup_struct_declaration(GQuark struct_name,
+				  struct declaration_scope *scope);
+int register_variant_declaration(GQuark variant_name,
+			  struct declaration_variant *variant_declaration,
+		          struct declaration_scope *scope);
+struct declaration_variant *lookup_variant_declaration(GQuark variant_name,
+					 struct declaration_scope *scope);
+int register_enum_declaration(GQuark enum_name,
+			      struct declaration_enum *enum_declaration,
+			      struct declaration_scope *scope);
+struct declaration_enum *
+	lookup_enum_declaration(GQuark enum_name,
+			        struct declaration_scope *scope);
 
-struct type_scope *new_type_scope(struct type_scope *parent_scope);
-void free_type_scope(struct type_scope *scope);
+struct declaration_scope *
+	new_declaration_scope(struct declaration_scope *parent_scope);
+void free_declaration_scope(struct declaration_scope *scope);
 
 /*
  * field_definition is for field definitions. They are registered into
@@ -363,15 +369,15 @@ struct definition_scope *
 	new_definition_scope(struct definition_scope *parent_scope);
 void free_definition_scope(struct definition_scope *scope);
 
-void type_ref(struct type *type);
-void type_unref(struct type *type);
+void declaration_ref(struct declaration *declaration);
+void declaration_unref(struct declaration *declaration);
 
 void definition_ref(struct definition *definition);
 void definition_unref(struct definition *definition);
 
-/* Nameless types can be created by passing a NULL name */
+/* Nameless declarations can be created by passing a NULL name */
 
-struct type_integer *integer_type_new(const char *name,
+struct declaration_integer *integer_declaration_new(const char *name,
 				      size_t len, int byte_order,
 				      int signedness, size_t alignment);
 
@@ -379,7 +385,7 @@ struct type_integer *integer_type_new(const char *name,
  * mantissa_len is the length of the number of bytes represented by the mantissa
  * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
  */
-struct type_float *float_type_new(const char *name,
+struct declaration_float *float_declaration_new(const char *name,
 				  size_t mantissa_len,
 				  size_t exp_len, int byte_order,
 				  size_t alignment);
@@ -393,44 +399,50 @@ struct type_float *float_type_new(const char *name,
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_uint_to_quark_set(const struct type_enum *enum_type, uint64_t v);
+GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
+			       uint64_t v);
 
 /*
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_int_to_quark_set(const struct type_enum *enum_type, uint64_t v);
+GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
+			      uint64_t v);
 
 /*
  * Returns a GArray of struct enum_range or NULL.
  * Callers do _not_ own the returned GArray (and therefore _don't_ need to
  * release it).
  */
-GArray *enum_quark_to_range_set(const struct type_enum *enum_type, GQuark q);
-void enum_signed_insert(struct type_enum *enum_type,
+GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
+				GQuark q);
+void enum_signed_insert(struct declaration_enum *enum_declaration,
                         int64_t start, int64_t end, GQuark q);
-void enum_unsigned_insert(struct type_enum *enum_type,
+void enum_unsigned_insert(struct declaration_enum *enum_declaration,
 			  uint64_t start, uint64_t end, GQuark q);
-size_t enum_get_nr_enumerators(struct type_enum *enum_type);
+size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
 
-struct type_enum *enum_type_new(const char *name,
-				struct type_integer *integer_type);
+struct declaration_enum *
+	enum_declaration_new(const char *name,
+			     struct declaration_integer *integer_declaration);
 
-struct type_struct *struct_type_new(const char *name,
-				    struct type_scope *parent_scope);
-void struct_type_add_field(struct type_struct *struct_type,
-			   const char *field_name, struct type *field_type);
+struct declaration_struct *
+	struct_declaration_new(const char *name,
+			       struct declaration_scope *parent_scope);
+void struct_declaration_add_field(struct declaration_struct *struct_declaration,
+				  const char *field_name,
+				  struct declaration *field_declaration);
 /*
  * Returns the index of a field within a structure.
  */
-unsigned long struct_type_lookup_field_index(struct type_struct *struct_type,
-					     GQuark field_name);
+unsigned long struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+						    GQuark field_name);
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct type_field *
-struct_type_get_field_from_index(struct type_struct *struct_type,
-				 unsigned long index);
+struct declaration_field *
+struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
+					unsigned long index);
 struct field *
 struct_get_field_from_index(struct definition_struct *struct_definition,
 			    unsigned long index);
@@ -440,12 +452,12 @@ struct_get_field_from_index(struct definition_struct *struct_definition,
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct type_variant *variant_type_new(const char *name,
-				      struct type_scope *parent_scope);
-void variant_type_add_field(struct type_variant *variant_type,
-			    const char *tag_name, struct type *tag_type);
-struct type_field *
-variant_type_get_field_from_tag(struct type_variant *variant_type, GQuark tag);
+struct declaration_variant *variant_declaration_new(const char *name,
+				      struct declaration_scope *parent_scope);
+void variant_declaration_add_field(struct declaration_variant *variant_declaration,
+				   const char *tag_name, struct declaration *tag_declaration);
+struct declaration_field *
+	variant_declaration_get_field_from_tag(struct declaration_variant *variant_declaration, GQuark tag);
 /*
  * Returns 0 on success, -EPERM on error.
  */
@@ -456,24 +468,26 @@ int variant_definition_set_tag(struct definition_variant *variant,
  * field returned only valid as long as the variant structure is not appended
  * to.
  */
-struct field *
-variant_get_current_field(struct definition_variant *variant);
+struct field *variant_get_current_field(struct definition_variant *variant);
 
 /*
- * elem_type passed as parameter now belongs to the array. No need to free it
- * explicitly. "len" is the number of elements in the array.
+ * elem_declaration passed as parameter now belongs to the array. No
+ * need to free it explicitly. "len" is the number of elements in the
+ * array.
  */
-struct type_array *array_type_new(const char *name,
-				  size_t len, struct type *elem_type,
-				  struct type_scope *parent_scope);
+struct declaration_array *
+	array_declaration_new(const char *name,
+			size_t len, struct declaration *elem_declaration,
+			struct declaration_scope *parent_scope);
 
 /*
- * int_type and elem_type passed as parameter now belong to the sequence. No
- * need to free them explicitly.
+ * int_declaration and elem_declaration passed as parameter now belong
+ * to the sequence. No need to free them explicitly.
  */
-struct type_sequence *sequence_type_new(const char *name,
-					struct type_integer *len_type, 
-					struct type *elem_type,
-					struct type_scope *parent_scope);
+struct declaration_sequence *
+	sequence_declaration_new(const char *name,
+			struct declaration_integer *len_declaration, 
+			struct declaration *elem_declaration,
+			struct declaration_scope *parent_scope);
 
-#endif /* _BABELTRACE_TYPES_H */
+#endif /* _BABELTRACE_declarationS_H */

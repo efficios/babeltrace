@@ -33,58 +33,58 @@
  */
 
 uint64_t ctf_uint_read(struct stream_pos *pos,
-		const struct type_integer *integer_type);
+		const struct declaration_integer *integer_declaration);
 int64_t ctf_int_read(struct stream_pos *pos,
-		const struct type_integer *integer_type);
+		const struct declaration_integer *integer_declaration);
 void ctf_uint_write(struct stream_pos *pos,
-		const struct type_integer *integer_type,
+		const struct declaration_integer *integer_declaration,
 		uint64_t v);
 void ctf_int_write(struct stream_pos *pos,
-		const struct type_integer *integer_type,
+		const struct declaration_integer *integer_declaration,
 		int64_t v);
 
 double ctf_double_read(struct stream_pos *pos,
-			const struct type_float *src);
+			const struct declaration_float *src);
 void ctf_double_write(struct stream_pos *pos,
-		const struct type_float *dest,
+		const struct declaration_float *dest,
 		double v);
 long double ctf_ldouble_read(struct stream_pos *pos,
-			     const struct type_float *src);
+			     const struct declaration_float *src);
 void ctf_ldouble_write(struct stream_pos *pos,
-		const struct type_float *dest,
+		const struct declaration_float *dest,
 		long double v);
 void ctf_float_copy(struct stream_pos *destp,
 		struct stream_pos *srcp,
-		const struct type_float *float_type);
+		const struct declaration_float *float_declaration);
 
 void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
-		     const struct type_string *string_type);
+		const struct declaration_string *string_declaration);
 void ctf_string_read(char **dest, struct stream_pos *src,
-		     const struct type_string *string_type);
+		const struct declaration_string *string_declaration);
 void ctf_string_write(struct stream_pos *dest, const char *src,
-		      const struct type_string *string_type);
+		const struct declaration_string *string_declaration);
 void ctf_string_free_temp(char *string);
 
 GArray *ctf_enum_read(struct stream_pos *pos,
-		      const struct type_enum *src);
+		const struct declaration_enum *src);
 void ctf_enum_write(struct stream_pos *pos,
-		const struct type_enum *dest,
+		const struct declaration_enum *dest,
 		GQuark q);
 void ctf_struct_begin(struct stream_pos *pos,
-		      const struct type_struct *struct_type);
+		const struct declaration_struct *struct_declaration);
 void ctf_struct_end(struct stream_pos *pos,
-		    const struct type_struct *struct_type);
+		const struct declaration_struct *struct_declaration);
 void ctf_variant_begin(struct stream_pos *pos,
-		       const struct type_variant *variant_type);
+		const struct declaration_variant *variant_declaration);
 void ctf_variant_end(struct stream_pos *pos,
-		     const struct type_variant *variant_type);
+		const struct declaration_variant *variant_declaration);
 void ctf_array_begin(struct stream_pos *pos,
-		     const struct type_array *array_type);
+		const struct declaration_array *array_declaration);
 void ctf_array_end(struct stream_pos *pos,
-		   const struct type_array *array_type);
+		const struct declaration_array *array_declaration);
 void ctf_sequence_begin(struct stream_pos *pos,
-			const struct type_sequence *sequence_type);
+		const struct declaration_sequence *sequence_declaration);
 void ctf_sequence_end(struct stream_pos *pos,
-		      const struct type_sequence *sequence_type);
+		const struct declaration_sequence *sequence_declaration);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

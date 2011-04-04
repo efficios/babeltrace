@@ -46,11 +46,11 @@ struct ctf_event;
 
 struct ctf_trace {
 	/* root scope */
-	struct type_scope *root_type_scope;
+	struct declaration_scope *root_declaration_scope;
 	/* root scope */
 	struct definition_scope *root_definition_scope;
 
-	struct type_scope *type_scope;
+	struct declaration_scope *declaration_scope;
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
 
@@ -85,7 +85,7 @@ struct ctf_trace {
 struct ctf_stream {
 	struct ctf_trace *trace;
 	/* parent is lexical scope conaining the stream scope */
-	struct type_scope *type_scope;
+	struct declaration_scope *declaration_scope;
 	/* parent is trace scope */
 	struct definition_scope *definition_scope;
 	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
@@ -120,7 +120,7 @@ struct ctf_event {
 	/* stream mapped by stream_id */
 	struct ctf_stream *stream;
 	/* parent is lexical scope conaining the event scope */
-	struct type_scope *type_scope;
+	struct declaration_scope *declaration_scope;
 	/* parent is stream scope */
 	struct definition_scope *definition_scope;
 	struct definition_struct *context;

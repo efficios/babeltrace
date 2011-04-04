@@ -19,12 +19,12 @@
 #include <babeltrace/ctf/types.h>
 
 void ctf_array_begin(struct stream_pos *pos,
-		     const struct type_array *array_type)
+		     const struct declaration_array *array_declaration)
 {
 	/* No need to align, because the first field will align itself. */
 }
 
 void ctf_array_end(struct stream_pos *pos,
-		   const struct type_array *array_type)
+		   const struct declaration_array *array_declaration)
 {
 }

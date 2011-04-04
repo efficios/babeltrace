@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 static
-struct definition *_integer_definition_new(struct type *type,
+struct definition *_integer_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope);
 static
 void _integer_definition_free(struct definition *definition);
@@ -33,63 +33,63 @@ void integer_copy(struct stream_pos *dest, const struct format *fdest,
 {
 	struct definition_integer *integer =
 		container_of(definition, struct definition_integer, p);
-	struct type_integer *integer_type = integer->type;
+	struct declaration_integer *integer_declaration = integer->declaration;
 
-	if (!integer_type->signedness) {
+	if (!integer_declaration->signedness) {
 		uint64_t v;
 
-		v = fsrc->uint_read(src, integer_type);
-		fdest->uint_write(dest, integer_type, v);
+		v = fsrc->uint_read(src, integer_declaration);
+		fdest->uint_write(dest, integer_declaration, v);
 	} else {
 		int64_t v;
 
-		v = fsrc->int_read(src, integer_type);
-		fdest->int_write(dest, integer_type, v);
+		v = fsrc->int_read(src, integer_declaration);
+		fdest->int_write(dest, integer_declaration, v);
 	}
 }
 
 static
-void _integer_type_free(struct type *type)
+void _integer_declaration_free(struct declaration *declaration)
 {
-	struct type_integer *integer_type =
-		container_of(type, struct type_integer, p);
-	g_free(integer_type);
+	struct declaration_integer *integer_declaration =
+		container_of(declaration, struct declaration_integer, p);
+	g_free(integer_declaration);
 }
 
-struct type_integer *
-	integer_type_new(const char *name, size_t len, int byte_order,
+struct declaration_integer *
+	integer_declaration_new(const char *name, size_t len, int byte_order,
 			 int signedness, size_t alignment)
 {
-	struct type_integer *integer_type;
+	struct declaration_integer *integer_declaration;
 
-	integer_type = g_new(struct type_integer, 1);
-	integer_type->p.id = CTF_TYPE_INTEGER;
-	integer_type->p.name = g_quark_from_string(name);
-	integer_type->p.alignment = alignment;
-	integer_type->p.copy = integer_copy;
-	integer_type->p.type_free = _integer_type_free;
-	integer_type->p.definition_free = _integer_definition_free;
-	integer_type->p.definition_new = _integer_definition_new;
-	integer_type->p.ref = 1;
-	integer_type->len = len;
-	integer_type->byte_order = byte_order;
-	integer_type->signedness = signedness;
-	return integer_type;
+	integer_declaration = g_new(struct declaration_integer, 1);
+	integer_declaration->p.id = CTF_TYPE_INTEGER;
+	integer_declaration->p.name = g_quark_from_string(name);
+	integer_declaration->p.alignment = alignment;
+	integer_declaration->p.copy = integer_copy;
+	integer_declaration->p.declaration_free = _integer_declaration_free;
+	integer_declaration->p.definition_free = _integer_definition_free;
+	integer_declaration->p.definition_new = _integer_definition_new;
+	integer_declaration->p.ref = 1;
+	integer_declaration->len = len;
+	integer_declaration->byte_order = byte_order;
+	integer_declaration->signedness = signedness;
+	return integer_declaration;
 }
 
 static
 struct definition *
-	_integer_definition_new(struct type *type,
+	_integer_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope)
 {
-	struct type_integer *integer_type =
-		container_of(type, struct type_integer, p);
+	struct declaration_integer *integer_declaration =
+		container_of(declaration, struct declaration_integer, p);
 	struct definition_integer *integer;
 
 	integer = g_new(struct definition_integer, 1);
-	type_ref(&integer_type->p);
-	integer->p.type = type;
-	integer->type = integer_type;
+	declaration_ref(&integer_declaration->p);
+	integer->p.declaration = declaration;
+	integer->declaration = integer_declaration;
 	integer->p.ref = 1;
 	integer->value._unsigned = 0;
 	return &integer->p;
@@ -101,6 +101,6 @@ void _integer_definition_free(struct definition *definition)
 	struct definition_integer *integer =
 		container_of(definition, struct definition_integer, p);
 
-	type_unref(integer->p.type);
+	declaration_unref(integer->p.declaration);
 	g_free(integer);
 }

@@ -19,11 +19,11 @@
 #include <babeltrace/ctf/types.h>
 
 void ctf_variant_begin(struct stream_pos *pos,
-		       const struct type_variant *variant_type)
+		       const struct declaration_variant *variant_declaration)
 {
 }
 
 void ctf_variant_end(struct stream_pos *pos,
-		     const struct type_variant *variant_type)
+		     const struct declaration_variant *variant_declaration)
 {
 }

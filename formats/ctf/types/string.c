@@ -21,17 +21,17 @@
 #include <string.h>
 
 void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
-		     const struct type_string *string_type)
+		     const struct declaration_string *string_declaration)
 {
 	size_t len;
 	char *destaddr, *srcaddr;
 
-	align_pos(src, string_type->p.alignment);
+	align_pos(src, string_declaration->p.alignment);
 	srcaddr = get_pos_addr(src);
 	len = strlen(srcaddr) + 1;
 	if (dest->dummy)
 		goto end;
-	align_pos(dest, string_type->p.alignment);
+	align_pos(dest, string_declaration->p.alignment);
 	destaddr = get_pos_addr(dest);
 	strcpy(destaddr, srcaddr);
 end:
@@ -40,12 +40,12 @@ end:
 }
 
 void ctf_string_read(char **dest, struct stream_pos *src,
-		     const struct type_string *string_type)
+		     const struct declaration_string *string_declaration)
 {
 	size_t len;
 	char *srcaddr;
 
-	align_pos(src, string_type->p.alignment);
+	align_pos(src, string_declaration->p.alignment);
 	srcaddr = get_pos_addr(src);
 	len = strlen(srcaddr) + 1;
 	*dest = g_realloc(*dest, len);
@@ -54,12 +54,12 @@ void ctf_string_read(char **dest, struct stream_pos *src,
 }
 
 void ctf_string_write(struct stream_pos *dest, const char *src,
-		      const struct type_string *string_type)
+		      const struct declaration_string *string_declaration)
 {
 	size_t len;
 	char *destaddr;
 
-	align_pos(dest, string_type->p.alignment);
+	align_pos(dest, string_declaration->p.alignment);
 	len = strlen(src) + 1;
 	if (dest->dummy)
 		goto end;

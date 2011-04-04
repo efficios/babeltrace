@@ -19,12 +19,12 @@
 #include <babeltrace/ctf/types.h>
 
 void ctf_struct_begin(struct stream_pos *pos,
-		      const struct type_struct *struct_type)
+		      const struct declaration_struct *struct_declaration)
 {
-	align_pos(pos, struct_type->p.alignment);
+	align_pos(pos, struct_declaration->p.alignment);
 }
 
 void ctf_struct_end(struct stream_pos *pos,
-		    const struct type_struct *struct_type)
+		    const struct declaration_struct *struct_declaration)
 {
 }

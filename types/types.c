@@ -1,5 +1,5 @@
 /*
- * types.c
+ * declarations.c
  *
  * BabelTrace - Converter
  *
@@ -24,18 +24,21 @@
 
 static
 struct definition *
-	lookup_type_definition_scope(GQuark type_name, struct type_scope *scope)
+	lookup_typedef_declaration_scope(GQuark declaration_name,
+		struct declaration_scope *scope)
 {
-	return g_hash_table_lookup(scope->type_definitions,
-				   (gconstpointer) (unsigned long) type_name);
+	return g_hash_table_lookup(scope->typedef_declarations,
+				   (gconstpointer) (unsigned long) declaration_name);
 }
 
-struct definition *lookup_type_definition(GQuark type_name, struct type_scope *scope)
+struct definition *lookup_typedef_declaration(GQuark declaration_name,
+		struct declaration_scope *scope)
 {
 	struct definition *definition;
 
 	while (scope) {
-		definition = lookup_type_definition_scope(type_name, scope);
+		definition = lookup_typedef_declaration_scope(declaration_name,
+							      scope);
 		if (definition)
 			return definition;
 		scope = scope->parent_scope;
@@ -43,33 +46,35 @@ struct definition *lookup_type_definition(GQuark type_name, struct type_scope *s
 	return NULL;
 }
 
-int register_type_definition(GQuark name, struct definition *definition,
-			     struct type_scope *scope)
+int register_typedef_declaration(GQuark name, struct declaration *declaration,
+		struct declaration_scope *scope)
 {
 	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_type_definition_scope(name, scope))
+	if (lookup_typedef_declaration_scope(name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->type_definitions,
+	g_hash_table_insert(scope->typedef_declarations,
 			    (gpointer) (unsigned long) name,
-			    definition);
-	definition_ref(definition);
+			    declaration);
+	declaration_ref(declaration);
 	return 0;
 }
 
 static
 struct definition *
-	lookup_field_definition_scope(GQuark field_name, struct definition_scope *scope)
+	lookup_field_definition_scope(GQuark field_name,
+		struct definition_scope *scope)
 {
 	return g_hash_table_lookup(scope->definitions,
 				   (gconstpointer) (unsigned long) field_name);
 }
 
 struct definition *
-	lookup_field_definition(GQuark field_name, struct definition_scope *scope)
+	lookup_field_definition(GQuark field_name,
+		struct definition_scope *scope)
 {
 	struct definition *definition;
 
@@ -83,7 +88,7 @@ struct definition *
 }
 
 int register_field_definition(GQuark field_name, struct definition *definition,
-			      struct definition_scope *scope)
+		struct definition_scope *scope)
 {
 	if (!field_name)
 		return -EPERM;
@@ -99,15 +104,15 @@ int register_field_definition(GQuark field_name, struct definition *definition,
 	return 0;
 }
 
-void type_ref(struct type *type)
+void declaration_ref(struct declaration *declaration)
 {
-	type->ref++;
+	declaration->ref++;
 }
 
-void type_unref(struct type *type)
+void declaration_unref(struct declaration *declaration)
 {
-	if (!--type->ref)
-		type->type_free(type);
+	if (!--declaration->ref)
+		declaration->declaration_free(declaration);
 }
 
 void definition_ref(struct definition *definition)
@@ -118,154 +123,160 @@ void definition_ref(struct definition *definition)
 void definition_unref(struct definition *definition)
 {
 	if (!--definition->ref)
-		definition->type->definition_free(definition);
+		definition->declaration->definition_free(definition);
 }
 
-struct type_scope *
-	new_type_scope(struct type_scope *parent_scope)
+struct declaration_scope *
+	new_declaration_scope(struct declaration_scope *parent_scope)
 {
-	struct type_scope *scope = g_new(struct type_scope, 1);
+	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
 
-	scope->type_definitions = g_hash_table_new_full(g_direct_hash,
+	scope->typedef_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) definition_unref);
-	scope->struct_types = g_hash_table_new_full(g_direct_hash,
+	scope->struct_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) type_unref);
-	scope->variant_types = g_hash_table_new_full(g_direct_hash,
+					(GDestroyNotify) declaration_unref);
+	scope->variant_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) type_unref);
-	scope->enum_types = g_hash_table_new_full(g_direct_hash,
+					(GDestroyNotify) declaration_unref);
+	scope->enum_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) type_unref);
+					(GDestroyNotify) declaration_unref);
 	scope->parent_scope = parent_scope;
 	return scope;
 }
 
-void free_type_scope(struct type_scope *scope)
+void free_declaration_scope(struct declaration_scope *scope)
 {
-	g_hash_table_destroy(scope->enum_types);
-	g_hash_table_destroy(scope->variant_types);
-	g_hash_table_destroy(scope->struct_types);
-	g_hash_table_destroy(scope->type_definitions);
+	g_hash_table_destroy(scope->enum_declarations);
+	g_hash_table_destroy(scope->variant_declarations);
+	g_hash_table_destroy(scope->struct_declarations);
+	g_hash_table_destroy(scope->typedef_declarations);
 	g_free(scope);
 }
 
 static
-struct type_struct *lookup_struct_type_scope(GQuark struct_name,
-					     struct type_scope *scope)
+struct declaration_struct *lookup_struct_declaration_scope(GQuark struct_name,
+					     struct declaration_scope *scope)
 {
-	return g_hash_table_lookup(scope->struct_types,
+	return g_hash_table_lookup(scope->struct_declarations,
 				   (gconstpointer) (unsigned long) struct_name);
 }
 
-struct type_struct *lookup_struct_type(GQuark struct_name,
-				       struct type_scope *scope)
+struct declaration_struct *lookup_struct_declaration(GQuark struct_name,
+				       struct declaration_scope *scope)
 {
-	struct type_struct *type;
+	struct declaration_struct *declaration;
 
 	while (scope) {
-		type = lookup_struct_type_scope(struct_name, scope);
-		if (type)
-			return type;
+		declaration = lookup_struct_declaration_scope(struct_name, scope);
+		if (declaration)
+			return declaration;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_struct_type(GQuark struct_name, struct type_struct *struct_type,
-			 struct type_scope *scope)
+int register_struct_declaration(GQuark struct_name,
+	struct declaration_struct *struct_declaration,
+	struct declaration_scope *scope)
 {
 	if (!struct_name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_struct_type_scope(struct_name, scope))
+	if (lookup_struct_declaration_scope(struct_name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->struct_types,
+	g_hash_table_insert(scope->struct_declarations,
 			    (gpointer) (unsigned long) struct_name,
-			    struct_type);
-	type_ref(&struct_type->p);
+			    struct_declaration);
+	declaration_ref(&struct_declaration->p);
 	return 0;
 }
 
 static
-struct type_variant *lookup_variant_type_scope(GQuark variant_name,
-					       struct type_scope *scope)
+struct declaration_variant *
+	lookup_variant_declaration_scope(GQuark variant_name,
+		struct declaration_scope *scope)
 {
-	return g_hash_table_lookup(scope->variant_types,
+	return g_hash_table_lookup(scope->variant_declarations,
 				   (gconstpointer) (unsigned long) variant_name);
 }
 
-struct type_variant *lookup_variant_type(GQuark variant_name,
-					 struct type_scope *scope)
+struct declaration_variant *
+	lookup_variant_declaration(GQuark variant_name,
+		struct declaration_scope *scope)
 {
-	struct type_variant *type;
+	struct declaration_variant *declaration;
 
 	while (scope) {
-		type = lookup_variant_type_scope(variant_name, scope);
-		if (type)
-			return type;
+		declaration = lookup_variant_declaration_scope(variant_name, scope);
+		if (declaration)
+			return declaration;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_variant_type(GQuark variant_name,
-			  struct type_variant *variant_type,
-		          struct type_scope *scope)
+int register_variant_declaration(GQuark variant_name,
+		struct declaration_variant *variant_declaration,
+		struct declaration_scope *scope)
 {
 	if (!variant_name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_variant_type_scope(variant_name, scope))
+	if (lookup_variant_declaration_scope(variant_name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->variant_types,
+	g_hash_table_insert(scope->variant_declarations,
 			    (gpointer) (unsigned long) variant_name,
-			    variant_type);
-	type_ref(&variant_type->p);
+			    variant_declaration);
+	declaration_ref(&variant_declaration->p);
 	return 0;
 }
 
 static
-struct type_enum *lookup_enum_type_scope(GQuark enum_name,
-					 struct type_scope *scope)
+struct declaration_enum *
+	lookup_enum_declaration_scope(GQuark enum_name,
+		struct declaration_scope *scope)
 {
-	return g_hash_table_lookup(scope->enum_types,
+	return g_hash_table_lookup(scope->enum_declarations,
 				   (gconstpointer) (unsigned long) enum_name);
 }
 
-struct type_enum *lookup_enum_type(GQuark enum_name,
-				   struct type_scope *scope)
+struct declaration_enum *
+	lookup_enum_declaration(GQuark enum_name,
+		struct declaration_scope *scope)
 {
-	struct type_enum *type;
+	struct declaration_enum *declaration;
 
 	while (scope) {
-		type = lookup_enum_type_scope(enum_name, scope);
-		if (type)
-			return type;
+		declaration = lookup_enum_declaration_scope(enum_name, scope);
+		if (declaration)
+			return declaration;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_enum_type(GQuark enum_name, struct type_enum *enum_type,
-		       struct type_scope *scope)
+int register_enum_declaration(GQuark enum_name,
+		struct declaration_enum *enum_declaration,
+		struct declaration_scope *scope)
 {
 	if (!enum_name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_enum_type_scope(enum_name, scope))
+	if (lookup_enum_declaration_scope(enum_name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->enum_types,
+	g_hash_table_insert(scope->enum_declarations,
 			    (gpointer) (unsigned long) enum_name,
-			    enum_type);
-	type_ref(&enum_type->p);
+			    enum_declaration);
+	declaration_ref(&enum_declaration->p);
 	return 0;
 }
 

@@ -24,19 +24,19 @@
 
 static
 uint64_t _aligned_uint_read(struct stream_pos *pos,
-		       const struct type_integer *integer_type)
+		       const struct declaration_integer *integer_declaration)
 {
-	int rbo = (integer_type->byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
-	switch (integer_type->len) {
+	switch (integer_declaration->len) {
 	case 8:
 	{
 		uint8_t v;
 
 		v = *(const uint8_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return v;
 	}
 	case 16:
@@ -44,7 +44,7 @@ uint64_t _aligned_uint_read(struct stream_pos *pos,
 		uint16_t v;
 
 		v = *(const uint16_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT16_SWAP_LE_BE(v) : v;
 	}
 	case 32:
@@ -52,7 +52,7 @@ uint64_t _aligned_uint_read(struct stream_pos *pos,
 		uint32_t v;
 
 		v = *(const uint32_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT32_SWAP_LE_BE(v) : v;
 	}
 	case 64:
@@ -60,7 +60,7 @@ uint64_t _aligned_uint_read(struct stream_pos *pos,
 		uint64_t v;
 
 		v = *(const uint64_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT64_SWAP_LE_BE(v) : v;
 	}
 	default:
@@ -70,19 +70,19 @@ uint64_t _aligned_uint_read(struct stream_pos *pos,
 
 static
 int64_t _aligned_int_read(struct stream_pos *pos,
-		     const struct type_integer *integer_type)
+		     const struct declaration_integer *integer_declaration)
 {
-	int rbo = (integer_type->byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
-	switch (integer_type->len) {
+	switch (integer_declaration->len) {
 	case 8:
 	{
 		int8_t v;
 
 		v = *(const int8_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return v;
 	}
 	case 16:
@@ -90,7 +90,7 @@ int64_t _aligned_int_read(struct stream_pos *pos,
 		int16_t v;
 
 		v = *(const int16_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT16_SWAP_LE_BE(v) : v;
 	}
 	case 32:
@@ -98,7 +98,7 @@ int64_t _aligned_int_read(struct stream_pos *pos,
 		int32_t v;
 
 		v = *(const int32_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT32_SWAP_LE_BE(v) : v;
 	}
 	case 64:
@@ -106,7 +106,7 @@ int64_t _aligned_int_read(struct stream_pos *pos,
 		int64_t v;
 
 		v = *(const int64_t *)pos->base;
-		move_pos(pos, integer_type->len);
+		move_pos(pos, integer_declaration->len);
 		return rbo ? GUINT64_SWAP_LE_BE(v) : v;
 	}
 	default:
@@ -116,17 +116,17 @@ int64_t _aligned_int_read(struct stream_pos *pos,
 
 static
 void _aligned_uint_write(struct stream_pos *pos,
-		    const struct type_integer *integer_type,
+		    const struct declaration_integer *integer_declaration,
 		    uint64_t v)
 {
-	int rbo = (integer_type->byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
 	if (pos->dummy)
 		goto end;
 
-	switch (integer_type->len) {
+	switch (integer_declaration->len) {
 	case 8:	*(uint8_t *) get_pos_addr(pos) = (uint8_t) v;
 		break;
 	case 16:
@@ -147,22 +147,22 @@ void _aligned_uint_write(struct stream_pos *pos,
 		assert(0);
 	}
 end:
-	move_pos(pos, integer_type->len);
+	move_pos(pos, integer_declaration->len);
 }
 
 static
 void _aligned_int_write(struct stream_pos *pos,
-		   const struct type_integer *integer_type,
+		   const struct declaration_integer *integer_declaration,
 		   int64_t v)
 {
-	int rbo = (integer_type->byte_order != BYTE_ORDER);	/* reverse byte order */
+	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
 	if (pos->dummy)
 		goto end;
 
-	switch (integer_type->len) {
+	switch (integer_declaration->len) {
 	case 8:	*(int8_t *) get_pos_addr(pos) = (int8_t) v;
 		break;
 	case 16:
@@ -183,72 +183,72 @@ void _aligned_int_write(struct stream_pos *pos,
 		assert(0);
 	}
 end:
-	move_pos(pos, integer_type->len);
+	move_pos(pos, integer_declaration->len);
 	return;
 }
 
 uint64_t ctf_uint_read(struct stream_pos *pos,
-			const struct type_integer *integer_type)
+			const struct declaration_integer *integer_declaration)
 {
 	uint64_t v = 0;
 
-	align_pos(pos, integer_type->p.alignment);
-	if (integer_type->byte_order == LITTLE_ENDIAN)
+	align_pos(pos, integer_declaration->p.alignment);
+	if (integer_declaration->byte_order == LITTLE_ENDIAN)
 		bt_bitfield_read_le(pos->base, unsigned long, pos->offset,
-				    integer_type->len, &v);
+				    integer_declaration->len, &v);
 	else
 		bt_bitfield_read_be(pos->base, unsigned long, pos->offset,
-				    integer_type->len, &v);
-	move_pos(pos, integer_type->len);
+				    integer_declaration->len, &v);
+	move_pos(pos, integer_declaration->len);
 	return v;
 }
 
 int64_t ctf_int_read(struct stream_pos *pos,
-			const struct type_integer *integer_type)
+			const struct declaration_integer *integer_declaration)
 {
 	int64_t v = 0;
 
-	align_pos(pos, integer_type->p.alignment);
-	if (integer_type->byte_order == LITTLE_ENDIAN)
+	align_pos(pos, integer_declaration->p.alignment);
+	if (integer_declaration->byte_order == LITTLE_ENDIAN)
 		bt_bitfield_read_le(pos->base, unsigned long, pos->offset,
-				    integer_type->len, &v);
+				    integer_declaration->len, &v);
 	else
 		bt_bitfield_read_be(pos->base, unsigned long, pos->offset,
-				    integer_type->len, &v);
-	move_pos(pos, integer_type->len);
+				    integer_declaration->len, &v);
+	move_pos(pos, integer_declaration->len);
 	return v;
 }
 
 void ctf_uint_write(struct stream_pos *pos,
-			const struct type_integer *integer_type,
+			const struct declaration_integer *integer_declaration,
 			uint64_t v)
 {
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	if (pos->dummy)
 		goto end;
-	if (integer_type->byte_order == LITTLE_ENDIAN)
+	if (integer_declaration->byte_order == LITTLE_ENDIAN)
 		bt_bitfield_write_le(pos->base, unsigned long, pos->offset,
-				     integer_type->len, v);
+				     integer_declaration->len, v);
 	else
 		bt_bitfield_write_be(pos->base, unsigned long, pos->offset,
-				     integer_type->len, v);
+				     integer_declaration->len, v);
 end:
-	move_pos(pos, integer_type->len);
+	move_pos(pos, integer_declaration->len);
 }
 
 void ctf_int_write(struct stream_pos *pos,
-			const struct type_integer *integer_type,
+			const struct declaration_integer *integer_declaration,
 			int64_t v)
 {
-	align_pos(pos, integer_type->p.alignment);
+	align_pos(pos, integer_declaration->p.alignment);
 	if (pos->dummy)
 		goto end;
-	if (integer_type->byte_order == LITTLE_ENDIAN)
+	if (integer_declaration->byte_order == LITTLE_ENDIAN)
 		bt_bitfield_write_le(pos->base, unsigned long, pos->offset,
-				     integer_type->len, v);
+				     integer_declaration->len, v);
 	else
 		bt_bitfield_write_be(pos->base, unsigned long, pos->offset,
-				     integer_type->len, v);
+				     integer_declaration->len, v);
 end:
-	move_pos(pos, integer_type->len);
+	move_pos(pos, integer_declaration->len);
 }

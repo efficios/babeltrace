@@ -24,7 +24,7 @@
 #endif
 
 static
-struct definition *_struct_definition_new(struct type *type,
+struct definition *_struct_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope);
 static
 void _struct_definition_free(struct definition *definition);
@@ -35,100 +35,100 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 {
 	struct definition_struct *_struct =
 		container_of(definition, struct definition_struct, p);
-	struct type_struct *struct_type = _struct->type;
+	struct declaration_struct *struct_declaration = _struct->declaration;
 	unsigned long i;
 
-	fsrc->struct_begin(src, struct_type);
-	fdest->struct_begin(dest, struct_type);
+	fsrc->struct_begin(src, struct_declaration);
+	fdest->struct_begin(dest, struct_declaration);
 
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		struct type *field_type = field->definition->type;
+		struct declaration *field_declaration = field->definition->declaration;
 
-		field_type->copy(dest, fdest, src, fsrc, field->definition);
+		field_declaration->copy(dest, fdest, src, fsrc, field->definition);
 
 	}
-	fsrc->struct_end(src, struct_type);
-	fdest->struct_end(dest, struct_type);
+	fsrc->struct_end(src, struct_declaration);
+	fdest->struct_end(dest, struct_declaration);
 }
 
 static
-void _struct_type_free(struct type *type)
+void _struct_declaration_free(struct declaration *declaration)
 {
-	struct type_struct *struct_type =
-		container_of(type, struct type_struct, p);
+	struct declaration_struct *struct_declaration =
+		container_of(declaration, struct declaration_struct, p);
 	unsigned long i;
 
-	free_type_scope(struct_type->scope);
-	g_hash_table_destroy(struct_type->fields_by_name);
+	free_declaration_scope(struct_declaration->scope);
+	g_hash_table_destroy(struct_declaration->fields_by_name);
 
-	for (i = 0; i < struct_type->fields->len; i++) {
-		struct type_field *type_field =
-			&g_array_index(struct_type->fields,
-				       struct type_field, i);
-		type_unref(type_field->type);
+	for (i = 0; i < struct_declaration->fields->len; i++) {
+		struct declaration_field *declaration_field =
+			&g_array_index(struct_declaration->fields,
+				       struct declaration_field, i);
+		declaration_unref(declaration_field->declaration);
 	}
-	g_array_free(struct_type->fields, true);
-	g_free(struct_type);
+	g_array_free(struct_declaration->fields, true);
+	g_free(struct_declaration);
 }
 
-struct type_struct *struct_type_new(const char *name,
-				    struct type_scope *parent_scope)
+struct declaration_struct *struct_declaration_new(const char *name,
+				    struct declaration_scope *parent_scope)
 {
-	struct type_struct *struct_type;
-	struct type *type;
+	struct declaration_struct *struct_declaration;
+	struct declaration *declaration;
 
-	struct_type = g_new(struct type_struct, 1);
-	type = &struct_type->p;
-	struct_type->fields_by_name = g_hash_table_new(g_direct_hash,
+	struct_declaration = g_new(struct declaration_struct, 1);
+	declaration = &struct_declaration->p;
+	struct_declaration->fields_by_name = g_hash_table_new(g_direct_hash,
 						       g_direct_equal);
-	struct_type->fields = g_array_sized_new(FALSE, TRUE,
-						sizeof(struct type_field),
+	struct_declaration->fields = g_array_sized_new(FALSE, TRUE,
+						sizeof(struct declaration_field),
 						DEFAULT_NR_STRUCT_FIELDS);
-	struct_type->scope = new_type_scope(parent_scope);
-	type->id = CTF_TYPE_STRUCT;
-	type->name = g_quark_from_string(name);
-	type->alignment = 1;
-	type->copy = struct_copy;
-	type->type_free = _struct_type_free;
-	type->definition_new = _struct_definition_new;
-	type->definition_free = _struct_definition_free;
-	type->ref = 1;
-	return struct_type;
+	struct_declaration->scope = new_declaration_scope(parent_scope);
+	declaration->id = CTF_TYPE_STRUCT;
+	declaration->name = g_quark_from_string(name);
+	declaration->alignment = 1;
+	declaration->copy = struct_copy;
+	declaration->declaration_free = _struct_declaration_free;
+	declaration->definition_new = _struct_definition_new;
+	declaration->definition_free = _struct_definition_free;
+	declaration->ref = 1;
+	return struct_declaration;
 }
 
 static
 struct definition *
-	_struct_definition_new(struct type *type,
+	_struct_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope)
 {
-	struct type_struct *struct_type =
-		container_of(type, struct type_struct, p);
+	struct declaration_struct *struct_declaration =
+		container_of(declaration, struct declaration_struct, p);
 	struct definition_struct *_struct;
 	unsigned long i;
 	int ret;
 
 	_struct = g_new(struct definition_struct, 1);
-	type_ref(&struct_type->p);
-	_struct->p.type = type;
-	_struct->type = struct_type;
+	declaration_ref(&struct_declaration->p);
+	_struct->p.declaration = declaration;
+	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
 	_struct->scope = new_definition_scope(parent_scope);
 	_struct->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
-	g_array_set_size(_struct->fields, struct_type->fields->len);
-	for (i = 0; i < struct_type->fields->len; i++) {
-		struct type_field *type_field =
-			&g_array_index(struct_type->fields,
-				       struct type_field, i);
+	g_array_set_size(_struct->fields, struct_declaration->fields->len);
+	for (i = 0; i < struct_declaration->fields->len; i++) {
+		struct declaration_field *declaration_field =
+			&g_array_index(struct_declaration->fields,
+				       struct declaration_field, i);
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
 
-		field->name = type_field->name;
+		field->name = declaration_field->name;
 		field->definition =
-			type_field->type->definition_new(type_field->type,
+			declaration_field->declaration->definition_new(declaration_field->declaration,
 							  _struct->scope);
 		ret = register_field_definition(field->name,
 						field->definition,
@@ -145,49 +145,49 @@ void _struct_definition_free(struct definition *definition)
 		container_of(definition, struct definition_struct, p);
 	unsigned long i;
 
-	assert(_struct->fields->len == _struct->type->fields->len);
+	assert(_struct->fields->len == _struct->declaration->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
 		definition_unref(field->definition);
 	}
 	free_definition_scope(_struct->scope);
-	type_unref(_struct->p.type);
+	declaration_unref(_struct->p.declaration);
 	g_free(_struct);
 }
 
-void struct_type_add_field(struct type_struct *struct_type,
+void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 			   const char *field_name,
-			   struct type *field_type)
+			   struct declaration *field_declaration)
 {
-	struct type_field *field;
+	struct declaration_field *field;
 	unsigned long index;
 
-	g_array_set_size(struct_type->fields, struct_type->fields->len + 1);
-	index = struct_type->fields->len - 1;	/* last field (new) */
-	field = &g_array_index(struct_type->fields, struct type_field, index);
+	g_array_set_size(struct_declaration->fields, struct_declaration->fields->len + 1);
+	index = struct_declaration->fields->len - 1;	/* last field (new) */
+	field = &g_array_index(struct_declaration->fields, struct declaration_field, index);
 	field->name = g_quark_from_string(field_name);
-	type_ref(field_type);
-	field->type = field_type;
+	declaration_ref(field_declaration);
+	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
-	g_hash_table_insert(struct_type->fields_by_name,
+	g_hash_table_insert(struct_declaration->fields_by_name,
 			    (gpointer) (unsigned long) field->name,
 			    (gpointer) index);
 	/*
-	 * Alignment of structure is the max alignment of types contained
+	 * Alignment of structure is the max alignment of declarations contained
 	 * therein.
 	 */
-	struct_type->p.alignment = max(struct_type->p.alignment,
-				       field_type->alignment);
+	struct_declaration->p.alignment = max(struct_declaration->p.alignment,
+				       field_declaration->alignment);
 }
 
 unsigned long
-	struct_type_lookup_field_index(struct type_struct *struct_type,
+	struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 				       GQuark field_name)
 {
 	unsigned long index;
 
-	index = (unsigned long) g_hash_table_lookup(struct_type->fields_by_name,
+	index = (unsigned long) g_hash_table_lookup(struct_declaration->fields_by_name,
 						    (gconstpointer) (unsigned long) field_name);
 	return index;
 }
@@ -195,11 +195,11 @@ unsigned long
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct type_field *
-	struct_type_get_field_from_index(struct type_struct *struct_type,
+struct declaration_field *
+	struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					 unsigned long index)
 {
-	return &g_array_index(struct_type->fields, struct type_field, index);
+	return &g_array_index(struct_declaration->fields, struct declaration_field, index);
 }
 
 /*

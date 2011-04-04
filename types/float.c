@@ -20,7 +20,7 @@
 #include <babeltrace/format.h>
 
 static
-struct definition *_float_definition_new(struct type *type,
+struct definition *_float_definition_new(struct declaration *declaration,
 				   struct definition_scope *parent_scope);
 static
 void _float_definition_free(struct definition *definition);
@@ -33,71 +33,71 @@ void float_copy(struct stream_pos *destp,
 {
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
-	struct type_float *float_type = _float->type;
+	struct declaration_float *float_declaration = _float->declaration;
 
 	if (fsrc->float_copy == fdest->float_copy) {
-		fsrc->float_copy(destp, srcp, float_type);
+		fsrc->float_copy(destp, srcp, float_declaration);
 	} else {
 		double v;
 
-		v = fsrc->double_read(srcp, float_type);
-		fdest->double_write(destp, float_type, v);
+		v = fsrc->double_read(srcp, float_declaration);
+		fdest->double_write(destp, float_declaration, v);
 	}
 }
 
 static
-void _float_type_free(struct type *type)
+void _float_declaration_free(struct declaration *declaration)
 {
-	struct type_float *float_type =
-		container_of(type, struct type_float, p);
+	struct declaration_float *float_declaration =
+		container_of(declaration, struct declaration_float, p);
 
-	type_unref(&float_type->exp->p);
-	type_unref(&float_type->mantissa->p);
-	type_unref(&float_type->sign->p);
-	g_free(float_type);
+	declaration_unref(&float_declaration->exp->p);
+	declaration_unref(&float_declaration->mantissa->p);
+	declaration_unref(&float_declaration->sign->p);
+	g_free(float_declaration);
 }
 
-struct type_float *
-	float_type_new(const char *name, size_t mantissa_len,
+struct declaration_float *
+	float_declaration_new(const char *name, size_t mantissa_len,
 		       size_t exp_len, int byte_order, size_t alignment)
 {
-	struct type_float *float_type;
-	struct type *type;
+	struct declaration_float *float_declaration;
+	struct declaration *declaration;
 
-	float_type = g_new(struct type_float, 1);
-	type = &float_type->p;
-	type->id = CTF_TYPE_FLOAT;
-	type->name = g_quark_from_string(name);
-	type->alignment = alignment;
-	type->copy = float_copy;
-	type->type_free = _float_type_free;
-	type->definition_new = _float_definition_new;
-	type->definition_free = _float_definition_free;
-	type->ref = 1;
-	float_type->byte_order = byte_order;
+	float_declaration = g_new(struct declaration_float, 1);
+	declaration = &float_declaration->p;
+	declaration->id = CTF_TYPE_FLOAT;
+	declaration->name = g_quark_from_string(name);
+	declaration->alignment = alignment;
+	declaration->copy = float_copy;
+	declaration->declaration_free = _float_declaration_free;
+	declaration->definition_new = _float_definition_new;
+	declaration->definition_free = _float_definition_free;
+	declaration->ref = 1;
+	float_declaration->byte_order = byte_order;
 
-	float_type->sign = integer_type_new(NULL, 1,
+	float_declaration->sign = integer_declaration_new(NULL, 1,
 					    byte_order, false, 1);
-	float_type->mantissa = integer_type_new(NULL, mantissa_len - 1,
+	float_declaration->mantissa = integer_declaration_new(NULL, mantissa_len - 1,
 						byte_order, false, 1);
-	float_type->exp = integer_type_new(NULL, exp_len,
+	float_declaration->exp = integer_declaration_new(NULL, exp_len,
 					   byte_order, true, 1);
-	return float_type;
+	return float_declaration;
 }
 
 static
 struct definition *
-	_float_definition_new(struct type *type,
+	_float_definition_new(struct declaration *declaration,
 			      struct definition_scope *parent_scope)
 {
-	struct type_float *float_type =
-		container_of(type, struct type_float, p);
+	struct declaration_float *float_declaration =
+		container_of(declaration, struct declaration_float, p);
 	struct definition_float *_float;
 
 	_float = g_new(struct definition_float, 1);
-	type_ref(&float_type->p);
-	_float->p.type= type;
-	_float->type= float_type;
+	declaration_ref(&float_declaration->p);
+	_float->p.declaration= declaration;
+	_float->declaration= float_declaration;
 	_float->p.ref = 1;
 	_float->value = 0.0;
 	return &_float->p;
@@ -109,6 +109,6 @@ void _float_definition_free(struct definition *definition)
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
 
-	type_unref(_float->p.type);
+	declaration_unref(_float->p.declaration);
 	g_free(_float);
 }
