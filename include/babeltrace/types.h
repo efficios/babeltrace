@@ -279,6 +279,8 @@ struct type_variant {
 	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
 	struct type_scope *scope;
 	GArray *fields;			/* Array of type_field */
+	GQuark tag_name;		/* TODO */
+	/* Tag name must be nonzero and must exist when defining the variant */
 };
 
 struct declaration_variant {

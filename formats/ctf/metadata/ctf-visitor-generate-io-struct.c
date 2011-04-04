@@ -31,6 +31,8 @@
 
 #define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
 
+#define _cds_list_first_entry(ptr, type, member)	\
+	cds_list_entry((ptr)->next, type, member)
 
 static
 int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
@@ -201,26 +203,76 @@ struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_
 	return g_ptr_array_index(trace->streams, stream_id);
 }
 
+/*
+ * Also add named variant, struct or enum to the current type scope.
+ */
+static
+struct ctf_type *ctf_type_specifier_visit(FILE *fd,
+					  int depth, struct list_head *head,
+					  struct type_scope *type_scope,
+					  struct declaration_scope *declaration_scope)
+{
+	struct ctf_type *type;
+	struct node *first;
+
+	first = _cds_list_first_entry(head, struct node, siblings);
+
+	switch (first->type) {
+	case NODE_STRUCT:
+		/* For named struct (without body), lookup in type scope */
+		/* For named struct (with body), create type and add to type scope */
+		/* For unnamed struct, create type */
+		break;
+	case NODE_VARIANT:
+		/* For named variant (without body), lookup in type scope */
+		/* For named variant (with body), create type and add to type scope */
+		/* For unnamed variant, create type */
+		break;
+	case NODE_ENUM:
+		/* For named enum (without body), lookup in type scope */
+		/* For named enum (with body), create type and add to type scope */
+		/* For unnamed enum, create type */
+		break;
+	case NODE_INTEGER:
+		break;
+	case NODE_FLOATING_POINT:
+		break;
+	case NODE_TYPE_SPECIFIER:
+		break;
+
+	}
+}
+
 static
 struct ctf_declaration *ctf_declaration_specifier_visit(FILE *fd,
 					int depth, struct list_head *head,
 					struct type_scope *type_scope,
 					struct declaration_scope *declaration_scope)
 {
+	struct ctf_declaration *declaration;
+	struct ctf_type *type;
 
-}
-
-/*
- * Use declaration specifier visitor, and add resulting variant, struct
- * or enum to the current type scope.
- */
-static
-int ctf_type_specifier_visit(FILE *fd,
-			int depth, struct list_head *head,
-			struct type_scope *type_scope,
-			struct declaration_scope *declaration_scope)
-{
-
+	type = ctf_type_specifier_visit(fd, depth, head, type_scope,
+					declaration_scope);
+	declaration = type->declaration_new(type, declaration_scope);
+	if (type->id == CTF_TYPE_VARIANT) {
+		struct declaration_variant *variant =
+			container_of(declaration, struct declaration_variant, p);
+		struct declaration *enum_tag =
+			lookup_field_declaration(enum_tag_name, declaration_scope);
+		if (!enum_tag) {
+			fprintf(fd, "[error]: expected enumeration tag field %s for variant\n",
+				enum_tag_name);
+			goto error;
+		}
+		/* TODO find enum tag */
+		ret = variant_declaration_set_tag(variant, enum_tag);
+	}
+	return declaration;
+error:
+	declaration_unref(declaration);
+	type_unref(type);
+	return NULL;
 }
 
 static
@@ -230,8 +282,9 @@ int ctf_typedef_declarator_visit(FILE *fd, int depth,
 				struct declaration_scope *declaration_scope)
 {
 	/*
-	 * Build the type using declaration specifier, then apply type
-	 * declarator, add the resulting type to the current type scope.
+	 * Build the type using declaration specifier (creating
+	 * declaration from type_specifier), then apply type declarator,
+	 * add the resulting type to the current type scope.
 	 */
 	cds_list_for_each_entry(iter, declaration_specifier, siblings) {
 
@@ -681,7 +734,7 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
-			ret = ctf_type_specifier_visit(fd, depth, iter,
+			ret = ctf_declaration_specifier_visit(fd, depth, iter,
 					trace->root_type_scope,
 					trace->root_declaration_scope);
 			if (ret)
