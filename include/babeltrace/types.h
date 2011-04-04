@@ -453,11 +453,13 @@ struct_get_field_from_index(struct definition_struct *struct_definition,
  * therefore forbidden.
  */
 struct declaration_variant *variant_declaration_new(const char *name,
-				      struct declaration_scope *parent_scope);
+		struct declaration_scope *parent_scope);
 void variant_declaration_add_field(struct declaration_variant *variant_declaration,
-				   const char *tag_name, struct declaration *tag_declaration);
+		const char *tag_name,
+		struct declaration *tag_declaration);
 struct declaration_field *
-	variant_declaration_get_field_from_tag(struct declaration_variant *variant_declaration, GQuark tag);
+	variant_declaration_get_field_from_tag(struct declaration_variant *variant_declaration,
+		GQuark tag);
 /*
  * Returns 0 on success, -EPERM on error.
  */
@@ -477,8 +479,8 @@ struct field *variant_get_current_field(struct definition_variant *variant);
  */
 struct declaration_array *
 	array_declaration_new(const char *name,
-			size_t len, struct declaration *elem_declaration,
-			struct declaration_scope *parent_scope);
+		size_t len, struct declaration *elem_declaration,
+		struct declaration_scope *parent_scope);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong
@@ -486,8 +488,8 @@ struct declaration_array *
  */
 struct declaration_sequence *
 	sequence_declaration_new(const char *name,
-			struct declaration_integer *len_declaration, 
-			struct declaration *elem_declaration,
-			struct declaration_scope *parent_scope);
+		struct declaration_integer *len_declaration, 
+		struct declaration *elem_declaration,
+		struct declaration_scope *parent_scope);
 
 #endif /* _BABELTRACE_declarationS_H */
