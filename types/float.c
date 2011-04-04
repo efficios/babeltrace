@@ -20,19 +20,19 @@
 #include <babeltrace/format.h>
 
 static
-struct declaration *_float_declaration_new(struct type *type,
-				   struct declaration_scope *parent_scope);
+struct definition *_float_definition_new(struct type *type,
+				   struct definition_scope *parent_scope);
 static
-void _float_declaration_free(struct declaration *declaration);
+void _float_definition_free(struct definition *definition);
 
 void float_copy(struct stream_pos *destp,
 		const struct format *fdest,
 		struct stream_pos *srcp,
 		const struct format *fsrc,
-		struct declaration *declaration)
+		struct definition *definition)
 {
-	struct declaration_float *_float =
-		container_of(declaration, struct declaration_float, p);
+	struct definition_float *_float =
+		container_of(definition, struct definition_float, p);
 	struct type_float *float_type = _float->type;
 
 	if (fsrc->float_copy == fdest->float_copy) {
@@ -71,8 +71,8 @@ struct type_float *
 	type->alignment = alignment;
 	type->copy = float_copy;
 	type->type_free = _float_type_free;
-	type->declaration_new = _float_declaration_new;
-	type->declaration_free = _float_declaration_free;
+	type->definition_new = _float_definition_new;
+	type->definition_free = _float_definition_free;
 	type->ref = 1;
 	float_type->byte_order = byte_order;
 
@@ -86,15 +86,15 @@ struct type_float *
 }
 
 static
-struct declaration *
-	_float_declaration_new(struct type *type,
-			       struct declaration_scope *parent_scope)
+struct definition *
+	_float_definition_new(struct type *type,
+			      struct definition_scope *parent_scope)
 {
 	struct type_float *float_type =
 		container_of(type, struct type_float, p);
-	struct declaration_float *_float;
+	struct definition_float *_float;
 
-	_float = g_new(struct declaration_float, 1);
+	_float = g_new(struct definition_float, 1);
 	type_ref(&float_type->p);
 	_float->p.type= type;
 	_float->type= float_type;
@@ -104,10 +104,10 @@ struct declaration *
 }
 
 static
-void _float_declaration_free(struct declaration *declaration)
+void _float_definition_free(struct definition *definition)
 {
-	struct declaration_float *_float =
-		container_of(declaration, struct declaration_float, p);
+	struct definition_float *_float =
+		container_of(definition, struct definition_float, p);
 
 	type_unref(_float->p.type);
 	g_free(_float);

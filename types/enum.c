@@ -22,10 +22,10 @@
 #include <glib.h>
 
 static
-struct declaration *_enum_declaration_new(struct type *type,
-				 struct declaration_scope *parent_scope);
+struct definition *_enum_definition_new(struct type *type,
+				 struct definition_scope *parent_scope);
 static
-void _enum_declaration_free(struct declaration *declaration);
+void _enum_definition_free(struct definition *definition);
 
 static
 void enum_range_set_free(void *ptr)
@@ -349,10 +349,10 @@ size_t enum_get_nr_enumerators(struct type_enum *enum_type)
 
 void enum_copy(struct stream_pos *dest, const struct format *fdest, 
 	       struct stream_pos *src, const struct format *fsrc,
-	       struct declaration *declaration)
+	       struct definition *definition)
 {
-	struct declaration_enum *_enum =
-		container_of(declaration, struct declaration_enum, p);
+	struct definition_enum *_enum =
+		container_of(definition, struct definition_enum, p);
 	struct type_enum *enum_type= _enum->type;
 	GArray *array;
 	GQuark v;
@@ -411,43 +411,43 @@ struct type_enum *
 	enum_type->p.alignment = 1;
 	enum_type->p.copy = enum_copy;
 	enum_type->p.type_free = _enum_type_free;
-	enum_type->p.declaration_new = _enum_declaration_new;
-	enum_type->p.declaration_free = _enum_declaration_free;
+	enum_type->p.definition_new = _enum_definition_new;
+	enum_type->p.definition_free = _enum_definition_free;
 	enum_type->p.ref = 1;
 	return enum_type;
 }
 
 static
-struct declaration *
-	_enum_declaration_new(struct type *type,
-			      struct declaration_scope *parent_scope)
+struct definition *
+	_enum_definition_new(struct type *type,
+			     struct definition_scope *parent_scope)
 {
 	struct type_enum *enum_type =
 		container_of(type, struct type_enum, p);
-	struct declaration_enum *_enum;
-	struct declaration *declaration_integer_parent;
+	struct definition_enum *_enum;
+	struct definition *definition_integer_parent;
 
-	_enum = g_new(struct declaration_enum, 1);
+	_enum = g_new(struct definition_enum, 1);
 	type_ref(&enum_type->p);
 	_enum->p.type = type;
 	_enum->type = enum_type;
 	_enum->p.ref = 1;
 	_enum->value = NULL;
-	declaration_integer_parent =
-		enum_type->integer_type->p.declaration_new(&enum_type->integer_type->p,
+	definition_integer_parent =
+		enum_type->integer_type->p.definition_new(&enum_type->integer_type->p,
 							   parent_scope);
-	_enum->integer = container_of(declaration_integer_parent,
-				      struct declaration_integer, p);
+	_enum->integer = container_of(definition_integer_parent,
+				      struct definition_integer, p);
 	return &_enum->p;
 }
 
 static
-void _enum_declaration_free(struct declaration *declaration)
+void _enum_definition_free(struct definition *definition)
 {
-	struct declaration_enum *_enum =
-		container_of(declaration, struct declaration_enum, p);
+	struct definition_enum *_enum =
+		container_of(definition, struct definition_enum, p);
 
-	declaration_unref(&_enum->integer->p);
+	definition_unref(&_enum->integer->p);
 	type_unref(_enum->p.type);
 	if (_enum->value)
 		g_array_unref(_enum->value);

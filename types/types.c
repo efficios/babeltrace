@@ -23,79 +23,79 @@
 #include <errno.h>
 
 static
-struct declaration *
-	lookup_type_declaration_scope(GQuark type_name, struct type_scope *scope)
+struct definition *
+	lookup_type_definition_scope(GQuark type_name, struct type_scope *scope)
 {
-	return g_hash_table_lookup(scope->type_declarations,
+	return g_hash_table_lookup(scope->type_definitions,
 				   (gconstpointer) (unsigned long) type_name);
 }
 
-struct declaration *lookup_type_declaration(GQuark type_name, struct type_scope *scope)
+struct definition *lookup_type_definition(GQuark type_name, struct type_scope *scope)
 {
-	struct declaration *declaration;
+	struct definition *definition;
 
 	while (scope) {
-		declaration = lookup_type_declaration_scope(type_name, scope);
-		if (declaration)
-			return declaration;
+		definition = lookup_type_definition_scope(type_name, scope);
+		if (definition)
+			return definition;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_type_declaration(GQuark name, struct declaration *declaration,
-			      struct type_scope *scope)
+int register_type_definition(GQuark name, struct definition *definition,
+			     struct type_scope *scope)
 {
 	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_type_declaration_scope(name, scope))
+	if (lookup_type_definition_scope(name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->type_declarations,
+	g_hash_table_insert(scope->type_definitions,
 			    (gpointer) (unsigned long) name,
-			    declaration);
-	declaration_ref(declaration);
+			    definition);
+	definition_ref(definition);
 	return 0;
 }
 
 static
-struct declaration *
-	lookup_field_declaration_scope(GQuark field_name, struct declaration_scope *scope)
+struct definition *
+	lookup_field_definition_scope(GQuark field_name, struct definition_scope *scope)
 {
-	return g_hash_table_lookup(scope->declarations,
+	return g_hash_table_lookup(scope->definitions,
 				   (gconstpointer) (unsigned long) field_name);
 }
 
-struct declaration *
-	lookup_field_declaration(GQuark field_name, struct declaration_scope *scope)
+struct definition *
+	lookup_field_definition(GQuark field_name, struct definition_scope *scope)
 {
-	struct declaration *declaration;
+	struct definition *definition;
 
 	while (scope) {
-		declaration = lookup_field_declaration_scope(field_name, scope);
-		if (declaration)
-			return declaration;
+		definition = lookup_field_definition_scope(field_name, scope);
+		if (definition)
+			return definition;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_field_declaration(GQuark field_name, struct declaration *declaration,
-			       struct declaration_scope *scope)
+int register_field_definition(GQuark field_name, struct definition *definition,
+			      struct definition_scope *scope)
 {
 	if (!field_name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_field_declaration_scope(field_name, scope))
+	if (lookup_field_definition_scope(field_name, scope))
 		return -EEXIST;
 
-	g_hash_table_insert(scope->declarations,
+	g_hash_table_insert(scope->definitions,
 			    (gpointer) (unsigned long) field_name,
-			    declaration);
-	declaration_ref(declaration);
+			    definition);
+	definition_ref(definition);
 	return 0;
 }
 
@@ -110,15 +110,15 @@ void type_unref(struct type *type)
 		type->type_free(type);
 }
 
-void declaration_ref(struct declaration *declaration)
+void definition_ref(struct definition *definition)
 {
-	declaration->ref++;
+	definition->ref++;
 }
 
-void declaration_unref(struct declaration *declaration)
+void definition_unref(struct definition *definition)
 {
-	if (!--declaration->ref)
-		declaration->type->declaration_free(declaration);
+	if (!--definition->ref)
+		definition->type->definition_free(definition);
 }
 
 struct type_scope *
@@ -126,9 +126,9 @@ struct type_scope *
 {
 	struct type_scope *scope = g_new(struct type_scope, 1);
 
-	scope->type_declarations = g_hash_table_new_full(g_direct_hash,
+	scope->type_definitions = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) definition_unref);
 	scope->struct_types = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) type_unref);
@@ -147,7 +147,7 @@ void free_type_scope(struct type_scope *scope)
 	g_hash_table_destroy(scope->enum_types);
 	g_hash_table_destroy(scope->variant_types);
 	g_hash_table_destroy(scope->struct_types);
-	g_hash_table_destroy(scope->type_declarations);
+	g_hash_table_destroy(scope->type_definitions);
 	g_free(scope);
 }
 
@@ -269,20 +269,20 @@ int register_enum_type(GQuark enum_name, struct type_enum *enum_type,
 	return 0;
 }
 
-struct declaration_scope *
-	new_declaration_scope(struct declaration_scope *parent_scope)
+struct definition_scope *
+	new_definition_scope(struct definition_scope *parent_scope)
 {
-	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
+	struct definition_scope *scope = g_new(struct definition_scope, 1);
 
-	scope->declarations = g_hash_table_new_full(g_direct_hash,
+	scope->definitions = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) definition_unref);
 	scope->parent_scope = parent_scope;
 	return scope;
 }
 
-void free_declaration_scope(struct declaration_scope *scope)
+void free_definition_scope(struct definition_scope *scope)
 {
-	g_hash_table_destroy(scope->declarations);
+	g_hash_table_destroy(scope->definitions);
 	g_free(scope);
 }

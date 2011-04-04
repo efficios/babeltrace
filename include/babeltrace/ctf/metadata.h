@@ -48,10 +48,10 @@ struct ctf_trace {
 	/* root scope */
 	struct type_scope *root_type_scope;
 	/* root scope */
-	struct declaration_scope *root_declaration_scope;
+	struct definition_scope *root_definition_scope;
 
 	struct type_scope *type_scope;
-	struct declaration_scope *declaration_scope;
+	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
 
 	uint64_t major;
@@ -87,13 +87,13 @@ struct ctf_stream {
 	/* parent is lexical scope conaining the stream scope */
 	struct type_scope *type_scope;
 	/* parent is trace scope */
-	struct declaration_scope *declaration_scope;
+	struct definition_scope *definition_scope;
 	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
 	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
 
-	struct declaration_struct *event_header;
-	struct declaration_struct *event_context;
-	struct declaration_struct *packet_context;
+	struct definition_struct *event_header;
+	struct definition_struct *event_context;
+	struct definition_struct *packet_context;
 
 	uint64_t stream_id;
 
@@ -122,9 +122,9 @@ struct ctf_event {
 	/* parent is lexical scope conaining the event scope */
 	struct type_scope *type_scope;
 	/* parent is stream scope */
-	struct declaration_scope *declaration_scope;
-	struct declaration_struct *context;
-	struct declaration_struct *fields;
+	struct definition_scope *definition_scope;
+	struct definition_struct *context;
+	struct definition_struct *fields;
 
 	GQuark name;
 	uint64_t id;		/* Numeric identifier within the stream */

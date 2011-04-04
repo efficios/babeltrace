@@ -20,17 +20,17 @@
 #include <babeltrace/format.h>
 
 static
-struct declaration *_array_declaration_new(struct type *type,
-			struct declaration_scope *parent_scope);
+struct definition *_array_definition_new(struct type *type,
+			struct definition_scope *parent_scope);
 static
-void _array_declaration_free(struct declaration *declaration);
+void _array_definition_free(struct definition *definition);
 
 void array_copy(struct stream_pos *dest, const struct format *fdest, 
 		struct stream_pos *src, const struct format *fsrc,
-		struct declaration *declaration)
+		struct definition *definition)
 {
-	struct declaration_array *array =
-		container_of(declaration, struct declaration_array, p);
+	struct definition_array *array =
+		container_of(definition, struct definition_array, p);
 	struct type_array *array_type = array->type;
 	uint64_t i;
 
@@ -38,7 +38,7 @@ void array_copy(struct stream_pos *dest, const struct format *fdest,
 	fdest->array_begin(dest, array_type);
 
 	for (i = 0; i < array_type->len; i++) {
-		struct declaration *elem = array->current_element.declaration;
+		struct definition *elem = array->current_element.definition;
 		elem->type->copy(dest, fdest, src, fsrc, elem);
 	}
 	fsrc->array_end(src, array_type);
@@ -75,43 +75,43 @@ struct type_array *
 	type->alignment = 1;
 	type->copy = array_copy;
 	type->type_free = _array_type_free;
-	type->declaration_new = _array_declaration_new;
-	type->declaration_free = _array_declaration_free;
+	type->definition_new = _array_definition_new;
+	type->definition_free = _array_definition_free;
 	type->ref = 1;
 	return array_type;
 }
 
 static
-struct declaration *
-	_array_declaration_new(struct type *type,
-			       struct declaration_scope *parent_scope)
+struct definition *
+	_array_definition_new(struct type *type,
+			      struct definition_scope *parent_scope)
 {
 	struct type_array *array_type =
 		container_of(type, struct type_array, p);
-	struct declaration_array *array;
+	struct definition_array *array;
 
-	array = g_new(struct declaration_array, 1);
+	array = g_new(struct definition_array, 1);
 	type_ref(&array_type->p);
 	array->p.type = type;
 	array->type = array_type;
 	array->p.ref = 1;
-	array->scope = new_declaration_scope(parent_scope);
-	array->current_element.declaration =
-		array_type->elem->declaration_new(array_type->elem,
+	array->scope = new_definition_scope(parent_scope);
+	array->current_element.definition =
+		array_type->elem->definition_new(array_type->elem,
 						  parent_scope);
 	return &array->p;
 }
 
 static
-void _array_declaration_free(struct declaration *declaration)
+void _array_definition_free(struct definition *definition)
 {
-	struct declaration_array *array =
-		container_of(declaration, struct declaration_array, p);
-	struct declaration *elem_declaration =
-		array->current_element.declaration;
+	struct definition_array *array =
+		container_of(definition, struct definition_array, p);
+	struct definition *elem_definition =
+		array->current_element.definition;
 
-	elem_declaration->type->declaration_free(elem_declaration);
-	free_declaration_scope(array->scope);
+	elem_definition->type->definition_free(elem_definition);
+	free_definition_scope(array->scope);
 	type_unref(array->p.type);
 	g_free(array);
 }

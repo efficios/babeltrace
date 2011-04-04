@@ -21,17 +21,17 @@
 #include <babeltrace/format.h>
 
 static
-struct declaration *_string_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope);
+struct definition *_string_definition_new(struct type *type,
+				struct definition_scope *parent_scope);
 static
-void _string_declaration_free(struct declaration *declaration);
+void _string_definition_free(struct definition *definition);
 
 void string_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
-		 struct declaration *declaration)
+		 struct definition *definition)
 {
-	struct declaration_string *string =
-		container_of(declaration, struct declaration_string, p);
+	struct definition_string *string =
+		container_of(definition, struct definition_string, p);
 	struct type_string *string_type = string->type;
 
 	if (fsrc->string_copy == fdest->string_copy) {
@@ -63,22 +63,22 @@ struct type_string *string_type_new(const char *name)
 	string_type->p.alignment = CHAR_BIT;
 	string_type->p.copy = string_copy;
 	string_type->p.type_free = _string_type_free;
-	string_type->p.declaration_new = _string_declaration_new;
-	string_type->p.declaration_free = _string_declaration_free;
+	string_type->p.definition_new = _string_definition_new;
+	string_type->p.definition_free = _string_definition_free;
 	string_type->p.ref = 1;
 	return string_type;
 }
 
 static
-struct declaration *
-	_string_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope)
+struct definition *
+	_string_definition_new(struct type *type,
+			       struct definition_scope *parent_scope)
 {
 	struct type_string *string_type =
 		container_of(type, struct type_string, p);
-	struct declaration_string *string;
+	struct definition_string *string;
 
-	string = g_new(struct declaration_string, 1);
+	string = g_new(struct definition_string, 1);
 	type_ref(&string_type->p);
 	string->p.type = type;
 	string->type = string_type;
@@ -88,10 +88,10 @@ struct declaration *
 }
 
 static
-void _string_declaration_free(struct declaration *declaration)
+void _string_definition_free(struct definition *definition)
 {
-	struct declaration_string *string =
-		container_of(declaration, struct declaration_string, p);
+	struct definition_string *string =
+		container_of(definition, struct definition_string, p);
 
 	type_unref(string->p.type);
 	g_free(string->value);

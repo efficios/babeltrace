@@ -24,17 +24,17 @@
 #endif
 
 static
-struct declaration *_sequence_declaration_new(struct type *type,
-					struct declaration_scope *parent_scope);
+struct definition *_sequence_definition_new(struct type *type,
+					struct definition_scope *parent_scope);
 static
-void _sequence_declaration_free(struct declaration *declaration);
+void _sequence_definition_free(struct definition *definition);
 
 void sequence_copy(struct stream_pos *dest, const struct format *fdest, 
 		   struct stream_pos *src, const struct format *fsrc,
-		   struct declaration *declaration)
+		   struct definition *definition)
 {
-	struct declaration_sequence *sequence =
-		container_of(declaration, struct declaration_sequence, p);
+	struct definition_sequence *sequence =
+		container_of(definition, struct definition_sequence, p);
 	struct type_sequence *sequence_type = sequence->type;
 	uint64_t i;
 
@@ -45,8 +45,8 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 				    &sequence->len->p);
 
 	for (i = 0; i < sequence->len->value._unsigned; i++) {
-		struct declaration *elem =
-			sequence->current_element.declaration;
+		struct definition *elem =
+			sequence->current_element.definition;
 		elem->type->copy(dest, fdest, src, fsrc, elem);
 	}
 	fsrc->sequence_end(src, sequence_type);
@@ -86,49 +86,49 @@ struct type_sequence *
 	type->alignment = max(len_type->p.alignment, elem_type->alignment);
 	type->copy = sequence_copy;
 	type->type_free = _sequence_type_free;
-	type->declaration_new = _sequence_declaration_new;
-	type->declaration_free = _sequence_declaration_free;
+	type->definition_new = _sequence_definition_new;
+	type->definition_free = _sequence_definition_free;
 	type->ref = 1;
 	return sequence_type;
 }
 
 static
-struct declaration *_sequence_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope)
+struct definition *_sequence_definition_new(struct type *type,
+				struct definition_scope *parent_scope)
 {
 	struct type_sequence *sequence_type =
 		container_of(type, struct type_sequence, p);
-	struct declaration_sequence *sequence;
-	struct declaration *len_parent;
+	struct definition_sequence *sequence;
+	struct definition *len_parent;
 
-	sequence = g_new(struct declaration_sequence, 1);
+	sequence = g_new(struct definition_sequence, 1);
 	type_ref(&sequence_type->p);
 	sequence->p.type = type;
 	sequence->type = sequence_type;
 	sequence->p.ref = 1;
-	sequence->scope = new_declaration_scope(parent_scope);
-	len_parent = sequence_type->len_type->p.declaration_new(&sequence_type->len_type->p,
+	sequence->scope = new_definition_scope(parent_scope);
+	len_parent = sequence_type->len_type->p.definition_new(&sequence_type->len_type->p,
 								parent_scope);
 	sequence->len =
-		container_of(len_parent, struct declaration_integer, p);
-	sequence->current_element.declaration =
-		sequence_type->elem->declaration_new(sequence_type->elem,
+		container_of(len_parent, struct definition_integer, p);
+	sequence->current_element.definition =
+		sequence_type->elem->definition_new(sequence_type->elem,
 						     parent_scope);
 	return &sequence->p;
 }
 
 static
-void _sequence_declaration_free(struct declaration *declaration)
+void _sequence_definition_free(struct definition *definition)
 {
-	struct declaration_sequence *sequence =
-		container_of(declaration, struct declaration_sequence, p);
-	struct declaration *len_declaration = &sequence->len->p;
-	struct declaration *elem_declaration =
-		sequence->current_element.declaration;
+	struct definition_sequence *sequence =
+		container_of(definition, struct definition_sequence, p);
+	struct definition *len_definition = &sequence->len->p;
+	struct definition *elem_definition =
+		sequence->current_element.definition;
 
-	len_declaration->type->declaration_free(len_declaration);
-	elem_declaration->type->declaration_free(elem_declaration);
-	free_declaration_scope(sequence->scope);
+	len_definition->type->definition_free(len_definition);
+	elem_definition->type->definition_free(elem_definition);
+	free_definition_scope(sequence->scope);
 	type_unref(sequence->p.type);
 	g_free(sequence);
 }

@@ -1,5 +1,5 @@
 /*
- * variant.c
+* variant.c
  *
  * BabelTrace - Variant Type Converter
  *
@@ -21,17 +21,17 @@
 #include <errno.h>
 
 static
-struct declaration *_variant_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope);
+struct definition *_variant_definition_new(struct type *type,
+				struct definition_scope *parent_scope);
 static
-void _variant_declaration_free(struct declaration *declaration);
+void _variant_definition_free(struct definition *definition);
 
 void variant_copy(struct stream_pos *dest, const struct format *fdest, 
 		  struct stream_pos *src, const struct format *fsrc,
-		  struct declaration *declaration)
+		  struct definition *definition)
 {
-	struct declaration_variant *variant =
-		container_of(declaration, struct declaration_variant, p);
+	struct definition_variant *variant =
+		container_of(definition, struct definition_variant, p);
 	struct type_variant *variant_type = variant->type;
 	struct field *field;
 	struct type *field_type;
@@ -40,8 +40,8 @@ void variant_copy(struct stream_pos *dest, const struct format *fdest,
 	fdest->variant_begin(dest, variant_type);
 
 	field = variant_get_current_field(variant);
-	field_type = field->declaration->type;
-	field_type->copy(dest, fdest, src, fsrc, field->declaration);
+	field_type = field->definition->type;
+	field_type->copy(dest, fdest, src, fsrc, field->definition);
 
 	fsrc->variant_end(src, variant_type);
 	fdest->variant_end(dest, variant_type);
@@ -86,28 +86,28 @@ struct type_variant *variant_type_new(const char *name,
 	type->alignment = 1;
 	type->copy = variant_copy;
 	type->type_free = _variant_type_free;
-	type->declaration_new = _variant_declaration_new;
-	type->declaration_free = _variant_declaration_free;
+	type->definition_new = _variant_definition_new;
+	type->definition_free = _variant_definition_free;
 	type->ref = 1;
 	return variant_type;
 }
 
 static
-struct declaration *
-	_variant_declaration_new(struct type *type,
-				 struct declaration_scope *parent_scope)
+struct definition *
+	_variant_definition_new(struct type *type,
+				struct definition_scope *parent_scope)
 {
 	struct type_variant *variant_type =
 		container_of(type, struct type_variant, p);
-	struct declaration_variant *variant;
+	struct definition_variant *variant;
 	unsigned long i;
 
-	variant = g_new(struct declaration_variant, 1);
+	variant = g_new(struct definition_variant, 1);
 	type_ref(&variant_type->p);
 	variant->p.type = type;
 	variant->type = variant_type;
 	variant->p.ref = 1;
-	variant->scope = new_declaration_scope(parent_scope);
+	variant->scope = new_definition_scope(parent_scope);
 	variant->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
@@ -120,8 +120,8 @@ struct declaration *
 						     struct field, i);
 
 		field->name = type_field->name;
-		field->declaration =
-			type_field->type->declaration_new(type_field->type,
+		field->definition =
+			type_field->type->definition_new(type_field->type,
 							  variant->scope);
 	}
 	variant->current_field = NULL;
@@ -129,19 +129,19 @@ struct declaration *
 }
 
 static
-void _variant_declaration_free(struct declaration *declaration)
+void _variant_definition_free(struct definition *definition)
 {
-	struct declaration_variant *variant =
-		container_of(declaration, struct declaration_variant, p);
+	struct definition_variant *variant =
+		container_of(definition, struct definition_variant, p);
 	unsigned long i;
 
 	assert(variant->fields->len == variant->type->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
 		struct field *field = &g_array_index(variant->fields,
 						     struct field, i);
-		declaration_unref(field->declaration);
+		definition_unref(field->definition);
 	}
-	free_declaration_scope(variant->scope);
+	free_definition_scope(variant->scope);
 	type_unref(variant->p.type);
 	g_free(variant);
 }
@@ -183,11 +183,11 @@ struct_type_get_field_from_tag(struct type_variant *variant_type, GQuark tag)
 /*
  * tag_instance is assumed to be an enumeration.
  */
-int variant_declaration_set_tag(struct declaration_variant *variant,
-				struct declaration *enum_tag)
+int variant_definition_set_tag(struct definition_variant *variant,
+			       struct definition *enum_tag)
 {
-	struct declaration_enum *_enum =
-		container_of(variant->enum_tag, struct declaration_enum, p);
+	struct definition_enum *_enum =
+		container_of(variant->enum_tag, struct definition_enum, p);
 	struct type_enum *enum_type = _enum->type;
 	int missing_field = 0;
 	unsigned long i;
@@ -229,10 +229,10 @@ int variant_declaration_set_tag(struct declaration_variant *variant,
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct field *variant_get_current_field(struct declaration_variant *variant)
+struct field *variant_get_current_field(struct definition_variant *variant)
 {
-	struct declaration_enum *_enum =
-		container_of(variant->enum_tag, struct declaration_enum, p);
+	struct definition_enum *_enum =
+		container_of(variant->enum_tag, struct definition_enum, p);
 	struct type_variant *variant_type = variant->type;
 	unsigned long index;
 	GArray *tag_array;

@@ -24,17 +24,17 @@
 #endif
 
 static
-struct declaration *_struct_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope);
+struct definition *_struct_definition_new(struct type *type,
+				struct definition_scope *parent_scope);
 static
-void _struct_declaration_free(struct declaration *declaration);
+void _struct_definition_free(struct definition *definition);
 
 void struct_copy(struct stream_pos *dest, const struct format *fdest, 
 		 struct stream_pos *src, const struct format *fsrc,
-		 struct declaration *declaration)
+		 struct definition *definition)
 {
-	struct declaration_struct *_struct =
-		container_of(declaration, struct declaration_struct, p);
+	struct definition_struct *_struct =
+		container_of(definition, struct definition_struct, p);
 	struct type_struct *struct_type = _struct->type;
 	unsigned long i;
 
@@ -44,9 +44,9 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		struct type *field_type = field->declaration->type;
+		struct type *field_type = field->definition->type;
 
-		field_type->copy(dest, fdest, src, fsrc, field->declaration);
+		field_type->copy(dest, fdest, src, fsrc, field->definition);
 
 	}
 	fsrc->struct_end(src, struct_type);
@@ -92,29 +92,29 @@ struct type_struct *struct_type_new(const char *name,
 	type->alignment = 1;
 	type->copy = struct_copy;
 	type->type_free = _struct_type_free;
-	type->declaration_new = _struct_declaration_new;
-	type->declaration_free = _struct_declaration_free;
+	type->definition_new = _struct_definition_new;
+	type->definition_free = _struct_definition_free;
 	type->ref = 1;
 	return struct_type;
 }
 
 static
-struct declaration *
-	_struct_declaration_new(struct type *type,
-				struct declaration_scope *parent_scope)
+struct definition *
+	_struct_definition_new(struct type *type,
+			       struct definition_scope *parent_scope)
 {
 	struct type_struct *struct_type =
 		container_of(type, struct type_struct, p);
-	struct declaration_struct *_struct;
+	struct definition_struct *_struct;
 	unsigned long i;
 	int ret;
 
-	_struct = g_new(struct declaration_struct, 1);
+	_struct = g_new(struct definition_struct, 1);
 	type_ref(&struct_type->p);
 	_struct->p.type = type;
 	_struct->type = struct_type;
 	_struct->p.ref = 1;
-	_struct->scope = new_declaration_scope(parent_scope);
+	_struct->scope = new_definition_scope(parent_scope);
 	_struct->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
@@ -127,30 +127,31 @@ struct declaration *
 						     struct field, i);
 
 		field->name = type_field->name;
-		field->declaration =
-			type_field->type->declaration_new(type_field->type,
+		field->definition =
+			type_field->type->definition_new(type_field->type,
 							  _struct->scope);
-		ret = register_declaration(field->name,
-					   field->declaration, _struct->scope);
+		ret = register_field_definition(field->name,
+						field->definition,
+						_struct->scope);
 		assert(!ret);
 	}
 	return &_struct->p;
 }
 
 static
-void _struct_declaration_free(struct declaration *declaration)
+void _struct_definition_free(struct definition *definition)
 {
-	struct declaration_struct *_struct =
-		container_of(declaration, struct declaration_struct, p);
+	struct definition_struct *_struct =
+		container_of(definition, struct definition_struct, p);
 	unsigned long i;
 
 	assert(_struct->fields->len == _struct->type->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
 						     struct field, i);
-		declaration_unref(field->declaration);
+		definition_unref(field->definition);
 	}
-	free_declaration_scope(_struct->scope);
+	free_definition_scope(_struct->scope);
 	type_unref(_struct->p.type);
 	g_free(_struct);
 }
@@ -205,7 +206,7 @@ struct type_field *
  * field returned only valid as long as the field structure is not appended to.
  */
 struct field *
-struct_declaration_get_field_from_index(struct declaration_struct *_struct,
+struct_definition_get_field_from_index(struct definition_struct *_struct,
 					unsigned long index)
 {
 	return &g_array_index(_struct->fields, struct field, index);
