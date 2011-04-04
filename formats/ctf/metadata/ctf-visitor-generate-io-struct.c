@@ -204,87 +204,80 @@ struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_
 }
 
 /*
- * Also add named variant, struct or enum to the current type scope.
+ * Also add named variant, struct or enum to the current declaration scope.
  */
 static
-struct ctf_type *ctf_type_specifier_visit(FILE *fd,
-					  int depth, struct list_head *head,
-					  struct type_scope *type_scope,
-					  struct definition_scope *definition_scope)
+struct ctf_declaration *ctf_declaration_specifier_visit(FILE *fd,
+		int depth, struct list_head *head,
+		struct declaration_scope *declaration_scope)
 {
-	struct ctf_type *type;
+	struct ctf_declaration *declaration;
 	struct node *first;
 
 	first = _cds_list_first_entry(head, struct node, siblings);
 
 	switch (first->type) {
 	case NODE_STRUCT:
-		/* For named struct (without body), lookup in type scope */
-		/* For named struct (with body), create type and add to type scope */
+		/*
+		 * For named struct (without body), lookup in
+		 * declaration scope and create declaration copy.
+		 */
+		/* For named struct (with body), create type and add to declaration scope */
 		/* For unnamed struct, create type */
 		break;
 	case NODE_VARIANT:
-		/* For named variant (without body), lookup in type scope */
-		/* For named variant (with body), create type and add to type scope */
+		/*
+		 * For named variant (without body), lookup in
+		 * declaration scope and create declaration copy.
+		 */
+		/* For named variant (with body), create type and add to declaration scope */
 		/* For unnamed variant, create type */
+		/* If variant has a tag field specifier, assign tag name. */
 		break;
 	case NODE_ENUM:
-		/* For named enum (without body), lookup in type scope */
-		/* For named enum (with body), create type and add to type scope */
+		/*
+		 * For named enum (without body), lookup in declaration
+		 * scope and create declaration copy.
+		 */
+		/* For named enum (with body), create type and add to declaration scope */
 		/* For unnamed enum, create type */
+		/* Enumerations need to have their size/type specifier (< >). */
 		break;
 	case NODE_INTEGER:
+		/*
+		 * Create an integer declaration.
+		 */
 		break;
 	case NODE_FLOATING_POINT:
+		/*
+		 * Create a floating point declaration.
+		 */
+		break;
+	case NODE_STRING:
+		/*
+		 * Create a string declaration.
+		 */
 		break;
 	case NODE_TYPE_SPECIFIER:
+		/*
+		 * Lookup named type in typedef declarations (in
+		 * declaration scope). Create a copy of the declaration.
+		 */
 		break;
 
 	}
-}
-
-static
-struct ctf_declaration *ctf_declaration_specifier_visit(FILE *fd,
-					int depth, struct list_head *head,
-					struct type_scope *type_scope,
-					struct definition_scope *definition_scope)
-{
-	struct ctf_declaration *declaration;
-	struct ctf_type *type;
-
-	type = ctf_type_specifier_visit(fd, depth, head, type_scope,
-					definition_scope);
-	declaration = type->declaration_new(type, definition_scope);
-	if (type->id == CTF_TYPE_VARIANT) {
-		struct declaration_variant *variant =
-			container_of(declaration, struct declaration_variant, p);
-		struct declaration *enum_tag =
-			lookup_field_declaration(enum_tag_name, definition_scope);
-		if (!enum_tag) {
-			fprintf(fd, "[error]: expected enumeration tag field %s for variant\n",
-				enum_tag_name);
-			goto error;
-		}
-		/* TODO find enum tag */
-		ret = variant_declaration_set_tag(variant, enum_tag);
-	}
-	return declaration;
-error:
-	declaration_unref(declaration);
-	type_unref(type);
-	return NULL;
 }
 
 static
 int ctf_typedef_declarator_visit(FILE *fd, int depth,
-				struct list_head *declaration_specifier,
-				struct node *type_declarator, struct type_scope *type_scope,
-				struct definition_scope *definition_scope)
+		struct list_head *declaration_specifier,
+		struct node *type_declarator,
+		struct declaration_scope *declaration_scope)
 {
 	/*
 	 * Build the type using declaration specifier (creating
 	 * declaration from type_specifier), then apply type declarator,
-	 * add the resulting type to the current type scope.
+	 * add the resulting type to the current declaration scope.
 	 */
 	cds_list_for_each_entry(iter, declaration_specifier, siblings) {
 
@@ -295,17 +288,16 @@ int ctf_typedef_declarator_visit(FILE *fd, int depth,
 
 static
 int ctf_typedef_visit(FILE *fd, int depth,
-		      struct list_head *declaration_specifier,
-		      struct list_head *type_declarators,
-		      struct type_scope *type_scope,
-		      struct definition_scope *definition_scope)
+		struct list_head *declaration_specifier,
+		struct list_head *type_declarators,
+		struct declaration_scope *declaration_scope)
 {
 	struct ctf_node *iter;
 
 	cds_list_for_each_entry(iter, type_declarators, siblings) {
 		ret = ctf_typedef_declarator_visit(fd, depth + 1,
 			&node->u._typedef.declaration_specifier, iter,
-			type_scope, definition_scope);
+			declaration_scope);
 		if (ret)
 			return ret;
 	}
@@ -314,13 +306,17 @@ int ctf_typedef_visit(FILE *fd, int depth,
 
 static
 int ctf_typealias_visit(FILE *fd, int depth, struct ctf_node *target,
-			struct ctf_node *alias, struct type_scope *type_scope,
-			struct definition_scope *definition_scope)
+		struct ctf_node *alias,
+		struct declaration_scope *declaration_scope)
 {
-	/* Build target type, check that it is reachable in current type scope. */
+	/*
+	 * Build target type, check that it is reachable in current
+	 * declaration scope.
+	 */
+
 	/* Only one type declarator is allowed */
 
-	/* Build alias type, add to current type scope. */
+	/* Build alias type, add to current declaration scope. */
 	/* Only one type declarator is allowed */
 }
 
@@ -334,14 +330,14 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		ret = ctf_typedef_visit(fd, depth + 1,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					event->type_scope, event->definition_scope);
+					event->declaration_scope);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
 				&node->u.typealias.target, &node->u.typealias.alias
-				event->type_scope, event->definition_scope);
+				event->declaration_scope);
 		if (ret)
 			return ret;
 		break;
@@ -398,11 +394,12 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					event->type_scope, event->definition_scope);
+					event->declaration_scope);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
+			/* TODO: definition */
 			event->context = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "fields")) {
 			struct declaration *declaration;
@@ -411,11 +408,12 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					event->type_scope, event->definition_scope);
+					event->declaration_scope);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
+			/* TODO: definition */
 			event->fields = container_of(declaration, struct declaration_struct, p);
 		}
 		free(left);
@@ -431,14 +429,14 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 
 static
 int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
-		    struct type_scope *parent_type_scope, struct ctf_trace *trace)
+		    struct declaration_scope *parent_declaration_scope, struct ctf_trace *trace)
 {
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_event *event;
 
 	event = g_new0(struct ctf_event, 1);
-	event->type_scope = new_type_scope(parent_type_scope);
+	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	cds_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
 		ret = ctf_event_declaration_visit(fd, depth + 1, iter, event, trace);
 		if (ret)
@@ -468,7 +466,7 @@ error:
 	declaration_unref(event->fields);
 	declaration_unref(event->context);
 	free_definition_scope(event->definition_scope);
-	free_type_scope(event->type_scope);
+	free_declaration_scope(event->declaration_scope);
 	g_free(event);
 	return ret;
 }
@@ -484,14 +482,14 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		ret = ctf_typedef_visit(fd, depth + 1,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					stream->type_scope, stream->definition_scope);
+					stream->declaration_scope);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
 				&node->u.typealias.target, &node->u.typealias.alias
-				stream->type_scope, stream->definition_scope);
+				stream->declaration_scope);
 		if (ret)
 			return ret;
 		break;
@@ -514,33 +512,36 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->type_scope, stream->definition_scope);
+					stream->declaration_scope, stream->definition_scope);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
+			/* TODO: definition */
 			stream->event_header = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "event_context")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->type_scope, stream->definition_scope);
+					stream->declaration_scope);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
+			/* TODO: definition */
 			stream->event_context = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "packet_context")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->type_scope, stream->definition_scope);
+					stream->declaration_scope);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
+			/* TODO: definition */
 			stream->packet_context = container_of(declaration, struct declaration_struct, p);
 		}
 		free(left);
@@ -556,14 +557,14 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 static
 int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
-		     struct type_scope *parent_type_scope, struct ctf_trace *trace)
+		     struct declaration_scope *parent_declaration_scope, struct ctf_trace *trace)
 {
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_stream *stream;
 
 	stream = g_new0(struct ctf_stream, 1);
-	stream->type_scope = new_type_scope(parent_type_scope);
+	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	stream->definition_scope = new_definition_scope(trace->definition_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_int_hash, g_int_equal);
@@ -588,7 +589,7 @@ error:
 	g_ptr_array_free(stream->events_by_id, TRUE);
 	g_hash_table_free(stream->event_quark_to_id);
 	free_definition_scope(stream->definition_scope);
-	free_type_scope(stream->type_scope);
+	free_declaration_scope(stream->declaration_scope);
 	g_free(stream);
 	return ret;
 }
@@ -603,14 +604,14 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		ret = ctf_typedef_visit(fd, depth + 1,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					trace->type_scope, trace->definition_scope);
+					trace->declaration_scope);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
 				&node->u.typealias.target, &node->u.typealias.alias
-				trace->type_scope, trace->definition_scope);
+				trace->declaration_scope);
 		if (ret)
 			return ret;
 		break;
@@ -674,9 +675,9 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	int ret = 0;
 	struct ctf_node *iter;
 
-	if (trace->type_scope)
+	if (trace->declaration_scope)
 		return -EEXIST;
-	trace->type_scope = new_type_scope(trace->root_type_scope);
+	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
 	trace->definition_scope = new_definition_scope(trace->root_definition_scope);
 	trace->streams = g_ptr_array_new();
 	cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
@@ -705,7 +706,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 error:
 	g_ptr_array_free(trace->streams, TRUE);
 	free_definition_scope(stream->definition_scope);
-	free_type_scope(stream->type_scope);
+	free_declaration_scope(stream->declaration_scope);
 	return ret;
 }
 
@@ -721,7 +722,7 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 			ret = ctf_typedef_visit(fd, depth + 1,
 						&iter->u._typedef.declaration_specifier,
 						&iter->u._typedef.type_declarators,
-						trace->type_scope, trace->definition_scope);
+						trace->declaration_scope);
 			if (ret)
 				return ret;
 		}
@@ -729,14 +730,13 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 					siblings) {
 			ret = ctf_typealias_visit(fd, depth + 1,
 					&iter->u.typealias.target, &iter->u.typealias.alias
-					trace->type_scope, trace->definition_scope);
+					trace->declaration_scope);
 			if (ret)
 				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
 			ret = ctf_declaration_specifier_visit(fd, depth, iter,
-					trace->root_type_scope,
-					trace->root_definition_scope);
+					trace->root_declaration_scope);
 			if (ret)
 				return ret;
 		}
@@ -747,13 +747,13 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 		}
 		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_stream_visit(fd, depth + 1, iter,
-		    			       trace->type_scope, trace);
+		    			       trace->declaration_scope, trace);
 			if (ret)
 				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			ret = ctf_event_visit(fd, depth + 1, iter,
-		    			      trace->type_scope, trace);
+		    			      trace->declaration_scope, trace);
 			if (ret)
 				return ret;
 		}
