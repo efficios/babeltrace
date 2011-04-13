@@ -877,6 +877,8 @@ keywords:
 		{	$$ = yylval.gs;		}
 	|	_COMPLEX
 		{	$$ = yylval.gs;		}
+	|	_IMAGINARY
+		{	$$ = yylval.gs;		}
 	|	FLOATING_POINT
 		{	$$ = yylval.gs;		}
 	|	INTEGER
@@ -1305,6 +1307,11 @@ type_specifier:
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_COMPLEX;
+		}
+	|	_IMAGINARY
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_IMAGINARY;
 		}
 	|	ID_TYPE
 		{

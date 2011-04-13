@@ -72,7 +72,10 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 		fprintf(fd, "bool");
 		break;
 	case TYPESPEC_COMPLEX:
-		fprintf(fd, "complex");
+		fprintf(fd, "_Complex");
+		break;
+	case TYPESPEC_IMAGINARY:
+		fprintf(fd, "_Imaginary");
 		break;
 	case TYPESPEC_CONST:
 		fprintf(fd, "const");

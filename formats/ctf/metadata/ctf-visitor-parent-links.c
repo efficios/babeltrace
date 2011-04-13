@@ -92,6 +92,7 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_UNSIGNED:
 	case TYPESPEC_BOOL:
 	case TYPESPEC_COMPLEX:
+	case TYPESPEC_IMAGINARY:
 	case TYPESPEC_CONST:
 	case TYPESPEC_ID_TYPE:
 		break;
