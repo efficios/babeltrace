@@ -72,17 +72,143 @@ struct definition *
 				   (gconstpointer) (unsigned long) field_name);
 }
 
-struct definition *
-	lookup_field_definition(GQuark field_name,
-		struct definition_scope *scope)
+/*
+ * Returns the index at which the paths differ.
+ * If the value returned equals len, it means the paths are identical
+ * from index 0 to len-1.
+ */
+static int compare_paths(GArray *a, GArray *b, int len)
 {
-	struct definition *definition;
+	int i;
+
+	assert(len <= a->len);
+	assert(len <= b->len);
+
+	for (i = 0; i < len; i++) {
+		GQuark qa, qb;
+
+		qa = g_array_index(a, GQuark, i);
+		qb = g_array_index(b, GQuark, i);
+		if (qa != qb)
+			return i;
+	}
+	return i;
+}
+
+static int is_path_child_of(GArray *path, GArray *maybe_parent)
+{
+	if (path->len <= maybe_parent->len)
+		return 0;
+	if (compare_paths(path, maybe_parent, maybe_parent->len)
+			== maybe_parent->len)
+		return 1;
+	else
+		return 0;
+}
+
+static struct definition_scope *
+	get_definition_scope(struct definition *definition)
+{
+	switch (definition->declaration->id) {
+	case CTF_TYPE_STRUCT:
+	{
+		struct definition_struct *def =
+			container_of(definition, struct definition_struct, p);
+		return def->scope;
+	}
+	case CTF_TYPE_VARIANT:
+	{
+		struct definition_variant *def =
+			container_of(definition, struct definition_variant, p);
+		return def->scope;
+	}
+	case CTF_TYPE_ARRAY:
+	{
+		struct definition_array *def =
+			container_of(definition, struct definition_array, p);
+		return def->scope;
+	}
+	case CTF_TYPE_SEQUENCE:
+	{
+		struct definition_sequence *def =
+			container_of(definition, struct definition_sequence, p);
+		return def->scope;
+	}
+
+	case CTF_TYPE_INTEGER:
+	case CTF_TYPE_FLOAT:
+	case CTF_TYPE_ENUM:
+	case CTF_TYPE_STRING:
+	case CTF_TYPE_UNKNOWN:
+	default:
+		return NULL;
+	}
+}
+
+/*
+ * OK, here is the fun. We want to lookup a field that is:
+ * - either in the current scope, but prior to the current field.
+ * - or in a parent scope (or parent of parent ...) still in a field
+ *   prior to the current field position within the parents.
+ * A reaching through a dynamic scoping (e.g. from payload structure to
+ * event header structure), the parent fields are always entirely prior
+ * to the child.
+ * If we cannot find such a field that is prior to our current path, we
+ * return NULL.
+ *
+ * cur_path: the path leading to the variant definition.
+ * lookup_path: the path leading to the enum we want to look for.
+ * scope: the definition scope containing the variant definition.
+ */
+struct definition *
+	lookup_definition(GArray *cur_path,
+			  GArray *lookup_path,
+			  struct definition_scope *scope)
+{
+	struct definition *definition, *lookup_definition;
+	GQuark last;
+	int index;
 
 	while (scope) {
-		definition = lookup_field_definition_scope(field_name, scope);
-		if (definition)
-			return definition;
-		scope = scope->parent_scope;
+		/* going up in the hierarchy. Check where we come from. */
+		assert(is_path_child_of(cur_path, scope->scope_path));
+		assert(cur_path->len - scope->scope_path->len == 1);
+		last = g_array_index(cur_path, GQuark, cur_path->len - 1);
+		definition = lookup_field_definition_scope(last, scope);
+		assert(definition);
+		index = definition->index;
+lookup:
+		if (is_path_child_of(lookup_path, scope->scope_path)) {
+			/* Means we can lookup the field in this scope */
+			last = g_array_index(lookup_path, GQuark,
+					     scope->scope_path->len);
+			lookup_definition = lookup_field_definition_scope(last, scope);
+			if (!lookup_definition || ((index != -1) && lookup_definition->index >= index))
+				return NULL;
+			/* Found it! And it is prior to the current field. */
+			if (lookup_path->len - scope->scope_path->len == 1) {
+				/* Direct child */
+				return lookup_definition;
+			} else {
+				scope = get_definition_scope(lookup_definition);
+				/* Check if the definition has a sub-scope */
+				if (!scope)
+					return NULL;
+				/*
+				 * Don't compare index anymore, because we are
+				 * going within a scope that has been validated
+				 * to be entirely prior to the current scope.
+				 */
+				cur_path = NULL;
+				index = -1;
+				goto lookup;
+			}
+		} else {
+			assert(index != -1);
+			/* lookup_path is within an upper scope */
+			cur_path = scope->scope_path;
+			scope = scope->parent_scope;
+		}
 	}
 	return NULL;
 }
@@ -281,19 +407,32 @@ int register_enum_declaration(GQuark enum_name,
 }
 
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope)
+	new_definition_scope(struct definition_scope *parent_scope,
+			     GQuark field_name)
 {
 	struct definition_scope *scope = g_new(struct definition_scope, 1);
+	int scope_path_len = 1;
 
 	scope->definitions = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) definition_unref);
 	scope->parent_scope = parent_scope;
+	if (scope->parent_scope)
+		scope_path_len += scope->parent_scope->scope_path->len;
+	scope->scope_path = g_array_sized_new(FALSE, TRUE, sizeof(GQuark),
+					      scope_path_len);
+	g_array_set_size(scope->scope_path, scope_path_len);
+	if (scope->parent_scope)
+		memcpy(scope->scope_path, scope->parent_scope->scope_path,
+		       sizeof(GQuark) * (scope_path_len - 1));
+	g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
+		field_name;
 	return scope;
 }
 
 void free_definition_scope(struct definition_scope *scope)
 {
+	g_array_free(scope->scope_path, TRUE);
 	g_hash_table_destroy(scope->definitions);
 	g_free(scope);
 }

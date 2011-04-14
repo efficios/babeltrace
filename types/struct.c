@@ -25,7 +25,8 @@
 
 static
 struct definition *_struct_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope);
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index);
 static
 void _struct_definition_free(struct definition *definition);
 
@@ -101,7 +102,8 @@ struct declaration_struct *struct_declaration_new(const char *name,
 static
 struct definition *
 	_struct_definition_new(struct declaration *declaration,
-			       struct definition_scope *parent_scope)
+			       struct definition_scope *parent_scope,
+			       GQuark field_name, int index)
 {
 	struct declaration_struct *struct_declaration =
 		container_of(declaration, struct declaration_struct, p);
@@ -114,7 +116,8 @@ struct definition *
 	_struct->p.declaration = declaration;
 	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
-	_struct->scope = new_definition_scope(parent_scope);
+	_struct->p.index = index;
+	_struct->scope = new_definition_scope(parent_scope, field_name);
 	_struct->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
@@ -129,7 +132,8 @@ struct definition *
 		field->name = declaration_field->name;
 		field->definition =
 			declaration_field->declaration->definition_new(declaration_field->declaration,
-							  _struct->scope);
+							  _struct->scope,
+							  field->name, i);
 		ret = register_field_definition(field->name,
 						field->definition,
 						_struct->scope);

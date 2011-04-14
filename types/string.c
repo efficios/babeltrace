@@ -22,7 +22,8 @@
 
 static
 struct definition *_string_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope);
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index);
 static
 void _string_definition_free(struct definition *definition);
 
@@ -72,7 +73,8 @@ struct declaration_string *string_declaration_new(const char *name)
 static
 struct definition *
 	_string_definition_new(struct declaration *declaration,
-			       struct definition_scope *parent_scope)
+			       struct definition_scope *parent_scope,
+			       GQuark field_name, int index)
 {
 	struct declaration_string *string_declaration =
 		container_of(declaration, struct declaration_string, p);
@@ -83,6 +85,7 @@ struct definition *
 	string->p.declaration = declaration;
 	string->declaration = string_declaration;
 	string->p.ref = 1;
+	string->p.index = index;
 	string->value = NULL;
 	return &string->p;
 }

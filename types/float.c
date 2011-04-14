@@ -21,7 +21,8 @@
 
 static
 struct definition *_float_definition_new(struct declaration *declaration,
-				   struct definition_scope *parent_scope);
+				   struct definition_scope *parent_scope,
+				   GQuark field_name, int index);
 static
 void _float_definition_free(struct definition *definition);
 
@@ -88,7 +89,8 @@ struct declaration_float *
 static
 struct definition *
 	_float_definition_new(struct declaration *declaration,
-			      struct definition_scope *parent_scope)
+			      struct definition_scope *parent_scope,
+			      GQuark field_name, int index)
 {
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
@@ -96,9 +98,10 @@ struct definition *
 
 	_float = g_new(struct definition_float, 1);
 	declaration_ref(&float_declaration->p);
-	_float->p.declaration= declaration;
-	_float->declaration= float_declaration;
+	_float->p.declaration = declaration;
+	_float->declaration = float_declaration;
 	_float->p.ref = 1;
+	_float->p.index = index;
 	_float->value = 0.0;
 	return &_float->p;
 }

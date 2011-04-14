@@ -23,7 +23,8 @@
 
 static
 struct definition *_enum_definition_new(struct declaration *declaration,
-					struct definition_scope *parent_scope);
+					struct definition_scope *parent_scope,
+					GQuark field_name, int index);
 static
 void _enum_definition_free(struct definition *definition);
 
@@ -421,7 +422,8 @@ struct declaration_enum *
 static
 struct definition *
 	_enum_definition_new(struct declaration *declaration,
-			     struct definition_scope *parent_scope)
+			     struct definition_scope *parent_scope,
+			     GQuark field_name, int index)
 {
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
@@ -433,10 +435,11 @@ struct definition *
 	_enum->p.declaration = declaration;
 	_enum->declaration = enum_declaration;
 	_enum->p.ref = 1;
+	_enum->p.index = index;
 	_enum->value = NULL;
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,
-							   parent_scope);
+					parent_scope, field_name, 0);
 	_enum->integer = container_of(definition_integer_parent,
 				      struct definition_integer, p);
 	return &_enum->p;

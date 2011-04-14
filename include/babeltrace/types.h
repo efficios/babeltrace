@@ -105,6 +105,12 @@ struct definition_scope {
 	/* Hash table mapping field name GQuark to "struct definition" */
 	GHashTable *definitions;
 	struct definition_scope *parent_scope;
+	/*
+	 * Complete "path" leading to this definition scope.
+	 * Includes trace/stream/event '.' field name '.' field name '.' ....
+	 * Array of GQuark elements (which are each separated by dots).
+	 */
+	GArray *scope_path;	/* array of GQuark */
 };
 
 enum ctf_type_id {
@@ -131,7 +137,8 @@ struct declaration {
 	void (*declaration_free)(struct declaration *declaration);
 	struct definition *
 		(*definition_new)(struct declaration *declaration,
-				  struct definition_scope *parent_scope);
+				  struct definition_scope *parent_scope,
+				  GQuark field_name, int index);
 	/*
 	 * definition_free called with definition ref is decremented to 0.
 	 */
@@ -147,6 +154,7 @@ struct declaration {
 
 struct definition {
 	struct declaration *declaration;
+	int index;		/* Position of the definition in its container */
 	int ref;		/* number of references to the definition */
 };
 
@@ -360,13 +368,15 @@ void free_declaration_scope(struct declaration_scope *scope);
  * definition scopes.
  */
 struct definition *
-	lookup_field_definition(GQuark field_name,
-				struct definition_scope *scope);
+	lookup_definition(GArray *cur_path,	/* array of GQuark */
+			  GArray *lookup_path,	/* array of GQuark */
+			  struct definition_scope *scope);
 int register_field_definition(GQuark field_name,
 			      struct definition *definition,
 			      struct definition_scope *scope);
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope);
+	new_definition_scope(struct definition_scope *parent_scope,
+			     GQuark field_name);
 void free_definition_scope(struct definition_scope *scope);
 
 void declaration_ref(struct declaration *declaration);

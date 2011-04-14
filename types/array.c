@@ -21,7 +21,8 @@
 
 static
 struct definition *_array_definition_new(struct declaration *declaration,
-			struct definition_scope *parent_scope);
+			struct definition_scope *parent_scope,
+			GQuark field_name, int index);
 static
 void _array_definition_free(struct definition *definition);
 
@@ -85,7 +86,8 @@ struct declaration_array *
 static
 struct definition *
 	_array_definition_new(struct declaration *declaration,
-			      struct definition_scope *parent_scope)
+			      struct definition_scope *parent_scope,
+			      GQuark field_name, int index)
 {
 	struct declaration_array *array_declaration =
 		container_of(declaration, struct declaration_array, p);
@@ -96,10 +98,13 @@ struct definition *
 	array->p.declaration = declaration;
 	array->declaration = array_declaration;
 	array->p.ref = 1;
-	array->scope = new_definition_scope(parent_scope);
+	array->p.index = index;
+	array->scope = new_definition_scope(parent_scope, field_name);
 	array->current_element.definition =
 		array_declaration->elem->definition_new(array_declaration->elem,
-						  parent_scope);
+					  parent_scope,
+					  g_quark_from_static_string("[]"),
+					  0);
 	return &array->p;
 }
 

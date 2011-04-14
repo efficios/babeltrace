@@ -23,7 +23,8 @@
 
 static
 struct definition *_integer_definition_new(struct declaration *declaration,
-			       struct definition_scope *parent_scope);
+			       struct definition_scope *parent_scope,
+			       GQuark field_name, int index);
 static
 void _integer_definition_free(struct definition *definition);
 
@@ -80,7 +81,8 @@ struct declaration_integer *
 static
 struct definition *
 	_integer_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope)
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index)
 {
 	struct declaration_integer *integer_declaration =
 		container_of(declaration, struct declaration_integer, p);
@@ -91,6 +93,7 @@ struct definition *
 	integer->p.declaration = declaration;
 	integer->declaration = integer_declaration;
 	integer->p.ref = 1;
+	integer->p.index = index;
 	integer->value._unsigned = 0;
 	return &integer->p;
 }

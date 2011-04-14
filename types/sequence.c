@@ -25,7 +25,8 @@
 
 static
 struct definition *_sequence_definition_new(struct declaration *declaration,
-					struct definition_scope *parent_scope);
+					struct definition_scope *parent_scope,
+					GQuark field_name, int index);
 static
 void _sequence_definition_free(struct definition *definition);
 
@@ -94,7 +95,8 @@ struct declaration_sequence *
 
 static
 struct definition *_sequence_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope)
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index)
 {
 	struct declaration_sequence *sequence_declaration =
 		container_of(declaration, struct declaration_sequence, p);
@@ -106,14 +108,17 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	sequence->p.declaration = declaration;
 	sequence->declaration = sequence_declaration;
 	sequence->p.ref = 1;
-	sequence->scope = new_definition_scope(parent_scope);
+	sequence->p.index = index;
+	sequence->scope = new_definition_scope(parent_scope, field_name);
 	len_parent = sequence_declaration->len_declaration->p.definition_new(&sequence_declaration->len_declaration->p,
-								parent_scope);
+				parent_scope,
+				g_quark_from_static_string("length"), 0);
 	sequence->len =
 		container_of(len_parent, struct definition_integer, p);
 	sequence->current_element.definition =
 		sequence_declaration->elem->definition_new(sequence_declaration->elem,
-						     parent_scope);
+				parent_scope,
+				g_quark_from_static_string("[]"), 1);
 	return &sequence->p;
 }
 

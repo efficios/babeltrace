@@ -22,7 +22,8 @@
 
 static
 struct definition *_variant_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope);
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index);
 static
 void _variant_definition_free(struct definition *definition);
 
@@ -95,7 +96,8 @@ struct declaration_variant *variant_declaration_new(const char *name,
 static
 struct definition *
 	_variant_definition_new(struct declaration *declaration,
-				struct definition_scope *parent_scope)
+				struct definition_scope *parent_scope,
+				GQuark field_name, int index)
 {
 	struct declaration_variant *variant_declaration =
 		container_of(declaration, struct declaration_variant, p);
@@ -107,7 +109,8 @@ struct definition *
 	variant->p.declaration = declaration;
 	variant->declaration = variant_declaration;
 	variant->p.ref = 1;
-	variant->scope = new_definition_scope(parent_scope);
+	variant->p.index = index;
+	variant->scope = new_definition_scope(parent_scope, field_name);
 	variant->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
 					    DEFAULT_NR_STRUCT_FIELDS);
@@ -120,9 +123,14 @@ struct definition *
 						     struct field, i);
 
 		field->name = declaration_field->name;
+		/*
+		 * All child definition are at index 0, because they are
+		 * various choices of the same field.
+		 */
 		field->definition =
 			declaration_field->declaration->definition_new(declaration_field->declaration,
-							  variant->scope);
+							  variant->scope,
+							  field->name, 0);
 	}
 	variant->current_field = NULL;
 	return &variant->p;
