@@ -147,12 +147,17 @@ static struct definition_scope *
 
 /*
  * OK, here is the fun. We want to lookup a field that is:
- * - either in the current scope, but prior to the current field.
- * - or in a parent scope (or parent of parent ...) still in a field
- *   prior to the current field position within the parents.
- * A reaching through a dynamic scoping (e.g. from payload structure to
- * event header structure), the parent fields are always entirely prior
- * to the child.
+ * - either in the same dynamic scope:
+ *   - either in the current scope, but prior to the current field.
+ *   - or in a parent scope (or parent of parent ...) still in a field
+ *     prior to the current field position within the parents.
+ * - or in a different dynamic scope:
+ *   - either in a upper dynamic scope (walk down a targeted scope from
+ *     the dynamic scope root)
+ *   - or in a lower dynamic scope (failure)
+ * The dynamic scope roots are linked together, so we can access the
+ * parent dynamic scope from the child dynamic scope by walking up to
+ * the parent.
  * If we cannot find such a field that is prior to our current path, we
  * return NULL.
  *
@@ -406,27 +411,51 @@ int register_enum_declaration(GQuark enum_name,
 	return 0;
 }
 
-struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope,
-			     GQuark field_name)
+static struct definition_scope *
+	_new_definition_scope(struct definition_scope *parent_scope,
+			      int scope_path_len)
 {
 	struct definition_scope *scope = g_new(struct definition_scope, 1);
-	int scope_path_len = 1;
 
 	scope->definitions = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) definition_unref);
 	scope->parent_scope = parent_scope;
-	if (scope->parent_scope)
-		scope_path_len += scope->parent_scope->scope_path->len;
 	scope->scope_path = g_array_sized_new(FALSE, TRUE, sizeof(GQuark),
 					      scope_path_len);
 	g_array_set_size(scope->scope_path, scope_path_len);
-	if (scope->parent_scope)
-		memcpy(scope->scope_path, scope->parent_scope->scope_path,
+	return scope;
+}
+
+struct definition_scope *
+	new_definition_scope(struct definition_scope *parent_scope,
+			     GQuark field_name)
+{
+	struct definition_scope *scope;
+	int scope_path_len = 1;
+
+	if (parent_scope)
+		scope_path_len += parent_scope->scope_path->len;
+	scope = _new_definition_scope(parent_scope, scope_path_len);
+	if (parent_scope)
+		memcpy(scope->scope_path, parent_scope->scope_path,
 		       sizeof(GQuark) * (scope_path_len - 1));
 	g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
 		field_name;
+	return scope;
+}
+
+/*
+ * Same as new_definition_scope, but reset the scope path.
+ */
+struct definition_scope *
+	new_dynamic_definition_scope(struct definition_scope *parent_scope,
+				     GQuark field_name)
+{
+	struct definition_scope *scope;
+
+	scope = _new_definition_scope(parent_scope, 1);
+	g_array_index(scope->scope_path, GQuark, 0) = field_name;
 	return scope;
 }
 

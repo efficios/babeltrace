@@ -384,7 +384,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				fprintf(stderr, "[error] %s: stream id %" PRIu64 " cannot be found\n", __func__, event->stream_id);
 				return -EINVAL;
 			}
-			event->definition_scope = new_definition_scope(stream->definition_scope);
+			event->definition_scope = new_dynamic_definition_scope(stream->definition_scope);
 			if (!event->definition_scope) {
 				fprintf(stderr, "[error] %s: Error allocating declaration scope\n", __func__);
 				return -EPERM;
@@ -402,8 +402,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
-			/* TODO: definition */
-			event->context = container_of(declaration, struct declaration_struct, p);
+			event->context_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "fields")) {
 			struct declaration *declaration;
 
@@ -416,8 +415,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
-			/* TODO: definition */
-			event->fields = container_of(declaration, struct declaration_struct, p);
+			event->fields_decl = container_of(declaration, struct declaration_struct, p);
 		}
 		free(left);
 		break;
@@ -437,6 +435,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_event *event;
+	struct definition_scope *parent_def_scope;
 
 	event = g_new0(struct ctf_event, 1);
 	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
@@ -463,11 +462,30 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	g_hash_table_insert(event->stream->event_quark_to_id,
 			    (gpointer)(unsigned long) event->name,
 			    &event->id);
+	parent_def_scope = event->definition_scope;
+	if (event->context_decl) {
+		event->context =
+			event->context_decl->definition_new(event->context_decl,
+				parent_def_scope,
+				g_quark_from_string("event.context"),
+				MAX_INT);
+		parent_def_scope = event->context->scope;
+		declaration_unref(event->context_decl);
+	}
+	if (event->fields_decl) {
+		event->fields =
+			event->fields_decl->definition_new(event->fields_decl,
+				parent_def_scope,
+				g_quark_from_string("event.fields"),
+				MAX_INT);
+		parent_def_scope = event->fields->scope;
+		declaration_unref(event->fields_decl);
+	}
 	return 0;
 
 error:
-	declaration_unref(event->fields);
-	declaration_unref(event->context);
+	declaration_unref(event->fields_decl);
+	declaration_unref(event->context_decl);
 	free_definition_scope(event->definition_scope);
 	free_declaration_scope(event->declaration_scope);
 	g_free(event);
@@ -510,7 +528,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EINVAL;
 			}
 			CTF_EVENT_SET_FIELD(event, stream_id);
-		} else if (!strcmp(left, "event_header")) {
+		} else if (!strcmp(left, "event.header")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
@@ -520,9 +538,8 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
-			/* TODO: definition */
-			stream->event_header = container_of(declaration, struct declaration_struct, p);
-		} else if (!strcmp(left, "event_context")) {
+			stream->event_header_decl = container_of(declaration, struct declaration_struct, p);
+		} else if (!strcmp(left, "event.context")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
@@ -532,9 +549,8 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
-			/* TODO: definition */
-			stream->event_context = container_of(declaration, struct declaration_struct, p);
-		} else if (!strcmp(left, "packet_context")) {
+			stream->event_context_decl = container_of(declaration, struct declaration_struct, p);
+		} else if (!strcmp(left, "packet.context")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
@@ -544,8 +560,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
 				return -EPERM;
-			/* TODO: definition */
-			stream->packet_context = container_of(declaration, struct declaration_struct, p);
+			stream->packet_context_decl = container_of(declaration, struct declaration_struct, p);
 		}
 		free(left);
 		break;
@@ -565,10 +580,11 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_stream *stream;
+	struct definition_scope *parent_def_scope;
 
 	stream = g_new0(struct ctf_stream, 1);
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
-	stream->definition_scope = new_definition_scope(trace->definition_scope);
+	stream->definition_scope = new_dynamic_definition_scope(trace->definition_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_int_hash, g_int_equal);
 	cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
@@ -583,6 +599,36 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	if (trace->streams->len <= stream->stream_id)
 		g_ptr_array_set_size(trace->streams, stream->stream_id + 1);
 	g_ptr_array_index(trace->streams, stream->stream_id) = stream;
+
+	parent_def_scope = stream->definition_scope;
+	if (stream->packet_context_decl) {
+		stream->packet_context =
+			stream->packet_context_decl->definition_new(stream->packet_context_decl,
+				parent_def_scope,
+				g_quark_from_string("stream.packet.context"),
+				MAX_INT);
+		parent_def_scope = stream->packet_context->scope;
+		declaration_unref(stream->packet_context_decl);
+	}
+	if (stream->event_header_decl) {
+		stream->event_header =
+			stream->event_header_decl->definition_new(stream->event_header_decl,
+				parent_def_scope,
+				g_quark_from_string("stream.event.header"),
+				MAX_INT);
+		parent_def_scope = stream->event_header->scope;
+		declaration_unref(stream->event_header_decl);
+	}
+	if (stream->event_context_decl) {
+		stream->event_context =
+			stream->event_context_decl->definition_new(stream->event_context_decl,
+				parent_def_scope,
+				g_quark_from_string("stream.event.context"),
+				MAX_INT);
+		parent_def_scope = stream->event_context->scope;
+		declaration_unref(stream->event_context_decl);
+	}
+
 	return 0;
 
 error:
@@ -681,7 +727,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (trace->declaration_scope)
 		return -EEXIST;
 	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
-	trace->definition_scope = new_definition_scope(trace->root_definition_scope);
+	trace->definition_scope = new_dynamic_definition_scope(trace->root_definition_scope);
 	trace->streams = g_ptr_array_new();
 	cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 		ret = ctf_trace_declaration_visit(fd, depth + 1, iter, trace);

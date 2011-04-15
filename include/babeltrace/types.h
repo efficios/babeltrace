@@ -107,8 +107,11 @@ struct definition_scope {
 	struct definition_scope *parent_scope;
 	/*
 	 * Complete "path" leading to this definition scope.
-	 * Includes trace/stream/event '.' field name '.' field name '.' ....
+	 * Includes dynamic scope name '.' field name '.' field name '.' ....
 	 * Array of GQuark elements (which are each separated by dots).
+	 * The dynamic scope name can contain dots, and is encoded into
+	 * a single GQuark. Thus, scope_path[0] returns the GQuark
+	 * identifying the dynamic scope.
 	 */
 	GArray *scope_path;	/* array of GQuark */
 };
@@ -377,6 +380,9 @@ int register_field_definition(GQuark field_name,
 struct definition_scope *
 	new_definition_scope(struct definition_scope *parent_scope,
 			     GQuark field_name);
+struct definition_scope *
+	new_dynamic_definition_scope(struct definition_scope *parent_scope,
+				     GQuark field_name);
 void free_definition_scope(struct definition_scope *scope);
 
 void declaration_ref(struct declaration *declaration);
