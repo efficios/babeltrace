@@ -515,7 +515,8 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		event->context =
 			event->context_decl->definition_new(event->context_decl,
 				parent_def_scope, 0, 0);
-		set_dynamic_definition_scope(event->context->scope,
+		set_dynamic_definition_scope(&event->context->p,
+					     event->context->scope,
 					     g_quark_from_string("event.context"));
 		parent_def_scope = event->context->scope;
 		declaration_unref(event->context_decl);
@@ -524,7 +525,8 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		event->fields =
 			event->fields_decl->definition_new(event->fields_decl,
 				parent_def_scope, 0, 0);
-		set_dynamic_definition_scope(event->fields->scope,
+		set_dynamic_definition_scope(&event->fields->p,
+					     event->fields->scope,
 					     g_quark_from_string("event.fields"));
 		parent_def_scope = event->fields->scope;
 		declaration_unref(event->fields_decl);
@@ -652,7 +654,8 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		stream->packet_context =
 			stream->packet_context_decl->definition_new(stream->packet_context_decl,
 				parent_def_scope, 0, 0);
-		set_dynamic_definition_scope(stream->packet_context->scope,
+		set_dynamic_definition_scope(&stream->packet_context->p,
+					     stream->packet_context->scope,
 					     g_quark_from_string("stream.packet.context"));
 		parent_def_scope = stream->packet_context->scope;
 		declaration_unref(stream->packet_context_decl);
@@ -661,7 +664,8 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		stream->event_header =
 			stream->event_header_decl->definition_new(stream->event_header_decl,
 				parent_def_scope, 0, 0);
-		set_dynamic_definition_scope(stream->event_header->scope,
+		set_dynamic_definition_scope(&stream->event_header->p,
+					     stream->event_header->scope,
 					     g_quark_from_string("stream.event.header"));
 		parent_def_scope = stream->event_header->scope;
 		declaration_unref(stream->event_header_decl);
@@ -670,7 +674,8 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		stream->event_context =
 			stream->event_context_decl->definition_new(stream->event_context_decl,
 				parent_def_scope, 0, 0);
-		set_dynamic_definition_scope(stream->event_context_scope,
+		set_dynamic_definition_scope(&stream->event_context->p,
+					     stream->event_context->scope,
 					     g_quark_from_string("stream.event.context"));
 		parent_def_scope = stream->event_context->scope;
 		declaration_unref(stream->event_context_decl);

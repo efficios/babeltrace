@@ -19,6 +19,7 @@
  */
 
 #include <babeltrace/format.h>
+#include <limits.h>
 #include <glib.h>
 #include <errno.h>
 
@@ -445,11 +446,17 @@ struct definition_scope *
 	return scope;
 }
 
-void set_dynamic_definition_scope(struct definition_scope *scope,
+void set_dynamic_definition_scope(struct definition *definition,
+				  struct definition_scope *scope,
 				  GQuark root_name)
 {
 	g_array_set_size(scope->scope_path, 1);
 	g_array_index(scope->scope_path, GQuark, 0) = root_name;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	definition->index = INT_MAX;
 }
 
 void free_definition_scope(struct definition_scope *scope)
