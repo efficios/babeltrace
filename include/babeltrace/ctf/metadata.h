@@ -47,11 +47,8 @@ struct ctf_event;
 struct ctf_trace {
 	/* root scope */
 	struct declaration_scope *root_declaration_scope;
-	/* root scope */
-	struct definition_scope *root_definition_scope;
 
 	struct declaration_scope *declaration_scope;
-	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
 
 	uint64_t major;
@@ -86,7 +83,7 @@ struct ctf_stream {
 	struct ctf_trace *trace;
 	/* parent is lexical scope conaining the stream scope */
 	struct declaration_scope *declaration_scope;
-	/* parent is trace scope */
+	/* innermost definition scope. to be used as parent of event. */
 	struct definition_scope *definition_scope;
 	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
 	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
@@ -127,8 +124,6 @@ struct ctf_event {
 	struct ctf_stream *stream;
 	/* parent is lexical scope conaining the event scope */
 	struct declaration_scope *declaration_scope;
-	/* parent is stream scope */
-	struct definition_scope *definition_scope;
 
 	/* Declarations only used when parsing */
 	struct declaration_struct *context_decl;

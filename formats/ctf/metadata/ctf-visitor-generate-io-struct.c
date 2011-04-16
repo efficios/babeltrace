@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <babeltrace/list.h>
+#include <uuid/uuid.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -178,24 +179,76 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 }
 
 /*
- * String returned must be freed by the caller.
+ * String returned must be freed by the caller using g_free.
  */
 static
 char *concatenate_unary_strings(struct list_head *head)
 {
+	struct ctf_node *node;
+	GString *str;
+	int i = 0;
 
+	str = g_string_new();
+	cds_list_for_each_entry(node, head, siblings) {
+		char *src_string;
+
+		assert(node->type == NODE_UNARY_EXPRESSION);
+		assert(node->u.unary_expression.type == UNARY_STRING);
+		assert((node->u.unary_expression.link == UNARY_LINK_UNKNOWN)
+			^ (i != 0))
+		switch (node->u.unary_expression.link) {
+		case UNARY_DOTLINK:
+			g_string_append(str, ".")
+			break;
+		case UNARY_ARROWLINK:
+			g_string_append(str, "->")
+			break;
+		case UNARY_DOTDOTDOT:
+			g_string_append(str, "...")
+			break;
+		}
+		src_string = u.unary_expression.u.string;
+		g_string_append(str, src_string);
+		i++;
+	}
+	return g_string_free(str, FALSE);
 }
 
 static
 int get_unary_unsigned(struct list_head *head, uint64_t *value)
 {
+	struct ctf_node *node;
+	int i = 0;
 
+	cds_list_for_each_entry(node, head, siblings) {
+		assert(node->type == NODE_UNARY_EXPRESSION);
+		assert(node->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT);
+		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
+		assert(i == 0);
+		*value = node->u.unary_expression.unsigned_constant
+		i++;
+	}
+	return 0;
 }
 
 static
 int get_unary_uuid(struct list_head *head, uuid_t *uuid)
 {
+	struct ctf_node *node;
+	int i = 0;
+	int ret = -1;
 
+	cds_list_for_each_entry(node, head, siblings) {
+		const char *src_string;
+
+		assert(node->type == NODE_UNARY_EXPRESSION);
+		assert(node->u.unary_expression.type == UNARY_STRING);
+		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
+		assert(i == 0);
+		src_string = u.unary_expression.u.string;
+		ret = uuid_parse(u.unary_expression.u.string, *uuid);
+	}
+	return ret;
 }
 
 static
@@ -360,7 +413,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EINVAL;
 			}
 			event->name = g_quark_from_string(right);
-			free(right);
+			g_free(right);
 			CTF_EVENT_SET_FIELD(event, name);
 		} else if (!strcmp(left, "id")) {
 			if (CTF_EVENT_FIELD_IS_SET(event, id))
@@ -383,11 +436,6 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			if (!event->stream) {
 				fprintf(stderr, "[error] %s: stream id %" PRIu64 " cannot be found\n", __func__, event->stream_id);
 				return -EINVAL;
-			}
-			event->definition_scope = new_dynamic_definition_scope(stream->definition_scope);
-			if (!event->definition_scope) {
-				fprintf(stderr, "[error] %s: Error allocating declaration scope\n", __func__);
-				return -EPERM;
 			}
 			CTF_EVENT_SET_FIELD(event, stream_id);
 		} else if (!strcmp(left, "context")) {
@@ -417,7 +465,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			event->fields_decl = container_of(declaration, struct declaration_struct, p);
 		}
-		free(left);
+		g_free(left);
 		break;
 	}
 	default:
@@ -462,22 +510,22 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	g_hash_table_insert(event->stream->event_quark_to_id,
 			    (gpointer)(unsigned long) event->name,
 			    &event->id);
-	parent_def_scope = event->definition_scope;
+	parent_def_scope = stream->definition_scope;
 	if (event->context_decl) {
 		event->context =
 			event->context_decl->definition_new(event->context_decl,
-				parent_def_scope,
-				g_quark_from_string("event.context"),
-				MAX_INT);
+				parent_def_scope, 0, 0);
+		set_dynamic_definition_scope(event->context->scope,
+					     g_quark_from_string("event.context"));
 		parent_def_scope = event->context->scope;
 		declaration_unref(event->context_decl);
 	}
 	if (event->fields_decl) {
 		event->fields =
 			event->fields_decl->definition_new(event->fields_decl,
-				parent_def_scope,
-				g_quark_from_string("event.fields"),
-				MAX_INT);
+				parent_def_scope, 0, 0);
+		set_dynamic_definition_scope(event->fields->scope,
+					     g_quark_from_string("event.fields"));
 		parent_def_scope = event->fields->scope;
 		declaration_unref(event->fields_decl);
 	}
@@ -562,7 +610,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EPERM;
 			stream->packet_context_decl = container_of(declaration, struct declaration_struct, p);
 		}
-		free(left);
+		g_free(left);
 		break;
 	}
 	default:
@@ -584,7 +632,6 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 
 	stream = g_new0(struct ctf_stream, 1);
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
-	stream->definition_scope = new_dynamic_definition_scope(trace->definition_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_int_hash, g_int_equal);
 	cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
@@ -600,34 +647,35 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		g_ptr_array_set_size(trace->streams, stream->stream_id + 1);
 	g_ptr_array_index(trace->streams, stream->stream_id) = stream;
 
-	parent_def_scope = stream->definition_scope;
+	parent_def_scope = NULL;
 	if (stream->packet_context_decl) {
 		stream->packet_context =
 			stream->packet_context_decl->definition_new(stream->packet_context_decl,
-				parent_def_scope,
-				g_quark_from_string("stream.packet.context"),
-				MAX_INT);
+				parent_def_scope, 0, 0);
+		set_dynamic_definition_scope(stream->packet_context->scope,
+					     g_quark_from_string("stream.packet.context"));
 		parent_def_scope = stream->packet_context->scope;
 		declaration_unref(stream->packet_context_decl);
 	}
 	if (stream->event_header_decl) {
 		stream->event_header =
 			stream->event_header_decl->definition_new(stream->event_header_decl,
-				parent_def_scope,
-				g_quark_from_string("stream.event.header"),
-				MAX_INT);
+				parent_def_scope, 0, 0);
+		set_dynamic_definition_scope(stream->event_header->scope,
+					     g_quark_from_string("stream.event.header"));
 		parent_def_scope = stream->event_header->scope;
 		declaration_unref(stream->event_header_decl);
 	}
 	if (stream->event_context_decl) {
 		stream->event_context =
 			stream->event_context_decl->definition_new(stream->event_context_decl,
-				parent_def_scope,
-				g_quark_from_string("stream.event.context"),
-				MAX_INT);
+				parent_def_scope, 0, 0);
+		set_dynamic_definition_scope(stream->event_context_scope,
+					     g_quark_from_string("stream.event.context"));
 		parent_def_scope = stream->event_context->scope;
 		declaration_unref(stream->event_context_decl);
 	}
+	stream->definition_scope = parent_def_scope;
 
 	return 0;
 
@@ -706,7 +754,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_EVENT_SET_FIELD(trace, uuid);
 		}
-		free(left);
+		g_free(left);
 		break;
 	}
 	default:
@@ -796,13 +844,13 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 		}
 		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_stream_visit(fd, depth + 1, iter,
-		    			       trace->declaration_scope, trace);
+		    			       trace->root_declaration_scope, trace);
 			if (ret)
 				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			ret = ctf_event_visit(fd, depth + 1, iter,
-		    			      trace->declaration_scope, trace);
+		    			      trace->root_declaration_scope, trace);
 			if (ret)
 				return ret;
 		}

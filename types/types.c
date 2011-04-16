@@ -445,18 +445,11 @@ struct definition_scope *
 	return scope;
 }
 
-/*
- * Same as new_definition_scope, but reset the scope path.
- */
-struct definition_scope *
-	new_dynamic_definition_scope(struct definition_scope *parent_scope,
-				     GQuark field_name)
+void set_dynamic_definition_scope(struct definition_scope *scope,
+				  GQuark root_name)
 {
-	struct definition_scope *scope;
-
-	scope = _new_definition_scope(parent_scope, 1);
-	g_array_index(scope->scope_path, GQuark, 0) = field_name;
-	return scope;
+	g_array_set_size(scope->scope_path, 1);
+	g_array_index(scope->scope_path, GQuark, 0) = root_name;
 }
 
 void free_definition_scope(struct definition_scope *scope)
