@@ -517,7 +517,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 				parent_def_scope, 0, 0);
 		set_dynamic_definition_scope(&event->context->p,
 					     event->context->scope,
-					     g_quark_from_string("event.context"));
+					     "event.context");
 		parent_def_scope = event->context->scope;
 		declaration_unref(event->context_decl);
 	}
@@ -527,7 +527,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 				parent_def_scope, 0, 0);
 		set_dynamic_definition_scope(&event->fields->p,
 					     event->fields->scope,
-					     g_quark_from_string("event.fields"));
+					     "event.fields");
 		parent_def_scope = event->fields->scope;
 		declaration_unref(event->fields_decl);
 	}
@@ -656,7 +656,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 				parent_def_scope, 0, 0);
 		set_dynamic_definition_scope(&stream->packet_context->p,
 					     stream->packet_context->scope,
-					     g_quark_from_string("stream.packet.context"));
+					     "stream.packet.context");
 		parent_def_scope = stream->packet_context->scope;
 		declaration_unref(stream->packet_context_decl);
 	}
@@ -666,7 +666,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 				parent_def_scope, 0, 0);
 		set_dynamic_definition_scope(&stream->event_header->p,
 					     stream->event_header->scope,
-					     g_quark_from_string("stream.event.header"));
+					     "stream.event.header");
 		parent_def_scope = stream->event_header->scope;
 		declaration_unref(stream->event_header_decl);
 	}
@@ -676,7 +676,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 				parent_def_scope, 0, 0);
 		set_dynamic_definition_scope(&stream->event_context->p,
 					     stream->event_context->scope,
-					     g_quark_from_string("stream.event.context"));
+					     "stream.event.context");
 		parent_def_scope = stream->event_context->scope;
 		declaration_unref(stream->event_context_decl);
 	}

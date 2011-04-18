@@ -446,12 +446,46 @@ struct definition_scope *
 	return scope;
 }
 
+/*
+ * in: path, out: q (GArray of GQuark)
+ */
+static
+void append_scope_path(const char *path, GArray *q)
+{
+	const char *ptrbegin, *ptrend = path;
+	GQuark quark;
+
+	for (;;) {
+		char *str;
+		size_t len;
+
+		ptrbegin = ptrend;
+		ptrend = strchr(ptrbegin, '.');
+		if (!ptrend)
+			break;
+		len = ptrend - ptrbegin;
+		/* Don't accept two consecutive dots */
+		assert(len != 0);
+		str = g_new(char, len + 1);	/* include \0 */
+		memcpy(str, ptrbegin, len);
+		str[len] = '\0';
+		quark = g_quark_from_string(str);
+		g_array_append_val(q, quark);
+		g_free(str);
+	}
+	/* last. Check for trailing dot (and discard). */
+	if (ptrbegin[0] != '\0') {
+		quark = g_quark_from_string(ptrbegin);
+		g_array_append_val(q, quark);
+	}
+}
+
 void set_dynamic_definition_scope(struct definition *definition,
 				  struct definition_scope *scope,
-				  GQuark root_name)
+				  const char *root_name)
 {
-	g_array_set_size(scope->scope_path, 1);
-	g_array_index(scope->scope_path, GQuark, 0) = root_name;
+	g_array_set_size(scope->scope_path, 0);
+	append_scope_path(root_name, scope->scope_path);
 	/*
 	 * Use INT_MAX order to ensure that all fields of the parent
 	 * scope are seen as being prior to this scope.

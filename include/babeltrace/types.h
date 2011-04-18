@@ -382,7 +382,7 @@ struct definition_scope *
 			     GQuark field_name);
 void set_dynamic_definition_scope(struct definition *definition,
 				  struct definition_scope *scope,
-				  GQuark root_name);
+				  const char *root_name);
 void free_definition_scope(struct definition_scope *scope);
 
 void declaration_ref(struct declaration *declaration);
