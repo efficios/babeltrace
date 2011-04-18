@@ -824,7 +824,7 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 			ret = ctf_typedef_visit(fd, depth + 1,
 						&iter->u._typedef.declaration_specifier,
 						&iter->u._typedef.type_declarators,
-						trace->declaration_scope);
+						trace->root_declaration_scope);
 			if (ret)
 				return ret;
 		}
@@ -832,7 +832,7 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 					siblings) {
 			ret = ctf_typealias_visit(fd, depth + 1,
 					&iter->u.typealias.target, &iter->u.typealias.alias
-					trace->declaration_scope);
+					trace->root_declaration_scope);
 			if (ret)
 				return ret;
 		}

@@ -447,9 +447,8 @@ struct definition_scope *
 }
 
 /*
- * in: path, out: q (GArray of GQuark)
+ * in: path (dot separated), out: q (GArray of GQuark)
  */
-static
 void append_scope_path(const char *path, GArray *q)
 {
 	const char *ptrbegin, *ptrend = path;

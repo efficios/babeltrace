@@ -49,41 +49,72 @@ void variant_copy(struct stream_pos *dest, const struct format *fdest,
 }
 
 static
+void _untagged_variant_declaration_free(struct declaration *declaration)
+{
+	struct declaration_untagged_variant *untagged_variant_declaration =
+		container_of(declaration, struct declaration_untagged_variant, p);
+	unsigned long i;
+
+	free_declaration_scope(untagged_variant_declaration->scope);
+	g_hash_table_destroy(untagged_variant_declaration->fields_by_tag);
+
+	for (i = 0; i < untagged_variant_declaration->fields->len; i++) {
+		struct declaration_field *declaration_field =
+			&g_array_index(untagged_variant_declaration->fields,
+				       struct declaration_field, i);
+		declaration_unref(declaration_field->declaration);
+	}
+	g_array_free(untagged_variant_declaration->fields, true);
+	g_free(untagged_variant_declaration);
+}
+
+struct declaration_untagged_variant *untagged_variant_declaration_new(const char *name,
+				      struct declaration_scope *parent_scope)
+{
+	struct declaration_untagged_variant *untagged_variant_declaration;
+	struct declaration *declaration;
+
+	untagged_variant_declaration = g_new(struct declaration_untagged_variant, 1);
+	declaration = &untagged_variant_declaration->p;
+	untagged_variant_declaration->fields_by_tag = g_hash_table_new(g_direct_hash,
+						       g_direct_equal);
+	untagged_variant_declaration->fields = g_array_sized_new(FALSE, TRUE,
+						 sizeof(struct declaration_field),
+						 DEFAULT_NR_STRUCT_FIELDS);
+	untagged_variant_declaration->scope = new_declaration_scope(parent_scope);
+	declaration->id = CTF_TYPE_UNTAGGED_VARIANT;
+	declaration->name = g_quark_from_string(name);
+	declaration->alignment = 1;
+	declaration->copy = NULL;
+	declaration->declaration_free = _untagged_variant_declaration_free;
+	declaration->definition_new = NULL;
+	declaration->definition_free = NULL;
+	declaration->ref = 1;
+	return untagged_variant_declaration;
+}
+
+static
 void _variant_declaration_free(struct declaration *declaration)
 {
 	struct declaration_variant *variant_declaration =
 		container_of(declaration, struct declaration_variant, p);
-	unsigned long i;
 
-	free_declaration_scope(variant_declaration->scope);
-	g_hash_table_destroy(variant_declaration->fields_by_tag);
-
-	for (i = 0; i < variant_declaration->fields->len; i++) {
-		struct declaration_field *declaration_field =
-			&g_array_index(variant_declaration->fields,
-				       struct declaration_field, i);
-		declaration_unref(declaration_field->declaration);
-	}
-	g_array_free(variant_declaration->fields, true);
-	g_free(variant_declaration);
+	_untagged_variant_declaration_free(&variant_declaration->untagged_variant->p);
+	g_array_free(variant_declaration->tag_name, TRUE);
 }
 
-struct declaration_variant *variant_declaration_new(const char *name,
-				      struct declaration_scope *parent_scope)
+struct declaration_variant *
+	variant_declaration_new(struct declaration_untagged_variant *untagged_variant, const char *tag)
 {
 	struct declaration_variant *variant_declaration;
 	struct declaration *declaration;
 
 	variant_declaration = g_new(struct declaration_variant, 1);
 	declaration = &variant_declaration->p;
-	variant_declaration->fields_by_tag = g_hash_table_new(g_direct_hash,
-						       g_direct_equal);
-	variant_declaration->fields = g_array_sized_new(FALSE, TRUE,
-						 sizeof(struct declaration_field),
-						 DEFAULT_NR_STRUCT_FIELDS);
-	variant_declaration->scope = new_declaration_scope(parent_scope);
+	variant_declaration->untagged_variant = untagged_variant;
+	variant_declaration->tag_name = g_array_new(FALSE, TRUE, sizeof(GQuark));
+	append_scope_path(tag, variant_declaration->tag_name);
 	declaration->id = CTF_TYPE_VARIANT;
-	declaration->name = g_quark_from_string(name);
 	declaration->alignment = 1;
 	declaration->copy = variant_copy;
 	declaration->declaration_free = _variant_declaration_free;
@@ -92,6 +123,53 @@ struct declaration_variant *variant_declaration_new(const char *name,
 	declaration->ref = 1;
 	return variant_declaration;
 }
+
+/*
+ * tag_instance is assumed to be an enumeration.
+ * Returns 0 if OK, < 0 if error.
+ */
+static
+int check_enum_tag(struct definition_variant *variant,
+		   struct definition *enum_tag)
+{
+	struct definition_enum *_enum =
+		container_of(enum_tag, struct definition_enum, p);
+	struct declaration_enum *enum_declaration = _enum->declaration;
+	int missing_field = 0;
+	unsigned long i;
+
+	/*
+	 * Strictly speaking, each enumerator must map to a field of the
+	 * variant. However, we are even stricter here by requiring that each
+	 * variant choice map to an enumerator too. We then validate that the
+	 * number of enumerators equals the number of variant choices.
+	 */
+	if (variant->declaration->untagged_variant->fields->len != enum_get_nr_enumerators(enum_declaration))
+		return -EPERM;
+
+	for (i = 0; i < variant->declaration->untagged_variant->fields->len; i++) {
+		struct declaration_field *field_declaration =
+			&g_array_index(variant->declaration->untagged_variant->fields,
+				       struct declaration_field, i);
+		if (!enum_quark_to_range_set(enum_declaration, field_declaration->name)) {
+			missing_field = 1;
+			break;
+		}
+	}
+	if (missing_field)
+		return -EPERM;
+
+	/*
+	 * Check the enumeration: it must map each value to one and only one
+	 * enumerator tag.
+	 * TODO: we should also check that each range map to one and only one
+	 * tag. For the moment, we will simply check this dynamically in
+	 * variant_declaration_get_current_field().
+	 */
+	return 0;
+}
+
+
 
 static
 struct definition *
@@ -111,13 +189,21 @@ struct definition *
 	variant->p.ref = 1;
 	variant->p.index = index;
 	variant->scope = new_definition_scope(parent_scope, field_name);
+	variant->enum_tag = lookup_definition(variant->scope->scope_path,
+					      variant_declaration->tag_name,
+					      parent_scope);
+					      
+	if (!variant->enum_tag
+	    || check_enum_tag(variant, variant->enum_tag) < 0)
+		goto error;
+	definition_ref(variant->enum_tag);
 	variant->fields = g_array_sized_new(FALSE, TRUE,
 					    sizeof(struct field),
-					    DEFAULT_NR_STRUCT_FIELDS);
-	g_array_set_size(variant->fields, variant_declaration->fields->len);
-	for (i = 0; i < variant_declaration->fields->len; i++) {
+					    variant_declaration->untagged_variant->fields->len);
+	g_array_set_size(variant->fields, variant_declaration->untagged_variant->fields->len);
+	for (i = 0; i < variant_declaration->untagged_variant->fields->len; i++) {
 		struct declaration_field *declaration_field =
-			&g_array_index(variant_declaration->fields,
+			&g_array_index(variant_declaration->untagged_variant->fields,
 				       struct declaration_field, i);
 		struct field *field = &g_array_index(variant->fields,
 						     struct field, i);
@@ -134,6 +220,11 @@ struct definition *
 	}
 	variant->current_field = NULL;
 	return &variant->p;
+error:
+	free_definition_scope(variant->scope);
+	declaration_unref(&variant_declaration->p);
+	g_free(variant);
+	return NULL;
 }
 
 static
@@ -143,32 +234,33 @@ void _variant_definition_free(struct definition *definition)
 		container_of(definition, struct definition_variant, p);
 	unsigned long i;
 
-	assert(variant->fields->len == variant->declaration->fields->len);
+	assert(variant->fields->len == variant->declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
 		struct field *field = &g_array_index(variant->fields,
 						     struct field, i);
 		definition_unref(field->definition);
 	}
+	definition_unref(variant->enum_tag);
 	free_definition_scope(variant->scope);
 	declaration_unref(variant->p.declaration);
 	g_free(variant);
 }
 
-void variant_declaration_add_field(struct declaration_variant *variant_declaration,
-			    const char *tag_name,
-			    struct declaration *tag_declaration)
+void untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
+			    const char *field_name,
+			    struct declaration *field_declaration)
 {
 	struct declaration_field *field;
 	unsigned long index;
 
-	g_array_set_size(variant_declaration->fields, variant_declaration->fields->len + 1);
-	index = variant_declaration->fields->len - 1;	/* last field (new) */
-	field = &g_array_index(variant_declaration->fields, struct declaration_field, index);
-	field->name = g_quark_from_string(tag_name);
-	declaration_ref(tag_declaration);
-	field->declaration = tag_declaration;
+	g_array_set_size(untagged_variant_declaration->fields, untagged_variant_declaration->fields->len + 1);
+	index = untagged_variant_declaration->fields->len - 1;	/* last field (new) */
+	field = &g_array_index(untagged_variant_declaration->fields, struct declaration_field, index);
+	field->name = g_quark_from_string(field_name);
+	declaration_ref(field_declaration);
+	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
-	g_hash_table_insert(variant_declaration->fields_by_tag,
+	g_hash_table_insert(untagged_variant_declaration->fields_by_tag,
 			    (gpointer) (unsigned long) field->name,
 			    (gpointer) index);
 	/*
@@ -179,59 +271,13 @@ void variant_declaration_add_field(struct declaration_variant *variant_declarati
 }
 
 struct declaration_field *
-struct_declaration_get_field_from_tag(struct declaration_variant *variant_declaration, GQuark tag)
+untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration, GQuark tag)
 {
 	unsigned long index;
 
-	index = (unsigned long) g_hash_table_lookup(variant_declaration->fields_by_tag,
+	index = (unsigned long) g_hash_table_lookup(untagged_variant_declaration->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
-	return &g_array_index(variant_declaration->fields, struct declaration_field, index);
-}
-
-/*
- * tag_instance is assumed to be an enumeration.
- */
-int variant_definition_set_tag(struct definition_variant *variant,
-			       struct definition *enum_tag)
-{
-	struct definition_enum *_enum =
-		container_of(variant->enum_tag, struct definition_enum, p);
-	struct declaration_enum *enum_declaration = _enum->declaration;
-	int missing_field = 0;
-	unsigned long i;
-
-	/*
-	 * Strictly speaking, each enumerator must map to a field of the
-	 * variant. However, we are even stricter here by requiring that each
-	 * variant choice map to an enumerator too. We then validate that the
-	 * number of enumerators equals the number of variant choices.
-	 */
-	if (variant->declaration->fields->len != enum_get_nr_enumerators(enum_declaration))
-		return -EPERM;
-
-	for (i = 0; i < variant->declaration->fields->len; i++) {
-		struct declaration_field *field_declaration =
-			&g_array_index(variant->declaration->fields,
-				       struct declaration_field, i);
-		if (!enum_quark_to_range_set(enum_declaration, field_declaration->name)) {
-			missing_field = 1;
-			break;
-		}
-	}
-	if (missing_field)
-		return -EPERM;
-
-	/*
-	 * Check the enumeration: it must map each value to one and only one
-	 * enumerator tag.
-	 * TODO: we should also check that each range map to one and only one
-	 * tag. For the moment, we will simply check this dynamically in
-	 * variant_declaration_get_current_field().
-	 */
-
-	/* Set the enum tag field */
-	variant->enum_tag = enum_tag;
-	return 0;
+	return &g_array_index(untagged_variant_declaration->fields, struct declaration_field, index);
 }
 
 /*
@@ -253,7 +299,7 @@ struct field *variant_get_current_field(struct definition_variant *variant)
 	 */
 	assert(tag_array->len == 1);
 	tag = g_array_index(tag_array, GQuark, 0);
-	index = (unsigned long) g_hash_table_lookup(variant_declaration->fields_by_tag,
+	index = (unsigned long) g_hash_table_lookup(variant_declaration->untagged_variant->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
 	variant->current_field = &g_array_index(variant->fields, struct field, index);
 	return variant->current_field;

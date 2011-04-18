@@ -123,6 +123,7 @@ enum ctf_type_id {
 	CTF_TYPE_ENUM,
 	CTF_TYPE_STRING,
 	CTF_TYPE_STRUCT,
+	CTF_TYPE_UNTAGGED_VARIANT,
 	CTF_TYPE_VARIANT,
 	CTF_TYPE_ARRAY,
 	CTF_TYPE_SEQUENCE,
@@ -285,15 +286,20 @@ struct definition_struct {
 	GArray *fields;			/* Array of struct field */
 };
 
-struct declaration_variant {
+struct declaration_untagged_variant {
 	struct declaration p;
 	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
 	struct declaration_scope *scope;
 	GArray *fields;			/* Array of declaration_field */
-	GQuark tag_name;		/* TODO */
-	/* Tag name must be nonzero and must exist when defining the variant */
 };
 
+struct declaration_variant {
+	struct declaration p;
+	struct declaration_untagged_variant *untagged_variant;
+	GArray *tag_name;		/* Array of GQuark */
+};
+
+/* A variant needs to be tagged to be defined. */
 struct definition_variant {
 	struct definition p;
 	struct declaration_variant *declaration;
@@ -468,13 +474,16 @@ struct_get_field_from_index(struct definition_struct *struct_definition,
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct declaration_variant *variant_declaration_new(const char *name,
+struct declaration_untagged_variant *untagged_variant_declaration_new(const char *name,
 		struct declaration_scope *parent_scope);
-void variant_declaration_add_field(struct declaration_variant *variant_declaration,
-		const char *tag_name,
-		struct declaration *tag_declaration);
+struct declaration_variant *variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
+		const char *tag);
+
+void untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
+		const char *field_name,
+		struct declaration *field_declaration);
 struct declaration_field *
-	variant_declaration_get_field_from_tag(struct declaration_variant *variant_declaration,
+	untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration,
 		GQuark tag);
 /*
  * Returns 0 on success, -EPERM on error.
@@ -507,5 +516,10 @@ struct declaration_sequence *
 		struct declaration_integer *len_declaration, 
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
+
+/*
+ * in: path (dot separated), out: q (GArray of GQuark)
+ */
+void append_scope_path(const char *path, GArray *q);
 
 #endif /* _BABELTRACE_declarationS_H */
