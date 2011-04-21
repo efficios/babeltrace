@@ -450,6 +450,9 @@ size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
 struct declaration_enum *
 	enum_declaration_new(struct declaration_integer *integer_declaration);
 
+struct declaration_string *
+	string_declaration_new(enum ctf_string_encoding encoding);
+
 struct declaration_struct *
 	struct_declaration_new(struct declaration_scope *parent_scope);
 void struct_declaration_add_field(struct declaration_struct *struct_declaration,

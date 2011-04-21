@@ -258,7 +258,8 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 	GQuark *field_name,
 	struct ctf_node *node_type_declarator,
 	struct declaration_scope *declaration_scope,
-	struct declaration *nested_declaration)
+	struct declaration *nested_declaration,
+	struct ctf_trace *trace)
 {
 	/*
 	 * Visit type declarator by first taking care of sequence/array
@@ -266,16 +267,18 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 	 * of pointers.
 	 */
 
-	assert(node_type_declarator->u.type_declarator.type != TYPEDEC_UNKNOWN);
+	if (node_type_declarator) {
+		assert(node_type_declarator->u.type_declarator.type != TYPEDEC_UNKNOWN);
 
-	/* TODO: gcc bitfields not supported yet. */
-	if (node_type_declarator->u.type_declarator.bitfield_len != NULL) {
-		fprintf(stderr, "[error] %s: gcc bitfields are not supported yet.\n", __func__);
-		return NULL;
+		/* TODO: gcc bitfields not supported yet. */
+		if (node_type_declarator->u.type_declarator.bitfield_len != NULL) {
+			fprintf(stderr, "[error] %s: gcc bitfields are not supported yet.\n", __func__);
+			return NULL;
+		}
 	}
 
 	if (!nested_declaration) {
-		if (!cds_list_empty(&node_type_declarator->u.type_declarator.pointers)) {
+		if (node_type_declarator && !cds_list_empty(&node_type_declarator->u.type_declarator.pointers)) {
 			GQuark alias_q;
 
 			/*
@@ -290,9 +293,13 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 				return NULL;
 			}
 		} else {
-			nested_declaration = /* parse declaration_specifier */;
+			nested_declaration = ctf_declaration_specifier_visit(fd, depth,
+				declaration_specifier, declaration_scope, trace);
 		}
 	}
+
+	if (!node_type_declarator)
+		return nested_declaration;
 
 	if (node_type_declarator->u.type_declarator.type == TYPEDEC_ID) {
 		if (node_type_declarator->u.type_declarator.u.id)
@@ -311,15 +318,39 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 		if (length) {
 			switch (length->type) {
 			case NODE_UNARY_EXPRESSION:
-				/* Array */
-				/* TODO */
-		.............
-				declaration = /* create array */;
+			{
+				struct declaration_array *array_declaration;
+				size_t len;
+
+				if (length->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+					fprintf(stderr, "[error] %s: array: unexpected unary expression.\n", __func__);
+					return NULL;
+				}
+				len = length->u.unary_expression.u.unsigned_constant;
+				array_declaration = array_declaration_new(len, nested_declaration,
+							declaration_scope);
+				declaration = &array_declaration->p;
 				break;
+			}
+			case NODE_INTEGER:
 			case NODE_TYPE_SPECIFIER:
-				/* Sequence */
-				declaration = /* create sequence */;
+			{
+				struct declaration_sequence *sequence_declaration;
+				struct declaration_integer *integer_declaration;
+				GQuark dummy_id;
+
+				declaration = ctf_type_declarator_visit(fd, depth,
+							length,
+							&dummy_id, NULL,
+							declaration_scope,
+							NULL, trace);
+				assert(declaration->id == CTF_TYPE_INTEGER);
+				integer_declaration = container_of(declaration, struct declaration_integer, p);
+				declaration_sequence = sequence_declaration_new(integer_declaration,
+						nested_declaration, declaration_scope);
+				declaration = &declaration_sequence->p;
 				break;
+			}
 			default:
 				assert(0);
 			}
@@ -329,7 +360,7 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 		declaration = ctf_type_declarator_visit(fd, depth,
 				declaration_specifier, field_name,
 				node_type_declarator->u.type_declarator.u.nested.type_declarator,
-				declaration_scope, declaration);
+				declaration_scope, declaration, trace);
 		return declaration;
 	}
 }
@@ -339,7 +370,8 @@ int ctf_struct_type_declarators_visit(int fd, int depth,
 	struct declaration_struct *struct_declaration,
 	struct cds_list_head *declaration_specifier,
 	struct cds_list_head *type_declarators,
-	struct declaration_scope *declaration_scope)
+	struct declaration_scope *declaration_scope,
+	struct ctf_trace *trace)
 {
 	struct ctf_node *iter;
 	GQuark field_name;
@@ -351,7 +383,7 @@ int ctf_struct_type_declarators_visit(int fd, int depth,
 						declaration_specifier,
 						&field_name, iter,
 						struct_declaration->scope,
-						NULL);
+						NULL, trace);
 		struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
@@ -364,7 +396,8 @@ int ctf_variant_type_declarators_visit(int fd, int depth,
 	struct declaration_variant *variant_declaration,
 	struct cds_list_head *declaration_specifier,
 	struct cds_list_head *type_declarators,
-	struct declaration_scope *declaration_scope)
+	struct declaration_scope *declaration_scope,
+	struct ctf_trace *trace)
 {
 	struct ctf_node *iter;
 	GQuark field_name;
@@ -376,7 +409,7 @@ int ctf_variant_type_declarators_visit(int fd, int depth,
 						declaration_specifier,
 						&field_name, iter,
 						variant_declaration->scope,
-						NULL);
+						NULL, trace);
 		variant_declaration_add_field(variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
@@ -387,7 +420,8 @@ int ctf_variant_type_declarators_visit(int fd, int depth,
 static
 int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
 		struct cds_list_head *declaration_specifier,
-		struct cds_list_head *type_declarators)
+		struct cds_list_head *type_declarators,
+		struct ctf_trace *trace)
 {
 	struct ctf_node *iter;
 	GQuark identifier;
@@ -399,7 +433,7 @@ int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
 		type_declaration = ctf_type_declarator_visit(fd, depth,
 					declaration_specifier,
 					&identifier, iter,
-					scope, NULL);
+					scope, NULL, trace);
 		ret = register_declaration(identifier, type_declaration, scope);
 		if (ret) {
 			type_declaration->declaration_free(type_declaration);
@@ -411,7 +445,8 @@ int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
 
 static
 int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
-		struct ctf_node *target, struct ctf_node *alias)
+		struct ctf_node *target, struct ctf_node *alias,
+		struct ctf_trace *trace)
 {
 	struct declaration *type_declaration;
 	struct ctf_node *iter, *node;
@@ -427,7 +462,7 @@ int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
 	type_declaration = ctf_type_declarator_visit(fd, depth,
 		&target->u.typealias_target.declaration_specifier,
 		&dummy_id, &target->u.typealias_target.type_declarators,
-		scope, NULL);
+		scope, NULL, trace);
 	if (!type_declaration) {
 		fprintf(stderr, "[error] %s: problem creating type declaration\n", __func__);
 		err = -EINVAL;
@@ -462,7 +497,8 @@ error:
 
 static
 int ctf_struct_declaration_list_visit(int fd, int depth,
-	struct ctf_node *iter, struct declaration_struct *struct_declaration)
+	struct ctf_node *iter, struct declaration_struct *struct_declaration,
+	struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	int ret;
@@ -473,7 +509,7 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 		ret = ctf_typedef_visit(fd, depth,
 			struct_declaration->scope,
 			&iter->u._typedef.declaration_specifier,
-			&iter->u._typedef.type_declarators);
+			&iter->u._typedef.type_declarators, trace);
 		if (ret)
 			return ret;
 		break;
@@ -482,7 +518,7 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 		ret = ctf_typealias_visit(fd, depth,
 			struct_declaration->scope,
 			iter->u.typealias.target,
-			iter->u.typealias.alias);
+			iter->u.typealias.alias, trace);
 		if (ret)
 			return ret;
 		break;
@@ -491,7 +527,7 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 		ret = ctf_struct_type_declarators_visit(fd, depth,
 				struct_declaration,
 				&iter->u.struct_or_variant_declaration.declaration_specifier,
-				&iter->u.struct_or_variant_declaration.type_declarators);
+				&iter->u.struct_or_variant_declaration.type_declarators, trace);
 		if (ret)
 			return ret;
 		break;
@@ -504,7 +540,8 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 
 static
 int ctf_variant_declaration_list_visit(int fd, int depth,
-	struct ctf_node *iter, struct declaration_variant *variant_declaration)
+	struct ctf_node *iter, struct declaration_variant *variant_declaration,
+	struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	int ret;
@@ -515,7 +552,7 @@ int ctf_variant_declaration_list_visit(int fd, int depth,
 		ret = ctf_typedef_visit(fd, depth,
 			variant_declaration->scope,
 			&iter->u._typedef.declaration_specifier,
-			&iter->u._typedef.type_declarators);
+			&iter->u._typedef.type_declarators, trace);
 		if (ret)
 			return ret;
 		break;
@@ -524,7 +561,7 @@ int ctf_variant_declaration_list_visit(int fd, int depth,
 		ret = ctf_typealias_visit(fd, depth,
 			variant_declaration->scope,
 			iter->u.typealias.target,
-			iter->u.typealias.alias);
+			iter->u.typealias.alias, trace);
 		if (ret)
 			return ret;
 		break;
@@ -533,7 +570,7 @@ int ctf_variant_declaration_list_visit(int fd, int depth,
 		ret = ctf_variant_type_declarators_visit(fd, depth,
 				variant_declaration,
 				&iter->u.struct_or_variant_declaration.declaration_specifier,
-				&iter->u.struct_or_variant_declaration.type_declarators);
+				&iter->u.struct_or_variant_declaration.type_declarators, trace);
 		if (ret)
 			return ret;
 		break;
@@ -547,7 +584,8 @@ int ctf_variant_declaration_list_visit(int fd, int depth,
 static
 struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 	int depth, const char *name, struct cds_list_head *declaration_list,
-	int has_body, struct declaration_scope *declaration_scope)
+	int has_body, struct declaration_scope *declaration_scope,
+	struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	struct declaration_struct *struct_declaration;
@@ -577,7 +615,8 @@ struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 		}
 		struct_declaration = struct_declaration_new(name, declaration_scope);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
-			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter, struct_declaration);
+			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
+				struct_declaration, trace);
 			if (ret)
 				goto error;
 		}
@@ -597,7 +636,8 @@ error:
 static
 struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
 	int depth, const char *name, struct cds_list_head *declaration_list,
-	int has_body, struct declaration_scope *declaration_scope)
+	int has_body, struct declaration_scope *declaration_scope,
+	struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	struct declaration_variant *variant_declaration;
@@ -627,7 +667,8 @@ struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
 		}
 		variant_declaration = variant_declaration_new(name, declaration_scope);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
-			ret = ctf_variant_declaration_list_visit(fd, depth + 1, iter, variant_declaration);
+			ret = ctf_variant_declaration_list_visit(fd, depth + 1, iter,
+				variant_declaration, trace);
 			if (ret)
 				goto error;
 		}
@@ -775,9 +816,9 @@ struct declaration *ctf_declaration_enum_visit(int fd, int depth,
 		case NODE_TYPE_SPECIFIER:
 			declaration = ctf_type_declarator_visit(fd, depth,
 						container_type,
-						&dummy_id, iter,
+						&dummy_id, NULL,
 						declaration_scope,
-						NULL);
+						NULL, trace);
 			assert(declaration->id == CTF_TYPE_INTEGER);
 			integer_declaration = container_of(declaration, struct declaration_integer, p);
 			break;
