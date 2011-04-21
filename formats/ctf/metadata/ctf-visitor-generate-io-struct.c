@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <glib.h>
 #include <inttypes.h>
+#include <endian.h>
 #include <errno.h>
 #include <babeltrace/list.h>
 #include <uuid/uuid.h>
@@ -37,157 +38,14 @@
 
 static
 struct declaration *ctf_declaration_specifier_visit(FILE *fd,
-		int depth, struct list_head *head,
+		int depth, struct cds_list_head *head,
 		struct declaration_scope *declaration_scope);
-
-static
-int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
-{
-	print_tabs(fd, depth);
-	fprintf(fd, "<type_specifier \"");
-
-	switch (node->u.type_specifier.type) {
-	case TYPESPEC_VOID:
-		fprintf(fd, "void");
-		break;
-	case TYPESPEC_CHAR:
-		fprintf(fd, "char");
-		break;
-	case TYPESPEC_SHORT:
-		fprintf(fd, "short");
-		break;
-	case TYPESPEC_INT:
-		fprintf(fd, "int");
-		break;
-	case TYPESPEC_LONG:
-		fprintf(fd, "long");
-		break;
-	case TYPESPEC_FLOAT:
-		fprintf(fd, "float");
-		break;
-	case TYPESPEC_DOUBLE:
-		fprintf(fd, "double");
-		break;
-	case TYPESPEC_SIGNED:
-		fprintf(fd, "signed");
-		break;
-	case TYPESPEC_UNSIGNED:
-		fprintf(fd, "unsigned");
-		break;
-	case TYPESPEC_BOOL:
-		fprintf(fd, "bool");
-		break;
-	case TYPESPEC_COMPLEX:
-		fprintf(fd, "_Complex");
-		break;
-	case TYPESPEC_IMAGINARY:
-		fprintf(fd, "_Imaginary");
-		break;
-	case TYPESPEC_CONST:
-		fprintf(fd, "const");
-		break;
-	case TYPESPEC_ID_TYPE:
-		fprintf(fd, "%s", node->u.type_specifier.id_type);
-		break;
-
-	case TYPESPEC_UNKNOWN:
-	default:
-		fprintf(stderr, "[error] %s: unknown type specifier %d\n", __func__,
-			(int) node->u.type_specifier.type);
-		return -EINVAL;
-	}
-	fprintf(fd, "\"/>\n");
-	return 0;
-}
-
-static
-int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node)
-{
-	int ret = 0;
-	struct ctf_node *iter;
-
-	print_tabs(fd, depth);
-	fprintf(fd, "<type_declarator>\n");
-	depth++;
-
-	if (!cds_list_empty(&node->u.type_declarator.pointers)) {
-		print_tabs(fd, depth);
-		fprintf(fd, "<pointers>\n");
-		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
-					siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</pointers>\n");
-	}
-
-	switch (node->u.type_declarator.type) {
-	case TYPEDEC_ID:
-		if (node->u.type_declarator.u.id) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<id \"");
-			fprintf(fd, "%s", node->u.type_declarator.u.id);
-			fprintf(fd, "\" />\n");
-		}
-		break;
-	case TYPEDEC_NESTED:
-		if (node->u.type_declarator.u.nested.type_declarator) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<type_declarator>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1,
-				node->u.type_declarator.u.nested.type_declarator);
-			if (ret)
-				return ret;
-			print_tabs(fd, depth);
-			fprintf(fd, "</type_declarator>\n");
-		}
-		if (node->u.type_declarator.u.nested.length) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<length>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1,
-				node->u.type_declarator.u.nested.length);
-			if (ret)
-				return ret;
-			print_tabs(fd, depth);
-			fprintf(fd, "</length>\n");
-		}
-		if (node->u.type_declarator.u.nested.abstract_array) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<length>\n");
-			print_tabs(fd, depth);
-			fprintf(fd, "</length>\n");
-		}
-		if (node->u.type_declarator.bitfield_len) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<bitfield_len>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1,
-				node->u.type_declarator.bitfield_len);
-			if (ret)
-				return ret;
-			print_tabs(fd, depth);
-			fprintf(fd, "</bitfield_len>\n");
-		}
-		break;
-	case TYPEDEC_UNKNOWN:
-	default:
-		fprintf(stderr, "[error] %s: unknown type declarator %d\n", __func__,
-			(int) node->u.type_declarator.type);
-		return -EINVAL;
-	}
-
-	depth--;
-	print_tabs(fd, depth);
-	fprintf(fd, "</type_declarator>\n");
-	return 0;
-}
 
 /*
  * String returned must be freed by the caller using g_free.
  */
 static
-char *concatenate_unary_strings(struct list_head *head)
+char *concatenate_unary_strings(struct cds_list_head *head)
 {
 	struct ctf_node *node;
 	GString *str;
@@ -220,7 +78,7 @@ char *concatenate_unary_strings(struct list_head *head)
 }
 
 static
-int get_unary_unsigned(struct list_head *head, uint64_t *value)
+int get_unary_unsigned(struct cds_list_head *head, uint64_t *value)
 {
 	struct ctf_node *node;
 	int i = 0;
@@ -237,7 +95,7 @@ int get_unary_unsigned(struct list_head *head, uint64_t *value)
 }
 
 static
-int get_unary_uuid(struct list_head *head, uuid_t *uuid)
+int get_unary_uuid(struct cds_list_head *head, uuid_t *uuid)
 {
 	struct ctf_node *node;
 	int i = 0;
@@ -265,166 +123,13 @@ struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_
 }
 
 static
-struct declaration *ctf_type_declarator_visit(int fd, int depth,
-	struct cds_list_head *declaration_specifier,
-	GQuark *field_name,
-	struct ctf_node *node_type_declarator,
-	struct declaration_scope *declaration_scope
-	struct declaration *nested_declaration)
-{
-	/*
-	 * Visit type declarator by first taking care of sequence/array
-	 * (recursively). Then, when we get to the identifier, take care
-	 * of pointers.
-	 */
-
-	assert(node_type_declarator->u.type_declarator.type != TYPEDEC_UNKNOWN);
-	/* TODO: gcc bitfields not supported yet. */
-	assert(node_type_declarator->u.type_declarator.bitfield_len == NULL);
-
-	if (!nested_declaration) {
-		if (!cds_list_empty(&node_type_declarator->u.type_declarator.pointers)) {
-			/*
-			 * If we have a pointer declarator, it _has_ to be present in
-			 * the typealiases (else fail).
-			 */
-			nested_declaration = ... ;
-		} else {
-			nested_declaration = /* parse declaration_specifier */;
-		}
-
-	}
-
-	if (node_type_declarator->u.type_declarator.type == TYPEDEC_ID) {
-		if (node_type_declarator->u.type_declarator.u.id)
-			*field_name = g_quark_from_string(node_type_declarator->u.type_declarator.u.id);
-		else
-			*field_name = 0;
-		return nested_declaration;
-	} else {
-		struct declaration *declaration;
-		struct node *length;
-
-		/* TYPEDEC_NESTED */
-
-		/* create array/sequence, pass nested_declaration as child. */
-		length = node_type_declarator->u.type_declarator.u.nested.length;
-		if (length) {
-			switch (length->type) {
-			case NODE_UNARY_EXPRESSION:
-				/* Array */
-				declaration = /* create array */;
-				break;
-			case NODE_TYPE_SPECIFIER:
-				/* Sequence */
-				declaration = /* create sequence */;
-				break;
-			default:
-				assert(0);
-			}
-		}
-
-		/* Pass it as content of outer container */
-		declaration = ctf_type_declarator_visit(fd, depth,
-				declaration_specifier, field_name,
-				node_type_declarator->u.type_declarator.u.nested.type_declarator,
-				declaration_scope, declaration);
-		return declaration;
-	}
-}
-
-static
-int ctf_struct_type_declarators_visit(int fd, int depth,
-	struct declaration_struct *struct_declaration,
-	struct cds_list_head *declaration_specifier,
-	struct cds_list_head *type_declarators,
-	struct declaration_scope *declaration_scope)
+void visit_declaration_specifier(struct cds_list_head *declaration_specifier, GString *str)
 {
 	struct ctf_node *iter;
-	GQuark field_name;
-
-	cds_list_for_each_entry(iter, type_declarators, siblings) {
-		struct declaration *field_declaration;
-
-		field_declaration = ctf_type_declarator_visit(fd, depth,
-						declaration_specifier,
-						&field_name, iter,
-						struct_declaration->scope,
-						NULL);
-		struct_declaration_add_field(struct_declaration,
-					     g_quark_to_string(field_name),
-					     field_declaration);
-	}
-
-	return 0;
-}
-
-static
-int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
-		struct cds_list_head *declaration_specifier,
-		struct cds_list_head *type_declarators)
-{
-	struct ctf_node *iter;
-	GQuark identifier;
-
-	cds_list_for_each_entry(iter, type_declarators, siblings) {
-		struct declaration *type_declaration;
-		int ret;
-	
-		type_declaration = ctf_type_declarator_visit(fd, depth,
-					declaration_specifier,
-					&identifier, iter,
-					scope, NULL);
-		ret = register_declaration(identifier, type_declaration, scope);
-		if (ret) {
-			type_declaration->declaration_free(type_declaration);
-			return ret;
-		}
-	}
-	return 0;
-}
-
-static
-int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
-		struct ctf_node *target, struct ctf_node *alias)
-{
-	struct declaration *type_declaration;
-	struct ctf_node *iter, *node;
-	GQuark identifier, dummy_id;
-	GString *str;
-	const char *str_c;
-	GQuark alias_q;
 	int alias_item_nr = 0;
+	int err;
 
-	/* See ctf_visitor_type_declarator() in the semantic validator. */
-
-	/*
-	 * Create target type declaration.
-	 */
-
-	type_declaration = ctf_type_declarator_visit(fd, depth,
-		&target->u.typealias_target.declaration_specifier,
-		&dummy_id, &target->u.typealias_target.type_declarators,
-		scope, NULL);
-	if (!type_declaration) {
-		fprintf(stderr, "[error] %s: problem creating type declaration\n", __func__);
-		err = -EINVAL;
-		goto error;
-	}
-	/*
-	 * The semantic validator does not check whether the target is
-	 * abstract or not (if it has an identifier). Check it here.
-	 */
-	if (dummy_id != 0) {
-		fprintf(stderr, "[error] %s: expecting empty identifier\n", __func__);
-		err = -EINVAL;
-		goto error;
-	}
-	/*
-	 * Create alias identifier.
-	 */
-	str = g_string_new();
-	cds_list_for_each_entry(iter, &alias->u.typealias_alias.declaration_specifier, siblings) {
+	cds_list_for_each_entry(iter, declaration_specifier, siblings) {
 		if (alias_item_nr != 0)
 			g_string_append(str, " ");
 		alias_item_nr++;
@@ -472,12 +177,8 @@ int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
 				g_string_append(str, "const");
 				break;
 			case TYPESPEC_ID_TYPE:
-				if (!iter->u.type_specifier.id_type) {
-					fprintf(stderr, "[error] %s: unexpected empty ID\n", __func__);
-					err = -EINVAL;
-					goto error;
-				}
-				g_string_append(str, iter->u.type_specifier.id_type);
+				if (iter->u.type_specifier.id_type)
+					g_string_append(str, iter->u.type_specifier.id_type);
 				break;
 			default:
 				fprintf(stderr, "[error] %s: unknown specifier\n", __func__);
@@ -518,19 +219,236 @@ int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
 			goto error;
 		}
 	}
+	return 0;
+error:
+	return err;
+}
 
-	node = _cds_list_first_entry(&alias->u.typealias_alias.type_declarators,
-				struct node, siblings) {
-		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers, siblings) {
-			g_string_append(str, " *");
-			if (iter->u.pointer.const_qualifier)
-				g_string_append(str, " const");
-		}
+static
+GQuark create_typealias_identifier(int fd, int depth,
+	struct cds_list_head *declaration_specifier,
+	struct ctf_node *node_type_declarator)
+{
+	GString *str;
+	const char *str_c;
+	GQuark alias_q;
+	int ret;
 
+	str = g_string_new();
+	ret = visit_declaration_specifier(declaration_specifier, str);
+	if (ret) {
+		g_string_free(str, TRUE);
+		return 0;
+	}
+	cds_list_for_each_entry(iter, &node_type_declarator->u.type_declarator.pointers, siblings) {
+		g_string_append(str, " *");
+		if (iter->u.pointer.const_qualifier)
+			g_string_append(str, " const");
 	}
 	str_c = g_string_free(str, FALSE);
 	alias_q = g_quark_from_string(str_c);
 	g_free(str_c);
+	return alias_q;
+}
+
+static
+struct declaration *ctf_type_declarator_visit(int fd, int depth,
+	struct cds_list_head *declaration_specifier,
+	GQuark *field_name,
+	struct ctf_node *node_type_declarator,
+	struct declaration_scope *declaration_scope,
+	struct declaration *nested_declaration)
+{
+	/*
+	 * Visit type declarator by first taking care of sequence/array
+	 * (recursively). Then, when we get to the identifier, take care
+	 * of pointers.
+	 */
+
+	assert(node_type_declarator->u.type_declarator.type != TYPEDEC_UNKNOWN);
+
+	/* TODO: gcc bitfields not supported yet. */
+	if (node_type_declarator->u.type_declarator.bitfield_len != NULL) {
+		fprintf(stderr, "[error] %s: gcc bitfields are not supported yet.\n", __func__);
+		return NULL;
+	}
+
+	if (!nested_declaration) {
+		if (!cds_list_empty(&node_type_declarator->u.type_declarator.pointers)) {
+			GQuark alias_q;
+
+			/*
+			 * If we have a pointer declarator, it _has_ to be present in
+			 * the typealiases (else fail).
+			 */
+			alias_q = create_typealias_identifier(fd, depth,
+				declaration_specifier, node_type_declarator);
+			nested_declaration = lookup_declaration(alias_q, declaration_scope);
+			if (!nested_declaration) {
+				fprintf(stderr, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
+				return NULL;
+			}
+		} else {
+			nested_declaration = /* parse declaration_specifier */;
+		}
+	}
+
+	if (node_type_declarator->u.type_declarator.type == TYPEDEC_ID) {
+		if (node_type_declarator->u.type_declarator.u.id)
+			*field_name = g_quark_from_string(node_type_declarator->u.type_declarator.u.id);
+		else
+			*field_name = 0;
+		return nested_declaration;
+	} else {
+		struct declaration *declaration;
+		struct node *length;
+
+		/* TYPEDEC_NESTED */
+
+		/* create array/sequence, pass nested_declaration as child. */
+		length = node_type_declarator->u.type_declarator.u.nested.length;
+		if (length) {
+			switch (length->type) {
+			case NODE_UNARY_EXPRESSION:
+				/* Array */
+				/* TODO */
+		.............
+				declaration = /* create array */;
+				break;
+			case NODE_TYPE_SPECIFIER:
+				/* Sequence */
+				declaration = /* create sequence */;
+				break;
+			default:
+				assert(0);
+			}
+		}
+
+		/* Pass it as content of outer container */
+		declaration = ctf_type_declarator_visit(fd, depth,
+				declaration_specifier, field_name,
+				node_type_declarator->u.type_declarator.u.nested.type_declarator,
+				declaration_scope, declaration);
+		return declaration;
+	}
+}
+
+static
+int ctf_struct_type_declarators_visit(int fd, int depth,
+	struct declaration_struct *struct_declaration,
+	struct cds_list_head *declaration_specifier,
+	struct cds_list_head *type_declarators,
+	struct declaration_scope *declaration_scope)
+{
+	struct ctf_node *iter;
+	GQuark field_name;
+
+	cds_list_for_each_entry(iter, type_declarators, siblings) {
+		struct declaration *field_declaration;
+
+		field_declaration = ctf_type_declarator_visit(fd, depth,
+						declaration_specifier,
+						&field_name, iter,
+						struct_declaration->scope,
+						NULL);
+		struct_declaration_add_field(struct_declaration,
+					     g_quark_to_string(field_name),
+					     field_declaration);
+	}
+	return 0;
+}
+
+static
+int ctf_variant_type_declarators_visit(int fd, int depth,
+	struct declaration_variant *variant_declaration,
+	struct cds_list_head *declaration_specifier,
+	struct cds_list_head *type_declarators,
+	struct declaration_scope *declaration_scope)
+{
+	struct ctf_node *iter;
+	GQuark field_name;
+
+	cds_list_for_each_entry(iter, type_declarators, siblings) {
+		struct declaration *field_declaration;
+
+		field_declaration = ctf_type_declarator_visit(fd, depth,
+						declaration_specifier,
+						&field_name, iter,
+						variant_declaration->scope,
+						NULL);
+		variant_declaration_add_field(variant_declaration,
+					      g_quark_to_string(field_name),
+					      field_declaration);
+	}
+	return 0;
+}
+
+static
+int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
+		struct cds_list_head *declaration_specifier,
+		struct cds_list_head *type_declarators)
+{
+	struct ctf_node *iter;
+	GQuark identifier;
+
+	cds_list_for_each_entry(iter, type_declarators, siblings) {
+		struct declaration *type_declaration;
+		int ret;
+	
+		type_declaration = ctf_type_declarator_visit(fd, depth,
+					declaration_specifier,
+					&identifier, iter,
+					scope, NULL);
+		ret = register_declaration(identifier, type_declaration, scope);
+		if (ret) {
+			type_declaration->declaration_free(type_declaration);
+			return ret;
+		}
+	}
+	return 0;
+}
+
+static
+int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
+		struct ctf_node *target, struct ctf_node *alias)
+{
+	struct declaration *type_declaration;
+	struct ctf_node *iter, *node;
+	GQuark dummy_id;
+	GQuark alias_q;
+
+	/* See ctf_visitor_type_declarator() in the semantic validator. */
+
+	/*
+	 * Create target type declaration.
+	 */
+
+	type_declaration = ctf_type_declarator_visit(fd, depth,
+		&target->u.typealias_target.declaration_specifier,
+		&dummy_id, &target->u.typealias_target.type_declarators,
+		scope, NULL);
+	if (!type_declaration) {
+		fprintf(stderr, "[error] %s: problem creating type declaration\n", __func__);
+		err = -EINVAL;
+		goto error;
+	}
+	/*
+	 * The semantic validator does not check whether the target is
+	 * abstract or not (if it has an identifier). Check it here.
+	 */
+	if (dummy_id != 0) {
+		fprintf(stderr, "[error] %s: expecting empty identifier\n", __func__);
+		err = -EINVAL;
+		goto error;
+	}
+	/*
+	 * Create alias identifier.
+	 */
+
+	node = _cds_list_first_entry(&alias->u.typealias_alias.type_declarators,
+				struct node, siblings);
+	alias_q = create_typealias_identifier(fd, depth,
+			&alias->u.typealias_alias.declaration_specifier, node);
 	ret = register_declaration(alias_q, type_declaration, scope);
 	if (ret)
 		goto error;
@@ -584,6 +502,48 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 }
 
 static
+int ctf_variant_declaration_list_visit(int fd, int depth,
+	struct ctf_node *iter, struct declaration_variant *variant_declaration)
+{
+	struct declaration *declaration;
+	int ret;
+
+	switch (iter->type) {
+	case NODE_TYPEDEF:
+		/* For each declarator, declare type and add type to variant declaration scope */
+		ret = ctf_typedef_visit(fd, depth,
+			variant_declaration->scope,
+			&iter->u._typedef.declaration_specifier,
+			&iter->u._typedef.type_declarators);
+		if (ret)
+			return ret;
+		break;
+	case NODE_TYPEALIAS:
+		/* Declare type with declarator and add type to variant declaration scope */
+		ret = ctf_typealias_visit(fd, depth,
+			variant_declaration->scope,
+			iter->u.typealias.target,
+			iter->u.typealias.alias);
+		if (ret)
+			return ret;
+		break;
+	case NODE_STRUCT_OR_VARIANT_DECLARATION:
+		/* Add field to structure declaration */
+		ret = ctf_variant_type_declarators_visit(fd, depth,
+				variant_declaration,
+				&iter->u.struct_or_variant_declaration.declaration_specifier,
+				&iter->u.struct_or_variant_declaration.type_declarators);
+		if (ret)
+			return ret;
+		break;
+	default:
+		fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
+		assert(0);
+	}
+	return 0;
+}
+
+static
 struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 	int depth, const char *name, struct cds_list_head *declaration_list,
 	int has_body, struct declaration_scope *declaration_scope)
@@ -610,14 +570,13 @@ struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 			if (lookup_struct_declaration(g_quark_from_string(name),
 						      declaration_scope)) {
 				
-				fprintf(stderr, "[error] %s: struct %s already declared in scope\n", name);
+				fprintf(stderr, "[error] %s: struct %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
 		}
 		struct_declaration = struct_declaration_new(name, declaration_scope);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
-			ret = ctf_struct_declaration_list_visit(fd,
-depth + 1, iter, struct_declaration);
+			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter, struct_declaration);
 			if (ret)
 				goto error;
 		}
@@ -634,12 +593,193 @@ error:
 	return NULL;
 }
 
+static
+struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
+	int depth, const char *name, struct cds_list_head *declaration_list,
+	int has_body, struct declaration_scope *declaration_scope)
+{
+	struct declaration *declaration;
+	struct declaration_variant *variant_declaration;
+	struct ctf_node *iter;
+
+	/*
+	 * For named variant (without body), lookup in
+	 * declaration scope. Don't take reference on variant
+	 * declaration: ref is only taken upon definition.
+	 */
+	if (!has_body) {
+		assert(name);
+		variant_declaration =
+			lookup_variant_declaration(g_quark_from_string(name),
+						   declaration_scope);
+		return variant_declaration;
+	} else {
+		/* For unnamed variant, create type */
+		/* For named variant (with body), create type and add to declaration scope */
+		if (name) {
+			if (lookup_variant_declaration(g_quark_from_string(name),
+						       declaration_scope)) {
+				
+				fprintf(stderr, "[error] %s: variant %s already declared in scope\n", __func__, name);
+				return NULL;
+			}
+		}
+		variant_declaration = variant_declaration_new(name, declaration_scope);
+		cds_list_for_each_entry(iter, declaration_list, siblings) {
+			ret = ctf_variant_declaration_list_visit(fd, depth + 1, iter, variant_declaration);
+			if (ret)
+				goto error;
+		}
+		if (name) {
+			ret = register_variant_declaration(g_quark_from_string(name),
+					variant_declaration,
+					declaration_scope);
+			assert(!ret);
+		}
+		return variant_declaration;
+	}
+error:
+	variant_declaration->p.declaration_free(&variant_declaration->p);
+	return NULL;
+}
+
+static
+int ctf_enumerator_list_visit(int fd, int depth,
+		struct ctf_node *enumerator,
+		struct declaration_enum *enum_declaration)
+{
+	/* TODO */
+........
+	return 0;
+}
+
+static
+struct declaration *ctf_declaration_enum_visit(int fd, int depth,
+			const char *name,
+			struct ctf_node *container_type,
+			struct cds_list_head *enumerator_list,
+			int has_body)
+{
+	struct declaration *declaration;
+	struct declaration_enum *enum_declaration;
+	struct declaration_integer *integer_declaration;
+	struct ctf_node *iter;
+
+	/*
+	 * For named enum (without body), lookup in
+	 * declaration scope. Don't take reference on enum
+	 * declaration: ref is only taken upon definition.
+	 */
+	if (!has_body) {
+		assert(name);
+		enum_declaration =
+			lookup_enum_declaration(g_quark_from_string(name),
+						declaration_scope);
+		return enum_declaration;
+	} else {
+		/* For unnamed enum, create type */
+		/* For named enum (with body), create type and add to declaration scope */
+		if (name) {
+			if (lookup_enum_declaration(g_quark_from_string(name),
+						    declaration_scope)) {
+				
+				fprintf(stderr, "[error] %s: enum %s already declared in scope\n", __func__, name);
+				return NULL;
+			}
+		}
+
+		/* TODO CHECK Enumerations need to have their size/type specifier (< >). */
+		integer_declaration = integer_declaration_new(); /* TODO ... */
+		.....
+		enum_declaration = enum_declaration_new(name, integer_declaration);
+		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
+		cds_list_for_each_entry(iter, enumerator_list, siblings) {
+			ret = ctf_enumerator_list_visit(fd, depth + 1, iter, enum_declaration);
+			if (ret)
+				goto error;
+		}
+		if (name) {
+			ret = register_enum_declaration(g_quark_from_string(name),
+					enum_declaration,
+					declaration_scope);
+			assert(!ret);
+		}
+		return enum_declaration;
+	}
+error:
+	enum_declaration->p.declaration_free(&enum_declaration->p);
+	return NULL;
+}
+
+static
+struct declaration *ctf_declaration_type_specifier_visit(int fd, int depth,
+		struct cds_list_head *declaration_specifier,
+		struct declaration_scope *declaration_scope)
+{
+	GString *str;
+	struct declaration *declaration;
+	const char *str_c;
+
+	str = g_string_new();
+	ret = visit_declaration_specifier(declaration_specifier, str);
+	if (ret)
+		return NULL;
+	str_c = g_string_free(str, FALSE);
+	id_q = g_quark_from_string(str_c);
+	g_free(str_c);
+	declaration = lookup_declaration(id_q, declaration_scope);
+	return declaration;
+}
+
+static
+struct declaration *ctf_declaration_integer_visit(int fd, int depth,
+		struct cds_list_head *expressions)
+{
+	struct node *expression;
+	uint64_t alignment, size, byte_order = trace->native_bo, signedness = 0;
+	int has_alignment = 0, has_size = 0;
+	struct declaration_integer *integer_declaration;
+
+	cds_list_for_each_entry(expression, expressions, siblings) {
+		struct node *left, *right;
+
+		left = expression->u.ctf_expression.left;
+		right = expression->u.ctf_expression.right;
+		assert(left->u.unary_expression.type == UNARY_STRING);
+		if (!strcmp(left->u.unary_expression.u.string, "signed")) {
+			/* TODO */
+	...........
+		} else if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
+
+		} else if (!strcmp(left->u.unary_expression.u.string, "size")) {
+			has_size = 1;
+		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
+			has_alignment = 1;
+		} else {
+			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+				__func__, left->u.unary_expression.u.string);
+			return NULL;
+		}
+	}
+	if (!has_alignment) {
+		fprintf(stderr, "[error] %s: missing alignment attribute\n", __func__);
+		return NULL;
+	}
+	if (!has_size) {
+		fprintf(stderr, "[error] %s: missing size attribute\n", __func__);
+		return NULL;
+	}
+	integer_declaration = integer_declaration_new(size,
+				byte_order, signedness, alignment);
+	return &integer_declaration->p;
+}
+
 /*
  * Also add named variant, struct or enum to the current declaration scope.
  */
 static
 struct declaration *ctf_declaration_specifier_visit(FILE *fd,
-		int depth, struct list_head *head,
+		int depth, struct cds_list_head *head,
 		struct declaration_scope *declaration_scope)
 {
 	struct declaration *declaration;
@@ -654,100 +794,31 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 			&first->u._struct.declaration_list,
 			first->u._struct.has_body,
 			declaration_scope);
-		break;
 	case NODE_VARIANT:
-		/*
-		 * For named variant (without body), lookup in
-		 * declaration scope and create declaration copy.
-		 */
-		/* For named variant (with body), create type and add to declaration scope */
-		/* For unnamed variant, create type */
-		/* If variant has a tag field specifier, assign tag name. */
-		break;
-	case NODE_ENUM:
-		/*
-		 * For named enum (without body), lookup in declaration
-		 * scope and create declaration copy.
-		 */
-		/* For named enum (with body), create type and add to declaration scope */
-		/* For unnamed enum, create type */
-		/* Enumerations need to have their size/type specifier (< >). */
-		break;
-	case NODE_INTEGER:
-		/*
-		 * Create an integer declaration.
-		 */
-		break;
-	case NODE_FLOATING_POINT:
-		/*
-		 * Create a floating point declaration.
-		 */
-		break;
-	case NODE_STRING:
-		/*
-		 * Create a string declaration.
-		 */
-		break;
-	case NODE_TYPE_SPECIFIER:
-		/*
-		 * Lookup named type in typedef declarations (in
-		 * declaration scope). Create a copy of the declaration.
-		 */
-		break;
-
-	}
-}
-
-static
-int ctf_typedef_declarator_visit(FILE *fd, int depth,
-		struct list_head *declaration_specifier,
-		struct node *type_declarator,
-		struct declaration_scope *declaration_scope)
-{
-	/*
-	 * Build the type using declaration specifier (creating
-	 * declaration from type_specifier), then apply type declarator,
-	 * add the resulting type to the current declaration scope.
-	 */
-	cds_list_for_each_entry(iter, declaration_specifier, siblings) {
-
-
-	}
-	return 0;
-}
-
-static
-int ctf_typedef_visit(FILE *fd, int depth,
-		struct list_head *declaration_specifier,
-		struct list_head *type_declarators,
-		struct declaration_scope *declaration_scope)
-{
-	struct ctf_node *iter;
-
-	cds_list_for_each_entry(iter, type_declarators, siblings) {
-		ret = ctf_typedef_declarator_visit(fd, depth + 1,
-			&node->u._typedef.declaration_specifier, iter,
+		return ctf_declaration_variant_visit(fd, depth,
+			first->u.variant.name,
+			&first->u.variant.declaration_list,
+			first->u.variant.has_body,
 			declaration_scope);
-		if (ret)
-			return ret;
+	case NODE_ENUM:
+		return ctf_declaration_enum_visit(fd, depth,
+			first->u._enum.enum_id,
+			first->u._enum.container_type,
+			&first->u._enum.enumerator_list,
+			first->u._enum.has_body);
+	case NODE_INTEGER:
+		return ctf_declaration_integer_visit(fd, depth,
+			&first->u.integer.expressions);
+	case NODE_FLOATING_POINT:	/* TODO  */
+		return ctf_declaration_floating_point_visit(fd, depth,
+			&first->u.floating_point.expressions);
+	case NODE_STRING:		/* TODO */
+		return ctf_declaration_string_visit(fd, depth,
+			&first->u.string.expressions);
+	case NODE_TYPE_SPECIFIER:
+		return ctf_declaration_type_specifier_visit(fd, depth,
+				head, declaration_scope);
 	}
-	return 0;
-}
-
-static
-int ctf_typealias_visit(FILE *fd, int depth, struct ctf_node *target,
-		struct ctf_node *alias,
-		struct declaration_scope *declaration_scope)
-{
-	/*
-	 * Build target type, check that it is reachable in current
-	 * declaration scope.
-	 */
-
-	/* Only one type declarator is allowed */
-
-	/* Build alias type, add to current declaration scope. */
-	/* Only one type declarator is allowed */
 }
 
 static
@@ -1144,7 +1215,6 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 	return 0;
 }
 
-
 static
 int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
 {
@@ -1234,229 +1304,6 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 				return ret;
 		}
 		break;
-
-	case NODE_TYPEALIAS_TARGET:
-		print_tabs(fd, depth);
-		fprintf(fd, "<target>\n");
-		depth++;
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_target.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
-
-		depth--;
-		print_tabs(fd, depth);
-		fprintf(fd, "</target>\n");
-		break;
-	case NODE_TYPEALIAS_ALIAS:
-		print_tabs(fd, depth);
-		fprintf(fd, "<alias>\n");
-		depth++;
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
-
-		depth--;
-		print_tabs(fd, depth);
-		fprintf(fd, "</alias>\n");
-		break;
-	case NODE_TYPEALIAS:
-		print_tabs(fd, depth);
-		fprintf(fd, "<typealias>\n");
-		ret = ctf_visitor_print_xml(fd, depth + 1, node->u.typealias.target);
-		if (ret)
-			return ret;
-		ret = ctf_visitor_print_xml(fd, depth + 1, node->u.typealias.alias);
-		if (ret)
-			return ret;
-		print_tabs(fd, depth);
-		fprintf(fd, "</typealias>\n");
-		break;
-
-	case NODE_TYPE_SPECIFIER:
-		ret = ctf_visitor_print_type_specifier(fd, depth, node);
-		if (ret)
-			return ret;
-		break;
-	case NODE_POINTER:
-		print_tabs(fd, depth);
-		if (node->u.pointer.const_qualifier)
-			fprintf(fd, "<const_pointer />\n");
-		else
-			fprintf(fd, "<pointer />\n");
-		break;
-	case NODE_TYPE_DECLARATOR:
-		ret = ctf_visitor_print_type_declarator(fd, depth, node);
-		if (ret)
-			return ret;
-		break;
-
-	case NODE_FLOATING_POINT:
-		print_tabs(fd, depth);
-		fprintf(fd, "<floating_point>\n");
-		cds_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</floating_point>\n");
-		break;
-	case NODE_INTEGER:
-		print_tabs(fd, depth);
-		fprintf(fd, "<integer>\n");
-		cds_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</integer>\n");
-		break;
-	case NODE_STRING:
-		print_tabs(fd, depth);
-		fprintf(fd, "<string>\n");
-		cds_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</string>\n");
-		break;
-	case NODE_ENUMERATOR:
-		print_tabs(fd, depth);
-		fprintf(fd, "<enumerator");
-		if (node->u.enumerator.id)
-			fprintf(fd, " id=\"%s\"", node->u.enumerator.id);
-		fprintf(fd, ">\n");
-		cds_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</enumerator>\n");
-		break;
-	case NODE_ENUM:
-		print_tabs(fd, depth);
-		if (node->u._struct.name)
-			fprintf(fd, "<enum name=\"%s\">\n",
-				node->u._enum.enum_id);
-		else
-			fprintf(fd, "<enum >\n");
-		depth++;
-
-		if (node->u._enum.container_type) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<container_type>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
-			if (ret)
-				return ret;
-			print_tabs(fd, depth);
-			fprintf(fd, "</container_type>\n");
-		}
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<enumerator_list>\n");
-		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</enumerator_list>\n");
-
-		depth--;
-		print_tabs(fd, depth);
-		fprintf(fd, "</enum>\n");
-		break;
-	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
-
-		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
-		break;
-	case NODE_VARIANT:
-		print_tabs(fd, depth);
-		fprintf(fd, "<variant");
-		if (node->u.variant.name)
-			fprintf(fd, " name=\"%s\"", node->u.variant.name);
-		if (node->u.variant.choice)
-			fprintf(fd, " choice=\"%s\"", node->u.variant.choice);
-		fprintf(fd, ">\n");
-		cds_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</variant>\n");
-		break;
-	case NODE_STRUCT:
-		print_tabs(fd, depth);
-		if (node->u._struct.name)
-			fprintf(fd, "<struct name=\"%s\">\n",
-				node->u._struct.name);
-		else
-			fprintf(fd, "<struct>\n");
-		cds_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</struct>\n");
-		break;
-
 	case NODE_UNKNOWN:
 	default:
 		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,

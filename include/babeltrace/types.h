@@ -398,18 +398,14 @@ void declaration_unref(struct declaration *declaration);
 void definition_ref(struct definition *definition);
 void definition_unref(struct definition *definition);
 
-/* Nameless declarations can be created by passing a NULL name */
-
-struct declaration_integer *integer_declaration_new(const char *name,
-				      size_t len, int byte_order,
+struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				      int signedness, size_t alignment);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
  * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
  */
-struct declaration_float *float_declaration_new(const char *name,
-				  size_t mantissa_len,
+struct declaration_float *float_declaration_new(size_t mantissa_len,
 				  size_t exp_len, int byte_order,
 				  size_t alignment);
 

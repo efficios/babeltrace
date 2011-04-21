@@ -58,14 +58,13 @@ void _integer_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_integer *
-	integer_declaration_new(const char *name, size_t len, int byte_order,
+	integer_declaration_new(size_t len, int byte_order,
 			 int signedness, size_t alignment)
 {
 	struct declaration_integer *integer_declaration;
 
 	integer_declaration = g_new(struct declaration_integer, 1);
 	integer_declaration->p.id = CTF_TYPE_INTEGER;
-	integer_declaration->p.name = g_quark_from_string(name);
 	integer_declaration->p.alignment = alignment;
 	integer_declaration->p.copy = integer_copy;
 	integer_declaration->p.declaration_free = _integer_declaration_free;

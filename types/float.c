@@ -59,7 +59,7 @@ void _float_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_float *
-	float_declaration_new(const char *name, size_t mantissa_len,
+	float_declaration_new(size_t mantissa_len,
 		       size_t exp_len, int byte_order, size_t alignment)
 {
 	struct declaration_float *float_declaration;
@@ -68,7 +68,6 @@ struct declaration_float *
 	float_declaration = g_new(struct declaration_float, 1);
 	declaration = &float_declaration->p;
 	declaration->id = CTF_TYPE_FLOAT;
-	declaration->name = g_quark_from_string(name);
 	declaration->alignment = alignment;
 	declaration->copy = float_copy;
 	declaration->declaration_free = _float_declaration_free;
@@ -77,11 +76,11 @@ struct declaration_float *
 	declaration->ref = 1;
 	float_declaration->byte_order = byte_order;
 
-	float_declaration->sign = integer_declaration_new(NULL, 1,
+	float_declaration->sign = integer_declaration_new(1,
 					    byte_order, false, 1);
-	float_declaration->mantissa = integer_declaration_new(NULL, mantissa_len - 1,
+	float_declaration->mantissa = integer_declaration_new(mantissa_len - 1,
 						byte_order, false, 1);
-	float_declaration->exp = integer_declaration_new(NULL, exp_len,
+	float_declaration->exp = integer_declaration_new(exp_len,
 					   byte_order, true, 1);
 	return float_declaration;
 }

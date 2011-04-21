@@ -1542,23 +1542,27 @@ enum_type_specifier:
 		LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.container_type = $2;
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
@@ -1566,12 +1570,14 @@ enum_type_specifier:
 	|	ID_TYPE LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
@@ -1579,23 +1585,27 @@ enum_type_specifier:
 	|	LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.container_type = $2;
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
@@ -1603,23 +1613,27 @@ enum_type_specifier:
 	|	IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
 	|	IDENTIFIER LT type_specifier_or_integer_constant GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 		}
 	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
@@ -1627,11 +1641,13 @@ enum_type_specifier:
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
 	|	ID_TYPE LT type_specifier_or_integer_constant GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
+			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 			$$->u._enum.container_type = $3;
 		}

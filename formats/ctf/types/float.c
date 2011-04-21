@@ -111,8 +111,8 @@ double ctf_double_read(struct stream_pos *srcp,
 		       const struct declaration_float *float_declaration)
 {
 	union doubleIEEE754 u;
-	struct declaration_float *dest_declaration = float_declaration_new(NULL,
-				DBL_MANT_DIG,
+	struct declaration_float *dest_declaration =
+		float_declaration_new(DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));
@@ -130,8 +130,8 @@ void ctf_double_write(struct stream_pos *destp,
 		      double v)
 {
 	union doubleIEEE754 u;
-	struct declaration_float *src_declaration = float_declaration_new(NULL,
-				DBL_MANT_DIG,
+	struct declaration_float *src_declaration =
+		float_declaration_new(DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));
@@ -148,8 +148,8 @@ long double ctf_ldouble_read(struct stream_pos *srcp,
 			     const struct declaration_float *float_declaration)
 {
 	union ldoubleIEEE754 u;
-	struct declaration_float *dest_declaration = float_declaration_new(NULL,
-				LDBL_MANT_DIG,
+	struct declaration_float *dest_declaration =
+		float_declaration_new(LDBL_MANT_DIG,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(long double));
@@ -167,8 +167,8 @@ void ctf_ldouble_write(struct stream_pos *destp,
 		       long double v)
 {
 	union ldoubleIEEE754 u;
-	struct declaration_float *src_declaration = float_declaration_new(NULL,
-				LDBL_MANT_DIG,
+	struct declaration_float *src_declaration =
+		float_declaration_new(LDBL_MANT_DIG,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(long double));

@@ -206,6 +206,7 @@ struct ctf_node {
 			/* NULL, value or declaration specifier */
 			struct ctf_node *container_type;
 			struct cds_list_head enumerator_list;
+			int has_body;
 		} _enum;
 		struct {
 			struct cds_list_head declaration_specifier;
