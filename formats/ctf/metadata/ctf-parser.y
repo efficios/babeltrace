@@ -814,7 +814,6 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> alias_declaration_specifiers
 
 %type <n> type_declarator_list
-%type <n> abstract_type_declarator_list
 %type <n> type_specifier
 %type <n> struct_type_specifier
 %type <n> variant_type_specifier
@@ -829,12 +828,13 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> abstract_declarator_list
 %type <n> abstract_declarator
 %type <n> direct_abstract_declarator
+%type <n> alias_abstract_declarator_list
+%type <n> alias_abstract_declarator
+%type <n> direct_alias_abstract_declarator
 %type <n> declarator
 %type <n> direct_declarator
 %type <n> type_declarator
 %type <n> direct_type_declarator
-%type <n> abstract_type_declarator
-%type <n> direct_abstract_type_declarator
 %type <n> pointer	
 %type <n> ctf_assignment_expression_list
 %type <n> ctf_assignment_expression
@@ -1116,7 +1116,7 @@ declaration:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
@@ -1227,16 +1227,6 @@ type_declarator_list:
 		type_declarator
 		{	$$ = $1;	}
 	|	type_declarator_list COMMA type_declarator
-		{
-			$$ = $1;
-			cds_list_add_tail(&($3)->siblings, &($$)->tmp_head);
-		}
-	;
-
-abstract_type_declarator_list:
-		abstract_type_declarator
-		{	$$ = $1;	}
-	|	abstract_type_declarator_list COMMA abstract_type_declarator
 		{
 			$$ = $1;
 			cds_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -1694,7 +1684,7 @@ struct_or_variant_declaration:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
@@ -1894,6 +1884,55 @@ direct_abstract_declarator:
 		}
 	;
 
+alias_abstract_declarator_list:
+		alias_abstract_declarator
+		{	$$ = $1;	}
+	|	alias_abstract_declarator_list COMMA alias_abstract_declarator
+		{
+			$$ = $1;
+			cds_list_add_tail(&($3)->siblings, &($$)->tmp_head);
+		}
+	;
+
+alias_abstract_declarator:
+		direct_alias_abstract_declarator
+		{	$$ = $1;	}
+	|	pointer direct_alias_abstract_declarator
+		{
+			$$ = $2;
+			cds_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
+		}
+	;
+
+direct_alias_abstract_declarator:
+		/* empty */
+		{
+			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
+                        $$->u.type_declarator.type = TYPEDEC_ID;
+			/* id is NULL */
+		}
+	|	LPAREN alias_abstract_declarator RPAREN
+		{
+			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
+			$$->u.type_declarator.type = TYPEDEC_NESTED;
+			$$->u.type_declarator.u.nested.type_declarator = $2;
+		}
+	|	direct_alias_abstract_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
+		{
+			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
+			$$->u.type_declarator.type = TYPEDEC_NESTED;
+			$$->u.type_declarator.u.nested.type_declarator = $1;
+			$$->u.type_declarator.u.nested.length = $3;
+		}
+	|	direct_alias_abstract_declarator LSBRAC RSBRAC
+		{
+			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
+			$$->u.type_declarator.type = TYPEDEC_NESTED;
+			$$->u.type_declarator.u.nested.type_declarator = $1;
+			$$->u.type_declarator.u.nested.abstract_array = 1;
+		}
+	;
+
 declarator:
 		direct_declarator
 		{	$$ = $1;	}
@@ -1956,52 +1995,6 @@ direct_type_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
 			$$->u.type_declarator.u.nested.length = $3;
-		}
-	;
-
-abstract_type_declarator:
-		direct_abstract_type_declarator
-		{	$$ = $1;	}
-	|	pointer direct_abstract_type_declarator
-		{
-			$$ = $2;
-			cds_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
-		}
-	;
-
-direct_abstract_type_declarator:
-		/* empty */
-		{
-			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-                        $$->u.type_declarator.type = TYPEDEC_ID;
-			/* id is NULL */
-		}
-	|	IDENTIFIER
-		{
-			add_type(scanner, $1);
-			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1->s;
-		}
-	|	LPAREN abstract_type_declarator RPAREN
-		{
-			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $2;
-		}
-	|	direct_abstract_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
-		{
-			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.length = $3;
-		}
-	|	direct_abstract_type_declarator LSBRAC RSBRAC
-		{
-			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.abstract_array = 1;
 		}
 	;
 
@@ -2086,7 +2079,7 @@ ctf_assignment_expression:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
