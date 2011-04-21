@@ -649,22 +649,98 @@ int ctf_enumerator_list_visit(int fd, int depth,
 		struct ctf_node *enumerator,
 		struct declaration_enum *enum_declaration)
 {
-	/* TODO */
-........
+	GQuark q;
+	struct ctf_node *iter;
+
+	q = g_quark_from_string(enumerator->u.enumerator.id);
+	if (enum_declaration->integer->signedness) {
+		int64_t start, end;
+		int nr_vals = 0;
+
+		cds_list_for_each_entry(iter, enumerator->u.enumerator.values, siblings) {
+			int64_t *target;
+
+			assert(iter->type == NODE_UNARY_EXPRESSION);
+			if (nr_vals == 0)
+				target = &start;
+			else
+				target = &end;
+
+			switch (iter->u.unary_expression.type) {
+			case UNARY_SIGNED_CONSTANT:
+				*target = iter->u.unary_expression.u.signed_constant;
+				break;
+			case UNARY_UNSIGNED_CONSTANT:
+				*target = iter->u.unary_expression.u.unsigned_constant;
+				break;
+			default:
+				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				return -EINVAL;
+			}
+			if (nr_vals > 1) {
+				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				return -EINVAL;
+			}
+			nr_vals++;
+		}
+		if (nr_vals == 1)
+			end = start;
+		enum_signed_insert(enum_declaration, start, end, q);
+	} else
+		uint64_t start, end;
+		int nr_vals = 0;
+
+		cds_list_for_each_entry(iter, enumerator->u.enumerator.values, siblings) {
+			int64_t *target;
+
+			assert(iter->type == NODE_UNARY_EXPRESSION);
+			if (nr_vals == 0)
+				target = &start;
+			else
+				target = &end;
+
+			switch (iter->u.unary_expression.type) {
+			case UNARY_UNSIGNED_CONSTANT:
+				*target = iter->u.unary_expression.u.unsigned_constant;
+				break;
+			case UNARY_SIGNED_CONSTANT:
+				/*
+				 * We don't accept signed constants for enums with unsigned
+				 * container type.
+				 */
+				fprintf(stderr, "[error] %s: invalid enumerator (signed constant encountered, but enum container type is unsigned)\n", __func__);
+				return -EINVAL;
+			default:
+				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				return -EINVAL;
+			}
+			if (nr_vals > 1) {
+				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				return -EINVAL;
+			}
+			nr_vals++;
+		}
+		if (nr_vals == 1)
+			end = start;
+		enum_unsigned_insert(enum_declaration, start, end, q);
+	}
 	return 0;
 }
 
 static
 struct declaration *ctf_declaration_enum_visit(int fd, int depth,
 			const char *name,
-			struct ctf_node *container_type,
+			struct cds_list_head *container_type,
 			struct cds_list_head *enumerator_list,
-			int has_body)
+			int has_body,
+			struct declaration_scope *declaration_scope,
+			struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	struct declaration_enum *enum_declaration;
 	struct declaration_integer *integer_declaration;
-	struct ctf_node *iter;
+	struct ctf_node *iter, *first;
+	GQuark dummy_id;
 
 	/*
 	 * For named enum (without body), lookup in
@@ -688,10 +764,27 @@ struct declaration *ctf_declaration_enum_visit(int fd, int depth,
 				return NULL;
 			}
 		}
-
-		/* TODO CHECK Enumerations need to have their size/type specifier (< >). */
-		integer_declaration = integer_declaration_new(); /* TODO ... */
-		.....
+		if (cds_list_empty(container_type)) {
+				fprintf(stderr, "[error] %s: missing container type for enumeration\n", __func__, name);
+				return NULL;
+			
+		}
+		first = _cds_list_first_entry(container_type, struct node, siblings);
+		switch (first->type) {
+		case NODE_INTEGER:
+		case NODE_TYPE_SPECIFIER:
+			declaration = ctf_type_declarator_visit(fd, depth,
+						container_type,
+						&dummy_id, iter,
+						declaration_scope,
+						NULL);
+			assert(declaration->id == CTF_TYPE_INTEGER);
+			integer_declaration = container_of(declaration, struct declaration_integer, p);
+			break;
+		}
+		default:
+			assert(0);
+		}
 		enum_declaration = enum_declaration_new(name, integer_declaration);
 		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
 		cds_list_for_each_entry(iter, enumerator_list, siblings) {
@@ -1009,9 +1102,10 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 	case NODE_ENUM:
 		return ctf_declaration_enum_visit(fd, depth,
 			first->u._enum.enum_id,
-			first->u._enum.container_type,
+			&first->u._enum.container_type,
 			&first->u._enum.enumerator_list,
 			first->u._enum.has_body,
+			declaration_scope,
 			trace);
 	case NODE_INTEGER:
 		return ctf_declaration_integer_visit(fd, depth,
