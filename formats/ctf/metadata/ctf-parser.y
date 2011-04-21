@@ -1537,7 +1537,7 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	LT declaration_specifiers GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1551,7 +1551,7 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	IDENTIFIER LT declaration_specifiers GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1566,7 +1566,7 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	ID_TYPE LT declaration_specifiers GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1580,7 +1580,7 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1594,7 +1594,7 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	IDENTIFIER LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1608,7 +1608,7 @@ enum_type_specifier:
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
-	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT
+	|	IDENTIFIER LT declaration_specifiers GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
@@ -1622,7 +1622,7 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	ID_TYPE LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -1636,7 +1636,7 @@ enum_type_specifier:
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
-	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT
+	|	ID_TYPE LT declaration_specifiers GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;

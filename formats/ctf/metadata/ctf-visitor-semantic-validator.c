@@ -65,10 +65,8 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		/* Right child of a ctf expression can be any type of unary exp. */
 		break;			/* OK */
 	case NODE_TYPE_DECLARATOR:
-	case NODE_ENUM:
 		/*
-		 * We are the length of a type declarator or the size of an enum
-		 * container. We can only be a numeric constant.
+		 * We are the length of a type declarator.
 		 */
 		switch (node->u.unary_expression.type) {
 		case UNARY_SIGNED_CONSTANT:
@@ -104,6 +102,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_FLOATING_POINT:
 	case NODE_INTEGER:
 	case NODE_STRING:
+	case NODE_ENUM:
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 	case NODE_VARIANT:
 	case NODE_STRUCT:
