@@ -173,8 +173,11 @@ struct ctf_node {
 				struct {
 					/* typedec has no pointer list */
 					struct ctf_node *type_declarator;
-					/* value or first node of declaration specifier list */
-					struct ctf_node *length;
+					/*
+					 * unary expression (value) or
+					 * declaration specifiers.
+					 */
+					struct cds_list_head length;
 					/* for abstract type declarator */
 					unsigned int abstract_array;
 				} nested;
@@ -203,8 +206,11 @@ struct ctf_node {
 		} enumerator;
 		struct {
 			char *enum_id;
-			/* NULL, value or declaration specifier */
-			struct ctf_node *container_type;
+			/*
+			 * Either empty, contains unary expression or
+			 * declaration specifiers.
+			 */
+			struct cds_list_head container_type;
 			struct cds_list_head enumerator_list;
 			int has_body;
 		} _enum;

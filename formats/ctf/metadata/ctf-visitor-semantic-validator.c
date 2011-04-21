@@ -292,17 +292,25 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	case TYPEDEC_ID:
 		break;
 	case TYPEDEC_NESTED:
+	{
+		int nr_nest_len;
+
 		if (node->u.type_declarator.u.nested.type_declarator) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
 				node->u.type_declarator.u.nested.type_declarator);
 			if (ret)
 				return ret;
 		}
-		if (node->u.type_declarator.u.nested.length) {
+		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+					siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
-				node->u.type_declarator.u.nested.length);
+				iter);
 			if (ret)
 				return ret;
+			nr_nest_len++;
+			if (iter->type == NODE_UNARY_EXPRESSION && nr_nest_len > 1) {
+				goto errperm;
+			}
 		}
 		if (node->u.type_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
@@ -311,6 +319,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 		break;
+	}
 	case TYPEDEC_UNKNOWN:
 	default:
 		fprintf(fd, "[error] %s: unknown type declarator %d\n", __func__,
@@ -810,8 +819,9 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		if (node->u._enum.container_type) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, node->u._enum.container_type);
+		cds_list_for_each_entry(iter, &node->u._enum.container_type,
+					siblings) {
+			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}

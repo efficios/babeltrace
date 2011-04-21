@@ -218,13 +218,17 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 			print_tabs(fd, depth);
 			fprintf(fd, "</type_declarator>\n");
 		}
-		if (node->u.type_declarator.u.nested.length) {
+		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<length>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1,
-				node->u.type_declarator.u.nested.length);
+		}
+		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+					siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
+		}
+		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "</length>\n");
 		}
@@ -540,12 +544,18 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 			fprintf(fd, "<enum >\n");
 		depth++;
 
-		if (node->u._enum.container_type) {
+		if (!cds_list_empty(&node->u._enum.container_type)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<container_type>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
+		}
+
+		cds_list_for_each_entry(iter, &node->u._enum.container_type,
+					siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
+		}
+		if (!cds_list_empty(&node->u._enum.container_type)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "</container_type>\n");
 		}

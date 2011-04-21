@@ -135,10 +135,10 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
-		if (node->u.type_declarator.u.nested.length) {
-			node->u.type_declarator.u.nested.length->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1,
-				node->u.type_declarator.u.nested.length);
+		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+					siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -358,9 +358,10 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENUM:
 		depth++;
 
-		if (node->u._enum.container_type) {
-			node->u._enum.container_type->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, node->u._enum.container_type);
+		cds_list_for_each_entry(iter, &node->u._enum.container_type,
+					siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}

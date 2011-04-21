@@ -292,6 +292,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		CDS_INIT_LIST_HEAD(&node->u.enumerator.values);
 		break;
 	case NODE_ENUM:
+		CDS_INIT_LIST_HEAD(&node->u._enum.container_type);
 		CDS_INIT_LIST_HEAD(&node->u._enum.enumerator_list);
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
@@ -493,10 +494,11 @@ static int reparent_type_specifier(struct ctf_node *node,
 		break;
 	case NODE_TYPE_DECLARATOR:
 		parent->u.type_declarator.type = TYPEDEC_NESTED;
-		parent->u.type_declarator.u.nested.length = node;
+		CDS_INIT_LIST_HEAD(&parent->u.type_declarator.u.nested.length);
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.type_declarator.u.nested.length);
 		break;
 	case NODE_ENUM:
-		parent->u._enum.container_type = node;
+		_cds_list_splice_tail(&node->tmp_head, &parent->u._enum.container_type);
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.struct_or_variant_declaration.declaration_specifier);
@@ -817,7 +819,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> type_specifier
 %type <n> struct_type_specifier
 %type <n> variant_type_specifier
-%type <n> type_specifier_or_integer_constant
+%type <n> declaration_specifiers_or_integer_constant
 %type <n> enum_type_specifier
 %type <n> struct_or_variant_declaration_list
 %type <n> struct_or_variant_declaration
@@ -1502,7 +1504,7 @@ variant_declaration_end:
 		{	pop_scope(scanner);	}
 	;
 
-type_specifier_or_integer_constant:
+declaration_specifiers_or_integer_constant:
 		declaration_specifiers
 		{	$$ = $1;		}
 	|	DECIMAL_CONSTANT
@@ -1535,11 +1537,11 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.container_type = $2;
+			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list RBRAC
@@ -1549,12 +1551,12 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE LBRAC enumerator_list RBRAC
@@ -1564,12 +1566,12 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT type_specifier_or_integer_constant GT LBRAC enumerator_list RBRAC
+	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	LBRAC enumerator_list COMMA RBRAC
@@ -1578,11 +1580,11 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.container_type = $2;
+			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list COMMA RBRAC
@@ -1592,12 +1594,12 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER
@@ -1606,12 +1608,12 @@ enum_type_specifier:
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
-	|	IDENTIFIER LT type_specifier_or_integer_constant GT
+	|	IDENTIFIER LT declaration_specifiers_or_integer_constant GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 		}
 	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
 		{
@@ -1620,12 +1622,12 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT type_specifier_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
+	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE
@@ -1634,12 +1636,12 @@ enum_type_specifier:
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
 		}
-	|	ID_TYPE LT type_specifier_or_integer_constant GT
+	|	ID_TYPE LT declaration_specifiers_or_integer_constant GT
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-			$$->u._enum.container_type = $3;
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
 		}
 	;
 
@@ -1868,12 +1870,13 @@ direct_abstract_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_abstract_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
+	|	direct_abstract_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	|	direct_abstract_declarator LSBRAC RSBRAC
 		{
@@ -1917,12 +1920,13 @@ direct_alias_abstract_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_alias_abstract_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
+	|	direct_alias_abstract_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	|	direct_alias_abstract_declarator LSBRAC RSBRAC
 		{
@@ -1956,12 +1960,13 @@ direct_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
+	|	direct_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	;
 
@@ -1989,12 +1994,13 @@ direct_type_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_type_declarator LSBRAC type_specifier_or_integer_constant RSBRAC
+	|	direct_type_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	;
 
