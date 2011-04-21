@@ -28,9 +28,8 @@ struct ctf_trace;
 struct ctf_stream;
 struct ctf_event;
 
-#define CTF_TRACE_SET_FIELD(ctf_trace, field, value)			\
+#define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
 	do {								\
-		(ctf_trace)->(field) = (value);				\
 		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
 	} while (0)
 
@@ -65,9 +64,8 @@ struct ctf_trace {
 	} field_mask;
 };
 
-#define CTF_STREAM_SET_FIELD(ctf_stream, field, value)			\
+#define CTF_STREAM_SET_FIELD(ctf_stream, field)				\
 	do {								\
-		(ctf_stream)->(field) = (value);			\
 		(ctf_stream)->field_mask |= CTF_STREAM_ ## field;	\
 	} while (0)
 

@@ -329,7 +329,7 @@ int register_struct_declaration(GQuark struct_name,
 }
 
 static
-struct declaration_variant *
+struct declaration_untagged_variant *
 	lookup_variant_declaration_scope(GQuark variant_name,
 		struct declaration_scope *scope)
 {
@@ -337,11 +337,11 @@ struct declaration_variant *
 				   (gconstpointer) (unsigned long) variant_name);
 }
 
-struct declaration_variant *
+struct declaration_untagged_variant *
 	lookup_variant_declaration(GQuark variant_name,
 		struct declaration_scope *scope)
 {
-	struct declaration_variant *declaration;
+	struct declaration_untagged_variant *declaration;
 
 	while (scope) {
 		declaration = lookup_variant_declaration_scope(variant_name, scope);
@@ -353,7 +353,7 @@ struct declaration_variant *
 }
 
 int register_variant_declaration(GQuark variant_name,
-		struct declaration_variant *variant_declaration,
+		struct declaration_untagged_variant *untagged_variant_declaration,
 		struct declaration_scope *scope)
 {
 	if (!variant_name)
@@ -365,8 +365,8 @@ int register_variant_declaration(GQuark variant_name,
 
 	g_hash_table_insert(scope->variant_declarations,
 			    (gpointer) (unsigned long) variant_name,
-			    variant_declaration);
-	declaration_ref(&variant_declaration->p);
+			    untagged_variant_declaration);
+	declaration_ref(&untagged_variant_declaration->p);
 	return 0;
 }
 

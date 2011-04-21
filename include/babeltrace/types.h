@@ -364,9 +364,9 @@ struct declaration_struct *
 	lookup_struct_declaration(GQuark struct_name,
 				  struct declaration_scope *scope);
 int register_variant_declaration(GQuark variant_name,
-			  struct declaration_variant *variant_declaration,
+			  struct declaration_untagged_variant *untagged_variant_declaration,
 		          struct declaration_scope *scope);
-struct declaration_variant *lookup_variant_declaration(GQuark variant_name,
+struct declaration_untagged_variant *lookup_variant_declaration(GQuark variant_name,
 					 struct declaration_scope *scope);
 int register_enum_declaration(GQuark enum_name,
 			      struct declaration_enum *enum_declaration,

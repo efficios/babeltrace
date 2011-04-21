@@ -26,6 +26,8 @@
 #include <endian.h>
 #include <errno.h>
 #include <babeltrace/list.h>
+#include <babeltrace/types.h>
+#include <babeltrace/ctf/metadata.h>
 #include <uuid/uuid.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
@@ -52,26 +54,28 @@ char *concatenate_unary_strings(struct cds_list_head *head)
 	GString *str;
 	int i = 0;
 
-	str = g_string_new();
+	str = g_string_new("");
 	cds_list_for_each_entry(node, head, siblings) {
 		char *src_string;
 
 		assert(node->type == NODE_UNARY_EXPRESSION);
 		assert(node->u.unary_expression.type == UNARY_STRING);
 		assert((node->u.unary_expression.link == UNARY_LINK_UNKNOWN)
-			^ (i != 0))
+			^ (i != 0));
 		switch (node->u.unary_expression.link) {
 		case UNARY_DOTLINK:
-			g_string_append(str, ".")
+			g_string_append(str, ".");
 			break;
 		case UNARY_ARROWLINK:
-			g_string_append(str, "->")
+			g_string_append(str, "->");
 			break;
 		case UNARY_DOTDOTDOT:
-			g_string_append(str, "...")
+			g_string_append(str, "...");
+			break;
+		default:
 			break;
 		}
-		src_string = u.unary_expression.u.string;
+		src_string = node->u.unary_expression.u.string;
 		g_string_append(str, src_string);
 		i++;
 	}
@@ -89,7 +93,7 @@ int get_unary_unsigned(struct cds_list_head *head, uint64_t *value)
 		assert(node->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT);
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
-		*value = node->u.unary_expression.unsigned_constant
+		*value = node->u.unary_expression.u.unsigned_constant;
 		i++;
 	}
 	return 0;
@@ -109,8 +113,8 @@ int get_unary_uuid(struct cds_list_head *head, uuid_t *uuid)
 		assert(node->u.unary_expression.type == UNARY_STRING);
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
-		src_string = u.unary_expression.u.string;
-		ret = uuid_parse(u.unary_expression.u.string, *uuid);
+		src_string = node->u.unary_expression.u.string;
+		ret = uuid_parse(node->u.unary_expression.u.string, *uuid);
 	}
 	return ret;
 }
@@ -124,7 +128,7 @@ struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_
 }
 
 static
-void visit_declaration_specifier(struct cds_list_head *declaration_specifier, GString *str)
+int visit_declaration_specifier(struct cds_list_head *declaration_specifier, GString *str)
 {
 	struct ctf_node *iter;
 	int alias_item_nr = 0;
@@ -230,12 +234,13 @@ GQuark create_typealias_identifier(FILE *fd, int depth,
 	struct cds_list_head *declaration_specifier,
 	struct ctf_node *node_type_declarator)
 {
+	struct ctf_node *iter;
 	GString *str;
-	const char *str_c;
+	char *str_c;
 	GQuark alias_q;
 	int ret;
 
-	str = g_string_new();
+	str = g_string_new("");
 	ret = visit_declaration_specifier(declaration_specifier, str);
 	if (ret) {
 		g_string_free(str, TRUE);
@@ -309,51 +314,55 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 		return nested_declaration;
 	} else {
 		struct declaration *declaration;
-		struct node *length;
+		struct cds_list_head *length;
+		struct ctf_node *first;
 
 		/* TYPEDEC_NESTED */
 
 		/* create array/sequence, pass nested_declaration as child. */
-		length = node_type_declarator->u.type_declarator.u.nested.length;
-		if (length) {
-			switch (length->type) {
-			case NODE_UNARY_EXPRESSION:
-			{
-				struct declaration_array *array_declaration;
-				size_t len;
+		length = &node_type_declarator->u.type_declarator.u.nested.length;
+		if (cds_list_empty(length)) {
+			fprintf(stderr, "[error] %s: expecting length type or value.\n", __func__);
+			return NULL;
+		}
+		first = _cds_list_first_entry(length, struct ctf_node, siblings);
+		switch (first->type) {
+		case NODE_UNARY_EXPRESSION:
+		{
+			struct declaration_array *array_declaration;
+			size_t len;
 
-				if (length->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-					fprintf(stderr, "[error] %s: array: unexpected unary expression.\n", __func__);
-					return NULL;
-				}
-				len = length->u.unary_expression.u.unsigned_constant;
-				array_declaration = array_declaration_new(len, nested_declaration,
-							declaration_scope);
-				declaration = &array_declaration->p;
-				break;
+			if (first->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: array: unexpected unary expression.\n", __func__);
+				return NULL;
 			}
-			case NODE_INTEGER:
-			case NODE_TYPE_SPECIFIER:
-			{
-				struct declaration_sequence *sequence_declaration;
-				struct declaration_integer *integer_declaration;
-				GQuark dummy_id;
+			len = first->u.unary_expression.u.unsigned_constant;
+			array_declaration = array_declaration_new(len, nested_declaration,
+						declaration_scope);
+			declaration = &array_declaration->p;
+			break;
+		}
+		case NODE_INTEGER:
+		case NODE_TYPE_SPECIFIER:
+		{
+			struct declaration_sequence *sequence_declaration;
+			struct declaration_integer *integer_declaration;
+			GQuark dummy_id;
 
-				declaration = ctf_type_declarator_visit(fd, depth,
-							length,
-							&dummy_id, NULL,
-							declaration_scope,
-							NULL, trace);
-				assert(declaration->id == CTF_TYPE_INTEGER);
-				integer_declaration = container_of(declaration, struct declaration_integer, p);
-				declaration_sequence = sequence_declaration_new(integer_declaration,
-						nested_declaration, declaration_scope);
-				declaration = &declaration_sequence->p;
-				break;
-			}
-			default:
-				assert(0);
-			}
+			declaration = ctf_type_declarator_visit(fd, depth,
+						length,
+						&dummy_id, NULL,
+						declaration_scope,
+						NULL, trace);
+			assert(declaration->id == CTF_TYPE_INTEGER);
+			integer_declaration = container_of(declaration, struct declaration_integer, p);
+			sequence_declaration = sequence_declaration_new(integer_declaration,
+					nested_declaration, declaration_scope);
+			declaration = &sequence_declaration->p;
+			break;
+		}
+		default:
+			assert(0);
 		}
 
 		/* Pass it as content of outer container */
@@ -393,7 +402,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 
 static
 int ctf_variant_type_declarators_visit(FILE *fd, int depth,
-	struct declaration_variant *variant_declaration,
+	struct declaration_untagged_variant *untagged_variant_declaration,
 	struct cds_list_head *declaration_specifier,
 	struct cds_list_head *type_declarators,
 	struct declaration_scope *declaration_scope,
@@ -408,9 +417,9 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 		field_declaration = ctf_type_declarator_visit(fd, depth,
 						declaration_specifier,
 						&field_name, iter,
-						variant_declaration->scope,
+						untagged_variant_declaration->scope,
 						NULL, trace);
-		variant_declaration_add_field(variant_declaration,
+		untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
 	}
@@ -449,9 +458,10 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		struct ctf_trace *trace)
 {
 	struct declaration *type_declaration;
-	struct ctf_node *iter, *node;
+	struct ctf_node *node;
 	GQuark dummy_id;
 	GQuark alias_q;
+	int err;
 
 	/* See ctf_visitor_type_declarator() in the semantic validator. */
 
@@ -459,9 +469,14 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 * Create target type declaration.
 	 */
 
+	if (cds_list_empty(&alias->u.typealias_target.type_declarators))
+		node = NULL;
+	else
+		node = _cds_list_first_entry(&alias->u.typealias_target.type_declarators,
+				struct ctf_node, siblings);
 	type_declaration = ctf_type_declarator_visit(fd, depth,
 		&target->u.typealias_target.declaration_specifier,
-		&dummy_id, &target->u.typealias_target.type_declarators,
+		&dummy_id, node,
 		scope, NULL, trace);
 	if (!type_declaration) {
 		fprintf(stderr, "[error] %s: problem creating type declaration\n", __func__);
@@ -482,17 +497,17 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 */
 
 	node = _cds_list_first_entry(&alias->u.typealias_alias.type_declarators,
-				struct node, siblings);
+				struct ctf_node, siblings);
 	alias_q = create_typealias_identifier(fd, depth,
 			&alias->u.typealias_alias.declaration_specifier, node);
-	ret = register_declaration(alias_q, type_declaration, scope);
-	if (ret)
+	err = register_declaration(alias_q, type_declaration, scope);
+	if (err)
 		goto error;
 	return 0;
 
 error:
 	type_declaration->declaration_free(type_declaration);
-	return ret;
+	return err;
 }
 
 static
@@ -500,7 +515,6 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 	struct ctf_node *iter, struct declaration_struct *struct_declaration,
 	struct ctf_trace *trace)
 {
-	struct declaration *declaration;
 	int ret;
 
 	switch (iter->type) {
@@ -527,7 +541,8 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 		ret = ctf_struct_type_declarators_visit(fd, depth,
 				struct_declaration,
 				&iter->u.struct_or_variant_declaration.declaration_specifier,
-				&iter->u.struct_or_variant_declaration.type_declarators, trace);
+				&iter->u.struct_or_variant_declaration.type_declarators,
+				struct_declaration->scope, trace);
 		if (ret)
 			return ret;
 		break;
@@ -540,17 +555,17 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 
 static
 int ctf_variant_declaration_list_visit(FILE *fd, int depth,
-	struct ctf_node *iter, struct declaration_variant *variant_declaration,
+	struct ctf_node *iter,
+	struct declaration_untagged_variant *untagged_variant_declaration,
 	struct ctf_trace *trace)
 {
-	struct declaration *declaration;
 	int ret;
 
 	switch (iter->type) {
 	case NODE_TYPEDEF:
 		/* For each declarator, declare type and add type to variant declaration scope */
 		ret = ctf_typedef_visit(fd, depth,
-			variant_declaration->scope,
+			untagged_variant_declaration->scope,
 			&iter->u._typedef.declaration_specifier,
 			&iter->u._typedef.type_declarators, trace);
 		if (ret)
@@ -559,7 +574,7 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 	case NODE_TYPEALIAS:
 		/* Declare type with declarator and add type to variant declaration scope */
 		ret = ctf_typealias_visit(fd, depth,
-			variant_declaration->scope,
+			untagged_variant_declaration->scope,
 			iter->u.typealias.target,
 			iter->u.typealias.alias, trace);
 		if (ret)
@@ -568,9 +583,10 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		/* Add field to structure declaration */
 		ret = ctf_variant_type_declarators_visit(fd, depth,
-				variant_declaration,
+				untagged_variant_declaration,
 				&iter->u.struct_or_variant_declaration.declaration_specifier,
-				&iter->u.struct_or_variant_declaration.type_declarators, trace);
+				&iter->u.struct_or_variant_declaration.type_declarators,
+				untagged_variant_declaration->scope, trace);
 		if (ret)
 			return ret;
 		break;
@@ -582,14 +598,14 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 }
 
 static
-struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
+struct declaration *ctf_declaration_struct_visit(FILE *fd,
 	int depth, const char *name, struct cds_list_head *declaration_list,
 	int has_body, struct declaration_scope *declaration_scope,
 	struct ctf_trace *trace)
 {
-	struct declaration *declaration;
 	struct declaration_struct *struct_declaration;
 	struct ctf_node *iter;
+	int ret;
 
 	/*
 	 * For named struct (without body), lookup in
@@ -601,7 +617,7 @@ struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 		struct_declaration =
 			lookup_struct_declaration(g_quark_from_string(name),
 						  declaration_scope);
-		return struct_declaration;
+		return &struct_declaration->p;
 	} else {
 		/* For unnamed struct, create type */
 		/* For named struct (with body), create type and add to declaration scope */
@@ -613,7 +629,7 @@ struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 				return NULL;
 			}
 		}
-		struct_declaration = struct_declaration_new(name, declaration_scope);
+		struct_declaration = struct_declaration_new(declaration_scope);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
 			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
 				struct_declaration, trace);
@@ -626,7 +642,7 @@ struct declaration_struct *ctf_declaration_struct_visit(FILE *fd,
 					declaration_scope);
 			assert(!ret);
 		}
-		return struct_declaration;
+		return &struct_declaration->p;
 	}
 error:
 	struct_declaration->p.declaration_free(&struct_declaration->p);
@@ -634,14 +650,16 @@ error:
 }
 
 static
-struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
-	int depth, const char *name, struct cds_list_head *declaration_list,
+struct declaration *ctf_declaration_variant_visit(FILE *fd,
+	int depth, const char *name, const char *choice,
+	struct cds_list_head *declaration_list,
 	int has_body, struct declaration_scope *declaration_scope,
 	struct ctf_trace *trace)
 {
-	struct declaration *declaration;
+	struct declaration_untagged_variant *untagged_variant_declaration;
 	struct declaration_variant *variant_declaration;
 	struct ctf_node *iter;
+	int ret;
 
 	/*
 	 * For named variant (without body), lookup in
@@ -650,10 +668,9 @@ struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
 	 */
 	if (!has_body) {
 		assert(name);
-		variant_declaration =
+		untagged_variant_declaration =
 			lookup_variant_declaration(g_quark_from_string(name),
 						   declaration_scope);
-		return variant_declaration;
 	} else {
 		/* For unnamed variant, create type */
 		/* For named variant (with body), create type and add to declaration scope */
@@ -665,23 +682,35 @@ struct declaration_variant *ctf_declaration_variant_visit(FILE *fd,
 				return NULL;
 			}
 		}
-		variant_declaration = variant_declaration_new(name, declaration_scope);
+		untagged_variant_declaration = untagged_variant_declaration_new(declaration_scope);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
 			ret = ctf_variant_declaration_list_visit(fd, depth + 1, iter,
-				variant_declaration, trace);
+				untagged_variant_declaration, trace);
 			if (ret)
 				goto error;
 		}
 		if (name) {
 			ret = register_variant_declaration(g_quark_from_string(name),
-					variant_declaration,
+					untagged_variant_declaration,
 					declaration_scope);
 			assert(!ret);
 		}
-		return variant_declaration;
+	}
+	/*
+	 * if tagged, create tagged variant and return. else return
+	 * untagged variant.
+	 */
+	if (!choice) {
+		return &untagged_variant_declaration->p;
+	} else {
+		variant_declaration = variant_declaration_new(untagged_variant_declaration, choice);
+		if (!variant_declaration)
+			goto error;
+		declaration_unref(&untagged_variant_declaration->p);
+		return &variant_declaration->p;
 	}
 error:
-	variant_declaration->p.declaration_free(&variant_declaration->p);
+	untagged_variant_declaration->p.declaration_free(&variant_declaration->p);
 	return NULL;
 }
 
@@ -694,11 +723,11 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 	struct ctf_node *iter;
 
 	q = g_quark_from_string(enumerator->u.enumerator.id);
-	if (enum_declaration->integer->signedness) {
+	if (enum_declaration->integer_declaration->signedness) {
 		int64_t start, end;
 		int nr_vals = 0;
 
-		cds_list_for_each_entry(iter, enumerator->u.enumerator.values, siblings) {
+		cds_list_for_each_entry(iter, &enumerator->u.enumerator.values, siblings) {
 			int64_t *target;
 
 			assert(iter->type == NODE_UNARY_EXPRESSION);
@@ -727,12 +756,12 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 		if (nr_vals == 1)
 			end = start;
 		enum_signed_insert(enum_declaration, start, end, q);
-	} else
+	} else {
 		uint64_t start, end;
 		int nr_vals = 0;
 
-		cds_list_for_each_entry(iter, enumerator->u.enumerator.values, siblings) {
-			int64_t *target;
+		cds_list_for_each_entry(iter, &enumerator->u.enumerator.values, siblings) {
+			uint64_t *target;
 
 			assert(iter->type == NODE_UNARY_EXPRESSION);
 			if (nr_vals == 0)
@@ -782,6 +811,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 	struct declaration_integer *integer_declaration;
 	struct ctf_node *iter, *first;
 	GQuark dummy_id;
+	int ret;
 
 	/*
 	 * For named enum (without body), lookup in
@@ -793,7 +823,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		enum_declaration =
 			lookup_enum_declaration(g_quark_from_string(name),
 						declaration_scope);
-		return enum_declaration;
+		return &enum_declaration->p;
 	} else {
 		/* For unnamed enum, create type */
 		/* For named enum (with body), create type and add to declaration scope */
@@ -806,11 +836,11 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			}
 		}
 		if (cds_list_empty(container_type)) {
-				fprintf(stderr, "[error] %s: missing container type for enumeration\n", __func__, name);
+				fprintf(stderr, "[error] %s: missing container type for enumeration\n", __func__);
 				return NULL;
 			
 		}
-		first = _cds_list_first_entry(container_type, struct node, siblings);
+		first = _cds_list_first_entry(container_type, struct ctf_node, siblings);
 		switch (first->type) {
 		case NODE_INTEGER:
 		case NODE_TYPE_SPECIFIER:
@@ -822,11 +852,10 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			assert(declaration->id == CTF_TYPE_INTEGER);
 			integer_declaration = container_of(declaration, struct declaration_integer, p);
 			break;
-		}
 		default:
 			assert(0);
 		}
-		enum_declaration = enum_declaration_new(name, integer_declaration);
+		enum_declaration = enum_declaration_new(integer_declaration);
 		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
 		cds_list_for_each_entry(iter, enumerator_list, siblings) {
 			ret = ctf_enumerator_list_visit(fd, depth + 1, iter, enum_declaration);
@@ -839,7 +868,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 					declaration_scope);
 			assert(!ret);
 		}
-		return enum_declaration;
+		return &enum_declaration->p;
 	}
 error:
 	enum_declaration->p.declaration_free(&enum_declaration->p);
@@ -853,9 +882,11 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 {
 	GString *str;
 	struct declaration *declaration;
-	const char *str_c;
+	char *str_c;
+	int ret;
+	GQuark id_q;
 
-	str = g_string_new();
+	str = g_string_new("");
 	ret = visit_declaration_specifier(declaration_specifier, str);
 	if (ret)
 		return NULL;
@@ -870,7 +901,7 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
  * Returns 0/1 boolean, or < 0 on error.
  */
 static
-int get_boolean(FILE *fd, int depth, struct node *unary_expression)
+int get_boolean(FILE *fd, int depth, struct ctf_node *unary_expression)
 {
 	if (unary_expression->type != NODE_UNARY_EXPRESSION) {
 		fprintf(stderr, "[error] %s: expecting unary expression\n",
@@ -912,7 +943,8 @@ int get_boolean(FILE *fd, int depth, struct node *unary_expression)
 }
 
 static
-int get_byte_order(FILE *fd, int depth, struct node *unary_expression)
+int get_byte_order(FILE *fd, int depth, struct ctf_node *unary_expression,
+		struct ctf_trace *trace)
 {
 	int byte_order;
 
@@ -931,7 +963,7 @@ int get_byte_order(FILE *fd, int depth, struct node *unary_expression)
 		byte_order = LITTLE_ENDIAN;
 	else {
 		fprintf(stderr, "[error] %s: unexpected string \"%s\". Should be \"native\", \"network\", \"be\" or \"le\".\n",
-			__func__, right->u.unary_expression.u.string);
+			__func__, unary_expression->u.unary_expression.u.string);
 		return -EINVAL;
 	}
 	return byte_order;
@@ -942,7 +974,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
-	struct node *expression;
+	struct ctf_node *expression;
 	uint64_t alignment, size;
 	int byte_order = trace->byte_order;
 	int signedness = 0;
@@ -950,17 +982,17 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	struct declaration_integer *integer_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
-		struct node *left, *right;
+		struct ctf_node *left, *right;
 
-		left = expression->u.ctf_expression.left;
-		right = expression->u.ctf_expression.right;
+		left = _cds_list_first_entry(&expression->u.ctf_expression.left, struct ctf_node, siblings);
+		right = _cds_list_first_entry(&expression->u.ctf_expression.right, struct ctf_node, siblings);
 		assert(left->u.unary_expression.type == UNARY_STRING);
 		if (!strcmp(left->u.unary_expression.u.string, "signed")) {
 			signedness = get_boolean(fd, depth, right);
 			if (signedness < 0)
 				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
-			byte_order = get_byte_order(fd, depth, right);
+			byte_order = get_byte_order(fd, depth, right, trace);
 			if (byte_order < 0)
 				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "size")) {
@@ -1008,19 +1040,19 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
-	struct node *expression;
+	struct ctf_node *expression;
 	uint64_t alignment, exp_dig, mant_dig, byte_order = trace->byte_order;
 	int has_alignment = 0, has_exp_dig = 0, has_mant_dig = 0;
 	struct declaration_float *float_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
-		struct node *left, *right;
+		struct ctf_node *left, *right;
 
-		left = expression->u.ctf_expression.left;
-		right = expression->u.ctf_expression.right;
+		left = _cds_list_first_entry(&expression->u.ctf_expression.left, struct ctf_node, siblings);
+		right = _cds_list_first_entry(&expression->u.ctf_expression.right, struct ctf_node, siblings);
 		assert(left->u.unary_expression.type == UNARY_STRING);
 		if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
-			byte_order = get_byte_order(fd, depth, right);
+			byte_order = get_byte_order(fd, depth, right, trace);
 			if (byte_order < 0)
 				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "exp_dig")) {
@@ -1080,19 +1112,19 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
-	struct node *expression;
+	struct ctf_node *expression;
 	const char *encoding_c = NULL;
 	enum ctf_string_encoding encoding = CTF_STRING_UTF8;
 	struct declaration_string *string_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
-		struct node *left, *right;
+		struct ctf_node *left, *right;
 
-		left = expression->u.ctf_expression.left;
-		right = expression->u.ctf_expression.right;
+		left = _cds_list_first_entry(&expression->u.ctf_expression.left, struct ctf_node, siblings);
+		right = _cds_list_first_entry(&expression->u.ctf_expression.right, struct ctf_node, siblings);
 		assert(left->u.unary_expression.type == UNARY_STRING);
 		if (!strcmp(left->u.unary_expression.u.string, "encoding")) {
-			if (right->u.unary_expression.type != UNARY_UNSIGNED_STRING) {
+			if (right->u.unary_expression.type != UNARY_STRING) {
 				fprintf(stderr, "[error] %s: encoding: expecting string\n",
 					__func__);
 				return NULL;
@@ -1113,6 +1145,7 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 
 /*
  * Also add named variant, struct or enum to the current declaration scope.
+ * FIXME: we are only taking the first one. check for root declaration specifiers list.
  */
 static
 struct declaration *ctf_declaration_specifier_visit(FILE *fd,
@@ -1120,10 +1153,9 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace)
 {
-	struct declaration *declaration;
-	struct node *first;
+	struct ctf_node *first;
 
-	first = _cds_list_first_entry(head, struct node, siblings);
+	first = _cds_list_first_entry(head, struct ctf_node, siblings);
 
 	switch (first->type) {
 	case NODE_STRUCT:
@@ -1136,6 +1168,7 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 	case NODE_VARIANT:
 		return ctf_declaration_variant_visit(fd, depth,
 			first->u.variant.name,
+			first->u.variant.choice,
 			&first->u.variant.declaration_list,
 			first->u.variant.has_body,
 			declaration_scope,
@@ -1159,7 +1192,10 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 			&first->u.string.expressions, trace);
 	case NODE_TYPE_SPECIFIER:
 		return ctf_declaration_type_specifier_visit(fd, depth,
-				head, declaration_scope, trace);
+				head, declaration_scope);
+	default:
+		fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) first->type);
+		return NULL;
 	}
 }
 
@@ -1171,16 +1207,18 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 	switch (node->type) {
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
+					event->declaration_scope,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					event->declaration_scope);
+					trace);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
-				&node->u.typealias.target, &node->u.typealias.alias
-				event->declaration_scope);
+				event->declaration_scope,
+				node->u.typealias.target, node->u.typealias.alias,
+				trace);
 		if (ret)
 			return ret;
 		break;
@@ -1228,27 +1266,23 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		} else if (!strcmp(left, "context")) {
 			struct declaration *declaration;
 
-			if (!event->definition_scope)
-				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
 					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
-			if (declaration->type->id != CTF_TYPE_STRUCT)
+			if (declaration->id != CTF_TYPE_STRUCT)
 				return -EPERM;
 			event->context_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "fields")) {
 			struct declaration *declaration;
 
-			if (!event->definition_scope)
-				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
 					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
-			if (declaration->type->id != CTF_TYPE_STRUCT)
+			if (declaration->id != CTF_TYPE_STRUCT)
 				return -EPERM;
 			event->fields_decl = container_of(declaration, struct declaration_struct, p);
 		}
@@ -1297,33 +1331,36 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	g_hash_table_insert(event->stream->event_quark_to_id,
 			    (gpointer)(unsigned long) event->name,
 			    &event->id);
-	parent_def_scope = stream->definition_scope;
+	parent_def_scope = event->stream->definition_scope;
 	if (event->context_decl) {
 		event->context =
-			event->context_decl->definition_new(event->context_decl,
-				parent_def_scope, 0, 0);
+			container_of(
+			event->context_decl->p.definition_new(&event->context_decl->p,
+				parent_def_scope, 0, 0),
+			struct definition_struct, p);
 		set_dynamic_definition_scope(&event->context->p,
 					     event->context->scope,
 					     "event.context");
 		parent_def_scope = event->context->scope;
-		declaration_unref(event->context_decl);
+		declaration_unref(&event->context_decl->p);
 	}
 	if (event->fields_decl) {
 		event->fields =
-			event->fields_decl->definition_new(event->fields_decl,
-				parent_def_scope, 0, 0);
+			container_of(
+			event->fields_decl->p.definition_new(&event->fields_decl->p,
+				parent_def_scope, 0, 0),
+			struct definition_struct, p);
 		set_dynamic_definition_scope(&event->fields->p,
 					     event->fields->scope,
 					     "event.fields");
 		parent_def_scope = event->fields->scope;
-		declaration_unref(event->fields_decl);
+		declaration_unref(&event->fields_decl->p);
 	}
 	return 0;
 
 error:
-	declaration_unref(event->fields_decl);
-	declaration_unref(event->context_decl);
-	free_definition_scope(event->definition_scope);
+	declaration_unref(&event->fields_decl->p);
+	declaration_unref(&event->context_decl->p);
 	free_declaration_scope(event->declaration_scope);
 	g_free(event);
 	return ret;
@@ -1338,16 +1375,18 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 	switch (node->type) {
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
+					stream->declaration_scope,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					stream->declaration_scope);
+					trace);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
-				&node->u.typealias.target, &node->u.typealias.alias
-				stream->declaration_scope);
+				stream->declaration_scope,
+				node->u.typealias.target, node->u.typealias.alias,
+				trace);
 		if (ret)
 			return ret;
 		break;
@@ -1357,23 +1396,23 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 		left = concatenate_unary_strings(&node->u.ctf_expression.left);
 		if (!strcmp(left, "stream_id")) {
-			if (CTF_EVENT_FIELD_IS_SET(event, stream_id))
+			if (CTF_STREAM_FIELD_IS_SET(stream, stream_id))
 				return -EPERM;
-			ret = get_unary_unsigned(&node->u.ctf_expression.right, &event->stream_id);
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &stream->stream_id);
 			if (ret) {
 				fprintf(stderr, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
 				return -EINVAL;
 			}
-			CTF_EVENT_SET_FIELD(event, stream_id);
+			CTF_STREAM_SET_FIELD(stream, stream_id);
 		} else if (!strcmp(left, "event.header")) {
 			struct declaration *declaration;
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->declaration_scope, stream->definition_scope, trace);
+					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
-			if (declaration->type->id != CTF_TYPE_STRUCT)
+			if (declaration->id != CTF_TYPE_STRUCT)
 				return -EPERM;
 			stream->event_header_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "event.context")) {
@@ -1384,7 +1423,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
-			if (declaration->type->id != CTF_TYPE_STRUCT)
+			if (declaration->id != CTF_TYPE_STRUCT)
 				return -EPERM;
 			stream->event_context_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "packet.context")) {
@@ -1395,7 +1434,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
-			if (declaration->type->id != CTF_TYPE_STRUCT)
+			if (declaration->id != CTF_TYPE_STRUCT)
 				return -EPERM;
 			stream->packet_context_decl = container_of(declaration, struct declaration_struct, p);
 		}
@@ -1428,7 +1467,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		if (ret)
 			goto error;
 	}
-	if (!CTF_EVENT_FIELD_IS_SET(stream, stream_id)) {
+	if (!CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
 		ret = -EPERM;
 		goto error;
 	}
@@ -1439,45 +1478,50 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	parent_def_scope = NULL;
 	if (stream->packet_context_decl) {
 		stream->packet_context =
-			stream->packet_context_decl->definition_new(stream->packet_context_decl,
-				parent_def_scope, 0, 0);
+			container_of(
+			stream->packet_context_decl->p.definition_new(&stream->packet_context_decl->p,
+				parent_def_scope, 0, 0),
+			struct definition_struct, p);
 		set_dynamic_definition_scope(&stream->packet_context->p,
 					     stream->packet_context->scope,
 					     "stream.packet.context");
 		parent_def_scope = stream->packet_context->scope;
-		declaration_unref(stream->packet_context_decl);
+		declaration_unref(&stream->packet_context_decl->p);
 	}
 	if (stream->event_header_decl) {
 		stream->event_header =
-			stream->event_header_decl->definition_new(stream->event_header_decl,
-				parent_def_scope, 0, 0);
+			container_of(
+			stream->event_header_decl->p.definition_new(&stream->event_header_decl->p,
+				parent_def_scope, 0, 0),
+			struct definition_struct, p);
 		set_dynamic_definition_scope(&stream->event_header->p,
 					     stream->event_header->scope,
 					     "stream.event.header");
 		parent_def_scope = stream->event_header->scope;
-		declaration_unref(stream->event_header_decl);
+		declaration_unref(&stream->event_header_decl->p);
 	}
 	if (stream->event_context_decl) {
 		stream->event_context =
-			stream->event_context_decl->definition_new(stream->event_context_decl,
-				parent_def_scope, 0, 0);
+			container_of(
+			stream->event_context_decl->p.definition_new(&stream->event_context_decl->p,
+				parent_def_scope, 0, 0),
+			struct definition_struct, p);
 		set_dynamic_definition_scope(&stream->event_context->p,
 					     stream->event_context->scope,
 					     "stream.event.context");
 		parent_def_scope = stream->event_context->scope;
-		declaration_unref(stream->event_context_decl);
+		declaration_unref(&stream->event_context_decl->p);
 	}
 	stream->definition_scope = parent_def_scope;
 
 	return 0;
 
 error:
-	declaration_unref(stream->event_header);
-	declaration_unref(stream->event_context);
-	declaration_unref(stream->packet_context);
+	declaration_unref(&stream->event_header_decl->p);
+	declaration_unref(&stream->event_context_decl->p);
+	declaration_unref(&stream->packet_context_decl->p);
 	g_ptr_array_free(stream->events_by_id, TRUE);
-	g_hash_table_free(stream->event_quark_to_id);
-	free_definition_scope(stream->definition_scope);
+	g_hash_table_destroy(stream->event_quark_to_id);
 	free_declaration_scope(stream->declaration_scope);
 	g_free(stream);
 	return ret;
@@ -1491,16 +1535,18 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 	switch (node->type) {
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
+					trace->declaration_scope,
 					&node->u._typedef.declaration_specifier,
 					&node->u._typedef.type_declarators,
-					trace->declaration_scope);
+					trace);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
 		ret = ctf_typealias_visit(fd, depth + 1,
-				&node->u.typealias.target, &node->u.typealias.alias
-				trace->declaration_scope);
+				trace->declaration_scope,
+				node->u.typealias.target, node->u.typealias.alias,
+				trace);
 		if (ret)
 			return ret;
 		break;
@@ -1510,41 +1556,41 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 
 		left = concatenate_unary_strings(&node->u.ctf_expression.left);
 		if (!strcmp(left, "major")) {
-			if (CTF_EVENT_FIELD_IS_SET(trace, major))
+			if (CTF_TRACE_FIELD_IS_SET(trace, major))
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->major);
 			if (ret) {
 				fprintf(stderr, "[error] %s: unexpected unary expression for trace major number\n", __func__);
 				return -EINVAL;
 			}
-			CTF_EVENT_SET_FIELD(trace, major);
+			CTF_TRACE_SET_FIELD(trace, major);
 		} else if (!strcmp(left, "minor")) {
-			if (CTF_EVENT_FIELD_IS_SET(trace, minor))
+			if (CTF_TRACE_FIELD_IS_SET(trace, minor))
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->minor);
 			if (ret) {
 				fprintf(stderr, "[error] %s: unexpected unary expression for trace minor number\n", __func__);
 				return -EINVAL;
 			}
-			CTF_EVENT_SET_FIELD(trace, minor);
+			CTF_TRACE_SET_FIELD(trace, minor);
 		} else if (!strcmp(left, "word_size")) {
-			if (CTF_EVENT_FIELD_IS_SET(trace, word_size))
+			if (CTF_TRACE_FIELD_IS_SET(trace, word_size))
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->word_size);
 			if (ret) {
 				fprintf(stderr, "[error] %s: unexpected unary expression for trace word_size\n", __func__);
 				return -EINVAL;
 			}
-			CTF_EVENT_SET_FIELD(trace, word_size);
+			CTF_TRACE_SET_FIELD(trace, word_size);
 		} else if (!strcmp(left, "uuid")) {
-			if (CTF_EVENT_FIELD_IS_SET(trace, uuid))
+			if (CTF_TRACE_FIELD_IS_SET(trace, uuid))
 				return -EPERM;
 			ret = get_unary_uuid(&node->u.ctf_expression.right, &trace->uuid);
 			if (ret) {
 				fprintf(stderr, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
 				return -EINVAL;
 			}
-			CTF_EVENT_SET_FIELD(trace, uuid);
+			CTF_TRACE_SET_FIELD(trace, uuid);
 		}
 		g_free(left);
 		break;
@@ -1566,26 +1612,25 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (trace->declaration_scope)
 		return -EEXIST;
 	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
-	trace->definition_scope = new_dynamic_definition_scope(trace->root_definition_scope);
 	trace->streams = g_ptr_array_new();
 	cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 		ret = ctf_trace_declaration_visit(fd, depth + 1, iter, trace);
 		if (ret)
 			goto error;
 	}
-	if (!CTF_EVENT_FIELD_IS_SET(trace, major)) {
+	if (!CTF_TRACE_FIELD_IS_SET(trace, major)) {
 		ret = -EPERM;
 		goto error;
 	}
-	if (!CTF_EVENT_FIELD_IS_SET(trace, minor)) {
+	if (!CTF_TRACE_FIELD_IS_SET(trace, minor)) {
 		ret = -EPERM;
 		goto error;
 	}
-	if (!CTF_EVENT_FIELD_IS_SET(trace, uuid)) {
+	if (!CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
 		ret = -EPERM;
 		goto error;
 	}
-	if (!CTF_EVENT_FIELD_IS_SET(trace, word_size)) {
+	if (!CTF_TRACE_FIELD_IS_SET(trace, word_size)) {
 		ret = -EPERM;
 		goto error;
 	}
@@ -1593,8 +1638,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 
 error:
 	g_ptr_array_free(trace->streams, TRUE);
-	free_definition_scope(stream->definition_scope);
-	free_declaration_scope(stream->declaration_scope);
+	free_declaration_scope(trace->declaration_scope);
 	return ret;
 }
 
@@ -1611,17 +1655,19 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		cds_list_for_each_entry(iter, &node->u.root._typedef,
 					siblings) {
 			ret = ctf_typedef_visit(fd, depth + 1,
+						trace->root_declaration_scope,
 						&iter->u._typedef.declaration_specifier,
 						&iter->u._typedef.type_declarators,
-						trace->root_declaration_scope);
+						trace);
 			if (ret)
 				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.typealias,
 					siblings) {
 			ret = ctf_typealias_visit(fd, depth + 1,
-					&iter->u.typealias.target, &iter->u.typealias.alias
-					trace->root_declaration_scope);
+					trace->root_declaration_scope,
+					iter->u.typealias.target, iter->u.typealias.alias,
+					trace);
 			if (ret)
 				return ret;
 		}
