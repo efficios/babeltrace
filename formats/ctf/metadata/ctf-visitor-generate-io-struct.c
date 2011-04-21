@@ -226,7 +226,7 @@ error:
 }
 
 static
-GQuark create_typealias_identifier(int fd, int depth,
+GQuark create_typealias_identifier(FILE *fd, int depth,
 	struct cds_list_head *declaration_specifier,
 	struct ctf_node *node_type_declarator)
 {
@@ -253,7 +253,7 @@ GQuark create_typealias_identifier(int fd, int depth,
 }
 
 static
-struct declaration *ctf_type_declarator_visit(int fd, int depth,
+struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 	struct cds_list_head *declaration_specifier,
 	GQuark *field_name,
 	struct ctf_node *node_type_declarator,
@@ -366,7 +366,7 @@ struct declaration *ctf_type_declarator_visit(int fd, int depth,
 }
 
 static
-int ctf_struct_type_declarators_visit(int fd, int depth,
+int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 	struct declaration_struct *struct_declaration,
 	struct cds_list_head *declaration_specifier,
 	struct cds_list_head *type_declarators,
@@ -392,7 +392,7 @@ int ctf_struct_type_declarators_visit(int fd, int depth,
 }
 
 static
-int ctf_variant_type_declarators_visit(int fd, int depth,
+int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 	struct declaration_variant *variant_declaration,
 	struct cds_list_head *declaration_specifier,
 	struct cds_list_head *type_declarators,
@@ -418,7 +418,7 @@ int ctf_variant_type_declarators_visit(int fd, int depth,
 }
 
 static
-int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
+int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		struct cds_list_head *declaration_specifier,
 		struct cds_list_head *type_declarators,
 		struct ctf_trace *trace)
@@ -444,7 +444,7 @@ int ctf_typedef_visit(int fd, int depth, struct declaration_scope *scope,
 }
 
 static
-int ctf_typealias_visit(int fd, int depth, struct declaration_scope *scope,
+int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		struct ctf_node *target, struct ctf_node *alias,
 		struct ctf_trace *trace)
 {
@@ -496,7 +496,7 @@ error:
 }
 
 static
-int ctf_struct_declaration_list_visit(int fd, int depth,
+int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 	struct ctf_node *iter, struct declaration_struct *struct_declaration,
 	struct ctf_trace *trace)
 {
@@ -539,7 +539,7 @@ int ctf_struct_declaration_list_visit(int fd, int depth,
 }
 
 static
-int ctf_variant_declaration_list_visit(int fd, int depth,
+int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 	struct ctf_node *iter, struct declaration_variant *variant_declaration,
 	struct ctf_trace *trace)
 {
@@ -686,7 +686,7 @@ error:
 }
 
 static
-int ctf_enumerator_list_visit(int fd, int depth,
+int ctf_enumerator_list_visit(FILE *fd, int depth,
 		struct ctf_node *enumerator,
 		struct declaration_enum *enum_declaration)
 {
@@ -769,7 +769,7 @@ int ctf_enumerator_list_visit(int fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_enum_visit(int fd, int depth,
+struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			const char *name,
 			struct cds_list_head *container_type,
 			struct cds_list_head *enumerator_list,
@@ -847,7 +847,7 @@ error:
 }
 
 static
-struct declaration *ctf_declaration_type_specifier_visit(int fd, int depth,
+struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 		struct cds_list_head *declaration_specifier,
 		struct declaration_scope *declaration_scope)
 {
@@ -870,7 +870,7 @@ struct declaration *ctf_declaration_type_specifier_visit(int fd, int depth,
  * Returns 0/1 boolean, or < 0 on error.
  */
 static
-int get_boolean(int fd, int depth, struct node *unary_expression)
+int get_boolean(FILE *fd, int depth, struct node *unary_expression)
 {
 	if (unary_expression->type != NODE_UNARY_EXPRESSION) {
 		fprintf(stderr, "[error] %s: expecting unary expression\n",
@@ -912,7 +912,7 @@ int get_boolean(int fd, int depth, struct node *unary_expression)
 }
 
 static
-int get_byte_order(int fd, int depth, struct node *unary_expression)
+int get_byte_order(FILE *fd, int depth, struct node *unary_expression)
 {
 	int byte_order;
 
@@ -938,7 +938,7 @@ int get_byte_order(int fd, int depth, struct node *unary_expression)
 }
 
 static
-struct declaration *ctf_declaration_integer_visit(int fd, int depth,
+struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
@@ -1004,7 +1004,7 @@ struct declaration *ctf_declaration_integer_visit(int fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_floating_point_visit(int fd, int depth,
+struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
@@ -1076,7 +1076,7 @@ struct declaration *ctf_declaration_floating_point_visit(int fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_string_visit(int fd, int depth,
+struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 		struct cds_list_head *expressions,
 		struct ctf_trace *trace)
 {
