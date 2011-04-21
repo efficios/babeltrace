@@ -232,10 +232,30 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 		 */
 		if (!cds_list_empty(&node->u.type_declarator.pointers))
 			goto errperm;
-		/* Fall-through */
-	case NODE_TYPEDEF:
+		break;			/* OK */
 	case NODE_TYPEALIAS_TARGET:
+		break;			/* OK */
 	case NODE_TYPEALIAS_ALIAS:
+		/*
+		 * Only accept alias name containing:
+		 * - identifier
+		 * - identifier *   (any number of pointers)
+		 * NOT accepting alias names containing [] (would otherwise
+		 * cause semantic clash for later declarations of
+		 * arrays/sequences of elements, where elements could be
+		 * arrays/sequences themselves (if allowed in typealias).
+		 * NOT accepting alias with identifier. The declarator should
+		 * be either empty or contain pointer(s).
+		 */
+		if (node->u.type_declarator.type == TYPEDEC_NESTED)
+			goto errperm;
+		if (cds_list_empty(&node->u.type_declarator.pointers))
+			goto errperm;
+		if (node->u.type_declarator.type == TYPEDEC_ID &&
+		    node->u.type_declarator.u.id != NULL)
+			goto errperm;
+		break;			/* OK */
+	case NODE_TYPEDEF:
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		break;			/* OK */
 
@@ -484,6 +504,9 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		depth--;
 		break;
 	case NODE_TYPEALIAS_TARGET:
+	{
+		int nr_declarators;
+
 		switch (node->parent->type) {
 		case NODE_TYPEALIAS:
 			break;			/* OK */
@@ -497,14 +520,25 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
+		nr_declarators = 0;
 		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
 				return ret;
+			nr_declarators++;
+		}
+		if (nr_declarators > 1) {
+			fprintf(fd, "[error] %s: Too many declarators in typealias alias (%d, max is 1)\n", __func__, nr_declarators);
+		
+			return -EINVAL;
 		}
 		depth--;
 		break;
+	}
 	case NODE_TYPEALIAS_ALIAS:
+	{
+		int nr_declarators;
+
 		switch (node->parent->type) {
 		case NODE_TYPEALIAS:
 			break;			/* OK */
@@ -518,13 +552,21 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
+		nr_declarators = 0;
 		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
 				return ret;
+			nr_declarators++;
+		}
+		if (nr_declarators > 1) {
+			fprintf(fd, "[error] %s: Too many declarators in typealias alias (%d, max is 1)\n", __func__, nr_declarators);
+		
+			return -EINVAL;
 		}
 		depth--;
 		break;
+	}
 	case NODE_TYPEALIAS:
 		switch (node->parent->type) {
 		case NODE_ROOT:

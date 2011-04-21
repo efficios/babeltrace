@@ -811,6 +811,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> stream_declaration
 %type <n> trace_declaration
 %type <n> declaration_specifiers
+%type <n> alias_declaration_specifiers
 
 %type <n> type_declarator_list
 %type <n> abstract_type_declarator_list
@@ -821,7 +822,6 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> enum_type_specifier
 %type <n> struct_or_variant_declaration_list
 %type <n> struct_or_variant_declaration
-%type <n> specifier_qualifier_list
 %type <n> struct_or_variant_declarator_list
 %type <n> struct_or_variant_declarator
 %type <n> enumerator_list
@@ -1116,7 +1116,7 @@ declaration:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON declaration_specifiers abstract_type_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
@@ -1125,15 +1125,6 @@ declaration:
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
-		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON type_declarator_list SEMICOLON
-		{
-			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
 	;
 
@@ -1361,12 +1352,14 @@ struct_type_specifier:
 		struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
 			if (set_parent_node($2, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
 	|	IDENTIFIER struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
 			$$->u._struct.name = $1->s;
 			if (set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
@@ -1374,6 +1367,7 @@ struct_type_specifier:
 	|	ID_TYPE struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
 			$$->u._struct.name = $1->s;
 			if (set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
@@ -1381,11 +1375,13 @@ struct_type_specifier:
 	|	IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 0;
 			$$->u._struct.name = $1->s;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 0;
 			$$->u._struct.name = $1->s;
 		}
 	;
@@ -1404,12 +1400,14 @@ variant_type_specifier:
 		variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			if (set_parent_node($2, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.choice = $2->s;
 			if (set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
@@ -1417,6 +1415,7 @@ variant_type_specifier:
 	|	LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.choice = $2->s;
 			if (set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
@@ -1424,6 +1423,7 @@ variant_type_specifier:
 	|	IDENTIFIER variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			if (set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
@@ -1431,6 +1431,7 @@ variant_type_specifier:
 	|	IDENTIFIER LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 			if (set_parent_node($6, $$))
@@ -1439,12 +1440,14 @@ variant_type_specifier:
 	|	IDENTIFIER LT IDENTIFIER GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 		}
 	|	IDENTIFIER LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 			if (set_parent_node($6, $$))
@@ -1453,12 +1456,14 @@ variant_type_specifier:
 	|	IDENTIFIER LT ID_TYPE GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 		}
 	|	ID_TYPE variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			if (set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
@@ -1466,6 +1471,7 @@ variant_type_specifier:
 	|	ID_TYPE LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 			if (set_parent_node($6, $$))
@@ -1474,12 +1480,14 @@ variant_type_specifier:
 	|	ID_TYPE LT IDENTIFIER GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 		}
 	|	ID_TYPE LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 			if (set_parent_node($6, $$))
@@ -1488,6 +1496,7 @@ variant_type_specifier:
 	|	ID_TYPE LT ID_TYPE GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
+			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
 		}
@@ -1644,32 +1653,32 @@ struct_or_variant_declaration_list:
 	;
 
 struct_or_variant_declaration:
-		specifier_qualifier_list struct_or_variant_declarator_list SEMICOLON
+		declaration_specifiers struct_or_variant_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_STRUCT_OR_VARIANT_DECLARATION);
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u.struct_or_variant_declaration.declaration_specifier);
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.struct_or_variant_declaration.type_declarators);
 		}
-	|	specifier_qualifier_list TYPEDEF specifier_qualifier_list type_declarator_list SEMICOLON
+	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEDEF specifier_qualifier_list type_declarator_list SEMICOLON
+	|	TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	specifier_qualifier_list TYPEDEF type_declarator_list SEMICOLON
+	|	declaration_specifiers TYPEDEF type_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS specifier_qualifier_list abstract_declarator_list COLON specifier_qualifier_list abstract_type_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list SEMICOLON
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
@@ -1679,18 +1688,9 @@ struct_or_variant_declaration:
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
-	|	TYPEALIAS specifier_qualifier_list abstract_declarator_list COLON type_declarator_list SEMICOLON
-		{
-			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
-		}
 	;
 
-specifier_qualifier_list:
+alias_declaration_specifiers:
 		CONST
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
@@ -1698,7 +1698,14 @@ specifier_qualifier_list:
 		}
 	|	type_specifier
 		{	$$ = $1;	}
-	|	specifier_qualifier_list CONST
+	|	IDENTIFIER
+		{
+			add_type(scanner, $1);
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			($$)->u.type_specifier.type = TYPESPEC_ID_TYPE;
+			($$)->u.type_specifier.id_type = yylval.gs->s;
+		}
+	|	alias_declaration_specifiers CONST
 		{
 			struct ctf_node *node;
 
@@ -1707,10 +1714,21 @@ specifier_qualifier_list:
 			node->u.type_specifier.type = TYPESPEC_CONST;
 			cds_list_add_tail(&node->siblings, &($$)->tmp_head);
 		}
-	|	specifier_qualifier_list type_specifier
+	|	alias_declaration_specifiers type_specifier
 		{
 			$$ = $1;
 			cds_list_add_tail(&($2)->siblings, &($$)->tmp_head);
+		}
+	|	alias_declaration_specifiers IDENTIFIER
+		{
+			struct ctf_node *node;
+
+			add_type(scanner, $2);
+			$$ = $1;
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
+			node->u.type_specifier.id_type = yylval.gs->s;
+			cds_list_add_tail(&node->siblings, &($$)->tmp_head);
 		}
 	;
 
@@ -2052,7 +2070,7 @@ ctf_assignment_expression:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON declaration_specifiers abstract_type_declarator_list
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers abstract_type_declarator_list
 		{
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
@@ -2061,14 +2079,5 @@ ctf_assignment_expression:
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
-		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON type_declarator_list
-		{
-			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
 	;

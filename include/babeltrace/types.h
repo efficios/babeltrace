@@ -90,6 +90,7 @@ struct definition;
 /* type scope */
 struct declaration_scope {
 	/* Hash table mapping type name GQuark to "struct declaration" */
+	/* Used for both typedef and typealias. */
 	GHashTable *typedef_declarations;
 	/* Hash table mapping struct name GQuark to "struct declaration_struct" */
 	GHashTable *struct_declarations;

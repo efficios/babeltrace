@@ -216,11 +216,13 @@ struct ctf_node {
 			char *choice;
 			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
+			int has_body;
 		} variant;
 		struct {
 			char *name;
 			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
+			int has_body;
 		} _struct;
 	} u;
 };
