@@ -27,6 +27,9 @@ To compile Babeltrace, you will need:
 	libc6 development librairies
 	  (Debian : libc6, libc6-dev)
 	  (Fedora : glibc, glibc)
+	uuid development libraries
+	  (Debian : uuid-dev)
+	  (Fedora : uuid-devel)
 
 For developers using the git tree:
 
