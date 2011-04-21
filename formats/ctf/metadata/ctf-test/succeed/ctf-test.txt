@@ -1,5 +1,5 @@
 
-enum name <32> {
+enum name <int> {
   ZERO,
   ONE,
   TWO,
