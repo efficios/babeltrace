@@ -1,5 +1,5 @@
 /*
-* variant.c
+ * variant.c
  *
  * BabelTrace - Variant Type Converter
  *
@@ -68,7 +68,7 @@ void _untagged_variant_declaration_free(struct declaration *declaration)
 	g_free(untagged_variant_declaration);
 }
 
-struct declaration_untagged_variant *untagged_variant_declaration_new(const char *name,
+struct declaration_untagged_variant *untagged_variant_declaration_new(
 				      struct declaration_scope *parent_scope)
 {
 	struct declaration_untagged_variant *untagged_variant_declaration;
@@ -83,7 +83,6 @@ struct declaration_untagged_variant *untagged_variant_declaration_new(const char
 						 DEFAULT_NR_STRUCT_FIELDS);
 	untagged_variant_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_UNTAGGED_VARIANT;
-	declaration->name = g_quark_from_string(name);
 	declaration->alignment = 1;
 	declaration->copy = NULL;
 	declaration->declaration_free = _untagged_variant_declaration_free;

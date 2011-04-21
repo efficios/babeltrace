@@ -74,8 +74,8 @@ void _struct_declaration_free(struct declaration *declaration)
 	g_free(struct_declaration);
 }
 
-struct declaration_struct *struct_declaration_new(const char *name,
-				    struct declaration_scope *parent_scope)
+struct declaration_struct *
+	struct_declaration_new(struct declaration_scope *parent_scope)
 {
 	struct declaration_struct *struct_declaration;
 	struct declaration *declaration;
@@ -89,7 +89,6 @@ struct declaration_struct *struct_declaration_new(const char *name,
 						DEFAULT_NR_STRUCT_FIELDS);
 	struct_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_STRUCT;
-	declaration->name = g_quark_from_string(name);
 	declaration->alignment = 1;
 	declaration->copy = struct_copy;
 	declaration->declaration_free = _struct_declaration_free;

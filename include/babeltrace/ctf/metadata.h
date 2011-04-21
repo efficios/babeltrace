@@ -55,6 +55,7 @@ struct ctf_trace {
 	uint64_t minor;
 	uuid_t uuid;
 	uint64_t word_size;
+	int byte_order;
 
 	enum {					/* Fields populated mask */
 		CTF_TRACE_major	=	(1U << 0),

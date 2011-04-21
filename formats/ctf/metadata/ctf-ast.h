@@ -235,8 +235,12 @@ struct ctf_ast {
 
 const char *node_type(struct ctf_node *node);
 
+struct ctf_trace;
+
 int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
+int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
+			struct ctf_trace *trace, int byte_order);
 
 #endif /* _CTF_PARSER_H */

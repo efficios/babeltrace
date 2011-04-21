@@ -392,7 +392,7 @@ void _enum_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_enum *
-	_enum_declaration_new(const char *name, struct declaration_integer *integer_declaration)
+	_enum_declaration_new(struct declaration_integer *integer_declaration)
 {
 	struct declaration_enum *enum_declaration;
 
@@ -409,7 +409,6 @@ struct declaration_enum *
 	declaration_ref(&integer_declaration->p);
 	enum_declaration->integer_declaration = integer_declaration;
 	enum_declaration->p.id = CTF_TYPE_ENUM;
-	enum_declaration->p.name = g_quark_from_string(name);
 	enum_declaration->p.alignment = 1;
 	enum_declaration->p.copy = enum_copy;
 	enum_declaration->p.declaration_free = _enum_declaration_free;

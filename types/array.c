@@ -58,7 +58,7 @@ void _array_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_array *
-	array_declaration_new(const char *name, size_t len,
+	array_declaration_new(size_t len,
 			      struct declaration *elem_declaration,
 			      struct declaration_scope *parent_scope)
 {
@@ -72,7 +72,6 @@ struct declaration_array *
 	array_declaration->elem = elem_declaration;
 	array_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_ARRAY;
-	declaration->name = g_quark_from_string(name);
 	/* No need to align the array, the first element will align itself */
 	declaration->alignment = 1;
 	declaration->copy = array_copy;

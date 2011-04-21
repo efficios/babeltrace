@@ -54,19 +54,20 @@ void _string_declaration_free(struct declaration *declaration)
 	g_free(string_declaration);
 }
 
-struct declaration_string *string_declaration_new(const char *name)
+struct declaration_string *
+	string_declaration_new(enum ctf_string_encoding encoding)
 {
 	struct declaration_string *string_declaration;
 
 	string_declaration = g_new(struct declaration_string, 1);
 	string_declaration->p.id = CTF_TYPE_STRING;
-	string_declaration->p.name = g_quark_from_string(name);
 	string_declaration->p.alignment = CHAR_BIT;
 	string_declaration->p.copy = string_copy;
 	string_declaration->p.declaration_free = _string_declaration_free;
 	string_declaration->p.definition_new = _string_definition_new;
 	string_declaration->p.definition_free = _string_definition_free;
 	string_declaration->p.ref = 1;
+	string_declaration->encoding = encoding;
 	return string_declaration;
 }
 

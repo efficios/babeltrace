@@ -39,7 +39,8 @@
 static
 struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 		int depth, struct cds_list_head *head,
-		struct declaration_scope *declaration_scope);
+		struct declaration_scope *declaration_scope,
+		struct ctf_trace *trace);
 
 /*
  * String returned must be freed by the caller using g_free.
@@ -731,12 +732,86 @@ struct declaration *ctf_declaration_type_specifier_visit(int fd, int depth,
 	return declaration;
 }
 
+/*
+ * Returns 0/1 boolean, or < 0 on error.
+ */
+static
+int get_boolean(int fd, int depth, struct node *unary_expression)
+{
+	if (unary_expression->type != NODE_UNARY_EXPRESSION) {
+		fprintf(stderr, "[error] %s: expecting unary expression\n",
+			__func__);
+		return -EINVAL;
+	}
+	switch (unary_expression->u.unary_expression.type) {
+	case UNARY_UNSIGNED_CONSTANT:
+		if (unary_expression->u.unary_expression.u.unsigned_constant == 0)
+			return 0;
+		else
+			return 1;
+	case UNARY_SIGNED_CONSTANT:
+		if (unary_expression->u.unary_expression.u.signed_constant == 0)
+			return 0;
+		else
+			return 1;
+	case UNARY_STRING:
+		if (!strcmp(unary_expression->u.unary_expression.u.string, "true"))
+			return 1;
+		else if (!strcmp(unary_expression->u.unary_expression.u.string, "TRUE"))
+			return 1;
+		else if (!strcmp(unary_expression->u.unary_expression.u.string, "false"))
+			return 0;
+		else if (!strcmp(unary_expression->u.unary_expression.u.string, "FALSE"))
+			return 0;
+		else {
+			fprintf(stderr, "[error] %s: unexpected string \"%s\"\n",
+				__func__, unary_expression->u.unary_expression.u.string);
+			return -EINVAL;
+		}
+		break;
+	default:
+		fprintf(stderr, "[error] %s: unexpected unary expression type\n",
+			__func__);
+		return -EINVAL;
+	} 
+
+}
+
+static
+int get_byte_order(int fd, int depth, struct node *unary_expression)
+{
+	int byte_order;
+
+	if (unary_expression->u.unary_expression.type != UNARY_STRING) {
+		fprintf(stderr, "[error] %s: byte_order: expecting string\n",
+			__func__);
+		return -EINVAL;
+	}
+	if (!strcmp(unary_expression->u.unary_expression.u.string, "native"))
+		byte_order = trace->byte_order;
+	else if (!strcmp(unary_expression->u.unary_expression.u.string, "network"))
+		byte_order = BIG_ENDIAN;
+	else if (!strcmp(unary_expression->u.unary_expression.u.string, "be"))
+		byte_order = BIG_ENDIAN;
+	else if (!strcmp(unary_expression->u.unary_expression.u.string, "le"))
+		byte_order = LITTLE_ENDIAN;
+	else {
+		fprintf(stderr, "[error] %s: unexpected string \"%s\". Should be \"native\", \"network\", \"be\" or \"le\".\n",
+			__func__, right->u.unary_expression.u.string);
+		return -EINVAL;
+	}
+	return byte_order;
+}
+
 static
 struct declaration *ctf_declaration_integer_visit(int fd, int depth,
-		struct cds_list_head *expressions)
+		struct cds_list_head *expressions,
+		struct ctf_trace *trace)
 {
 	struct node *expression;
-	uint64_t alignment, size, byte_order = trace->native_bo, signedness = 0;
+	uint64_t alignment, size;
+	int byte_order = trace->byte_order;
+	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
 	struct declaration_integer *integer_declaration;
 
@@ -747,13 +822,28 @@ struct declaration *ctf_declaration_integer_visit(int fd, int depth,
 		right = expression->u.ctf_expression.right;
 		assert(left->u.unary_expression.type == UNARY_STRING);
 		if (!strcmp(left->u.unary_expression.u.string, "signed")) {
-			/* TODO */
-	...........
+			signedness = get_boolean(fd, depth, right);
+			if (signedness < 0)
+				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
-
+			byte_order = get_byte_order(fd, depth, right);
+			if (byte_order < 0)
+				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "size")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: size: expecting unsigned constant\n",
+					__func__);
+				return NULL;
+			}
+			size = right->u.unary_expression.u.unsigned_constant;
 			has_size = 1;
 		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: align: expecting unsigned constant\n",
+					__func__);
+				return NULL;
+			}
+			alignment = right->u.unary_expression.u.unsigned_constant;
 			has_alignment = 1;
 		} else {
 			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
@@ -761,18 +851,131 @@ struct declaration *ctf_declaration_integer_visit(int fd, int depth,
 			return NULL;
 		}
 	}
-	if (!has_alignment) {
-		fprintf(stderr, "[error] %s: missing alignment attribute\n", __func__);
-		return NULL;
-	}
 	if (!has_size) {
 		fprintf(stderr, "[error] %s: missing size attribute\n", __func__);
 		return NULL;
+	}
+	if (!has_alignment) {
+		if (size % CHAR_BIT) {
+			/* bit-packed alignment */
+			alignment = 1;
+		} else {
+			/* byte-packed alignment */
+			alignment = CHAR_BIT;
+		}
 	}
 	integer_declaration = integer_declaration_new(size,
 				byte_order, signedness, alignment);
 	return &integer_declaration->p;
 }
+
+static
+struct declaration *ctf_declaration_floating_point_visit(int fd, int depth,
+		struct cds_list_head *expressions,
+		struct ctf_trace *trace)
+{
+	struct node *expression;
+	uint64_t alignment, exp_dig, mant_dig, byte_order = trace->byte_order;
+	int has_alignment = 0, has_exp_dig = 0, has_mant_dig = 0;
+	struct declaration_float *float_declaration;
+
+	cds_list_for_each_entry(expression, expressions, siblings) {
+		struct node *left, *right;
+
+		left = expression->u.ctf_expression.left;
+		right = expression->u.ctf_expression.right;
+		assert(left->u.unary_expression.type == UNARY_STRING);
+		if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
+			byte_order = get_byte_order(fd, depth, right);
+			if (byte_order < 0)
+				return NULL;
+		} else if (!strcmp(left->u.unary_expression.u.string, "exp_dig")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: exp_dig: expecting unsigned constant\n",
+					__func__);
+				return NULL;
+			}
+			exp_dig = right->u.unary_expression.u.unsigned_constant;
+			has_exp_dig = 1;
+		} else if (!strcmp(left->u.unary_expression.u.string, "mant_dig")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: mant_dig: expecting unsigned constant\n",
+					__func__);
+				return NULL;
+			}
+			mant_dig = right->u.unary_expression.u.unsigned_constant;
+			has_mant_dig = 1;
+		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(stderr, "[error] %s: align: expecting unsigned constant\n",
+					__func__);
+				return NULL;
+			}
+			alignment = right->u.unary_expression.u.unsigned_constant;
+			has_alignment = 1;
+		} else {
+			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+				__func__, left->u.unary_expression.u.string);
+			return NULL;
+		}
+	}
+	if (!has_mant_dig) {
+		fprintf(stderr, "[error] %s: missing mant_dig attribute\n", __func__);
+		return NULL;
+	}
+	if (!has_exp_dig) {
+		fprintf(stderr, "[error] %s: missing exp_dig attribute\n", __func__);
+		return NULL;
+	}
+	if (!has_alignment) {
+		if ((mant_dig + exp_dig) % CHAR_BIT) {
+			/* bit-packed alignment */
+			alignment = 1;
+		} else {
+			/* byte-packed alignment */
+			alignment = CHAR_BIT;
+		}
+	}
+	float_declaration = float_declaration_new(mant_dig, exp_dig,
+				byte_order, alignment);
+	return &float_declaration->p;
+}
+
+static
+struct declaration *ctf_declaration_string_visit(int fd, int depth,
+		struct cds_list_head *expressions,
+		struct ctf_trace *trace)
+{
+	struct node *expression;
+	const char *encoding_c = NULL;
+	enum ctf_string_encoding encoding = CTF_STRING_UTF8;
+	struct declaration_string *string_declaration;
+
+	cds_list_for_each_entry(expression, expressions, siblings) {
+		struct node *left, *right;
+
+		left = expression->u.ctf_expression.left;
+		right = expression->u.ctf_expression.right;
+		assert(left->u.unary_expression.type == UNARY_STRING);
+		if (!strcmp(left->u.unary_expression.u.string, "encoding")) {
+			if (right->u.unary_expression.type != UNARY_UNSIGNED_STRING) {
+				fprintf(stderr, "[error] %s: encoding: expecting string\n",
+					__func__);
+				return NULL;
+			}
+			encoding_c = right->u.unary_expression.u.string;
+		} else {
+			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+				__func__, left->u.unary_expression.u.string);
+			return NULL;
+		}
+	}
+	if (encoding_c && !strcmp(encoding_c, "ASCII"))
+		encoding = CTF_STRING_ASCII;
+	string_declaration = string_declaration_new(encoding);
+	return &string_declaration->p;
+}
+
 
 /*
  * Also add named variant, struct or enum to the current declaration scope.
@@ -780,7 +983,8 @@ struct declaration *ctf_declaration_integer_visit(int fd, int depth,
 static
 struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 		int depth, struct cds_list_head *head,
-		struct declaration_scope *declaration_scope)
+		struct declaration_scope *declaration_scope,
+		struct ctf_trace *trace)
 {
 	struct declaration *declaration;
 	struct node *first;
@@ -793,31 +997,34 @@ struct declaration *ctf_declaration_specifier_visit(FILE *fd,
 			first->u._struct.name,
 			&first->u._struct.declaration_list,
 			first->u._struct.has_body,
-			declaration_scope);
+			declaration_scope,
+			trace);
 	case NODE_VARIANT:
 		return ctf_declaration_variant_visit(fd, depth,
 			first->u.variant.name,
 			&first->u.variant.declaration_list,
 			first->u.variant.has_body,
-			declaration_scope);
+			declaration_scope,
+			trace);
 	case NODE_ENUM:
 		return ctf_declaration_enum_visit(fd, depth,
 			first->u._enum.enum_id,
 			first->u._enum.container_type,
 			&first->u._enum.enumerator_list,
-			first->u._enum.has_body);
+			first->u._enum.has_body,
+			trace);
 	case NODE_INTEGER:
 		return ctf_declaration_integer_visit(fd, depth,
-			&first->u.integer.expressions);
-	case NODE_FLOATING_POINT:	/* TODO  */
+			&first->u.integer.expressions, trace);
+	case NODE_FLOATING_POINT:
 		return ctf_declaration_floating_point_visit(fd, depth,
-			&first->u.floating_point.expressions);
-	case NODE_STRING:		/* TODO */
+			&first->u.floating_point.expressions, trace);
+	case NODE_STRING:
 		return ctf_declaration_string_visit(fd, depth,
-			&first->u.string.expressions);
+			&first->u.string.expressions, trace);
 	case NODE_TYPE_SPECIFIER:
 		return ctf_declaration_type_specifier_visit(fd, depth,
-				head, declaration_scope);
+				head, declaration_scope, trace);
 	}
 }
 
@@ -890,7 +1097,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					event->declaration_scope);
+					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
@@ -903,7 +1110,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					event->declaration_scope);
+					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
@@ -1028,7 +1235,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->declaration_scope, stream->definition_scope);
+					stream->declaration_scope, stream->definition_scope, trace);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
@@ -1039,7 +1246,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->declaration_scope);
+					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
@@ -1050,7 +1257,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 
 			declaration = ctf_declaration_specifier_visit(fd, depth,
 					&node->u.ctf_expression.right,
-					stream->declaration_scope);
+					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
 			if (declaration->type->id != CTF_TYPE_STRUCT)
@@ -1256,10 +1463,13 @@ error:
 	return ret;
 }
 
-int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
+		struct ctf_trace *trace, int byte_order)
 {
 	int ret = 0;
 	struct ctf_node *iter;
+
+	trace->byte_order = byte_order;
 
 	switch (node->type) {
 	case NODE_ROOT:
@@ -1282,7 +1492,7 @@ int _ctf_visitor(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *t
 		}
 		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
 			ret = ctf_declaration_specifier_visit(fd, depth, iter,
-					trace->root_declaration_scope);
+					trace->root_declaration_scope, trace);
 			if (ret)
 				return ret;
 		}

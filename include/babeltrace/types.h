@@ -133,7 +133,6 @@ enum ctf_type_id {
 
 struct declaration {
 	enum ctf_type_id id;
-	GQuark name;		/* type name */
 	size_t alignment;	/* type alignment, in bits */
 	int ref;		/* number of references to the type */
 	/*
@@ -253,8 +252,15 @@ struct definition_enum {
 	GArray *value;
 };
 
+enum ctf_string_encoding {
+	CTF_STRING_UTF8 = 0,
+	CTF_STRING_ASCII,
+	CTF_STRING_UNKNOWN,
+};
+
 struct declaration_string {
 	struct declaration p;
+	enum ctf_string_encoding encoding;
 };
 
 struct definition_string {
@@ -442,12 +448,10 @@ void enum_unsigned_insert(struct declaration_enum *enum_declaration,
 size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
 
 struct declaration_enum *
-	enum_declaration_new(const char *name,
-			     struct declaration_integer *integer_declaration);
+	enum_declaration_new(struct declaration_integer *integer_declaration);
 
 struct declaration_struct *
-	struct_declaration_new(const char *name,
-			       struct declaration_scope *parent_scope);
+	struct_declaration_new(struct declaration_scope *parent_scope);
 void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 				  const char *field_name,
 				  struct declaration *field_declaration);
@@ -471,7 +475,7 @@ struct_get_field_from_index(struct definition_struct *struct_definition,
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct declaration_untagged_variant *untagged_variant_declaration_new(const char *name,
+struct declaration_untagged_variant *untagged_variant_declaration_new(
 		struct declaration_scope *parent_scope);
 struct declaration_variant *variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
 		const char *tag);
@@ -500,8 +504,7 @@ struct field *variant_get_current_field(struct definition_variant *variant);
  * array.
  */
 struct declaration_array *
-	array_declaration_new(const char *name,
-		size_t len, struct declaration *elem_declaration,
+	array_declaration_new(size_t len, struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
 
 /*
@@ -509,8 +512,7 @@ struct declaration_array *
  * to the sequence. No need to free them explicitly.
  */
 struct declaration_sequence *
-	sequence_declaration_new(const char *name,
-		struct declaration_integer *len_declaration, 
+	sequence_declaration_new(struct declaration_integer *len_declaration, 
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
 

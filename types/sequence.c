@@ -67,7 +67,7 @@ void _sequence_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_sequence *
-	sequence_declaration_new(const char *name, struct declaration_integer *len_declaration,
+	sequence_declaration_new(struct declaration_integer *len_declaration,
 			  struct declaration *elem_declaration,
 			  struct declaration_scope *parent_scope)
 {
@@ -83,7 +83,6 @@ struct declaration_sequence *
 	sequence_declaration->elem = elem_declaration;
 	sequence_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_SEQUENCE;
-	declaration->name = g_quark_from_string(name);
 	declaration->alignment = max(len_declaration->p.alignment, elem_declaration->alignment);
 	declaration->copy = sequence_copy;
 	declaration->declaration_free = _sequence_declaration_free;
