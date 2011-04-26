@@ -8,9 +8,9 @@ trace {
 
 /* Architecture with 32-bit pointers, 32-bit integers, 32-bit longs */
 
-typealias integer { size = 32; align = 32; signedness = false; } : uint32_t;
-typealias integer { size = 64; align = 64; signedness = false; } : uint64_t;
-typealias integer { size = 32; align = 32; signedness = false; } : void *;
+typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
+typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
+typealias integer { size = 32; align = 32; signed = false; } : void *;
 
 stream {
 	id = 0;
