@@ -116,10 +116,60 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 }
 
 static
+int ctf_visitor_print_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
+{
+	struct ctf_node *iter;
+	int ret;
+
+	print_tabs(fd, depth);
+	fprintf(fd, "<type_specifier_list>\n");
+	cds_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
+		ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+		if (ret)
+			return ret;
+	}
+	print_tabs(fd, depth);
+	fprintf(fd, "</type_specifier_list>\n");
+	return 0;
+}
+
+static
 int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 {
 	print_tabs(fd, depth);
-	fprintf(fd, "<type_specifier \"");
+
+	switch (node->u.type_specifier.type) {
+	case TYPESPEC_VOID:
+	case TYPESPEC_CHAR:
+	case TYPESPEC_SHORT:
+	case TYPESPEC_INT:
+	case TYPESPEC_LONG:
+	case TYPESPEC_FLOAT:
+	case TYPESPEC_DOUBLE:
+	case TYPESPEC_SIGNED:
+	case TYPESPEC_UNSIGNED:
+	case TYPESPEC_BOOL:
+	case TYPESPEC_COMPLEX:
+	case TYPESPEC_IMAGINARY:
+	case TYPESPEC_CONST:
+	case TYPESPEC_ID_TYPE:
+		fprintf(fd, "<type_specifier \"");
+		break;
+	case TYPESPEC_FLOATING_POINT:
+	case TYPESPEC_INTEGER:
+	case TYPESPEC_STRING:
+	case TYPESPEC_STRUCT:
+	case TYPESPEC_VARIANT:
+	case TYPESPEC_ENUM:
+		fprintf(fd, "<type_specifier>\n");
+		depth++;
+		break;
+	case TYPESPEC_UNKNOWN:
+	default:
+		fprintf(stderr, "[error] %s: unknown type specifier %d\n", __func__,
+			(int) node->u.type_specifier.type);
+		return -EINVAL;
+	}
 
 	switch (node->u.type_specifier.type) {
 	case TYPESPEC_VOID:
@@ -164,14 +214,54 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_ID_TYPE:
 		fprintf(fd, "%s", node->u.type_specifier.id_type);
 		break;
-
+	case TYPESPEC_FLOATING_POINT:
+	case TYPESPEC_INTEGER:
+	case TYPESPEC_STRING:
+	case TYPESPEC_STRUCT:
+	case TYPESPEC_VARIANT:
+	case TYPESPEC_ENUM:
+		return ctf_visitor_print_xml(fd, depth, node->u.type_specifier.node);
 	case TYPESPEC_UNKNOWN:
 	default:
 		fprintf(stderr, "[error] %s: unknown type specifier %d\n", __func__,
 			(int) node->u.type_specifier.type);
 		return -EINVAL;
 	}
-	fprintf(fd, "\"/>\n");
+
+	switch (node->u.type_specifier.type) {
+	case TYPESPEC_VOID:
+	case TYPESPEC_CHAR:
+	case TYPESPEC_SHORT:
+	case TYPESPEC_INT:
+	case TYPESPEC_LONG:
+	case TYPESPEC_FLOAT:
+	case TYPESPEC_DOUBLE:
+	case TYPESPEC_SIGNED:
+	case TYPESPEC_UNSIGNED:
+	case TYPESPEC_BOOL:
+	case TYPESPEC_COMPLEX:
+	case TYPESPEC_IMAGINARY:
+	case TYPESPEC_CONST:
+	case TYPESPEC_ID_TYPE:
+		fprintf(fd, "\"/>\n");
+		break;
+	case TYPESPEC_FLOATING_POINT:
+	case TYPESPEC_INTEGER:
+	case TYPESPEC_STRING:
+	case TYPESPEC_STRUCT:
+	case TYPESPEC_VARIANT:
+	case TYPESPEC_ENUM:
+		print_tabs(fd, depth);
+		fprintf(fd, "</type_specifier>\n");
+		depth--;
+		break;
+	case TYPESPEC_UNKNOWN:
+	default:
+		fprintf(stderr, "[error] %s: unknown type specifier %d\n", __func__,
+			(int) node->u.type_specifier.type);
+		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -218,17 +308,12 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 			print_tabs(fd, depth);
 			fprintf(fd, "</type_declarator>\n");
 		}
-		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
+		if (node->u.type_declarator.u.nested.length) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<length>\n");
-		}
-		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
-					siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			ret = ctf_visitor_print_xml(fd, depth + 1, node->u.type_declarator.u.nested.length);
 			if (ret)
 				return ret;
-		}
-		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "</length>\n");
 		}
@@ -271,19 +356,8 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ROOT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<root>\n");
-		cds_list_for_each_entry(iter, &node->u.root._typedef,
+		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.typealias,
-					siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -376,25 +450,19 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		print_tabs(fd, depth);
 		fprintf(fd, "<typedef>\n");
 		depth++;
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u._typedef.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
+		ret = ctf_visitor_print_xml(fd, depth + 1, node->u._typedef.type_specifier_list);
+		if (ret)
+			return ret;
 
 		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
+		fprintf(fd, "<type_declarator_list>\n");
 		cds_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
+		fprintf(fd, "</type_declarator_list>\n");
 		depth--;
 		print_tabs(fd, depth);
 		fprintf(fd, "</typedef>\n");
@@ -404,25 +472,19 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		fprintf(fd, "<target>\n");
 		depth++;
 
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_target.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
+		ret = ctf_visitor_print_xml(fd, depth, node->u.typealias_target.type_specifier_list);
+		if (ret)
+			return ret;
 
 		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
+		fprintf(fd, "<type_declarator_list>\n");
 		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
+		fprintf(fd, "</type_declarator_list>\n");
 
 		depth--;
 		print_tabs(fd, depth);
@@ -433,25 +495,19 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		fprintf(fd, "<alias>\n");
 		depth++;
 
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
+		ret = ctf_visitor_print_xml(fd, depth, node->u.typealias_alias.type_specifier_list);
+		if (ret)
+			return ret;
 
 		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
+		fprintf(fd, "<type_declarator_list>\n");
 		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
+		fprintf(fd, "</type_declarator_list>\n");
 
 		depth--;
 		print_tabs(fd, depth);
@@ -468,6 +524,12 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 			return ret;
 		print_tabs(fd, depth);
 		fprintf(fd, "</typealias>\n");
+		break;
+
+	case NODE_TYPE_SPECIFIER_LIST:
+		ret = ctf_visitor_print_type_specifier_list(fd, depth, node);
+		if (ret)
+			return ret;
 		break;
 
 	case NODE_TYPE_SPECIFIER:
@@ -544,18 +606,15 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 			fprintf(fd, "<enum >\n");
 		depth++;
 
-		if (!cds_list_empty(&node->u._enum.container_type)) {
+		if (node->u._enum.container_type) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<container_type>\n");
 		}
 
-		cds_list_for_each_entry(iter, &node->u._enum.container_type,
-					siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		if (!cds_list_empty(&node->u._enum.container_type)) {
+		ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
+		if (ret)
+			return ret;
+		if (node->u._enum.container_type) {
 			print_tabs(fd, depth);
 			fprintf(fd, "</container_type>\n");
 		}
@@ -575,25 +634,20 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		fprintf(fd, "</enum>\n");
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		print_tabs(fd, depth);
-		fprintf(fd, "<declaration_specifier>\n");
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.declaration_specifier, siblings) {
-			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		print_tabs(fd, depth);
-		fprintf(fd, "</declaration_specifier>\n");
+		ret = ctf_visitor_print_xml(fd, depth,
+			node->u.struct_or_variant_declaration.type_specifier_list);
+		if (ret)
+			return ret;
 
 		print_tabs(fd, depth);
-		fprintf(fd, "<type_declarators>\n");
+		fprintf(fd, "<type_declarator_list>\n");
 		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
-		fprintf(fd, "</type_declarators>\n");
+		fprintf(fd, "</type_declarator_list>\n");
 		break;
 	case NODE_VARIANT:
 		print_tabs(fd, depth);

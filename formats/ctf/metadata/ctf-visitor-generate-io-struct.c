@@ -1652,30 +1652,36 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 
 	switch (node->type) {
 	case NODE_ROOT:
-		cds_list_for_each_entry(iter, &node->u.root._typedef,
+		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
-			ret = ctf_typedef_visit(fd, depth + 1,
+			switch (iter->type) {
+			case NODE_TYPEDEF:
+				ret = ctf_typedef_visit(fd, depth + 1,
+							trace->root_declaration_scope,
+							&iter->u._typedef.declaration_specifier,
+							&iter->u._typedef.type_declarators,
+							trace);
+				if (ret)
+					return ret;
+				break;
+			case NODE_TYPEALIAS:
+				ret = ctf_typealias_visit(fd, depth + 1,
 						trace->root_declaration_scope,
-						&iter->u._typedef.declaration_specifier,
-						&iter->u._typedef.type_declarators,
+						iter->u.typealias.target, iter->u.typealias.alias,
 						trace);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.typealias,
-					siblings) {
-			ret = ctf_typealias_visit(fd, depth + 1,
-					trace->root_declaration_scope,
-					iter->u.typealias.target, iter->u.typealias.alias,
-					trace);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
-			ret = ctf_declaration_specifier_visit(fd, depth, iter,
-					trace->root_declaration_scope, trace);
-			if (ret)
-				return ret;
+				if (ret)
+					return ret;
+				break;
+			case NODE_DECLARATION_SPECIFIER:
+				ret = ctf_declaration_specifier_visit(fd, depth, iter,
+						trace->root_declaration_scope, trace);
+				if (ret)
+					return ret;
+				break;
+			default:
+				fprintf(stderr, "[error] %s: unexpected root child type %d\n", __func__,
+					(int) iter->type);
+				return -EINVAL;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);

@@ -33,6 +33,7 @@ enum node_type {
 	NODE_TYPEALIAS,
 
 	NODE_TYPE_SPECIFIER,
+	NODE_TYPE_SPECIFIER_LIST,
 	NODE_POINTER,
 	NODE_TYPE_DECLARATOR,
 
@@ -62,9 +63,11 @@ struct ctf_node {
 		struct {
 		} unknown;
 		struct {
-			struct cds_list_head _typedef;
-			struct cds_list_head typealias;
-			struct cds_list_head declaration_specifier;
+			/*
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and type_specifier_list.
+			 */
+			struct cds_list_head declaration_list;
 			struct cds_list_head trace;
 			struct cds_list_head stream;
 			struct cds_list_head event;
@@ -72,21 +75,21 @@ struct ctf_node {
 		struct {
 			/*
 			 * Children nodes are ctf_expression, typedef,
-			 * typealias and declaration specifiers.
+			 * typealias and type_specifier_list.
 			 */
 			struct cds_list_head declaration_list;
 		} event;
 		struct {
 			/*
 			 * Children nodes are ctf_expression, typedef,
-			 * typealias and declaration specifiers.
+			 * typealias and type_specifier_list.
 			 */
 			struct cds_list_head declaration_list;
 		} stream;
 		struct {
 			/*
 			 * Children nodes are ctf_expression, typedef,
-			 * typealias and declaration specifiers.
+			 * typealias and type_specifier_list.
 			 */
 			struct cds_list_head declaration_list;
 		} trace;
@@ -122,16 +125,16 @@ struct ctf_node {
 			} link;
 		} unary_expression;
 		struct {
-			struct cds_list_head declaration_specifier;
+			struct ctf_node *type_specifier_list;
 			struct cds_list_head type_declarators;
 		} _typedef;
 		/* new type is "alias", existing type "target" */
 		struct {
-			struct cds_list_head declaration_specifier;
+			struct ctf_node *type_specifier_list;
 			struct cds_list_head type_declarators;
 		} typealias_target;
 		struct {
-			struct cds_list_head declaration_specifier;
+			struct ctf_node *type_specifier_list;
 			struct cds_list_head type_declarators;
 		} typealias_alias;
 		struct {
@@ -155,9 +158,21 @@ struct ctf_node {
 				TYPESPEC_IMAGINARY,
 				TYPESPEC_CONST,
 				TYPESPEC_ID_TYPE,
+				TYPESPEC_FLOATING_POINT,
+				TYPESPEC_INTEGER,
+				TYPESPEC_STRING,
+				TYPESPEC_STRUCT,
+				TYPESPEC_VARIANT,
+				TYPESPEC_ENUM,
 			} type;
+			/* For struct, variant and enum */
+			struct ctf_node *node;
 			const char *id_type;
 		} type_specifier;
+		struct {
+			/* list of type_specifier */
+			struct cds_list_head head;
+		} type_specifier_list;
 		struct {
 			unsigned int const_qualifier;
 		} pointer;
@@ -175,9 +190,9 @@ struct ctf_node {
 					struct ctf_node *type_declarator;
 					/*
 					 * unary expression (value) or
-					 * declaration specifiers.
+					 * type_specifier_list.
 					 */
-					struct cds_list_head length;
+					struct ctf_node *length;
 					/* for abstract type declarator */
 					unsigned int abstract_array;
 				} nested;
@@ -207,15 +222,15 @@ struct ctf_node {
 		struct {
 			char *enum_id;
 			/*
-			 * Either empty, contains unary expression or
-			 * declaration specifiers.
+			 * Either NULL, or points to unary expression or
+			 * type_specifier_list.
 			 */
-			struct cds_list_head container_type;
+			struct ctf_node *container_type;
 			struct cds_list_head enumerator_list;
 			int has_body;
 		} _enum;
 		struct {
-			struct cds_list_head declaration_specifier;
+			struct ctf_node *type_specifier_list;
 			struct cds_list_head type_declarators;
 		} struct_or_variant_declaration;
 		struct {

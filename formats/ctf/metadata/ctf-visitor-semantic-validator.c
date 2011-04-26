@@ -180,7 +180,7 @@ errperm:
 }
 
 static
-int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
 {
 	switch (node->parent->type) {
 	case NODE_CTF_EXPRESSION:
@@ -190,8 +190,47 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_TYPEALIAS_ALIAS:
 	case NODE_ENUM:
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
+	case NODE_ROOT:
 		break;			/* OK */
 
+	case NODE_EVENT:
+	case NODE_STREAM:
+	case NODE_TRACE:
+	case NODE_UNARY_EXPRESSION:
+	case NODE_TYPEALIAS:
+	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPE_SPECIFIER_LIST:
+	case NODE_POINTER:
+	case NODE_FLOATING_POINT:
+	case NODE_INTEGER:
+	case NODE_STRING:
+	case NODE_ENUMERATOR:
+	case NODE_VARIANT:
+	case NODE_STRUCT:
+	default:
+		goto errinval;
+	}
+	return 0;
+errinval:
+	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+		node_type(node->parent), node_type(node));
+	return -EINVAL;		/* Incoherent structure */
+}
+
+static
+int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
+{
+	switch (node->parent->type) {
+	case NODE_TYPE_SPECIFIER_LIST:
+		break;			/* OK */
+
+	case NODE_CTF_EXPRESSION:
+	case NODE_TYPE_DECLARATOR:
+	case NODE_TYPEDEF:
+	case NODE_TYPEALIAS_TARGET:
+	case NODE_TYPEALIAS_ALIAS:
+	case NODE_ENUM:
+	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 	case NODE_ROOT:
 	case NODE_EVENT:
 	case NODE_STREAM:
@@ -248,8 +287,19 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 		 */
 		if (node->u.type_declarator.type == TYPEDEC_NESTED)
 			goto errperm;
-		if (cds_list_empty(&node->u.type_declarator.pointers))
-			goto errperm;
+		switch (node->u.type_declarator.type) {
+		case TYPESPEC_FLOATING_POINT:
+		case TYPESPEC_INTEGER:
+		case TYPESPEC_STRING:
+		case TYPESPEC_STRUCT:
+		case TYPESPEC_VARIANT:
+		case TYPESPEC_ENUM:
+			if (cds_list_empty(&node->u.type_declarator.pointers))
+				goto errperm;
+			break;
+		default:
+			break;
+		}
 		if (node->u.type_declarator.type == TYPEDEC_ID &&
 		    node->u.type_declarator.u.id != NULL)
 			goto errperm;
@@ -292,25 +342,16 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case TYPEDEC_NESTED:
 	{
-		int nr_nest_len;
-
 		if (node->u.type_declarator.u.nested.type_declarator) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
 				node->u.type_declarator.u.nested.type_declarator);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
-					siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1,
-				iter);
-			if (ret)
-				return ret;
-			nr_nest_len++;
-			if (iter->type == NODE_UNARY_EXPRESSION && nr_nest_len > 1) {
-				goto errperm;
-			}
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			node->u.type_declarator.u.nested.length);
+		if (ret)
+			return ret;
 		if (node->u.type_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
 				node->u.type_declarator.bitfield_len);
@@ -347,19 +388,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 
 	switch (node->type) {
 	case NODE_ROOT:
-		cds_list_for_each_entry(iter, &node->u.root._typedef,
-					siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.typealias,
-					siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
+		cds_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -443,6 +472,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
+		case NODE_TYPE_SPECIFIER_LIST:
 		case NODE_POINTER:
 		case NODE_TYPE_DECLARATOR:
 		case NODE_ENUMERATOR:
@@ -487,6 +517,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_TYPEALIAS:
 		case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		case NODE_TYPE_SPECIFIER:
+		case NODE_TYPE_SPECIFIER_LIST:
 		case NODE_POINTER:
 		case NODE_TYPE_DECLARATOR:
 		case NODE_FLOATING_POINT:
@@ -499,11 +530,10 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		cds_list_for_each_entry(iter, &node->u._typedef.declaration_specifier, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			node->u._typedef.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
@@ -523,11 +553,10 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		cds_list_for_each_entry(iter, &node->u.typealias_target.declaration_specifier, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			node->u.typealias_target.type_specifier_list);
+		if (ret)
+			return ret;
 		nr_declarators = 0;
 		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
@@ -555,11 +584,10 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.declaration_specifier, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			node->u.typealias_alias.type_specifier_list);
+		if (ret)
+			return ret;
 		nr_declarators = 0;
 		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
@@ -593,6 +621,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_TYPEALIAS:
 		case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		case NODE_TYPE_SPECIFIER:
+		case NODE_TYPE_SPECIFIER_LIST:
 		case NODE_POINTER:
 		case NODE_TYPE_DECLARATOR:
 		case NODE_FLOATING_POINT:
@@ -612,6 +641,11 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			return ret;
 		break;
 
+	case NODE_TYPE_SPECIFIER_LIST:
+		ret = ctf_visitor_type_specifier_list(fd, depth, node);
+		if (ret)
+			return ret;
+		break;
 	case NODE_TYPE_SPECIFIER:
 		ret = ctf_visitor_type_specifier(fd, depth, node);
 		if (ret)
@@ -633,28 +667,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_FLOATING_POINT:
 		switch (node->parent->type) {
-		case NODE_CTF_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_ENUM:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 
@@ -669,29 +683,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_INTEGER:
 		switch (node->parent->type) {
-		case NODE_CTF_EXPRESSION:
-		case NODE_UNARY_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_ENUM:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 
@@ -705,28 +698,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_STRING:
 		switch (node->parent->type) {
-		case NODE_CTF_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_ENUM:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 
@@ -788,28 +761,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_ENUM:
 		switch (node->parent->type) {
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_CTF_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_ENUM:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 
@@ -818,12 +771,9 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		cds_list_for_each_entry(iter, &node->u._enum.container_type,
-					siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1, node->u._enum.container_type);
+		if (ret)
+			return ret;
 
 		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
@@ -840,11 +790,10 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		default:
 			goto errinval;
 		}
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.declaration_specifier, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			node->u.struct_or_variant_declaration.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
 			if (ret)
@@ -853,28 +802,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_VARIANT:
 		switch (node->parent->type) {
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_CTF_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_ENUM:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 
@@ -890,28 +819,8 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_STRUCT:
 		switch (node->parent->type) {
-		case NODE_ROOT:
-		case NODE_EVENT:
-		case NODE_STREAM:
-		case NODE_TRACE:
-		case NODE_CTF_EXPRESSION:
-		case NODE_TYPEDEF:
-		case NODE_TYPEALIAS_TARGET:
-		case NODE_TYPEALIAS_ALIAS:
-		case NODE_STRUCT_OR_VARIANT_DECLARATION:
-			break;			/* OK */
-
-		case NODE_TYPEALIAS:
 		case NODE_TYPE_SPECIFIER:
-		case NODE_POINTER:
-		case NODE_TYPE_DECLARATOR:
-		case NODE_FLOATING_POINT:
-		case NODE_INTEGER:
-		case NODE_STRING:
-		case NODE_ENUMERATOR:
-		case NODE_ENUM:
-		case NODE_VARIANT:
-		case NODE_STRUCT:
+			break;			/* OK */
 		default:
 			goto errinval;
 

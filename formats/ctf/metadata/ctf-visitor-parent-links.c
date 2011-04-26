@@ -80,6 +80,8 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 static
 int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 {
+	int ret;
+
 	switch (node->u.type_specifier.type) {
 	case TYPESPEC_VOID:
 	case TYPESPEC_CHAR:
@@ -95,6 +97,17 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_IMAGINARY:
 	case TYPESPEC_CONST:
 	case TYPESPEC_ID_TYPE:
+		break;
+	case TYPESPEC_FLOATING_POINT:
+	case TYPESPEC_INTEGER:
+	case TYPESPEC_STRING:
+	case TYPESPEC_STRUCT:
+	case TYPESPEC_VARIANT:
+	case TYPESPEC_ENUM:
+		node->u.type_specifier.node->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.type_specifier.node);
+		if (ret)
+			return ret;
 		break;
 
 	case TYPESPEC_UNKNOWN:
@@ -135,10 +148,9 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
-					siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+		if (node->u.type_declarator.u.nested.length) {
+			node->u.type_declarator.u.nested.length->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, node->u.type_declarator.u.nested.length);
 			if (ret)
 				return ret;
 		}
@@ -167,21 +179,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 
 	switch (node->type) {
 	case NODE_ROOT:
-		cds_list_for_each_entry(iter, &node->u.root._typedef,
-					siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.typealias,
-					siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
-		cds_list_for_each_entry(iter, &node->u.root.declaration_specifier, siblings) {
+		cds_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -253,12 +251,10 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_TYPEDEF:
 		depth++;
-		cds_list_for_each_entry(iter, &node->u._typedef.declaration_specifier, siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		node->u._typedef.type_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1, node->u._typedef.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -269,12 +265,10 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_TYPEALIAS_TARGET:
 		depth++;
-		cds_list_for_each_entry(iter, &node->u.typealias_target.declaration_specifier, siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		node->u.typealias_target.type_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.typealias_target.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -285,12 +279,10 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_TYPEALIAS_ALIAS:
 		depth++;
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.declaration_specifier, siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		node->u.typealias_alias.type_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.typealias_alias.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -308,6 +300,15 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.typealias.alias);
 		if (ret)
 			return ret;
+		break;
+
+	case NODE_TYPE_SPECIFIER_LIST:
+		cds_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		break;
 
 	case NODE_TYPE_SPECIFIER:
@@ -357,14 +358,9 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_ENUM:
 		depth++;
-
-		cds_list_for_each_entry(iter, &node->u._enum.container_type,
-					siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		ret = ctf_visitor_parent_links(fd, depth + 1, node->u._enum.container_type);
+		if (ret)
+			return ret;
 
 		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			iter->parent = node;
@@ -375,12 +371,11 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		depth--;
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.declaration_specifier, siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+		node->u.struct_or_variant_declaration.type_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1,
+			node->u.struct_or_variant_declaration.type_specifier_list);
+		if (ret)
+			return ret;
 		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);

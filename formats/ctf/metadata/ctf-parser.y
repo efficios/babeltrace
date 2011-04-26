@@ -76,6 +76,7 @@ static const char *node_type_to_str[] = {
 	[ NODE_TYPEALIAS_ALIAS ] = "NODE_TYPEALIAS_ALIAS",
 	[ NODE_TYPEALIAS ] = "NODE_TYPEALIAS",
 	[ NODE_TYPE_SPECIFIER ] = "NODE_TYPE_SPECIFIER",
+	[ NODE_TYPE_SPECIFIER_LIST ] = "NODE_TYPE_SPECIFIER_LIST",
 	[ NODE_POINTER ] = "NODE_POINTER",
 	[ NODE_TYPE_DECLARATOR ] = "NODE_TYPE_DECLARATOR",
 	[ NODE_FLOATING_POINT ] = "NODE_FLOATING_POINT",
@@ -257,21 +258,21 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		break;
 
 	case NODE_TYPEDEF:
-		CDS_INIT_LIST_HEAD(&node->u._typedef.declaration_specifier);
 		CDS_INIT_LIST_HEAD(&node->u._typedef.type_declarators);
 		break;
 	case NODE_TYPEALIAS_TARGET:
-		CDS_INIT_LIST_HEAD(&node->u.typealias_target.declaration_specifier);
 		CDS_INIT_LIST_HEAD(&node->u.typealias_target.type_declarators);
 		break;
 	case NODE_TYPEALIAS_ALIAS:
-		CDS_INIT_LIST_HEAD(&node->u.typealias_alias.declaration_specifier);
 		CDS_INIT_LIST_HEAD(&node->u.typealias_alias.type_declarators);
 		break;
 	case NODE_TYPEALIAS:
 		break;
 
 	case NODE_TYPE_SPECIFIER:
+		break;
+	case NODE_TYPE_SPECIFIER_LIST:
+		CDS_INIT_LIST_HEAD(&node->u.type_specifier_list.head);
 		break;
 	case NODE_POINTER:
 		break;
@@ -292,11 +293,9 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		CDS_INIT_LIST_HEAD(&node->u.enumerator.values);
 		break;
 	case NODE_ENUM:
-		CDS_INIT_LIST_HEAD(&node->u._enum.container_type);
 		CDS_INIT_LIST_HEAD(&node->u._enum.enumerator_list);
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		CDS_INIT_LIST_HEAD(&node->u.struct_or_variant_declaration.declaration_specifier);
 		CDS_INIT_LIST_HEAD(&node->u.struct_or_variant_declaration.type_declarators);
 		break;
 	case NODE_VARIANT:
@@ -346,6 +345,7 @@ static int reparent_ctf_expression(struct ctf_node *node,
 	case NODE_TYPEALIAS_ALIAS:
 	case NODE_TYPEALIAS:
 	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPE_SPECIFIER_LIST:
 	case NODE_POINTER:
 	case NODE_TYPE_DECLARATOR:
 	case NODE_ENUMERATOR:
@@ -369,7 +369,7 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 {
 	switch (parent->type) {
 	case NODE_ROOT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.root._typedef);
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.root.declaration_list);
 		break;
 	case NODE_EVENT:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.event.declaration_list);
@@ -396,6 +396,7 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_TYPEALIAS_ALIAS:
 	case NODE_TYPEALIAS:
 	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPE_SPECIFIER_LIST:
 	case NODE_POINTER:
 	case NODE_TYPE_DECLARATOR:
 	case NODE_ENUMERATOR:
@@ -417,7 +418,7 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 {
 	switch (parent->type) {
 	case NODE_ROOT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.root.typealias);
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.root.declaration_list);
 		break;
 	case NODE_EVENT:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.event.declaration_list);
@@ -444,6 +445,7 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_TYPEALIAS_ALIAS:
 	case NODE_TYPEALIAS:
 	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPE_SPECIFIER_LIST:
 	case NODE_POINTER:
 	case NODE_TYPE_DECLARATOR:
 	case NODE_ENUMERATOR:
@@ -465,50 +467,88 @@ static int reparent_type_specifier(struct ctf_node *node,
 				   struct ctf_node *parent)
 {
 	switch (parent->type) {
-	case NODE_ROOT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.root.declaration_specifier);
+	case NODE_TYPE_SPECIFIER_LIST:
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.type_specifier_list.head);
 		break;
+
+	case NODE_TYPE_SPECIFIER:
 	case NODE_EVENT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.event.declaration_list);
-		break;
 	case NODE_STREAM:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.stream.declaration_list);
-		break;
 	case NODE_TRACE:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.trace.declaration_list);
-		break;
 	case NODE_VARIANT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.variant.declaration_list);
-		break;
 	case NODE_STRUCT:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u._struct.declaration_list);
-		break;
 	case NODE_TYPEDEF:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u._typedef.declaration_specifier);
-		break;
 	case NODE_TYPEALIAS_TARGET:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.typealias_target.declaration_specifier);
-		break;
 	case NODE_TYPEALIAS_ALIAS:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.typealias_alias.declaration_specifier);
-		break;
 	case NODE_TYPE_DECLARATOR:
-		parent->u.type_declarator.type = TYPEDEC_NESTED;
-		CDS_INIT_LIST_HEAD(&parent->u.type_declarator.u.nested.length);
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.type_declarator.u.nested.length);
-		break;
 	case NODE_ENUM:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u._enum.container_type);
-		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		_cds_list_splice_tail(&node->tmp_head, &parent->u.struct_or_variant_declaration.declaration_specifier);
-		break;
 	case NODE_TYPEALIAS:
 	case NODE_FLOATING_POINT:
 	case NODE_INTEGER:
 	case NODE_STRING:
 	case NODE_CTF_EXPRESSION:
+	case NODE_POINTER:
+	case NODE_ENUMERATOR:
+	case NODE_UNARY_EXPRESSION:
+		return -EPERM;
+
+	case NODE_UNKNOWN:
+	default:
+		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
+			(int) parent->type);
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int reparent_type_specifier_list(struct ctf_node *node,
+					struct ctf_node *parent)
+{
+	switch (parent->type) {
+	case NODE_ROOT:
+		cds_list_add_tail(&node->siblings, &parent->u.root.declaration_list);
+		break;
+	case NODE_EVENT:
+		cds_list_add_tail(&node->siblings, &parent->u.event.declaration_list);
+		break;
+	case NODE_STREAM:
+		cds_list_add_tail(&node->siblings, &parent->u.stream.declaration_list);
+		break;
+	case NODE_TRACE:
+		cds_list_add_tail(&node->siblings, &parent->u.trace.declaration_list);
+		break;
+	case NODE_VARIANT:
+		cds_list_add_tail(&node->siblings, &parent->u.variant.declaration_list);
+		break;
+	case NODE_STRUCT:
+		cds_list_add_tail(&node->siblings, &parent->u._struct.declaration_list);
+		break;
+	case NODE_TYPEDEF:
+		parent->u._typedef.type_specifier_list = node;
+		break;
+	case NODE_TYPEALIAS_TARGET:
+		parent->u.typealias_target.type_specifier_list = node;
+		break;
+	case NODE_TYPEALIAS_ALIAS:
+		parent->u.typealias_alias.type_specifier_list = node;
+		break;
+	case NODE_TYPE_DECLARATOR:
+		parent->u.type_declarator.type = TYPEDEC_NESTED;
+		parent->u.type_declarator.u.nested.length = node;
+		break;
+	case NODE_ENUM:
+		parent->u._enum.container_type = node;
+		break;
+	case NODE_STRUCT_OR_VARIANT_DECLARATION:
+		parent->u.struct_or_variant_declaration.type_specifier_list = node;
+		break;
 	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPEALIAS:
+	case NODE_FLOATING_POINT:
+	case NODE_INTEGER:
+	case NODE_STRING:
+	case NODE_CTF_EXPRESSION:
 	case NODE_POINTER:
 	case NODE_ENUMERATOR:
 	case NODE_UNARY_EXPRESSION:
@@ -557,6 +597,7 @@ static int reparent_type_declarator(struct ctf_node *node,
 	case NODE_STRING:
 	case NODE_CTF_EXPRESSION:
 	case NODE_TYPE_SPECIFIER:
+	case NODE_TYPE_SPECIFIER_LIST:
 	case NODE_POINTER:
 	case NODE_ENUMERATOR:
 	case NODE_UNARY_EXPRESSION:
@@ -594,20 +635,23 @@ static int set_parent_node(struct ctf_node *node,
 	case NODE_EVENT:
 		if (parent->type == NODE_ROOT) {
 			_cds_list_splice_tail(&node->tmp_head, &parent->u.root.event);
-		} else
+		} else {
 			return -EPERM;
+		}
 		break;
 	case NODE_STREAM:
 		if (parent->type == NODE_ROOT) {
 			_cds_list_splice_tail(&node->tmp_head, &parent->u.root.stream);
-		} else
+		} else {
 			return -EPERM;
+		}
 		break;
 	case NODE_TRACE:
 		if (parent->type == NODE_ROOT) {
 			_cds_list_splice_tail(&node->tmp_head, &parent->u.root.trace);
-		} else
+		} else {
 			return -EPERM;
+		}
 		break;
 
 	case NODE_CTF_EXPRESSION:
@@ -643,20 +687,26 @@ static int set_parent_node(struct ctf_node *node,
 	case NODE_TYPE_DECLARATOR:
 		return reparent_type_declarator(node, parent);
 
+	case NODE_TYPE_SPECIFIER_LIST:
+		return reparent_type_specifier_list(node, parent);
+
 	case NODE_TYPE_SPECIFIER:
+		return reparent_type_specifier(node, parent);
+
 	case NODE_FLOATING_POINT:
 	case NODE_INTEGER:
 	case NODE_STRING:
 	case NODE_ENUM:
 	case NODE_VARIANT:
 	case NODE_STRUCT:
-		return reparent_type_specifier(node, parent);
+		return -EINVAL;	/* Dealt with internally within grammar */
 
 	case NODE_ENUMERATOR:
 		if (parent->type == NODE_ENUM) {
 			_cds_list_splice_tail(&node->tmp_head, &parent->u._enum.enumerator_list);
-		} else
+		} else {
 			return -EPERM;
+		}
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		switch (parent->type) {
@@ -715,9 +765,7 @@ static struct ctf_ast *ctf_ast_alloc(void)
 	CDS_INIT_LIST_HEAD(&ast->allocated_nodes);
 	ast->root.type = NODE_ROOT;
 	CDS_INIT_LIST_HEAD(&ast->root.tmp_head);
-	CDS_INIT_LIST_HEAD(&ast->root.u.root._typedef);
-	CDS_INIT_LIST_HEAD(&ast->root.u.root.typealias);
-	CDS_INIT_LIST_HEAD(&ast->root.u.root.declaration_specifier);
+	CDS_INIT_LIST_HEAD(&ast->root.u.root.declaration_list);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.trace);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.stream);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.event);
@@ -1101,31 +1149,51 @@ declaration:
 		{	$$ = $1;	}
 	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_cds_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	declaration_specifiers TYPEDEF type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
 			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
+			_cds_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
 	;
@@ -1204,11 +1272,21 @@ trace_declaration_end:
 declaration_specifiers:
 		CONST
 		{
-			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_CONST;
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_CONST;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	type_specifier
-		{	$$ = $1;	}
+		{
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = $1;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+		}
 	|	declaration_specifiers CONST
 		{
 			struct ctf_node *node;
@@ -1216,12 +1294,12 @@ declaration_specifiers:
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
 			node->u.type_specifier.type = TYPESPEC_CONST;
-			cds_list_add_tail(&node->siblings, &($$)->tmp_head);
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	declaration_specifiers type_specifier
 		{
 			$$ = $1;
-			cds_list_add_tail(&($2)->siblings, &($$)->tmp_head);
+			cds_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
 		}
 	;
 
@@ -1304,40 +1382,66 @@ type_specifier:
 		}
 	|	FLOATING_POINT LBRAC RBRAC
 		{
-			$$ = make_node(scanner, NODE_FLOATING_POINT);
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
+			$$->u.type_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
 		}
 	|	FLOATING_POINT LBRAC ctf_assignment_expression_list RBRAC
 		{
-			$$ = make_node(scanner, NODE_FLOATING_POINT);
-			if (set_parent_node($3, $$))
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
+			$$->u.type_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
+			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "floating point reparent error");
 		}
 	|	INTEGER LBRAC RBRAC
 		{
-			$$ = make_node(scanner, NODE_INTEGER);
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_INTEGER;
+			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
 		}
 	|	INTEGER LBRAC ctf_assignment_expression_list RBRAC
 		{
-			$$ = make_node(scanner, NODE_INTEGER);
-			if (set_parent_node($3, $$))
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_INTEGER;
+			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
+			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "integer reparent error");
 		}
 	|	STRING LBRAC RBRAC
 		{
-			$$ = make_node(scanner, NODE_STRING);
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_STRING;
+			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
 		}
 	|	STRING LBRAC ctf_assignment_expression_list RBRAC
 		{
-			$$ = make_node(scanner, NODE_STRING);
-			if (set_parent_node($3, $$))
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_STRING;
+			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
+			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "string reparent error");
 		}
 	|	ENUM enum_type_specifier
-		{	$$ = $2;		}
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_ENUM;
+			$$->u.type_specifier.node = $2;
+		}
 	|	VARIANT variant_type_specifier
-		{	$$ = $2;		}
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_VARIANT;
+			$$->u.type_specifier.node = $2;
+			$$ = $2;
+		}
 	|	STRUCT struct_type_specifier
-		{	$$ = $2;		}
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_STRUCT;
+			$$->u.type_specifier.node = $2;
+			$$ = $2;
+		}
 	;
 
 struct_type_specifier:
@@ -1541,7 +1645,7 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $2;
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list RBRAC
@@ -1556,7 +1660,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE LBRAC enumerator_list RBRAC
@@ -1571,7 +1675,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	LBRAC enumerator_list COMMA RBRAC
@@ -1584,7 +1688,7 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $2;
 			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list COMMA RBRAC
@@ -1599,7 +1703,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER
@@ -1613,7 +1717,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 		}
 	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
 		{
@@ -1627,7 +1731,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE
@@ -1641,7 +1745,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.container_type);
+			($$)->u._enum.container_type = $3;
 		}
 	;
 
@@ -1663,37 +1767,61 @@ struct_or_variant_declaration_list:
 struct_or_variant_declaration:
 		declaration_specifiers struct_or_variant_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			$$ = make_node(scanner, NODE_STRUCT_OR_VARIANT_DECLARATION);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u.struct_or_variant_declaration.declaration_specifier);
+			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.struct_or_variant_declaration.type_declarators);
 		}
 	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_cds_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	declaration_specifiers TYPEDEF type_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
 			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
+			_cds_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
 	;
@@ -1701,17 +1829,31 @@ struct_or_variant_declaration:
 alias_declaration_specifiers:
 		CONST
 		{
-			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_CONST;
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_CONST;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	type_specifier
-		{	$$ = $1;	}
+		{
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = $1;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+		}
 	|	IDENTIFIER
 		{
+			struct ctf_node *node;
+
 			add_type(scanner, $1);
-			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			($$)->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			($$)->u.type_specifier.id_type = yylval.gs->s;
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
+			node->u.type_specifier.id_type = yylval.gs->s;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	alias_declaration_specifiers CONST
 		{
@@ -1720,12 +1862,12 @@ alias_declaration_specifiers:
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
 			node->u.type_specifier.type = TYPESPEC_CONST;
-			cds_list_add_tail(&node->siblings, &($$)->tmp_head);
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	alias_declaration_specifiers type_specifier
 		{
 			$$ = $1;
-			cds_list_add_tail(&($2)->siblings, &($$)->tmp_head);
+			cds_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	alias_declaration_specifiers IDENTIFIER
 		{
@@ -1736,7 +1878,7 @@ alias_declaration_specifiers:
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
 			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
 			node->u.type_specifier.id_type = yylval.gs->s;
-			cds_list_add_tail(&node->siblings, &($$)->tmp_head);
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	;
 
@@ -1875,8 +2017,7 @@ direct_abstract_declarator:
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			($$)->u.type_declarator.u.nested.length = $3;
 		}
 	|	direct_abstract_declarator LSBRAC RSBRAC
 		{
@@ -1925,8 +2066,7 @@ direct_alias_abstract_declarator:
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			($$)->u.type_declarator.u.nested.length = $3;
 		}
 	|	direct_alias_abstract_declarator LSBRAC RSBRAC
 		{
@@ -1965,8 +2105,7 @@ direct_declarator:
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			($$)->u.type_declarator.u.nested.length = $3;
 		}
 	;
 
@@ -1999,8 +2138,7 @@ direct_type_declarator:
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			($$)->u.type_declarator.u.nested.length = $3;
 		}
 	;
 
@@ -2053,8 +2191,9 @@ ctf_assignment_expression:
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.ctf_expression.right);
 		}
-	|	unary_expression TYPEASSIGN type_specifier
+	|	unary_expression TYPEASSIGN type_specifier	/* Only allow struct */
 		{
+			struct ctf_node *list;
 			/*
 			 * Because we have left and right, cannot use
 			 * set_parent_node.
@@ -2063,36 +2202,57 @@ ctf_assignment_expression:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u.ctf_expression.left);
 			if ($1->u.unary_expression.type != UNARY_STRING)
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
-			cds_list_add(&($3)->siblings, &($3)->tmp_head);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.ctf_expression.right);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			cds_list_add_tail(&($3)->siblings, &list->u.type_specifier_list.head);
+			cds_list_add_tail(&list->siblings, &($$)->u.ctf_expression.right);
 		}
 	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list
 		{
+			struct ctf_node *list;
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_cds_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.declaration_specifier);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEDEF declaration_specifiers type_declarator_list
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u._typedef.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	declaration_specifiers TYPEDEF type_declarator_list
 		{
+			struct ctf_node *list;
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u._typedef.declaration_specifier);
+			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
 	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list
 		{
+			struct ctf_node *list;
+
 			$$ = make_node(scanner, NODE_TYPEALIAS);
 			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
 			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
-			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u.typealias.target->u.typealias_target.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
+			_cds_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.declaration_specifier);
+
+			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
+			_cds_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
 		}
 	;
