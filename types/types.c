@@ -24,37 +24,49 @@
 #include <errno.h>
 
 static
-struct definition *
-	lookup_typedef_declaration_scope(GQuark declaration_name,
+GQuark prefix_quark(const char *prefix, GQuark quark)
+{
+	GQuark nq;
+	GString *str;
+
+	str = g_string_new(prefix);
+	g_string_append(str, g_quark_to_string(quark));
+	nq = g_quark_from_string(g_string_free(str, FALSE));
+	return nq;
+}
+
+static
+struct declaration *
+	lookup_declaration_scope(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->typedef_declarations,
 				   (gconstpointer) (unsigned long) declaration_name);
 }
 
-struct definition *lookup_typedef_declaration(GQuark declaration_name,
+struct declaration *lookup_declaration(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
-	struct definition *definition;
+	struct declaration *declaration;
 
 	while (scope) {
-		definition = lookup_typedef_declaration_scope(declaration_name,
-							      scope);
-		if (definition)
-			return definition;
+		declaration = lookup_declaration_scope(declaration_name,
+						       scope);
+		if (declaration)
+			return declaration;
 		scope = scope->parent_scope;
 	}
 	return NULL;
 }
 
-int register_typedef_declaration(GQuark name, struct declaration *declaration,
+int register_declaration(GQuark name, struct declaration *declaration,
 		struct declaration_scope *scope)
 {
 	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_typedef_declaration_scope(name, scope))
+	if (lookup_declaration_scope(name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->typedef_declarations,
@@ -314,6 +326,9 @@ int register_struct_declaration(GQuark struct_name,
 	struct declaration_struct *struct_declaration,
 	struct declaration_scope *scope)
 {
+	GQuark prefix_name;
+	int ret;
+
 	if (!struct_name)
 		return -EPERM;
 
@@ -325,6 +340,11 @@ int register_struct_declaration(GQuark struct_name,
 			    (gpointer) (unsigned long) struct_name,
 			    struct_declaration);
 	declaration_ref(&struct_declaration->p);
+
+	/* Also add in typedef/typealias scopes */
+	prefix_name = prefix_quark("struct ", struct_name);
+	ret = register_declaration(prefix_name, &struct_declaration->p, scope);
+	assert(!ret);
 	return 0;
 }
 
@@ -356,6 +376,9 @@ int register_variant_declaration(GQuark variant_name,
 		struct declaration_untagged_variant *untagged_variant_declaration,
 		struct declaration_scope *scope)
 {
+	GQuark prefix_name;
+	int ret;
+
 	if (!variant_name)
 		return -EPERM;
 
@@ -367,6 +390,12 @@ int register_variant_declaration(GQuark variant_name,
 			    (gpointer) (unsigned long) variant_name,
 			    untagged_variant_declaration);
 	declaration_ref(&untagged_variant_declaration->p);
+
+	/* Also add in typedef/typealias scopes */
+	prefix_name = prefix_quark("variant ", variant_name);
+	ret = register_declaration(prefix_name,
+			&untagged_variant_declaration->p, scope);
+	assert(!ret);
 	return 0;
 }
 
@@ -398,6 +427,9 @@ int register_enum_declaration(GQuark enum_name,
 		struct declaration_enum *enum_declaration,
 		struct declaration_scope *scope)
 {
+	GQuark prefix_name;
+	int ret;
+
 	if (!enum_name)
 		return -EPERM;
 
@@ -409,6 +441,11 @@ int register_enum_declaration(GQuark enum_name,
 			    (gpointer) (unsigned long) enum_name,
 			    enum_declaration);
 	declaration_ref(&enum_declaration->p);
+
+	/* Also add in typedef/typealias scopes */
+	prefix_name = prefix_quark("enum ", enum_name);
+	ret = register_declaration(prefix_name, &enum_declaration->p, scope);
+	assert(!ret);
 	return 0;
 }
 

@@ -39,8 +39,8 @@
 	cds_list_entry((ptr)->next, type, member)
 
 static
-struct declaration *ctf_declaration_specifier_visit(FILE *fd,
-		int depth, struct cds_list_head *head,
+struct declaration *ctf_type_specifier_list_visit(FILE *fd,
+		int depth, struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace);
 
@@ -128,110 +128,121 @@ struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_
 }
 
 static
-int visit_declaration_specifier(struct cds_list_head *declaration_specifier, GString *str)
+int visit_type_specifier(FILE *fd, struct ctf_node *type_specifier, GString *str)
+{
+	assert(type_specifier->type == NODE_TYPE_SPECIFIER);
+
+	switch (type_specifier->u.type_specifier.type) {
+	case TYPESPEC_VOID:
+		g_string_append(str, "void");
+		break;
+	case TYPESPEC_CHAR:
+		g_string_append(str, "char");
+		break;
+	case TYPESPEC_SHORT:
+		g_string_append(str, "short");
+		break;
+	case TYPESPEC_INT:
+		g_string_append(str, "int");
+		break;
+	case TYPESPEC_LONG:
+		g_string_append(str, "long");
+		break;
+	case TYPESPEC_FLOAT:
+		g_string_append(str, "float");
+		break;
+	case TYPESPEC_DOUBLE:
+		g_string_append(str, "double");
+		break;
+	case TYPESPEC_SIGNED:
+		g_string_append(str, "signed");
+		break;
+	case TYPESPEC_UNSIGNED:
+		g_string_append(str, "unsigned");
+		break;
+	case TYPESPEC_BOOL:
+		g_string_append(str, "bool");
+		break;
+	case TYPESPEC_COMPLEX:
+		g_string_append(str, "_Complex");
+		break;
+	case TYPESPEC_IMAGINARY:
+		g_string_append(str, "_Imaginary");
+		break;
+	case TYPESPEC_CONST:
+		g_string_append(str, "const");
+		break;
+	case TYPESPEC_ID_TYPE:
+		if (type_specifier->u.type_specifier.id_type)
+			g_string_append(str, type_specifier->u.type_specifier.id_type);
+		break;
+	case TYPESPEC_STRUCT:
+	{
+		struct ctf_node *node = type_specifier->u.type_specifier.node;
+
+		if (!node->u._struct.name) {
+			fprintf(fd, "[error] %s: unexpected empty variant name\n", __func__);
+			return -EINVAL;
+		}
+		g_string_append(str, "struct ");
+		g_string_append(str, node->u._struct.name);
+		break;
+	}
+	case TYPESPEC_VARIANT:
+	{
+		struct ctf_node *node = type_specifier->u.type_specifier.node;
+
+		if (!node->u.variant.name) {
+			fprintf(fd, "[error] %s: unexpected empty variant name\n", __func__);
+			return -EINVAL;
+		}
+		g_string_append(str, "variant ");
+		g_string_append(str, node->u.variant.name);
+		break;
+	}
+	case TYPESPEC_ENUM:
+	{
+		struct ctf_node *node = type_specifier->u.type_specifier.node;
+
+		if (!node->u._enum.enum_id) {
+			fprintf(fd, "[error] %s: unexpected empty enum ID\n", __func__);
+			return -EINVAL;
+		}
+		g_string_append(str, "enum ");
+		g_string_append(str, node->u._enum.enum_id);
+		break;
+	}
+	case TYPESPEC_FLOATING_POINT:
+	case TYPESPEC_INTEGER:
+	case TYPESPEC_STRING:
+	default:
+		fprintf(fd, "[error] %s: unknown specifier\n", __func__);
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static
+int visit_type_specifier_list(FILE *fd, struct ctf_node *type_specifier_list, GString *str)
 {
 	struct ctf_node *iter;
 	int alias_item_nr = 0;
-	int err;
+	int ret;
 
-	cds_list_for_each_entry(iter, declaration_specifier, siblings) {
+	cds_list_for_each_entry(iter, &type_specifier_list->u.type_specifier_list.head, siblings) {
 		if (alias_item_nr != 0)
 			g_string_append(str, " ");
 		alias_item_nr++;
-
-		switch (iter->type) {
-		case NODE_TYPE_SPECIFIER:
-			switch (iter->u.type_specifier.type) {
-			case TYPESPEC_VOID:
-				g_string_append(str, "void");
-				break;
-			case TYPESPEC_CHAR:
-				g_string_append(str, "char");
-				break;
-			case TYPESPEC_SHORT:
-				g_string_append(str, "short");
-				break;
-			case TYPESPEC_INT:
-				g_string_append(str, "int");
-				break;
-			case TYPESPEC_LONG:
-				g_string_append(str, "long");
-				break;
-			case TYPESPEC_FLOAT:
-				g_string_append(str, "float");
-				break;
-			case TYPESPEC_DOUBLE:
-				g_string_append(str, "double");
-				break;
-			case TYPESPEC_SIGNED:
-				g_string_append(str, "signed");
-				break;
-			case TYPESPEC_UNSIGNED:
-				g_string_append(str, "unsigned");
-				break;
-			case TYPESPEC_BOOL:
-				g_string_append(str, "bool");
-				break;
-			case TYPESPEC_COMPLEX:
-				g_string_append(str, "_Complex");
-				break;
-			case TYPESPEC_IMAGINARY:
-				g_string_append(str, "_Imaginary");
-				break;
-			case TYPESPEC_CONST:
-				g_string_append(str, "const");
-				break;
-			case TYPESPEC_ID_TYPE:
-				if (iter->u.type_specifier.id_type)
-					g_string_append(str, iter->u.type_specifier.id_type);
-				break;
-			default:
-				fprintf(stderr, "[error] %s: unknown specifier\n", __func__);
-				err = -EINVAL;
-				goto error;
-			}
-			break;
-		case NODE_ENUM:
-			if (!iter->u._enum.enum_id) {
-				fprintf(stderr, "[error] %s: unexpected empty enum ID\n", __func__);
-				err = -EINVAL;
-				goto error;
-			}
-			g_string_append(str, "enum ");
-			g_string_append(str, iter->u._enum.enum_id);
-			break;
-		case NODE_VARIANT:
-			if (!iter->u.variant.name) {
-				fprintf(stderr, "[error] %s: unexpected empty variant name\n", __func__);
-				err = -EINVAL;
-				goto error;
-			}
-			g_string_append(str, "variant ");
-			g_string_append(str, iter->u.variant.name);
-			break;
-		case NODE_STRUCT:
-			if (!iter->u._struct.name) {
-				fprintf(stderr, "[error] %s: unexpected empty variant name\n", __func__);
-				err = -EINVAL;
-				goto error;
-			}
-			g_string_append(str, "struct ");
-			g_string_append(str, iter->u._struct.name);
-			break;
-		default:
-			fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
-			err = -EINVAL;
-			goto error;
-		}
+		ret = visit_type_specifier(fd, iter, str);
+		if (ret)
+			return ret;
 	}
 	return 0;
-error:
-	return err;
 }
 
 static
 GQuark create_typealias_identifier(FILE *fd, int depth,
-	struct cds_list_head *declaration_specifier,
+	struct ctf_node *type_specifier_list,
 	struct ctf_node *node_type_declarator)
 {
 	struct ctf_node *iter;
@@ -241,7 +252,7 @@ GQuark create_typealias_identifier(FILE *fd, int depth,
 	int ret;
 
 	str = g_string_new("");
-	ret = visit_declaration_specifier(declaration_specifier, str);
+	ret = visit_type_specifier_list(fd, type_specifier_list, str);
 	if (ret) {
 		g_string_free(str, TRUE);
 		return 0;
@@ -259,7 +270,7 @@ GQuark create_typealias_identifier(FILE *fd, int depth,
 
 static
 struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
-	struct cds_list_head *declaration_specifier,
+	struct ctf_node *type_specifier_list,
 	GQuark *field_name,
 	struct ctf_node *node_type_declarator,
 	struct declaration_scope *declaration_scope,
@@ -277,7 +288,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 
 		/* TODO: gcc bitfields not supported yet. */
 		if (node_type_declarator->u.type_declarator.bitfield_len != NULL) {
-			fprintf(stderr, "[error] %s: gcc bitfields are not supported yet.\n", __func__);
+			fprintf(fd, "[error] %s: gcc bitfields are not supported yet.\n", __func__);
 			return NULL;
 		}
 	}
@@ -291,15 +302,15 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			 * the typealiases (else fail).
 			 */
 			alias_q = create_typealias_identifier(fd, depth,
-				declaration_specifier, node_type_declarator);
+				type_specifier_list, node_type_declarator);
 			nested_declaration = lookup_declaration(alias_q, declaration_scope);
 			if (!nested_declaration) {
-				fprintf(stderr, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
+				fprintf(fd, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
 				return NULL;
 			}
 		} else {
-			nested_declaration = ctf_declaration_specifier_visit(fd, depth,
-				declaration_specifier, declaration_scope, trace);
+			nested_declaration = ctf_type_specifier_list_visit(fd, depth,
+				type_specifier_list, declaration_scope, trace);
 		}
 	}
 
@@ -314,29 +325,27 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 		return nested_declaration;
 	} else {
 		struct declaration *declaration;
-		struct cds_list_head *length;
-		struct ctf_node *first;
+		struct ctf_node *length;
 
 		/* TYPEDEC_NESTED */
 
 		/* create array/sequence, pass nested_declaration as child. */
-		length = &node_type_declarator->u.type_declarator.u.nested.length;
-		if (cds_list_empty(length)) {
-			fprintf(stderr, "[error] %s: expecting length type or value.\n", __func__);
+		length = node_type_declarator->u.type_declarator.u.nested.length;
+		if (!length) {
+			fprintf(fd, "[error] %s: expecting length type or value.\n", __func__);
 			return NULL;
 		}
-		first = _cds_list_first_entry(length, struct ctf_node, siblings);
-		switch (first->type) {
+		switch (length->type) {
 		case NODE_UNARY_EXPRESSION:
 		{
 			struct declaration_array *array_declaration;
 			size_t len;
 
-			if (first->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: array: unexpected unary expression.\n", __func__);
+			if (length->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
+				fprintf(fd, "[error] %s: array: unexpected unary expression.\n", __func__);
 				return NULL;
 			}
-			len = first->u.unary_expression.u.unsigned_constant;
+			len = length->u.unary_expression.u.unsigned_constant;
 			array_declaration = array_declaration_new(len, nested_declaration,
 						declaration_scope);
 			declaration = &array_declaration->p;
@@ -367,7 +376,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 
 		/* Pass it as content of outer container */
 		declaration = ctf_type_declarator_visit(fd, depth,
-				declaration_specifier, field_name,
+				type_specifier_list, field_name,
 				node_type_declarator->u.type_declarator.u.nested.type_declarator,
 				declaration_scope, declaration, trace);
 		return declaration;
@@ -377,7 +386,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 static
 int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 	struct declaration_struct *struct_declaration,
-	struct cds_list_head *declaration_specifier,
+	struct ctf_node *type_specifier_list,
 	struct cds_list_head *type_declarators,
 	struct declaration_scope *declaration_scope,
 	struct ctf_trace *trace)
@@ -389,7 +398,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 		struct declaration *field_declaration;
 
 		field_declaration = ctf_type_declarator_visit(fd, depth,
-						declaration_specifier,
+						type_specifier_list,
 						&field_name, iter,
 						struct_declaration->scope,
 						NULL, trace);
@@ -403,7 +412,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 static
 int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 	struct declaration_untagged_variant *untagged_variant_declaration,
-	struct cds_list_head *declaration_specifier,
+	struct ctf_node *type_specifier_list,
 	struct cds_list_head *type_declarators,
 	struct declaration_scope *declaration_scope,
 	struct ctf_trace *trace)
@@ -415,7 +424,7 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 		struct declaration *field_declaration;
 
 		field_declaration = ctf_type_declarator_visit(fd, depth,
-						declaration_specifier,
+						type_specifier_list,
 						&field_name, iter,
 						untagged_variant_declaration->scope,
 						NULL, trace);
@@ -428,7 +437,7 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 
 static
 int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
-		struct cds_list_head *declaration_specifier,
+		struct ctf_node *type_specifier_list,
 		struct cds_list_head *type_declarators,
 		struct ctf_trace *trace)
 {
@@ -440,7 +449,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		int ret;
 	
 		type_declaration = ctf_type_declarator_visit(fd, depth,
-					declaration_specifier,
+					type_specifier_list,
 					&identifier, iter,
 					scope, NULL, trace);
 		ret = register_declaration(identifier, type_declaration, scope);
@@ -475,11 +484,11 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		node = _cds_list_first_entry(&alias->u.typealias_target.type_declarators,
 				struct ctf_node, siblings);
 	type_declaration = ctf_type_declarator_visit(fd, depth,
-		&target->u.typealias_target.declaration_specifier,
+		target->u.typealias_target.type_specifier_list,
 		&dummy_id, node,
 		scope, NULL, trace);
 	if (!type_declaration) {
-		fprintf(stderr, "[error] %s: problem creating type declaration\n", __func__);
+		fprintf(fd, "[error] %s: problem creating type declaration\n", __func__);
 		err = -EINVAL;
 		goto error;
 	}
@@ -488,7 +497,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 * abstract or not (if it has an identifier). Check it here.
 	 */
 	if (dummy_id != 0) {
-		fprintf(stderr, "[error] %s: expecting empty identifier\n", __func__);
+		fprintf(fd, "[error] %s: expecting empty identifier\n", __func__);
 		err = -EINVAL;
 		goto error;
 	}
@@ -499,7 +508,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	node = _cds_list_first_entry(&alias->u.typealias_alias.type_declarators,
 				struct ctf_node, siblings);
 	alias_q = create_typealias_identifier(fd, depth,
-			&alias->u.typealias_alias.declaration_specifier, node);
+			alias->u.typealias_alias.type_specifier_list, node);
 	err = register_declaration(alias_q, type_declaration, scope);
 	if (err)
 		goto error;
@@ -522,7 +531,7 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 		/* For each declarator, declare type and add type to struct declaration scope */
 		ret = ctf_typedef_visit(fd, depth,
 			struct_declaration->scope,
-			&iter->u._typedef.declaration_specifier,
+			iter->u._typedef.type_specifier_list,
 			&iter->u._typedef.type_declarators, trace);
 		if (ret)
 			return ret;
@@ -540,14 +549,14 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 		/* Add field to structure declaration */
 		ret = ctf_struct_type_declarators_visit(fd, depth,
 				struct_declaration,
-				&iter->u.struct_or_variant_declaration.declaration_specifier,
+				iter->u.struct_or_variant_declaration.type_specifier_list,
 				&iter->u.struct_or_variant_declaration.type_declarators,
 				struct_declaration->scope, trace);
 		if (ret)
 			return ret;
 		break;
 	default:
-		fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
+		fprintf(fd, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
 		assert(0);
 	}
 	return 0;
@@ -566,7 +575,7 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 		/* For each declarator, declare type and add type to variant declaration scope */
 		ret = ctf_typedef_visit(fd, depth,
 			untagged_variant_declaration->scope,
-			&iter->u._typedef.declaration_specifier,
+			iter->u._typedef.type_specifier_list,
 			&iter->u._typedef.type_declarators, trace);
 		if (ret)
 			return ret;
@@ -584,14 +593,14 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 		/* Add field to structure declaration */
 		ret = ctf_variant_type_declarators_visit(fd, depth,
 				untagged_variant_declaration,
-				&iter->u.struct_or_variant_declaration.declaration_specifier,
+				iter->u.struct_or_variant_declaration.type_specifier_list,
 				&iter->u.struct_or_variant_declaration.type_declarators,
 				untagged_variant_declaration->scope, trace);
 		if (ret)
 			return ret;
 		break;
 	default:
-		fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
+		fprintf(fd, "[error] %s: unexpected node type %d\n", __func__, (int) iter->type);
 		assert(0);
 	}
 	return 0;
@@ -625,7 +634,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 			if (lookup_struct_declaration(g_quark_from_string(name),
 						      declaration_scope)) {
 				
-				fprintf(stderr, "[error] %s: struct %s already declared in scope\n", __func__, name);
+				fprintf(fd, "[error] %s: struct %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
 		}
@@ -678,7 +687,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 			if (lookup_variant_declaration(g_quark_from_string(name),
 						       declaration_scope)) {
 				
-				fprintf(stderr, "[error] %s: variant %s already declared in scope\n", __func__, name);
+				fprintf(fd, "[error] %s: variant %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
 		}
@@ -744,11 +753,11 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 				*target = iter->u.unary_expression.u.unsigned_constant;
 				break;
 			default:
-				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				fprintf(fd, "[error] %s: invalid enumerator\n", __func__);
 				return -EINVAL;
 			}
 			if (nr_vals > 1) {
-				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				fprintf(fd, "[error] %s: invalid enumerator\n", __func__);
 				return -EINVAL;
 			}
 			nr_vals++;
@@ -778,14 +787,14 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 				 * We don't accept signed constants for enums with unsigned
 				 * container type.
 				 */
-				fprintf(stderr, "[error] %s: invalid enumerator (signed constant encountered, but enum container type is unsigned)\n", __func__);
+				fprintf(fd, "[error] %s: invalid enumerator (signed constant encountered, but enum container type is unsigned)\n", __func__);
 				return -EINVAL;
 			default:
-				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				fprintf(fd, "[error] %s: invalid enumerator\n", __func__);
 				return -EINVAL;
 			}
 			if (nr_vals > 1) {
-				fprintf(stderr, "[error] %s: invalid enumerator\n", __func__);
+				fprintf(fd, "[error] %s: invalid enumerator\n", __func__);
 				return -EINVAL;
 			}
 			nr_vals++;
@@ -800,7 +809,7 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 static
 struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			const char *name,
-			struct cds_list_head *container_type,
+			struct ctf_node *container_type,
 			struct cds_list_head *enumerator_list,
 			int has_body,
 			struct declaration_scope *declaration_scope,
@@ -809,7 +818,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 	struct declaration *declaration;
 	struct declaration_enum *enum_declaration;
 	struct declaration_integer *integer_declaration;
-	struct ctf_node *iter, *first;
+	struct ctf_node *iter;
 	GQuark dummy_id;
 	int ret;
 
@@ -831,17 +840,16 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			if (lookup_enum_declaration(g_quark_from_string(name),
 						    declaration_scope)) {
 				
-				fprintf(stderr, "[error] %s: enum %s already declared in scope\n", __func__, name);
+				fprintf(fd, "[error] %s: enum %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
 		}
-		if (cds_list_empty(container_type)) {
-				fprintf(stderr, "[error] %s: missing container type for enumeration\n", __func__);
+		if (!container_type) {
+				fprintf(fd, "[error] %s: missing container type for enumeration\n", __func__);
 				return NULL;
 			
 		}
-		first = _cds_list_first_entry(container_type, struct ctf_node, siblings);
-		switch (first->type) {
+		switch (container_type->type) {
 		case NODE_INTEGER:
 		case NODE_TYPE_SPECIFIER:
 			declaration = ctf_type_declarator_visit(fd, depth,
@@ -877,7 +885,7 @@ error:
 
 static
 struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
-		struct cds_list_head *declaration_specifier,
+		struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope)
 {
 	GString *str;
@@ -887,7 +895,7 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 	GQuark id_q;
 
 	str = g_string_new("");
-	ret = visit_declaration_specifier(declaration_specifier, str);
+	ret = visit_type_specifier_list(fd, type_specifier_list, str);
 	if (ret)
 		return NULL;
 	str_c = g_string_free(str, FALSE);
@@ -904,7 +912,7 @@ static
 int get_boolean(FILE *fd, int depth, struct ctf_node *unary_expression)
 {
 	if (unary_expression->type != NODE_UNARY_EXPRESSION) {
-		fprintf(stderr, "[error] %s: expecting unary expression\n",
+		fprintf(fd, "[error] %s: expecting unary expression\n",
 			__func__);
 		return -EINVAL;
 	}
@@ -929,13 +937,13 @@ int get_boolean(FILE *fd, int depth, struct ctf_node *unary_expression)
 		else if (!strcmp(unary_expression->u.unary_expression.u.string, "FALSE"))
 			return 0;
 		else {
-			fprintf(stderr, "[error] %s: unexpected string \"%s\"\n",
+			fprintf(fd, "[error] %s: unexpected string \"%s\"\n",
 				__func__, unary_expression->u.unary_expression.u.string);
 			return -EINVAL;
 		}
 		break;
 	default:
-		fprintf(stderr, "[error] %s: unexpected unary expression type\n",
+		fprintf(fd, "[error] %s: unexpected unary expression type\n",
 			__func__);
 		return -EINVAL;
 	} 
@@ -949,7 +957,7 @@ int get_byte_order(FILE *fd, int depth, struct ctf_node *unary_expression,
 	int byte_order;
 
 	if (unary_expression->u.unary_expression.type != UNARY_STRING) {
-		fprintf(stderr, "[error] %s: byte_order: expecting string\n",
+		fprintf(fd, "[error] %s: byte_order: expecting string\n",
 			__func__);
 		return -EINVAL;
 	}
@@ -962,7 +970,7 @@ int get_byte_order(FILE *fd, int depth, struct ctf_node *unary_expression,
 	else if (!strcmp(unary_expression->u.unary_expression.u.string, "le"))
 		byte_order = LITTLE_ENDIAN;
 	else {
-		fprintf(stderr, "[error] %s: unexpected string \"%s\". Should be \"native\", \"network\", \"be\" or \"le\".\n",
+		fprintf(fd, "[error] %s: unexpected string \"%s\". Should be \"native\", \"network\", \"be\" or \"le\".\n",
 			__func__, unary_expression->u.unary_expression.u.string);
 		return -EINVAL;
 	}
@@ -997,7 +1005,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "size")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: size: expecting unsigned constant\n",
+				fprintf(fd, "[error] %s: size: expecting unsigned constant\n",
 					__func__);
 				return NULL;
 			}
@@ -1005,20 +1013,20 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			has_size = 1;
 		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: align: expecting unsigned constant\n",
+				fprintf(fd, "[error] %s: align: expecting unsigned constant\n",
 					__func__);
 				return NULL;
 			}
 			alignment = right->u.unary_expression.u.unsigned_constant;
 			has_alignment = 1;
 		} else {
-			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
 			return NULL;
 		}
 	}
 	if (!has_size) {
-		fprintf(stderr, "[error] %s: missing size attribute\n", __func__);
+		fprintf(fd, "[error] %s: missing size attribute\n", __func__);
 		return NULL;
 	}
 	if (!has_alignment) {
@@ -1057,7 +1065,7 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 				return NULL;
 		} else if (!strcmp(left->u.unary_expression.u.string, "exp_dig")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: exp_dig: expecting unsigned constant\n",
+				fprintf(fd, "[error] %s: exp_dig: expecting unsigned constant\n",
 					__func__);
 				return NULL;
 			}
@@ -1065,7 +1073,7 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 			has_exp_dig = 1;
 		} else if (!strcmp(left->u.unary_expression.u.string, "mant_dig")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: mant_dig: expecting unsigned constant\n",
+				fprintf(fd, "[error] %s: mant_dig: expecting unsigned constant\n",
 					__func__);
 				return NULL;
 			}
@@ -1073,24 +1081,24 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 			has_mant_dig = 1;
 		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(stderr, "[error] %s: align: expecting unsigned constant\n",
+				fprintf(fd, "[error] %s: align: expecting unsigned constant\n",
 					__func__);
 				return NULL;
 			}
 			alignment = right->u.unary_expression.u.unsigned_constant;
 			has_alignment = 1;
 		} else {
-			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
 			return NULL;
 		}
 	}
 	if (!has_mant_dig) {
-		fprintf(stderr, "[error] %s: missing mant_dig attribute\n", __func__);
+		fprintf(fd, "[error] %s: missing mant_dig attribute\n", __func__);
 		return NULL;
 	}
 	if (!has_exp_dig) {
-		fprintf(stderr, "[error] %s: missing exp_dig attribute\n", __func__);
+		fprintf(fd, "[error] %s: missing exp_dig attribute\n", __func__);
 		return NULL;
 	}
 	if (!has_alignment) {
@@ -1125,13 +1133,13 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 		assert(left->u.unary_expression.type == UNARY_STRING);
 		if (!strcmp(left->u.unary_expression.u.string, "encoding")) {
 			if (right->u.unary_expression.type != UNARY_STRING) {
-				fprintf(stderr, "[error] %s: encoding: expecting string\n",
+				fprintf(fd, "[error] %s: encoding: expecting string\n",
 					__func__);
 				return NULL;
 			}
 			encoding_c = right->u.unary_expression.u.string;
 		} else {
-			fprintf(stderr, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
 			return NULL;
 		}
@@ -1143,58 +1151,73 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 }
 
 
-/*
- * Also add named variant, struct or enum to the current declaration scope.
- * FIXME: we are only taking the first one. check for root declaration specifiers list.
- */
 static
-struct declaration *ctf_declaration_specifier_visit(FILE *fd,
-		int depth, struct cds_list_head *head,
+struct declaration *ctf_type_specifier_list_visit(FILE *fd,
+		int depth, struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace)
 {
 	struct ctf_node *first;
+	struct ctf_node *node;
 
-	first = _cds_list_first_entry(head, struct ctf_node, siblings);
+	first = _cds_list_first_entry(&type_specifier_list->u.type_specifier_list.head, struct ctf_node, siblings);
 
-	switch (first->type) {
-	case NODE_STRUCT:
-		return ctf_declaration_struct_visit(fd, depth,
-			first->u._struct.name,
-			&first->u._struct.declaration_list,
-			first->u._struct.has_body,
-			declaration_scope,
-			trace);
-	case NODE_VARIANT:
-		return ctf_declaration_variant_visit(fd, depth,
-			first->u.variant.name,
-			first->u.variant.choice,
-			&first->u.variant.declaration_list,
-			first->u.variant.has_body,
-			declaration_scope,
-			trace);
-	case NODE_ENUM:
-		return ctf_declaration_enum_visit(fd, depth,
-			first->u._enum.enum_id,
-			&first->u._enum.container_type,
-			&first->u._enum.enumerator_list,
-			first->u._enum.has_body,
-			declaration_scope,
-			trace);
-	case NODE_INTEGER:
-		return ctf_declaration_integer_visit(fd, depth,
-			&first->u.integer.expressions, trace);
-	case NODE_FLOATING_POINT:
+	assert(first->type == NODE_TYPE_SPECIFIER);
+
+	node = first->u.type_specifier.node;
+
+	switch (first->u.type_specifier.type) {
+	case TYPESPEC_FLOATING_POINT:
 		return ctf_declaration_floating_point_visit(fd, depth,
-			&first->u.floating_point.expressions, trace);
-	case NODE_STRING:
+			&node->u.floating_point.expressions, trace);
+	case TYPESPEC_INTEGER:
+		return ctf_declaration_integer_visit(fd, depth,
+			&node->u.integer.expressions, trace);
+	case TYPESPEC_STRING:
 		return ctf_declaration_string_visit(fd, depth,
 			&first->u.string.expressions, trace);
-	case NODE_TYPE_SPECIFIER:
+	case TYPESPEC_STRUCT:
+		return ctf_declaration_struct_visit(fd, depth,
+			node->u._struct.name,
+			&node->u._struct.declaration_list,
+			node->u._struct.has_body,
+			declaration_scope,
+			trace);
+	case TYPESPEC_VARIANT:
+		return ctf_declaration_variant_visit(fd, depth,
+			node->u.variant.name,
+			node->u.variant.choice,
+			&node->u.variant.declaration_list,
+			node->u.variant.has_body,
+			declaration_scope,
+			trace);
+	case TYPESPEC_ENUM:
+		return ctf_declaration_enum_visit(fd, depth,
+			node->u._enum.enum_id,
+			node->u._enum.container_type,
+			&node->u._enum.enumerator_list,
+			node->u._enum.has_body,
+			declaration_scope,
+			trace);
+
+	case TYPESPEC_VOID:
+	case TYPESPEC_CHAR:
+	case TYPESPEC_SHORT:
+	case TYPESPEC_INT:
+	case TYPESPEC_LONG:
+	case TYPESPEC_FLOAT:
+	case TYPESPEC_DOUBLE:
+	case TYPESPEC_SIGNED:
+	case TYPESPEC_UNSIGNED:
+	case TYPESPEC_BOOL:
+	case TYPESPEC_COMPLEX:
+	case TYPESPEC_IMAGINARY:
+	case TYPESPEC_CONST:
+	case TYPESPEC_ID_TYPE:
 		return ctf_declaration_type_specifier_visit(fd, depth,
-				head, declaration_scope);
+			type_specifier_list, declaration_scope);
 	default:
-		fprintf(stderr, "[error] %s: unexpected node type %d\n", __func__, (int) first->type);
+		fprintf(fd, "[error] %s: unexpected node type %d\n", __func__, (int) first->u.type_specifier.type);
 		return NULL;
 	}
 }
@@ -1208,7 +1231,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
 					event->declaration_scope,
-					&node->u._typedef.declaration_specifier,
+					node->u._typedef.type_specifier_list,
 					&node->u._typedef.type_declarators,
 					trace);
 		if (ret)
@@ -1234,7 +1257,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			right = concatenate_unary_strings(&node->u.ctf_expression.right);
 			if (!right) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for event name\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for event name\n", __func__);
 				return -EINVAL;
 			}
 			event->name = g_quark_from_string(right);
@@ -1245,7 +1268,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &event->id);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for event id\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for event id\n", __func__);
 				return -EINVAL;
 			}
 			CTF_EVENT_SET_FIELD(event, id);
@@ -1254,20 +1277,21 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &event->stream_id);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
 				return -EINVAL;
 			}
 			event->stream = trace_stream_lookup(trace, event->stream_id);
 			if (!event->stream) {
-				fprintf(stderr, "[error] %s: stream id %" PRIu64 " cannot be found\n", __func__, event->stream_id);
+				fprintf(fd, "[error] %s: stream id %" PRIu64 " cannot be found\n", __func__, event->stream_id);
 				return -EINVAL;
 			}
 			CTF_EVENT_SET_FIELD(event, stream_id);
 		} else if (!strcmp(left, "context")) {
 			struct declaration *declaration;
 
-			declaration = ctf_declaration_specifier_visit(fd, depth,
-					&node->u.ctf_expression.right,
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+					_cds_list_first_entry(&node->u.ctf_expression.right,
+						struct ctf_node, siblings),
 					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
@@ -1277,8 +1301,9 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		} else if (!strcmp(left, "fields")) {
 			struct declaration *declaration;
 
-			declaration = ctf_declaration_specifier_visit(fd, depth,
-					&node->u.ctf_expression.right,
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+					_cds_list_first_entry(&node->u.ctf_expression.right,
+						struct ctf_node, siblings),
 					event->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
@@ -1376,7 +1401,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
 					stream->declaration_scope,
-					&node->u._typedef.declaration_specifier,
+					node->u._typedef.type_specifier_list,
 					&node->u._typedef.type_declarators,
 					trace);
 		if (ret)
@@ -1400,15 +1425,16 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &stream->stream_id);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
 				return -EINVAL;
 			}
 			CTF_STREAM_SET_FIELD(stream, stream_id);
 		} else if (!strcmp(left, "event.header")) {
 			struct declaration *declaration;
 
-			declaration = ctf_declaration_specifier_visit(fd, depth,
-					&node->u.ctf_expression.right,
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+					_cds_list_first_entry(&node->u.ctf_expression.right,
+						struct ctf_node, siblings),
 					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
@@ -1418,8 +1444,9 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		} else if (!strcmp(left, "event.context")) {
 			struct declaration *declaration;
 
-			declaration = ctf_declaration_specifier_visit(fd, depth,
-					&node->u.ctf_expression.right,
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+					_cds_list_first_entry(&node->u.ctf_expression.right,
+						struct ctf_node, siblings),
 					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
@@ -1429,8 +1456,9 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		} else if (!strcmp(left, "packet.context")) {
 			struct declaration *declaration;
 
-			declaration = ctf_declaration_specifier_visit(fd, depth,
-					&node->u.ctf_expression.right,
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+					_cds_list_first_entry(&node->u.ctf_expression.right,
+						struct ctf_node, siblings),
 					stream->declaration_scope, trace);
 			if (!declaration)
 				return -EPERM;
@@ -1536,7 +1564,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 	case NODE_TYPEDEF:
 		ret = ctf_typedef_visit(fd, depth + 1,
 					trace->declaration_scope,
-					&node->u._typedef.declaration_specifier,
+					node->u._typedef.type_specifier_list,
 					&node->u._typedef.type_declarators,
 					trace);
 		if (ret)
@@ -1560,7 +1588,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->major);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for trace major number\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for trace major number\n", __func__);
 				return -EINVAL;
 			}
 			CTF_TRACE_SET_FIELD(trace, major);
@@ -1569,7 +1597,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->minor);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for trace minor number\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for trace minor number\n", __func__);
 				return -EINVAL;
 			}
 			CTF_TRACE_SET_FIELD(trace, minor);
@@ -1578,7 +1606,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->word_size);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for trace word_size\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for trace word_size\n", __func__);
 				return -EINVAL;
 			}
 			CTF_TRACE_SET_FIELD(trace, word_size);
@@ -1587,7 +1615,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EPERM;
 			ret = get_unary_uuid(&node->u.ctf_expression.right, &trace->uuid);
 			if (ret) {
-				fprintf(stderr, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
 				return -EINVAL;
 			}
 			CTF_TRACE_SET_FIELD(trace, uuid);
@@ -1642,46 +1670,68 @@ error:
 	return ret;
 }
 
+static
+int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+{
+	int ret = 0;
+
+	switch (node->type) {
+	case NODE_TYPEDEF:
+		ret = ctf_typedef_visit(fd, depth + 1,
+					trace->root_declaration_scope,
+					node->u._typedef.type_specifier_list,
+					&node->u._typedef.type_declarators,
+					trace);
+		if (ret)
+			return ret;
+		break;
+	case NODE_TYPEALIAS:
+		ret = ctf_typealias_visit(fd, depth + 1,
+				trace->root_declaration_scope,
+				node->u.typealias.target, node->u.typealias.alias,
+				trace);
+		if (ret)
+			return ret;
+		break;
+	case NODE_TYPE_SPECIFIER_LIST:
+	{
+		struct declaration *declaration;
+
+		/*
+		 * Just add the type specifier to the root scope
+		 * declaration scope. Release local reference.
+		 */
+		declaration = ctf_type_specifier_list_visit(fd, depth + 1,
+			node, trace->root_declaration_scope, trace);
+		if (!declaration)
+			return -ENOMEM;
+		declaration_unref(declaration);
+		break;
+	}
+	default:
+		return -EPERM;
+	}
+
+	return 0;
+}
+
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		struct ctf_trace *trace, int byte_order)
 {
 	int ret = 0;
 	struct ctf_node *iter;
 
+	fprintf(fd, "CTF visitor: metadata construction... ");
+	trace->root_declaration_scope = new_declaration_scope(NULL);
 	trace->byte_order = byte_order;
 
 	switch (node->type) {
 	case NODE_ROOT:
 		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
-			switch (iter->type) {
-			case NODE_TYPEDEF:
-				ret = ctf_typedef_visit(fd, depth + 1,
-							trace->root_declaration_scope,
-							&iter->u._typedef.declaration_specifier,
-							&iter->u._typedef.type_declarators,
-							trace);
-				if (ret)
-					return ret;
-				break;
-			case NODE_TYPEALIAS:
-				ret = ctf_typealias_visit(fd, depth + 1,
-						trace->root_declaration_scope,
-						iter->u.typealias.target, iter->u.typealias.alias,
-						trace);
-				if (ret)
-					return ret;
-				break;
-			case NODE_DECLARATION_SPECIFIER:
-				ret = ctf_declaration_specifier_visit(fd, depth, iter,
-						trace->root_declaration_scope, trace);
-				if (ret)
-					return ret;
-				break;
-			default:
-				fprintf(stderr, "[error] %s: unexpected root child type %d\n", __func__,
-					(int) iter->type);
-				return -EINVAL;
+			ret = ctf_root_declaration_visit(fd, depth + 1, iter, trace);
+			if (ret)
+				return ret;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
@@ -1703,9 +1753,10 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		break;
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
+		fprintf(fd, "[error] %s: unknown node type %d\n", __func__,
 			(int) node->type);
 		return -EINVAL;
 	}
+	fprintf(fd, "done.\n");
 	return ret;
 }

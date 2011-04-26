@@ -392,7 +392,7 @@ void _enum_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_enum *
-	_enum_declaration_new(struct declaration_integer *integer_declaration)
+	enum_declaration_new(struct declaration_integer *integer_declaration)
 {
 	struct declaration_enum *enum_declaration;
 

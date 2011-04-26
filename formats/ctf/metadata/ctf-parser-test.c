@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <glib.h>
 #include <errno.h>
+#include <endian.h>
+#include <babeltrace/ctf/metadata.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -29,6 +31,7 @@ extern int yydebug;
 int main(int argc, char **argv)
 {
 	struct ctf_scanner *scanner;
+	struct ctf_trace *trace;
 	int ret = 0;
 
 	yydebug = 1;
@@ -54,9 +57,16 @@ int main(int argc, char **argv)
 		fprintf(stdout, "Error in CTF semantic validation %d\n", ret);
 		goto end;
 	}
+	trace = malloc(sizeof(*trace));
+	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
+			trace, BYTE_ORDER);
+	if (ret) {
+		fprintf(stdout, "Error in CTF metadata constructor %d\n", ret);
+		goto free_trace;
+	}
+free_trace:
+	free(trace);
 end:
 	ctf_scanner_free(scanner);
 	return ret;
 } 
-
-

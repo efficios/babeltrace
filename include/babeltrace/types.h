@@ -349,7 +349,7 @@ int register_declaration(GQuark declaration_name,
 			 struct declaration *declaration,
 			 struct declaration_scope *scope);
 struct declaration *lookup_declaration(GQuark declaration_name,
-				       struct declaration_scope *scope);
+				struct declaration_scope *scope);
 
 /*
  * Type scopes also contain a separate registry for struct, variant and
