@@ -1522,7 +1522,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	stream = g_new0(struct ctf_stream, 1);
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	stream->events_by_id = g_ptr_array_new();
-	stream->event_quark_to_id = g_hash_table_new(g_int_hash, g_int_equal);
+	stream->event_quark_to_id = g_hash_table_new(g_direct_hash, g_direct_equal);
 	cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
 		ret = ctf_stream_declaration_visit(fd, depth + 1, iter, stream, trace);
 		if (ret)

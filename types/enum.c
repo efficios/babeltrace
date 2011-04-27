@@ -403,8 +403,8 @@ struct declaration_enum *
 							    enum_val_free,
 							    enum_range_set_free);
 	CDS_INIT_LIST_HEAD(&enum_declaration->table.range_to_quark);
-	enum_declaration->table.quark_to_range_set = g_hash_table_new_full(g_int_hash,
-							g_int_equal,
+	enum_declaration->table.quark_to_range_set = g_hash_table_new_full(g_direct_hash,
+							g_direct_equal,
 							NULL, enum_range_set_free);
 	declaration_ref(&integer_declaration->p);
 	enum_declaration->integer_declaration = integer_declaration;
