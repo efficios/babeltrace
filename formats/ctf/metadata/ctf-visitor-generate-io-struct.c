@@ -845,24 +845,24 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			}
 		}
 		if (!container_type) {
-				fprintf(fd, "[error] %s: missing container type for enumeration\n", __func__);
-				return NULL;
+			fprintf(fd, "[error] %s: missing container type for enumeration\n", __func__);
+			return NULL;
 			
 		}
-		switch (container_type->type) {
-		case NODE_INTEGER:
-		case NODE_TYPE_SPECIFIER:
-			declaration = ctf_type_declarator_visit(fd, depth,
-						container_type,
-						&dummy_id, NULL,
-						declaration_scope,
-						NULL, trace);
-			assert(declaration->id == CTF_TYPE_INTEGER);
-			integer_declaration = container_of(declaration, struct declaration_integer, p);
-			break;
-		default:
-			assert(0);
+		declaration = ctf_type_declarator_visit(fd, depth,
+					container_type,
+					&dummy_id, NULL,
+					declaration_scope,
+					NULL, trace);
+		if (!declaration) {
+			fprintf(fd, "[error] %s: unable to create container type for enumeration\n", __func__);
+			return NULL;
 		}
+		if (declaration->id != CTF_TYPE_INTEGER) {
+			fprintf(fd, "[error] %s: container type for enumeration is not integer\n", __func__);
+			return NULL;
+		}
+		integer_declaration = container_of(declaration, struct declaration_integer, p);
 		enum_declaration = enum_declaration_new(integer_declaration);
 		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
 		cds_list_for_each_entry(iter, enumerator_list, siblings) {
