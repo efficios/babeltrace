@@ -1177,7 +1177,7 @@ struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 			&node->u.integer.expressions, trace);
 	case TYPESPEC_STRING:
 		return ctf_declaration_string_visit(fd, depth,
-			&first->u.string.expressions, trace);
+			&node->u.string.expressions, trace);
 	case TYPESPEC_STRUCT:
 		return ctf_declaration_struct_visit(fd, depth,
 			node->u._struct.name,
@@ -1787,6 +1787,10 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 				fprintf(fd, "[error] %s: trace declaration error\n", __func__);
 				return ret;
 			}
+		}
+		if (!trace->streams) {
+			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
+			return -EINVAL;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_stream_visit(fd, depth + 1, iter,

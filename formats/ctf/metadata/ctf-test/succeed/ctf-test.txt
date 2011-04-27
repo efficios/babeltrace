@@ -1,5 +1,9 @@
 
-enum name <int> {
+typealias integer { size = 32; align = 32; signed = true; } : int;
+typealias integer { size = 64; align = 64; signed = true; } : long;
+typealias integer { size = 64; align = 64; } : unsigned long;
+
+enum name1 <int> {
   ZERO,
   ONE,
   TWO,
@@ -7,18 +11,18 @@ enum name <int> {
   ELEVEN,
 };
 
-enum name <long> { ONE, TWO };
+enum name2 <long> { ONE, TWO };
 
-enum name <unsigned long> { ONE, TWO };
+enum name3 <unsigned long> { ONE, TWO };
 
-enum name <unsigned long> {
+enum name4 <unsigned long> {
   string          = 1 ... 2,
   "other string"      = 3...4,
   yet_another_string,   /* will be assigned to end_value2 + 1 */
   "some other string" = 10,
 };
 
-enum name <long> { "int" = 1, };
+enum name5 <long> { "int" = 1, };
 
 typealias floating_point {
   exp_dig = 8;         /* sizeof(float) * CHAR_BIT - FLT_MANT_DIG */
@@ -29,8 +33,15 @@ typealias floating_point {
 typealias integer {
   size = 32;
   align = 32;
-  sign = false;
+  signed = false;
 } : struct page *;
+
+trace {
+	major = 66;
+	minor = 2;
+	uuid = "1123fcea-706e-11e0-a38b-f3c28a683a3d";
+	word_size = 64;
+};
 
 stream {
   typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
@@ -45,8 +56,9 @@ stream {
 };
 
 struct example {
-  short a:12;
-  short b:5;
+  /* TODO gcc bitfields not supported yet. */
+  /* short a:12;
+  short b:5; */
 };
 
 struct name {
@@ -153,6 +165,14 @@ struct event_header_2 {
 
 typedef int rootscopetest;
 
-event { a.b.c.d.e = f.g.h->i->j; };
+/* parser level only: event { a.b.c.d.e = f.g.h->i->j; }; */
+
+event {
+	name = test_event;
+	id = 0;
+	stream_id = 5;
+	context := struct {};
+	payload := struct {};
+};
 
 typealias integer { size = 32; align = 32; signed = false; } : unsigned long long *;

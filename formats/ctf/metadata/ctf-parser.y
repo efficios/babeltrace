@@ -1010,7 +1010,6 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.gs->s;
 		}
-
 	|	DECIMAL_CONSTANT
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
@@ -1447,7 +1446,7 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
-			if (set_parent_node($2, $$))
+			if ($2 && set_parent_node($2, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
 	|	IDENTIFIER struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
@@ -1455,7 +1454,7 @@ struct_type_specifier:
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
 			$$->u._struct.name = $1->s;
-			if (set_parent_node($3, $$))
+			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
 	|	ID_TYPE struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
@@ -1463,7 +1462,7 @@ struct_type_specifier:
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
 			$$->u._struct.name = $1->s;
-			if (set_parent_node($3, $$))
+			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
 	|	IDENTIFIER
@@ -1495,7 +1494,7 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			if (set_parent_node($2, $$))
+			if ($2 && set_parent_node($2, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
@@ -1503,7 +1502,7 @@ variant_type_specifier:
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
 			$$->u.variant.choice = $2->s;
-			if (set_parent_node($5, $$))
+			if ($5 && set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
@@ -1511,7 +1510,7 @@ variant_type_specifier:
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
 			$$->u.variant.choice = $2->s;
-			if (set_parent_node($5, $$))
+			if ($5 && set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	IDENTIFIER variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
@@ -1519,7 +1518,7 @@ variant_type_specifier:
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
-			if (set_parent_node($3, $$))
+			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	IDENTIFIER LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
@@ -1528,7 +1527,7 @@ variant_type_specifier:
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
-			if (set_parent_node($6, $$))
+			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	IDENTIFIER LT IDENTIFIER GT
@@ -1544,7 +1543,7 @@ variant_type_specifier:
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
-			if (set_parent_node($6, $$))
+			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	IDENTIFIER LT ID_TYPE GT
@@ -1559,7 +1558,7 @@ variant_type_specifier:
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
-			if (set_parent_node($3, $$))
+			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	ID_TYPE LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
@@ -1568,7 +1567,7 @@ variant_type_specifier:
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
-			if (set_parent_node($6, $$))
+			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	ID_TYPE LT IDENTIFIER GT
@@ -1584,7 +1583,7 @@ variant_type_specifier:
 			$$->u.variant.has_body = 1;
 			$$->u.variant.name = $1->s;
 			$$->u.variant.choice = $3->s;
-			if (set_parent_node($6, $$))
+			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
 	|	ID_TYPE LT ID_TYPE GT
