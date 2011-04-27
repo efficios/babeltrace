@@ -1,7 +1,7 @@
 
 trace {
 	major = 0;
-	major = 1;
+	minor = 1;
 	uuid = "f816d884-6cea-11e0-ac7a-8f5f4e9f7724";
 	word_size = 32;
 };
