@@ -29,7 +29,7 @@ stream {
 event {
 	name = func_enter;
 	id = 0;
-	stream = 0;
+	stream_id = 0;
 	fields := struct {
 		void *func_called;
 		void *called_from;
@@ -39,5 +39,5 @@ event {
 event {
 	name = func_exit;
 	id = 1;
-	stream = 0;
+	stream_id = 0;
 };

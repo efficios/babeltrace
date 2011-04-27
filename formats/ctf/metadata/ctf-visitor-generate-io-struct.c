@@ -478,10 +478,10 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 * Create target type declaration.
 	 */
 
-	if (cds_list_empty(&alias->u.typealias_target.type_declarators))
+	if (cds_list_empty(&target->u.typealias_target.type_declarators))
 		node = NULL;
 	else
-		node = _cds_list_first_entry(&alias->u.typealias_target.type_declarators,
+		node = _cds_list_first_entry(&target->u.typealias_target.type_declarators,
 				struct ctf_node, siblings);
 	type_declaration = ctf_type_declarator_visit(fd, depth,
 		target->u.typealias_target.type_specifier_list,
@@ -1160,6 +1160,8 @@ struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 	struct ctf_node *first;
 	struct ctf_node *node;
 
+	assert(type_specifier_list->type == NODE_TYPE_SPECIFIER_LIST);
+
 	first = _cds_list_first_entry(&type_specifier_list->u.type_specifier_list.head, struct ctf_node, siblings);
 
 	assert(first->type == NODE_TYPE_SPECIFIER);
@@ -1253,8 +1255,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		if (!strcmp(left, "name")) {
 			char *right;
 
-			if (CTF_EVENT_FIELD_IS_SET(event, name))
+			if (CTF_EVENT_FIELD_IS_SET(event, name)) {
+				fprintf(fd, "[error] %s: name already declared in event declaration\n", __func__);
 				return -EPERM;
+			}
 			right = concatenate_unary_strings(&node->u.ctf_expression.right);
 			if (!right) {
 				fprintf(fd, "[error] %s: unexpected unary expression for event name\n", __func__);
@@ -1264,8 +1268,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			g_free(right);
 			CTF_EVENT_SET_FIELD(event, name);
 		} else if (!strcmp(left, "id")) {
-			if (CTF_EVENT_FIELD_IS_SET(event, id))
+			if (CTF_EVENT_FIELD_IS_SET(event, id)) {
+				fprintf(fd, "[error] %s: id already declared in event declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &event->id);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for event id\n", __func__);
@@ -1273,8 +1279,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_EVENT_SET_FIELD(event, id);
 		} else if (!strcmp(left, "stream_id")) {
-			if (CTF_EVENT_FIELD_IS_SET(event, stream_id))
+			if (CTF_EVENT_FIELD_IS_SET(event, stream_id)) {
+				fprintf(fd, "[error] %s: stream_id already declared in event declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &event->stream_id);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
@@ -1289,6 +1297,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		} else if (!strcmp(left, "context")) {
 			struct declaration *declaration;
 
+			if (event->context_decl) {
+				fprintf(fd, "[error] %s: context already declared in event declaration\n", __func__);
+				return -EINVAL;
+			}
 			declaration = ctf_type_specifier_list_visit(fd, depth,
 					_cds_list_first_entry(&node->u.ctf_expression.right,
 						struct ctf_node, siblings),
@@ -1301,6 +1313,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 		} else if (!strcmp(left, "fields")) {
 			struct declaration *declaration;
 
+			if (event->fields_decl) {
+				fprintf(fd, "[error] %s: fields already declared in event declaration\n", __func__);
+				return -EINVAL;
+			}
 			declaration = ctf_type_specifier_list_visit(fd, depth,
 					_cds_list_first_entry(&node->u.ctf_expression.right,
 						struct ctf_node, siblings),
@@ -1340,14 +1356,17 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	}
 	if (!CTF_EVENT_FIELD_IS_SET(event, name)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing name field in event declaration\n", __func__);
 		goto error;
 	}
 	if (!CTF_EVENT_FIELD_IS_SET(event, id)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing id field in event declaration\n", __func__);
 		goto error;
 	}
 	if (!CTF_EVENT_FIELD_IS_SET(event, stream_id)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing stream_id field in event declaration\n", __func__);
 		goto error;
 	}
 	if (event->stream->events_by_id->len <= event->id)
@@ -1420,18 +1439,24 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		char *left;
 
 		left = concatenate_unary_strings(&node->u.ctf_expression.left);
-		if (!strcmp(left, "stream_id")) {
-			if (CTF_STREAM_FIELD_IS_SET(stream, stream_id))
+		if (!strcmp(left, "id")) {
+			if (CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
+				fprintf(fd, "[error] %s: id already declared in stream declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &stream->stream_id);
 			if (ret) {
-				fprintf(fd, "[error] %s: unexpected unary expression for event stream_id\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for stream id\n", __func__);
 				return -EINVAL;
 			}
 			CTF_STREAM_SET_FIELD(stream, stream_id);
 		} else if (!strcmp(left, "event.header")) {
 			struct declaration *declaration;
 
+			if (stream->event_header_decl) {
+				fprintf(fd, "[error] %s: event.header already declared in stream declaration\n", __func__);
+				return -EINVAL;
+			}
 			declaration = ctf_type_specifier_list_visit(fd, depth,
 					_cds_list_first_entry(&node->u.ctf_expression.right,
 						struct ctf_node, siblings),
@@ -1444,6 +1469,10 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		} else if (!strcmp(left, "event.context")) {
 			struct declaration *declaration;
 
+			if (stream->event_context_decl) {
+				fprintf(fd, "[error] %s: event.context already declared in stream declaration\n", __func__);
+				return -EINVAL;
+			}
 			declaration = ctf_type_specifier_list_visit(fd, depth,
 					_cds_list_first_entry(&node->u.ctf_expression.right,
 						struct ctf_node, siblings),
@@ -1456,6 +1485,10 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 		} else if (!strcmp(left, "packet.context")) {
 			struct declaration *declaration;
 
+			if (stream->packet_context_decl) {
+				fprintf(fd, "[error] %s: packet.context already declared in stream declaration\n", __func__);
+				return -EINVAL;
+			}
 			declaration = ctf_type_specifier_list_visit(fd, depth,
 					_cds_list_first_entry(&node->u.ctf_expression.right,
 						struct ctf_node, siblings),
@@ -1497,6 +1530,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	}
 	if (!CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing id field in stream declaration\n", __func__);
 		goto error;
 	}
 	if (trace->streams->len <= stream->stream_id)
@@ -1584,8 +1618,10 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 
 		left = concatenate_unary_strings(&node->u.ctf_expression.left);
 		if (!strcmp(left, "major")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, major))
+			if (CTF_TRACE_FIELD_IS_SET(trace, major)) {
+				fprintf(fd, "[error] %s: major already declared in trace declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->major);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace major number\n", __func__);
@@ -1593,8 +1629,10 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, major);
 		} else if (!strcmp(left, "minor")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, minor))
+			if (CTF_TRACE_FIELD_IS_SET(trace, minor)) {
+				fprintf(fd, "[error] %s: minor already declared in trace declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->minor);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace minor number\n", __func__);
@@ -1602,8 +1640,10 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, minor);
 		} else if (!strcmp(left, "word_size")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, word_size))
+			if (CTF_TRACE_FIELD_IS_SET(trace, word_size)) {
+				fprintf(fd, "[error] %s: word_size already declared in trace declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->word_size);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace word_size\n", __func__);
@@ -1611,8 +1651,10 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, word_size);
 		} else if (!strcmp(left, "uuid")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, uuid))
+			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
+				fprintf(fd, "[error] %s: uuid already declared in trace declaration\n", __func__);
 				return -EPERM;
+			}
 			ret = get_unary_uuid(&node->u.ctf_expression.right, &trace->uuid);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
@@ -1648,18 +1690,22 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	}
 	if (!CTF_TRACE_FIELD_IS_SET(trace, major)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing major field in trace declaration\n", __func__);
 		goto error;
 	}
 	if (!CTF_TRACE_FIELD_IS_SET(trace, minor)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing minor field in trace declaration\n", __func__);
 		goto error;
 	}
 	if (!CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing uuid field in trace declaration\n", __func__);
 		goto error;
 	}
 	if (!CTF_TRACE_FIELD_IS_SET(trace, word_size)) {
 		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing word_size field in trace declaration\n", __func__);
 		goto error;
 	}
 	return 0;
@@ -1730,25 +1776,33 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
 			ret = ctf_root_declaration_visit(fd, depth + 1, iter, trace);
-			if (ret)
+			if (ret) {
+				fprintf(fd, "[error] %s: root declaration error\n", __func__);
 				return ret;
+			}
 		}
 		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
-			if (ret)
+			if (ret) {
+				fprintf(fd, "[error] %s: trace declaration error\n", __func__);
 				return ret;
+			}
 		}
 		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_stream_visit(fd, depth + 1, iter,
 		    			       trace->root_declaration_scope, trace);
-			if (ret)
+			if (ret) {
+				fprintf(fd, "[error] %s: stream declaration error\n", __func__);
 				return ret;
+			}
 		}
 		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			ret = ctf_event_visit(fd, depth + 1, iter,
 		    			      trace->root_declaration_scope, trace);
-			if (ret)
+			if (ret) {
+				fprintf(fd, "[error] %s: event declaration error\n", __func__);
 				return ret;
+			}
 		}
 		break;
 	case NODE_UNKNOWN:

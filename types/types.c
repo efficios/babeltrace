@@ -508,6 +508,7 @@ void append_scope_path(const char *path, GArray *q)
 		quark = g_quark_from_string(str);
 		g_array_append_val(q, quark);
 		g_free(str);
+		ptrend++;	/* skip current dot */
 	}
 	/* last. Check for trailing dot (and discard). */
 	if (ptrbegin[0] != '\0') {

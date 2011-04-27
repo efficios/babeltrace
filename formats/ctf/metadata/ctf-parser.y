@@ -1433,14 +1433,12 @@ type_specifier:
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_VARIANT;
 			$$->u.type_specifier.node = $2;
-			$$ = $2;
 		}
 	|	STRUCT struct_type_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_STRUCT;
 			$$->u.type_specifier.node = $2;
-			$$ = $2;
 		}
 	;
 
@@ -2191,9 +2189,8 @@ ctf_assignment_expression:
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.ctf_expression.right);
 		}
-	|	unary_expression TYPEASSIGN type_specifier	/* Only allow struct */
+	|	unary_expression TYPEASSIGN declaration_specifiers	/* Only allow struct */
 		{
-			struct ctf_node *list;
 			/*
 			 * Because we have left and right, cannot use
 			 * set_parent_node.
@@ -2202,9 +2199,7 @@ ctf_assignment_expression:
 			_cds_list_splice_tail(&($1)->tmp_head, &($$)->u.ctf_expression.left);
 			if ($1->u.unary_expression.type != UNARY_STRING)
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
-			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			cds_list_add_tail(&($3)->siblings, &list->u.type_specifier_list.head);
-			cds_list_add_tail(&list->siblings, &($$)->u.ctf_expression.right);
+			cds_list_add_tail(&($3)->siblings, &($$)->u.ctf_expression.right);
 		}
 	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list
 		{

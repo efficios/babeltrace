@@ -32,6 +32,6 @@ stream {
  * layout). See ctf-embedded-2.txt for a more compact layout.
  */
 
-event { name = invalid; id = 0; stream = 0; };
-event { name = func_enter; id = 1; stream = 0; };
-event { name = func_exit; id = 2; stream = 0; };
+event { name = invalid; id = 0; stream_id = 0; };
+event { name = func_enter; id = 1; stream_id = 0; };
+event { name = func_exit; id = 2; stream_id = 0; };
