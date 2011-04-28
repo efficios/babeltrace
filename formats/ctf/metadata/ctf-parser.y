@@ -1177,7 +1177,7 @@ declaration:
 			_cds_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -1803,7 +1803,7 @@ struct_or_variant_declaration:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2231,7 +2231,7 @@ ctf_assignment_expression:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list COLON alias_declaration_specifiers alias_abstract_declarator_list
+	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list
 		{
 			struct ctf_node *list;
 

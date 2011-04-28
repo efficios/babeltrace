@@ -1,7 +1,7 @@
 
-typealias integer { size = 32; align = 32; signed = true; } : int;
-typealias integer { size = 64; align = 64; signed = true; } : long;
-typealias integer { size = 64; align = 64; } : unsigned long;
+typealias integer { size = 32; align = 32; signed = true; } := int;
+typealias integer { size = 64; align = 64; signed = true; } := long;
+typealias integer { size = 64; align = 64; } := unsigned long;
 
 enum name1 <int> {
   ZERO,
@@ -28,13 +28,13 @@ typealias floating_point {
   exp_dig = 8;         /* sizeof(float) * CHAR_BIT - FLT_MANT_DIG */
   mant_dig = 24;       /* FLT_MANT_DIG */
   byte_order = native;
-} : float;
+} := float;
 
 typealias integer {
   size = 32;
   align = 32;
   signed = false;
-} : struct page *;
+} := struct page *;
 
 trace {
 	major = 66;
@@ -44,9 +44,9 @@ trace {
 };
 
 stream {
-  typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
-  typealias integer { size = 16; align = 16; signed = false; } : uint16_t;
-  typealias integer { size = 32; align = 32; signed = true; } : int;
+  typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
+  typealias integer { size = 16; align = 16; signed = false; } := uint16_t;
+  typealias integer { size = 32; align = 32; signed = true; } := int;
   typedef int pid_t;
 
   id = 5;
@@ -62,12 +62,12 @@ struct example {
 };
 
 struct name {
-  typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
-  typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
-  typealias integer { size = 32; align = 32; signed = true; } : int32_t;
-  typealias integer { size = 2; align = 8; signed = false; } : uint2_t;
-  typealias integer { size = 16; align = 16; signed = true; } : short;
-  typealias uint32_t : unsigned int;
+  typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 32; align = 32; signed = true; } := int32_t;
+  typealias integer { size = 2; align = 8; signed = false; } := uint2_t;
+  typealias integer { size = 16; align = 16; signed = true; } := short;
+  typealias uint32_t := unsigned int;
 
   enum <uint2_t> { a, b, c, d } choice;
   /* Unrelated fields can be added between the variant and its tag */
@@ -87,13 +87,13 @@ typealias integer {
   size = 32;
   signed = false;
   align = 32;
-} : uint32_t;
+} := uint32_t;
 
-typealias string { encoding = UTF8; } : test;
+typealias string { encoding = UTF8; } := test;
 
 struct event_packet_header {
-  typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
-  typealias integer { size = 8; align = 8; signed = false; } : uint8_t;
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
 
   uint32_t magic;
   uint8_t  trace_uuid[16];
@@ -101,10 +101,10 @@ struct event_packet_header {
 };
 
 struct event_packet_context {
-  typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
-  typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
-  typealias integer { size = 16; align = 16; signed = false; } : uint16_t;
-  typealias integer { size = 8; align = 8; signed = false; } : uint8_t;
+  typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 16; align = 16; signed = false; } := uint16_t;
+  typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
 
   uint64_t timestamp_begin;
   uint64_t timestamp_end;
@@ -121,10 +121,10 @@ struct event_packet_context {
 };
 
 struct event_header_1 {
-  typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
-  typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
-  typealias integer { size = 5; align = 1; signed = false; } : uint5_t;
-  typealias integer { size = 27; align = 1; signed = false; } : uint27_t;
+  typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 5; align = 1; signed = false; } := uint5_t;
+  typealias integer { size = 27; align = 1; signed = false; } := uint27_t;
 
   /*
    * id: range: 0 - 30.
@@ -143,9 +143,9 @@ struct event_header_1 {
 };
 
 struct event_header_2 {
-  typealias integer { size = 64; align = 64; signed = false; } : uint64_t;
-  typealias integer { size = 32; align = 32; signed = false; } : uint32_t;
-  typealias integer { size = 16; align = 16; signed = false; } : uint16_t;
+  typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 16; align = 16; signed = false; } := uint16_t;
 
   /*
    * id: range: 0 - 65534.
@@ -175,4 +175,4 @@ event {
 	payload := struct {};
 };
 
-typealias integer { size = 32; align = 32; signed = false; } : unsigned long long *;
+typealias integer { size = 32; align = 32; signed = false; } := unsigned long long *;
