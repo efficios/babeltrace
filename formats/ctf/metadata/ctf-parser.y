@@ -839,6 +839,15 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	/* %locations */
 %parse-param {struct ctf_scanner *scanner}
 %lex-param {struct ctf_scanner *scanner}
+/*
+ * Expect two shift-reduce conflicts. Caused by enum name-opt : type {}
+ * vs struct { int :value; } (unnamed bit-field). The default is to
+ * shift, so whenever we encounter an enumeration, we are doing the
+ * proper thing (shift). It is illegal to declare an enumeration
+ * "bit-field", so it is OK if this situation ends up in a parsing
+ * error.
+ */
+%expect 2
 %start file
 %token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT
 %token <gs> IDENTIFIER ID_TYPE
@@ -860,10 +869,12 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> event_declaration
 %type <n> stream_declaration
 %type <n> trace_declaration
+%type <n> integer_declaration_specifiers
 %type <n> declaration_specifiers
 %type <n> alias_declaration_specifiers
 
 %type <n> type_declarator_list
+%type <n> integer_type_specifier
 %type <n> type_specifier
 %type <n> struct_type_specifier
 %type <n> variant_type_specifier
@@ -1268,6 +1279,40 @@ trace_declaration_end:
 		{	pop_scope(scanner);	}
 	;
 
+integer_declaration_specifiers:
+		CONST
+		{
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_CONST;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+		}
+	|	integer_type_specifier
+		{
+			struct ctf_node *node;
+
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
+			node = $1;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+		}
+	|	integer_declaration_specifiers CONST
+		{
+			struct ctf_node *node;
+
+			$$ = $1;
+			node = make_node(scanner, NODE_TYPE_SPECIFIER);
+			node->u.type_specifier.type = TYPESPEC_CONST;
+			cds_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+		}
+	|	integer_declaration_specifiers integer_type_specifier
+		{
+			$$ = $1;
+			cds_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
+		}
+	;
+
 declaration_specifiers:
 		CONST
 		{
@@ -1309,6 +1354,64 @@ type_declarator_list:
 		{
 			$$ = $1;
 			cds_list_add_tail(&($3)->siblings, &($$)->tmp_head);
+		}
+	;
+
+integer_type_specifier:
+		CHAR
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_CHAR;
+		}
+	|	SHORT
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_SHORT;
+		}
+	|	INT
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_INT;
+		}
+	|	LONG
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_LONG;
+		}
+	|	SIGNED
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_SIGNED;
+		}
+	|	UNSIGNED
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_UNSIGNED;
+		}
+	|	_BOOL
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_BOOL;
+		}
+	|	ID_TYPE
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
+			$$->u.type_specifier.id_type = yylval.gs->s;
+		}
+	|	INTEGER LBRAC RBRAC
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_INTEGER;
+			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
+		}
+	|	INTEGER LBRAC ctf_assignment_expression_list RBRAC
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_INTEGER;
+			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
+			if (set_parent_node($3, $$->u.type_specifier.node))
+				reparent_error(scanner, "integer reparent error");
 		}
 	;
 
@@ -1638,12 +1741,12 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT declaration_specifiers GT LBRAC enumerator_list RBRAC
+	|	COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			($$)->u._enum.container_type = $2;
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list RBRAC
 		{
@@ -1652,13 +1755,13 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT declaration_specifiers GT LBRAC enumerator_list RBRAC
+	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			($$)->u._enum.container_type = $3;
-			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE LBRAC enumerator_list RBRAC
 		{
@@ -1667,13 +1770,13 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT declaration_specifiers GT LBRAC enumerator_list RBRAC
+	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			($$)->u._enum.container_type = $3;
-			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	LBRAC enumerator_list COMMA RBRAC
 		{
@@ -1681,12 +1784,12 @@ enum_type_specifier:
 			$$->u._enum.has_body = 1;
 			_cds_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
+	|	COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			($$)->u._enum.container_type = $2;
-			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER LBRAC enumerator_list COMMA RBRAC
 		{
@@ -1695,26 +1798,19 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
+	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			($$)->u._enum.container_type = $3;
-			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-		}
-	|	IDENTIFIER LT declaration_specifiers GT
-		{
-			$$ = make_node(scanner, NODE_ENUM);
-			$$->u._enum.has_body = 0;
-			$$->u._enum.enum_id = $1->s;
-			($$)->u._enum.container_type = $3;
 		}
 	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
 		{
@@ -1723,26 +1819,19 @@ enum_type_specifier:
 			$$->u._enum.enum_id = $1->s;
 			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LT declaration_specifiers GT LBRAC enumerator_list COMMA RBRAC
+	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1->s;
 			($$)->u._enum.container_type = $3;
-			_cds_list_splice_tail(&($6)->tmp_head, &($$)->u._enum.enumerator_list);
+			_cds_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1->s;
-		}
-	|	ID_TYPE LT declaration_specifiers GT
-		{
-			$$ = make_node(scanner, NODE_ENUM);
-			$$->u._enum.has_body = 0;
-			$$->u._enum.enum_id = $1->s;
-			($$)->u._enum.container_type = $3;
 		}
 	;
 
