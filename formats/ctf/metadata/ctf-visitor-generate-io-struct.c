@@ -845,15 +845,19 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			}
 		}
 		if (!container_type) {
-			fprintf(fd, "[error] %s: missing container type for enumeration\n", __func__);
-			return NULL;
-			
+			declaration = lookup_declaration(g_quark_from_static_string("int"),
+							 declaration_scope);
+			if (!declaration) {
+				fprintf(fd, "[error] %s: \"int\" type declaration missing for enumeration\n", __func__);
+				return NULL;
+			}
+		} else {
+			declaration = ctf_type_declarator_visit(fd, depth,
+						container_type,
+						&dummy_id, NULL,
+						declaration_scope,
+						NULL, trace);
 		}
-		declaration = ctf_type_declarator_visit(fd, depth,
-					container_type,
-					&dummy_id, NULL,
-					declaration_scope,
-					NULL, trace);
 		if (!declaration) {
 			fprintf(fd, "[error] %s: unable to create container type for enumeration\n", __func__);
 			return NULL;

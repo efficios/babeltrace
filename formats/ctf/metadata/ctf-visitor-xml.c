@@ -609,12 +609,9 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		if (node->u._enum.container_type) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<container_type>\n");
-		}
-
-		ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
-		if (ret)
-			return ret;
-		if (node->u._enum.container_type) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, node->u._enum.container_type);
+			if (ret)
+				return ret;
 			print_tabs(fd, depth);
 			fprintf(fd, "</container_type>\n");
 		}

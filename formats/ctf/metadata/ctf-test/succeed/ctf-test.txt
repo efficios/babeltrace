@@ -24,6 +24,8 @@ enum name4 : unsigned long {
 
 enum name5 : long { "int" = 1, };
 
+enum name6 { "int" = 1, };
+
 typealias floating_point {
   exp_dig = 8;         /* sizeof(float) * CHAR_BIT - FLT_MANT_DIG */
   mant_dig = 24;       /* FLT_MANT_DIG */

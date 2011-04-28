@@ -358,9 +358,11 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_ENUM:
 		depth++;
-		ret = ctf_visitor_parent_links(fd, depth + 1, node->u._enum.container_type);
-		if (ret)
-			return ret;
+		if (node->u._enum.container_type) {
+			ret = ctf_visitor_parent_links(fd, depth + 1, node->u._enum.container_type);
+			if (ret)
+				return ret;
+		}
 
 		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			iter->parent = node;
