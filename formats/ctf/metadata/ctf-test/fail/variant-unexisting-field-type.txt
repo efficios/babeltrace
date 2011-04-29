@@ -1,0 +1,4 @@
+variant test {
+	int a;
+	int b;
+};

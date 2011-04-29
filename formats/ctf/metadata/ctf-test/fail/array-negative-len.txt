@@ -1,0 +1,2 @@
+typealias integer { size = 32; align = 32; signedness = false; } := uint;
+typedef uint myarray[-10];

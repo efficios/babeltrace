@@ -1,5 +1,6 @@
 
 typealias integer { size = 32; align = 32; signed = true; } := int;
+typealias integer { size = 32; align = 32; signed = false; } := uint;
 typealias integer { size = 64; align = 64; signed = true; } := long;
 typealias integer { size = 64; align = 64; } := unsigned long;
 
@@ -178,3 +179,21 @@ event {
 };
 
 typealias integer { size = 32; align = 32; signed = false; } := unsigned long long *;
+
+variant vardecl {
+	int a;
+	int b;
+};
+
+event {
+	name = test_event2;
+	id = 1;
+	stream_id = 5;
+	payload := struct {
+		enum : char { a = 0, b = 1, } tag;
+		variant vardecl <tag> myvariant;
+	};
+};
+
+typedef int myarray[10];
+typedef int myseq[uint];
