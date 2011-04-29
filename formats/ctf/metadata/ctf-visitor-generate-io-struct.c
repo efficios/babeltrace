@@ -351,20 +351,29 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			declaration = &array_declaration->p;
 			break;
 		}
-		case NODE_INTEGER:
-		case NODE_TYPE_SPECIFIER:
+		case NODE_TYPE_SPECIFIER_LIST:
 		{
 			struct declaration_sequence *sequence_declaration;
 			struct declaration_integer *integer_declaration;
-			GQuark dummy_id;
 
-			declaration = ctf_type_declarator_visit(fd, depth,
-						length,
-						&dummy_id, NULL,
-						declaration_scope,
-						NULL, trace);
-			assert(declaration->id == CTF_TYPE_INTEGER);
+			declaration = ctf_type_specifier_list_visit(fd, depth,
+				length, declaration_scope, trace);
+			if (!declaration) {
+				fprintf(fd, "[error] %s: unable to find declaration type for sequence length\n", __func__);
+				return NULL;
+			}
+			if (declaration->id != CTF_TYPE_INTEGER) {
+				fprintf(fd, "[error] %s: length type for sequence is expected to be an integer (unsigned).\n", __func__);
+				declaration_unref(declaration);
+				return NULL;
+			}
 			integer_declaration = container_of(declaration, struct declaration_integer, p);
+			if (integer_declaration->signedness != false) {
+				fprintf(fd, "[error] %s: length type for sequence should always be an unsigned integer.\n", __func__);
+				declaration_unref(declaration);
+				return NULL;
+			}
+
 			sequence_declaration = sequence_declaration_new(integer_declaration,
 					nested_declaration, declaration_scope);
 			declaration = &sequence_declaration->p;
@@ -402,6 +411,10 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 						&field_name, iter,
 						struct_declaration->scope,
 						NULL, trace);
+		if (!field_declaration) {
+			fprintf(fd, "[error] %s: unable to find struct field declaration type\n", __func__);
+			return -EINVAL;
+		}
 		struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
@@ -428,6 +441,10 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 						&field_name, iter,
 						untagged_variant_declaration->scope,
 						NULL, trace);
+		if (!field_declaration) {
+			fprintf(fd, "[error] %s: unable to find variant field declaration type\n", __func__);
+			return -EINVAL;
+		}
 		untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
@@ -452,6 +469,19 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 					type_specifier_list,
 					&identifier, iter,
 					scope, NULL, trace);
+		if (!type_declaration) {
+			fprintf(fd, "[error] %s: problem creating type declaration\n", __func__);
+			return -EINVAL;
+		}
+		/*
+		 * Don't allow typedef and typealias of untagged
+		 * variants.
+		 */
+		if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
+			fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
+			declaration_unref(type_declaration);
+			return -EPERM;
+		}
 		ret = register_declaration(identifier, type_declaration, scope);
 		if (ret) {
 			type_declaration->declaration_free(type_declaration);
@@ -491,6 +521,15 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		fprintf(fd, "[error] %s: problem creating type declaration\n", __func__);
 		err = -EINVAL;
 		goto error;
+	}
+	/*
+	 * Don't allow typedef and typealias of untagged
+	 * variants.
+	 */
+	if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
+		fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
+		declaration_unref(type_declaration);
+		return -EPERM;
 	}
 	/*
 	 * The semantic validator does not check whether the target is
@@ -719,7 +758,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		return &variant_declaration->p;
 	}
 error:
-	untagged_variant_declaration->p.declaration_free(&variant_declaration->p);
+	untagged_variant_declaration->p.declaration_free(&untagged_variant_declaration->p);
 	return NULL;
 }
 
