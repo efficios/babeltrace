@@ -1,8 +1,8 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-noinst_LIBRARIES = libtypes.a
+lib_LTLIBRARIES = libbabeltrace_types.la
 
-libtypes_a_SOURCES = \
+libbabeltrace_types_la_SOURCES = \
 	array.c \
 	enum.c \
 	float.c \

@@ -2,6 +2,6 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 SUBDIRS = . ctf
 
-noinst_LIBRARIES = libregistry.a
+lib_LTLIBRARIES = libbabeltrace_registry.la
 
-libregistry_a_SOURCES = registry.c
+libbabeltrace_registry_la_SOURCES = registry.c

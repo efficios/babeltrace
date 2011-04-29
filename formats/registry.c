@@ -19,6 +19,7 @@
 #include <babeltrace/format.h>
 #include <glib.h>
 #include <errno.h>
+#include <stdio.h>
 
 static int init_done;
 void __attribute__((constructor)) format_init(void);
@@ -37,6 +38,23 @@ struct format *bt_lookup_format(GQuark qname)
 		return NULL;
 	return g_hash_table_lookup(format_registry,
 				   (gconstpointer) (unsigned long) qname);
+}
+
+static void show_format(gpointer key, gpointer value, gpointer user_data)
+{
+	FILE *fp = user_data;
+
+	fprintf(fp, "format: %s\n",
+		g_quark_to_string((GQuark) (unsigned long) key));
+}
+
+void bt_fprintf_format_list(FILE *fp)
+{
+	fprintf(fp, "Formats available:\n");
+	if (!init_done)
+		return;
+	g_hash_table_foreach(format_registry, show_format, fp);
+	fprintf(fp, "End of formats available.\n");
 }
 
 int bt_register_format(struct format *format)

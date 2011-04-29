@@ -19,8 +19,6 @@
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
 
-void __attribute__((constructor)) ctf_init(void);
-
 static struct format ctf_format = {
 	.uint_read = ctf_uint_read,
 	.int_read = ctf_int_read,
@@ -45,7 +43,7 @@ static struct format ctf_format = {
 	.sequence_end = ctf_sequence_end,
 };
 
-void ctf_init(void)
+void __attribute__((constructor)) ctf_init(void)
 {
 	int ret;
 

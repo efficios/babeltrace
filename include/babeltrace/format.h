@@ -21,6 +21,7 @@
 
 #include <babeltrace/types.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <glib.h>
 
 struct format {
@@ -82,6 +83,7 @@ struct format {
 };
 
 struct format *bt_lookup_format(GQuark qname);
+void bt_fprintf_format_list(FILE *fp);
 int bt_register_format(struct format *format);
 
 /* TBD: format unregistration */

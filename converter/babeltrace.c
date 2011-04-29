@@ -17,6 +17,7 @@
  */
 
 #include <babeltrace/babeltrace.h>
+#include <babeltrace/format.h>
 #include <popt.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -32,6 +33,7 @@ int babeltrace_verbose, babeltrace_debug;
 enum {
 	OPT_NONE = 0,
 	OPT_HELP,
+	OPT_LIST,
 	OPT_VERBOSE,
 	OPT_DEBUG,
 };
@@ -41,10 +43,17 @@ static struct poptOption long_options[] = {
 	{ "input-format", 'i', POPT_ARG_STRING, &opt_input_format, OPT_NONE, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, &opt_output_format, OPT_NONE, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
+
+static void list_formats(FILE *fp)
+{
+	fprintf(fp, "\n");
+	bt_fprintf_format_list(fp);
+}
 
 static void usage(FILE *fp)
 {
@@ -59,8 +68,10 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -o, --output-format Input trace path\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -h, --help          This help message\n");
+	fprintf(fp, "  -l, --list          List available formats\n");
 	fprintf(fp, "  -v, --verbose       Verbose mode\n");
 	fprintf(fp, "  -d, --debug         Debug mode\n");
+	list_formats(fp);
 	fprintf(fp, "\n");
 }
 
@@ -79,8 +90,12 @@ static int parse_options(int argc, const char **argv)
 	while ((opt = poptGetNextOpt(pc)) != -1) {
 		switch (opt) {
 		case OPT_HELP:
-			usage(stderr);
+			usage(stdout);
 			ret = 1;	/* exit cleanly */
+			goto end;
+		case OPT_LIST:
+			list_formats(stdout);
+			ret = 1;
 			goto end;
 		case OPT_VERBOSE:
 			babeltrace_verbose = 1;

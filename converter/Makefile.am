@@ -6,6 +6,6 @@ babeltrace_SOURCES = \
 	babeltrace.c
 
 babeltrace_LDADD = \
-	$(top_srcdir)/types/libtypes.a \
-	$(top_srcdir)/formats/libregistry.a
-
+	$(top_builddir)/types/libbabeltrace_types.la \
+	$(top_builddir)/formats/libbabeltrace_registry.la \
+	$(top_builddir)/formats/ctf/libctf.la
