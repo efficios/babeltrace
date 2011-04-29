@@ -1682,17 +1682,6 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				return -EINVAL;
 			}
 			CTF_TRACE_SET_FIELD(trace, minor);
-		} else if (!strcmp(left, "word_size")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, word_size)) {
-				fprintf(fd, "[error] %s: word_size already declared in trace declaration\n", __func__);
-				return -EPERM;
-			}
-			ret = get_unary_unsigned(&node->u.ctf_expression.right, &trace->word_size);
-			if (ret) {
-				fprintf(fd, "[error] %s: unexpected unary expression for trace word_size\n", __func__);
-				return -EINVAL;
-			}
-			CTF_TRACE_SET_FIELD(trace, word_size);
 		} else if (!strcmp(left, "uuid")) {
 			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
 				fprintf(fd, "[error] %s: uuid already declared in trace declaration\n", __func__);
@@ -1744,11 +1733,6 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (!CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
 		ret = -EPERM;
 		fprintf(fd, "[error] %s: missing uuid field in trace declaration\n", __func__);
-		goto error;
-	}
-	if (!CTF_TRACE_FIELD_IS_SET(trace, word_size)) {
-		ret = -EPERM;
-		fprintf(fd, "[error] %s: missing word_size field in trace declaration\n", __func__);
 		goto error;
 	}
 	return 0;
