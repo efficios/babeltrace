@@ -43,7 +43,6 @@ trace {
 	major = 66;
 	minor = 2;
 	uuid = "1123fcea-706e-11e0-a38b-f3c28a683a3d";
-	word_size = 64;
 };
 
 stream {

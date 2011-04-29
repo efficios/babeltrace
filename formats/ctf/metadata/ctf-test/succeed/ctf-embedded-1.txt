@@ -3,7 +3,6 @@ trace {
 	major = 0;
 	minor = 1;
 	uuid = "f816d884-6cea-11e0-ac7a-8f5f4e9f7724";
-	word_size = 32;
 };
 
 /* Architecture with 32-bit pointers, 32-bit integers, 32-bit longs */
