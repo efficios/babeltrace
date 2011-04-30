@@ -31,6 +31,13 @@ struct ctf_trace;
 struct ctf_stream;
 struct ctf_event;
 
+struct ctf_stream_file {
+	/* Information about stream backing file */
+	int fd;
+	char *mmap;				/* current stream mmap */
+	struct stream_pos pos;			/* current stream position */
+};
+
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
 	do {								\
 		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
@@ -52,6 +59,7 @@ struct ctf_trace {
 
 	struct declaration_scope *declaration_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
+	struct ctf_stream_file metadata;
 
 	uint64_t major;
 	uint64_t minor;
@@ -66,6 +74,7 @@ struct ctf_trace {
 
 	/* Information about trace backing directory and files */
 	DIR *dir;
+	int dirfd;
 	int flags;		/* open flags */
 };
 
@@ -108,10 +117,7 @@ struct ctf_stream {
 		CTF_STREAM_stream_id =	(1 << 0),
 	} field_mask;
 
-	/* Information about stream backing file */
-	int fd;
-	char *mmap;				/* current stream mmap */
-	struct stream_pos pos;			/* current stream position */
+	struct ctf_stream_file file;		/* Backing file */
 };
 
 #define CTF_EVENT_SET_FIELD(ctf_event, field)				\

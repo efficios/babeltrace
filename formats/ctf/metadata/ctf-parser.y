@@ -53,7 +53,7 @@ int yyparse(struct ctf_scanner *scanner);
 int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
 int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
 int yylex_destroy(yyscan_t yyscanner);
-void yyset_in(FILE * in_str, yyscan_t scanner);
+void yyrestart(FILE * in_str, yyscan_t scanner);
 
 int yydebug;
 
@@ -800,7 +800,8 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 		fprintf(stderr, "yylex_init error\n");
 		goto cleanup_scanner;
 	}
-	yyset_in(input, scanner);
+	/* Start processing new stream */
+	yyrestart(input, scanner->scanner);
 
 	scanner->ast = ctf_ast_alloc();
 	if (!scanner->ast)
@@ -808,6 +809,11 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 	init_scope(&scanner->root_scope, NULL);
 	scanner->cs = &scanner->root_scope;
 	CDS_INIT_LIST_HEAD(&scanner->allocated_strings);
+
+	if (yydebug)
+		fprintf(stdout, "Scanner input is a%s.\n",
+			isatty(fileno(input)) ? "n interactive tty" :
+						" noninteractive file");
 
 	return scanner;
 

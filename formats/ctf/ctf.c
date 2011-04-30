@@ -19,12 +19,22 @@
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/metadata.h>
+#include <babeltrace/babeltrace.h>
 #include <errno.h>
-#include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
+#include <sys/stat.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <glib.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+#include "metadata/ctf-scanner.h"
+#include "metadata/ctf-parser.h"
+#include "metadata/ctf-ast.h"
+
+extern int yydebug;
 
 struct trace_descriptor {
 	struct ctf_trace ctf_trace;
@@ -59,10 +69,81 @@ static struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
+/*
+ * TODO: for now, we treat the metadata file as a simple text file
+ * (without any header nor packets nor padding).
+ */
+static
+int ctf_open_trace_metadata_read(struct trace_descriptor *td)
+{
+	struct ctf_scanner *scanner;
+	FILE *fp;
+	int ret = 0;
+
+	td->ctf_trace.metadata.fd = openat(td->ctf_trace.dirfd,
+			"metadata", O_RDONLY);
+	if (td->ctf_trace.metadata.fd < 0) {
+		fprintf(stdout, "Unable to open metadata.\n");
+		return td->ctf_trace.metadata.fd;
+	}
+
+	if (babeltrace_debug)
+		yydebug = 1;
+
+	fp = fdopen(td->ctf_trace.metadata.fd, "r");
+	if (!fp) {
+		fprintf(stdout, "Unable to open metadata stream.\n");
+		ret = -errno;
+		goto end_stream;
+	}
+
+	scanner = ctf_scanner_alloc(fp);
+	if (!scanner) {
+		fprintf(stdout, "Error allocating scanner\n");
+		ret = -ENOMEM;
+		goto end_scanner_alloc;
+	}
+	ret = ctf_scanner_append_ast(scanner);
+	if (ret) {
+		fprintf(stdout, "Error creating AST\n");
+		goto end;
+	}
+
+	if (babeltrace_debug) {
+		ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
+		if (ret) {
+			fprintf(stdout, "Error visiting AST for XML output\n");
+			goto end;
+		}
+	}
+
+	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
+	if (ret) {
+		fprintf(stdout, "Error in CTF semantic validation %d\n", ret);
+		goto end;
+	}
+	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
+			&td->ctf_trace, BYTE_ORDER);
+	if (ret) {
+		fprintf(stdout, "Error in CTF metadata constructor %d\n", ret);
+		goto end;
+	}
+end:
+	ctf_scanner_free(scanner);
+end_scanner_alloc:
+	fclose(fp);
+end_stream:
+	close(td->ctf_trace.metadata.fd);
+	return ret;
+}
+
 static
 int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags)
 {
 	int ret;
+	struct dirent *dirent;
+	struct dirent *diriter;
+	size_t dirent_len;
 
 	td->ctf_trace.flags = flags;
 
@@ -74,24 +155,56 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 		goto error;
 	}
 
+	td->ctf_trace.dirfd = open(path, 0);
+	if (td->ctf_trace.dirfd < 0) {
+		fprintf(stdout, "Unable to open trace directory file descriptor.\n");
+		ret = -ENOENT;
+		goto error_dirfd;
+	}
+	/*
+	 * Keep the metadata file separate.
+	 */
 
+	ret = ctf_open_trace_metadata_read(td);
+	if (ret) {
+		goto error_metadata;
+	}
 
 	/*
 	 * Open each stream: for each file, try to open, check magic
 	 * number, and get the stream ID to add to the right location in
 	 * the stream array.
-	 *
-	 * Keep the metadata file separate.
 	 */
 
+	dirent_len = offsetof(struct dirent, d_name) +
+			fpathconf(td->ctf_trace.dirfd, _PC_NAME_MAX) + 1;
 
+	dirent = malloc(dirent_len);
 
-	/*
-	 * Use the metadata file to populate the trace metadata.
-	 */
+	for (;;) {
+		ret = readdir_r(td->ctf_trace.dir, dirent, &diriter);
+		if (ret) {
+			fprintf(stdout, "Readdir error.\n");
+			goto readdir_error;
+			
+		}
+		if (!diriter)
+			break;
+		if (!strcmp(diriter->d_name, ".")
+				|| !strcmp(diriter->d_name, "..")
+				|| !strcmp(diriter->d_name, "metadata"))
+			continue;
+	}
 
-
+	free(dirent);
 	return 0;
+
+readdir_error:
+	free(dirent);
+error_metadata:
+	close(td->ctf_trace.dirfd);
+error_dirfd:
+	closedir(td->ctf_trace.dir);
 error:
 	return ret;
 }
@@ -105,7 +218,19 @@ int ctf_open_trace_write(struct trace_descriptor *td, const char *path, int flag
 	if (ret)
 		return ret;
 
+	/* Open trace directory */
+	td->ctf_trace.dir = opendir(path);
+	if (!td->ctf_trace.dir) {
+		fprintf(stdout, "Unable to open trace directory.\n");
+		ret = -ENOENT;
+		goto error;
+	}
+	
+
 	return 0;
+
+error:
+	return ret;
 }
 
 struct trace_descriptor *ctf_open_trace(const char *path, int flags)
@@ -113,7 +238,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 	struct trace_descriptor *td;
 	int ret;
 
-	td = g_new(struct trace_descriptor, 1);
+	td = g_new0(struct trace_descriptor, 1);
 
 	switch (flags) {
 	case O_RDONLY:
