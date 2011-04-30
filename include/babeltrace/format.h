@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <glib.h>
 
+struct trace_descriptor;
+
 struct format {
 	GQuark name;
 
@@ -80,6 +82,8 @@ struct format {
 		const struct declaration_sequence *sequence_declaration);
 	void (*sequence_end)(struct stream_pos *pos,
 		const struct declaration_sequence *sequence_declaration);
+	struct trace_descriptor *(*open_trace)(const char *path, int flags);
+	void (*close_trace)(struct trace_descriptor *descriptor);
 };
 
 struct format *bt_lookup_format(GQuark qname);

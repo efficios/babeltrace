@@ -18,6 +18,20 @@
 
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf/metadata.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <glib.h>
+
+struct trace_descriptor {
+	struct ctf_trace ctf_trace;
+};
+
+struct trace_descriptor *ctf_open_trace(const char *path, int flags);
+void ctf_close_trace(struct trace_descriptor *descriptor);
 
 static struct format ctf_format = {
 	.uint_read = ctf_uint_read,
@@ -41,7 +55,93 @@ static struct format ctf_format = {
 	.array_end = ctf_array_end,
 	.sequence_begin = ctf_sequence_begin,
 	.sequence_end = ctf_sequence_end,
+	.open_trace = ctf_open_trace,
+	.close_trace = ctf_close_trace,
 };
+
+static
+int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags)
+{
+	int ret;
+
+	td->ctf_trace.flags = flags;
+
+	/* Open trace directory */
+	td->ctf_trace.dir = opendir(path);
+	if (!td->ctf_trace.dir) {
+		fprintf(stdout, "Unable to open trace directory.\n");
+		ret = -ENOENT;
+		goto error;
+	}
+
+
+
+	/*
+	 * Open each stream: for each file, try to open, check magic
+	 * number, and get the stream ID to add to the right location in
+	 * the stream array.
+	 *
+	 * Keep the metadata file separate.
+	 */
+
+
+
+	/*
+	 * Use the metadata file to populate the trace metadata.
+	 */
+
+
+	return 0;
+error:
+	return ret;
+}
+
+static
+int ctf_open_trace_write(struct trace_descriptor *td, const char *path, int flags)
+{
+	int ret;
+
+	ret = mkdir(path, S_IRWXU|S_IRWXG);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+struct trace_descriptor *ctf_open_trace(const char *path, int flags)
+{
+	struct trace_descriptor *td;
+	int ret;
+
+	td = g_new(struct trace_descriptor, 1);
+
+	switch (flags) {
+	case O_RDONLY:
+		ret = ctf_open_trace_read(td, path, flags);
+		if (ret)
+			goto error;
+		break;
+	case O_WRONLY:
+		ret = ctf_open_trace_write(td, path, flags);
+		if (ret)
+			goto error;
+		break;
+	default:
+		fprintf(stdout, "Incorrect open flags.\n");
+		goto error;
+	}
+
+	return td;
+error:
+	g_free(td);
+	return NULL;
+}
+
+void ctf_close_trace(struct trace_descriptor *td)
+{
+	closedir(td->ctf_trace.dir);
+	g_free(td);
+}
 
 void __attribute__((constructor)) ctf_init(void)
 {

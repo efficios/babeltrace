@@ -20,6 +20,8 @@
  */
 
 #include <babeltrace/types.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <uuid/uuid.h>
 #include <assert.h>
 #include <glib.h>
@@ -60,6 +62,10 @@ struct ctf_trace {
 		CTF_TRACE_minor =	(1U << 1),
 		CTF_TRACE_uuid	=	(1U << 2),
 	} field_mask;
+
+	/* Information about trace backing directory and files */
+	DIR *dir;
+	int flags;		/* open flags */
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\
@@ -100,6 +106,11 @@ struct ctf_stream {
 	enum {					/* Fields populated mask */
 		CTF_STREAM_stream_id =	(1 << 0),
 	} field_mask;
+
+	/* Information about stream backing file */
+	int fd;
+	char *mmap;				/* current stream mmap */
+	struct stream_pos pos;			/* current stream position */
 };
 
 #define CTF_EVENT_SET_FIELD(ctf_event, field)				\
