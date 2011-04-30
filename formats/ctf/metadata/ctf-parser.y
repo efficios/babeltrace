@@ -52,7 +52,7 @@ _cds_list_splice_tail (struct cds_list_head *add, struct cds_list_head *head)
 int yyparse(struct ctf_scanner *scanner);
 int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
 int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
-int yylex_destroy(yyscan_t yyscanner) ;
+int yylex_destroy(yyscan_t yyscanner);
 void yyset_in(FILE * in_str, yyscan_t scanner);
 
 int yydebug;
