@@ -31,59 +31,7 @@
 /* Preallocate this many fields for structures */
 #define DEFAULT_NR_STRUCT_FIELDS 8
 
-/*
- * Always update stream_pos with move_pos and init_pos.
- */
-struct stream_pos {
-	char *base;		/* Base address */
-	size_t offset;		/* Offset from base, in bits */
-	int dummy;		/* Dummy position, for length calculation */
-};
-
-static inline
-void init_pos(struct stream_pos *pos, char *base)
-{
-	pos->base = base;	/* initial base, page-aligned */
-	pos->offset = 0;
-	pos->dummy = false;
-}
-
-/*
- * move_pos - move position of a relative bit offset
- *
- * TODO: allow larger files by updating base too.
- */
-static inline
-void move_pos(struct stream_pos *pos, size_t offset)
-{
-	pos->offset = pos->offset + offset;
-}
-
-/*
- * align_pos - align position on a bit offset (> 0)
- *
- * TODO: allow larger files by updating base too.
- */
-static inline
-void align_pos(struct stream_pos *pos, size_t offset)
-{
-	pos->offset += offset_align(pos->offset, offset);
-}
-
-static inline
-void copy_pos(struct stream_pos *dest, struct stream_pos *src)
-{
-	memcpy(dest, src, sizeof(struct stream_pos));
-}
-
-static inline
-char *get_pos_addr(struct stream_pos *pos)
-{
-	/* Only makes sense to get the address after aligning on CHAR_BIT */
-	assert(!(pos->offset % CHAR_BIT));
-	return pos->base + (pos->offset / CHAR_BIT);
-}
-
+struct stream_pos;
 struct format;
 struct definition;
 
