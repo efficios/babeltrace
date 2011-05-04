@@ -39,10 +39,20 @@ typealias integer {
   signed = false;
 } := struct page *;
 
+struct event_packet_header {
+  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
+  typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
+
+  uint32_t magic;
+  uint8_t  trace_uuid[16];
+  uint32_t stream_id;
+};
+
 trace {
 	major = 66;
 	minor = 2;
 	uuid = "1123fcea-706e-11e0-a38b-f3c28a683a3d";
+	packet.header := struct event_packet_header;
 };
 
 stream {
@@ -92,15 +102,6 @@ typealias integer {
 } := uint32_t;
 
 typealias string { encoding = UTF8; } := test;
-
-struct event_packet_header {
-  typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
-  typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
-
-  uint32_t magic;
-  uint8_t  trace_uuid[16];
-  uint32_t stream_id;
-};
 
 struct event_packet_context {
   typealias integer { size = 64; align = 64; signed = false; } := uint64_t;
