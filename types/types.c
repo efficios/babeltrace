@@ -255,6 +255,8 @@ void declaration_ref(struct declaration *declaration)
 
 void declaration_unref(struct declaration *declaration)
 {
+	if (!declaration)
+		return;
 	if (!--declaration->ref)
 		declaration->declaration_free(declaration);
 }
@@ -266,6 +268,8 @@ void definition_ref(struct definition *definition)
 
 void definition_unref(struct definition *definition)
 {
+	if (!definition)
+		return;
 	if (!--definition->ref)
 		definition->declaration->definition_free(definition);
 }
