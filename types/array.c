@@ -145,6 +145,11 @@ void _array_definition_free(struct definition *definition)
 	g_free(array);
 }
 
+uint64_t array_len(struct definition_array *array)
+{
+	return array->elems->len;
+}
+
 struct definition *array_index(struct definition_array *array, uint64_t i)
 {
 	if (i >= array->elems->len)

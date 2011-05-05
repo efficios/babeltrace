@@ -247,7 +247,7 @@ int create_stream_packet_index(struct trace_descriptor *td,
 				field = struct_definition_get_field_from_index(td->ctf_trace.packet_header, len_index);
 				assert(field->definition->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field->definition, struct definition_array, p);
-				assert(defarray->declaration->len == UUID_LEN);
+				assert(array_len(defarray) == UUID_LEN);
 				assert(defarray->declaration->elem->id == CTF_TYPE_INTEGER);
 
 				for (i = 0; i < UUID_LEN; i++) {

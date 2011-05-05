@@ -167,6 +167,11 @@ void _sequence_definition_free(struct definition *definition)
 	g_free(sequence);
 }
 
+uint64_t sequence_len(struct definition_sequence *sequence)
+{
+	return sequence->len->value._unsigned;
+}
+
 struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i)
 {
 	if (i >= sequence->len->value._unsigned)

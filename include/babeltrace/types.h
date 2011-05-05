@@ -457,6 +457,7 @@ struct field *variant_get_current_field(struct definition_variant *variant);
 struct declaration_array *
 	array_declaration_new(size_t len, struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
+uint64_t array_len(struct definition_array *array);
 struct definition *array_index(struct definition_array *array, uint64_t i);
 
 /*
@@ -467,6 +468,7 @@ struct declaration_sequence *
 	sequence_declaration_new(struct declaration_integer *len_declaration, 
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
+uint64_t sequence_len(struct definition_sequence *sequence);
 struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i);
 
 /*
