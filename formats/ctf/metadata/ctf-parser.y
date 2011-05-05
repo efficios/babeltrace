@@ -1516,6 +1516,12 @@ type_specifier:
 			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "integer reparent error");
 		}
+	|	STRING
+		{
+			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
+			$$->u.type_specifier.type = TYPESPEC_STRING;
+			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
+		}
 	|	STRING LBRAC RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
