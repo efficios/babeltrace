@@ -275,7 +275,7 @@ struct definition_array {
 	struct definition p;
 	struct declaration_array *declaration;
 	struct definition_scope *scope;
-	struct field current_element;		/* struct field */
+	GArray *elems;			/* struct field */
 };
 
 struct declaration_sequence {
@@ -290,7 +290,7 @@ struct definition_sequence {
 	struct declaration_sequence *declaration;
 	struct definition_scope *scope;
 	struct definition_integer *len;
-	struct field current_element;		/* struct field */
+	GArray *elems;			/* struct field */
 };
 
 int register_declaration(GQuark declaration_name,
@@ -409,17 +409,17 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 /*
  * Returns the index of a field within a structure.
  */
-unsigned long struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 						    GQuark field_name);
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
 struct declaration_field *
 struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
-					unsigned long index);
+					int index);
 struct field *
-struct_get_field_from_index(struct definition_struct *struct_definition,
-			    unsigned long index);
+struct_definition_get_field_from_index(struct definition_struct *struct_definition,
+				       int index);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings
@@ -457,6 +457,7 @@ struct field *variant_get_current_field(struct definition_variant *variant);
 struct declaration_array *
 	array_declaration_new(size_t len, struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
+struct definition *array_index(struct definition_array *array, uint64_t i);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong
@@ -466,6 +467,7 @@ struct declaration_sequence *
 	sequence_declaration_new(struct declaration_integer *len_declaration, 
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
+struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i);
 
 /*
  * in: path (dot separated), out: q (GArray of GQuark)

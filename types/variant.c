@@ -38,14 +38,16 @@ void variant_copy(struct stream_pos *dest, const struct format *fdest,
 	struct declaration *field_declaration;
 
 	fsrc->variant_begin(src, variant_declaration);
-	fdest->variant_begin(dest, variant_declaration);
+	if (fdest)
+		fdest->variant_begin(dest, variant_declaration);
 
 	field = variant_get_current_field(variant);
 	field_declaration = field->definition->declaration;
 	field_declaration->copy(dest, fdest, src, fsrc, field->definition);
 
 	fsrc->variant_end(src, variant_declaration);
-	fdest->variant_end(dest, variant_declaration);
+	if (fdest)
+		fdest->variant_end(dest, variant_declaration);
 }
 
 static

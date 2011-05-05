@@ -69,7 +69,8 @@ static void list_formats(FILE *fp)
 
 static void usage(FILE *fp)
 {
-	fprintf(fp, "Babeltrace %u.%u\n\n", BABELTRACE_VERSION_MAJOR,
+	fprintf(fp, "BabelTrace Trace Converter %u.%u\n\n",
+		BABELTRACE_VERSION_MAJOR,
 		BABELTRACE_VERSION_MINOR);
 	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT OUTPUT\n");
 	fprintf(fp, "\n");
@@ -95,6 +96,11 @@ static int parse_options(int argc, char **argv)
 {
 	poptContext pc;
 	int opt, ret = 0;
+
+	if (argc == 1) {
+		usage(stdout);
+		return 1;	/* exit cleanly */
+	}
 
 	pc = poptGetContext(NULL, argc, (const char **) argv, long_options, 0);
 	poptReadDefaultConfig(pc, 0);

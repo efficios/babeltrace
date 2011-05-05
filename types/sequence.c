@@ -18,6 +18,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
+#include <inttypes.h>
 
 #ifndef max
 #define max(a, b)	((a) < (b) ? (b) : (a))
@@ -37,21 +38,48 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 	struct definition_sequence *sequence =
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration = sequence->declaration;
-	uint64_t i;
+	uint64_t len, oldlen, i;
 
 	fsrc->sequence_begin(src, sequence_declaration);
-	fdest->sequence_begin(dest, sequence_declaration);
+	if (fdest)
+		fdest->sequence_begin(dest, sequence_declaration);
 
 	sequence->len->p.declaration->copy(dest, fdest, src, fsrc,
 				    &sequence->len->p);
+	len = sequence->len->value._unsigned;
+	g_array_set_size(sequence->elems, len);
+	/*
+	 * Yes, large sequences could be _painfully slow_ to parse due
+	 * to memory allocation for each event read. At least, never
+	 * shrink the sequence. Note: the sequence GArray len should
+	 * never be used as indicator of the current sequence length.
+	 * One should always look at the sequence->len->value._unsigned
+	 * value for that.
+	 */
+	oldlen = sequence->elems->len;
+	if (oldlen < len)
+		g_array_set_size(sequence->elems, len);
 
-	for (i = 0; i < sequence->len->value._unsigned; i++) {
-		struct definition *elem =
-			sequence->current_element.definition;
-		elem->declaration->copy(dest, fdest, src, fsrc, elem);
+	for (i = oldlen; i < len; i++) {
+		struct field *field;
+		GString *str;
+		GQuark name;
+
+		str = g_string_new("");
+		g_string_printf(str, "[%" PRIu64 "]", i);
+		(void) g_string_free(str, TRUE);
+		name = g_quark_from_string(str->str);
+
+		field = &g_array_index(sequence->elems, struct field, i);
+		field->name = name;
+		field->definition = sequence_declaration->elem->definition_new(sequence_declaration->elem,
+					  sequence->scope,
+					  name, i);
+		field->definition->declaration->copy(dest, fdest, src, fsrc, field->definition);
 	}
 	fsrc->sequence_end(src, sequence_declaration);
-	fdest->sequence_end(dest, sequence_declaration);
+	if (fdest)
+		fdest->sequence_end(dest, sequence_declaration);
 }
 
 static
@@ -110,14 +138,11 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	sequence->p.index = index;
 	sequence->scope = new_definition_scope(parent_scope, field_name);
 	len_parent = sequence_declaration->len_declaration->p.definition_new(&sequence_declaration->len_declaration->p,
-				parent_scope,
+				sequence->scope,
 				g_quark_from_static_string("length"), 0);
 	sequence->len =
 		container_of(len_parent, struct definition_integer, p);
-	sequence->current_element.definition =
-		sequence_declaration->elem->definition_new(sequence_declaration->elem,
-				parent_scope,
-				g_quark_from_static_string("[]"), 1);
+	sequence->elems = g_array_new(FALSE, TRUE, sizeof(struct field));
 	return &sequence->p;
 }
 
@@ -127,12 +152,25 @@ void _sequence_definition_free(struct definition *definition)
 	struct definition_sequence *sequence =
 		container_of(definition, struct definition_sequence, p);
 	struct definition *len_definition = &sequence->len->p;
-	struct definition *elem_definition =
-		sequence->current_element.definition;
+	uint64_t i;
 
+	for (i = 0; i < sequence->elems->len; i++) {
+		struct field *field;
+
+		field = &g_array_index(sequence->elems, struct field, i);
+		field->definition->declaration->definition_free(field->definition);
+	}
+	(void) g_array_free(sequence->elems, TRUE);
 	len_definition->declaration->definition_free(len_definition);
-	elem_definition->declaration->definition_free(elem_definition);
 	free_definition_scope(sequence->scope);
 	declaration_unref(sequence->p.declaration);
 	g_free(sequence);
+}
+
+struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i)
+{
+	if (i >= sequence->len->value._unsigned)
+		return NULL;
+	assert(i < sequence->elems->len);
+	return g_array_index(sequence->elems, struct field, i).definition;
 }

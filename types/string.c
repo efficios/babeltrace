@@ -35,13 +35,14 @@ void string_copy(struct stream_pos *dest, const struct format *fdest,
 		container_of(definition, struct definition_string, p);
 	struct declaration_string *string_declaration = string->declaration;
 
-	if (fsrc->string_copy == fdest->string_copy) {
+	if (fdest && (fsrc->string_copy == fdest->string_copy)) {
 		fsrc->string_copy(dest, src, string_declaration);
 	} else {
 		char *tmp = NULL;
 
 		fsrc->string_read(&tmp, src, string_declaration);
-		fdest->string_write(dest, tmp, string_declaration);
+		if (fdest)
+			fdest->string_write(dest, tmp, string_declaration);
 		fsrc->string_free_temp(tmp);
 	}
 }

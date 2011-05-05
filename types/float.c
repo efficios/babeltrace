@@ -42,7 +42,8 @@ void float_copy(struct stream_pos *destp,
 		double v;
 
 		v = fsrc->double_read(srcp, float_declaration);
-		fdest->double_write(destp, float_declaration, v);
+		if (fdest)
+			fdest->double_write(destp, float_declaration, v);
 	}
 }
 

@@ -18,6 +18,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
+#include <inttypes.h>
 
 static
 struct definition *_array_definition_new(struct declaration *declaration,
@@ -36,14 +37,17 @@ void array_copy(struct stream_pos *dest, const struct format *fdest,
 	uint64_t i;
 
 	fsrc->array_begin(src, array_declaration);
-	fdest->array_begin(dest, array_declaration);
+	if (fdest)
+		fdest->array_begin(dest, array_declaration);
 
 	for (i = 0; i < array_declaration->len; i++) {
-		struct definition *elem = array->current_element.definition;
+		struct definition *elem =
+			g_array_index(array->elems, struct field, i).definition;
 		elem->declaration->copy(dest, fdest, src, fsrc, elem);
 	}
 	fsrc->array_end(src, array_declaration);
-	fdest->array_end(dest, array_declaration);
+	if (fdest)
+		fdest->array_end(dest, array_declaration);
 }
 
 static
@@ -91,6 +95,7 @@ struct definition *
 	struct declaration_array *array_declaration =
 		container_of(declaration, struct declaration_array, p);
 	struct definition_array *array;
+	uint64_t i;
 
 	array = g_new(struct definition_array, 1);
 	declaration_ref(&array_declaration->p);
@@ -99,11 +104,25 @@ struct definition *
 	array->p.ref = 1;
 	array->p.index = index;
 	array->scope = new_definition_scope(parent_scope, field_name);
-	array->current_element.definition =
-		array_declaration->elem->definition_new(array_declaration->elem,
-					  parent_scope,
-					  g_quark_from_static_string("[]"),
-					  0);
+	array->elems = g_array_sized_new(FALSE, TRUE, sizeof(struct field),
+					 array_declaration->len);
+	g_array_set_size(array->elems, array_declaration->len);
+	for (i = 0; i < array_declaration->len; i++) {
+		struct field *field;
+		GString *str;
+		GQuark name;
+
+		str = g_string_new("");
+		g_string_printf(str, "[%" PRIu64 "]", i);
+		name = g_quark_from_string(str->str);
+		(void) g_string_free(str, TRUE);
+
+		field = &g_array_index(array->elems, struct field, i);
+		field->name = name;
+		field->definition = array_declaration->elem->definition_new(array_declaration->elem,
+					  array->scope,
+					  name, i);
+	}
 	return &array->p;
 }
 
@@ -112,11 +131,23 @@ void _array_definition_free(struct definition *definition)
 {
 	struct definition_array *array =
 		container_of(definition, struct definition_array, p);
-	struct definition *elem_definition =
-		array->current_element.definition;
+	uint64_t i;
 
-	elem_definition->declaration->definition_free(elem_definition);
+	for (i = 0; i < array->elems->len; i++) {
+		struct field *field;
+
+		field = &g_array_index(array->elems, struct field, i);
+		field->definition->declaration->definition_free(field->definition);
+	}
+	(void) g_array_free(array->elems, TRUE);
 	free_definition_scope(array->scope);
 	declaration_unref(array->p.declaration);
 	g_free(array);
+}
+
+struct definition *array_index(struct definition_array *array, uint64_t i)
+{
+	if (i >= array->elems->len)
+		return NULL;
+	return g_array_index(array->elems, struct field, i).definition;
 }

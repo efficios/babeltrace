@@ -40,7 +40,8 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 	unsigned long i;
 
 	fsrc->struct_begin(src, struct_declaration);
-	fdest->struct_begin(dest, struct_declaration);
+	if (fdest)
+		fdest->struct_begin(dest, struct_declaration);
 
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct field *field = &g_array_index(_struct->fields,
@@ -51,7 +52,8 @@ void struct_copy(struct stream_pos *dest, const struct format *fdest,
 
 	}
 	fsrc->struct_end(src, struct_declaration);
-	fdest->struct_end(dest, struct_declaration);
+	if (fdest)
+		fdest->struct_end(dest, struct_declaration);
 }
 
 static
@@ -184,15 +186,24 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 				       field_declaration->alignment);
 }
 
-unsigned long
-	struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+/*
+ * struct_declaration_lookup_field_index - returns field index
+ *
+ * Returns the index of a field in a structure, or -1 if it does not
+ * exist.
+ */
+int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 				       GQuark field_name)
 {
-	unsigned long index;
+	gpointer index;
+	gboolean found;
 
-	index = (unsigned long) g_hash_table_lookup(struct_declaration->fields_by_name,
-						    (gconstpointer) (unsigned long) field_name);
-	return index;
+	found = g_hash_table_lookup_extended(struct_declaration->fields_by_name,
+				    (gconstpointer) (unsigned long) field_name,
+				    NULL, &index);
+	if (!found)
+		return -1;
+	return (int) (unsigned long) index;
 }
 
 /*
@@ -200,8 +211,10 @@ unsigned long
  */
 struct declaration_field *
 	struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
-					 unsigned long index)
+					 int index)
 {
+	if (index < 0)
+		return NULL;
 	return &g_array_index(struct_declaration->fields, struct declaration_field, index);
 }
 
@@ -210,7 +223,9 @@ struct declaration_field *
  */
 struct field *
 struct_definition_get_field_from_index(struct definition_struct *_struct,
-					unsigned long index)
+					int index)
 {
+	if (index < 0)
+		return NULL;
 	return &g_array_index(_struct->fields, struct field, index);
 }

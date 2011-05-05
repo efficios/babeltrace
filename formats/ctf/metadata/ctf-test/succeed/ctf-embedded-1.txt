@@ -2,7 +2,7 @@ trace {
 	major = 0;
 	minor = 1;
 	uuid = "f816d884-6cea-11e0-ac7a-8f5f4e9f7724";
-	endian = big;	/* Assuming big endian streams */
+	byte_order = be;	/* Assuming big endian streams */
 };
 
 /* Architecture with 32-bit pointers, 32-bit integers, 32-bit longs */

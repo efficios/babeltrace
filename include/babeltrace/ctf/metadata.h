@@ -27,14 +27,15 @@
 #include <assert.h>
 #include <glib.h>
 
+#define CTF_MAGIC	0xC1FC1FC1
+
 struct ctf_trace;
 struct ctf_stream;
 struct ctf_event;
 
-struct ctf_stream_file {
-	/* Information about stream backing file */
-	int fd;
-	char *mmap;				/* current stream mmap */
+struct ctf_file_stream {
+	uint64_t stream_id;
+	struct ctf_stream *stream;
 	struct stream_pos pos;			/* current stream position */
 };
 
@@ -58,18 +59,28 @@ struct ctf_trace {
 	struct declaration_scope *root_declaration_scope;
 
 	struct declaration_scope *declaration_scope;
-	GPtrArray *streams;			/* Array of struct ctf_stream pointers*/
-	struct ctf_stream_file metadata;
+	/* innermost definition scope. to be used as parent of stream. */
+	struct definition_scope *definition_scope;
+	GPtrArray *streams;			/* Array of struct ctf_stream pointers */
+	struct ctf_file_stream metadata;
+
+	/* Declarations only used when parsing */
+	struct declaration_struct *packet_header_decl;
+
+	/* Definitions used afterward */
+	struct definition_struct *packet_header;
 
 	uint64_t major;
 	uint64_t minor;
 	uuid_t uuid;
-	int byte_order;
+	int byte_order;		/* trace BYTE_ORDER. 0 if unset. */
 
 	enum {					/* Fields populated mask */
-		CTF_TRACE_major	=	(1U << 0),
-		CTF_TRACE_minor =	(1U << 1),
-		CTF_TRACE_uuid	=	(1U << 2),
+		CTF_TRACE_major		=	(1U << 0),
+		CTF_TRACE_minor		=	(1U << 1),
+		CTF_TRACE_uuid		=	(1U << 2),
+		CTF_TRACE_byte_order	=	(1U << 3),
+		CTF_TRACE_packet_header	=	(1U << 4),
 	} field_mask;
 
 	/* Information about trace backing directory and files */
@@ -117,7 +128,7 @@ struct ctf_stream {
 		CTF_STREAM_stream_id =	(1 << 0),
 	} field_mask;
 
-	struct ctf_stream_file file;		/* Backing file */
+	GPtrArray *files;			/* Array of struct ctf_file_stream pointers */
 };
 
 #define CTF_EVENT_SET_FIELD(ctf_event, field)				\

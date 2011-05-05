@@ -371,7 +371,8 @@ void enum_copy(struct stream_pos *dest, const struct format *fdest,
 	 * now to test enum read and write code.
 	 */
 	v = g_array_index(array, GQuark, 0);
-	return fdest->enum_write(dest, enum_declaration, v);
+	if (fdest)
+		fdest->enum_write(dest, enum_declaration, v);
 }
 
 static
