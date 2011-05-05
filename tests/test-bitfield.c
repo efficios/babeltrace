@@ -119,7 +119,7 @@ do {					\
 
 int run_test_unsigned(void)
 {
-	unsigned long src, nrbits;
+	unsigned int src, nrbits;
 	union {
 		unsigned char c[TEST_LEN];
 		unsigned short s[TEST_LEN/sizeof(unsigned short)];
@@ -142,7 +142,7 @@ int run_test_unsigned(void)
 			bt_bitfield_write(target.c, unsigned char, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
+				printf("Error (bytewise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -152,7 +152,7 @@ int run_test_unsigned(void)
 			bt_bitfield_write(target.s, unsigned short, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (shortwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -162,7 +162,7 @@ int run_test_unsigned(void)
 			bt_bitfield_write(target.i, unsigned int, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (intwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -172,7 +172,7 @@ int run_test_unsigned(void)
 			bt_bitfield_write(target.l, unsigned long, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (longwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -182,7 +182,7 @@ int run_test_unsigned(void)
 			bt_bitfield_write(target.ll, unsigned long long, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (longlongwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -198,7 +198,7 @@ int run_test_unsigned(void)
 
 int run_test_signed(void)
 {
-	long src, nrbits;
+	int src, nrbits;
 	union {
 		signed char c[TEST_LEN];
 		short s[TEST_LEN/sizeof(short)];
@@ -224,7 +224,7 @@ int run_test_signed(void)
 			bt_bitfield_write(target.c, signed char, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (bytewise) src %lX read %llX shift %d len %d\n",
+				printf("Error (bytewise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -234,7 +234,7 @@ int run_test_signed(void)
 			bt_bitfield_write(target.s, short, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (shortwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (shortwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -244,7 +244,7 @@ int run_test_signed(void)
 			bt_bitfield_write(target.i, int, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (intwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (intwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -254,7 +254,7 @@ int run_test_signed(void)
 			bt_bitfield_write(target.l, long, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (longwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (longwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
@@ -264,7 +264,7 @@ int run_test_signed(void)
 			bt_bitfield_write(target.ll, long long, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (readval != src) {
-				printf("Error (longlongwise) src %lX read %llX shift %d len %d\n",
+				printf("Error (longlongwise) src %X read %llX shift %d len %d\n",
 				       src, readval, s, l);
 				print_byte_array(target.c, TEST_LEN);
 				err = 1;
