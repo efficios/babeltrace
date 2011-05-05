@@ -133,7 +133,7 @@ void init_pos(struct stream_pos *pos, int fd)
 static inline
 void move_pos(struct stream_pos *pos, size_t offset)
 {
-	if (pos->fd >= 0 && pos->offset + offset >= pos->content_size)
+	if (pos->fd >= 0 && (pos->offset + offset >= pos->content_size))
 		move_pos_slow(pos, offset);
 	else
 		pos->offset += offset;

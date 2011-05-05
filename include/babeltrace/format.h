@@ -48,6 +48,11 @@ struct format {
 	void (*double_write)(struct stream_pos *pos,
 		const struct declaration_float *float_declaration,
 		double v);
+	long double (*ldouble_read)(struct stream_pos *pos,
+		const struct declaration_float *float_declaration);
+	void (*ldouble_write)(struct stream_pos *pos,
+		const struct declaration_float *float_declaration,
+		long double v);
 
 	void (*string_copy)(struct stream_pos *dest, struct stream_pos *src,
 		const struct declaration_string *string_declaration);

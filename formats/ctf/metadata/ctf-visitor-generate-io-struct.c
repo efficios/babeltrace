@@ -1859,6 +1859,11 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		fprintf(fd, "[error] %s: missing uuid field in trace declaration\n", __func__);
 		goto error;
 	}
+	if (!CTF_TRACE_FIELD_IS_SET(trace, byte_order)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing byte_order field in trace declaration\n", __func__);
+		goto error;
+	}
 
 	parent_def_scope = NULL;
 	if (trace->packet_header_decl) {

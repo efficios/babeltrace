@@ -40,12 +40,14 @@ void integer_copy(struct stream_pos *dest, const struct format *fdest,
 		uint64_t v;
 
 		v = fsrc->uint_read(src, integer_declaration);
+		integer->value._unsigned = v;
 		if (fdest)
 			fdest->uint_write(dest, integer_declaration, v);
 	} else {
 		int64_t v;
 
 		v = fsrc->int_read(src, integer_declaration);
+		integer->value._signed = v;
 		if (fdest)
 			fdest->int_write(dest, integer_declaration, v);
 	}

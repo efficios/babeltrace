@@ -35,16 +35,12 @@ void float_copy(struct stream_pos *destp,
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
 	struct declaration_float *float_declaration = _float->declaration;
+	long double v;
 
-	if (fsrc->float_copy == fdest->float_copy) {
-		fsrc->float_copy(destp, srcp, float_declaration);
-	} else {
-		double v;
-
-		v = fsrc->double_read(srcp, float_declaration);
-		if (fdest)
-			fdest->double_write(destp, float_declaration, v);
-	}
+	v = fsrc->ldouble_read(srcp, float_declaration);
+	_float->value = v;
+	if (fdest)
+		fdest->ldouble_write(destp, float_declaration, v);
 }
 
 static

@@ -59,6 +59,8 @@ static struct format ctf_format = {
 	.int_write = ctf_int_write,
 	.double_read = ctf_double_read,
 	.double_write = ctf_double_write,
+	.ldouble_read = ctf_ldouble_read,
+	.ldouble_write = ctf_ldouble_write,
 	.float_copy = ctf_float_copy,
 	.string_copy = ctf_string_copy,
 	.string_read = ctf_string_read,
@@ -209,8 +211,8 @@ int create_stream_packet_index(struct trace_descriptor *td,
 		/* map new base. Need mapping length from header. */
 		pos->base = mmap(NULL, MAX_PACKET_HEADER_LEN, PROT_READ,
 				 MAP_PRIVATE, pos->fd, pos->mmap_offset);
-		pos->content_size = 0;	/* Unknown at this point */
-		pos->packet_size = 0;	/* Unknown at this point */
+		pos->content_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
+		pos->packet_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
 		pos->offset = 0;	/* Position of the packet header */
 
 		/* read and check header, set stream id (and check) */
@@ -299,38 +301,45 @@ int create_stream_packet_index(struct trace_descriptor *td,
 		}
 		first_packet = 0;
 
-		/* Read packet context */
-		stream->packet_context->p.declaration->copy(NULL, NULL,
-				pos, &ctf_format, &stream->packet_context->p);
+		if (stream->packet_context) {
+			/* Read packet context */
+			stream->packet_context->p.declaration->copy(NULL, NULL,
+					pos, &ctf_format, &stream->packet_context->p);
 
-		/* read content size from header */
-		len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
-		if (len_index >= 0) {
-			struct definition_integer *defint;
-			struct field *field;
+			/* read content size from header */
+			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
+			if (len_index >= 0) {
+				struct definition_integer *defint;
+				struct field *field;
 
-			field = struct_definition_get_field_from_index(stream->packet_context, len_index);
-			assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-			defint = container_of(field->definition, struct definition_integer, p);
-			assert(defint->declaration->signedness == FALSE);
-			pos->content_size = defint->value._unsigned;
+				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
+				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field->definition, struct definition_integer, p);
+				assert(defint->declaration->signedness == FALSE);
+				pos->content_size = defint->value._unsigned;
+			} else {
+				/* Use file size for packet size */
+				pos->content_size = filestats.st_size * CHAR_BIT;
+			}
+
+			/* read packet size from header */
+			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("packet_size"));
+			if (len_index >= 0) {
+				struct definition_integer *defint;
+				struct field *field;
+
+				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
+				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field->definition, struct definition_integer, p);
+				assert(defint->declaration->signedness == FALSE);
+				pos->packet_size = defint->value._unsigned;
+			} else {
+				/* Use content size if non-zero, else file size */
+				pos->packet_size = pos->content_size ? : filestats.st_size * CHAR_BIT;
+			}
 		} else {
 			/* Use file size for packet size */
 			pos->content_size = filestats.st_size * CHAR_BIT;
-		}
-
-		/* read packet size from header */
-		len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("packet_size"));
-		if (len_index >= 0) {
-			struct definition_integer *defint;
-			struct field *field;
-
-			field = struct_definition_get_field_from_index(stream->packet_context, len_index);
-			assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-			defint = container_of(field->definition, struct definition_integer, p);
-			assert(defint->declaration->signedness == FALSE);
-			pos->packet_size = defint->value._unsigned;
-		} else {
 			/* Use content size if non-zero, else file size */
 			pos->packet_size = pos->content_size ? : filestats.st_size * CHAR_BIT;
 		}
@@ -392,14 +401,14 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 	/* Open trace directory */
 	td->ctf_trace.dir = opendir(path);
 	if (!td->ctf_trace.dir) {
-		fprintf(stdout, "Unable to open trace directory.\n");
+		fprintf(stdout, "[error] Unable to open trace directory.\n");
 		ret = -ENOENT;
 		goto error;
 	}
 
 	td->ctf_trace.dirfd = open(path, 0);
 	if (td->ctf_trace.dirfd < 0) {
-		fprintf(stdout, "Unable to open trace directory file descriptor.\n");
+		fprintf(stdout, "[error] Unable to open trace directory file descriptor.\n");
 		ret = -ENOENT;
 		goto error_dirfd;
 	}
@@ -429,7 +438,7 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 	for (;;) {
 		ret = readdir_r(td->ctf_trace.dir, dirent, &diriter);
 		if (ret) {
-			fprintf(stdout, "Readdir error.\n");
+			fprintf(stdout, "[error] Readdir error.\n");
 			goto readdir_error;
 		}
 		if (!diriter)
@@ -438,7 +447,11 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 				|| !strcmp(diriter->d_name, "..")
 				|| !strcmp(diriter->d_name, "metadata"))
 			continue;
-		/* TODO: open file stream */
+		ret = ctf_open_file_stream_read(td, diriter->d_name, flags);
+		if (ret) {
+			fprintf(stdout, "[error] Open file stream error.\n");
+			goto readdir_error;
+		}
 	}
 
 	free(dirent);
