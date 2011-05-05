@@ -35,8 +35,6 @@ void string_copy(struct stream_pos *dest, const struct format *fdest,
 		container_of(definition, struct definition_string, p);
 	struct declaration_string *string_declaration = string->declaration;
 
-	g_free(string->value);
-	string->value = NULL;
 	fsrc->string_read(&string->value, src, string_declaration);
 	if (fdest)
 		fdest->string_write(dest, string->value, string_declaration);
