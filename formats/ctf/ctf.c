@@ -38,9 +38,10 @@
 
 /*
  * We currently simply map a page to read the packet header and packet
- * context to get the packet length and content length.
+ * context to get the packet length and content length. (in bits)
  */
-#define MAX_PACKET_HEADER_LEN	getpagesize()
+#define MAX_PACKET_HEADER_LEN	(getpagesize() * CHAR_BIT)
+#define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
 #define UUID_LEN 16	/* uuid by value len */
 
 extern int yydebug;
@@ -80,19 +81,71 @@ static struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
-void move_pos_slow(struct stream_pos *pos, size_t offset)
+void init_pos(struct stream_pos *pos, int fd)
+{
+	pos->fd = fd;
+	pos->mmap_offset = 0;
+	pos->packet_size = 0;
+	pos->content_size = 0;
+	pos->content_size_loc = NULL;
+	pos->base = NULL;
+	pos->offset = 0;
+	pos->dummy = false;
+	pos->packet_index = g_array_new(FALSE, TRUE,
+					sizeof(struct packet_index));
+	pos->cur_index = 0;
+	if (fd >= 0) {
+		int flags = fcntl(fd, F_GETFL, 0);
+
+		switch (flags & O_ACCMODE) {
+		case O_RDONLY:
+			pos->prot = PROT_READ;
+			pos->flags = MAP_PRIVATE;
+			break;
+		case O_WRONLY:
+		case O_RDWR:
+			pos->prot = PROT_WRITE;	/* Write has priority */
+			pos->flags = MAP_SHARED;
+			move_pos_slow(pos, 0);	/* position for write */
+			break;
+		default:
+			assert(0);
+		}
+
+	}
+}
+
+void fini_pos(struct stream_pos *pos)
 {
 	int ret;
 
-	/*
-	 * The caller should never ask for move_pos across packets,
-	 * except to get exactly at the beginning of the next packet.
-	 */
-	assert(pos->offset + offset == pos->content_size);
+	if (pos->prot == PROT_WRITE && pos->content_size_loc)
+		*pos->content_size_loc = pos->offset;
+	if (pos->base) {
+		/* unmap old base */
+		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
+		if (ret) {
+			fprintf(stdout, "Unable to unmap old base: %s.\n",
+				strerror(errno));
+			assert(0);
+		}
+	}
+	(void) g_array_free(pos->packet_index, TRUE);
+}
+
+void move_pos_slow(struct stream_pos *pos, size_t offset)
+{
+	int ret;
+	off_t off;
+	struct packet_index *index;
+
+
+	if (pos->prot == PROT_WRITE && pos->content_size_loc)
+		*pos->content_size_loc = pos->offset;
 
 	if (pos->base) {
 		/* unmap old base */
-		ret = munmap(pos->base, pos->packet_size);
+		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 		if (ret) {
 			fprintf(stdout, "Unable to unmap old base: %s.\n",
 				strerror(errno));
@@ -100,13 +153,46 @@ void move_pos_slow(struct stream_pos *pos, size_t offset)
 		}
 	}
 
-	pos->mmap_offset += pos->packet_size / CHAR_BIT;
-	/* map new base. Need mapping length from header. */
-	pos->base = mmap(NULL, MAX_PACKET_HEADER_LEN, PROT_READ,
-			 MAP_PRIVATE, pos->fd, pos->mmap_offset);
-	pos->content_size = 0;	/* Unknown at this point */
-	pos->packet_size = 0;	/* Unknown at this point */
+	/*
+	 * The caller should never ask for move_pos across packets,
+	 * except to get exactly at the beginning of the next packet.
+	 */
+	if (pos->prot == PROT_WRITE) {
+		/* The writer will add padding */
+		assert(pos->offset + offset == pos->packet_size);
 
+		/*
+		 * Don't increment for initial stream move (only condition where
+		 * pos->offset can be 0.
+		 */
+		if (pos->offset)
+			pos->mmap_offset += WRITE_PACKET_LEN / CHAR_BIT;
+		pos->content_size = -1U;	/* Unknown at this point */
+		pos->packet_size = WRITE_PACKET_LEN;
+		off = posix_fallocate(pos->fd, pos->mmap_offset, pos->packet_size / CHAR_BIT);
+		assert(off >= 0);
+	} else {
+		/* The reader will expect us to skip padding */
+		assert(pos->offset + offset == pos->content_size);
+
+		/*
+		 * Don't increment for initial stream move (only condition where
+		 * pos->offset can be 0).
+		 */
+		if (pos->offset)
+			++pos->cur_index;
+		index = &g_array_index(pos->packet_index, struct packet_index,
+				       pos->cur_index);
+		pos->mmap_offset = index->offset;
+
+		/* Lookup context/packet size in index */
+		pos->content_size = index->content_size;
+		pos->packet_size = index->packet_size;
+	}
+	/* map new base. Need mapping length from header. */
+	pos->base = mmap(NULL, pos->packet_size / CHAR_BIT, pos->prot,
+			 pos->flags, pos->fd, pos->mmap_offset);
+	pos->offset = 0;
 }
 
 /*
@@ -201,19 +287,24 @@ int create_stream_packet_index(struct trace_descriptor *td,
 
 		if (pos->base) {
 			/* unmap old base */
-			ret = munmap(pos->base, pos->packet_size);
+			ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 			if (ret) {
 				fprintf(stdout, "Unable to unmap old base: %s.\n",
 					strerror(errno));
 				return ret;
 			}
+			pos->base = NULL;
 		}
 		/* map new base. Need mapping length from header. */
-		pos->base = mmap(NULL, MAX_PACKET_HEADER_LEN, PROT_READ,
+		pos->base = mmap(NULL, MAX_PACKET_HEADER_LEN / CHAR_BIT, PROT_READ,
 				 MAP_PRIVATE, pos->fd, pos->mmap_offset);
 		pos->content_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
 		pos->packet_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
 		pos->offset = 0;	/* Position of the packet header */
+
+		packet_index.offset = pos->mmap_offset;
+		packet_index.content_size = 0;
+		packet_index.packet_size = 0;
 
 		/* read and check header, set stream id (and check) */
 		if (td->ctf_trace.packet_header) {
@@ -231,8 +322,10 @@ int create_stream_packet_index(struct trace_descriptor *td,
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				if (defint->value._unsigned != CTF_MAGIC) {
-					fprintf(stdout, "[error] Invalid magic number %" PRIX64 ".\n",
-							defint->value._unsigned);
+					fprintf(stdout, "[error] Invalid magic number %" PRIX64 " at packet %u (file offset %zd).\n",
+							defint->value._unsigned,
+							file_stream->pos.packet_index->len,
+							(ssize_t) pos->mmap_offset);
 					return -EINVAL;
 				}
 			}
@@ -244,7 +337,6 @@ int create_stream_packet_index(struct trace_descriptor *td,
 				struct field *field;
 				uint64_t i;
 				uint8_t uuidval[UUID_LEN];
-
 
 				field = struct_definition_get_field_from_index(td->ctf_trace.packet_header, len_index);
 				assert(field->definition->declaration->id == CTF_TYPE_ARRAY);
@@ -316,10 +408,10 @@ int create_stream_packet_index(struct trace_descriptor *td,
 				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
-				pos->content_size = defint->value._unsigned;
+				packet_index.content_size = defint->value._unsigned;
 			} else {
 				/* Use file size for packet size */
-				pos->content_size = filestats.st_size * CHAR_BIT;
+				packet_index.content_size = filestats.st_size * CHAR_BIT;
 			}
 
 			/* read packet size from header */
@@ -332,25 +424,22 @@ int create_stream_packet_index(struct trace_descriptor *td,
 				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
-				pos->packet_size = defint->value._unsigned;
+				packet_index.packet_size = defint->value._unsigned;
 			} else {
 				/* Use content size if non-zero, else file size */
-				pos->packet_size = pos->content_size ? : filestats.st_size * CHAR_BIT;
+				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
 			}
 		} else {
 			/* Use file size for packet size */
-			pos->content_size = filestats.st_size * CHAR_BIT;
+			packet_index.content_size = filestats.st_size * CHAR_BIT;
 			/* Use content size if non-zero, else file size */
-			pos->packet_size = pos->content_size ? : filestats.st_size * CHAR_BIT;
+			packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
 		}
 
-		packet_index.offset = pos->mmap_offset;
-		packet_index.content_size = pos->content_size;
-		packet_index.packet_size = pos->packet_size;
 		/* add index to packet array */
 		g_array_append_val(file_stream->pos.packet_index, packet_index);
 
-		pos->mmap_offset += pos->packet_size / CHAR_BIT;
+		pos->mmap_offset += packet_index.packet_size / CHAR_BIT;
 	}
 
 	return 0;
@@ -370,9 +459,7 @@ int ctf_open_file_stream_read(struct trace_descriptor *td, const char *path, int
 	if (ret < 0)
 		goto error;
 	file_stream = g_new0(struct ctf_file_stream, 1);
-	file_stream->pos.fd = ret;
-	file_stream->pos.packet_index = g_array_new(FALSE, TRUE,
-						sizeof(struct packet_index));
+	init_pos(&file_stream->pos, ret);
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;
@@ -381,7 +468,7 @@ int ctf_open_file_stream_read(struct trace_descriptor *td, const char *path, int
 	return 0;
 
 error_index:
-	(void) g_array_free(file_stream->pos.packet_index, TRUE);
+	fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
 	g_free(file_stream);
 error:
@@ -499,7 +586,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 
 	td = g_new0(struct trace_descriptor, 1);
 
-	switch (flags) {
+	switch (flags & O_ACCMODE) {
 	case O_RDONLY:
 		ret = ctf_open_trace_read(td, path, flags);
 		if (ret)
@@ -524,7 +611,7 @@ error:
 static
 void ctf_close_file_stream(struct ctf_file_stream *file_stream)
 {
-	(void) g_array_free(file_stream->pos.packet_index, TRUE);
+	fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
 }
 

@@ -20,6 +20,8 @@
  */
 
 #include <babeltrace/types.h>
+#include <sys/mman.h>
+#include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <glib.h>
@@ -36,13 +38,17 @@ struct packet_index {
 struct stream_pos {
 	int fd;			/* backing file fd. -1 if unset. */
 	GArray *packet_index;	/* contains struct packet_index */
+	int prot;		/* mmap protection */
+	int flags;		/* mmap flags */
 
 	/* Current position */
 	off_t mmap_offset;	/* mmap offset in the file, in bytes */
 	size_t packet_size;	/* current packet size, in bits */
 	size_t content_size;	/* current content size, in bits */
+	uint32_t *content_size_loc; /* pointer to current content size */
 	char *base;		/* mmap base address */
 	size_t offset;		/* offset from base, in bits */
+	size_t cur_index;	/* current index in packet index */
 
 	int dummy;		/* dummy position, for length calculation */
 };
@@ -113,17 +119,8 @@ void ctf_sequence_end(struct stream_pos *pos,
 
 void move_pos_slow(struct stream_pos *pos, size_t offset);
 
-static inline
-void init_pos(struct stream_pos *pos, int fd)
-{
-	pos->fd = fd;
-	pos->mmap_offset = 0;
-	pos->packet_size = 0;
-	pos->content_size = 0;
-	pos->base = NULL;
-	pos->offset = 0;
-	pos->dummy = false;
-}
+void init_pos(struct stream_pos *pos, int fd);
+void fini_pos(struct stream_pos *pos);
 
 /*
  * move_pos - move position of a relative bit offset
@@ -131,12 +128,18 @@ void init_pos(struct stream_pos *pos, int fd)
  * TODO: allow larger files by updating base too.
  */
 static inline
-void move_pos(struct stream_pos *pos, size_t offset)
+void move_pos(struct stream_pos *pos, size_t bit_offset)
 {
-	if (pos->fd >= 0 && (pos->offset + offset >= pos->content_size))
-		move_pos_slow(pos, offset);
-	else
-		pos->offset += offset;
+	if (pos->fd >= 0) {
+		if (((pos->prot == PROT_READ)
+		      && (pos->offset + bit_offset >= pos->content_size))
+		    || ((pos->prot == PROT_WRITE)
+		      && (pos->offset + bit_offset >= pos->packet_size))) {
+			move_pos_slow(pos, bit_offset);
+			return;
+		}
+	}
+	pos->offset += bit_offset;
 }
 
 /*
@@ -145,15 +148,9 @@ void move_pos(struct stream_pos *pos, size_t offset)
  * TODO: allow larger files by updating base too.
  */
 static inline
-void align_pos(struct stream_pos *pos, size_t offset)
+void align_pos(struct stream_pos *pos, size_t bit_offset)
 {
-	pos->offset += offset_align(pos->offset, offset);
-}
-
-static inline
-void copy_pos(struct stream_pos *dest, struct stream_pos *src)
-{
-	memcpy(dest, src, sizeof(struct stream_pos));
+	move_pos(pos, offset_align(pos->offset, bit_offset));
 }
 
 static inline
@@ -162,6 +159,32 @@ char *get_pos_addr(struct stream_pos *pos)
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	assert(!(pos->offset % CHAR_BIT));
 	return pos->base + (pos->offset / CHAR_BIT);
+}
+
+static inline
+void dummy_pos(struct stream_pos *pos, struct stream_pos *dummy)
+{
+	memcpy(dummy, pos, sizeof(struct stream_pos));
+	dummy->dummy = 1;
+	dummy->fd = -1;
+}
+
+/*
+ * Check if current packet can hold data.
+ * Returns 0 for success, negative error otherwise.
+ */
+static inline
+int pos_packet(struct stream_pos *dummy)
+{
+	if (dummy->offset > dummy->packet_size)
+		return -ENOSPC;
+	return 0;
+}
+
+static inline
+void pos_pad_packet(struct stream_pos *pos)
+{
+	move_pos(pos, pos->packet_size - pos->offset);
 }
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

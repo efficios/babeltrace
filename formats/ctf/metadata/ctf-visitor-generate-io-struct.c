@@ -1442,13 +1442,6 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		fprintf(fd, "[error] %s: missing name field in event declaration\n", __func__);
 		goto error;
 	}
-	/* Allow only one event without id per stream */
-	if (!CTF_EVENT_FIELD_IS_SET(event, id)
-	    && event->stream->events_by_id->len != 0) {
-		ret = -EPERM;
-		fprintf(fd, "[error] %s: missing id field in event declaration\n", __func__);
-		goto error;
-	}
 	if (!CTF_EVENT_FIELD_IS_SET(event, stream_id)) {
 		/* Allow missing stream_id if there is only a single stream */
 		if (trace->streams->len == 1) {
@@ -1459,6 +1452,13 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 			fprintf(fd, "[error] %s: missing stream_id field in event declaration\n", __func__);
 			goto error;
 		}
+	}
+	/* Allow only one event without id per stream */
+	if (!CTF_EVENT_FIELD_IS_SET(event, id)
+	    && event->stream->events_by_id->len != 0) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing id field in event declaration\n", __func__);
+		goto error;
 	}
 	if (event->stream->events_by_id->len <= event->id)
 		g_ptr_array_set_size(event->stream->events_by_id, event->id + 1);
@@ -1646,14 +1646,14 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 			fprintf(fd, "[error] %s: missing stream_id field in packet header declaration, but stream_id attribute is declared for stream.\n", __func__);
 			goto error;
 		}
-	}
-
-	/* Allow only one id-less stream */
-	if (!CTF_STREAM_FIELD_IS_SET(stream, stream_id)
-	    && trace->streams->len != 0) {
-		ret = -EPERM;
-		fprintf(fd, "[error] %s: missing id field in stream declaration\n", __func__);
-		goto error;
+	} else {
+		/* Allow only one id-less stream */
+		if (trace->streams->len != 0) {
+			ret = -EPERM;
+			fprintf(fd, "[error] %s: missing id field in stream declaration\n", __func__);
+			goto error;
+		}
+		stream->stream_id = 0;
 	}
 	if (trace->streams->len <= stream->stream_id)
 		g_ptr_array_set_size(trace->streams, stream->stream_id + 1);
