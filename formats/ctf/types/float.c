@@ -120,7 +120,7 @@ void ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos destp;
 
-	ctf_init_pos(&destp, -1);
+	ctf_init_pos(&destp, -1, O_WRONLY);
 	destp.base = (char *) u.bits;
 
 	ctf_align_pos(pos, float_declaration->p.alignment);
@@ -144,7 +144,7 @@ void ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos srcp;
 
-	ctf_init_pos(&srcp, -1);
+	ctf_init_pos(&srcp, -1, O_RDONLY);
 	srcp.base = (char *) u.bits;
 
 	u.v = float_definition->value;

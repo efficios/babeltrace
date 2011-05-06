@@ -126,7 +126,7 @@ void trace_text(FILE *input, int output)
 	char *line = NULL, *nl;
 	size_t linesize;
 
-	ctf_init_pos(&pos, output);
+	ctf_init_pos(&pos, output, O_WRONLY);
 
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);

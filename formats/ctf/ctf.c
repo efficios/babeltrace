@@ -76,7 +76,7 @@ struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
-void ctf_init_pos(struct ctf_stream_pos *pos, int fd)
+void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
 	pos->fd = fd;
 	pos->mmap_offset = 0;
@@ -86,29 +86,29 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd)
 	pos->base = NULL;
 	pos->offset = 0;
 	pos->dummy = false;
-	pos->packet_index = g_array_new(FALSE, TRUE,
-					sizeof(struct packet_index));
 	pos->cur_index = 0;
-	if (fd >= 0) {
-		int flags = fcntl(fd, F_GETFL, 0);
+	if (fd >= 0)
+		pos->packet_index = g_array_new(FALSE, TRUE,
+						sizeof(struct packet_index));
+	else
+		pos->packet_index = NULL;
 
-		switch (flags & O_ACCMODE) {
-		case O_RDONLY:
-			pos->prot = PROT_READ;
-			pos->flags = MAP_PRIVATE;
-			pos->parent.rw_table = read_dispatch_table;
-			break;
-		case O_WRONLY:
-		case O_RDWR:
-			pos->prot = PROT_WRITE;	/* Write has priority */
-			pos->flags = MAP_SHARED;
-			pos->parent.rw_table = write_dispatch_table;
+	switch (open_flags & O_ACCMODE) {
+	case O_RDONLY:
+		pos->prot = PROT_READ;
+		pos->flags = MAP_PRIVATE;
+		pos->parent.rw_table = read_dispatch_table;
+		break;
+	case O_WRONLY:
+	case O_RDWR:
+		pos->prot = PROT_WRITE;	/* Write has priority */
+		pos->flags = MAP_SHARED;
+		pos->parent.rw_table = write_dispatch_table;
+		if (fd >= 0)
 			ctf_move_pos_slow(pos, 0);	/* position for write */
-			break;
-		default:
-			assert(0);
-		}
-
+		break;
+	default:
+		assert(0);
 	}
 }
 
@@ -453,7 +453,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 	if (ret < 0)
 		goto error;
 	file_stream = g_new0(struct ctf_file_stream, 1);
-	ctf_init_pos(&file_stream->pos, ret);
+	ctf_init_pos(&file_stream->pos, ret, flags);
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;

@@ -20,6 +20,9 @@
  */
 
 #include <babeltrace/types.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <stdint.h>
@@ -84,7 +87,7 @@ void ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
 
 void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset);
 
-void ctf_init_pos(struct ctf_stream_pos *pos, int fd);
+void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
 void ctf_fini_pos(struct ctf_stream_pos *pos);
 
 /*

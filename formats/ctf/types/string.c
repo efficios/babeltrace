@@ -20,27 +20,6 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-void ctf_string_copy(struct stream_pos *pdest, struct stream_pos *psrc,
-		     const struct declaration_string *string_declaration)
-{
-	struct ctf_stream_pos *dest = ctf_pos(pdest);
-	struct ctf_stream_pos *src = ctf_pos(psrc);
-	size_t len;
-	char *destaddr, *srcaddr;
-
-	ctf_align_pos(src, string_declaration->p.alignment);
-	srcaddr = ctf_get_pos_addr(src);
-	len = strlen(srcaddr) + 1;
-	if (dest->dummy)
-		goto end;
-	ctf_align_pos(dest, string_declaration->p.alignment);
-	destaddr = ctf_get_pos_addr(dest);
-	strcpy(destaddr, srcaddr);
-end:
-	ctf_move_pos(dest, len);
-	ctf_move_pos(src, len);
-}
-
 void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_string *string_definition =
@@ -81,7 +60,7 @@ void ctf_string_write(struct stream_pos *ppos,
 	if (pos->dummy)
 		goto end;
 	destaddr = ctf_get_pos_addr(pos);
-	strcpy(destaddr, string_definition->value);
+	memcpy(destaddr, string_definition->value, len);
 end:
 	ctf_move_pos(pos, len);
 }
