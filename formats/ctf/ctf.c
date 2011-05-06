@@ -46,10 +46,6 @@
 
 extern int yydebug;
 
-struct trace_descriptor {
-	struct ctf_trace ctf_trace;
-};
-
 struct trace_descriptor *ctf_open_trace(const char *path, int flags);
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
@@ -81,7 +77,7 @@ static struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
-void init_pos(struct stream_pos *pos, int fd)
+void ctf_init_pos(struct ctf_stream_pos *pos, int fd)
 {
 	pos->fd = fd;
 	pos->mmap_offset = 0;
@@ -106,7 +102,7 @@ void init_pos(struct stream_pos *pos, int fd)
 		case O_RDWR:
 			pos->prot = PROT_WRITE;	/* Write has priority */
 			pos->flags = MAP_SHARED;
-			move_pos_slow(pos, 0);	/* position for write */
+			ctf_move_pos_slow(pos, 0);	/* position for write */
 			break;
 		default:
 			assert(0);
@@ -115,7 +111,7 @@ void init_pos(struct stream_pos *pos, int fd)
 	}
 }
 
-void fini_pos(struct stream_pos *pos)
+void ctf_fini_pos(struct ctf_stream_pos *pos)
 {
 	int ret;
 
@@ -125,7 +121,7 @@ void fini_pos(struct stream_pos *pos)
 		/* unmap old base */
 		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 		if (ret) {
-			fprintf(stdout, "Unable to unmap old base: %s.\n",
+			fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
 			assert(0);
 		}
@@ -133,7 +129,7 @@ void fini_pos(struct stream_pos *pos)
 	(void) g_array_free(pos->packet_index, TRUE);
 }
 
-void move_pos_slow(struct stream_pos *pos, size_t offset)
+void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset)
 {
 	int ret;
 	off_t off;
@@ -147,14 +143,14 @@ void move_pos_slow(struct stream_pos *pos, size_t offset)
 		/* unmap old base */
 		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 		if (ret) {
-			fprintf(stdout, "Unable to unmap old base: %s.\n",
+			fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
 			assert(0);
 		}
 	}
 
 	/*
-	 * The caller should never ask for move_pos across packets,
+	 * The caller should never ask for ctf_move_pos across packets,
 	 * except to get exactly at the beginning of the next packet.
 	 */
 	if (pos->prot == PROT_WRITE) {
@@ -200,58 +196,57 @@ void move_pos_slow(struct stream_pos *pos, size_t offset)
  * (without any header nor packets nor padding).
  */
 static
-int ctf_open_trace_metadata_read(struct trace_descriptor *td)
+int ctf_open_trace_metadata_read(struct ctf_trace *td)
 {
 	struct ctf_scanner *scanner;
 	FILE *fp;
 	int ret = 0;
 
-	td->ctf_trace.metadata.pos.fd = openat(td->ctf_trace.dirfd,
-			"metadata", O_RDONLY);
-	if (td->ctf_trace.metadata.pos.fd < 0) {
+	td->metadata.pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
+	if (td->metadata.pos.fd < 0) {
 		fprintf(stdout, "Unable to open metadata.\n");
-		return td->ctf_trace.metadata.pos.fd;
+		return td->metadata.pos.fd;
 	}
 
 	if (babeltrace_debug)
 		yydebug = 1;
 
-	fp = fdopen(td->ctf_trace.metadata.pos.fd, "r");
+	fp = fdopen(td->metadata.pos.fd, "r");
 	if (!fp) {
-		fprintf(stdout, "Unable to open metadata stream.\n");
+		fprintf(stdout, "[error] Unable to open metadata stream.\n");
 		ret = -errno;
 		goto end_stream;
 	}
 
 	scanner = ctf_scanner_alloc(fp);
 	if (!scanner) {
-		fprintf(stdout, "Error allocating scanner\n");
+		fprintf(stdout, "[error] Error allocating scanner\n");
 		ret = -ENOMEM;
 		goto end_scanner_alloc;
 	}
 	ret = ctf_scanner_append_ast(scanner);
 	if (ret) {
-		fprintf(stdout, "Error creating AST\n");
+		fprintf(stdout, "[error] Error creating AST\n");
 		goto end;
 	}
 
 	if (babeltrace_debug) {
 		ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
 		if (ret) {
-			fprintf(stdout, "Error visiting AST for XML output\n");
+			fprintf(stdout, "[error] Error visiting AST for XML output\n");
 			goto end;
 		}
 	}
 
 	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "Error in CTF semantic validation %d\n", ret);
+		fprintf(stdout, "[error] Error in CTF semantic validation %d\n", ret);
 		goto end;
 	}
 	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
-			&td->ctf_trace, BYTE_ORDER);
+			td, BYTE_ORDER);
 	if (ret) {
-		fprintf(stdout, "Error in CTF metadata constructor %d\n", ret);
+		fprintf(stdout, "[error] Error in CTF metadata constructor %d\n", ret);
 		goto end;
 	}
 end:
@@ -259,18 +254,18 @@ end:
 end_scanner_alloc:
 	fclose(fp);
 end_stream:
-	close(td->ctf_trace.metadata.pos.fd);
+	close(td->metadata.pos.fd);
 	return ret;
 }
 
 
 static
-int create_stream_packet_index(struct trace_descriptor *td,
+int create_stream_packet_index(struct ctf_trace *td,
 			       struct ctf_file_stream *file_stream)
 {
 	struct ctf_stream *stream;
 	int len_index;
-	struct stream_pos *pos;
+	struct ctf_stream_pos *pos;
 	struct stat filestats;
 	struct packet_index packet_index;
 	int first_packet = 1;
@@ -289,7 +284,7 @@ int create_stream_packet_index(struct trace_descriptor *td,
 			/* unmap old base */
 			ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 			if (ret) {
-				fprintf(stdout, "Unable to unmap old base: %s.\n",
+				fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
 					strerror(errno));
 				return ret;
 			}
@@ -307,17 +302,17 @@ int create_stream_packet_index(struct trace_descriptor *td,
 		packet_index.packet_size = 0;
 
 		/* read and check header, set stream id (and check) */
-		if (td->ctf_trace.packet_header) {
+		if (td->packet_header) {
 			/* Read packet header */
-			td->ctf_trace.packet_header->p.declaration->copy(NULL, NULL,
-				pos, &ctf_format, &td->ctf_trace.packet_header->p);
+			td->packet_header->p.declaration->copy(NULL, NULL,
+				&pos->parent, &ctf_format, &td->packet_header->p);
 
-			len_index = struct_declaration_lookup_field_index(td->ctf_trace.packet_header->declaration, g_quark_from_static_string("magic"));
+			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct field *field;
 
-				field = struct_definition_get_field_from_index(td->ctf_trace.packet_header, len_index);
+				field = struct_definition_get_field_from_index(td->packet_header, len_index);
 				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -331,14 +326,14 @@ int create_stream_packet_index(struct trace_descriptor *td,
 			}
 
 			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(td->ctf_trace.packet_header->declaration, g_quark_from_static_string("trace_uuid"));
+			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("trace_uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
 				struct field *field;
 				uint64_t i;
 				uint8_t uuidval[UUID_LEN];
 
-				field = struct_definition_get_field_from_index(td->ctf_trace.packet_header, len_index);
+				field = struct_definition_get_field_from_index(td->packet_header, len_index);
 				assert(field->definition->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field->definition, struct definition_array, p);
 				assert(array_len(defarray) == UUID_LEN);
@@ -353,7 +348,7 @@ int create_stream_packet_index(struct trace_descriptor *td,
 					defint = container_of(elem, struct definition_integer, p);
 					uuidval[i] = defint->value._unsigned;
 				}
-				ret = uuid_compare(td->ctf_trace.uuid, uuidval);
+				ret = uuid_compare(td->uuid, uuidval);
 				if (ret) {
 					fprintf(stdout, "[error] Unique Universal Identifiers do not match.\n");
 					return -EINVAL;
@@ -361,12 +356,12 @@ int create_stream_packet_index(struct trace_descriptor *td,
 			}
 
 
-			len_index = struct_declaration_lookup_field_index(td->ctf_trace.packet_header->declaration, g_quark_from_static_string("stream_id"));
+			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct field *field;
 
-				field = struct_definition_get_field_from_index(td->ctf_trace.packet_header, len_index);
+				field = struct_definition_get_field_from_index(td->packet_header, len_index);
 				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -380,11 +375,11 @@ int create_stream_packet_index(struct trace_descriptor *td,
 		}
 		if (first_packet) {
 			file_stream->stream_id = stream_id;
-			if (stream_id >= td->ctf_trace.streams->len) {
+			if (stream_id >= td->streams->len) {
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
 			}
-			stream = g_ptr_array_index(td->ctf_trace.streams, stream_id);
+			stream = g_ptr_array_index(td->streams, stream_id);
 			if (!stream) {
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
@@ -396,7 +391,7 @@ int create_stream_packet_index(struct trace_descriptor *td,
 		if (stream->packet_context) {
 			/* Read packet context */
 			stream->packet_context->p.declaration->copy(NULL, NULL,
-					pos, &ctf_format, &stream->packet_context->p);
+					&pos->parent, &ctf_format, &stream->packet_context->p);
 
 			/* read content size from header */
 			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
@@ -450,16 +445,16 @@ int create_stream_packet_index(struct trace_descriptor *td,
  * description (metadata).
  */
 static
-int ctf_open_file_stream_read(struct trace_descriptor *td, const char *path, int flags)
+int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 {
 	int ret;
 	struct ctf_file_stream *file_stream;
 
-	ret = openat(td->ctf_trace.dirfd, path, flags);
+	ret = openat(td->dirfd, path, flags);
 	if (ret < 0)
 		goto error;
 	file_stream = g_new0(struct ctf_file_stream, 1);
-	init_pos(&file_stream->pos, ret);
+	ctf_init_pos(&file_stream->pos, ret);
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;
@@ -468,7 +463,7 @@ int ctf_open_file_stream_read(struct trace_descriptor *td, const char *path, int
 	return 0;
 
 error_index:
-	fini_pos(&file_stream->pos);
+	ctf_fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
 	g_free(file_stream);
 error:
@@ -476,31 +471,31 @@ error:
 }
 
 static
-int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags)
+int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags)
 {
 	int ret;
 	struct dirent *dirent;
 	struct dirent *diriter;
 	size_t dirent_len;
 
-	td->ctf_trace.flags = flags;
+	td->flags = flags;
 
 	/* Open trace directory */
-	td->ctf_trace.dir = opendir(path);
-	if (!td->ctf_trace.dir) {
+	td->dir = opendir(path);
+	if (!td->dir) {
 		fprintf(stdout, "[error] Unable to open trace directory.\n");
 		ret = -ENOENT;
 		goto error;
 	}
 
-	td->ctf_trace.dirfd = open(path, 0);
-	if (td->ctf_trace.dirfd < 0) {
+	td->dirfd = open(path, 0);
+	if (td->dirfd < 0) {
 		fprintf(stdout, "[error] Unable to open trace directory file descriptor.\n");
 		ret = -ENOENT;
 		goto error_dirfd;
 	}
 
-	td->ctf_trace.streams = g_ptr_array_new();
+	td->streams = g_ptr_array_new();
 
 	/*
 	 * Keep the metadata file separate.
@@ -518,12 +513,12 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 	 */
 
 	dirent_len = offsetof(struct dirent, d_name) +
-			fpathconf(td->ctf_trace.dirfd, _PC_NAME_MAX) + 1;
+			fpathconf(td->dirfd, _PC_NAME_MAX) + 1;
 
 	dirent = malloc(dirent_len);
 
 	for (;;) {
-		ret = readdir_r(td->ctf_trace.dir, dirent, &diriter);
+		ret = readdir_r(td->dir, dirent, &diriter);
 		if (ret) {
 			fprintf(stdout, "[error] Readdir error.\n");
 			goto readdir_error;
@@ -547,16 +542,16 @@ int ctf_open_trace_read(struct trace_descriptor *td, const char *path, int flags
 readdir_error:
 	free(dirent);
 error_metadata:
-	g_ptr_array_free(td->ctf_trace.streams, TRUE);
-	close(td->ctf_trace.dirfd);
+	g_ptr_array_free(td->streams, TRUE);
+	close(td->dirfd);
 error_dirfd:
-	closedir(td->ctf_trace.dir);
+	closedir(td->dir);
 error:
 	return ret;
 }
 
 static
-int ctf_open_trace_write(struct trace_descriptor *td, const char *path, int flags)
+int ctf_open_trace_write(struct ctf_trace *td, const char *path, int flags)
 {
 	int ret;
 
@@ -565,9 +560,9 @@ int ctf_open_trace_write(struct trace_descriptor *td, const char *path, int flag
 		return ret;
 
 	/* Open trace directory */
-	td->ctf_trace.dir = opendir(path);
-	if (!td->ctf_trace.dir) {
-		fprintf(stdout, "Unable to open trace directory.\n");
+	td->dir = opendir(path);
+	if (!td->dir) {
+		fprintf(stdout, "[error] Unable to open trace directory.\n");
 		ret = -ENOENT;
 		goto error;
 	}
@@ -581,10 +576,10 @@ error:
 
 struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 {
-	struct trace_descriptor *td;
+	struct ctf_trace *td;
 	int ret;
 
-	td = g_new0(struct trace_descriptor, 1);
+	td = g_new0(struct ctf_trace, 1);
 
 	switch (flags & O_ACCMODE) {
 	case O_RDONLY:
@@ -593,16 +588,20 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 			goto error;
 		break;
 	case O_WRONLY:
+		fprintf(stdout, "[error] Opening CTF traces for output is not supported yet.\n");
+		goto error;
+#if 0
 		ret = ctf_open_trace_write(td, path, flags);
 		if (ret)
 			goto error;
+#endif //0
 		break;
 	default:
-		fprintf(stdout, "Incorrect open flags.\n");
+		fprintf(stdout, "[error] Incorrect open flags.\n");
 		goto error;
 	}
 
-	return td;
+	return &td->parent;
 error:
 	g_free(td);
 	return NULL;
@@ -611,30 +610,31 @@ error:
 static
 void ctf_close_file_stream(struct ctf_file_stream *file_stream)
 {
-	fini_pos(&file_stream->pos);
+	ctf_fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
 }
 
-void ctf_close_trace(struct trace_descriptor *td)
+void ctf_close_trace(struct trace_descriptor *tdp)
 {
+	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
 	int i;
 
-	if (td->ctf_trace.streams) {
-		for (i = 0; i < td->ctf_trace.streams->len; i++) {
+	if (td->streams) {
+		for (i = 0; i < td->streams->len; i++) {
 			struct ctf_stream *stream;
 			int j;
 
-			stream = g_ptr_array_index(td->ctf_trace.streams, i);
+			stream = g_ptr_array_index(td->streams, i);
 			for (j = 0; j < stream->files->len; j++) {
 				struct ctf_file_stream *file_stream;
-				file_stream = g_ptr_array_index(td->ctf_trace.streams, j);
+				file_stream = g_ptr_array_index(td->streams, j);
 				ctf_close_file_stream(file_stream);
 			}
 
 		}
-		g_ptr_array_free(td->ctf_trace.streams, TRUE);
+		g_ptr_array_free(td->streams, TRUE);
 	}
-	closedir(td->ctf_trace.dir);
+	closedir(td->dir);
 	g_free(td);
 }
 

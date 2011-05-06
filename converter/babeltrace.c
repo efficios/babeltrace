@@ -206,12 +206,19 @@ int main(int argc, char **argv)
 			opt_output_path);
 		goto error_td_write;
 	}
-
+#if 0
+	ret = print_trace(fmt_write, td_write, fmt_read, td_read);
+	if (ret) {
+		fprintf(stdout, "Error printing trace.\n\n");
+		goto error_copy_trace;
+	}
+#endif //0
 	fmt_write->close_trace(td_write);
 	fmt_read->close_trace(td_read);
 	exit(EXIT_SUCCESS);
 
 	/* Error handling */
+error_copy_trace:
 	fmt_write->close_trace(td_write);
 error_td_write:
 	fmt_read->close_trace(td_read);

@@ -18,4 +18,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 			printf("[debug] " fmt, ## args);	\
 	} while (0)
 
+struct trace_descriptor;
+
+int copy_trace(struct trace_descriptor *td_write, struct trace_descriptor *td_read);
+
 #endif

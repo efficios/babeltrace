@@ -20,6 +20,7 @@
  */
 
 #include <babeltrace/types.h>
+#include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -36,7 +37,7 @@ struct ctf_event;
 struct ctf_file_stream {
 	uint64_t stream_id;
 	struct ctf_stream *stream;
-	struct stream_pos pos;			/* current stream position */
+	struct ctf_stream_pos pos;			/* current stream position */
 };
 
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
@@ -55,6 +56,7 @@ struct ctf_file_stream {
 
 
 struct ctf_trace {
+	struct trace_descriptor parent;
 	/* root scope */
 	struct declaration_scope *root_declaration_scope;
 

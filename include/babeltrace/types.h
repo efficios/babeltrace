@@ -35,6 +35,10 @@ struct stream_pos;
 struct format;
 struct definition;
 
+/* Parent of per-plugin positions */
+struct stream_pos {
+};
+
 /* type scope */
 struct declaration_scope {
 	/* Hash table mapping type name GQuark to "struct declaration" */

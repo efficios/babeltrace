@@ -33,9 +33,10 @@ struct packet_index {
 };
 
 /*
- * Always update stream_pos with move_pos and init_pos.
+ * Always update ctf_stream_pos with ctf_move_pos and ctf_init_pos.
  */
-struct stream_pos {
+struct ctf_stream_pos {
+	struct stream_pos parent;
 	int fd;			/* backing file fd. -1 if unset. */
 	GArray *packet_index;	/* contains struct packet_index */
 	int prot;		/* mmap protection */
@@ -52,6 +53,12 @@ struct stream_pos {
 
 	int dummy;		/* dummy position, for length calculation */
 };
+
+static inline
+struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
+{
+	return container_of(pos, struct ctf_stream_pos, parent);
+}
 
 /*
  * IMPORTANT: All lengths (len) and offsets (start, end) are expressed in bits,
@@ -117,10 +124,10 @@ void ctf_sequence_begin(struct stream_pos *pos,
 void ctf_sequence_end(struct stream_pos *pos,
 		const struct declaration_sequence *sequence_declaration);
 
-void move_pos_slow(struct stream_pos *pos, size_t offset);
+void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset);
 
-void init_pos(struct stream_pos *pos, int fd);
-void fini_pos(struct stream_pos *pos);
+void ctf_init_pos(struct ctf_stream_pos *pos, int fd);
+void ctf_fini_pos(struct ctf_stream_pos *pos);
 
 /*
  * move_pos - move position of a relative bit offset
@@ -128,14 +135,14 @@ void fini_pos(struct stream_pos *pos);
  * TODO: allow larger files by updating base too.
  */
 static inline
-void move_pos(struct stream_pos *pos, size_t bit_offset)
+void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 {
 	if (pos->fd >= 0) {
 		if (((pos->prot == PROT_READ)
 		      && (pos->offset + bit_offset >= pos->content_size))
 		    || ((pos->prot == PROT_WRITE)
 		      && (pos->offset + bit_offset >= pos->packet_size))) {
-			move_pos_slow(pos, bit_offset);
+			ctf_move_pos_slow(pos, bit_offset);
 			return;
 		}
 	}
@@ -148,13 +155,13 @@ void move_pos(struct stream_pos *pos, size_t bit_offset)
  * TODO: allow larger files by updating base too.
  */
 static inline
-void align_pos(struct stream_pos *pos, size_t bit_offset)
+void ctf_align_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 {
-	move_pos(pos, offset_align(pos->offset, bit_offset));
+	ctf_move_pos(pos, offset_align(pos->offset, bit_offset));
 }
 
 static inline
-char *get_pos_addr(struct stream_pos *pos)
+char *ctf_get_pos_addr(struct ctf_stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	assert(!(pos->offset % CHAR_BIT));
@@ -162,9 +169,9 @@ char *get_pos_addr(struct stream_pos *pos)
 }
 
 static inline
-void dummy_pos(struct stream_pos *pos, struct stream_pos *dummy)
+void ctf_dummy_pos(struct ctf_stream_pos *pos, struct ctf_stream_pos *dummy)
 {
-	memcpy(dummy, pos, sizeof(struct stream_pos));
+	memcpy(dummy, pos, sizeof(struct ctf_stream_pos));
 	dummy->dummy = 1;
 	dummy->fd = -1;
 }
@@ -174,7 +181,7 @@ void dummy_pos(struct stream_pos *pos, struct stream_pos *dummy)
  * Returns 0 for success, negative error otherwise.
  */
 static inline
-int pos_packet(struct stream_pos *dummy)
+int ctf_pos_packet(struct ctf_stream_pos *dummy)
 {
 	if (dummy->offset > dummy->packet_size)
 		return -ENOSPC;
@@ -182,9 +189,9 @@ int pos_packet(struct stream_pos *dummy)
 }
 
 static inline
-void pos_pad_packet(struct stream_pos *pos)
+void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 {
-	move_pos(pos, pos->packet_size - pos->offset);
+	ctf_move_pos(pos, pos->packet_size - pos->offset);
 }
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

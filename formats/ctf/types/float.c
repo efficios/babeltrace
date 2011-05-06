@@ -102,8 +102,8 @@ void _ctf_float_copy(struct stream_pos *destp,
 void ctf_float_copy(struct stream_pos *dest, struct stream_pos *src,
 		    const struct declaration_float *float_declaration)
 {
-	align_pos(src, float_declaration->p.alignment);
-	align_pos(dest, float_declaration->p.alignment);
+	ctf_align_pos(ctf_pos(src), float_declaration->p.alignment);
+	ctf_align_pos(ctf_pos(dest), float_declaration->p.alignment);
 	_ctf_float_copy(dest, float_declaration, src, float_declaration);
 }
 
@@ -116,12 +116,12 @@ double ctf_double_read(struct stream_pos *srcp,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));
-	struct stream_pos destp;
+	struct ctf_stream_pos destp;
 
-	align_pos(srcp, float_declaration->p.alignment);
-	init_pos(&destp, -1);
+	ctf_align_pos(ctf_pos(srcp), float_declaration->p.alignment);
+	ctf_init_pos(&destp, -1);
 	destp.base = (char *) u.bits;
-	_ctf_float_copy(&destp, dest_declaration, srcp, float_declaration);
+	_ctf_float_copy(&destp.parent, dest_declaration, srcp, float_declaration);
 	declaration_unref(&dest_declaration->p);
 	return u.v;
 }
@@ -136,13 +136,13 @@ void ctf_double_write(struct stream_pos *destp,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));
-	struct stream_pos srcp;
+	struct ctf_stream_pos srcp;
 
 	u.v = v;
-	align_pos(destp, float_declaration->p.alignment);
-	init_pos(&srcp, -1);
+	ctf_align_pos(ctf_pos(destp), float_declaration->p.alignment);
+	ctf_init_pos(&srcp, -1);
 	srcp.base = (char *) u.bits;
-	_ctf_float_copy(destp, float_declaration, &srcp, src_declaration);
+	_ctf_float_copy(destp, float_declaration, &srcp.parent, src_declaration);
 	declaration_unref(&src_declaration->p);
 }
 
@@ -155,12 +155,12 @@ long double ctf_ldouble_read(struct stream_pos *srcp,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(long double));
-	struct stream_pos destp;
+	struct ctf_stream_pos destp;
 
-	align_pos(srcp, float_declaration->p.alignment);
-	init_pos(&destp, -1);
+	ctf_align_pos(ctf_pos(srcp), float_declaration->p.alignment);
+	ctf_init_pos(&destp, -1);
 	destp.base = (char *) u.bits;
-	_ctf_float_copy(&destp, dest_declaration, srcp, float_declaration);
+	_ctf_float_copy(&destp.parent, dest_declaration, srcp, float_declaration);
 	declaration_unref(&dest_declaration->p);
 	return u.v;
 }
@@ -175,12 +175,12 @@ void ctf_ldouble_write(struct stream_pos *destp,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(long double));
-	struct stream_pos srcp;
+	struct ctf_stream_pos srcp;
 
 	u.v = v;
-	align_pos(destp, float_declaration->p.alignment);
-	init_pos(&srcp, -1);
+	ctf_align_pos(ctf_pos(destp), float_declaration->p.alignment);
+	ctf_init_pos(&srcp, -1);
 	srcp.base = (char *) u.bits;
-	_ctf_float_copy(destp, float_declaration, &srcp, src_declaration);
+	_ctf_float_copy(destp, float_declaration, &srcp.parent, src_declaration);
 	declaration_unref(&src_declaration->p);
 }

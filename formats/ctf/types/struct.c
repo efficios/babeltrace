@@ -18,13 +18,15 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_struct_begin(struct stream_pos *pos,
+void ctf_struct_begin(struct stream_pos *ppos,
 		      const struct declaration_struct *struct_declaration)
 {
-	align_pos(pos, struct_declaration->p.alignment);
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
+
+	ctf_align_pos(pos, struct_declaration->p.alignment);
 }
 
-void ctf_struct_end(struct stream_pos *pos,
+void ctf_struct_end(struct stream_pos *ppos,
 		    const struct declaration_struct *struct_declaration)
 {
 }

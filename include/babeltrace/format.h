@@ -24,7 +24,9 @@
 #include <stdio.h>
 #include <glib.h>
 
-struct trace_descriptor;
+/* Parent trace descriptor */
+struct trace_descriptor {
+};
 
 struct format {
 	GQuark name;

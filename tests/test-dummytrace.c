@@ -37,72 +37,72 @@ int babeltrace_debug = 0;
 static uuid_t s_uuid;
 
 static
-void write_packet_header(struct stream_pos *pos, uuid_t uuid)
+void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
 {
-	struct stream_pos dummy;
+	struct ctf_stream_pos dummy;
 
 	/* magic */
-	dummy_pos(pos, &dummy);
-	align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	assert(!pos_packet(&dummy));
+	ctf_dummy_pos(pos, &dummy);
+	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	assert(!ctf_pos_packet(&dummy));
 	
-	align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) get_pos_addr(pos) = 0xC1FC1FC1;
-	move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
+	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 
 	/* trace_uuid */
-	dummy_pos(pos, &dummy);
-	align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	move_pos(&dummy, 16 * CHAR_BIT);
-	assert(!pos_packet(&dummy));
+	ctf_dummy_pos(pos, &dummy);
+	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, 16 * CHAR_BIT);
+	assert(!ctf_pos_packet(&dummy));
 
-	align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
-	memcpy(get_pos_addr(pos), uuid, 16);
-	move_pos(pos, 16 * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
+	memcpy(ctf_get_pos_addr(pos), uuid, 16);
+	ctf_move_pos(pos, 16 * CHAR_BIT);
 }
 
 static
-void write_packet_context(struct stream_pos *pos)
+void write_packet_context(struct ctf_stream_pos *pos)
 {
-	struct stream_pos dummy;
+	struct ctf_stream_pos dummy;
 
 	/* content_size */
-	dummy_pos(pos, &dummy);
-	align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	assert(!pos_packet(&dummy));
+	ctf_dummy_pos(pos, &dummy);
+	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	assert(!ctf_pos_packet(&dummy));
 	
-	align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) get_pos_addr(pos) = -1U;	/* Not known yet */
-	pos->content_size_loc = (uint32_t *) get_pos_addr(pos);
-	move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	*(uint32_t *) ctf_get_pos_addr(pos) = -1U;	/* Not known yet */
+	pos->content_size_loc = (uint32_t *) ctf_get_pos_addr(pos);
+	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 
 	/* packet_size */
-	dummy_pos(pos, &dummy);
-	align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	assert(!pos_packet(&dummy));
+	ctf_dummy_pos(pos, &dummy);
+	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	assert(!ctf_pos_packet(&dummy));
 	
-	align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) get_pos_addr(pos) = pos->packet_size;
-	move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	*(uint32_t *) ctf_get_pos_addr(pos) = pos->packet_size;
+	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 }
 
 static
-void trace_string(char *line, struct stream_pos *pos, size_t len)
+void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 {
-	struct stream_pos dummy;
+	struct ctf_stream_pos dummy;
 	int attempt = 0;
 
 	printf_debug("read: %s\n", line);
 retry:
-	dummy_pos(pos, &dummy);
-	align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	move_pos(&dummy, len * CHAR_BIT);
-	if (pos_packet(&dummy)) {
+	ctf_dummy_pos(pos, &dummy);
+	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, len * CHAR_BIT);
+	if (ctf_pos_packet(&dummy)) {
 		/* TODO write content size */
-		pos_pad_packet(pos);
+		ctf_pos_pad_packet(pos);
 		write_packet_header(pos, s_uuid);
 		write_packet_context(pos);
 		if (attempt++ == 1) {
@@ -113,20 +113,20 @@ retry:
 		goto retry;
 	}
 
-	align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
-	memcpy(get_pos_addr(pos), line, len);
-	move_pos(pos, len * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
+	memcpy(ctf_get_pos_addr(pos), line, len);
+	ctf_move_pos(pos, len * CHAR_BIT);
 }
 
 static
 void trace_text(FILE *input, int output)
 {
-	struct stream_pos pos;
+	struct ctf_stream_pos pos;
 	ssize_t len;
 	char *line = NULL, *nl;
 	size_t linesize;
 
-	init_pos(&pos, output);
+	ctf_init_pos(&pos, output);
 
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
@@ -139,7 +139,7 @@ void trace_text(FILE *input, int output)
 			*nl = '\0';
 		trace_string(line, &pos, nl - line + 1);
 	}
-	fini_pos(&pos);
+	ctf_fini_pos(&pos);
 }
 
 int main(int argc, char **argv)
