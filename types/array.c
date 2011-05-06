@@ -27,27 +27,20 @@ struct definition *_array_definition_new(struct declaration *declaration,
 static
 void _array_definition_free(struct definition *definition);
 
-void array_copy(struct stream_pos *dest, const struct format *fdest, 
-		struct stream_pos *src, const struct format *fsrc,
-		struct definition *definition)
+void array_rw(struct stream_pos *pos, struct definition *definition)
 {
-	struct definition_array *array =
+	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);
-	struct declaration_array *array_declaration = array->declaration;
+	const struct declaration_array *array_declaration =
+		array_definition->declaration;
 	uint64_t i;
 
-	fsrc->array_begin(src, array_declaration);
-	if (fdest)
-		fdest->array_begin(dest, array_declaration);
-
+	/* No need to align, because the first field will align itself. */
 	for (i = 0; i < array_declaration->len; i++) {
 		struct definition *elem =
-			g_array_index(array->elems, struct field, i).definition;
-		elem->declaration->copy(dest, fdest, src, fsrc, elem);
+			g_array_index(array_definition->elems, struct field, i).definition;
+		generic_rw(pos, elem);
 	}
-	fsrc->array_end(src, array_declaration);
-	if (fdest)
-		fdest->array_end(dest, array_declaration);
 }
 
 static
@@ -78,7 +71,6 @@ struct declaration_array *
 	declaration->id = CTF_TYPE_ARRAY;
 	/* No need to align the array, the first element will align itself */
 	declaration->alignment = 1;
-	declaration->copy = array_copy;
 	declaration->declaration_free = _array_declaration_free;
 	declaration->definition_new = _array_definition_new;
 	declaration->definition_free = _array_definition_free;

@@ -41,39 +41,47 @@ end:
 	ctf_move_pos(src, len);
 }
 
-void ctf_string_read(char **dest, struct stream_pos *psrc,
-		     const struct declaration_string *string_declaration)
+void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 {
-	struct ctf_stream_pos *src = ctf_pos(psrc);
+	struct definition_string *string_definition =
+		container_of(definition, struct definition_string, p);
+	const struct declaration_string *string_declaration =
+		string_definition->declaration;
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	size_t len;
 	char *srcaddr;
 
-	ctf_align_pos(src, string_declaration->p.alignment);
-	srcaddr = ctf_get_pos_addr(src);
+	ctf_align_pos(pos, string_declaration->p.alignment);
+	srcaddr = ctf_get_pos_addr(pos);
 	len = strlen(srcaddr) + 1;
-	*dest = g_realloc(*dest, len);
-	strcpy(*dest, srcaddr);
-	ctf_move_pos(src, len);
+	if (string_definition->alloc_len < len) {
+		string_definition->value =
+			g_realloc(string_definition->value, len);
+		string_definition->alloc_len = len;
+	}
+	memcpy(string_definition->value, srcaddr, len);
+	string_definition->len = len;
+	ctf_move_pos(pos, len);
 }
 
-void ctf_string_write(struct stream_pos *pdest, const char *src,
-		      const struct declaration_string *string_declaration)
+void ctf_string_write(struct stream_pos *ppos,
+		      struct definition *definition)
 {
-	struct ctf_stream_pos *dest = ctf_pos(pdest);
+	struct definition_string *string_definition =
+		container_of(definition, struct definition_string, p);
+	const struct declaration_string *string_declaration =
+		string_definition->declaration;
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	size_t len;
 	char *destaddr;
 
-	ctf_align_pos(dest, string_declaration->p.alignment);
-	len = strlen(src) + 1;
-	if (dest->dummy)
+	ctf_align_pos(pos, string_declaration->p.alignment);
+	assert(string_definition->value != NULL);
+	len = string_definition->len;
+	if (pos->dummy)
 		goto end;
-	destaddr = ctf_get_pos_addr(dest);
-	strcpy(destaddr, src);
+	destaddr = ctf_get_pos_addr(pos);
+	strcpy(destaddr, string_definition->value);
 end:
-	ctf_move_pos(dest, len);
-}
-
-void ctf_string_free_temp(char *string)
-{
-	g_free(string);
+	ctf_move_pos(pos, len);
 }

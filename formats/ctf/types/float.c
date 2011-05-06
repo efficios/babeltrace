@@ -64,123 +64,105 @@ union ldoubleIEEE754 {
 #endif
 };
 
+static struct declaration_float *static_ldouble_declaration;
+
 struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
 
 void _ctf_float_copy(struct stream_pos *destp,
-		     const struct declaration_float *dest_declaration,
+		     struct definition_float *dest_definition,
 		     struct stream_pos *srcp,
-		     const struct declaration_float *src_declaration)
+		     const struct definition_float *src_definition)
 {
-	uint8_t sign;
-	int64_t exp;
-	uint64_t mantissa;
-
 	/* Read */
-	if (src_declaration->byte_order == LITTLE_ENDIAN) {
-		mantissa = ctf_uint_read(srcp, src_declaration->mantissa);
-		exp = ctf_int_read(srcp, src_declaration->exp);
-		sign = ctf_uint_read(srcp, src_declaration->sign);
+	if (src_definition->declaration->byte_order == LITTLE_ENDIAN) {
+		ctf_integer_read(srcp, &src_definition->mantissa->p);
+		ctf_integer_read(srcp, &src_definition->exp->p);
+		ctf_integer_read(srcp, &src_definition->sign->p);
 	} else {
-		sign = ctf_uint_read(srcp, src_declaration->sign);
-		exp = ctf_int_read(srcp, src_declaration->exp);
-		mantissa = ctf_uint_read(srcp, src_declaration->mantissa);
+		ctf_integer_read(srcp, &src_definition->sign->p);
+		ctf_integer_read(srcp, &src_definition->exp->p);
+		ctf_integer_read(srcp, &src_definition->mantissa->p);
 	}
+
+	dest_definition->mantissa->value._unsigned =
+		src_definition->mantissa->value._unsigned;
+	dest_definition->exp->value._signed =
+		src_definition->exp->value._signed;
+	dest_definition->sign->value._unsigned =
+		src_definition->sign->value._unsigned;
+
 	/* Write */
-	if (dest_declaration->byte_order == LITTLE_ENDIAN) {
-		ctf_uint_write(destp, dest_declaration->mantissa, mantissa);
-		ctf_int_write(destp, dest_declaration->exp, exp);
-		ctf_uint_write(destp, dest_declaration->sign, sign);
+	if (dest_definition->declaration->byte_order == LITTLE_ENDIAN) {
+		ctf_integer_write(destp, &dest_definition->mantissa->p);
+		ctf_integer_write(destp, &dest_definition->exp->p);
+		ctf_integer_write(destp, &dest_definition->sign->p);
 	} else {
-		ctf_uint_write(destp, dest_declaration->sign, sign);
-		ctf_int_write(destp, dest_declaration->exp, exp);
-		ctf_uint_write(destp, dest_declaration->mantissa, mantissa);
+		ctf_integer_write(destp, &dest_definition->sign->p);
+		ctf_integer_write(destp, &dest_definition->exp->p);
+		ctf_integer_write(destp, &dest_definition->mantissa->p);
 	}
 }
 
-void ctf_float_copy(struct stream_pos *dest, struct stream_pos *src,
-		    const struct declaration_float *float_declaration)
+void ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 {
-	ctf_align_pos(ctf_pos(src), float_declaration->p.alignment);
-	ctf_align_pos(ctf_pos(dest), float_declaration->p.alignment);
-	_ctf_float_copy(dest, float_declaration, src, float_declaration);
-}
-
-double ctf_double_read(struct stream_pos *srcp,
-		       const struct declaration_float *float_declaration)
-{
-	union doubleIEEE754 u;
-	struct declaration_float *dest_declaration =
-		float_declaration_new(DBL_MANT_DIG,
-				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
-				BYTE_ORDER,
-				__alignof__(double));
+	struct definition_float *float_definition =
+		container_of(definition, struct definition_float, p);
+	const struct declaration_float *float_declaration =
+		float_definition->declaration;
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
+	union ldoubleIEEE754 u;
+	struct definition *tmpdef =
+		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
+				NULL, 0, 0);
+	struct definition_float *tmpfloat =
+		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos destp;
 
-	ctf_align_pos(ctf_pos(srcp), float_declaration->p.alignment);
 	ctf_init_pos(&destp, -1);
 	destp.base = (char *) u.bits;
-	_ctf_float_copy(&destp.parent, dest_declaration, srcp, float_declaration);
-	declaration_unref(&dest_declaration->p);
-	return u.v;
+
+	ctf_align_pos(pos, float_declaration->p.alignment);
+	_ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
+	float_definition->value = u.v;
+	definition_unref(tmpdef);
 }
 
-void ctf_double_write(struct stream_pos *destp,
-		      const struct declaration_float *float_declaration,
-		      double v)
+void ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 {
-	union doubleIEEE754 u;
-	struct declaration_float *src_declaration =
-		float_declaration_new(DBL_MANT_DIG,
-				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
-				BYTE_ORDER,
-				__alignof__(double));
+	struct definition_float *float_definition =
+		container_of(definition, struct definition_float, p);
+	const struct declaration_float *float_declaration =
+		float_definition->declaration;
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
+	union ldoubleIEEE754 u;
+	struct definition *tmpdef =
+		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
+				NULL, 0, 0);
+	struct definition_float *tmpfloat =
+		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos srcp;
 
-	u.v = v;
-	ctf_align_pos(ctf_pos(destp), float_declaration->p.alignment);
 	ctf_init_pos(&srcp, -1);
 	srcp.base = (char *) u.bits;
-	_ctf_float_copy(destp, float_declaration, &srcp.parent, src_declaration);
-	declaration_unref(&src_declaration->p);
+
+	u.v = float_definition->value;
+	ctf_align_pos(pos, float_declaration->p.alignment);
+	_ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
+	definition_unref(tmpdef);
 }
 
-long double ctf_ldouble_read(struct stream_pos *srcp,
-			     const struct declaration_float *float_declaration)
+void __attribute__((constructor)) ctf_float_init(void)
 {
-	union ldoubleIEEE754 u;
-	struct declaration_float *dest_declaration =
+	static_ldouble_declaration =
 		float_declaration_new(LDBL_MANT_DIG,
 				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(long double));
-	struct ctf_stream_pos destp;
-
-	ctf_align_pos(ctf_pos(srcp), float_declaration->p.alignment);
-	ctf_init_pos(&destp, -1);
-	destp.base = (char *) u.bits;
-	_ctf_float_copy(&destp.parent, dest_declaration, srcp, float_declaration);
-	declaration_unref(&dest_declaration->p);
-	return u.v;
 }
 
-void ctf_ldouble_write(struct stream_pos *destp,
-		       const struct declaration_float *float_declaration,
-		       long double v)
+void __attribute__((destructor)) ctf_float_fini(void)
 {
-	union ldoubleIEEE754 u;
-	struct declaration_float *src_declaration =
-		float_declaration_new(LDBL_MANT_DIG,
-				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
-				BYTE_ORDER,
-				__alignof__(long double));
-	struct ctf_stream_pos srcp;
-
-	u.v = v;
-	ctf_align_pos(ctf_pos(destp), float_declaration->p.alignment);
-	ctf_init_pos(&srcp, -1);
-	srcp.base = (char *) u.bits;
-	_ctf_float_copy(destp, float_declaration, &srcp.parent, src_declaration);
-	declaration_unref(&src_declaration->p);
+	declaration_unref(&static_ldouble_declaration->p);
 }

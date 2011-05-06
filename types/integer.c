@@ -28,31 +28,6 @@ struct definition *_integer_definition_new(struct declaration *declaration,
 static
 void _integer_definition_free(struct definition *definition);
 
-void integer_copy(struct stream_pos *dest, const struct format *fdest, 
-		  struct stream_pos *src, const struct format *fsrc,
-		  struct definition *definition)
-{
-	struct definition_integer *integer =
-		container_of(definition, struct definition_integer, p);
-	struct declaration_integer *integer_declaration = integer->declaration;
-
-	if (!integer_declaration->signedness) {
-		uint64_t v;
-
-		v = fsrc->uint_read(src, integer_declaration);
-		integer->value._unsigned = v;
-		if (fdest)
-			fdest->uint_write(dest, integer_declaration, v);
-	} else {
-		int64_t v;
-
-		v = fsrc->int_read(src, integer_declaration);
-		integer->value._signed = v;
-		if (fdest)
-			fdest->int_write(dest, integer_declaration, v);
-	}
-}
-
 static
 void _integer_declaration_free(struct declaration *declaration)
 {
@@ -70,7 +45,6 @@ struct declaration_integer *
 	integer_declaration = g_new(struct declaration_integer, 1);
 	integer_declaration->p.id = CTF_TYPE_INTEGER;
 	integer_declaration->p.alignment = alignment;
-	integer_declaration->p.copy = integer_copy;
 	integer_declaration->p.declaration_free = _integer_declaration_free;
 	integer_declaration->p.definition_free = _integer_definition_free;
 	integer_declaration->p.definition_new = _integer_definition_new;

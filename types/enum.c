@@ -349,32 +349,6 @@ size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration)
 	return g_hash_table_size(enum_declaration->table.quark_to_range_set);
 }
 
-void enum_copy(struct stream_pos *dest, const struct format *fdest, 
-	       struct stream_pos *src, const struct format *fsrc,
-	       struct definition *definition)
-{
-	struct definition_enum *_enum =
-		container_of(definition, struct definition_enum, p);
-	struct declaration_enum *enum_declaration= _enum->declaration;
-	GArray *array;
-	GQuark v;
-
-	array = fsrc->enum_read(src, enum_declaration);
-	assert(array);
-	/* unref previous array */
-	if (_enum->value)
-		g_array_unref(_enum->value);
-	_enum->value = array;
-	/*
-	 * Arbitrarily choose the first one.
-	 * TODO: use direct underlying declaration read/write intead. Not doing it for
-	 * now to test enum read and write code.
-	 */
-	v = g_array_index(array, GQuark, 0);
-	if (fdest)
-		fdest->enum_write(dest, enum_declaration, v);
-}
-
 static
 void _enum_declaration_free(struct declaration *declaration)
 {
@@ -411,7 +385,6 @@ struct declaration_enum *
 	enum_declaration->integer_declaration = integer_declaration;
 	enum_declaration->p.id = CTF_TYPE_ENUM;
 	enum_declaration->p.alignment = 1;
-	enum_declaration->p.copy = enum_copy;
 	enum_declaration->p.declaration_free = _enum_declaration_free;
 	enum_declaration->p.definition_new = _enum_definition_new;
 	enum_declaration->p.definition_free = _enum_definition_free;

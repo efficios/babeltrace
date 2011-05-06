@@ -69,60 +69,18 @@ struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
  * the size is returned.
  */
 
-uint64_t ctf_uint_read(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration);
-int64_t ctf_int_read(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration);
-void ctf_uint_write(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration,
-		uint64_t v);
-void ctf_int_write(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration,
-		int64_t v);
-
-double ctf_double_read(struct stream_pos *pos,
-			const struct declaration_float *src);
-void ctf_double_write(struct stream_pos *pos,
-		const struct declaration_float *dest,
-		double v);
-long double ctf_ldouble_read(struct stream_pos *pos,
-			     const struct declaration_float *src);
-void ctf_ldouble_write(struct stream_pos *pos,
-		const struct declaration_float *dest,
-		long double v);
-void ctf_float_copy(struct stream_pos *destp,
-		struct stream_pos *srcp,
-		const struct declaration_float *float_declaration);
-
-void ctf_string_copy(struct stream_pos *dest, struct stream_pos *src,
-		const struct declaration_string *string_declaration);
-void ctf_string_read(char **dest, struct stream_pos *src,
-		const struct declaration_string *string_declaration);
-void ctf_string_write(struct stream_pos *dest, const char *src,
-		const struct declaration_string *string_declaration);
-void ctf_string_free_temp(char *string);
-
-GArray *ctf_enum_read(struct stream_pos *pos,
-		const struct declaration_enum *src);
-void ctf_enum_write(struct stream_pos *pos,
-		const struct declaration_enum *dest,
-		GQuark q);
-void ctf_struct_begin(struct stream_pos *pos,
-		const struct declaration_struct *struct_declaration);
-void ctf_struct_end(struct stream_pos *pos,
-		const struct declaration_struct *struct_declaration);
-void ctf_variant_begin(struct stream_pos *pos,
-		const struct declaration_variant *variant_declaration);
-void ctf_variant_end(struct stream_pos *pos,
-		const struct declaration_variant *variant_declaration);
-void ctf_array_begin(struct stream_pos *pos,
-		const struct declaration_array *array_declaration);
-void ctf_array_end(struct stream_pos *pos,
-		const struct declaration_array *array_declaration);
-void ctf_sequence_begin(struct stream_pos *pos,
-		const struct declaration_sequence *sequence_declaration);
-void ctf_sequence_end(struct stream_pos *pos,
-		const struct declaration_sequence *sequence_declaration);
+void ctf_integer_read(struct stream_pos *pos, struct definition *definition);
+void ctf_integer_write(struct stream_pos *pos, struct definition *definition);
+void ctf_float_read(struct stream_pos *pos, struct definition *definition);
+void ctf_float_write(struct stream_pos *pos, struct definition *definition);
+void ctf_string_read(struct stream_pos *pos, struct definition *definition);
+void ctf_string_write(struct stream_pos *pos, struct definition *definition);
+void ctf_enum_read(struct stream_pos *pos, struct definition *definition);
+void ctf_enum_write(struct stream_pos *pos, struct definition *definition);
+void ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
+void ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
+void ctf_array_rw(struct stream_pos *pos, struct definition *definition);
+void ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
 
 void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset);
 

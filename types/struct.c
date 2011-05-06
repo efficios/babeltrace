@@ -30,30 +30,17 @@ struct definition *_struct_definition_new(struct declaration *declaration,
 static
 void _struct_definition_free(struct definition *definition);
 
-void struct_copy(struct stream_pos *dest, const struct format *fdest, 
-		 struct stream_pos *src, const struct format *fsrc,
-		 struct definition *definition)
+void struct_rw(struct stream_pos *ppos, struct definition *definition)
 {
-	struct definition_struct *_struct =
+	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);
-	struct declaration_struct *struct_declaration = _struct->declaration;
 	unsigned long i;
 
-	fsrc->struct_begin(src, struct_declaration);
-	if (fdest)
-		fdest->struct_begin(dest, struct_declaration);
-
-	for (i = 0; i < _struct->fields->len; i++) {
-		struct field *field = &g_array_index(_struct->fields,
+	for (i = 0; i < struct_definition->fields->len; i++) {
+		struct field *field = &g_array_index(struct_definition->fields,
 						     struct field, i);
-		struct declaration *field_declaration = field->definition->declaration;
-
-		field_declaration->copy(dest, fdest, src, fsrc, field->definition);
-
+		generic_rw(ppos, field->definition);
 	}
-	fsrc->struct_end(src, struct_declaration);
-	if (fdest)
-		fdest->struct_end(dest, struct_declaration);
 }
 
 static
@@ -92,7 +79,6 @@ struct declaration_struct *
 	struct_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_STRUCT;
 	declaration->alignment = 1;
-	declaration->copy = struct_copy;
 	declaration->declaration_free = _struct_declaration_free;
 	declaration->definition_new = _struct_definition_new;
 	declaration->definition_free = _struct_definition_free;

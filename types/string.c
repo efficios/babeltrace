@@ -27,19 +27,6 @@ struct definition *_string_definition_new(struct declaration *declaration,
 static
 void _string_definition_free(struct definition *definition);
 
-void string_copy(struct stream_pos *dest, const struct format *fdest, 
-		 struct stream_pos *src, const struct format *fsrc,
-		 struct definition *definition)
-{
-	struct definition_string *string =
-		container_of(definition, struct definition_string, p);
-	struct declaration_string *string_declaration = string->declaration;
-
-	fsrc->string_read(&string->value, src, string_declaration);
-	if (fdest)
-		fdest->string_write(dest, string->value, string_declaration);
-}
-
 static
 void _string_declaration_free(struct declaration *declaration)
 {
@@ -56,7 +43,6 @@ struct declaration_string *
 	string_declaration = g_new(struct declaration_string, 1);
 	string_declaration->p.id = CTF_TYPE_STRING;
 	string_declaration->p.alignment = CHAR_BIT;
-	string_declaration->p.copy = string_copy;
 	string_declaration->p.declaration_free = _string_declaration_free;
 	string_declaration->p.definition_new = _string_definition_new;
 	string_declaration->p.definition_free = _string_definition_free;
@@ -82,6 +68,8 @@ struct definition *
 	string->p.ref = 1;
 	string->p.index = index;
 	string->value = NULL;
+	string->len = 0;
+	string->alloc_len = 0;
 	return &string->p;
 }
 

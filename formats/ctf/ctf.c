@@ -49,30 +49,29 @@ extern int yydebug;
 struct trace_descriptor *ctf_open_trace(const char *path, int flags);
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
-static struct format ctf_format = {
-	.uint_read = ctf_uint_read,
-	.int_read = ctf_int_read,
-	.uint_write = ctf_uint_write,
-	.int_write = ctf_int_write,
-	.double_read = ctf_double_read,
-	.double_write = ctf_double_write,
-	.ldouble_read = ctf_ldouble_read,
-	.ldouble_write = ctf_ldouble_write,
-	.float_copy = ctf_float_copy,
-	.string_copy = ctf_string_copy,
-	.string_read = ctf_string_read,
-	.string_write = ctf_string_write,
-	.string_free_temp = ctf_string_free_temp,
-	.enum_read = ctf_enum_read,
-	.enum_write = ctf_enum_write,
-	.struct_begin = ctf_struct_begin,
-	.struct_end = ctf_struct_end,
-	.variant_begin = ctf_variant_begin,
-	.variant_end = ctf_variant_end,
-	.array_begin = ctf_array_begin,
-	.array_end = ctf_array_end,
-	.sequence_begin = ctf_sequence_begin,
-	.sequence_end = ctf_sequence_end,
+static rw_dispatch read_dispatch_table[] = {
+	[ CTF_TYPE_INTEGER ] = ctf_integer_read,
+	[ CTF_TYPE_FLOAT ] = ctf_float_read,
+	[ CTF_TYPE_ENUM ] = ctf_enum_read,
+	[ CTF_TYPE_STRING ] = ctf_string_read,
+	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
+	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
+	[ CTF_TYPE_ARRAY ] = ctf_array_rw,
+	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
+};
+
+static rw_dispatch write_dispatch_table[] = {
+	[ CTF_TYPE_INTEGER ] = ctf_integer_write,
+	[ CTF_TYPE_FLOAT ] = ctf_float_write,
+	[ CTF_TYPE_ENUM ] = ctf_enum_write,
+	[ CTF_TYPE_STRING ] = ctf_string_write,
+	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
+	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
+	[ CTF_TYPE_ARRAY ] = ctf_array_rw,
+	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
+};
+
+struct format ctf_format = {
 	.open_trace = ctf_open_trace,
 	.close_trace = ctf_close_trace,
 };
@@ -97,11 +96,13 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd)
 		case O_RDONLY:
 			pos->prot = PROT_READ;
 			pos->flags = MAP_PRIVATE;
+			pos->parent.rw_table = read_dispatch_table;
 			break;
 		case O_WRONLY:
 		case O_RDWR:
 			pos->prot = PROT_WRITE;	/* Write has priority */
 			pos->flags = MAP_SHARED;
+			pos->parent.rw_table = write_dispatch_table;
 			ctf_move_pos_slow(pos, 0);	/* position for write */
 			break;
 		default:
@@ -304,8 +305,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 		/* read and check header, set stream id (and check) */
 		if (td->packet_header) {
 			/* Read packet header */
-			td->packet_header->p.declaration->copy(NULL, NULL,
-				&pos->parent, &ctf_format, &td->packet_header->p);
+			generic_rw(&pos->parent, &td->packet_header->p);
 
 			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
@@ -390,8 +390,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 		if (stream->packet_context) {
 			/* Read packet context */
-			stream->packet_context->p.declaration->copy(NULL, NULL,
-					&pos->parent, &ctf_format, &stream->packet_context->p);
+			generic_rw(&pos->parent, &stream->packet_context->p);
 
 			/* read content size from header */
 			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));

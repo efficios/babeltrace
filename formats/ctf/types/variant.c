@@ -18,12 +18,11 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_variant_begin(struct stream_pos *pos,
-		       const struct declaration_variant *variant_declaration)
+void ctf_variant_rw(struct stream_pos *ppos, struct definition *definition)
 {
-}
+	struct declaration *declaration = definition->declaration;
+	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
-void ctf_variant_end(struct stream_pos *pos,
-		     const struct declaration_variant *variant_declaration)
-{
+	ctf_align_pos(pos, declaration->alignment);
+	variant_rw(ppos, definition);
 }

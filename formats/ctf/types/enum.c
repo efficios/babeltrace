@@ -20,45 +20,38 @@
 #include <stdint.h>
 #include <glib.h>
 
-/*
- * The caller should unref the GArray.
- */
-GArray *ctf_enum_read(struct stream_pos *pos,
-		      const struct declaration_enum *src)
+void ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 {
-	const struct declaration_integer *integer_declaration = src->integer_declaration;
+	struct definition_enum *enum_definition =
+		container_of(definition, struct definition_enum, p);
+	const struct declaration_enum *enum_declaration =
+		enum_definition->declaration;
+	struct definition_integer *integer_definition =
+		enum_definition->integer;
+	const struct declaration_integer *integer_declaration =
+		integer_definition->declaration;
+	GArray *qs;
 
-	if (!integer_declaration->signedness) {
-		uint64_t v;
-
-		v = ctf_uint_read(pos, integer_declaration);
-		return enum_uint_to_quark_set(src, v);
-	} else {
-		int64_t v;
-
-		v = ctf_int_read(pos, integer_declaration);
-		return enum_int_to_quark_set(src, v);
-	}
+	ctf_integer_read(ppos, &integer_definition->p);
+	if (!integer_declaration->signedness)
+		qs = enum_uint_to_quark_set(enum_declaration,
+			integer_definition->value._unsigned);
+	else
+		qs = enum_int_to_quark_set(enum_declaration,
+			integer_definition->value._signed);
+	assert(qs);
+	/* unref previous quark set */
+	if (enum_definition->value)
+		g_array_unref(enum_definition->value);
+	enum_definition->value = qs;
 }
 
-/*
- * Arbitrarily choose the start of the first matching range.
- */
-void ctf_enum_write(struct stream_pos *pos,
-		    const struct declaration_enum *dest,
-		    GQuark q)
+void ctf_enum_write(struct stream_pos *pos, struct definition *definition)
 {
-	const struct declaration_integer *integer_declaration = dest->integer_declaration;
-	GArray *array;
+	struct definition_enum *enum_definition =
+		container_of(definition, struct definition_enum, p);
+	struct definition_integer *integer_definition =
+		enum_definition->integer;
 
-	array = enum_quark_to_range_set(dest, q);
-	assert(array);
-
-	if (!integer_declaration->signedness) {
-		uint64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
-		ctf_uint_write(pos, integer_declaration, v);
-	} else {
-		int64_t v = g_array_index(array, struct enum_range, 0).start._unsigned;
-		ctf_int_write(pos, integer_declaration, v);
-	}
+	ctf_integer_write(pos, &integer_definition->p);
 }

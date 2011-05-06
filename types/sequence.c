@@ -31,23 +31,16 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 static
 void _sequence_definition_free(struct definition *definition);
 
-void sequence_copy(struct stream_pos *dest, const struct format *fdest, 
-		   struct stream_pos *src, const struct format *fsrc,
-		   struct definition *definition)
+void sequence_rw(struct stream_pos *pos, struct definition *definition)
 {
-	struct definition_sequence *sequence =
+	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
-	struct declaration_sequence *sequence_declaration = sequence->declaration;
+	const struct declaration_sequence *sequence_declaration =
+		sequence_definition->declaration;
 	uint64_t len, oldlen, i;
 
-	fsrc->sequence_begin(src, sequence_declaration);
-	if (fdest)
-		fdest->sequence_begin(dest, sequence_declaration);
-
-	sequence->len->p.declaration->copy(dest, fdest, src, fsrc,
-				    &sequence->len->p);
-	len = sequence->len->value._unsigned;
-	g_array_set_size(sequence->elems, len);
+	generic_rw(pos, &sequence_definition->len->p);
+	len = sequence_definition->len->value._unsigned;
 	/*
 	 * Yes, large sequences could be _painfully slow_ to parse due
 	 * to memory allocation for each event read. At least, never
@@ -56,9 +49,9 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 	 * One should always look at the sequence->len->value._unsigned
 	 * value for that.
 	 */
-	oldlen = sequence->elems->len;
+	oldlen = sequence_definition->elems->len;
 	if (oldlen < len)
-		g_array_set_size(sequence->elems, len);
+		g_array_set_size(sequence_definition->elems, len);
 
 	for (i = oldlen; i < len; i++) {
 		struct field *field;
@@ -70,16 +63,13 @@ void sequence_copy(struct stream_pos *dest, const struct format *fdest,
 		(void) g_string_free(str, TRUE);
 		name = g_quark_from_string(str->str);
 
-		field = &g_array_index(sequence->elems, struct field, i);
+		field = &g_array_index(sequence_definition->elems, struct field, i);
 		field->name = name;
 		field->definition = sequence_declaration->elem->definition_new(sequence_declaration->elem,
-					  sequence->scope,
+					  sequence_definition->scope,
 					  name, i);
-		field->definition->declaration->copy(dest, fdest, src, fsrc, field->definition);
+		generic_rw(pos, field->definition);
 	}
-	fsrc->sequence_end(src, sequence_declaration);
-	if (fdest)
-		fdest->sequence_end(dest, sequence_declaration);
 }
 
 static
@@ -112,7 +102,6 @@ struct declaration_sequence *
 	sequence_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_SEQUENCE;
 	declaration->alignment = max(len_declaration->p.alignment, elem_declaration->alignment);
-	declaration->copy = sequence_copy;
 	declaration->declaration_free = _sequence_declaration_free;
 	declaration->definition_new = _sequence_definition_new;
 	declaration->definition_free = _sequence_definition_free;

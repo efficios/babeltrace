@@ -27,27 +27,14 @@ struct definition *_variant_definition_new(struct declaration *declaration,
 static
 void _variant_definition_free(struct definition *definition);
 
-void variant_copy(struct stream_pos *dest, const struct format *fdest, 
-		  struct stream_pos *src, const struct format *fsrc,
-		  struct definition *definition)
+void variant_rw(struct stream_pos *ppos, struct definition *definition)
 {
-	struct definition_variant *variant =
+	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);
-	struct declaration_variant *variant_declaration = variant->declaration;
 	struct field *field;
-	struct declaration *field_declaration;
 
-	fsrc->variant_begin(src, variant_declaration);
-	if (fdest)
-		fdest->variant_begin(dest, variant_declaration);
-
-	field = variant_get_current_field(variant);
-	field_declaration = field->definition->declaration;
-	field_declaration->copy(dest, fdest, src, fsrc, field->definition);
-
-	fsrc->variant_end(src, variant_declaration);
-	if (fdest)
-		fdest->variant_end(dest, variant_declaration);
+	field = variant_get_current_field(variant_definition);
+	generic_rw(ppos, field->definition);
 }
 
 static
@@ -86,7 +73,6 @@ struct declaration_untagged_variant *untagged_variant_declaration_new(
 	untagged_variant_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_UNTAGGED_VARIANT;
 	declaration->alignment = 1;
-	declaration->copy = NULL;
 	declaration->declaration_free = _untagged_variant_declaration_free;
 	declaration->definition_new = NULL;
 	declaration->definition_free = NULL;
@@ -117,7 +103,6 @@ struct declaration_variant *
 	append_scope_path(tag, variant_declaration->tag_name);
 	declaration->id = CTF_TYPE_VARIANT;
 	declaration->alignment = 1;
-	declaration->copy = variant_copy;
 	declaration->declaration_free = _variant_declaration_free;
 	declaration->definition_new = _variant_definition_new;
 	declaration->definition_free = _variant_definition_free;

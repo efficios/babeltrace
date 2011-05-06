@@ -26,23 +26,6 @@ struct definition *_float_definition_new(struct declaration *declaration,
 static
 void _float_definition_free(struct definition *definition);
 
-void float_copy(struct stream_pos *destp,
-		const struct format *fdest,
-		struct stream_pos *srcp,
-		const struct format *fsrc,
-		struct definition *definition)
-{
-	struct definition_float *_float =
-		container_of(definition, struct definition_float, p);
-	struct declaration_float *float_declaration = _float->declaration;
-	long double v;
-
-	v = fsrc->ldouble_read(srcp, float_declaration);
-	_float->value = v;
-	if (fdest)
-		fdest->ldouble_write(destp, float_declaration, v);
-}
-
 static
 void _float_declaration_free(struct declaration *declaration)
 {
@@ -66,7 +49,6 @@ struct declaration_float *
 	declaration = &float_declaration->p;
 	declaration->id = CTF_TYPE_FLOAT;
 	declaration->alignment = alignment;
-	declaration->copy = float_copy;
 	declaration->declaration_free = _float_declaration_free;
 	declaration->definition_new = _float_definition_new;
 	declaration->definition_free = _float_definition_free;
@@ -91,11 +73,33 @@ struct definition *
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
 	struct definition_float *_float;
+	struct definition *tmp;
 
 	_float = g_new(struct definition_float, 1);
 	declaration_ref(&float_declaration->p);
 	_float->p.declaration = declaration;
 	_float->declaration = float_declaration;
+	if (float_declaration->byte_order == LITTLE_ENDIAN) {
+		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
+			parent_scope, g_quark_from_static_string("mantissa"), 0);
+		_float->mantissa = container_of(tmp, struct definition_integer, p);
+		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
+			parent_scope, g_quark_from_static_string("exp"), 1);
+		_float->exp = container_of(tmp, struct definition_integer, p);
+		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
+			parent_scope, g_quark_from_static_string("sign"), 2);
+		_float->sign = container_of(tmp, struct definition_integer, p);
+	} else {
+		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
+			parent_scope, g_quark_from_static_string("sign"), 0);
+		_float->sign = container_of(tmp, struct definition_integer, p);
+		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
+			parent_scope, g_quark_from_static_string("exp"), 1);
+		_float->exp = container_of(tmp, struct definition_integer, p);
+		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
+			parent_scope, g_quark_from_static_string("mantissa"), 2);
+		_float->mantissa = container_of(tmp, struct definition_integer, p);
+	}
 	_float->p.ref = 1;
 	_float->p.index = index;
 	_float->value = 0.0;
@@ -108,6 +112,9 @@ void _float_definition_free(struct definition *definition)
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
 
+	definition_unref(&_float->sign->p);
+	definition_unref(&_float->exp->p);
+	definition_unref(&_float->mantissa->p);
 	declaration_unref(_float->p.declaration);
 	g_free(_float);
 }
