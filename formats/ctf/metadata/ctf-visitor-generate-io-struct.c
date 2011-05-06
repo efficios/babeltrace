@@ -44,6 +44,10 @@ struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace);
 
+static
+int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
+		     struct declaration_scope *parent_declaration_scope, struct ctf_trace *trace);
+
 /*
  * String returned must be freed by the caller using g_free.
  */
@@ -1444,10 +1448,17 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	}
 	if (!CTF_EVENT_FIELD_IS_SET(event, stream_id)) {
 		/* Allow missing stream_id if there is only a single stream */
-		if (trace->streams->len == 1) {
+		switch (trace->streams->len) {
+		case 0:	/* Create stream if there was none. */
+			ret = ctf_stream_visit(fd, depth, NULL, trace->root_declaration_scope, trace);
+			if (ret)
+				goto error;
+			/* Fall-through */
+		case 1:
 			event->stream_id = 0;
 			event->stream = trace_stream_lookup(trace, event->stream_id);
-		} else {
+			break;
+		default:
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing stream_id field in event declaration\n", __func__);
 			goto error;
@@ -1633,10 +1644,12 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_direct_hash, g_direct_equal);
 	stream->files = g_ptr_array_new();
-	cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
-		ret = ctf_stream_declaration_visit(fd, depth + 1, iter, stream, trace);
-		if (ret)
-			goto error;
+	if (node) {
+		cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
+			ret = ctf_stream_declaration_visit(fd, depth + 1, iter, stream, trace);
+			if (ret)
+				goto error;
+		}
 	}
 	if (CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
 		/* check that packet header has stream_id field. */
