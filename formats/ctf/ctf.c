@@ -92,7 +92,6 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 						sizeof(struct packet_index));
 	else
 		pos->packet_index = NULL;
-
 	switch (open_flags & O_ACCMODE) {
 	case O_RDONLY:
 		pos->prot = PROT_READ;
@@ -622,11 +621,10 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 		for (i = 0; i < td->streams->len; i++) {
 			struct ctf_stream *stream;
 			int j;
-
 			stream = g_ptr_array_index(td->streams, i);
 			for (j = 0; j < stream->files->len; j++) {
 				struct ctf_file_stream *file_stream;
-				file_stream = g_ptr_array_index(td->streams, j);
+				file_stream = g_ptr_array_index(stream->files, j);
 				ctf_close_file_stream(file_stream);
 			}
 
