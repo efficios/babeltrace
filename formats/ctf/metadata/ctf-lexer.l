@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <babeltrace/babeltrace.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -28,8 +29,6 @@ void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
 static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
 	__attribute__((unused));
 static int input (yyscan_t yyscanner) __attribute__((unused));
-
-#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, ##args)
 
 %}
 
@@ -121,7 +120,7 @@ _Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
 [1-9]{DIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return DECIMAL_CONSTANT;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return OCTAL_CONSTANT;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return HEXADECIMAL_CONSTANT;
-{IDENTIFIER}			printf_dbg("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\n]+			; /* ignore */
 .				return ERROR;
 %%

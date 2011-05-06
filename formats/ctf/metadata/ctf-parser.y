@@ -26,9 +26,12 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <babeltrace/list.h>
+#include <babeltrace/babeltrace.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
+
+int yydebug;
 
 /*
  * TODO: support enum, variant and struct declarations in scopes.
@@ -46,8 +49,6 @@ _cds_list_splice_tail (struct cds_list_head *add, struct cds_list_head *head)
 		head->prev = add->prev;
 	}
 }
-
-#define printf_dbg(fmt, args...)	fprintf(stderr, "%s: " fmt, __func__, ## args)
 
 int yyparse(struct ctf_scanner *scanner);
 int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
@@ -171,7 +172,7 @@ static void push_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *ns;
 
-	printf_dbg("push scope\n");
+	printf_debug("push scope\n");
 	ns = malloc(sizeof(struct ctf_scanner_scope));
 	init_scope(ns, scanner->cs);
 	scanner->cs = ns;
@@ -181,7 +182,7 @@ static void pop_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *os;
 
-	printf_dbg("pop scope\n");
+	printf_debug("pop scope\n");
 	os = scanner->cs;
 	scanner->cs = os->parent;
 	finalize_scope(os);
@@ -193,7 +194,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 	int ret;
 
 	ret = (int) (long) g_hash_table_lookup(s->types, id);
-	printf_dbg("lookup %p %s %d\n", s, id, ret);
+	printf_debug("lookup %p %s %d\n", s, id, ret);
 	return ret;
 }
 
@@ -208,13 +209,13 @@ int is_type(struct ctf_scanner *scanner, const char *id)
 			break;
 		}
 	}
-	printf_dbg("is type %s %d\n", id, ret);
+	printf_debug("is type %s %d\n", id, ret);
 	return ret;
 }
 
 static void add_type(struct ctf_scanner *scanner, struct gc_string *id)
 {
-	printf_dbg("add type %s\n", id->s);
+	printf_debug("add type %s\n", id->s);
 	if (lookup_type(scanner->cs, id->s))
 		return;
 	g_hash_table_insert(scanner->cs->types, id->s, id->s);
@@ -789,6 +790,8 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 {
 	struct ctf_scanner *scanner;
 	int ret;
+
+	yydebug = babeltrace_debug;
 
 	scanner = malloc(sizeof(*scanner));
 	if (!scanner)

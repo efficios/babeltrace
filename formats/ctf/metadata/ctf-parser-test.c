@@ -26,7 +26,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-extern int yydebug;
+int babeltrace_verbose, babeltrace_debug;
 
 int main(int argc, char **argv)
 {
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	struct ctf_trace *trace;
 	int ret = 0;
 
-	yydebug = 1;
+	babeltrace_debug = 1;
 	scanner = ctf_scanner_alloc(stdin);
 	if (!scanner) {
 		fprintf(stdout, "Error allocating scanner\n");
