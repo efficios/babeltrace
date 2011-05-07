@@ -458,9 +458,9 @@ int create_stream_packet_index(struct ctf_trace *td,
 			return -EINVAL;
 		}
 
-		if (packet_index.packet_size > filestats.st_size * CHAR_BIT) {
-			fprintf(stdout, "[error] Packet size (%zu bits) is larger than file size (%zu bits).\n",
-				packet_index.content_size, filestats.st_size * CHAR_BIT);
+		if (packet_index.packet_size > (filestats.st_size - packet_index.offset) * CHAR_BIT) {
+			fprintf(stdout, "[error] Packet size (%zu bits) is larger than remaining file size (%zu bits).\n",
+				packet_index.content_size, (filestats.st_size - packet_index.offset) * CHAR_BIT);
 			return -EINVAL;
 		}
 
