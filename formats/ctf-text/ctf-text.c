@@ -62,8 +62,9 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags)
 	switch (flags & O_ACCMODE) {
 	case O_WRONLY:
 		if (!path)
-			path = "/dev/stdout";
-		fp = fopen(path, "w");
+			fp = stdout;
+		else
+			fp = fopen(path, "w");
 		if (!fp)
 			goto error;
 		pos->fp = fp;
