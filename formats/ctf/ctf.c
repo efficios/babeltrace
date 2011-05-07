@@ -462,7 +462,6 @@ int create_stream_packet_index(struct ctf_trace *td,
 			return -EINVAL;
 		}
 
-
 		/* Save position after header and context */
 		packet_index.data_offset = pos->offset;
 
