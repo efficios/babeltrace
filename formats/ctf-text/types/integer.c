@@ -33,11 +33,11 @@ void ctf_text_integer_write(struct stream_pos *ppos, struct definition *definiti
 		return;
 	print_pos_tabs(pos);
 	if (!integer_declaration->signedness) {
-		fprintf(pos->fp, "%" PRIu64" (%" PRIX64 ")\n",
+		fprintf(pos->fp, "%" PRIu64" (0x%" PRIX64 ")\n",
 			integer_definition->value._unsigned,
 			integer_definition->value._unsigned);
 	} else {
-		fprintf(pos->fp, "%" PRId64" (%" PRIX64 ")\n",
+		fprintf(pos->fp, "%" PRId64" (0x%" PRIX64 ")\n",
 			integer_definition->value._signed,
 			integer_definition->value._signed);
 	}
