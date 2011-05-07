@@ -22,6 +22,12 @@
 #include <glib.h>
 #include <endian.h>
 
+/*
+ * The aligned read/write functions are expected to be faster than the
+ * bitfield variants. They will be enabled eventually as an
+ * optimisation.
+ */
+
 static
 void _aligned_integer_read(struct stream_pos *ppos,
 			   struct definition *definition)
@@ -42,7 +48,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			uint8_t v;
 
-			v = *(const uint8_t *)pos->base;
+			v = *(const uint8_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._unsigned = v;
 			break;
 		}
@@ -50,7 +56,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			uint16_t v;
 
-			v = *(const uint16_t *)pos->base;
+			v = *(const uint16_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._unsigned =
 				rbo ? GUINT16_SWAP_LE_BE(v) : v;
 			break;
@@ -59,7 +65,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			uint32_t v;
 
-			v = *(const uint32_t *)pos->base;
+			v = *(const uint32_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._unsigned =
 				rbo ? GUINT32_SWAP_LE_BE(v) : v;
 			break;
@@ -68,7 +74,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			uint64_t v;
 
-			v = *(const uint64_t *)pos->base;
+			v = *(const uint64_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._unsigned =
 				rbo ? GUINT64_SWAP_LE_BE(v) : v;
 			break;
@@ -82,7 +88,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			int8_t v;
 
-			v = *(const int8_t *)pos->base;
+			v = *(const int8_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed = v;
 			break;
 		}
@@ -90,7 +96,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			int16_t v;
 
-			v = *(const int16_t *)pos->base;
+			v = *(const int16_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
 				rbo ? GUINT16_SWAP_LE_BE(v) : v;
 			break;
@@ -99,7 +105,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			int32_t v;
 
-			v = *(const int32_t *)pos->base;
+			v = *(const int32_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
 				rbo ? GUINT32_SWAP_LE_BE(v) : v;
 			break;
@@ -108,7 +114,7 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		{
 			int64_t v;
 
-			v = *(const int64_t *)pos->base;
+			v = *(const int64_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
 				rbo ? GUINT64_SWAP_LE_BE(v) : v;
 			break;
@@ -195,6 +201,12 @@ void ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 		integer_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
+	if (!(integer_declaration->p.alignment % CHAR_BIT)
+	    && !(integer_declaration->len % CHAR_BIT)) {
+		_aligned_integer_read(ppos, definition);
+		return;
+	}
+
 	ctf_align_pos(pos, integer_declaration->p.alignment);
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
@@ -225,6 +237,12 @@ void ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
 	const struct declaration_integer *integer_declaration =
 		integer_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
+
+	if (!(integer_declaration->p.alignment % CHAR_BIT)
+	    && !(integer_declaration->len % CHAR_BIT)) {
+		_aligned_integer_write(ppos, definition);
+		return;
+	}
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
 	if (pos->dummy)

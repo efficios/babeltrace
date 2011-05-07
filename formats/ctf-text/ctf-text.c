@@ -35,11 +35,6 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags);
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
-rw_dispatch read_dispatch_table[] = {
-	/* All unimplemented */
-};
-
-static
 rw_dispatch write_dispatch_table[] = {
 	[ CTF_TYPE_INTEGER ] = ctf_text_integer_write,
 	[ CTF_TYPE_FLOAT ] = ctf_text_float_write,
