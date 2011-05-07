@@ -248,9 +248,11 @@ void usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Convert for a text log (read from standard input) to CTF.\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "usage : babeltrace-log OUTPUT\n");
+	fprintf(fp, "usage : babeltrace-log [OPTIONS] OUTPUT\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  OUTPUT                         Output trace path\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  -t                             With timestamps (format: [sec.usec] string\\n)\n");
 	fprintf(fp, "\n");
 }
 
