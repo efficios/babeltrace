@@ -46,7 +46,7 @@ int convert_event(struct ctf_text_stream_pos *sout,
 	if (stream_class->event_header) {
 		ret = generic_rw(&sin->pos.parent, &stream_class->event_header->p);
 		if (ret)
-			return ret;
+			goto error;
 		/* lookup event id */
 		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
 				g_quark_from_static_string("id"));
@@ -63,17 +63,17 @@ int convert_event(struct ctf_text_stream_pos *sout,
 
 		ret = generic_rw(&sout->parent, &stream_class->event_header->p);
 		if (ret)
-			return ret;
+			goto error;
 	}
 
 	/* Read and print stream-declared event context */
 	if (stream_class->event_context) {
 		ret = generic_rw(&sin->pos.parent, &stream_class->event_context->p);
 		if (ret)
-			return ret;
+			goto error;
 		ret = generic_rw(&sout->parent, &stream_class->event_context->p);
 		if (ret)
-			return ret;
+			goto error;
 	}
 
 	if (id >= stream_class->events_by_id->len) {
@@ -90,23 +90,27 @@ int convert_event(struct ctf_text_stream_pos *sout,
 	if (event_class->context) {
 		ret = generic_rw(&sin->pos.parent, &event_class->context->p);
 		if (ret)
-			return ret;
+			goto error;
 		ret = generic_rw(&sout->parent, &event_class->context->p);
 		if (ret)
-			return ret;
+			goto error;
 	}
 
 	/* Read and print event payload */
 	if (event_class->fields) {
 		ret = generic_rw(&sin->pos.parent, &event_class->fields->p);
 		if (ret)
-			return ret;
+			goto error;
 		ret = generic_rw(&sout->parent, &event_class->fields->p);
 		if (ret)
-			return ret;
+			goto error;
 	}
 
 	return 0;
+
+error:
+	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	return ret;
 }
 
 static
