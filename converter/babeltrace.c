@@ -133,10 +133,6 @@ static int parse_options(int argc, char **argv)
 		goto end;
 	}
 	opt_output_path = poptGetArg(pc);
-	if (!opt_output_path) {
-		ret = -EINVAL;
-		goto end;
-	}
 end:
 	if (pc) {
 		poptFreeContext(pc);
@@ -169,7 +165,8 @@ int main(int argc, char **argv)
 	printf_verbose("Converting from file: %s\n", opt_input_path);
 	printf_verbose("Converting from format: %s\n",
 		opt_input_format ? : "<autodetect>");
-	printf_verbose("Converting to file: %s\n", opt_output_path);
+	printf_verbose("Converting to file: %s\n",
+		opt_output_path ? : "<stdout>");
 	printf_verbose("Converting to format: %s\n",
 		opt_output_format ? : "ctf");
 
@@ -200,6 +197,8 @@ int main(int argc, char **argv)
 		goto error_td_read;
 	}
 
+	if (!opt_output_path)
+		opt_output_path = "/dev/stdout";
 	td_write = fmt_write->open_trace(opt_output_path, O_WRONLY);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
