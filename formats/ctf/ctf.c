@@ -337,7 +337,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				defint = container_of(field->definition, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				if (defint->value._unsigned != CTF_MAGIC) {
-					fprintf(stdout, "[error] Invalid magic number %" PRIX64 " at packet %u (file offset %zd).\n",
+					fprintf(stdout, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
 							defint->value._unsigned,
 							file_stream->pos.packet_index->len,
 							(ssize_t) pos->mmap_offset);
@@ -564,7 +564,8 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags)
 		}
 		if (!diriter)
 			break;
-		if (!strcmp(diriter->d_name, ".")
+		/* Ignore hidden files, ., .. and metadata. */
+		if (!strncmp(diriter->d_name, ".", 1)
 				|| !strcmp(diriter->d_name, "..")
 				|| !strcmp(diriter->d_name, "metadata"))
 			continue;
