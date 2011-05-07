@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);
@@ -28,14 +28,14 @@ void ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		enum_definition->integer;
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	GArray *qs;
-	int i;
+	int i, ret;
 
 	if (pos->dummy)
-		return;
+		return 0;
 	print_pos_tabs(pos);
 	fprintf(pos->fp, "(");
 	pos->depth++;
-	generic_rw(ppos, &integer_definition->p);
+	ret = generic_rw(ppos, &integer_definition->p);
 	print_pos_tabs(pos);
 
 	qs = enum_definition->value;
@@ -49,4 +49,5 @@ void ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	pos->depth--;
 	print_pos_tabs(pos);
 	fprintf(pos->fp, ")");
+	return ret;
 }

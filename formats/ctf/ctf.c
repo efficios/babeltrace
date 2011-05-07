@@ -324,8 +324,9 @@ int create_stream_packet_index(struct ctf_trace *td,
 		/* read and check header, set stream id (and check) */
 		if (td->packet_header) {
 			/* Read packet header */
-			generic_rw(&pos->parent, &td->packet_header->p);
-
+			ret = generic_rw(&pos->parent, &td->packet_header->p);
+			if (ret)
+				return ret;
 			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
@@ -409,8 +410,9 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 		if (stream->packet_context) {
 			/* Read packet context */
-			generic_rw(&pos->parent, &stream->packet_context->p);
-
+			ret = generic_rw(&pos->parent, &stream->packet_context->p);
+			if (ret)
+				return ret;
 			/* read content size from header */
 			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {

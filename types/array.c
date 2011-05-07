@@ -27,20 +27,24 @@ struct definition *_array_definition_new(struct declaration *declaration,
 static
 void _array_definition_free(struct definition *definition);
 
-void array_rw(struct stream_pos *pos, struct definition *definition)
+int array_rw(struct stream_pos *pos, struct definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);
 	const struct declaration_array *array_declaration =
 		array_definition->declaration;
 	uint64_t i;
+	int ret;
 
 	/* No need to align, because the first field will align itself. */
 	for (i = 0; i < array_declaration->len; i++) {
 		struct definition *elem =
 			g_array_index(array_definition->elems, struct field, i).definition;
-		generic_rw(pos, elem);
+		ret = generic_rw(pos, elem);
+		if (ret)
+			return ret;
 	}
+	return 0;
 }
 
 static

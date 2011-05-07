@@ -21,7 +21,7 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_string *string_definition =
 		container_of(definition, struct definition_string, p);
@@ -29,11 +29,21 @@ void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 		string_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	size_t len;
+	ssize_t max_len;
 	char *srcaddr;
 
 	ctf_align_pos(pos, string_declaration->p.alignment);
+
 	srcaddr = ctf_get_pos_addr(pos);
-	len = strlen(srcaddr) + 1;
+	/* Not counting \0 */
+	max_len = pos->packet_size - pos->offset - 1;
+	if (max_len < 0)
+		return -EFAULT;
+	len = strnlen(srcaddr, max_len) + 1;	/* Add \0 */
+	/* Truncated string, unexpected. Trace probably corrupted. */
+	if (srcaddr[len - 1] != '\0')
+		return -EFAULT;
+
 	if (string_definition->alloc_len < len) {
 		string_definition->value =
 			g_realloc(string_definition->value, len);
@@ -43,9 +53,10 @@ void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 	memcpy(string_definition->value, srcaddr, len);
 	string_definition->len = len;
 	ctf_move_pos(pos, len * CHAR_BIT);
+	return 0;
 }
 
-void ctf_string_write(struct stream_pos *ppos,
+int ctf_string_write(struct stream_pos *ppos,
 		      struct definition *definition)
 {
 	struct definition_string *string_definition =
@@ -59,10 +70,15 @@ void ctf_string_write(struct stream_pos *ppos,
 	ctf_align_pos(pos, string_declaration->p.alignment);
 	assert(string_definition->value != NULL);
 	len = string_definition->len;
+
+	if (!ctf_pos_access_ok(pos, len))
+		return -EFAULT;
+
 	if (pos->dummy)
 		goto end;
 	destaddr = ctf_get_pos_addr(pos);
 	memcpy(destaddr, string_definition->value, len);
 end:
 	ctf_move_pos(pos, len * CHAR_BIT);
+	return 0;
 }

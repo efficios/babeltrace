@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <glib.h>
-
+#include <stdio.h>
 
 struct packet_index {
 	off_t offset;		/* offset of the packet in the file, in bytes */
@@ -65,18 +65,18 @@ struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
 	return container_of(pos, struct ctf_stream_pos, parent);
 }
 
-void ctf_integer_read(struct stream_pos *pos, struct definition *definition);
-void ctf_integer_write(struct stream_pos *pos, struct definition *definition);
-void ctf_float_read(struct stream_pos *pos, struct definition *definition);
-void ctf_float_write(struct stream_pos *pos, struct definition *definition);
-void ctf_string_read(struct stream_pos *pos, struct definition *definition);
-void ctf_string_write(struct stream_pos *pos, struct definition *definition);
-void ctf_enum_read(struct stream_pos *pos, struct definition *definition);
-void ctf_enum_write(struct stream_pos *pos, struct definition *definition);
-void ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
-void ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
-void ctf_array_rw(struct stream_pos *pos, struct definition *definition);
-void ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_integer_read(struct stream_pos *pos, struct definition *definition);
+int ctf_integer_write(struct stream_pos *pos, struct definition *definition);
+int ctf_float_read(struct stream_pos *pos, struct definition *definition);
+int ctf_float_write(struct stream_pos *pos, struct definition *definition);
+int ctf_string_read(struct stream_pos *pos, struct definition *definition);
+int ctf_string_write(struct stream_pos *pos, struct definition *definition);
+int ctf_enum_read(struct stream_pos *pos, struct definition *definition);
+int ctf_enum_write(struct stream_pos *pos, struct definition *definition);
+int ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_array_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
 
 void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence);
 
@@ -91,6 +91,9 @@ void ctf_fini_pos(struct ctf_stream_pos *pos);
 static inline
 void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 {
+	if (pos->offset == -EOF)
+		return;
+
 	if (pos->fd >= 0) {
 		if (((pos->prot == PROT_READ)
 		      && (pos->offset + bit_offset >= pos->content_size))
@@ -146,6 +149,16 @@ static inline
 void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 {
 	ctf_move_pos(pos, pos->packet_size - pos->offset);
+}
+
+static inline
+int ctf_pos_access_ok(struct ctf_stream_pos *pos, size_t bit_len)
+{
+	if (pos->offset == -EOF)
+		return 0;
+	if (pos->offset + bit_len > pos->packet_size)
+		return 0;
+	return 1;
 }
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

@@ -21,7 +21,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 
-void ctf_text_integer_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -30,7 +30,7 @@ void ctf_text_integer_write(struct stream_pos *ppos, struct definition *definiti
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
 	if (pos->dummy)
-		return;
+		return 0;
 	print_pos_tabs(pos);
 	if (!integer_declaration->signedness) {
 		fprintf(pos->fp, "%" PRIu64" (0x%" PRIX64 ")\n",
@@ -41,4 +41,5 @@ void ctf_text_integer_write(struct stream_pos *ppos, struct definition *definiti
 			integer_definition->value._signed,
 			integer_definition->value._signed);
 	}
+	return 0;
 }

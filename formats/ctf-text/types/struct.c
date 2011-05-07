@@ -19,9 +19,10 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-void ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
+	int ret;
 
 	if (!pos->dummy) {
 		if (pos->depth >= 0) {
@@ -30,7 +31,7 @@ void ctf_text_struct_write(struct stream_pos *ppos, struct definition *definitio
 		}
 		pos->depth++;
 	}
-	struct_rw(ppos, definition);
+	ret = struct_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		if (pos->depth >= 0) {
@@ -38,4 +39,5 @@ void ctf_text_struct_write(struct stream_pos *ppos, struct definition *definitio
 			fprintf(pos->fp, "}\n");
 		}
 	}
+	return ret;
 }

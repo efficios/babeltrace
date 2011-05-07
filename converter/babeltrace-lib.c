@@ -34,6 +34,7 @@ int convert_event(struct ctf_text_stream_pos *sout,
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
+	int ret;
 
 	if (sin->pos.offset == -EOF)
 		return -EOF;
@@ -43,8 +44,9 @@ int convert_event(struct ctf_text_stream_pos *sout,
 
 	/* Read and print event header */
 	if (stream_class->event_header) {
-		generic_rw(&sin->pos.parent, &stream_class->event_header->p);
-
+		ret = generic_rw(&sin->pos.parent, &stream_class->event_header->p);
+		if (ret)
+			return ret;
 		/* lookup event id */
 		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
 				g_quark_from_static_string("id"));
@@ -59,13 +61,19 @@ int convert_event(struct ctf_text_stream_pos *sout,
 			id = defint->value._unsigned;	/* set id */
 		}
 
-		generic_rw(&sout->parent, &stream_class->event_header->p);
+		ret = generic_rw(&sout->parent, &stream_class->event_header->p);
+		if (ret)
+			return ret;
 	}
 
 	/* Read and print stream-declared event context */
 	if (stream_class->event_context) {
-		generic_rw(&sin->pos.parent, &stream_class->event_context->p);
-		generic_rw(&sout->parent, &stream_class->event_context->p);
+		ret = generic_rw(&sin->pos.parent, &stream_class->event_context->p);
+		if (ret)
+			return ret;
+		ret = generic_rw(&sout->parent, &stream_class->event_context->p);
+		if (ret)
+			return ret;
 	}
 
 	if (id >= stream_class->events_by_id->len) {
@@ -80,14 +88,22 @@ int convert_event(struct ctf_text_stream_pos *sout,
 
 	/* Read and print event-declared event context */
 	if (event_class->context) {
-		generic_rw(&sin->pos.parent, &event_class->context->p);
-		generic_rw(&sout->parent, &event_class->context->p);
+		ret = generic_rw(&sin->pos.parent, &event_class->context->p);
+		if (ret)
+			return ret;
+		ret = generic_rw(&sout->parent, &event_class->context->p);
+		if (ret)
+			return ret;
 	}
 
 	/* Read and print event payload */
 	if (event_class->fields) {
-		generic_rw(&sin->pos.parent, &event_class->fields->p);
-		generic_rw(&sout->parent, &event_class->fields->p);
+		ret = generic_rw(&sin->pos.parent, &event_class->fields->p);
+		if (ret)
+			return ret;
+		ret = generic_rw(&sout->parent, &event_class->fields->p);
+		if (ret)
+			return ret;
 	}
 
 	return 0;

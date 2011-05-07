@@ -18,7 +18,7 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_array_rw(struct stream_pos *pos, struct definition *definition)
+int ctf_array_rw(struct stream_pos *pos, struct definition *definition)
 {
-	array_rw(pos, definition);
+	return array_rw(pos, definition);
 }

@@ -70,20 +70,34 @@ struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
 
-void _ctf_float_copy(struct stream_pos *destp,
-		     struct definition_float *dest_definition,
-		     struct stream_pos *srcp,
-		     const struct definition_float *src_definition)
+int _ctf_float_copy(struct stream_pos *destp,
+		    struct definition_float *dest_definition,
+		    struct stream_pos *srcp,
+		    const struct definition_float *src_definition)
 {
+	int ret;
+
 	/* Read */
 	if (src_definition->declaration->byte_order == LITTLE_ENDIAN) {
-		ctf_integer_read(srcp, &src_definition->mantissa->p);
-		ctf_integer_read(srcp, &src_definition->exp->p);
-		ctf_integer_read(srcp, &src_definition->sign->p);
+		ret = ctf_integer_read(srcp, &src_definition->mantissa->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_read(srcp, &src_definition->exp->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_read(srcp, &src_definition->sign->p);
+		if (ret)
+			return ret;
 	} else {
-		ctf_integer_read(srcp, &src_definition->sign->p);
-		ctf_integer_read(srcp, &src_definition->exp->p);
-		ctf_integer_read(srcp, &src_definition->mantissa->p);
+		ret = ctf_integer_read(srcp, &src_definition->sign->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_read(srcp, &src_definition->exp->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_read(srcp, &src_definition->mantissa->p);
+		if (ret)
+			return ret;
 	}
 
 	dest_definition->mantissa->value._unsigned =
@@ -95,17 +109,30 @@ void _ctf_float_copy(struct stream_pos *destp,
 
 	/* Write */
 	if (dest_definition->declaration->byte_order == LITTLE_ENDIAN) {
-		ctf_integer_write(destp, &dest_definition->mantissa->p);
-		ctf_integer_write(destp, &dest_definition->exp->p);
-		ctf_integer_write(destp, &dest_definition->sign->p);
+		ret = ctf_integer_write(destp, &dest_definition->mantissa->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_write(destp, &dest_definition->exp->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_write(destp, &dest_definition->sign->p);
+		if (ret)
+			return ret;
 	} else {
-		ctf_integer_write(destp, &dest_definition->sign->p);
-		ctf_integer_write(destp, &dest_definition->exp->p);
-		ctf_integer_write(destp, &dest_definition->mantissa->p);
+		ret = ctf_integer_write(destp, &dest_definition->sign->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_write(destp, &dest_definition->exp->p);
+		if (ret)
+			return ret;
+		ret = ctf_integer_write(destp, &dest_definition->mantissa->p);
+		if (ret)
+			return ret;
 	}
+	return 0;
 }
 
-void ctf_float_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -119,17 +146,19 @@ void ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	struct definition_float *tmpfloat =
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos destp;
+	int ret;
 
 	ctf_init_pos(&destp, -1, O_WRONLY);
 	destp.base = (char *) u.bits;
 
 	ctf_align_pos(pos, float_declaration->p.alignment);
-	_ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
+	ret = _ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
 	float_definition->value = u.v;
 	definition_unref(tmpdef);
+	return ret;
 }
 
-void ctf_float_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -143,14 +172,16 @@ void ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	struct definition_float *tmpfloat =
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos srcp;
+	int ret;
 
 	ctf_init_pos(&srcp, -1, O_RDONLY);
 	srcp.base = (char *) u.bits;
 
 	u.v = float_definition->value;
 	ctf_align_pos(pos, float_declaration->p.alignment);
-	_ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
+	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
 	definition_unref(tmpdef);
+	return ret;
 }
 
 void __attribute__((constructor)) ctf_float_init(void)

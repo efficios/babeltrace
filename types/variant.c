@@ -27,14 +27,14 @@ struct definition *_variant_definition_new(struct declaration *declaration,
 static
 void _variant_definition_free(struct definition *definition);
 
-void variant_rw(struct stream_pos *ppos, struct definition *definition)
+int variant_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);
 	struct field *field;
 
 	field = variant_get_current_field(variant_definition);
-	generic_rw(ppos, field->definition);
+	return generic_rw(ppos, field->definition);
 }
 
 static

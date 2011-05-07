@@ -19,19 +19,21 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-void ctf_text_array_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_array_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
+	int ret;
 
 	if (!pos->dummy) {
 		print_pos_tabs(pos);
 		fprintf(pos->fp, "[\n");
 		pos->depth++;
 	}
-	array_rw(ppos, definition);
+	ret = array_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		print_pos_tabs(pos);
 		fprintf(pos->fp, "]\n");
 	}
+	return ret;
 }

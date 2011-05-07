@@ -30,17 +30,21 @@ struct definition *_struct_definition_new(struct declaration *declaration,
 static
 void _struct_definition_free(struct definition *definition);
 
-void struct_rw(struct stream_pos *ppos, struct definition *definition)
+int struct_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);
 	unsigned long i;
+	int ret;
 
 	for (i = 0; i < struct_definition->fields->len; i++) {
 		struct field *field = &g_array_index(struct_definition->fields,
 						     struct field, i);
-		generic_rw(ppos, field->definition);
+		ret = generic_rw(ppos, field->definition);
+		if (ret)
+			return ret;
 	}
+	return 0;
 }
 
 static

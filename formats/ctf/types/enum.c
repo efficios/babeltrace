@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <glib.h>
 
-void ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);
@@ -31,8 +31,11 @@ void ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	const struct declaration_integer *integer_declaration =
 		integer_definition->declaration;
 	GArray *qs;
+	int ret;
 
-	ctf_integer_read(ppos, &integer_definition->p);
+	ret = ctf_integer_read(ppos, &integer_definition->p);
+	if (ret)
+		return ret;
 	if (!integer_declaration->signedness)
 		qs = enum_uint_to_quark_set(enum_declaration,
 			integer_definition->value._unsigned);
@@ -44,14 +47,15 @@ void ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	if (enum_definition->value)
 		g_array_unref(enum_definition->value);
 	enum_definition->value = qs;
+	return 0;
 }
 
-void ctf_enum_write(struct stream_pos *pos, struct definition *definition)
+int ctf_enum_write(struct stream_pos *pos, struct definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);
 	struct definition_integer *integer_definition =
 		enum_definition->integer;
 
-	ctf_integer_write(pos, &integer_definition->p);
+	return ctf_integer_write(pos, &integer_definition->p);
 }

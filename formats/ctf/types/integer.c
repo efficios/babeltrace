@@ -29,8 +29,8 @@
  */
 
 static
-void _aligned_integer_read(struct stream_pos *ppos,
-			   struct definition *definition)
+int _aligned_integer_read(struct stream_pos *ppos,
+			  struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -41,6 +41,9 @@ void _aligned_integer_read(struct stream_pos *ppos,
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
+
+	if (!ctf_pos_access_ok(pos, integer_declaration->len))
+		return -EFAULT;
 
 	if (!integer_declaration->signedness) {
 		switch (integer_declaration->len) {
@@ -124,10 +127,11 @@ void _aligned_integer_read(struct stream_pos *ppos,
 		}
 	}
 	ctf_move_pos(pos, integer_declaration->len);
+	return 0;
 }
 
 static
-void _aligned_integer_write(struct stream_pos *ppos,
+int _aligned_integer_write(struct stream_pos *ppos,
 			    struct definition *definition)
 {
 	struct definition_integer *integer_definition =
@@ -139,6 +143,9 @@ void _aligned_integer_write(struct stream_pos *ppos,
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
 	assert(!(pos->offset % CHAR_BIT));
+
+	if (!ctf_pos_access_ok(pos, integer_declaration->len))
+		return -EFAULT;
 
 	if (pos->dummy)
 		goto end;
@@ -191,9 +198,10 @@ void _aligned_integer_write(struct stream_pos *ppos,
 	}
 end:
 	ctf_move_pos(pos, integer_declaration->len);
+	return 0;
 }
 
-void ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -203,11 +211,14 @@ void ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 
 	if (!(integer_declaration->p.alignment % CHAR_BIT)
 	    && !(integer_declaration->len % CHAR_BIT)) {
-		_aligned_integer_read(ppos, definition);
-		return;
+		return _aligned_integer_read(ppos, definition);
 	}
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
+
+	if (!ctf_pos_access_ok(pos, integer_declaration->len))
+		return -EFAULT;
+
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
 			bt_bitfield_read_le(pos->base, unsigned long,
@@ -228,9 +239,10 @@ void ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 				&integer_definition->value._signed);
 	}
 	ctf_move_pos(pos, integer_declaration->len);
+	return 0;
 }
 
-void ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -240,11 +252,14 @@ void ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
 
 	if (!(integer_declaration->p.alignment % CHAR_BIT)
 	    && !(integer_declaration->len % CHAR_BIT)) {
-		_aligned_integer_write(ppos, definition);
-		return;
+		return _aligned_integer_write(ppos, definition);
 	}
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
+
+	if (!ctf_pos_access_ok(pos, integer_declaration->len))
+		return -EFAULT;
+
 	if (pos->dummy)
 		goto end;
 	if (!integer_declaration->signedness) {
@@ -268,4 +283,5 @@ void ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
 	}
 end:
 	ctf_move_pos(pos, integer_declaration->len);
+	return 0;
 }

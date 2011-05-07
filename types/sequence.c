@@ -31,15 +31,18 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 static
 void _sequence_definition_free(struct definition *definition);
 
-void sequence_rw(struct stream_pos *pos, struct definition *definition)
+int sequence_rw(struct stream_pos *pos, struct definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
 	const struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
 	uint64_t len, oldlen, i;
+	int ret;
 
-	generic_rw(pos, &sequence_definition->len->p);
+	ret = generic_rw(pos, &sequence_definition->len->p);
+	if (ret)
+		return ret;
 	len = sequence_definition->len->value._unsigned;
 	/*
 	 * Yes, large sequences could be _painfully slow_ to parse due
@@ -68,8 +71,11 @@ void sequence_rw(struct stream_pos *pos, struct definition *definition)
 		field->definition = sequence_declaration->elem->definition_new(sequence_declaration->elem,
 					  sequence_definition->scope,
 					  name, i);
-		generic_rw(pos, field->definition);
+		ret = generic_rw(pos, field->definition);
+		if (ret)
+			return ret;
 	}
+	return 0;
 }
 
 static

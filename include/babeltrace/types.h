@@ -103,8 +103,8 @@ struct definition {
 	int ref;		/* number of references to the definition */
 };
 
-typedef void (*rw_dispatch)(struct stream_pos *pos,
-			    struct definition *definition);
+typedef int (*rw_dispatch)(struct stream_pos *pos,
+			   struct definition *definition);
 
 /* Parent of per-plugin positions */
 struct stream_pos {
@@ -113,14 +113,14 @@ struct stream_pos {
 };
 
 static inline
-void generic_rw(struct stream_pos *pos, struct definition *definition)
+int generic_rw(struct stream_pos *pos, struct definition *definition)
 {
 	enum ctf_type_id dispatch_id = definition->declaration->id;
 	rw_dispatch call;
 
 	assert(pos->rw_table[dispatch_id] != NULL);
 	call = pos->rw_table[dispatch_id];
-	call(pos, definition);
+	return call(pos, definition);
 }
 
 /*
@@ -437,7 +437,7 @@ struct_declaration_get_field_from_index(struct declaration_struct *struct_declar
 struct field *
 struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
-void struct_rw(struct stream_pos *pos, struct definition *definition);
+int struct_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings
@@ -466,7 +466,7 @@ int variant_definition_set_tag(struct definition_variant *variant,
  * to.
  */
 struct field *variant_get_current_field(struct definition_variant *variant);
-void variant_rw(struct stream_pos *pos, struct definition *definition);
+int variant_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * elem_declaration passed as parameter now belongs to the array. No
@@ -478,7 +478,7 @@ struct declaration_array *
 		struct declaration_scope *parent_scope);
 uint64_t array_len(struct definition_array *array);
 struct definition *array_index(struct definition_array *array, uint64_t i);
-void array_rw(struct stream_pos *pos, struct definition *definition);
+int array_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong
@@ -490,7 +490,7 @@ struct declaration_sequence *
 		struct declaration_scope *parent_scope);
 uint64_t sequence_len(struct definition_sequence *sequence);
 struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i);
-void sequence_rw(struct stream_pos *pos, struct definition *definition);
+int sequence_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * in: path (dot separated), out: q (GArray of GQuark)

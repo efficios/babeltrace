@@ -21,14 +21,15 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-void ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
 	if (pos->dummy)
-		return;
+		return 0;
 	print_pos_tabs(pos);
 	fprintf(pos->fp, "%Lg\n", float_definition->value);
+	return 0;
 }

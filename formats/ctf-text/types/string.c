@@ -21,8 +21,8 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-void ctf_text_string_write(struct stream_pos *ppos,
-		      struct definition *definition)
+int ctf_text_string_write(struct stream_pos *ppos,
+			  struct definition *definition)
 {
 	struct definition_string *string_definition =
 		container_of(definition, struct definition_string, p);
@@ -30,7 +30,8 @@ void ctf_text_string_write(struct stream_pos *ppos,
 
 	assert(string_definition->value != NULL);
 	if (pos->dummy)
-		return;
+		return 0;
 	print_pos_tabs(pos);
 	fprintf(pos->fp, "%s\n", string_definition->value);
+	return 0;
 }

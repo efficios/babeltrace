@@ -48,14 +48,14 @@ struct ctf_text_stream_pos *ctf_text_pos(struct stream_pos *pos)
 /*
  * Write only is supported for now.
  */
-void ctf_text_integer_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_float_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_string_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_enum_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_struct_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_variant_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_array_write(struct stream_pos *pos, struct definition *definition);
-void ctf_text_sequence_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_integer_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_float_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_string_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_enum_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_struct_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_variant_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_array_write(struct stream_pos *pos, struct definition *definition);
+int ctf_text_sequence_write(struct stream_pos *pos, struct definition *definition);
 
 static inline
 void print_pos_tabs(struct ctf_text_stream_pos *pos)

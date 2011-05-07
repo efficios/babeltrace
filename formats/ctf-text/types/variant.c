@@ -19,7 +19,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-void ctf_text_variant_write(struct stream_pos *pos, struct definition *definition)
+int ctf_text_variant_write(struct stream_pos *pos, struct definition *definition)
 {
-	variant_rw(pos, definition);
+	return variant_rw(pos, definition);
 }

@@ -18,11 +18,11 @@
 
 #include <babeltrace/ctf/types.h>
 
-void ctf_sequence_rw(struct stream_pos *ppos, struct definition *definition)
+int ctf_sequence_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct declaration *declaration = definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	ctf_align_pos(pos, declaration->alignment);
-	sequence_rw(ppos, definition);
+	return sequence_rw(ppos, definition);
 }
