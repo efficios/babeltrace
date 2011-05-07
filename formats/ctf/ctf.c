@@ -49,7 +49,8 @@ extern int yydebug;
 struct trace_descriptor *ctf_open_trace(const char *path, int flags);
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
-static rw_dispatch read_dispatch_table[] = {
+static
+rw_dispatch read_dispatch_table[] = {
 	[ CTF_TYPE_INTEGER ] = ctf_integer_read,
 	[ CTF_TYPE_FLOAT ] = ctf_float_read,
 	[ CTF_TYPE_ENUM ] = ctf_enum_read,
@@ -60,7 +61,8 @@ static rw_dispatch read_dispatch_table[] = {
 	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
 };
 
-static rw_dispatch write_dispatch_table[] = {
+static
+rw_dispatch write_dispatch_table[] = {
 	[ CTF_TYPE_INTEGER ] = ctf_integer_write,
 	[ CTF_TYPE_FLOAT ] = ctf_float_write,
 	[ CTF_TYPE_ENUM ] = ctf_enum_write,
@@ -71,6 +73,7 @@ static rw_dispatch write_dispatch_table[] = {
 	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
 };
 
+static
 struct format ctf_format = {
 	.open_trace = ctf_open_trace,
 	.close_trace = ctf_close_trace,

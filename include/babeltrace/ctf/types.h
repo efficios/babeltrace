@@ -63,15 +63,6 @@ struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
 	return container_of(pos, struct ctf_stream_pos, parent);
 }
 
-/*
- * IMPORTANT: All lengths (len) and offsets (start, end) are expressed in bits,
- *            *not* in bytes.
- *
- * All write primitives, as well as read for dynamically sized entities, can
- * receive a NULL ptr/dest parameter. In this case, no write is performed, but
- * the size is returned.
- */
-
 void ctf_integer_read(struct stream_pos *pos, struct definition *definition);
 void ctf_integer_write(struct stream_pos *pos, struct definition *definition);
 void ctf_float_read(struct stream_pos *pos, struct definition *definition);

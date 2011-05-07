@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-SUBDIRS = . ctf
+SUBDIRS = . ctf ctf-text
 
 lib_LTLIBRARIES = libbabeltrace_registry.la
 

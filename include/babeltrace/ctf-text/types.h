@@ -26,56 +26,44 @@
 #include <glib.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/types.h>
-
-struct ctf_text_stream_pos {
-	struct trace_descriptor parent;
-	FILE *fp;		/* File pointer. NULL if unset. */
-};
+#include <babeltrace/format.h>
 
 /*
- * IMPORTANT: All lengths (len) and offsets (start, end) are expressed in bits,
- *            *not* in bytes.
- *
- * All write primitives, as well as read for dynamically sized entities, can
- * receive a NULL ptr/dest parameter. In this case, no write is performed, but
- * the size is returned.
+ * Inherit from both struct stream_pos and struct trace_descriptor.
  */
+struct ctf_text_stream_pos {
+	struct stream_pos parent;
+	struct trace_descriptor trace_descriptor;
+	FILE *fp;		/* File pointer. NULL if unset. */
+	int depth;
+	int dummy;		/* disable output */
+};
 
-void ctf_text_uint_write(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration,
-		uint64_t v);
-void ctf_text_int_write(struct stream_pos *pos,
-		const struct declaration_integer *integer_declaration,
-		int64_t v);
+static inline
+struct ctf_text_stream_pos *ctf_text_pos(struct stream_pos *pos)
+{
+	return container_of(pos, struct ctf_text_stream_pos, parent);
+}
 
-void ctf_text_double_write(struct stream_pos *pos,
-		const struct declaration_float *dest,
-		double v);
-void ctf_text_ldouble_write(struct stream_pos *pos,
-		const struct declaration_float *dest,
-		long double v);
+/*
+ * Write only is supported for now.
+ */
+void ctf_text_integer_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_float_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_string_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_enum_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_struct_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_variant_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_array_write(struct stream_pos *pos, struct definition *definition);
+void ctf_text_sequence_write(struct stream_pos *pos, struct definition *definition);
 
-void ctf_text_string_write(struct stream_pos *dest, const char *src,
-		const struct declaration_string *string_declaration);
+static inline
+void print_pos_tabs(struct ctf_text_stream_pos *pos)
+{
+	int i;
 
-void ctf_text_enum_write(struct stream_pos *pos,
-		const struct declaration_enum *dest,
-		GQuark q);
-void ctf_text_struct_begin(struct stream_pos *pos,
-		const struct declaration_struct *struct_declaration);
-void ctf_text_struct_end(struct stream_pos *pos,
-		const struct declaration_struct *struct_declaration);
-void ctf_text_variant_begin(struct stream_pos *pos,
-		const struct declaration_variant *variant_declaration);
-void ctf_text_variant_end(struct stream_pos *pos,
-		const struct declaration_variant *variant_declaration);
-void ctf_text_array_begin(struct stream_pos *pos,
-		const struct declaration_array *array_declaration);
-void ctf_text_array_end(struct stream_pos *pos,
-		const struct declaration_array *array_declaration);
-void ctf_text_sequence_begin(struct stream_pos *pos,
-		const struct declaration_sequence *sequence_declaration);
-void ctf_text_sequence_end(struct stream_pos *pos,
-		const struct declaration_sequence *sequence_declaration);
+	for (i = 0; i < pos->depth; i++)
+		fprintf(pos->fp, "\t");
+}
 
 #endif /* _BABELTRACE_CTF_TEXT_TYPES_H */
