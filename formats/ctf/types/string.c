@@ -16,6 +16,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
 #include <limits.h>		/* C99 limits */
 #include <string.h>
@@ -38,9 +39,10 @@ void ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 			g_realloc(string_definition->value, len);
 		string_definition->alloc_len = len;
 	}
+	printf_debug("CTF string read %s\n", srcaddr);
 	memcpy(string_definition->value, srcaddr, len);
 	string_definition->len = len;
-	ctf_move_pos(pos, len);
+	ctf_move_pos(pos, len * CHAR_BIT);
 }
 
 void ctf_string_write(struct stream_pos *ppos,
@@ -62,5 +64,5 @@ void ctf_string_write(struct stream_pos *ppos,
 	destaddr = ctf_get_pos_addr(pos);
 	memcpy(destaddr, string_definition->value, len);
 end:
-	ctf_move_pos(pos, len);
+	ctf_move_pos(pos, len * CHAR_BIT);
 }

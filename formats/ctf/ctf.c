@@ -107,7 +107,7 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->flags = MAP_SHARED;
 		pos->parent.rw_table = write_dispatch_table;
 		if (fd >= 0)
-			ctf_move_pos_slow(pos, 0);	/* position for write */
+			ctf_move_pos_slow(pos, 0, SEEK_SET);	/* position for write */
 		break;
 	default:
 		assert(0);
@@ -132,12 +132,14 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 	(void) g_array_free(pos->packet_index, TRUE);
 }
 
-void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset)
+void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 {
 	int ret;
 	off_t off;
 	struct packet_index *index;
 
+	/* Only allow random seek in read mode */
+	assert(pos->prot != PROT_WRITE || whence == SEEK_CUR);
 
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
@@ -150,6 +152,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset)
 				strerror(errno));
 			assert(0);
 		}
+		pos->base = NULL;
 	}
 
 	/*
@@ -170,16 +173,25 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset)
 		pos->packet_size = WRITE_PACKET_LEN;
 		off = posix_fallocate(pos->fd, pos->mmap_offset, pos->packet_size / CHAR_BIT);
 		assert(off >= 0);
+		pos->offset = 0;
 	} else {
-		/* The reader will expect us to skip padding */
-		assert(pos->offset + offset == pos->content_size);
-
-		/*
-		 * Don't increment for initial stream move (only condition where
-		 * pos->offset can be 0).
-		 */
-		if (pos->offset)
+		switch (whence) {
+		case SEEK_CUR:
+			/* The reader will expect us to skip padding */
+			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
+			break;
+		case SEEK_SET:
+			assert(offset == 0);	/* only seek supported for now */
+			pos->cur_index = 0;
+			break;
+		default:
+			assert(0);
+		}
+		if (pos->cur_index >= pos->packet_index->len) {
+			pos->offset = -EOF;
+			return;
+		}
 		index = &g_array_index(pos->packet_index, struct packet_index,
 				       pos->cur_index);
 		pos->mmap_offset = index->offset;
@@ -187,11 +199,16 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset)
 		/* Lookup context/packet size in index */
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
+		pos->offset = index->data_offset;
 	}
 	/* map new base. Need mapping length from header. */
 	pos->base = mmap(NULL, pos->packet_size / CHAR_BIT, pos->prot,
 			 pos->flags, pos->fd, pos->mmap_offset);
-	pos->offset = 0;
+	if (pos->base == MAP_FAILED) {
+		fprintf(stdout, "[error] mmap error %s.\n",
+			strerror(errno));
+		assert(0);
+	}
 }
 
 /*
@@ -431,12 +448,17 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* Use content size if non-zero, else file size */
 			packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
 		}
+		/* Save position after header and context */
+		packet_index.data_offset = pos->offset;
 
 		/* add index to packet array */
 		g_array_append_val(file_stream->pos.packet_index, packet_index);
 
 		pos->mmap_offset += packet_index.packet_size / CHAR_BIT;
 	}
+
+	/* Move pos back to beginning of file */
+	ctf_move_pos_slow(pos, 0, SEEK_SET);	/* position for write */
 
 	return 0;
 }

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
@@ -26,20 +27,23 @@
 #include <babeltrace/ctf-text/types.h>
 
 static
-int print_event(struct format *fmt_write, struct ctf_text_stream_pos *sout,
-		struct format *fmt_read, struct ctf_file_stream *sin)
+int convert_event(struct ctf_text_stream_pos *sout,
+		  struct ctf_file_stream *sin)
 {
 	struct ctf_stream *stream_class = sin->stream;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
 
+	if (sin->pos.offset == -EOF)
+		return -EOF;
+
 	/* Read and print event header */
 	if (stream_class->event_header) {
-		fmt_read->struct_read(&sin->pos.parent, stream_class->event_header);
+		generic_rw(&sin->pos.parent, &stream_class->event_header->p);
 
 		/* lookup event id */
-		len_index = struct_declaration_lookup_field_index(td->packet_header->declaration,
+		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
 				g_quark_from_static_string("id"));
 		if (len_index >= 0) {
 			struct definition_integer *defint;
@@ -52,13 +56,13 @@ int print_event(struct format *fmt_write, struct ctf_text_stream_pos *sout,
 			id = defint->value._unsigned;	/* set id */
 		}
 
-		fmt_write->struct_write(&sout->parent, stream_class->event_header);
+		generic_rw(&sout->parent, &stream_class->event_header->p);
 	}
 
 	/* Read and print stream-declared event context */
 	if (stream_class->event_context) {
-		fmt_read->struct_read(&sin->pos.parent, stream_class->event_context);
-		fmt_write->struct_write(&sout->parent, stream_class->event_context);
+		generic_rw(&sin->pos.parent, &stream_class->event_context->p);
+		generic_rw(&sout->parent, &stream_class->event_context->p);
 	}
 
 	if (id >= stream_class->events_by_id->len) {
@@ -73,29 +77,29 @@ int print_event(struct format *fmt_write, struct ctf_text_stream_pos *sout,
 
 	/* Read and print event-declared event context */
 	if (event_class->context) {
-		fmt_read->struct_read(&sin->pos.parent, event_class->context);
-		fmt_write->struct_write(&sout->parent, event_class->context);
+		generic_rw(&sin->pos.parent, &event_class->context->p);
+		generic_rw(&sout->parent, &event_class->context->p);
 	}
 
 	/* Read and print event payload */
 	if (event_class->fields) {
-		fmt_read->struct_read(&sin->pos.parent, event_class->fields);
-		fmt_write->struct_write(&sout->parent, event_class->fields);
+		generic_rw(&sin->pos.parent, &event_class->fields->p);
+		generic_rw(&sout->parent, &event_class->fields->p);
 	}
 
 	return 0;
 }
 
 static
-int print_stream(struct format *fmt_write, struct ctf_text_stream_pos *sout,
-		 struct format *fmt_read, struct ctf_file_stream *sin)
+int convert_stream(struct ctf_text_stream_pos *sout,
+		   struct ctf_file_stream *sin)
 {
 	int ret;
 
 	/* For each event, print header, context, payload */
 	/* TODO: order events by timestamps across streams */
 	for (;;) {
-		ret = print_event(fmt_write, sout, fmt_read, sin);
+		ret = convert_event(sout, sin);
 		if (ret == -EOF)
 			break;
 		else if (ret) {
@@ -110,13 +114,12 @@ error:
 	return ret;
 }
 
-int print_trace(struct format *fmt_write,
-		struct trace_descriptor *td_write,
-		struct format *fmt_read,
-		struct trace_descriptor *td_read)
+int convert_trace(struct trace_descriptor *td_write,
+		  struct trace_descriptor *td_read)
 {
 	struct ctf_trace *tin = container_of(td_read, struct ctf_trace, parent);
-	struct ctf_text_stream_pos *sout = container_of(td_write, struct ctf_text_stream_pos, parent);
+	struct ctf_text_stream_pos *sout =
+		container_of(td_write, struct ctf_text_stream_pos, trace_descriptor);
 	int stream_id, filenr;
 	int ret;
 
@@ -128,7 +131,7 @@ int print_trace(struct format *fmt_write,
 			continue;
 		for (filenr = 0; filenr < stream->files->len; filenr++) {
 			struct ctf_file_stream *file_stream = g_ptr_array_index(stream->files, filenr);
-			ret = print_stream(fmt_write, sout, fmt_read, file_stream);
+			ret = convert_stream(sout, file_stream);
 			if (ret) {
 				fprintf(stdout, "[error] Printing stream %d failed.\n", stream_id);
 				goto error;

@@ -29,8 +29,10 @@
 #include <unistd.h>
 #include <glib.h>
 
+
 struct packet_index {
 	off_t offset;		/* offset of the packet in the file, in bytes */
+	off_t data_offset;	/* offset of data within the packet */
 	size_t packet_size;	/* packet size, in bits */
 	size_t content_size;	/* content size, in bits */
 };
@@ -51,7 +53,7 @@ struct ctf_stream_pos {
 	size_t content_size;	/* current content size, in bits */
 	uint32_t *content_size_loc; /* pointer to current content size */
 	char *base;		/* mmap base address */
-	size_t offset;		/* offset from base, in bits */
+	ssize_t offset;		/* offset from base, in bits. -EOF for end of file. */
 	size_t cur_index;	/* current index in packet index */
 
 	int dummy;		/* dummy position, for length calculation */
@@ -76,7 +78,7 @@ void ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
 void ctf_array_rw(struct stream_pos *pos, struct definition *definition);
 void ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
 
-void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset);
+void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence);
 
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
 void ctf_fini_pos(struct ctf_stream_pos *pos);
@@ -94,7 +96,7 @@ void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 		      && (pos->offset + bit_offset >= pos->content_size))
 		    || ((pos->prot == PROT_WRITE)
 		      && (pos->offset + bit_offset >= pos->packet_size))) {
-			ctf_move_pos_slow(pos, bit_offset);
+			ctf_move_pos_slow(pos, bit_offset, SEEK_CUR);
 			return;
 		}
 	}
