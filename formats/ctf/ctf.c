@@ -573,30 +573,6 @@ error:
 	return ret;
 }
 
-static
-int ctf_open_trace_write(struct ctf_trace *td, const char *path, int flags)
-{
-	int ret;
-
-	ret = mkdir(path, S_IRWXU|S_IRWXG);
-	if (ret)
-		return ret;
-
-	/* Open trace directory */
-	td->dir = opendir(path);
-	if (!td->dir) {
-		fprintf(stdout, "[error] Unable to open trace directory.\n");
-		ret = -ENOENT;
-		goto error;
-	}
-	
-
-	return 0;
-
-error:
-	return ret;
-}
-
 struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 {
 	struct ctf_trace *td;
@@ -606,6 +582,10 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 
 	switch (flags & O_ACCMODE) {
 	case O_RDONLY:
+		if (!path) {
+			fprintf(stdout, "[error] Path missing for input CTF trace.\n");
+			goto error;
+		}
 		ret = ctf_open_trace_read(td, path, flags);
 		if (ret)
 			goto error;
@@ -613,12 +593,6 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 	case O_WRONLY:
 		fprintf(stdout, "[error] Opening CTF traces for output is not supported yet.\n");
 		goto error;
-#if 0
-		ret = ctf_open_trace_write(td, path, flags);
-		if (ret)
-			goto error;
-#endif //0
-		break;
 	default:
 		fprintf(stdout, "[error] Incorrect open flags.\n");
 		goto error;

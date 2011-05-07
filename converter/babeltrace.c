@@ -164,17 +164,16 @@ int main(int argc, char **argv)
 
 	printf_verbose("Converting from file: %s\n", opt_input_path);
 	printf_verbose("Converting from format: %s\n",
-		opt_input_format ? : "<autodetect>");
+		opt_input_format ? : "ctf <default>");
 	printf_verbose("Converting to file: %s\n",
 		opt_output_path ? : "<stdout>");
 	printf_verbose("Converting to format: %s\n",
-		opt_output_format ? : "ctf");
+		opt_output_format ? : "text <default>");
 
-	if (!opt_input_format) {
-		fprintf(stdout, "[error] Input format autodetection not implemented yet.\n\n");
-		usage(stdout);
-		exit(EXIT_FAILURE);
-	}
+	if (!opt_input_format)
+		opt_input_format = "ctf";
+	if (!opt_output_format)
+		opt_output_format = "text";
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
 	if (!fmt_read) {
 		fprintf(stdout, "[error] Format \"%s\" is not supported.\n\n",
@@ -197,12 +196,10 @@ int main(int argc, char **argv)
 		goto error_td_read;
 	}
 
-	if (!opt_output_path)
-		opt_output_path = "/dev/stdout";
 	td_write = fmt_write->open_trace(opt_output_path, O_WRONLY);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
-			opt_output_path);
+			opt_output_path ? : "<none>");
 		goto error_td_write;
 	}
 
