@@ -45,8 +45,8 @@ static const char metadata_fmt[] =
 "typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
 "\n"
 "trace {\n"
-"	major = %s;\n"			/* major (e.g. 0) */
-"	minor = %s;\n"			/* minor (e.g. 1) */
+"	major = %u;\n"			/* major (e.g. 0) */
+"	minor = %u;\n"			/* minor (e.g. 1) */
 "	uuid = \"%s\";\n"		/* UUID */
 "	byte_order = %s;\n"		/* be or le */
 "	packet.header := struct {\n"
@@ -78,8 +78,8 @@ void print_metadata(FILE *fp)
 
 	uuid_unparse(s_uuid, uuid_str);
 	fprintf(fp, metadata_fmt,
-		__stringify(BABELTRACE_VERSION_MAJOR),
-		__stringify(BABELTRACE_VERSION_MINOR),
+		BABELTRACE_VERSION_MAJOR,
+		BABELTRACE_VERSION_MINOR,
 		uuid_str,
 		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be");
 }
