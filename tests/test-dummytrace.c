@@ -22,15 +22,45 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <uuid/uuid.h>
 #include <string.h>
+#include <endian.h>
 
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
+
+static const char metadata[] =
+"typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
+"typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
+"\n"
+"trace {\n"
+"	major = %s;\n"			/* major (e.g. 0) */
+"	minor = %s;\n"			/* minor (e.g. 1) */
+"	uuid = %s;\n"			/* UUID */
+"	byte_order = %s;\n"		/* be or le */
+"	packet.header := struct {\n"
+"		uint32_t magic;\n"
+"		uint8_t  trace_uuid[16];\n"
+"	};\n"
+"};\n"
+"\n"
+"stream {\n"
+"	packet.context := struct {\n"
+"		uint32_t content_size;\n"
+"		uint32_t packet_size;\n"
+"	};\n"
+"};\n"
+"\n"
+"event {\n"
+"	name = string;\n"
+"	fields := struct { string str; };\n"
+"};\n";
 
 int babeltrace_debug, babeltrace_verbose;
 
@@ -126,7 +156,7 @@ void trace_text(FILE *input, int output)
 	char *line = NULL, *nl;
 	size_t linesize;
 
-	ctf_init_pos(&pos, output, O_WRONLY);
+	ctf_init_pos(&pos, output, O_RDWR);
 
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
@@ -142,29 +172,75 @@ void trace_text(FILE *input, int output)
 	ctf_fini_pos(&pos);
 }
 
+static void usage(FILE *fp)
+{
+	fprintf(fp, "BabelTrace Log Converter %u.%u\n",
+		BABELTRACE_VERSION_MAJOR,
+		BABELTRACE_VERSION_MINOR);
+	fprintf(fp, "\n");
+	fprintf(fp, "Convert for a text log (read from standard input) to CTF.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "usage : babeltrace-log OUTPUT\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  OUTPUT                         Output trace path\n");
+	fprintf(fp, "\n");
+}
+
 int main(int argc, char **argv)
 {
 	int fd, ret;
+	char *outputname;
+	DIR *dir;
+	int dir_fd;
 
-	ret = unlink("dummystream");
-	if (ret < 0) {
-		perror("unlink");
-		return -1;
+	if (argc < 2) {
+		usage(stdout);
+		goto error;
 	}
-	fd = open("dummystream", O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-	if (fd < 0) {
-		perror("open");
-		return -1;
-	}
+	outputname = argv[1];
 
-	ret = uuid_parse("2a6422d0-6cee-11e0-8c08-cb07d7b3a564", s_uuid);
+	ret = mkdir(outputname, S_IRWXU|S_IRWXG);
 	if (ret) {
-		printf("uuid parse error\n");
-		close(fd);
-		return -1;
+		perror("mkdir");
+		goto error;
+	}
+
+	dir = opendir(outputname);
+	if (!dir) {
+		perror("opendir");
+		goto error_rmdir;
+	}
+	dir_fd = dirfd(dir);
+	if (dir_fd < 0) {
+		perror("dirfd");
+		goto error_closedir;
+	}
+
+	fd = openat(dir_fd, "datastream", O_RDWR|O_CREAT,
+		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+	if (fd < 0) {
+		perror("openat");
+		goto error_closedirfd;
 	}
 
 	trace_text(stdin, fd);
+
 	close(fd);
-	return 0;
+	exit(EXIT_SUCCESS);
+
+	/* error handling */
+error_closedirfd:
+	ret = close(dir_fd);
+	if (ret)
+		perror("close");
+error_closedir:
+	ret = closedir(dir);
+	if (ret)
+		perror("closedir");
+error_rmdir:
+	ret = rmdir(outputname);
+	if (ret)
+		perror("rmdir");
+error:
+	exit(EXIT_FAILURE);
 }

@@ -60,7 +60,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags)
 	pos = g_new0(struct ctf_text_stream_pos, 1);
 
 	switch (flags & O_ACCMODE) {
-	case O_WRONLY:
+	case O_RDWR:
 		if (!path)
 			fp = stdout;
 		else

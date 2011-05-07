@@ -101,7 +101,6 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->flags = MAP_PRIVATE;
 		pos->parent.rw_table = read_dispatch_table;
 		break;
-	case O_WRONLY:
 	case O_RDWR:
 		pos->prot = PROT_WRITE;	/* Write has priority */
 		pos->flags = MAP_SHARED;
@@ -138,9 +137,6 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	off_t off;
 	struct packet_index *index;
 
-	/* Only allow random seek in read mode */
-	assert(pos->prot != PROT_WRITE || whence == SEEK_CUR);
-
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 
@@ -160,18 +156,23 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	 * except to get exactly at the beginning of the next packet.
 	 */
 	if (pos->prot == PROT_WRITE) {
-		/* The writer will add padding */
-		assert(pos->offset + offset == pos->packet_size);
-
-		/*
-		 * Don't increment for initial stream move (only condition where
-		 * pos->offset can be 0.
-		 */
-		if (pos->offset)
+		switch (whence) {
+		case SEEK_CUR:
+			/* The writer will add padding */
+			assert(pos->offset + offset == pos->packet_size);
 			pos->mmap_offset += WRITE_PACKET_LEN / CHAR_BIT;
+			break;
+		case SEEK_SET:
+			assert(offset == 0);	/* only seek supported for now */
+			pos->cur_index = 0;
+			break;
+		default:
+			assert(0);
+		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
-		off = posix_fallocate(pos->fd, pos->mmap_offset, pos->packet_size / CHAR_BIT);
+		off = posix_fallocate(pos->fd, pos->mmap_offset,
+				      pos->packet_size / CHAR_BIT);
 		assert(off >= 0);
 		pos->offset = 0;
 	} else {
@@ -607,7 +608,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 		if (ret)
 			goto error;
 		break;
-	case O_WRONLY:
+	case O_RDWR:
 		fprintf(stdout, "[error] Opening CTF traces for output is not supported yet.\n");
 		goto error;
 	default:

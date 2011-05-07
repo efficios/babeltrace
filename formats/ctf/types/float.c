@@ -148,7 +148,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	struct ctf_stream_pos destp;
 	int ret;
 
-	ctf_init_pos(&destp, -1, O_WRONLY);
+	ctf_init_pos(&destp, -1, O_RDWR);
 	destp.base = (char *) u.bits;
 
 	ctf_align_pos(pos, float_declaration->p.alignment);

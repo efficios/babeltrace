@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 		goto error_td_read;
 	}
 
-	td_write = fmt_write->open_trace(opt_output_path, O_WRONLY);
+	td_write = fmt_write->open_trace(opt_output_path, O_RDWR);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
 			opt_output_path ? : "<none>");
