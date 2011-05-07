@@ -21,7 +21,6 @@
 
 void ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition)
 {
-	struct declaration *declaration = definition->declaration;
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
 	if (!pos->dummy) {

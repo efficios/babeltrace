@@ -73,6 +73,8 @@ int bt_register_format(struct format *format)
 
 void format_init(void)
 {
+	if (init_done)
+		return;
 	format_registry = g_hash_table_new(g_direct_hash, g_direct_equal);
 	assert(format_registry);
 	init_done = 1;
