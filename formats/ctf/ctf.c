@@ -448,6 +448,21 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* Use content size if non-zero, else file size */
 			packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
 		}
+
+		/* Validate content size and packet size values */
+		if (packet_index.content_size > packet_index.packet_size) {
+			fprintf(stdout, "[error] Content size (%zu bits) is larger than packet size (%zu bits).\n",
+				packet_index.content_size, packet_index.packet_size);
+			return -EINVAL;
+		}
+
+		if (packet_index.packet_size > filestats.st_size * CHAR_BIT) {
+			fprintf(stdout, "[error] Packet size (%zu bits) is larger than file size (%zu bits).\n",
+				packet_index.content_size, filestats.st_size * CHAR_BIT);
+			return -EINVAL;
+		}
+
+
 		/* Save position after header and context */
 		packet_index.data_offset = pos->offset;
 
