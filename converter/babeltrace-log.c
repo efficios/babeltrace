@@ -150,7 +150,6 @@ retry:
 	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, len * CHAR_BIT);
 	if (ctf_pos_packet(&dummy)) {
-		/* TODO write content size */
 		ctf_pos_pad_packet(pos);
 		write_packet_header(pos, s_uuid);
 		write_packet_context(pos);

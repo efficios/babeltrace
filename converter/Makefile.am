@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -lpopt
 
-bin_PROGRAMS = babeltrace
+bin_PROGRAMS = babeltrace babeltrace-log
 
 lib_LTLIBRARIES = libbabeltrace.la
 
@@ -18,3 +18,9 @@ babeltrace_SOURCES = \
 babeltrace_LDADD = \
 	libbabeltrace.la \
 	$(top_builddir)/formats/libbabeltrace_registry.la
+
+babeltrace_log_SOURCES = babeltrace-log.c
+
+babeltrace_log_LDADD = \
+	$(top_builddir)/formats/libbabeltrace_registry.la \
+	$(top_builddir)/formats/ctf/libctf.la
