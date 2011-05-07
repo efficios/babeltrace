@@ -24,14 +24,18 @@ void ctf_text_struct_write(struct stream_pos *ppos, struct definition *definitio
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
 	if (!pos->dummy) {
-		print_pos_tabs(pos);
-		fprintf(pos->fp, "{\n");
+		if (pos->depth >= 0) {
+			print_pos_tabs(pos);
+			fprintf(pos->fp, "{\n");
+		}
 		pos->depth++;
 	}
 	struct_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
-		print_pos_tabs(pos);
-		fprintf(pos->fp, "}\n");
+		if (pos->depth >= 0) {
+			print_pos_tabs(pos);
+			fprintf(pos->fp, "}\n");
+		}
 	}
 }

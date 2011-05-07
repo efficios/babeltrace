@@ -21,6 +21,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <endian.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/metadata.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
 	int ret = 0;
 
 	babeltrace_debug = 1;
+	babeltrace_verbose = 1;
 	scanner = ctf_scanner_alloc(stdin);
 	if (!scanner) {
 		fprintf(stdout, "Error allocating scanner\n");

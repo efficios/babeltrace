@@ -32,7 +32,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
 
-int babeltrace_debug = 0;
+int babeltrace_debug, babeltrace_verbose;
 
 static uuid_t s_uuid;
 

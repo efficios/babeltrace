@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <endian.h>
 #include <errno.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/list.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/metadata.h>
@@ -1963,7 +1964,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 
-	fprintf(fd, "CTF visitor: metadata construction... ");
+	printf_verbose("CTF visitor: metadata construction... ");
 	trace->root_declaration_scope = new_declaration_scope(NULL);
 	trace->byte_order = byte_order;
 
@@ -2011,6 +2012,6 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 			(int) node->type);
 		return -EINVAL;
 	}
-	fprintf(fd, "done.\n");
+	printf_verbose("done.\n");
 	return ret;
 }

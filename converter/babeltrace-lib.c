@@ -38,6 +38,9 @@ int convert_event(struct ctf_text_stream_pos *sout,
 	if (sin->pos.offset == -EOF)
 		return -EOF;
 
+	/* Hide event payload struct brackets */
+	sout->depth = -1;
+
 	/* Read and print event header */
 	if (stream_class->event_header) {
 		generic_rw(&sin->pos.parent, &stream_class->event_header->p);

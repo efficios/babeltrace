@@ -171,13 +171,13 @@ int main(int argc, char **argv)
 		opt_output_format ? : "ctf");
 
 	if (!opt_input_format) {
-		fprintf(stdout, "Error: input format autodetection not implemented yet.\n\n");
+		fprintf(stdout, "[error] Input format autodetection not implemented yet.\n\n");
 		usage(stdout);
 		exit(EXIT_FAILURE);
 	}
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
 	if (!fmt_read) {
-		fprintf(stdout, "Error: format \"%s\" is not supported.\n\n",
+		fprintf(stdout, "[error] Format \"%s\" is not supported.\n\n",
 			opt_input_format);
 		exit(EXIT_FAILURE);
 	}
@@ -185,14 +185,14 @@ int main(int argc, char **argv)
 		opt_output_format = "ctf";
 	fmt_write = bt_lookup_format(g_quark_from_static_string(opt_output_format));
 	if (!fmt_write) {
-		fprintf(stdout, "Error: format \"%s\" is not supported.\n\n",
+		fprintf(stdout, "[error] format \"%s\" is not supported.\n\n",
 			opt_output_format);
 		exit(EXIT_FAILURE);
 	}
 
 	td_read = fmt_read->open_trace(opt_input_path, O_RDONLY);
 	if (!td_read) {
-		fprintf(stdout, "Error opening trace \"%s\" for reading.\n\n",
+		fprintf(stdout, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);
 		goto error_td_read;
 	}

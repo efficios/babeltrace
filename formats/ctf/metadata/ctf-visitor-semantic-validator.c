@@ -24,6 +24,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/list.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
@@ -862,15 +863,15 @@ int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 	 * take the safe route and recreate them at each validation, just in
 	 * case the structure has changed.
 	 */
-	fprintf(fd, "CTF visitor: parent links creation... ");
+	printf_verbose("CTF visitor: parent links creation... ");
 	ret = ctf_visitor_parent_links(fd, depth, node);
 	if (ret)
 		return ret;
-	fprintf(fd, "done.\n");
-	fprintf(fd, "CTF visitor: semantic check... ");
+	printf_verbose("done.\n");
+	printf_verbose("CTF visitor: semantic check... ");
 	ret = _ctf_visitor_semantic_check(fd, depth, node);
 	if (ret)
 		return ret;
-	fprintf(fd, "done.\n");
+	printf_verbose("done.\n");
 	return ret;
 }
