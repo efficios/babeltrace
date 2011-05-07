@@ -72,18 +72,18 @@ static void usage(FILE *fp)
 	fprintf(fp, "BabelTrace Trace Converter %u.%u\n\n",
 		BABELTRACE_VERSION_MAJOR,
 		BABELTRACE_VERSION_MINOR);
-	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT OUTPUT\n");
+	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT <OUTPUT>\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  INPUT               Input trace path\n");
-	fprintf(fp, "  OUTPUT              Output trace path\n");
+	fprintf(fp, "  INPUT                          Input trace path\n");
+	fprintf(fp, "  OUTPUT                         Output trace path (default: stdout)\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -i, --input-format  Input trace path\n");
-	fprintf(fp, "  -o, --output-format Input trace path\n");
+	fprintf(fp, "  -i, --input-format FORMAT      Input trace format\n");
+	fprintf(fp, "  -o, --output-format FORMAT     Output trace format\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -h, --help          This help message\n");
-	fprintf(fp, "  -l, --list          List available formats\n");
-	fprintf(fp, "  -v, --verbose       Verbose mode\n");
-	fprintf(fp, "  -d, --debug         Debug mode\n");
+	fprintf(fp, "  -h, --help                     This help message\n");
+	fprintf(fp, "  -l, --list                     List available formats\n");
+	fprintf(fp, "  -v, --verbose                  Verbose mode\n");
+	fprintf(fp, "  -d, --debug                    Debug mode\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
