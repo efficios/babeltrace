@@ -21,6 +21,11 @@
 #include <errno.h>
 #include <stdio.h>
 
+struct walk_data {
+	FILE *fp;
+	int iter;
+};
+
 static int init_done;
 void __attribute__((constructor)) format_init(void);
 void __attribute__((destructor)) format_finalize(void);
@@ -42,19 +47,27 @@ struct format *bt_lookup_format(GQuark qname)
 
 static void show_format(gpointer key, gpointer value, gpointer user_data)
 {
-	FILE *fp = user_data;
+	struct walk_data *data = user_data;
 
-	fprintf(fp, "format: %s\n",
+	fprintf(data->fp, "%s%s", data->iter ? ", " : "",
 		g_quark_to_string((GQuark) (unsigned long) key));
+	data->iter++;
 }
 
 void bt_fprintf_format_list(FILE *fp)
 {
-	fprintf(fp, "Formats available:\n");
+	struct walk_data data;
+
+	data.fp = fp;
+	data.iter = 0;
+
+	fprintf(fp, "Formats available: ");
 	if (!init_done)
 		return;
-	g_hash_table_foreach(format_registry, show_format, fp);
-	fprintf(fp, "End of formats available.\n");
+	g_hash_table_foreach(format_registry, show_format, &data);
+	if (data.iter == 0)
+		fprintf(fp, "<none>");
+	fprintf(fp, ".\n");
 }
 
 int bt_register_format(struct format *format)

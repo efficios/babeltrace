@@ -77,8 +77,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "  INPUT                          Input trace path\n");
 	fprintf(fp, "  OUTPUT                         Output trace path (default: stdout)\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -i, --input-format FORMAT      Input trace format\n");
-	fprintf(fp, "  -o, --output-format FORMAT     Output trace format\n");
+	fprintf(fp, "  -i, --input-format FORMAT      Input trace format (default: ctf)\n");
+	fprintf(fp, "  -o, --output-format FORMAT     Output trace format (default: text)\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -h, --help                     This help message\n");
 	fprintf(fp, "  -l, --list                     List available formats\n");
