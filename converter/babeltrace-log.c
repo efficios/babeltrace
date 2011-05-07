@@ -35,7 +35,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
 
-#define NSEC_PER_SEC 1000000UL
+#define USEC_PER_SEC 1000000UL
 
 #ifndef UUID_STR_LEN
 #define UUID_STR_LEN	37	/* With \0 */
@@ -154,7 +154,7 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			char **tline, size_t len, size_t *tlen,
 			uint64_t *ts)
 {
-	unsigned long sec, nsec;
+	unsigned long sec, usec;
 	int ret;
 
 	if (!s_timestamp)
@@ -163,13 +163,16 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 	/* Only need to be executed on first pass (dummy) */
 	if (pos->dummy) {
 		/* Extract time from input line */
-		ret = sscanf(line, "[%lu.%lu] ", &sec, &nsec);
+		ret = sscanf(line, "[%lu.%lu] ", &sec, &usec);
 		if (ret == 2) {
 			*tline = strchr(line, ']');
-			if ((*tline)[1] == ' ')
+			assert(*tline);
+			(*tline)++;
+			if ((*tline)[0] == ' ') {
 				(*tline)++;
+			}
 			*tlen = len + line - *tline;
-			*ts = (uint64_t) sec * NSEC_PER_SEC + (uint64_t) nsec;
+			*ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
 		}
 	}
 	/* timestamp */
