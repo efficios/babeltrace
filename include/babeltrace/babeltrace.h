@@ -6,6 +6,11 @@
 #define BABELTRACE_VERSION_MAJOR	0
 #define BABELTRACE_VERSION_MINOR	1
 
+#ifndef __stringify
+#define __stringify_1(a...)	#a
+#define __stringify(a...)	__stringify_1(a)
+#endif
+
 extern int babeltrace_verbose, babeltrace_debug;
 
 #define printf_verbose(fmt, args...)				\

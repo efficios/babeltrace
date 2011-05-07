@@ -1,7 +1,7 @@
 /*
- * text-to-ctf.c
+ * babeltrace-log.c
  *
- * BabelTrace - Convert Text to CTF
+ * BabelTrace - Convert Text Log to CTF
  *
  * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -35,14 +35,19 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
 
-static const char metadata[] =
+#ifndef UUID_STR_LEN
+#define UUID_STR_LEN	37	/* With \0 */
+#endif
+
+/* Metadata format string */
+static const char metadata_fmt[] =
 "typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
 "typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
 "\n"
 "trace {\n"
 "	major = %s;\n"			/* major (e.g. 0) */
 "	minor = %s;\n"			/* minor (e.g. 1) */
-"	uuid = %s;\n"			/* UUID */
+"	uuid = \"%s\";\n"		/* UUID */
 "	byte_order = %s;\n"		/* be or le */
 "	packet.header := struct {\n"
 "		uint32_t magic;\n"
@@ -65,6 +70,20 @@ static const char metadata[] =
 int babeltrace_debug, babeltrace_verbose;
 
 static uuid_t s_uuid;
+
+static
+void print_metadata(FILE *fp)
+{
+	char uuid_str[UUID_STR_LEN];
+
+	uuid_unparse(s_uuid, uuid_str);
+	fprintf(fp, metadata_fmt,
+		__stringify(BABELTRACE_VERSION_MAJOR),
+		__stringify(BABELTRACE_VERSION_MINOR),
+		uuid_str,
+		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be");
+}
+
 
 static
 void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
@@ -188,10 +207,11 @@ static void usage(FILE *fp)
 
 int main(int argc, char **argv)
 {
-	int fd, ret;
+	int fd, metadata_fd, ret;
 	char *outputname;
 	DIR *dir;
 	int dir_fd;
+	FILE *metadata_fp;
 
 	if (argc < 2) {
 		usage(stdout);
@@ -223,12 +243,34 @@ int main(int argc, char **argv)
 		goto error_closedirfd;
 	}
 
+	metadata_fd = openat(dir_fd, "metadata", O_RDWR|O_CREAT,
+			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+	if (fd < 0) {
+		perror("openat");
+		goto error_closedatastream;
+	}
+	metadata_fp = fdopen(metadata_fd, "w");
+	if (!metadata_fp) {
+		perror("fdopen");
+		goto error_closemetadatafd;
+	}
+
+	uuid_generate(s_uuid);
+	print_metadata(metadata_fp);
 	trace_text(stdin, fd);
 
 	close(fd);
 	exit(EXIT_SUCCESS);
 
 	/* error handling */
+error_closemetadatafd:
+	ret = close(metadata_fd);
+	if (ret)
+		perror("close");
+error_closedatastream:
+	ret = close(fd);
+	if (ret)
+		perror("close");
 error_closedirfd:
 	ret = close(dir_fd);
 	if (ret)

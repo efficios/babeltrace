@@ -1,4 +1,4 @@
-tests/test-bitfield
+/tests/test-bitfield
 *.o
 *.a
 *.la
@@ -10,7 +10,7 @@ ctf-lexer.c
 ctf-parser.c
 ctf-parser.h
 ctf-parser-test
-babeltrace
+/converter/babeltrace
 /config.h
 /config.h.in
 /config.status
