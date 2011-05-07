@@ -40,11 +40,11 @@ int _aligned_integer_read(struct stream_pos *ppos,
 	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
-	assert(!(pos->offset % CHAR_BIT));
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
 
+	assert(!(pos->offset % CHAR_BIT));
 	if (!integer_declaration->signedness) {
 		switch (integer_declaration->len) {
 		case 8:
@@ -142,11 +142,11 @@ int _aligned_integer_write(struct stream_pos *ppos,
 	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
 	ctf_align_pos(pos, integer_declaration->p.alignment);
-	assert(!(pos->offset % CHAR_BIT));
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
 
+	assert(!(pos->offset % CHAR_BIT));
 	if (pos->dummy)
 		goto end;
 	if (!integer_declaration->signedness) {

@@ -189,7 +189,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 			assert(0);
 		}
 		if (pos->cur_index >= pos->packet_index->len) {
-			pos->offset = -EOF;
+			pos->offset = EOF;
 			return;
 		}
 		index = &g_array_index(pos->packet_index, struct packet_index,

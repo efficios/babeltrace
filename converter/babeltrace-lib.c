@@ -36,8 +36,8 @@ int convert_event(struct ctf_text_stream_pos *sout,
 	int len_index;
 	int ret;
 
-	if (sin->pos.offset == -EOF)
-		return -EOF;
+	if (sin->pos.offset == EOF)
+		return EOF;
 
 	/* Hide event payload struct brackets */
 	sout->depth = -1;
@@ -119,7 +119,7 @@ int convert_stream(struct ctf_text_stream_pos *sout,
 	/* TODO: order events by timestamps across streams */
 	for (;;) {
 		ret = convert_event(sout, sin);
-		if (ret == -EOF)
+		if (ret == EOF)
 			break;
 		else if (ret) {
 			fprintf(stdout, "[error] Printing event failed.\n");

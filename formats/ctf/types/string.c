@@ -35,7 +35,7 @@ int ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 	ctf_align_pos(pos, string_declaration->p.alignment);
 
 	srcaddr = ctf_get_pos_addr(pos);
-	if (pos->offset == -EOF)
+	if (pos->offset == EOF)
 		return -EFAULT;
 	/* Not counting \0 */
 	max_len = pos->packet_size - pos->offset - 1;

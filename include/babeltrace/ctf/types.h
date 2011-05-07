@@ -20,6 +20,7 @@
  */
 
 #include <babeltrace/types.h>
+#include <babeltrace/babeltrace.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -53,7 +54,7 @@ struct ctf_stream_pos {
 	size_t content_size;	/* current content size, in bits */
 	uint32_t *content_size_loc; /* pointer to current content size */
 	char *base;		/* mmap base address */
-	ssize_t offset;		/* offset from base, in bits. -EOF for end of file. */
+	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 	size_t cur_index;	/* current index in packet index */
 
 	int dummy;		/* dummy position, for length calculation */
@@ -91,7 +92,8 @@ void ctf_fini_pos(struct ctf_stream_pos *pos);
 static inline
 void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 {
-	if (pos->offset == -EOF)
+	printf_debug("ctf_move_pos test EOF: %zd\n", pos->offset);
+	if (pos->offset == EOF)
 		return;
 
 	if (pos->fd >= 0) {
@@ -99,11 +101,16 @@ void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 		      && (pos->offset + bit_offset >= pos->content_size))
 		    || ((pos->prot == PROT_WRITE)
 		      && (pos->offset + bit_offset >= pos->packet_size))) {
+			printf_debug("ctf_move_pos_slow (before call): %zd\n",
+				     pos->offset);
 			ctf_move_pos_slow(pos, bit_offset, SEEK_CUR);
+			printf_debug("ctf_move_pos_slow (after call): %zd\n",
+				     pos->offset);
 			return;
 		}
 	}
 	pos->offset += bit_offset;
+	printf_debug("ctf_move_pos after increment: %zd\n", pos->offset);
 }
 
 /*
@@ -154,7 +161,7 @@ void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 static inline
 int ctf_pos_access_ok(struct ctf_stream_pos *pos, size_t bit_len)
 {
-	if (pos->offset == -EOF)
+	if (pos->offset == EOF)
 		return 0;
 	if (pos->offset + bit_len > pos->packet_size)
 		return 0;
