@@ -35,9 +35,17 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf/types.h>
 
+#define NSEC_PER_SEC 1000000UL
+
 #ifndef UUID_STR_LEN
 #define UUID_STR_LEN	37	/* With \0 */
 #endif
+
+int babeltrace_debug, babeltrace_verbose;
+
+static char *s_outputname;
+static int s_timestamp;
+static uuid_t s_uuid;
 
 /* Metadata format string */
 static const char metadata_fmt[] =
@@ -60,6 +68,7 @@ static const char metadata_fmt[] =
 "		uint32_t content_size;\n"
 "		uint32_t packet_size;\n"
 "	};\n"
+"%s"					/* Stream event header (opt.) */
 "};\n"
 "\n"
 "event {\n"
@@ -67,9 +76,11 @@ static const char metadata_fmt[] =
 "	fields := struct { string str; };\n"
 "};\n";
 
-int babeltrace_debug, babeltrace_verbose;
-
-static uuid_t s_uuid;
+static const char metadata_stream_event_header_timestamp[] =
+"	typealias integer { size = 64; align = 64; signed = false; } := uint64_t;\n"
+"	event.header := struct {\n"
+"		uint64_t timestamp;\n"
+"	};\n";
 
 static
 void print_metadata(FILE *fp)
@@ -81,9 +92,9 @@ void print_metadata(FILE *fp)
 		BABELTRACE_VERSION_MAJOR,
 		BABELTRACE_VERSION_MINOR,
 		uuid_str,
-		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be");
+		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be",
+		s_timestamp ? metadata_stream_event_header_timestamp : "");
 }
-
 
 static
 void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
@@ -139,16 +150,50 @@ void write_packet_context(struct ctf_stream_pos *pos)
 }
 
 static
+void write_event_header(struct ctf_stream_pos *pos, char *line,
+			char **tline, size_t len, size_t *tlen,
+			uint64_t *ts)
+{
+	unsigned long sec, nsec;
+	int ret;
+
+	if (!s_timestamp)
+		return;
+
+	/* Only need to be executed on first pass (dummy) */
+	if (pos->dummy) {
+		/* Extract time from input line */
+		ret = sscanf(line, "[%lu.%lu] ", &sec, &nsec);
+		if (ret == 2) {
+			*tline = strchr(line, ']');
+			if ((*tline)[1] == ' ')
+				(*tline)++;
+			*tlen = len + line - *tline;
+			*ts = (uint64_t) sec * NSEC_PER_SEC + (uint64_t) nsec;
+		}
+	}
+	/* timestamp */
+	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!pos->dummy)
+		*(uint32_t *) ctf_get_pos_addr(pos) = *ts;
+	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+}
+
+static
 void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 {
 	struct ctf_stream_pos dummy;
 	int attempt = 0;
+	char *tline = line;	/* tline is start of text, after timestamp */
+	size_t tlen = len;
+	uint64_t ts = 0;
 
 	printf_debug("read: %s\n", line);
 retry:
 	ctf_dummy_pos(pos, &dummy);
+	write_event_header(&dummy, line, &tline, len, &tlen, &ts);
 	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, len * CHAR_BIT);
+	ctf_move_pos(&dummy, tlen * CHAR_BIT);
 	if (ctf_pos_packet(&dummy)) {
 		ctf_pos_pad_packet(pos);
 		write_packet_header(pos, s_uuid);
@@ -161,9 +206,10 @@ retry:
 		goto retry;
 	}
 
+	write_event_header(pos, line, &tline, len, &tlen, &ts);
 	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
-	memcpy(ctf_get_pos_addr(pos), line, len);
-	ctf_move_pos(pos, len * CHAR_BIT);
+	memcpy(ctf_get_pos_addr(pos), tline, tlen);
+	ctf_move_pos(pos, tlen * CHAR_BIT);
 }
 
 static
@@ -190,7 +236,8 @@ void trace_text(FILE *input, int output)
 	ctf_fini_pos(&pos);
 }
 
-static void usage(FILE *fp)
+static
+void usage(FILE *fp)
 {
 	fprintf(fp, "BabelTrace Log Converter %u.%u\n",
 		BABELTRACE_VERSION_MAJOR,
@@ -204,27 +251,42 @@ static void usage(FILE *fp)
 	fprintf(fp, "\n");
 }
 
+static
+int parse_args(int argc, char **argv)
+{
+	int i;
+
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-t"))
+			s_timestamp = 1;
+		else
+			s_outputname = argv[i];
+	}
+	if (!s_outputname)
+		return -EINVAL;
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	int fd, metadata_fd, ret;
-	char *outputname;
 	DIR *dir;
 	int dir_fd;
 	FILE *metadata_fp;
 
-	if (argc < 2) {
+	ret = parse_args(argc, argv);
+	if (ret) {
 		usage(stdout);
 		goto error;
 	}
-	outputname = argv[1];
 
-	ret = mkdir(outputname, S_IRWXU|S_IRWXG);
+	ret = mkdir(s_outputname, S_IRWXU|S_IRWXG);
 	if (ret) {
 		perror("mkdir");
 		goto error;
 	}
 
-	dir = opendir(outputname);
+	dir = opendir(s_outputname);
 	if (!dir) {
 		perror("opendir");
 		goto error_rmdir;
@@ -279,7 +341,7 @@ error_closedir:
 	if (ret)
 		perror("closedir");
 error_rmdir:
-	ret = rmdir(outputname);
+	ret = rmdir(s_outputname);
 	if (ret)
 		perror("rmdir");
 error:
