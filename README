@@ -30,6 +30,9 @@ To compile Babeltrace, you will need:
 	uuid development libraries
 	  (Debian : uuid-dev)
 	  (Fedora : uuid-devel)
+	libpopt development libraries
+	  (Debian : libpopt0, libpopt-dev)
+	  (Fedora : popt)
 
 For developers using the git tree:
 
