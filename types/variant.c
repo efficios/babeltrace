@@ -175,6 +175,7 @@ struct definition *
 	variant->p.ref = 1;
 	variant->p.index = index;
 	variant->p.name = field_name;
+	variant->p.path = new_definition_path(parent_scope, field_name);
 	variant->scope = new_definition_scope(parent_scope, field_name);
 	variant->enum_tag = lookup_definition(variant->scope->scope_path,
 					      variant_declaration->tag_name,

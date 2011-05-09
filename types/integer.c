@@ -72,6 +72,7 @@ struct definition *
 	integer->p.ref = 1;
 	integer->p.index = index;
 	integer->p.name = field_name;
+	integer->p.path = new_definition_path(parent_scope, field_name);
 	integer->value._unsigned = 0;
 	return &integer->p;
 }

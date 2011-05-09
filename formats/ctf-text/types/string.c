@@ -31,7 +31,16 @@ int ctf_text_string_write(struct stream_pos *ppos,
 	assert(string_definition->value != NULL);
 	if (pos->dummy)
 		return 0;
-	print_pos_tabs(pos);
-	fprintf(pos->fp, "%s\n", string_definition->value);
+	//print_pos_tabs(pos);
+
+	if (definition->index != 0 && definition->index != INT_MAX)
+		fprintf(pos->fp, ",");
+	if (definition->index != INT_MAX)
+		fprintf(pos->fp, " ");
+	if (pos->print_names)
+		fprintf(pos->fp, "%s = ",
+			g_quark_to_string(definition->name));
+
+	fprintf(pos->fp, "\"%s\"", string_definition->value);
 	return 0;
 }

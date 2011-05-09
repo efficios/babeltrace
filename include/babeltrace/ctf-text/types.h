@@ -37,6 +37,7 @@ struct ctf_text_stream_pos {
 	FILE *fp;		/* File pointer. NULL if unset. */
 	int depth;
 	int dummy;		/* disable output */
+	int print_names;	/* print field names */
 };
 
 static inline

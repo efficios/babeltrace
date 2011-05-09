@@ -29,7 +29,16 @@ int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
 
 	if (pos->dummy)
 		return 0;
-	print_pos_tabs(pos);
+	//print_pos_tabs(pos);
+
+	if (definition->index != 0 && definition->index != INT_MAX)
+		fprintf(pos->fp, ",");
+	if (definition->index != INT_MAX)
+		fprintf(pos->fp, " ");
+	if (pos->print_names)
+		fprintf(pos->fp, "%s = ",
+			g_quark_to_string(definition->name));
+
 	fprintf(pos->fp, "%Lg\n", float_definition->value);
 	return 0;
 }

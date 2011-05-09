@@ -31,13 +31,33 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 
 	if (pos->dummy)
 		return 0;
-	print_pos_tabs(pos);
+
+	if (definition->index != 0 && definition->index != INT_MAX)
+		fprintf(pos->fp, ",");
+	if (definition->index != INT_MAX)
+		fprintf(pos->fp, " ");
+	if (pos->print_names)
+		fprintf(pos->fp, "%s = ",
+			g_quark_to_string(definition->name));
+
+	//print_pos_tabs(pos);
+
+	if (!compare_definition_path(definition, g_quark_from_static_string("stream.event.header.timestamp"))) {
+		if (!pos->print_names)
+			fprintf(pos->fp, "[%" PRIu64 "]",
+				integer_definition->value._unsigned);
+		else
+			fprintf(pos->fp, "%" PRIu64,
+				integer_definition->value._unsigned);
+		return 0;
+	}
+
 	if (!integer_declaration->signedness) {
-		fprintf(pos->fp, "%" PRIu64" (0x%" PRIX64 ")\n",
+		fprintf(pos->fp, "%" PRIu64" (0x%" PRIX64 ")",
 			integer_definition->value._unsigned,
 			integer_definition->value._unsigned);
 	} else {
-		fprintf(pos->fp, "%" PRId64" (0x%" PRIX64 ")\n",
+		fprintf(pos->fp, "%" PRId64" (0x%" PRIX64 ")",
 			integer_definition->value._signed,
 			integer_definition->value._signed);
 	}

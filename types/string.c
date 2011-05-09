@@ -68,6 +68,7 @@ struct definition *
 	string->p.ref = 1;
 	string->p.index = index;
 	string->p.name = field_name;
+	string->p.path = new_definition_path(parent_scope, field_name);
 	string->value = NULL;
 	string->len = 0;
 	string->alloc_len = 0;

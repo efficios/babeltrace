@@ -79,6 +79,144 @@ struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
+static
+int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream_class)
+{
+	struct ctf_stream_pos *pos =
+		container_of(ppos, struct ctf_stream_pos, parent);
+	struct ctf_event *event_class;
+	uint64_t id = 0;
+	int len_index;
+	int ret;
+
+	if (pos->offset == EOF)
+		return EOF;
+
+	/* Read event header */
+	if (stream_class->event_header) {
+		ret = generic_rw(ppos, &stream_class->event_header->p);
+		if (ret)
+			goto error;
+		/* lookup event id */
+		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
+				g_quark_from_static_string("id"));
+		if (len_index >= 0) {
+			struct definition_integer *defint;
+			struct definition *field;
+
+			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
+			assert(field->declaration->id == CTF_TYPE_INTEGER);
+			defint = container_of(field, struct definition_integer, p);
+			assert(defint->declaration->signedness == FALSE);
+			id = defint->value._unsigned;	/* set id */
+		}
+	}
+
+	/* Read stream-declared event context */
+	if (stream_class->event_context) {
+		ret = generic_rw(ppos, &stream_class->event_context->p);
+		if (ret)
+			goto error;
+	}
+
+	if (id >= stream_class->events_by_id->len) {
+		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		return -EINVAL;
+	}
+	event_class = g_ptr_array_index(stream_class->events_by_id, id);
+	if (!event_class) {
+		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		return -EINVAL;
+	}
+
+	/* Read event-declared event context */
+	if (event_class->context) {
+		ret = generic_rw(ppos, &event_class->context->p);
+		if (ret)
+			goto error;
+	}
+
+	/* Read event payload */
+	if (event_class->fields) {
+		ret = generic_rw(ppos, &event_class->fields->p);
+		if (ret)
+			goto error;
+	}
+
+	return 0;
+
+error:
+	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	return ret;
+}
+
+static
+int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream_class)
+{
+	struct ctf_event *event_class;
+	uint64_t id = 0;
+	int len_index;
+	int ret;
+
+	/* print event header */
+	if (stream_class->event_header) {
+		/* lookup event id */
+		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
+				g_quark_from_static_string("id"));
+		if (len_index >= 0) {
+			struct definition_integer *defint;
+			struct definition *field;
+
+			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
+			assert(field->declaration->id == CTF_TYPE_INTEGER);
+			defint = container_of(field, struct definition_integer, p);
+			assert(defint->declaration->signedness == FALSE);
+			id = defint->value._unsigned;	/* set id */
+		}
+
+		ret = generic_rw(pos, &stream_class->event_header->p);
+		if (ret)
+			goto error;
+	}
+
+	/* print stream-declared event context */
+	if (stream_class->event_context) {
+		ret = generic_rw(pos, &stream_class->event_context->p);
+		if (ret)
+			goto error;
+	}
+
+	if (id >= stream_class->events_by_id->len) {
+		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		return -EINVAL;
+	}
+	event_class = g_ptr_array_index(stream_class->events_by_id, id);
+	if (!event_class) {
+		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		return -EINVAL;
+	}
+
+	/* print event-declared event context */
+	if (event_class->context) {
+		ret = generic_rw(pos, &event_class->context->p);
+		if (ret)
+			goto error;
+	}
+
+	/* Read and print event payload */
+	if (event_class->fields) {
+		ret = generic_rw(pos, &event_class->fields->p);
+		if (ret)
+			goto error;
+	}
+
+	return 0;
+
+error:
+	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	return ret;
+}
+
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
 	pos->fd = fd;
@@ -100,11 +238,13 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->prot = PROT_READ;
 		pos->flags = MAP_PRIVATE;
 		pos->parent.rw_table = read_dispatch_table;
+		pos->parent.event_cb = ctf_read_event;
 		break;
 	case O_RDWR:
 		pos->prot = PROT_WRITE;	/* Write has priority */
 		pos->flags = MAP_SHARED;
 		pos->parent.rw_table = write_dispatch_table;
+		pos->parent.event_cb = ctf_write_event;
 		if (fd >= 0)
 			ctf_move_pos_slow(pos, 0, SEEK_SET);	/* position for write */
 		break;

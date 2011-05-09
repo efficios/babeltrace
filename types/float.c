@@ -104,6 +104,7 @@ struct definition *
 	_float->p.ref = 1;
 	_float->p.index = index;
 	_float->p.name = field_name;
+	_float->p.path = new_definition_path(parent_scope, field_name);
 	_float->value = 0.0;
 	return &_float->p;
 }

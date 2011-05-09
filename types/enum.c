@@ -410,6 +410,7 @@ struct definition *
 	_enum->p.ref = 1;
 	_enum->p.index = index;
 	_enum->p.name = field_name;
+	_enum->p.path = new_definition_path(parent_scope, field_name);
 	_enum->value = NULL;
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,

@@ -31,6 +31,7 @@
 /* Preallocate this many fields for structures */
 #define DEFAULT_NR_STRUCT_FIELDS 8
 
+struct ctf_stream;
 struct stream_pos;
 struct format;
 struct definition;
@@ -102,6 +103,7 @@ struct definition {
 	int index;		/* Position of the definition in its container */
 	GQuark name;		/* Field name in its container (or 0 if unset) */
 	int ref;		/* number of references to the definition */
+	GQuark path;
 };
 
 typedef int (*rw_dispatch)(struct stream_pos *pos,
@@ -111,6 +113,8 @@ typedef int (*rw_dispatch)(struct stream_pos *pos,
 struct stream_pos {
 	/* read/write dispatch table. Specific to plugin used for stream. */
 	rw_dispatch *rw_table;	/* rw dispatch table */
+	int (*event_cb)(struct stream_pos *pos,
+			struct ctf_stream *stream_class);
 };
 
 static inline
@@ -359,6 +363,14 @@ void set_dynamic_definition_scope(struct definition *definition,
 				  const char *root_name);
 void free_definition_scope(struct definition_scope *scope);
 
+GQuark new_definition_path(struct definition_scope *parent_scope, GQuark field_name);
+
+static inline
+int compare_definition_path(struct definition *definition, GQuark path)
+{
+	return definition->path == path;
+}
+
 void declaration_ref(struct declaration *declaration);
 void declaration_unref(struct declaration *declaration);
 
@@ -493,4 +505,4 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition);
  */
 void append_scope_path(const char *path, GArray *q);
 
-#endif /* _BABELTRACE_declarationS_H */
+#endif /* _BABELTRACE_TYPES_H */

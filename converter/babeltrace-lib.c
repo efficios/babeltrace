@@ -27,93 +27,6 @@
 #include <babeltrace/ctf-text/types.h>
 
 static
-int convert_event(struct ctf_text_stream_pos *sout,
-		  struct ctf_file_stream *sin)
-{
-	struct ctf_stream *stream_class = sin->stream;
-	struct ctf_event *event_class;
-	uint64_t id = 0;
-	int len_index;
-	int ret;
-
-	if (sin->pos.offset == EOF)
-		return EOF;
-
-	/* Hide event payload struct brackets */
-	sout->depth = -1;
-
-	/* Read and print event header */
-	if (stream_class->event_header) {
-		ret = generic_rw(&sin->pos.parent, &stream_class->event_header->p);
-		if (ret)
-			goto error;
-		/* lookup event id */
-		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
-				g_quark_from_static_string("id"));
-		if (len_index >= 0) {
-			struct definition_integer *defint;
-			struct definition *field;
-
-			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
-			assert(field->declaration->id == CTF_TYPE_INTEGER);
-			defint = container_of(field, struct definition_integer, p);
-			assert(defint->declaration->signedness == FALSE);
-			id = defint->value._unsigned;	/* set id */
-		}
-
-		ret = generic_rw(&sout->parent, &stream_class->event_header->p);
-		if (ret)
-			goto error;
-	}
-
-	/* Read and print stream-declared event context */
-	if (stream_class->event_context) {
-		ret = generic_rw(&sin->pos.parent, &stream_class->event_context->p);
-		if (ret)
-			goto error;
-		ret = generic_rw(&sout->parent, &stream_class->event_context->p);
-		if (ret)
-			goto error;
-	}
-
-	if (id >= stream_class->events_by_id->len) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
-		return -EINVAL;
-	}
-	event_class = g_ptr_array_index(stream_class->events_by_id, id);
-	if (!event_class) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
-		return -EINVAL;
-	}
-
-	/* Read and print event-declared event context */
-	if (event_class->context) {
-		ret = generic_rw(&sin->pos.parent, &event_class->context->p);
-		if (ret)
-			goto error;
-		ret = generic_rw(&sout->parent, &event_class->context->p);
-		if (ret)
-			goto error;
-	}
-
-	/* Read and print event payload */
-	if (event_class->fields) {
-		ret = generic_rw(&sin->pos.parent, &event_class->fields->p);
-		if (ret)
-			goto error;
-		ret = generic_rw(&sout->parent, &event_class->fields->p);
-		if (ret)
-			goto error;
-	}
-
-	return 0;
-
-error:
-	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
-	return ret;
-}
-
-static
 int convert_stream(struct ctf_text_stream_pos *sout,
 		   struct ctf_file_stream *sin)
 {
@@ -122,11 +35,16 @@ int convert_stream(struct ctf_text_stream_pos *sout,
 	/* For each event, print header, context, payload */
 	/* TODO: order events by timestamps across streams */
 	for (;;) {
-		ret = convert_event(sout, sin);
+		ret = sin->pos.parent.event_cb(&sin->pos.parent, sin->stream);
 		if (ret == EOF)
 			break;
 		else if (ret) {
-			fprintf(stdout, "[error] Printing event failed.\n");
+			fprintf(stdout, "[error] Reading event failed.\n");
+			goto error;
+		}
+		ret = sout->parent.event_cb(&sout->parent, sin->stream);
+		if (ret) {
+			fprintf(stdout, "[error] Writing event failed.\n");
 			goto error;
 		}
 	}

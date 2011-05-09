@@ -109,6 +109,7 @@ struct definition *
 	_struct->p.ref = 1;
 	_struct->p.index = index;
 	_struct->p.name = field_name;
+	_struct->p.path = new_definition_path(parent_scope, field_name);
 	_struct->scope = new_definition_scope(parent_scope, field_name);
 	_struct->fields = g_ptr_array_sized_new(DEFAULT_NR_STRUCT_FIELDS);
 	g_ptr_array_set_size(_struct->fields, struct_declaration->fields->len);

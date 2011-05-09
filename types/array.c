@@ -100,6 +100,7 @@ struct definition *
 	array->p.ref = 1;
 	array->p.index = index;
 	array->p.name = field_name;
+	array->p.path = new_definition_path(parent_scope, field_name);
 	array->scope = new_definition_scope(parent_scope, field_name);
 	array->elems = g_ptr_array_sized_new(array_declaration->len);
 	g_ptr_array_set_size(array->elems, array_declaration->len);

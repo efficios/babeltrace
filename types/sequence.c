@@ -131,6 +131,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	sequence->p.ref = 1;
 	sequence->p.index = index;
 	sequence->p.name = field_name;
+	sequence->p.path = new_definition_path(parent_scope, field_name);
 	sequence->scope = new_definition_scope(parent_scope, field_name);
 	len_parent = sequence_declaration->len_declaration->p.definition_new(&sequence_declaration->len_declaration->p,
 				sequence->scope,

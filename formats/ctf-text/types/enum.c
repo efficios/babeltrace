@@ -32,11 +32,21 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 
 	if (pos->dummy)
 		return 0;
-	print_pos_tabs(pos);
+
+	if (definition->index != 0 && definition->index != INT_MAX)
+		fprintf(pos->fp, ",");
+	if (definition->index != INT_MAX)
+		fprintf(pos->fp, " ");
+	if (pos->print_names)
+		fprintf(pos->fp, "%s = ",
+			g_quark_to_string(definition->name));
+
+	//print_pos_tabs(pos);
 	fprintf(pos->fp, "(");
 	pos->depth++;
 	ret = generic_rw(ppos, &integer_definition->p);
-	print_pos_tabs(pos);
+	//print_pos_tabs(pos);
+	fprintf(pos->fp, " :");
 
 	qs = enum_definition->value;
 	assert(qs);
@@ -44,10 +54,14 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	for (i = 0; i < qs->len; i++) {
 		GQuark q = g_array_index(qs, GQuark, i);
 		const char *str = g_quark_to_string(q);
+
+		if (i != 0)
+			fprintf(pos->fp, ",");
+		fprintf(pos->fp, " ");
 		fprintf(pos->fp, "%s\n", str);
 	}
 	pos->depth--;
-	print_pos_tabs(pos);
-	fprintf(pos->fp, ")");
+	//print_pos_tabs(pos);
+	fprintf(pos->fp, " )");
 	return ret;
 }
