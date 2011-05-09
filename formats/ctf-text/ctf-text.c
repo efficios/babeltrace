@@ -55,10 +55,11 @@ struct format ctf_text_format = {
 
 static
 int ctf_text_write_event(struct stream_pos *ppos,
-			 struct ctf_stream_class *stream_class)
+			 struct ctf_stream *stream)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);
+	struct ctf_stream_class *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
@@ -96,7 +97,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		fprintf(pos->fp, "timestamp = ");
 	else
 		fprintf(pos->fp, "[");
-	fprintf(pos->fp, "%" PRIu64, (uint64_t) 0);	/* TODO */
+	fprintf(pos->fp, "%12" PRIu64, stream->timestamp);
 	if (!pos->print_names)
 		fprintf(pos->fp, "]");
 
@@ -112,7 +113,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	else
 		fprintf(pos->fp, ": ");
 
-	if (stream_class->event_header) {
+	/* Only show the event header in verbose mode */
+	if (babeltrace_verbose && stream_class->event_header) {
 		if (field_nr++ != 0)
 			fprintf(pos->fp, ", ");
 		if (pos->print_names)

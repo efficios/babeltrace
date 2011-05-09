@@ -31,7 +31,7 @@
 /* Preallocate this many fields for structures */
 #define DEFAULT_NR_STRUCT_FIELDS 8
 
-struct ctf_stream_class;
+struct ctf_stream;
 struct stream_pos;
 struct format;
 struct definition;
@@ -114,7 +114,7 @@ struct stream_pos {
 	/* read/write dispatch table. Specific to plugin used for stream. */
 	rw_dispatch *rw_table;	/* rw dispatch table */
 	int (*event_cb)(struct stream_pos *pos,
-			struct ctf_stream_class *stream_class);
+			struct ctf_stream *stream);
 };
 
 static inline

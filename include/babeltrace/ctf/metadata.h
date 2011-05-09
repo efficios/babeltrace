@@ -32,11 +32,17 @@
 
 struct ctf_trace;
 struct ctf_stream_class;
+struct ctf_stream;
 struct ctf_event;
+
+struct ctf_stream {
+	struct ctf_stream_class *stream_class;
+	uint64_t timestamp;			/* Current timestamp, in ns */
+};
 
 struct ctf_file_stream {
 	uint64_t stream_id;
-	struct ctf_stream_class *stream;
+	struct ctf_stream stream;
 	struct ctf_stream_pos pos;	/* current stream position */
 };
 

@@ -35,14 +35,14 @@ int convert_stream(struct ctf_text_stream_pos *sout,
 	/* For each event, print header, context, payload */
 	/* TODO: order events by timestamps across streams */
 	for (;;) {
-		ret = sin->pos.parent.event_cb(&sin->pos.parent, sin->stream);
+		ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->stream);
 		if (ret == EOF)
 			break;
 		else if (ret) {
 			fprintf(stdout, "[error] Reading event failed.\n");
 			goto error;
 		}
-		ret = sout->parent.event_cb(&sout->parent, sin->stream);
+		ret = sout->parent.event_cb(&sout->parent, &sin->stream);
 		if (ret) {
 			fprintf(stdout, "[error] Writing event failed.\n");
 			goto error;

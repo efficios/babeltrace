@@ -80,10 +80,11 @@ struct format ctf_format = {
 };
 
 static
-int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_class *stream_class)
+int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
+	struct ctf_stream_class *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
@@ -110,6 +111,22 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_class *stream_clas
 			assert(defint->declaration->signedness == FALSE);
 			id = defint->value._unsigned;	/* set id */
 		}
+
+		/* lookup timestamp */
+		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
+				g_quark_from_static_string("timestamp"));
+		if (len_index >= 0) {
+			struct definition_integer *defint;
+			struct definition *field;
+
+			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
+			assert(field->declaration->id == CTF_TYPE_INTEGER);
+			defint = container_of(field, struct definition_integer, p);
+			assert(defint->declaration->signedness == FALSE);
+			/* update timestamp */
+			stream->timestamp = defint->value._unsigned;
+		}
+
 	}
 
 	/* Read stream-declared event context */
@@ -151,8 +168,9 @@ error:
 }
 
 static
-int ctf_write_event(struct stream_pos *pos, struct ctf_stream_class *stream_class)
+int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
+	struct ctf_stream_class *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
@@ -545,7 +563,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
 			}
-			file_stream->stream = stream;
+			file_stream->stream.stream_class = stream;
 		}
 		first_packet = 0;
 
@@ -639,7 +657,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 	if (ret)
 		goto error_index;
 	/* Add stream file to stream class */
-	g_ptr_array_add(file_stream->stream->files, file_stream);
+	g_ptr_array_add(file_stream->stream.stream_class->files, file_stream);
 	return 0;
 
 error_index:
