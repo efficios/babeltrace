@@ -66,7 +66,7 @@ int convert_trace(struct trace_descriptor *td_write,
 
 	/* For each stream (TODO: order events by timestamp) */
 	for (stream_id = 0; stream_id < tin->streams->len; stream_id++) {
-		struct ctf_stream *stream = g_ptr_array_index(tin->streams, stream_id);
+		struct ctf_stream_class *stream = g_ptr_array_index(tin->streams, stream_id);
 
 		if (!stream)
 			continue;

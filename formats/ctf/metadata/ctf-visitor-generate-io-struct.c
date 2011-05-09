@@ -125,7 +125,7 @@ int get_unary_uuid(struct cds_list_head *head, uuid_t *uuid)
 }
 
 static
-struct ctf_stream *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_id)
+struct ctf_stream_class *trace_stream_lookup(struct ctf_trace *trace, uint64_t stream_id)
 {
 	if (trace->streams->len <= stream_id)
 		return NULL;
@@ -1515,7 +1515,7 @@ error:
 
  
 static
-int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_stream *stream, struct ctf_trace *trace)
+int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_stream_class *stream, struct ctf_trace *trace)
 {
 	int ret = 0;
 
@@ -1637,10 +1637,10 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	struct ctf_stream *stream;
+	struct ctf_stream_class *stream;
 	struct definition_scope *parent_def_scope;
 
-	stream = g_new0(struct ctf_stream, 1);
+	stream = g_new0(struct ctf_stream_class, 1);
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_direct_hash, g_direct_equal);

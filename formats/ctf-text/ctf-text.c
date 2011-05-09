@@ -55,7 +55,7 @@ struct format ctf_text_format = {
 
 static
 int ctf_text_write_event(struct stream_pos *ppos,
-			 struct ctf_stream *stream_class)
+			 struct ctf_stream_class *stream_class)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);
@@ -63,6 +63,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	uint64_t id = 0;
 	int len_index;
 	int ret;
+	int field_nr = 0;
 
 	/* print event header */
 	if (stream_class->event_header) {
@@ -91,16 +92,27 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		return -EINVAL;
 	}
 
+	if (field_nr++ != 0)
+		fprintf(pos->fp, ", ");
+	if (pos->print_names)
+		fprintf(pos->fp, "timestamp = ");
+	else
+		fprintf(pos->fp, "[");
+	fprintf(pos->fp, "%" PRIu64, (uint64_t) 0);	/* TODO */
+	if (!pos->print_names)
+		fprintf(pos->fp, "]");
+
+	if (field_nr++ != 0)
+		fprintf(pos->fp, ", ");
 	if (pos->print_names)
 		fprintf(pos->fp, "name = ");
-	fprintf(pos->fp, "%s", g_quark_to_string(event_class->name));
+	fprintf(pos->fp, "%s: ", g_quark_to_string(event_class->name));
 
 	if (stream_class->event_header) {
+		if (field_nr++ != 0)
+			fprintf(pos->fp, ", ");
 		if (pos->print_names)
-			fprintf(pos->fp, ", stream.event.header =");
-		else
-			fprintf(pos->fp, ",");
-		fprintf(pos->fp, " ");
+			fprintf(pos->fp, "stream.event.header = ");
 		ret = generic_rw(ppos, &stream_class->event_header->p);
 		if (ret)
 			goto error;
@@ -108,10 +120,10 @@ int ctf_text_write_event(struct stream_pos *ppos,
 
 	/* print stream-declared event context */
 	if (stream_class->event_context) {
+		if (field_nr++ != 0)
+			fprintf(pos->fp, ", ");
 		if (pos->print_names)
-			fprintf(pos->fp, ", stream.event.context =");
-		else
-			fprintf(pos->fp, ",");
+			fprintf(pos->fp, "stream.event.context = ");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &stream_class->event_context->p);
 		if (ret)
@@ -120,10 +132,10 @@ int ctf_text_write_event(struct stream_pos *ppos,
 
 	/* print event-declared event context */
 	if (event_class->context) {
+		if (field_nr++ != 0)
+			fprintf(pos->fp, ", ");
 		if (pos->print_names)
-			fprintf(pos->fp, ", event.context =");
-		else
-			fprintf(pos->fp, ",");
+			fprintf(pos->fp, "event.context = ");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &event_class->context->p);
 		if (ret)
@@ -132,10 +144,10 @@ int ctf_text_write_event(struct stream_pos *ppos,
 
 	/* Read and print event payload */
 	if (event_class->fields) {
+		if (field_nr++ != 0)
+			fprintf(pos->fp, ", ");
 		if (pos->print_names)
-			fprintf(pos->fp, ", event.fields =");
-		else
-			fprintf(pos->fp, ",");
+			fprintf(pos->fp, "event.fields = ");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &event_class->fields->p);
 		if (ret)

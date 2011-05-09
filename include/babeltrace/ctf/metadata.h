@@ -31,13 +31,13 @@
 #define CTF_MAGIC	0xC1FC1FC1
 
 struct ctf_trace;
-struct ctf_stream;
+struct ctf_stream_class;
 struct ctf_event;
 
 struct ctf_file_stream {
 	uint64_t stream_id;
-	struct ctf_stream *stream;
-	struct ctf_stream_pos pos;			/* current stream position */
+	struct ctf_stream_class *stream;
+	struct ctf_stream_pos pos;	/* current stream position */
 };
 
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
@@ -63,7 +63,7 @@ struct ctf_trace {
 	struct declaration_scope *declaration_scope;
 	/* innermost definition scope. to be used as parent of stream. */
 	struct definition_scope *definition_scope;
-	GPtrArray *streams;			/* Array of struct ctf_stream pointers */
+	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
 	struct ctf_file_stream metadata;
 
 	/* Declarations only used when parsing */
@@ -105,7 +105,7 @@ struct ctf_trace {
 		(ctf_stream)->(field);					\
 	})
 
-struct ctf_stream {
+struct ctf_stream_class {
 	struct ctf_trace *trace;
 	/* parent is lexical scope conaining the stream scope */
 	struct declaration_scope *declaration_scope;
@@ -149,7 +149,7 @@ struct ctf_stream {
 
 struct ctf_event {
 	/* stream mapped by stream_id */
-	struct ctf_stream *stream;
+	struct ctf_stream_class *stream;
 	/* parent is lexical scope conaining the event scope */
 	struct declaration_scope *declaration_scope;
 

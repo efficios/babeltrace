@@ -80,7 +80,7 @@ struct format ctf_format = {
 };
 
 static
-int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream_class)
+int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_class *stream_class)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
@@ -151,7 +151,7 @@ error:
 }
 
 static
-int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream_class)
+int ctf_write_event(struct stream_pos *pos, struct ctf_stream_class *stream_class)
 {
 	struct ctf_event *event_class;
 	uint64_t id = 0;
@@ -424,7 +424,7 @@ static
 int create_stream_packet_index(struct ctf_trace *td,
 			       struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream *stream;
+	struct ctf_stream_class *stream;
 	int len_index;
 	struct ctf_stream_pos *pos;
 	struct stat filestats;
@@ -776,7 +776,7 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 
 	if (td->streams) {
 		for (i = 0; i < td->streams->len; i++) {
-			struct ctf_stream *stream;
+			struct ctf_stream_class *stream;
 			int j;
 			stream = g_ptr_array_index(td->streams, i);
 			for (j = 0; j < stream->files->len; j++) {
