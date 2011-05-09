@@ -33,7 +33,8 @@ int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition
 		if (pos->depth >= 0) {
 			if (pos->field_nr++ != 0)
 				fprintf(pos->fp, ",");
-			fprintf(pos->fp, " ");
+			if (pos->print_names || len > 1)
+				fprintf(pos->fp, " ");
 			if (pos->print_names && definition->name != 0)
 				fprintf(pos->fp, "%s = ",
 					g_quark_to_string(definition->name));
