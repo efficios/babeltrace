@@ -93,18 +93,20 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		return -EINVAL;
 	}
 
-	if (pos->print_names)
-		fprintf(pos->fp, "timestamp = ");
-	else
-		fprintf(pos->fp, "[");
-	fprintf(pos->fp, "%12" PRIu64, stream->timestamp);
-	if (!pos->print_names)
-		fprintf(pos->fp, "]");
+	if (stream->timestamp) {
+		if (pos->print_names)
+			fprintf(pos->fp, "timestamp = ");
+		else
+			fprintf(pos->fp, "[");
+		fprintf(pos->fp, "%12" PRIu64, stream->timestamp);
+		if (!pos->print_names)
+			fprintf(pos->fp, "]");
 
-	if (pos->print_names)
-		fprintf(pos->fp, ", ");
-	else
-		fprintf(pos->fp, " ");
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		else
+			fprintf(pos->fp, " ");
+	}
 	if (pos->print_names)
 		fprintf(pos->fp, "name = ");
 	fprintf(pos->fp, "%s", g_quark_to_string(event_class->name));
