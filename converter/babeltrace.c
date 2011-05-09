@@ -33,6 +33,7 @@ static const char *opt_input_path;
 static const char *opt_output_path;
 
 int babeltrace_verbose, babeltrace_debug;
+int opt_field_names;
 
 void strlower(char *str)
 {
@@ -48,6 +49,7 @@ enum {
 	OPT_LIST,
 	OPT_VERBOSE,
 	OPT_DEBUG,
+	OPT_NAMES,
 };
 
 static struct poptOption long_options[] = {
@@ -58,6 +60,7 @@ static struct poptOption long_options[] = {
 	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
+	{ "names", 'n', POPT_ARG_NONE, NULL, OPT_NAMES, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -84,6 +87,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -l, --list                     List available formats\n");
 	fprintf(fp, "  -v, --verbose                  Verbose mode\n");
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
+	fprintf(fp, "  -n, --names                    Print field names\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -120,6 +124,9 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_DEBUG:
 			babeltrace_debug = 1;
+			break;
+		case OPT_NAMES:
+			opt_field_names = 1;
 			break;
 		default:
 			ret = -EINVAL;

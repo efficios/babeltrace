@@ -29,7 +29,6 @@ int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
 
 	if (pos->dummy)
 		return 0;
-	//print_pos_tabs(pos);
 
 	if (definition->index != 0 && definition->index != INT_MAX)
 		fprintf(pos->fp, ",");

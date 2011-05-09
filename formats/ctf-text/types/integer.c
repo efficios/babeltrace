@@ -40,15 +40,9 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		fprintf(pos->fp, "%s = ",
 			g_quark_to_string(definition->name));
 
-	//print_pos_tabs(pos);
-
 	if (!compare_definition_path(definition, g_quark_from_static_string("stream.event.header.timestamp"))) {
-		if (!pos->print_names)
-			fprintf(pos->fp, "[%" PRIu64 "]",
-				integer_definition->value._unsigned);
-		else
-			fprintf(pos->fp, "%" PRIu64,
-				integer_definition->value._unsigned);
+		fprintf(pos->fp, "%" PRIu64,
+			integer_definition->value._unsigned);
 		return 0;
 	}
 

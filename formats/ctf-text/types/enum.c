@@ -41,11 +41,9 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		fprintf(pos->fp, "%s = ",
 			g_quark_to_string(definition->name));
 
-	//print_pos_tabs(pos);
 	fprintf(pos->fp, "(");
 	pos->depth++;
 	ret = generic_rw(ppos, &integer_definition->p);
-	//print_pos_tabs(pos);
 	fprintf(pos->fp, " :");
 
 	qs = enum_definition->value;
@@ -61,7 +59,6 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		fprintf(pos->fp, "%s\n", str);
 	}
 	pos->depth--;
-	//print_pos_tabs(pos);
 	fprintf(pos->fp, " )");
 	return ret;
 }

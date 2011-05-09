@@ -98,6 +98,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (stream_class->event_header) {
 		if (pos->print_names)
 			fprintf(pos->fp, ", stream.event.header =");
+		else
+			fprintf(pos->fp, ",");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &stream_class->event_header->p);
 		if (ret)
@@ -108,6 +110,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (stream_class->event_context) {
 		if (pos->print_names)
 			fprintf(pos->fp, ", stream.event.context =");
+		else
+			fprintf(pos->fp, ",");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &stream_class->event_context->p);
 		if (ret)
@@ -118,6 +122,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (event_class->context) {
 		if (pos->print_names)
 			fprintf(pos->fp, ", event.context =");
+		else
+			fprintf(pos->fp, ",");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &event_class->context->p);
 		if (ret)
@@ -128,6 +134,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (event_class->fields) {
 		if (pos->print_names)
 			fprintf(pos->fp, ", event.fields =");
+		else
+			fprintf(pos->fp, ",");
 		fprintf(pos->fp, " ");
 		ret = generic_rw(ppos, &event_class->fields->p);
 		if (ret)
@@ -161,7 +169,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags)
 		pos->fp = fp;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_text_write_event;
-		pos->print_names = 1;
+		pos->print_names = opt_field_names;
 		break;
 	case O_RDONLY:
 	default:

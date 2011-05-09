@@ -25,4 +25,6 @@ struct trace_descriptor;
 int convert_trace(struct trace_descriptor *td_write,
 		  struct trace_descriptor *td_read);
 
+extern int opt_field_names;
+
 #endif

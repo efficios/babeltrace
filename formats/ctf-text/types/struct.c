@@ -26,7 +26,6 @@ int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition
 
 	if (!pos->dummy) {
 		if (pos->depth >= 0) {
-			//print_pos_tabs(pos);
 			if (definition->index != 0 && definition->index != INT_MAX)
 				fprintf(pos->fp, ",");
 			if (definition->index != INT_MAX)
@@ -42,7 +41,6 @@ int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition
 	if (!pos->dummy) {
 		pos->depth--;
 		if (pos->depth >= 0) {
-			//print_pos_tabs(pos);
 			fprintf(pos->fp, " }");
 		}
 	}
