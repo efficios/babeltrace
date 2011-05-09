@@ -54,10 +54,10 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 	 */
 	oldlen = sequence_definition->elems->len;
 	if (oldlen < len)
-		g_array_set_size(sequence_definition->elems, len);
+		g_ptr_array_set_size(sequence_definition->elems, len);
 
 	for (i = oldlen; i < len; i++) {
-		struct field *field;
+		struct definition **field;
 		GString *str;
 		GQuark name;
 
@@ -66,12 +66,11 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 		(void) g_string_free(str, TRUE);
 		name = g_quark_from_string(str->str);
 
-		field = &g_array_index(sequence_definition->elems, struct field, i);
-		field->name = name;
-		field->definition = sequence_declaration->elem->definition_new(sequence_declaration->elem,
+		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
+		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
 					  sequence_definition->scope,
 					  name, i);
-		ret = generic_rw(pos, field->definition);
+		ret = generic_rw(pos, *field);
 		if (ret)
 			return ret;
 	}
@@ -131,13 +130,14 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	sequence->declaration = sequence_declaration;
 	sequence->p.ref = 1;
 	sequence->p.index = index;
+	sequence->p.name = field_name;
 	sequence->scope = new_definition_scope(parent_scope, field_name);
 	len_parent = sequence_declaration->len_declaration->p.definition_new(&sequence_declaration->len_declaration->p,
 				sequence->scope,
 				g_quark_from_static_string("length"), 0);
 	sequence->len =
 		container_of(len_parent, struct definition_integer, p);
-	sequence->elems = g_array_new(FALSE, TRUE, sizeof(struct field));
+	sequence->elems = g_ptr_array_new();
 	return &sequence->p;
 }
 
@@ -150,12 +150,12 @@ void _sequence_definition_free(struct definition *definition)
 	uint64_t i;
 
 	for (i = 0; i < sequence->elems->len; i++) {
-		struct field *field;
+		struct definition *field;
 
-		field = &g_array_index(sequence->elems, struct field, i);
-		field->definition->declaration->definition_free(field->definition);
+		field = g_ptr_array_index(sequence->elems, i);
+		field->declaration->definition_free(field);
 	}
-	(void) g_array_free(sequence->elems, TRUE);
+	(void) g_ptr_array_free(sequence->elems, TRUE);
 	len_definition->declaration->definition_free(len_definition);
 	free_definition_scope(sequence->scope);
 	declaration_unref(sequence->p.declaration);
@@ -172,5 +172,5 @@ struct definition *sequence_index(struct definition_sequence *sequence, uint64_t
 	if (i >= sequence->len->value._unsigned)
 		return NULL;
 	assert(i < sequence->elems->len);
-	return g_array_index(sequence->elems, struct field, i).definition;
+	return g_ptr_array_index(sequence->elems, i);
 }

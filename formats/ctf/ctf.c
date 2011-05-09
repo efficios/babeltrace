@@ -331,11 +331,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
-				struct field *field;
+				struct definition *field;
 
 				field = struct_definition_get_field_from_index(td->packet_header, len_index);
-				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field->definition, struct definition_integer, p);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				if (defint->value._unsigned != CTF_MAGIC) {
 					fprintf(stdout, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
@@ -350,13 +350,13 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("trace_uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
-				struct field *field;
+				struct definition *field;
 				uint64_t i;
 				uint8_t uuidval[UUID_LEN];
 
 				field = struct_definition_get_field_from_index(td->packet_header, len_index);
-				assert(field->definition->declaration->id == CTF_TYPE_ARRAY);
-				defarray = container_of(field->definition, struct definition_array, p);
+				assert(field->declaration->id == CTF_TYPE_ARRAY);
+				defarray = container_of(field, struct definition_array, p);
 				assert(array_len(defarray) == UUID_LEN);
 				assert(defarray->declaration->elem->id == CTF_TYPE_INTEGER);
 
@@ -380,11 +380,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
-				struct field *field;
+				struct definition *field;
 
 				field = struct_definition_get_field_from_index(td->packet_header, len_index);
-				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field->definition, struct definition_integer, p);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				stream_id = defint->value._unsigned;
 			}
@@ -418,11 +418,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
-				struct field *field;
+				struct definition *field;
 
 				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
-				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field->definition, struct definition_integer, p);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				packet_index.content_size = defint->value._unsigned;
 			} else {
@@ -434,11 +434,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
-				struct field *field;
+				struct definition *field;
 
 				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
-				assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field->definition, struct definition_integer, p);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
 				packet_index.packet_size = defint->value._unsigned;
 			} else {

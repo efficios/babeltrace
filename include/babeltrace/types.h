@@ -100,6 +100,7 @@ struct declaration {
 struct definition {
 	struct declaration *declaration;
 	int index;		/* Position of the definition in its container */
+	GQuark name;		/* Field name in its container (or 0 if unset) */
 	int ref;		/* number of references to the definition */
 };
 
@@ -239,11 +240,6 @@ struct declaration_field {
 	struct declaration *declaration;
 };
 
-struct field {
-	GQuark name;
-	struct definition *definition;
-};
-
 struct declaration_struct {
 	struct declaration p;
 	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
@@ -255,7 +251,7 @@ struct definition_struct {
 	struct definition p;
 	struct declaration_struct *declaration;
 	struct definition_scope *scope;
-	GArray *fields;			/* Array of struct field */
+	GPtrArray *fields;		/* Array of pointers to struct definition */
 };
 
 struct declaration_untagged_variant {
@@ -277,8 +273,8 @@ struct definition_variant {
 	struct declaration_variant *declaration;
 	struct definition_scope *scope;
 	struct definition *enum_tag;
-	GArray *fields;			/* Array of struct field */
-	struct field *current_field;	/* Last field read */
+	GPtrArray *fields;		/* Array of pointers to struct definition */
+	struct definition *current_field;	/* Last field read */
 };
 
 struct declaration_array {
@@ -292,7 +288,7 @@ struct definition_array {
 	struct definition p;
 	struct declaration_array *declaration;
 	struct definition_scope *scope;
-	GArray *elems;			/* struct field */
+	GPtrArray *elems;		/* Array of pointers to struct definition */
 };
 
 struct declaration_sequence {
@@ -307,7 +303,7 @@ struct definition_sequence {
 	struct declaration_sequence *declaration;
 	struct definition_scope *scope;
 	struct definition_integer *len;
-	GArray *elems;			/* struct field */
+	GPtrArray *elems;		/* Array of pointers to struct definition */
 };
 
 int register_declaration(GQuark declaration_name,
@@ -434,7 +430,7 @@ int struct_declaration_lookup_field_index(struct declaration_struct *struct_decl
 struct declaration_field *
 struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					int index);
-struct field *
+struct definition *
 struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
 int struct_rw(struct stream_pos *pos, struct definition *definition);
@@ -465,7 +461,7 @@ int variant_definition_set_tag(struct definition_variant *variant,
  * field returned only valid as long as the variant structure is not appended
  * to.
  */
-struct field *variant_get_current_field(struct definition_variant *variant);
+struct definition *variant_get_current_field(struct definition_variant *variant);
 int variant_rw(struct stream_pos *pos, struct definition *definition);
 
 /*

@@ -31,10 +31,10 @@ int variant_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);
-	struct field *field;
+	struct definition *field;
 
 	field = variant_get_current_field(variant_definition);
-	return generic_rw(ppos, field->definition);
+	return generic_rw(ppos, field);
 }
 
 static
@@ -174,6 +174,7 @@ struct definition *
 	variant->declaration = variant_declaration;
 	variant->p.ref = 1;
 	variant->p.index = index;
+	variant->p.name = field_name;
 	variant->scope = new_definition_scope(parent_scope, field_name);
 	variant->enum_tag = lookup_definition(variant->scope->scope_path,
 					      variant_declaration->tag_name,
@@ -183,26 +184,22 @@ struct definition *
 	    || check_enum_tag(variant, variant->enum_tag) < 0)
 		goto error;
 	definition_ref(variant->enum_tag);
-	variant->fields = g_array_sized_new(FALSE, TRUE,
-					    sizeof(struct field),
-					    variant_declaration->untagged_variant->fields->len);
-	g_array_set_size(variant->fields, variant_declaration->untagged_variant->fields->len);
+	variant->fields = g_ptr_array_sized_new(variant_declaration->untagged_variant->fields->len);
+	g_ptr_array_set_size(variant->fields, variant_declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant_declaration->untagged_variant->fields->len; i++) {
 		struct declaration_field *declaration_field =
 			&g_array_index(variant_declaration->untagged_variant->fields,
 				       struct declaration_field, i);
-		struct field *field = &g_array_index(variant->fields,
-						     struct field, i);
+		struct definition **field =
+			(struct definition **) &g_ptr_array_index(variant->fields, i);
 
-		field->name = declaration_field->name;
 		/*
 		 * All child definition are at index 0, because they are
 		 * various choices of the same field.
 		 */
-		field->definition =
-			declaration_field->declaration->definition_new(declaration_field->declaration,
-							  variant->scope,
-							  field->name, 0);
+		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
+						  variant->scope,
+						  declaration_field->name, 0);
 	}
 	variant->current_field = NULL;
 	return &variant->p;
@@ -222,9 +219,8 @@ void _variant_definition_free(struct definition *definition)
 
 	assert(variant->fields->len == variant->declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
-		struct field *field = &g_array_index(variant->fields,
-						     struct field, i);
-		definition_unref(field->definition);
+		struct definition *field = g_ptr_array_index(variant->fields, i);
+		definition_unref(field);
 	}
 	definition_unref(variant->enum_tag);
 	free_definition_scope(variant->scope);
@@ -269,7 +265,7 @@ untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_vari
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct field *variant_get_current_field(struct definition_variant *variant)
+struct definition *variant_get_current_field(struct definition_variant *variant)
 {
 	struct definition_enum *_enum =
 		container_of(variant->enum_tag, struct definition_enum, p);
@@ -287,6 +283,6 @@ struct field *variant_get_current_field(struct definition_variant *variant)
 	tag = g_array_index(tag_array, GQuark, 0);
 	index = (unsigned long) g_hash_table_lookup(variant_declaration->untagged_variant->fields_by_tag,
 						    (gconstpointer) (unsigned long) tag);
-	variant->current_field = &g_array_index(variant->fields, struct field, index);
+	variant->current_field = g_ptr_array_index(variant->fields, index);
 	return variant->current_field;
 }

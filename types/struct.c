@@ -38,9 +38,9 @@ int struct_rw(struct stream_pos *ppos, struct definition *definition)
 	int ret;
 
 	for (i = 0; i < struct_definition->fields->len; i++) {
-		struct field *field = &g_array_index(struct_definition->fields,
-						     struct field, i);
-		ret = generic_rw(ppos, field->definition);
+		struct definition *field =
+			g_ptr_array_index(struct_definition->fields, i);
+		ret = generic_rw(ppos, field);
 		if (ret)
 			return ret;
 	}
@@ -108,25 +108,22 @@ struct definition *
 	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
 	_struct->p.index = index;
+	_struct->p.name = field_name;
 	_struct->scope = new_definition_scope(parent_scope, field_name);
-	_struct->fields = g_array_sized_new(FALSE, TRUE,
-					    sizeof(struct field),
-					    DEFAULT_NR_STRUCT_FIELDS);
-	g_array_set_size(_struct->fields, struct_declaration->fields->len);
+	_struct->fields = g_ptr_array_sized_new(DEFAULT_NR_STRUCT_FIELDS);
+	g_ptr_array_set_size(_struct->fields, struct_declaration->fields->len);
 	for (i = 0; i < struct_declaration->fields->len; i++) {
 		struct declaration_field *declaration_field =
 			&g_array_index(struct_declaration->fields,
 				       struct declaration_field, i);
-		struct field *field = &g_array_index(_struct->fields,
-						     struct field, i);
+		struct definition **field =
+			(struct definition **) &g_ptr_array_index(_struct->fields, i);
 
-		field->name = declaration_field->name;
-		field->definition =
-			declaration_field->declaration->definition_new(declaration_field->declaration,
+		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
 							  _struct->scope,
-							  field->name, i);
-		ret = register_field_definition(field->name,
-						field->definition,
+							  declaration_field->name, i);
+		ret = register_field_definition(declaration_field->name,
+						*field,
 						_struct->scope);
 		assert(!ret);
 	}
@@ -142,9 +139,8 @@ void _struct_definition_free(struct definition *definition)
 
 	assert(_struct->fields->len == _struct->declaration->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
-		struct field *field = &g_array_index(_struct->fields,
-						     struct field, i);
-		definition_unref(field->definition);
+		struct definition *field = g_ptr_array_index(_struct->fields, i);
+		definition_unref(field);
 	}
 	free_definition_scope(_struct->scope);
 	declaration_unref(_struct->p.declaration);
@@ -211,11 +207,11 @@ struct declaration_field *
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct field *
+struct definition *
 struct_definition_get_field_from_index(struct definition_struct *_struct,
 					int index)
 {
 	if (index < 0)
 		return NULL;
-	return &g_array_index(_struct->fields, struct field, index);
+	return g_ptr_array_index(_struct->fields, index);
 }

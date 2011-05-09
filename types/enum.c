@@ -409,10 +409,12 @@ struct definition *
 	_enum->declaration = enum_declaration;
 	_enum->p.ref = 1;
 	_enum->p.index = index;
+	_enum->p.name = field_name;
 	_enum->value = NULL;
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,
-					parent_scope, field_name, 0);
+				parent_scope,
+				g_quark_from_static_string("container"), 0);
 	_enum->integer = container_of(definition_integer_parent,
 				      struct definition_integer, p);
 	return &_enum->p;

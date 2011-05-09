@@ -52,11 +52,11 @@ int convert_event(struct ctf_text_stream_pos *sout,
 				g_quark_from_static_string("id"));
 		if (len_index >= 0) {
 			struct definition_integer *defint;
-			struct field *field;
+			struct definition *field;
 
 			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
-			assert(field->definition->declaration->id == CTF_TYPE_INTEGER);
-			defint = container_of(field->definition, struct definition_integer, p);
+			assert(field->declaration->id == CTF_TYPE_INTEGER);
+			defint = container_of(field, struct definition_integer, p);
 			assert(defint->declaration->signedness == FALSE);
 			id = defint->value._unsigned;	/* set id */
 		}

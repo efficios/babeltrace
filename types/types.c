@@ -1,5 +1,5 @@
 /*
- * declarations.c
+ * types.c
  *
  * BabelTrace - Converter
  *

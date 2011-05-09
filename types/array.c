@@ -38,9 +38,9 @@ int array_rw(struct stream_pos *pos, struct definition *definition)
 
 	/* No need to align, because the first field will align itself. */
 	for (i = 0; i < array_declaration->len; i++) {
-		struct definition *elem =
-			g_array_index(array_definition->elems, struct field, i).definition;
-		ret = generic_rw(pos, elem);
+		struct definition *field =
+			g_ptr_array_index(array_definition->elems, i);
+		ret = generic_rw(pos, field);
 		if (ret)
 			return ret;
 	}
@@ -99,12 +99,12 @@ struct definition *
 	array->declaration = array_declaration;
 	array->p.ref = 1;
 	array->p.index = index;
+	array->p.name = field_name;
 	array->scope = new_definition_scope(parent_scope, field_name);
-	array->elems = g_array_sized_new(FALSE, TRUE, sizeof(struct field),
-					 array_declaration->len);
-	g_array_set_size(array->elems, array_declaration->len);
+	array->elems = g_ptr_array_sized_new(array_declaration->len);
+	g_ptr_array_set_size(array->elems, array_declaration->len);
 	for (i = 0; i < array_declaration->len; i++) {
-		struct field *field;
+		struct definition **field;
 		GString *str;
 		GQuark name;
 
@@ -113,9 +113,8 @@ struct definition *
 		name = g_quark_from_string(str->str);
 		(void) g_string_free(str, TRUE);
 
-		field = &g_array_index(array->elems, struct field, i);
-		field->name = name;
-		field->definition = array_declaration->elem->definition_new(array_declaration->elem,
+		field = (struct definition **) &g_ptr_array_index(array->elems, i);
+		*field = array_declaration->elem->definition_new(array_declaration->elem,
 					  array->scope,
 					  name, i);
 	}
@@ -130,12 +129,12 @@ void _array_definition_free(struct definition *definition)
 	uint64_t i;
 
 	for (i = 0; i < array->elems->len; i++) {
-		struct field *field;
+		struct definition *field;
 
-		field = &g_array_index(array->elems, struct field, i);
-		field->definition->declaration->definition_free(field->definition);
+		field = g_ptr_array_index(array->elems, i);
+		field->declaration->definition_free(field);
 	}
-	(void) g_array_free(array->elems, TRUE);
+	(void) g_ptr_array_free(array->elems, TRUE);
 	free_definition_scope(array->scope);
 	declaration_unref(array->p.declaration);
 	g_free(array);
@@ -150,5 +149,5 @@ struct definition *array_index(struct definition_array *array, uint64_t i)
 {
 	if (i >= array->elems->len)
 		return NULL;
-	return g_array_index(array->elems, struct field, i).definition;
+	return g_ptr_array_index(array->elems, i);
 }
