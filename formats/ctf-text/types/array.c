@@ -22,23 +22,26 @@
 int ctf_text_array_write(struct stream_pos *ppos, struct definition *definition)
 {
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
+	int field_nr_saved;
 	int ret;
 
 	if (!pos->dummy) {
-		if (definition->index != 0 && definition->index != INT_MAX)
+		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
-		if (definition->index != INT_MAX)
-			fprintf(pos->fp, " ");
+		fprintf(pos->fp, " ");
 		if (pos->print_names)
 			fprintf(pos->fp, "%s = ",
 				g_quark_to_string(definition->name));
 		fprintf(pos->fp, "[");
 		pos->depth++;
 	}
+	field_nr_saved = pos->field_nr;
+	pos->field_nr = 0;
 	ret = array_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		fprintf(pos->fp, " ]");
 	}
+	pos->field_nr = field_nr_saved;
 	return ret;
 }

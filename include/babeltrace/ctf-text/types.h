@@ -38,6 +38,7 @@ struct ctf_text_stream_pos {
 	int depth;
 	int dummy;		/* disable output */
 	int print_names;	/* print field names */
+	int field_nr;
 };
 
 static inline

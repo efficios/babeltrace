@@ -216,3 +216,8 @@ struct_definition_get_field_from_index(struct definition_struct *_struct,
 		return NULL;
 	return g_ptr_array_index(_struct->fields, index);
 }
+
+uint64_t struct_declaration_len(struct declaration_struct *struct_declaration)
+{
+	return struct_declaration->fields->len;
+}

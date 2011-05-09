@@ -446,6 +446,7 @@ struct definition *
 struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
 int struct_rw(struct stream_pos *pos, struct definition *definition);
+uint64_t struct_declaration_len(struct declaration_struct *struct_declaration);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings

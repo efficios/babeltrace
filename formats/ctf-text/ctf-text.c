@@ -60,11 +60,11 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);
 	struct ctf_stream_class *stream_class = stream->stream_class;
+	int field_nr_saved;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
 	int len_index;
 	int ret;
-	int field_nr = 0;
 
 	/* print event header */
 	if (stream_class->event_header) {
@@ -109,54 +109,68 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		fprintf(pos->fp, "name = ");
 	fprintf(pos->fp, "%s", g_quark_to_string(event_class->name));
 	if (pos->print_names)
-		field_nr++;
+		pos->field_nr++;
 	else
-		fprintf(pos->fp, ": ");
+		fprintf(pos->fp, ":");
 
 	/* Only show the event header in verbose mode */
 	if (babeltrace_verbose && stream_class->event_header) {
-		if (field_nr++ != 0)
-			fprintf(pos->fp, ", ");
+		if (pos->field_nr++ != 0)
+			fprintf(pos->fp, ",");
 		if (pos->print_names)
-			fprintf(pos->fp, "stream.event.header = ");
+			fprintf(pos->fp, " stream.event.header =");
+		field_nr_saved = pos->field_nr;
+		pos->field_nr = 0;
 		ret = generic_rw(ppos, &stream_class->event_header->p);
 		if (ret)
 			goto error;
+		pos->field_nr = field_nr_saved;
 	}
 
 	/* print stream-declared event context */
 	if (stream_class->event_context) {
-		if (field_nr++ != 0)
-			fprintf(pos->fp, ", ");
+		if (pos->field_nr++ != 0)
+			fprintf(pos->fp, ",");
 		if (pos->print_names)
-			fprintf(pos->fp, "stream.event.context = ");
+			fprintf(pos->fp, " stream.event.context =");
+		field_nr_saved = pos->field_nr;
+		pos->field_nr = 0;
 		ret = generic_rw(ppos, &stream_class->event_context->p);
 		if (ret)
 			goto error;
+		pos->field_nr = field_nr_saved;
 	}
 
 	/* print event-declared event context */
 	if (event_class->context) {
-		if (field_nr++ != 0)
-			fprintf(pos->fp, ", ");
+		if (pos->field_nr++ != 0)
+			fprintf(pos->fp, ",");
 		if (pos->print_names)
-			fprintf(pos->fp, "event.context = ");
+			fprintf(pos->fp, " event.context =");
+		field_nr_saved = pos->field_nr;
+		pos->field_nr = 0;
 		ret = generic_rw(ppos, &event_class->context->p);
 		if (ret)
 			goto error;
+		pos->field_nr = field_nr_saved;
 	}
 
 	/* Read and print event payload */
 	if (event_class->fields) {
-		if (field_nr++ != 0)
-			fprintf(pos->fp, ", ");
+		if (pos->field_nr++ != 0)
+			fprintf(pos->fp, ",");
 		if (pos->print_names)
-			fprintf(pos->fp, "event.fields = ");
+			fprintf(pos->fp, " event.fields =");
+		field_nr_saved = pos->field_nr;
+		pos->field_nr = 0;
 		ret = generic_rw(ppos, &event_class->fields->p);
 		if (ret)
 			goto error;
+		pos->field_nr = field_nr_saved;
 	}
+	/* newline */
 	fprintf(pos->fp, "\n");
+	pos->field_nr = 0;
 
 	return 0;
 
