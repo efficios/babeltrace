@@ -39,20 +39,41 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		fprintf(pos->fp, "%s = ",
 			g_quark_to_string(definition->name));
 
-	if (!compare_definition_path(definition, g_quark_from_static_string("stream.event.header.timestamp"))) {
-		fprintf(pos->fp, "%" PRIu64,
+	switch (integer_declaration->base) {
+	case 2:
+	{
+		int bitnr;
+		uint64_t v = integer_definition->value._unsigned;
+
+		fprintf(pos->fp, "b");
+		for (bitnr = 0; bitnr < integer_declaration->len; bitnr++)
+			v <<= 1;
+		for (; bitnr < sizeof(v) * CHAR_BIT; bitnr++) {
+			fprintf(pos->fp, "%u", ((v & 1ULL) << 63) ? 1 : 0);
+			v <<= 1;
+		}
+		break;
+	}
+	case 8:
+		fprintf(pos->fp, "0%" PRIo64,
 			integer_definition->value._unsigned);
-		return 0;
+		break;
+	case 10:
+		if (!integer_declaration->signedness) {
+			fprintf(pos->fp, "%" PRIu64,
+				integer_definition->value._unsigned);
+		} else {
+			fprintf(pos->fp, "%" PRId64,
+				integer_definition->value._signed);
+		}
+		break;
+	case 16:
+		fprintf(pos->fp, "0x%" PRIX64,
+			integer_definition->value._unsigned);
+		break;
+	default:
+		return -EINVAL;
 	}
 
-	if (!integer_declaration->signedness) {
-		fprintf(pos->fp, "%" PRIu64" (0x%" PRIX64 ")",
-			integer_definition->value._unsigned,
-			integer_definition->value._unsigned);
-	} else {
-		fprintf(pos->fp, "%" PRId64" (0x%" PRIX64 ")",
-			integer_definition->value._signed,
-			integer_definition->value._signed);
-	}
 	return 0;
 }

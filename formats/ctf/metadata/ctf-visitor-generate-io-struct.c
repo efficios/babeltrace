@@ -1069,6 +1069,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	int byte_order = trace->byte_order;
 	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
+	int base = 10;
 	struct declaration_integer *integer_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
@@ -1107,6 +1108,56 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 				return NULL;
 			}
 			has_alignment = 1;
+		} else if (!strcmp(left->u.unary_expression.u.string, "base")) {
+			switch (right->u.unary_expression.type) {
+			case UNARY_UNSIGNED_CONSTANT:
+				switch (right->u.unary_expression.u.unsigned_constant) {
+				case 2: 
+				case 8:
+				case 10:
+				case 16:
+					base = right->u.unary_expression.u.unsigned_constant;
+					break;
+				default:
+					fprintf(fd, "[error] %s: base not supported (%" PRIu64 ")\n",
+						__func__, right->u.unary_expression.u.unsigned_constant);
+				return NULL;
+				}
+				break;
+			case UNARY_STRING:
+			{
+				char *s_right = concatenate_unary_strings(&expression->u.ctf_expression.right);
+				if (!s_right) {
+					fprintf(fd, "[error] %s: unexpected unary expression for integer base\n", __func__);
+					g_free(s_right);
+					return NULL;
+				}
+				if (!strcmp(s_right, "decimal") || !strcmp(s_right, "dec") || !strcmp(s_right, "d")
+				    || !strcmp(s_right, "i") || !strcmp(s_right, "u")) {
+					base = 10;
+				} else if (!strcmp(s_right, "hexadecimal") || !strcmp(s_right, "hex")
+				    || !strcmp(s_right, "x") || !strcmp(s_right, "X")
+				    || !strcmp(s_right, "p")) {
+					base = 16;
+				} else if (!strcmp(s_right, "octal") || !strcmp(s_right, "oct")
+				    || !strcmp(s_right, "o")) {
+					base = 8;
+				} else if (!strcmp(s_right, "binary") || !strcmp(s_right, "b")) {
+					base = 2;
+				} else {
+					fprintf(fd, "[error] %s: unexpected expression for integer base (%s)\n", __func__, s_right);
+					g_free(s_right);
+					return NULL;
+				}
+
+				g_free(s_right);
+				break;
+			}
+			default:
+				fprintf(fd, "[error] %s: base: expecting unsigned constant or unary string\n",
+					__func__);
+				return NULL;
+			}
 		} else {
 			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
@@ -1127,7 +1178,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		}
 	}
 	integer_declaration = integer_declaration_new(size,
-				byte_order, signedness, alignment);
+				byte_order, signedness, alignment, base);
 	return &integer_declaration->p;
 }
 

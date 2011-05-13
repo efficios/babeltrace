@@ -138,6 +138,7 @@ struct declaration_integer {
 	size_t len;		/* length, in bits. */
 	int byte_order;		/* byte order */
 	int signedness;
+	int base;		/* Base for pretty-printing: 2, 8, 10, 16 */
 };
 
 struct definition_integer {
@@ -378,7 +379,8 @@ void definition_ref(struct definition *definition);
 void definition_unref(struct definition *definition);
 
 struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
-				      int signedness, size_t alignment);
+				  int signedness, size_t alignment,
+				  int base);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa

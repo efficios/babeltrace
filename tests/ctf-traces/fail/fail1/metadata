@@ -4,8 +4,8 @@ typealias integer { size = 1; align = 1; signed = false; } := uint1_t;
 typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
 typealias integer { size = 63; align = 1; signed = false; } := timestamp_t;
 
-typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
-typealias integer { size = 32; align = 32; signed = false; } := void *;
+typealias integer { size = 32; align = 32; signed = false; base = 10; } := uint32_t;
+typealias integer { size = 32; align = 32; signed = false; base = hex; } := void *;
 
 
 trace {
