@@ -1088,6 +1088,12 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 				return NULL;
 			}
 			alignment = right->u.unary_expression.u.unsigned_constant;
+			/* Make sure alignment is a power of two */
+			if (alignment == 0 || (alignment & (alignment - 1)) != 0) {
+				fprintf(fd, "[error] %s: align: expecting power of two\n",
+					__func__);
+				return NULL;
+			}
 			has_alignment = 1;
 		} else {
 			fprintf(fd, "[error] %s: unknown attribute name %s\n",
@@ -1156,6 +1162,12 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 				return NULL;
 			}
 			alignment = right->u.unary_expression.u.unsigned_constant;
+			/* Make sure alignment is a power of two */
+			if (alignment == 0 || (alignment & (alignment - 1)) != 0) {
+				fprintf(fd, "[error] %s: align: expecting power of two\n",
+					__func__);
+				return NULL;
+			}
 			has_alignment = 1;
 		} else {
 			fprintf(fd, "[error] %s: unknown attribute name %s\n",

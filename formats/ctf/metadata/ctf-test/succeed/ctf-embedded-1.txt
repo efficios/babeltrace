@@ -33,3 +33,52 @@ stream {
 event { name = invalid; id = 0; };
 event { name = func_enter; id = 1; };
 event { name = func_exit; id = 2; };
+
+event {
+	name = timer_tick;	/* or sync_point... */
+	id = 3;
+	fields := {
+		uint64_t monotonic_value;
+		uint64_t tsc_value;
+		uint32_t seqnum;
+	};
+};
+
+event {
+	name = freq_change;
+	id = 4;
+	fields := {
+		uint64_t new_freq;
+	};
+}
+
+clock {
+	name = monotonic;
+	uuid = ;
+};
+
+clock {
+	name = seqnum;
+	uuid = ;
+};
+
+clock {
+	name = tsc;
+	sync_points = {
+		map {
+			parent.clock = monotonic;
+			parent.value = event.timer_tick.monotonic_value;
+			value = event.timer_tick.tsc_value;
+		};
+		map {
+			parent.clock = seqnum;
+			parent.value = event.timer_tick.seqnum;
+			value = event.timer_tick.tsc_value;
+		};
+	};
+
+	freq = {
+		update = event.freq_change.new_freq;
+	};
+	uuid = ;
+};
