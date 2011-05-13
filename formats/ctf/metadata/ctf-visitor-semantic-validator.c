@@ -70,14 +70,27 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		 * We are the length of a type declarator.
 		 */
 		switch (node->u.unary_expression.type) {
-		case UNARY_SIGNED_CONSTANT:
 		case UNARY_UNSIGNED_CONSTANT:
 			break;
 		default:
-			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be numeric constants)\n");
+			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be unsigned numeric constants)\n");
 			goto errperm;
 		}
 		break;			/* OK */
+
+	case NODE_STRUCT:
+		/*
+		 * We are the size of a struct align attribute.
+		 */
+		switch (node->u.unary_expression.type) {
+		case UNARY_UNSIGNED_CONSTANT:
+			break;
+		default:
+			fprintf(fd, "[error]: semantic error (structure alignment attribute can only be unsigned numeric constants)\n");
+			goto errperm;
+		}
+		break;
+
 	case NODE_ENUMERATOR:
 		/* The enumerator's parent has validated its validity already. */
 		break;			/* OK */
@@ -106,7 +119,6 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENUM:
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 	case NODE_VARIANT:
-	case NODE_STRUCT:
 	default:
 		goto errinval;
 	}

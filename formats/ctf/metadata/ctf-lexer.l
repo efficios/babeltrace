@@ -93,6 +93,7 @@ L\"				BEGIN(string_lit); return STRING_LITERAL_START;
 "."				return DOT;
 =				return EQUAL;
 ","				return COMMA;
+align				setstring(yyextra, yylval, yytext); return TOK_ALIGN;
 const				setstring(yyextra, yylval, yytext); return CONST;
 char				setstring(yyextra, yylval, yytext); return CHAR;
 double				setstring(yyextra, yylval, yytext); return DOUBLE;

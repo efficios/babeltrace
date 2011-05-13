@@ -245,6 +245,7 @@ struct ctf_node {
 			/* list of typedef, typealias and declarations */
 			struct cds_list_head declaration_list;
 			int has_body;
+			struct cds_list_head min_align;	/* align() attribute */
 		} _struct;
 	} u;
 };

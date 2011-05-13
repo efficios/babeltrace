@@ -481,13 +481,17 @@ GQuark new_definition_path(struct definition_scope *parent_scope, GQuark field_n
 		for (i = 0; i < parent_scope->scope_path->len; i++) {
 			GQuark q = g_array_index(parent_scope->scope_path,
 						 GQuark, i);
-
+			if (!q)
+				continue;
 			g_string_append(str, g_quark_to_string(q));
 			g_string_append(str, ".");
 		}
 	}
-	g_string_append(str, g_quark_to_string(field_name));
+	if (field_name)
+		g_string_append(str, g_quark_to_string(field_name));
 	c_str = g_string_free(str, FALSE);
+	if (c_str[0] == '\0')
+		return 0;
 	path = g_quark_from_string(c_str);
 	g_free(c_str);
 	return path;

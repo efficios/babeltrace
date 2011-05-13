@@ -427,7 +427,8 @@ struct declaration_string *
 	string_declaration_new(enum ctf_string_encoding encoding);
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope);
+	struct_declaration_new(struct declaration_scope *parent_scope,
+			       uint64_t min_align);
 void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 				  const char *field_name,
 				  struct declaration *field_declaration);

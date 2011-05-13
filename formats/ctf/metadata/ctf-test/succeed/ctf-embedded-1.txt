@@ -21,7 +21,7 @@ stream {
 		void *func_called;	 * events in this stream.
 		void *called_from;	 */
 		uint32_t event_count;	/* for debug */
-	};			
+	};
 };
 
 /*

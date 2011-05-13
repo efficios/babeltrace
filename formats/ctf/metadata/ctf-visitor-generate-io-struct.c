@@ -653,7 +653,8 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 static
 struct declaration *ctf_declaration_struct_visit(FILE *fd,
 	int depth, const char *name, struct cds_list_head *declaration_list,
-	int has_body, struct declaration_scope *declaration_scope,
+	int has_body, struct cds_list_head *min_align,
+	struct declaration_scope *declaration_scope,
 	struct ctf_trace *trace)
 {
 	struct declaration_struct *struct_declaration;
@@ -672,6 +673,8 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 						  declaration_scope);
 		return &struct_declaration->p;
 	} else {
+		uint64_t min_align_value = 0;
+
 		/* For unnamed struct, create type */
 		/* For named struct (with body), create type and add to declaration scope */
 		if (name) {
@@ -682,7 +685,16 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 				return NULL;
 			}
 		}
-		struct_declaration = struct_declaration_new(declaration_scope);
+		if (!cds_list_empty(min_align)) {
+			ret = get_unary_unsigned(min_align, &min_align_value);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for structure \"align\" attribute\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+		}
+		struct_declaration = struct_declaration_new(declaration_scope,
+							    min_align_value);
 		cds_list_for_each_entry(iter, declaration_list, siblings) {
 			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
 				struct_declaration, trace);
@@ -1265,6 +1277,7 @@ struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 			node->u._struct.name,
 			&node->u._struct.declaration_list,
 			node->u._struct.has_body,
+			&node->u._struct.min_align,
 			declaration_scope,
 			trace);
 	case TYPESPEC_VARIANT:
@@ -1978,6 +1991,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 
 	printf_verbose("CTF visitor: metadata construction... ");
 	trace->root_declaration_scope = new_declaration_scope(NULL);
+	trace->streams = g_ptr_array_new();
 	trace->byte_order = byte_order;
 
 	switch (node->type) {

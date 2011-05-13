@@ -304,6 +304,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		break;
 	case NODE_STRUCT:
 		CDS_INIT_LIST_HEAD(&node->u._struct.declaration_list);
+		CDS_INIT_LIST_HEAD(&node->u._struct.min_align);
 		break;
 
 	case NODE_UNKNOWN:
@@ -858,7 +859,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT
+%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
 %union
@@ -970,6 +971,8 @@ keywords:
 	|	STREAM
 		{	$$ = yylval.gs;		}
 	|	TRACE
+		{	$$ = yylval.gs;		}
+	|	TOK_ALIGN
 		{	$$ = yylval.gs;		}
 	;
 
@@ -1594,6 +1597,32 @@ struct_type_specifier:
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 0;
 			$$->u._struct.name = $1->s;
+		}
+	|	struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+		{
+			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
+			cds_list_add_tail(&($6)->siblings, &$$->u._struct.min_align);
+			if ($2 && set_parent_node($2, $$))
+				reparent_error(scanner, "struct reparent error");
+		}
+	|	IDENTIFIER struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+		{
+			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
+			$$->u._struct.name = $1->s;
+			cds_list_add_tail(&($7)->siblings, &$$->u._struct.min_align);
+			if ($3 && set_parent_node($3, $$))
+				reparent_error(scanner, "struct reparent error");
+		}
+	|	ID_TYPE struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+		{
+			$$ = make_node(scanner, NODE_STRUCT);
+			$$->u._struct.has_body = 1;
+			$$->u._struct.name = $1->s;
+			cds_list_add_tail(&($7)->siblings, &$$->u._struct.min_align);
+			if ($3 && set_parent_node($3, $$))
+				reparent_error(scanner, "struct reparent error");
 		}
 	;
 

@@ -68,7 +68,8 @@ void _struct_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope)
+	struct_declaration_new(struct declaration_scope *parent_scope,
+			       uint64_t min_align)
 {
 	struct declaration_struct *struct_declaration;
 	struct declaration *declaration;
@@ -82,7 +83,7 @@ struct declaration_struct *
 						DEFAULT_NR_STRUCT_FIELDS);
 	struct_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_STRUCT;
-	declaration->alignment = 1;
+	declaration->alignment = max(1, min_align);
 	declaration->declaration_free = _struct_declaration_free;
 	declaration->definition_new = _struct_definition_new;
 	declaration->definition_free = _struct_definition_free;

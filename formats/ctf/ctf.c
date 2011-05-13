@@ -693,8 +693,6 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags)
 		goto error_dirfd;
 	}
 
-	td->streams = g_ptr_array_new();
-
 	/*
 	 * Keep the metadata file separate.
 	 */

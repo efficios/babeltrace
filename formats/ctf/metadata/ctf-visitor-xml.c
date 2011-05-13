@@ -677,6 +677,17 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		}
 		print_tabs(fd, depth);
 		fprintf(fd, "</struct>\n");
+		if (!cds_list_empty(&node->u._struct.min_align)) {
+			print_tabs(fd, depth);
+			fprintf(fd, "<align>\n");
+			cds_list_for_each_entry(iter, &node->u._struct.min_align, siblings) {
+				ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+				if (ret)
+					return ret;
+			}
+			print_tabs(fd, depth);
+			fprintf(fd, "</align>\n");
+		}
 		break;
 
 	case NODE_UNKNOWN:
