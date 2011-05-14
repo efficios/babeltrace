@@ -317,8 +317,17 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				struct declaration_integer *integer_declaration =
 					container_of(nested_declaration, struct declaration_integer, p);
 				/* For base to 16 for pointers (expected pretty-print) */
-				if (!integer_declaration->base)
-					integer_declaration->base = 16;
+				if (!integer_declaration->base) {
+					/*
+					 * We need to do a copy of the
+					 * integer declaration to modify it. There could be other references to
+					 * it.
+					 */
+					integer_declaration = integer_declaration_new(integer_declaration->len,
+						integer_declaration->byte_order, integer_declaration->signedness,
+						integer_declaration->p.alignment, 16);
+					nested_declaration = &integer_declaration->p;
+				}
 			}
 		} else {
 			nested_declaration = ctf_type_specifier_list_visit(fd, depth,
