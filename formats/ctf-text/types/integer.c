@@ -61,7 +61,7 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		else
 			v = (uint64_t) integer_definition->value._signed;
 
-		fprintf(pos->fp, "b");
+		fprintf(pos->fp, "0b");
 		v = _bt_piecewise_lshift(v, 64 - integer_declaration->len);
 		for (bitnr = 0; bitnr < integer_declaration->len; bitnr++) {
 			fprintf(pos->fp, "%u", (v & (1ULL << 63)) ? 1 : 0);
