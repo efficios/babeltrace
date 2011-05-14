@@ -313,6 +313,13 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				fprintf(fd, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
 				return NULL;
 			}
+			if (nested_declaration->id == CTF_TYPE_INTEGER) {
+				struct declaration_integer *integer_declaration =
+					container_of(nested_declaration, struct declaration_integer, p);
+				/* For base to 16 for pointers (expected pretty-print) */
+				if (!integer_declaration->base)
+					integer_declaration->base = 16;
+			}
 		} else {
 			nested_declaration = ctf_type_specifier_list_visit(fd, depth,
 				type_specifier_list, declaration_scope, trace);
@@ -1069,7 +1076,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	int byte_order = trace->byte_order;
 	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
-	int base = 10;
+	int base = 0;
 	struct declaration_integer *integer_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {

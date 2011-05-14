@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <babeltrace/bitfield.h>
 
 int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definition)
 {
@@ -40,24 +41,7 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 			g_quark_to_string(definition->name));
 
 	switch (integer_declaration->base) {
-	case 2:
-	{
-		int bitnr;
-		uint64_t v = integer_definition->value._unsigned;
-
-		fprintf(pos->fp, "b");
-		for (bitnr = 0; bitnr < integer_declaration->len; bitnr++)
-			v <<= 1;
-		for (; bitnr < sizeof(v) * CHAR_BIT; bitnr++) {
-			fprintf(pos->fp, "%u", ((v & 1ULL) << 63) ? 1 : 0);
-			v <<= 1;
-		}
-		break;
-	}
-	case 8:
-		fprintf(pos->fp, "0%" PRIo64,
-			integer_definition->value._unsigned);
-		break;
+	case 0:	/* default */
 	case 10:
 		if (!integer_declaration->signedness) {
 			fprintf(pos->fp, "%" PRIu64,
@@ -67,10 +51,50 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 				integer_definition->value._signed);
 		}
 		break;
+	case 2:
+	{
+		int bitnr;
+		uint64_t v;
+
+		if (!integer_declaration->signedness)
+			v = integer_definition->value._unsigned;
+		else
+			v = (uint64_t) integer_definition->value._signed;
+
+		fprintf(pos->fp, "b");
+		v = _bt_piecewise_lshift(v, 64 - integer_declaration->len);
+		for (bitnr = 0; bitnr < integer_declaration->len; bitnr++) {
+			fprintf(pos->fp, "%u", (v & (1ULL << 63)) ? 1 : 0);
+			v = _bt_piecewise_lshift(v, 1);
+		}
+		break;
+	}
+	case 8:
+	{
+		uint64_t v;
+
+		if (!integer_declaration->signedness)
+			v = integer_definition->value._unsigned;
+		else
+			v = (uint64_t) integer_definition->value._signed;
+
+		fprintf(pos->fp, "0%" PRIo64,
+			integer_definition->value._unsigned);
+		break;
+	}
 	case 16:
+	{
+		uint64_t v;
+
+		if (!integer_declaration->signedness)
+			v = integer_definition->value._unsigned;
+		else
+			v = (uint64_t) integer_definition->value._signed;
+
 		fprintf(pos->fp, "0x%" PRIX64,
 			integer_definition->value._unsigned);
 		break;
+	}
 	default:
 		return -EINVAL;
 	}
