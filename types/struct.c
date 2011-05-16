@@ -18,6 +18,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
+#include <errno.h>
 
 #ifndef max
 #define max(a, b)	((a) < (b) ? (b) : (a))
@@ -26,7 +27,8 @@
 static
 struct definition *_struct_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index);
+				GQuark field_name, int index,
+				const char *root_name);
 static
 void _struct_definition_free(struct definition *definition);
 
@@ -95,12 +97,13 @@ static
 struct definition *
 	_struct_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope,
-			       GQuark field_name, int index)
+			       GQuark field_name, int index,
+			       const char *root_name)
 {
 	struct declaration_struct *struct_declaration =
 		container_of(declaration, struct declaration_struct, p);
 	struct definition_struct *_struct;
-	unsigned long i;
+	int i;
 	int ret;
 
 	_struct = g_new(struct definition_struct, 1);
@@ -108,10 +111,19 @@ struct definition *
 	_struct->p.declaration = declaration;
 	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
-	_struct->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	_struct->p.index = root_name ? INT_MAX : index;
 	_struct->p.name = field_name;
-	_struct->p.path = new_definition_path(parent_scope, field_name);
-	_struct->scope = new_definition_scope(parent_scope, field_name);
+	_struct->p.path = new_definition_path(parent_scope, field_name, root_name);
+	_struct->scope = new_definition_scope(parent_scope, field_name, root_name);
+
+	ret = register_field_definition(field_name, &_struct->p,
+					parent_scope);
+	assert(!ret || ret == -EPERM);
+
 	_struct->fields = g_ptr_array_sized_new(DEFAULT_NR_STRUCT_FIELDS);
 	g_ptr_array_set_size(_struct->fields, struct_declaration->fields->len);
 	for (i = 0; i < struct_declaration->fields->len; i++) {
@@ -123,13 +135,21 @@ struct definition *
 
 		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
 							  _struct->scope,
-							  declaration_field->name, i);
-		ret = register_field_definition(declaration_field->name,
-						*field,
-						_struct->scope);
-		assert(!ret);
+							  declaration_field->name, i, NULL);
+		if (!*field)
+			goto error;
 	}
 	return &_struct->p;
+
+error:
+	for (i--; i >= 0; i--) {
+		struct definition *field = g_ptr_array_index(_struct->fields, i);
+		definition_unref(field);
+	}
+	free_definition_scope(_struct->scope);
+	declaration_unref(&struct_declaration->p);
+	g_free(_struct);
+	return NULL;
 }
 
 static

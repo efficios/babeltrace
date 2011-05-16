@@ -192,7 +192,7 @@ struct ctf_node {
 					 * unary expression (value) or
 					 * type_specifier_list.
 					 */
-					struct ctf_node *length;
+					struct cds_list_head length;
 					/* for abstract type declarator */
 					unsigned int abstract_array;
 				} nested;

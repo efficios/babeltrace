@@ -142,7 +142,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	union ldoubleIEEE754 u;
 	struct definition *tmpdef =
 		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
-				NULL, 0, 0);
+				NULL, 0, 0, NULL);
 	struct definition_float *tmpfloat =
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos destp;
@@ -168,7 +168,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	union ldoubleIEEE754 u;
 	struct definition *tmpdef =
 		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
-				NULL, 0, 0);
+				NULL, 0, 0, NULL);
 	struct definition_float *tmpfloat =
 		container_of(tmpdef, struct definition_float, p);
 	struct ctf_stream_pos srcp;

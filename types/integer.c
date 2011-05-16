@@ -24,7 +24,8 @@
 static
 struct definition *_integer_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope,
-			       GQuark field_name, int index);
+			       GQuark field_name, int index,
+			       const char *root_name);
 static
 void _integer_definition_free(struct definition *definition);
 
@@ -60,21 +61,31 @@ static
 struct definition *
 	_integer_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index)
+				GQuark field_name, int index,
+				const char *root_name)
 {
 	struct declaration_integer *integer_declaration =
 		container_of(declaration, struct declaration_integer, p);
 	struct definition_integer *integer;
+	int ret;
 
 	integer = g_new(struct definition_integer, 1);
 	declaration_ref(&integer_declaration->p);
 	integer->p.declaration = declaration;
 	integer->declaration = integer_declaration;
 	integer->p.ref = 1;
-	integer->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	integer->p.index = root_name ? INT_MAX : index;
 	integer->p.name = field_name;
-	integer->p.path = new_definition_path(parent_scope, field_name);
+	integer->p.path = new_definition_path(parent_scope, field_name,
+					root_name);
 	integer->value._unsigned = 0;
+	ret = register_field_definition(field_name, &integer->p,
+					parent_scope);
+	assert(!ret);
 	return &integer->p;
 }
 

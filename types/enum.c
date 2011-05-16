@@ -24,7 +24,8 @@
 static
 struct definition *_enum_definition_new(struct declaration *declaration,
 					struct definition_scope *parent_scope,
-					GQuark field_name, int index);
+					GQuark field_name, int index,
+					const char *root_name);
 static
 void _enum_definition_free(struct definition *definition);
 
@@ -396,26 +397,36 @@ static
 struct definition *
 	_enum_definition_new(struct declaration *declaration,
 			     struct definition_scope *parent_scope,
-			     GQuark field_name, int index)
+			     GQuark field_name, int index,
+			     const char *root_name)
 {
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
 	struct definition_enum *_enum;
 	struct definition *definition_integer_parent;
+	int ret;
 
 	_enum = g_new(struct definition_enum, 1);
 	declaration_ref(&enum_declaration->p);
 	_enum->p.declaration = declaration;
 	_enum->declaration = enum_declaration;
 	_enum->p.ref = 1;
-	_enum->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	_enum->p.index = root_name ? INT_MAX : index;
 	_enum->p.name = field_name;
-	_enum->p.path = new_definition_path(parent_scope, field_name);
+	_enum->p.path = new_definition_path(parent_scope, field_name, root_name);
+	_enum->scope = new_definition_scope(parent_scope, field_name, root_name);
 	_enum->value = NULL;
+	ret = register_field_definition(field_name, &_enum->p,
+					parent_scope);
+	assert(!ret);
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,
-				parent_scope,
-				g_quark_from_static_string("container"), 0);
+				_enum->scope,
+				g_quark_from_static_string("container"), 0, NULL);
 	_enum->integer = container_of(definition_integer_parent,
 				      struct definition_integer, p);
 	return &_enum->p;

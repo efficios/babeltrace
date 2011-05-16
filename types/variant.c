@@ -23,7 +23,8 @@
 static
 struct definition *_variant_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index);
+				GQuark field_name, int index,
+				const char *root_name);
 static
 void _variant_definition_free(struct definition *definition);
 
@@ -161,22 +162,33 @@ static
 struct definition *
 	_variant_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index)
+				GQuark field_name, int index,
+				const char *root_name)
 {
 	struct declaration_variant *variant_declaration =
 		container_of(declaration, struct declaration_variant, p);
 	struct definition_variant *variant;
 	unsigned long i;
+	int ret;
 
 	variant = g_new(struct definition_variant, 1);
 	declaration_ref(&variant_declaration->p);
 	variant->p.declaration = declaration;
 	variant->declaration = variant_declaration;
 	variant->p.ref = 1;
-	variant->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	variant->p.index = root_name ? INT_MAX : index;
 	variant->p.name = field_name;
-	variant->p.path = new_definition_path(parent_scope, field_name);
-	variant->scope = new_definition_scope(parent_scope, field_name);
+	variant->p.path = new_definition_path(parent_scope, field_name, root_name);
+	variant->scope = new_definition_scope(parent_scope, field_name, root_name);
+
+	ret = register_field_definition(field_name, &variant->p,
+					parent_scope);
+	assert(!ret);
+
 	variant->enum_tag = lookup_definition(variant->scope->scope_path,
 					      variant_declaration->tag_name,
 					      parent_scope);
@@ -200,7 +212,9 @@ struct definition *
 		 */
 		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
 						  variant->scope,
-						  declaration_field->name, 0);
+						  declaration_field->name, 0, NULL);
+		if (!*field)
+			goto error;
 	}
 	variant->current_field = NULL;
 	return &variant->p;

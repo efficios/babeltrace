@@ -128,14 +128,12 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 
 	depth++;
 
-	if (!cds_list_empty(&node->u.type_declarator.pointers)) {
-		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
-					siblings) {
-			iter->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+	cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+				siblings) {
+		iter->parent = node;
+		ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+		if (ret)
+			return ret;
 	}
 
 	switch (node->u.type_declarator.type) {
@@ -149,9 +147,10 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
-		if (node->u.type_declarator.u.nested.length) {
-			node->u.type_declarator.u.nested.length->parent = node;
-			ret = ctf_visitor_parent_links(fd, depth + 1, node->u.type_declarator.u.nested.length);
+		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+					siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}

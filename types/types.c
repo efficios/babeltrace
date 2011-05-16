@@ -19,6 +19,7 @@
  */
 
 #include <babeltrace/format.h>
+#include <babeltrace/babeltrace.h>
 #include <limits.h>
 #include <glib.h>
 #include <errno.h>
@@ -110,13 +111,36 @@ static int compare_paths(GArray *a, GArray *b, int len)
 
 static int is_path_child_of(GArray *path, GArray *maybe_parent)
 {
-	if (path->len <= maybe_parent->len)
-		return 0;
+	int i, ret;
+
+	if (babeltrace_debug) {
+		int need_dot = 0;
+
+		printf_debug("Is path \"");
+		for (i = 0; i < path->len; need_dot = 1, i++)
+			printf("%s%s", need_dot ? "." : "",
+				g_quark_to_string(g_array_index(path, GQuark, i)));
+		need_dot = 0;
+		printf("\" child of \"");
+		for (i = 0; i < maybe_parent->len; need_dot = 1, i++)
+			printf("%s%s", need_dot ? "." : "",
+				g_quark_to_string(g_array_index(maybe_parent, GQuark, i)));
+		printf("\" ? ");
+	}
+
+	if (path->len <= maybe_parent->len) {
+		ret = 0;
+		goto end;
+	}
 	if (compare_paths(path, maybe_parent, maybe_parent->len)
 			== maybe_parent->len)
-		return 1;
+		ret = 1;
 	else
-		return 0;
+		ret = 0;
+end:
+	if (babeltrace_debug)
+		printf("%s\n", ret ? "Yes" : "No");
+	return ret;
 }
 
 static struct definition_scope *
@@ -187,14 +211,41 @@ struct definition *
 	GQuark last;
 	int index;
 
-	while (scope) {
-		/* going up in the hierarchy. Check where we come from. */
-		assert(is_path_child_of(cur_path, scope->scope_path));
-		assert(cur_path->len - scope->scope_path->len == 1);
+	/* Going up in the hierarchy. Check where we come from. */
+	assert(is_path_child_of(cur_path, scope->scope_path));
+	assert(cur_path->len - scope->scope_path->len == 1);
+
+	/*
+	 * First, check if the target name is size one, present in
+	 * our parent path, located prior to us.
+	 */
+	if (lookup_path->len == 1) {
+		last = g_array_index(lookup_path, GQuark, 0);
+		lookup_definition = lookup_field_definition_scope(last, scope);
 		last = g_array_index(cur_path, GQuark, cur_path->len - 1);
 		definition = lookup_field_definition_scope(last, scope);
 		assert(definition);
-		index = definition->index;
+		if (lookup_definition && lookup_definition->index < definition->index)
+			return lookup_definition;
+		else
+			return NULL;
+	}
+
+	while (scope) {
+		if (is_path_child_of(cur_path, scope->scope_path) &&
+		    cur_path->len - scope->scope_path->len == 1) {
+			last = g_array_index(cur_path, GQuark, cur_path->len - 1);
+			definition = lookup_field_definition_scope(last, scope);
+			assert(definition);
+			index = definition->index;
+		} else {
+			/*
+			 * Getting to a dynamic scope parent. We are
+			 * guaranteed that the parent is entirely
+			 * located before the child.
+			 */
+			index = -1;
+		}
 lookup:
 		if (is_path_child_of(lookup_path, scope->scope_path)) {
 			/* Means we can lookup the field in this scope */
@@ -222,7 +273,6 @@ lookup:
 				goto lookup;
 			}
 		} else {
-			assert(index != -1);
 			/* lookup_path is within an upper scope */
 			cur_path = scope->scope_path;
 			scope = scope->parent_scope;
@@ -234,7 +284,7 @@ lookup:
 int register_field_definition(GQuark field_name, struct definition *definition,
 		struct definition_scope *scope)
 {
-	if (!field_name)
+	if (!scope || !field_name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
@@ -244,7 +294,7 @@ int register_field_definition(GQuark field_name, struct definition *definition,
 	g_hash_table_insert(scope->definitions,
 			    (gpointer) (unsigned long) field_name,
 			    definition);
-	definition_ref(definition);
+	/* Don't keep reference on definition */
 	return 0;
 }
 
@@ -459,9 +509,8 @@ static struct definition_scope *
 {
 	struct definition_scope *scope = g_new(struct definition_scope, 1);
 
-	scope->definitions = g_hash_table_new_full(g_direct_hash,
-					g_direct_equal, NULL,
-					(GDestroyNotify) definition_unref);
+	scope->definitions = g_hash_table_new(g_direct_hash,
+					g_direct_equal);
 	scope->parent_scope = parent_scope;
 	scope->scope_path = g_array_sized_new(FALSE, TRUE, sizeof(GQuark),
 					      scope_path_len);
@@ -469,49 +518,74 @@ static struct definition_scope *
 	return scope;
 }
 
-GQuark new_definition_path(struct definition_scope *parent_scope, GQuark field_name)
+GQuark new_definition_path(struct definition_scope *parent_scope,
+			   GQuark field_name, const char *root_name)
 {
 	GQuark path;
 	GString *str;
 	gchar *c_str;
 	int i;
+	int need_dot = 0;
 
 	str = g_string_new("");
-	if (parent_scope) {
+	if (root_name) {
+		g_string_append(str, root_name);
+		need_dot = 1;
+	} else if (parent_scope) {
 		for (i = 0; i < parent_scope->scope_path->len; i++) {
 			GQuark q = g_array_index(parent_scope->scope_path,
 						 GQuark, i);
 			if (!q)
 				continue;
+			if (need_dot)
+				g_string_append(str, ".");
 			g_string_append(str, g_quark_to_string(q));
-			g_string_append(str, ".");
+			need_dot = 1;
 		}
 	}
-	if (field_name)
+	if (field_name) {
+		if (need_dot)
+			g_string_append(str, ".");
 		g_string_append(str, g_quark_to_string(field_name));
+	}
 	c_str = g_string_free(str, FALSE);
 	if (c_str[0] == '\0')
 		return 0;
 	path = g_quark_from_string(c_str);
+	printf_debug("new definition path: %s\n", c_str);
 	g_free(c_str);
 	return path;
 }
 
 struct definition_scope *
 	new_definition_scope(struct definition_scope *parent_scope,
-			     GQuark field_name)
+			     GQuark field_name, const char *root_name)
 {
 	struct definition_scope *scope;
-	int scope_path_len = 1;
 
-	if (parent_scope)
+	if (root_name) {
+		scope = _new_definition_scope(parent_scope, 0);
+		append_scope_path(root_name, scope->scope_path);
+	} else {
+		int scope_path_len = 1;
+
+		assert(parent_scope);
 		scope_path_len += parent_scope->scope_path->len;
-	scope = _new_definition_scope(parent_scope, scope_path_len);
-	if (parent_scope)
-		memcpy(scope->scope_path, parent_scope->scope_path,
+		scope = _new_definition_scope(parent_scope, scope_path_len);
+		memcpy(scope->scope_path->data, parent_scope->scope_path->data,
 		       sizeof(GQuark) * (scope_path_len - 1));
-	g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
-		field_name;
+		g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
+			field_name;
+	}
+	if (babeltrace_debug) {
+		int i, need_dot = 0;
+
+		printf_debug("new definition scope: ");
+		for (i = 0; i < scope->scope_path->len; need_dot = 1, i++)
+			printf("%s%s", need_dot ? "." : "",
+				g_quark_to_string(g_array_index(scope->scope_path, GQuark, i)));
+		printf("\n");
+	}
 	return scope;
 }
 
@@ -547,19 +621,6 @@ void append_scope_path(const char *path, GArray *q)
 		quark = g_quark_from_string(ptrbegin);
 		g_array_append_val(q, quark);
 	}
-}
-
-void set_dynamic_definition_scope(struct definition *definition,
-				  struct definition_scope *scope,
-				  const char *root_name)
-{
-	g_array_set_size(scope->scope_path, 0);
-	append_scope_path(root_name, scope->scope_path);
-	/*
-	 * Use INT_MAX order to ensure that all fields of the parent
-	 * scope are seen as being prior to this scope.
-	 */
-	definition->index = INT_MAX;
 }
 
 void free_definition_scope(struct definition_scope *scope)

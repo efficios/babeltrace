@@ -23,7 +23,7 @@
 static
 struct definition *_array_definition_new(struct declaration *declaration,
 			struct definition_scope *parent_scope,
-			GQuark field_name, int index);
+			GQuark field_name, int index, const char *root_name);
 static
 void _array_definition_free(struct definition *definition);
 
@@ -86,22 +86,30 @@ static
 struct definition *
 	_array_definition_new(struct declaration *declaration,
 			      struct definition_scope *parent_scope,
-			      GQuark field_name, int index)
+			      GQuark field_name, int index, const char *root_name)
 {
 	struct declaration_array *array_declaration =
 		container_of(declaration, struct declaration_array, p);
 	struct definition_array *array;
-	uint64_t i;
+	int ret;
+	int i;
 
 	array = g_new(struct definition_array, 1);
 	declaration_ref(&array_declaration->p);
 	array->p.declaration = declaration;
 	array->declaration = array_declaration;
 	array->p.ref = 1;
-	array->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	array->p.index = root_name ? INT_MAX : index;
 	array->p.name = field_name;
-	array->p.path = new_definition_path(parent_scope, field_name);
-	array->scope = new_definition_scope(parent_scope, field_name);
+	array->p.path = new_definition_path(parent_scope, field_name, root_name);
+	array->scope = new_definition_scope(parent_scope, field_name, root_name);
+	ret = register_field_definition(field_name, &array->p,
+					parent_scope);
+	assert(!ret);
 	array->elems = g_ptr_array_sized_new(array_declaration->len);
 	g_ptr_array_set_size(array->elems, array_declaration->len);
 	for (i = 0; i < array_declaration->len; i++) {
@@ -110,16 +118,31 @@ struct definition *
 		GQuark name;
 
 		str = g_string_new("");
-		g_string_printf(str, "[%" PRIu64 "]", i);
+		g_string_printf(str, "[%u]", (unsigned int) i);
 		name = g_quark_from_string(str->str);
 		(void) g_string_free(str, TRUE);
 
 		field = (struct definition **) &g_ptr_array_index(array->elems, i);
 		*field = array_declaration->elem->definition_new(array_declaration->elem,
 					  array->scope,
-					  name, i);
+					  name, i, NULL);
+		if (!*field)
+			goto error;
 	}
 	return &array->p;
+
+error:
+	for (i--; i >= 0; i--) {
+		struct definition *field;
+
+		field = g_ptr_array_index(array->elems, i);
+		field->declaration->definition_free(field);
+	}
+	(void) g_ptr_array_free(array->elems, TRUE);
+	free_definition_scope(array->scope);
+	declaration_unref(array->p.declaration);
+	g_free(array);
+	return NULL;
 }
 
 static

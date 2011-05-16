@@ -71,9 +71,10 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		 */
 		switch (node->u.unary_expression.type) {
 		case UNARY_UNSIGNED_CONSTANT:
+		case UNARY_STRING:
 			break;
 		default:
-			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be unsigned numeric constants)\n");
+			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be unsigned numeric constants or references to fields (a.b.c))\n");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -341,13 +342,11 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 		goto errinval;
 	}
 
-	if (!cds_list_empty(&node->u.type_declarator.pointers)) {
-		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
-					siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
-		}
+	cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+				siblings) {
+		ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+		if (ret)
+			return ret;
 	}
 
 	switch (node->u.type_declarator.type) {
@@ -361,10 +360,16 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
-		ret = _ctf_visitor_semantic_check(fd, depth + 1,
-			node->u.type_declarator.u.nested.length);
-		if (ret)
-			return ret;
+		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+					siblings) {
+			if (iter->type != NODE_UNARY_EXPRESSION) {
+				fprintf(fd, "[error] %s: expecting unary expression as length\n", __func__);
+				return -EINVAL;
+			}
+			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		if (node->u.type_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
 				node->u.type_declarator.bitfield_len);

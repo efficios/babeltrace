@@ -23,7 +23,8 @@
 static
 struct definition *_string_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index);
+				GQuark field_name, int index,
+				const char *root_name);
 static
 void _string_definition_free(struct definition *definition);
 
@@ -55,23 +56,33 @@ static
 struct definition *
 	_string_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope,
-			       GQuark field_name, int index)
+			       GQuark field_name, int index,
+			       const char *root_name)
 {
 	struct declaration_string *string_declaration =
 		container_of(declaration, struct declaration_string, p);
 	struct definition_string *string;
+	int ret;
 
 	string = g_new(struct definition_string, 1);
 	declaration_ref(&string_declaration->p);
 	string->p.declaration = declaration;
 	string->declaration = string_declaration;
 	string->p.ref = 1;
-	string->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	string->p.index = root_name ? INT_MAX : index;
 	string->p.name = field_name;
-	string->p.path = new_definition_path(parent_scope, field_name);
+	string->p.path = new_definition_path(parent_scope, field_name,
+					root_name);
 	string->value = NULL;
 	string->len = 0;
 	string->alloc_len = 0;
+	ret = register_field_definition(field_name, &string->p,
+					parent_scope);
+	assert(!ret);
 	return &string->p;
 }
 

@@ -346,57 +346,47 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 		return nested_declaration;
 	} else {
 		struct declaration *declaration;
-		struct ctf_node *length;
+		struct ctf_node *first;
 
 		/* TYPEDEC_NESTED */
 
 		/* create array/sequence, pass nested_declaration as child. */
-		length = node_type_declarator->u.type_declarator.u.nested.length;
-		if (!length) {
-			fprintf(fd, "[error] %s: expecting length type or value.\n", __func__);
+		if (cds_list_empty(&node_type_declarator->u.type_declarator.u.nested.length)) {
+			fprintf(fd, "[error] %s: expecting length field reference or value.\n", __func__);
 			return NULL;
 		}
-		switch (length->type) {
-		case NODE_UNARY_EXPRESSION:
+		first = _cds_list_first_entry(&node_type_declarator->u.type_declarator.u.nested.length, 
+				struct ctf_node, siblings);
+		assert(first->type == NODE_UNARY_EXPRESSION);
+
+		switch (first->u.unary_expression.type) {
+		case UNARY_UNSIGNED_CONSTANT:
 		{
 			struct declaration_array *array_declaration;
 			size_t len;
 
-			if (length->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
-				fprintf(fd, "[error] %s: array: unexpected unary expression.\n", __func__);
-				return NULL;
-			}
-			len = length->u.unary_expression.u.unsigned_constant;
+			len = first->u.unary_expression.u.unsigned_constant;
 			array_declaration = array_declaration_new(len, nested_declaration,
 						declaration_scope);
+
+			if (!array_declaration) {
+				fprintf(fd, "[error] %s: cannot create array declaration.\n", __func__);
+				return NULL;
+			}
 			declaration = &array_declaration->p;
 			break;
 		}
-		case NODE_TYPE_SPECIFIER_LIST:
+		case UNARY_STRING:
 		{
+			/* Lookup unsigned integer definition, create sequence */
+			char *length_name = concatenate_unary_strings(&node_type_declarator->u.type_declarator.u.nested.length);
 			struct declaration_sequence *sequence_declaration;
-			struct declaration_integer *integer_declaration;
 
-			declaration = ctf_type_specifier_list_visit(fd, depth,
-				length, declaration_scope, trace);
-			if (!declaration) {
-				fprintf(fd, "[error] %s: unable to find declaration type for sequence length\n", __func__);
+			sequence_declaration = sequence_declaration_new(length_name, nested_declaration, declaration_scope);
+			if (!sequence_declaration) {
+				fprintf(fd, "[error] %s: cannot create sequence declaration.\n", __func__);
 				return NULL;
 			}
-			if (declaration->id != CTF_TYPE_INTEGER) {
-				fprintf(fd, "[error] %s: length type for sequence is expected to be an integer (unsigned).\n", __func__);
-				declaration_unref(declaration);
-				return NULL;
-			}
-			integer_declaration = container_of(declaration, struct declaration_integer, p);
-			if (integer_declaration->signedness != false) {
-				fprintf(fd, "[error] %s: length type for sequence should always be an unsigned integer.\n", __func__);
-				declaration_unref(declaration);
-				return NULL;
-			}
-
-			sequence_declaration = sequence_declaration_new(integer_declaration,
-					nested_declaration, declaration_scope);
 			declaration = &sequence_declaration->p;
 			break;
 		}
@@ -1505,6 +1495,10 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			event->fields_decl = container_of(declaration, struct declaration_struct, p);
+		} else {
+			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
+			ret = -EINVAL;
+			goto error;
 		}
 error:
 		g_free(left);
@@ -1572,34 +1566,40 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 			    &event->id);
 	parent_def_scope = event->stream->definition_scope;
 	if (event->context_decl) {
-		event->context =
-			container_of(
+		struct definition *definition =
 			event->context_decl->p.definition_new(&event->context_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&event->context->p,
-					     event->context->scope,
-					     "event.context");
+				parent_def_scope, 0, 0, "event.context");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		event->context = container_of(definition,
+					struct definition_struct, p);
 		parent_def_scope = event->context->scope;
-		declaration_unref(&event->context_decl->p);
 	}
 	if (event->fields_decl) {
-		event->fields =
-			container_of(
+		struct definition *definition =
 			event->fields_decl->p.definition_new(&event->fields_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&event->fields->p,
-					     event->fields->scope,
-					     "event.fields");
+				parent_def_scope, 0, 0, "event.fields");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		event->fields = container_of(definition,
+					struct definition_struct, p);
 		parent_def_scope = event->fields->scope;
-		declaration_unref(&event->fields_decl->p);
 	}
 	return 0;
 
 error:
-	declaration_unref(&event->fields_decl->p);
-	declaration_unref(&event->context_decl->p);
+	if (event->context)
+		definition_unref(&event->context->p);
+	if (event->fields)
+		definition_unref(&event->fields->p);
+	if (event->fields_decl)
+		declaration_unref(&event->fields_decl->p);
+	if (event->context_decl)
+		declaration_unref(&event->context_decl->p);
 	free_declaration_scope(event->declaration_scope);
 	g_free(event);
 	return ret;
@@ -1710,7 +1710,12 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				goto error;
 			}
 			stream->packet_context_decl = container_of(declaration, struct declaration_struct, p);
+		} else {
+			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in stream declaration.\n", __func__, left);
+			ret = -EINVAL;
+			goto error;
 		}
+
 error:
 		g_free(left);
 		break;
@@ -1767,49 +1772,58 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 
 	parent_def_scope = trace->definition_scope;
 	if (stream->packet_context_decl) {
-		stream->packet_context =
-			container_of(
+		struct definition *definition =
 			stream->packet_context_decl->p.definition_new(&stream->packet_context_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&stream->packet_context->p,
-					     stream->packet_context->scope,
-					     "stream.packet.context");
+				parent_def_scope, 0, 0, "stream.packet.context");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->packet_context = container_of(definition,
+						struct definition_struct, p);
 		parent_def_scope = stream->packet_context->scope;
-		declaration_unref(&stream->packet_context_decl->p);
 	}
 	if (stream->event_header_decl) {
-		stream->event_header =
-			container_of(
+		struct definition *definition =
 			stream->event_header_decl->p.definition_new(&stream->event_header_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&stream->event_header->p,
-					     stream->event_header->scope,
-					     "stream.event.header");
+				parent_def_scope, 0, 0, "stream.event.header");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->event_header =
+			container_of(definition, struct definition_struct, p);
 		parent_def_scope = stream->event_header->scope;
-		declaration_unref(&stream->event_header_decl->p);
 	}
 	if (stream->event_context_decl) {
-		stream->event_context =
-			container_of(
+		struct definition *definition =
 			stream->event_context_decl->p.definition_new(&stream->event_context_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&stream->event_context->p,
-					     stream->event_context->scope,
-					     "stream.event.context");
+				parent_def_scope, 0, 0, "stream.event.context");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->event_context =
+			container_of(definition, struct definition_struct, p);
 		parent_def_scope = stream->event_context->scope;
-		declaration_unref(&stream->event_context_decl->p);
 	}
 	stream->definition_scope = parent_def_scope;
 
 	return 0;
 
 error:
-	declaration_unref(&stream->event_header_decl->p);
-	declaration_unref(&stream->event_context_decl->p);
-	declaration_unref(&stream->packet_context_decl->p);
+	if (stream->event_context)
+		definition_unref(&stream->event_context->p);
+	if (stream->event_header)
+		definition_unref(&stream->event_header->p);
+	if (stream->packet_context)
+		definition_unref(&stream->packet_context->p);
+	if (stream->event_header_decl)
+		declaration_unref(&stream->event_header_decl->p);
+	if (stream->event_context_decl)
+		declaration_unref(&stream->event_context_decl->p);
+	if (stream->packet_context_decl)
+		declaration_unref(&stream->packet_context_decl->p);
 	g_ptr_array_free(stream->files, TRUE);
 	g_ptr_array_free(stream->events_by_id, TRUE);
 	g_hash_table_destroy(stream->event_quark_to_id);
@@ -1921,7 +1935,12 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			trace->packet_header_decl = container_of(declaration, struct declaration_struct, p);
+		} else {
+			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in trace declaration.\n", __func__, left);
+			ret = -EINVAL;
+			goto error;
 		}
+
 error:
 		g_free(left);
 		break;
@@ -1973,16 +1992,16 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 
 	parent_def_scope = NULL;
 	if (trace->packet_header_decl) {
-		trace->packet_header =
-			container_of(
+		struct definition *definition =
 			trace->packet_header_decl->p.definition_new(&trace->packet_header_decl->p,
-				parent_def_scope, 0, 0),
-			struct definition_struct, p);
-		set_dynamic_definition_scope(&trace->packet_header->p,
-					     trace->packet_header->scope,
-					     "trace.packet.header");
+				parent_def_scope, 0, 0, "trace.packet.header");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		trace->packet_header =
+			container_of(definition, struct definition_struct, p);
 		parent_def_scope = trace->packet_header->scope;
-		declaration_unref(&trace->packet_header_decl->p);
 	}
 	trace->definition_scope = parent_def_scope;
 
@@ -1992,14 +2011,16 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		    || struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("magic")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing both byte_order and packet header magic number in trace declaration\n", __func__);
-			goto error_free_def;
+			goto error;
 		}
 	}
 	return 0;
 
-error_free_def:
-	definition_unref(&trace->packet_header->p);
 error:
+	if (trace->packet_header)
+		definition_unref(&trace->packet_header->p);
+	if (trace->packet_header_decl)
+		declaration_unref(&trace->packet_header_decl->p);
 	g_ptr_array_free(trace->streams, TRUE);
 	free_declaration_scope(trace->declaration_scope);
 	return ret;

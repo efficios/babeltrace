@@ -309,12 +309,15 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 			print_tabs(fd, depth);
 			fprintf(fd, "</type_declarator>\n");
 		}
-		if (node->u.type_declarator.u.nested.length) {
+		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<length>\n");
-			ret = ctf_visitor_print_xml(fd, depth + 1, node->u.type_declarator.u.nested.length);
-			if (ret)
-				return ret;
+			cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+						siblings) {
+				ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+				if (ret)
+					return ret;
+			}
 			print_tabs(fd, depth);
 			fprintf(fd, "</length>\n");
 		}

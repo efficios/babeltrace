@@ -51,6 +51,7 @@ struct event_packet_header {
 trace {
 	major = 66;
 	minor = 2;
+	byte_order = le;
 	uuid = "1123fcea-706e-11e0-a38b-f3c28a683a3d";
 	packet.header := struct event_packet_header;
 };
@@ -175,7 +176,7 @@ event {
 	id = 0;
 	stream_id = 5;
 	context := struct {};
-	payload := struct {};
+	fields := struct {};
 };
 
 typealias integer { size = 32; align = 32; signed = false; } := unsigned long long *;
@@ -186,14 +187,18 @@ variant vardecl {
 };
 
 event {
+	typealias integer { size = 8; align = 8; signed = true; } := char;
+	typealias integer { size = 32; align = 32; signed = false; } := unsigned int;
+
 	name = test_event2;
 	id = 1;
 	stream_id = 5;
-	payload := struct {
+	fields := struct {
 		enum : char { a = 0, b = 1, } tag;
 		variant vardecl <tag> myvariant;
+		unsigned int seqlen;
+		int myseq[seqlen];
 	};
 };
 
 typedef int myarray[10];
-typedef int myseq[uint];

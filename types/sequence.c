@@ -20,14 +20,11 @@
 #include <babeltrace/format.h>
 #include <inttypes.h>
 
-#ifndef max
-#define max(a, b)	((a) < (b) ? (b) : (a))
-#endif
-
 static
 struct definition *_sequence_definition_new(struct declaration *declaration,
 					struct definition_scope *parent_scope,
-					GQuark field_name, int index);
+					GQuark field_name, int index,
+					const char *root_name);
 static
 void _sequence_definition_free(struct definition *definition);
 
@@ -40,10 +37,7 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 	uint64_t len, oldlen, i;
 	int ret;
 
-	ret = generic_rw(pos, &sequence_definition->len->p);
-	if (ret)
-		return ret;
-	len = sequence_definition->len->value._unsigned;
+	len = sequence_definition->length->value._unsigned;
 	/*
 	 * Yes, large sequences could be _painfully slow_ to parse due
 	 * to memory allocation for each event read. At least, never
@@ -69,7 +63,7 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
 					  sequence_definition->scope,
-					  name, i);
+					  name, i, NULL);
 		ret = generic_rw(pos, *field);
 		if (ret)
 			return ret;
@@ -84,13 +78,13 @@ void _sequence_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_sequence, p);
 
 	free_declaration_scope(sequence_declaration->scope);
-	declaration_unref(&sequence_declaration->len_declaration->p);
+	g_array_free(sequence_declaration->length_name, TRUE);
 	declaration_unref(sequence_declaration->elem);
 	g_free(sequence_declaration);
 }
 
 struct declaration_sequence *
-	sequence_declaration_new(struct declaration_integer *len_declaration,
+	sequence_declaration_new(const char *length,
 			  struct declaration *elem_declaration,
 			  struct declaration_scope *parent_scope)
 {
@@ -99,14 +93,15 @@ struct declaration_sequence *
 
 	sequence_declaration = g_new(struct declaration_sequence, 1);
 	declaration = &sequence_declaration->p;
-	assert(!len_declaration->signedness);
-	declaration_ref(&len_declaration->p);
-	sequence_declaration->len_declaration = len_declaration;
+
+	sequence_declaration->length_name = g_array_new(FALSE, TRUE, sizeof(GQuark));
+	append_scope_path(length, sequence_declaration->length_name);
+
 	declaration_ref(elem_declaration);
 	sequence_declaration->elem = elem_declaration;
 	sequence_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_SEQUENCE;
-	declaration->alignment = max(len_declaration->p.alignment, elem_declaration->alignment);
+	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _sequence_declaration_free;
 	declaration->definition_new = _sequence_definition_new;
 	declaration->definition_free = _sequence_definition_free;
@@ -117,29 +112,53 @@ struct declaration_sequence *
 static
 struct definition *_sequence_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
-				GQuark field_name, int index)
+				GQuark field_name, int index,
+				const char *root_name)
 {
 	struct declaration_sequence *sequence_declaration =
 		container_of(declaration, struct declaration_sequence, p);
 	struct definition_sequence *sequence;
 	struct definition *len_parent;
+	int ret;
 
 	sequence = g_new(struct definition_sequence, 1);
 	declaration_ref(&sequence_declaration->p);
 	sequence->p.declaration = declaration;
 	sequence->declaration = sequence_declaration;
 	sequence->p.ref = 1;
-	sequence->p.index = index;
+	/*
+	 * Use INT_MAX order to ensure that all fields of the parent
+	 * scope are seen as being prior to this scope.
+	 */
+	sequence->p.index = root_name ? INT_MAX : index;
 	sequence->p.name = field_name;
-	sequence->p.path = new_definition_path(parent_scope, field_name);
-	sequence->scope = new_definition_scope(parent_scope, field_name);
-	len_parent = sequence_declaration->len_declaration->p.definition_new(&sequence_declaration->len_declaration->p,
-				sequence->scope,
-				g_quark_from_static_string("length"), 0);
-	sequence->len =
+	sequence->p.path = new_definition_path(parent_scope, field_name, root_name);
+	sequence->scope = new_definition_scope(parent_scope, field_name, root_name);
+	ret = register_field_definition(field_name, &sequence->p,
+					parent_scope);
+	assert(!ret);
+	len_parent = lookup_definition(sequence->scope->scope_path,
+				       sequence_declaration->length_name,
+				       parent_scope);
+	if (!len_parent) {
+		printf("[error] Lookup for sequence length field failed.\n");
+		goto error;
+	}
+	sequence->length =
 		container_of(len_parent, struct definition_integer, p);
+	if (sequence->length->declaration->signedness) {
+		printf("[error] Sequence length field should be unsigned.\n");
+		goto error;
+	}
+	definition_ref(len_parent);
 	sequence->elems = g_ptr_array_new();
 	return &sequence->p;
+
+error:
+	free_definition_scope(sequence->scope);
+	declaration_unref(&sequence_declaration->p);
+	g_free(sequence);
+	return NULL;
 }
 
 static
@@ -147,7 +166,7 @@ void _sequence_definition_free(struct definition *definition)
 {
 	struct definition_sequence *sequence =
 		container_of(definition, struct definition_sequence, p);
-	struct definition *len_definition = &sequence->len->p;
+	struct definition *len_definition = &sequence->length->p;
 	uint64_t i;
 
 	for (i = 0; i < sequence->elems->len; i++) {
@@ -157,7 +176,7 @@ void _sequence_definition_free(struct definition *definition)
 		field->declaration->definition_free(field);
 	}
 	(void) g_ptr_array_free(sequence->elems, TRUE);
-	len_definition->declaration->definition_free(len_definition);
+	definition_unref(len_definition);
 	free_definition_scope(sequence->scope);
 	declaration_unref(sequence->p.declaration);
 	g_free(sequence);
@@ -165,12 +184,12 @@ void _sequence_definition_free(struct definition *definition)
 
 uint64_t sequence_len(struct definition_sequence *sequence)
 {
-	return sequence->len->value._unsigned;
+	return sequence->length->value._unsigned;
 }
 
 struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i)
 {
-	if (i >= sequence->len->value._unsigned)
+	if (i >= sequence->length->value._unsigned)
 		return NULL;
 	assert(i < sequence->elems->len);
 	return g_ptr_array_index(sequence->elems, i);

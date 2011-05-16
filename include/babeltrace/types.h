@@ -91,7 +91,8 @@ struct declaration {
 	struct definition *
 		(*definition_new)(struct declaration *declaration,
 				  struct definition_scope *parent_scope,
-				  GQuark field_name, int index);
+				  GQuark field_name, int index,
+				  const char *root_name);
 	/*
 	 * definition_free called with definition ref is decremented to 0.
 	 */
@@ -166,6 +167,7 @@ struct definition_float {
 	struct definition_integer *sign;
 	struct definition_integer *mantissa;
 	struct definition_integer *exp;
+	struct definition_scope *scope;
 	/* Last values read */
 	long double value;
 };
@@ -218,6 +220,7 @@ struct definition_enum {
 	struct definition p;
 	struct definition_integer *integer;
 	struct declaration_enum *declaration;
+	struct definition_scope *scope;
 	/* Last GQuark values read. Keeping a reference on the GQuark array. */
 	GArray *value;
 };
@@ -298,7 +301,7 @@ struct definition_array {
 
 struct declaration_sequence {
 	struct declaration p;
-	struct declaration_integer *len_declaration;
+	GArray *length_name;		/* Array of GQuark */
 	struct declaration *elem;
 	struct declaration_scope *scope;
 };
@@ -307,7 +310,7 @@ struct definition_sequence {
 	struct definition p;
 	struct declaration_sequence *declaration;
 	struct definition_scope *scope;
-	struct definition_integer *len;
+	struct definition_integer *length;
 	GPtrArray *elems;		/* Array of pointers to struct definition */
 };
 
@@ -358,13 +361,11 @@ int register_field_definition(GQuark field_name,
 			      struct definition_scope *scope);
 struct definition_scope *
 	new_definition_scope(struct definition_scope *parent_scope,
-			     GQuark field_name);
-void set_dynamic_definition_scope(struct definition *definition,
-				  struct definition_scope *scope,
-				  const char *root_name);
+			     GQuark field_name, const char *root_name);
 void free_definition_scope(struct definition_scope *scope);
 
-GQuark new_definition_path(struct definition_scope *parent_scope, GQuark field_name);
+GQuark new_definition_path(struct definition_scope *parent_scope,
+			   GQuark field_name, const char *root_name);
 
 static inline
 int compare_definition_path(struct definition *definition, GQuark path)
@@ -497,7 +498,7 @@ int array_rw(struct stream_pos *pos, struct definition *definition);
  * to the sequence. No need to free them explicitly.
  */
 struct declaration_sequence *
-	sequence_declaration_new(struct declaration_integer *len_declaration, 
+	sequence_declaration_new(const char *length_name,
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
 uint64_t sequence_len(struct definition_sequence *sequence);

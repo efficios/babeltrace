@@ -535,16 +535,13 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 	case NODE_TYPEALIAS_ALIAS:
 		parent->u.typealias_alias.type_specifier_list = node;
 		break;
-	case NODE_TYPE_DECLARATOR:
-		parent->u.type_declarator.type = TYPEDEC_NESTED;
-		parent->u.type_declarator.u.nested.length = node;
-		break;
 	case NODE_ENUM:
 		parent->u._enum.container_type = node;
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
 		parent->u.struct_or_variant_declaration.type_specifier_list = node;
 		break;
+	case NODE_TYPE_DECLARATOR:
 	case NODE_TYPE_SPECIFIER:
 	case NODE_TYPEALIAS:
 	case NODE_FLOATING_POINT:
@@ -888,7 +885,6 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> type_specifier
 %type <n> struct_type_specifier
 %type <n> variant_type_specifier
-%type <n> declaration_specifiers_or_integer_constant
 %type <n> enum_type_specifier
 %type <n> struct_or_variant_declaration_list
 %type <n> struct_or_variant_declaration
@@ -1752,32 +1748,6 @@ variant_declaration_end:
 		{	pop_scope(scanner);	}
 	;
 
-declaration_specifiers_or_integer_constant:
-		declaration_specifiers
-		{	$$ = $1;		}
-	|	DECIMAL_CONSTANT
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "%" PRIu64,
-			       &$$->u.unary_expression.u.unsigned_constant);
-		}
-	|	OCTAL_CONSTANT
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0%" PRIo64,
-			       &$$->u.unary_expression.u.unsigned_constant);
-		}
-	|	HEXADECIMAL_CONSTANT
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0x%" PRIx64,
-			       &$$->u.unary_expression.u.unsigned_constant);
-		}
-	;
-
 enum_type_specifier:
 		LBRAC enumerator_list RBRAC
 		{
@@ -2142,12 +2112,13 @@ direct_abstract_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_abstract_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
+	|	direct_abstract_declarator LSBRAC unary_expression RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			($$)->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	|	direct_abstract_declarator LSBRAC RSBRAC
 		{
@@ -2191,12 +2162,13 @@ direct_alias_abstract_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_alias_abstract_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
+	|	direct_alias_abstract_declarator LSBRAC unary_expression RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			($$)->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	|	direct_alias_abstract_declarator LSBRAC RSBRAC
 		{
@@ -2230,12 +2202,13 @@ direct_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
+	|	direct_declarator LSBRAC unary_expression RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			($$)->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	;
 
@@ -2263,12 +2236,13 @@ direct_type_declarator:
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_type_declarator LSBRAC declaration_specifiers_or_integer_constant RSBRAC
+	|	direct_type_declarator LSBRAC unary_expression RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $1;
-			($$)->u.type_declarator.u.nested.length = $3;
+			CDS_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
+			_cds_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
 	;
 
