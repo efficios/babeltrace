@@ -33,10 +33,6 @@
 
 int yydebug;
 
-/*
- * TODO: support enum, variant and struct declarations in scopes.
- */
-
 /* Join two lists, put "add" at the end of "head".  */
 static inline void
 _cds_list_splice_tail (struct cds_list_head *add, struct cds_list_head *head)
