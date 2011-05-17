@@ -179,6 +179,9 @@ struct ctf_event {
 	} field_mask;
 };
 
+#define HEADER_END		char end_field
+#define header_sizeof(type)	offsetof(typeof(type), end_field)
+
 struct metadata_packet_header {
 	uint32_t magic;			/* 0x75D11D57 */
 	uint8_t  uuid[16];		/* Unique Universal Identifier */
@@ -188,6 +191,8 @@ struct metadata_packet_header {
 	uint8_t  compression_scheme;	/* 0 if unused */
 	uint8_t  encryption_scheme;	/* 0 if unused */
 	uint8_t  checksum_scheme;	/* 0 if unused */
-} __attribute__((packed));
+	HEADER_END;
+};
+
 
 #endif /* _BABELTRACE_CTF_METADATA_H */

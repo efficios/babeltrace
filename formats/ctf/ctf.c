@@ -410,7 +410,7 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 	char buf[4096];
 	int ret = 0;
 
-	readlen = fread(&header, sizeof(header), 1, in);
+	readlen = fread(&header, header_sizeof(header), 1, in);
 	if (readlen < 1)
 		return -EINVAL;
 
