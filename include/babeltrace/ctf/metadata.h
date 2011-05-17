@@ -29,6 +29,7 @@
 #include <glib.h>
 
 #define CTF_MAGIC	0xC1FC1FC1
+#define TSDL_MAGIC	0x75D11D57
 
 struct ctf_trace;
 struct ctf_stream_class;
@@ -176,6 +177,17 @@ struct ctf_event {
 		CTF_EVENT_id 	= 	(1 << 1),
 		CTF_EVENT_stream_id = 	(1 << 2),
 	} field_mask;
+};
+
+struct metadata_packet_header {
+	uint32_t magic;			/* 0x75D11D57 */
+	uint8_t  uuid[16];		/* Unique Universal Identifier */
+	uint32_t checksum;		/* 0 if unused */
+	uint32_t content_size;		/* in bits */
+	uint32_t packet_size;		/* in bits */
+	uint8_t  compression_scheme;	/* 0 if unused */
+	uint8_t  encryption_scheme;	/* 0 if unused */
+	uint8_t  checksum_scheme;	/* 0 if unused */
 };
 
 #endif /* _BABELTRACE_CTF_METADATA_H */

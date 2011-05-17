@@ -8,7 +8,7 @@ trace {
 	byte_order = le;
 	packet.header := struct {
 		uint32_t magic;
-		uint8_t  trace_uuid[16];
+		uint8_t  uuid[16];
 	};
 };
 

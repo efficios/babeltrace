@@ -21,9 +21,11 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include <uuid/uuid.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <endian.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -370,15 +372,128 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	}
 }
 
-/*
- * TODO: for now, we treat the metadata file as a simple text file
- * (without any header nor packets nor padding).
- */
+static
+int packet_metadata(struct ctf_trace *td, FILE *fp)
+{
+	uint32_t magic;
+	size_t len;
+	int ret = 0;
+
+	len = fread(&magic, sizeof(magic), 1, fp);
+	if (len != sizeof(magic)) {
+		goto end;
+	}
+	if (magic == TSDL_MAGIC) {
+		ret = 1;
+		td->byte_order = BYTE_ORDER;
+	} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
+		ret = 1;
+		td->byte_order = (BYTE_ORDER == BIG_ENDIAN) ?
+					LITTLE_ENDIAN : BIG_ENDIAN;
+	}
+end:
+	rewind(fp);
+	return ret;
+}
+
+static
+int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
+					FILE *out)
+{
+	struct metadata_packet_header header;
+	size_t readlen, writelen;
+	char buf[4096];
+	int ret = 0;
+
+	readlen = fread(&header, sizeof(header), 1, in);
+	if (readlen < sizeof(header))
+		return -EINVAL;
+
+	if (td->byte_order != BYTE_ORDER) {
+		header.magic = GUINT32_SWAP_LE_BE(header.magic);
+		header.checksum = GUINT32_SWAP_LE_BE(header.checksum);
+		header.content_size = GUINT32_SWAP_LE_BE(header.content_size);
+		header.packet_size = GUINT32_SWAP_LE_BE(header.packet_size);
+	}
+	if (header.checksum)
+		fprintf(stdout, "[warning] checksum verification not supported yet.\n");
+	if (header.compression_scheme) {
+		fprintf(stdout, "[error] compression (%u) not supported yet.\n",
+			header.compression_scheme);
+		return -EINVAL;
+	}
+	if (header.encryption_scheme) {
+		fprintf(stdout, "[error] encryption (%u) not supported yet.\n",
+			header.encryption_scheme);
+		return -EINVAL;
+	}
+	if (header.checksum_scheme) {
+		fprintf(stdout, "[error] checksum (%u) not supported yet.\n",
+			header.checksum_scheme);
+		return -EINVAL;
+	}
+	if (!CTF_TRACE_FIELD_IS_SET(td, uuid)) {
+		memcpy(td->uuid, header.uuid, sizeof(header.uuid));
+		CTF_TRACE_SET_FIELD(td, uuid);
+	} else {
+		if (uuid_compare(header.uuid, td->uuid))
+			return -EINVAL;
+	}
+
+	while (!feof(in)) {
+		readlen = fread(buf, sizeof(char), sizeof(buf), in);
+		if (ferror(in)) {
+			ret = -EINVAL;
+			break;
+		}
+		writelen = fwrite(buf, sizeof(char), readlen, out);
+		if (writelen < readlen) {
+			ret = -EIO;
+			break;
+		}
+		if (ferror(out)) {
+			ret = -EINVAL;
+			break;
+		}
+	}
+	return ret;
+}
+
+static
+int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
+					char **buf)
+{
+	FILE *in, *out;
+	size_t size;
+	int ret;
+
+	in = *fp;
+	out = open_memstream(buf, &size);
+	if (out == NULL)
+		return -errno;
+
+	for (;;) {
+		ret = ctf_open_trace_metadata_packet_read(td, in, out);
+		if (ret == -EOF) {
+			ret = 0;
+			break;
+		} else if (ret) {
+			break;
+		}
+	}
+	fclose(out);	/* flush the buffer */
+	fclose(in);
+	/* open for reading */
+	*fp = fmemopen(*buf, size, "rb");
+	return 0;
+}
+
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td)
 {
 	struct ctf_scanner *scanner;
 	FILE *fp;
+	char *buf = NULL;
 	int ret = 0;
 
 	td->metadata.pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
@@ -395,6 +510,12 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 		fprintf(stdout, "[error] Unable to open metadata stream.\n");
 		ret = -errno;
 		goto end_stream;
+	}
+
+	if (packet_metadata(td, fp)) {
+		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
+		if (ret)
+			goto end_packet_read;
 	}
 
 	scanner = ctf_scanner_alloc(fp);
@@ -431,7 +552,9 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 end:
 	ctf_scanner_free(scanner);
 end_scanner_alloc:
+end_packet_read:
 	fclose(fp);
+	free(buf);
 end_stream:
 	close(td->metadata.pos.fd);
 	return ret;
@@ -505,7 +628,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("trace_uuid"));
+			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
 				struct definition *field;

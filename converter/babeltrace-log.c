@@ -59,7 +59,7 @@ static const char metadata_fmt[] =
 "	byte_order = %s;\n"		/* be or le */
 "	packet.header := struct {\n"
 "		uint32_t magic;\n"
-"		uint8_t  trace_uuid[16];\n"
+"		uint8_t  uuid[16];\n"
 "	};\n"
 "};\n"
 "\n"
@@ -111,7 +111,7 @@ void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
 	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
 	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 
-	/* trace_uuid */
+	/* uuid */
 	ctf_dummy_pos(pos, &dummy);
 	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, 16 * CHAR_BIT);

@@ -1887,15 +1887,17 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, minor);
 		} else if (!strcmp(left, "uuid")) {
-			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)) {
-				fprintf(fd, "[error] %s: uuid already declared in trace declaration\n", __func__);
-				ret = -EPERM;
-				goto error;
-			}
+			uuid_t uuid;
 			ret = get_unary_uuid(&node->u.ctf_expression.right, &trace->uuid);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
 				ret = -EINVAL;
+				goto error;
+			}
+			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)
+				&& uuid_compare(uuid, trace->uuid)) {
+				fprintf(fd, "[error] %s: uuid mismatch\n", __func__);
+				ret = -EPERM;
 				goto error;
 			}
 			CTF_TRACE_SET_FIELD(trace, uuid);
