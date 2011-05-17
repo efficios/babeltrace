@@ -1888,7 +1888,8 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			CTF_TRACE_SET_FIELD(trace, minor);
 		} else if (!strcmp(left, "uuid")) {
 			uuid_t uuid;
-			ret = get_unary_uuid(&node->u.ctf_expression.right, &trace->uuid);
+
+			ret = get_unary_uuid(&node->u.ctf_expression.right, &uuid);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
 				ret = -EINVAL;
@@ -1899,22 +1900,27 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				fprintf(fd, "[error] %s: uuid mismatch\n", __func__);
 				ret = -EPERM;
 				goto error;
+			} else {
+				memcpy(trace->uuid, uuid, sizeof(uuid));
 			}
 			CTF_TRACE_SET_FIELD(trace, uuid);
 		} else if (!strcmp(left, "byte_order")) {
 			struct ctf_node *right;
 			int byte_order;
 
-			if (CTF_TRACE_FIELD_IS_SET(trace, byte_order)) {
-				fprintf(fd, "[error] %s: endianness already declared in trace declaration\n", __func__);
-				ret = -EPERM;
-				goto error;
-			}
 			right = _cds_list_first_entry(&node->u.ctf_expression.right, struct ctf_node, siblings);
 			byte_order = get_trace_byte_order(fd, depth, right);
 			if (byte_order < 0)
 				return -EINVAL;
-			trace->byte_order = byte_order;
+
+			if (CTF_TRACE_FIELD_IS_SET(trace, byte_order)
+				&& byte_order != trace->byte_order) {
+				fprintf(fd, "[error] %s: endianness mismatch\n", __func__);
+				ret = -EPERM;
+				goto error;
+			} else {
+				trace->byte_order = byte_order;
+			}
 			CTF_TRACE_SET_FIELD(trace, byte_order);
 		} else if (!strcmp(left, "packet.header")) {
 			struct declaration *declaration;
@@ -2081,7 +2087,6 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 
 	printf_verbose("CTF visitor: metadata construction... ");
 	trace->root_declaration_scope = new_declaration_scope(NULL);
-	trace->streams = g_ptr_array_new();
 	trace->byte_order = byte_order;
 
 	switch (node->type) {
@@ -2091,26 +2096,27 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 			ret = ctf_root_declaration_visit(fd, depth + 1, iter, trace);
 			if (ret) {
 				fprintf(fd, "[error] %s: root declaration error\n", __func__);
-				return ret;
+				goto error;
 			}
 		}
 		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
 			if (ret) {
 				fprintf(fd, "[error] %s: trace declaration error\n", __func__);
-				return ret;
+				goto error;
 			}
 		}
 		if (!trace->streams) {
 			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto error;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_stream_visit(fd, depth + 1, iter,
 		    			       trace->root_declaration_scope, trace);
 			if (ret) {
 				fprintf(fd, "[error] %s: stream declaration error\n", __func__);
-				return ret;
+				goto error;
 			}
 		}
 		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
@@ -2118,7 +2124,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		    			      trace->root_declaration_scope, trace);
 			if (ret) {
 				fprintf(fd, "[error] %s: event declaration error\n", __func__);
-				return ret;
+				goto error;
 			}
 		}
 		break;
@@ -2126,8 +2132,13 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	default:
 		fprintf(fd, "[error] %s: unknown node type %d\n", __func__,
 			(int) node->type);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto error;
 	}
 	printf_verbose("done.\n");
+	return ret;
+
+error:
+	free_declaration_scope(trace->root_declaration_scope);
 	return ret;
 }

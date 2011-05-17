@@ -188,6 +188,6 @@ struct metadata_packet_header {
 	uint8_t  compression_scheme;	/* 0 if unused */
 	uint8_t  encryption_scheme;	/* 0 if unused */
 	uint8_t  checksum_scheme;	/* 0 if unused */
-};
+} __attribute__((packed));
 
 #endif /* _BABELTRACE_CTF_METADATA_H */

@@ -46,6 +46,10 @@
 #define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
 #define UUID_LEN 16	/* uuid by value len */
 
+#ifndef min
+#define min(a, b)	(((a) < (b)) ? (a) : (b))
+#endif
+
 extern int yydebug;
 
 struct trace_descriptor *ctf_open_trace(const char *path, int flags);
@@ -380,7 +384,7 @@ int packet_metadata(struct ctf_trace *td, FILE *fp)
 	int ret = 0;
 
 	len = fread(&magic, sizeof(magic), 1, fp);
-	if (len != sizeof(magic)) {
+	if (len != 1) {
 		goto end;
 	}
 	if (magic == TSDL_MAGIC) {
@@ -391,6 +395,7 @@ int packet_metadata(struct ctf_trace *td, FILE *fp)
 		td->byte_order = (BYTE_ORDER == BIG_ENDIAN) ?
 					LITTLE_ENDIAN : BIG_ENDIAN;
 	}
+	CTF_TRACE_SET_FIELD(td, byte_order);
 end:
 	rewind(fp);
 	return ret;
@@ -401,12 +406,12 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 					FILE *out)
 {
 	struct metadata_packet_header header;
-	size_t readlen, writelen;
+	size_t readlen, writelen, toread;
 	char buf[4096];
 	int ret = 0;
 
 	readlen = fread(&header, sizeof(header), 1, in);
-	if (readlen < sizeof(header))
+	if (readlen < 1)
 		return -EINVAL;
 
 	if (td->byte_order != BYTE_ORDER) {
@@ -440,18 +445,30 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 			return -EINVAL;
 	}
 
-	while (!feof(in)) {
-		readlen = fread(buf, sizeof(char), sizeof(buf), in);
+	toread = header.content_size / CHAR_BIT;
+
+	for (;;) {
+		readlen = fread(buf, sizeof(char), min(sizeof(buf), toread), in);
 		if (ferror(in)) {
 			ret = -EINVAL;
 			break;
 		}
+		printf("read %s\n", buf);
 		writelen = fwrite(buf, sizeof(char), readlen, out);
 		if (writelen < readlen) {
 			ret = -EIO;
 			break;
 		}
 		if (ferror(out)) {
+			ret = -EINVAL;
+			break;
+		}
+		toread -= readlen;
+		if (!toread) {
+			ret = -EOF;
+			break;
+		}
+		if (feof(in)) {
 			ret = -EINVAL;
 			break;
 		}
@@ -862,7 +879,6 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags)
 readdir_error:
 	free(dirent);
 error_metadata:
-	g_ptr_array_free(td->streams, TRUE);
 	close(td->dirfd);
 error_dirfd:
 	closedir(td->dir);
