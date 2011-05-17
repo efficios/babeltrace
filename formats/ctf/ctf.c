@@ -465,11 +465,7 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		}
 		toread -= readlen;
 		if (!toread) {
-			ret = -EOF;
-			break;
-		}
-		if (feof(in)) {
-			ret = -EINVAL;
+			ret = 0;	/* continue reading next packet */
 			break;
 		}
 	}
@@ -491,10 +487,11 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 	for (;;) {
 		ret = ctf_open_trace_metadata_packet_read(td, in, out);
-		if (ret == -EOF) {
-			ret = 0;
+		if (ret) {
 			break;
-		} else if (ret) {
+		}
+		if (feof(in)) {
+			ret = 0;
 			break;
 		}
 	}
