@@ -110,6 +110,25 @@ struct definition *
 	ret = register_field_definition(field_name, &array->p,
 					parent_scope);
 	assert(!ret);
+	array->string = NULL;
+	array->elems = NULL;
+
+	if (array_declaration->elem->id == CTF_TYPE_INTEGER) {
+		struct declaration_integer *integer_declaration =
+			container_of(array_declaration->elem, struct declaration_integer, p);
+
+		if (integer_declaration->encoding == CTF_STRING_UTF8
+		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+
+			array->string = g_string_new("");
+
+			if (integer_declaration->len == CHAR_BIT
+			    && integer_declaration->p.alignment == CHAR_BIT) {
+				return &array->p;
+			}
+		}
+	}
+
 	array->elems = g_ptr_array_sized_new(array_declaration->len);
 	g_ptr_array_set_size(array->elems, array_declaration->len);
 	for (i = 0; i < array_declaration->len; i++) {
@@ -129,6 +148,7 @@ struct definition *
 		if (!*field)
 			goto error;
 	}
+
 	return &array->p;
 
 error:
@@ -152,13 +172,17 @@ void _array_definition_free(struct definition *definition)
 		container_of(definition, struct definition_array, p);
 	uint64_t i;
 
-	for (i = 0; i < array->elems->len; i++) {
-		struct definition *field;
+	if (array->string)
+		(void) g_string_free(array->string, TRUE);
+	if (array->elems) {
+		for (i = 0; i < array->elems->len; i++) {
+			struct definition *field;
 
-		field = g_ptr_array_index(array->elems, i);
-		field->declaration->definition_free(field);
+			field = g_ptr_array_index(array->elems, i);
+			field->declaration->definition_free(field);
+		}
+		(void) g_ptr_array_free(array->elems, TRUE);
 	}
-	(void) g_ptr_array_free(array->elems, TRUE);
 	free_definition_scope(array->scope);
 	declaration_unref(array->p.declaration);
 	g_free(array);
@@ -166,11 +190,15 @@ void _array_definition_free(struct definition *definition)
 
 uint64_t array_len(struct definition_array *array)
 {
+	if (!array->elems)
+		return array->string->len;
 	return array->elems->len;
 }
 
 struct definition *array_index(struct definition_array *array, uint64_t i)
 {
+	if (!array->elems)
+		return NULL;
 	if (i >= array->elems->len)
 		return NULL;
 	return g_ptr_array_index(array->elems, i);

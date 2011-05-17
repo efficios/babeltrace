@@ -18,7 +18,73 @@
 
 #include <babeltrace/ctf/types.h>
 
-int ctf_array_rw(struct stream_pos *pos, struct definition *definition)
+int ctf_array_read(struct stream_pos *ppos, struct definition *definition)
 {
-	return array_rw(pos, definition);
+	struct definition_array *array_definition =
+		container_of(definition, struct definition_array, p);
+	struct declaration_array *array_declaration =
+		array_definition->declaration;
+	struct declaration *elem = array_declaration->elem;
+	struct ctf_stream_pos *pos =
+		container_of(ppos, struct ctf_stream_pos, parent);
+
+	if (elem->id == CTF_TYPE_INTEGER) {
+		struct declaration_integer *integer_declaration =
+			container_of(elem, struct declaration_integer, p);
+
+		if (integer_declaration->encoding == CTF_STRING_UTF8
+		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+
+			if (integer_declaration->len == CHAR_BIT
+			    && integer_declaration->p.alignment == CHAR_BIT) {
+
+				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
+					return -EFAULT;
+
+				g_string_assign(array_definition->string, "");
+				g_string_insert_len(array_definition->string,
+					0, (char *) ctf_get_pos_addr(pos),
+					array_declaration->len);
+				ctf_move_pos(pos, array_declaration->len * CHAR_BIT);
+				return 0;
+			}
+		}
+	}
+	return array_rw(ppos, definition);
+}
+
+int ctf_array_write(struct stream_pos *ppos, struct definition *definition)
+{
+	struct definition_array *array_definition =
+		container_of(definition, struct definition_array, p);
+	struct declaration_array *array_declaration =
+		array_definition->declaration;
+	struct declaration *elem = array_declaration->elem;
+	struct ctf_stream_pos *pos =
+		container_of(ppos, struct ctf_stream_pos, parent);
+
+	if (elem->id == CTF_TYPE_INTEGER) {
+		struct declaration_integer *integer_declaration =
+			container_of(elem, struct declaration_integer, p);
+
+		if (integer_declaration->encoding == CTF_STRING_UTF8
+		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+
+			if (integer_declaration->len == CHAR_BIT
+			    && integer_declaration->p.alignment == CHAR_BIT) {
+
+				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
+					return -EFAULT;
+
+				memcpy((char *) ctf_get_pos_addr(pos),
+					array_definition->string->str,
+					array_declaration->len);
+				ctf_move_pos(pos, array_declaration->len * CHAR_BIT);
+				return 0;
+			}
+		}
+	}
+	return array_rw(ppos, definition);
 }

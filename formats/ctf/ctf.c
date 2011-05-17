@@ -63,8 +63,8 @@ rw_dispatch read_dispatch_table[] = {
 	[ CTF_TYPE_STRING ] = ctf_string_read,
 	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
 	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
-	[ CTF_TYPE_ARRAY ] = ctf_array_rw,
-	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
+	[ CTF_TYPE_ARRAY ] = ctf_array_read,
+	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_read,
 };
 
 static
@@ -75,8 +75,8 @@ rw_dispatch write_dispatch_table[] = {
 	[ CTF_TYPE_STRING ] = ctf_string_write,
 	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
 	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
-	[ CTF_TYPE_ARRAY ] = ctf_array_rw,
-	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_rw,
+	[ CTF_TYPE_ARRAY ] = ctf_array_write,
+	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_write,
 };
 
 static

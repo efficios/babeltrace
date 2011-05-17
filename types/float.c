@@ -58,11 +58,14 @@ struct declaration_float *
 	float_declaration->byte_order = byte_order;
 
 	float_declaration->sign = integer_declaration_new(1,
-					    byte_order, false, 1, 2);
+						byte_order, false, 1, 2,
+						CTF_STRING_NONE);
 	float_declaration->mantissa = integer_declaration_new(mantissa_len - 1,
-						byte_order, false, 1, 10);
+						byte_order, false, 1, 10,
+						CTF_STRING_NONE);
 	float_declaration->exp = integer_declaration_new(exp_len,
-					   byte_order, true, 1, 10);
+						byte_order, true, 1, 10,
+						CTF_STRING_NONE);
 	return float_declaration;
 }
 

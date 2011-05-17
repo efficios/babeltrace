@@ -39,7 +39,8 @@ void _integer_declaration_free(struct declaration *declaration)
 
 struct declaration_integer *
 	integer_declaration_new(size_t len, int byte_order,
-			 int signedness, size_t alignment, int base)
+			 int signedness, size_t alignment, int base,
+			 enum ctf_string_encoding encoding)
 {
 	struct declaration_integer *integer_declaration;
 
@@ -54,6 +55,7 @@ struct declaration_integer *
 	integer_declaration->byte_order = byte_order;
 	integer_declaration->signedness = signedness;
 	integer_declaration->base = base;
+	integer_declaration->encoding = encoding;
 	return integer_declaration;
 }
 

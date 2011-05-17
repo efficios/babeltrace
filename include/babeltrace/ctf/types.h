@@ -76,8 +76,10 @@ int ctf_enum_read(struct stream_pos *pos, struct definition *definition);
 int ctf_enum_write(struct stream_pos *pos, struct definition *definition);
 int ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
 int ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
-int ctf_array_rw(struct stream_pos *pos, struct definition *definition);
-int ctf_sequence_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_array_read(struct stream_pos *pos, struct definition *definition);
+int ctf_array_write(struct stream_pos *pos, struct definition *definition);
+int ctf_sequence_read(struct stream_pos *pos, struct definition *definition);
+int ctf_sequence_write(struct stream_pos *pos, struct definition *definition);
 
 void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence);
 

@@ -129,6 +129,13 @@ int generic_rw(struct stream_pos *pos, struct definition *definition)
 	return call(pos, definition);
 }
 
+enum ctf_string_encoding {
+	CTF_STRING_NONE = 0,
+	CTF_STRING_UTF8,
+	CTF_STRING_ASCII,
+	CTF_STRING_UNKNOWN,
+};
+
 /*
  * Because we address in bits, bitfields end up being exactly the same as
  * integers, except that their read/write functions must be able to deal with
@@ -140,6 +147,7 @@ struct declaration_integer {
 	int byte_order;		/* byte order */
 	int signedness;
 	int base;		/* Base for pretty-printing: 2, 8, 10, 16 */
+	enum ctf_string_encoding encoding;
 };
 
 struct definition_integer {
@@ -225,12 +233,6 @@ struct definition_enum {
 	GArray *value;
 };
 
-enum ctf_string_encoding {
-	CTF_STRING_UTF8 = 0,
-	CTF_STRING_ASCII,
-	CTF_STRING_UNKNOWN,
-};
-
 struct declaration_string {
 	struct declaration p;
 	enum ctf_string_encoding encoding;
@@ -297,6 +299,7 @@ struct definition_array {
 	struct declaration_array *declaration;
 	struct definition_scope *scope;
 	GPtrArray *elems;		/* Array of pointers to struct definition */
+	GString *string;		/* String for encoded integer children */
 };
 
 struct declaration_sequence {
@@ -312,6 +315,7 @@ struct definition_sequence {
 	struct definition_scope *scope;
 	struct definition_integer *length;
 	GPtrArray *elems;		/* Array of pointers to struct definition */
+	GString *string;		/* String for encoded integer children */
 };
 
 int register_declaration(GQuark declaration_name,
@@ -381,7 +385,7 @@ void definition_unref(struct definition *definition);
 
 struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
-				  int base);
+				  int base, enum ctf_string_encoding encoding);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa

@@ -325,7 +325,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 					 */
 					integer_declaration = integer_declaration_new(integer_declaration->len,
 						integer_declaration->byte_order, integer_declaration->signedness,
-						integer_declaration->p.alignment, 16);
+						integer_declaration->p.alignment, 16, integer_declaration->encoding);
 					nested_declaration = &integer_declaration->p;
 				}
 			}
@@ -1076,6 +1076,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
 	int base = 0;
+	enum ctf_string_encoding encoding = CTF_STRING_NONE;
 	struct declaration_integer *integer_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
@@ -1164,6 +1165,34 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 					__func__);
 				return NULL;
 			}
+		} else if (!strcmp(left->u.unary_expression.u.string, "encoding")) {
+			char *s_right;
+
+			if (right->u.unary_expression.type != UNARY_STRING) {
+				fprintf(fd, "[error] %s: encoding: expecting unary string\n",
+					__func__);
+				return NULL;
+			}
+			s_right = concatenate_unary_strings(&expression->u.ctf_expression.right);
+			if (!s_right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for integer base\n", __func__);
+				g_free(s_right);
+				return NULL;
+			}
+			if (!strcmp(s_right, "UTF8")
+			    || !strcmp(s_right, "utf8")
+			    || !strcmp(s_right, "utf-8")
+			    || !strcmp(s_right, "UTF-8"))
+				encoding = CTF_STRING_UTF8;
+			else if (!strcmp(s_right, "ASCII")
+			    || !strcmp(s_right, "ascii"))
+				encoding = CTF_STRING_ASCII;
+			else {
+				fprintf(fd, "[error] %s: unknown string encoding \"%s\"\n", __func__, s_right);
+				g_free(s_right);
+				return NULL;
+			}
+			g_free(s_right);
 		} else {
 			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
@@ -1184,7 +1213,8 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		}
 	}
 	integer_declaration = integer_declaration_new(size,
-				byte_order, signedness, alignment, base);
+				byte_order, signedness, alignment,
+				base, encoding);
 	return &integer_declaration->p;
 }
 

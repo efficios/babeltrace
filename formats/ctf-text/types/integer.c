@@ -40,6 +40,19 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		fprintf(pos->fp, "%s = ",
 			g_quark_to_string(definition->name));
 
+	if (integer_declaration->encoding == CTF_STRING_ASCII
+	    || integer_declaration->encoding == CTF_STRING_UTF8) {
+
+		if (!integer_declaration->signedness) {
+			g_string_append_c(pos->string,
+				(int) integer_definition->value._unsigned);
+		} else {
+			g_string_append_c(pos->string,
+				(int) integer_definition->value._signed);
+		}
+		return 0;
+	}
+
 	switch (integer_declaration->base) {
 	case 0:	/* default */
 	case 10:

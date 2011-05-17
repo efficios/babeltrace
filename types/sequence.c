@@ -151,6 +151,26 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 		goto error;
 	}
 	definition_ref(len_parent);
+
+	sequence->string = NULL;
+	sequence->elems = NULL;
+
+	if (sequence_declaration->elem->id == CTF_TYPE_INTEGER) {
+		struct declaration_integer *integer_declaration =
+			container_of(sequence_declaration->elem, struct declaration_integer, p);
+
+		if (integer_declaration->encoding == CTF_STRING_UTF8
+		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+
+			sequence->string = g_string_new("");
+
+			if (integer_declaration->len == CHAR_BIT
+			    && integer_declaration->p.alignment == CHAR_BIT) {
+				return &sequence->p;
+			}
+		}
+	}
+
 	sequence->elems = g_ptr_array_new();
 	return &sequence->p;
 
@@ -169,11 +189,15 @@ void _sequence_definition_free(struct definition *definition)
 	struct definition *len_definition = &sequence->length->p;
 	uint64_t i;
 
-	for (i = 0; i < sequence->elems->len; i++) {
-		struct definition *field;
+	if (sequence->string)
+		(void) g_string_free(sequence->string, TRUE);
+	if (sequence->elems) {
+		for (i = 0; i < sequence->elems->len; i++) {
+			struct definition *field;
 
-		field = g_ptr_array_index(sequence->elems, i);
-		field->declaration->definition_free(field);
+			field = g_ptr_array_index(sequence->elems, i);
+			field->declaration->definition_free(field);
+		}
 	}
 	(void) g_ptr_array_free(sequence->elems, TRUE);
 	definition_unref(len_definition);
@@ -189,6 +213,8 @@ uint64_t sequence_len(struct definition_sequence *sequence)
 
 struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i)
 {
+	if (!sequence->elems)
+		return NULL;
 	if (i >= sequence->length->value._unsigned)
 		return NULL;
 	assert(i < sequence->elems->len);
