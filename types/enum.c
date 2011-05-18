@@ -418,14 +418,14 @@ struct definition *
 	_enum->p.index = root_name ? INT_MAX : index;
 	_enum->p.name = field_name;
 	_enum->p.path = new_definition_path(parent_scope, field_name, root_name);
-	_enum->scope = new_definition_scope(parent_scope, field_name, root_name);
+	_enum->p.scope = new_definition_scope(parent_scope, field_name, root_name);
 	_enum->value = NULL;
 	ret = register_field_definition(field_name, &_enum->p,
 					parent_scope);
 	assert(!ret);
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,
-				_enum->scope,
+				_enum->p.scope,
 				g_quark_from_static_string("container"), 0, NULL);
 	_enum->integer = container_of(definition_integer_parent,
 				      struct definition_integer, p);
@@ -439,6 +439,7 @@ void _enum_definition_free(struct definition *definition)
 		container_of(definition, struct definition_enum, p);
 
 	definition_unref(&_enum->integer->p);
+	free_definition_scope(_enum->p.scope);
 	declaration_unref(_enum->p.declaration);
 	if (_enum->value)
 		g_array_unref(_enum->value);

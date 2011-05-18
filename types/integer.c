@@ -84,6 +84,7 @@ struct definition *
 	integer->p.name = field_name;
 	integer->p.path = new_definition_path(parent_scope, field_name,
 					root_name);
+	integer->p.scope = NULL;
 	integer->value._unsigned = 0;
 	ret = register_field_definition(field_name, &integer->p,
 					parent_scope);

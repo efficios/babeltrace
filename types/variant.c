@@ -183,15 +183,15 @@ struct definition *
 	variant->p.index = root_name ? INT_MAX : index;
 	variant->p.name = field_name;
 	variant->p.path = new_definition_path(parent_scope, field_name, root_name);
-	variant->scope = new_definition_scope(parent_scope, field_name, root_name);
+	variant->p.scope = new_definition_scope(parent_scope, field_name, root_name);
 
 	ret = register_field_definition(field_name, &variant->p,
 					parent_scope);
 	assert(!ret);
 
-	variant->enum_tag = lookup_definition(variant->scope->scope_path,
-					      variant_declaration->tag_name,
-					      parent_scope);
+	variant->enum_tag = lookup_path_definition(variant->p.scope->scope_path,
+						   variant_declaration->tag_name,
+						   parent_scope);
 					      
 	if (!variant->enum_tag
 	    || check_enum_tag(variant, variant->enum_tag) < 0)
@@ -211,7 +211,7 @@ struct definition *
 		 * various choices of the same field.
 		 */
 		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
-						  variant->scope,
+						  variant->p.scope,
 						  declaration_field->name, 0, NULL);
 		if (!*field)
 			goto error;
@@ -219,7 +219,7 @@ struct definition *
 	variant->current_field = NULL;
 	return &variant->p;
 error:
-	free_definition_scope(variant->scope);
+	free_definition_scope(variant->p.scope);
 	declaration_unref(&variant_declaration->p);
 	g_free(variant);
 	return NULL;
@@ -238,7 +238,7 @@ void _variant_definition_free(struct definition *definition)
 		definition_unref(field);
 	}
 	definition_unref(variant->enum_tag);
-	free_definition_scope(variant->scope);
+	free_definition_scope(variant->p.scope);
 	declaration_unref(variant->p.declaration);
 	g_free(variant);
 }

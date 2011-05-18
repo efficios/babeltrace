@@ -105,6 +105,7 @@ struct definition {
 	GQuark name;		/* Field name in its container (or 0 if unset) */
 	int ref;		/* number of references to the definition */
 	GQuark path;
+	struct definition_scope *scope;
 };
 
 typedef int (*rw_dispatch)(struct stream_pos *pos,
@@ -175,7 +176,6 @@ struct definition_float {
 	struct definition_integer *sign;
 	struct definition_integer *mantissa;
 	struct definition_integer *exp;
-	struct definition_scope *scope;
 	/* Last values read */
 	long double value;
 };
@@ -228,7 +228,6 @@ struct definition_enum {
 	struct definition p;
 	struct definition_integer *integer;
 	struct declaration_enum *declaration;
-	struct definition_scope *scope;
 	/* Last GQuark values read. Keeping a reference on the GQuark array. */
 	GArray *value;
 };
@@ -260,7 +259,6 @@ struct declaration_struct {
 struct definition_struct {
 	struct definition p;
 	struct declaration_struct *declaration;
-	struct definition_scope *scope;
 	GPtrArray *fields;		/* Array of pointers to struct definition */
 };
 
@@ -281,7 +279,6 @@ struct declaration_variant {
 struct definition_variant {
 	struct definition p;
 	struct declaration_variant *declaration;
-	struct definition_scope *scope;
 	struct definition *enum_tag;
 	GPtrArray *fields;		/* Array of pointers to struct definition */
 	struct definition *current_field;	/* Last field read */
@@ -297,7 +294,6 @@ struct declaration_array {
 struct definition_array {
 	struct definition p;
 	struct declaration_array *declaration;
-	struct definition_scope *scope;
 	GPtrArray *elems;		/* Array of pointers to struct definition */
 	GString *string;		/* String for encoded integer children */
 };
@@ -312,7 +308,6 @@ struct declaration_sequence {
 struct definition_sequence {
 	struct definition p;
 	struct declaration_sequence *declaration;
-	struct definition_scope *scope;
 	struct definition_integer *length;
 	GPtrArray *elems;		/* Array of pointers to struct definition */
 	GString *string;		/* String for encoded integer children */
@@ -357,9 +352,9 @@ void free_declaration_scope(struct declaration_scope *scope);
  * definition scopes.
  */
 struct definition *
-	lookup_definition(GArray *cur_path,	/* array of GQuark */
-			  GArray *lookup_path,	/* array of GQuark */
-			  struct definition_scope *scope);
+	lookup_path_definition(GArray *cur_path,	/* array of GQuark */
+			       GArray *lookup_path,	/* array of GQuark */
+			       struct definition_scope *scope);
 int register_field_definition(GQuark field_name,
 			      struct definition *definition,
 			      struct definition_scope *scope);
@@ -513,5 +508,17 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition);
  * in: path (dot separated), out: q (GArray of GQuark)
  */
 void append_scope_path(const char *path, GArray *q);
+
+/*
+ * Lookup helpers.
+ */
+struct definition_integer *lookup_integer(struct definition *definition,
+					  const char *field_name,
+					  int signedness);
+struct definition_enum *lookup_enum(struct definition *definition,
+				    const char *field_name,
+				    int signedness);
+struct definition *lookup_variant(struct definition *definition,
+				  const char *field_name);
 
 #endif /* _BABELTRACE_TYPES_H */

@@ -146,40 +146,7 @@ end:
 static struct definition_scope *
 	get_definition_scope(struct definition *definition)
 {
-	switch (definition->declaration->id) {
-	case CTF_TYPE_STRUCT:
-	{
-		struct definition_struct *def =
-			container_of(definition, struct definition_struct, p);
-		return def->scope;
-	}
-	case CTF_TYPE_VARIANT:
-	{
-		struct definition_variant *def =
-			container_of(definition, struct definition_variant, p);
-		return def->scope;
-	}
-	case CTF_TYPE_ARRAY:
-	{
-		struct definition_array *def =
-			container_of(definition, struct definition_array, p);
-		return def->scope;
-	}
-	case CTF_TYPE_SEQUENCE:
-	{
-		struct definition_sequence *def =
-			container_of(definition, struct definition_sequence, p);
-		return def->scope;
-	}
-
-	case CTF_TYPE_INTEGER:
-	case CTF_TYPE_FLOAT:
-	case CTF_TYPE_ENUM:
-	case CTF_TYPE_STRING:
-	case CTF_TYPE_UNKNOWN:
-	default:
-		return NULL;
-	}
+	return definition->scope;
 }
 
 /*
@@ -203,9 +170,9 @@ static struct definition_scope *
  * scope: the definition scope containing the variant definition.
  */
 struct definition *
-	lookup_definition(GArray *cur_path,
-			  GArray *lookup_path,
-			  struct definition_scope *scope)
+	lookup_path_definition(GArray *cur_path,
+			       GArray *lookup_path,
+			       struct definition_scope *scope)
 {
 	struct definition *definition, *lookup_definition;
 	GQuark last;
@@ -628,4 +595,70 @@ void free_definition_scope(struct definition_scope *scope)
 	g_array_free(scope->scope_path, TRUE);
 	g_hash_table_destroy(scope->definitions);
 	g_free(scope);
+}
+
+static
+struct definition *lookup_definition(struct definition *definition,
+				     const char *field_name)
+{
+	struct definition_scope *scope = get_definition_scope(definition);
+
+	if (!scope)
+		return NULL;
+
+	return lookup_field_definition_scope(g_quark_from_string(field_name),
+					     scope);
+}
+
+struct definition_integer *lookup_integer(struct definition *definition,
+					  const char *field_name,
+					  int signedness)
+{
+	struct definition *lookup;
+	struct definition_integer *lookup_integer;
+
+	lookup = lookup_definition(definition, field_name);
+	if (!lookup)
+		return NULL;
+	if (lookup->declaration->id != CTF_TYPE_INTEGER)
+		return NULL;
+	lookup_integer = container_of(lookup, struct definition_integer, p);
+	if (lookup_integer->declaration->signedness != signedness)
+		return NULL;
+	return lookup_integer;
+}
+
+struct definition_enum *lookup_enum(struct definition *definition,
+				    const char *field_name,
+				    int signedness)
+{
+	struct definition *lookup;
+	struct definition_enum *lookup_enum;
+
+	lookup = lookup_definition(definition, field_name);
+	if (!lookup)
+		return NULL;
+	if (lookup->declaration->id != CTF_TYPE_ENUM)
+		return NULL;
+	lookup_enum = container_of(lookup, struct definition_enum, p);
+	if (lookup_enum->integer->declaration->signedness != signedness)
+		return NULL;
+	return lookup_enum;
+}
+
+struct definition *lookup_variant(struct definition *definition,
+				  const char *field_name)
+{
+	struct definition *lookup;
+	struct definition_variant *lookup_variant;
+
+	lookup = lookup_definition(definition, field_name);
+	if (!lookup)
+		return NULL;
+	if (lookup->declaration->id != CTF_TYPE_VARIANT)
+		return NULL;
+	lookup_variant = container_of(lookup, struct definition_variant, p);
+	lookup = variant_get_current_field(lookup_variant);
+	assert(lookup);
+	return lookup;
 }

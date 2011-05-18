@@ -106,7 +106,7 @@ struct definition *
 	array->p.index = root_name ? INT_MAX : index;
 	array->p.name = field_name;
 	array->p.path = new_definition_path(parent_scope, field_name, root_name);
-	array->scope = new_definition_scope(parent_scope, field_name, root_name);
+	array->p.scope = new_definition_scope(parent_scope, field_name, root_name);
 	ret = register_field_definition(field_name, &array->p,
 					parent_scope);
 	assert(!ret);
@@ -143,7 +143,7 @@ struct definition *
 
 		field = (struct definition **) &g_ptr_array_index(array->elems, i);
 		*field = array_declaration->elem->definition_new(array_declaration->elem,
-					  array->scope,
+					  array->p.scope,
 					  name, i, NULL);
 		if (!*field)
 			goto error;
@@ -159,7 +159,7 @@ error:
 		field->declaration->definition_free(field);
 	}
 	(void) g_ptr_array_free(array->elems, TRUE);
-	free_definition_scope(array->scope);
+	free_definition_scope(array->p.scope);
 	declaration_unref(array->p.declaration);
 	g_free(array);
 	return NULL;
@@ -183,7 +183,7 @@ void _array_definition_free(struct definition *definition)
 		}
 		(void) g_ptr_array_free(array->elems, TRUE);
 	}
-	free_definition_scope(array->scope);
+	free_definition_scope(array->p.scope);
 	declaration_unref(array->p.declaration);
 	g_free(array);
 }

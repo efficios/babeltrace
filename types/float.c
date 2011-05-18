@@ -86,27 +86,27 @@ struct definition *
 	declaration_ref(&float_declaration->p);
 	_float->p.declaration = declaration;
 	_float->declaration = float_declaration;
-	_float->scope = new_definition_scope(parent_scope, field_name, root_name);
+	_float->p.scope = new_definition_scope(parent_scope, field_name, root_name);
 	_float->p.path = new_definition_path(parent_scope, field_name, root_name);
 	if (float_declaration->byte_order == LITTLE_ENDIAN) {
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
-			_float->scope, g_quark_from_static_string("mantissa"), 0, NULL);
+			_float->p.scope, g_quark_from_static_string("mantissa"), 0, NULL);
 		_float->mantissa = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
-			_float->scope, g_quark_from_static_string("exp"), 1, NULL);
+			_float->p.scope, g_quark_from_static_string("exp"), 1, NULL);
 		_float->exp = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
-			_float->scope, g_quark_from_static_string("sign"), 2, NULL);
+			_float->p.scope, g_quark_from_static_string("sign"), 2, NULL);
 		_float->sign = container_of(tmp, struct definition_integer, p);
 	} else {
 		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
-			_float->scope, g_quark_from_static_string("sign"), 0, NULL);
+			_float->p.scope, g_quark_from_static_string("sign"), 0, NULL);
 		_float->sign = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
-			_float->scope, g_quark_from_static_string("exp"), 1, NULL);
+			_float->p.scope, g_quark_from_static_string("exp"), 1, NULL);
 		_float->exp = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
-			_float->scope, g_quark_from_static_string("mantissa"), 2, NULL);
+			_float->p.scope, g_quark_from_static_string("mantissa"), 2, NULL);
 		_float->mantissa = container_of(tmp, struct definition_integer, p);
 	}
 	_float->p.ref = 1;
@@ -132,6 +132,7 @@ void _float_definition_free(struct definition *definition)
 	definition_unref(&_float->sign->p);
 	definition_unref(&_float->exp->p);
 	definition_unref(&_float->mantissa->p);
+	free_definition_scope(_float->p.scope);
 	declaration_unref(_float->p.declaration);
 	g_free(_float);
 }

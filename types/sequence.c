@@ -62,7 +62,7 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 
 		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
-					  sequence_definition->scope,
+					  sequence_definition->p.scope,
 					  name, i, NULL);
 		ret = generic_rw(pos, *field);
 		if (ret)
@@ -133,13 +133,13 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	sequence->p.index = root_name ? INT_MAX : index;
 	sequence->p.name = field_name;
 	sequence->p.path = new_definition_path(parent_scope, field_name, root_name);
-	sequence->scope = new_definition_scope(parent_scope, field_name, root_name);
+	sequence->p.scope = new_definition_scope(parent_scope, field_name, root_name);
 	ret = register_field_definition(field_name, &sequence->p,
 					parent_scope);
 	assert(!ret);
-	len_parent = lookup_definition(sequence->scope->scope_path,
-				       sequence_declaration->length_name,
-				       parent_scope);
+	len_parent = lookup_path_definition(sequence->p.scope->scope_path,
+					    sequence_declaration->length_name,
+					    parent_scope);
 	if (!len_parent) {
 		printf("[error] Lookup for sequence length field failed.\n");
 		goto error;
@@ -175,7 +175,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	return &sequence->p;
 
 error:
-	free_definition_scope(sequence->scope);
+	free_definition_scope(sequence->p.scope);
 	declaration_unref(&sequence_declaration->p);
 	g_free(sequence);
 	return NULL;
@@ -201,7 +201,7 @@ void _sequence_definition_free(struct definition *definition)
 	}
 	(void) g_ptr_array_free(sequence->elems, TRUE);
 	definition_unref(len_definition);
-	free_definition_scope(sequence->scope);
+	free_definition_scope(sequence->p.scope);
 	declaration_unref(sequence->p.declaration);
 	g_free(sequence);
 }

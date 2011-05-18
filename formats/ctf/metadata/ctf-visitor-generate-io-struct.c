@@ -1605,7 +1605,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		}
 		event->context = container_of(definition,
 					struct definition_struct, p);
-		parent_def_scope = event->context->scope;
+		parent_def_scope = event->context->p.scope;
 	}
 	if (event->fields_decl) {
 		struct definition *definition =
@@ -1617,7 +1617,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		}
 		event->fields = container_of(definition,
 					struct definition_struct, p);
-		parent_def_scope = event->fields->scope;
+		parent_def_scope = event->fields->p.scope;
 	}
 	return 0;
 
@@ -1811,7 +1811,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		}
 		stream->packet_context = container_of(definition,
 						struct definition_struct, p);
-		parent_def_scope = stream->packet_context->scope;
+		parent_def_scope = stream->packet_context->p.scope;
 	}
 	if (stream->event_header_decl) {
 		struct definition *definition =
@@ -1823,7 +1823,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		}
 		stream->event_header =
 			container_of(definition, struct definition_struct, p);
-		parent_def_scope = stream->event_header->scope;
+		parent_def_scope = stream->event_header->p.scope;
 	}
 	if (stream->event_context_decl) {
 		struct definition *definition =
@@ -1835,7 +1835,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		}
 		stream->event_context =
 			container_of(definition, struct definition_struct, p);
-		parent_def_scope = stream->event_context->scope;
+		parent_def_scope = stream->event_context->p.scope;
 	}
 	stream->definition_scope = parent_def_scope;
 
@@ -2039,7 +2039,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		}
 		trace->packet_header =
 			container_of(definition, struct definition_struct, p);
-		parent_def_scope = trace->packet_header->scope;
+		parent_def_scope = trace->packet_header->p.scope;
 	}
 	trace->definition_scope = parent_def_scope;
 
