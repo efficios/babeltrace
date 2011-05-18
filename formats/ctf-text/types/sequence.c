@@ -28,7 +28,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 		sequence_definition->declaration;
 	struct declaration *elem = sequence_declaration->elem;
 	int field_nr_saved;
-	int ret;
+	int ret = 0;
 
 	if (!pos->dummy) {
 		if (pos->field_nr++ != 0)
