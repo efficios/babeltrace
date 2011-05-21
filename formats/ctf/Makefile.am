@@ -10,4 +10,5 @@ libctf_la_SOURCES = \
 libctf_la_LIBADD = \
 	types/libctf-types.la \
 	metadata/libctf-parser.la \
-	metadata/libctf-ast.la
+	metadata/libctf-ast.la \
+	../libbabeltrace_registry.la

@@ -8,4 +8,5 @@ libctf_text_la_SOURCES = \
 	ctf-text.c
 
 libctf_text_la_LIBADD = \
-	types/libctf-text-types.la
+	types/libctf-text-types.la \
+	../libbabeltrace_registry.la
