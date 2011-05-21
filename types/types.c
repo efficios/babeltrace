@@ -298,7 +298,7 @@ struct declaration_scope *
 
 	scope->typedef_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) definition_unref);
+					(GDestroyNotify) declaration_unref);
 	scope->struct_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
 					(GDestroyNotify) declaration_unref);
