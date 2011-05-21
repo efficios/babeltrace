@@ -35,9 +35,9 @@ struct format {
 	void (*close_trace)(struct trace_descriptor *descriptor);
 };
 
-struct format *bt_lookup_format(GQuark qname);
-void bt_fprintf_format_list(FILE *fp);
-int bt_register_format(struct format *format);
+extern struct format *bt_lookup_format(GQuark qname);
+extern void bt_fprintf_format_list(FILE *fp);
+extern int bt_register_format(struct format *format);
 
 /* TBD: format unregistration */
 
