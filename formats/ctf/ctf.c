@@ -457,7 +457,11 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 			ret = -EINVAL;
 			break;
 		}
-		printf("read %s\n", buf);
+		if (babeltrace_debug) {
+			fprintf(stdout, "[debug] metadata packet read: %s\n",
+				buf);
+		}
+
 		writelen = fwrite(buf, sizeof(char), readlen, out);
 		if (writelen < readlen) {
 			ret = -EIO;
