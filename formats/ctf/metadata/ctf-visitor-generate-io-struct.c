@@ -350,6 +350,11 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 
 		/* TYPEDEC_NESTED */
 
+		if (!nested_declaration) {
+			fprintf(fd, "[error] %s: nested type is unknown.\n", __func__);
+			return NULL;
+		}
+
 		/* create array/sequence, pass nested_declaration as child. */
 		if (cds_list_empty(&node_type_declarator->u.type_declarator.u.nested.length)) {
 			fprintf(fd, "[error] %s: expecting length field reference or value.\n", __func__);
@@ -1187,6 +1192,8 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			else if (!strcmp(s_right, "ASCII")
 			    || !strcmp(s_right, "ascii"))
 				encoding = CTF_STRING_ASCII;
+			else if (!strcmp(s_right, "none"))
+				encoding = CTF_STRING_NONE;
 			else {
 				fprintf(fd, "[error] %s: unknown string encoding \"%s\"\n", __func__, s_right);
 				g_free(s_right);
