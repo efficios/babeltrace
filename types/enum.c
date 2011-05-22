@@ -125,18 +125,18 @@ GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
 			if (qs)
 				qs_len = qs->len;
 			ranges = g_array_sized_new(FALSE, TRUE,
-					sizeof(struct enum_range),
+					sizeof(GQuark),
 					qs_len + 1);
 			g_array_set_size(ranges, qs_len + 1);
 			if (qs)
 				memcpy(ranges->data, qs->data,
-				       sizeof(struct enum_range) * qs_len);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+				       sizeof(GQuark) * qs_len);
+			g_array_index(ranges, GQuark, qs_len) = iter->quark;
 		} else {
 			size_t qs_len = ranges->len;
 
 			g_array_set_size(ranges, qs_len + 1);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+			g_array_index(ranges, GQuark, qs_len) = iter->quark;
 		}
 	}
 	if (!ranges) {
@@ -172,18 +172,18 @@ GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 			if (qs)
 				qs_len = qs->len;
 			ranges = g_array_sized_new(FALSE, TRUE,
-					sizeof(struct enum_range),
+					sizeof(GQuark),
 					qs_len + 1);
 			g_array_set_size(ranges, qs_len + 1);
 			if (qs)
 				memcpy(ranges->data, qs->data,
-				       sizeof(struct enum_range) * qs_len);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+				       sizeof(GQuark) * qs_len);
+			g_array_index(ranges, GQuark, qs_len) = iter->quark;
 		} else {
 			size_t qs_len = ranges->len;
 
 			g_array_set_size(ranges, qs_len + 1);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+			g_array_index(ranges, GQuark, qs_len) = iter->quark;
 		}
 	}
 	if (!ranges) {

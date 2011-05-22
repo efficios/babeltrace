@@ -29,6 +29,7 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	GArray *qs;
 	int i, ret;
+	int field_nr_saved;
 
 	if (pos->dummy)
 		return 0;
@@ -40,24 +41,29 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		fprintf(pos->fp, "%s = ",
 			g_quark_to_string(definition->name));
 
+	field_nr_saved = pos->field_nr;
+	pos->field_nr = 0;
 	fprintf(pos->fp, "(");
 	pos->depth++;
 	ret = generic_rw(ppos, &integer_definition->p);
-	fprintf(pos->fp, " :");
+	fprintf(pos->fp, ":");
 
 	qs = enum_definition->value;
 	assert(qs);
 
+	pos->field_nr = 0;
 	for (i = 0; i < qs->len; i++) {
 		GQuark q = g_array_index(qs, GQuark, i);
 		const char *str = g_quark_to_string(q);
 
-		if (i != 0)
+		assert(str);
+		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
 		fprintf(pos->fp, " ");
-		fprintf(pos->fp, "%s\n", str);
+		fprintf(pos->fp, "%s", str);
 	}
 	pos->depth--;
 	fprintf(pos->fp, " )");
+	pos->field_nr = field_nr_saved;
 	return ret;
 }

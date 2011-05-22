@@ -63,23 +63,32 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	int field_nr_saved;
 	struct ctf_event *event_class;
 	uint64_t id = 0;
-	int len_index;
 	int ret;
 
 	/* print event header */
 	if (stream_class->event_header) {
-		/* lookup event id */
-		len_index = struct_declaration_lookup_field_index(stream_class->event_header_decl,
-				g_quark_from_static_string("id"));
-		if (len_index >= 0) {
-			struct definition_integer *defint;
-			struct definition *field;
+		struct definition_integer *integer_definition;
+		struct definition *variant;
 
-			field = struct_definition_get_field_from_index(stream_class->event_header, len_index);
-			assert(field->declaration->id == CTF_TYPE_INTEGER);
-			defint = container_of(field, struct definition_integer, p);
-			assert(defint->declaration->signedness == FALSE);
-			id = defint->value._unsigned;	/* set id */
+		/* lookup event id */
+		integer_definition = lookup_integer(&stream_class->event_header->p, "id", FALSE);
+		if (integer_definition) {
+			id = integer_definition->value._unsigned;
+		} else {
+			struct definition_enum *enum_definition;
+
+			enum_definition = lookup_enum(&stream_class->event_header->p, "id", FALSE);
+			if (enum_definition) {
+				id = enum_definition->integer->value._unsigned;
+			}
+		}
+
+		variant = lookup_variant(&stream_class->event_header->p, "v");
+		if (variant) {
+			integer_definition = lookup_integer(variant, "id", FALSE);
+			if (integer_definition) {
+				id = integer_definition->value._unsigned;
+			}
 		}
 	}
 
