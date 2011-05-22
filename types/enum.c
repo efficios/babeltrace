@@ -35,91 +35,19 @@ void enum_range_set_free(void *ptr)
 	g_array_unref(ptr);
 }
 
-/*
- * Returns a GArray or NULL.
- * Caller must release the GArray with g_array_unref().
- */
-GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
-			       uint64_t v)
-{
-	struct enum_range_to_quark *iter;
-	GArray *qs, *ranges = NULL;
-
-	/* Single values lookup */
-	qs = g_hash_table_lookup(enum_declaration->table.value_to_quark_set, &v);
-
-	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
-		if (iter->range.start._unsigned > v || iter->range.end._unsigned < v)
-			continue;
-		if (!ranges) {
-			size_t qs_len = 0;
-
-			if (qs)
-				qs_len = qs->len;
-			ranges = g_array_sized_new(FALSE, TRUE,
-					sizeof(struct enum_range),
-					qs_len + 1);
-			g_array_set_size(ranges, qs_len + 1);
-			if (qs)
-				memcpy(ranges->data, qs->data,
-				       sizeof(struct enum_range) * qs_len);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
-		} else {
-			g_array_set_size(ranges, ranges->len + 1);
-			g_array_index(ranges, struct enum_range, ranges->len) = iter->range;
-		}
-	}
-	if (!ranges) {
-		ranges = qs;
-		g_array_ref(ranges);
-	}
-	return ranges;
-}
-
-/*
- * Returns a GArray or NULL.
- * Caller must release the GArray with g_array_unref().
- */
-GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
-			      uint64_t v)
-{
-	struct enum_range_to_quark *iter;
-	GArray *qs, *ranges = NULL;
-
-	/* Single values lookup */
-	qs = g_hash_table_lookup(enum_declaration->table.value_to_quark_set, &v);
-
-	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
-		if (iter->range.start._signed > v || iter->range.end._signed < v)
-			continue;
-		if (!ranges) {
-			size_t qs_len = 0;
-
-			if (qs)
-				qs_len = qs->len;
-			ranges = g_array_sized_new(FALSE, TRUE,
-					sizeof(struct enum_range),
-					qs_len + 1);
-			g_array_set_size(ranges, qs_len + 1);
-			if (qs)
-				memcpy(ranges->data, qs->data,
-				       sizeof(struct enum_range) * qs_len);
-			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
-		} else {
-			g_array_set_size(ranges, ranges->len + 1);
-			g_array_index(ranges, struct enum_range, ranges->len) = iter->range;
-		}
-	}
-	if (!ranges) {
-		ranges = qs;
-		g_array_ref(ranges);
-	}
-	return ranges;
-}
-
 #if (__WORDSIZE == 32)
+static inline
+gpointer get_uint_v(uint64_t *v)
+{
+	return v;
+}
+
+static inline
+gpointer get_int_v(int64_t *v)
+{
+	return v;
+}
+
 static
 guint enum_val_hash(gconstpointer key)
 {
@@ -142,49 +70,19 @@ void enum_val_free(void *ptr)
 {
 	g_free(ptr);
 }
-
-static
-void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
-			int64_t v, GQuark q)
-{
-	int64_t *valuep;
-	GArray *array;
-
-	array = g_hash_table_lookup(enum_declaration->table.value_to_quark_set, &v);
-	if (!array) {
-		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
-		g_array_set_size(array, 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
-		valuep = g_new(int64_t, 1);
-		*valuep = v;
-		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
-	} else {
-		g_array_set_size(array, array->len + 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
-	}
-}
-
-static
-void enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
-			 uint64_t v, GQuark q)
-{
-	uint64_t *valuep;
-	GArray *array;
-
-	array = g_hash_table_lookup(enum_declaration->table.value_to_quark_set, &v);
-	if (!array) {
-		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
-		g_array_set_size(array, 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
-		valuep = g_new(uint64_t, 1);
-		*valuep = v;
-		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
-	} else {
-		g_array_set_size(array, array->len + 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
-	}
-}
 #else  /* __WORDSIZE != 32 */
+static inline
+gpointer get_uint_v(uint64_t *v)
+{
+	return (gpointer) *v;
+}
+
+static inline
+gpointer get_int_v(int64_t *v)
+{
+	return (gpointer) *v;
+}
+
 static
 guint enum_val_hash(gconstpointer key)
 {
@@ -201,47 +99,153 @@ static
 void enum_val_free(void *ptr)
 {
 }
+#endif /* __WORDSIZE != 32 */
 
-static
-void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
-			int64_t v, GQuark q)
+/*
+ * Returns a GArray or NULL.
+ * Caller must release the GArray with g_array_unref().
+ */
+GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
+			       uint64_t v)
 {
-	GArray *array;
+	struct enum_range_to_quark *iter;
+	GArray *qs, *ranges = NULL;
 
-	array = g_hash_table_lookup(enum_declaration->table.value_to_quark_set,
-				    (gconstpointer) v);
-	if (!array) {
-		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
-		g_array_set_size(array, 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
-		g_hash_table_insert(enum_declaration->table.value_to_quark_set,
-				    (gpointer) v, array);
-	} else {
-		g_array_set_size(array, array->len + 1);
-		g_array_index(array, GQuark, array->len - 1) = q;
+	/* Single values lookup */
+	qs = g_hash_table_lookup(enum_declaration->table.value_to_quark_set,
+				 get_uint_v(&v));
+
+	/* Range lookup */
+	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
+		if (iter->range.start._unsigned > v || iter->range.end._unsigned < v)
+			continue;
+		if (!ranges) {
+			size_t qs_len = 0;
+
+			if (qs)
+				qs_len = qs->len;
+			ranges = g_array_sized_new(FALSE, TRUE,
+					sizeof(struct enum_range),
+					qs_len + 1);
+			g_array_set_size(ranges, qs_len + 1);
+			if (qs)
+				memcpy(ranges->data, qs->data,
+				       sizeof(struct enum_range) * qs_len);
+			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+		} else {
+			size_t qs_len = ranges->len;
+
+			g_array_set_size(ranges, qs_len + 1);
+			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+		}
 	}
+	if (!ranges) {
+		if (!qs)
+			return NULL;
+		ranges = qs;
+		g_array_ref(ranges);
+	}
+	return ranges;
+}
+
+/*
+ * Returns a GArray or NULL.
+ * Caller must release the GArray with g_array_unref().
+ */
+GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
+			      int64_t v)
+{
+	struct enum_range_to_quark *iter;
+	GArray *qs, *ranges = NULL;
+
+	/* Single values lookup */
+	qs = g_hash_table_lookup(enum_declaration->table.value_to_quark_set,
+				 get_int_v(&v));
+
+	/* Range lookup */
+	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
+		if (iter->range.start._signed > v || iter->range.end._signed < v)
+			continue;
+		if (!ranges) {
+			size_t qs_len = 0;
+
+			if (qs)
+				qs_len = qs->len;
+			ranges = g_array_sized_new(FALSE, TRUE,
+					sizeof(struct enum_range),
+					qs_len + 1);
+			g_array_set_size(ranges, qs_len + 1);
+			if (qs)
+				memcpy(ranges->data, qs->data,
+				       sizeof(struct enum_range) * qs_len);
+			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+		} else {
+			size_t qs_len = ranges->len;
+
+			g_array_set_size(ranges, qs_len + 1);
+			g_array_index(ranges, struct enum_range, qs_len) = iter->range;
+		}
+	}
+	if (!ranges) {
+		if (!qs)
+			return NULL;
+		ranges = qs;
+		g_array_ref(ranges);
+	}
+	return ranges;
 }
 
 static
 void enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
 			 uint64_t v, GQuark q)
 {
+	uint64_t *valuep;
 	GArray *array;
 
 	array = g_hash_table_lookup(enum_declaration->table.value_to_quark_set,
-				    (gconstpointer) v);
+				    get_uint_v(&v));
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
-		g_hash_table_insert(enum_declaration->table.value_to_quark_set,
-				    (gpointer) v, array);
+#if (__WORDSIZE == 32)
+		valuep = g_new(uint64_t, 1);
+		*valuep = v;
+#else  /* __WORDSIZE != 32 */
+		valuep = get_uint_v(&v);
+#endif /* __WORDSIZE != 32 */
+		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
 	}
 }
+
+static
+void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
+			int64_t v, GQuark q)
+{
+	int64_t *valuep;
+	GArray *array;
+
+	array = g_hash_table_lookup(enum_declaration->table.value_to_quark_set,
+				    get_int_v(&v));
+	if (!array) {
+		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
+		g_array_set_size(array, 1);
+		g_array_index(array, GQuark, array->len - 1) = q;
+#if (__WORDSIZE == 32)
+		valuep = g_new(int64_t, 1);
+		*valuep = v;
+#else  /* __WORDSIZE != 32 */
+		valuep = get_int_v(&v);
 #endif /* __WORDSIZE != 32 */
+		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
+	} else {
+		g_array_set_size(array, array->len + 1);
+		g_array_index(array, GQuark, array->len - 1) = q;
+	}
+}
 
 GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
 				GQuark q)

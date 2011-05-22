@@ -407,7 +407,7 @@ GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
  * Caller must release the GArray with g_array_unref().
  */
 GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
-			      uint64_t v);
+			      int64_t v);
 
 /*
  * Returns a GArray of struct enum_range or NULL.
