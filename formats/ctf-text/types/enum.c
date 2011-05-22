@@ -45,23 +45,27 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	pos->field_nr = 0;
 	fprintf(pos->fp, "(");
 	pos->depth++;
-	ret = generic_rw(ppos, &integer_definition->p);
-	fprintf(pos->fp, ":");
-
 	qs = enum_definition->value;
-	assert(qs);
+
+	if (qs) {
+		for (i = 0; i < qs->len; i++) {
+			GQuark q = g_array_index(qs, GQuark, i);
+			const char *str = g_quark_to_string(q);
+
+			assert(str);
+			if (pos->field_nr++ != 0)
+				fprintf(pos->fp, ",");
+			fprintf(pos->fp, " ");
+			fprintf(pos->fp, "%s", str);
+		}
+	} else {
+		fprintf(pos->fp, " <unknown>");
+	}
 
 	pos->field_nr = 0;
-	for (i = 0; i < qs->len; i++) {
-		GQuark q = g_array_index(qs, GQuark, i);
-		const char *str = g_quark_to_string(q);
+	fprintf(pos->fp, " :");
+	ret = generic_rw(ppos, &integer_definition->p);
 
-		assert(str);
-		if (pos->field_nr++ != 0)
-			fprintf(pos->fp, ",");
-		fprintf(pos->fp, " ");
-		fprintf(pos->fp, "%s", str);
-	}
 	pos->depth--;
 	fprintf(pos->fp, " )");
 	pos->field_nr = field_nr_saved;
