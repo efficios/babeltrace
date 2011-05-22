@@ -489,6 +489,11 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	int ret;
 
 	in = *fp;
+	/*
+	 * Using strlen on *buf instead of size of open_memstream
+	 * because its size includes garbage at the end (after final
+	 * \0). This is the allocated size, not the actual string size.
+	 */
 	out = open_memstream(buf, &size);
 	if (out == NULL)
 		return -errno;
@@ -506,7 +511,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	fclose(out);	/* flush the buffer */
 	fclose(in);
 	/* open for reading */
-	*fp = fmemopen(*buf, size, "rb");
+	*fp = fmemopen(*buf, strlen(*buf), "rb");
 	return 0;
 }
 
