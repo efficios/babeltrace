@@ -21,7 +21,7 @@ DEPENDENCIES
 To compile Babeltrace, you will need:
 
 	gcc 3.2 or better
-	glib 2.16 or better development libraries
+	glib 2.22 or better development libraries
 	  (Debian : libglib2.0-0, libglib2.0-dev)
 	  (Fedora : glib2, glib2-devel)
 	libc6 development librairies
