@@ -58,6 +58,7 @@ AC_CONFIG_FILES([
 	formats/ctf-text/types/Makefile
 	formats/ctf/metadata/Makefile
 	converter/Makefile
+	lib/Makefile
 	tests/Makefile
 ])
 AC_OUTPUT
