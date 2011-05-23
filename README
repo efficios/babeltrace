@@ -13,6 +13,7 @@ BUILDING
 	./configure
 	make
 	make install
+	ldconfig
 
 
 DEPENDENCIES
