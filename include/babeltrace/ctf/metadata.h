@@ -96,6 +96,9 @@ struct ctf_trace {
 	DIR *dir;
 	int dirfd;
 	int flags;		/* open flags */
+
+	/* Heap of streams, ordered to always get the lowest timestam */
+	struct ptr_heap *stream_heap;
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\

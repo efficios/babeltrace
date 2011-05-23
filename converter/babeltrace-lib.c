@@ -25,34 +25,33 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/ctf-text/types.h>
+#include <babeltrace/prio_heap.h>
 
-static
-int convert_stream(struct ctf_text_stream_pos *sout,
-		   struct ctf_file_stream *sin)
+static int read_event(struct ctf_file_stream *sin)
 {
 	int ret;
 
-	/* For each event, print header, context, payload */
-	/* TODO: order events by timestamps across streams */
-	for (;;) {
-		ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->stream);
-		if (ret == EOF)
-			break;
-		else if (ret) {
-			fprintf(stdout, "[error] Reading event failed.\n");
-			goto error;
-		}
-		ret = sout->parent.event_cb(&sout->parent, &sin->stream);
-		if (ret) {
-			fprintf(stdout, "[error] Writing event failed.\n");
-			goto error;
-		}
+	ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->stream);
+	if (ret == EOF)
+		return EOF;
+	else if (ret) {
+		fprintf(stdout, "[error] Reading event failed.\n");
+		return ret;
 	}
-
 	return 0;
+}
 
-error:
-	return ret;
+/*
+ * returns true if a < b, false otherwise.
+ */
+int stream_compare(void *a, void *b)
+{
+	struct ctf_file_stream *s_a = a, *s_b = b;
+
+	if (s_a->stream.timestamp < s_b->stream.timestamp)
+		return 1;
+	else
+		return 0;
 }
 
 int convert_trace(struct trace_descriptor *td_write,
@@ -61,27 +60,66 @@ int convert_trace(struct trace_descriptor *td_write,
 	struct ctf_trace *tin = container_of(td_read, struct ctf_trace, parent);
 	struct ctf_text_stream_pos *sout =
 		container_of(td_write, struct ctf_text_stream_pos, trace_descriptor);
-	int stream_id, filenr;
-	int ret;
+	int stream_id;
+	int ret = 0;
 
-	/* For each stream (TODO: order events by timestamp) */
+	tin->stream_heap = g_new(struct ptr_heap, 1);
+	heap_init(tin->stream_heap, 0, stream_compare);
+
+	/* Populate heap with each stream */
 	for (stream_id = 0; stream_id < tin->streams->len; stream_id++) {
 		struct ctf_stream_class *stream = g_ptr_array_index(tin->streams, stream_id);
+		int filenr;
 
 		if (!stream)
 			continue;
 		for (filenr = 0; filenr < stream->files->len; filenr++) {
 			struct ctf_file_stream *file_stream = g_ptr_array_index(stream->files, filenr);
-			ret = convert_stream(sout, file_stream);
+			ret = read_event(file_stream);
+			if (ret == EOF) {
+				ret = 0;
+				continue;
+			} else if (ret)
+				goto end;
+			/* Add to heap */
+			ret = heap_insert(tin->stream_heap, file_stream);
 			if (ret) {
-				fprintf(stdout, "[error] Printing stream %d failed.\n", stream_id);
-				goto error;
+				fprintf(stdout, "[error] Out of memory.\n");
+				goto end;
 			}
 		}
 	}
 
-	return 0;
+	/* Replace heap entries until EOF for each stream (heap empty) */
+	for (;;) {
+		struct ctf_file_stream *file_stream, *removed;
 
-error:
+		file_stream = heap_maximum(tin->stream_heap);
+		if (!file_stream) {
+			/* end of file for all streams */
+			ret = 0;
+			break;
+		}
+		ret = sout->parent.event_cb(&sout->parent, &file_stream->stream);
+		if (ret) {
+			fprintf(stdout, "[error] Writing event failed.\n");
+			goto end;
+		}
+		ret = read_event(file_stream);
+		if (ret == EOF) {
+			removed = heap_remove(tin->stream_heap);
+			assert(removed == file_stream);
+			ret = 0;
+			continue;
+		} else if (ret)
+			goto end;
+		/* Reinsert the file stream into the heap, and rebalance. */
+		removed = heap_replace_max(tin->stream_heap, file_stream);
+		assert(removed == file_stream);
+	}
+
+end:
+	heap_free(tin->stream_heap);
+	g_free(tin->stream_heap);
 	return ret;
 }

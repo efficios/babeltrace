@@ -10,7 +10,8 @@ libbabeltrace_la_SOURCES = \
 libbabeltrace_la_LIBADD = \
 	$(top_builddir)/types/libbabeltrace_types.la \
 	$(top_builddir)/formats/ctf/libctf.la \
-	$(top_builddir)/formats/ctf-text/libctf-text.la
+	$(top_builddir)/formats/ctf-text/libctf-text.la \
+	$(top_builddir)/lib/libprio_heap.la
 
 babeltrace_SOURCES = \
 	babeltrace.c
