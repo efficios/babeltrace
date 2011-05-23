@@ -36,6 +36,8 @@ struct packet_index {
 	off_t data_offset;	/* offset of data within the packet, in bits */
 	size_t packet_size;	/* packet size, in bits */
 	size_t content_size;	/* content size, in bits */
+	uint64_t timestamp_begin;
+	uint64_t timestamp_end;
 };
 
 /*

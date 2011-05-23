@@ -340,6 +340,8 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 
 void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 {
+	struct ctf_file_stream *file_stream =
+		container_of(pos, struct ctf_file_stream, pos);
 	int ret;
 	off_t off;
 	struct packet_index *index;
@@ -405,10 +407,11 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		pos->mmap_offset = index->offset;
 
 		/* Lookup context/packet size in index */
+		file_stream->stream.timestamp = index->timestamp_begin;
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
 		if (index->data_offset < index->content_size)
-			pos->offset = index->data_offset;
+			pos->offset = 0;	/* will read headers */
 		else {
 			pos->offset = EOF;
 			return;
@@ -421,6 +424,18 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		fprintf(stdout, "[error] mmap error %s.\n",
 			strerror(errno));
 		assert(0);
+	}
+
+	/* update trace_packet_header and stream_packet_context */
+	if (file_stream->stream.trace_packet_header) {
+		/* Read packet header */
+		ret = generic_rw(&pos->parent, &file_stream->stream.trace_packet_header->p);
+		assert(!ret);
+	}
+	if (file_stream->stream.stream_packet_context) {
+		/* Read packet context */
+		ret = generic_rw(&pos->parent, &file_stream->stream.stream_packet_context->p);
+		assert(!ret);
 	}
 }
 
@@ -792,6 +807,8 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.offset = pos->mmap_offset;
 		packet_index.content_size = 0;
 		packet_index.packet_size = 0;
+		packet_index.timestamp_begin = 0;
+		packet_index.timestamp_end = 0;
 
 		/* read and check header, set stream id (and check) */
 		if (file_stream->stream.trace_packet_header) {
@@ -919,6 +936,32 @@ int create_stream_packet_index(struct ctf_trace *td,
 			} else {
 				/* Use content size if non-zero, else file size */
 				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
+			}
+
+			/* read timestamp begin from header */
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+			if (len_index >= 0) {
+				struct definition_integer *defint;
+				struct definition *field;
+
+				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
+				assert(defint->declaration->signedness == FALSE);
+				packet_index.timestamp_begin = defint->value._unsigned;
+			}
+
+			/* read timestamp end from header */
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+			if (len_index >= 0) {
+				struct definition_integer *defint;
+				struct definition *field;
+
+				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				assert(field->declaration->id == CTF_TYPE_INTEGER);
+				defint = container_of(field, struct definition_integer, p);
+				assert(defint->declaration->signedness == FALSE);
+				packet_index.timestamp_end = defint->value._unsigned;
 			}
 		} else {
 			/* Use file size for packet size */
