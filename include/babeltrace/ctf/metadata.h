@@ -194,5 +194,4 @@ struct metadata_packet_header {
 	HEADER_END;
 };
 
-
 #endif /* _BABELTRACE_CTF_METADATA_H */

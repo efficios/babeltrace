@@ -88,6 +88,32 @@ struct format ctf_format = {
 };
 
 static
+void ctf_update_timestamp(struct ctf_stream *stream,
+			  struct definition_integer *integer_definition)
+{
+	struct declaration_integer *integer_declaration =
+		integer_definition->declaration;
+	uint64_t oldval, newval, updateval;
+
+	if (integer_declaration->len == 64) {
+		stream->timestamp = integer_definition->value._unsigned;
+		return;
+	}
+	/* keep low bits */
+	oldval = stream->timestamp;
+	oldval &= (1ULL << integer_declaration->len) - 1;
+	newval = integer_definition->value._unsigned;
+	/* Test for overflow by comparing low bits */
+	if (newval < oldval)
+		newval += 1ULL << integer_declaration->len;
+	/* updateval contains old high bits, and new low bits (sum) */
+	updateval = stream->timestamp;
+	updateval &= ~((1ULL << integer_declaration->len) - 1);
+	updateval += newval;
+	stream->timestamp = updateval;
+}
+
+static
 int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 {
 	struct ctf_stream_pos *pos =
@@ -132,12 +158,12 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 		/* lookup timestamp */
 		integer_definition = lookup_integer(&stream_class->event_header->p, "timestamp", FALSE);
 		if (integer_definition) {
-			stream->timestamp = integer_definition->value._unsigned;
+			ctf_update_timestamp(stream, integer_definition);
 		} else {
 			if (variant) {
 				integer_definition = lookup_integer(variant, "timestamp", FALSE);
 				if (integer_definition) {
-					stream->timestamp = integer_definition->value._unsigned;
+					ctf_update_timestamp(stream, integer_definition);
 				}
 			}
 		}
@@ -381,7 +407,12 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		/* Lookup context/packet size in index */
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
-		pos->offset = index->data_offset;
+		if (index->data_offset < index->content_size)
+			pos->offset = index->data_offset;
+		else {
+			pos->offset = EOF;
+			return;
+		}
 	}
 	/* map new base. Need mapping length from header. */
 	pos->base = mmap(NULL, pos->packet_size / CHAR_BIT, pos->prot,
