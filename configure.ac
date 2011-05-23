@@ -23,7 +23,7 @@ AC_PROG_LEX
 
 AC_DEFUN([AC_PROG_BISON], [AC_CHECK_PROGS(BISON, bison, bison)]) 
 
-AM_PATH_GLIB_2_0(2.4.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
+AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
