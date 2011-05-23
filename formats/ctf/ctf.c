@@ -52,7 +52,9 @@
 
 extern int yydebug;
 
+static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags);
+static
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
 static
@@ -907,6 +909,7 @@ error:
 	return ret;
 }
 
+static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags)
 {
 	struct ctf_trace *td;
@@ -945,6 +948,7 @@ void ctf_close_file_stream(struct ctf_file_stream *file_stream)
 	close(file_stream->pos.fd);
 }
 
+static
 void ctf_close_trace(struct trace_descriptor *tdp)
 {
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
@@ -954,7 +958,10 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 		for (i = 0; i < td->streams->len; i++) {
 			struct ctf_stream_class *stream;
 			int j;
+
 			stream = g_ptr_array_index(td->streams, i);
+			if (!stream)
+				continue;
 			for (j = 0; j < stream->files->len; j++) {
 				struct ctf_file_stream *file_stream;
 				file_stream = g_ptr_array_index(stream->files, j);
