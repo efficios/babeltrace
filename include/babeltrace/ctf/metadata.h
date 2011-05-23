@@ -39,6 +39,19 @@ struct ctf_event;
 struct ctf_stream {
 	struct ctf_stream_class *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
+
+	struct definition_struct *trace_packet_header;
+	struct definition_struct *stream_packet_context;
+	struct definition_struct *stream_event_header;
+	struct definition_struct *stream_event_context;
+	GPtrArray *events_by_id;		/* Array of struct ctf_file_event pointers indexed by id */
+	struct definition_scope *parent_def_scope;	/* for initialization */
+	int stream_definitions_created;
+};
+
+struct ctf_file_event {
+	struct definition_struct *event_context;
+	struct definition_struct *event_fields;
 };
 
 struct ctf_file_stream {
@@ -75,9 +88,6 @@ struct ctf_trace {
 
 	/* Declarations only used when parsing */
 	struct declaration_struct *packet_header_decl;
-
-	/* Definitions used afterward */
-	struct definition_struct *packet_header;
 
 	uint64_t major;
 	uint64_t minor;
@@ -129,11 +139,6 @@ struct ctf_stream_class {
 	struct declaration_struct *event_header_decl;
 	struct declaration_struct *event_context_decl;
 
-	/* Definitions used afterward */
-	struct definition_struct *packet_context;
-	struct definition_struct *event_header;
-	struct definition_struct *event_context;
-
 	uint64_t stream_id;
 
 	enum {					/* Fields populated mask */
@@ -166,10 +171,6 @@ struct ctf_event {
 	/* Declarations only used when parsing */
 	struct declaration_struct *context_decl;
 	struct declaration_struct *fields_decl;
-
-	/* Definitions used afterward */
-	struct definition_struct *context;
-	struct definition_struct *fields;
 
 	GQuark name;
 	uint64_t id;		/* Numeric identifier within the stream */

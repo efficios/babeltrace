@@ -1556,7 +1556,6 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_event *event;
-	struct definition_scope *parent_def_scope;
 
 	event = g_new0(struct ctf_event, 1);
 	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
@@ -1601,38 +1600,9 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	g_hash_table_insert(event->stream->event_quark_to_id,
 			    (gpointer)(unsigned long) event->name,
 			    &event->id);
-	parent_def_scope = event->stream->definition_scope;
-	if (event->context_decl) {
-		struct definition *definition =
-			event->context_decl->p.definition_new(&event->context_decl->p,
-				parent_def_scope, 0, 0, "event.context");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		event->context = container_of(definition,
-					struct definition_struct, p);
-		parent_def_scope = event->context->p.scope;
-	}
-	if (event->fields_decl) {
-		struct definition *definition =
-			event->fields_decl->p.definition_new(&event->fields_decl->p,
-				parent_def_scope, 0, 0, "event.fields");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		event->fields = container_of(definition,
-					struct definition_struct, p);
-		parent_def_scope = event->fields->p.scope;
-	}
 	return 0;
 
 error:
-	if (event->context)
-		definition_unref(&event->context->p);
-	if (event->fields)
-		definition_unref(&event->fields->p);
 	if (event->fields_decl)
 		declaration_unref(&event->fields_decl->p);
 	if (event->context_decl)
@@ -1772,7 +1742,6 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_stream_class *stream;
-	struct definition_scope *parent_def_scope;
 
 	stream = g_new0(struct ctf_stream_class, 1);
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
@@ -1807,54 +1776,9 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		g_ptr_array_set_size(trace->streams, stream->stream_id + 1);
 	g_ptr_array_index(trace->streams, stream->stream_id) = stream;
 
-	parent_def_scope = trace->definition_scope;
-	if (stream->packet_context_decl) {
-		struct definition *definition =
-			stream->packet_context_decl->p.definition_new(&stream->packet_context_decl->p,
-				parent_def_scope, 0, 0, "stream.packet.context");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		stream->packet_context = container_of(definition,
-						struct definition_struct, p);
-		parent_def_scope = stream->packet_context->p.scope;
-	}
-	if (stream->event_header_decl) {
-		struct definition *definition =
-			stream->event_header_decl->p.definition_new(&stream->event_header_decl->p,
-				parent_def_scope, 0, 0, "stream.event.header");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		stream->event_header =
-			container_of(definition, struct definition_struct, p);
-		parent_def_scope = stream->event_header->p.scope;
-	}
-	if (stream->event_context_decl) {
-		struct definition *definition =
-			stream->event_context_decl->p.definition_new(&stream->event_context_decl->p,
-				parent_def_scope, 0, 0, "stream.event.context");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		stream->event_context =
-			container_of(definition, struct definition_struct, p);
-		parent_def_scope = stream->event_context->p.scope;
-	}
-	stream->definition_scope = parent_def_scope;
-
 	return 0;
 
 error:
-	if (stream->event_context)
-		definition_unref(&stream->event_context->p);
-	if (stream->event_header)
-		definition_unref(&stream->event_header->p);
-	if (stream->packet_context)
-		definition_unref(&stream->packet_context->p);
 	if (stream->event_header_decl)
 		declaration_unref(&stream->event_header_decl->p);
 	if (stream->event_context_decl)
@@ -2001,7 +1925,6 @@ error:
 static
 int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
 {
-	struct definition_scope *parent_def_scope;
 	int ret = 0;
 	struct ctf_node *iter;
 
@@ -2035,24 +1958,9 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		goto error;
 	}
 
-	parent_def_scope = NULL;
-	if (trace->packet_header_decl) {
-		struct definition *definition =
-			trace->packet_header_decl->p.definition_new(&trace->packet_header_decl->p,
-				parent_def_scope, 0, 0, "trace.packet.header");
-		if (!definition) {
-			ret = -EINVAL;
-			goto error;
-		}
-		trace->packet_header =
-			container_of(definition, struct definition_struct, p);
-		parent_def_scope = trace->packet_header->p.scope;
-	}
-	trace->definition_scope = parent_def_scope;
-
 	if (!CTF_TRACE_FIELD_IS_SET(trace, byte_order)) {
 		/* check that the packet header contains a "magic" field */
-		if (!trace->packet_header
+		if (!trace->packet_header_decl
 		    || struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("magic")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing both byte_order and packet header magic number in trace declaration\n", __func__);
@@ -2062,8 +1970,6 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	return 0;
 
 error:
-	if (trace->packet_header)
-		definition_unref(&trace->packet_header->p);
 	if (trace->packet_header_decl)
 		declaration_unref(&trace->packet_header_decl->p);
 	g_ptr_array_free(trace->streams, TRUE);

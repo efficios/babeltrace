@@ -119,7 +119,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 	struct ctf_stream_class *stream_class = stream->stream_class;
-	struct ctf_event *event_class;
+	struct ctf_file_event *event;
 	uint64_t id = 0;
 	int ret;
 
@@ -127,27 +127,27 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 		return EOF;
 
 	/* Read event header */
-	if (stream_class->event_header) {
+	if (stream->stream_event_header) {
 		struct definition_integer *integer_definition;
 		struct definition *variant;
 
-		ret = generic_rw(ppos, &stream_class->event_header->p);
+		ret = generic_rw(ppos, &stream->stream_event_header->p);
 		if (ret)
 			goto error;
 		/* lookup event id */
-		integer_definition = lookup_integer(&stream_class->event_header->p, "id", FALSE);
+		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
 		if (integer_definition) {
 			id = integer_definition->value._unsigned;
 		} else {
 			struct definition_enum *enum_definition;
 
-			enum_definition = lookup_enum(&stream_class->event_header->p, "id", FALSE);
+			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
 			if (enum_definition) {
 				id = enum_definition->integer->value._unsigned;
 			}
 		}
 
-		variant = lookup_variant(&stream_class->event_header->p, "v");
+		variant = lookup_variant(&stream->stream_event_header->p, "v");
 		if (variant) {
 			integer_definition = lookup_integer(variant, "id", FALSE);
 			if (integer_definition) {
@@ -156,7 +156,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 		}
 
 		/* lookup timestamp */
-		integer_definition = lookup_integer(&stream_class->event_header->p, "timestamp", FALSE);
+		integer_definition = lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
 		if (integer_definition) {
 			ctf_update_timestamp(stream, integer_definition);
 		} else {
@@ -170,8 +170,8 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	}
 
 	/* Read stream-declared event context */
-	if (stream_class->event_context) {
-		ret = generic_rw(ppos, &stream_class->event_context->p);
+	if (stream->stream_event_context) {
+		ret = generic_rw(ppos, &stream->stream_event_context->p);
 		if (ret)
 			goto error;
 	}
@@ -180,22 +180,22 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
-	event_class = g_ptr_array_index(stream_class->events_by_id, id);
-	if (!event_class) {
+	event = g_ptr_array_index(stream->events_by_id, id);
+	if (!event) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
 	/* Read event-declared event context */
-	if (event_class->context) {
-		ret = generic_rw(ppos, &event_class->context->p);
+	if (event->event_context) {
+		ret = generic_rw(ppos, &event->event_context->p);
 		if (ret)
 			goto error;
 	}
 
 	/* Read event payload */
-	if (event_class->fields) {
-		ret = generic_rw(ppos, &event_class->fields->p);
+	if (event->event_fields) {
+		ret = generic_rw(ppos, &event->event_fields->p);
 		if (ret)
 			goto error;
 	}
@@ -211,29 +211,29 @@ static
 int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
 	struct ctf_stream_class *stream_class = stream->stream_class;
-	struct ctf_event *event_class;
+	struct ctf_file_event *event;
 	uint64_t id = 0;
 	int ret;
 
 	/* print event header */
-	if (stream_class->event_header) {
+	if (stream->stream_event_header) {
 		struct definition_integer *integer_definition;
 		struct definition *variant;
 
 		/* lookup event id */
-		integer_definition = lookup_integer(&stream_class->event_header->p, "id", FALSE);
+		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
 		if (integer_definition) {
 			id = integer_definition->value._unsigned;
 		} else {
 			struct definition_enum *enum_definition;
 
-			enum_definition = lookup_enum(&stream_class->event_header->p, "id", FALSE);
+			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
 			if (enum_definition) {
 				id = enum_definition->integer->value._unsigned;
 			}
 		}
 
-		variant = lookup_variant(&stream_class->event_header->p, "v");
+		variant = lookup_variant(&stream->stream_event_header->p, "v");
 		if (variant) {
 			integer_definition = lookup_integer(variant, "id", FALSE);
 			if (integer_definition) {
@@ -241,14 +241,14 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 			}
 		}
 
-		ret = generic_rw(pos, &stream_class->event_header->p);
+		ret = generic_rw(pos, &stream->stream_event_header->p);
 		if (ret)
 			goto error;
 	}
 
 	/* print stream-declared event context */
-	if (stream_class->event_context) {
-		ret = generic_rw(pos, &stream_class->event_context->p);
+	if (stream->stream_event_context) {
+		ret = generic_rw(pos, &stream->stream_event_context->p);
 		if (ret)
 			goto error;
 	}
@@ -257,22 +257,22 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
-	event_class = g_ptr_array_index(stream_class->events_by_id, id);
-	if (!event_class) {
+	event = g_ptr_array_index(stream->events_by_id, id);
+	if (!event) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
 	/* print event-declared event context */
-	if (event_class->context) {
-		ret = generic_rw(pos, &event_class->context->p);
+	if (event->event_context) {
+		ret = generic_rw(pos, &event->event_context->p);
 		if (ret)
 			goto error;
 	}
 
 	/* Read and print event payload */
-	if (event_class->fields) {
-		ret = generic_rw(pos, &event_class->fields->p);
+	if (event->event_fields) {
+		ret = generic_rw(pos, &event->event_fields->p);
 		if (ret)
 			goto error;
 	}
@@ -631,6 +631,125 @@ end_stream:
 	return ret;
 }
 
+static
+struct ctf_file_event *create_event_definitions(struct ctf_trace *td,
+						struct ctf_stream *stream,
+						struct ctf_event *event)
+{
+	struct ctf_file_event *file_event = g_new0(struct ctf_file_event, 1);
+
+	if (event->context_decl) {
+		struct definition *definition =
+			event->context_decl->p.definition_new(&event->context_decl->p,
+				stream->parent_def_scope, 0, 0, "event.context");
+		if (!definition) {
+			goto error;
+		}
+		file_event->event_context = container_of(definition,
+					struct definition_struct, p);
+		stream->parent_def_scope = file_event->event_context->p.scope;
+	}
+	if (event->fields_decl) {
+		struct definition *definition =
+			event->fields_decl->p.definition_new(&event->fields_decl->p,
+				stream->parent_def_scope, 0, 0, "event.fields");
+		if (!definition) {
+			goto error;
+		}
+		file_event->event_fields = container_of(definition,
+					struct definition_struct, p);
+		stream->parent_def_scope = file_event->event_fields->p.scope;
+	}
+	return file_event;
+
+error:
+	if (file_event->event_fields)
+		definition_unref(&file_event->event_fields->p);
+	if (file_event->event_context)
+		definition_unref(&file_event->event_context->p);
+	return NULL;
+}
+
+static
+int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
+{
+	struct ctf_stream_class *stream_class;
+	int ret;
+	int i;
+
+	if (stream->stream_definitions_created)
+		return 0;
+
+	stream_class = stream->stream_class;
+
+	if (stream_class->packet_context_decl) {
+		struct definition *definition =
+			stream_class->packet_context_decl->p.definition_new(&stream_class->packet_context_decl->p,
+				stream->parent_def_scope, 0, 0, "stream.packet.context");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->stream_packet_context = container_of(definition,
+						struct definition_struct, p);
+		stream->parent_def_scope = stream->stream_packet_context->p.scope;
+	}
+	if (stream_class->event_header_decl) {
+		struct definition *definition =
+			stream_class->event_header_decl->p.definition_new(&stream_class->event_header_decl->p,
+				stream->parent_def_scope, 0, 0, "stream.event.header");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->stream_event_header =
+			container_of(definition, struct definition_struct, p);
+		stream->parent_def_scope = stream->stream_event_header->p.scope;
+	}
+	if (stream_class->event_context_decl) {
+		struct definition *definition =
+			stream_class->event_context_decl->p.definition_new(&stream_class->event_context_decl->p,
+				stream->parent_def_scope, 0, 0, "stream.event.context");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->stream_event_context =
+			container_of(definition, struct definition_struct, p);
+		stream->parent_def_scope = stream->stream_event_context->p.scope;
+	}
+	stream->events_by_id = g_ptr_array_new();
+	g_ptr_array_set_size(stream->events_by_id, stream_class->events_by_id->len);
+	for (i = 0; i < stream->events_by_id->len; i++) {
+		struct ctf_event *event = g_ptr_array_index(stream_class->events_by_id, i);
+		struct ctf_file_event *file_event;
+
+		if (!event)
+			continue;
+		file_event = create_event_definitions(td, stream, event);
+		if (!file_event)
+			goto error_event;
+		g_ptr_array_index(stream->events_by_id, i) = file_event;
+	}
+	return 0;
+
+error_event:
+	for (i = 0; i < stream->events_by_id->len; i++) {
+		struct ctf_file_event *file_event = g_ptr_array_index(stream->events_by_id, i);
+		if (file_event)
+			g_free(file_event);
+	}
+	g_ptr_array_free(stream->events_by_id, TRUE);
+error:
+	if (stream->stream_event_context)
+		definition_unref(&stream->stream_event_context->p);
+	if (stream->stream_event_header)
+		definition_unref(&stream->stream_event_header->p);
+	if (stream->stream_packet_context)
+		definition_unref(&stream->stream_packet_context->p);
+	return ret;
+}
+
 
 static
 int create_stream_packet_index(struct ctf_trace *td,
@@ -675,17 +794,17 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.packet_size = 0;
 
 		/* read and check header, set stream id (and check) */
-		if (td->packet_header) {
+		if (file_stream->stream.trace_packet_header) {
 			/* Read packet header */
-			ret = generic_rw(&pos->parent, &td->packet_header->p);
+			ret = generic_rw(&pos->parent, &file_stream->stream.trace_packet_header->p);
 			if (ret)
 				return ret;
-			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("magic"));
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(td->packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -699,14 +818,14 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("uuid"));
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
 				struct definition *field;
 				uint64_t i;
 				uint8_t uuidval[UUID_LEN];
 
-				field = struct_definition_get_field_from_index(td->packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
 				assert(array_len(defarray) == UUID_LEN);
@@ -729,12 +848,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 
-			len_index = struct_declaration_lookup_field_index(td->packet_header->declaration, g_quark_from_static_string("stream_id"));
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(td->packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -761,18 +880,22 @@ int create_stream_packet_index(struct ctf_trace *td,
 		}
 		first_packet = 0;
 
-		if (stream->packet_context) {
+		ret = create_stream_definitions(td, &file_stream->stream);
+		if (ret)
+			return ret;
+
+		if (file_stream->stream.stream_packet_context) {
 			/* Read packet context */
-			ret = generic_rw(&pos->parent, &stream->packet_context->p);
+			ret = generic_rw(&pos->parent, &file_stream->stream.stream_packet_context->p);
 			if (ret)
 				return ret;
 			/* read content size from header */
-			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("content_size"));
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -783,12 +906,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read packet size from header */
-			len_index = struct_declaration_lookup_field_index(stream->packet_context->declaration, g_quark_from_static_string("packet_size"));
+			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(stream->packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -832,6 +955,30 @@ int create_stream_packet_index(struct ctf_trace *td,
 	return 0;
 }
 
+static
+int create_trace_definitions(struct ctf_trace *td, struct ctf_stream *stream)
+{
+	int ret;
+
+	if (td->packet_header_decl) {
+		struct definition *definition =
+			td->packet_header_decl->p.definition_new(&td->packet_header_decl->p,
+				stream->parent_def_scope, 0, 0, "trace.packet.header");
+		if (!definition) {
+			ret = -EINVAL;
+			goto error;
+		}
+		stream->trace_packet_header = 
+			container_of(definition, struct definition_struct, p);
+		stream->parent_def_scope = stream->trace_packet_header->p.scope;
+	}
+
+	return 0;
+
+error:
+	return ret;
+}
+
 /*
  * Note: many file streams can inherit from the same stream class
  * description (metadata).
@@ -847,6 +994,9 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 		goto error;
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	ctf_init_pos(&file_stream->pos, ret, flags);
+	ret = create_trace_definitions(td, &file_stream->stream);
+	if (ret)
+		goto error_def;
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;
@@ -855,6 +1005,9 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 	return 0;
 
 error_index:
+	if (file_stream->stream.trace_packet_header)
+		definition_unref(&file_stream->stream.trace_packet_header->p);
+error_def:
 	ctf_fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
 	g_free(file_stream);
