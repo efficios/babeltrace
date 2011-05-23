@@ -27,7 +27,7 @@
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 #endif
 
-static __attribute__((unused))
+static
 size_t parent(size_t i)
 {
 	return i >> 1;
@@ -45,6 +45,9 @@ size_t right(size_t i)
 	return (i << 1) + 1;
 }
 
+/*
+ * Copy of heap->ptrs pointer is invalid after heap_grow.
+ */
 static
 int heap_grow(struct ptr_heap *heap, size_t new_len)
 {
@@ -126,69 +129,85 @@ static void heapify(struct ptr_heap *heap, size_t i)
 void *heap_replace_max(struct ptr_heap *heap, void *p)
 {
 	void *res;
-	void **ptrs = heap->ptrs;
 
 	if (!heap->len) {
 		(void) heap_set_len(heap, 1);
-		ptrs[0] = p;
+		heap->ptrs[0] = p;
 		return NULL;
 	}
 
 	/* Replace the current max and heapify */
-	res = ptrs[0];
-	ptrs[0] = p;
+	res = heap->ptrs[0];
+	heap->ptrs[0] = p;
 	heapify(heap, 0);
 	return res;
 }
 
 int heap_insert(struct ptr_heap *heap, void *p)
 {
-	void **ptrs = heap->ptrs;
+	void **ptrs;
+	size_t pos;
 	int ret;
 
 	ret = heap_set_len(heap, heap->len + 1);
 	if (ret)
 		return ret;
+	ptrs = heap->ptrs;
 	/* Add the element to the end */
 	ptrs[heap->len - 1] = p;
-	/* rebalance */
-	heapify(heap, 0);
+	pos = heap->len - 1;
+	/* Bubble it up to the appropriate position. */
+	for (;;) {
+		if (pos > 0 && heap->gt(ptrs[pos], ptrs[parent(pos)])) {
+			void *tmp;
+
+			/* Need to exchange */
+			tmp = ptrs[pos];
+			ptrs[pos] = ptrs[parent(pos)];
+			ptrs[parent(pos)] = tmp;
+			pos = parent(pos);
+			/*
+			 * No need to rebalance: if we are larger than
+			 * our parent, we are necessarily larger than
+			 * its other child.
+			 */
+		} else {
+			break;
+		}
+	}
 	return 0;
 }
 
 void *heap_remove(struct ptr_heap *heap)
 {
-	void **ptrs = heap->ptrs;
-
 	switch (heap->len) {
 	case 0:
 		return NULL;
 	case 1:
 		(void) heap_set_len(heap, 0);
-		return ptrs[0];
+		return heap->ptrs[0];
 	}
 	/* Shrink, replace the current max by previous last entry and heapify */
 	heap_set_len(heap, heap->len - 1);
-	return heap_replace_max(heap, ptrs[heap->len - 1]);
+	return heap_replace_max(heap, heap->ptrs[heap->len - 1]);
 }
 
 void *heap_cherrypick(struct ptr_heap *heap, void *p)
 {
-	void **ptrs = heap->ptrs;
 	size_t pos, len = heap->len;
 
 	for (pos = 0; pos < len; pos++)
-		if (ptrs[pos] == p)
+		if (heap->ptrs[pos] == p)
 			goto found;
 	return NULL;
 found:
 	if (heap->len == 1) {
 		(void) heap_set_len(heap, 0);
-		return ptrs[0];
+		return heap->ptrs[0];
 	}
 	/* Replace p with previous last entry and heapify. */
 	heap_set_len(heap, heap->len - 1);
-	ptrs[pos] = ptrs[heap->len - 1];
+	heap->ptrs[pos] = heap->ptrs[heap->len - 1];
 	heapify(heap, pos);
 	return p;
 }
