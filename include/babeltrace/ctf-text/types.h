@@ -69,4 +69,9 @@ void print_pos_tabs(struct ctf_text_stream_pos *pos)
 		fprintf(pos->fp, "\t");
 }
 
+/*
+ * Check if the field must be printed.
+ */
+int print_field(struct definition *definition);
+
 #endif /* _BABELTRACE_CTF_TEXT_TYPES_H */

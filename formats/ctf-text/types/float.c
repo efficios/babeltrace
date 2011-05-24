@@ -27,6 +27,9 @@ int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
 		container_of(definition, struct definition_float, p);
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
+	if (!print_field(definition))
+		return 0;
+
 	if (pos->dummy)
 		return 0;
 

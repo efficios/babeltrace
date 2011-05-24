@@ -30,6 +30,9 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 	int field_nr_saved;
 	int ret = 0;
 
+	if (!print_field(definition))
+		return 0;
+
 	if (!pos->dummy) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");

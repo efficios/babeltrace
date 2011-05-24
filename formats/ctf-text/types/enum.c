@@ -31,6 +31,9 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	int i, ret;
 	int field_nr_saved;
 
+	if (!print_field(definition))
+		return 0;
+
 	if (pos->dummy)
 		return 0;
 

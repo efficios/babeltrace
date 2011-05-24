@@ -29,6 +29,10 @@ int ctf_text_string_write(struct stream_pos *ppos,
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 
 	assert(string_definition->value != NULL);
+
+	if (!print_field(definition))
+		return 0;
+
 	if (pos->dummy)
 		return 0;
 

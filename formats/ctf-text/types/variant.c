@@ -25,6 +25,9 @@ int ctf_text_variant_write(struct stream_pos *ppos, struct definition *definitio
 	int field_nr_saved;
 	int ret;
 
+	if (!print_field(definition))
+		return 0;
+
 	if (!pos->dummy) {
 		if (pos->depth >= 0) {
 			if (pos->field_nr++ != 0)

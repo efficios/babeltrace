@@ -53,6 +53,43 @@ struct format ctf_text_format = {
 	.close_trace = ctf_text_close_trace,
 };
 
+static GQuark Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN,
+	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_END,
+	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED,
+	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE,
+	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE;
+
+static
+void __attribute__((constructor)) init_quarks(void)
+{
+	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN = g_quark_from_static_string("stream.packet.context.timestamp_begin");
+	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_END = g_quark_from_static_string("stream.packet.context.timestamp_end");
+	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED = g_quark_from_static_string("stream.packet.context.events_discarded");
+	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE = g_quark_from_static_string("stream.packet.context.content_size");
+	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE = g_quark_from_static_string("stream.packet.context.packet_size");
+}
+
+int print_field(struct definition *definition)
+{
+	/* Print all fields in verbose mode */
+	if (babeltrace_verbose)
+		return 1;
+
+	/* Filter out part of the packet context */
+	if (definition->path == Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN)
+		return 0;
+	if (definition->path == Q_STREAM_PACKET_CONTEXT_TIMESTAMP_END)
+		return 0;
+	if (definition->path == Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED)
+		return 0;
+	if (definition->path == Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE)
+		return 0;
+	if (definition->path == Q_STREAM_PACKET_CONTEXT_PACKET_SIZE)
+		return 0;
+
+	return 1;
+}
+
 static
 int ctf_text_write_event(struct stream_pos *ppos,
 			 struct ctf_stream *stream)
