@@ -301,18 +301,21 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 		 */
 		if (node->u.type_declarator.type == TYPEDEC_NESTED)
 			goto errperm;
-		switch (node->u.type_declarator.type) {
-		case TYPESPEC_FLOATING_POINT:
-		case TYPESPEC_INTEGER:
-		case TYPESPEC_STRING:
-		case TYPESPEC_STRUCT:
-		case TYPESPEC_VARIANT:
-		case TYPESPEC_ENUM:
-			if (cds_list_empty(&node->u.type_declarator.pointers))
-				goto errperm;
-			break;
-		default:
-			break;
+		cds_list_for_each_entry(iter, &node->parent->u.typealias_alias.type_specifier_list->u.type_specifier_list.head,
+					siblings) {
+			switch (iter->u.type_specifier.type) {
+			case TYPESPEC_FLOATING_POINT:
+			case TYPESPEC_INTEGER:
+			case TYPESPEC_STRING:
+			case TYPESPEC_STRUCT:
+			case TYPESPEC_VARIANT:
+			case TYPESPEC_ENUM:
+				if (cds_list_empty(&node->u.type_declarator.pointers))
+					goto errperm;
+				break;
+			default:
+				break;
+			}
 		}
 		if (node->u.type_declarator.type == TYPEDEC_ID &&
 		    node->u.type_declarator.u.id != NULL)
