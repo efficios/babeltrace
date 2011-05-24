@@ -28,6 +28,15 @@ struct ptr_heap {
 	int (*gt)(void *a, void *b);
 };
 
+#ifdef DEBUG_HEAP
+void check_heap(const struct ptr_heap *heap);
+#else
+static inline
+void check_heap(const struct ptr_heap *heap)
+{
+}
+#endif
+
 /**
  * heap_maximum - return the largest element in the heap
  * @heap: the heap to be operated on
@@ -37,6 +46,7 @@ struct ptr_heap {
  */
 static inline void *heap_maximum(const struct ptr_heap *heap)
 {
+	check_heap(heap);
 	return heap->len ? heap->ptrs[0] : NULL;
 }
 

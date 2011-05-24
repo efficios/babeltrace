@@ -21,28 +21,42 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #ifndef max_t
 #define max_t(type, a, b)	\
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 #endif
 
+#ifdef DEBUG_HEAP
+void check_heap(const struct ptr_heap *heap)
+{
+	size_t i;
+
+	if (!heap->len)
+		return;
+
+	for (i = 1; i < heap->len; i++)
+		assert(!heap->gt(heap->ptrs[i], heap->ptrs[0]));
+}
+#endif
+
 static
 size_t parent(size_t i)
 {
-	return i >> 1;
+	return (i - 1) >> 1;
 }
 
 static
 size_t left(size_t i)
 {
-	return i << 1;
+	return (i << 1) + 1;
 }
 
 static
 size_t right(size_t i)
 {
-	return (i << 1) + 1;
+	return (i << 1) + 2;
 }
 
 /*
@@ -104,26 +118,24 @@ static void heapify(struct ptr_heap *heap, size_t i)
 	size_t l, r, largest;
 
 	for (;;) {
+		void *tmp;
+
 		l = left(i);
 		r = right(i);
-		if (l <= heap->len && ptrs[l] > ptrs[i])
+		if (l < heap->len && heap->gt(ptrs[l], ptrs[i]))
 			largest = l;
 		else
 			largest = i;
-		if (r <= heap->len && ptrs[r] > ptrs[largest])
+		if (r < heap->len && heap->gt(ptrs[r], ptrs[largest]))
 			largest = r;
-		if (largest != i) {
-			void *tmp;
-
-			tmp = ptrs[i];
-			ptrs[i] = ptrs[largest];
-			ptrs[largest] = tmp;
-			i = largest;
-			continue;
-		} else {
+		if (largest == i)
 			break;
-		}
+		tmp = ptrs[i];
+		ptrs[i] = ptrs[largest];
+		ptrs[largest] = tmp;
+		i = largest;
 	}
+	check_heap(heap);
 }
 
 void *heap_replace_max(struct ptr_heap *heap, void *p)
@@ -133,6 +145,7 @@ void *heap_replace_max(struct ptr_heap *heap, void *p)
 	if (!heap->len) {
 		(void) heap_set_len(heap, 1);
 		heap->ptrs[0] = p;
+		check_heap(heap);
 		return NULL;
 	}
 
@@ -153,28 +166,14 @@ int heap_insert(struct ptr_heap *heap, void *p)
 	if (ret)
 		return ret;
 	ptrs = heap->ptrs;
-	/* Add the element to the end */
-	ptrs[heap->len - 1] = p;
 	pos = heap->len - 1;
-	/* Bubble it up to the appropriate position. */
-	for (;;) {
-		if (pos > 0 && heap->gt(ptrs[pos], ptrs[parent(pos)])) {
-			void *tmp;
-
-			/* Need to exchange */
-			tmp = ptrs[pos];
-			ptrs[pos] = ptrs[parent(pos)];
-			ptrs[parent(pos)] = tmp;
-			pos = parent(pos);
-			/*
-			 * No need to rebalance: if we are larger than
-			 * our parent, we are necessarily larger than
-			 * its other child.
-			 */
-		} else {
-			break;
-		}
+	while (pos > 0 && heap->gt(p, ptrs[parent(pos)])) {
+		/* Move parent down until we find the right spot */
+		ptrs[pos] = ptrs[parent(pos)];
+		pos = parent(pos);
 	}
+	ptrs[pos] = p;
+	check_heap(heap);
 	return 0;
 }
 
@@ -189,7 +188,8 @@ void *heap_remove(struct ptr_heap *heap)
 	}
 	/* Shrink, replace the current max by previous last entry and heapify */
 	heap_set_len(heap, heap->len - 1);
-	return heap_replace_max(heap, heap->ptrs[heap->len - 1]);
+	/* len changed. previous last entry is at heap->len */
+	return heap_replace_max(heap, heap->ptrs[heap->len]);
 }
 
 void *heap_cherrypick(struct ptr_heap *heap, void *p)
@@ -203,11 +203,13 @@ void *heap_cherrypick(struct ptr_heap *heap, void *p)
 found:
 	if (heap->len == 1) {
 		(void) heap_set_len(heap, 0);
+		check_heap(heap);
 		return heap->ptrs[0];
 	}
 	/* Replace p with previous last entry and heapify. */
 	heap_set_len(heap, heap->len - 1);
-	heap->ptrs[pos] = heap->ptrs[heap->len - 1];
+	/* len changed. previous last entry is at heap->len */
+	heap->ptrs[pos] = heap->ptrs[heap->len];
 	heapify(heap, pos);
 	return p;
 }
