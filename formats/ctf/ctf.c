@@ -784,6 +784,9 @@ int create_stream_packet_index(struct ctf_trace *td,
 	if (ret < 0)
 		return ret;
 
+	if (filestats.st_size < MAX_PACKET_HEADER_LEN / CHAR_BIT)
+		return -EINVAL;
+
 	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
 		uint64_t stream_id = 0;
 
