@@ -76,15 +76,15 @@ int ctf_visitor_print_unary_expression(FILE *fd, int depth, struct ctf_node *nod
 		break;
 	case UNARY_SIGNED_CONSTANT:
 		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression value=");
+		fprintf(fd, "<unary_expression value=\"");
 		fprintf(fd, "%" PRId64, node->u.unary_expression.u.signed_constant);
-		fprintf(fd, " />\n");
+		fprintf(fd, "\" />\n");
 		break;
 	case UNARY_UNSIGNED_CONSTANT:
 		print_tabs(fd, depth);
-		fprintf(fd, "<unary_expression value=");
+		fprintf(fd, "<unary_expression value=\"");
 		fprintf(fd, "%" PRIu64, node->u.unary_expression.u.signed_constant);
-		fprintf(fd, " />\n");
+		fprintf(fd, "\" />\n");
 		break;
 	case UNARY_SBRAC:
 		print_tabs(fd, depth);
@@ -137,6 +137,7 @@ int ctf_visitor_print_type_specifier_list(FILE *fd, int depth, struct ctf_node *
 static
 int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 {
+	int ret;
 	print_tabs(fd, depth);
 
 	switch (node->u.type_specifier.type) {
@@ -154,7 +155,7 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_IMAGINARY:
 	case TYPESPEC_CONST:
 	case TYPESPEC_ID_TYPE:
-		fprintf(fd, "<type_specifier \"");
+		fprintf(fd, "<type_specifier type=\"");
 		break;
 	case TYPESPEC_FLOATING_POINT:
 	case TYPESPEC_INTEGER:
@@ -221,7 +222,10 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_STRUCT:
 	case TYPESPEC_VARIANT:
 	case TYPESPEC_ENUM:
-		return ctf_visitor_print_xml(fd, depth, node->u.type_specifier.node);
+		ret = ctf_visitor_print_xml(fd, depth, node->u.type_specifier.node);
+		if (ret)
+			return ret;
+		break;
 	case TYPESPEC_UNKNOWN:
 	default:
 		fprintf(stderr, "[error] %s: unknown type specifier %d\n", __func__,
@@ -252,9 +256,9 @@ int ctf_visitor_print_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case TYPESPEC_STRUCT:
 	case TYPESPEC_VARIANT:
 	case TYPESPEC_ENUM:
+		depth--;
 		print_tabs(fd, depth);
 		fprintf(fd, "</type_specifier>\n");
-		depth--;
 		break;
 	case TYPESPEC_UNKNOWN:
 	default:
@@ -293,7 +297,7 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 	case TYPEDEC_ID:
 		if (node->u.type_declarator.u.id) {
 			print_tabs(fd, depth);
-			fprintf(fd, "<id \"");
+			fprintf(fd, "<id name=\"");
 			fprintf(fd, "%s", node->u.type_declarator.u.id);
 			fprintf(fd, "\" />\n");
 		}
