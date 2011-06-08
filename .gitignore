@@ -20,3 +20,9 @@ libtool
 /configure
 Makefile
 Makefile.in
+autom4te.cache/
+config/
+converter/babeltrace-log
+core
+formats/ctf/metadata/ctf-parser.output
+stamp-h1
