@@ -427,12 +427,12 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	}
 
 	/* update trace_packet_header and stream_packet_context */
-	if (file_stream->stream.trace_packet_header) {
+	if (pos->prot != PROT_WRITE && file_stream->stream.trace_packet_header) {
 		/* Read packet header */
 		ret = generic_rw(&pos->parent, &file_stream->stream.trace_packet_header->p);
 		assert(!ret);
 	}
-	if (file_stream->stream.stream_packet_context) {
+	if (pos->prot != PROT_WRITE && file_stream->stream.stream_packet_context) {
 		/* Read packet context */
 		ret = generic_rw(&pos->parent, &file_stream->stream.stream_packet_context->p);
 		assert(!ret);
