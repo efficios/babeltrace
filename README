@@ -12,6 +12,9 @@ Format (CTF). The latest version of the CTF specification can be found at:
   git tree:   git://git.efficios.com/ctf.git
   gitweb:     http://git.efficios.com/?p=ctf.git
 
+The CE Workgroup of the Linux Foundation, Ericsson, and EfficiOS have
+sponsored this work.
+
 
 BUILDING
 --------
