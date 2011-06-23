@@ -597,7 +597,6 @@ void free_definition_scope(struct definition_scope *scope)
 	g_free(scope);
 }
 
-static
 struct definition *lookup_definition(struct definition *definition,
 				     const char *field_name)
 {

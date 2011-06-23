@@ -512,6 +512,8 @@ void append_scope_path(const char *path, GArray *q);
 /*
  * Lookup helpers.
  */
+struct definition *lookup_definition(struct definition *definition,
+				     const char *field_name);
 struct definition_integer *lookup_integer(struct definition *definition,
 					  const char *field_name,
 					  int signedness);
