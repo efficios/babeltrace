@@ -99,7 +99,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	struct ctf_stream_class *stream_class = stream->stream_class;
 	int field_nr_saved;
 	struct ctf_event *event_class;
-	struct ctf_file_event *event;
+	struct ctf_stream_event *event;
 	uint64_t id = 0;
 	int ret;
 

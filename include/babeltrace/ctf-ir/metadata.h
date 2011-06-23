@@ -41,12 +41,12 @@ struct ctf_stream {
 	struct definition_struct *stream_packet_context;
 	struct definition_struct *stream_event_header;
 	struct definition_struct *stream_event_context;
-	GPtrArray *events_by_id;		/* Array of struct ctf_file_event pointers indexed by id */
+	GPtrArray *events_by_id;		/* Array of struct ctf_stream_event pointers indexed by id */
 	struct definition_scope *parent_def_scope;	/* for initialization */
 	int stream_definitions_created;
 };
 
-struct ctf_file_event {
+struct ctf_stream_event {
 	struct definition_struct *event_context;
 	struct definition_struct *event_fields;
 };

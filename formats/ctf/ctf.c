@@ -119,7 +119,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 	struct ctf_stream_class *stream_class = stream->stream_class;
-	struct ctf_file_event *event;
+	struct ctf_stream_event *event;
 	uint64_t id = 0;
 	int ret;
 
@@ -211,7 +211,7 @@ static
 int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
 	struct ctf_stream_class *stream_class = stream->stream_class;
-	struct ctf_file_event *event;
+	struct ctf_stream_event *event;
 	uint64_t id = 0;
 	int ret;
 
@@ -647,11 +647,11 @@ end_stream:
 }
 
 static
-struct ctf_file_event *create_event_definitions(struct ctf_trace *td,
-						struct ctf_stream *stream,
-						struct ctf_event *event)
+struct ctf_stream_event *create_event_definitions(struct ctf_trace *td,
+						  struct ctf_stream *stream,
+						  struct ctf_event *event)
 {
-	struct ctf_file_event *file_event = g_new0(struct ctf_file_event, 1);
+	struct ctf_stream_event *stream_event = g_new0(struct ctf_stream_event, 1);
 
 	if (event->context_decl) {
 		struct definition *definition =
@@ -660,9 +660,9 @@ struct ctf_file_event *create_event_definitions(struct ctf_trace *td,
 		if (!definition) {
 			goto error;
 		}
-		file_event->event_context = container_of(definition,
+		stream_event->event_context = container_of(definition,
 					struct definition_struct, p);
-		stream->parent_def_scope = file_event->event_context->p.scope;
+		stream->parent_def_scope = stream_event->event_context->p.scope;
 	}
 	if (event->fields_decl) {
 		struct definition *definition =
@@ -671,17 +671,17 @@ struct ctf_file_event *create_event_definitions(struct ctf_trace *td,
 		if (!definition) {
 			goto error;
 		}
-		file_event->event_fields = container_of(definition,
+		stream_event->event_fields = container_of(definition,
 					struct definition_struct, p);
-		stream->parent_def_scope = file_event->event_fields->p.scope;
+		stream->parent_def_scope = stream_event->event_fields->p.scope;
 	}
-	return file_event;
+	return stream_event;
 
 error:
-	if (file_event->event_fields)
-		definition_unref(&file_event->event_fields->p);
-	if (file_event->event_context)
-		definition_unref(&file_event->event_context->p);
+	if (stream_event->event_fields)
+		definition_unref(&stream_event->event_fields->p);
+	if (stream_event->event_context)
+		definition_unref(&stream_event->event_context->p);
 	return NULL;
 }
 
@@ -737,22 +737,22 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
 	g_ptr_array_set_size(stream->events_by_id, stream_class->events_by_id->len);
 	for (i = 0; i < stream->events_by_id->len; i++) {
 		struct ctf_event *event = g_ptr_array_index(stream_class->events_by_id, i);
-		struct ctf_file_event *file_event;
+		struct ctf_stream_event *stream_event;
 
 		if (!event)
 			continue;
-		file_event = create_event_definitions(td, stream, event);
-		if (!file_event)
+		stream_event = create_event_definitions(td, stream, event);
+		if (!stream_event)
 			goto error_event;
-		g_ptr_array_index(stream->events_by_id, i) = file_event;
+		g_ptr_array_index(stream->events_by_id, i) = stream_event;
 	}
 	return 0;
 
 error_event:
 	for (i = 0; i < stream->events_by_id->len; i++) {
-		struct ctf_file_event *file_event = g_ptr_array_index(stream->events_by_id, i);
-		if (file_event)
-			g_free(file_event);
+		struct ctf_stream_event *stream_event = g_ptr_array_index(stream->events_by_id, i);
+		if (stream_event)
+			g_free(stream_event);
 	}
 	g_ptr_array_free(stream->events_by_id, TRUE);
 error:
