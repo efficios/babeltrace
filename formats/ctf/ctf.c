@@ -881,12 +881,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 		}
 
-		if (!first_packet && file_stream->stream_id != stream_id) {
+		if (!first_packet && file_stream->stream.stream_id != stream_id) {
 			fprintf(stdout, "[error] Stream ID is changing within a stream.\n");
 			return -EINVAL;
 		}
 		if (first_packet) {
-			file_stream->stream_id = stream_id;
+			file_stream->stream.stream_id = stream_id;
 			if (stream_id >= td->streams->len) {
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
