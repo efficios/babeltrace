@@ -32,6 +32,11 @@
 #define CTF_MAGIC	0xC1FC1FC1
 #define TSDL_MAGIC	0x75D11D57
 
+struct ctf_file_stream {
+	struct ctf_stream parent;
+	struct ctf_stream_pos pos;	/* current stream position */
+};
+
 #define HEADER_END		char end_field
 #define header_sizeof(type)	offsetof(typeof(type), end_field)
 

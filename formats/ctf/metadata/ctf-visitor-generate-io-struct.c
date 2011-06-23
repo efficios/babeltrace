@@ -1747,7 +1747,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_direct_hash, g_direct_equal);
-	stream->files = g_ptr_array_new();
+	stream->streams = g_ptr_array_new();
 	if (node) {
 		cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
 			ret = ctf_stream_declaration_visit(fd, depth + 1, iter, stream, trace);
@@ -1785,7 +1785,7 @@ error:
 		declaration_unref(&stream->event_context_decl->p);
 	if (stream->packet_context_decl)
 		declaration_unref(&stream->packet_context_decl->p);
-	g_ptr_array_free(stream->files, TRUE);
+	g_ptr_array_free(stream->streams, TRUE);
 	g_ptr_array_free(stream->events_by_id, TRUE);
 	g_hash_table_destroy(stream->event_quark_to_id);
 	free_declaration_scope(stream->declaration_scope);

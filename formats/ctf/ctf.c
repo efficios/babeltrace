@@ -407,7 +407,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		pos->mmap_offset = index->offset;
 
 		/* Lookup context/packet size in index */
-		file_stream->stream.timestamp = index->timestamp_begin;
+		file_stream->parent.timestamp = index->timestamp_begin;
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
 		if (index->data_offset < index->content_size)
@@ -427,14 +427,14 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	}
 
 	/* update trace_packet_header and stream_packet_context */
-	if (pos->prot != PROT_WRITE && file_stream->stream.trace_packet_header) {
+	if (pos->prot != PROT_WRITE && file_stream->parent.trace_packet_header) {
 		/* Read packet header */
-		ret = generic_rw(&pos->parent, &file_stream->stream.trace_packet_header->p);
+		ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
 		assert(!ret);
 	}
-	if (pos->prot != PROT_WRITE && file_stream->stream.stream_packet_context) {
+	if (pos->prot != PROT_WRITE && file_stream->parent.stream_packet_context) {
 		/* Read packet context */
-		ret = generic_rw(&pos->parent, &file_stream->stream.stream_packet_context->p);
+		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
 		assert(!ret);
 	}
 }
@@ -578,20 +578,23 @@ static
 int ctf_open_trace_metadata_read(struct ctf_trace *td)
 {
 	struct ctf_scanner *scanner;
+	struct ctf_file_stream *metadata_stream;
 	FILE *fp;
 	char *buf = NULL;
 	int ret = 0;
 
-	td->metadata.pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
-	if (td->metadata.pos.fd < 0) {
+	metadata_stream = g_new0(struct ctf_file_stream, 1);
+	td->metadata = &metadata_stream->parent;
+	metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
+	if (metadata_stream->pos.fd < 0) {
 		fprintf(stdout, "Unable to open metadata.\n");
-		return td->metadata.pos.fd;
+		return metadata_stream->pos.fd;
 	}
 
 	if (babeltrace_debug)
 		yydebug = 1;
 
-	fp = fdopen(td->metadata.pos.fd, "r");
+	fp = fdopen(metadata_stream->pos.fd, "r");
 	if (!fp) {
 		fprintf(stdout, "[error] Unable to open metadata stream.\n");
 		ret = -errno;
@@ -642,7 +645,9 @@ end_packet_read:
 	fclose(fp);
 	free(buf);
 end_stream:
-	close(td->metadata.pos.fd);
+	close(metadata_stream->pos.fd);
+	if (ret)
+		g_free(metadata_stream);
 	return ret;
 }
 
@@ -814,17 +819,17 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.timestamp_end = 0;
 
 		/* read and check header, set stream id (and check) */
-		if (file_stream->stream.trace_packet_header) {
+		if (file_stream->parent.trace_packet_header) {
 			/* Read packet header */
-			ret = generic_rw(&pos->parent, &file_stream->stream.trace_packet_header->p);
+			ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
 			if (ret)
 				return ret;
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("magic"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -838,14 +843,14 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
 				struct definition *field;
 				uint64_t i;
 				uint8_t uuidval[UUID_LEN];
 
-				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
 				assert(array_len(defarray) == UUID_LEN);
@@ -868,12 +873,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.trace_packet_header, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -881,12 +886,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 		}
 
-		if (!first_packet && file_stream->stream.stream_id != stream_id) {
+		if (!first_packet && file_stream->parent.stream_id != stream_id) {
 			fprintf(stdout, "[error] Stream ID is changing within a stream.\n");
 			return -EINVAL;
 		}
 		if (first_packet) {
-			file_stream->stream.stream_id = stream_id;
+			file_stream->parent.stream_id = stream_id;
 			if (stream_id >= td->streams->len) {
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
@@ -896,26 +901,26 @@ int create_stream_packet_index(struct ctf_trace *td,
 				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
 			}
-			file_stream->stream.stream_class = stream;
+			file_stream->parent.stream_class = stream;
 		}
 		first_packet = 0;
 
-		ret = create_stream_definitions(td, &file_stream->stream);
+		ret = create_stream_definitions(td, &file_stream->parent);
 		if (ret)
 			return ret;
 
-		if (file_stream->stream.stream_packet_context) {
+		if (file_stream->parent.stream_packet_context) {
 			/* Read packet context */
-			ret = generic_rw(&pos->parent, &file_stream->stream.stream_packet_context->p);
+			ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
 			if (ret)
 				return ret;
 			/* read content size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -926,12 +931,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read packet size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -942,12 +947,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read timestamp begin from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -955,12 +960,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read timestamp end from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->stream.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
 			if (len_index >= 0) {
 				struct definition_integer *defint;
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->stream.stream_packet_context, len_index);
+				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				assert(field->declaration->id == CTF_TYPE_INTEGER);
 				defint = container_of(field, struct definition_integer, p);
 				assert(defint->declaration->signedness == FALSE);
@@ -1040,19 +1045,20 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags)
 		goto error;
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	ctf_init_pos(&file_stream->pos, ret, flags);
-	ret = create_trace_definitions(td, &file_stream->stream);
+	ret = create_trace_definitions(td, &file_stream->parent);
 	if (ret)
 		goto error_def;
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;
 	/* Add stream file to stream class */
-	g_ptr_array_add(file_stream->stream.stream_class->files, file_stream);
+	g_ptr_array_add(file_stream->parent.stream_class->streams,
+			&file_stream->parent);
 	return 0;
 
 error_index:
-	if (file_stream->stream.trace_packet_header)
-		definition_unref(&file_stream->stream.trace_packet_header->p);
+	if (file_stream->parent.trace_packet_header)
+		definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	ctf_fini_pos(&file_stream->pos);
 	close(file_stream->pos.fd);
@@ -1192,9 +1198,9 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 			stream = g_ptr_array_index(td->streams, i);
 			if (!stream)
 				continue;
-			for (j = 0; j < stream->files->len; j++) {
+			for (j = 0; j < stream->streams->len; j++) {
 				struct ctf_file_stream *file_stream;
-				file_stream = g_ptr_array_index(stream->files, j);
+				file_stream = container_of(g_ptr_array_index(stream->streams, j), struct ctf_file_stream, parent);
 				ctf_close_file_stream(file_stream);
 			}
 

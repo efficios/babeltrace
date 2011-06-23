@@ -31,7 +31,7 @@ static int read_event(struct ctf_file_stream *sin)
 {
 	int ret;
 
-	ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->stream);
+	ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->parent);
 	if (ret == EOF)
 		return EOF;
 	else if (ret) {
@@ -48,7 +48,7 @@ int stream_compare(void *a, void *b)
 {
 	struct ctf_file_stream *s_a = a, *s_b = b;
 
-	if (s_a->stream.timestamp < s_b->stream.timestamp)
+	if (s_a->parent.timestamp < s_b->parent.timestamp)
 		return 1;
 	else
 		return 0;
@@ -73,8 +73,8 @@ int convert_trace(struct trace_descriptor *td_write,
 
 		if (!stream)
 			continue;
-		for (filenr = 0; filenr < stream->files->len; filenr++) {
-			struct ctf_file_stream *file_stream = g_ptr_array_index(stream->files, filenr);
+		for (filenr = 0; filenr < stream->streams->len; filenr++) {
+			struct ctf_file_stream *file_stream = g_ptr_array_index(stream->streams, filenr);
 			ret = read_event(file_stream);
 			if (ret == EOF) {
 				ret = 0;
@@ -100,7 +100,7 @@ int convert_trace(struct trace_descriptor *td_write,
 			ret = 0;
 			break;
 		}
-		ret = sout->parent.event_cb(&sout->parent, &file_stream->stream);
+		ret = sout->parent.event_cb(&sout->parent, &file_stream->parent);
 		if (ret) {
 			fprintf(stdout, "[error] Writing event failed.\n");
 			goto end;

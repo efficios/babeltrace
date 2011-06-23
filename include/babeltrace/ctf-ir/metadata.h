@@ -52,11 +52,6 @@ struct ctf_stream_event {
 	struct definition_struct *event_fields;
 };
 
-struct ctf_file_stream {
-	struct ctf_stream stream;
-	struct ctf_stream_pos pos;	/* current stream position */
-};
-
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
 	do {								\
 		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
@@ -81,7 +76,7 @@ struct ctf_trace {
 	/* innermost definition scope. to be used as parent of stream. */
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
-	struct ctf_file_stream metadata;
+	struct ctf_stream *metadata;
 
 	/* Declarations only used when parsing */
 	struct declaration_struct *packet_header_decl;
@@ -142,7 +137,7 @@ struct ctf_stream_class {
 		CTF_STREAM_stream_id =	(1 << 0),
 	} field_mask;
 
-	GPtrArray *files;			/* Array of struct ctf_file_stream pointers */
+	GPtrArray *streams;	/* Array of struct ctf_stream pointers */
 };
 
 #define CTF_EVENT_SET_FIELD(ctf_event, field)				\
