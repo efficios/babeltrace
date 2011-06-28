@@ -156,14 +156,17 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 		}
 
 		/* lookup timestamp */
+		stream->has_timestamp = 0;
 		integer_definition = lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
 		if (integer_definition) {
 			ctf_update_timestamp(stream, integer_definition);
+			stream->has_timestamp = 1;
 		} else {
 			if (variant) {
 				integer_definition = lookup_integer(variant, "timestamp", FALSE);
 				if (integer_definition) {
 					ctf_update_timestamp(stream, integer_definition);
+					stream->has_timestamp = 1;
 				}
 			}
 		}

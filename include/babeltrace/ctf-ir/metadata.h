@@ -36,6 +36,7 @@ struct ctf_event;
 struct ctf_stream {
 	struct ctf_stream_class *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
+	int has_timestamp;
 	uint64_t stream_id;
 
 	struct definition_struct *trace_packet_header;

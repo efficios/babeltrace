@@ -145,7 +145,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		return -EINVAL;
 	}
 
-	if (stream->timestamp) {
+	if (stream->has_timestamp) {
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else
