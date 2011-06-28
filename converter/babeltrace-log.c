@@ -179,7 +179,7 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 	/* timestamp */
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	if (!pos->dummy)
-		*(uint32_t *) ctf_get_pos_addr(pos) = *ts;
+		*(uint64_t *) ctf_get_pos_addr(pos) = *ts;
 	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 }
 
