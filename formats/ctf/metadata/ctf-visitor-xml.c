@@ -313,7 +313,12 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 			print_tabs(fd, depth);
 			fprintf(fd, "</type_declarator>\n");
 		}
-		if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
+		if (node->u.type_declarator.u.nested.abstract_array) {
+			print_tabs(fd, depth);
+			fprintf(fd, "<length>\n");
+			print_tabs(fd, depth);
+			fprintf(fd, "</length>\n");
+		} else if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<length>\n");
 			cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
@@ -322,12 +327,6 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 				if (ret)
 					return ret;
 			}
-			print_tabs(fd, depth);
-			fprintf(fd, "</length>\n");
-		}
-		if (node->u.type_declarator.u.nested.abstract_array) {
-			print_tabs(fd, depth);
-			fprintf(fd, "<length>\n");
 			print_tabs(fd, depth);
 			fprintf(fd, "</length>\n");
 		}

@@ -363,15 +363,22 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
-					siblings) {
-			if (iter->type != NODE_UNARY_EXPRESSION) {
-				fprintf(fd, "[error] %s: expecting unary expression as length\n", __func__);
+		if (!node->u.type_declarator.u.nested.abstract_array) {
+			cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+						siblings) {
+				if (iter->type != NODE_UNARY_EXPRESSION) {
+					fprintf(fd, "[error] %s: expecting unary expression as length\n", __func__);
+					return -EINVAL;
+				}
+				ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+				if (ret)
+					return ret;
+			}
+		} else {
+			if (node->parent->type == NODE_TYPEALIAS_TARGET) {
+				fprintf(fd, "[error] %s: abstract array declarator not permitted as target of typealias\n", __func__);
 				return -EINVAL;
 			}
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
-			if (ret)
-				return ret;
 		}
 		if (node->u.type_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(fd, depth + 1,
