@@ -189,8 +189,6 @@ int main(int argc, char **argv)
 			opt_input_format);
 		exit(EXIT_FAILURE);
 	}
-	if (!opt_output_format)
-		opt_output_format = "ctf";
 	fmt_write = bt_lookup_format(g_quark_from_static_string(opt_output_format));
 	if (!fmt_write) {
 		fprintf(stdout, "[error] format \"%s\" is not supported.\n\n",
