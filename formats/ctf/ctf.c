@@ -470,7 +470,7 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 {
 	struct metadata_packet_header header;
 	size_t readlen, writelen, toread;
-	char buf[4096];
+	char buf[4096 + 1];	/* + 1 for debug-mode \0 */
 	int ret = 0;
 
 	readlen = fread(&header, header_sizeof(header), 1, in);
@@ -511,12 +511,13 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 	toread = (header.content_size / CHAR_BIT) - header_sizeof(header);
 
 	for (;;) {
-		readlen = fread(buf, sizeof(char), min(sizeof(buf), toread), in);
+		readlen = fread(buf, sizeof(char), min(sizeof(buf) - 1, toread), in);
 		if (ferror(in)) {
 			ret = -EINVAL;
 			break;
 		}
 		if (babeltrace_debug) {
+			buf[readlen] = '\0';
 			fprintf(stdout, "[debug] metadata packet read: %s\n",
 				buf);
 		}
