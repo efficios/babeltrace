@@ -898,12 +898,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 				return -EINVAL;
 			}
 			file_stream->stream.stream_class = stream;
+			ret = create_stream_definitions(td, &file_stream->stream);
+			if (ret)
+				return ret;
 		}
 		first_packet = 0;
-
-		ret = create_stream_definitions(td, &file_stream->stream);
-		if (ret)
-			return ret;
 
 		if (file_stream->stream.stream_packet_context) {
 			/* Read packet context */
