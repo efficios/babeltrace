@@ -468,6 +468,13 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 			fprintf(fd, "[error] %s: unable to find variant field declaration type\n", __func__);
 			return -EINVAL;
 		}
+
+		if (untagged_variant_declaration_get_field_from_tag(untagged_variant_declaration, field_name) != NULL) {
+			fprintf(fd, "[error] %s: duplicate field %s in variant\n", __func__, g_quark_to_string(field_name));
+			return -EINVAL;
+		}
+
+
 		untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);

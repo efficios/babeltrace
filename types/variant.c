@@ -273,11 +273,18 @@ void untagged_variant_declaration_add_field(struct declaration_untagged_variant 
 struct declaration_field *
 untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration, GQuark tag)
 {
-	unsigned long index;
+	gpointer index;
+	gboolean found;
 
-	index = (unsigned long) g_hash_table_lookup(untagged_variant_declaration->fields_by_tag,
-						    (gconstpointer) (unsigned long) tag);
-	return &g_array_index(untagged_variant_declaration->fields, struct declaration_field, index);
+	found = g_hash_table_lookup_extended(
+				untagged_variant_declaration->fields_by_tag,
+				(gconstpointer) (unsigned long) tag, NULL, &index);
+
+	if (!found) {
+		return NULL;
+	}
+
+	return &g_array_index(untagged_variant_declaration->fields, struct declaration_field, (unsigned long)index);
 }
 
 /*
