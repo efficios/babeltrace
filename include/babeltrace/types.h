@@ -6,7 +6,9 @@
  *
  * Type Header
  *
- * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
+ *
+ * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -512,6 +514,8 @@ void append_scope_path(const char *path, GArray *q);
 /*
  * Lookup helpers.
  */
+struct definition *lookup_definition(struct definition *definition,
+				     const char *field_name);
 struct definition_integer *lookup_integer(struct definition *definition,
 					  const char *field_name,
 					  int signedness);

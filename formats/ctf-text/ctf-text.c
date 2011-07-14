@@ -3,7 +3,9 @@
  *
  * CTF Text Format registration.
  *
- * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
+ *
+ * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -99,7 +101,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	struct ctf_stream_class *stream_class = stream->stream_class;
 	int field_nr_saved;
 	struct ctf_event *event_class;
-	struct ctf_file_event *event;
+	struct ctf_stream_event *event;
 	uint64_t id = 0;
 	int ret;
 
@@ -145,7 +147,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		return -EINVAL;
 	}
 
-	if (stream->timestamp) {
+	if (stream->has_timestamp) {
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else

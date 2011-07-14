@@ -3,7 +3,9 @@
  *
  * BabelTrace - Convert Text Log to CTF
  *
- * Copyright 2010, 2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
+ *
+ * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +47,7 @@ int babeltrace_debug, babeltrace_verbose;
 
 static char *s_outputname;
 static int s_timestamp;
+static int s_help;
 static uuid_t s_uuid;
 
 /* Metadata format string */
@@ -178,7 +181,7 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 	/* timestamp */
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	if (!pos->dummy)
-		*(uint32_t *) ctf_get_pos_addr(pos) = *ts;
+		*(uint64_t *) ctf_get_pos_addr(pos) = *ts;
 	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 }
 
@@ -264,6 +267,11 @@ int parse_args(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-t"))
 			s_timestamp = 1;
+		else if (!strcmp(argv[i], "-h")) {
+			s_help = 1;
+			return 0;
+		} else if (argv[i][0] == '-')
+			return -EINVAL;
 		else
 			s_outputname = argv[i];
 	}
@@ -281,8 +289,14 @@ int main(int argc, char **argv)
 
 	ret = parse_args(argc, argv);
 	if (ret) {
+		fprintf(stdout, "Error: invalid argument.\n");
 		usage(stdout);
 		goto error;
+	}
+
+	if (s_help) {
+		usage(stdout);
+		exit(EXIT_SUCCESS);
 	}
 
 	ret = mkdir(s_outputname, S_IRWXU|S_IRWXG);

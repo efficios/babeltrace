@@ -3,7 +3,9 @@
  *
  * Babeltrace Trace Converter
  *
- * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
+ *
+ * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -187,8 +189,6 @@ int main(int argc, char **argv)
 			opt_input_format);
 		exit(EXIT_FAILURE);
 	}
-	if (!opt_output_format)
-		opt_output_format = "ctf";
 	fmt_write = bt_lookup_format(g_quark_from_static_string(opt_output_format));
 	if (!fmt_write) {
 		fprintf(stdout, "[error] format \"%s\" is not supported.\n\n",
