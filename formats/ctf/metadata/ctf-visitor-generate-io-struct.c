@@ -431,6 +431,13 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 			fprintf(fd, "[error] %s: unable to find struct field declaration type\n", __func__);
 			return -EINVAL;
 		}
+
+		/* Check if field with same name already exists */
+		if (struct_declaration_lookup_field_index(struct_declaration, field_name) >= 0) {
+			fprintf(fd, "[error] %s: duplicate field %s in struct\n", __func__, g_quark_to_string(field_name));
+			return -EINVAL;
+		}
+
 		struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
