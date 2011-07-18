@@ -584,7 +584,9 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	return 0;
 
 error:
-	type_declaration->declaration_free(type_declaration);
+	if (type_declaration) {
+		type_declaration->declaration_free(type_declaration);
+	}
 	return err;
 }
 
