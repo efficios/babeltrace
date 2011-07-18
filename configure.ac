@@ -56,6 +56,7 @@ AC_CONFIG_FILES([
 	formats/ctf/types/Makefile
 	formats/ctf-text/Makefile
 	formats/ctf-text/types/Makefile
+	formats/bt-dummy/Makefile
 	formats/ctf/metadata/Makefile
 	converter/Makefile
 	lib/Makefile
