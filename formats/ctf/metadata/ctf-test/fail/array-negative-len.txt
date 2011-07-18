@@ -1,2 +1,2 @@
-typealias integer { size = 32; align = 32; signedness = false; } := uint;
+typealias integer { size = 32; align = 32; signed = false; } := uint;
 typedef uint myarray[-10];
