@@ -97,8 +97,7 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		else
 			v = (uint64_t) integer_definition->value._signed;
 
-		fprintf(pos->fp, "0%" PRIo64,
-			integer_definition->value._unsigned);
+		fprintf(pos->fp, "0%" PRIo64, v);
 		break;
 	}
 	case 16:
@@ -110,8 +109,7 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 		else
 			v = (uint64_t) integer_definition->value._signed;
 
-		fprintf(pos->fp, "0x%" PRIX64,
-			integer_definition->value._unsigned);
+		fprintf(pos->fp, "0x%" PRIX64, v);
 		break;
 	}
 	default:

@@ -119,7 +119,7 @@ int get_unary_uuid(struct cds_list_head *head, uuid_t *uuid)
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
 		src_string = node->u.unary_expression.u.string;
-		ret = uuid_parse(node->u.unary_expression.u.string, *uuid);
+		ret = uuid_parse(src_string, *uuid);
 	}
 	return ret;
 }
@@ -726,7 +726,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
 				struct_declaration, trace);
 			if (ret)
-				goto error;
+				goto error_free_declaration;
 		}
 		if (name) {
 			ret = register_struct_declaration(g_quark_from_string(name),
@@ -736,8 +736,9 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		}
 		return &struct_declaration->p;
 	}
-error:
+error_free_declaration:
 	struct_declaration->p.declaration_free(&struct_declaration->p);
+error:
 	return NULL;
 }
 
@@ -1092,7 +1093,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		struct ctf_trace *trace)
 {
 	struct ctf_node *expression;
-	uint64_t alignment, size;
+	uint64_t alignment = 1, size;
 	int byte_order = trace->byte_order;
 	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
@@ -1247,7 +1248,8 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 		struct ctf_trace *trace)
 {
 	struct ctf_node *expression;
-	uint64_t alignment, exp_dig, mant_dig, byte_order = trace->byte_order;
+	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0,
+		byte_order = trace->byte_order;
 	int has_alignment = 0, has_exp_dig = 0, has_mant_dig = 0;
 	struct declaration_float *float_declaration;
 
