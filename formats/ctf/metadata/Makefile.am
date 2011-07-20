@@ -4,6 +4,10 @@ AM_YFLAGS = -t -d -v
 
 lib_LTLIBRARIES = libctf-parser.la libctf-ast.la
 
+noinst_HEADERS = \
+	ctf-scanner.h \
+	ctf-ast.h
+
 libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y
 
 libctf_ast_la_SOURCES = ctf-visitor-xml.c \
