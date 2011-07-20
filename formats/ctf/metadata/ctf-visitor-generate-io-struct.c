@@ -2045,7 +2045,6 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	struct ctf_node *iter;
 
 	printf_verbose("CTF visitor: metadata construction... ");
-	memset(trace, 0, sizeof(struct ctf_trace));
 	trace->root_declaration_scope = new_declaration_scope(NULL);
 	trace->byte_order = byte_order;
 
