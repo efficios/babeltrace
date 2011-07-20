@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 	trace = malloc(sizeof(*trace));
+	memset(trace, 0, sizeof(*trace));
 	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
 			trace, BYTE_ORDER);
 	if (ret) {
