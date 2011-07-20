@@ -639,7 +639,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 		goto end;
 	}
 	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
-			td, BYTE_ORDER);
+			td, td->byte_order);
 	if (ret) {
 		fprintf(stdout, "[error] Error in CTF metadata constructor %d\n", ret);
 		goto end;
