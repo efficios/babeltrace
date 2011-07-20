@@ -32,17 +32,17 @@ DEPENDENCIES
 To compile Babeltrace, you will need:
 
 	gcc 3.2 or better
-	glib 2.22 or better development libraries
-	  (Debian : libglib2.0-0, libglib2.0-dev)
-	  (Fedora : glib2, glib2-devel)
 	libc6 development librairies
 	  (Debian : libc6, libc6-dev)
 	  (Fedora : glibc, glibc)
+	glib 2.22 or better development libraries
+	  (Debian : libglib2.0-0, libglib2.0-dev)
+	  (Fedora : glib2, glib2-devel)
 	uuid development libraries
 	  (Debian : uuid-dev)
 	  (Fedora : uuid-devel)
 	libpopt development libraries
-	  (Debian : libpopt0, libpopt-dev)
+	  (Debian : libpopt-dev)
 	  (Fedora : popt)
 
 For developers using the git tree:
