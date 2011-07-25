@@ -607,6 +607,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 		goto end_stream;
 	}
 
+	td->byte_order = BYTE_ORDER;
 	if (packet_metadata(td, fp)) {
 		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
 		if (ret)
