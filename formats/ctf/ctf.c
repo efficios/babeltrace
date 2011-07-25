@@ -458,12 +458,13 @@ int packet_metadata(struct ctf_trace *td, FILE *fp)
 	if (magic == TSDL_MAGIC) {
 		ret = 1;
 		td->byte_order = BYTE_ORDER;
+		CTF_TRACE_SET_FIELD(td, byte_order);
 	} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
 		ret = 1;
 		td->byte_order = (BYTE_ORDER == BIG_ENDIAN) ?
 					LITTLE_ENDIAN : BIG_ENDIAN;
+		CTF_TRACE_SET_FIELD(td, byte_order);
 	}
-	CTF_TRACE_SET_FIELD(td, byte_order);
 end:
 	rewind(fp);
 	return ret;
