@@ -1898,9 +1898,17 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				ret = -EPERM;
 				goto error;
 			} else {
-				trace->byte_order = byte_order;
+				CTF_TRACE_SET_FIELD(trace, byte_order);
+				if (byte_order != trace->byte_order) {
+					trace->byte_order = byte_order;
+					/*
+					 * We need to restart
+					 * construction of the
+					 * intermediate representation.
+					 */
+					return -EINTR;
+				}
 			}
-			CTF_TRACE_SET_FIELD(trace, byte_order);
 		} else if (!strcmp(left, "packet.header")) {
 			struct declaration *declaration;
 
@@ -1946,6 +1954,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	int ret = 0;
 	struct ctf_node *iter;
 
+restart:
 	if (trace->declaration_scope)
 		return -EEXIST;
 	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
@@ -1992,6 +2001,10 @@ error:
 		declaration_unref(&trace->packet_header_decl->p);
 	g_ptr_array_free(trace->streams, TRUE);
 	free_declaration_scope(trace->declaration_scope);
+	trace->declaration_scope = NULL;
+	/* byte order changed while creating types, retry. */
+	if (ret == -EINTR)
+		goto restart;
 	return ret;
 }
 
