@@ -1905,7 +1905,10 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 					 * construction of the
 					 * intermediate representation.
 					 */
-					return -EINTR;
+					trace->field_mask = 0;
+					CTF_TRACE_SET_FIELD(trace, byte_order);
+					ret = -EINTR;
+					goto error;
 				}
 			}
 			CTF_TRACE_SET_FIELD(trace, byte_order);
@@ -2004,7 +2007,6 @@ error:
 	trace->declaration_scope = NULL;
 	/* byte order changed while creating types, retry. */
 	if (ret == -EINTR) {
-		trace->field_mask = 0;
 		goto restart;
 	}
 	return ret;
