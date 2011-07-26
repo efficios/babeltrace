@@ -1957,7 +1957,6 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	int ret = 0;
 	struct ctf_node *iter;
 
-restart:
 	if (trace->declaration_scope)
 		return -EEXIST;
 	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
@@ -2007,10 +2006,6 @@ error:
 	g_ptr_array_free(trace->streams, TRUE);
 	free_declaration_scope(trace->declaration_scope);
 	trace->declaration_scope = NULL;
-	/* byte order changed while creating types, retry. */
-	if (ret == -EINTR) {
-		goto restart;
-	}
 	return ret;
 }
 
@@ -2066,8 +2061,10 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	struct ctf_node *iter;
 
 	printf_verbose("CTF visitor: metadata construction... ");
-	trace->root_declaration_scope = new_declaration_scope(NULL);
 	trace->byte_order = byte_order;
+
+retry:
+	trace->root_declaration_scope = new_declaration_scope(NULL);
 
 	switch (node->type) {
 	case NODE_ROOT:
@@ -2081,6 +2078,15 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		}
 		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
+			if (ret == -EINTR) {
+				free_declaration_scope(trace->root_declaration_scope);
+				/*
+				 * Need to restart creation of type
+				 * definitions, aliases and
+				 * trace header declarations.
+				 */
+				goto retry;
+			}
 			if (ret) {
 				fprintf(fd, "[error] %s: trace declaration error\n", __func__);
 				goto error;
