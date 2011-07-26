@@ -1898,7 +1898,6 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				ret = -EPERM;
 				goto error;
 			} else {
-				CTF_TRACE_SET_FIELD(trace, byte_order);
 				if (byte_order != trace->byte_order) {
 					trace->byte_order = byte_order;
 					/*
@@ -1909,6 +1908,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 					return -EINTR;
 				}
 			}
+			CTF_TRACE_SET_FIELD(trace, byte_order);
 		} else if (!strcmp(left, "packet.header")) {
 			struct declaration *declaration;
 
@@ -2003,8 +2003,10 @@ error:
 	free_declaration_scope(trace->declaration_scope);
 	trace->declaration_scope = NULL;
 	/* byte order changed while creating types, retry. */
-	if (ret == -EINTR)
+	if (ret == -EINTR) {
+		trace->field_mask = 0;
 		goto restart;
+	}
 	return ret;
 }
 
