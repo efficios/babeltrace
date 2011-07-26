@@ -2000,8 +2000,10 @@ restart:
 	return 0;
 
 error:
-	if (trace->packet_header_decl)
+	if (trace->packet_header_decl) {
 		declaration_unref(&trace->packet_header_decl->p);
+		trace->packet_header_decl = NULL;
+	}
 	g_ptr_array_free(trace->streams, TRUE);
 	free_declaration_scope(trace->declaration_scope);
 	trace->declaration_scope = NULL;
