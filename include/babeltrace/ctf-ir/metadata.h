@@ -79,7 +79,6 @@ struct ctf_trace {
 	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
 	struct ctf_stream *metadata;
 
-	/* Declarations only used when parsing */
 	struct declaration_struct *packet_header_decl;
 
 	uint64_t major;
@@ -127,7 +126,6 @@ struct ctf_stream_class {
 	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
 	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
 
-	/* Declarations only used when parsing */
 	struct declaration_struct *packet_context_decl;
 	struct declaration_struct *event_header_decl;
 	struct declaration_struct *event_context_decl;
@@ -161,7 +159,6 @@ struct ctf_event {
 	/* parent is lexical scope conaining the event scope */
 	struct declaration_scope *declaration_scope;
 
-	/* Declarations only used when parsing */
 	struct declaration_struct *context_decl;
 	struct declaration_struct *fields_decl;
 
