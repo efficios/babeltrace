@@ -1,0 +1,36 @@
+typealias integer { size = 8; align = 8; signed = false; base = hex; } := uint8_t;
+typealias integer { size = 32; align = 8; signed = false; base = hex;  } := uint32_t;
+
+trace {
+    major = 1;
+    minor = 2;
+    byte_order = le;
+    uuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    packet.header := struct  {
+                        uint32_t magic;                        
+                     };
+};
+
+variant var {
+    uint8_t small;
+    uint32_t big;
+};
+
+enum select : uint8_t { small = 0, big = 1 };
+
+stream {
+    event.header := struct {
+        enum select a;
+    };
+};
+
+event {
+    name = event1;
+    fields := struct {
+	/*
+	 * TODO: Only an identifier is expected in the variant/sequence
+	 * tag. It should be a dotted expression (a path).
+	 */
+        variant var <stream.event.header.a> b;
+    };
+};
