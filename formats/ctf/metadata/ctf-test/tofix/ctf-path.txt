@@ -7,8 +7,8 @@ trace {
     byte_order = le;
     uuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     packet.header := struct  {
-                        uint32_t magic;                        
-                     };
+        uint32_t magic;                        
+    };
 };
 
 variant var {
@@ -30,7 +30,20 @@ event {
 	/*
 	 * TODO: Only an identifier is expected in the variant/sequence
 	 * tag. It should be a dotted expression (a path).
+	 *
 	 */
         variant var <stream.event.header.a> b;
+
+	/*
+	 * TODO
+	 * The path lookup only allows lookup for a full path starting
+	 * from the root or for a field within the current scope. The
+	 * CTF spec allows defining a relative sub-scope for a preceding
+	 * field.
+	 */
+	struct {
+		enum select sel2;
+	} str2;
+        variant var2 <str2.sel2> b;
     };
 };
