@@ -45,5 +45,21 @@ event {
 		enum select sel2;
 	} str2;
         variant var2 <str2.sel2> b;
+
+	/*
+	 * TODO: Deal with path name lookup conflict, e.g. if a field is
+	 * named "stream", it conflicts with the stream dynamic scope.
+	 */
+	struct {
+		enum select sel3
+	} stream;
+	/* The following test should fail: */
+        /* variant var3 <stream.sel3> c; */
+
+	/*
+	 * TODO: support conflict-free local-scoped tags, starting with
+	 * ".".
+	 */
+	variant var4 <.stream.sel3> d;
     };
 };
