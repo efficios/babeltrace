@@ -1,1 +1,2 @@
+/* TSDL */
 enum test {X = array[2].N ... 1, };

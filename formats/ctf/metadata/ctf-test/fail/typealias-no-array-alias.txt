@@ -1,1 +1,2 @@
+/* TSDL */
 typealias integer { size = 32; align = 32; signed = false; } : unsigned const long [];

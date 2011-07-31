@@ -1,1 +1,2 @@
+/* TSDL */
 struct test { 42 = test; };

@@ -1,1 +1,2 @@
+/* TSDL */
 stream { 42 = test; };

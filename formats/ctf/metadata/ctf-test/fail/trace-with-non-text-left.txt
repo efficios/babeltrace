@@ -1,1 +1,2 @@
+/* TSDL */
 trace { 42 = test; };

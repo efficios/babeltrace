@@ -1,1 +1,2 @@
+/* TSDL */
 struct test { a->array[3].N test; };

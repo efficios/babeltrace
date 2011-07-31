@@ -1,1 +1,2 @@
+/* TSDL */
 event { 42 = test; };

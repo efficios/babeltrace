@@ -1,3 +1,4 @@
+/* TSDL */
 // Define unsigned long
 typealias integer { ... } := unsigned long;
 

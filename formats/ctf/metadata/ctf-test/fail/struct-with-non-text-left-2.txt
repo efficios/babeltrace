@@ -1,1 +1,2 @@
+/* TSDL */
 struct test { int a.array[3].N; };

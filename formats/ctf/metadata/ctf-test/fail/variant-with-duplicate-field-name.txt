@@ -1,3 +1,4 @@
+/* TSDL */
 typealias integer { size = 32; align = 32; signed = true; } := int;
 
 variant {

@@ -1,3 +1,5 @@
+/* TSDL */
+
 /* Architecture with 32-bit pointers, 32-bit integers, 32-bit longs */
 
 typealias integer { size = 1; align = 1; signed = false; } := uint1_t;

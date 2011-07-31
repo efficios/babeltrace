@@ -1,1 +1,2 @@
+/* TSDL */
 typedef nonexist myarray[10];

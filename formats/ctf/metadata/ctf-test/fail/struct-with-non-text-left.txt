@@ -1,1 +1,2 @@
+/* TSDL */
 struct test { array[3].N = test; };

@@ -1,3 +1,4 @@
+/* TSDL */
 typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
 typealias uint8_t [] := puint8_t;
 
