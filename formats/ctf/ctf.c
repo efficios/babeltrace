@@ -415,9 +415,9 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		file_stream->parent.timestamp = index->timestamp_begin;
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
-		if (index->data_offset < index->content_size)
+		if (index->data_offset <= index->content_size) {
 			pos->offset = 0;	/* will read headers */
-		else {
+		} else {
 			pos->offset = EOF;
 			return;
 		}
