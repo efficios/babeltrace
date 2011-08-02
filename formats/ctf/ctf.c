@@ -613,7 +613,17 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 		if (ret)
 			goto end_packet_read;
 	} else {
+		char buf[sizeof("/* TSDL")];	/* Includes \0 */
+		ssize_t readlen;
+
 		td->byte_order = BYTE_ORDER;
+
+		/* Check text-only metadata header */
+		buf[sizeof("/* TSDL") - 1] = '\0';
+		readlen = fread(buf, sizeof("/* TSDL") - 1, 1, fp);
+		if (readlen < 1 || strcmp(buf, "/* TSDL") != 0)
+			fprintf(stdout, "[warning] Missing \"/* TSDL\" header for text-only metadata.\n");
+		rewind(fp);
 	}
 
 	scanner = ctf_scanner_alloc(fp);
