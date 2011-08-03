@@ -1,2 +1,2 @@
-/* TSDL */
+/* CTF 1.8 */
 typedef nonexist myarray[10];

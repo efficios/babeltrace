@@ -49,6 +49,8 @@ struct metadata_packet_header {
 	uint8_t  compression_scheme;	/* 0 if unused */
 	uint8_t  encryption_scheme;	/* 0 if unused */
 	uint8_t  checksum_scheme;	/* 0 if unused */
+	uint8_t  major;			/* CTF spec major version number */
+	uint8_t  minor;			/* CTF spec minor version number */
 	HEADER_END;
 };
 

@@ -1,4 +1,4 @@
-/* TSDL */
+/* CTF 1.8 */
 // Define unsigned long
 typealias integer { ... } := unsigned long;
 

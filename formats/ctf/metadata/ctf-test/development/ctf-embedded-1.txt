@@ -1,4 +1,4 @@
-/* TSDL */
+/* CTF 1.8 */
 trace {
 	major = 0;
 	minor = 1;

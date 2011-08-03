@@ -1,4 +1,4 @@
-/* TSDL */
+/* CTF 1.8 */
 typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
 typealias integer { size = 32; align = 8; signed = false; } := uint32_t;
 

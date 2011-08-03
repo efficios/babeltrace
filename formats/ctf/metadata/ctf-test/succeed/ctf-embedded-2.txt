@@ -1,4 +1,4 @@
-/* TSDL */
+/* CTF 1.8 */
 
 /* Architecture with 32-bit pointers, 32-bit integers, 32-bit longs */
 

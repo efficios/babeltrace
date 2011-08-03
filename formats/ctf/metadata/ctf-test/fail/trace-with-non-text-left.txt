@@ -1,2 +1,2 @@
-/* TSDL */
+/* CTF 1.8 */
 trace { 42 = test; };
