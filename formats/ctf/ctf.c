@@ -568,8 +568,17 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		toread -= readlen;
 		if (!toread) {
 			ret = 0;	/* continue reading next packet */
-			break;
+			goto read_padding;
 		}
+	}
+	return ret;
+
+read_padding:
+	toread = (header.packet_size - header.content_size) / CHAR_BIT;
+	ret = fseek(in, toread, SEEK_CUR);
+	if (ret < 0) {
+		fprintf(stdout, "[warning] Missing padding at end of file\n");
+		ret = 0;
 	}
 	return ret;
 }
