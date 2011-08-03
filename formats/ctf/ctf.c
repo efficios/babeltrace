@@ -470,6 +470,32 @@ end:
 	return ret;
 }
 
+/*
+ * Returns 0 on success, -1 on error.
+ */
+static
+int check_version(unsigned int major, unsigned int minor)
+{
+	switch (major) {
+	case 1:
+		switch (minor) {
+		case 8:
+			return 0;
+		default:
+			goto warning;
+		}
+	default:
+		goto warning;
+		
+	}
+
+	/* eventually return an error instead of warning */
+warning:
+	fprintf(stdout, "[warning] Unsupported CTF specification version %u.%u. Trying anyway.\n",
+		major, minor);
+	return 0;
+}
+
 static
 int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 					FILE *out)
@@ -506,6 +532,8 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 			header.checksum_scheme);
 		return -EINVAL;
 	}
+	if (check_version(header.major, header.minor) < 0)
+		return -EINVAL;
 	if (!CTF_TRACE_FIELD_IS_SET(td, uuid)) {
 		memcpy(td->uuid, header.uuid, sizeof(header.uuid));
 		CTF_TRACE_SET_FIELD(td, uuid);
@@ -613,16 +641,19 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td)
 		if (ret)
 			goto end_packet_read;
 	} else {
-		char buf[sizeof("/* TSDL")];	/* Includes \0 */
-		ssize_t readlen;
+		unsigned int major, minor;
+		ssize_t nr_items;
 
 		td->byte_order = BYTE_ORDER;
 
-		/* Check text-only metadata header */
-		buf[sizeof("/* TSDL") - 1] = '\0';
-		readlen = fread(buf, sizeof("/* TSDL") - 1, 1, fp);
-		if (readlen < 1 || strcmp(buf, "/* TSDL") != 0)
-			fprintf(stdout, "[warning] Missing \"/* TSDL\" header for text-only metadata.\n");
+		/* Check text-only metadata header and version */
+		nr_items = fscanf(fp, "/* CTF %u.%u", &major, &minor);
+		if (nr_items < 2)
+			fprintf(stdout, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
+		if (check_version(major, minor) < 0) {
+			ret = -EINVAL;
+			goto end_packet_read;
+		}
 		rewind(fp);
 	}
 
