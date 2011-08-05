@@ -2,6 +2,7 @@
 #define _BABELTRACE_H
 
 #include <stdio.h>
+#include <glib.h>
 
 #define BABELTRACE_VERSION_MAJOR	0
 #define BABELTRACE_VERSION_MINOR	1
@@ -21,9 +22,12 @@ extern int babeltrace_verbose, babeltrace_debug;
 	} while (0)
 
 struct trace_descriptor;
+struct trace_collection {
+	GPtrArray *array;
+};
 
 int convert_trace(struct trace_descriptor *td_write,
-		  struct trace_descriptor *td_read);
+		  struct trace_collection *trace_collection_read);
 
 extern int opt_field_names;
 

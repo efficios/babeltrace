@@ -18,6 +18,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#define _XOPEN_SOURCE 700
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
 #include <popt.h>
@@ -27,7 +28,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <ftw.h>
+#include <dirent.h>
+#include <unistd.h>
 
+#define DEFAULT_FILE_ARRAY_SIZE	1
 static char *opt_input_format;
 static char *opt_output_format;
 
@@ -36,6 +41,9 @@ static const char *opt_output_path;
 
 int babeltrace_verbose, babeltrace_debug;
 int opt_field_names;
+
+static struct trace_collection trace_collection_read;
+static struct format *fmt_read;
 
 void strlower(char *str)
 {
@@ -149,11 +157,78 @@ end:
 	return ret;
 }
 
+static void init_trace_collection(struct trace_collection *tc)
+{
+	tc->array = g_ptr_array_sized_new(DEFAULT_FILE_ARRAY_SIZE);
+}
+
+/*
+ * finalize_trace_collection() closes the opened traces for read
+ * and free the memory allocated for trace collection
+ */
+static void finalize_trace_collection(struct trace_collection *tc)
+{
+	int i;
+
+	for (i = 0; i < tc->array->len; i++) {
+		struct trace_descriptor *temp =
+			g_ptr_array_index(tc->array, i);
+		fmt_read->close_trace(temp);
+	}
+	g_ptr_array_free(tc->array, TRUE);
+}
+
+static void trace_collection_add(struct trace_collection *tc,
+				 struct trace_descriptor *td)
+{
+	g_ptr_array_add(tc->array, td);
+}
+
+/*
+ * traverse_dir() is the callback functiion for File Tree Walk (nftw).
+ * it receives the path of the current entry (file, dir, link..etc) with
+ * a flag to indicate the type of the entry.
+ * if the entry being visited is a directory and contains a metadata file,
+ * then open it for reading and save a trace_descriptor to that directory
+ * in the read trace collection.
+ */
+static int traverse_dir(const char *fpath, const struct stat *sb,
+			int tflag, struct FTW *ftwbuf)
+{
+	int dirfd;
+	int fd;
+	struct trace_descriptor *td_read;
+
+	if (tflag != FTW_D)
+		return 0;
+	dirfd = open(fpath, 0);
+	if (dirfd < 0) {
+		fprintf(stdout, "[error] unable to open trace "
+			"directory file descriptor.\n");
+		return -1;
+	}
+	fd = openat(dirfd, "metadata", O_RDONLY);
+	if (fd < 0) {
+		close(dirfd);
+	} else {
+		close(fd);
+		close(dirfd);
+		td_read = fmt_read->open_trace(fpath, O_RDONLY);
+		if (!td_read) {
+			fprintf(stdout, "Error opening trace \"%s\" "
+					"for reading.\n\n", fpath);
+			return -1;	/* error */
+		}
+		trace_collection_add(&trace_collection_read, td_read);
+	}
+	return 0;	/* success */
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
-	struct format *fmt_read, *fmt_write;
-	struct trace_descriptor *td_read, *td_write;
+	struct format *fmt_write;
+	struct trace_descriptor *td_write;
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
@@ -171,10 +246,10 @@ int main(int argc, char **argv)
 	if (opt_output_format)
 		strlower(opt_output_format);
 
-	printf_verbose("Converting from file: %s\n", opt_input_path);
+	printf_verbose("Converting from directory: %s\n", opt_input_path);
 	printf_verbose("Converting from format: %s\n",
 		opt_input_format ? : "ctf <default>");
-	printf_verbose("Converting to file: %s\n",
+	printf_verbose("Converting to directory: %s\n",
 		opt_output_path ? : "<stdout>");
 	printf_verbose("Converting to format: %s\n",
 		opt_output_format ? : "text <default>");
@@ -196,11 +271,24 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	td_read = fmt_read->open_trace(opt_input_path, O_RDONLY);
-	if (!td_read) {
+	/*
+	 * pass the input path to nftw() .
+	 * specify traverse_dir() as the callback function.
+	 * depth = 10 which is the max number of file descriptors
+	 * that nftw() can open at a given time.
+	 * flags = 0  check nftw documentation for more info .
+	 */
+	init_trace_collection(&trace_collection_read);
+	ret = nftw(opt_input_path, traverse_dir, 10, 0);
+	if (ret != 0) {
 		fprintf(stdout, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);
 		goto error_td_read;
+	}
+	if (trace_collection_read.array->len == 0) {
+		fprintf(stdout, "[warning] no metadata file was found."
+						" no output was generated\n");
+		return 0;
 	}
 
 	td_write = fmt_write->open_trace(opt_output_path, O_RDWR);
@@ -210,21 +298,23 @@ int main(int argc, char **argv)
 		goto error_td_write;
 	}
 
-	ret = convert_trace(td_write, td_read);
+	ret = convert_trace(td_write, &trace_collection_read);
 	if (ret) {
 		fprintf(stdout, "Error printing trace.\n\n");
 		goto error_copy_trace;
 	}
 
 	fmt_write->close_trace(td_write);
-	fmt_read->close_trace(td_read);
+	finalize_trace_collection(&trace_collection_read);
+	printf_verbose("finished converting. Output written to:\n%s\n",
+			opt_output_path ? : "<stdout>");
 	exit(EXIT_SUCCESS);
 
 	/* Error handling */
 error_copy_trace:
 	fmt_write->close_trace(td_write);
 error_td_write:
-	fmt_read->close_trace(td_read);
+	finalize_trace_collection(&trace_collection_read);
 error_td_read:
 	exit(EXIT_FAILURE);
 }

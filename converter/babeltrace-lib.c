@@ -57,37 +57,55 @@ int stream_compare(void *a, void *b)
 }
 
 int convert_trace(struct trace_descriptor *td_write,
-		  struct trace_descriptor *td_read)
+		  struct trace_collection *trace_collection_read)
 {
-	struct ctf_trace *tin = container_of(td_read, struct ctf_trace, parent);
-	struct ctf_text_stream_pos *sout =
-		container_of(td_write, struct ctf_text_stream_pos, trace_descriptor);
-	int stream_id;
+	struct ptr_heap *stream_heap;
+	struct ctf_text_stream_pos *sout;
+	int i, stream_id;
 	int ret = 0;
 
-	tin->stream_heap = g_new(struct ptr_heap, 1);
-	heap_init(tin->stream_heap, 0, stream_compare);
+	stream_heap = g_new(struct ptr_heap, 1);
+	heap_init(stream_heap, 0, stream_compare);
+	sout = container_of(td_write, struct ctf_text_stream_pos,
+			    trace_descriptor);
 
-	/* Populate heap with each stream */
-	for (stream_id = 0; stream_id < tin->streams->len; stream_id++) {
-		struct ctf_stream_class *stream = g_ptr_array_index(tin->streams, stream_id);
-		int filenr;
+	for (i = 0; i < trace_collection_read->array->len; i++) {
+		struct ctf_trace *tin;
+		struct trace_descriptor *td_read;
 
-		if (!stream)
-			continue;
-		for (filenr = 0; filenr < stream->streams->len; filenr++) {
-			struct ctf_file_stream *file_stream = g_ptr_array_index(stream->streams, filenr);
-			ret = read_event(file_stream);
-			if (ret == EOF) {
-				ret = 0;
+		td_read = g_ptr_array_index(trace_collection_read->array, i);
+		tin = container_of(td_read, struct ctf_trace, parent);
+
+		/* Populate heap with each stream */
+		for (stream_id = 0; stream_id < tin->streams->len;
+				stream_id++) {
+			struct ctf_stream_class *stream;
+			int filenr;
+
+			stream = g_ptr_array_index(tin->streams, stream_id);
+			if (!stream)
 				continue;
-			} else if (ret)
-				goto end;
-			/* Add to heap */
-			ret = heap_insert(tin->stream_heap, file_stream);
-			if (ret) {
-				fprintf(stdout, "[error] Out of memory.\n");
-				goto end;
+			for (filenr = 0; filenr < stream->streams->len;
+					filenr++) {
+				struct ctf_file_stream *file_stream;
+
+				file_stream = g_ptr_array_index(stream->streams,
+						filenr);
+
+				ret = read_event(file_stream);
+				if (ret == EOF) {
+					ret = 0;
+					continue;
+				} else if (ret) {
+					goto end;
+				}
+				/* Add to heap */
+				ret = heap_insert(stream_heap, file_stream);
+				if (ret) {
+					fprintf(stdout,
+						"[error] Out of memory.\n");
+					goto end;
+				}
 			}
 		}
 	}
@@ -96,7 +114,7 @@ int convert_trace(struct trace_descriptor *td_write,
 	for (;;) {
 		struct ctf_file_stream *file_stream, *removed;
 
-		file_stream = heap_maximum(tin->stream_heap);
+		file_stream = heap_maximum(stream_heap);
 		if (!file_stream) {
 			/* end of file for all streams */
 			ret = 0;
@@ -109,19 +127,19 @@ int convert_trace(struct trace_descriptor *td_write,
 		}
 		ret = read_event(file_stream);
 		if (ret == EOF) {
-			removed = heap_remove(tin->stream_heap);
+			removed = heap_remove(stream_heap);
 			assert(removed == file_stream);
 			ret = 0;
 			continue;
 		} else if (ret)
 			goto end;
 		/* Reinsert the file stream into the heap, and rebalance. */
-		removed = heap_replace_max(tin->stream_heap, file_stream);
+		removed = heap_replace_max(stream_heap, file_stream);
 		assert(removed == file_stream);
 	}
 
 end:
-	heap_free(tin->stream_heap);
-	g_free(tin->stream_heap);
+	heap_free(stream_heap);
+	g_free(stream_heap);
 	return ret;
 }
