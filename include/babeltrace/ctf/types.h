@@ -101,10 +101,14 @@ void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 		return;
 
 	if (pos->fd >= 0) {
-		if (((pos->prot == PROT_READ)
-		      && (pos->offset + bit_offset >= pos->content_size))
-		    || ((pos->prot == PROT_WRITE)
-		      && (pos->offset + bit_offset >= pos->packet_size))) {
+		/*
+		 * PROT_READ ctf_move_pos_slow is called from within
+		 * ctf_pos_get_event so end of packet does not change
+		 * the packet context on for the last event of the
+		 * packet.
+		 */
+		if ((pos->prot == PROT_WRITE)
+		    	&& (pos->offset + bit_offset >= pos->packet_size)) {
 			printf_debug("ctf_move_pos_slow (before call): %zd\n",
 				     pos->offset);
 			ctf_move_pos_slow(pos, bit_offset, SEEK_CUR);
@@ -170,6 +174,23 @@ int ctf_pos_access_ok(struct ctf_stream_pos *pos, size_t bit_len)
 	if (pos->offset + bit_len > pos->packet_size)
 		return 0;
 	return 1;
+}
+
+/*
+ * Update the stream position for to the current event. This moves to
+ * the next packet if we are located at the end of the current packet.
+ */
+static inline
+void ctf_pos_get_event(struct ctf_stream_pos *pos)
+{
+	assert(pos->offset <= pos->content_size);
+	if (pos->offset == pos->content_size) {
+		printf_debug("ctf_move_pos_slow (before call): %zd\n",
+			     pos->offset);
+		ctf_move_pos_slow(pos, 0, SEEK_CUR);
+		printf_debug("ctf_move_pos_slow (after call): %zd\n",
+			     pos->offset);
+	}
 }
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

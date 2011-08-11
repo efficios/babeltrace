@@ -125,8 +125,11 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	uint64_t id = 0;
 	int ret;
 
+	ctf_pos_get_event(pos);
+
 	if (pos->offset == EOF)
 		return EOF;
+	assert(pos->offset < pos->content_size);
 
 	/* Read event header */
 	if (stream->stream_event_header) {
@@ -390,8 +393,11 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		assert(off >= 0);
 		pos->offset = 0;
 	} else {
+	read_next_packet:
 		switch (whence) {
 		case SEEK_CUR:
+			if (pos->offset == EOF)
+				return;
 			/* The reader will expect us to skip padding */
 			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
@@ -415,8 +421,13 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		file_stream->parent.timestamp = index->timestamp_begin;
 		pos->content_size = index->content_size;
 		pos->packet_size = index->packet_size;
-		if (index->data_offset <= index->content_size) {
+		if (index->data_offset < index->content_size) {
 			pos->offset = 0;	/* will read headers */
+		} else if (index->data_offset == index->content_size) {
+			/* empty packet */
+			pos->offset = index->data_offset;
+			offset = 0;
+			goto read_next_packet;
 		} else {
 			pos->offset = EOF;
 			return;
