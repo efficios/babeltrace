@@ -1093,7 +1093,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		struct ctf_trace *trace)
 {
 	struct ctf_node *expression;
-	uint64_t alignment = 1, size;
+	uint64_t alignment = 1, size = 0;
 	int byte_order = trace->byte_order;
 	int signedness = 0;
 	int has_alignment = 0, has_size = 0;
