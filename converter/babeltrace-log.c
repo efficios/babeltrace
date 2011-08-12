@@ -53,6 +53,7 @@ static uuid_t s_uuid;
 
 /* Metadata format string */
 static const char metadata_fmt[] =
+"/* CTF 1.8 */\n"
 "typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
 "typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
 "\n"
