@@ -159,6 +159,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 				id = integer_definition->value._unsigned;
 			}
 		}
+		stream->event_id = id;
 
 		/* lookup timestamp */
 		stream->has_timestamp = 0;
@@ -220,35 +221,13 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
 	struct ctf_stream_class *stream_class = stream->stream_class;
 	struct ctf_stream_event *event;
-	uint64_t id = 0;
+	uint64_t id;
 	int ret;
+
+	id = stream->event_id;
 
 	/* print event header */
 	if (stream->stream_event_header) {
-		struct definition_integer *integer_definition;
-		struct definition *variant;
-
-		/* lookup event id */
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
-		if (integer_definition) {
-			id = integer_definition->value._unsigned;
-		} else {
-			struct definition_enum *enum_definition;
-
-			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
-			if (enum_definition) {
-				id = enum_definition->integer->value._unsigned;
-			}
-		}
-
-		variant = lookup_variant(&stream->stream_event_header->p, "v");
-		if (variant) {
-			integer_definition = lookup_integer(variant, "id", FALSE);
-			if (integer_definition) {
-				id = integer_definition->value._unsigned;
-			}
-		}
-
 		ret = generic_rw(pos, &stream->stream_event_header->p);
 		if (ret)
 			goto error;

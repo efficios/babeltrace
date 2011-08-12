@@ -102,35 +102,10 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	int field_nr_saved;
 	struct ctf_event *event_class;
 	struct ctf_stream_event *event;
-	uint64_t id = 0;
+	uint64_t id;
 	int ret;
 
-	/* print event header */
-	if (stream->stream_event_header) {
-		struct definition_integer *integer_definition;
-		struct definition *variant;
-
-		/* lookup event id */
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
-		if (integer_definition) {
-			id = integer_definition->value._unsigned;
-		} else {
-			struct definition_enum *enum_definition;
-
-			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
-			if (enum_definition) {
-				id = enum_definition->integer->value._unsigned;
-			}
-		}
-
-		variant = lookup_variant(&stream->stream_event_header->p, "v");
-		if (variant) {
-			integer_definition = lookup_integer(variant, "id", FALSE);
-			if (integer_definition) {
-				id = integer_definition->value._unsigned;
-			}
-		}
-	}
+	id = stream->event_id;
 
 	if (id >= stream_class->events_by_id->len) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
