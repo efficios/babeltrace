@@ -20,6 +20,7 @@
  * Depends on glibc 2.10 for getline().
  */
 
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -89,11 +90,16 @@ static
 void print_metadata(FILE *fp)
 {
 	char uuid_str[UUID_STR_LEN];
+	unsigned int major = 0, minor = 0;
+	int ret;
 
+	ret = sscanf(VERSION, "%u.%u", &major, &minor);
+	if (ret != 2)
+		fprintf(stderr, "[warning] Incorrect babeltrace version format\n.");
 	uuid_unparse(s_uuid, uuid_str);
 	fprintf(fp, metadata_fmt,
-		BABELTRACE_VERSION_MAJOR,
-		BABELTRACE_VERSION_MINOR,
+		major,
+		minor,
 		uuid_str,
 		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be",
 		s_timestamp ? metadata_stream_event_header_timestamp : "");
@@ -245,9 +251,7 @@ void trace_text(FILE *input, int output)
 static
 void usage(FILE *fp)
 {
-	fprintf(fp, "BabelTrace Log Converter %u.%u\n",
-		BABELTRACE_VERSION_MAJOR,
-		BABELTRACE_VERSION_MINOR);
+	fprintf(fp, "BabelTrace Log Converter %s\n", VERSION);
 	fprintf(fp, "\n");
 	fprintf(fp, "Convert for a text log (read from standard input) to CTF.\n");
 	fprintf(fp, "\n");

@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <glib.h>
 
-#define BABELTRACE_VERSION_MAJOR	0
-#define BABELTRACE_VERSION_MINOR	1
-
 extern int babeltrace_verbose, babeltrace_debug;
 
 #define printf_verbose(fmt, args...)				\

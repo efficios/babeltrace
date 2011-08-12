@@ -19,6 +19,7 @@
  */
 
 #define _XOPEN_SOURCE 700
+#include <config.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
 #include <popt.h>
@@ -82,9 +83,7 @@ static void list_formats(FILE *fp)
 
 static void usage(FILE *fp)
 {
-	fprintf(fp, "BabelTrace Trace Converter %u.%u\n\n",
-		BABELTRACE_VERSION_MAJOR,
-		BABELTRACE_VERSION_MINOR);
+	fprintf(fp, "BabelTrace Trace Converter %s\n\n", VERSION);
 	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT <OUTPUT>\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  INPUT                          Input trace path\n");
