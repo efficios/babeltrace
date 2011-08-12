@@ -1,0 +1,4 @@
+2011-08-12 Babeltrace 0.5
+	* Initialize size to 0 to eliminate incorrect gcc uninitialized
+	  var warning
+	* Fix non-matching packet context wrt last packet event read
