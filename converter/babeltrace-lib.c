@@ -29,7 +29,9 @@
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/prio_heap.h>
 
-static int read_event(struct ctf_file_stream *sin)
+#include "babeltrace-api.h"
+
+static int stream_read_event(struct ctf_file_stream *sin)
 {
 	int ret;
 
@@ -56,24 +58,27 @@ int stream_compare(void *a, void *b)
 		return 0;
 }
 
-int convert_trace(struct trace_descriptor *td_write,
-		  struct trace_collection *trace_collection_read)
+struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc)
 {
-	struct ptr_heap *stream_heap;
-	struct ctf_text_stream_pos *sout;
 	int i, stream_id;
 	int ret = 0;
+	struct babeltrace_iter *iter;
 
-	stream_heap = g_new(struct ptr_heap, 1);
-	heap_init(stream_heap, 0, stream_compare);
-	sout = container_of(td_write, struct ctf_text_stream_pos,
-			    trace_descriptor);
+	iter = malloc(sizeof(struct babeltrace_iter));
+	if (!iter)
+		goto error_malloc;
+	iter->stream_heap = g_new(struct ptr_heap, 1);
+	iter->tc = tc;
 
-	for (i = 0; i < trace_collection_read->array->len; i++) {
+	ret = heap_init(iter->stream_heap, 0, stream_compare);
+	if (ret < 0)
+		goto error_heap_init;
+
+	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
 		struct trace_descriptor *td_read;
 
-		td_read = g_ptr_array_index(trace_collection_read->array, i);
+		td_read = g_ptr_array_index(tc->array, i);
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		/* Populate heap with each stream */
@@ -92,54 +97,111 @@ int convert_trace(struct trace_descriptor *td_write,
 				file_stream = g_ptr_array_index(stream->streams,
 						filenr);
 
-				ret = read_event(file_stream);
+				ret = stream_read_event(file_stream);
 				if (ret == EOF) {
 					ret = 0;
 					continue;
 				} else if (ret) {
-					goto end;
+					goto error;
 				}
 				/* Add to heap */
-				ret = heap_insert(stream_heap, file_stream);
-				if (ret) {
-					fprintf(stdout,
-						"[error] Out of memory.\n");
-					goto end;
-				}
+				ret = heap_insert(iter->stream_heap, file_stream);
+				if (ret)
+					goto error;
 			}
 		}
 	}
 
-	/* Replace heap entries until EOF for each stream (heap empty) */
-	for (;;) {
-		struct ctf_file_stream *file_stream, *removed;
+	return iter;
 
-		file_stream = heap_maximum(stream_heap);
-		if (!file_stream) {
-			/* end of file for all streams */
-			ret = 0;
-			break;
-		}
-		ret = sout->parent.event_cb(&sout->parent, &file_stream->parent);
+error:
+	heap_free(iter->stream_heap);
+error_heap_init:
+	g_free(iter->stream_heap);
+	free(iter);
+error_malloc:
+	return NULL;
+}
+
+void babeltrace_iter_destroy(struct babeltrace_iter *iter)
+{
+	heap_free(iter->stream_heap);
+	g_free(iter->stream_heap);
+	free(iter);
+}
+
+int babeltrace_iter_next(struct babeltrace_iter *iter)
+{
+	struct ctf_file_stream *file_stream, *removed;
+	int ret;
+
+	file_stream = heap_maximum(iter->stream_heap);
+	if (!file_stream) {
+		/* end of file for all streams */
+		ret = 0;
+		goto end;
+	}
+
+	ret = stream_read_event(file_stream);
+	if (ret == EOF) {
+		removed = heap_remove(iter->stream_heap);
+		assert(removed == file_stream);
+		ret = 0;
+		goto end;
+	} else if (ret) {
+		goto end;
+	}
+	/* Reinsert the file stream into the heap, and rebalance. */
+	removed = heap_replace_max(iter->stream_heap, file_stream);
+	assert(removed == file_stream);
+
+end:
+	return ret;
+}
+
+int babeltrace_iter_read_event(struct babeltrace_iter *iter,
+		struct ctf_stream **stream,
+		struct ctf_stream_event **event)
+{
+	struct ctf_file_stream *file_stream;
+	int ret = 0;
+
+	file_stream = heap_maximum(iter->stream_heap);
+	if (!file_stream) {
+		/* end of file for all streams */
+		ret = EOF;
+		goto end;
+	}
+	*stream = &file_stream->parent;
+	*event = g_ptr_array_index((*stream)->events_by_id, (*stream)->event_id);
+end:
+	return ret;
+}
+
+int convert_trace(struct trace_descriptor *td_write,
+		  struct trace_collection *trace_collection_read)
+{
+	struct babeltrace_iter *iter;
+	struct ctf_stream *stream;
+	struct ctf_stream_event *event;
+	struct ctf_text_stream_pos *sout;
+	int ret = 0;
+
+	sout = container_of(td_write, struct ctf_text_stream_pos,
+			trace_descriptor);
+
+	iter = babeltrace_iter_create(trace_collection_read);
+	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
+		ret = sout->parent.event_cb(&sout->parent, stream);
 		if (ret) {
 			fprintf(stdout, "[error] Writing event failed.\n");
 			goto end;
 		}
-		ret = read_event(file_stream);
-		if (ret == EOF) {
-			removed = heap_remove(stream_heap);
-			assert(removed == file_stream);
-			ret = 0;
-			continue;
-		} else if (ret)
+		ret = babeltrace_iter_next(iter);
+		if (ret < 0)
 			goto end;
-		/* Reinsert the file stream into the heap, and rebalance. */
-		removed = heap_replace_max(stream_heap, file_stream);
-		assert(removed == file_stream);
 	}
-
 end:
-	heap_free(stream_heap);
-	g_free(stream_heap);
+	babeltrace_iter_destroy(iter);
 	return ret;
 }
