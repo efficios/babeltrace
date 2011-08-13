@@ -1,3 +1,6 @@
+2011-08-12 Babeltrace 0.6
+	* Introduce Babeltrace public API: babeltrace.h
+	* Fix support for gold linker: inappropriate dep removal of plugins
 2011-08-12 Babeltrace 0.5
 	* Initialize size to 0 to eliminate incorrect gcc uninitialized
 	  var warning
