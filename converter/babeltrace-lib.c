@@ -22,14 +22,35 @@
 #include <errno.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/prio_heap.h>
+#include <babeltrace/babeltrace.h>
+#include <babeltrace/types.h>
+#include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf-ir/metadata.h>
 
-#include "babeltrace-api.h"
+/*
+ * struct babeltrace_iter: data structure representing an iterator on a trace
+ * collection.
+ */
+struct babeltrace_iter {
+	struct ptr_heap *stream_heap;
+	struct trace_collection *tc;
+};
+
+struct babeltrace_iter_pos {
+	GPtrArray *pos; /* struct babeltrace_iter_stream_pos */
+};
+
+struct babeltrace_iter_stream_pos {
+	struct stream_pos parent;
+	ssize_t offset;
+	size_t cur_index;
+};
 
 static int stream_read_event(struct ctf_file_stream *sin)
 {

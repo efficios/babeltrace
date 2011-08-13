@@ -25,7 +25,7 @@
 #include <inttypes.h>
 #include <endian.h>
 #include <errno.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/list.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/metadata.h>

@@ -20,7 +20,7 @@
 
 #define _XOPEN_SOURCE 700
 #include <config.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/format.h>
 #include <popt.h>
 #include <errno.h>

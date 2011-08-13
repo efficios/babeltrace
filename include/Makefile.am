@@ -1,6 +1,8 @@
+babeltraceinclude_HEADERS = babeltrace/babeltrace.h
+
 noinst_HEADERS = \
 	babeltrace/align.h \
-	babeltrace/babeltrace.h \
+	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield.h \
 	babeltrace/compiler.h \
 	babeltrace/format.h \

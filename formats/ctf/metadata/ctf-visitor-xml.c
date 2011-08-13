@@ -24,7 +24,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/list.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"

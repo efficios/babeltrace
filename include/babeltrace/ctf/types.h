@@ -20,7 +20,7 @@
  */
 
 #include <babeltrace/types.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

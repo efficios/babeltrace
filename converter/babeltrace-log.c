@@ -35,7 +35,7 @@
 #include <string.h>
 #include <endian.h>
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 
 #define USEC_PER_SEC 1000000UL

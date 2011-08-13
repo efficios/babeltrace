@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <glib.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/format.h>
 

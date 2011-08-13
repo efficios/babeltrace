@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <endian.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/metadata.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"

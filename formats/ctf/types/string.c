@@ -18,7 +18,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <limits.h>		/* C99 limits */
 #include <string.h>

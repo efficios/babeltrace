@@ -48,6 +48,9 @@ LIBS="$LIBS $GMODULE_LIBS"
 PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
 AC_SUBST(PACKAGE_CFLAGS)
 
+babeltraceincludedir="${includedir}"
+AC_SUBST(babeltraceincludedir)
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
