@@ -97,7 +97,7 @@ static inline
 void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 {
 	printf_debug("ctf_move_pos test EOF: %zd\n", pos->offset);
-	if (pos->offset == EOF)
+	if (unlikely(pos->offset == EOF))
 		return;
 
 	if (pos->fd >= 0) {
@@ -108,7 +108,7 @@ void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 		 * packet.
 		 */
 		if ((pos->prot == PROT_WRITE)
-		    	&& (pos->offset + bit_offset >= pos->packet_size)) {
+		    	&& (unlikely(pos->offset + bit_offset >= pos->packet_size))) {
 			printf_debug("ctf_move_pos_slow (before call): %zd\n",
 				     pos->offset);
 			ctf_move_pos_slow(pos, bit_offset, SEEK_CUR);
@@ -155,7 +155,7 @@ void ctf_dummy_pos(struct ctf_stream_pos *pos, struct ctf_stream_pos *dummy)
 static inline
 int ctf_pos_packet(struct ctf_stream_pos *dummy)
 {
-	if (dummy->offset > dummy->packet_size)
+	if (unlikely(dummy->offset > dummy->packet_size))
 		return -ENOSPC;
 	return 0;
 }
@@ -169,9 +169,9 @@ void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 static inline
 int ctf_pos_access_ok(struct ctf_stream_pos *pos, size_t bit_len)
 {
-	if (pos->offset == EOF)
+	if (unlikely(pos->offset == EOF))
 		return 0;
-	if (pos->offset + bit_len > pos->packet_size)
+	if (unlikely(pos->offset + bit_len > pos->packet_size))
 		return 0;
 	return 1;
 }
