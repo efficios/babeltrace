@@ -97,7 +97,7 @@ void ctf_update_timestamp(struct ctf_stream *stream,
 		integer_definition->declaration;
 	uint64_t oldval, newval, updateval;
 
-	if (integer_declaration->len == 64) {
+	if (unlikely(integer_declaration->len == 64)) {
 		stream->timestamp = integer_definition->value._unsigned;
 		return;
 	}
@@ -127,17 +127,17 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 
 	ctf_pos_get_event(pos);
 
-	if (pos->offset == EOF)
+	if (unlikely(pos->offset == EOF))
 		return EOF;
 	assert(pos->offset < pos->content_size);
 
 	/* Read event header */
-	if (stream->stream_event_header) {
+	if (likely(stream->stream_event_header)) {
 		struct definition_integer *integer_definition;
 		struct definition *variant;
 
 		ret = generic_rw(ppos, &stream->stream_event_header->p);
-		if (ret)
+		if (unlikely(ret))
 			goto error;
 		/* lookup event id */
 		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
@@ -185,12 +185,12 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 			goto error;
 	}
 
-	if (id >= stream_class->events_by_id->len) {
+	if (unlikely(id >= stream_class->events_by_id->len)) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
-	if (!event) {
+	if (unlikely(!event)) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
@@ -203,7 +203,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	}
 
 	/* Read event payload */
-	if (event->event_fields) {
+	if (likely(event->event_fields)) {
 		ret = generic_rw(ppos, &event->event_fields->p);
 		if (ret)
 			goto error;
@@ -227,7 +227,7 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 	id = stream->event_id;
 
 	/* print event header */
-	if (stream->stream_event_header) {
+	if (likely(stream->stream_event_header)) {
 		ret = generic_rw(pos, &stream->stream_event_header->p);
 		if (ret)
 			goto error;
@@ -240,12 +240,12 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 			goto error;
 	}
 
-	if (id >= stream_class->events_by_id->len) {
+	if (unlikely(id >= stream_class->events_by_id->len)) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
-	if (!event) {
+	if (unlikely(!event)) {
 		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
@@ -258,7 +258,7 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 	}
 
 	/* Read and print event payload */
-	if (event->event_fields) {
+	if (likely(event->event_fields)) {
 		ret = generic_rw(pos, &event->event_fields->p);
 		if (ret)
 			goto error;
