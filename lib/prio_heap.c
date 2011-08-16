@@ -18,6 +18,7 @@
  */
 
 #include <babeltrace/prio_heap.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,14 +68,14 @@ int heap_grow(struct ptr_heap *heap, size_t new_len)
 {
 	void **new_ptrs;
 
-	if (heap->alloc_len >= new_len)
+	if (likely(heap->alloc_len >= new_len))
 		return 0;
 
 	heap->alloc_len = max_t(size_t, new_len, heap->alloc_len << 1);
 	new_ptrs = calloc(heap->alloc_len, sizeof(void *));
-	if (!new_ptrs)
+	if (unlikely(!new_ptrs))
 		return -ENOMEM;
-	if (heap->ptrs)
+	if (likely(heap->ptrs))
 		memcpy(new_ptrs, heap->ptrs, heap->len * sizeof(void *));
 	free(heap->ptrs);
 	heap->ptrs = new_ptrs;
@@ -87,7 +88,7 @@ int heap_set_len(struct ptr_heap *heap, size_t new_len)
 	int ret;
 
 	ret = heap_grow(heap, new_len);
-	if (ret)
+	if (unlikely(ret))
 		return ret;
 	heap->len = new_len;
 	return 0;
@@ -128,7 +129,7 @@ static void heapify(struct ptr_heap *heap, size_t i)
 			largest = i;
 		if (r < heap->len && heap->gt(ptrs[r], ptrs[largest]))
 			largest = r;
-		if (largest == i)
+		if (unlikely(largest == i))
 			break;
 		tmp = ptrs[i];
 		ptrs[i] = ptrs[largest];
@@ -142,7 +143,7 @@ void *heap_replace_max(struct ptr_heap *heap, void *p)
 {
 	void *res;
 
-	if (!heap->len) {
+	if (unlikely(!heap->len)) {
 		(void) heap_set_len(heap, 1);
 		heap->ptrs[0] = p;
 		check_heap(heap);
@@ -163,7 +164,7 @@ int heap_insert(struct ptr_heap *heap, void *p)
 	int ret;
 
 	ret = heap_set_len(heap, heap->len + 1);
-	if (ret)
+	if (unlikely(ret))
 		return ret;
 	ptrs = heap->ptrs;
 	pos = heap->len - 1;
@@ -197,11 +198,11 @@ void *heap_cherrypick(struct ptr_heap *heap, void *p)
 	size_t pos, len = heap->len;
 
 	for (pos = 0; pos < len; pos++)
-		if (heap->ptrs[pos] == p)
+		if (unlikely(heap->ptrs[pos] == p))
 			goto found;
 	return NULL;
 found:
-	if (heap->len == 1) {
+	if (unlikely(heap->len == 1)) {
 		(void) heap_set_len(heap, 0);
 		check_heap(heap);
 		return heap->ptrs[0];

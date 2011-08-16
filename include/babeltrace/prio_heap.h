@@ -21,6 +21,7 @@
  */
 
 #include <unistd.h>
+#include <babeltrace/babeltrace-internal.h>
 
 struct ptr_heap {
 	size_t len, alloc_len;
@@ -47,7 +48,7 @@ void check_heap(const struct ptr_heap *heap)
 static inline void *heap_maximum(const struct ptr_heap *heap)
 {
 	check_heap(heap);
-	return heap->len ? heap->ptrs[0] : NULL;
+	return likely(heap->len) ? heap->ptrs[0] : NULL;
 }
 
 /**
