@@ -19,8 +19,6 @@
 
 /* Forward declarations */
 struct babeltrace_iter;
-struct babeltrace_iter_pos;
-struct babeltrace_iter_stream_pos;
 struct trace_collection;
 struct ctf_stream_event;
 struct ctf_stream;
