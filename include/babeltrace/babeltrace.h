@@ -22,11 +22,37 @@ struct babeltrace_iter;
 struct trace_collection;
 struct ctf_stream_event;
 struct ctf_stream;
+struct babeltrace_saved_pos;
+
+struct trace_collection_pos {
+	enum {
+		BT_SEEK_TIME,		/* uses u.seek_time */
+		BT_SEEK_RESTORE,	/* uses u.restore */
+		BT_SEEK_CUR,
+		BT_SEEK_BEGIN,
+		BT_SEEK_END,
+	} type;
+	union {
+		uint64_t seek_time;
+		struct babeltrace_saved_pos *restore;
+	} u;
+};
 
 /*
  * babeltrace_iter_create - Allocate a trace collection iterator.
+ *
+ * begin_pos and end_pos are optional parameters to specify the position
+ * at which the trace collection should be seeked upon iterator
+ * creation, and the position at which iteration will start returning
+ * "EOF".
+ *
+ * By default, if begin_pos is NULL, a BT_SEEK_CUR is performed at
+ * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
+ * trace) is the EOF criterion.
  */
-struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc);
+struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
+		struct trace_collection_pos *begin_pos,
+		struct trace_collection_pos *end_pos);
 
 /*
  * babeltrace_iter_destroy - Free a trace collection iterator.
@@ -41,34 +67,28 @@ void babeltrace_iter_destroy(struct babeltrace_iter *iter);
 int babeltrace_iter_next(struct babeltrace_iter *iter);
 
 /*
- * babeltrace_iter_get_pos - Get the current trace collection position.
+ * babeltrace_iter_save_pos - Save the current trace collection position.
  *
  * The position returned by this function needs to be freed by
  * babeltrace_iter_free_pos after use.
  */
-struct babeltrace_iter_pos *
-	babeltrace_iter_get_pos(struct babeltrace_iter *iter);
+struct trace_collection_pos *
+	babeltrace_iter_save_pos(struct babeltrace_iter *iter);
 
 /*
  * babeltrace_iter_free_pos - Free the position.
  */
-void babeltrace_iter_free_pos(struct babeltrace_iter_pos *pos);
+void babeltrace_iter_free_pos(struct trace_collection_pos *pos);
 
 /*
- * babeltrace_iter_seek_pos - Seek the trace collection to the position.
- */
-int babeltrace_iter_seek_pos(struct babeltrace_iter *iter,
-		struct babeltrace_iter_pos *pos);
-
-/*
- * babeltrace_iter_seek_time: Seek the trace collection to the given timestamp.
+ * babeltrace_iter_seek: seek iterator to given position.
  *
- * Return EOF if timestamp is after the last event of the trace collection.
+ * Return EOF if position is after the last event of the trace collection.
  * Return other negative value for other errors.
  * Return 0 for success.
  */
-int babeltrace_iter_seek_time(struct babeltrace_iter *iter,
-		uint64_t timestamp);
+int babeltrace_iter_seek(struct babeltrace_iter *iter,
+		const struct trace_collection_pos *pos);
 
 /*
  * babeltrace_iter_read_event: Read the iterator's current event data.

@@ -33,6 +33,21 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/metadata.h>
 
+struct stream_saved_pos {
+	/*
+	 * Use file_stream pointer to check if the trace collection we
+	 * restore to match the one we saved from, for each stream.
+	 */
+	struct ctf_file_stream *file_stream;
+	size_t cur_index;	/* current index in packet index */
+	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
+};
+
+struct babeltrace_saved_pos {
+	struct trace_collection *tc;
+	GArray *stream_saved_pos;	/* Contains struct stream_saved_pos */
+};
+
 /*
  * struct babeltrace_iter: data structure representing an iterator on a trace
  * collection.
@@ -40,6 +55,7 @@
 struct babeltrace_iter {
 	struct ptr_heap *stream_heap;
 	struct trace_collection *tc;
+	struct trace_collection_pos *end_pos;
 };
 
 static int stream_read_event(struct ctf_file_stream *sin)
@@ -69,7 +85,10 @@ int stream_compare(void *a, void *b)
 		return 0;
 }
 
-struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc)
+/* TODO: use begin_pos/end_pos */
+struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
+		struct trace_collection_pos *begin_pos,
+		struct trace_collection_pos *end_pos)
 {
 	int i, stream_id;
 	int ret = 0;
@@ -201,7 +220,7 @@ int convert_trace(struct trace_descriptor *td_write,
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
 
-	iter = babeltrace_iter_create(trace_collection_read);
+	iter = babeltrace_iter_create(trace_collection_read, NULL, NULL);
 	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
 		ret = sout->parent.event_cb(&sout->parent, stream);
 		if (ret) {
