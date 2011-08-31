@@ -42,16 +42,6 @@ struct babeltrace_iter {
 	struct trace_collection *tc;
 };
 
-struct babeltrace_iter_pos {
-	GPtrArray *pos; /* struct babeltrace_iter_stream_pos */
-};
-
-struct babeltrace_iter_stream_pos {
-	struct stream_pos parent;
-	ssize_t offset;
-	size_t cur_index;
-};
-
 static int stream_read_event(struct ctf_file_stream *sin)
 {
 	int ret;
