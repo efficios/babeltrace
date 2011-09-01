@@ -32,6 +32,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/metadata.h>
+#include <stdarg.h>
 
 struct stream_saved_pos {
 	/*
@@ -48,6 +49,24 @@ struct babeltrace_saved_pos {
 	GArray *stream_saved_pos;	/* Contains struct stream_saved_pos */
 };
 
+struct bt_callback {
+	int prio;		/* Callback order priority. Lower first. Dynamically assigned from dependency graph. */
+	void *private_data;
+	enum bt_cb_ret (*callback)(void *private_data, void *caller_data);
+};
+
+struct bt_callback_chain {
+	GArray *callback;	/* Array of struct bt_callback, ordered by priority */
+};
+
+/*
+ * per id callbacks need to be per stream class because event ID vs
+ * event name mapping can vary from stream to stream.
+ */
+struct bt_stream_callbacks {
+	GArray *per_id_callbacks;	/* Array of struct bt_callback_chain */
+};
+
 /*
  * struct babeltrace_iter: data structure representing an iterator on a trace
  * collection.
@@ -56,7 +75,59 @@ struct babeltrace_iter {
 	struct ptr_heap *stream_heap;
 	struct trace_collection *tc;
 	struct trace_collection_pos *end_pos;
+	GArray *callbacks;				/* Array of struct bt_stream_hooks */
+	struct bt_callback_chain main_callbacks;	/* For all events */
+	/*
+	 * Flag indicating if dependency graph needs to be recalculated.
+	 * Set by babeltrace_iter_add_callback(), and checked (and
+	 * cleared) by upon entry into babeltrace_iter_read_event().
+	 * babeltrace_iter_read_event() is responsible for calling dep
+	 * graph calculation if it sees this flag set.
+	 */
+	int recalculate_dep_graph;
+	/*
+	 * Array of pointers to struct bt_dependencies, for garbage
+	 * collection. We're not using a linked list here because each
+	 * struct bt_dependencies can belong to more than one
+	 * babeltrace_iter.
+	 */
+	GPtrArray *dep_gc;
 };
+
+struct bt_dependencies {
+	GArray *deps;			/* Array of GQuarks */
+	int refcount;			/* free when decremented to 0 */
+};
+
+static
+struct bt_dependencies *_babeltrace_dependencies_create(const char *first,
+							va_list ap)
+{
+	const char *iter;
+	struct bt_dependencies *dep;
+
+	dep = g_new0(struct bt_dependencies, 1);
+	dep->refcount = 1;
+	dep->deps = g_array_new(FALSE, TRUE, sizeof(GQuark));
+	iter = first;
+	while (iter) {
+		GQuark q = g_quark_from_string(iter);
+		g_array_append_val(dep->deps, q);
+		iter = va_arg(ap, const char *);
+	}
+	return dep;
+}
+
+struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
+{
+	va_list ap;
+	struct bt_dependencies *deps;
+
+	va_start(ap, first);
+	deps = _babeltrace_dependencies_create(first, ap);
+	va_end(ap);
+	return deps;
+}
 
 static int stream_read_event(struct ctf_file_stream *sin)
 {

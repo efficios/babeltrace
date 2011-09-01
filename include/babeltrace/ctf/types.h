@@ -31,6 +31,8 @@
 #include <glib.h>
 #include <stdio.h>
 
+struct bt_stream_callbacks;
+
 struct packet_index {
 	off_t offset;		/* offset of the packet in the file, in bytes */
 	off_t data_offset;	/* offset of data within the packet, in bits */
@@ -60,6 +62,7 @@ struct ctf_stream_pos {
 	size_t cur_index;	/* current index in packet index */
 
 	int dummy;		/* dummy position, for length calculation */
+	struct bt_stream_callbacks *cb;	/* Callbacks registered for iterator. */
 };
 
 static inline
