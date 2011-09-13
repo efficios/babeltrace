@@ -52,6 +52,10 @@ struct babeltrace_saved_pos {
 struct bt_callback {
 	int prio;		/* Callback order priority. Lower first. Dynamically assigned from dependency graph. */
 	void *private_data;
+	int flags;
+	struct bt_dependencies *depends;
+	struct bt_dependencies *weak_depends;
+	struct bt_dependencies *provides;
 	enum bt_cb_ret (*callback)(void *private_data, void *caller_data);
 };
 
@@ -75,7 +79,7 @@ struct babeltrace_iter {
 	struct ptr_heap *stream_heap;
 	struct trace_collection *tc;
 	struct trace_collection_pos *end_pos;
-	GArray *callbacks;				/* Array of struct bt_stream_hooks */
+	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
 	/*
 	 * Flag indicating if dependency graph needs to be recalculated.
@@ -127,6 +131,102 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
 	deps = _babeltrace_dependencies_create(first, ap);
 	va_end(ap);
 	return deps;
+}
+
+/*
+ * babeltrace_iter_add_callback: Add a callback to iterator.
+ */
+int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
+		bt_event_name event, void *private_data, int flags,
+		enum bt_cb_ret (*callback)(void *private_data, void *caller_data),
+		struct bt_dependencies *depends,
+		struct bt_dependencies *weak_depends,
+		struct bt_dependencies *provides)
+{
+	int i, stream_id;
+	gpointer *event_id_ptr;
+	unsigned long event_id;
+	struct trace_collection *tc = iter->tc;
+
+	for (i = 0; i < tc->array->len; i++) {
+		struct ctf_trace *tin;
+		struct trace_descriptor *td_read;
+
+		td_read = g_ptr_array_index(tc->array, i);
+		tin = container_of(td_read, struct ctf_trace, parent);
+
+		for (stream_id = 0; stream_id < tin->streams->len; stream_id++) {
+			struct ctf_stream_class *stream;
+			struct bt_stream_callbacks *bt_stream_cb = NULL;
+			struct bt_callback_chain *bt_chain = NULL;
+			struct bt_callback new_callback;
+
+			stream = g_ptr_array_index(tin->streams, stream_id);
+
+			/* find or create the bt_stream_callbacks for this stream */
+			if (iter->callbacks->len >= stream_id) {
+				bt_stream_cb = &g_array_index(iter->callbacks,
+						struct bt_stream_callbacks, stream->stream_id);
+			} else {
+				g_array_set_size(iter->callbacks, stream->stream_id);
+			}
+			if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks) {
+				struct bt_stream_callbacks new_stream_cb;
+				new_stream_cb.per_id_callbacks = g_array_new(1, 1,
+						sizeof(struct bt_callback_chain));
+				g_array_insert_val(iter->callbacks, stream->stream_id, new_stream_cb);
+				bt_stream_cb = &g_array_index(iter->callbacks,
+						struct bt_stream_callbacks, stream->stream_id);
+			}
+
+			if (event) {
+				/* find the event id */
+				event_id_ptr = g_hash_table_lookup(stream->event_quark_to_id,
+						(gconstpointer) (unsigned long) event);
+				/* event not found in this stream class */
+				if (!event_id_ptr) {
+					printf("event not found\n");
+					continue;
+				}
+				event_id = (uint64_t)*event_id_ptr;
+
+				/* find or create the bt_callback_chain for this event */
+				if (bt_stream_cb->per_id_callbacks->len >= event_id) {
+					bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+							struct bt_callback_chain, event_id);
+				} else {
+					g_array_set_size(bt_stream_cb->per_id_callbacks, event_id);
+				}
+				if (!bt_chain || !bt_chain->callback) {
+					struct bt_callback_chain new_chain;
+					new_chain.callback = g_array_new(1, 1, sizeof(struct bt_callback));
+					g_array_insert_val(bt_stream_cb->per_id_callbacks, event_id,
+							new_chain);
+					bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+							struct bt_callback_chain, event_id);
+				}
+			} else {
+				/* callback for all events */
+				if (!iter->main_callbacks.callback) {
+					iter->main_callbacks.callback = g_array_new(1, 1,
+							sizeof(struct bt_callback));
+				}
+				bt_chain = &iter->main_callbacks;
+			}
+
+			new_callback.private_data = private_data;
+			new_callback.flags = flags;
+			new_callback.callback = callback;
+			new_callback.depends = depends;
+			new_callback.weak_depends = weak_depends;
+			new_callback.provides = provides;
+
+			/* TODO : take care of priority, for now just FIFO */
+			g_array_append_val(bt_chain->callback, new_callback);
+		}
+	}
+
+	return 0;
 }
 
 static int stream_read_event(struct ctf_file_stream *sin)
@@ -243,6 +343,10 @@ struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->tc = tc;
 	iter->end_pos = end_pos;
+	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
+	iter->recalculate_dep_graph = 0;
+	iter->main_callbacks.callback = NULL;
+	iter->dep_gc = g_ptr_array_new();
 
 	ret = heap_init(iter->stream_heap, 0, stream_compare);
 	if (ret < 0)
@@ -336,6 +440,64 @@ end:
 	return ret;
 }
 
+static
+void process_callbacks(struct babeltrace_iter *iter,
+		struct ctf_stream *stream)
+{
+	struct bt_stream_callbacks *bt_stream_cb;
+	struct bt_callback_chain *bt_chain;
+	struct bt_callback *cb;
+	int i;
+	enum bt_cb_ret ret;
+
+	/* process all events callback first */
+	if (iter->main_callbacks.callback) {
+		for (i = 0; i < iter->main_callbacks.callback->len; i++) {
+			cb = &g_array_index(iter->main_callbacks.callback, struct bt_callback, i);
+			if (!cb)
+				goto end;
+			ret = cb->callback(NULL, NULL);
+			switch (ret) {
+				case BT_CB_OK_STOP:
+				case BT_CB_ERROR_STOP:
+					goto end;
+				default:
+					break;
+			}
+		}
+	}
+
+	/* process per event callbacks */
+	bt_stream_cb = &g_array_index(iter->callbacks,
+			struct bt_stream_callbacks, stream->stream_id);
+	if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks)
+		goto end;
+
+	if (stream->event_id > bt_stream_cb->per_id_callbacks->len)
+		goto end;
+	bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+			struct bt_callback_chain, stream->event_id);
+	if (!bt_chain || !bt_chain->callback)
+		goto end;
+
+	for (i = 0; i < bt_chain->callback->len; i++) {
+		cb = &g_array_index(bt_chain->callback, struct bt_callback, i);
+		if (!cb)
+			goto end;
+		ret = cb->callback(NULL, NULL);
+		switch (ret) {
+		case BT_CB_OK_STOP:
+		case BT_CB_ERROR_STOP:
+			goto end;
+		default:
+			break;
+		}
+	}
+
+end:
+	return;
+}
+
 int babeltrace_iter_read_event(struct babeltrace_iter *iter,
 		struct ctf_stream **stream,
 		struct ctf_stream_event **event)
@@ -351,6 +513,12 @@ int babeltrace_iter_read_event(struct babeltrace_iter *iter,
 	}
 	*stream = &file_stream->parent;
 	*event = g_ptr_array_index((*stream)->events_by_id, (*stream)->event_id);
+
+	if ((*stream)->stream_id > iter->callbacks->len)
+		goto end;
+
+	process_callbacks(iter, *stream);
+
 end:
 	return ret;
 }
