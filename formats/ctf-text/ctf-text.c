@@ -34,7 +34,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags);
+struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+			int whence));
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
@@ -225,7 +227,9 @@ error:
 }
 
 
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags)
+struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+			int whence))
 {
 	struct ctf_text_stream_pos *pos;
 	FILE *fp;

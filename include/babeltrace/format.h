@@ -22,6 +22,7 @@
  */
 
 #include <babeltrace/types.h>
+#include <babeltrace/ctf/types.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <glib.h>
@@ -33,7 +34,9 @@ struct trace_descriptor {
 struct format {
 	GQuark name;
 
-	struct trace_descriptor *(*open_trace)(const char *path, int flags);
+	struct trace_descriptor *(*open_trace)(const char *path, int flags,
+			void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+				int whence));
 	void (*close_trace)(struct trace_descriptor *descriptor);
 };
 

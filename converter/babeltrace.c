@@ -212,7 +212,7 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 	} else {
 		close(fd);
 		close(dirfd);
-		td_read = fmt_read->open_trace(fpath, O_RDONLY);
+		td_read = fmt_read->open_trace(fpath, O_RDONLY, ctf_move_pos_slow);
 		if (!td_read) {
 			fprintf(stdout, "Error opening trace \"%s\" "
 					"for reading.\n\n", fpath);
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	td_write = fmt_write->open_trace(opt_output_path, O_RDWR);
+	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
 			opt_output_path ? : "<none>");

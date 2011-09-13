@@ -60,6 +60,8 @@ struct ctf_stream_pos {
 	char *base;		/* mmap base address */
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 	size_t cur_index;	/* current index in packet index */
+	void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+			int whence); /* function called to switch packet */
 
 	int dummy;		/* dummy position, for length calculation */
 	struct bt_stream_callbacks *cb;	/* Callbacks registered for iterator. */
