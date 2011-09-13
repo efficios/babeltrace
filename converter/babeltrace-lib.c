@@ -156,7 +156,79 @@ int stream_compare(void *a, void *b)
 		return 0;
 }
 
-/* TODO: use begin_pos/end_pos */
+/*
+ * babeltrace_filestream_seek: seek a filestream to given position.
+ *
+ * The stream_id parameter is only useful for BT_SEEK_RESTORE.
+ */
+static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
+		const struct trace_collection_pos *begin_pos,
+		unsigned long stream_id)
+{
+	int ret = 0;
+
+	switch (begin_pos->type) {
+	case BT_SEEK_CUR:
+		/*
+		 * just insert into the heap we should already know
+		 * the timestamps
+		 */
+		break;
+	case BT_SEEK_BEGIN:
+		ctf_move_pos_slow(&file_stream->pos, 0, SEEK_SET);
+		ret = stream_read_event(file_stream);
+		break;
+	case BT_SEEK_TIME:
+	case BT_SEEK_RESTORE:
+	case BT_SEEK_END:
+	default:
+		assert(0); /* Not yet defined */
+	}
+
+	return ret;
+}
+
+/*
+ * babeltrace_iter_seek: seek iterator to given position.
+ */
+int babeltrace_iter_seek(struct babeltrace_iter *iter,
+		const struct trace_collection_pos *begin_pos)
+{
+    int i, stream_id;
+	int ret = 0;
+	struct trace_collection *tc = iter->tc;
+
+	for (i = 0; i < tc->array->len; i++) {
+		struct ctf_trace *tin;
+		struct trace_descriptor *td_read;
+
+		td_read = g_ptr_array_index(tc->array, i);
+		tin = container_of(td_read, struct ctf_trace, parent);
+
+		/* Populate heap with each stream */
+		for (stream_id = 0; stream_id < tin->streams->len;
+				stream_id++) {
+			struct ctf_stream_class *stream;
+			int filenr;
+
+			stream = g_ptr_array_index(tin->streams, stream_id);
+			for (filenr = 0; filenr < stream->streams->len;
+					filenr++) {
+				struct ctf_file_stream *file_stream;
+
+				file_stream = g_ptr_array_index(stream->streams,
+						filenr);
+				ret = babeltrace_filestream_seek(file_stream, begin_pos,
+						stream_id);
+				if (ret < 0)
+					goto end;
+			}
+		}
+	}
+end:
+	return ret;
+}
+
 struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
 		struct trace_collection_pos *begin_pos,
 		struct trace_collection_pos *end_pos)
@@ -170,6 +242,7 @@ struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
 		goto error_malloc;
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->tc = tc;
+	iter->end_pos = end_pos;
 
 	ret = heap_init(iter->stream_heap, 0, stream_compare);
 	if (ret < 0)
@@ -198,12 +271,15 @@ struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
 				file_stream = g_ptr_array_index(stream->streams,
 						filenr);
 
-				ret = stream_read_event(file_stream);
-				if (ret == EOF) {
-					ret = 0;
-					continue;
-				} else if (ret) {
-					goto error;
+				if (begin_pos) {
+				    ret = babeltrace_filestream_seek(file_stream, begin_pos,
+							stream_id);
+				    if (ret == EOF) {
+					   ret = 0;
+					   continue;
+				    } else if (ret) {
+					   goto error;
+				    }
 				}
 				/* Add to heap */
 				ret = heap_insert(iter->stream_heap, file_stream);
@@ -286,12 +362,14 @@ int convert_trace(struct trace_descriptor *td_write,
 	struct ctf_stream *stream;
 	struct ctf_stream_event *event;
 	struct ctf_text_stream_pos *sout;
+	struct trace_collection_pos begin_pos;
 	int ret = 0;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
 
-	iter = babeltrace_iter_create(trace_collection_read, NULL, NULL);
+	begin_pos.type = BT_SEEK_BEGIN;
+	iter = babeltrace_iter_create(trace_collection_read, &begin_pos, NULL);
 	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
 		ret = sout->parent.event_cb(&sout->parent, stream);
 		if (ret) {
