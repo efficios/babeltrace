@@ -406,8 +406,31 @@ error_malloc:
 
 void babeltrace_iter_destroy(struct babeltrace_iter *iter)
 {
+	struct bt_stream_callbacks *bt_stream_cb;
+	struct bt_callback_chain *bt_chain;
+	int i, j;
+
 	heap_free(iter->stream_heap);
 	g_free(iter->stream_heap);
+
+	/* free all events callbacks */
+	if (iter->main_callbacks.callback)
+		g_array_free(iter->main_callbacks.callback, TRUE);
+
+	/* free per-event callbacks */
+	for (i = 0; i < iter->callbacks->len; i++) {
+		bt_stream_cb = &g_array_index(iter->callbacks,
+				struct bt_stream_callbacks, i);
+		if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks)
+			continue;
+		for (j = 0; j < bt_stream_cb->per_id_callbacks->len; j++) {
+			bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+					struct bt_callback_chain, j);
+			g_array_free(bt_chain->callback, TRUE);
+		}
+		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
+	}
+
 	free(iter);
 }
 
