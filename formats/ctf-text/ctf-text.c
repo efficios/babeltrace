@@ -36,7 +36,7 @@
 
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence));
+			int whence), FILE *metadata_fp);
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
@@ -229,7 +229,7 @@ error:
 
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence))
+			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;
 	FILE *fp;

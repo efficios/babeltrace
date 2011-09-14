@@ -57,7 +57,7 @@ extern int yydebug;
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence));
+			int whence), FILE *metadata_fp);
 static
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
@@ -613,7 +613,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence))
+			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
 	struct ctf_file_stream *metadata_stream;
@@ -631,22 +631,25 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		goto end_stream;
 	}
 
-	td->metadata = &metadata_stream->parent;
-	metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
-	if (metadata_stream->pos.fd < 0) {
-		fprintf(stdout, "Unable to open metadata.\n");
-		return metadata_stream->pos.fd;
-	}
+	if (metadata_fp) {
+		fp = metadata_fp;
+	} else {
+		td->metadata = &metadata_stream->parent;
+		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
+		if (metadata_stream->pos.fd < 0) {
+			fprintf(stdout, "Unable to open metadata.\n");
+			return metadata_stream->pos.fd;
+		}
 
+		fp = fdopen(metadata_stream->pos.fd, "r");
+		if (!fp) {
+			fprintf(stdout, "[error] Unable to open metadata stream.\n");
+			ret = -errno;
+			goto end_stream;
+		}
+	}
 	if (babeltrace_debug)
 		yydebug = 1;
-
-	fp = fdopen(metadata_stream->pos.fd, "r");
-	if (!fp) {
-		fprintf(stdout, "[error] Unable to open metadata stream.\n");
-		ret = -errno;
-		goto end_stream;
-	}
 
 	if (packet_metadata(td, fp)) {
 		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
@@ -1142,7 +1145,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence))
+			int whence), FILE *metadata_fp)
 {
 	int ret;
 	struct dirent *dirent;
@@ -1170,7 +1173,7 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
 	 * Keep the metadata file separate.
 	 */
 
-	ret = ctf_open_trace_metadata_read(td, move_pos_slow);
+	ret = ctf_open_trace_metadata_read(td, move_pos_slow, metadata_fp);
 	if (ret) {
 		goto error_metadata;
 	}
@@ -1222,7 +1225,7 @@ error:
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-			int whence))
+			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
 	int ret;
@@ -1235,7 +1238,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 			fprintf(stdout, "[error] Path missing for input CTF trace.\n");
 			goto error;
 		}
-		ret = ctf_open_trace_read(td, path, flags, move_pos_slow);
+		ret = ctf_open_trace_read(td, path, flags, move_pos_slow, metadata_fp);
 		if (ret)
 			goto error;
 		break;
