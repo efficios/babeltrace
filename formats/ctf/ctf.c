@@ -127,8 +127,16 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	uint64_t id = 0;
 	int ret;
 
+	/* We need to check for EOF here for empty files. */
+	if (unlikely(pos->offset == EOF))
+		return EOF;
+
 	ctf_pos_get_event(pos);
 
+	/*
+	 * This is the EOF check after we've advanced the position in
+	 * ctf_pos_get_event.
+	 */
 	if (unlikely(pos->offset == EOF))
 		return EOF;
 	assert(pos->offset < pos->content_size);
@@ -408,6 +416,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 			/* empty packet */
 			pos->offset = index->data_offset;
 			offset = 0;
+			whence = SEEK_CUR;
 			goto read_next_packet;
 		} else {
 			pos->offset = EOF;
