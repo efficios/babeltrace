@@ -66,6 +66,11 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
 					  sequence_definition->p.scope,
 					  name, i, NULL);
+	}
+	for (i = 0; i < len; i++) {
+		struct definition **field;
+
+		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		ret = generic_rw(pos, *field);
 		if (ret)
 			return ret;
