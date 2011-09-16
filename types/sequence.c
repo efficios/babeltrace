@@ -59,8 +59,8 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition)
 
 		str = g_string_new("");
 		g_string_printf(str, "[%" PRIu64 "]", i);
-		(void) g_string_free(str, TRUE);
 		name = g_quark_from_string(str->str);
+		(void) g_string_free(str, TRUE);
 
 		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
