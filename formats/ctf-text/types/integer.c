@@ -43,7 +43,7 @@ int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definitio
 	fprintf(pos->fp, " ");
 	if (pos->print_names)
 		fprintf(pos->fp, "%s = ",
-			g_quark_to_string(definition->name));
+			rem_(g_quark_to_string(definition->name)));
 
 	if (pos->string
 	    && (integer_declaration->encoding == CTF_STRING_ASCII

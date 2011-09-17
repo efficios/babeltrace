@@ -40,7 +40,7 @@ int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
 	fprintf(pos->fp, " ");
 	if (pos->print_names)
 		fprintf(pos->fp, "%s = ",
-			g_quark_to_string(definition->name));
+			rem_(g_quark_to_string(definition->name)));
 
 	fprintf(pos->fp, "%Lg\n", float_definition->value);
 	return 0;
