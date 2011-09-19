@@ -103,7 +103,7 @@ int _aligned_integer_read(struct stream_pos *ppos,
 
 			v = *(const int16_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
-				rbo ? GUINT16_SWAP_LE_BE(v) : v;
+				rbo ? (int16_t) GUINT16_SWAP_LE_BE(v) : v;
 			break;
 		}
 		case 32:
@@ -112,7 +112,7 @@ int _aligned_integer_read(struct stream_pos *ppos,
 
 			v = *(const int32_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
-				rbo ? GUINT32_SWAP_LE_BE(v) : v;
+				rbo ? (int32_t) GUINT32_SWAP_LE_BE(v) : v;
 			break;
 		}
 		case 64:
@@ -121,7 +121,7 @@ int _aligned_integer_read(struct stream_pos *ppos,
 
 			v = *(const int64_t *) ctf_get_pos_addr(pos);
 			integer_definition->value._signed =
-				rbo ? GUINT64_SWAP_LE_BE(v) : v;
+				rbo ? (int64_t) GUINT64_SWAP_LE_BE(v) : v;
 			break;
 		}
 		default:
@@ -182,12 +182,12 @@ int _aligned_integer_write(struct stream_pos *ppos,
 			break;
 		case 16:
 			*(int16_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT16_SWAP_LE_BE((int16_t) v) :
+						 (int16_t) GUINT16_SWAP_LE_BE((int16_t) v) :
 						 (int16_t) v;
 			break;
 		case 32:
 			*(int32_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT32_SWAP_LE_BE((int32_t) v) :
+						 (int32_t) GUINT32_SWAP_LE_BE((int32_t) v) :
 						 (int32_t) v;
 			break;
 		case 64:
