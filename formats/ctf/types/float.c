@@ -28,8 +28,8 @@
 
 /*
  * This library is limited to binary representation of floating point values.
- * Sign-extension of the exponents is assumed to keep the NaN, +inf, -inf
- * values, but this should be double-checked (TODO).
+ * We use hardware support for conversion between 32 and 64-bit floating
+ * point values.
  */
 
 /*
@@ -49,7 +49,8 @@
 #endif
 
 union doubleIEEE754 {
-	double v;
+	double vd;
+	float vf;
 #ifdef HAS_TYPE_PRUNING
 	unsigned long bits[(sizeof(double) + sizeof(unsigned long) - 1) / sizeof(unsigned long)];
 #else
@@ -57,16 +58,8 @@ union doubleIEEE754 {
 #endif
 };
 
-union ldoubleIEEE754 {
-	long double v;
-#ifdef HAS_TYPE_PRUNING
-	unsigned long bits[(sizeof(long double) + sizeof(unsigned long) - 1) / sizeof(unsigned long)];
-#else
-	unsigned char bits[sizeof(long double)];
-#endif
-};
-
-static struct declaration_float *static_ldouble_declaration;
+static struct declaration_float *static_float_declaration,
+		*static_double_declaration;
 
 struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
@@ -79,6 +72,13 @@ int _ctf_float_copy(struct stream_pos *destp,
 {
 	int ret;
 
+	/* We only support copy of same-size floats for now */
+	assert(src_definition->declaration->sign->len ==
+		dest_definition->declaration->sign->len);
+	assert(src_definition->declaration->exp->len ==
+		dest_definition->declaration->exp->len);
+	assert(src_definition->declaration->mantissa->len ==
+		dest_definition->declaration->mantissa->len);
 	/* Read */
 	if (src_definition->declaration->byte_order == LITTLE_ENDIAN) {
 		ret = ctf_integer_read(srcp, &src_definition->mantissa->p);
@@ -141,21 +141,42 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	const struct declaration_float *float_declaration =
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
-	union ldoubleIEEE754 u;
-	struct definition *tmpdef =
-		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
-				NULL, 0, 0, NULL);
-	struct definition_float *tmpfloat =
-		container_of(tmpdef, struct definition_float, p);
+	union doubleIEEE754 u;
+	struct definition *tmpdef;
+	struct definition_float *tmpfloat;
 	struct ctf_stream_pos destp;
 	int ret;
 
+	switch (float_declaration->mantissa->len + 1) {
+	case FLT_MANT_DIG:
+		tmpdef = static_float_declaration->p.definition_new(
+				&static_float_declaration->p,
+				NULL, 0, 0, "__tmpfloat");
+		break;
+	case DBL_MANT_DIG:
+		tmpdef = static_double_declaration->p.definition_new(
+				&static_double_declaration->p,
+				NULL, 0, 0, "__tmpfloat");
+		break;
+	default:
+		return -EINVAL;
+	}
+	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	ctf_init_pos(&destp, -1, O_RDWR);
 	destp.base = (char *) u.bits;
-
+	destp.packet_size = sizeof(u) * CHAR_BIT;
 	ctf_align_pos(pos, float_declaration->p.alignment);
 	ret = _ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
-	float_definition->value = u.v;
+	switch (float_declaration->mantissa->len + 1) {
+	case FLT_MANT_DIG:
+		float_definition->value = u.vf;
+		break;
+	case DBL_MANT_DIG:
+		float_definition->value = u.vd;
+		break;
+	default:
+		return -EINVAL;
+	}
 	definition_unref(tmpdef);
 	return ret;
 }
@@ -167,19 +188,40 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	const struct declaration_float *float_declaration =
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
-	union ldoubleIEEE754 u;
-	struct definition *tmpdef =
-		static_ldouble_declaration->p.definition_new(&static_ldouble_declaration->p,
-				NULL, 0, 0, NULL);
-	struct definition_float *tmpfloat =
-		container_of(tmpdef, struct definition_float, p);
+	union doubleIEEE754 u;
+	struct definition *tmpdef;
+	struct definition_float *tmpfloat;
 	struct ctf_stream_pos srcp;
 	int ret;
 
+	switch (float_declaration->mantissa->len + 1) {
+	case FLT_MANT_DIG:
+		tmpdef = static_float_declaration->p.definition_new(
+				&static_float_declaration->p,
+				NULL, 0, 0, "__tmpfloat");
+		break;
+	case DBL_MANT_DIG:
+		tmpdef = static_double_declaration->p.definition_new(
+				&static_double_declaration->p,
+				NULL, 0, 0, "__tmpfloat");
+		break;
+	default:
+		return -EINVAL;
+	}
+	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	ctf_init_pos(&srcp, -1, O_RDONLY);
 	srcp.base = (char *) u.bits;
-
-	u.v = float_definition->value;
+	srcp.packet_size = sizeof(u) * CHAR_BIT;
+	switch (float_declaration->mantissa->len + 1) {
+	case FLT_MANT_DIG:
+		u.vf = float_definition->value;
+		break;
+	case DBL_MANT_DIG:
+		u.vd = float_definition->value;
+		break;
+	default:
+		return -EINVAL;
+	}
 	ctf_align_pos(pos, float_declaration->p.alignment);
 	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
 	definition_unref(tmpdef);
@@ -188,14 +230,20 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 
 void __attribute__((constructor)) ctf_float_init(void)
 {
-	static_ldouble_declaration =
-		float_declaration_new(LDBL_MANT_DIG,
-				sizeof(long double) * CHAR_BIT - LDBL_MANT_DIG,
+	static_float_declaration =
+		float_declaration_new(FLT_MANT_DIG,
+				sizeof(float) * CHAR_BIT - FLT_MANT_DIG,
 				BYTE_ORDER,
-				__alignof__(long double));
+				__alignof__(float));
+	static_double_declaration =
+		float_declaration_new(DBL_MANT_DIG,
+				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
+				BYTE_ORDER,
+				__alignof__(double));
 }
 
 void __attribute__((destructor)) ctf_float_fini(void)
 {
-	declaration_unref(&static_ldouble_declaration->p);
+	declaration_unref(&static_float_declaration->p);
+	declaration_unref(&static_double_declaration->p);
 }

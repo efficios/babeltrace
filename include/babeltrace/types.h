@@ -179,7 +179,7 @@ struct definition_float {
 	struct definition_integer *mantissa;
 	struct definition_integer *exp;
 	/* Last values read */
-	long double value;
+	double value;
 };
 
 /*

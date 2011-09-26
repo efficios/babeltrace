@@ -119,9 +119,11 @@ struct definition *
 	_float->p.index = root_name ? INT_MAX : index;
 	_float->p.name = field_name;
 	_float->value = 0.0;
-	ret = register_field_definition(field_name, &_float->p,
-					parent_scope);
-	assert(!ret);
+	if (parent_scope) {
+		ret = register_field_definition(field_name, &_float->p,
+						parent_scope);
+		assert(!ret);
+	}
 	return &_float->p;
 }
 
