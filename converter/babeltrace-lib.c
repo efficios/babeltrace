@@ -188,7 +188,7 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 					printf("event not found\n");
 					continue;
 				}
-				event_id = (uint64_t)*event_id_ptr;
+				event_id = (uint64_t)(unsigned long)*event_id_ptr;
 
 				/* find or create the bt_callback_chain for this event */
 				if (bt_stream_cb->per_id_callbacks->len >= event_id) {
