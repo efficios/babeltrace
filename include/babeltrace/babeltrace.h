@@ -50,6 +50,10 @@ struct trace_collection_pos {
 	} u;
 };
 
+struct bt_ctf_data {
+	struct ctf_stream_event *event;
+};
+
 /*
  * babeltrace_iter_create - Allocate a trace collection iterator.
  *
@@ -162,8 +166,8 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  */
 int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 		bt_event_name event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(void *private_data,
-					void *caller_data),
+		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
+					   void *caller_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,
 		struct bt_dependencies *provides);
