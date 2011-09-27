@@ -900,16 +900,14 @@ int create_stream_packet_index(struct ctf_trace *td,
 				return ret;
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
+				uint64_t magic;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				if (defint->value._unsigned != CTF_MAGIC) {
+				magic = get_unsigned_int(field);
+				if (magic != CTF_MAGIC) {
 					fprintf(stdout, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
-							defint->value._unsigned,
+							magic,
 							file_stream->pos.packet_index->len,
 							(ssize_t) pos->mmap_offset);
 					return -EINVAL;
@@ -928,16 +926,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
 				assert(array_len(defarray) == UUID_LEN);
-				assert(defarray->declaration->elem->id == CTF_TYPE_INTEGER);
 
 				for (i = 0; i < UUID_LEN; i++) {
 					struct definition *elem;
-					struct definition_integer *defint;
 
 					elem = array_index(defarray, i);
-					assert(elem);
-					defint = container_of(elem, struct definition_integer, p);
-					uuidval[i] = defint->value._unsigned;
+					uuidval[i] = get_unsigned_int(elem);
 				}
 				ret = uuid_compare(td->uuid, uuidval);
 				if (ret) {
@@ -949,14 +943,10 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				stream_id = defint->value._unsigned;
+				stream_id = get_unsigned_int(field);
 			}
 		}
 
@@ -990,14 +980,10 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read content size from header */
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				packet_index.content_size = defint->value._unsigned;
+				packet_index.content_size = get_unsigned_int(field);
 			} else {
 				/* Use file size for packet size */
 				packet_index.content_size = filestats.st_size * CHAR_BIT;
@@ -1006,14 +992,10 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read packet size from header */
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				packet_index.packet_size = defint->value._unsigned;
+				packet_index.packet_size = get_unsigned_int(field);
 			} else {
 				/* Use content size if non-zero, else file size */
 				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
@@ -1022,27 +1004,19 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read timestamp begin from header */
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				packet_index.timestamp_begin = defint->value._unsigned;
+				packet_index.timestamp_begin = get_unsigned_int(field);
 			}
 
 			/* read timestamp end from header */
 			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
 			if (len_index >= 0) {
-				struct definition_integer *defint;
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				assert(field->declaration->id == CTF_TYPE_INTEGER);
-				defint = container_of(field, struct definition_integer, p);
-				assert(defint->declaration->signedness == FALSE);
-				packet_index.timestamp_end = defint->value._unsigned;
+				packet_index.timestamp_end = get_unsigned_int(field);
 			}
 		} else {
 			/* Use file size for packet size */
