@@ -205,3 +205,30 @@ struct definition *array_index(struct definition_array *array, uint64_t i)
 		return NULL;
 	return g_ptr_array_index(array->elems, i);
 }
+
+GString *get_char_array(struct definition *field)
+{
+	struct definition_array *array_definition;
+	struct declaration_array *array_declaration;
+	struct declaration *elem;
+
+	array_definition = container_of(field, struct definition_array, p);
+	array_declaration = array_definition->declaration;
+	elem = array_declaration->elem;
+	if (elem->id == CTF_TYPE_INTEGER) {
+		struct declaration_integer *integer_declaration =
+			container_of(elem, struct declaration_integer, p);
+
+		if (integer_declaration->encoding == CTF_STRING_UTF8
+				|| integer_declaration->encoding == CTF_STRING_ASCII) {
+
+			if (integer_declaration->len == CHAR_BIT
+					&& integer_declaration->p.alignment == CHAR_BIT) {
+
+				return array_definition->string;
+			}
+		}
+	}
+	fprintf(stderr, "[warning] Extracting string\n");
+	return NULL;
+}

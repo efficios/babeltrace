@@ -383,6 +383,8 @@ void definition_unref(struct definition *definition);
 struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
 				  int base, enum ctf_string_encoding encoding);
+uint64_t get_unsigned_int(struct definition *field);
+int64_t get_signed_int(struct definition *field);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
@@ -493,6 +495,7 @@ struct declaration_array *
 uint64_t array_len(struct definition_array *array);
 struct definition *array_index(struct definition_array *array, uint64_t i);
 int array_rw(struct stream_pos *pos, struct definition *definition);
+GString *get_char_array(struct definition *field);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong

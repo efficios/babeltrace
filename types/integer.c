@@ -103,3 +103,33 @@ void _integer_definition_free(struct definition *definition)
 	declaration_unref(integer->p.declaration);
 	g_free(integer);
 }
+
+uint64_t get_unsigned_int(struct definition *field)
+{
+	struct definition_integer *integer_definition;
+	const struct declaration_integer *integer_declaration;
+
+	integer_definition = container_of(field, struct definition_integer, p);
+	integer_declaration = integer_definition->declaration;
+
+	if (!integer_declaration->signedness) {
+		return integer_definition->value._unsigned;
+	}
+	fprintf(stderr, "[warning] Extracting unsigned value in a signed int\n");
+	return (uint64_t)integer_definition->value._signed;
+}
+
+int64_t get_signed_int(struct definition *field)
+{
+	struct definition_integer *integer_definition;
+	const struct declaration_integer *integer_declaration;
+
+	integer_definition = container_of(field, struct definition_integer, p);
+	integer_declaration = integer_definition->declaration;
+
+	if (integer_declaration->signedness) {
+		return integer_definition->value._signed;
+	}
+	fprintf(stderr, "[warning] Extracting signed value in an unsigned int\n");
+	return (int64_t)integer_definition->value._unsigned;
+}
