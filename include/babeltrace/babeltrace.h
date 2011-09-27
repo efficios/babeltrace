@@ -18,6 +18,7 @@
  */
 
 #include <glib.h>
+#include <stdint.h>
 
 typedef GQuark bt_event_name;
 
