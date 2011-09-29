@@ -1,6 +1,32 @@
+2011-09-29 Babeltrace 0.7
+	* Add missing stdint.h
+	* Use integer extraction functions
+	* Extract int and char arrays from fields
+	* Add parameters to callbacks
+	* Fix float support
+	* Fix type cast warning
+	* Integer support: add missing signed casts
+	* Remove underscore prefix from field names (pretty-print)
+	* Fix sequence iteration
+	* Fix sequence field name use after free
+	* Fix support for empty streams
+	* Optional file pointer to metadata
+	* Specify callback to move packet in open_trace
+	* Free the callbacks on iter_destroy
+	* Add callback support
+	* Basic seek support
+	* Add callback API
+	* Enhance babeltrace API with position save/restore
+	* Remove unused structure forward declarations
+	* Remove stale local .c struct declarations (unused)
+	* Annotate branches in ctf.c event reading/writing code
+	* Annotate prio heap likely branch
+	* Annotate likely/unlikely branches in headers
+
 2011-08-12 Babeltrace 0.6
 	* Introduce Babeltrace public API: babeltrace.h
 	* Fix support for gold linker: inappropriate dep removal of plugins
+
 2011-08-12 Babeltrace 0.5
 	* Initialize size to 0 to eliminate incorrect gcc uninitialized
 	  var warning
