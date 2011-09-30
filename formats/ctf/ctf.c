@@ -59,6 +59,12 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 static
+struct trace_descriptor *ctf_open_mmap_trace(
+		struct mmap_stream_list *mmap_list,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset, int whence),
+		FILE *metadata_fp);
+
+static
 void ctf_close_trace(struct trace_descriptor *descriptor);
 
 static
@@ -88,6 +94,7 @@ rw_dispatch write_dispatch_table[] = {
 static
 struct format ctf_format = {
 	.open_trace = ctf_open_trace,
+	.open_mmap_trace = ctf_open_mmap_trace,
 	.close_trace = ctf_close_trace,
 };
 
@@ -1236,6 +1243,153 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 	return &td->parent;
 error:
 	g_free(td);
+	return NULL;
+}
+
+
+void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
+		struct mmap_stream *mmap_info)
+{
+	pos->mmap_offset = 0;
+	pos->packet_size = 0;
+	pos->content_size = 0;
+	pos->content_size_loc = NULL;
+	pos->fd = mmap_info->fd;
+	pos->base = 0;
+	pos->offset = 0;
+	pos->dummy = false;
+	pos->cur_index = 0;
+	pos->packet_index = NULL;
+	pos->prot = PROT_READ;
+	pos->flags = MAP_PRIVATE;
+	pos->parent.rw_table = read_dispatch_table;
+	pos->parent.event_cb = ctf_read_event;
+}
+
+static
+int prepare_mmap_stream_definition(struct ctf_trace *td,
+		struct ctf_file_stream *file_stream)
+{
+	struct ctf_stream_class *stream;
+	uint64_t stream_id = 0;
+	int ret;
+
+	file_stream->parent.stream_id = stream_id;
+	if (stream_id >= td->streams->len) {
+		fprintf(stdout, "[error] Stream %" PRIu64 " is not declared "
+				"in metadata.\n", stream_id);
+		ret = -EINVAL;
+		goto end;
+	}
+	stream = g_ptr_array_index(td->streams, stream_id);
+	if (!stream) {
+		fprintf(stdout, "[error] Stream %" PRIu64 " is not declared "
+				"in metadata.\n", stream_id);
+		ret = -EINVAL;
+		goto end;
+	}
+	file_stream->parent.stream_class = stream;
+	ret = create_stream_definitions(td, &file_stream->parent);
+end:
+	return ret;
+}
+
+static
+int ctf_open_mmap_stream_read(struct ctf_trace *td,
+		struct mmap_stream *mmap_info,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+			int whence))
+{
+	int ret;
+	struct ctf_file_stream *file_stream;
+
+	file_stream = g_new0(struct ctf_file_stream, 1);
+	ctf_init_mmap_pos(&file_stream->pos, mmap_info);
+
+	file_stream->pos.move_pos_slow = move_pos_slow;
+
+	ret = create_trace_definitions(td, &file_stream->parent);
+	if (ret) {
+		goto error_def;
+	}
+
+	ret = prepare_mmap_stream_definition(td, file_stream);
+	if (ret)
+		goto error_index;
+
+	/* Add stream file to stream class */
+	g_ptr_array_add(file_stream->parent.stream_class->streams,
+			&file_stream->parent);
+	return 0;
+
+error_index:
+	if (file_stream->parent.trace_packet_header)
+		definition_unref(&file_stream->parent.trace_packet_header->p);
+error_def:
+	g_free(file_stream);
+	return ret;
+}
+
+int ctf_open_mmap_trace_read(struct ctf_trace *td,
+		struct mmap_stream_list *mmap_list,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+			int whence),
+		FILE *metadata_fp)
+{
+	int ret;
+	struct mmap_stream *mmap_info;
+
+	ret = ctf_open_trace_metadata_read(td, ctf_move_pos_slow, metadata_fp);
+	if (ret) {
+		goto error;
+	}
+
+	/*
+	 * for each stream, try to open, check magic number, and get the
+	 * stream ID to add to the right location in the stream array.
+	 */
+	cds_list_for_each_entry(mmap_info, &mmap_list->head, list) {
+		ret = ctf_open_mmap_stream_read(td, mmap_info, move_pos_slow);
+		if (ret) {
+			fprintf(stdout, "[error] Open file mmap stream error.\n");
+			goto error;
+		}
+	}
+
+	return 0;
+
+error:
+	return ret;
+}
+
+static
+struct trace_descriptor *ctf_open_mmap_trace(
+		struct mmap_stream_list *mmap_list,
+		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset, int whence),
+		FILE *metadata_fp)
+{
+	struct ctf_trace *td;
+	int ret;
+
+	if (!metadata_fp) {
+		fprintf(stderr, "[error] No metadata file pointer associated, "
+				"required for mmap parsing\n");
+		goto error;
+	}
+	if (!move_pos_slow) {
+		fprintf(stderr, "[error] move_pos_slow function undefined.\n");
+		goto error;
+	}
+	td = g_new0(struct ctf_trace, 1);
+	ret = ctf_open_mmap_trace_read(td, mmap_list, move_pos_slow, metadata_fp);
+	if (ret)
+		goto error_free;
+
+	return &td->parent;
+
+error_free:
+	g_free(td);
+error:
 	return NULL;
 }
 
