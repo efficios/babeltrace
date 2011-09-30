@@ -53,6 +53,7 @@ struct trace_collection_pos {
 
 struct bt_ctf_data {
 	struct ctf_stream_event *event;
+	struct ctf_stream *stream;
 };
 
 /*

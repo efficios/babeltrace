@@ -505,6 +505,7 @@ void process_callbacks(struct babeltrace_iter *iter,
 	struct bt_ctf_data ctf_data;
 
 	ctf_data.event = extract_ctf_stream_event(stream);
+	ctf_data.stream = stream;
 
 	/* process all events callback first */
 	if (iter->main_callbacks.callback) {
