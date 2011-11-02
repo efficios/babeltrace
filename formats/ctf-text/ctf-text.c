@@ -34,7 +34,18 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-int opt_field_names;
+int opt_all_field_names,
+	opt_scope_field_names,
+	opt_header_field_names,
+	opt_context_field_names,
+	opt_payload_field_names;
+
+enum field_item {
+	ITEM_SCOPE,
+	ITEM_HEADER,
+	ITEM_CONTEXT,
+	ITEM_PAYLOAD,
+};
 
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
@@ -97,6 +108,40 @@ int print_field(struct definition *definition)
 }
 
 static
+void set_field_names_print(struct ctf_text_stream_pos *pos, enum field_item item)
+{
+	switch (item) {
+	case ITEM_SCOPE:
+		if (opt_all_field_names || opt_scope_field_names)
+			pos->print_names = 1;
+		else
+			pos->print_names = 0;
+		break;
+	case ITEM_HEADER:
+		if (opt_all_field_names || opt_header_field_names)
+			pos->print_names = 1;
+		else
+			pos->print_names = 0;
+		break;
+	case ITEM_CONTEXT:
+		if (opt_all_field_names || opt_context_field_names)
+			pos->print_names = 1;
+		else
+			pos->print_names = 0;
+		break;
+	case ITEM_PAYLOAD:
+		if (opt_all_field_names || opt_payload_field_names)
+			pos->print_names = 1;
+		else
+			pos->print_names = 0;
+
+		break;
+	default:
+		assert(0);
+	}
+}
+
+static
 int ctf_text_write_event(struct stream_pos *ppos,
 			 struct ctf_stream *stream)
 {
@@ -127,6 +172,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	}
 
 	if (stream->has_timestamp) {
+		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else
@@ -140,6 +186,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		else
 			fprintf(pos->fp, " ");
 	}
+	set_field_names_print(pos, ITEM_HEADER);
 	if (pos->print_names)
 		fprintf(pos->fp, "name = ");
 	fprintf(pos->fp, "%s", g_quark_to_string(event_class->name));
@@ -152,10 +199,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (stream->stream_packet_context) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
+		set_field_names_print(pos, ITEM_SCOPE);
 		if (pos->print_names)
 			fprintf(pos->fp, " stream.packet.context =");
 		field_nr_saved = pos->field_nr;
 		pos->field_nr = 0;
+		set_field_names_print(pos, ITEM_CONTEXT);
 		ret = generic_rw(ppos, &stream->stream_packet_context->p);
 		if (ret)
 			goto error;
@@ -166,10 +215,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (babeltrace_verbose && stream->stream_event_header) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
+		set_field_names_print(pos, ITEM_SCOPE);
 		if (pos->print_names)
 			fprintf(pos->fp, " stream.event.header =");
 		field_nr_saved = pos->field_nr;
 		pos->field_nr = 0;
+		set_field_names_print(pos, ITEM_CONTEXT);
 		ret = generic_rw(ppos, &stream->stream_event_header->p);
 		if (ret)
 			goto error;
@@ -180,10 +231,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (stream->stream_event_context) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
+		set_field_names_print(pos, ITEM_SCOPE);
 		if (pos->print_names)
 			fprintf(pos->fp, " stream.event.context =");
 		field_nr_saved = pos->field_nr;
 		pos->field_nr = 0;
+		set_field_names_print(pos, ITEM_CONTEXT);
 		ret = generic_rw(ppos, &stream->stream_event_context->p);
 		if (ret)
 			goto error;
@@ -194,10 +247,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (event->event_context) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
+		set_field_names_print(pos, ITEM_SCOPE);
 		if (pos->print_names)
 			fprintf(pos->fp, " event.context =");
 		field_nr_saved = pos->field_nr;
 		pos->field_nr = 0;
+		set_field_names_print(pos, ITEM_CONTEXT);
 		ret = generic_rw(ppos, &event->event_context->p);
 		if (ret)
 			goto error;
@@ -208,10 +263,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	if (event->event_fields) {
 		if (pos->field_nr++ != 0)
 			fprintf(pos->fp, ",");
+		set_field_names_print(pos, ITEM_SCOPE);
 		if (pos->print_names)
 			fprintf(pos->fp, " event.fields =");
 		field_nr_saved = pos->field_nr;
 		pos->field_nr = 0;
+		set_field_names_print(pos, ITEM_PAYLOAD);
 		ret = generic_rw(ppos, &event->event_fields->p);
 		if (ret)
 			goto error;
@@ -249,7 +306,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		pos->fp = fp;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_text_write_event;
-		pos->print_names = opt_field_names;
+		pos->print_names = 0;
 		break;
 	case O_RDONLY:
 	default:

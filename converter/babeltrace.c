@@ -68,7 +68,7 @@ static struct poptOption long_options[] = {
 	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
-	{ "names", 'n', POPT_ARG_NONE, NULL, OPT_NAMES, NULL, NULL },
+	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -92,12 +92,45 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -h, --help                     This help message\n");
 	fprintf(fp, "  -l, --list                     List available formats\n");
 	fprintf(fp, "  -v, --verbose                  Verbose mode\n");
-	fprintf(fp, "                                 (or set BABELTRACE_VERBOSE env. var.)\n");
+	fprintf(fp, "                                 (or set BABELTRACE_VERBOSE environment variable)\n");
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
-	fprintf(fp, "                                 (or set BABELTRACE_DEBUG env. var.)\n");
-	fprintf(fp, "  -n, --names                    Print field names\n");
+	fprintf(fp, "                                 (or set BABELTRACE_DEBUG environment variable)\n");
+	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names.\n");
+	fprintf(fp, "                                 Available field names:\n");
+	fprintf(fp, "                                     payload OR args OR arg\n");
+	fprintf(fp, "                                     all, scope, header, context OR ctx\n");
+	fprintf(fp, "                                        (payload active by default)\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
+}
+
+static int get_names_args(poptContext *pc)
+{
+	char *str, *strlist, *strctx;
+
+	opt_payload_field_names = 0;
+	strlist = (char *) poptGetOptArg(*pc);
+	if (!strlist) {
+		return -EINVAL;
+	}
+	str = strtok_r(strlist, ",", &strctx);
+	do {
+		if (!strcmp(str, "all"))
+			opt_all_field_names = 1;
+		else if (!strcmp(str, "scope"))
+			opt_scope_field_names = 1;
+		else if (!strcmp(str, "context") || !strcmp(str, "ctx"))
+			opt_context_field_names = 1;
+		else if (!strcmp(str, "header"))
+			opt_header_field_names = 1;
+		else if (!strcmp(str, "payload") || !strcmp(str, "args") || !strcmp(str, "arg"))
+			opt_payload_field_names = 1;
+		else {
+			fprintf(stdout, "[error] unknown field name type %s\n", str);
+			return -EINVAL;
+		}
+	} while ((str = strtok_r(NULL, ",", &strctx)));
+	return 0;
 }
 
 /*
@@ -117,6 +150,9 @@ static int parse_options(int argc, char **argv)
 	pc = poptGetContext(NULL, argc, (const char **) argv, long_options, 0);
 	poptReadDefaultConfig(pc, 0);
 
+	/* set default */
+	opt_payload_field_names = 1;
+
 	while ((opt = poptGetNextOpt(pc)) != -1) {
 		switch (opt) {
 		case OPT_HELP:
@@ -130,11 +166,14 @@ static int parse_options(int argc, char **argv)
 		case OPT_VERBOSE:
 			babeltrace_verbose = 1;
 			break;
+		case OPT_NAMES:
+			if (get_names_args(&pc)) {
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
 		case OPT_DEBUG:
 			babeltrace_debug = 1;
-			break;
-		case OPT_NAMES:
-			opt_field_names = 1;
 			break;
 		default:
 			ret = -EINVAL;
@@ -148,6 +187,7 @@ static int parse_options(int argc, char **argv)
 		goto end;
 	}
 	opt_output_path = poptGetArg(pc);
+
 end:
 	if (pc) {
 		poptFreeContext(pc);

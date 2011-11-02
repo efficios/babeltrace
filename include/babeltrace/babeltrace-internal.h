@@ -29,6 +29,10 @@ struct trace_collection {
 int convert_trace(struct trace_descriptor *td_write,
 		  struct trace_collection *trace_collection_read);
 
-extern int opt_field_names;
+extern int opt_all_field_names,
+	opt_scope_field_names,
+	opt_header_field_names,
+	opt_context_field_names,
+	opt_payload_field_names;
 
 #endif
