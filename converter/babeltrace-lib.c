@@ -34,6 +34,8 @@
 #include <babeltrace/ctf-ir/metadata.h>
 #include <stdarg.h>
 
+int babeltrace_verbose, babeltrace_debug;
+
 struct stream_saved_pos {
 	/*
 	 * Use file_stream pointer to check if the trace collection we
@@ -608,4 +610,13 @@ int convert_trace(struct trace_descriptor *td_write,
 end:
 	babeltrace_iter_destroy(iter);
 	return ret;
+}
+
+static
+void __attribute__((constructor)) init_babeltrace_lib(void)
+{
+	if (getenv("BABELTRACE_VERBOSE"))
+		babeltrace_verbose = 1;
+	if (getenv("BABELTRACE_DEBUG"))
+		babeltrace_debug = 1;
 }

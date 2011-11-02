@@ -34,6 +34,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+int opt_field_names;
+
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);

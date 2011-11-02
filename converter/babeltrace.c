@@ -40,9 +40,6 @@ static char *opt_output_format;
 static const char *opt_input_path;
 static const char *opt_output_path;
 
-int babeltrace_verbose, babeltrace_debug;
-int opt_field_names;
-
 static struct trace_collection trace_collection_read;
 static struct format *fmt_read;
 
@@ -95,7 +92,9 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -h, --help                     This help message\n");
 	fprintf(fp, "  -l, --list                     List available formats\n");
 	fprintf(fp, "  -v, --verbose                  Verbose mode\n");
+	fprintf(fp, "                                 (or set BABELTRACE_VERBOSE env. var.)\n");
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
+	fprintf(fp, "                                 (or set BABELTRACE_DEBUG env. var.)\n");
 	fprintf(fp, "  -n, --names                    Print field names\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
