@@ -40,6 +40,10 @@ AC_CHECK_LIB([uuid], [uuid_generate], [],
 	[AC_MSG_ERROR([Cannot find libuuid. Use [LDFLAGS]=-Ldir to specify its location.])]
 )
 
+AC_CHECK_LIB([popt], [poptGetContext], [],
+        [AC_MSG_ERROR([Cannot find popt.])]
+)
+
 pkg_modules="gmodule-2.0 >= 2.0.0"
 PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
 AC_SUBST(PACKAGE_LIBS)
