@@ -606,9 +606,10 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	 * \0). This is the allocated size, not the actual string size.
 	 */
 	out = open_memstream(buf, &size);
-	if (out == NULL)
+	if (out == NULL) {
+		perror("Metadata open_memstream");
 		return -errno;
-
+	}
 	for (;;) {
 		ret = ctf_open_trace_metadata_packet_read(td, in, out);
 		if (ret) {
@@ -623,6 +624,10 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	fclose(in);
 	/* open for reading */
 	*fp = fmemopen(*buf, strlen(*buf), "rb");
+	if (!*fp) {
+		perror("Metadata fmemopen");
+		return -errno;
+	}
 	return 0;
 }
 
@@ -660,6 +665,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		fp = fdopen(metadata_stream->pos.fd, "r");
 		if (!fp) {
 			fprintf(stdout, "[error] Unable to open metadata stream.\n");
+			perror("Metadata stream open");
 			ret = -errno;
 			goto end_stream;
 		}
@@ -1097,8 +1103,10 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	struct ctf_file_stream *file_stream;
 
 	ret = openat(td->dirfd, path, flags);
-	if (ret < 0)
+	if (ret < 0) {
+		perror("File stream openat()");
 		goto error;
+	}
 	file_stream = g_new0(struct ctf_file_stream, 1);
 
 	if (move_pos_slow) {
@@ -1155,7 +1163,8 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
 	td->dirfd = open(path, 0);
 	if (td->dirfd < 0) {
 		fprintf(stdout, "[error] Unable to open trace directory file descriptor.\n");
-		ret = -ENOENT;
+		perror("Trace directory open");
+		ret = -errno;
 		goto error_dirfd;
 	}
 
