@@ -18,7 +18,7 @@ libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 libctf_ast_la_LIBADD = \
 		 $(top_builddir)/types/libbabeltrace_types.la
 
-bin_PROGRAMS = ctf-parser-test
+noinst_PROGRAMS = ctf-parser-test
 ctf_parser_test_SOURCES = ctf-parser-test.c
 
 ctf_parser_test_LDADD = \
