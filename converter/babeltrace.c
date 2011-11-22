@@ -97,8 +97,9 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                 (or set BABELTRACE_DEBUG environment variable)\n");
 	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names.\n");
 	fprintf(fp, "                                 Available field names:\n");
-	fprintf(fp, "                                     payload OR args OR arg\n");
-	fprintf(fp, "                                     all, scope, header, context OR ctx\n");
+	fprintf(fp, "                                     (payload OR args OR arg)\n");
+	fprintf(fp, "                                     all, scope, header, (context OR ctx)\n");
+	fprintf(fp, "                                     trace\n");
 	fprintf(fp, "                                        (payload active by default)\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
@@ -125,6 +126,8 @@ static int get_names_args(poptContext *pc)
 			opt_header_field_names = 1;
 		else if (!strcmp(str, "payload") || !strcmp(str, "args") || !strcmp(str, "arg"))
 			opt_payload_field_names = 1;
+		else if (!strcmp(str, "trace"))
+			opt_trace_name = 1;
 		else {
 			fprintf(stdout, "[error] unknown field name type %s\n", str);
 			return -EINVAL;

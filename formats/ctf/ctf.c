@@ -1167,6 +1167,8 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
 		ret = -errno;
 		goto error_dirfd;
 	}
+	strncpy(td->path, path, PATH_MAX);
+	td->path[PATH_MAX - 1] = '\0';
 
 	/*
 	 * Keep the metadata file separate.

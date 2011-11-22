@@ -1793,6 +1793,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	if (trace->streams->len <= stream->stream_id)
 		g_ptr_array_set_size(trace->streams, stream->stream_id + 1);
 	g_ptr_array_index(trace->streams, stream->stream_id) = stream;
+	stream->trace = trace;
 
 	return 0;
 

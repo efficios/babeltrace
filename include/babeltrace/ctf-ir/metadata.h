@@ -102,6 +102,7 @@ struct ctf_trace {
 
 	/* Heap of streams, ordered to always get the lowest timestam */
 	struct ptr_heap *stream_heap;
+	char path[PATH_MAX];
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\
