@@ -43,7 +43,8 @@ struct mmap_stream_list {
 struct format {
 	GQuark name;
 
-	struct trace_descriptor *(*open_trace)(const char *path, int flags,
+	struct trace_descriptor *(*open_trace)(const char *collection_path,
+			const char *path, int flags,
 			void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 				int whence), FILE *metadata_fp);
 	struct trace_descriptor *(*open_mmap_trace)(

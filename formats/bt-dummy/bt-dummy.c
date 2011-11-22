@@ -39,7 +39,8 @@ int bt_dummy_write_event(struct stream_pos *ppos,
 }
 
 static
-struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
+struct trace_descriptor *bt_dummy_open_trace(const char *collection_path,
+		const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {

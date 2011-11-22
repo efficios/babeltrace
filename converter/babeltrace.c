@@ -99,7 +99,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                 Available field names:\n");
 	fprintf(fp, "                                     (payload OR args OR arg)\n");
 	fprintf(fp, "                                     all, scope, header, (context OR ctx)\n");
-	fprintf(fp, "                                     trace\n");
+	fprintf(fp, "                                     trace, trace:domain, trace:procname, trace:vpid\n");
 	fprintf(fp, "                                        (payload active by default)\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
@@ -128,6 +128,12 @@ static int get_names_args(poptContext *pc)
 			opt_payload_field_names = 1;
 		else if (!strcmp(str, "trace"))
 			opt_trace_name = 1;
+		else if (!strcmp(str, "trace:domain"))
+			opt_trace_domain = 1;
+		else if (!strcmp(str, "trace:procname"))
+			opt_trace_procname = 1;
+		else if (!strcmp(str, "trace:vpid"))
+			opt_trace_vpid = 1;
 		else {
 			fprintf(stdout, "[error] unknown field name type %s\n", str);
 			return -EINVAL;
@@ -254,7 +260,8 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 	} else {
 		close(fd);
 		close(dirfd);
-		td_read = fmt_read->open_trace(fpath, O_RDONLY, ctf_move_pos_slow,
+		td_read = fmt_read->open_trace(opt_input_path,
+				fpath, O_RDONLY, ctf_move_pos_slow,
 				NULL);
 		if (!td_read) {
 			fprintf(stdout, "Error opening trace \"%s\" "
@@ -333,7 +340,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
+	td_write = fmt_write->open_trace(NULL, opt_output_path, O_RDWR, NULL, NULL);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
 			opt_output_path ? : "<none>");

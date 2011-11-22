@@ -55,7 +55,7 @@
 extern int yydebug;
 
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
+struct trace_descriptor *ctf_open_trace(const char *collection_path, const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 static
@@ -1140,8 +1140,93 @@ error:
 	return ret;
 }
 
+static void
+init_domain_name(struct ctf_trace *td)
+{
+	char *start, *end;
+
+	start = td->path + strlen(td->collection_path);
+	start++;	/* skip / */
+	end = strchr(start, '/');
+	if (!end)
+		return;
+	memcpy(td->domain, start, end - start);
+	td->domain[end - start] = '\0';
+}
+
+static void
+init_proc_name(struct ctf_trace *td)
+{
+	char buf[PATH_MAX];
+	char *start, *end;
+
+	if (td->domain[0] == '\0')
+		return;
+	memcpy(buf, td->path, PATH_MAX);
+	start = buf + strlen(td->collection_path);
+	start++;	/* skip / */
+	start = strchr(start, '/');	/* get begin of domain content */
+	if (!start)
+		return;
+	start++;	/* skip / */
+	/* find last -, skips time */
+	end = strrchr(start, '-');
+	if (!end)
+		return;
+	*end = '\0';
+	/* find previous -, skips date */
+	end = strrchr(start, '-');
+	if (!end)
+		return;
+	*end = '\0';
+	/* find previous -, skips pid */
+	end = strrchr(start, '-');
+	if (!end)
+		return;
+	*end = '\0';
+
+	memcpy(td->procname, start, end - start);
+	td->procname[end - start] = '\0';
+}
+
+static void
+init_vpid(struct ctf_trace *td)
+{
+	char buf[PATH_MAX];
+	char *start, *end;
+
+	if (td->domain[0] == '\0')
+		return;
+	memcpy(buf, td->path, PATH_MAX);
+	start = buf + strlen(td->collection_path);
+	start++;	/* skip / */
+	start = strchr(start, '/');	/* get begin of domain content */
+	if (!start)
+		return;
+	start++;	/* skip / */
+	/* find last -, skips time */
+	end = strrchr(start, '-');
+	if (!end)
+		return;
+	*end = '\0';
+	/* find previous -, skips date */
+	end = strrchr(start, '-');
+	if (!end)
+		return;
+	*end = '\0';
+	/* find previous -, skips pid */
+	start = strrchr(start, '-');
+	if (!start)
+		return;
+	start++;	/* skip - */
+
+	memcpy(td->vpid, start, end - start);
+	td->vpid[end - start] = '\0';
+}
+
 static
-int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
+int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
+		const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
@@ -1167,8 +1252,13 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *path, int flags,
 		ret = -errno;
 		goto error_dirfd;
 	}
+	strncpy(td->collection_path, collection_path, PATH_MAX);
+	td->collection_path[PATH_MAX - 1] = '\0';
 	strncpy(td->path, path, PATH_MAX);
 	td->path[PATH_MAX - 1] = '\0';
+	init_domain_name(td);
+	init_proc_name(td);
+	init_vpid(td);
 
 	/*
 	 * Keep the metadata file separate.
@@ -1224,7 +1314,7 @@ error:
 }
 
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
+struct trace_descriptor *ctf_open_trace(const char *collection_path, const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
@@ -1239,7 +1329,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 			fprintf(stdout, "[error] Path missing for input CTF trace.\n");
 			goto error;
 		}
-		ret = ctf_open_trace_read(td, path, flags, move_pos_slow, metadata_fp);
+		ret = ctf_open_trace_read(td, collection_path, path, flags, move_pos_slow, metadata_fp);
 		if (ret)
 			goto error;
 		break;

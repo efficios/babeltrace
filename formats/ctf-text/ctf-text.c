@@ -39,7 +39,10 @@ int opt_all_field_names,
 	opt_header_field_names,
 	opt_context_field_names,
 	opt_payload_field_names,
-	opt_trace_name;
+	opt_trace_name,
+	opt_trace_domain,
+	opt_trace_procname,
+	opt_trace_vpid;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -48,7 +51,8 @@ enum field_item {
 	ITEM_PAYLOAD,
 };
 
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
+		const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
@@ -154,6 +158,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	struct ctf_stream_event *event;
 	uint64_t id;
 	int ret;
+	int dom_print = 0;
 
 	id = stream->event_id;
 
@@ -189,16 +194,58 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	}
 	if ((opt_trace_name || opt_all_field_names) && stream_class->trace->path[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
-		if (pos->print_names)
-			fprintf(pos->fp, "trace = ");
+		if (pos->print_names) {
+			if (opt_trace_name || opt_all_field_names)
+				fprintf(pos->fp, "trace = ");
+		}
 
 		fprintf(pos->fp, "%s", stream_class->trace->path);
-
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		else
 			fprintf(pos->fp, " ");
 	}
+	if ((opt_trace_domain) && stream_class->trace->domain[0] != '\0') {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "trace:domain = ");
+		}
+		if (opt_trace_domain)
+			fprintf(pos->fp, "%s", stream_class->trace->domain);
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if ((opt_trace_procname) && stream_class->trace->procname[0] != '\0') {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "trace:procname = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
+		}
+
+		if (opt_trace_procname)
+			fprintf(pos->fp, "%s", stream_class->trace->procname);
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if ((opt_trace_vpid) && stream_class->trace->vpid[0] != '\0') {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "trace:vpid = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
+		}
+
+		if (opt_trace_vpid)
+			fprintf(pos->fp, "%s", stream_class->trace->vpid);
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if (dom_print && !pos->print_names)
+		fprintf(pos->fp, " ");
 	set_field_names_print(pos, ITEM_HEADER);
 	if (pos->print_names)
 		fprintf(pos->fp, "name = ");
@@ -299,7 +346,8 @@ error:
 }
 
 
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
+		const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
