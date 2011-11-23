@@ -1146,10 +1146,11 @@ init_domain_name(struct ctf_trace *td)
 	char *start, *end;
 
 	start = td->path + strlen(td->collection_path);
-	start++;	/* skip / */
+	while (start[0] == '/')
+		start++;	/* skip / */
 	end = strchr(start, '/');
 	if (!end)
-		return;
+		end = start + strlen(start);
 	memcpy(td->domain, start, end - start);
 	td->domain[end - start] = '\0';
 }
@@ -1164,11 +1165,13 @@ init_proc_name(struct ctf_trace *td)
 		return;
 	memcpy(buf, td->path, PATH_MAX);
 	start = buf + strlen(td->collection_path);
-	start++;	/* skip / */
+	while (start[0] == '/')
+		start++;	/* skip / */
 	start = strchr(start, '/');	/* get begin of domain content */
 	if (!start)
 		return;
-	start++;	/* skip / */
+	while (start[0] == '/')
+		start++;	/* skip / */
 	/* find last -, skips time */
 	end = strrchr(start, '-');
 	if (!end)
@@ -1199,11 +1202,13 @@ init_vpid(struct ctf_trace *td)
 		return;
 	memcpy(buf, td->path, PATH_MAX);
 	start = buf + strlen(td->collection_path);
-	start++;	/* skip / */
+	while (start[0] == '/')
+		start++;	/* skip / */
 	start = strchr(start, '/');	/* get begin of domain content */
 	if (!start)
 		return;
-	start++;	/* skip / */
+	while (start[0] == '/')
+		start++;	/* skip / */
 	/* find last -, skips time */
 	end = strrchr(start, '-');
 	if (!end)
