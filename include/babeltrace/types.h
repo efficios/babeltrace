@@ -431,6 +431,7 @@ struct declaration_enum *
 
 struct declaration_string *
 	string_declaration_new(enum ctf_string_encoding encoding);
+char *get_string(struct definition *field);
 
 struct declaration_struct *
 	struct_declaration_new(struct declaration_scope *parent_scope,

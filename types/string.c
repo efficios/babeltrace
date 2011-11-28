@@ -99,3 +99,13 @@ void _string_definition_free(struct definition *definition)
 	g_free(string->value);
 	g_free(string);
 }
+
+char *get_string(struct definition *field)
+{
+	struct definition_string *string_definition =
+		container_of(field, struct definition_string, p);
+
+	assert(string_definition->value != NULL);
+
+	return string_definition->value;
+}
