@@ -1239,7 +1239,7 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 	struct dirent *dirent;
 	struct dirent *diriter;
 	size_t dirent_len;
-	char *respath;
+	char *respath, *rescolpath;
 
 	td->flags = flags;
 
@@ -1258,13 +1258,16 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 		ret = -errno;
 		goto error_dirfd;
 	}
-	respath = realpath(collection_path, td->collection_path);
-	if (!respath) {
+	rescolpath = realpath(collection_path, td->collection_path);
+	if (!rescolpath) {
+		fprintf(stdout, "[error] collection path resolution failure\n");
+		return -EINVAL;
+	}
+	respath = realpath(path, td->path);
+	if (!rescolpath) {
 		fprintf(stdout, "[error] path resolution failure\n");
 		return -EINVAL;
 	}
-	strncpy(td->path, path, PATH_MAX);
-	td->path[PATH_MAX - 1] = '\0';
 	init_domain_name(td);
 	init_proc_name(td);
 	init_vpid(td);
