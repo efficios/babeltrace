@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([babeltrace], [0.7], [mathieu dot desnoyers at efficios dot com])
+AC_INIT([babeltrace],[0.7],[mathieu dot desnoyers at efficios dot com])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -17,7 +17,7 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_YACC
 AC_PROG_LEX
 
