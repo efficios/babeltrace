@@ -41,7 +41,7 @@ To compile Babeltrace, you will need:
 	uuid development libraries
 	  (Debian : uuid-dev)
 	  (Fedora : uuid-devel)
-	libpopt >= 1.8 development libraries
+	libpopt >= 1.13 development libraries
 	  (Debian : libpopt-dev)
 	  (Fedora : popt)
 
