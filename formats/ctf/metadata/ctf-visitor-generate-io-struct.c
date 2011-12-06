@@ -105,6 +105,23 @@ int get_unary_unsigned(struct cds_list_head *head, uint64_t *value)
 }
 
 static
+int get_unary_signed(struct cds_list_head *head, int64_t *value)
+{
+	struct ctf_node *node;
+	int i = 0;
+
+	cds_list_for_each_entry(node, head, siblings) {
+		assert(node->type == NODE_UNARY_EXPRESSION);
+		assert(node->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT);
+		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
+		assert(i == 0);
+		*value = node->u.unary_expression.u.signed_constant;
+		i++;
+	}
+	return 0;
+}
+
+static
 int get_unary_uuid(struct cds_list_head *head, uuid_t *uuid)
 {
 	struct ctf_node *node;
@@ -1550,6 +1567,36 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			event->fields_decl = container_of(declaration, struct declaration_struct, p);
+		} else if (!strcmp(left, "loglevel.identifier")) {
+			char *right;
+
+			if (CTF_EVENT_FIELD_IS_SET(event, loglevel_identifier)) {
+				fprintf(fd, "[error] %s: identifier already declared in event declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for event identifier\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			event->loglevel_identifier = g_quark_from_string(right);
+			g_free(right);
+			CTF_EVENT_SET_FIELD(event, loglevel_identifier);
+		} else if (!strcmp(left, "loglevel.value")) {
+			if (CTF_EVENT_FIELD_IS_SET(event, loglevel_value)) {
+				fprintf(fd, "[error] %s: loglevel value already declared in event declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_signed(&node->u.ctf_expression.right, &event->loglevel_value);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for event loglevel value\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			CTF_EVENT_SET_FIELD(event, loglevel_value);
 		} else {
 			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
 			ret = -EINVAL;

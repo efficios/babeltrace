@@ -99,7 +99,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                 Available field names:\n");
 	fprintf(fp, "                                     (payload OR args OR arg)\n");
 	fprintf(fp, "                                     all, scope, header, (context OR ctx)\n");
-	fprintf(fp, "                                     trace, trace:domain, trace:procname, trace:vpid\n");
+	fprintf(fp, "                                     trace, trace:domain, trace:procname, trace:vpid,\n");
+	fprintf(fp, "                                     loglevel.\n");
 	fprintf(fp, "                                        (payload active by default)\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
@@ -134,6 +135,8 @@ static int get_names_args(poptContext *pc)
 			opt_trace_procname = 1;
 		else if (!strcmp(str, "trace:vpid"))
 			opt_trace_vpid = 1;
+		else if (!strcmp(str, "loglevel"))
+			opt_loglevel = 1;
 		else {
 			fprintf(stdout, "[error] unknown field name type %s\n", str);
 			return -EINVAL;

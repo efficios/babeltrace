@@ -42,7 +42,8 @@ int opt_all_field_names,
 	opt_trace_name,
 	opt_trace_domain,
 	opt_trace_procname,
-	opt_trace_vpid;
+	opt_trace_vpid,
+	opt_loglevel;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -240,6 +241,21 @@ int ctf_text_write_event(struct stream_pos *ppos,
 
 		if (opt_trace_vpid)
 			fprintf(pos->fp, "%s", stream_class->trace->vpid);
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if ((opt_loglevel || opt_all_field_names) && event_class->loglevel_identifier != 0) {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "loglevel = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
+		}
+
+		fprintf(pos->fp, "%s (%lld)",
+			g_quark_to_string(event_class->loglevel_identifier),
+			(long long) event_class->loglevel_value);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
