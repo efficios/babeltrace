@@ -1,3 +1,24 @@
+2011-12-12 Babeltrace 0.8
+	* Add loglevel support
+	* Update libpopt dependency to 1.13
+	* Document dependency on libpopt >= 1.8
+	* Describe libtool version dependency
+	* AC_PROG_LIBTOOL is deprecated in favor of LT_INIT
+	* Use realpath for path
+	* Helper function to extract string from fields
+	* Use realpath on trace collection path
+	* allow printing domains when no procname are present, handle
+	  various / patterns
+	* Add trace:domain,trace:procname,trace:pid support
+	* Add "-n trace" option to print trace name
+	* Do not install ctf-parser-test
+	* Make ctf open errors more verbose
+	* configure.ac: add check for popt library
+	* Show field names by default, enhance --names option
+	* Move opt_field_names/babeltrace_verbose/babeltrace_debug into lib
+	* Add mmap trace reading
+	* Pass stream pointer with callback caller data
+
 2011-09-29 Babeltrace 0.7
 	* Add missing stdint.h
 	* Use integer extraction functions
