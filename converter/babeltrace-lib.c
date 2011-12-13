@@ -279,7 +279,7 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 		 */
 		break;
 	case BT_SEEK_BEGIN:
-		ctf_move_pos_slow(&file_stream->pos, 0, SEEK_SET);
+		file_stream->pos.move_pos_slow(&file_stream->pos, 0, SEEK_SET);
 		ret = stream_read_event(file_stream);
 		break;
 	case BT_SEEK_TIME:

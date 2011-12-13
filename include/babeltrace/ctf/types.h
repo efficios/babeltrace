@@ -192,7 +192,7 @@ void ctf_pos_get_event(struct ctf_stream_pos *pos)
 	if (pos->offset == pos->content_size) {
 		printf_debug("ctf_move_pos_slow (before call): %zd\n",
 			     pos->offset);
-		ctf_move_pos_slow(pos, 0, SEEK_CUR);
+		pos->move_pos_slow(pos, 0, SEEK_CUR);
 		printf_debug("ctf_move_pos_slow (after call): %zd\n",
 			     pos->offset);
 	}
