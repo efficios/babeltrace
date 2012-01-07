@@ -34,6 +34,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#define NSEC_PER_SEC 1000000000ULL
+
 int opt_all_field_names,
 	opt_scope_field_names,
 	opt_header_field_names,
@@ -179,12 +181,17 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	}
 
 	if (stream->has_timestamp) {
+		uint64_t ts_sec, ts_nsec;
+
+		ts_sec = stream->timestamp / NSEC_PER_SEC;
+		ts_nsec = stream->timestamp % NSEC_PER_SEC;
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else
 			fprintf(pos->fp, "[");
-		fprintf(pos->fp, "%12" PRIu64, stream->timestamp);
+		fprintf(pos->fp, "%3" PRIu64 ".%09" PRIu64,
+			ts_sec, ts_nsec);
 		if (!pos->print_names)
 			fprintf(pos->fp, "]");
 
