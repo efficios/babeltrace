@@ -58,6 +58,7 @@ enum {
 	OPT_VERBOSE,
 	OPT_DEBUG,
 	OPT_NAMES,
+	OPT_NO_DELTA,
 };
 
 static struct poptOption long_options[] = {
@@ -69,6 +70,7 @@ static struct poptOption long_options[] = {
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
+	{ "no-delta", 0, POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -95,6 +97,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                 (or set BABELTRACE_VERBOSE environment variable)\n");
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
 	fprintf(fp, "                                 (or set BABELTRACE_DEBUG environment variable)\n");
+	fprintf(fp, "      --no-delta                 Do not print time delta between consecutive events\n");
 	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names.\n");
 	fprintf(fp, "                                 Available field names:\n");
 	fprintf(fp, "                                     (payload OR args OR arg)\n");
@@ -186,6 +189,9 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_DEBUG:
 			babeltrace_debug = 1;
+			break;
+		case OPT_NO_DELTA:
+			opt_delta = 0;
 			break;
 		default:
 			ret = -EINVAL;

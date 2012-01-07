@@ -45,7 +45,8 @@ int opt_all_field_names,
 	opt_trace_domain,
 	opt_trace_procname,
 	opt_trace_vpid,
-	opt_loglevel;
+	opt_loglevel,
+	opt_delta = 1;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -200,6 +201,33 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		else
 			fprintf(pos->fp, " ");
 	}
+	if (opt_delta && stream->has_timestamp) {
+		uint64_t delta, delta_sec, delta_nsec;
+
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names)
+			fprintf(pos->fp, "delta = ");
+		else
+			fprintf(pos->fp, "(");
+		if (pos->last_timestamp != -1ULL) {
+			delta = stream->timestamp - pos->last_timestamp;
+			delta_sec = delta / NSEC_PER_SEC;
+			delta_nsec = delta % NSEC_PER_SEC;
+			fprintf(pos->fp, "+%" PRIu64 ".%09" PRIu64,
+				delta_sec, delta_nsec);
+		} else {
+			fprintf(pos->fp, "+?.?????????");
+		}
+		if (!pos->print_names)
+			fprintf(pos->fp, ")");
+
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		else
+			fprintf(pos->fp, " ");
+		pos->last_timestamp = stream->timestamp;
+	}
+
 	if ((opt_trace_name || opt_all_field_names) && stream_class->trace->path[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
@@ -379,6 +407,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
 
 	pos = g_new0(struct ctf_text_stream_pos, 1);
 
+	pos->last_timestamp = -1ULL;
 	switch (flags & O_ACCMODE) {
 	case O_RDWR:
 		if (!path)
