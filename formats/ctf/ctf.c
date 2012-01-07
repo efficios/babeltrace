@@ -1264,7 +1264,7 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 		return -EINVAL;
 	}
 	respath = realpath(path, td->path);
-	if (!rescolpath) {
+	if (!respath) {
 		fprintf(stdout, "[error] path resolution failure\n");
 		return -EINVAL;
 	}
