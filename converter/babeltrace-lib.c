@@ -174,7 +174,7 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 					struct bt_stream_callbacks, stream->stream_id);
 			if (!bt_stream_cb->per_id_callbacks) {
 				bt_stream_cb->per_id_callbacks = g_array_new(FALSE, TRUE,
-						sizeof(*bt_stream_cb->per_id_callbacks));
+						sizeof(struct bt_callback_chain));
 			}
 
 			if (event) {
@@ -196,13 +196,13 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 						struct bt_callback_chain, event_id);
 				if (!bt_chain->callback) {
 					bt_chain->callback = g_array_new(FALSE, TRUE,
-						sizeof(*bt_chain->callback));
+						sizeof(struct bt_callback));
 				}
 			} else {
 				/* callback for all events */
 				if (!iter->main_callbacks.callback) {
 					iter->main_callbacks.callback = g_array_new(FALSE, TRUE,
-							sizeof(*iter->main_callbacks.callback));
+							sizeof(struct bt_callback));
 				}
 				bt_chain = &iter->main_callbacks;
 			}
