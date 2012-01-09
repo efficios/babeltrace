@@ -190,7 +190,7 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 
 				/* find or create the bt_callback_chain for this event */
 				if (event_id >= bt_stream_cb->per_id_callbacks->len) {
-					g_array_set_size(bt_stream_cb->per_id_callbacks, event_id);
+					g_array_set_size(bt_stream_cb->per_id_callbacks, event_id + 1);
 				}
 				bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
 						struct bt_callback_chain, event_id);
