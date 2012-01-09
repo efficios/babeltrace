@@ -167,20 +167,14 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 
 			stream = g_ptr_array_index(tin->streams, stream_id);
 
-			/* find or create the bt_stream_callbacks for this stream */
-			if (iter->callbacks->len >= stream_id) {
-				bt_stream_cb = &g_array_index(iter->callbacks,
-						struct bt_stream_callbacks, stream->stream_id);
-			} else {
-				g_array_set_size(iter->callbacks, stream->stream_id);
+			if (stream_id >= iter->callbacks->len) {
+				g_array_set_size(iter->callbacks, stream->stream_id + 1);
 			}
-			if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks) {
-				struct bt_stream_callbacks new_stream_cb;
-				new_stream_cb.per_id_callbacks = g_array_new(1, 1,
-						sizeof(struct bt_callback_chain));
-				g_array_insert_val(iter->callbacks, stream->stream_id, new_stream_cb);
-				bt_stream_cb = &g_array_index(iter->callbacks,
-						struct bt_stream_callbacks, stream->stream_id);
+			bt_stream_cb = &g_array_index(iter->callbacks,
+					struct bt_stream_callbacks, stream->stream_id);
+			if (!bt_stream_cb->per_id_callbacks) {
+				bt_stream_cb->per_id_callbacks = g_array_new(FALSE, TRUE,
+						sizeof(*bt_stream_cb->per_id_callbacks));
 			}
 
 			if (event) {
@@ -192,28 +186,23 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 					printf("event not found\n");
 					continue;
 				}
-				event_id = (uint64_t)(unsigned long)*event_id_ptr;
+				event_id = (uint64_t)(unsigned long) *event_id_ptr;
 
 				/* find or create the bt_callback_chain for this event */
-				if (bt_stream_cb->per_id_callbacks->len >= event_id) {
-					bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
-							struct bt_callback_chain, event_id);
-				} else {
+				if (event_id >= bt_stream_cb->per_id_callbacks->len) {
 					g_array_set_size(bt_stream_cb->per_id_callbacks, event_id);
 				}
-				if (!bt_chain || !bt_chain->callback) {
-					struct bt_callback_chain new_chain;
-					new_chain.callback = g_array_new(1, 1, sizeof(struct bt_callback));
-					g_array_insert_val(bt_stream_cb->per_id_callbacks, event_id,
-							new_chain);
-					bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
-							struct bt_callback_chain, event_id);
+				bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+						struct bt_callback_chain, event_id);
+				if (!bt_chain->callback) {
+					bt_chain->callback = g_array_new(FALSE, TRUE,
+						sizeof(*bt_chain->callback));
 				}
 			} else {
 				/* callback for all events */
 				if (!iter->main_callbacks.callback) {
-					iter->main_callbacks.callback = g_array_new(1, 1,
-							sizeof(struct bt_callback));
+					iter->main_callbacks.callback = g_array_new(FALSE, TRUE,
+							sizeof(*iter->main_callbacks.callback));
 				}
 				bt_chain = &iter->main_callbacks;
 			}
