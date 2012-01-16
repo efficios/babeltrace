@@ -7,7 +7,9 @@ noinst_HEADERS = \
 	babeltrace/align.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield.h \
+	babeltrace/callbacks-internal.h \
 	babeltrace/compiler.h \
+	babeltrace/iterator-internal.h \
 	babeltrace/list.h \
 	babeltrace/prio_heap.h \
 	babeltrace/types.h \
