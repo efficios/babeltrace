@@ -19,6 +19,7 @@
 
 #include <glib.h>
 #include <stdint.h>
+#include <babeltrace/format.h>
 
 typedef GQuark bt_event_name;
 
