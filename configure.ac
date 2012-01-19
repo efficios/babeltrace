@@ -67,6 +67,7 @@ AC_CONFIG_FILES([
 	formats/ctf/metadata/Makefile
 	converter/Makefile
 	lib/Makefile
+	lib/prio_heap/Makefile
 	include/Makefile
 	tests/Makefile
 ])
