@@ -22,10 +22,12 @@
  */
 
 #include <babeltrace/types.h>
-#include <babeltrace/ctf/types.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <glib.h>
+
+/* forward declaration */
+struct ctf_stream_pos;
 
 /* Parent trace descriptor */
 struct trace_descriptor {

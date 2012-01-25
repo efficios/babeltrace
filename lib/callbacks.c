@@ -21,6 +21,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/callbacks-internal.h>
+#include <babeltrace/context.h>
 #include <babeltrace/ctf-ir/metadata.h>
 #include <babeltrace/iterator-internal.h>
 #include <inttypes.h>
@@ -69,7 +70,7 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 	int i, stream_id;
 	gpointer *event_id_ptr;
 	unsigned long event_id;
-	struct trace_collection *tc = iter->tc;
+	struct trace_collection *tc = iter->ctx->tc;
 
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;

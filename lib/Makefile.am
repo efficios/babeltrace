@@ -6,7 +6,8 @@ lib_LTLIBRARIES = libbabeltrace.la
 
 libbabeltrace_la_SOURCES = babeltrace.c \
 			   callbacks.c \
-			   iterator.c
+			   iterator.c \
+			   context.c
 
 libbabeltrace_la_LIBADD = \
 	$(top_builddir)/types/libbabeltrace_types.la \

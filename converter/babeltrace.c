@@ -20,8 +20,11 @@
 
 #define _XOPEN_SOURCE 700
 #include <config.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
+#include <babeltrace/context.h>
+#include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf-text/types.h>
 #include <popt.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -240,6 +243,44 @@ static void trace_collection_add(struct trace_collection *tc,
 	g_ptr_array_add(tc->array, td);
 }
 
+int convert_trace(struct trace_descriptor *td_write,
+		  struct bt_context *ctx)
+{
+	struct babeltrace_iter *iter;
+	struct ctf_stream *stream;
+	struct ctf_stream_event *event;
+	struct ctf_text_stream_pos *sout;
+	struct trace_collection_pos begin_pos;
+	int ret;
+
+	sout = container_of(td_write, struct ctf_text_stream_pos,
+			trace_descriptor);
+
+	begin_pos.type = BT_SEEK_BEGIN;
+	iter = babeltrace_iter_create(ctx, &begin_pos, NULL);
+	if (!iter) {
+		ret = -1;
+		goto error_iter;
+	}
+	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
+		ret = sout->parent.event_cb(&sout->parent, stream);
+		if (ret) {
+			fprintf(stdout, "[error] Writing event failed.\n");
+			goto end;
+		}
+		ret = babeltrace_iter_next(iter);
+		if (ret < 0)
+			goto end;
+	}
+	ret = 0;
+
+end:
+	babeltrace_iter_destroy(iter);
+error_iter:
+	return ret;
+}
+
+
 /*
  * traverse_dir() is the callback functiion for File Tree Walk (nftw).
  * it receives the path of the current entry (file, dir, link..etc) with
@@ -287,6 +328,7 @@ int main(int argc, char **argv)
 	int ret;
 	struct format *fmt_write;
 	struct trace_descriptor *td_write;
+	struct bt_context *ctx;
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
@@ -348,7 +390,11 @@ int main(int argc, char **argv)
 						" no output was generated\n");
 		return 0;
 	}
-
+	ctx = bt_context_create(&trace_collection_read);
+	if (!ctx) {
+		fprintf(stdout, "Error allocating a new context\n");
+		goto error_td_read;
+	}
 	td_write = fmt_write->open_trace(NULL, opt_output_path, O_RDWR, NULL, NULL);
 	if (!td_write) {
 		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
@@ -356,7 +402,7 @@ int main(int argc, char **argv)
 		goto error_td_write;
 	}
 
-	ret = convert_trace(td_write, &trace_collection_read);
+	ret = convert_trace(td_write, ctx);
 	if (ret) {
 		fprintf(stdout, "Error printing trace.\n\n");
 		goto error_copy_trace;
@@ -364,6 +410,7 @@ int main(int argc, char **argv)
 
 	fmt_write->close_trace(td_write);
 	finalize_trace_collection(&trace_collection_read);
+	bt_context_destroy(ctx);
 	printf_verbose("finished converting. Output written to:\n%s\n",
 			opt_output_path ? : "<stdout>");
 	exit(EXIT_SUCCESS);

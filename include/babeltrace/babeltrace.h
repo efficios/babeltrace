@@ -20,6 +20,7 @@
 #include <glib.h>
 #include <stdint.h>
 #include <babeltrace/format.h>
+#include <babeltrace/context.h>
 
 typedef GQuark bt_event_name;
 
@@ -30,6 +31,7 @@ struct ctf_stream_event;
 struct ctf_stream;
 struct babeltrace_saved_pos;
 struct bt_dependencies;
+struct bt_context;
 
 enum bt_cb_ret {
 	BT_CB_OK		= 0,
@@ -69,7 +71,7 @@ struct bt_ctf_data {
  * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
  * trace) is the EOF criterion.
  */
-struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
+struct babeltrace_iter *babeltrace_iter_create(struct bt_context *ctx,
 		struct trace_collection_pos *begin_pos,
 		struct trace_collection_pos *end_pos);
 

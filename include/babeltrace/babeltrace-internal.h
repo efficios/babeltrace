@@ -23,11 +23,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 
 struct trace_descriptor;
 struct trace_collection {
-	GPtrArray *array;
+	GPtrArray *array; /* struct trace_descriptor */
 };
-
-int convert_trace(struct trace_descriptor *td_write,
-		  struct trace_collection *trace_collection_read);
 
 extern int opt_all_field_names,
 	opt_scope_field_names,

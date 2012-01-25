@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/callbacks-internal.h>
+#include <babeltrace/context.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/prio_heap.h>
@@ -107,7 +108,7 @@ int babeltrace_iter_seek(struct babeltrace_iter *iter,
 {
 	int i, stream_id;
 	int ret = 0;
-	struct trace_collection *tc = iter->tc;
+	struct trace_collection *tc = iter->ctx->tc;
 
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
@@ -140,7 +141,7 @@ end:
 	return ret;
 }
 
-struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
+struct babeltrace_iter *babeltrace_iter_create(struct bt_context *ctx,
 		struct trace_collection_pos *begin_pos,
 		struct trace_collection_pos *end_pos)
 {
@@ -152,22 +153,24 @@ struct babeltrace_iter *babeltrace_iter_create(struct trace_collection *tc,
 	if (!iter)
 		goto error_malloc;
 	iter->stream_heap = g_new(struct ptr_heap, 1);
-	iter->tc = tc;
 	iter->end_pos = end_pos;
 	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
 	iter->recalculate_dep_graph = 0;
 	iter->main_callbacks.callback = NULL;
 	iter->dep_gc = g_ptr_array_new();
+	if (bt_context_get(ctx) != 0)
+		goto error_ctx;
+	iter->ctx = ctx;
 
 	ret = heap_init(iter->stream_heap, 0, stream_compare);
 	if (ret < 0)
 		goto error_heap_init;
 
-	for (i = 0; i < tc->array->len; i++) {
+	for (i = 0; i < ctx->tc->array->len; i++) {
 		struct ctf_trace *tin;
 		struct trace_descriptor *td_read;
 
-		td_read = g_ptr_array_index(tc->array, i);
+		td_read = g_ptr_array_index(ctx->tc->array, i);
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		/* Populate heap with each stream */
@@ -210,6 +213,7 @@ error:
 	heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
+error_ctx:
 	free(iter);
 error_malloc:
 	return NULL;
@@ -243,6 +247,8 @@ void babeltrace_iter_destroy(struct babeltrace_iter *iter)
 		}
 		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
 	}
+
+	bt_context_put(iter->ctx);
 
 	free(iter);
 }

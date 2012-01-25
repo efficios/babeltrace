@@ -27,7 +27,7 @@
  */
 struct babeltrace_iter {
 	struct ptr_heap *stream_heap;
-	struct trace_collection *tc;
+	struct bt_context *ctx;
 	struct trace_collection_pos *end_pos;
 	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
