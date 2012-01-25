@@ -1,7 +1,8 @@
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/format.h \
-	babeltrace/context.h
+	babeltrace/context.h \
+	babeltrace/iterator.h
 
 
 noinst_HEADERS = \

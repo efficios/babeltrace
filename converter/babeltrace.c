@@ -25,6 +25,7 @@
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-text/types.h>
+#include <babeltrace/iterator.h>
 #include <popt.h>
 #include <errno.h>
 #include <stdlib.h>

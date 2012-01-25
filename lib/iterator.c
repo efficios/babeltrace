@@ -24,6 +24,7 @@
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/iterator-internal.h>
+#include <babeltrace/iterator.h>
 #include <babeltrace/prio_heap.h>
 
 struct stream_saved_pos {
