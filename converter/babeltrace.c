@@ -62,6 +62,7 @@ enum {
 	OPT_VERBOSE,
 	OPT_DEBUG,
 	OPT_NAMES,
+	OPT_FIELDS,
 	OPT_NO_DELTA,
 };
 
@@ -74,6 +75,7 @@ static struct poptOption long_options[] = {
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
+	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "no-delta", 0, POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
@@ -102,13 +104,13 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
 	fprintf(fp, "                                 (or set BABELTRACE_DEBUG environment variable)\n");
 	fprintf(fp, "      --no-delta                 Do not print time delta between consecutive events\n");
-	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names.\n");
-	fprintf(fp, "                                 Available field names:\n");
+	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names:\n");
 	fprintf(fp, "                                     (payload OR args OR arg)\n");
 	fprintf(fp, "                                     all, scope, header, (context OR ctx)\n");
-	fprintf(fp, "                                     trace, trace:domain, trace:procname, trace:vpid,\n");
-	fprintf(fp, "                                     loglevel.\n");
 	fprintf(fp, "                                        (payload active by default)\n");
+	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
+	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
+	fprintf(fp, "                                     trace:vpid, loglevel.\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -134,18 +136,39 @@ static int get_names_args(poptContext *pc)
 			opt_header_field_names = 1;
 		else if (!strcmp(str, "payload") || !strcmp(str, "args") || !strcmp(str, "arg"))
 			opt_payload_field_names = 1;
-		else if (!strcmp(str, "trace"))
-			opt_trace_name = 1;
-		else if (!strcmp(str, "trace:domain"))
-			opt_trace_domain = 1;
-		else if (!strcmp(str, "trace:procname"))
-			opt_trace_procname = 1;
-		else if (!strcmp(str, "trace:vpid"))
-			opt_trace_vpid = 1;
-		else if (!strcmp(str, "loglevel"))
-			opt_loglevel = 1;
 		else {
 			fprintf(stderr, "[error] unknown field name type %s\n", str);
+			return -EINVAL;
+		}
+	} while ((str = strtok_r(NULL, ",", &strctx)));
+	return 0;
+}
+
+static int get_fields_args(poptContext *pc)
+{
+	char *str, *strlist, *strctx;
+
+	opt_payload_field_names = 0;
+	strlist = (char *) poptGetOptArg(*pc);
+	if (!strlist) {
+		return -EINVAL;
+	}
+	str = strtok_r(strlist, ",", &strctx);
+	do {
+		if (!strcmp(str, "all"))
+			opt_all_fields = 1;
+		else if (!strcmp(str, "trace"))
+			opt_trace_field = 1;
+		else if (!strcmp(str, "trace:domain"))
+			opt_trace_domain_field = 1;
+		else if (!strcmp(str, "trace:procname"))
+			opt_trace_procname_field = 1;
+		else if (!strcmp(str, "trace:vpid"))
+			opt_trace_vpid_field = 1;
+		else if (!strcmp(str, "loglevel"))
+			opt_loglevel_field = 1;
+		else {
+			fprintf(stderr, "[error] unknown field type %s\n", str);
 			return -EINVAL;
 		}
 	} while ((str = strtok_r(NULL, ",", &strctx)));
@@ -191,11 +214,17 @@ static int parse_options(int argc, char **argv)
 				goto end;
 			}
 			break;
+		case OPT_FIELDS:
+			if (get_fields_args(&pc)) {
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
 		case OPT_DEBUG:
 			babeltrace_debug = 1;
 			break;
 		case OPT_NO_DELTA:
-			opt_delta = 0;
+			opt_delta_field = 0;
 			break;
 		default:
 			ret = -EINVAL;

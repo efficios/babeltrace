@@ -31,11 +31,12 @@ extern int opt_all_field_names,
 	opt_header_field_names,
 	opt_context_field_names,
 	opt_payload_field_names,
-	opt_trace_name,
-	opt_trace_domain,
-	opt_trace_procname,
-	opt_trace_vpid,
-	opt_loglevel,
-	opt_delta;
+	opt_all_fields,
+	opt_trace_field,
+	opt_trace_domain_field,
+	opt_trace_procname_field,
+	opt_trace_vpid_field,
+	opt_loglevel_field,
+	opt_delta_field;
 
 #endif

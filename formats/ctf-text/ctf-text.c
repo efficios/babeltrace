@@ -41,12 +41,13 @@ int opt_all_field_names,
 	opt_header_field_names,
 	opt_context_field_names,
 	opt_payload_field_names,
-	opt_trace_name,
-	opt_trace_domain,
-	opt_trace_procname,
-	opt_trace_vpid,
-	opt_loglevel,
-	opt_delta = 1;
+	opt_all_fields,
+	opt_trace_field,
+	opt_trace_domain_field,
+	opt_trace_procname_field,
+	opt_trace_vpid_field,
+	opt_loglevel_field,
+	opt_delta_field = 1;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -201,7 +202,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		else
 			fprintf(pos->fp, " ");
 	}
-	if (opt_delta && stream->has_timestamp) {
+	if ((opt_delta_field || opt_all_fields) && stream->has_timestamp) {
 		uint64_t delta, delta_sec, delta_nsec;
 
 		set_field_names_print(pos, ITEM_HEADER);
@@ -228,66 +229,58 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		pos->last_timestamp = stream->timestamp;
 	}
 
-	if ((opt_trace_name || opt_all_field_names) && stream_class->trace->path[0] != '\0') {
+	if ((opt_trace_field || opt_all_fields) && stream_class->trace->path[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
-			if (opt_trace_name || opt_all_field_names)
-				fprintf(pos->fp, "trace = ");
+			fprintf(pos->fp, "trace = ");
 		}
-
 		fprintf(pos->fp, "%s", stream_class->trace->path);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		else
 			fprintf(pos->fp, " ");
 	}
-	if ((opt_trace_domain) && stream_class->trace->domain[0] != '\0') {
+	if ((opt_trace_domain_field && !opt_all_fields) && stream_class->trace->domain[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:domain = ");
 		}
-		if (opt_trace_domain)
-			fprintf(pos->fp, "%s", stream_class->trace->domain);
+		fprintf(pos->fp, "%s", stream_class->trace->domain);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_procname) && stream_class->trace->procname[0] != '\0') {
+	if ((opt_trace_procname_field && !opt_all_fields) && stream_class->trace->procname[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:procname = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-
-		if (opt_trace_procname)
-			fprintf(pos->fp, "%s", stream_class->trace->procname);
+		fprintf(pos->fp, "%s", stream_class->trace->procname);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_vpid) && stream_class->trace->vpid[0] != '\0') {
+	if ((opt_trace_vpid_field && !opt_all_fields) && stream_class->trace->vpid[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:vpid = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-
-		if (opt_trace_vpid)
-			fprintf(pos->fp, "%s", stream_class->trace->vpid);
+		fprintf(pos->fp, "%s", stream_class->trace->vpid);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_loglevel || opt_all_field_names) && event_class->loglevel_identifier != 0) {
+	if ((opt_loglevel_field || opt_all_fields) && event_class->loglevel_identifier != 0) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "loglevel = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-
 		fprintf(pos->fp, "%s (%lld)",
 			g_quark_to_string(event_class->loglevel_identifier),
 			(long long) event_class->loglevel_value);
