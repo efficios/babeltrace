@@ -20,8 +20,6 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 
-typedef GQuark bt_event_name;
-
 /* Forward declarations */
 struct babeltrace_iter;
 struct ctf_stream_event;
