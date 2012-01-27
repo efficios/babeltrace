@@ -96,6 +96,7 @@ L\"				BEGIN(string_lit); return STRING_LITERAL_START;
 align				setstring(yyextra, yylval, yytext); return TOK_ALIGN;
 const				setstring(yyextra, yylval, yytext); return CONST;
 char				setstring(yyextra, yylval, yytext); return CHAR;
+clock				setstring(yyextra, yylval, yytext); return CLOCK;
 double				setstring(yyextra, yylval, yytext); return DOUBLE;
 enum				setstring(yyextra, yylval, yytext); return ENUM;
 event				setstring(yyextra, yylval, yytext); return EVENT;

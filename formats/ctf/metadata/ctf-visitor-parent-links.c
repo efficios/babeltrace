@@ -205,6 +205,12 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
+		cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		break;
 
 	case NODE_EVENT:
@@ -225,6 +231,14 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_TRACE:
 		cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
+	case NODE_CLOCK:
+		cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)

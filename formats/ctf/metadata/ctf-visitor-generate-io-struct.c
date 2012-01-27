@@ -1234,6 +1234,22 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 				return NULL;
 			}
 			g_free(s_right);
+		} else if (!strcmp(left->u.unary_expression.u.string, "map")) {
+			char *s_right;
+
+			if (right->u.unary_expression.type != UNARY_STRING) {
+				fprintf(fd, "[error] %s: map: expecting identifier\n",
+					__func__);
+				return NULL;
+			}
+			s_right = concatenate_unary_strings(&expression->u.ctf_expression.right);
+			if (!s_right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for integer map\n", __func__);
+				g_free(s_right);
+				return NULL;
+			}
+			/* TODO: lookup */
+
 		} else {
 			fprintf(fd, "[error] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);

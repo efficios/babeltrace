@@ -23,6 +23,7 @@ enum node_type {
 	NODE_EVENT,
 	NODE_STREAM,
 	NODE_TRACE,
+	NODE_CLOCK,
 
 	NODE_CTF_EXPRESSION,
 	NODE_UNARY_EXPRESSION,
@@ -71,6 +72,7 @@ struct ctf_node {
 			struct cds_list_head trace;
 			struct cds_list_head stream;
 			struct cds_list_head event;
+			struct cds_list_head clock;
 		} root;
 		struct {
 			/*
@@ -93,6 +95,13 @@ struct ctf_node {
 			 */
 			struct cds_list_head declaration_list;
 		} trace;
+		struct {
+			/*
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and type_specifier_list.
+			 */
+			struct cds_list_head declaration_list;
+		} clock;
 		struct {
 			struct cds_list_head left;	/* Should be string */
 			struct cds_list_head right;	/* Unary exp. or type */
