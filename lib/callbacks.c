@@ -103,7 +103,7 @@ int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
 						(gconstpointer) (unsigned long) event);
 				/* event not found in this stream class */
 				if (!event_id_ptr) {
-					printf("event not found\n");
+					fprintf(stderr, "event not found\n");
 					continue;
 				}
 				event_id = (uint64_t)(unsigned long) *event_id_ptr;
@@ -151,17 +151,17 @@ struct ctf_stream_event *extract_ctf_stream_event(struct ctf_stream *stream)
 	uint64_t id = stream->event_id;
 
 	if (id >= stream_class->events_by_id->len) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return NULL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
 	if (!event) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return NULL;
 	}
 	event_class = g_ptr_array_index(stream_class->events_by_id, id);
 	if (!event_class) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return NULL;
 	}
 

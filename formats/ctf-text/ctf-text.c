@@ -167,17 +167,17 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	id = stream->event_id;
 
 	if (id >= stream_class->events_by_id->len) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
 	if (!event) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 	event_class = g_ptr_array_index(stream_class->events_by_id, id);
 	if (!event) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
@@ -392,7 +392,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	return 0;
 
 error:
-	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	fprintf(stderr, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
 	return ret;
 }
 
@@ -423,7 +423,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
 		break;
 	case O_RDONLY:
 	default:
-		fprintf(stdout, "[error] Incorrect open flags.\n");
+		fprintf(stderr, "[error] Incorrect open flags.\n");
 		goto error;
 	}
 

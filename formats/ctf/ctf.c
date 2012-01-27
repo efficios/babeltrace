@@ -203,12 +203,12 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	}
 
 	if (unlikely(id >= stream_class->events_by_id->len)) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
 	if (unlikely(!event)) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
@@ -229,7 +229,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	return 0;
 
 error:
-	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	fprintf(stderr, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
 	return ret;
 }
 
@@ -258,12 +258,12 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 	}
 
 	if (unlikely(id >= stream_class->events_by_id->len)) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is outside range.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is outside range.\n", id);
 		return -EINVAL;
 	}
 	event = g_ptr_array_index(stream->events_by_id, id);
 	if (unlikely(!event)) {
-		fprintf(stdout, "[error] Event id %" PRIu64 " is unknown.\n", id);
+		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
@@ -284,7 +284,7 @@ int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 	return 0;
 
 error:
-	fprintf(stdout, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	fprintf(stderr, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
 	return ret;
 }
 
@@ -334,7 +334,7 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 		/* unmap old base */
 		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 		if (ret) {
-			fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
+			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
 			assert(0);
 		}
@@ -357,7 +357,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		/* unmap old base */
 		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 		if (ret) {
-			fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
+			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
 			assert(0);
 		}
@@ -434,7 +434,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	pos->base = mmap(NULL, pos->packet_size / CHAR_BIT, pos->prot,
 			 pos->flags, pos->fd, pos->mmap_offset);
 	if (pos->base == MAP_FAILED) {
-		fprintf(stdout, "[error] mmap error %s.\n",
+		fprintf(stderr, "[error] mmap error %s.\n",
 			strerror(errno));
 		assert(0);
 	}
@@ -499,7 +499,7 @@ int check_version(unsigned int major, unsigned int minor)
 
 	/* eventually return an error instead of warning */
 warning:
-	fprintf(stdout, "[warning] Unsupported CTF specification version %u.%u. Trying anyway.\n",
+	fprintf(stderr, "[warning] Unsupported CTF specification version %u.%u. Trying anyway.\n",
 		major, minor);
 	return 0;
 }
@@ -524,19 +524,19 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		header.packet_size = GUINT32_SWAP_LE_BE(header.packet_size);
 	}
 	if (header.checksum)
-		fprintf(stdout, "[warning] checksum verification not supported yet.\n");
+		fprintf(stderr, "[warning] checksum verification not supported yet.\n");
 	if (header.compression_scheme) {
-		fprintf(stdout, "[error] compression (%u) not supported yet.\n",
+		fprintf(stderr, "[error] compression (%u) not supported yet.\n",
 			header.compression_scheme);
 		return -EINVAL;
 	}
 	if (header.encryption_scheme) {
-		fprintf(stdout, "[error] encryption (%u) not supported yet.\n",
+		fprintf(stderr, "[error] encryption (%u) not supported yet.\n",
 			header.encryption_scheme);
 		return -EINVAL;
 	}
 	if (header.checksum_scheme) {
-		fprintf(stdout, "[error] checksum (%u) not supported yet.\n",
+		fprintf(stderr, "[error] checksum (%u) not supported yet.\n",
 			header.checksum_scheme);
 		return -EINVAL;
 	}
@@ -560,7 +560,7 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		}
 		if (babeltrace_debug) {
 			buf[readlen] = '\0';
-			fprintf(stdout, "[debug] metadata packet read: %s\n",
+			fprintf(stderr, "[debug] metadata packet read: %s\n",
 				buf);
 		}
 
@@ -585,7 +585,7 @@ read_padding:
 	toread = (header.packet_size - header.content_size) / CHAR_BIT;
 	ret = fseek(in, toread, SEEK_CUR);
 	if (ret < 0) {
-		fprintf(stdout, "[warning] Missing padding at end of file\n");
+		fprintf(stderr, "[warning] Missing padding at end of file\n");
 		ret = 0;
 	}
 	return ret;
@@ -658,13 +658,13 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		td->metadata = &metadata_stream->parent;
 		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
 		if (metadata_stream->pos.fd < 0) {
-			fprintf(stdout, "Unable to open metadata.\n");
+			fprintf(stderr, "Unable to open metadata.\n");
 			return metadata_stream->pos.fd;
 		}
 
 		fp = fdopen(metadata_stream->pos.fd, "r");
 		if (!fp) {
-			fprintf(stdout, "[error] Unable to open metadata stream.\n");
+			fprintf(stderr, "[error] Unable to open metadata stream.\n");
 			perror("Metadata stream open");
 			ret = -errno;
 			goto end_stream;
@@ -686,7 +686,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		/* Check text-only metadata header and version */
 		nr_items = fscanf(fp, "/* CTF %u.%u", &major, &minor);
 		if (nr_items < 2)
-			fprintf(stdout, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
+			fprintf(stderr, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
 		if (check_version(major, minor) < 0) {
 			ret = -EINVAL;
 			goto end_packet_read;
@@ -696,33 +696,33 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	scanner = ctf_scanner_alloc(fp);
 	if (!scanner) {
-		fprintf(stdout, "[error] Error allocating scanner\n");
+		fprintf(stderr, "[error] Error allocating scanner\n");
 		ret = -ENOMEM;
 		goto end_scanner_alloc;
 	}
 	ret = ctf_scanner_append_ast(scanner);
 	if (ret) {
-		fprintf(stdout, "[error] Error creating AST\n");
+		fprintf(stderr, "[error] Error creating AST\n");
 		goto end;
 	}
 
 	if (babeltrace_debug) {
-		ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
+		ret = ctf_visitor_print_xml(stderr, 0, &scanner->ast->root);
 		if (ret) {
-			fprintf(stdout, "[error] Error visiting AST for XML output\n");
+			fprintf(stderr, "[error] Error visiting AST for XML output\n");
 			goto end;
 		}
 	}
 
-	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
+	ret = ctf_visitor_semantic_check(stderr, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "[error] Error in CTF semantic validation %d\n", ret);
+		fprintf(stderr, "[error] Error in CTF semantic validation %d\n", ret);
 		goto end;
 	}
-	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
+	ret = ctf_visitor_construct_metadata(stderr, 0, &scanner->ast->root,
 			td, td->byte_order);
 	if (ret) {
-		fprintf(stdout, "[error] Error in CTF metadata constructor %d\n", ret);
+		fprintf(stderr, "[error] Error in CTF metadata constructor %d\n", ret);
 		goto end;
 	}
 end:
@@ -886,7 +886,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* unmap old base */
 			ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
 			if (ret) {
-				fprintf(stdout, "[error] Unable to unmap old base: %s.\n",
+				fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 					strerror(errno));
 				return ret;
 			}
@@ -919,7 +919,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				magic = get_unsigned_int(field);
 				if (magic != CTF_MAGIC) {
-					fprintf(stdout, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
+					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
 							magic,
 							file_stream->pos.packet_index->len,
 							(ssize_t) pos->mmap_offset);
@@ -948,7 +948,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				}
 				ret = uuid_compare(td->uuid, uuidval);
 				if (ret) {
-					fprintf(stdout, "[error] Unique Universal Identifiers do not match.\n");
+					fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
 					return -EINVAL;
 				}
 			}
@@ -964,18 +964,18 @@ int create_stream_packet_index(struct ctf_trace *td,
 		}
 
 		if (!first_packet && file_stream->parent.stream_id != stream_id) {
-			fprintf(stdout, "[error] Stream ID is changing within a stream.\n");
+			fprintf(stderr, "[error] Stream ID is changing within a stream.\n");
 			return -EINVAL;
 		}
 		if (first_packet) {
 			file_stream->parent.stream_id = stream_id;
 			if (stream_id >= td->streams->len) {
-				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
 			}
 			stream = g_ptr_array_index(td->streams, stream_id);
 			if (!stream) {
-				fprintf(stdout, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
 				return -EINVAL;
 			}
 			file_stream->parent.stream_class = stream;
@@ -1040,13 +1040,13 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 		/* Validate content size and packet size values */
 		if (packet_index.content_size > packet_index.packet_size) {
-			fprintf(stdout, "[error] Content size (%zu bits) is larger than packet size (%zu bits).\n",
+			fprintf(stderr, "[error] Content size (%zu bits) is larger than packet size (%zu bits).\n",
 				packet_index.content_size, packet_index.packet_size);
 			return -EINVAL;
 		}
 
 		if (packet_index.packet_size > (filestats.st_size - packet_index.offset) * CHAR_BIT) {
-			fprintf(stdout, "[error] Packet size (%zu bits) is larger than remaining file size (%zu bits).\n",
+			fprintf(stderr, "[error] Packet size (%zu bits) is larger than remaining file size (%zu bits).\n",
 				packet_index.content_size, (size_t) (filestats.st_size - packet_index.offset) * CHAR_BIT);
 			return -EINVAL;
 		}
@@ -1246,26 +1246,26 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 	/* Open trace directory */
 	td->dir = opendir(path);
 	if (!td->dir) {
-		fprintf(stdout, "[error] Unable to open trace directory.\n");
+		fprintf(stderr, "[error] Unable to open trace directory.\n");
 		ret = -ENOENT;
 		goto error;
 	}
 
 	td->dirfd = open(path, 0);
 	if (td->dirfd < 0) {
-		fprintf(stdout, "[error] Unable to open trace directory file descriptor.\n");
+		fprintf(stderr, "[error] Unable to open trace directory file descriptor.\n");
 		perror("Trace directory open");
 		ret = -errno;
 		goto error_dirfd;
 	}
 	rescolpath = realpath(collection_path, td->collection_path);
 	if (!rescolpath) {
-		fprintf(stdout, "[error] collection path resolution failure\n");
+		fprintf(stderr, "[error] collection path resolution failure\n");
 		return -EINVAL;
 	}
 	respath = realpath(path, td->path);
 	if (!respath) {
-		fprintf(stdout, "[error] path resolution failure\n");
+		fprintf(stderr, "[error] path resolution failure\n");
 		return -EINVAL;
 	}
 	init_domain_name(td);
@@ -1295,7 +1295,7 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 	for (;;) {
 		ret = readdir_r(td->dir, dirent, &diriter);
 		if (ret) {
-			fprintf(stdout, "[error] Readdir error.\n");
+			fprintf(stderr, "[error] Readdir error.\n");
 			goto readdir_error;
 		}
 		if (!diriter)
@@ -1307,7 +1307,7 @@ int ctf_open_trace_read(struct ctf_trace *td, const char *collection_path,
 			continue;
 		ret = ctf_open_file_stream_read(td, diriter->d_name, flags, move_pos_slow);
 		if (ret) {
-			fprintf(stdout, "[error] Open file stream error.\n");
+			fprintf(stderr, "[error] Open file stream error.\n");
 			goto readdir_error;
 		}
 	}
@@ -1338,7 +1338,7 @@ struct trace_descriptor *ctf_open_trace(const char *collection_path, const char 
 	switch (flags & O_ACCMODE) {
 	case O_RDONLY:
 		if (!path) {
-			fprintf(stdout, "[error] Path missing for input CTF trace.\n");
+			fprintf(stderr, "[error] Path missing for input CTF trace.\n");
 			goto error;
 		}
 		ret = ctf_open_trace_read(td, collection_path, path, flags, move_pos_slow, metadata_fp);
@@ -1346,10 +1346,10 @@ struct trace_descriptor *ctf_open_trace(const char *collection_path, const char 
 			goto error;
 		break;
 	case O_RDWR:
-		fprintf(stdout, "[error] Opening CTF traces for output is not supported yet.\n");
+		fprintf(stderr, "[error] Opening CTF traces for output is not supported yet.\n");
 		goto error;
 	default:
-		fprintf(stdout, "[error] Incorrect open flags.\n");
+		fprintf(stderr, "[error] Incorrect open flags.\n");
 		goto error;
 	}
 
@@ -1389,14 +1389,14 @@ int prepare_mmap_stream_definition(struct ctf_trace *td,
 
 	file_stream->parent.stream_id = stream_id;
 	if (stream_id >= td->streams->len) {
-		fprintf(stdout, "[error] Stream %" PRIu64 " is not declared "
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared "
 				"in metadata.\n", stream_id);
 		ret = -EINVAL;
 		goto end;
 	}
 	stream = g_ptr_array_index(td->streams, stream_id);
 	if (!stream) {
-		fprintf(stdout, "[error] Stream %" PRIu64 " is not declared "
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared "
 				"in metadata.\n", stream_id);
 		ret = -EINVAL;
 		goto end;
@@ -1464,7 +1464,7 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 	cds_list_for_each_entry(mmap_info, &mmap_list->head, list) {
 		ret = ctf_open_mmap_stream_read(td, mmap_info, move_pos_slow);
 		if (ret) {
-			fprintf(stdout, "[error] Open file mmap stream error.\n");
+			fprintf(stderr, "[error] Open file mmap stream error.\n");
 			goto error;
 		}
 	}

@@ -212,7 +212,7 @@ retry:
 		write_packet_header(pos, s_uuid);
 		write_packet_context(pos);
 		if (attempt++ == 1) {
-			fprintf(stdout, "[Error] Line too large for packet size (%zukB) (discarded)\n",
+			fprintf(stderr, "[Error] Line too large for packet size (%zukB) (discarded)\n",
 				pos->packet_size / CHAR_BIT / 1024);
 			return;
 		}
@@ -294,8 +294,8 @@ int main(int argc, char **argv)
 
 	ret = parse_args(argc, argv);
 	if (ret) {
-		fprintf(stdout, "Error: invalid argument.\n");
-		usage(stdout);
+		fprintf(stderr, "Error: invalid argument.\n");
+		usage(stderr);
 		goto error;
 	}
 

@@ -39,32 +39,32 @@ int main(int argc, char **argv)
 	babeltrace_verbose = 1;
 	scanner = ctf_scanner_alloc(stdin);
 	if (!scanner) {
-		fprintf(stdout, "Error allocating scanner\n");
+		fprintf(stderr, "Error allocating scanner\n");
 		return -ENOMEM;
 	}
 	ret = ctf_scanner_append_ast(scanner);
 	if (ret) {
-		fprintf(stdout, "Error creating AST\n");
+		fprintf(stderr, "Error creating AST\n");
 		goto end;
 	}
 
-	ret = ctf_visitor_print_xml(stdout, 0, &scanner->ast->root);
+	ret = ctf_visitor_print_xml(stderr, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "Error visiting AST for XML output\n");
+		fprintf(stderr, "Error visiting AST for XML output\n");
 		goto end;
 	}
 
-	ret = ctf_visitor_semantic_check(stdout, 0, &scanner->ast->root);
+	ret = ctf_visitor_semantic_check(stderr, 0, &scanner->ast->root);
 	if (ret) {
-		fprintf(stdout, "Error in CTF semantic validation %d\n", ret);
+		fprintf(stderr, "Error in CTF semantic validation %d\n", ret);
 		goto end;
 	}
 	trace = malloc(sizeof(*trace));
 	memset(trace, 0, sizeof(*trace));
-	ret = ctf_visitor_construct_metadata(stdout, 0, &scanner->ast->root,
+	ret = ctf_visitor_construct_metadata(stderr, 0, &scanner->ast->root,
 			trace, BYTE_ORDER);
 	if (ret) {
-		fprintf(stdout, "Error in CTF metadata constructor %d\n", ret);
+		fprintf(stderr, "Error in CTF metadata constructor %d\n", ret);
 		goto free_trace;
 	}
 free_trace:

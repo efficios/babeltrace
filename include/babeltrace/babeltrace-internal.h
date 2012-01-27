@@ -6,16 +6,16 @@
 
 extern int babeltrace_verbose, babeltrace_debug;
 
-#define printf_verbose(fmt, args...)				\
-	do {							\
-		if (babeltrace_verbose)				\
-			printf("[verbose] " fmt, ## args);	\
+#define printf_verbose(fmt, args...)					\
+	do {								\
+		if (babeltrace_verbose)					\
+			fprintf(stdout, "[verbose] " fmt, ## args);	\
 	} while (0)
 
-#define printf_debug(fmt, args...)				\
-	do {							\
-		if (babeltrace_debug)				\
-			printf("[debug] " fmt, ## args);	\
+#define printf_debug(fmt, args...)					\
+	do {								\
+		if (babeltrace_debug)					\
+			fprintf(stdout, "[debug] " fmt, ## args);	\
 	} while (0)
 
 #define likely(x)	__builtin_expect(!!(x), 1)

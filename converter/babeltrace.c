@@ -145,7 +145,7 @@ static int get_names_args(poptContext *pc)
 		else if (!strcmp(str, "loglevel"))
 			opt_loglevel = 1;
 		else {
-			fprintf(stdout, "[error] unknown field name type %s\n", str);
+			fprintf(stderr, "[error] unknown field name type %s\n", str);
 			return -EINVAL;
 		}
 	} while ((str = strtok_r(NULL, ",", &strctx)));
@@ -266,7 +266,7 @@ int convert_trace(struct trace_descriptor *td_write,
 	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
 		ret = sout->parent.event_cb(&sout->parent, stream);
 		if (ret) {
-			fprintf(stdout, "[error] Writing event failed.\n");
+			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;
 		}
 		ret = babeltrace_iter_next(iter);
@@ -301,7 +301,7 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 		return 0;
 	dirfd = open(fpath, 0);
 	if (dirfd < 0) {
-		fprintf(stdout, "[error] unable to open trace "
+		fprintf(stderr, "[error] unable to open trace "
 			"directory file descriptor.\n");
 		return -1;
 	}
@@ -315,7 +315,7 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 				fpath, O_RDONLY, ctf_move_pos_slow,
 				NULL);
 		if (!td_read) {
-			fprintf(stdout, "Error opening trace \"%s\" "
+			fprintf(stderr, "Error opening trace \"%s\" "
 					"for reading.\n\n", fpath);
 			return -1;	/* error */
 		}
@@ -333,8 +333,8 @@ int main(int argc, char **argv)
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
-		fprintf(stdout, "Error parsing options.\n\n");
-		usage(stdout);
+		fprintf(stderr, "Error parsing options.\n\n");
+		usage(stderr);
 		exit(EXIT_FAILURE);
 	} else if (ret > 0) {
 		exit(EXIT_SUCCESS);
@@ -361,13 +361,13 @@ int main(int argc, char **argv)
 		opt_output_format = "text";
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
 	if (!fmt_read) {
-		fprintf(stdout, "[error] Format \"%s\" is not supported.\n\n",
+		fprintf(stderr, "[error] Format \"%s\" is not supported.\n\n",
 			opt_input_format);
 		exit(EXIT_FAILURE);
 	}
 	fmt_write = bt_lookup_format(g_quark_from_static_string(opt_output_format));
 	if (!fmt_write) {
-		fprintf(stdout, "[error] format \"%s\" is not supported.\n\n",
+		fprintf(stderr, "[error] format \"%s\" is not supported.\n\n",
 			opt_output_format);
 		exit(EXIT_FAILURE);
 	}
@@ -382,30 +382,30 @@ int main(int argc, char **argv)
 	init_trace_collection(&trace_collection_read);
 	ret = nftw(opt_input_path, traverse_dir, 10, 0);
 	if (ret != 0) {
-		fprintf(stdout, "[error] opening trace \"%s\" for reading.\n\n",
+		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);
 		goto error_td_read;
 	}
 	if (trace_collection_read.array->len == 0) {
-		fprintf(stdout, "[warning] no metadata file was found."
+		fprintf(stderr, "[warning] no metadata file was found."
 						" no output was generated\n");
 		return 0;
 	}
 	ctx = bt_context_create(&trace_collection_read);
 	if (!ctx) {
-		fprintf(stdout, "Error allocating a new context\n");
+		fprintf(stderr, "Error allocating a new context\n");
 		goto error_td_read;
 	}
 	td_write = fmt_write->open_trace(NULL, opt_output_path, O_RDWR, NULL, NULL);
 	if (!td_write) {
-		fprintf(stdout, "Error opening trace \"%s\" for writing.\n\n",
+		fprintf(stderr, "Error opening trace \"%s\" for writing.\n\n",
 			opt_output_path ? : "<none>");
 		goto error_td_write;
 	}
 
 	ret = convert_trace(td_write, ctx);
 	if (ret) {
-		fprintf(stdout, "Error printing trace.\n\n");
+		fprintf(stderr, "Error printing trace.\n\n");
 		goto error_copy_trace;
 	}
 

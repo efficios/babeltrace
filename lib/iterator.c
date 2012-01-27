@@ -50,7 +50,7 @@ static int stream_read_event(struct ctf_file_stream *sin)
 	if (ret == EOF)
 		return EOF;
 	else if (ret) {
-		fprintf(stdout, "[error] Reading event failed.\n");
+		fprintf(stderr, "[error] Reading event failed.\n");
 		return ret;
 	}
 	return 0;
