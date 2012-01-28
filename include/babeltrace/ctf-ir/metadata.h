@@ -54,6 +54,40 @@ struct ctf_stream_event {
 	struct definition_struct *event_fields;
 };
 
+#define CTF_CLOCK_SET_FIELD(ctf_clock, field)				\
+	do {								\
+		(ctf_clock)->field_mask |= CTF_CLOCK_ ## field;		\
+	} while (0)
+
+#define CTF_CLOCK_FIELD_IS_SET(ctf_clock, field)			\
+		((ctf_clock)->field_mask & CTF_CLOCK_ ## field)
+
+#define CTF_CLOCK_GET_FIELD(ctf_clock, field)				\
+	({								\
+		assert(CTF_CLOCK_FIELD_IS_SET(ctf_clock, field));	\
+		(ctf_clock)->(field);					\
+	})
+
+struct ctf_clock {
+	GQuark name;
+	GQuark uuid;
+	char *description;
+	uint64_t freq;	/* frequency, in HZ */
+	/* precision in seconds is: precision * (1/freq) */
+	uint64_t precision;
+	/*
+	 * The offset from Epoch is: offset_s + (offset * (1/freq))
+	 * Coarse clock offset from Epoch (in seconds).
+	 */
+	uint64_t offset_s;
+	/* Fine clock offset from Epoch, in (1/freq) units. */
+	uint64_t offset;
+
+	enum {					/* Fields populated mask */
+		CTF_CLOCK_name		=	(1U << 0),
+	} field_mask;
+};
+
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
 	do {								\
 		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
@@ -68,7 +102,6 @@ struct ctf_stream_event {
 		(ctf_trace)->(field);					\
 	})
 
-
 struct ctf_trace {
 	struct trace_descriptor parent;
 	/* root scope */
@@ -79,6 +112,7 @@ struct ctf_trace {
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
 	struct ctf_stream *metadata;
+	GHashTable *clocks;
 
 	struct declaration_struct *packet_header_decl;
 

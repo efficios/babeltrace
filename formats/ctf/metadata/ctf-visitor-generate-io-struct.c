@@ -2070,6 +2070,164 @@ error:
 }
 
 static
+int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
+		struct ctf_clock *clock, struct ctf_trace *trace)
+{
+	int ret = 0;
+
+	switch (node->type) {
+	case NODE_CTF_EXPRESSION:
+	{
+		char *left;
+
+		left = concatenate_unary_strings(&node->u.ctf_expression.left);
+		if (!strcmp(left, "name")) {
+			char *right;
+
+			if (CTF_CLOCK_FIELD_IS_SET(clock, name)) {
+				fprintf(fd, "[error] %s: name already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock name\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			clock->name = g_quark_from_string(right);
+			g_free(right);
+			CTF_EVENT_SET_FIELD(clock, name);
+		} else if (!strcmp(left, "uuid")) {
+			char *right;
+
+			if (clock->uuid) {
+				fprintf(fd, "[error] %s: uuid already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock uuid\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			clock->uuid = g_quark_from_string(right);
+			g_free(right);
+		} else if (!strcmp(left, "description")) {
+			char *right;
+
+			if (clock->description) {
+				fprintf(fd, "[warning] %s: duplicated clock description\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[warning] %s: unexpected unary expression for clock description\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			clock->description = right;
+		} else if (!strcmp(left, "freq")) {
+			if (clock->freq) {
+				fprintf(fd, "[error] %s: freq already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->freq);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock freq\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+		} else if (!strcmp(left, "precision")) {
+			if (clock->precision) {
+				fprintf(fd, "[error] %s: precision already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->precision);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock precision\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+		} else if (!strcmp(left, "offset_s")) {
+			if (clock->offset_s) {
+				fprintf(fd, "[error] %s: offset_s already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->offset_s);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock offset_s\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+		} else if (!strcmp(left, "offset")) {
+			if (clock->offset) {
+				fprintf(fd, "[error] %s: offset already declared in clock declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->offset);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for clock offset\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+		} else {
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in clock declaration.\n", __func__, left);
+		}
+
+error:
+		g_free(left);
+		break;
+	}
+	default:
+		return -EPERM;
+	/* TODO: declaration specifier should be added. */
+	}
+
+	return ret;
+}
+
+static
+int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+{
+	int ret = 0;
+	struct ctf_node *iter;
+	struct ctf_clock *clock;
+
+	clock = g_new0(struct ctf_clock, 1);
+	cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+		ret = ctf_clock_declaration_visit(fd, depth + 1, iter, clock, trace);
+		if (ret)
+			goto error;
+	}
+	if (!CTF_CLOCK_FIELD_IS_SET(clock, name)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing namefield in clock declaration\n", __func__);
+		goto error;
+	}
+	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);
+	return 0;
+
+error:
+	g_free(clock->description);
+	g_free(clock);
+	return ret;
+}
+
+static
+void clock_free(gpointer data)
+{
+	struct ctf_clock *clock = data;
+
+	g_free(clock->description);
+	g_free(clock);
+}
+
+static
 int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
 {
 	int ret = 0;
@@ -2114,6 +2272,7 @@ int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struc
 	return 0;
 }
 
+/* TODO: missing metadata "destroy" (memory leak) */
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		struct ctf_trace *trace, int byte_order)
 {
@@ -2122,6 +2281,8 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 
 	printf_verbose("CTF visitor: metadata construction... ");
 	trace->byte_order = byte_order;
+	trace->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+				NULL, clock_free);
 
 retry:
 	trace->root_declaration_scope = new_declaration_scope(NULL);
@@ -2152,6 +2313,15 @@ retry:
 				goto error;
 			}
 		}
+		cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+			ret = ctf_clock_visit(fd, depth + 1, iter,
+		    			      trace);
+			if (ret) {
+				fprintf(fd, "[error] %s: clock declaration error\n", __func__);
+				goto error;
+			}
+		}
+
 		if (!trace->streams) {
 			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
 			ret = -EINVAL;
@@ -2186,5 +2356,6 @@ retry:
 
 error:
 	free_declaration_scope(trace->root_declaration_scope);
+	g_hash_table_destroy(trace->clocks);
 	return ret;
 }
