@@ -1251,9 +1251,9 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			/* TODO: lookup */
 
 		} else {
-			fprintf(fd, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[warning] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
-			return NULL;
+			/* Fall-through after warning */
 		}
 	}
 	if (!has_size) {
@@ -1327,9 +1327,9 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 			}
 			has_alignment = 1;
 		} else {
-			fprintf(fd, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[warning] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
-			return NULL;
+			/* Fall-through after warning */
 		}
 	}
 	if (!has_mant_dig) {
@@ -1378,9 +1378,9 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 			}
 			encoding_c = right->u.unary_expression.u.string;
 		} else {
-			fprintf(fd, "[error] %s: unknown attribute name %s\n",
+			fprintf(fd, "[warning] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
-			return NULL;
+			/* Fall-through after warning */
 		}
 	}
 	if (encoding_c && !strcmp(encoding_c, "ASCII"))
@@ -1614,9 +1614,8 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_EVENT_SET_FIELD(event, loglevel_value);
 		} else {
-			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
-			ret = -EINVAL;
-			goto error;
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
+			/* Fall-through after warning */
 		}
 error:
 		g_free(left);
@@ -1799,9 +1798,8 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 			}
 			stream->packet_context_decl = container_of(declaration, struct declaration_struct, p);
 		} else {
-			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in stream declaration.\n", __func__, left);
-			ret = -EINVAL;
-			goto error;
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in stream declaration.\n", __func__, left);
+			/* Fall-through after warning */
 		}
 
 error:
@@ -1998,9 +1996,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			trace->packet_header_decl = container_of(declaration, struct declaration_struct, p);
 		} else {
-			fprintf(fd, "[error] %s: attribute \"%s\" is unknown in trace declaration.\n", __func__, left);
-			ret = -EINVAL;
-			goto error;
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in trace declaration.\n", __func__, left);
 		}
 
 error:
