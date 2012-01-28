@@ -88,6 +88,50 @@ char *concatenate_unary_strings(struct cds_list_head *head)
 }
 
 static
+GQuark get_map_clock_name_value(struct cds_list_head *head)
+{
+	struct ctf_node *node;
+	const char *name = NULL;
+	int i = 0;
+
+	cds_list_for_each_entry(node, head, siblings) {
+		char *src_string;
+
+		assert(node->type == NODE_UNARY_EXPRESSION);
+		assert(node->u.unary_expression.type == UNARY_STRING);
+		assert((node->u.unary_expression.link == UNARY_LINK_UNKNOWN)
+			^ (i != 0));
+		/* needs to be chained with . */
+		switch (node->u.unary_expression.link) {
+		case UNARY_DOTLINK:
+			break;
+		case UNARY_ARROWLINK:
+		case UNARY_DOTDOTDOT:
+			return 0;
+		default:
+			break;
+		}
+		src_string = node->u.unary_expression.u.string;
+		switch (i) {
+		case 0:	if (strcmp("clock", src_string) != 0) {
+				return 0;
+			}
+			break;
+		case 1:	name = src_string;
+			break;
+		case 2:	if (strcmp("value", src_string) != 0) {
+				return 0;
+			}
+			break;
+		default:
+			return 0;	/* extra identifier, unknown */
+		}
+		i++;
+	}
+	return g_quark_from_string(name);
+}
+
+static
 int get_unary_unsigned(struct cds_list_head *head, uint64_t *value)
 {
 	struct ctf_node *node;
@@ -147,6 +191,12 @@ struct ctf_stream_class *trace_stream_lookup(struct ctf_trace *trace, uint64_t s
 	if (trace->streams->len <= stream_id)
 		return NULL;
 	return g_ptr_array_index(trace->streams, stream_id);
+}
+
+static
+struct ctf_clock *trace_clock_lookup(struct ctf_trace *trace, GQuark clock_name)
+{
+	return g_hash_table_lookup(trace->clocks, (gpointer) (unsigned long) clock_name);
 }
 
 static
@@ -342,7 +392,8 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 					 */
 					integer_declaration = integer_declaration_new(integer_declaration->len,
 						integer_declaration->byte_order, integer_declaration->signedness,
-						integer_declaration->p.alignment, 16, integer_declaration->encoding);
+						integer_declaration->p.alignment, 16, integer_declaration->encoding,
+						integer_declaration->clock);
 					nested_declaration = &integer_declaration->p;
 				}
 			}
@@ -1116,6 +1167,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	int has_alignment = 0, has_size = 0;
 	int base = 0;
 	enum ctf_string_encoding encoding = CTF_STRING_NONE;
+	struct ctf_clock *clock = NULL;
 	struct declaration_integer *integer_declaration;
 
 	cds_list_for_each_entry(expression, expressions, siblings) {
@@ -1235,21 +1287,35 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			}
 			g_free(s_right);
 		} else if (!strcmp(left->u.unary_expression.u.string, "map")) {
-			char *s_right;
+			GQuark clock_name;
 
 			if (right->u.unary_expression.type != UNARY_STRING) {
 				fprintf(fd, "[error] %s: map: expecting identifier\n",
 					__func__);
 				return NULL;
 			}
-			s_right = concatenate_unary_strings(&expression->u.ctf_expression.right);
-			if (!s_right) {
-				fprintf(fd, "[error] %s: unexpected unary expression for integer map\n", __func__);
+			/* currently only support clock.name.value */
+			clock_name = get_map_clock_name_value(&expression->u.ctf_expression.right);
+			if (!clock_name) {
+				char *s_right;
+
+				s_right = concatenate_unary_strings(&expression->u.ctf_expression.right);
+				if (!s_right) {
+					fprintf(fd, "[error] %s: unexpected unary expression for integer map\n", __func__);
+					g_free(s_right);
+					return NULL;
+				}
+				fprintf(fd, "[warning] %s: unknown map %s in integer declaration\n", __func__,
+					s_right);
 				g_free(s_right);
+				continue;
+			}
+			clock = trace_clock_lookup(trace, clock_name);
+			if (!clock) {
+				fprintf(fd, "[error] %s: map: unable to find clock %s declaration\n",
+					__func__, g_quark_to_string(clock_name));
 				return NULL;
 			}
-			/* TODO: lookup */
-
 		} else {
 			fprintf(fd, "[warning] %s: unknown attribute name %s\n",
 				__func__, left->u.unary_expression.u.string);
@@ -1271,7 +1337,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 	}
 	integer_declaration = integer_declaration_new(size,
 				byte_order, signedness, alignment,
-				base, encoding);
+				base, encoding, clock);
 	return &integer_declaration->p;
 }
 
@@ -1678,7 +1744,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		g_ptr_array_set_size(event->stream->events_by_id, event->id + 1);
 	g_ptr_array_index(event->stream->events_by_id, event->id) = event;
 	g_hash_table_insert(event->stream->event_quark_to_id,
-			    (gpointer)(unsigned long) event->name,
+			    (gpointer) (unsigned long) event->name,
 			    &event->id);
 	return 0;
 
@@ -2278,6 +2344,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctf_node *iter;
+	int clock_done = 0;
 
 	printf_verbose("CTF visitor: metadata construction... ");
 	trace->byte_order = byte_order;
@@ -2289,6 +2356,21 @@ retry:
 
 	switch (node->type) {
 	case NODE_ROOT:
+		if (!clock_done) {
+			/*
+			 * declarations need to query clock hash table,
+			 * so clock need to be treated first.
+			 */
+			cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+				ret = ctf_clock_visit(fd, depth + 1, iter,
+						      trace);
+				if (ret) {
+					fprintf(fd, "[error] %s: clock declaration error\n", __func__);
+					goto error;
+				}
+			}
+			clock_done = 1;
+		}
 		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
 			ret = ctf_root_declaration_visit(fd, depth + 1, iter, trace);
@@ -2313,15 +2395,6 @@ retry:
 				goto error;
 			}
 		}
-		cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
-			ret = ctf_clock_visit(fd, depth + 1, iter,
-		    			      trace);
-			if (ret) {
-				fprintf(fd, "[error] %s: clock declaration error\n", __func__);
-				goto error;
-			}
-		}
-
 		if (!trace->streams) {
 			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
 			ret = -EINVAL;

@@ -37,6 +37,7 @@ struct ctf_stream;
 struct stream_pos;
 struct format;
 struct definition;
+struct ctf_clock;
 
 /* type scope */
 struct declaration_scope {
@@ -151,6 +152,7 @@ struct declaration_integer {
 	int signedness;
 	int base;		/* Base for pretty-printing: 2, 8, 10, 16 */
 	enum ctf_string_encoding encoding;
+	struct ctf_clock *clock;
 };
 
 struct definition_integer {
@@ -382,7 +384,8 @@ void definition_unref(struct definition *definition);
 
 struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
-				  int base, enum ctf_string_encoding encoding);
+				  int base, enum ctf_string_encoding encoding,
+				  struct ctf_clock *clock);
 uint64_t get_unsigned_int(struct definition *field);
 int64_t get_signed_int(struct definition *field);
 
