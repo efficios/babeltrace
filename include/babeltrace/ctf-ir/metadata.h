@@ -36,6 +36,7 @@ struct ctf_event;
 struct ctf_stream {
 	struct ctf_stream_class *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
+	uint64_t prev_timestamp;
 	uint64_t event_id;			/* Current event ID */
 	int has_timestamp;
 	uint64_t stream_id;
@@ -47,6 +48,10 @@ struct ctf_stream {
 	GPtrArray *events_by_id;		/* Array of struct ctf_stream_event pointers indexed by id */
 	struct definition_scope *parent_def_scope;	/* for initialization */
 	int stream_definitions_created;
+
+	/* Event discarded information */
+	uint32_t events_discarded;
+	
 };
 
 struct ctf_stream_event {

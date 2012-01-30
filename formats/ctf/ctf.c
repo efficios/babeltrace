@@ -121,6 +121,7 @@ void ctf_update_timestamp(struct ctf_stream *stream,
 	updateval = stream->timestamp;
 	updateval &= ~((1ULL << integer_declaration->len) - 1);
 	updateval += newval;
+	stream->prev_timestamp = stream->timestamp;
 	stream->timestamp = updateval;
 }
 
@@ -405,22 +406,19 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 						pos->cur_index - 1);
 				events_discarded_diff -= index->events_discarded;
 			}
-			if (events_discarded_diff != 0) {
-				fflush(stdout);
-				fprintf(stderr, "[warning] %d events discarded by tracer. You should try using larger buffers.\n",
-					events_discarded_diff);
-				fflush(stderr);
-			}
+			file_stream->parent.events_discarded = events_discarded_diff;
 			if (pos->offset == EOF)
 				return;
 			/* The reader will expect us to skip padding */
 			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
+			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
 			break;
 		}
 		case SEEK_SET:
 			assert(offset == 0);	/* only seek supported for now */
 			pos->cur_index = 0;
+			file_stream->parent.prev_timestamp = 0;
 			break;
 		default:
 			assert(0);

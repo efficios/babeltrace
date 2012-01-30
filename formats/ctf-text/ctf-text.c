@@ -158,15 +158,16 @@ void set_field_names_print(struct ctf_text_stream_pos *pos, enum field_item item
 }
 
 static
-void ctf_text_print_timestamp(struct ctf_text_stream_pos *pos,
-			struct ctf_stream *stream)
+void ctf_text_print_timestamp(FILE *fp, struct ctf_text_stream_pos *pos,
+			struct ctf_stream *stream,
+			uint64_t timestamp)
 {
 	uint64_t ts_sec = 0, ts_nsec;
 	struct ctf_trace *trace = stream->stream_class->trace;
 	struct trace_collection *tc = trace->collection;
 	struct ctf_clock *clock = tc->single_clock;
 
-	ts_nsec = stream->timestamp;
+	ts_nsec = timestamp;
 
 	/* Add offsets */
 	if (!opt_clock_raw && clock) {
@@ -210,15 +211,15 @@ void ctf_text_print_timestamp(struct ctf_text_stream_pos *pos,
 				fprintf(stderr, "[warning] Unable to print ascii time.\n");
 				goto seconds;
 			}
-			fprintf(pos->fp, "%s", timestr);
+			fprintf(fp, "%s", timestr);
 		}
 		/* Print time in HH:MM:SS.ns */
-		fprintf(pos->fp, "%02d:%02d:%02d.%09" PRIu64,
+		fprintf(fp, "%02d:%02d:%02d.%09" PRIu64,
 			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec);
 		goto end;
 	}
 seconds:
-	fprintf(pos->fp, "%3" PRIu64 ".%09" PRIu64,
+	fprintf(fp, "%3" PRIu64 ".%09" PRIu64,
 		ts_sec, ts_nsec);
 
 end:
@@ -256,13 +257,26 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		return -EINVAL;
 	}
 
+	/* Print events discarded */
+	if (stream->events_discarded) {
+		fflush(stdout);
+		fprintf(stderr, "[warning] Tracer discarded %d events between [",
+			stream->events_discarded);
+		ctf_text_print_timestamp(stderr, pos, stream, stream->prev_timestamp);
+		fprintf(stderr, "] and [");
+		ctf_text_print_timestamp(stderr, pos, stream, stream->timestamp);
+		fprintf(stderr, "]. You should consider increasing the buffer size.\n");
+		fflush(stderr);
+		stream->events_discarded = 0;
+	}
+
 	if (stream->has_timestamp) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else
 			fprintf(pos->fp, "[");
-		ctf_text_print_timestamp(pos, stream);
+		ctf_text_print_timestamp(pos->fp, pos, stream, stream->timestamp);
 		if (!pos->print_names)
 			fprintf(pos->fp, "]");
 
