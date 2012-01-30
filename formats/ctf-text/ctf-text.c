@@ -264,7 +264,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 			stream->events_discarded);
 		ctf_text_print_timestamp(stderr, pos, stream, stream->prev_timestamp);
 		fprintf(stderr, "] and [");
-		ctf_text_print_timestamp(stderr, pos, stream, stream->timestamp);
+		ctf_text_print_timestamp(stderr, pos, stream, stream->prev_timestamp_end);
 		fprintf(stderr, "]. You should consider increasing the buffer size.\n");
 		fflush(stderr);
 		stream->events_discarded = 0;

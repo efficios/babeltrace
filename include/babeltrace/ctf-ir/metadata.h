@@ -36,7 +36,6 @@ struct ctf_event;
 struct ctf_stream {
 	struct ctf_stream_class *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
-	uint64_t prev_timestamp;
 	uint64_t event_id;			/* Current event ID */
 	int has_timestamp;
 	uint64_t stream_id;
@@ -51,6 +50,8 @@ struct ctf_stream {
 
 	/* Event discarded information */
 	uint32_t events_discarded;
+	uint64_t prev_timestamp;	/* Last event */
+	uint64_t prev_timestamp_end;	/* End-of-packet timestamp */
 	
 };
 

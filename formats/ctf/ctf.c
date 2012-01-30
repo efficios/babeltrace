@@ -396,10 +396,12 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		{
 			uint32_t events_discarded_diff;
 
-			/* Print lost event count */
+			/* For printing discarded event count */
 			index = &g_array_index(pos->packet_index,
 					struct packet_index, pos->cur_index);
 			events_discarded_diff = index->events_discarded;
+			file_stream->parent.prev_timestamp_end =
+						index->timestamp_end;
 			if (pos->cur_index > 0) {
 				index = &g_array_index(pos->packet_index,
 						struct packet_index,
@@ -419,6 +421,7 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 			assert(offset == 0);	/* only seek supported for now */
 			pos->cur_index = 0;
 			file_stream->parent.prev_timestamp = 0;
+			file_stream->parent.prev_timestamp_end = 0;
 			break;
 		default:
 			assert(0);
