@@ -35,6 +35,7 @@ struct bt_context *bt_context_create(struct trace_collection *tc)
 
 	ctx->tc = tc;
 	ctx->refcount = 1;
+	ctx->last_trace_handle_id = 0;
 
 	return ctx;
 

@@ -35,6 +35,7 @@ struct trace_collection;
 struct bt_context {
 	struct trace_collection *tc;
 	int refcount;
+	int last_trace_handle_id;
 };
 
 /*

@@ -2,7 +2,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/format.h \
 	babeltrace/context.h \
-	babeltrace/iterator.h
+	babeltrace/iterator.h \
+	babeltrace/trace-handle.h
 
 
 noinst_HEADERS = \
@@ -18,4 +19,5 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/metadata.h \
 	babeltrace/ctf/metadata.h \
 	babeltrace/ctf-text/types.h \
-	babeltrace/ctf/types.h
+	babeltrace/ctf/types.h \
+	babeltrace/trace-handle-internal.h
