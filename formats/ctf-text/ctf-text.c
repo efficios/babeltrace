@@ -47,13 +47,7 @@ int opt_all_field_names,
 	opt_trace_procname_field,
 	opt_trace_vpid_field,
 	opt_loglevel_field,
-	opt_delta_field = 1,
-	opt_clock_raw,
-	opt_clock_seconds,
-	opt_clock_date,
-	opt_clock_gmt;
-
-uint64_t opt_clock_offset;
+	opt_delta_field = 1;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -158,75 +152,6 @@ void set_field_names_print(struct ctf_text_stream_pos *pos, enum field_item item
 }
 
 static
-void ctf_text_print_timestamp(FILE *fp, struct ctf_text_stream_pos *pos,
-			struct ctf_stream *stream,
-			uint64_t timestamp)
-{
-	uint64_t ts_sec = 0, ts_nsec;
-	struct ctf_trace *trace = stream->stream_class->trace;
-	struct trace_collection *tc = trace->collection;
-	struct ctf_clock *clock = tc->single_clock;
-
-	ts_nsec = timestamp;
-
-	/* Add offsets */
-	if (!opt_clock_raw && clock) {
-		ts_sec += clock->offset_s;
-		ts_nsec += clock->offset;
-	}
-	ts_sec += opt_clock_offset;
-
-	ts_sec += ts_nsec / NSEC_PER_SEC;
-	ts_nsec = ts_nsec % NSEC_PER_SEC;
-
-	if (!opt_clock_seconds) {
-		struct tm tm;
-		time_t time_s = (time_t) ts_sec;
-
-		if (!opt_clock_gmt) {
-			struct tm *res;
-
-			res = localtime_r(&time_s, &tm);
-			if (!res) {
-				fprintf(stderr, "[warning] Unable to get localtime.\n");
-				goto seconds;
-			}
-		} else {
-			struct tm *res;
-
-			res = gmtime_r(&time_s, &tm);
-			if (!res) {
-				fprintf(stderr, "[warning] Unable to get gmtime.\n");
-				goto seconds;
-			}
-		}
-		if (opt_clock_date) {
-			char timestr[26];
-			size_t res;
-
-			/* Print date and time */
-			res = strftime(timestr, sizeof(timestr),
-				"%F ", &tm);
-			if (!res) {
-				fprintf(stderr, "[warning] Unable to print ascii time.\n");
-				goto seconds;
-			}
-			fprintf(fp, "%s", timestr);
-		}
-		/* Print time in HH:MM:SS.ns */
-		fprintf(fp, "%02d:%02d:%02d.%09" PRIu64,
-			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec);
-		goto end;
-	}
-seconds:
-	fprintf(fp, "%3" PRIu64 ".%09" PRIu64,
-		ts_sec, ts_nsec);
-
-end:
-	return;
-}
-
-static
 int ctf_text_write_event(struct stream_pos *ppos,
 			 struct ctf_stream *stream)
 {
@@ -259,12 +184,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 
 	/* Print events discarded */
 	if (stream->events_discarded) {
-		fflush(stdout);
+		fflush(pos->fp);
 		fprintf(stderr, "[warning] Tracer discarded %d events between [",
 			stream->events_discarded);
-		ctf_text_print_timestamp(stderr, pos, stream, stream->prev_timestamp);
+		ctf_print_timestamp(stderr, stream, stream->prev_timestamp);
 		fprintf(stderr, "] and [");
-		ctf_text_print_timestamp(stderr, pos, stream, stream->prev_timestamp_end);
+		ctf_print_timestamp(stderr, stream, stream->prev_timestamp_end);
 		fprintf(stderr, "]. You should consider increasing the buffer size.\n");
 		fflush(stderr);
 		stream->events_discarded = 0;
@@ -276,7 +201,7 @@ int ctf_text_write_event(struct stream_pos *ppos,
 			fprintf(pos->fp, "timestamp = ");
 		else
 			fprintf(pos->fp, "[");
-		ctf_text_print_timestamp(pos->fp, pos, stream, stream->timestamp);
+		ctf_print_timestamp(pos->fp, stream, stream->timestamp);
 		if (!pos->print_names)
 			fprintf(pos->fp, "]");
 

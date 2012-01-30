@@ -52,6 +52,15 @@
 #define min(a, b)	(((a) < (b)) ? (a) : (b))
 #endif
 
+#define NSEC_PER_SEC 1000000000ULL
+
+int opt_clock_raw,
+	opt_clock_seconds,
+	opt_clock_date,
+	opt_clock_gmt;
+
+uint64_t opt_clock_offset;
+
 extern int yydebug;
 
 static
@@ -123,6 +132,74 @@ void ctf_update_timestamp(struct ctf_stream *stream,
 	updateval += newval;
 	stream->prev_timestamp = stream->timestamp;
 	stream->timestamp = updateval;
+}
+
+void ctf_print_timestamp(FILE *fp,
+			struct ctf_stream *stream,
+			uint64_t timestamp)
+{
+	uint64_t ts_sec = 0, ts_nsec;
+	struct ctf_trace *trace = stream->stream_class->trace;
+	struct trace_collection *tc = trace->collection;
+	struct ctf_clock *clock = tc->single_clock;
+
+	ts_nsec = timestamp;
+
+	/* Add offsets */
+	if (!opt_clock_raw && clock) {
+		ts_sec += clock->offset_s;
+		ts_nsec += clock->offset;
+	}
+	ts_sec += opt_clock_offset;
+
+	ts_sec += ts_nsec / NSEC_PER_SEC;
+	ts_nsec = ts_nsec % NSEC_PER_SEC;
+
+	if (!opt_clock_seconds) {
+		struct tm tm;
+		time_t time_s = (time_t) ts_sec;
+
+		if (!opt_clock_gmt) {
+			struct tm *res;
+
+			res = localtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get localtime.\n");
+				goto seconds;
+			}
+		} else {
+			struct tm *res;
+
+			res = gmtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get gmtime.\n");
+				goto seconds;
+			}
+		}
+		if (opt_clock_date) {
+			char timestr[26];
+			size_t res;
+
+			/* Print date and time */
+			res = strftime(timestr, sizeof(timestr),
+				"%F ", &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to print ascii time.\n");
+				goto seconds;
+			}
+			fprintf(fp, "%s", timestr);
+		}
+		/* Print time in HH:MM:SS.ns */
+		fprintf(fp, "%02d:%02d:%02d.%09" PRIu64,
+			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec);
+		goto end;
+	}
+seconds:
+	fprintf(fp, "%3" PRIu64 ".%09" PRIu64,
+		ts_sec, ts_nsec);
+
+end:
+	return;
 }
 
 static
@@ -396,6 +473,9 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 		{
 			uint32_t events_discarded_diff;
 
+			if (pos->offset == EOF) {
+				return;
+			}
 			/* For printing discarded event count */
 			index = &g_array_index(pos->packet_index,
 					struct packet_index, pos->cur_index);
@@ -409,12 +489,10 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 				events_discarded_diff -= index->events_discarded;
 			}
 			file_stream->parent.events_discarded = events_discarded_diff;
-			if (pos->offset == EOF)
-				return;
+			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
 			/* The reader will expect us to skip padding */
 			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
-			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
 			break;
 		}
 		case SEEK_SET:
@@ -427,6 +505,26 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 			assert(0);
 		}
 		if (pos->cur_index >= pos->packet_index->len) {
+			/*
+			 * When a stream reaches the end of the
+			 * file, we need to show the number of
+			 * events discarded ourselves, because
+			 * there is no next event scheduled to
+			 * be printed in the output.
+			 */
+			if (file_stream->parent.events_discarded) {
+				fflush(stdout);
+				fprintf(stderr, "[warning] Tracer discarded %d events at end of stream between [",
+					file_stream->parent.events_discarded);
+				ctf_print_timestamp(stderr, &file_stream->parent,
+					file_stream->parent.prev_timestamp);
+				fprintf(stderr, "] and [");
+				ctf_print_timestamp(stderr, &file_stream->parent,
+					file_stream->parent.prev_timestamp_end);
+				fprintf(stderr, "]. You should consider increasing the buffer size.\n");
+				fflush(stderr);
+				file_stream->parent.events_discarded = 0;
+			}
 			pos->offset = EOF;
 			return;
 		}
