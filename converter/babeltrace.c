@@ -64,6 +64,11 @@ enum {
 	OPT_NAMES,
 	OPT_FIELDS,
 	OPT_NO_DELTA,
+	OPT_CLOCK_OFFSET,
+	OPT_CLOCK_RAW,
+	OPT_CLOCK_SECONDS,
+	OPT_CLOCK_DATE,
+	OPT_CLOCK_GMT,
 };
 
 static struct poptOption long_options[] = {
@@ -77,6 +82,11 @@ static struct poptOption long_options[] = {
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "no-delta", 0, POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
+	{ "clock-offset", 0, POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
+	{ "clock-raw", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_RAW, NULL, NULL },
+	{ "clock-seconds", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
+	{ "clock-date", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
+	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -111,6 +121,12 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
 	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
 	fprintf(fp, "                                     trace:vpid, loglevel.\n");
+	fprintf(fp, "      --clock-raw                Disregard internal clock offset (use raw value)\n");
+	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
+	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
+	fprintf(fp, "                                 (default is: [hh:mm:ss.ns])\n");
+	fprintf(fp, "      --clock-date               Print clock date\n");
+	fprintf(fp, "      --clock-gmt                Print clock in GMT time zone (default: local time zone)\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -226,6 +242,38 @@ static int parse_options(int argc, char **argv)
 		case OPT_NO_DELTA:
 			opt_delta_field = 0;
 			break;
+		case OPT_CLOCK_RAW:
+			opt_clock_raw = 1;
+			break;
+		case OPT_CLOCK_OFFSET:
+		{
+			char *str, *endptr;
+
+			str = poptGetOptArg(pc);
+			if (!str) {
+				fprintf(stderr, "[error] Missing --clock-offset argument\n");
+				ret = -EINVAL;
+				goto end;
+			}
+			errno = 0;
+			opt_clock_offset = strtoull(str, &endptr, 0);
+			if (*endptr != '\0' || str == endptr || errno != 0) {
+				fprintf(stderr, "[error] Incorrect --clock-offset argument: %s\n", str);
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
+		}
+		case OPT_CLOCK_SECONDS:
+			opt_clock_seconds = 1;
+			break;
+		case OPT_CLOCK_DATE:
+			opt_clock_date = 1;
+			break;
+		case OPT_CLOCK_GMT:
+			opt_clock_gmt = 1;
+			break;
+
 		default:
 			ret = -EINVAL;
 			goto end;

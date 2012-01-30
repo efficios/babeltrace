@@ -47,7 +47,13 @@ int opt_all_field_names,
 	opt_trace_procname_field,
 	opt_trace_vpid_field,
 	opt_loglevel_field,
-	opt_delta_field = 1;
+	opt_delta_field = 1,
+	opt_clock_raw,
+	opt_clock_seconds,
+	opt_clock_date,
+	opt_clock_gmt;
+
+uint64_t opt_clock_offset;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -152,6 +158,73 @@ void set_field_names_print(struct ctf_text_stream_pos *pos, enum field_item item
 }
 
 static
+void ctf_text_print_timestamp(struct ctf_text_stream_pos *pos,
+			struct ctf_stream *stream)
+{
+	uint64_t ts_sec = 0, ts_nsec;
+	//need to get the clock offset at trace collection level. TODO
+	//struct ctf_trace *trace = stream->stream_class->trace;
+
+	ts_nsec = stream->timestamp;
+
+	/* Add offsets */
+	if (!opt_clock_raw) {
+		//ts_sec += pos->clock_offset_s;
+		//ts_nsec += pos->clock_offset;
+	}
+	ts_sec += opt_clock_offset;
+
+	ts_sec += ts_nsec / NSEC_PER_SEC;
+	ts_nsec = ts_nsec % NSEC_PER_SEC;
+
+	if (!opt_clock_seconds) {
+		struct tm tm;
+		time_t time_s = (time_t) ts_sec;
+
+		if (!opt_clock_gmt) {
+			struct tm *res;
+
+			res = localtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get localtime.\n");
+				goto seconds;
+			}
+		} else {
+			struct tm *res;
+
+			res = gmtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get gmtime.\n");
+				goto seconds;
+			}
+		}
+		if (opt_clock_date) {
+			char timestr[26];
+			size_t res;
+
+			/* Print date and time */
+			res = strftime(timestr, sizeof(timestr),
+				"%F ", &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to print ascii time.\n");
+				goto seconds;
+			}
+			fprintf(pos->fp, "%s", timestr);
+		}
+		/* Print time in HH:MM:SS.ns */
+		fprintf(pos->fp, "%02d:%02d:%02d.%09" PRIu64,
+			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec);
+		goto end;
+	}
+seconds:
+	fprintf(pos->fp, "%3" PRIu64 ".%09" PRIu64,
+		ts_sec, ts_nsec);
+
+end:
+	return;
+}
+
+static
 int ctf_text_write_event(struct stream_pos *ppos,
 			 struct ctf_stream *stream)
 {
@@ -183,17 +256,12 @@ int ctf_text_write_event(struct stream_pos *ppos,
 	}
 
 	if (stream->has_timestamp) {
-		uint64_t ts_sec, ts_nsec;
-
-		ts_sec = stream->timestamp / NSEC_PER_SEC;
-		ts_nsec = stream->timestamp % NSEC_PER_SEC;
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names)
 			fprintf(pos->fp, "timestamp = ");
 		else
 			fprintf(pos->fp, "[");
-		fprintf(pos->fp, "%3" PRIu64 ".%09" PRIu64,
-			ts_sec, ts_nsec);
+		ctf_text_print_timestamp(pos, stream);
 		if (!pos->print_names)
 			fprintf(pos->fp, "]");
 

@@ -2241,6 +2241,17 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				ret = -EINVAL;
 				goto error;
 			}
+		} else if (!strcmp(left, "absolute")) {
+			struct ctf_node *right;
+
+			right = _cds_list_first_entry(&node->u.ctf_expression.right, struct ctf_node, siblings);
+			ret = get_boolean(fd, depth, right);
+			if (ret < 0) {
+				fprintf(fd, "[error] %s: unexpected \"absolute\" right member\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			clock->absolute = ret;
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in clock declaration.\n", __func__, left);
 		}

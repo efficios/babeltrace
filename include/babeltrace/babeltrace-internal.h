@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <glib.h>
+#include <stdint.h>
 
 extern int babeltrace_verbose, babeltrace_debug;
 
@@ -37,6 +38,12 @@ extern int opt_all_field_names,
 	opt_trace_procname_field,
 	opt_trace_vpid_field,
 	opt_loglevel_field,
-	opt_delta_field;
+	opt_delta_field,
+	opt_clock_raw,
+	opt_clock_seconds,
+	opt_clock_date,
+	opt_clock_gmt;
+
+extern uint64_t opt_clock_offset;
 
 #endif

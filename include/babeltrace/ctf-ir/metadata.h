@@ -82,6 +82,7 @@ struct ctf_clock {
 	uint64_t offset_s;
 	/* Fine clock offset from Epoch, in (1/freq) units. */
 	uint64_t offset;
+	int absolute;
 
 	enum {					/* Fields populated mask */
 		CTF_CLOCK_name		=	(1U << 0),
