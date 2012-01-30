@@ -37,6 +37,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
+
 #define DEFAULT_FILE_ARRAY_SIZE	1
 static char *opt_input_format;
 static char *opt_output_format;
@@ -297,6 +299,7 @@ end:
 static void init_trace_collection(struct trace_collection *tc)
 {
 	tc->array = g_ptr_array_sized_new(DEFAULT_FILE_ARRAY_SIZE);
+	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
 /*
@@ -313,12 +316,99 @@ static void finalize_trace_collection(struct trace_collection *tc)
 		fmt_read->close_trace(temp);
 	}
 	g_ptr_array_free(tc->array, TRUE);
+	g_hash_table_destroy(tc->clocks);
 }
 
-static void trace_collection_add(struct trace_collection *tc,
-				 struct trace_descriptor *td)
+struct clock_match {
+	GHashTable *clocks;
+	struct ctf_clock *clock_match;
+};
+
+static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 {
+	struct clock_match *match = user_data;
+	struct ctf_clock *clock_a = value, *clock_b;
+
+	if (clock_a->uuid != 0) {
+		/*
+		 * Lookup the the trace clocks into the collection
+		 * clocks.
+		 */
+		clock_b = g_hash_table_lookup(match->clocks,
+			(gpointer) (unsigned long) clock_a->uuid);
+		if (clock_b) {
+			match->clock_match = clock_b;
+			return;
+		}
+	} else if (clock_a->absolute) {
+		/*
+		 * Absolute time references, such as NTP, are looked up
+		 * by clock name.
+		 */
+		clock_b = g_hash_table_lookup(match->clocks,
+			(gpointer) (unsigned long) clock_a->name);
+		if (clock_b) {
+			match->clock_match = clock_b;
+			return;
+		}
+	}
+}
+
+static void clock_add(gpointer key, gpointer value, gpointer user_data)
+{
+	GHashTable *tc_clocks = user_data;
+	struct ctf_clock *t_clock = value;
+	GQuark v;
+
+	if (t_clock->absolute)
+		v = t_clock->name;
+	else
+		v = t_clock->uuid;
+	if (v)
+		g_hash_table_insert(tc_clocks,
+			(gpointer) (unsigned long) v,
+			value);
+}
+
+/*
+ * Whenever we add a trace to the trace collection, check that we can
+ * correlate this trace with at least one other clock in the trace.
+ */
+static int trace_collection_add(struct trace_collection *tc,
+				struct trace_descriptor *td)
+{
+	struct ctf_trace *trace = container_of(td, struct ctf_trace, parent);
+
 	g_ptr_array_add(tc->array, td);
+
+	if (tc->array->len > 1) {
+		struct clock_match clock_match = {
+			.clocks = tc->clocks,
+			.clock_match = NULL,
+		};
+
+		/*
+		 * With two or more traces, we need correlation info
+		 * avalable.
+		 */
+		g_hash_table_foreach(trace->clocks,
+				check_clock_match,
+				&clock_match);
+		if (!clock_match.clock_match) {
+			fprintf(stderr, "[error] No clocks can be correlated and multiple traces are added to the collection.\n");
+			goto error;
+		}
+	}
+	/*
+	 * Add each clock from the trace clocks into the trace
+	 * collection clocks.
+	 */
+	g_hash_table_foreach(trace->clocks,
+			clock_add,
+			tc->clocks);
+	return 0;
+error:
+	return -EPERM;
 }
 
 int convert_trace(struct trace_descriptor *td_write,
@@ -373,6 +463,7 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 	int dirfd;
 	int fd;
 	struct trace_descriptor *td_read;
+	int ret;
 
 	if (tflag != FTW_D)
 		return 0;
@@ -396,7 +487,10 @@ static int traverse_dir(const char *fpath, const struct stat *sb,
 					"for reading.\n\n", fpath);
 			return -1;	/* error */
 		}
-		trace_collection_add(&trace_collection_read, td_read);
+		ret = trace_collection_add(&trace_collection_read, td_read);
+		if (ret) {
+			return -1;
+		}
 	}
 	return 0;	/* success */
 }

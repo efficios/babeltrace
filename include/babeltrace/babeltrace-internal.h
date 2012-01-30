@@ -24,7 +24,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 
 struct trace_descriptor;
 struct trace_collection {
-	GPtrArray *array; /* struct trace_descriptor */
+	GPtrArray *array;	/* struct trace_descriptor */
+	GHashTable *clocks;	/* struct ctf_clock */
 };
 
 extern int opt_all_field_names,
