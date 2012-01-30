@@ -392,12 +392,32 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 	read_next_packet:
 		switch (whence) {
 		case SEEK_CUR:
+		{
+			uint32_t events_discarded_diff;
+
+			/* Print lost event count */
+			index = &g_array_index(pos->packet_index,
+					struct packet_index, pos->cur_index);
+			events_discarded_diff = index->events_discarded;
+			if (pos->cur_index > 0) {
+				index = &g_array_index(pos->packet_index,
+						struct packet_index,
+						pos->cur_index - 1);
+				events_discarded_diff -= index->events_discarded;
+			}
+			if (events_discarded_diff != 0) {
+				fflush(stdout);
+				fprintf(stderr, "[warning] %d events discarded by tracer. You should try using larger buffers.\n",
+					events_discarded_diff);
+				fflush(stderr);
+			}
 			if (pos->offset == EOF)
 				return;
 			/* The reader will expect us to skip padding */
 			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
 			break;
+		}
 		case SEEK_SET:
 			assert(offset == 0);	/* only seek supported for now */
 			pos->cur_index = 0;
@@ -904,6 +924,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.packet_size = 0;
 		packet_index.timestamp_begin = 0;
 		packet_index.timestamp_end = 0;
+		packet_index.events_discarded = 0;
 
 		/* read and check header, set stream id (and check) */
 		if (file_stream->parent.trace_packet_header) {
@@ -1030,6 +1051,15 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_end = get_unsigned_int(field);
+			}
+
+			/* read events discarded from header */
+			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
+			if (len_index >= 0) {
+				struct definition *field;
+
+				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				packet_index.events_discarded = get_unsigned_int(field);
 			}
 		} else {
 			/* Use file size for packet size */
