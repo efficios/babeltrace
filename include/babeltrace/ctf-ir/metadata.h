@@ -52,7 +52,6 @@ struct ctf_stream {
 	uint32_t events_discarded;
 	uint64_t prev_timestamp;	/* Last event */
 	uint64_t prev_timestamp_end;	/* End-of-packet timestamp */
-	
 };
 
 struct ctf_stream_event {

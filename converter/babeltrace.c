@@ -301,6 +301,10 @@ static void init_trace_collection(struct trace_collection *tc)
 {
 	tc->array = g_ptr_array_sized_new(DEFAULT_FILE_ARRAY_SIZE);
 	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
+	tc->single_clock_offset_avg = 0;
+	tc->offset_first = 0;
+	tc->delta_offset_first_sum = 0;
+	tc->offset_nr = 0;
 }
 
 /*
@@ -375,13 +379,18 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 		if (!tc_clock) {
 			/*
 			 * For now, we only support CTF that has one
-			 * single clock.
+			 * single clock uuid or name (absolute ref).
 			 */
 			if (g_hash_table_size(tc_clocks) > 0) {
 				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
 			}
-			if (!clock_match->tc->single_clock) {
-				clock_match->tc->single_clock = value;
+			if (!clock_match->tc->offset_nr) {
+				clock_match->tc->offset_first =
+					(t_clock->offset_s * 1000000000ULL) + t_clock->offset;
+				clock_match->tc->delta_offset_first_sum = 0;
+				clock_match->tc->offset_nr++;
+				clock_match->tc->single_clock_offset_avg =
+					clock_match->tc->offset_first;
 			}
 			g_hash_table_insert(tc_clocks,
 				(gpointer) (unsigned long) v,
@@ -402,10 +411,18 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				g_quark_to_string(tc_clock->name),
 				diff_ns < 0 ? -diff_ns : diff_ns);
 			if (diff_ns > 10000) {
-				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Choosing one arbitrarily.\n",
+				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Using average.\n",
 					g_quark_to_string(tc_clock->name),
 					diff_ns < 0 ? -diff_ns : diff_ns);
 			}
+			/* Compute average */
+			clock_match->tc->delta_offset_first_sum +=
+				(t_clock->offset_s * 1000000000ULL) + t_clock->offset
+				- clock_match->tc->offset_first;
+			clock_match->tc->offset_nr++;
+			clock_match->tc->single_clock_offset_avg =
+				clock_match->tc->offset_first
+				+ (clock_match->tc->delta_offset_first_sum / clock_match->tc->offset_nr);
 		}
 	}
 }

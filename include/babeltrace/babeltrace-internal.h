@@ -26,7 +26,11 @@ struct trace_descriptor;
 struct trace_collection {
 	GPtrArray *array;	/* struct trace_descriptor */
 	GHashTable *clocks;	/* struct ctf_clock */
-	struct ctf_clock *single_clock;
+
+	uint64_t single_clock_offset_avg;
+	uint64_t offset_first;
+	int64_t delta_offset_first_sum;
+	int offset_nr;
 };
 
 extern int opt_all_field_names,

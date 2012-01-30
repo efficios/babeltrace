@@ -141,14 +141,13 @@ void ctf_print_timestamp(FILE *fp,
 	uint64_t ts_sec = 0, ts_nsec;
 	struct ctf_trace *trace = stream->stream_class->trace;
 	struct trace_collection *tc = trace->collection;
-	struct ctf_clock *clock = tc->single_clock;
+	uint64_t tc_offset = tc->single_clock_offset_avg;
 
 	ts_nsec = timestamp;
 
 	/* Add offsets */
-	if (!opt_clock_raw && clock) {
-		ts_sec += clock->offset_s;
-		ts_nsec += clock->offset;
+	if (!opt_clock_raw) {
+		ts_nsec += tc_offset;
 	}
 	ts_sec += opt_clock_offset;
 
