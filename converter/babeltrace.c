@@ -36,6 +36,7 @@
 #include <ftw.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
 
@@ -364,10 +365,37 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 		v = t_clock->name;
 	else
 		v = t_clock->uuid;
-	if (v)
-		g_hash_table_insert(tc_clocks,
-			(gpointer) (unsigned long) v,
-			value);
+	if (v) {
+		struct ctf_clock *tc_clock;
+
+		tc_clock = g_hash_table_lookup(tc_clocks,
+				(gpointer) (unsigned long) v);
+		if (!tc_clock) {
+			g_hash_table_insert(tc_clocks,
+				(gpointer) (unsigned long) v,
+				value);
+		} else {
+			int64_t diff_ns;
+
+			/*
+			 * Check that the offsets match. If not, warn
+			 * the user that we do an arbitrary choice.
+			 */
+			diff_ns = tc_clock->offset_s;
+			diff_ns -= t_clock->offset_s;
+			diff_ns *= 1000000000ULL;
+			diff_ns += tc_clock->offset;
+			diff_ns -= t_clock->offset;
+			printf_debug("Clock \"%s\" offset between traces has a delta of %" PRIu64 " ns.",
+				g_quark_to_string(tc_clock->name),
+				diff_ns < 0 ? -diff_ns : diff_ns);
+			if (diff_ns > 10000) {
+				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Choosing one arbitrarily.\n",
+				g_quark_to_string(tc_clock->name),
+				diff_ns < 0 ? -diff_ns : diff_ns);
+			}
+		}
+	}
 }
 
 /*
