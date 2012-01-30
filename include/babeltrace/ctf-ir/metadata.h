@@ -114,6 +114,7 @@ struct ctf_trace {
 	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
 	struct ctf_stream *metadata;
 	GHashTable *clocks;
+	struct trace_collection *collection;	/* Container of this trace */
 
 	struct declaration_struct *packet_header_decl;
 

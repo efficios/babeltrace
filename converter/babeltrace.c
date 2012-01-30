@@ -323,6 +323,7 @@ static void finalize_trace_collection(struct trace_collection *tc)
 struct clock_match {
 	GHashTable *clocks;
 	struct ctf_clock *clock_match;
+	struct trace_collection *tc;
 };
 
 static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
@@ -357,7 +358,8 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 
 static void clock_add(gpointer key, gpointer value, gpointer user_data)
 {
-	GHashTable *tc_clocks = user_data;
+	struct clock_match *clock_match = user_data;
+	GHashTable *tc_clocks = clock_match->clocks;
 	struct ctf_clock *t_clock = value;
 	GQuark v;
 
@@ -371,6 +373,16 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 		tc_clock = g_hash_table_lookup(tc_clocks,
 				(gpointer) (unsigned long) v);
 		if (!tc_clock) {
+			/*
+			 * For now, we only support CTF that has one
+			 * single clock.
+			 */
+			if (g_hash_table_size(tc_clocks) > 0) {
+				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
+			}
+			if (!clock_match->tc->single_clock) {
+				clock_match->tc->single_clock = value;
+			}
 			g_hash_table_insert(tc_clocks,
 				(gpointer) (unsigned long) v,
 				value);
@@ -391,8 +403,8 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				diff_ns < 0 ? -diff_ns : diff_ns);
 			if (diff_ns > 10000) {
 				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Choosing one arbitrarily.\n",
-				g_quark_to_string(tc_clock->name),
-				diff_ns < 0 ? -diff_ns : diff_ns);
+					g_quark_to_string(tc_clock->name),
+					diff_ns < 0 ? -diff_ns : diff_ns);
 			}
 		}
 	}
@@ -408,11 +420,13 @@ static int trace_collection_add(struct trace_collection *tc,
 	struct ctf_trace *trace = container_of(td, struct ctf_trace, parent);
 
 	g_ptr_array_add(tc->array, td);
+	trace->collection = tc;
 
 	if (tc->array->len > 1) {
 		struct clock_match clock_match = {
 			.clocks = tc->clocks,
 			.clock_match = NULL,
+			.tc = NULL,
 		};
 
 		/*
@@ -427,13 +441,22 @@ static int trace_collection_add(struct trace_collection *tc,
 			goto error;
 		}
 	}
-	/*
-	 * Add each clock from the trace clocks into the trace
-	 * collection clocks.
-	 */
-	g_hash_table_foreach(trace->clocks,
-			clock_add,
-			tc->clocks);
+
+	{
+		struct clock_match clock_match = {
+			.clocks = tc->clocks,
+			.clock_match = NULL,
+			.tc = tc,
+		};
+
+		/*
+		 * Add each clock from the trace clocks into the trace
+		 * collection clocks.
+		 */
+		g_hash_table_foreach(trace->clocks,
+				clock_add,
+				&clock_match);
+	}
 	return 0;
 error:
 	return -EPERM;

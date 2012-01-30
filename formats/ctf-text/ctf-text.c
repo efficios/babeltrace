@@ -162,15 +162,16 @@ void ctf_text_print_timestamp(struct ctf_text_stream_pos *pos,
 			struct ctf_stream *stream)
 {
 	uint64_t ts_sec = 0, ts_nsec;
-	//need to get the clock offset at trace collection level. TODO
-	//struct ctf_trace *trace = stream->stream_class->trace;
+	struct ctf_trace *trace = stream->stream_class->trace;
+	struct trace_collection *tc = trace->collection;
+	struct ctf_clock *clock = tc->single_clock;
 
 	ts_nsec = stream->timestamp;
 
 	/* Add offsets */
-	if (!opt_clock_raw) {
-		//ts_sec += pos->clock_offset_s;
-		//ts_nsec += pos->clock_offset;
+	if (!opt_clock_raw && clock) {
+		ts_sec += clock->offset_s;
+		ts_nsec += clock->offset;
 	}
 	ts_sec += opt_clock_offset;
 
