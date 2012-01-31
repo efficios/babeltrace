@@ -57,9 +57,9 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
 }
 
 /*
- * babeltrace_iter_add_callback: Add a callback to iterator.
+ * bt_iter_add_callback: Add a callback to iterator.
  */
-int babeltrace_iter_add_callback(struct babeltrace_iter *iter,
+int bt_iter_add_callback(struct bt_iter *iter,
 		bt_event_name event, void *private_data, int flags,
 		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
 					   void *private_data),
@@ -168,7 +168,7 @@ struct ctf_stream_event *extract_ctf_stream_event(struct ctf_stream *stream)
 	return event;
 }
 
-void process_callbacks(struct babeltrace_iter *iter,
+void process_callbacks(struct bt_iter *iter,
 		       struct ctf_stream *stream)
 {
 	struct bt_stream_callbacks *bt_stream_cb;

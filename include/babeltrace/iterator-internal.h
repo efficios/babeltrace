@@ -22,20 +22,20 @@
  */
 
 /*
- * struct babeltrace_iter: data structure representing an iterator on a trace
+ * struct bt_iter: data structure representing an iterator on a trace
  * collection.
  */
-struct babeltrace_iter {
+struct bt_iter {
 	struct ptr_heap *stream_heap;
 	struct bt_context *ctx;
-	struct trace_collection_pos *end_pos;
+	struct bt_iter_pos *end_pos;
 	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
 	/*
 	 * Flag indicating if dependency graph needs to be recalculated.
-	 * Set by babeltrace_iter_add_callback(), and checked (and
-	 * cleared) by upon entry into babeltrace_iter_read_event().
-	 * babeltrace_iter_read_event() is responsible for calling dep
+	 * Set by bt_iter_add_callback(), and checked (and
+	 * cleared) by upon entry into bt_iter_read_event().
+	 * bt_iter_read_event() is responsible for calling dep
 	 * graph calculation if it sees this flag set.
 	 */
 	int recalculate_dep_graph;
@@ -43,7 +43,7 @@ struct babeltrace_iter {
 	 * Array of pointers to struct bt_dependencies, for garbage
 	 * collection. We're not using a linked list here because each
 	 * struct bt_dependencies can belong to more than one
-	 * babeltrace_iter.
+	 * bt_iter.
 	 */
 	GPtrArray *dep_gc;
 };

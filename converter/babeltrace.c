@@ -482,36 +482,36 @@ error:
 int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
-	struct babeltrace_iter *iter;
+	struct bt_iter *iter;
 	struct ctf_stream *stream;
 	struct ctf_stream_event *event;
 	struct ctf_text_stream_pos *sout;
-	struct trace_collection_pos begin_pos;
+	struct bt_iter_pos begin_pos;
 	int ret;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
 
 	begin_pos.type = BT_SEEK_BEGIN;
-	iter = babeltrace_iter_create(ctx, &begin_pos, NULL);
+	iter = bt_iter_create(ctx, &begin_pos, NULL);
 	if (!iter) {
 		ret = -1;
 		goto error_iter;
 	}
-	while (babeltrace_iter_read_event(iter, &stream, &event) == 0) {
+	while (bt_iter_read_event(iter, &stream, &event) == 0) {
 		ret = sout->parent.event_cb(&sout->parent, stream);
 		if (ret) {
 			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;
 		}
-		ret = babeltrace_iter_next(iter);
+		ret = bt_iter_next(iter);
 		if (ret < 0)
 			goto end;
 	}
 	ret = 0;
 
 end:
-	babeltrace_iter_destroy(iter);
+	bt_iter_destroy(iter);
 error_iter:
 	return ret;
 }

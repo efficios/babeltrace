@@ -37,7 +37,7 @@ struct stream_saved_pos {
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 };
 
-struct babeltrace_saved_pos {
+struct bt_saved_pos {
 	struct trace_collection *tc;
 	GArray *stream_saved_pos;	/* Contains struct stream_saved_pos */
 };
@@ -75,7 +75,7 @@ int stream_compare(void *a, void *b)
  * The stream_id parameter is only useful for BT_SEEK_RESTORE.
  */
 static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
-		const struct trace_collection_pos *begin_pos,
+		const struct bt_iter_pos *begin_pos,
 		unsigned long stream_id)
 {
 	int ret = 0;
@@ -102,10 +102,10 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 }
 
 /*
- * babeltrace_iter_seek: seek iterator to given position.
+ * bt_iter_seek: seek iterator to given position.
  */
-int babeltrace_iter_seek(struct babeltrace_iter *iter,
-		const struct trace_collection_pos *begin_pos)
+int bt_iter_seek(struct bt_iter *iter,
+		const struct bt_iter_pos *begin_pos)
 {
 	int i, stream_id;
 	int ret = 0;
@@ -142,15 +142,15 @@ end:
 	return ret;
 }
 
-struct babeltrace_iter *babeltrace_iter_create(struct bt_context *ctx,
-		struct trace_collection_pos *begin_pos,
-		struct trace_collection_pos *end_pos)
+struct bt_iter *bt_iter_create(struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos)
 {
 	int i, stream_id;
 	int ret = 0;
-	struct babeltrace_iter *iter;
+	struct bt_iter *iter;
 
-	iter = malloc(sizeof(struct babeltrace_iter));
+	iter = malloc(sizeof(struct bt_iter));
 	if (!iter)
 		goto error_malloc;
 	iter->stream_heap = g_new(struct ptr_heap, 1);
@@ -220,7 +220,7 @@ error_malloc:
 	return NULL;
 }
 
-void babeltrace_iter_destroy(struct babeltrace_iter *iter)
+void bt_iter_destroy(struct bt_iter *iter)
 {
 	struct bt_stream_callbacks *bt_stream_cb;
 	struct bt_callback_chain *bt_chain;
@@ -254,7 +254,7 @@ void babeltrace_iter_destroy(struct babeltrace_iter *iter)
 	free(iter);
 }
 
-int babeltrace_iter_next(struct babeltrace_iter *iter)
+int bt_iter_next(struct bt_iter *iter)
 {
 	struct ctf_file_stream *file_stream, *removed;
 	int ret;
@@ -283,7 +283,7 @@ end:
 	return ret;
 }
 
-int babeltrace_iter_read_event(struct babeltrace_iter *iter,
+int bt_iter_read_event(struct bt_iter *iter,
 		struct ctf_stream **stream,
 		struct ctf_stream_event **event)
 {

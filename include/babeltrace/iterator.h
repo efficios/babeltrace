@@ -21,12 +21,12 @@
 #include <babeltrace/context.h>
 
 /* Forward declarations */
-struct babeltrace_iter;
+struct bt_iter;
 struct ctf_stream_event;
 struct ctf_stream;
-struct babeltrace_saved_pos;
+struct bt_saved_pos;
 
-struct trace_collection_pos {
+struct bt_iter_pos {
 	enum {
 		BT_SEEK_TIME,		/* uses u.seek_time */
 		BT_SEEK_RESTORE,	/* uses u.restore */
@@ -36,12 +36,12 @@ struct trace_collection_pos {
 	} type;
 	union {
 		uint64_t seek_time;
-		struct babeltrace_saved_pos *restore;
+		struct bt_saved_pos *restore;
 	} u;
 };
 
 /*
- * babeltrace_iter_create - Allocate a trace collection iterator.
+ * bt_iter_create - Allocate a trace collection iterator.
  *
  * begin_pos and end_pos are optional parameters to specify the position
  * at which the trace collection should be seeked upon iterator
@@ -52,55 +52,55 @@ struct trace_collection_pos {
  * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
  * trace) is the EOF criterion.
  */
-struct babeltrace_iter *babeltrace_iter_create(struct bt_context *ctx,
-		struct trace_collection_pos *begin_pos,
-		struct trace_collection_pos *end_pos);
+struct bt_iter *bt_iter_create(struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos);
 
 /*
- * babeltrace_iter_destroy - Free a trace collection iterator.
+ * bt_iter_destroy - Free a trace collection iterator.
  */
-void babeltrace_iter_destroy(struct babeltrace_iter *iter);
+void bt_iter_destroy(struct bt_iter *iter);
 
 /*
- * babeltrace_iter_next: Move trace collection position to the next event.
+ * bt_iter_next: Move trace collection position to the next event.
  *
  * Returns 0 on success, a negative value on error
  */
-int babeltrace_iter_next(struct babeltrace_iter *iter);
+int bt_iter_next(struct bt_iter *iter);
 
 /*
- * babeltrace_iter_save_pos - Save the current trace collection position.
+ * bt_iter_save_pos - Save the current trace collection position.
  *
  * The position returned by this function needs to be freed by
- * babeltrace_iter_free_pos after use.
+ * bt_iter_free_pos after use.
  */
-struct trace_collection_pos *
-	babeltrace_iter_save_pos(struct babeltrace_iter *iter);
+struct bt_iter_pos *
+	bt_iter_save_pos(struct bt_iter *iter);
 
 /*
- * babeltrace_iter_free_pos - Free the position.
+ * bt_iter_free_pos - Free the position.
  */
-void babeltrace_iter_free_pos(struct trace_collection_pos *pos);
+void bt_iter_free_pos(struct bt_iter_pos *pos);
 
 /*
- * babeltrace_iter_seek: seek iterator to given position.
+ * bt_iter_seek: seek iterator to given position.
  *
  * Return EOF if position is after the last event of the trace collection.
  * Return other negative value for other errors.
  * Return 0 for success.
  */
-int babeltrace_iter_seek(struct babeltrace_iter *iter,
-		const struct trace_collection_pos *pos);
+int bt_iter_seek(struct bt_iter *iter,
+		const struct bt_iter_pos *pos);
 
 /*
- * babeltrace_iter_read_event: Read the iterator's current event data.
+ * bt_iter_read_event: Read the iterator's current event data.
  *
  * @iter: trace collection iterator (input)
  * @stream: stream containing event at current position (output)
  * @event: current event (output)
  * Return 0 on success, negative error value on error.
  */
-int babeltrace_iter_read_event(struct babeltrace_iter *iter,
+int bt_iter_read_event(struct bt_iter *iter,
 		struct ctf_stream **stream,
 		struct ctf_stream_event **event);
 
