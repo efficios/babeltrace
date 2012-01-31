@@ -167,7 +167,6 @@ static int get_fields_args(poptContext *pc)
 {
 	char *str, *strlist, *strctx;
 
-	opt_payload_field_names = 0;
 	strlist = (char *) poptGetOptArg(*pc);
 	if (!strlist) {
 		return -EINVAL;
