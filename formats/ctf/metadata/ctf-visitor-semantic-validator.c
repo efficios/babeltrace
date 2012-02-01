@@ -107,6 +107,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ROOT:
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_TYPEDEF:
@@ -210,6 +211,7 @@ int ctf_visitor_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_UNARY_EXPRESSION:
@@ -250,6 +252,7 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ROOT:
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_UNARY_EXPRESSION:
@@ -331,6 +334,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ROOT:
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_CTF_EXPRESSION:
@@ -470,6 +474,20 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 		break;
+	case NODE_ENV:
+		switch (node->parent->type) {
+		case NODE_ROOT:
+			break;			/* OK */
+		default:
+			goto errinval;
+		}
+
+		cds_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
+			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
 	case NODE_TRACE:
 		switch (node->parent->type) {
 		case NODE_ROOT:
@@ -505,6 +523,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ROOT:
 		case NODE_EVENT:
 		case NODE_STREAM:
+		case NODE_ENV:
 		case NODE_TRACE:
 		case NODE_CLOCK:
 		case NODE_FLOATING_POINT:
@@ -574,6 +593,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ENUMERATOR:
 		case NODE_ENUM:
 		case NODE_CLOCK:
+		case NODE_ENV:
 		default:
 			goto errinval;
 		}
@@ -679,6 +699,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ENUMERATOR:
 		case NODE_ENUM:
 		case NODE_CLOCK:
+		case NODE_ENV:
 		default:
 			goto errinval;
 		}

@@ -229,6 +229,14 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 		break;
+	case NODE_ENV:
+		cds_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
 	case NODE_TRACE:
 		cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 			iter->parent = node;

@@ -2305,6 +2305,13 @@ void clock_free(gpointer data)
 }
 
 static
+int ctf_env_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+{
+	fprintf(fd, "[warning] %s: environment declaration support not implement yet.\n", __func__);
+	return 0;	/* continue */
+}
+
+static
 int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
 {
 	int ret = 0;
@@ -2355,7 +2362,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	int clock_done = 0;
+	int env_clock_done = 0;
 
 	printf_verbose("CTF visitor: metadata construction... ");
 	trace->byte_order = byte_order;
@@ -2367,7 +2374,16 @@ retry:
 
 	switch (node->type) {
 	case NODE_ROOT:
-		if (!clock_done) {
+		if (!env_clock_done) {
+			cds_list_for_each_entry(iter, &node->u.root.env, siblings) {
+				ret = ctf_env_visit(fd, depth + 1, iter,
+						    trace);
+				if (ret) {
+					fprintf(fd, "[error] %s: env declaration error\n", __func__);
+					goto error;
+				}
+			}
+
 			/*
 			 * declarations need to query clock hash table,
 			 * so clock need to be treated first.
@@ -2380,7 +2396,7 @@ retry:
 					goto error;
 				}
 			}
-			clock_done = 1;
+			env_clock_done = 1;
 		}
 		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {

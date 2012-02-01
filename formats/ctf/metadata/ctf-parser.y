@@ -64,6 +64,7 @@ static const char *node_type_to_str[] = {
 	[ NODE_UNKNOWN ] = "NODE_UNKNOWN",
 	[ NODE_ROOT ] = "NODE_ROOT",
 	[ NODE_EVENT ] = "NODE_EVENT",
+	[ NODE_ENV ] = "NODE_ENV",
 	[ NODE_STREAM ] = "NODE_STREAM",
 	[ NODE_TRACE ] = "NODE_TRACE",
 	[ NODE_CLOCK ] = "NODE_CLOCK",
@@ -244,6 +245,9 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	case NODE_STREAM:
 		CDS_INIT_LIST_HEAD(&node->u.stream.declaration_list);
 		break;
+	case NODE_ENV:
+		CDS_INIT_LIST_HEAD(&node->u.env.declaration_list);
+		break;
 	case NODE_TRACE:
 		CDS_INIT_LIST_HEAD(&node->u.trace.declaration_list);
 		break;
@@ -327,6 +331,9 @@ static int reparent_ctf_expression(struct ctf_node *node,
 	case NODE_STREAM:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.stream.declaration_list);
 		break;
+	case NODE_ENV:
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.env.declaration_list);
+		break;
 	case NODE_TRACE:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.trace.declaration_list);
 		break;
@@ -382,6 +389,9 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_STREAM:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.stream.declaration_list);
 		break;
+	case NODE_ENV:
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.env.declaration_list);
+		break;
 	case NODE_TRACE:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.trace.declaration_list);
 		break;
@@ -434,6 +444,9 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_STREAM:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.stream.declaration_list);
 		break;
+	case NODE_ENV:
+		_cds_list_splice_tail(&node->tmp_head, &parent->u.env.declaration_list);
+		break;
 	case NODE_TRACE:
 		_cds_list_splice_tail(&node->tmp_head, &parent->u.trace.declaration_list);
 		break;
@@ -485,6 +498,7 @@ static int reparent_type_specifier(struct ctf_node *node,
 	case NODE_TYPE_SPECIFIER:
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_VARIANT:
@@ -526,6 +540,9 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 		break;
 	case NODE_STREAM:
 		cds_list_add_tail(&node->siblings, &parent->u.stream.declaration_list);
+		break;
+	case NODE_ENV:
+		cds_list_add_tail(&node->siblings, &parent->u.env.declaration_list);
 		break;
 	case NODE_TRACE:
 		cds_list_add_tail(&node->siblings, &parent->u.trace.declaration_list);
@@ -599,6 +616,7 @@ static int reparent_type_declarator(struct ctf_node *node,
 	case NODE_ROOT:
 	case NODE_EVENT:
 	case NODE_STREAM:
+	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
 	case NODE_VARIANT:
@@ -655,6 +673,13 @@ static int set_parent_node(struct ctf_node *node,
 	case NODE_STREAM:
 		if (parent->type == NODE_ROOT) {
 			_cds_list_splice_tail(&node->tmp_head, &parent->u.root.stream);
+		} else {
+			return -EPERM;
+		}
+		break;
+	case NODE_ENV:
+		if (parent->type == NODE_ROOT) {
+			_cds_list_splice_tail(&node->tmp_head, &parent->u.root.env);
 		} else {
 			return -EPERM;
 		}
@@ -787,6 +812,7 @@ static struct ctf_ast *ctf_ast_alloc(void)
 	CDS_INIT_LIST_HEAD(&ast->root.tmp_head);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.declaration_list);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.trace);
+	CDS_INIT_LIST_HEAD(&ast->root.u.root.env);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.stream);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.event);
 	CDS_INIT_LIST_HEAD(&ast->root.u.root.clock);
@@ -878,7 +904,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
+%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
 %union
@@ -897,6 +923,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> declaration
 %type <n> event_declaration
 %type <n> stream_declaration
+%type <n> env_declaration
 %type <n> trace_declaration
 %type <n> clock_declaration
 %type <n> integer_declaration_specifiers
@@ -1188,6 +1215,8 @@ declaration:
 		{	$$ = $1;	}
 	|	stream_declaration
 		{	$$ = $1;	}
+	|	env_declaration
+		{	$$ = $1;	}
 	|	trace_declaration
 		{	$$ = $1;	}
 	|	clock_declaration
@@ -1286,6 +1315,29 @@ stream_declaration_begin:
 	;
 
 stream_declaration_end:
+		RBRAC SEMICOLON
+		{	pop_scope(scanner);	}
+	;
+
+env_declaration:
+		env_declaration_begin env_declaration_end
+		{
+			$$ = make_node(scanner, NODE_ENV);
+		}
+	|	env_declaration_begin ctf_assignment_expression_list env_declaration_end
+		{
+			$$ = make_node(scanner, NODE_ENV);
+			if (set_parent_node($2, $$))
+				reparent_error(scanner, "env declaration");
+		}
+	;
+
+env_declaration_begin:
+		ENV LBRAC
+		{	push_scope(scanner);	}
+	;
+
+env_declaration_end:
 		RBRAC SEMICOLON
 		{	pop_scope(scanner);	}
 	;

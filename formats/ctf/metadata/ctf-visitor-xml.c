@@ -410,6 +410,17 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		print_tabs(fd, depth);
 		fprintf(fd, "</stream>\n");
 		break;
+	case NODE_ENV:
+		print_tabs(fd, depth);
+		fprintf(fd, "<env>\n");
+		cds_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		print_tabs(fd, depth);
+		fprintf(fd, "</env>\n");
+		break;
 	case NODE_TRACE:
 		print_tabs(fd, depth);
 		fprintf(fd, "<trace>\n");
@@ -421,6 +432,18 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		print_tabs(fd, depth);
 		fprintf(fd, "</trace>\n");
 		break;
+	case NODE_CLOCK:
+		print_tabs(fd, depth);
+		fprintf(fd, "<clock>\n");
+		cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		print_tabs(fd, depth);
+		fprintf(fd, "</clock>\n");
+		break;
+
 
 	case NODE_CTF_EXPRESSION:
 		print_tabs(fd, depth);

@@ -99,6 +99,7 @@ char				setstring(yyextra, yylval, yytext); return CHAR;
 clock				setstring(yyextra, yylval, yytext); return CLOCK;
 double				setstring(yyextra, yylval, yytext); return DOUBLE;
 enum				setstring(yyextra, yylval, yytext); return ENUM;
+env				setstring(yyextra, yylval, yytext); return ENV;
 event				setstring(yyextra, yylval, yytext); return EVENT;
 floating_point			setstring(yyextra, yylval, yytext); return FLOATING_POINT;
 float				setstring(yyextra, yylval, yytext); return FLOAT;
