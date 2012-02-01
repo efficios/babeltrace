@@ -42,7 +42,7 @@ int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition
 				fprintf(pos->fp, " ");
 			if (pos->print_names && definition->name != 0)
 				fprintf(pos->fp, "%s = ",
-					rem_(g_quark_to_string(definition->name)));
+					g_quark_to_string(definition->name));
 			if (pos->print_names || len > 1)
 				fprintf(pos->fp, "{");
 		}

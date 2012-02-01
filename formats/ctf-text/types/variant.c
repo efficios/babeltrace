@@ -37,7 +37,7 @@ int ctf_text_variant_write(struct stream_pos *ppos, struct definition *definitio
 			fprintf(pos->fp, " ");
 			if (pos->print_names)
 				fprintf(pos->fp, "%s = ",
-					rem_(g_quark_to_string(definition->name)));
+					g_quark_to_string(definition->name));
 			fprintf(pos->fp, "{");
 		}
 		pos->depth++;

@@ -41,7 +41,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 		fprintf(pos->fp, " ");
 		if (pos->print_names)
 			fprintf(pos->fp, "%s = ",
-				rem_(g_quark_to_string(definition->name)));
+				g_quark_to_string(definition->name));
 	}
 
 	if (elem->id == CTF_TYPE_INTEGER) {

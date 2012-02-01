@@ -44,7 +44,7 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	fprintf(pos->fp, " ");
 	if (pos->print_names)
 		fprintf(pos->fp, "%s = ",
-			rem_(g_quark_to_string(definition->name)));
+			g_quark_to_string(definition->name));
 
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
