@@ -75,4 +75,13 @@ void print_pos_tabs(struct ctf_text_stream_pos *pos)
  */
 int print_field(struct definition *definition);
 
+static inline
+const char *rem_(const char *str)
+{
+	if (str[0] == '_')
+		return &str[1];
+	else
+		return str;
+}
+
 #endif /* _BABELTRACE_CTF_TEXT_TYPES_H */

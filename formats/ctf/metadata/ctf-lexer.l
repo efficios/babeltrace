@@ -30,15 +30,6 @@ static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
 	__attribute__((unused));
 static int input (yyscan_t yyscanner) __attribute__((unused));
 
-static inline
-const char *rem_(const char *str)
-{
-	if (str[0] == '_')
-		return &str[1];
-	else
-		return str;
-}
-
 %}
 
 %x comment_ml comment_sl string_lit char_const
@@ -131,7 +122,7 @@ _Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
 [1-9]{DIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return DECIMAL_CONSTANT;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return OCTAL_CONSTANT;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return HEXADECIMAL_CONSTANT;
-{IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, rem_(yytext)); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\n]+			; /* ignore */
 .				return ERROR;
 %%
