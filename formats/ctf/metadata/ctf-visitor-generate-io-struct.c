@@ -1649,36 +1649,22 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			event->fields_decl = container_of(declaration, struct declaration_struct, p);
-		} else if (!strcmp(left, "loglevel.identifier")) {
-			char *right;
+		} else if (!strcmp(left, "loglevel")) {
+			int64_t loglevel = -1;
 
-			if (CTF_EVENT_FIELD_IS_SET(event, loglevel_identifier)) {
-				fprintf(fd, "[error] %s: identifier already declared in event declaration\n", __func__);
+			if (CTF_EVENT_FIELD_IS_SET(event, loglevel)) {
+				fprintf(fd, "[error] %s: loglevel already declared in event declaration\n", __func__);
 				ret = -EPERM;
 				goto error;
 			}
-			right = concatenate_unary_strings(&node->u.ctf_expression.right);
-			if (!right) {
-				fprintf(fd, "[error] %s: unexpected unary expression for event identifier\n", __func__);
-				ret = -EINVAL;
-				goto error;
-			}
-			event->loglevel_identifier = g_quark_from_string(right);
-			g_free(right);
-			CTF_EVENT_SET_FIELD(event, loglevel_identifier);
-		} else if (!strcmp(left, "loglevel.value")) {
-			if (CTF_EVENT_FIELD_IS_SET(event, loglevel_value)) {
-				fprintf(fd, "[error] %s: loglevel value already declared in event declaration\n", __func__);
-				ret = -EPERM;
-				goto error;
-			}
-			ret = get_unary_signed(&node->u.ctf_expression.right, &event->loglevel_value);
+			ret = get_unary_signed(&node->u.ctf_expression.right, &loglevel);
+			event->loglevel = (int) loglevel;
 			if (ret) {
-				fprintf(fd, "[error] %s: unexpected unary expression for event loglevel value\n", __func__);
+				fprintf(fd, "[error] %s: unexpected unary expression for event loglevel\n", __func__);
 				ret = -EINVAL;
 				goto error;
 			}
-			CTF_EVENT_SET_FIELD(event, loglevel_value);
+			CTF_EVENT_SET_FIELD(event, loglevel);
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
 			/* Fall-through after warning */
@@ -1705,6 +1691,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 
 	event = g_new0(struct ctf_event, 1);
 	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
+	event->loglevel = -1;
 	cds_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
 		ret = ctf_event_declaration_visit(fd, depth + 1, iter, event, trace);
 		if (ret)

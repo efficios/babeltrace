@@ -282,16 +282,15 @@ int ctf_text_write_event(struct stream_pos *ppos,
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_loglevel_field || opt_all_fields) && event_class->loglevel_identifier != 0) {
+	if ((opt_loglevel_field || opt_all_fields) && event_class->loglevel != -1) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "loglevel = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-		fprintf(pos->fp, "%s (%lld)",
-			g_quark_to_string(event_class->loglevel_identifier),
-			(long long) event_class->loglevel_value);
+		fprintf(pos->fp, "(%d)",
+			event_class->loglevel);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
