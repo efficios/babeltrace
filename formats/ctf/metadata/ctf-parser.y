@@ -1016,6 +1016,8 @@ keywords:
 		{	$$ = yylval.gs;		}
 	|	STREAM
 		{	$$ = yylval.gs;		}
+	|	ENV
+		{	$$ = yylval.gs;		}
 	|	TRACE
 		{	$$ = yylval.gs;		}
 	|	CLOCK
