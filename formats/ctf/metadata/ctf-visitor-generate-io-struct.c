@@ -156,10 +156,20 @@ int get_unary_signed(struct cds_list_head *head, int64_t *value)
 
 	cds_list_for_each_entry(node, head, siblings) {
 		assert(node->type == NODE_UNARY_EXPRESSION);
-		assert(node->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT);
+		assert(node->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT
+			|| node->u.unary_expression.type == UNARY_SIGNED_CONSTANT);
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
-		*value = node->u.unary_expression.u.signed_constant;
+		switch (node->u.unary_expression.type) {
+		case UNARY_UNSIGNED_CONSTANT:
+			*value = (int64_t) node->u.unary_expression.u.unsigned_constant;
+			break;
+		case UNARY_SIGNED_CONSTANT:
+			*value = node->u.unary_expression.u.signed_constant;
+			break;
+		default:
+			assert(0);
+		}
 		i++;
 	}
 	return 0;
@@ -1658,12 +1668,12 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			ret = get_unary_signed(&node->u.ctf_expression.right, &loglevel);
-			event->loglevel = (int) loglevel;
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for event loglevel\n", __func__);
 				ret = -EINVAL;
 				goto error;
 			}
+			event->loglevel = (int) loglevel;
 			CTF_EVENT_SET_FIELD(event, loglevel);
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
