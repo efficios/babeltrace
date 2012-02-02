@@ -1,3 +1,46 @@
+2012-02-02 Babeltrace 0.9
+	* Allow signed values in get_signed. Cast unsigned into signed.
+	* Show loglevel information only with value
+	* env needs to be a keyword too
+	* Add env {} warning test case
+	* Add environment (env {}) parser-level support
+	* Revert "Remove leading underscores from identifiers directly in lexer"
+	* Remove leading underscores from identifiers directly in lexer
+	* Fix: do not remove field names when adding fields
+	* API : iterator namespace cleanup
+	* Time offset: use trace offset average
+	* API : trace_handle
+	* Print event discarded at end of stream
+	* Discarded event time range is between last packet event and timestamp_end
+	* Print time range during which events have been dropped
+	* Print events discarded
+	* Add clock offset support
+	* Warn user of clock offsets do not match
+	* Add clocks to trace collection
+	* clock: show as time of day
+	* Implement clock mapping within integer type
+	* Implement clock IR generation
+	* Add warning tests
+	* Relax unknown field handling: warn instead of error
+	* Fix erroneous use of "-n" for additional fields, add "-f"
+	* Output warnings and errors to stderr
+	* Fix double typedef of bt_event_name
+	* Parse clock descriptions
+	* API : split iterator headers from babeltrace.h
+	* Add missing context.h/context.c
+	* Introduce contexts
+	* Fix parallel build for lib/
+	* Organise libbabeltrace
+	* Export the format.h header
+	* Create the babeltrace include dir on install
+	* callbacks: use correct type for element size
+	* callbacks: Fix set size array size
+	* Fix callback chain array usage
+	* Add time delta to ctf-text
+	* ctf-text: show timestamp in sec.nsec
+	* Fix wrong variable error check
+	* Use the generic call to move_pos_slow
+
 2011-12-12 Babeltrace 0.8
 	* Add loglevel support
 	* Update libpopt dependency to 1.13
