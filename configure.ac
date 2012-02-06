@@ -66,6 +66,7 @@ AC_CONFIG_FILES([
 	formats/bt-dummy/Makefile
 	formats/ctf/metadata/Makefile
 	converter/Makefile
+	doc/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
 	include/Makefile
