@@ -4,4 +4,5 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include types formats lib converter tests
 
-dist_doc_DATA = ChangeLog
+dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
+		std-ext-lib.txt
