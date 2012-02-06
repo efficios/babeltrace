@@ -24,7 +24,7 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/types.h>
-#include <babeltrace/ctf-text/types.h>
+#include <abeltrace/ctf-text/types.h>
 #include <babeltrace/iterator.h>
 #include <popt.h>
 #include <errno.h>
@@ -101,7 +101,7 @@ static void list_formats(FILE *fp)
 
 static void usage(FILE *fp)
 {
-	fprintf(fp, "BabelTrace Trace Converter %s\n\n", VERSION);
+	fprintf(fp, "BabelTrace Trace Viewer and Converter %s\n\n", VERSION);
 	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT <OUTPUT>\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  INPUT                          Input trace path\n");
