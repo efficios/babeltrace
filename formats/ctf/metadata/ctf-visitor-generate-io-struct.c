@@ -2327,6 +2327,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				goto error;	/* ret is 0, so not an actual error, just warn. */
 			}
 			env->vpid = (int) v;
+			printf_verbose("env.vpid = %d\n", env->vpid);
 		} else if (!strcmp(left, "procname")) {
 			char *right;
 
@@ -2341,6 +2342,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->procname, right, TRACER_ENV_LEN);
 			env->procname[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.procname = %s\n", env->procname);
 		} else if (!strcmp(left, "domain")) {
 			char *right;
 
@@ -2355,6 +2357,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->domain, right, TRACER_ENV_LEN);
 			env->domain[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.domain = %s\n", env->domain);
 		} else if (!strcmp(left, "sysname")) {
 			char *right;
 
@@ -2369,6 +2372,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->sysname, right, TRACER_ENV_LEN);
 			env->sysname[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.sysname = %s\n", env->sysname);
 		} else if (!strcmp(left, "release")) {
 			char *right;
 
@@ -2383,6 +2387,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->release, right, TRACER_ENV_LEN);
 			env->release[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.release = %s\n", env->release);
 		} else if (!strcmp(left, "version")) {
 			char *right;
 
@@ -2397,6 +2402,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->version, right, TRACER_ENV_LEN);
 			env->version[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.version = %s\n", env->version);
 		} else {
 			printf_verbose("%s: attribute \"%s\" is unknown in environment declaration.\n", __func__, left);
 		}
