@@ -248,36 +248,36 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		else
 			fprintf(pos->fp, " ");
 	}
-	if ((opt_trace_domain_field && !opt_all_fields) && stream_class->trace->domain[0] != '\0') {
+	if ((opt_trace_domain_field && !opt_all_fields) && stream_class->trace->env.domain[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:domain = ");
 		}
-		fprintf(pos->fp, "%s", stream_class->trace->domain);
+		fprintf(pos->fp, "%s", stream_class->trace->env.domain);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_procname_field && !opt_all_fields) && stream_class->trace->procname[0] != '\0') {
+	if ((opt_trace_procname_field && !opt_all_fields) && stream_class->trace->env.procname[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:procname = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-		fprintf(pos->fp, "%s", stream_class->trace->procname);
+		fprintf(pos->fp, "%s", stream_class->trace->env.procname);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_vpid_field && !opt_all_fields) && stream_class->trace->vpid[0] != '\0') {
+	if ((opt_trace_vpid_field && !opt_all_fields) && stream_class->trace->env.vpid != -1) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:vpid = ");
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-		fprintf(pos->fp, "%s", stream_class->trace->vpid);
+		fprintf(pos->fp, "%d", stream_class->trace->env.vpid);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
