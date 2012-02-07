@@ -108,6 +108,20 @@ struct ctf_clock {
 		(ctf_trace)->(field);					\
 	})
 
+#define TRACER_ENV_LEN	128
+
+/* tracer-specific environment */
+struct ctf_tracer_env {
+	int vpid;		/* negative if unset */
+
+	/* All strings below: "" if unset. */
+	char procname[TRACER_ENV_LEN];
+	char domain[TRACER_ENV_LEN];
+	char sysname[TRACER_ENV_LEN];
+	char release[TRACER_ENV_LEN];
+	char version[TRACER_ENV_LEN];
+};
+
 struct ctf_trace {
 	struct trace_descriptor parent;
 	/* root scope */
@@ -127,6 +141,7 @@ struct ctf_trace {
 	uint64_t minor;
 	uuid_t uuid;
 	int byte_order;		/* trace BYTE_ORDER. 0 if unset. */
+	struct ctf_tracer_env env;
 
 	enum {					/* Fields populated mask */
 		CTF_TRACE_major		=	(1U << 0),
