@@ -24,7 +24,7 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/types.h>
-#include <abeltrace/ctf-text/types.h>
+#include <babeltrace/ctf-text/types.h>
 #include <babeltrace/iterator.h>
 #include <popt.h>
 #include <errno.h>
