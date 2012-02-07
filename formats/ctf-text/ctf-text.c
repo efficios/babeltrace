@@ -56,8 +56,7 @@ enum field_item {
 	ITEM_PAYLOAD,
 };
 
-struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
-		const char *path, int flags,
+struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
@@ -397,8 +396,7 @@ error:
 }
 
 
-struct trace_descriptor *ctf_text_open_trace(const char *collection_path,
-		const char *path, int flags,
+struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
