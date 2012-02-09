@@ -32,6 +32,8 @@ struct ctf_trace;
 struct ctf_stream_class;
 struct ctf_stream;
 struct ctf_event;
+struct ctf_stream;
+struct ctf_clock;
 
 struct ctf_stream {
 	struct ctf_stream_class *stream_class;
@@ -47,6 +49,8 @@ struct ctf_stream {
 	GPtrArray *events_by_id;		/* Array of struct ctf_stream_event pointers indexed by id */
 	struct definition_scope *parent_def_scope;	/* for initialization */
 	int stream_definitions_created;
+
+	struct ctf_clock *current_clock;
 
 	/* Event discarded information */
 	uint32_t events_discarded;
@@ -133,6 +137,7 @@ struct ctf_trace {
 	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
 	struct ctf_stream *metadata;
 	GHashTable *clocks;
+	struct ctf_clock *single_clock;		/* currently supports only one clock */
 	struct trace_collection *collection;	/* Container of this trace */
 
 	struct declaration_struct *packet_header_decl;

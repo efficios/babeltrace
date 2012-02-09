@@ -107,6 +107,9 @@ struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 };
 
+/*
+ * Update stream current timestamp, keep at clock frequency.
+ */
 static
 void ctf_update_timestamp(struct ctf_stream *stream,
 			  struct definition_integer *integer_definition)
@@ -134,6 +137,10 @@ void ctf_update_timestamp(struct ctf_stream *stream,
 	stream->timestamp = updateval;
 }
 
+/*
+ * Print timestamp, rescaling clock frequency to nanoseconds and
+ * applying offsets as needed (unix time).
+ */
 void ctf_print_timestamp(FILE *fp,
 			struct ctf_stream *stream,
 			uint64_t timestamp)
@@ -143,7 +150,12 @@ void ctf_print_timestamp(FILE *fp,
 	struct trace_collection *tc = trace->collection;
 	uint64_t tc_offset = tc->single_clock_offset_avg;
 
-	ts_nsec = timestamp;
+	if (stream->current_clock->freq == 1000000000ULL) {
+		ts_nsec = timestamp;
+	} else {
+		ts_nsec = (uint64_t) ((double) timestamp * 1000000000.0
+				/ (double) stream->current_clock->freq);
+	}
 
 	/* Add offsets */
 	if (!opt_clock_raw) {
@@ -1249,6 +1261,10 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	ret = create_trace_definitions(td, &file_stream->parent);
 	if (ret)
 		goto error_def;
+	/*
+	 * For now, only a single slock is supported.
+	 */
+	file_stream->parent.current_clock = td->single_clock;
 	ret = create_stream_packet_index(td, file_stream);
 	if (ret)
 		goto error_index;

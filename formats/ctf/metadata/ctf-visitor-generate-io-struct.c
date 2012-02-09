@@ -2273,6 +2273,8 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	struct ctf_clock *clock;
 
 	clock = g_new0(struct ctf_clock, 1);
+	/* Default clock frequency is set to 1000000000 */
+	clock->freq = 1000000000ULL;
 	cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
 		ret = ctf_clock_declaration_visit(fd, depth + 1, iter, clock, trace);
 		if (ret)
@@ -2283,6 +2285,12 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		fprintf(fd, "[error] %s: missing namefield in clock declaration\n", __func__);
 		goto error;
 	}
+	if (g_hash_table_size(trace->clocks) > 0) {
+		fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
+		ret = -EINVAL;
+		goto error;
+	}
+	trace->single_clock = clock;
 	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);
 	return 0;
 
