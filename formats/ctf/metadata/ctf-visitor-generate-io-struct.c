@@ -2160,7 +2160,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			clock->name = g_quark_from_string(right);
 			g_free(right);
-			CTF_EVENT_SET_FIELD(clock, name);
+			CTF_CLOCK_SET_FIELD(clock, name);
 		} else if (!strcmp(left, "uuid")) {
 			char *right;
 
@@ -2191,7 +2191,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			clock->description = right;
 		} else if (!strcmp(left, "freq")) {
-			if (clock->freq) {
+			if (CTF_CLOCK_FIELD_IS_SET(clock, freq)) {
 				fprintf(fd, "[error] %s: freq already declared in clock declaration\n", __func__);
 				ret = -EPERM;
 				goto error;
@@ -2202,6 +2202,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				ret = -EINVAL;
 				goto error;
 			}
+			CTF_CLOCK_SET_FIELD(clock, freq);
 		} else if (!strcmp(left, "precision")) {
 			if (clock->precision) {
 				fprintf(fd, "[error] %s: precision already declared in clock declaration\n", __func__);

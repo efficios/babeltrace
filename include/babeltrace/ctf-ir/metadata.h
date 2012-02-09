@@ -95,6 +95,7 @@ struct ctf_clock {
 
 	enum {					/* Fields populated mask */
 		CTF_CLOCK_name		=	(1U << 0),
+		CTF_CLOCK_freq		=	(1U << 1),
 	} field_mask;
 };
 
