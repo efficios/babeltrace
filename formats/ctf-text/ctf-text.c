@@ -56,6 +56,25 @@ enum field_item {
 	ITEM_PAYLOAD,
 };
 
+enum bt_loglevel {
+        BT_LOGLEVEL_EMERG                  = 0,
+        BT_LOGLEVEL_ALERT                  = 1,
+        BT_LOGLEVEL_CRIT                   = 2,
+        BT_LOGLEVEL_ERR                    = 3,
+        BT_LOGLEVEL_WARNING                = 4,
+        BT_LOGLEVEL_NOTICE                 = 5,
+        BT_LOGLEVEL_INFO                   = 6,
+        BT_LOGLEVEL_DEBUG_SYSTEM           = 7,
+        BT_LOGLEVEL_DEBUG_PROGRAM          = 8,
+        BT_LOGLEVEL_DEBUG_PROCESS          = 9,
+        BT_LOGLEVEL_DEBUG_MODULE           = 10,
+        BT_LOGLEVEL_DEBUG_UNIT             = 11,
+        BT_LOGLEVEL_DEBUG_FUNCTION         = 12,
+        BT_LOGLEVEL_DEBUG_LINE             = 13,
+        BT_LOGLEVEL_DEBUG                  = 14,
+};
+
+
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
@@ -147,6 +166,47 @@ void set_field_names_print(struct ctf_text_stream_pos *pos, enum field_item item
 		break;
 	default:
 		assert(0);
+	}
+}
+
+static
+const char *print_loglevel(int value)
+{
+	switch (value) {
+	case -1:
+		return "";
+	case BT_LOGLEVEL_EMERG:
+		return "TRACE_EMERG";
+	case BT_LOGLEVEL_ALERT:
+		return "TRACE_ALERT";
+	case BT_LOGLEVEL_CRIT:
+		return "TRACE_CRIT";
+	case BT_LOGLEVEL_ERR:
+		return "TRACE_ERR";
+	case BT_LOGLEVEL_WARNING:
+		return "TRACE_WARNING";
+	case BT_LOGLEVEL_NOTICE:
+		return "TRACE_NOTICE";
+	case BT_LOGLEVEL_INFO:
+		return "TRACE_INFO";
+	case BT_LOGLEVEL_DEBUG_SYSTEM:
+		return "TRACE_DEBUG_SYSTEM";
+	case BT_LOGLEVEL_DEBUG_PROGRAM:
+		return "TRACE_DEBUG_PROGRAM";
+	case BT_LOGLEVEL_DEBUG_PROCESS:
+		return "TRACE_DEBUG_PROCESS";
+	case BT_LOGLEVEL_DEBUG_MODULE:
+		return "TRACE_DEBUG_MODULE";
+	case BT_LOGLEVEL_DEBUG_UNIT:
+		return "TRACE_DEBUG_UNIT";
+	case BT_LOGLEVEL_DEBUG_FUNCTION:
+		return "TRACE_DEBUG_FUNCTION";
+	case BT_LOGLEVEL_DEBUG_LINE:
+		return "TRACE_DEBUG_LINE";
+	case BT_LOGLEVEL_DEBUG:
+		return "TRACE_DEBUG";
+	default:
+		return "<<UNKNOWN>>";
 	}
 }
 
@@ -288,7 +348,8 @@ int ctf_text_write_event(struct stream_pos *ppos,
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-		fprintf(pos->fp, "(%d)",
+		fprintf(pos->fp, "%s (%d)",
+			print_loglevel(event_class->loglevel),
 			event_class->loglevel);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
