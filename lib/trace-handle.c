@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/context.h>
+#include <babeltrace/context-internal.h>
 #include <babeltrace/trace-handle.h>
 #include <babeltrace/trace-handle-internal.h>
 

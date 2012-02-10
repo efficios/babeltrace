@@ -23,24 +23,8 @@
  * included in all copies or substantial portions of the Software.
  */
 
-struct trace_collection;
-struct GHashTable;
-
-/*
- * The context represents the object in which a trace_collection is
- * open. As long as this structure is allocated, the trace_collection is
- * open and the traces it contains can be read and seeked by the
- * iterators and callbacks.
- *
- * It has to be created with the bt_context_create() function and
- * destroyed by calling one more bt_context_put() than bt_context_get()
- */
-struct bt_context {
-	struct trace_collection *tc;
-	GHashTable *trace_handles;
-	int refcount;
-	int last_trace_handle_id;
-};
+/* struct bt_context is opaque to the user */
+struct bt_context;
 
 /*
  * bt_context_create : create a Babeltrace context

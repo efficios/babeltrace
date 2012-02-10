@@ -22,6 +22,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/callbacks-internal.h>
 #include <babeltrace/context.h>
+#include <babeltrace/context-internal.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/iterator.h>

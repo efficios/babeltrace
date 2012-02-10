@@ -12,6 +12,7 @@ noinst_HEADERS = \
 	babeltrace/bitfield.h \
 	babeltrace/callbacks-internal.h \
 	babeltrace/compiler.h \
+	babeltrace/context-internal.h \
 	babeltrace/iterator-internal.h \
 	babeltrace/list.h \
 	babeltrace/prio_heap.h \
