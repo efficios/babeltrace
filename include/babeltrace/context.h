@@ -65,10 +65,10 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 /*
  * bt_context_add_traces: Open a trace recursively
  *
- * Find each trace presents in the subdirectory starting from the given path
+ * Find each trace present in the subdirectory starting from the given
+ * path, and add them to the context.
  *
  * Return: 0 on success, nonzero on failure.
- * The caller has the responsiblity to free the array
  */
 int bt_context_add_traces(struct bt_context *ctx, const char *path,
 		const char *format);
