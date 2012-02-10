@@ -11,29 +11,33 @@
  * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *         Julien Desfossez <julien.desfossez@efficios.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  */
 
 struct trace_collection;
+struct GHashTable;
 
 /*
- * The context represents the object in which a trace_collection is open. As
- * long as this structure is allocated, the trace_collection is open and the
- * traces it contains can be read and seeked by the iterators and callbacks.
+ * The context represents the object in which a trace_collection is
+ * open. As long as this structure is allocated, the trace_collection is
+ * open and the traces it contains can be read and seeked by the
+ * iterators and callbacks.
  *
- * It has to be created with the bt_context_create() function and destroyed by
- * bt_context_destroy()
+ * It has to be created with the bt_context_create() function and
+ * destroyed by calling one more bt_context_put() than bt_context_get()
  */
 struct bt_context {
 	struct trace_collection *tc;
+	GHashTable *trace_handles;
 	int refcount;
 	int last_trace_handle_id;
 };
@@ -41,37 +45,54 @@ struct bt_context {
 /*
  * bt_context_create : create a Babeltrace context
  *
- * Allocate a new context and assign the trace_collection passed in
- * parameter as the context trace_collection. The trace_collection
- * must contain an array of valid trace_descriptors. The creation of
- * the context sets the refcount to 1.
+ * Allocate a new context. The creation of the context sets the refcount
+ * to 1.
  *
  * Returns an allocated context on success and NULL on error
  */
-struct bt_context *bt_context_create(struct trace_collection *tc);
+struct bt_context *bt_context_create(void);
 
 /*
- * bt_context_destroy : destroy a context
+ * bt_context_add_trace : Add a trace by path to the context
  *
- * If the context is still in use (by an iterator or a callback), the
- * destroy fails and returns -1, on success : return 0.
+ * Open a trace
+ *
+ * Return the trace handle id of the opened trace
  */
-int bt_context_destroy(struct bt_context *ctx);
+int bt_context_add_trace(struct bt_context *ctx, const char *path,
+		const char *format);
 
 /*
- * bt_context_get and bt_context_put : increments and decrement the refcount of
- * the context
+ * bt_context_add_traces: Open a trace recursively
  *
- * These functions ensures that the context won't be destroyed when it is in
- * use. The same number of get and put has to be done to be able to destroy a
- * context.
+ * Find each trace presents in the subdirectory starting from the given path
  *
- * Return 0 on success, -1 if the context pointer is invalid.  When the context
- * refcount is decremented to 0 by a bt_context_put, it calls
- * bt_context_destroy to free the context. In this case the return code of
- * bt_context_destroy is returned.
+ * Return: 0 on success, nonzero on failure.
+ * The caller has the responsiblity to free the array
  */
-int bt_context_get(struct bt_context *ctx);
-int bt_context_put(struct bt_context *ctx);
+int bt_context_add_traces(struct bt_context *ctx, const char *path,
+		const char *format);
+
+/*
+ * bt_context_remove_trace: Remove a trace from the context.
+ *
+ * Effectively closing the trace.
+ */
+void bt_context_remove_trace(struct bt_context *ctx, int trace_id);
+
+/*
+ * bt_context_get and bt_context_put : increments and decrement the
+ * refcount of the context
+ *
+ * These functions ensures that the context won't be destroyed when it
+ * is in use. The same number of get and put (plus one extra put to
+ * release the initial reference done at creation) has to be done to
+ * destroy a context.
+ *
+ * When the context refcount is decremented to 0 by a bt_context_put,
+ * the context is freed.
+ */
+void bt_context_get(struct bt_context *ctx);
+void bt_context_put(struct bt_context *ctx);
 
 #endif /* _BABELTRACE_CONTEXT_H */

@@ -47,7 +47,6 @@ static char *opt_output_format;
 static const char *opt_input_path;
 static const char *opt_output_path;
 
-static struct trace_collection trace_collection_read;
 static struct format *fmt_read;
 
 void strlower(char *str)
@@ -296,187 +295,9 @@ end:
 	return ret;
 }
 
-static void init_trace_collection(struct trace_collection *tc)
-{
-	tc->array = g_ptr_array_sized_new(DEFAULT_FILE_ARRAY_SIZE);
-	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
-	tc->single_clock_offset_avg = 0;
-	tc->offset_first = 0;
-	tc->delta_offset_first_sum = 0;
-	tc->offset_nr = 0;
-}
 
-/*
- * finalize_trace_collection() closes the opened traces for read
- * and free the memory allocated for trace collection
- */
-static void finalize_trace_collection(struct trace_collection *tc)
-{
-	int i;
 
-	for (i = 0; i < tc->array->len; i++) {
-		struct trace_descriptor *temp =
-			g_ptr_array_index(tc->array, i);
-		fmt_read->close_trace(temp);
-	}
-	g_ptr_array_free(tc->array, TRUE);
-	g_hash_table_destroy(tc->clocks);
-}
 
-struct clock_match {
-	GHashTable *clocks;
-	struct ctf_clock *clock_match;
-	struct trace_collection *tc;
-};
-
-static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
-{
-	struct clock_match *match = user_data;
-	struct ctf_clock *clock_a = value, *clock_b;
-
-	if (clock_a->uuid != 0) {
-		/*
-		 * Lookup the the trace clocks into the collection
-		 * clocks.
-		 */
-		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->uuid);
-		if (clock_b) {
-			match->clock_match = clock_b;
-			return;
-		}
-	} else if (clock_a->absolute) {
-		/*
-		 * Absolute time references, such as NTP, are looked up
-		 * by clock name.
-		 */
-		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->name);
-		if (clock_b) {
-			match->clock_match = clock_b;
-			return;
-		}
-	}
-}
-
-static void clock_add(gpointer key, gpointer value, gpointer user_data)
-{
-	struct clock_match *clock_match = user_data;
-	GHashTable *tc_clocks = clock_match->clocks;
-	struct ctf_clock *t_clock = value;
-	GQuark v;
-
-	if (t_clock->absolute)
-		v = t_clock->name;
-	else
-		v = t_clock->uuid;
-	if (v) {
-		struct ctf_clock *tc_clock;
-
-		tc_clock = g_hash_table_lookup(tc_clocks,
-				(gpointer) (unsigned long) v);
-		if (!tc_clock) {
-			/*
-			 * For now, we only support CTF that has one
-			 * single clock uuid or name (absolute ref).
-			 */
-			if (g_hash_table_size(tc_clocks) > 0) {
-				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
-			}
-			if (!clock_match->tc->offset_nr) {
-				clock_match->tc->offset_first =
-					(t_clock->offset_s * 1000000000ULL) + t_clock->offset;
-				clock_match->tc->delta_offset_first_sum = 0;
-				clock_match->tc->offset_nr++;
-				clock_match->tc->single_clock_offset_avg =
-					clock_match->tc->offset_first;
-			}
-			g_hash_table_insert(tc_clocks,
-				(gpointer) (unsigned long) v,
-				value);
-		} else {
-			int64_t diff_ns;
-
-			/*
-			 * Check that the offsets match. If not, warn
-			 * the user that we do an arbitrary choice.
-			 */
-			diff_ns = tc_clock->offset_s;
-			diff_ns -= t_clock->offset_s;
-			diff_ns *= 1000000000ULL;
-			diff_ns += tc_clock->offset;
-			diff_ns -= t_clock->offset;
-			printf_debug("Clock \"%s\" offset between traces has a delta of %" PRIu64 " ns.",
-				g_quark_to_string(tc_clock->name),
-				diff_ns < 0 ? -diff_ns : diff_ns);
-			if (diff_ns > 10000) {
-				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Using average.\n",
-					g_quark_to_string(tc_clock->name),
-					diff_ns < 0 ? -diff_ns : diff_ns);
-			}
-			/* Compute average */
-			clock_match->tc->delta_offset_first_sum +=
-				(t_clock->offset_s * 1000000000ULL) + t_clock->offset
-				- clock_match->tc->offset_first;
-			clock_match->tc->offset_nr++;
-			clock_match->tc->single_clock_offset_avg =
-				clock_match->tc->offset_first
-				+ (clock_match->tc->delta_offset_first_sum / clock_match->tc->offset_nr);
-		}
-	}
-}
-
-/*
- * Whenever we add a trace to the trace collection, check that we can
- * correlate this trace with at least one other clock in the trace.
- */
-static int trace_collection_add(struct trace_collection *tc,
-				struct trace_descriptor *td)
-{
-	struct ctf_trace *trace = container_of(td, struct ctf_trace, parent);
-
-	g_ptr_array_add(tc->array, td);
-	trace->collection = tc;
-
-	if (tc->array->len > 1) {
-		struct clock_match clock_match = {
-			.clocks = tc->clocks,
-			.clock_match = NULL,
-			.tc = NULL,
-		};
-
-		/*
-		 * With two or more traces, we need correlation info
-		 * avalable.
-		 */
-		g_hash_table_foreach(trace->clocks,
-				check_clock_match,
-				&clock_match);
-		if (!clock_match.clock_match) {
-			fprintf(stderr, "[error] No clocks can be correlated and multiple traces are added to the collection.\n");
-			goto error;
-		}
-	}
-
-	{
-		struct clock_match clock_match = {
-			.clocks = tc->clocks,
-			.clock_match = NULL,
-			.tc = tc,
-		};
-
-		/*
-		 * Add each clock from the trace clocks into the trace
-		 * collection clocks.
-		 */
-		g_hash_table_foreach(trace->clocks,
-				clock_add,
-				&clock_match);
-	}
-	return 0;
-error:
-	return -EPERM;
-}
 
 int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
@@ -513,52 +334,6 @@ end:
 	bt_iter_destroy(iter);
 error_iter:
 	return ret;
-}
-
-
-/*
- * traverse_dir() is the callback functiion for File Tree Walk (nftw).
- * it receives the path of the current entry (file, dir, link..etc) with
- * a flag to indicate the type of the entry.
- * if the entry being visited is a directory and contains a metadata file,
- * then open it for reading and save a trace_descriptor to that directory
- * in the read trace collection.
- */
-static int traverse_dir(const char *fpath, const struct stat *sb,
-			int tflag, struct FTW *ftwbuf)
-{
-	int dirfd;
-	int fd;
-	struct trace_descriptor *td_read;
-	int ret;
-
-	if (tflag != FTW_D)
-		return 0;
-	dirfd = open(fpath, 0);
-	if (dirfd < 0) {
-		fprintf(stderr, "[error] unable to open trace "
-			"directory file descriptor.\n");
-		return -1;
-	}
-	fd = openat(dirfd, "metadata", O_RDONLY);
-	if (fd < 0) {
-		close(dirfd);
-	} else {
-		close(fd);
-		close(dirfd);
-		td_read = fmt_read->open_trace(fpath, O_RDONLY,
-				ctf_move_pos_slow, NULL);
-		if (!td_read) {
-			fprintf(stderr, "Error opening trace \"%s\" "
-					"for reading.\n\n", fpath);
-			return -1;	/* error */
-		}
-		ret = trace_collection_add(&trace_collection_read, td_read);
-		if (ret) {
-			return -1;
-		}
-	}
-	return 0;	/* success */
 }
 
 int main(int argc, char **argv)
@@ -609,30 +384,16 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	/*
-	 * pass the input path to nftw() .
-	 * specify traverse_dir() as the callback function.
-	 * depth = 10 which is the max number of file descriptors
-	 * that nftw() can open at a given time.
-	 * flags = 0  check nftw documentation for more info .
-	 */
-	init_trace_collection(&trace_collection_read);
-	ret = nftw(opt_input_path, traverse_dir, 10, 0);
-	if (ret != 0) {
+	ctx = bt_context_create();
+
+	ret = bt_context_add_traces(ctx, opt_input_path,
+			opt_input_format);
+	if (ret) {
 		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);
 		goto error_td_read;
 	}
-	if (trace_collection_read.array->len == 0) {
-		fprintf(stderr, "[warning] no metadata file was found."
-						" no output was generated\n");
-		return 0;
-	}
-	ctx = bt_context_create(&trace_collection_read);
-	if (!ctx) {
-		fprintf(stderr, "Error allocating a new context\n");
-		goto error_td_read;
-	}
+
 	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
 	if (!td_write) {
 		fprintf(stderr, "Error opening trace \"%s\" for writing.\n\n",
@@ -647,8 +408,8 @@ int main(int argc, char **argv)
 	}
 
 	fmt_write->close_trace(td_write);
-	finalize_trace_collection(&trace_collection_read);
-	bt_context_destroy(ctx);
+
+	bt_context_put(ctx);
 	printf_verbose("finished converting. Output written to:\n%s\n",
 			opt_output_path ? : "<stdout>");
 	exit(EXIT_SUCCESS);
@@ -657,7 +418,7 @@ int main(int argc, char **argv)
 error_copy_trace:
 	fmt_write->close_trace(td_write);
 error_td_write:
-	finalize_trace_collection(&trace_collection_read);
+	bt_context_put(ctx);
 error_td_read:
 	exit(EXIT_FAILURE);
 }

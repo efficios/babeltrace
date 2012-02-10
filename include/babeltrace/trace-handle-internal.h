@@ -23,7 +23,9 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <babeltrace/context.h>
+#include <babeltrace/format.h>
 
 /*
  * trace_handle : unique identifier of a trace
@@ -33,7 +35,9 @@
  */
 struct bt_trace_handle {
 	int id;
-	char *path;
+	struct trace_descriptor *td;
+	struct format *format;
+	char path[PATH_MAX];
 	uint64_t timestamp_begin;
 	uint64_t timestamp_end;
 };
@@ -43,7 +47,7 @@ struct bt_trace_handle {
  *
  * Returns a newly allocated trace_handle or NULL on error
  */
-struct bt_trace_handle *bt_trace_create_handle(struct bt_context *ctx);
+struct bt_trace_handle *bt_trace_handle_create(struct bt_context *ctx);
 
 /*
  * bt_trace_handle_destroy : free a trace_handle

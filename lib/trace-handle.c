@@ -30,41 +30,32 @@ struct bt_trace_handle *bt_trace_handle_create(struct bt_context *ctx)
 {
 	struct bt_trace_handle *th;
 
-	th = calloc(1, sizeof(struct bt_trace_handle));
-	if (!th) {
-		perror("allocating trace_handle");
-		return NULL;
-	}
-	if (!ctx)
-		return NULL;
-
+	th = g_new0(struct bt_trace_handle, 1);
 	th->id = ctx->last_trace_handle_id++;
 	return th;
 }
 
-void bt_trace_handle_destroy(struct bt_trace_handle *bt)
+void bt_trace_handle_destroy(struct bt_trace_handle *th)
 {
-	if (bt)
-		free(bt);
+	g_free(th);
 }
 
-char *bt_trace_handle_get_path(struct bt_trace_handle *th)
+int bt_trace_handle_get_id(struct bt_trace_handle *th)
 {
-	if (th && th->path)
-		return th->path;
-	return NULL;
+	return th->id;
+}
+
+const char *bt_trace_handle_get_path(struct bt_trace_handle *th)
+{
+	return th->path;
 }
 
 uint64_t bt_trace_handle_get_timestamp_begin(struct bt_trace_handle *th)
 {
-	if (th)
-		return th->timestamp_begin;
-	return -1ULL;
+	return th->timestamp_begin;
 }
 
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_trace_handle *th)
 {
-	if (th)
-		return th->timestamp_end;
-	return -1ULL;
+	return th->timestamp_end;
 }

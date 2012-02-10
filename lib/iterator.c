@@ -73,17 +73,18 @@ int stream_compare(void *a, void *b)
 
 void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
 {
-	if (iter_pos) {
-		if (iter_pos->u.restore) {
-			if (iter_pos->u.restore->stream_saved_pos) {
-				g_array_free(
-					iter_pos->u.restore->stream_saved_pos,
-					TRUE);
-			}
-			g_free(iter_pos->u.restore);
+	if (!iter_pos)
+		return;
+
+	if (iter_pos->u.restore) {
+		if (iter_pos->u.restore->stream_saved_pos) {
+			g_array_free(
+				iter_pos->u.restore->stream_saved_pos,
+				TRUE);
 		}
-		g_free(iter_pos);
+		g_free(iter_pos->u.restore);
 	}
+	g_free(iter_pos);
 }
 
 int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
@@ -168,17 +169,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 	int i, stream_class_id, stream_id;
 
 	pos = g_new0(struct bt_iter_pos, 1);
-	if (!pos) {
-		perror("allocating bt_iter_pos");
-		goto error;
-	}
-
 	pos->u.restore = g_new0(struct bt_saved_pos, 1);
-	if (!pos->u.restore) {
-		perror("allocating bt_saved_pos");
-		goto error;
-	}
-
 	pos->u.restore->tc = tc;
 	pos->u.restore->stream_saved_pos = g_array_new(FALSE, TRUE,
 			sizeof(struct stream_saved_pos));
@@ -331,16 +322,13 @@ struct bt_iter *bt_iter_create(struct bt_context *ctx,
 	struct bt_iter *iter;
 
 	iter = g_new0(struct bt_iter, 1);
-	if (!iter)
-		goto error_malloc;
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->end_pos = end_pos;
 	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
 	iter->recalculate_dep_graph = 0;
 	iter->main_callbacks.callback = NULL;
 	iter->dep_gc = g_ptr_array_new();
-	if (bt_context_get(ctx) != 0)
-		goto error_ctx;
+	bt_context_get(ctx);
 	iter->ctx = ctx;
 
 	ret = heap_init(iter->stream_heap, 0, stream_compare);
@@ -394,9 +382,7 @@ error:
 	heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
-error_ctx:
 	g_free(iter);
-error_malloc:
 	return NULL;
 }
 

@@ -33,20 +33,24 @@
 struct bt_trace_handle;
 
 /*
- * bt_trace_handle_get_path : returns the path of a trace_handle or
- * NULL on error
+ * bt_trace_handle_get_id: returns the id associated to the handle.
  */
-char *bt_trace_handle_get_path(struct bt_trace_handle *th);
+int bt_trace_handle_get_id(struct bt_trace_handle *th);
+
+/*
+ * bt_trace_handle_get_path : returns the path of a trace_handle.
+ */
+const char *bt_trace_handle_get_path(struct bt_trace_handle *th);
 
 /*
  * bt_trace_handle_get_timestamp_begin : returns the beginning timestamp
- * of a trace or -1ULL on error
+ * of a trace.
  */
 uint64_t bt_trace_handle_get_timestamp_begin(struct bt_trace_handle *th);
 
 /*
- * bt_trace_handle_get_timestamp_end : returns the end timestamp of a trace
- * or -1ULL on error
+ * bt_trace_handle_get_timestamp_end : returns the end timestamp of a
+ * trace.
  */
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_trace_handle *th);
 
