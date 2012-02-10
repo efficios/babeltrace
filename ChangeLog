@@ -1,3 +1,16 @@
+2012-02-09 Babeltrace 0.10
+	* Fix clock freq
+	* clock: use freq field
+	* Show env. in verbose mode
+	* Remove all code that depends on trace collection directory structure
+	* Use environment information for extra fields
+	* Parse environment declarations from LTTng-modules and LTTng-UST
+	* Fix typo
+	* Add babeltrace.1 manpage
+	* Update help
+	* Install license files and dependency listing into the system doc
+	* Add ChangeLog to doc install
+
 2012-02-02 Babeltrace 0.9
 	* Allow signed values in get_signed. Cast unsigned into signed.
 	* Show loglevel information only with value
