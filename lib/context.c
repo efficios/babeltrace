@@ -67,9 +67,9 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	td = fmt->open_trace(path, O_RDONLY,
 			     ctf_move_pos_slow, NULL);
 	if (!td) {
-		fprintf(stdout, "[error] [Context] Cannot Open_trace of the format %s .\n\n",
+		fprintf(stdout, "[error] [Context] Cannot open_trace of the format %s .\n\n",
 				path);
-		return 0;
+		return -1;
 	}
 
 	/* Create an handle for the trace */
@@ -77,7 +77,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (handle < 0) {
 		fprintf(stdout, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
-		return 0;
+		return -1;
 	}
 	handle->format = fmt;
 	handle->td = td;
@@ -89,14 +89,14 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		(gpointer) (unsigned long) handle->id,
 		handle);
 	trace_collection_add(ctx->tc, td);
-	return handle->id;
+	return 0;
 }
 
 /*
  * Unable to open toplevel: failure.
  * Unable to open some subdirectory or file: warn and continue;
  */
-int bt_context_add_traces(struct bt_context *ctx, const char *path,
+int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		const char *format_str)
 {
 	FTS *tree;

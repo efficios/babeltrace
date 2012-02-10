@@ -41,20 +41,20 @@ struct bt_context *bt_context_create(void);
  *
  * Open a trace
  *
- * Return the trace handle id of the opened trace
+ * Return: 0 on success, nonzero on failure.
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format);
 
 /*
- * bt_context_add_traces: Open a trace recursively
+ * bt_context_add_traces_recursive: Open a trace recursively
  *
  * Find each trace present in the subdirectory starting from the given
  * path, and add them to the context.
  *
  * Return: 0 on success, nonzero on failure.
  */
-int bt_context_add_traces(struct bt_context *ctx, const char *path,
+int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		const char *format);
 
 /*

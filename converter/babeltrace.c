@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 
 	ctx = bt_context_create();
 
-	ret = bt_context_add_traces(ctx, opt_input_path,
+	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
 			opt_input_format);
 	if (ret) {
 		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
