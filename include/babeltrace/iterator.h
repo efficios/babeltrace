@@ -69,13 +69,13 @@ void bt_iter_destroy(struct bt_iter *iter);
 int bt_iter_next(struct bt_iter *iter);
 
 /*
- * bt_iter_save_pos - Save the current trace collection position.
+ * bt_iter_get_pos - Get the current iterator position.
  *
  * The position returned by this function needs to be freed by
  * bt_iter_free_pos after use.
  */
 struct bt_iter_pos *
-	bt_iter_save_pos(struct bt_iter *iter);
+	bt_iter_get_pos(struct bt_iter *iter);
 
 /*
  * bt_iter_free_pos - Free the position.
@@ -83,13 +83,13 @@ struct bt_iter_pos *
 void bt_iter_free_pos(struct bt_iter_pos *pos);
 
 /*
- * bt_iter_seek: seek iterator to given position.
+ * bt_iter_set_pos: move the iterator to a given position.
  *
  * Return EOF if position is after the last event of the trace collection.
  * Return other negative value for other errors.
  * Return 0 for success.
  */
-int bt_iter_seek(struct bt_iter *iter,
+int bt_iter_set_pos(struct bt_iter *iter,
 		const struct bt_iter_pos *pos);
 
 /*

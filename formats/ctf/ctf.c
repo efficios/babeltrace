@@ -229,6 +229,11 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 
 	ctf_pos_get_event(pos);
 
+	/* save the current position as a restore point */
+	pos->last_offset = pos->offset;
+	/* we just read the event, it is consumed when used by the caller */
+	stream->consumed = 0;
+
 	/*
 	 * This is the EOF check after we've advanced the position in
 	 * ctf_pos_get_event.
@@ -507,8 +512,8 @@ void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
 			break;
 		}
 		case SEEK_SET:
-			assert(offset == 0);	/* only seek supported for now */
-			pos->cur_index = 0;
+			if (offset == 0)
+				pos->cur_index = 0;
 			file_stream->parent.prev_timestamp = 0;
 			file_stream->parent.prev_timestamp_end = 0;
 			break;

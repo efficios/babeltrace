@@ -60,6 +60,7 @@ struct ctf_stream_pos {
 	uint32_t *content_size_loc; /* pointer to current content size */
 	char *base;		/* mmap base address */
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
+	ssize_t last_offset;	/* offset before the last read_event */
 	size_t cur_index;	/* current index in packet index */
 	void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
 			int whence); /* function called to switch packet */
