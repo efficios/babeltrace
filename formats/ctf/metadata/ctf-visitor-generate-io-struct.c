@@ -39,6 +39,8 @@
 #define _cds_list_first_entry(ptr, type, member)	\
 	cds_list_entry((ptr)->next, type, member)
 
+int opt_clock_force_correlate;
+
 static
 struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 		int depth, struct ctf_node *type_specifier_list,
@@ -2281,13 +2283,24 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		if (ret)
 			goto error;
 	}
+	if (opt_clock_force_correlate) {
+		/*
+		 * User requested to forcibly correlate the clock
+		 * sources, even if we have no correlatation
+		 * information.
+		 */
+		if (!clock->absolute) {
+			fprintf(fd, "[warning] Forcibly correlating trace clock sources (--clock-force-correlate).\n");
+		}
+		clock->absolute = 1;
+	}
 	if (!CTF_CLOCK_FIELD_IS_SET(clock, name)) {
 		ret = -EPERM;
 		fprintf(fd, "[error] %s: missing namefield in clock declaration\n", __func__);
 		goto error;
 	}
 	if (g_hash_table_size(trace->clocks) > 0) {
-		fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
+		fprintf(fd, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -2312,7 +2325,19 @@ void ctf_clock_default(FILE *fd, int depth, struct ctf_trace *trace)
 	clock->description = g_strdup("Default clock");
 	/* Default clock frequency is set to 1000000000 */
 	clock->freq = 1000000000ULL;
-	clock->absolute = 0;	/* Not an absolute reference across traces */
+	if (opt_clock_force_correlate) {
+		/*
+		 * User requested to forcibly correlate the clock
+		 * sources, even if we have no correlatation
+		 * information.
+		 */
+		if (!clock->absolute) {
+			fprintf(fd, "[warning] Forcibly correlating trace clock sources (--clock-force-correlate).\n");
+		}
+		clock->absolute = 1;
+	} else {
+		clock->absolute = 0;	/* Not an absolute reference across traces */
+	}
 
 	trace->single_clock = clock;
 	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);

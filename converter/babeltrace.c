@@ -71,6 +71,7 @@ enum {
 	OPT_CLOCK_SECONDS,
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_GMT,
+	OPT_CLOCK_FORCE_CORRELATE,
 };
 
 static struct poptOption long_options[] = {
@@ -89,6 +90,7 @@ static struct poptOption long_options[] = {
 	{ "clock-seconds", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
 	{ "clock-date", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
+	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -129,6 +131,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                 (default is: [hh:mm:ss.ns])\n");
 	fprintf(fp, "      --clock-date               Print clock date\n");
 	fprintf(fp, "      --clock-gmt                Print clock in GMT time zone (default: local time zone)\n");
+	fprintf(fp, "      --clock-force-correlate    Assume that clocks are inherently correlated\n");
+	fprintf(fp, "                                 across traces.\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -273,6 +277,9 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_CLOCK_GMT:
 			opt_clock_gmt = 1;
+			break;
+		case OPT_CLOCK_FORCE_CORRELATE:
+			opt_clock_force_correlate = 1;
 			break;
 
 		default:
