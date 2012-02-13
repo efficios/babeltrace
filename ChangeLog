@@ -1,3 +1,6 @@
+2012-02-13 Babeltrace 0.11.1
+	* Add trace-collection.h to the installed headers
+
 2012-02-13 Babeltrace 0.11
 	* Add --clock-force-correlate option
 	* lib: open trace error handling fix
