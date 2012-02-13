@@ -3,6 +3,7 @@ babeltraceinclude_HEADERS = \
 	babeltrace/format.h \
 	babeltrace/context.h \
 	babeltrace/iterator.h \
+	babeltrace/trace-collection.h \
 	babeltrace/trace-handle.h
 
 
