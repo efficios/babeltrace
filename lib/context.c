@@ -67,7 +67,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	td = fmt->open_trace(path, O_RDONLY,
 			     ctf_move_pos_slow, NULL);
 	if (!td) {
-		fprintf(stdout, "[error] [Context] Cannot open_trace of the format %s .\n\n",
+		fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
 				path);
 		return -1;
 	}
@@ -75,7 +75,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	/* Create an handle for the trace */
 	handle = bt_trace_handle_create(ctx);
 	if (handle < 0) {
-		fprintf(stdout, "[error] [Context] Creating trace handle %s .\n\n",
+		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		return -1;
 	}
@@ -88,8 +88,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	g_hash_table_insert(ctx->trace_handles,
 		(gpointer) (unsigned long) handle->id,
 		handle);
-	trace_collection_add(ctx->tc, td);
-	return 0;
+	return trace_collection_add(ctx->tc, td);
 }
 
 /*
@@ -115,7 +114,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 
 	tree = fts_open(paths, FTS_NOCHDIR | FTS_LOGICAL, 0);
 	if (tree == NULL) {
-		fprintf(stdout, "[error] Cannot traverse \"%s\" for reading.\n\n",
+		fprintf(stderr, "[error] [Context] Cannot traverse \"%s\" for reading.\n",
 				path);
 		return -EINVAL;
 	}
@@ -130,9 +129,10 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 
 		dirfd = open(node->fts_accpath, 0);
 		if (dirfd < 0) {
-			fprintf(stdout, "[warning] unable to open trace "
+			fprintf(stderr, "[error] [Context] Unable to open trace "
 				"directory file descriptor.\n");
-			continue;
+			ret = dirfd;
+			goto error;
 		}
 		metafd = openat(dirfd, "metadata", O_RDONLY);
 		if (metafd < 0) {
@@ -158,9 +158,10 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 			trace_id = bt_context_add_trace(ctx,
 				node->fts_accpath, format_str);
 			if (trace_id < 0) {
-				fprintf(stdout, "[warning] CTX opening trace \"%s\"from %s "
-					"for reading.\n\n", node->fts_accpath, path);
-				continue;
+				fprintf(stderr, "[error] [Context] opening trace \"%s\" from %s "
+					"for reading.\n", node->fts_accpath, path);
+				ret = trace_id;
+				goto error;
 			}
 			g_array_append_val(trace_ids, trace_id);
 		}
