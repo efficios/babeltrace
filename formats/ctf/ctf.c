@@ -1185,14 +1185,14 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 		/* Validate content size and packet size values */
 		if (packet_index.content_size > packet_index.packet_size) {
-			fprintf(stderr, "[error] Content size (%zu bits) is larger than packet size (%zu bits).\n",
+			fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
 				packet_index.content_size, packet_index.packet_size);
 			return -EINVAL;
 		}
 
-		if (packet_index.packet_size > (filestats.st_size - packet_index.offset) * CHAR_BIT) {
-			fprintf(stderr, "[error] Packet size (%zu bits) is larger than remaining file size (%zu bits).\n",
-				packet_index.content_size, (size_t) (filestats.st_size - packet_index.offset) * CHAR_BIT);
+		if (packet_index.packet_size > ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT) {
+			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
+				packet_index.content_size, ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT);
 			return -EINVAL;
 		}
 

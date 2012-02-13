@@ -36,8 +36,8 @@ struct bt_stream_callbacks;
 struct packet_index {
 	off_t offset;		/* offset of the packet in the file, in bytes */
 	off_t data_offset;	/* offset of data within the packet, in bits */
-	size_t packet_size;	/* packet size, in bits */
-	size_t content_size;	/* content size, in bits */
+	uint64_t packet_size;	/* packet size, in bits */
+	uint64_t content_size;	/* content size, in bits */
 	uint64_t timestamp_begin;
 	uint64_t timestamp_end;
 	uint32_t events_discarded;
