@@ -1,3 +1,17 @@
+2012-02-13 Babeltrace 0.11
+	* Add --clock-force-correlate option
+	* lib: open trace error handling fix
+	* Use default if there is no clock declaration
+	* iterator: fix type warning on 32-bit build
+	* Use 64-bit type for packet and content size
+	* Fix context API
+	* Add missing context-internal.h
+	* struct bt_context is opaque
+	* Update comment to match context API code
+	* Print loglevel names
+	* babeltrace lib cleanup, folded with open/remove trace functions
+	* API : iterator get and set position
+
 2012-02-09 Babeltrace 0.10
 	* Fix clock freq
 	* clock: use freq field
