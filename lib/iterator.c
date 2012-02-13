@@ -225,7 +225,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 					pos->u.restore->stream_saved_pos,
 					saved_pos);
 
-				printf_debug("stream : %lu, cur_index : %zd, "
+				printf_debug("stream : %" PRIu64 ", cur_index : %zd, "
 					"offset : %zd, "
 					"timestamp = %" PRIu64 "\n",
 					stream->stream_id, saved_pos.cur_index,
