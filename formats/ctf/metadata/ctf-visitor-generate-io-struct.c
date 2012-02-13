@@ -2302,6 +2302,23 @@ error:
 }
 
 static
+void ctf_clock_default(FILE *fd, int depth, struct ctf_trace *trace)
+{
+	struct ctf_clock *clock;
+
+	clock = g_new0(struct ctf_clock, 1);
+	clock->name = g_quark_from_string("monotonic");
+	clock->uuid = 0;
+	clock->description = g_strdup("Default clock");
+	/* Default clock frequency is set to 1000000000 */
+	clock->freq = 1000000000ULL;
+	clock->absolute = 0;	/* Not an absolute reference across traces */
+
+	trace->single_clock = clock;
+	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);
+}
+
+static
 void clock_free(gpointer data)
 {
 	struct ctf_clock *clock = data;
@@ -2516,12 +2533,16 @@ retry:
 			 * declarations need to query clock hash table,
 			 * so clock need to be treated first.
 			 */
-			cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
-				ret = ctf_clock_visit(fd, depth + 1, iter,
-						      trace);
-				if (ret) {
-					fprintf(fd, "[error] %s: clock declaration error\n", __func__);
-					goto error;
+			if (cds_list_empty(&node->u.root.clock)) {
+				ctf_clock_default(fd, depth + 1, trace);
+			} else {
+				cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+					ret = ctf_clock_visit(fd, depth + 1, iter,
+							      trace);
+					if (ret) {
+						fprintf(fd, "[error] %s: clock declaration error\n", __func__);
+						goto error;
+					}
 				}
 			}
 			env_clock_done = 1;
