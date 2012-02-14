@@ -47,17 +47,6 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format);
 
 /*
- * bt_context_add_traces_recursive: Open a trace recursively
- *
- * Find each trace present in the subdirectory starting from the given
- * path, and add them to the context.
- *
- * Return: 0 on success, nonzero on failure.
- */
-int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
-		const char *format);
-
-/*
  * bt_context_remove_trace: Remove a trace from the context.
  *
  * Effectively closing the trace.
