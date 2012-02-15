@@ -85,12 +85,26 @@ void bt_iter_free_pos(struct bt_iter_pos *pos);
 /*
  * bt_iter_set_pos: move the iterator to a given position.
  *
- * Return EOF if position is after the last event of the trace collection.
- * Return other negative value for other errors.
+ * On error, the stream_heap is reinitialized and returned empty.
+ *
  * Return 0 for success.
+ *
+ * Return EOF if the position requested is after the last event of the
+ * trace collection.
+ * Return -EINVAL when called with invalid parameter.
+ * Return -ENOMEM if the stream_heap could not be properly initialized.
  */
-int bt_iter_set_pos(struct bt_iter *iter,
-		const struct bt_iter_pos *pos);
+int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
+
+/*
+ * bt_iter_create_time_pos: create a position based on time
+ *
+ * This function allocates and returns a new bt_iter_pos (which must be freed
+ * with bt_iter_free_pos) to be able to restore an iterator position based on a
+ * timestamp.
+ */
+struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
+		uint64_t timestamp);
 
 /*
  * bt_iter_read_event: Read the iterator's current event data.

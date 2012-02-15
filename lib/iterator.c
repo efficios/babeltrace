@@ -88,18 +88,102 @@ void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
 	g_free(iter_pos);
 }
 
-int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
+/*
+ * seek_file_stream_by_timestamp
+ *
+ * Browse a filestream by index, if an index contains the timestamp passed in
+ * argument, seek inside the corresponding packet it until we find the event we
+ * are looking for (either the exact timestamp or the event just after the
+ * timestamp).
+ *
+ * Return 0 if the seek succeded and EOF if we didn't find any packet
+ * containing the timestamp.
+ */
+static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
+		uint64_t timestamp)
 {
+	struct ctf_stream_pos *stream_pos;
+	struct packet_index *index;
 	int i, ret;
 
-	if (iter_pos->u.restore) {
-		/* clear and recreate the heap */
+	stream_pos = &cfs->pos;
+	for (i = 0; i < stream_pos->packet_index->len; i++) {
+		index = &g_array_index(stream_pos->packet_index,
+				struct packet_index, i);
+		if (index->timestamp_begin >= timestamp ||
+				index->timestamp_end <= timestamp)
+			continue;
+
+		stream_pos->cur_index = i;
+		stream_pos->move_pos_slow(stream_pos, index->offset, SEEK_SET);
+		while (cfs->parent.timestamp < timestamp) {
+			ret = stream_read_event(cfs);
+			if (ret < 0)
+				break;
+		}
+		return 0;
+	}
+	return EOF;
+}
+
+/*
+ * seek_ctf_trace_by_timestamp : for each file stream, seek to the event with
+ * the corresponding timestamp
+ *
+ * Return 0 on success.
+ * If the timestamp is not part of any file stream, return EOF to inform the
+ * user the timestamp is out of the scope
+ */
+static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
+		uint64_t timestamp, struct ptr_heap *stream_heap)
+{
+	int i, j, ret;
+	int found = EOF;
+
+	/* for each stream_class */
+	for (i = 0; i < tin->streams->len; i++) {
+		struct ctf_stream_class *stream_class;
+
+		stream_class = g_ptr_array_index(tin->streams, i);
+		/* for each file_stream */
+		for (j = 0; j < stream_class->streams->len; j++) {
+			struct ctf_stream *stream;
+			struct ctf_file_stream *cfs;
+
+			stream = g_ptr_array_index(stream_class->streams, j);
+			cfs = container_of(stream, struct ctf_file_stream,
+					parent);
+			ret = seek_file_stream_by_timestamp(cfs, timestamp);
+			if (ret == 0) {
+				/* Add to heap */
+				ret = heap_insert(stream_heap, cfs);
+				if (ret)
+					goto error;
+				found = 0;
+			}
+		}
+	}
+
+	return found;
+
+error:
+	return -2;
+}
+
+int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
+{
+	struct trace_collection *tc;
+	int i, ret;
+
+	switch (iter_pos->type) {
+	case BT_SEEK_RESTORE:
+		if (!iter_pos->u.restore)
+			goto error_arg;
+
 		heap_free(iter->stream_heap);
-		g_free(iter->stream_heap);
-		iter->stream_heap = g_new(struct ptr_heap, 1);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
-			goto error_heap_init;
+			goto error;
 
 		for (i = 0; i < iter_pos->u.restore->stream_saved_pos->len;
 				i++) {
@@ -147,20 +231,50 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			if (ret)
 				goto error;
 		}
-	} else if (iter_pos->u.seek_time) {
-		/* not yet implemented */
-		return -1;
-	} else {
-		/* nowhere to seek to */
-		return -1;
+	case BT_SEEK_TIME:
+		tc = iter->ctx->tc;
+
+		if (!iter_pos->u.seek_time)
+			goto error_arg;
+
+		heap_free(iter->stream_heap);
+		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		if (ret < 0)
+			goto error;
+
+		/* for each trace in the trace_collection */
+		for (i = 0; i < tc->array->len; i++) {
+			struct ctf_trace *tin;
+			struct trace_descriptor *td_read;
+
+			td_read = g_ptr_array_index(tc->array, i);
+			tin = container_of(td_read, struct ctf_trace, parent);
+
+			ret = seek_ctf_trace_by_timestamp(tin,
+					iter_pos->u.seek_time,
+					iter->stream_heap);
+			if (ret < 0)
+				goto error;
+		}
+		return 0;
+	default:
+		/* not implemented */
+		goto error_arg;
 	}
 
 	return 0;
+
+error_arg:
+	ret = -EINVAL;
 error:
 	heap_free(iter->stream_heap);
-error_heap_init:
-	g_free(iter->stream_heap);
-	return -1;
+	if (heap_init(iter->stream_heap, 0, stream_compare) < 0) {
+		heap_free(iter->stream_heap);
+		g_free(iter->stream_heap);
+		iter->stream_heap = NULL;
+		ret = -ENOMEM;
+	}
+	return ret;
 }
 
 struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
@@ -239,6 +353,17 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 
 error:
 	return NULL;
+}
+
+struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
+		uint64_t timestamp)
+{
+	struct bt_iter_pos *pos;
+
+	pos = g_new0(struct bt_iter_pos, 1);
+	pos->type = BT_SEEK_TIME;
+	pos->u.seek_time = timestamp;
+	return pos;
 }
 
 /*
@@ -393,8 +518,10 @@ void bt_iter_destroy(struct bt_iter *iter)
 	struct bt_callback_chain *bt_chain;
 	int i, j;
 
-	heap_free(iter->stream_heap);
-	g_free(iter->stream_heap);
+	if (iter->stream_heap) {
+		heap_free(iter->stream_heap);
+		g_free(iter->stream_heap);
+	}
 
 	/* free all events callbacks */
 	if (iter->main_callbacks.callback)
