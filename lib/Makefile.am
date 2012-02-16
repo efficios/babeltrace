@@ -9,7 +9,8 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 			   iterator.c \
 			   context.c \
 			   trace-handle.c \
-			   trace-collection.c
+			   trace-collection.c \
+			   ctf-events.c
 
 libbabeltrace_la_LIBADD = \
 	$(top_builddir)/types/libbabeltrace_types.la \

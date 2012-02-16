@@ -24,6 +24,7 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf/events.h>
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/iterator.h>
 #include <popt.h>
@@ -397,10 +398,9 @@ int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
 	struct bt_iter *iter;
-	struct ctf_stream *stream;
-	struct ctf_stream_event *event;
 	struct ctf_text_stream_pos *sout;
 	struct bt_iter_pos begin_pos;
+	struct bt_ctf_event *ctf_event;
 	int ret;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
@@ -412,8 +412,8 @@ int convert_trace(struct trace_descriptor *td_write,
 		ret = -1;
 		goto error_iter;
 	}
-	while (bt_iter_read_event(iter, &stream, &event) == 0) {
-		ret = sout->parent.event_cb(&sout->parent, stream);
+	while ((ctf_event = bt_iter_read_ctf_event(iter))) {
+		ret = sout->parent.event_cb(&sout->parent, ctf_event->stream);
 		if (ret) {
 			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;

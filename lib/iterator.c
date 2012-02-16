@@ -27,6 +27,7 @@
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/iterator.h>
 #include <babeltrace/prio_heap.h>
+#include <babeltrace/ctf/events.h>
 #include <inttypes.h>
 
 struct stream_saved_pos {
@@ -577,27 +578,27 @@ end:
 	return ret;
 }
 
-int bt_iter_read_event(struct bt_iter *iter,
-		struct ctf_stream **stream,
-		struct ctf_stream_event **event)
+struct bt_ctf_event *bt_iter_read_ctf_event(struct bt_iter *iter)
 {
 	struct ctf_file_stream *file_stream;
-	int ret = 0;
+	struct bt_ctf_event *ret = &iter->current_ctf_event;
 
 	file_stream = heap_maximum(iter->stream_heap);
 	if (!file_stream) {
 		/* end of file for all streams */
-		ret = EOF;
-		goto end;
+		goto stop;
 	}
-	*stream = &file_stream->parent;
-	*event = g_ptr_array_index((*stream)->events_by_id, (*stream)->event_id);
+	ret->stream = &file_stream->parent;
+	ret->event = g_ptr_array_index(ret->stream->events_by_id,
+			ret->stream->event_id);
 
-	if ((*stream)->stream_id > iter->callbacks->len)
+	if (ret->stream->stream_id > iter->callbacks->len)
 		goto end;
 
-	process_callbacks(iter, *stream);
+	process_callbacks(iter, ret->stream);
 
 end:
 	return ret;
+stop:
+	return NULL;
 }

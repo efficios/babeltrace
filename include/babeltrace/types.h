@@ -23,6 +23,7 @@
 
 #include <babeltrace/align.h>
 #include <babeltrace/list.h>
+#include <babeltrace/ctf/events.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -67,20 +68,6 @@ struct definition_scope {
 	 * identifying the dynamic scope.
 	 */
 	GArray *scope_path;	/* array of GQuark */
-};
-
-enum ctf_type_id {
-	CTF_TYPE_UNKNOWN = 0,
-	CTF_TYPE_INTEGER,
-	CTF_TYPE_FLOAT,
-	CTF_TYPE_ENUM,
-	CTF_TYPE_STRING,
-	CTF_TYPE_STRUCT,
-	CTF_TYPE_UNTAGGED_VARIANT,
-	CTF_TYPE_VARIANT,
-	CTF_TYPE_ARRAY,
-	CTF_TYPE_SEQUENCE,
-	NR_CTF_TYPES,
 };
 
 struct declaration {

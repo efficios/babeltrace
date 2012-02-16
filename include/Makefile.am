@@ -4,7 +4,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/context.h \
 	babeltrace/iterator.h \
 	babeltrace/trace-collection.h \
-	babeltrace/trace-handle.h
+	babeltrace/trace-handle.h \
+	babeltrace/ctf/events.h
 
 
 noinst_HEADERS = \
