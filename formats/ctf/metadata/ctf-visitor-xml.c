@@ -124,7 +124,7 @@ int ctf_visitor_print_type_specifier_list(FILE *fd, int depth, struct ctf_node *
 
 	print_tabs(fd, depth);
 	fprintf(fd, "<type_specifier_list>\n");
-	cds_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
+	bt_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
 		ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 		if (ret)
 			return ret;
@@ -280,10 +280,10 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 	fprintf(fd, "<type_declarator>\n");
 	depth++;
 
-	if (!cds_list_empty(&node->u.type_declarator.pointers)) {
+	if (!bt_list_empty(&node->u.type_declarator.pointers)) {
 		print_tabs(fd, depth);
 		fprintf(fd, "<pointers>\n");
-		cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+		bt_list_for_each_entry(iter, &node->u.type_declarator.pointers,
 					siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
@@ -318,10 +318,10 @@ int ctf_visitor_print_type_declarator(FILE *fd, int depth, struct ctf_node *node
 			fprintf(fd, "<length>\n");
 			print_tabs(fd, depth);
 			fprintf(fd, "</length>\n");
-		} else if (!cds_list_empty(&node->u.type_declarator.u.nested.length)) {
+		} else if (!bt_list_empty(&node->u.type_declarator.u.nested.length)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<length>\n");
-			cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
 						siblings) {
 				ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 				if (ret)
@@ -363,23 +363,23 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ROOT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<root>\n");
-		cds_list_for_each_entry(iter, &node->u.root.declaration_list,
+		bt_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -391,7 +391,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_EVENT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<event>\n");
-		cds_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -402,7 +402,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_STREAM:
 		print_tabs(fd, depth);
 		fprintf(fd, "<stream>\n");
-		cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -413,7 +413,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENV:
 		print_tabs(fd, depth);
 		fprintf(fd, "<env>\n");
-		cds_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -424,7 +424,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_TRACE:
 		print_tabs(fd, depth);
 		fprintf(fd, "<trace>\n");
-		cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -435,7 +435,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_CLOCK:
 		print_tabs(fd, depth);
 		fprintf(fd, "<clock>\n");
-		cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -451,7 +451,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		depth++;
 		print_tabs(fd, depth);
 		fprintf(fd, "<left>\n");
-		cds_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
+		bt_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -462,7 +462,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<right>\n");
-		cds_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
+		bt_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -486,7 +486,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<type_declarator_list>\n");
-		cds_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -508,7 +508,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<type_declarator_list>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -531,7 +531,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<type_declarator_list>\n");
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -583,7 +583,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_FLOATING_POINT:
 		print_tabs(fd, depth);
 		fprintf(fd, "<floating_point>\n");
-		cds_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -594,7 +594,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_INTEGER:
 		print_tabs(fd, depth);
 		fprintf(fd, "<integer>\n");
-		cds_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -605,7 +605,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_STRING:
 		print_tabs(fd, depth);
 		fprintf(fd, "<string>\n");
-		cds_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -619,7 +619,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		if (node->u.enumerator.id)
 			fprintf(fd, " id=\"%s\"", node->u.enumerator.id);
 		fprintf(fd, ">\n");
-		cds_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
+		bt_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -648,7 +648,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<enumerator_list>\n");
-		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -668,7 +668,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 
 		print_tabs(fd, depth);
 		fprintf(fd, "<type_declarator_list>\n");
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -684,7 +684,7 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		if (node->u.variant.choice)
 			fprintf(fd, " choice=\"%s\"", node->u.variant.choice);
 		fprintf(fd, ">\n");
-		cds_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
@@ -699,17 +699,17 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 				node->u._struct.name);
 		else
 			fprintf(fd, "<struct>\n");
-		cds_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
 			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		print_tabs(fd, depth);
 		fprintf(fd, "</struct>\n");
-		if (!cds_list_empty(&node->u._struct.min_align)) {
+		if (!bt_list_empty(&node->u._struct.min_align)) {
 			print_tabs(fd, depth);
 			fprintf(fd, "<align>\n");
-			cds_list_for_each_entry(iter, &node->u._struct.min_align, siblings) {
+			bt_list_for_each_entry(iter, &node->u._struct.min_align, siblings) {
 				ret = ctf_visitor_print_xml(fd, depth + 1, iter);
 				if (ret)
 					return ret;

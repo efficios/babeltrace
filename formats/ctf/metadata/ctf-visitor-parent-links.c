@@ -128,7 +128,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 
 	depth++;
 
-	cds_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+	bt_list_for_each_entry(iter, &node->u.type_declarator.pointers,
 				siblings) {
 		iter->parent = node;
 		ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -148,7 +148,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 		if (!node->u.type_declarator.u.nested.abstract_array) {
-			cds_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
 						siblings) {
 				iter->parent = node;
 				ret = ctf_visitor_parent_links(fd, depth + 1, iter);
@@ -181,31 +181,31 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 
 	switch (node->type) {
 	case NODE_ROOT:
-		cds_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.trace, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.stream, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.event, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+		bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -214,7 +214,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 
 	case NODE_EVENT:
-		cds_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -222,7 +222,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_STREAM:
-		cds_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -230,7 +230,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_ENV:
-		cds_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -238,7 +238,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_TRACE:
-		cds_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -246,7 +246,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_CLOCK:
-		cds_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -256,13 +256,13 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_CTF_EXPRESSION:
 		depth++;
-		cds_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
+		bt_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
+		bt_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -279,7 +279,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		ret = ctf_visitor_parent_links(fd, depth + 1, node->u._typedef.type_specifier_list);
 		if (ret)
 			return ret;
-		cds_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -293,7 +293,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.typealias_target.type_specifier_list);
 		if (ret)
 			return ret;
-		cds_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -307,7 +307,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		ret = ctf_visitor_parent_links(fd, depth + 1, node->u.typealias_alias.type_specifier_list);
 		if (ret)
 			return ret;
-		cds_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -327,7 +327,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		cds_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
+		bt_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -349,7 +349,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 
 	case NODE_FLOATING_POINT:
-		cds_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -357,7 +357,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_INTEGER:
-		cds_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -365,7 +365,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_STRING:
-		cds_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
+		bt_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -373,7 +373,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_ENUMERATOR:
-		cds_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
+		bt_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -388,7 +388,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 
-		cds_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -402,7 +402,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 			node->u.struct_or_variant_declaration.type_specifier_list);
 		if (ret)
 			return ret;
-		cds_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -410,7 +410,7 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_VARIANT:
-		cds_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
@@ -418,13 +418,13 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_STRUCT:
-		cds_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
+		bt_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)
 				return ret;
 		}
-		cds_list_for_each_entry(iter, &node->u._struct.min_align,
+		bt_list_for_each_entry(iter, &node->u._struct.min_align,
 					siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);

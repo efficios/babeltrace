@@ -17,8 +17,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef _CDS_LIST_H
-#define _CDS_LIST_H	1
+#ifndef _BT_LIST_H
+#define _BT_LIST_H	1
 
 /* The definitions of this file are adopted from those which can be
    found in the Linux kernel headers to enable people familiar with
@@ -26,26 +26,26 @@
 
 
 /* Basic type for the double-link list.  */
-struct cds_list_head
+struct bt_list_head
 {
-  struct cds_list_head *next;
-  struct cds_list_head *prev;
+  struct bt_list_head *next;
+  struct bt_list_head *prev;
 };
 
 
 /* Define a variable with the head and tail of the list.  */
-#define CDS_LIST_HEAD(name) \
-  struct cds_list_head name = { &(name), &(name) }
+#define BT_LIST_HEAD(name) \
+  struct bt_list_head name = { &(name), &(name) }
 
 /* Initialize a new list head.  */
-#define CDS_INIT_LIST_HEAD(ptr) \
+#define BT_INIT_LIST_HEAD(ptr) \
   (ptr)->next = (ptr)->prev = (ptr)
 
-#define CDS_LIST_HEAD_INIT(name) { .prev = &(name), .next = &(name) }
+#define BT_LIST_HEAD_INIT(name) { .prev = &(name), .next = &(name) }
 
 /* Add new element at the head of the list.  */
 static inline void
-cds_list_add (struct cds_list_head *newp, struct cds_list_head *head)
+bt_list_add (struct bt_list_head *newp, struct bt_list_head *head)
 {
   head->next->prev = newp;
   newp->next = head->next;
@@ -56,7 +56,7 @@ cds_list_add (struct cds_list_head *newp, struct cds_list_head *head)
 
 /* Add new element at the tail of the list.  */
 static inline void
-cds_list_add_tail (struct cds_list_head *newp, struct cds_list_head *head)
+bt_list_add_tail (struct bt_list_head *newp, struct bt_list_head *head)
 {
   head->prev->next = newp;
   newp->next = head;
@@ -67,7 +67,7 @@ cds_list_add_tail (struct cds_list_head *newp, struct cds_list_head *head)
 
 /* Remove element from list.  */
 static inline void
-__cds_list_del (struct cds_list_head *prev, struct cds_list_head *next)
+__bt_list_del (struct bt_list_head *prev, struct bt_list_head *next)
 {
   next->prev = prev;
   prev->next = next;
@@ -75,23 +75,23 @@ __cds_list_del (struct cds_list_head *prev, struct cds_list_head *next)
 
 /* Remove element from list.  */
 static inline void
-cds_list_del (struct cds_list_head *elem)
+bt_list_del (struct bt_list_head *elem)
 {
-  __cds_list_del (elem->prev, elem->next);
+  __bt_list_del (elem->prev, elem->next);
 }
 
 /* delete from list, add to another list as head */
 static inline void
-cds_list_move (struct cds_list_head *elem, struct cds_list_head *head)
+bt_list_move (struct bt_list_head *elem, struct bt_list_head *head)
 {
-  __cds_list_del (elem->prev, elem->next);
-  cds_list_add (elem, head);
+  __bt_list_del (elem->prev, elem->next);
+  bt_list_add (elem, head);
 }
 
 /* replace an old entry.
  */
 static inline void
-cds_list_replace(struct cds_list_head *old, struct cds_list_head *_new)
+bt_list_replace(struct bt_list_head *old, struct bt_list_head *_new)
 {
 	_new->next = old->next;
 	_new->prev = old->prev;
@@ -101,7 +101,7 @@ cds_list_replace(struct cds_list_head *old, struct cds_list_head *_new)
 
 /* Join two lists.  */
 static inline void
-cds_list_splice (struct cds_list_head *add, struct cds_list_head *head)
+bt_list_splice (struct bt_list_head *add, struct bt_list_head *head)
 {
   /* Do nothing if the list which gets added is empty.  */
   if (add != add->next)
@@ -115,56 +115,56 @@ cds_list_splice (struct cds_list_head *add, struct cds_list_head *head)
 
 
 /* Get typed element from list at a given position.  */
-#define cds_list_entry(ptr, type, member) \
+#define bt_list_entry(ptr, type, member) \
   ((type *) ((char *) (ptr) - (unsigned long) (&((type *) 0)->member)))
 
 
 
 /* Iterate forward over the elements of the list.  */
-#define cds_list_for_each(pos, head) \
+#define bt_list_for_each(pos, head) \
   for (pos = (head)->next; pos != (head); pos = pos->next)
 
 
 /* Iterate forward over the elements of the list.  */
-#define cds_list_for_each_prev(pos, head) \
+#define bt_list_for_each_prev(pos, head) \
   for (pos = (head)->prev; pos != (head); pos = pos->prev)
 
 
 /* Iterate backwards over the elements list.  The list elements can be
    removed from the list while doing this.  */
-#define cds_list_for_each_prev_safe(pos, p, head) \
+#define bt_list_for_each_prev_safe(pos, p, head) \
   for (pos = (head)->prev, p = pos->prev; \
        pos != (head); \
        pos = p, p = pos->prev)
 
-#define cds_list_for_each_entry(pos, head, member)				\
-	for (pos = cds_list_entry((head)->next, typeof(*pos), member);	\
+#define bt_list_for_each_entry(pos, head, member)				\
+	for (pos = bt_list_entry((head)->next, typeof(*pos), member);	\
 	     &pos->member != (head);					\
-	     pos = cds_list_entry(pos->member.next, typeof(*pos), member))
+	     pos = bt_list_entry(pos->member.next, typeof(*pos), member))
 
-#define cds_list_for_each_entry_reverse(pos, head, member)			\
-	for (pos = cds_list_entry((head)->prev, typeof(*pos), member);	\
+#define bt_list_for_each_entry_reverse(pos, head, member)			\
+	for (pos = bt_list_entry((head)->prev, typeof(*pos), member);	\
 	     &pos->member != (head);					\
-	     pos = cds_list_entry(pos->member.prev, typeof(*pos), member))
+	     pos = bt_list_entry(pos->member.prev, typeof(*pos), member))
 
-#define cds_list_for_each_entry_safe(pos, p, head, member)			\
-	for (pos = cds_list_entry((head)->next, typeof(*pos), member),	\
-		     p = cds_list_entry(pos->member.next,typeof(*pos), member); \
+#define bt_list_for_each_entry_safe(pos, p, head, member)			\
+	for (pos = bt_list_entry((head)->next, typeof(*pos), member),	\
+		     p = bt_list_entry(pos->member.next,typeof(*pos), member); \
 	     &pos->member != (head);					\
-	     pos = p, p = cds_list_entry(pos->member.next, typeof(*pos), member))
+	     pos = p, p = bt_list_entry(pos->member.next, typeof(*pos), member))
 
-static inline int cds_list_empty(struct cds_list_head *head)
+static inline int bt_list_empty(struct bt_list_head *head)
 {
 	return head == head->next;
 }
 
-static inline void cds_list_replace_init(struct cds_list_head *old,
-				     struct cds_list_head *_new)
+static inline void bt_list_replace_init(struct bt_list_head *old,
+				     struct bt_list_head *_new)
 {
-	struct cds_list_head *head = old->next;
-	cds_list_del(old);
-	cds_list_add_tail(_new, head);
-	CDS_INIT_LIST_HEAD(old);
+	struct bt_list_head *head = old->next;
+	bt_list_del(old);
+	bt_list_add_tail(_new, head);
+	BT_INIT_LIST_HEAD(old);
 }
 
-#endif	/* _CDS_LIST_H */
+#endif	/* _BT_LIST_H */

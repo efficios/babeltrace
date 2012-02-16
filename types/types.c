@@ -22,6 +22,7 @@
 
 #include <babeltrace/format.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/types.h>
 #include <limits.h>
 #include <glib.h>
 #include <errno.h>

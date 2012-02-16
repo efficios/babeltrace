@@ -20,6 +20,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
+#include <babeltrace/types.h>
 #include <errno.h>
 
 #ifndef max

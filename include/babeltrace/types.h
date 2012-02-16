@@ -186,7 +186,7 @@ struct enum_range {
 };
 
 struct enum_range_to_quark {
-	struct cds_list_head node;
+	struct bt_list_head node;
 	struct enum_range range;
 	GQuark quark;
 };
@@ -205,7 +205,7 @@ struct enum_range_to_quark {
  */
 struct enum_table {
 	GHashTable *value_to_quark_set;		/* (value, GQuark GArray) */
-	struct cds_list_head range_to_quark;	/* (range, GQuark) */
+	struct bt_list_head range_to_quark;	/* (range, GQuark) */
 	GHashTable *quark_to_range_set;		/* (GQuark, range GArray) */
 };
 

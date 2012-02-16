@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <assert.h>
 
 struct walk_data {
 	FILE *fp;

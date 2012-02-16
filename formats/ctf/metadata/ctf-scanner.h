@@ -20,7 +20,7 @@ struct ctf_scanner {
 	struct ctf_ast *ast;
 	struct ctf_scanner_scope root_scope;
 	struct ctf_scanner_scope *cs;
-	struct cds_list_head allocated_strings;
+	struct bt_list_head allocated_strings;
 };
 
 struct ctf_scanner *ctf_scanner_alloc(FILE *input);

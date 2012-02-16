@@ -21,6 +21,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
 #include <babeltrace/format.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 
 static

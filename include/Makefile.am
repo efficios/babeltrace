@@ -4,7 +4,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/context.h \
 	babeltrace/iterator.h \
 	babeltrace/trace-collection.h \
-	babeltrace/trace-handle.h
+	babeltrace/trace-handle.h \
+	babeltrace/list.h
 
 babeltracectfinclude_HEADERS = \
        babeltrace/ctf/events.h
@@ -17,7 +18,6 @@ noinst_HEADERS = \
 	babeltrace/compiler.h \
 	babeltrace/context-internal.h \
 	babeltrace/iterator-internal.h \
-	babeltrace/list.h \
 	babeltrace/prio_heap.h \
 	babeltrace/types.h \
 	babeltrace/ctf-ir/metadata.h \

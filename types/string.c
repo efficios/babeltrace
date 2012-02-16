@@ -21,6 +21,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
 #include <babeltrace/format.h>
+#include <babeltrace/types.h>
 
 static
 struct definition *_string_definition_new(struct declaration *declaration,

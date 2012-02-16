@@ -21,7 +21,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <babeltrace/types.h>
+#include <babeltrace/list.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <glib.h>
@@ -35,11 +35,11 @@ struct trace_descriptor {
 
 struct mmap_stream {
 	int fd;
-	struct cds_list_head list;
+	struct bt_list_head list;
 };
 
 struct mmap_stream_list {
-	struct cds_list_head head;
+	struct bt_list_head head;
 };
 
 struct format {

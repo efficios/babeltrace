@@ -20,6 +20,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -118,7 +119,7 @@ GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
 				 get_uint_v(&v));
 
 	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
+	bt_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
 		if (iter->range.start._unsigned > v || iter->range.end._unsigned < v)
 			continue;
 		if (!ranges) {
@@ -165,7 +166,7 @@ GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 				 get_int_v(&v));
 
 	/* Range lookup */
-	cds_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
+	bt_list_for_each_entry(iter, &enum_declaration->table.range_to_quark, node) {
 		if (iter->range.start._signed > v || iter->range.end._signed < v)
 			continue;
 		if (!ranges) {
@@ -263,7 +264,7 @@ void enum_signed_insert_range_to_quark(struct declaration_enum *enum_declaration
 	struct enum_range_to_quark *rtoq;
 
 	rtoq = g_new(struct enum_range_to_quark, 1);
-	cds_list_add(&rtoq->node, &enum_declaration->table.range_to_quark);
+	bt_list_add(&rtoq->node, &enum_declaration->table.range_to_quark);
 	rtoq->range.start._signed = start;
 	rtoq->range.end._signed = end;
 	rtoq->quark = q;
@@ -276,7 +277,7 @@ void enum_unsigned_insert_range_to_quark(struct declaration_enum *enum_declarati
 	struct enum_range_to_quark *rtoq;
 
 	rtoq = g_new(struct enum_range_to_quark, 1);
-	cds_list_add(&rtoq->node, &enum_declaration->table.range_to_quark);
+	bt_list_add(&rtoq->node, &enum_declaration->table.range_to_quark);
 	rtoq->range.start._unsigned = start;
 	rtoq->range.end._unsigned = end;
 	rtoq->quark = q;
@@ -364,8 +365,8 @@ void _enum_declaration_free(struct declaration *declaration)
 	struct enum_range_to_quark *iter, *tmp;
 
 	g_hash_table_destroy(enum_declaration->table.value_to_quark_set);
-	cds_list_for_each_entry_safe(iter, tmp, &enum_declaration->table.range_to_quark, node) {
-		cds_list_del(&iter->node);
+	bt_list_for_each_entry_safe(iter, tmp, &enum_declaration->table.range_to_quark, node) {
+		bt_list_del(&iter->node);
 		g_free(iter);
 	}
 	g_hash_table_destroy(enum_declaration->table.quark_to_range_set);
@@ -384,7 +385,7 @@ struct declaration_enum *
 							    enum_val_equal,
 							    enum_val_free,
 							    enum_range_set_free);
-	CDS_INIT_LIST_HEAD(&enum_declaration->table.range_to_quark);
+	BT_INIT_LIST_HEAD(&enum_declaration->table.range_to_quark);
 	enum_declaration->table.quark_to_range_set = g_hash_table_new_full(g_direct_hash,
 							g_direct_equal,
 							NULL, enum_range_set_free);

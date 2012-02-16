@@ -1509,7 +1509,7 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 	 * for each stream, try to open, check magic number, and get the
 	 * stream ID to add to the right location in the stream array.
 	 */
-	cds_list_for_each_entry(mmap_info, &mmap_list->head, list) {
+	bt_list_for_each_entry(mmap_info, &mmap_list->head, list) {
 		ret = ctf_open_mmap_stream_read(td, mmap_info, move_pos_slow);
 		if (ret) {
 			fprintf(stderr, "[error] Open file mmap stream error.\n");
