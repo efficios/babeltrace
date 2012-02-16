@@ -1,3 +1,15 @@
+2012-02-16 Babeltrace 0.12
+	* Typedef bt_intern_str
+	* Export the list header with a new namespace
+	* API : add_trace return the trace_handle id
+	* fix manpage: refer to lttng(1)
+	* API : cleanup includes
+	* API : Access CTF events fields
+	* manpage: Add babeltrace-log.1
+	* API : seek by timestamp
+	* Move the add_traces_recursive out of the library
+	* manpage: use pp instead of PP
+
 2012-02-13 Babeltrace 0.11.1
 	* Add trace-collection.h to the installed headers
 
