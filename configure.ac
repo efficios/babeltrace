@@ -55,6 +55,9 @@ AC_SUBST(PACKAGE_CFLAGS)
 babeltraceincludedir="${includedir}/babeltrace"
 AC_SUBST(babeltraceincludedir)
 
+babeltracectfincludedir="${includedir}/babeltrace/ctf"
+AC_SUBST(babeltracectfincludedir)
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile

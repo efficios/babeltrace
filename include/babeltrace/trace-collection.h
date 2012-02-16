@@ -21,6 +21,8 @@
  * all copies or substantial portions of the Software.
  */
 
+struct trace_collection;
+
 void init_trace_collection(struct trace_collection *tc);
 void finalize_trace_collection(struct trace_collection *tc);
 int trace_collection_add(struct trace_collection *tc,

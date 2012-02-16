@@ -18,7 +18,12 @@
  */
 
 #include <glib.h>
+#include <babeltrace/context.h>
 #include <babeltrace/format.h>
+#include <babeltrace/iterator.h>
+#include <babeltrace/trace-collection.h>
+#include <babeltrace/trace-handle.h>
+#include <babeltrace/ctf/events.h>
 
 typedef GQuark bt_event_name;
 
