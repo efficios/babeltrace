@@ -62,6 +62,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	struct trace_descriptor *td;
 	struct format *fmt;
 	struct bt_trace_handle *handle;
+	int ret;
 
 	fmt = bt_lookup_format(g_quark_from_string(format_str));
 	td = fmt->open_trace(path, O_RDONLY,
@@ -69,7 +70,8 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (!td) {
 		fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
 				path);
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* Create an handle for the trace */
@@ -77,7 +79,8 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (handle < 0) {
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
-		return -1;
+		ret = -1;
+		goto end;
 	}
 	handle->format = fmt;
 	handle->td = td;
@@ -88,7 +91,11 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	g_hash_table_insert(ctx->trace_handles,
 		(gpointer) (unsigned long) handle->id,
 		handle);
-	return trace_collection_add(ctx->tc, td);
+	ret = trace_collection_add(ctx->tc, td);
+	if (ret == 0)
+		return handle->id;
+end:
+	return ret;
 }
 
 void bt_context_remove_trace(struct bt_context *ctx, int handle_id)

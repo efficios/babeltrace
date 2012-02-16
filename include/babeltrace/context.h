@@ -41,7 +41,8 @@ struct bt_context *bt_context_create(void);
  *
  * Open a trace
  *
- * Return: 0 on success, nonzero on failure.
+ * Return: the trace handle id (>= 0) on success, a negative
+ * value on error.
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format);
