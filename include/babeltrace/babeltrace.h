@@ -17,15 +17,12 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <glib.h>
 #include <babeltrace/context.h>
 #include <babeltrace/format.h>
 #include <babeltrace/iterator.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/trace-handle.h>
 #include <babeltrace/ctf/events.h>
-
-typedef GQuark bt_event_name;
 
 /* Forward declarations */
 struct bt_iter;
@@ -92,7 +89,7 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  * callbacks/read/add more callbacks/read some more.)
  */
 int bt_iter_add_callback(struct bt_iter *iter,
-		bt_event_name event, void *private_data, int flags,
+		bt_intern_str event, void *private_data, int flags,
 		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
 					   void *caller_data),
 		struct bt_dependencies *depends,

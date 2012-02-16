@@ -21,6 +21,8 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <glib.h>
+
 struct bt_callback {
 	int prio;		/* Callback order priority. Lower first. Dynamically assigned from dependency graph. */
 	void *private_data;

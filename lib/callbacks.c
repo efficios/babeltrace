@@ -61,7 +61,7 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
  * bt_iter_add_callback: Add a callback to iterator.
  */
 int bt_iter_add_callback(struct bt_iter *iter,
-		bt_event_name event, void *private_data, int flags,
+		bt_intern_str event, void *private_data, int flags,
 		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
 					   void *private_data),
 		struct bt_dependencies *depends,

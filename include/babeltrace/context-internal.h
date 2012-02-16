@@ -23,6 +23,8 @@
  * included in all copies or substantial portions of the Software.
  */
 
+#include <glib.h>
+
 struct trace_collection;
 struct GHashTable;
 

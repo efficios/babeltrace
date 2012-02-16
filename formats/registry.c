@@ -40,12 +40,12 @@ void __attribute__((destructor)) format_finalize(void);
  */
 GHashTable *format_registry;
 
-struct format *bt_lookup_format(GQuark qname)
+struct format *bt_lookup_format(bt_intern_str name)
 {
 	if (!init_done)
 		return NULL;
 	return g_hash_table_lookup(format_registry,
-				   (gconstpointer) (unsigned long) qname);
+				   (gconstpointer) (unsigned long) name);
 }
 
 static void show_format(gpointer key, gpointer value, gpointer user_data)

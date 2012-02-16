@@ -24,7 +24,8 @@
 #include <babeltrace/list.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <glib.h>
+
+typedef int bt_intern_str;
 
 /* forward declaration */
 struct ctf_stream_pos;
@@ -43,7 +44,7 @@ struct mmap_stream_list {
 };
 
 struct format {
-	GQuark name;
+	bt_intern_str name;
 
 	struct trace_descriptor *(*open_trace)(const char *path, int flags,
 			void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
@@ -55,7 +56,7 @@ struct format {
 	void (*close_trace)(struct trace_descriptor *descriptor);
 };
 
-extern struct format *bt_lookup_format(GQuark qname);
+extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct format *format);
 
