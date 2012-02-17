@@ -307,14 +307,17 @@ end:
  * bt_context_add_traces_recursive: Open a trace recursively
  *
  * Find each trace present in the subdirectory starting from the given
- * path, and add them to the context.
+ * path, and add them to the context. The packet_seek parameter can be
+ * NULL: this specify to use the default format packet_seek.
  *
  * Return: 0 on success, nonzero on failure.
  * Unable to open toplevel: failure.
  * Unable to open some subdirectory or file: warn and continue;
  */
 int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
-		const char *format_str)
+		const char *format_str,
+		void (*packet_seek)(struct stream_pos *pos,
+			size_t offset, int whence))
 {
 	FTS *tree;
 	FTSENT *node;
@@ -374,7 +377,8 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 			}
 
 			trace_id = bt_context_add_trace(ctx,
-				node->fts_accpath, format_str);
+				node->fts_accpath, format_str,
+				packet_seek);
 			if (trace_id < 0) {
 				fprintf(stderr, "[error] [Context] opening trace \"%s\" from %s "
 					"for reading.\n", node->fts_accpath, path);
@@ -481,7 +485,7 @@ int main(int argc, char **argv)
 	ctx = bt_context_create();
 
 	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
-			opt_input_format);
+			opt_input_format, NULL);
 	if (ret) {
 		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);

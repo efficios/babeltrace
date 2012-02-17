@@ -57,7 +57,9 @@ struct bt_context *bt_context_create(void)
 }
 
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
-		const char *format_name)
+		const char *format_name,
+		void (*packet_seek)(struct stream_pos *pos,
+			size_t offset, int whence))
 {
 	struct trace_descriptor *td;
 	struct format *fmt;
@@ -71,7 +73,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		ret = -1;
 		goto end;
 	}
-	td = fmt->open_trace(path, O_RDONLY, NULL, NULL);
+	td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
 	if (!td) {
 		fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
 				path);

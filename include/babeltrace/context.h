@@ -23,8 +23,11 @@
  * included in all copies or substantial portions of the Software.
  */
 
+#include <unistd.h>
+
 /* struct bt_context is opaque to the user */
 struct bt_context;
+struct stream_pos;
 
 /*
  * bt_context_create : create a Babeltrace context
@@ -39,13 +42,16 @@ struct bt_context *bt_context_create(void);
 /*
  * bt_context_add_trace : Add a trace by path to the context
  *
- * Open a trace
+ * Open a trace. Parameter packet_seek can be NULL to use the default
+ * packet_seek handle of the format.
  *
  * Return: the trace handle id (>= 0) on success, a negative
  * value on error.
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
-		const char *format);
+		const char *format,
+		void (*packet_seek)(struct stream_pos *pos,
+			size_t offset, int whence));
 
 /*
  * bt_context_remove_trace: Remove a trace from the context.
