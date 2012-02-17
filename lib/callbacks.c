@@ -205,7 +205,7 @@ void process_callbacks(struct bt_iter *iter,
 	if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks)
 		goto end;
 
-	if (stream->event_id > bt_stream_cb->per_id_callbacks->len)
+	if (stream->event_id >= bt_stream_cb->per_id_callbacks->len)
 		goto end;
 	bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
 			struct bt_callback_chain, stream->event_id);
