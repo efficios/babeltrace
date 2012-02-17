@@ -42,8 +42,14 @@ struct bt_context *bt_context_create(void);
 /*
  * bt_context_add_trace : Add a trace by path to the context
  *
- * Open a trace. Parameter packet_seek can be NULL to use the default
- * packet_seek handle of the format.
+ * Open a trace.
+ *
+ * packet_seek can be NULL to use the default packet_seek handler
+ * provided by the trace format. If non-NULL, it is used as an override
+ * of the handler for seeks across packets. It takes as parameter a
+ * stream position, the packet index it needs to seek to (for SEEK_SET),
+ * and a "whence" parameter (either SEEK_CUR: seek to next packet, or
+ * SEEK_SET: seek to packet at packet index).
  *
  * Return: the trace handle id (>= 0) on success, a negative
  * value on error.
