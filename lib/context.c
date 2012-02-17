@@ -57,14 +57,20 @@ struct bt_context *bt_context_create(void)
 }
 
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
-		const char *format_str)
+		const char *format_name)
 {
 	struct trace_descriptor *td;
 	struct format *fmt;
 	struct bt_trace_handle *handle;
 	int ret;
 
-	fmt = bt_lookup_format(g_quark_from_string(format_str));
+	fmt = bt_lookup_format(g_quark_from_string(format_name));
+	if (!fmt) {
+		fprintf(stderr, "[error] [Context] Format \"%s\" unknown.\n\n",
+			format_name);
+		ret = -1;
+		goto end;
+	}
 	td = fmt->open_trace(path, O_RDONLY,
 			     ctf_move_pos_slow, NULL);
 	if (!td) {
