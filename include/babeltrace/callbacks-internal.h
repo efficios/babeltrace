@@ -22,6 +22,7 @@
  */
 
 #include <glib.h>
+#include <babeltrace/ctf/events.h>
 
 struct bt_callback {
 	int prio;		/* Callback order priority. Lower first. Dynamically assigned from dependency graph. */
@@ -30,7 +31,7 @@ struct bt_callback {
 	struct bt_dependencies *depends;
 	struct bt_dependencies *weak_depends;
 	struct bt_dependencies *provides;
-	enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
+	enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 				   void *private_data);
 };
 

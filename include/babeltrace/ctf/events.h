@@ -90,9 +90,9 @@ const char *bt_ctf_event_name(struct bt_ctf_event *event);
 uint64_t bt_ctf_get_timestamp(struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_field_list: returns an array of *def pointing to each field of
- * the event. The array is NULL terminated.
- * On error : return NULL.
+ * bt_ctf_get_field_list: set list pointer to an array of definition
+ * pointers and set count to the number of elements in the array.
+ * Return 0 on success and a negative value on error.
  */
 int bt_ctf_get_field_list(struct bt_ctf_event *event,
 		struct definition *scope,

@@ -267,7 +267,7 @@ uint64_t bt_ctf_get_uint64(struct definition *field)
 	return ret;
 }
 
-int64_t bt_ctf_get_signed_int64(struct definition *field)
+int64_t bt_ctf_get_int64(struct definition *field)
 {
 	int ret = 0;
 

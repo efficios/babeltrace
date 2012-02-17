@@ -25,6 +25,7 @@
 #include <babeltrace/context-internal.h>
 #include <babeltrace/ctf-ir/metadata.h>
 #include <babeltrace/iterator-internal.h>
+#include <babeltrace/ctf/events.h>
 #include <inttypes.h>
 
 static
@@ -62,7 +63,7 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
  */
 int bt_iter_add_callback(struct bt_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
+		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 					   void *private_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,
@@ -177,7 +178,7 @@ void process_callbacks(struct bt_iter *iter,
 	struct bt_callback *cb;
 	int i;
 	enum bt_cb_ret ret;
-	struct bt_ctf_data ctf_data;
+	struct bt_ctf_event ctf_data;
 
 	ctf_data.event = extract_ctf_stream_event(stream);
 	ctf_data.stream = stream;

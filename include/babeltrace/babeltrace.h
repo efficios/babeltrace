@@ -37,11 +37,6 @@ enum bt_cb_ret {
 	BT_CB_ERROR_CONTINUE	= 3,
 };
 
-struct bt_ctf_data {
-	struct ctf_stream_event *event;
-	struct ctf_stream *stream;
-};
-
 /*
  * Receives a variable number of strings as parameter, ended with NULL.
  */
@@ -90,7 +85,7 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  */
 int bt_iter_add_callback(struct bt_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(struct bt_ctf_data *ctf_data,
+		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 					   void *caller_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,

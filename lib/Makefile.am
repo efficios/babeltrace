@@ -14,4 +14,6 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 
 libbabeltrace_la_LIBADD = \
 	$(top_builddir)/types/libbabeltrace_types.la \
+	$(top_builddir)/formats/libbabeltrace_registry.la \
+	$(top_builddir)/formats/ctf/libctf.la \
 	prio_heap/libprio_heap.la
