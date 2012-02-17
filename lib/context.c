@@ -26,7 +26,10 @@
 #include <babeltrace/trace-handle-internal.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/format.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 #include <fts.h>
 #include <fcntl.h> /* For O_RDONLY */
