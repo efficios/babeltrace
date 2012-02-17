@@ -1384,6 +1384,12 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 	struct ctf_trace *td;
 	int ret;
 
+	/*
+	 * If packet_seek is NULL, we provide our default version.
+	 */
+	if (!packet_seek)
+		packet_seek = ctf_packet_seek;
+
 	td = g_new0(struct ctf_trace, 1);
 
 	switch (flags & O_ACCMODE) {

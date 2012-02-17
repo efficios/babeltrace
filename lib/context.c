@@ -31,9 +31,6 @@
 #include <fts.h>
 #include <fcntl.h> /* For O_RDONLY */
 
-/* TODO ybrosseau: should be hidden in the CTF format */
-#include <babeltrace/ctf/types.h> /* for ctf_packet_seek */
-
 #include <glib.h>
 
 struct bt_context *bt_context_create(void)
@@ -71,8 +68,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		ret = -1;
 		goto end;
 	}
-	td = fmt->open_trace(path, O_RDONLY,
-			     ctf_packet_seek, NULL);
+	td = fmt->open_trace(path, O_RDONLY, NULL, NULL);
 	if (!td) {
 		fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
 				path);
