@@ -22,6 +22,5 @@
 #include <babeltrace/iterator.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/trace-handle.h>
-#include <babeltrace/ctf/events.h>
 
 #endif /* _BABELTRACE_H */
