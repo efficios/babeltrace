@@ -8,13 +8,13 @@ babeltraceinclude_HEADERS = \
 	babeltrace/list.h
 
 babeltracectfinclude_HEADERS = \
-       babeltrace/ctf/events.h
+       babeltrace/ctf/events.h \
+       babeltrace/ctf/callbacks.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield.h \
-	babeltrace/callbacks-internal.h \
 	babeltrace/compiler.h \
 	babeltrace/context-internal.h \
 	babeltrace/iterator-internal.h \
@@ -25,4 +25,5 @@ noinst_HEADERS = \
 	babeltrace/ctf/metadata.h \
 	babeltrace/ctf-text/types.h \
 	babeltrace/ctf/types.h \
+	babeltrace/ctf/callbacks-internal.h \
 	babeltrace/trace-handle-internal.h

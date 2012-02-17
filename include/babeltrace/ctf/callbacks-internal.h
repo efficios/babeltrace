@@ -52,7 +52,6 @@ struct bt_dependencies {
 	int refcount;			/* free when decremented to 0 */
 };
 
-void process_callbacks(struct bt_iter *iter,
-	struct ctf_stream *stream);
+void process_callbacks(struct bt_ctf_iter *iter, struct ctf_stream *stream);
 
 #endif /* _BABELTRACE_CALLBACKS_INTERNAL_H */

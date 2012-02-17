@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/callbacks-internal.h>
 #include <babeltrace/context.h>
 #include <babeltrace/context-internal.h>
 #include <babeltrace/iterator-internal.h>
@@ -445,10 +444,6 @@ int bt_iter_init(struct bt_iter *iter,
 
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->end_pos = end_pos;
-	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
-	iter->recalculate_dep_graph = 0;
-	iter->main_callbacks.callback = NULL;
-	iter->dep_gc = g_ptr_array_new();
 	bt_context_get(ctx);
 	iter->ctx = ctx;
 
@@ -524,35 +519,10 @@ struct bt_iter *bt_iter_create(struct bt_context *ctx,
 
 void bt_iter_fini(struct bt_iter *iter)
 {
-	struct bt_stream_callbacks *bt_stream_cb;
-	struct bt_callback_chain *bt_chain;
-	int i, j;
-
 	if (iter->stream_heap) {
 		heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
 	}
-
-	/* free all events callbacks */
-	if (iter->main_callbacks.callback)
-		g_array_free(iter->main_callbacks.callback, TRUE);
-
-	/* free per-event callbacks */
-	for (i = 0; i < iter->callbacks->len; i++) {
-		bt_stream_cb = &g_array_index(iter->callbacks,
-				struct bt_stream_callbacks, i);
-		if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks)
-			continue;
-		for (j = 0; j < bt_stream_cb->per_id_callbacks->len; j++) {
-			bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
-					struct bt_callback_chain, j);
-			if (bt_chain->callback) {
-				g_array_free(bt_chain->callback, TRUE);
-			}
-		}
-		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
-	}
-
 	bt_context_put(iter->ctx);
 }
 

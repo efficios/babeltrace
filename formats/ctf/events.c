@@ -49,11 +49,39 @@ struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 		g_free(iter);
 		return NULL;
 	}
+	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
+	iter->recalculate_dep_graph = 0;
+	iter->main_callbacks.callback = NULL;
+	iter->dep_gc = g_ptr_array_new();
 	return iter;
 }
 
 void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 {
+	struct bt_stream_callbacks *bt_stream_cb;
+	struct bt_callback_chain *bt_chain;
+	int i, j;
+
+	/* free all events callbacks */
+	if (iter->main_callbacks.callback)
+		g_array_free(iter->main_callbacks.callback, TRUE);
+
+	/* free per-event callbacks */
+	for (i = 0; i < iter->callbacks->len; i++) {
+		bt_stream_cb = &g_array_index(iter->callbacks,
+				struct bt_stream_callbacks, i);
+		if (!bt_stream_cb || !bt_stream_cb->per_id_callbacks)
+			continue;
+		for (j = 0; j < bt_stream_cb->per_id_callbacks->len; j++) {
+			bt_chain = &g_array_index(bt_stream_cb->per_id_callbacks,
+					struct bt_callback_chain, j);
+			if (bt_chain->callback) {
+				g_array_free(bt_chain->callback, TRUE);
+			}
+		}
+		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
+	}
+
 	bt_iter_fini(&iter->parent);
 	g_free(iter);
 }
@@ -77,10 +105,10 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 	ret->event = g_ptr_array_index(ret->stream->events_by_id,
 			ret->stream->event_id);
 
-	if (ret->stream->stream_id > iter->parent.callbacks->len)
+	if (ret->stream->stream_id > iter->callbacks->len)
 		goto end;
 
-	process_callbacks(&iter->parent, ret->stream);
+	process_callbacks(iter, ret->stream);
 
 end:
 	return ret;

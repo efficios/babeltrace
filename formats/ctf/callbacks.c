@@ -20,12 +20,13 @@
 
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/callbacks-internal.h>
 #include <babeltrace/context.h>
 #include <babeltrace/context-internal.h>
 #include <babeltrace/ctf-ir/metadata.h>
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/ctf/events.h>
+#include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/ctf/callbacks-internal.h>
 #include <inttypes.h>
 
 static
@@ -59,9 +60,9 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
 }
 
 /*
- * bt_iter_add_callback: Add a callback to iterator.
+ * bt_ctf_iter_add_callback: Add a callback to CTF iterator.
  */
-int bt_iter_add_callback(struct bt_iter *iter,
+int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
 		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 					   void *private_data),
@@ -72,7 +73,7 @@ int bt_iter_add_callback(struct bt_iter *iter,
 	int i, stream_id;
 	gpointer *event_id_ptr;
 	unsigned long event_id;
-	struct trace_collection *tc = iter->ctx->tc;
+	struct trace_collection *tc = iter->parent.ctx->tc;
 
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
@@ -170,7 +171,7 @@ struct ctf_stream_event *extract_ctf_stream_event(struct ctf_stream *stream)
 	return event;
 }
 
-void process_callbacks(struct bt_iter *iter,
+void process_callbacks(struct bt_ctf_iter *iter,
 		       struct ctf_stream *stream)
 {
 	struct bt_stream_callbacks *bt_stream_cb;

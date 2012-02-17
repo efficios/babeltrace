@@ -5,7 +5,6 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 lib_LTLIBRARIES = libbabeltrace.la
 
 libbabeltrace_la_SOURCES = babeltrace.c \
-			   callbacks.c \
 			   iterator.c \
 			   context.c \
 			   trace-handle.c \
