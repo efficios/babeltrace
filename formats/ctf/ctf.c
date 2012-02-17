@@ -65,12 +65,12 @@ extern int yydebug;
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset, int whence),
+		void (*packet_seek)(struct stream_pos *pos, size_t offset, int whence),
 		FILE *metadata_fp);
 
 static
@@ -411,7 +411,7 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
 		if (fd >= 0)
-			ctf_move_pos_slow(&pos->parent, 0, SEEK_SET);	/* position for write */
+			ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 		break;
 	default:
 		assert(0);
@@ -436,7 +436,7 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 	(void) g_array_free(pos->packet_index, TRUE);
 }
 
-void ctf_move_pos_slow(struct stream_pos *stream_pos, size_t offset, int whence)
+void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
 {
 	struct ctf_stream_pos *pos =
 		container_of(stream_pos, struct ctf_stream_pos, parent);
@@ -770,7 +770,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -781,10 +781,10 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	metadata_stream = g_new0(struct ctf_file_stream, 1);
 
-	if (move_pos_slow) {
-		metadata_stream->pos.move_pos_slow = move_pos_slow;
+	if (packet_seek) {
+		metadata_stream->pos.packet_seek = packet_seek;
 	} else {
-		fprintf(stderr, "[error] move_pos_slow function undefined.\n");
+		fprintf(stderr, "[error] packet_seek function undefined.\n");
 		ret = -1;
 		goto end_stream;
 	}
@@ -1208,7 +1208,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 	}
 
 	/* Move pos back to beginning of file */
-	ctf_move_pos_slow(&pos->parent, 0, SEEK_SET);	/* position for write */
+	ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 
 	return 0;
 }
@@ -1243,7 +1243,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence))
 {
 	int ret;
@@ -1256,10 +1256,10 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	}
 	file_stream = g_new0(struct ctf_file_stream, 1);
 
-	if (move_pos_slow) {
-		file_stream->pos.move_pos_slow = move_pos_slow;
+	if (packet_seek) {
+		file_stream->pos.packet_seek = packet_seek;
 	} else {
-		fprintf(stderr, "[error] move_pos_slow function undefined.\n");
+		fprintf(stderr, "[error] packet_seek function undefined.\n");
 		ret = -1;
 		goto error_def;
 	}
@@ -1294,7 +1294,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	int ret;
@@ -1326,7 +1326,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	 * Keep the metadata file separate.
 	 */
 
-	ret = ctf_open_trace_metadata_read(td, move_pos_slow, metadata_fp);
+	ret = ctf_open_trace_metadata_read(td, packet_seek, metadata_fp);
 	if (ret) {
 		goto error_metadata;
 	}
@@ -1355,7 +1355,8 @@ int ctf_open_trace_read(struct ctf_trace *td,
 				|| !strcmp(diriter->d_name, "..")
 				|| !strcmp(diriter->d_name, "metadata"))
 			continue;
-		ret = ctf_open_file_stream_read(td, diriter->d_name, flags, move_pos_slow);
+		ret = ctf_open_file_stream_read(td, diriter->d_name,
+					flags, packet_seek);
 		if (ret) {
 			fprintf(stderr, "[error] Open file stream error.\n");
 			goto readdir_error;
@@ -1377,7 +1378,7 @@ error:
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1391,7 +1392,7 @@ struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 			fprintf(stderr, "[error] Path missing for input CTF trace.\n");
 			goto error;
 		}
-		ret = ctf_open_trace_read(td, path, flags, move_pos_slow, metadata_fp);
+		ret = ctf_open_trace_read(td, path, flags, packet_seek, metadata_fp);
 		if (ret)
 			goto error;
 		break;
@@ -1460,7 +1461,7 @@ end:
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		struct mmap_stream *mmap_info,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence))
 {
 	int ret;
@@ -1469,7 +1470,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	ctf_init_mmap_pos(&file_stream->pos, mmap_info);
 
-	file_stream->pos.move_pos_slow = move_pos_slow;
+	file_stream->pos.packet_seek = packet_seek;
 
 	ret = create_trace_definitions(td, &file_stream->parent);
 	if (ret) {
@@ -1495,14 +1496,14 @@ error_def:
 
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence),
 		FILE *metadata_fp)
 {
 	int ret;
 	struct mmap_stream *mmap_info;
 
-	ret = ctf_open_trace_metadata_read(td, ctf_move_pos_slow, metadata_fp);
+	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp);
 	if (ret) {
 		goto error;
 	}
@@ -1512,7 +1513,7 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 	 * stream ID to add to the right location in the stream array.
 	 */
 	bt_list_for_each_entry(mmap_info, &mmap_list->head, list) {
-		ret = ctf_open_mmap_stream_read(td, mmap_info, move_pos_slow);
+		ret = ctf_open_mmap_stream_read(td, mmap_info, packet_seek);
 		if (ret) {
 			fprintf(stderr, "[error] Open file mmap stream error.\n");
 			goto error;
@@ -1528,7 +1529,7 @@ error:
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct stream_pos *pos, size_t offset, int whence),
+		void (*packet_seek)(struct stream_pos *pos, size_t offset, int whence),
 		FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1539,12 +1540,12 @@ struct trace_descriptor *ctf_open_mmap_trace(
 				"required for mmap parsing\n");
 		goto error;
 	}
-	if (!move_pos_slow) {
-		fprintf(stderr, "[error] move_pos_slow function undefined.\n");
+	if (!packet_seek) {
+		fprintf(stderr, "[error] packet_seek function undefined.\n");
 		goto error;
 	}
 	td = g_new0(struct ctf_trace, 1);
-	ret = ctf_open_mmap_trace_read(td, mmap_list, move_pos_slow, metadata_fp);
+	ret = ctf_open_mmap_trace_read(td, mmap_list, packet_seek, metadata_fp);
 	if (ret)
 		goto error_free;
 

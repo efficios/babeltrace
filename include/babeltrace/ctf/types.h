@@ -62,7 +62,7 @@ struct ctf_stream_pos {
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 	ssize_t last_offset;	/* offset before the last read_event */
 	size_t cur_index;	/* current index in packet index */
-	void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
+	void (*packet_seek)(struct stream_pos *pos, size_t offset,
 			int whence); /* function called to switch packet */
 
 	int dummy;		/* dummy position, for length calculation */
@@ -90,7 +90,7 @@ int ctf_array_write(struct stream_pos *pos, struct definition *definition);
 int ctf_sequence_read(struct stream_pos *pos, struct definition *definition);
 int ctf_sequence_write(struct stream_pos *pos, struct definition *definition);
 
-void ctf_move_pos_slow(struct stream_pos *pos, size_t offset, int whence);
+void ctf_packet_seek(struct stream_pos *pos, size_t offset, int whence);
 
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
 void ctf_fini_pos(struct ctf_stream_pos *pos);
@@ -109,17 +109,17 @@ void ctf_move_pos(struct ctf_stream_pos *pos, size_t bit_offset)
 
 	if (pos->fd >= 0) {
 		/*
-		 * PROT_READ ctf_move_pos_slow is called from within
+		 * PROT_READ ctf_packet_seek is called from within
 		 * ctf_pos_get_event so end of packet does not change
 		 * the packet context on for the last event of the
 		 * packet.
 		 */
 		if ((pos->prot == PROT_WRITE)
 		    	&& (unlikely(pos->offset + bit_offset >= pos->packet_size))) {
-			printf_debug("ctf_move_pos_slow (before call): %zd\n",
+			printf_debug("ctf_packet_seek (before call): %zd\n",
 				     pos->offset);
-			ctf_move_pos_slow(&pos->parent, bit_offset, SEEK_CUR);
-			printf_debug("ctf_move_pos_slow (after call): %zd\n",
+			ctf_packet_seek(&pos->parent, bit_offset, SEEK_CUR);
+			printf_debug("ctf_packet_seek (after call): %zd\n",
 				     pos->offset);
 			return;
 		}
@@ -192,10 +192,10 @@ void ctf_pos_get_event(struct ctf_stream_pos *pos)
 {
 	assert(pos->offset <= pos->content_size);
 	if (pos->offset == pos->content_size) {
-		printf_debug("ctf_move_pos_slow (before call): %zd\n",
+		printf_debug("ctf_packet_seek (before call): %zd\n",
 			     pos->offset);
-		pos->move_pos_slow(&pos->parent, 0, SEEK_CUR);
-		printf_debug("ctf_move_pos_slow (after call): %zd\n",
+		pos->packet_seek(&pos->parent, 0, SEEK_CUR);
+		printf_debug("ctf_packet_seek (after call): %zd\n",
 			     pos->offset);
 	}
 }
