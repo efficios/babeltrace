@@ -24,6 +24,7 @@
  */
 
 #include <unistd.h>
+#include <babeltrace/format.h>
 
 /* struct bt_context is opaque to the user */
 struct bt_context;
@@ -51,13 +52,20 @@ struct bt_context *bt_context_create(void);
  * and a "whence" parameter (either SEEK_CUR: seek to next packet, or
  * SEEK_SET: seek to packet at packet index).
  *
+ * If "path" is NULL, stream_list is used instread as a list of streams
+ * to open for the trace.
+
+ * The metadata parameter acts as a metadata override when not NULL.
+ *
  * Return: the trace handle id (>= 0) on success, a negative
  * value on error.
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format,
 		void (*packet_seek)(struct stream_pos *pos,
-			size_t index, int whence));
+			size_t index, int whence),
+		struct mmap_stream_list *stream_list,
+		FILE *metadata);
 
 /*
  * bt_context_remove_trace: Remove a trace from the context.

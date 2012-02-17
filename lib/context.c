@@ -59,7 +59,9 @@ struct bt_context *bt_context_create(void)
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format_name,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
-			int whence))
+			int whence),
+		struct mmap_stream_list *stream_list,
+		FILE *metadata)
 {
 	struct trace_descriptor *td;
 	struct format *fmt;
@@ -73,12 +75,22 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		ret = -1;
 		goto end;
 	}
-	td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
-	if (!td) {
-		fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
-				path);
-		ret = -1;
-		goto end;
+	if (path) {
+		td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
+		if (!td) {
+			fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
+					path);
+			ret = -1;
+			goto end;
+		}
+	} else {
+		td = fmt->open_mmap_trace(stream_list, packet_seek, metadata);
+		if (!td) {
+			fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
+					path);
+			ret = -1;
+			goto end;
+		}
 	}
 
 	/* Create an handle for the trace */
