@@ -22,8 +22,6 @@
 
 /* Forward declarations */
 struct bt_iter;
-struct ctf_stream_event;
-struct ctf_stream;
 struct bt_saved_pos;
 
 struct bt_iter_pos {
