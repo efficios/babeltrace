@@ -116,7 +116,8 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 			continue;
 
 		stream_pos->cur_index = i;
-		stream_pos->move_pos_slow(stream_pos, index->offset, SEEK_SET);
+		stream_pos->move_pos_slow(&stream_pos->parent,
+			index->offset, SEEK_SET);
 		while (cfs->parent.timestamp < timestamp) {
 			ret = stream_read_event(cfs);
 			if (ret < 0)
@@ -203,8 +204,8 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 					saved_pos->cur_index);
 
 			stream_pos->cur_index = saved_pos->cur_index;
-			stream_pos->move_pos_slow(stream_pos, index->offset,
-					SEEK_SET);
+			stream_pos->move_pos_slow(&stream_pos->parent,
+					index->offset, SEEK_SET);
 
 			/*
 			 * the timestamp needs to be restored after
@@ -386,7 +387,8 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 		 */
 		break;
 	case BT_SEEK_BEGIN:
-		file_stream->pos.move_pos_slow(&file_stream->pos, 0, SEEK_SET);
+		file_stream->pos.move_pos_slow(&file_stream->pos.parent,
+				0, SEEK_SET);
 		ret = stream_read_event(file_stream);
 		break;
 	case BT_SEEK_TIME:

@@ -65,12 +65,12 @@ extern int yydebug;
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp);
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset, int whence),
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset, int whence),
 		FILE *metadata_fp);
 
 static
@@ -411,7 +411,7 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
 		if (fd >= 0)
-			ctf_move_pos_slow(pos, 0, SEEK_SET);	/* position for write */
+			ctf_move_pos_slow(&pos->parent, 0, SEEK_SET);	/* position for write */
 		break;
 	default:
 		assert(0);
@@ -436,8 +436,10 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 	(void) g_array_free(pos->packet_index, TRUE);
 }
 
-void ctf_move_pos_slow(struct ctf_stream_pos *pos, size_t offset, int whence)
+void ctf_move_pos_slow(struct stream_pos *stream_pos, size_t offset, int whence)
 {
+	struct ctf_stream_pos *pos =
+		container_of(stream_pos, struct ctf_stream_pos, parent);
 	struct ctf_file_stream *file_stream =
 		container_of(pos, struct ctf_file_stream, pos);
 	int ret;
@@ -768,7 +770,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -1206,7 +1208,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 	}
 
 	/* Move pos back to beginning of file */
-	ctf_move_pos_slow(pos, 0, SEEK_SET);	/* position for write */
+	ctf_move_pos_slow(&pos->parent, 0, SEEK_SET);	/* position for write */
 
 	return 0;
 }
@@ -1241,7 +1243,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence))
 {
 	int ret;
@@ -1292,7 +1294,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	int ret;
@@ -1375,7 +1377,7 @@ error:
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1458,7 +1460,7 @@ end:
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		struct mmap_stream *mmap_info,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence))
 {
 	int ret;
@@ -1493,7 +1495,7 @@ error_def:
 
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset,
 			int whence),
 		FILE *metadata_fp)
 {
@@ -1526,7 +1528,7 @@ error:
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset, int whence),
+		void (*move_pos_slow)(struct stream_pos *pos, size_t offset, int whence),
 		FILE *metadata_fp)
 {
 	struct ctf_trace *td;

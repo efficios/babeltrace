@@ -28,7 +28,7 @@
 typedef int bt_intern_str;
 
 /* forward declaration */
-struct ctf_stream_pos;
+struct stream_pos;
 
 /* Parent trace descriptor */
 struct trace_descriptor {
@@ -47,12 +47,14 @@ struct format {
 	bt_intern_str name;
 
 	struct trace_descriptor *(*open_trace)(const char *path, int flags,
-			void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-				int whence), FILE *metadata_fp);
+			void (*move_pos_slow)(struct stream_pos *pos,
+				size_t offset, int whence),
+			FILE *metadata_fp);
 	struct trace_descriptor *(*open_mmap_trace)(
 			struct mmap_stream_list *mmap_list,
-			void (*move_pos_slow)(struct ctf_stream_pos *pos, size_t offset,
-				int whence), FILE *metadata_fp);
+			void (*move_pos_slow)(struct stream_pos *pos,
+				size_t offset, int whence),
+			FILE *metadata_fp);
 	void (*close_trace)(struct trace_descriptor *descriptor);
 };
 
