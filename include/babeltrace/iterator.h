@@ -72,8 +72,7 @@ int bt_iter_next(struct bt_iter *iter);
  * The position returned by this function needs to be freed by
  * bt_iter_free_pos after use.
  */
-struct bt_iter_pos *
-	bt_iter_get_pos(struct bt_iter *iter);
+struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter);
 
 /*
  * bt_iter_free_pos - Free the position.
