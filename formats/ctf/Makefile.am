@@ -5,7 +5,8 @@ SUBDIRS = types metadata .
 lib_LTLIBRARIES = libctf.la
 
 libctf_la_SOURCES = \
-	ctf.c
+	ctf.c \
+	events.c
 
 libctf_la_LIBADD = \
 	types/libctf-types.la \

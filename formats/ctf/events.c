@@ -1,5 +1,5 @@
 /*
- * ctf_events.c
+ * ctf/events.c
  *
  * Babeltrace Library
  *
