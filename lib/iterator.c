@@ -115,9 +115,7 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 				index->timestamp_end <= timestamp)
 			continue;
 
-		stream_pos->cur_index = i;
-		stream_pos->packet_seek(&stream_pos->parent,
-			index->offset, SEEK_SET);
+		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
 		while (cfs->parent.timestamp < timestamp) {
 			ret = stream_read_event(cfs);
 			if (ret < 0)
@@ -191,7 +189,6 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 				i++) {
 			struct stream_saved_pos *saved_pos;
 			struct ctf_stream_pos *stream_pos;
-			struct packet_index *index;
 			struct ctf_stream *stream;
 
 			saved_pos = &g_array_index(
@@ -199,13 +196,9 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 					struct stream_saved_pos, i);
 			stream = &saved_pos->file_stream->parent;
 			stream_pos = &saved_pos->file_stream->pos;
-			index = &g_array_index(stream_pos->packet_index,
-					struct packet_index,
-					saved_pos->cur_index);
 
-			stream_pos->cur_index = saved_pos->cur_index;
 			stream_pos->packet_seek(&stream_pos->parent,
-					index->offset, SEEK_SET);
+					saved_pos->cur_index, SEEK_SET);
 
 			/*
 			 * the timestamp needs to be restored after

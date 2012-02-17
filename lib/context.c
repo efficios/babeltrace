@@ -58,8 +58,8 @@ struct bt_context *bt_context_create(void)
 
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format_name,
-		void (*packet_seek)(struct stream_pos *pos,
-			size_t offset, int whence))
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
+			int whence))
 {
 	struct trace_descriptor *td;
 	struct format *fmt;

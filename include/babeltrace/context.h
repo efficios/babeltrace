@@ -51,7 +51,7 @@ struct bt_context *bt_context_create(void);
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format,
 		void (*packet_seek)(struct stream_pos *pos,
-			size_t offset, int whence));
+			size_t index, int whence));
 
 /*
  * bt_context_remove_trace: Remove a trace from the context.

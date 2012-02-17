@@ -65,12 +65,14 @@ extern int yydebug;
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
-			int whence), FILE *metadata_fp);
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
+			int whence),
+		FILE *metadata_fp);
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset, int whence),
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
+			int whence),
 		FILE *metadata_fp);
 
 static
@@ -436,7 +438,11 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 	(void) g_array_free(pos->packet_index, TRUE);
 }
 
-void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
+/*
+ * for SEEK_CUR: go to next packet.
+ * for SEEK_POS: go to packet numer (index).
+ */
+void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 {
 	struct ctf_stream_pos *pos =
 		container_of(stream_pos, struct ctf_stream_pos, parent);
@@ -444,7 +450,7 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
 		container_of(pos, struct ctf_file_stream, pos);
 	int ret;
 	off_t off;
-	struct packet_index *index;
+	struct packet_index *packet_index;
 
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
@@ -468,11 +474,10 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
 		switch (whence) {
 		case SEEK_CUR:
 			/* The writer will add padding */
-			assert(pos->offset + offset == pos->packet_size);
 			pos->mmap_offset += WRITE_PACKET_LEN / CHAR_BIT;
 			break;
 		case SEEK_SET:
-			assert(offset == 0);	/* only seek supported for now */
+			assert(index == 0);	/* only seek supported for now */
 			pos->cur_index = 0;
 			break;
 		default:
@@ -495,27 +500,25 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
 				return;
 			}
 			/* For printing discarded event count */
-			index = &g_array_index(pos->packet_index,
+			packet_index = &g_array_index(pos->packet_index,
 					struct packet_index, pos->cur_index);
-			events_discarded_diff = index->events_discarded;
+			events_discarded_diff = packet_index->events_discarded;
 			file_stream->parent.prev_timestamp_end =
-						index->timestamp_end;
+						packet_index->timestamp_end;
 			if (pos->cur_index > 0) {
-				index = &g_array_index(pos->packet_index,
+				packet_index = &g_array_index(pos->packet_index,
 						struct packet_index,
 						pos->cur_index - 1);
-				events_discarded_diff -= index->events_discarded;
+				events_discarded_diff -= packet_index->events_discarded;
 			}
 			file_stream->parent.events_discarded = events_discarded_diff;
 			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
 			/* The reader will expect us to skip padding */
-			assert(pos->offset + offset == pos->content_size);
 			++pos->cur_index;
 			break;
 		}
 		case SEEK_SET:
-			if (offset == 0)
-				pos->cur_index = 0;
+			pos->cur_index = index;
 			file_stream->parent.prev_timestamp = 0;
 			file_stream->parent.prev_timestamp_end = 0;
 			break;
@@ -546,20 +549,19 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t offset, int whence)
 			pos->offset = EOF;
 			return;
 		}
-		index = &g_array_index(pos->packet_index, struct packet_index,
+		packet_index = &g_array_index(pos->packet_index, struct packet_index,
 				       pos->cur_index);
-		pos->mmap_offset = index->offset;
+		pos->mmap_offset = packet_index->offset;
 
 		/* Lookup context/packet size in index */
-		file_stream->parent.timestamp = index->timestamp_begin;
-		pos->content_size = index->content_size;
-		pos->packet_size = index->packet_size;
-		if (index->data_offset < index->content_size) {
+		file_stream->parent.timestamp = packet_index->timestamp_begin;
+		pos->content_size = packet_index->content_size;
+		pos->packet_size = packet_index->packet_size;
+		if (packet_index->data_offset < packet_index->content_size) {
 			pos->offset = 0;	/* will read headers */
-		} else if (index->data_offset == index->content_size) {
+		} else if (packet_index->data_offset == packet_index->content_size) {
 			/* empty packet */
-			pos->offset = index->data_offset;
-			offset = 0;
+			pos->offset = packet_index->data_offset;
 			whence = SEEK_CUR;
 			goto read_next_packet;
 		} else {
@@ -770,7 +772,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -1243,7 +1245,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret;
@@ -1294,7 +1296,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	int ret;
@@ -1378,7 +1380,7 @@ error:
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1467,7 +1469,7 @@ end:
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		struct mmap_stream *mmap_info,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret;
@@ -1502,7 +1504,7 @@ error_def:
 
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset,
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
@@ -1535,7 +1537,8 @@ error:
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t offset, int whence),
+		void (*packet_seek)(struct stream_pos *pos, size_t index,
+			int whence),
 		FILE *metadata_fp)
 {
 	struct ctf_trace *td;
