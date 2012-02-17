@@ -26,8 +26,6 @@
 
 /* Forward declarations */
 struct bt_iter;
-struct ctf_stream_event;
-struct ctf_stream;
 struct bt_dependencies;
 
 enum bt_cb_ret {
