@@ -43,12 +43,12 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...);
 
 /*
  * struct bt_dependencies must be destroyed explicitly if not passed as
- * parameter to a bt_iter_add_callback().
+ * parameter to a bt_ctf_iter_add_callback().
  */
 void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
 
 /*
- * bt_iter_add_callback: Add a callback to iterator.
+ * bt_ctf_iter_add_callback: Add a callback to iterator.
  *
  * @iter: trace collection iterator (input)
  * @event: event to target. 0 for all events.
@@ -72,14 +72,14 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  * destroyed, but they belong to the babeltrace library.
  *
  * (note to implementor: we need to keep a gptrarray of struct
- * bt_dependencies to "garbage collect" in struct bt_iter, and
+ * bt_dependencies to "garbage collect" in struct bt_ctf_iter, and
  * dependencies need to have a refcount to handle the case where they
  * would be passed to more than one iterator. Upon iterator detroy, we
  * iterate on all the gc ptrarray and decrement the refcounts, freeing
  * if we reach 0.)
  * (note to implementor: we calculate the dependency graph when
- * bt_iter_read_event() is executed after a
- * bt_iter_add_callback(). Beware that it is valid to create/add
+ * bt_ctf_iter_read_event() is executed after a
+ * bt_ctf_iter_add_callback(). Beware that it is valid to create/add
  * callbacks/read/add more callbacks/read some more.)
  */
 int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
