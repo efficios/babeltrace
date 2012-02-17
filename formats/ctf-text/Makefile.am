@@ -9,4 +9,4 @@ libctf_text_la_SOURCES = \
 
 libctf_text_la_LIBADD = \
 	types/libctf-text-types.la \
-	../libbabeltrace_registry.la
+	$(top_builddir)/lib/libbabeltrace.la

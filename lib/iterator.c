@@ -23,10 +23,10 @@
 #include <babeltrace/callbacks-internal.h>
 #include <babeltrace/context.h>
 #include <babeltrace/context-internal.h>
-#include <babeltrace/ctf/metadata.h>
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/iterator.h>
 #include <babeltrace/prio_heap.h>
+#include <babeltrace/ctf/metadata.h>
 #include <babeltrace/ctf/events.h>
 #include <inttypes.h>
 
@@ -435,15 +435,14 @@ end:
 	return ret;
 }
 
-struct bt_iter *bt_iter_create(struct bt_context *ctx,
+int bt_iter_init(struct bt_iter *iter,
+		struct bt_context *ctx,
 		struct bt_iter_pos *begin_pos,
 		struct bt_iter_pos *end_pos)
 {
 	int i, stream_id;
 	int ret = 0;
-	struct bt_iter *iter;
 
-	iter = g_new0(struct bt_iter, 1);
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->end_pos = end_pos;
 	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
@@ -498,17 +497,32 @@ struct bt_iter *bt_iter_create(struct bt_context *ctx,
 		}
 	}
 
-	return iter;
+	return 0;
 
 error:
 	heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
-	g_free(iter);
-	return NULL;
+	return ret;
 }
 
-void bt_iter_destroy(struct bt_iter *iter)
+struct bt_iter *bt_iter_create(struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos)
+{
+	struct bt_iter *iter;
+	int ret;
+
+	iter = g_new0(struct bt_iter, 1);
+	ret = bt_iter_init(iter, ctx, begin_pos, end_pos);
+	if (ret) {
+		g_free(iter);
+		return NULL;
+	}
+	return iter;
+}
+
+void bt_iter_fini(struct bt_iter *iter)
 {
 	struct bt_stream_callbacks *bt_stream_cb;
 	struct bt_callback_chain *bt_chain;
@@ -540,7 +554,11 @@ void bt_iter_destroy(struct bt_iter *iter)
 	}
 
 	bt_context_put(iter->ctx);
+}
 
+void bt_iter_destroy(struct bt_iter *iter)
+{
+	bt_iter_fini(iter);
 	g_free(iter);
 }
 
@@ -571,29 +589,4 @@ int bt_iter_next(struct bt_iter *iter)
 
 end:
 	return ret;
-}
-
-struct bt_ctf_event *bt_iter_read_ctf_event(struct bt_iter *iter)
-{
-	struct ctf_file_stream *file_stream;
-	struct bt_ctf_event *ret = &iter->current_ctf_event;
-
-	file_stream = heap_maximum(iter->stream_heap);
-	if (!file_stream) {
-		/* end of file for all streams */
-		goto stop;
-	}
-	ret->stream = &file_stream->parent;
-	ret->event = g_ptr_array_index(ret->stream->events_by_id,
-			ret->stream->event_id);
-
-	if (ret->stream->stream_id > iter->callbacks->len)
-		goto end;
-
-	process_callbacks(iter, ret->stream);
-
-end:
-	return ret;
-stop:
-	return NULL;
 }

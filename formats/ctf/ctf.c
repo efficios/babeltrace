@@ -22,6 +22,7 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf/events-internal.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <uuid/uuid.h>

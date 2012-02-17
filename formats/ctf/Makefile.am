@@ -12,4 +12,4 @@ libctf_la_LIBADD = \
 	types/libctf-types.la \
 	metadata/libctf-parser.la \
 	metadata/libctf-ast.la \
-	../libbabeltrace_registry.la
+	$(top_builddir)/lib/libbabeltrace.la

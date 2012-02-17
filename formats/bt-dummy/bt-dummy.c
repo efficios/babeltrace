@@ -32,8 +32,7 @@
 #include <stdlib.h>
 
 static
-int bt_dummy_write_event(struct stream_pos *ppos,
-			 struct ctf_stream *stream)
+int bt_dummy_write_event(struct stream_pos *ppos, struct ctf_stream *stream)
 {
 	return 0;
 }

@@ -24,10 +24,12 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/iterator.h>
 
 struct ctf_stream;
 struct ctf_stream_event;
 struct definition;
+struct bt_ctf_iter;
 
 /*
  * the top-level scopes in CTF
@@ -65,6 +67,42 @@ struct bt_ctf_event {
 	struct ctf_stream *stream;
 	struct ctf_stream_event *event;
 };
+
+/*
+ * bt_ctf_iter_read_event: Read the iterator's current event data.
+ *
+ * @iter: trace collection iterator (input)
+ * @stream: stream containing event at current position (output)
+ * @event: current event (output)
+ * Return 0 on success, negative error value on error.
+ */
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+
+/*
+ * bt_ctf_iter_create - Allocate a CTF trace collection iterator.
+ *
+ * begin_pos and end_pos are optional parameters to specify the position
+ * at which the trace collection should be seeked upon iterator
+ * creation, and the position at which iteration will start returning
+ * "EOF".
+ *
+ * By default, if begin_pos is NULL, a BT_SEEK_CUR is performed at
+ * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
+ * trace) is the EOF criterion.
+ */
+struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos);
+
+/*
+ * bt_ctf_get_iter - get iterator from ctf iterator.
+ */
+struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter);
+
+/*
+ * bt_ctf_iter_destroy - Free a CTF trace collection iterator.
+ */
+void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
 
 /*
  * bt_ctf_get_top_level_scope: return a definition of the top-level scope

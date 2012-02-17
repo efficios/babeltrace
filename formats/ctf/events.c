@@ -23,6 +23,10 @@
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/ctf-ir/metadata.h>
+#include <babeltrace/prio_heap.h>
+#include <babeltrace/iterator-internal.h>
+#include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/ctf/metadata.h>
 #include <glib.h>
 
 /*
@@ -31,6 +35,58 @@
  * bt_ctf_field_error only
  */
 __thread int bt_ctf_last_field_error = 0;
+
+struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos)
+{
+	struct bt_ctf_iter *iter;
+	int ret;
+
+	iter = g_new0(struct bt_ctf_iter, 1);
+	ret = bt_iter_init(&iter->parent, ctx, begin_pos, end_pos);
+	if (ret) {
+		g_free(iter);
+		return NULL;
+	}
+	return iter;
+}
+
+void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
+{
+	bt_iter_fini(&iter->parent);
+	g_free(iter);
+}
+
+struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter)
+{
+	return &iter->parent;
+}
+
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+{
+	struct ctf_file_stream *file_stream;
+	struct bt_ctf_event *ret = &iter->current_ctf_event;
+
+	file_stream = heap_maximum(iter->parent.stream_heap);
+	if (!file_stream) {
+		/* end of file for all streams */
+		goto stop;
+	}
+	ret->stream = &file_stream->parent;
+	ret->event = g_ptr_array_index(ret->stream->events_by_id,
+			ret->stream->event_id);
+
+	if (ret->stream->stream_id > iter->parent.callbacks->len)
+		goto end;
+
+	process_callbacks(&iter->parent, ret->stream);
+
+end:
+	return ret;
+stop:
+	return NULL;
+}
 
 struct definition *bt_ctf_get_top_level_scope(struct bt_ctf_event *event,
 		enum bt_ctf_scope scope)

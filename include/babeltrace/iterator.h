@@ -19,7 +19,6 @@
 
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
-#include <babeltrace/ctf/events.h>
 
 /* Forward declarations */
 struct bt_iter;
@@ -106,15 +105,5 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
  */
 struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
 		uint64_t timestamp);
-
-/*
- * bt_iter_read_ctf_event: Read the iterator's current event data.
- *
- * @iter: trace collection iterator (input)
- * @stream: stream containing event at current position (output)
- * @event: current event (output)
- * Return 0 on success, negative error value on error.
- */
-struct bt_ctf_event *bt_iter_read_ctf_event(struct bt_iter *iter);
 
 #endif /* _BABELTRACE_ITERATOR_H */

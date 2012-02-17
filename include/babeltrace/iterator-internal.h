@@ -21,6 +21,7 @@
  * all copies or substantial portions of the Software.
  */
 
+#include <babeltrace/callbacks-internal.h>
 #include <babeltrace/ctf/events.h>
 
 /*
@@ -31,7 +32,6 @@ struct bt_iter {
 	struct ptr_heap *stream_heap;
 	struct bt_context *ctx;
 	struct bt_iter_pos *end_pos;
-	struct bt_ctf_event current_ctf_event;		/* last read event */
 	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
 	/*
@@ -50,5 +50,11 @@ struct bt_iter {
 	 */
 	GPtrArray *dep_gc;
 };
+
+int bt_iter_init(struct bt_iter *iter,
+		struct bt_context *ctx,
+		struct bt_iter_pos *begin_pos,
+		struct bt_iter_pos *end_pos);
+void bt_iter_fini(struct bt_iter *iter);
 
 #endif /* _BABELTRACE_ITERATOR_INTERNAL_H */

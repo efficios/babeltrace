@@ -401,7 +401,7 @@ error:
 int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
-	struct bt_iter *iter;
+	struct bt_ctf_iter *iter;
 	struct ctf_text_stream_pos *sout;
 	struct bt_iter_pos begin_pos;
 	struct bt_ctf_event *ctf_event;
@@ -411,25 +411,25 @@ int convert_trace(struct trace_descriptor *td_write,
 			trace_descriptor);
 
 	begin_pos.type = BT_SEEK_BEGIN;
-	iter = bt_iter_create(ctx, &begin_pos, NULL);
+	iter = bt_ctf_iter_create(ctx, &begin_pos, NULL);
 	if (!iter) {
 		ret = -1;
 		goto error_iter;
 	}
-	while ((ctf_event = bt_iter_read_ctf_event(iter))) {
+	while ((ctf_event = bt_ctf_iter_read_event(iter))) {
 		ret = sout->parent.event_cb(&sout->parent, ctf_event->stream);
 		if (ret) {
 			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;
 		}
-		ret = bt_iter_next(iter);
+		ret = bt_iter_next(bt_ctf_get_iter(iter));
 		if (ret < 0)
 			goto end;
 	}
 	ret = 0;
 
 end:
-	bt_iter_destroy(iter);
+	bt_ctf_iter_destroy(iter);
 error_iter:
 	return ret;
 }

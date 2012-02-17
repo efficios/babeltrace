@@ -22,6 +22,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf/events-internal.h>
 #include <inttypes.h>
 #include <uuid/uuid.h>
 #include <sys/mman.h>
@@ -211,8 +212,8 @@ const char *print_loglevel(int value)
 }
 
 static
-int ctf_text_write_event(struct stream_pos *ppos,
-			 struct ctf_stream *stream)
+int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream *stream)
+			 
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);

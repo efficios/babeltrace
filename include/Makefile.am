@@ -21,6 +21,7 @@ noinst_HEADERS = \
 	babeltrace/prio_heap.h \
 	babeltrace/types.h \
 	babeltrace/ctf-ir/metadata.h \
+	babeltrace/ctf/events-internal.h \
 	babeltrace/ctf/metadata.h \
 	babeltrace/ctf-text/types.h \
 	babeltrace/ctf/types.h \

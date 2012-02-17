@@ -6,4 +6,4 @@ libbt_dummy_la_SOURCES = \
 	bt-dummy.c
 
 libbt_dummy_la_LIBADD = \
-	../libbabeltrace_registry.la
+	$(top_builddir)/lib/libbabeltrace.la

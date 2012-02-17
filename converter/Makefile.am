@@ -13,7 +13,6 @@ babeltrace_SOURCES = \
 babeltrace_LDFLAGS = -Wl,--no-as-needed
 babeltrace_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/libbabeltrace_registry.la \
 	$(top_builddir)/formats/ctf/libctf.la \
 	$(top_builddir)/formats/ctf/metadata/libctf-ast.la \
 	$(top_builddir)/formats/ctf-text/libctf-text.la \
@@ -22,5 +21,5 @@ babeltrace_LDADD = \
 babeltrace_log_SOURCES = babeltrace-log.c
 
 babeltrace_log_LDADD = \
-	$(top_builddir)/formats/libbabeltrace_registry.la \
+	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libctf.la
