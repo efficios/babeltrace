@@ -1,3 +1,25 @@
+2012-02-20 Babeltrace 1.0.0-pre1
+	* Generically print tracer version (and env) in verbose mode
+	* Fix open_mmap_trace missing support
+	* fix: context.h add missing documentation for packet_seek parameter
+	* Cleanup iterator.h
+	* Fix callback.h documentation
+	* Cleanup: babeltrace.h does not need to include ctf/events.h
+	* API fix: Move callbacks to CTF plugin
+	* Removed unneeded ctf_* forward declarations from babeltrace.h
+	* Remove unneeded forward declarations (ctf-specific) from iterator.h
+	* fix: move read event from iterator to event.h
+	* Fix: ctf specific events.c needs to be within CTF plugin
+	* API fix: packet_seek should take an index rather than offset
+	* Fix API: allow packet_seek override
+	* Fix: add lib missing includes
+	* Fix: packet_seek is local to plugins, but can be overridden
+	* Fix API: rename unclear move_pos_slow to packet_seek
+	* Fix: Check for unknown format
+	* Fix: do not use ctf-specific struct in format.h
+	* fix : callback type, doc and links to libbabeltrace
+	* Fix : callback chain len
+
 2012-02-16 Babeltrace 0.12
 	* Typedef bt_intern_str
 	* Export the list header with a new namespace
