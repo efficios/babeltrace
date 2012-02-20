@@ -51,6 +51,20 @@ static
 int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 		     struct declaration_scope *parent_declaration_scope, struct ctf_trace *trace);
 
+static
+int is_unary_string(struct bt_list_head *head)
+{
+	struct ctf_node *node;
+
+	bt_list_for_each_entry(node, head, siblings) {
+		if (node->type != NODE_UNARY_EXPRESSION)
+			return 0;
+		if (node->u.unary_expression.type != UNARY_STRING)
+			return 0;
+	}
+	return 1;
+}
+
 /*
  * String returned must be freed by the caller using g_free.
  */
@@ -134,6 +148,20 @@ GQuark get_map_clock_name_value(struct bt_list_head *head)
 }
 
 static
+int is_unary_unsigned(struct bt_list_head *head)
+{
+	struct ctf_node *node;
+
+	bt_list_for_each_entry(node, head, siblings) {
+		if (node->type != NODE_UNARY_EXPRESSION)
+			return 0;
+		if (node->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
+			return 0;
+	}
+	return 1;
+}
+
+static
 int get_unary_unsigned(struct bt_list_head *head, uint64_t *value)
 {
 	struct ctf_node *node;
@@ -148,6 +176,20 @@ int get_unary_unsigned(struct bt_list_head *head, uint64_t *value)
 		i++;
 	}
 	return 0;
+}
+
+static
+int is_unary_signed(struct bt_list_head *head)
+{
+	struct ctf_node *node;
+
+	bt_list_for_each_entry(node, head, siblings) {
+		if (node->type != NODE_UNARY_EXPRESSION)
+			return 0;
+		if (node->u.unary_expression.type != UNARY_SIGNED_CONSTANT)
+			return 0;
+	}
+	return 1;
 }
 
 static
@@ -2393,7 +2435,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->procname, right, TRACER_ENV_LEN);
 			env->procname[TRACER_ENV_LEN - 1] = '\0';
-			printf_verbose("env.procname = %s\n", env->procname);
+			printf_verbose("env.procname = \"%s\"\n", env->procname);
 		} else if (!strcmp(left, "domain")) {
 			char *right;
 
@@ -2408,7 +2450,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->domain, right, TRACER_ENV_LEN);
 			env->domain[TRACER_ENV_LEN - 1] = '\0';
-			printf_verbose("env.domain = %s\n", env->domain);
+			printf_verbose("env.domain = \"%s\"\n", env->domain);
 		} else if (!strcmp(left, "sysname")) {
 			char *right;
 
@@ -2423,8 +2465,8 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->sysname, right, TRACER_ENV_LEN);
 			env->sysname[TRACER_ENV_LEN - 1] = '\0';
-			printf_verbose("env.sysname = %s\n", env->sysname);
-		} else if (!strcmp(left, "release")) {
+			printf_verbose("env.sysname = \"%s\"\n", env->sysname);
+		} else if (!strcmp(left, "kernel_release")) {
 			char *right;
 
 			if (env->release[0]) {
@@ -2438,8 +2480,8 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->release, right, TRACER_ENV_LEN);
 			env->release[TRACER_ENV_LEN - 1] = '\0';
-			printf_verbose("env.release = %s\n", env->release);
-		} else if (!strcmp(left, "version")) {
+			printf_verbose("env.release = \"%s\"\n", env->release);
+		} else if (!strcmp(left, "kernel_version")) {
 			char *right;
 
 			if (env->version[0]) {
@@ -2453,9 +2495,30 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			}
 			strncpy(env->version, right, TRACER_ENV_LEN);
 			env->version[TRACER_ENV_LEN - 1] = '\0';
-			printf_verbose("env.version = %s\n", env->version);
+			printf_verbose("env.version = \"%s\"\n", env->version);
 		} else {
-			printf_verbose("%s: attribute \"%s\" is unknown in environment declaration.\n", __func__, left);
+			if (is_unary_string(&node->u.ctf_expression.right)) {
+				char *right;
+
+				right = concatenate_unary_strings(&node->u.ctf_expression.right);
+				printf_verbose("env.%s = \"%s\"\n", left, right);
+			} else if (is_unary_unsigned(&node->u.ctf_expression.right)) {
+				uint64_t v;
+				int ret;
+
+				ret = get_unary_unsigned(&node->u.ctf_expression.right, &v);
+				assert(ret == 0);
+				printf_verbose("env.%s = %" PRIu64 "\n", left, v);
+			} else if (is_unary_signed(&node->u.ctf_expression.right)) {
+				int64_t v;
+				int ret;
+
+				ret = get_unary_signed(&node->u.ctf_expression.right, &v);
+				assert(ret == 0);
+				printf_verbose("env.%s = %" PRId64 "\n", left, v);
+			} else {
+				printf_verbose("%s: attribute \"%s\" has unknown type.\n", __func__, left);
+			}
 		}
 
 error:
