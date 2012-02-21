@@ -535,16 +535,25 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			 * be printed in the output.
 			 */
 			if (file_stream->parent.events_discarded) {
-				fflush(stdout);
-				fprintf(stderr, "[warning] Tracer discarded %d events at end of stream between [",
-					file_stream->parent.events_discarded);
-				ctf_print_timestamp(stderr, &file_stream->parent,
-					file_stream->parent.prev_timestamp);
-				fprintf(stderr, "] and [");
-				ctf_print_timestamp(stderr, &file_stream->parent,
-					file_stream->parent.prev_timestamp_end);
-				fprintf(stderr, "]. You should consider increasing the buffer size.\n");
-				fflush(stderr);
+				/*
+				 * We need to check if we are in trace
+				 * read or called from packet indexing.
+				 * In this last case, the collection is
+				 * not there, so we cannot print the
+				 * timestamps.
+				 */
+				if ((&file_stream->parent)->stream_class->trace->collection) {
+					fflush(stdout);
+					fprintf(stderr, "[warning] Tracer discarded %d events at end of stream between [",
+							file_stream->parent.events_discarded);
+					ctf_print_timestamp(stderr, &file_stream->parent,
+							file_stream->parent.prev_timestamp);
+					fprintf(stderr, "] and [");
+					ctf_print_timestamp(stderr, &file_stream->parent,
+							file_stream->parent.prev_timestamp_end);
+					fprintf(stderr, "]. You should consider increasing the buffer size.\n");
+					fflush(stderr);
+				}
 				file_stream->parent.events_discarded = 0;
 			}
 			pos->offset = EOF;
