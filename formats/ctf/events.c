@@ -224,7 +224,7 @@ const char *bt_ctf_field_name(const struct definition *def)
 	return NULL;
 }
 
-enum ctf_type_id bt_ctf_field_type(struct definition *def)
+enum ctf_type_id bt_ctf_field_type(const struct definition *def)
 {
 	if (def)
 		return def->declaration->id;
@@ -339,7 +339,7 @@ int bt_ctf_field_get_error(void)
 	return ret;
 }
 
-uint64_t bt_ctf_get_uint64(struct definition *field)
+uint64_t bt_ctf_get_uint64(const struct definition *field)
 {
 	unsigned int ret = 0;
 
@@ -351,7 +351,7 @@ uint64_t bt_ctf_get_uint64(struct definition *field)
 	return ret;
 }
 
-int64_t bt_ctf_get_int64(struct definition *field)
+int64_t bt_ctf_get_int64(const struct definition *field)
 {
 	int ret = 0;
 
@@ -364,7 +364,7 @@ int64_t bt_ctf_get_int64(struct definition *field)
 
 }
 
-char *bt_ctf_get_char_array(struct definition *field)
+char *bt_ctf_get_char_array(const struct definition *field)
 {
 	char *ret = NULL;
 
@@ -376,7 +376,7 @@ char *bt_ctf_get_char_array(struct definition *field)
 	return ret;
 }
 
-char *bt_ctf_get_string(struct definition *field)
+char *bt_ctf_get_string(const struct definition *field)
 {
 	char *ret = NULL;
 

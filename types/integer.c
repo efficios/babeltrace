@@ -107,7 +107,7 @@ void _integer_definition_free(struct definition *definition)
 	g_free(integer);
 }
 
-uint64_t get_unsigned_int(struct definition *field)
+uint64_t get_unsigned_int(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -122,7 +122,7 @@ uint64_t get_unsigned_int(struct definition *field)
 	return (uint64_t)integer_definition->value._signed;
 }
 
-int64_t get_signed_int(struct definition *field)
+int64_t get_signed_int(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;

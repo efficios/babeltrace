@@ -160,7 +160,7 @@ const char *bt_ctf_field_name(const struct definition *def);
 /*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
  */
-enum ctf_type_id bt_ctf_field_type(struct definition *def);
+enum ctf_type_id bt_ctf_field_type(const struct definition *def);
 
 /*
  * Field access functions
@@ -172,10 +172,10 @@ enum ctf_type_id bt_ctf_field_type(struct definition *def);
  * returned is undefined. To check if an error occured, use the
  * bt_ctf_field_error() function after accessing a field.
  */
-uint64_t bt_ctf_get_uint64(struct definition *field);
-int64_t bt_ctf_get_int64(struct definition *field);
-char *bt_ctf_get_char_array(struct definition *field);
-char *bt_ctf_get_string(struct definition *field);
+uint64_t bt_ctf_get_uint64(const struct definition *field);
+int64_t bt_ctf_get_int64(const struct definition *field);
+char *bt_ctf_get_char_array(const struct definition *field);
+char *bt_ctf_get_string(const struct definition *field);
 
 /*
  * bt_ctf_field_error: returns the last error code encountered while

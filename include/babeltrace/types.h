@@ -373,8 +373,8 @@ struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
 				  int base, enum ctf_string_encoding encoding,
 				  struct ctf_clock *clock);
-uint64_t get_unsigned_int(struct definition *field);
-int64_t get_signed_int(struct definition *field);
+uint64_t get_unsigned_int(const struct definition *field);
+int64_t get_signed_int(const struct definition *field);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
@@ -421,7 +421,7 @@ struct declaration_enum *
 
 struct declaration_string *
 	string_declaration_new(enum ctf_string_encoding encoding);
-char *get_string(struct definition *field);
+char *get_string(const struct definition *field);
 
 struct declaration_struct *
 	struct_declaration_new(struct declaration_scope *parent_scope,
@@ -486,7 +486,7 @@ struct declaration_array *
 uint64_t array_len(struct definition_array *array);
 struct definition *array_index(struct definition_array *array, uint64_t i);
 int array_rw(struct stream_pos *pos, struct definition *definition);
-GString *get_char_array(struct definition *field);
+GString *get_char_array(const struct definition *field);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong

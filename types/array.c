@@ -207,7 +207,7 @@ struct definition *array_index(struct definition_array *array, uint64_t i)
 	return g_ptr_array_index(array->elems, i);
 }
 
-GString *get_char_array(struct definition *field)
+GString *get_char_array(const struct definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;
