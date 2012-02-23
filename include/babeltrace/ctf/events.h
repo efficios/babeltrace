@@ -123,7 +123,14 @@ struct definition *bt_ctf_get_top_level_scope(struct bt_ctf_event *event,
 const char *bt_ctf_event_name(struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_timestamp: returns the timestamp of the event or -1ULL on error
+ * bt_ctf_get_timestamp_raw: returns the timestamp of the event as written in
+ * the packet or -1ULL on error
+ */
+uint64_t bt_ctf_get_timestamp_raw(struct bt_ctf_event *event);
+
+/*
+ * bt_ctf_get_timestamp: returns the timestamp of the event offsetted with the
+ * system clock source or -1ULL on error
  */
 uint64_t bt_ctf_get_timestamp(struct bt_ctf_event *event);
 
