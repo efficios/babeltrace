@@ -1,9 +1,9 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-lib_LTLIBRARIES = libbt-dummy.la
+lib_LTLIBRARIES = libbabeltrace-dummy.la
 
-libbt_dummy_la_SOURCES = \
+libbabeltrace_dummy_la_SOURCES = \
 	bt-dummy.c
 
-libbt_dummy_la_LIBADD = \
+libbabeltrace_dummy_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la

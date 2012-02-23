@@ -2,7 +2,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 BUILT_SOURCES = ctf-parser.h
 AM_YFLAGS = -t -d -v
 
-lib_LTLIBRARIES = libctf-parser.la libctf-ast.la
+noinst_LTLIBRARIES = libctf-parser.la libctf-ast.la
 
 noinst_HEADERS = \
 	ctf-scanner.h \
