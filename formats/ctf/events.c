@@ -29,6 +29,8 @@
 #include <babeltrace/ctf/metadata.h>
 #include <glib.h>
 
+#include "events-private.h"
+
 /*
  * thread local storage to store the last error that occured
  * while reading a field, this variable must be accessed by
@@ -320,36 +322,19 @@ error:
 uint64_t bt_ctf_get_timestamp_raw(struct bt_ctf_event *event)
 {
 	if (event && event->stream->has_timestamp)
-		return event->stream->timestamp;
+		return ctf_get_timestamp_raw(event->stream,
+				event->stream->timestamp);
 	else
 		return -1ULL;
 }
 
 uint64_t bt_ctf_get_timestamp(struct bt_ctf_event *event)
 {
-	uint64_t ts_nsec;
-	struct ctf_trace *trace;
-	struct trace_collection *tc;
-	uint64_t tc_offset;
-	uint64_t timestamp;
-
-	if (!event->stream->has_timestamp) {
+	if (event && event->stream->has_timestamp)
+		return ctf_get_timestamp(event->stream,
+				event->stream->timestamp);
+	else
 		return -1ULL;
-	}
-
-	trace = event->stream->stream_class->trace;
-	tc = trace->collection;
-	tc_offset = tc->single_clock_offset_avg;
-	timestamp = event->stream->timestamp;
-	if (event->stream->current_clock->freq == 1000000000ULL) {
-		ts_nsec = timestamp;
-	} else {
-		ts_nsec = (uint64_t) ((double) timestamp * 1000000000.0
-				/ (double) event->stream->current_clock->freq);
-	}
-	ts_nsec += tc_offset;
-
-	return ts_nsec;
 }
 
 static void bt_ctf_field_set_error(int error)

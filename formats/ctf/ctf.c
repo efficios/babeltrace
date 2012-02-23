@@ -40,6 +40,7 @@
 #include "metadata/ctf-scanner.h"
 #include "metadata/ctf-parser.h"
 #include "metadata/ctf-ast.h"
+#include "events-private.h"
 
 /*
  * We currently simply map a page to read the packet header and packet
@@ -149,21 +150,14 @@ void ctf_print_timestamp(FILE *fp,
 			uint64_t timestamp)
 {
 	uint64_t ts_sec = 0, ts_nsec;
-	struct ctf_trace *trace = stream->stream_class->trace;
-	struct trace_collection *tc = trace->collection;
-	uint64_t tc_offset = tc->single_clock_offset_avg;
 
-	if (stream->current_clock->freq == 1000000000ULL) {
-		ts_nsec = timestamp;
+	if (opt_clock_raw) {
+		ts_nsec = ctf_get_timestamp_raw(stream, timestamp);
 	} else {
-		ts_nsec = (uint64_t) ((double) timestamp * 1000000000.0
-				/ (double) stream->current_clock->freq);
+		ts_nsec = ctf_get_timestamp(stream, timestamp);
 	}
 
-	/* Add offsets */
-	if (!opt_clock_raw) {
-		ts_nsec += tc_offset;
-	}
+	/* Add command-line offset */
 	ts_sec += opt_clock_offset;
 
 	ts_sec += ts_nsec / NSEC_PER_SEC;

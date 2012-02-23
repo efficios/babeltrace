@@ -7,7 +7,8 @@ lib_LTLIBRARIES = libctf.la
 libctf_la_SOURCES = \
 	ctf.c \
 	events.c \
-	callbacks.c
+	callbacks.c \
+	events-private.h
 
 libctf_la_LIBADD = \
 	types/libctf-types.la \
