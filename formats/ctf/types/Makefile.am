@@ -11,3 +11,6 @@ libctf_types_la_SOURCES = \
 	string.c \
 	struct.c \
 	variant.c
+
+libctf_types_la_LIBADD = \
+	$(top_builddir)/lib/libbabeltrace.la

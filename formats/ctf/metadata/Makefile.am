@@ -16,7 +16,7 @@ libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 		ctf-visitor-generate-io-struct.c
 
 libctf_ast_la_LIBADD = \
-		 $(top_builddir)/types/libbabeltrace_types.la
+	$(top_builddir)/lib/libbabeltrace.la
 
 noinst_PROGRAMS = ctf-parser-test
 ctf_parser_test_SOURCES = ctf-parser-test.c
