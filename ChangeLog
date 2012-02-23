@@ -1,3 +1,12 @@
+2012-02-23 Babeltrace 1.0.0-pre2
+	* linker: privatize prio_heap and babeltrace_types
+	* Linker: privatize libbabeltrace_types
+	* Link statically to internal libraries
+	* Combine duplicated API/pretty-print timestamp code
+	* API : export the offsetted timestamp
+	* Fix : segfault when printing timestamp on index
+	* Fix : coherency in const parameters
+
 2012-02-20 Babeltrace 1.0.0-pre1
 	* Generically print tracer version (and env) in verbose mode
 	* Fix open_mmap_trace missing support
