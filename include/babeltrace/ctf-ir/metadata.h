@@ -146,7 +146,7 @@ struct ctf_trace {
 
 	uint64_t major;
 	uint64_t minor;
-	unsigned char * uuid;
+	unsigned char uuid[BABELTRACE_UUID_LEN];
 	int byte_order;		/* trace BYTE_ORDER. 0 if unset. */
 	struct ctf_tracer_env env;
 
