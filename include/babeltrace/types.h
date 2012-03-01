@@ -518,4 +518,13 @@ struct definition_enum *lookup_enum(struct definition *definition,
 struct definition *lookup_variant(struct definition *definition,
 				  const char *field_name);
 
+static inline
+const char *rem_(const char *str)
+{
+	if (str[0] == '_')
+		return &str[1];
+	else
+		return str;
+}
+
 #endif /* _BABELTRACE_TYPES_H */
