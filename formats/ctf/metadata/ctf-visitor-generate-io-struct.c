@@ -23,13 +23,13 @@
 #include <assert.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <endian.h>
 #include <errno.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/list.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/uuid.h>
+#include <babeltrace/endian.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -220,7 +220,7 @@ int get_unary_signed(struct bt_list_head *head, int64_t *value)
 }
 
 static
-int get_unary_uuid(struct bt_list_head *head, uuid_t *uuid)
+int get_unary_uuid(struct bt_list_head *head, unsigned char *uuid)
 {
 	struct ctf_node *node;
 	int i = 0;
@@ -234,7 +234,7 @@ int get_unary_uuid(struct bt_list_head *head, uuid_t *uuid)
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
 		src_string = node->u.unary_expression.u.string;
-		ret = babeltrace_uuid_parse(src_string, *uuid);
+		ret = babeltrace_uuid_parse(src_string, uuid);
 	}
 	return ret;
 }
@@ -2035,9 +2035,9 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, minor);
 		} else if (!strcmp(left, "uuid")) {
-			uuid_t uuid;
+			unsigned char uuid[BABELTRACE_UUID_LEN];
 
-			ret = get_unary_uuid(&node->u.ctf_expression.right, &uuid);
+			ret = get_unary_uuid(&node->u.ctf_expression.right, uuid);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for trace uuid\n", __func__);
 				ret = -EINVAL;
