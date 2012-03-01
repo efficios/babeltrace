@@ -31,9 +31,10 @@ int babeltrace_uuid_generate(unsigned char *uuid_out)
 }
 
 static inline
-void babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
+int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 {
-	return uuid_unparse(uuid_in, str_out);
+	uuid_unparse(uuid_in, str_out);
+	return 0;
 }
 
 static inline
@@ -52,6 +53,8 @@ int babeltrace_uuid_compare(const unsigned char *uuid_a,
 #elif defined(BABELTRACE_HAVE_LIBC_UUID)
 #include <uuid.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 static inline
 int babeltrace_uuid_generate(unsigned char *uuid_out)
@@ -66,15 +69,21 @@ int babeltrace_uuid_generate(unsigned char *uuid_out)
 }
 
 static inline
-void babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
+int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 {
 	uint32_t status;
+	char *alloc_str;
+	int ret;
 
-	uuid_to_string((uuid_t *) uuid_in, str_out, &status);
-	if (status == uuid_s_ok)
-		return 0;
-	else
-		return -1;
+	uuid_to_string((uuid_t *) uuid_in, &alloc_str, &status);
+	if (status == uuid_s_ok) {
+		strcpy(str_out, alloc_str);
+		ret = 0;
+	} else {
+		ret = -1;
+	}
+	free(alloc_str);
+	return ret;
 }
 
 static inline

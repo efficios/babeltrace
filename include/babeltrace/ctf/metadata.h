@@ -25,7 +25,6 @@
 #include <babeltrace/ctf-ir/metadata.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <uuid/uuid.h>
 #include <assert.h>
 #include <glib.h>
 
