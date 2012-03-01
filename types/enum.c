@@ -24,6 +24,14 @@
 #include <stdint.h>
 #include <glib.h>
 
+#if (__LONG_MAX__ == 2147483647L)
+#define WORD_SIZE	32
+#elif (__LONG_MAX__ == 9223372036854775807L)
+#define WORD_SIZE	64
+#else
+#error "Unknown long size."
+#endif
+
 static
 struct definition *_enum_definition_new(struct declaration *declaration,
 					struct definition_scope *parent_scope,
@@ -38,7 +46,7 @@ void enum_range_set_free(void *ptr)
 	g_array_unref(ptr);
 }
 
-#if (__WORDSIZE == 32)
+#if (WORD_SIZE == 32)
 static inline
 gpointer get_uint_v(uint64_t *v)
 {
@@ -73,7 +81,7 @@ void enum_val_free(void *ptr)
 {
 	g_free(ptr);
 }
-#else  /* __WORDSIZE != 32 */
+#else  /* WORD_SIZE != 32 */
 static inline
 gpointer get_uint_v(uint64_t *v)
 {
@@ -102,7 +110,7 @@ static
 void enum_val_free(void *ptr)
 {
 }
-#endif /* __WORDSIZE != 32 */
+#endif /* WORD_SIZE != 32 */
 
 /*
  * Returns a GArray or NULL.
@@ -211,12 +219,12 @@ void enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_decla
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
-#if (__WORDSIZE == 32)
+#if (WORD_SIZE == 32)
 		valuep = g_new(uint64_t, 1);
 		*valuep = v;
-#else  /* __WORDSIZE != 32 */
+#else  /* WORD_SIZE != 32 */
 		valuep = get_uint_v(&v);
-#endif /* __WORDSIZE != 32 */
+#endif /* WORD_SIZE != 32 */
 		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
@@ -237,12 +245,12 @@ void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declara
 		array = g_array_sized_new(FALSE, TRUE, sizeof(GQuark), 1);
 		g_array_set_size(array, 1);
 		g_array_index(array, GQuark, array->len - 1) = q;
-#if (__WORDSIZE == 32)
+#if (WORD_SIZE == 32)
 		valuep = g_new(int64_t, 1);
 		*valuep = v;
-#else  /* __WORDSIZE != 32 */
+#else  /* WORD_SIZE != 32 */
 		valuep = get_int_v(&v);
-#endif /* __WORDSIZE != 32 */
+#endif /* WORD_SIZE != 32 */
 		g_hash_table_insert(enum_declaration->table.value_to_quark_set, valuep, array);
 	} else {
 		g_array_set_size(array, array->len + 1);
