@@ -120,13 +120,6 @@ int generic_rw(struct stream_pos *pos, struct definition *definition)
 	return call(pos, definition);
 }
 
-enum ctf_string_encoding {
-	CTF_STRING_NONE = 0,
-	CTF_STRING_UTF8,
-	CTF_STRING_ASCII,
-	CTF_STRING_UNKNOWN,
-};
-
 /*
  * Because we address in bits, bitfields end up being exactly the same as
  * integers, except that their read/write functions must be able to deal with
@@ -375,6 +368,10 @@ struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  struct ctf_clock *clock);
 uint64_t get_unsigned_int(const struct definition *field);
 int64_t get_signed_int(const struct definition *field);
+int get_int_signedness(const struct definition *field);
+int get_int_byte_order(const struct definition *field);
+int get_int_base(const struct definition *field);
+enum ctf_string_encoding get_int_encoding(const struct definition *field);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
@@ -422,6 +419,7 @@ struct declaration_enum *
 struct declaration_string *
 	string_declaration_new(enum ctf_string_encoding encoding);
 char *get_string(const struct definition *field);
+enum ctf_string_encoding get_string_encoding(const struct definition *field);
 
 struct declaration_struct *
 	struct_declaration_new(struct declaration_scope *parent_scope,
@@ -487,6 +485,7 @@ uint64_t array_len(struct definition_array *array);
 struct definition *array_index(struct definition_array *array, uint64_t i);
 int array_rw(struct stream_pos *pos, struct definition *definition);
 GString *get_char_array(const struct definition *field);
+int get_array_len(const struct definition *field);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong

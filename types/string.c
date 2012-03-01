@@ -101,6 +101,17 @@ void _string_definition_free(struct definition *definition)
 	g_free(string);
 }
 
+enum ctf_string_encoding get_string_encoding(const struct definition *field)
+{
+	struct definition_string *string_definition;
+	const struct declaration_string *string_declaration;
+
+	string_definition = container_of(field, struct definition_string, p);
+	string_declaration = string_definition->declaration;
+
+	return string_declaration->encoding;
+}
+
 char *get_string(const struct definition *field)
 {
 	struct definition_string *string_definition =

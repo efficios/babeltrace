@@ -351,6 +351,84 @@ int bt_ctf_field_get_error(void)
 	return ret;
 }
 
+int bt_ctf_get_int_signedness(const struct definition *field)
+{
+	int ret;
+
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER) {
+		ret = get_int_signedness(field);
+	} else {
+		ret = -1;
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
+int bt_ctf_get_int_base(const struct definition *field)
+{
+	int ret;
+
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER) {
+		ret = get_int_base(field);
+	} else {
+		ret = -1;
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
+int bt_ctf_get_int_byte_order(const struct definition *field)
+{
+	int ret;
+
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER) {
+		ret = get_int_byte_order(field);
+	} else {
+		ret = -1;
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
+enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field)
+{
+	enum ctf_string_encoding ret = 0;
+
+	if (!field)
+		goto end;
+
+	if (bt_ctf_field_type(field) == CTF_TYPE_INTEGER)
+		ret = get_int_encoding(field);
+	else if (bt_ctf_field_type(field) == CTF_TYPE_STRING)
+		ret = get_string_encoding(field);
+	else
+		goto error;
+
+end:
+	return ret;
+
+error:
+	bt_ctf_field_set_error(-EINVAL);
+	return -1;
+}
+
+int bt_ctf_get_array_len(const struct definition *field)
+{
+	int ret;
+
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_ARRAY) {
+		ret = get_array_len(field);
+	} else {
+		ret = -1;
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
 uint64_t bt_ctf_get_uint64(const struct definition *field)
 {
 	unsigned int ret = 0;

@@ -207,6 +207,17 @@ struct definition *array_index(struct definition_array *array, uint64_t i)
 	return g_ptr_array_index(array->elems, i);
 }
 
+int get_array_len(const struct definition *field)
+{
+	struct definition_array *array_definition;
+	struct declaration_array *array_declaration;
+
+	array_definition = container_of(field, struct definition_array, p);
+	array_declaration = array_definition->declaration;
+
+	return array_declaration->len;
+}
+
 GString *get_char_array(const struct definition *field)
 {
 	struct definition_array *array_definition;
