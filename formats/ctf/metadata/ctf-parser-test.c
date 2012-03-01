@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <errno.h>
-#include <endian.h>
+#include <babeltrace/endian.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/metadata.h>
 #include "ctf-scanner.h"

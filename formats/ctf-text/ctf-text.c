@@ -24,7 +24,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/events-internal.h>
 #include <inttypes.h>
-#include <uuid/uuid.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <sys/types.h>

@@ -31,13 +31,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include <uuid/uuid.h>
 #include <string.h>
-#include <endian.h>
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/uuid.h>
+#include <babeltrace/endian.h>
 
 #define USEC_PER_SEC 1000000UL
 
@@ -46,7 +45,7 @@ int babeltrace_debug, babeltrace_verbose;
 static char *s_outputname;
 static int s_timestamp;
 static int s_help;
-static uuid_t s_uuid;
+static unsigned char s_uuid[BABELTRACE_UUID_LEN];
 
 /* Metadata format string */
 static const char metadata_fmt[] =
@@ -104,7 +103,7 @@ void print_metadata(FILE *fp)
 }
 
 static
-void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
+void write_packet_header(struct ctf_stream_pos *pos, unsigned char *uuid)
 {
 	struct ctf_stream_pos dummy;
 
@@ -125,8 +124,8 @@ void write_packet_header(struct ctf_stream_pos *pos, uuid_t uuid)
 	assert(!ctf_pos_packet(&dummy));
 
 	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
-	memcpy(ctf_get_pos_addr(pos), uuid, 16);
-	ctf_move_pos(pos, 16 * CHAR_BIT);
+	memcpy(ctf_get_pos_addr(pos), uuid, BABELTRACE_UUID_LEN);
+	ctf_move_pos(pos, BABELTRACE_UUID_LEN * CHAR_BIT);
 }
 
 static
@@ -337,7 +336,7 @@ int main(int argc, char **argv)
 		goto error_closemetadatafd;
 	}
 
-	uuid_generate(s_uuid);
+	babeltrace_uuid_generate(s_uuid);
 	print_metadata(metadata_fp);
 	trace_text(stdin, fd);
 

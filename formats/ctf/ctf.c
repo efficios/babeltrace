@@ -23,12 +23,12 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/uuid.h>
+#include <babeltrace/endian.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <uuid/uuid.h>
 #include <sys/mman.h>
 #include <errno.h>
-#include <endian.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -48,7 +48,6 @@
  */
 #define MAX_PACKET_HEADER_LEN	(getpagesize() * CHAR_BIT)
 #define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
-#define UUID_LEN 16	/* uuid by value len */
 
 #ifndef min
 #define min(a, b)	(((a) < (b)) ? (a) : (b))
@@ -689,7 +688,7 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		memcpy(td->uuid, header.uuid, sizeof(header.uuid));
 		CTF_TRACE_SET_FIELD(td, uuid);
 	} else {
-		if (uuid_compare(header.uuid, td->uuid))
+		if (babeltrace_uuid_compare(header.uuid, td->uuid))
 			return -EINVAL;
 	}
 
@@ -1077,20 +1076,20 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition_array *defarray;
 				struct definition *field;
 				uint64_t i;
-				uint8_t uuidval[UUID_LEN];
+				uint8_t uuidval[BABELTRACE_UUID_LEN];
 
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
-				assert(array_len(defarray) == UUID_LEN);
+				assert(array_len(defarray) == BABELTRACE_UUID_LEN);
 
-				for (i = 0; i < UUID_LEN; i++) {
+				for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
 					struct definition *elem;
 
 					elem = array_index(defarray, i);
 					uuidval[i] = get_unsigned_int(elem);
 				}
-				ret = uuid_compare(td->uuid, uuidval);
+				ret = babeltrace_uuid_compare(td->uuid, uuidval);
 				if (ret) {
 					fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
 					return -EINVAL;
