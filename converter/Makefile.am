@@ -20,3 +20,10 @@ babeltrace_log_SOURCES = babeltrace-log.c
 babeltrace_log_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+
+if BABELTRACE_BUILD_WITH_LIBUUID
+babeltrace_log_LDADD += -luuid
+endif
+if BABELTRACE_BUILD_WITH_LIBC_UUID
+babeltrace_log_LDADD += -lc
+endif

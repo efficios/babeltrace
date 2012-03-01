@@ -37,12 +37,9 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
+#include <babeltrace/uuid.h>
 
 #define USEC_PER_SEC 1000000UL
-
-#ifndef UUID_STR_LEN
-#define UUID_STR_LEN	37	/* With \0 */
-#endif
 
 int babeltrace_debug, babeltrace_verbose;
 
@@ -90,14 +87,14 @@ static const char metadata_stream_event_header_timestamp[] =
 static
 void print_metadata(FILE *fp)
 {
-	char uuid_str[UUID_STR_LEN];
+	char uuid_str[BABELTRACE_UUID_STR_LEN];
 	unsigned int major = 0, minor = 0;
 	int ret;
 
 	ret = sscanf(VERSION, "%u.%u", &major, &minor);
 	if (ret != 2)
 		fprintf(stderr, "[warning] Incorrect babeltrace version format\n.");
-	uuid_unparse(s_uuid, uuid_str);
+	babeltrace_uuid_unparse(s_uuid, uuid_str);
 	fprintf(fp, metadata_fmt,
 		major,
 		minor,

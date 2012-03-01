@@ -18,6 +18,13 @@ libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 libctf_ast_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
 
+if BABELTRACE_BUILD_WITH_LIBUUID
+libctf_ast_la_LIBADD += -luuid
+endif
+if BABELTRACE_BUILD_WITH_LIBC_UUID
+libctf_ast_la_LIBADD += -lc
+endif
+
 noinst_PROGRAMS = ctf-parser-test
 ctf_parser_test_SOURCES = ctf-parser-test.c
 

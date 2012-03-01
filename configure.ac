@@ -35,10 +35,26 @@ AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([bzero gettimeofday munmap strtoul])
 
-# Check libuuid
-AC_CHECK_LIB([uuid], [uuid_generate], [],
-	[AC_MSG_ERROR([Cannot find libuuid. Use [LDFLAGS]=-Ldir to specify its location.])]
+# Check for libuuid
+AC_CHECK_LIB([uuid], [uuid_generate],
+[
+	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
+	have_libuuid=yes
+],
+[
+	# libuuid not found, check for uuid_create in libc.
+	AC_CHECK_LIB([c], [uuid_create],
+	[
+		AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBC_UUID], 1, [Has libc uuid support.])
+		have_libc_uuid=yes
+	],
+	[
+		AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+	])
+]
 )
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBUUID], [test "x$have_libuuid" = "xyes"])
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBC_UUID], [test "x$have_libc_uuid" = "xyes"])
 
 AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]

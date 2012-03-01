@@ -29,7 +29,7 @@
 #include <babeltrace/list.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/metadata.h>
-#include <uuid/uuid.h>
+#include <babeltrace/uuid.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -234,7 +234,7 @@ int get_unary_uuid(struct bt_list_head *head, uuid_t *uuid)
 		assert(node->u.unary_expression.link == UNARY_LINK_UNKNOWN);
 		assert(i == 0);
 		src_string = node->u.unary_expression.u.string;
-		ret = uuid_parse(src_string, *uuid);
+		ret = babeltrace_uuid_parse(src_string, *uuid);
 	}
 	return ret;
 }
@@ -2044,7 +2044,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)
-				&& uuid_compare(uuid, trace->uuid)) {
+				&& babeltrace_uuid_compare(uuid, trace->uuid)) {
 				fprintf(fd, "[error] %s: uuid mismatch\n", __func__);
 				ret = -EPERM;
 				goto error;
