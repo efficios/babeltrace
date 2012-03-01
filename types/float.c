@@ -21,7 +21,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/format.h>
 #include <babeltrace/types.h>
-#include <endian.h>
+#include <babeltrace/endian.h>
 
 static
 struct definition *_float_definition_new(struct declaration *declaration,

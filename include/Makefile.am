@@ -27,4 +27,5 @@ noinst_HEADERS = \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
 	babeltrace/trace-handle-internal.h \
-	babeltrace/uuid.h
+	babeltrace/uuid.h \
+	babeltrace/endian.h
