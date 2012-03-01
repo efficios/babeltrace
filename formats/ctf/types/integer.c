@@ -22,7 +22,7 @@
 #include <babeltrace/bitfield.h>
 #include <stdint.h>
 #include <glib.h>
-#include <endian.h>
+#include <babeltrace/endian.h>
 
 /*
  * The aligned read/write functions are expected to be faster than the

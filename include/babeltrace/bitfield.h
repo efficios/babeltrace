@@ -21,8 +21,8 @@
 
 #include <stdint.h>	/* C99 5.2.4.2 Numerical limits */
 #include <limits.h>	/* C99 5.2.4.2 Numerical limits */
-#include <endian.h>	/* Non-standard BIG_ENDIAN, LITTLE_ENDIAN, BYTE_ORDER */
 #include <assert.h>
+#include <babeltrace/endian.h>	/* Non-standard BIG_ENDIAN, LITTLE_ENDIAN, BYTE_ORDER */
 
 /* We can't shift a int from 32 bit, >> 32 and << 32 on int is undefined */
 #define _bt_piecewise_rshift(_v, _shift)				\
