@@ -1,3 +1,16 @@
+2012-03-02 Babeltrace 1.0.0-pre3
+	* Fix uuid in metadata
+	* Babeltrace wrapper update
+	* uuid wrapper: fix use in visitor
+	* Endian wrapper use fix
+	* FreeBSD uuid wrapper fixes
+	* Fix missing uuid wrapper change
+	* Add endian.h wrapper
+	* Use standard __LONG_MAX__ instead of __WORDSIZE
+	* Create BSD wrapper for uuid
+	* fix API : deal with the optional underscore
+	* Fix API : functions to access fields properties
+
 2012-02-23 Babeltrace 1.0.0-pre2
 	* linker: privatize prio_heap and babeltrace_types
 	* Linker: privatize libbabeltrace_types
