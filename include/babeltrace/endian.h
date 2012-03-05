@@ -18,12 +18,10 @@
  * modified is included with the above copyright notice.
  */
 
-#ifdef __linux__
-#include <endian.h>
-#elif defined(__FreeBSD__)
+#ifdef __FreeBSD__
 #include <machine/endian.h>
 #else
-#error "Please add support for your OS."
+#include <endian.h>
 #endif
 
 #ifndef FLOAT_WORD_ORDER
