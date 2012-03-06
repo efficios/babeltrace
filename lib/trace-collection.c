@@ -157,7 +157,7 @@ int trace_collection_add(struct trace_collection *tc,
 				check_clock_match,
 				&clock_match);
 		if (!clock_match.clock_match) {
-			fprintf(stderr, "[error] No clocks can be correlated and multiple traces are added to the collection.\n");
+			fprintf(stderr, "[error] No clocks can be correlated and multiple traces are added to the collection. If you are certain those traces can be correlated, try using \"--clock-force-correlate\".\n");
 			goto error;
 		}
 	}
