@@ -20,6 +20,7 @@
  * Depends on glibc 2.10 for getline().
  */
 
+#define _GNU_SOURCE
 #include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
