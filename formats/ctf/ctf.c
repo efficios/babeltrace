@@ -41,6 +41,7 @@
 #include "metadata/ctf-parser.h"
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
+#include "memstream.h"
 
 /*
  * We currently simply map a page to read the packet header and packet
@@ -747,7 +748,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	 * because its size includes garbage at the end (after final
 	 * \0). This is the allocated size, not the actual string size.
 	 */
-	out = open_memstream(buf, &size);
+	out = babeltrace_open_memstream(buf, &size);
 	if (out == NULL) {
 		perror("Metadata open_memstream");
 		return -errno;
@@ -762,10 +763,16 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 			break;
 		}
 	}
-	fclose(out);	/* flush the buffer */
+	/* close to flush the buffer */
+	ret = babeltrace_close_memstream(buf, &size, out);
+	if (ret < 0) {
+		perror("babeltrace_flush_memstream");
+		fclose(in);
+		return -errno;
+	}
 	fclose(in);
 	/* open for reading */
-	*fp = fmemopen(*buf, strlen(*buf), "rb");
+	*fp = babeltrace_fmemopen(*buf, strlen(*buf), "rb");
 	if (!*fp) {
 		perror("Metadata fmemopen");
 		return -errno;

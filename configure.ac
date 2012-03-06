@@ -56,6 +56,20 @@ AC_CHECK_LIB([uuid], [uuid_generate],
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBUUID], [test "x$have_libuuid" = "xyes"])
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBC_UUID], [test "x$have_libc_uuid" = "xyes"])
 
+# Check for fmemopen
+AC_CHECK_LIB([c], [fmemopen],
+[
+	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_FMEMOPEN], 1, [Has fmemopen support.])
+]
+)
+
+# Check for open_memstream
+AC_CHECK_LIB([c], [open_memstream],
+[
+	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_OPEN_MEMSTREAM], 1, [Has open_memstream support.])
+]
+)
+
 AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]
 )
