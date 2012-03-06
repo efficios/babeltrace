@@ -1,4 +1,5 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -lpopt
+AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
+AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace babeltrace-log
 
