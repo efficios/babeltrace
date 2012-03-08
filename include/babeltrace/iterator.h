@@ -39,27 +39,6 @@ struct bt_iter_pos {
 };
 
 /*
- * bt_iter_create - Allocate a trace collection iterator.
- *
- * begin_pos and end_pos are optional parameters to specify the position
- * at which the trace collection should be seeked upon iterator
- * creation, and the position at which iteration will start returning
- * "EOF".
- *
- * By default, if begin_pos is NULL, a BT_SEEK_CUR is performed at
- * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
- * trace) is the EOF criterion.
- */
-struct bt_iter *bt_iter_create(struct bt_context *ctx,
-		struct bt_iter_pos *begin_pos,
-		struct bt_iter_pos *end_pos);
-
-/*
- * bt_iter_destroy - Free a trace collection iterator.
- */
-void bt_iter_destroy(struct bt_iter *iter);
-
-/*
  * bt_iter_next: Move trace collection position to the next event.
  *
  * Returns 0 on success, a negative value on error
