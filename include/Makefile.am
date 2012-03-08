@@ -8,8 +8,9 @@ babeltraceinclude_HEADERS = \
 	babeltrace/list.h
 
 babeltracectfinclude_HEADERS = \
-       babeltrace/ctf/events.h \
-       babeltrace/ctf/callbacks.h
+	babeltrace/ctf/events.h \
+	babeltrace/ctf/callbacks.h \
+	babeltrace/ctf/iterator.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
