@@ -106,7 +106,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 						(gconstpointer) (unsigned long) event);
 				/* event not found in this stream class */
 				if (!event_id_ptr) {
-					fprintf(stderr, "event not found\n");
+					fprintf(stderr, "[error] Event ID not found in stream class\n");
 					continue;
 				}
 				event_id = (uint64_t)(unsigned long) *event_id_ptr;
