@@ -110,8 +110,7 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 	for (i = 0; i < stream_pos->packet_index->len; i++) {
 		index = &g_array_index(stream_pos->packet_index,
 				struct packet_index, i);
-		if (index->timestamp_begin >= timestamp ||
-				index->timestamp_end <= timestamp)
+		if (index->timestamp_end <= timestamp)
 			continue;
 
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
