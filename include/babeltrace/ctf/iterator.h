@@ -58,9 +58,8 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
  * bt_ctf_iter_read_event: Read the iterator's current event data.
  *
  * @iter: trace collection iterator (input)
- * @stream: stream containing event at current position (output)
- * @event: current event (output)
- * Return 0 on success, negative error value on error.
+ *
+ * Return current event on success, NULL on end of trace.
  */
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
