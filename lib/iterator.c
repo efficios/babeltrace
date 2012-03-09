@@ -177,7 +177,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 	switch (iter_pos->type) {
 	case BT_SEEK_RESTORE:
 		if (!iter_pos->u.restore)
-			goto error_arg;
+			return -EINVAL;
 
 		heap_free(iter->stream_heap);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
@@ -225,11 +225,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			if (ret)
 				goto error;
 		}
+	case BT_SEEK_BEGIN:
+		/* fall-through to seek time of 0 */
 	case BT_SEEK_TIME:
 		tc = iter->ctx->tc;
-
-		if (!iter_pos->u.seek_time)
-			goto error_arg;
 
 		heap_free(iter->stream_heap);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
@@ -253,13 +252,11 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		return 0;
 	default:
 		/* not implemented */
-		goto error_arg;
+		return -EINVAL;
 	}
 
 	return 0;
 
-error_arg:
-	ret = -EINVAL;
 error:
 	heap_free(iter->stream_heap);
 	if (heap_init(iter->stream_heap, 0, stream_compare) < 0) {
