@@ -225,8 +225,6 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			if (ret)
 				goto error;
 		}
-	case BT_SEEK_BEGIN:
-		/* fall-through to seek time of 0 */
 	case BT_SEEK_TIME:
 		tc = iter->ctx->tc;
 
