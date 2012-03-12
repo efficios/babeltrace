@@ -32,8 +32,8 @@
 #include "events-private.h"
 
 struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
-		struct bt_iter_pos *begin_pos,
-		struct bt_iter_pos *end_pos)
+		const struct bt_iter_pos *begin_pos,
+		const struct bt_iter_pos *end_pos)
 {
 	struct bt_ctf_iter *iter;
 	int ret;

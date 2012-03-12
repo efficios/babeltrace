@@ -507,15 +507,15 @@ void append_scope_path(const char *path, GArray *q);
 /*
  * Lookup helpers.
  */
-struct definition *lookup_definition(struct definition *definition,
+struct definition *lookup_definition(const struct definition *definition,
 				     const char *field_name);
-struct definition_integer *lookup_integer(struct definition *definition,
+struct definition_integer *lookup_integer(const struct definition *definition,
 					  const char *field_name,
 					  int signedness);
-struct definition_enum *lookup_enum(struct definition *definition,
+struct definition_enum *lookup_enum(const struct definition *definition,
 				    const char *field_name,
 				    int signedness);
-struct definition *lookup_variant(struct definition *definition,
+struct definition *lookup_variant(const struct definition *definition,
 				  const char *field_name);
 
 static inline

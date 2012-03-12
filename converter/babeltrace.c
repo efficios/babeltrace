@@ -25,6 +25,8 @@
 #include <babeltrace/context.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/events.h>
+/* TODO: fix object model for format-agnostic callbacks */
+#include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf/iterator.h>
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/iterator.h>

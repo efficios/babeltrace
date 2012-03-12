@@ -147,7 +147,7 @@ end:
 }
 
 static struct definition_scope *
-	get_definition_scope(struct definition *definition)
+	get_definition_scope(const struct definition *definition)
 {
 	return definition->scope;
 }
@@ -600,7 +600,7 @@ void free_definition_scope(struct definition_scope *scope)
 	g_free(scope);
 }
 
-struct definition *lookup_definition(struct definition *definition,
+struct definition *lookup_definition(const struct definition *definition,
 				     const char *field_name)
 {
 	struct definition_scope *scope = get_definition_scope(definition);
@@ -612,7 +612,7 @@ struct definition *lookup_definition(struct definition *definition,
 					     scope);
 }
 
-struct definition_integer *lookup_integer(struct definition *definition,
+struct definition_integer *lookup_integer(const struct definition *definition,
 					  const char *field_name,
 					  int signedness)
 {
@@ -630,7 +630,7 @@ struct definition_integer *lookup_integer(struct definition *definition,
 	return lookup_integer;
 }
 
-struct definition_enum *lookup_enum(struct definition *definition,
+struct definition_enum *lookup_enum(const struct definition *definition,
 				    const char *field_name,
 				    int signedness)
 {
@@ -648,7 +648,7 @@ struct definition_enum *lookup_enum(struct definition *definition,
 	return lookup_enum;
 }
 
-struct definition *lookup_variant(struct definition *definition,
+struct definition *lookup_variant(const struct definition *definition,
 				  const char *field_name)
 {
 	struct definition *lookup;

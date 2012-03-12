@@ -28,6 +28,16 @@
 #include <babeltrace/ctf/callbacks-internal.h>
 #include <glib.h>
 
+struct ctf_stream;
+struct ctf_stream_event;
+/*
+ * the structure to manipulate events
+ */
+struct bt_ctf_event {
+	struct ctf_stream *stream;
+	struct ctf_stream_event *event;
+};
+
 struct bt_ctf_iter {
 	struct bt_iter parent;
 	struct bt_ctf_event current_ctf_event;	/* last read event */

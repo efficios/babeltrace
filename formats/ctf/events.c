@@ -38,7 +38,7 @@
  */
 __thread int bt_ctf_last_field_error = 0;
 
-struct definition *bt_ctf_get_top_level_scope(struct bt_ctf_event *event,
+const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
 		enum bt_ctf_scope scope)
 {
 	struct definition *tmp = NULL;
@@ -87,8 +87,8 @@ error:
 	return NULL;
 }
 
-struct definition *bt_ctf_get_field(struct bt_ctf_event *event,
-		struct definition *scope,
+const struct definition *bt_ctf_get_field(const struct bt_ctf_event *event,
+		const struct definition *scope,
 		const char *field)
 {
 	struct definition *def;
@@ -118,8 +118,8 @@ struct definition *bt_ctf_get_field(struct bt_ctf_event *event,
 	return NULL;
 }
 
-struct definition *bt_ctf_get_index(struct bt_ctf_event *event,
-		struct definition *field,
+const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
+		const struct definition *field,
 		unsigned int index)
 {
 	struct definition *ret = NULL;
@@ -138,7 +138,7 @@ struct definition *bt_ctf_get_index(struct bt_ctf_event *event,
 	return ret;
 }
 
-const char *bt_ctf_event_name(struct bt_ctf_event *event)
+const char *bt_ctf_event_name(const struct bt_ctf_event *event)
 {
 	struct ctf_event *event_class;
 	struct ctf_stream_class *stream_class;
@@ -165,8 +165,8 @@ enum ctf_type_id bt_ctf_field_type(const struct definition *def)
 	return CTF_TYPE_UNKNOWN;
 }
 
-int bt_ctf_get_field_list(struct bt_ctf_event *event,
-		struct definition *scope,
+int bt_ctf_get_field_list(const struct bt_ctf_event *event,
+		const struct definition *scope,
 		struct definition const * const **list,
 		unsigned int *count)
 {
@@ -178,9 +178,9 @@ int bt_ctf_get_field_list(struct bt_ctf_event *event,
 		goto error;
 	case CTF_TYPE_STRUCT:
 	{
-		struct definition_struct *def_struct;
+		const struct definition_struct *def_struct;
 
-		def_struct = container_of(scope, struct definition_struct, p);
+		def_struct = container_of(scope, const struct definition_struct, p);
 		if (!def_struct)
 			goto error;
 		if (def_struct->fields->pdata) {
@@ -195,9 +195,9 @@ int bt_ctf_get_field_list(struct bt_ctf_event *event,
 		goto error;
 	case CTF_TYPE_VARIANT:
 	{
-		struct definition_variant *def_variant;
+		const struct definition_variant *def_variant;
 
-		def_variant = container_of(scope, struct definition_variant, p);
+		def_variant = container_of(scope, const struct definition_variant, p);
 		if (!def_variant)
 			goto error;
 		if (def_variant->fields->pdata) {
@@ -210,9 +210,9 @@ int bt_ctf_get_field_list(struct bt_ctf_event *event,
 	}
 	case CTF_TYPE_ARRAY:
 	{
-		struct definition_array *def_array;
+		const struct definition_array *def_array;
 
-		def_array = container_of(scope, struct definition_array, p);
+		def_array = container_of(scope, const struct definition_array, p);
 		if (!def_array)
 			goto error;
 		if (def_array->elems->pdata) {
@@ -225,9 +225,9 @@ int bt_ctf_get_field_list(struct bt_ctf_event *event,
 	}
 	case CTF_TYPE_SEQUENCE:
 	{
-		struct definition_sequence *def_sequence;
+		const struct definition_sequence *def_sequence;
 
-		def_sequence = container_of(scope, struct definition_sequence, p);
+		def_sequence = container_of(scope, const struct definition_sequence, p);
 		if (!def_sequence)
 			goto error;
 		if (def_sequence->elems->pdata) {
@@ -251,7 +251,7 @@ error:
 	return -1;
 }
 
-uint64_t bt_ctf_get_timestamp_raw(struct bt_ctf_event *event)
+uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event)
 {
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp_raw(event->stream,
@@ -260,7 +260,7 @@ uint64_t bt_ctf_get_timestamp_raw(struct bt_ctf_event *event)
 		return -1ULL;
 }
 
-uint64_t bt_ctf_get_timestamp(struct bt_ctf_event *event)
+uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event)
 {
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp(event->stream,

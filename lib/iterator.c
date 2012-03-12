@@ -430,8 +430,8 @@ end:
 
 int bt_iter_init(struct bt_iter *iter,
 		struct bt_context *ctx,
-		struct bt_iter_pos *begin_pos,
-		struct bt_iter_pos *end_pos)
+		const struct bt_iter_pos *begin_pos,
+		const struct bt_iter_pos *end_pos)
 {
 	int i, stream_id;
 	int ret = 0;
@@ -496,8 +496,8 @@ error_heap_init:
 }
 
 struct bt_iter *bt_iter_create(struct bt_context *ctx,
-		struct bt_iter_pos *begin_pos,
-		struct bt_iter_pos *end_pos)
+		const struct bt_iter_pos *begin_pos,
+		const struct bt_iter_pos *end_pos)
 {
 	struct bt_iter *iter;
 	int ret;
