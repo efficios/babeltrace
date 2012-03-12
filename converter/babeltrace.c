@@ -327,7 +327,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	GArray *trace_ids;
 	char lpath[PATH_MAX];
 	char * const paths[2] = { lpath, NULL };
-	int ret;
+	int ret = -1;
 
 	/*
 	 * Need to copy path, because fts_open can change it.
@@ -393,7 +393,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	}
 
 	g_array_free(trace_ids, TRUE);
-	return 0;
+	return ret;
 
 error:
 	return ret;
