@@ -45,17 +45,24 @@ struct bt_context *bt_context_create(void);
  *
  * Open a trace.
  *
- * packet_seek can be NULL to use the default packet_seek handler
- * provided by the trace format. If non-NULL, it is used as an override
- * of the handler for seeks across packets. It takes as parameter a
- * stream position, the packet index it needs to seek to (for SEEK_SET),
- * and a "whence" parameter (either SEEK_CUR: seek to next packet, or
- * SEEK_SET: seek to packet at packet index).
+ * path is the path to the trace, it is not recursive. If "path" is NULL,
+ * stream_list is used instead as a list of mmap streams to open for the trace.
  *
- * If "path" is NULL, stream_list is used instread as a list of streams
- * to open for the trace.
-
- * The metadata parameter acts as a metadata override when not NULL.
+ * format is a string containing the format name in which the trace was
+ * produced.
+ *
+ * packet_seek can be NULL to use the default packet_seek handler provided by
+ * the trace format. If non-NULL, it is used as an override of the handler for
+ * seeks across packets. It takes as parameter a stream position, the packet
+ * index it needs to seek to (for SEEK_SET), and a "whence" parameter (either
+ * SEEK_CUR: seek to next packet, or SEEK_SET: seek to packet at packet index).
+ *
+ * stream_list is a linked list of streams, it is used to open a trace where
+ * the trace data is located in memory mapped areas instead of trace files,
+ * this argument should be set to NULL when path is not NULL.
+ *
+ * The metadata parameter acts as a metadata override when not NULL, otherwise
+ * the format handles the metadata opening.
  *
  * Return: the trace handle id (>= 0) on success, a negative
  * value on error.

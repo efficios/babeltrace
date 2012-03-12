@@ -24,6 +24,23 @@
 struct bt_iter;
 struct bt_saved_pos;
 
+/*
+ * bt_iter is an abstract class, each format has to implement its own
+ * iterator derived from this parent class.
+ */
+
+/*
+ * bt_iter_pos
+ *
+ * This structure represents the position where to set an iterator.
+ *
+ * type represents the type of seek to use.
+ * u is the argument of the seek if necessary :
+ * - seek_time is the timestamp to seek to when using BT_SEEK_TIME, it
+ *   is expressed in "raw" seconds (not offsetted)
+ * - restore is a position saved with bt_iter_get_pos, it is used with
+ *   BT_SEEK_RESTORE.
+ */
 struct bt_iter_pos {
 	enum {
 		BT_SEEK_TIME,		/* uses u.seek_time */
