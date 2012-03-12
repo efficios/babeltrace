@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libbabeltrace-ctf.la
 libbabeltrace_ctf_la_SOURCES = \
 	ctf.c \
 	events.c \
+	iterator.c \
 	callbacks.c \
 	events-private.h \
 	memstream.h
