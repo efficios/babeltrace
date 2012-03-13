@@ -50,6 +50,7 @@ struct bt_context *bt_context_create(void)
 				g_direct_equal, NULL,
 				(GDestroyNotify) bt_trace_handle_destroy);
 
+	ctx->current_iterator = NULL;
 	ctx->tc = g_new0(struct trace_collection, 1);
 	init_trace_collection(ctx->tc);
 

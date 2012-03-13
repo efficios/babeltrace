@@ -42,6 +42,7 @@ struct bt_context {
 	GHashTable *trace_handles;
 	int refcount;
 	int last_trace_handle_id;
+	struct bt_iter *current_iterator;
 };
 
 #endif /* _BABELTRACE_CONTEXT_INTERNAL_H */

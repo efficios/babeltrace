@@ -39,6 +39,13 @@ struct bt_ctf_event;
  * By default, if begin_pos is NULL, a BT_SEEK_CUR is performed at
  * creation. By default, if end_pos is NULL, a BT_SEEK_END (end of
  * trace) is the EOF criterion.
+ *
+ * Return a pointer to the newly allocated iterator.
+ *
+ * Only one iterator can be created against a context. If more than one
+ * iterator is being created for the same context, the second creation
+ * will return NULL. The previous iterator must be destroyed before
+ * creation of the new iterator for this function to succeed.
  */
 struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos,

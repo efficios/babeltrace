@@ -436,6 +436,11 @@ int bt_iter_init(struct bt_iter *iter,
 	int i, stream_id;
 	int ret = 0;
 
+	if (ctx->current_iterator) {
+		ret = -1;
+		goto error_ctx;
+	}
+
 	iter->stream_heap = g_new(struct ptr_heap, 1);
 	iter->end_pos = end_pos;
 	bt_context_get(ctx);
@@ -486,12 +491,14 @@ int bt_iter_init(struct bt_iter *iter,
 		}
 	}
 
+	ctx->current_iterator = iter;
 	return 0;
 
 error:
 	heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
+error_ctx:
 	return ret;
 }
 
@@ -517,6 +524,7 @@ void bt_iter_fini(struct bt_iter *iter)
 		heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
 	}
+	iter->ctx->current_iterator = NULL;
 	bt_context_put(iter->ctx);
 }
 
