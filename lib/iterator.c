@@ -474,14 +474,22 @@ int bt_iter_init(struct bt_iter *iter,
 						filenr);
 
 				if (begin_pos) {
-				    ret = babeltrace_filestream_seek(file_stream, begin_pos,
+					ret = babeltrace_filestream_seek(
+							file_stream,
+							begin_pos,
 							stream_id);
-				    if (ret == EOF) {
-					   ret = 0;
-					   continue;
-				    } else if (ret) {
-					   goto error;
-				    }
+				} else {
+					struct bt_iter_pos pos;
+					pos.type = BT_SEEK_BEGIN;
+					ret = babeltrace_filestream_seek(
+							file_stream, &pos,
+							stream_id);
+				}
+				if (ret == EOF) {
+					ret = 0;
+					continue;
+				} else if (ret) {
+					goto error;
 				}
 				/* Add to heap */
 				ret = heap_insert(iter->stream_heap, file_stream);
