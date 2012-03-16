@@ -1,3 +1,26 @@
+2012-03-16 Babeltrace 1.0.0-pre4
+	* fix : bt_ctf_iter_create defaults to BEGIN pos
+	* Fix : only one iterator per context
+	* Fix error checking in bt_context_add_traces_recursive
+	* bt_context_add_trace, bt_iter_pos and bt_iter needed some more comments.
+	* Fix API: add const qualifiers, privatize struct bt_ctf_event
+	* Fix: split ctf/event.c
+	* Fix: seek by timestamp
+	* Fix: remove leftover code from seek begin (unimplemented for now)
+	* Fix: seek error handling
+	* Fix: callbacks.c: more explicit error msg
+	* Fix: ctf/iterator.h bt_ctf_iter_read_event() comment
+	* Add missing iterator.h into the git repo
+	* API fix: Move ctf iterator API members to new babeltrace/ctf/iterator.h
+	* API cleanup: Move bt_iter_create/destroy to internal header
+	* Fix: update missing copyrights and ifdef protection mismatch
+	* Clarify clock correlation error message
+	* Fix build warning: set -lpopt as LDFLAGS rather than CFLAGS
+	* Fix: add missing _GNU_SOURCE define to babeltrace-log.c
+	* Fix: Add memstream.h dependency to Makefile.am
+	* Implement fallback for systems lacking open_memstream and fopenmem
+	* Fix: try to include endian.h by default
+
 2012-03-02 Babeltrace 1.0.0-pre3
 	* Fix uuid in metadata
 	* Babeltrace wrapper update
