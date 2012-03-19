@@ -29,6 +29,10 @@
 #include <babeltrace/ctf/events.h>
 #include <inttypes.h>
 
+static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
+		const struct bt_iter_pos *begin_pos,
+		unsigned long stream_id);
+
 struct stream_saved_pos {
 	/*
 	 * Use file_stream pointer to check if the trace collection we
@@ -247,6 +251,39 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 				goto error;
 		}
 		return 0;
+	case BT_SEEK_BEGIN:
+		tc = iter->ctx->tc;
+		for (i = 0; i < tc->array->len; i++) {
+			struct ctf_trace *tin;
+			struct trace_descriptor *td_read;
+			int stream_id;
+
+			td_read = g_ptr_array_index(tc->array, i);
+			tin = container_of(td_read, struct ctf_trace, parent);
+
+			/* Populate heap with each stream */
+			for (stream_id = 0; stream_id < tin->streams->len;
+					stream_id++) {
+				struct ctf_stream_class *stream;
+				int filenr;
+
+				stream = g_ptr_array_index(tin->streams,
+						stream_id);
+				if (!stream)
+					continue;
+				for (filenr = 0; filenr < stream->streams->len;
+						filenr++) {
+					struct ctf_file_stream *file_stream;
+					file_stream = g_ptr_array_index(
+							stream->streams,
+							filenr);
+					ret = babeltrace_filestream_seek(
+							file_stream, iter_pos,
+							stream_id);
+				}
+			}
+		}
+		break;
 	default:
 		/* not implemented */
 		return -EINVAL;
