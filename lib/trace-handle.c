@@ -46,17 +46,29 @@ int bt_trace_handle_get_id(struct bt_trace_handle *th)
 	return th->id;
 }
 
-const char *bt_trace_handle_get_path(struct bt_trace_handle *th)
+const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id)
 {
-	return th->path;
+	struct bt_trace_handle *handle;
+
+	handle = g_hash_table_lookup(ctx->trace_handles,
+			(gpointer) (unsigned long) handle_id);
+	return handle->path;
 }
 
-uint64_t bt_trace_handle_get_timestamp_begin(struct bt_trace_handle *th)
+uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id)
 {
-	return th->timestamp_begin;
+	struct bt_trace_handle *handle;
+
+	handle = g_hash_table_lookup(ctx->trace_handles,
+			(gpointer) (unsigned long) handle_id);
+	return handle->timestamp_begin;
 }
 
-uint64_t bt_trace_handle_get_timestamp_end(struct bt_trace_handle *th)
+uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id)
 {
-	return th->timestamp_end;
+	struct bt_trace_handle *handle;
+
+	handle = g_hash_table_lookup(ctx->trace_handles,
+			(gpointer) (unsigned long) handle_id);
+	return handle->timestamp_end;
 }
