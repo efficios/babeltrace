@@ -29,6 +29,8 @@ typedef int bt_intern_str;
 
 /* forward declaration */
 struct stream_pos;
+struct bt_context;
+struct bt_trace_handle;
 
 /* Parent trace descriptor */
 struct trace_descriptor {
@@ -56,6 +58,10 @@ struct format {
 				size_t index, int whence),
 			FILE *metadata_fp);
 	void (*close_trace)(struct trace_descriptor *descriptor);
+	void (*set_context)(struct trace_descriptor *descriptor,
+			struct bt_context *ctx);
+	void (*set_handle)(struct trace_descriptor *descriptor,
+			struct bt_trace_handle *handle);
 };
 
 extern struct format *bt_lookup_format(bt_intern_str qname);

@@ -23,6 +23,8 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/trace-handle-internal.h>
+#include <babeltrace/context-internal.h>
 #include <babeltrace/uuid.h>
 #include <babeltrace/endian.h>
 #include <inttypes.h>
@@ -76,6 +78,12 @@ struct trace_descriptor *ctf_open_mmap_trace(
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
+static
+void ctf_set_context(struct trace_descriptor *descriptor,
+		struct bt_context *ctx);
+static
+void ctf_set_handle(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle);
 
 static
 void ctf_close_trace(struct trace_descriptor *descriptor);
@@ -109,6 +117,8 @@ struct format ctf_format = {
 	.open_trace = ctf_open_trace,
 	.open_mmap_trace = ctf_open_mmap_trace,
 	.close_trace = ctf_close_trace,
+	.set_context = ctf_set_context,
+	.set_handle = ctf_set_handle,
 };
 
 /*
@@ -1608,6 +1618,26 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 	}
 	closedir(td->dir);
 	g_free(td);
+}
+
+static
+void ctf_set_context(struct trace_descriptor *descriptor,
+		struct bt_context *ctx)
+{
+	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
+			parent);
+
+	td->ctx = ctx;
+}
+
+static
+void ctf_set_handle(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle)
+{
+	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
+			parent);
+
+	td->handle = handle;
 }
 
 void __attribute__((constructor)) ctf_init(void)

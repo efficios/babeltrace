@@ -107,6 +107,11 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	strncpy(handle->path, path, PATH_MAX);
 	handle->path[PATH_MAX - 1] = '\0';
 
+	if (fmt->set_handle)
+		fmt->set_handle(td, handle);
+	if (fmt->set_context)
+		fmt->set_context(td, ctx);
+
 	/* Add new handle to container */
 	g_hash_table_insert(ctx->trace_handles,
 		(gpointer) (unsigned long) handle->id,

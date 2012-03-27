@@ -251,6 +251,46 @@ error:
 	return -1;
 }
 
+struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event)
+{
+	struct bt_context *ret = NULL;
+	struct ctf_file_stream *cfs;
+	struct ctf_stream *stream;
+	struct ctf_stream_class *stream_class;
+	struct ctf_trace *trace;
+
+	cfs = container_of(event->stream, struct ctf_file_stream,
+			parent);
+	stream = &cfs->parent;
+	stream_class = stream->stream_class;
+	trace = stream_class->trace;
+
+	if (trace->ctx)
+		ret = trace->ctx;
+
+	return ret;
+}
+
+int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event)
+{
+	int ret = -1;
+	struct ctf_file_stream *cfs;
+	struct ctf_stream *stream;
+	struct ctf_stream_class *stream_class;
+	struct ctf_trace *trace;
+
+	cfs = container_of(event->stream, struct ctf_file_stream,
+			parent);
+	stream = &cfs->parent;
+	stream_class = stream->stream_class;
+	trace = stream_class->trace;
+
+	if (trace->handle)
+		ret = trace->handle->id;
+
+	return ret;
+}
+
 uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event)
 {
 	if (event && event->stream->has_timestamp)

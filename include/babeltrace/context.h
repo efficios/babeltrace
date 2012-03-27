@@ -29,6 +29,7 @@
 /* struct bt_context is opaque to the user */
 struct bt_context;
 struct stream_pos;
+struct bt_ctf_event;
 
 /*
  * bt_context_create : create a Babeltrace context
@@ -95,5 +96,12 @@ void bt_context_remove_trace(struct bt_context *ctx, int trace_id);
  */
 void bt_context_get(struct bt_context *ctx);
 void bt_context_put(struct bt_context *ctx);
+
+/*
+ * bt_ctf_get_context : get the context associated with an event
+ *
+ * Returns NULL on error
+ */
+struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
 
 #endif /* _BABELTRACE_CONTEXT_H */

@@ -23,6 +23,8 @@
 #include <babeltrace/format.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/metadata.h>
+#include <babeltrace/trace-handle-internal.h>
+#include <babeltrace/context-internal.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <assert.h>

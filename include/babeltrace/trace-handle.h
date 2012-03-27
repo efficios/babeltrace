@@ -31,6 +31,7 @@
  * It is a unique identifier representing a trace file.
  */
 struct bt_trace_handle;
+struct bt_ctf_event;
 
 /*
  * bt_trace_handle_get_path : returns the path of a trace_handle.
@@ -48,5 +49,12 @@ uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_
  * trace.
  */
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id);
+
+/*
+ * bt_ctf_event_get_handle_id : get the handle id associated with an event
+ *
+ * Returns -1 on error
+ */
+int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event);
 
 #endif /* _BABELTRACE_TRACE_HANDLE_H */
