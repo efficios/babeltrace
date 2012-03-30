@@ -26,21 +26,14 @@
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/ctf/callbacks.h>
 #include <babeltrace/ctf/callbacks-internal.h>
+#include <babeltrace/ctf-ir/metadata.h>
 #include <glib.h>
 
 struct ctf_stream_definition;
-struct ctf_event_definition;
-/*
- * the structure to manipulate events
- */
-struct bt_ctf_event {
-	struct ctf_stream_definition *stream;
-	struct ctf_event_definition *event;
-};
 
 struct bt_ctf_iter {
 	struct bt_iter parent;
-	struct bt_ctf_event current_ctf_event;	/* last read event */
+	struct ctf_event_definition current_ctf_event;	/* last read event */
 	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
 	/*

@@ -64,7 +64,7 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
  */
 int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
+		enum bt_cb_ret (*callback)(struct ctf_event_definition *ctf_data,
 					   void *private_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,
@@ -179,10 +179,9 @@ void process_callbacks(struct bt_ctf_iter *iter,
 	struct bt_callback *cb;
 	int i;
 	enum bt_cb_ret ret;
-	struct bt_ctf_event ctf_data;
+	struct ctf_event_definition *ctf_data;
 
-	ctf_data.event = extract_ctf_stream_event(stream);
-	ctf_data.stream = stream;
+	ctf_data = extract_ctf_stream_event(stream);
 
 	/* process all events callback first */
 	if (iter->main_callbacks.callback) {
@@ -190,7 +189,7 @@ void process_callbacks(struct bt_ctf_iter *iter,
 			cb = &g_array_index(iter->main_callbacks.callback, struct bt_callback, i);
 			if (!cb)
 				goto end;
-			ret = cb->callback(&ctf_data, cb->private_data);
+			ret = cb->callback(ctf_data, cb->private_data);
 			switch (ret) {
 			case BT_CB_OK_STOP:
 			case BT_CB_ERROR_STOP:
@@ -218,7 +217,7 @@ void process_callbacks(struct bt_ctf_iter *iter,
 		cb = &g_array_index(bt_chain->callback, struct bt_callback, i);
 		if (!cb)
 			goto end;
-		ret = cb->callback(&ctf_data, cb->private_data);
+		ret = cb->callback(ctf_data, cb->private_data);
 		switch (ret) {
 		case BT_CB_OK_STOP:
 		case BT_CB_ERROR_STOP:

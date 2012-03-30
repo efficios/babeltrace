@@ -407,7 +407,7 @@ int convert_trace(struct trace_descriptor *td_write,
 	struct bt_ctf_iter *iter;
 	struct ctf_text_stream_pos *sout;
 	struct bt_iter_pos begin_pos;
-	struct bt_ctf_event *ctf_event;
+	struct ctf_event_definition *ctf_event;
 	int ret;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,

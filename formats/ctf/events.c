@@ -38,7 +38,7 @@
  */
 __thread int bt_ctf_last_field_error = 0;
 
-const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
+const struct definition *bt_ctf_get_top_level_scope(const struct ctf_event_definition *event,
 		enum bt_ctf_scope scope)
 {
 	struct definition *tmp = NULL;
@@ -69,16 +69,12 @@ const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *e
 			tmp = &event->stream->stream_event_context->p;
 		break;
 	case BT_EVENT_CONTEXT:
-		if (!event->event)
-			goto error;
-		if (event->event->event_context)
-			tmp = &event->event->event_context->p;
+		if (event->event_context)
+			tmp = &event->event_context->p;
 		break;
 	case BT_EVENT_FIELDS:
-		if (!event->event)
-			goto error;
-		if (event->event->event_fields)
-			tmp = &event->event->event_fields->p;
+		if (event->event_fields)
+			tmp = &event->event_fields->p;
 		break;
 	}
 	return tmp;
@@ -87,7 +83,7 @@ error:
 	return NULL;
 }
 
-const struct definition *bt_ctf_get_field(const struct bt_ctf_event *event,
+const struct definition *bt_ctf_get_field(const struct ctf_event_definition *event,
 		const struct definition *scope,
 		const char *field)
 {
@@ -118,7 +114,7 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *event,
 	return NULL;
 }
 
-const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
+const struct definition *bt_ctf_get_index(const struct ctf_event_definition *event,
 		const struct definition *field,
 		unsigned int index)
 {
@@ -138,7 +134,7 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 	return ret;
 }
 
-const char *bt_ctf_event_name(const struct bt_ctf_event *event)
+const char *bt_ctf_event_name(const struct ctf_event_definition *event)
 {
 	struct ctf_event_declaration *event_class;
 	struct ctf_stream_declaration *stream_class;
@@ -165,7 +161,7 @@ enum ctf_type_id bt_ctf_field_type(const struct definition *def)
 	return CTF_TYPE_UNKNOWN;
 }
 
-int bt_ctf_get_field_list(const struct bt_ctf_event *event,
+int bt_ctf_get_field_list(const struct ctf_event_definition *event,
 		const struct definition *scope,
 		struct definition const * const **list,
 		unsigned int *count)
@@ -251,7 +247,7 @@ error:
 	return -1;
 }
 
-struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event)
+struct bt_context *bt_ctf_event_get_context(const struct ctf_event_definition *event)
 {
 	struct bt_context *ret = NULL;
 	struct ctf_file_stream *cfs;
@@ -266,7 +262,7 @@ struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event)
 	return ret;
 }
 
-int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event)
+int bt_ctf_event_get_handle_id(const struct ctf_event_definition *event)
 {
 	int ret = -1;
 	struct ctf_file_stream *cfs;
@@ -281,7 +277,7 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event)
 	return ret;
 }
 
-uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event)
+uint64_t bt_ctf_get_timestamp_raw(const struct ctf_event_definition *event)
 {
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp_raw(event->stream,
@@ -290,7 +286,7 @@ uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event)
 		return -1ULL;
 }
 
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event)
+uint64_t bt_ctf_get_timestamp(const struct ctf_event_definition *event)
 {
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp(event->stream,
