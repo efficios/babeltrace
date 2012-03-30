@@ -226,7 +226,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
-	struct ctf_stream_event *event;
+	struct ctf_event_definition *event;
 	uint64_t id = 0;
 	int ret;
 
@@ -338,7 +338,7 @@ static
 int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
-	struct ctf_stream_event *event;
+	struct ctf_event_definition *event;
 	uint64_t id;
 	int ret;
 
@@ -898,11 +898,11 @@ end_stream:
 }
 
 static
-struct ctf_stream_event *create_event_definitions(struct ctf_trace *td,
+struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 						  struct ctf_stream *stream,
 						  struct ctf_event *event)
 {
-	struct ctf_stream_event *stream_event = g_new0(struct ctf_stream_event, 1);
+	struct ctf_event_definition *stream_event = g_new0(struct ctf_event_definition, 1);
 
 	if (event->context_decl) {
 		struct definition *definition =
@@ -988,7 +988,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
 	g_ptr_array_set_size(stream->events_by_id, stream_class->events_by_id->len);
 	for (i = 0; i < stream->events_by_id->len; i++) {
 		struct ctf_event *event = g_ptr_array_index(stream_class->events_by_id, i);
-		struct ctf_stream_event *stream_event;
+		struct ctf_event_definition *stream_event;
 
 		if (!event)
 			continue;
@@ -1001,7 +1001,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
 
 error_event:
 	for (i = 0; i < stream->events_by_id->len; i++) {
-		struct ctf_stream_event *stream_event = g_ptr_array_index(stream->events_by_id, i);
+		struct ctf_event_definition *stream_event = g_ptr_array_index(stream->events_by_id, i);
 		if (stream_event)
 			g_free(stream_event);
 	}

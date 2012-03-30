@@ -219,7 +219,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream *stream)
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	int field_nr_saved;
 	struct ctf_event *event_class;
-	struct ctf_stream_event *event;
+	struct ctf_event_definition *event;
 	uint64_t id;
 	int ret;
 	int dom_print = 0;

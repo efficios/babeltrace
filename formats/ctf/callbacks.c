@@ -146,11 +146,11 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 }
 
 static
-struct ctf_stream_event *extract_ctf_stream_event(struct ctf_stream *stream)
+struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
-	struct ctf_stream_event *event;
+	struct ctf_event_definition *event;
 	uint64_t id = stream->event_id;
 
 	if (id >= stream_class->events_by_id->len) {
