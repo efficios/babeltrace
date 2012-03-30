@@ -30,9 +30,7 @@
 
 struct ctf_trace;
 struct ctf_stream_declaration;
-struct ctf_stream_definition;
 struct ctf_event_declaration;
-struct ctf_stream_definition;
 struct ctf_clock;
 
 struct ctf_stream_definition {
@@ -60,6 +58,7 @@ struct ctf_stream_definition {
 };
 
 struct ctf_event_definition {
+	struct ctf_stream_definition *stream;
 	struct definition_struct *event_context;
 	struct definition_struct *event_fields;
 };

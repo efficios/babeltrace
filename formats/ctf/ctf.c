@@ -926,6 +926,7 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 					struct definition_struct, p);
 		stream->parent_def_scope = stream_event->event_fields->p.scope;
 	}
+	stream_event->stream = stream;
 	return stream_event;
 
 error:
