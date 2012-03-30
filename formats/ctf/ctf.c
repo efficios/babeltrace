@@ -125,7 +125,7 @@ struct format ctf_format = {
  * Update stream current timestamp, keep at clock frequency.
  */
 static
-void ctf_update_timestamp(struct ctf_stream *stream,
+void ctf_update_timestamp(struct ctf_stream_definition *stream,
 			  struct definition_integer *integer_definition)
 {
 	struct declaration_integer *integer_declaration =
@@ -156,7 +156,7 @@ void ctf_update_timestamp(struct ctf_stream *stream,
  * applying offsets as needed (unix time).
  */
 void ctf_print_timestamp(FILE *fp,
-			struct ctf_stream *stream,
+			struct ctf_stream_definition *stream,
 			uint64_t timestamp)
 {
 	uint64_t ts_sec = 0, ts_nsec;
@@ -221,7 +221,7 @@ end:
 }
 
 static
-int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
+int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
@@ -335,7 +335,7 @@ error:
 }
 
 static
-int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
+int ctf_write_event(struct stream_pos *pos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event_definition *event;
@@ -899,7 +899,7 @@ end_stream:
 
 static
 struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
-						  struct ctf_stream *stream,
+						  struct ctf_stream_definition *stream,
 						  struct ctf_event *event)
 {
 	struct ctf_event_definition *stream_event = g_new0(struct ctf_event_definition, 1);
@@ -937,7 +937,7 @@ error:
 }
 
 static
-int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
+int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class;
 	int ret;
@@ -1236,7 +1236,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 }
 
 static
-int create_trace_definitions(struct ctf_trace *td, struct ctf_stream *stream)
+int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition *stream)
 {
 	int ret;
 

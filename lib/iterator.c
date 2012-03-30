@@ -149,7 +149,7 @@ static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
 		stream_class = g_ptr_array_index(tin->streams, i);
 		/* for each file_stream */
 		for (j = 0; j < stream_class->streams->len; j++) {
-			struct ctf_stream *stream;
+			struct ctf_stream_definition *stream;
 			struct ctf_file_stream *cfs;
 
 			stream = g_ptr_array_index(stream_class->streams, j);
@@ -191,7 +191,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 				i++) {
 			struct stream_saved_pos *saved_pos;
 			struct ctf_stream_pos *stream_pos;
-			struct ctf_stream *stream;
+			struct ctf_stream_definition *stream;
 
 			saved_pos = &g_array_index(
 					iter_pos->u.restore->stream_saved_pos,
@@ -332,7 +332,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 			for (stream_id = 0;
 					stream_id < stream_class->streams->len;
 					stream_id++) {
-				struct ctf_stream *stream;
+				struct ctf_stream_definition *stream;
 				struct ctf_file_stream *cfs;
 				struct stream_saved_pos saved_pos;
 

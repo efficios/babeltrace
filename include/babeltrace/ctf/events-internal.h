@@ -28,13 +28,13 @@
 #include <babeltrace/ctf/callbacks-internal.h>
 #include <glib.h>
 
-struct ctf_stream;
+struct ctf_stream_definition;
 struct ctf_event_definition;
 /*
  * the structure to manipulate events
  */
 struct bt_ctf_event {
-	struct ctf_stream *stream;
+	struct ctf_stream_definition *stream;
 	struct ctf_event_definition *event;
 };
 

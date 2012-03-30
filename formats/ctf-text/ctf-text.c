@@ -211,7 +211,7 @@ const char *print_loglevel(int value)
 }
 
 static
-int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream *stream)
+int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
 			 
 {
 	struct ctf_text_stream_pos *pos =

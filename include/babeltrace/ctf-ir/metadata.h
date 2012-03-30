@@ -30,12 +30,12 @@
 
 struct ctf_trace;
 struct ctf_stream_declaration;
-struct ctf_stream;
+struct ctf_stream_definition;
 struct ctf_event;
-struct ctf_stream;
+struct ctf_stream_definition;
 struct ctf_clock;
 
-struct ctf_stream {
+struct ctf_stream_definition {
 	struct ctf_stream_declaration *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
 	uint64_t event_id;			/* Current event ID */
@@ -137,7 +137,7 @@ struct ctf_trace {
 	/* innermost definition scope. to be used as parent of stream. */
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream_declaration pointers */
-	struct ctf_stream *metadata;
+	struct ctf_stream_definition *metadata;
 	GHashTable *clocks;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */
 	struct trace_collection *collection;	/* Container of this trace */
@@ -204,7 +204,7 @@ struct ctf_stream_declaration {
 		CTF_STREAM_stream_id =	(1 << 0),
 	} field_mask;
 
-	GPtrArray *streams;	/* Array of struct ctf_stream pointers */
+	GPtrArray *streams;	/* Array of struct ctf_stream_definition pointers */
 };
 
 #define CTF_EVENT_SET_FIELD(ctf_event, field)				\

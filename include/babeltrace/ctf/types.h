@@ -200,7 +200,7 @@ void ctf_pos_get_event(struct ctf_stream_pos *pos)
 	}
 }
 
-void ctf_print_timestamp(FILE *fp, struct ctf_stream *stream,
+void ctf_print_timestamp(FILE *fp, struct ctf_stream_definition *stream,
 			uint64_t timestamp);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */

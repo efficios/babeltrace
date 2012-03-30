@@ -146,7 +146,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 }
 
 static
-struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream *stream)
+struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
@@ -172,7 +172,7 @@ struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream *stream)
 }
 
 void process_callbacks(struct bt_ctf_iter *iter,
-		       struct ctf_stream *stream)
+		       struct ctf_stream_definition *stream)
 {
 	struct bt_stream_callbacks *bt_stream_cb;
 	struct bt_callback_chain *bt_chain;
