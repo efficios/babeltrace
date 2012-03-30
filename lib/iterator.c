@@ -144,7 +144,7 @@ static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
 
 	/* for each stream_class */
 	for (i = 0; i < tin->streams->len; i++) {
-		struct ctf_stream_class *stream_class;
+		struct ctf_stream_declaration *stream_class;
 
 		stream_class = g_ptr_array_index(tin->streams, i);
 		/* for each file_stream */
@@ -264,7 +264,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			/* Populate heap with each stream */
 			for (stream_id = 0; stream_id < tin->streams->len;
 					stream_id++) {
-				struct ctf_stream_class *stream;
+				struct ctf_stream_declaration *stream;
 				int filenr;
 
 				stream = g_ptr_array_index(tin->streams,
@@ -325,7 +325,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 
 		for (stream_class_id = 0; stream_class_id < tin->streams->len;
 				stream_class_id++) {
-			struct ctf_stream_class *stream_class;
+			struct ctf_stream_declaration *stream_class;
 
 			stream_class = g_ptr_array_index(tin->streams,
 					stream_class_id);
@@ -444,7 +444,7 @@ int bt_iter_seek(struct bt_iter *iter,
 		/* Populate heap with each stream */
 		for (stream_id = 0; stream_id < tin->streams->len;
 				stream_id++) {
-			struct ctf_stream_class *stream;
+			struct ctf_stream_declaration *stream;
 			int filenr;
 
 			stream = g_ptr_array_index(tin->streams, stream_id);
@@ -497,7 +497,7 @@ int bt_iter_init(struct bt_iter *iter,
 		/* Populate heap with each stream */
 		for (stream_id = 0; stream_id < tin->streams->len;
 				stream_id++) {
-			struct ctf_stream_class *stream;
+			struct ctf_stream_declaration *stream;
 			int filenr;
 
 			stream = g_ptr_array_index(tin->streams, stream_id);

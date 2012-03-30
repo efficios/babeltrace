@@ -141,7 +141,7 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 const char *bt_ctf_event_name(const struct bt_ctf_event *event)
 {
 	struct ctf_event *event_class;
-	struct ctf_stream_class *stream_class;
+	struct ctf_stream_declaration *stream_class;
 
 	if (!event)
 		return NULL;

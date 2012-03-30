@@ -83,7 +83,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		for (stream_id = 0; stream_id < tin->streams->len; stream_id++) {
-			struct ctf_stream_class *stream;
+			struct ctf_stream_declaration *stream;
 			struct bt_stream_callbacks *bt_stream_cb = NULL;
 			struct bt_callback_chain *bt_chain = NULL;
 			struct bt_callback new_callback;
@@ -148,7 +148,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 static
 struct ctf_stream_event *extract_ctf_stream_event(struct ctf_stream *stream)
 {
-	struct ctf_stream_class *stream_class = stream->stream_class;
+	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event *event_class;
 	struct ctf_stream_event *event;
 	uint64_t id = stream->event_id;

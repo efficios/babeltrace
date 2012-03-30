@@ -225,7 +225,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream *stream)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
-	struct ctf_stream_class *stream_class = stream->stream_class;
+	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_stream_event *event;
 	uint64_t id = 0;
 	int ret;
@@ -337,7 +337,7 @@ error:
 static
 int ctf_write_event(struct stream_pos *pos, struct ctf_stream *stream)
 {
-	struct ctf_stream_class *stream_class = stream->stream_class;
+	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_stream_event *event;
 	uint64_t id;
 	int ret;
@@ -939,7 +939,7 @@ error:
 static
 int create_stream_definitions(struct ctf_trace *td, struct ctf_stream *stream)
 {
-	struct ctf_stream_class *stream_class;
+	struct ctf_stream_declaration *stream_class;
 	int ret;
 	int i;
 
@@ -1021,7 +1021,7 @@ static
 int create_stream_packet_index(struct ctf_trace *td,
 			       struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream_class *stream;
+	struct ctf_stream_declaration *stream;
 	int len_index;
 	struct ctf_stream_pos *pos;
 	struct stat filestats;
@@ -1462,7 +1462,7 @@ static
 int prepare_mmap_stream_definition(struct ctf_trace *td,
 		struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream_class *stream;
+	struct ctf_stream_declaration *stream;
 	uint64_t stream_id = 0;
 	int ret;
 
@@ -1601,7 +1601,7 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 
 	if (td->streams) {
 		for (i = 0; i < td->streams->len; i++) {
-			struct ctf_stream_class *stream;
+			struct ctf_stream_declaration *stream;
 			int j;
 
 			stream = g_ptr_array_index(td->streams, i);

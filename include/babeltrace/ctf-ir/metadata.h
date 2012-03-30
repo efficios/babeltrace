@@ -29,14 +29,14 @@
 #include <glib.h>
 
 struct ctf_trace;
-struct ctf_stream_class;
+struct ctf_stream_declaration;
 struct ctf_stream;
 struct ctf_event;
 struct ctf_stream;
 struct ctf_clock;
 
 struct ctf_stream {
-	struct ctf_stream_class *stream_class;
+	struct ctf_stream_declaration *stream_class;
 	uint64_t timestamp;			/* Current timestamp, in ns */
 	uint64_t event_id;			/* Current event ID */
 	int has_timestamp;
@@ -136,7 +136,7 @@ struct ctf_trace {
 	struct declaration_scope *declaration_scope;
 	/* innermost definition scope. to be used as parent of stream. */
 	struct definition_scope *definition_scope;
-	GPtrArray *streams;			/* Array of struct ctf_stream_class pointers */
+	GPtrArray *streams;			/* Array of struct ctf_stream_declaration pointers */
 	struct ctf_stream *metadata;
 	GHashTable *clocks;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */
@@ -185,7 +185,7 @@ struct ctf_trace {
 		(ctf_stream)->(field);					\
 	})
 
-struct ctf_stream_class {
+struct ctf_stream_declaration {
 	struct ctf_trace *trace;
 	/* parent is lexical scope conaining the stream scope */
 	struct declaration_scope *declaration_scope;
@@ -223,7 +223,7 @@ struct ctf_stream_class {
 
 struct ctf_event {
 	/* stream mapped by stream_id */
-	struct ctf_stream_class *stream;
+	struct ctf_stream_declaration *stream;
 	/* parent is lexical scope conaining the event scope */
 	struct declaration_scope *declaration_scope;
 

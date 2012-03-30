@@ -216,7 +216,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream *stream)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);
-	struct ctf_stream_class *stream_class = stream->stream_class;
+	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	int field_nr_saved;
 	struct ctf_event *event_class;
 	struct ctf_stream_event *event;
