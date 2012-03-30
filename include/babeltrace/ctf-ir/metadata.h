@@ -31,7 +31,7 @@
 struct ctf_trace;
 struct ctf_stream_declaration;
 struct ctf_stream_definition;
-struct ctf_event;
+struct ctf_event_declaration;
 struct ctf_stream_definition;
 struct ctf_clock;
 
@@ -191,7 +191,7 @@ struct ctf_stream_declaration {
 	struct declaration_scope *declaration_scope;
 	/* innermost definition scope. to be used as parent of event. */
 	struct definition_scope *definition_scope;
-	GPtrArray *events_by_id;		/* Array of struct ctf_event pointers indexed by id */
+	GPtrArray *events_by_id;		/* Array of struct ctf_event_declaration pointers indexed by id */
 	GHashTable *event_quark_to_id;		/* GQuark to numeric id */
 
 	struct declaration_struct *packet_context_decl;
@@ -221,7 +221,7 @@ struct ctf_stream_declaration {
 		(ctf_event)->(field);					\
 	})
 
-struct ctf_event {
+struct ctf_event_declaration {
 	/* stream mapped by stream_id */
 	struct ctf_stream_declaration *stream;
 	/* parent is lexical scope conaining the event scope */

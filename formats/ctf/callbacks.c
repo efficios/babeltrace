@@ -149,7 +149,7 @@ static
 struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
-	struct ctf_event *event_class;
+	struct ctf_event_declaration *event_class;
 	struct ctf_event_definition *event;
 	uint64_t id = stream->event_id;
 

@@ -900,7 +900,7 @@ end_stream:
 static
 struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 						  struct ctf_stream_definition *stream,
-						  struct ctf_event *event)
+						  struct ctf_event_declaration *event)
 {
 	struct ctf_event_definition *stream_event = g_new0(struct ctf_event_definition, 1);
 
@@ -987,7 +987,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 	stream->events_by_id = g_ptr_array_new();
 	g_ptr_array_set_size(stream->events_by_id, stream_class->events_by_id->len);
 	for (i = 0; i < stream->events_by_id->len; i++) {
-		struct ctf_event *event = g_ptr_array_index(stream_class->events_by_id, i);
+		struct ctf_event_declaration *event = g_ptr_array_index(stream_class->events_by_id, i);
 		struct ctf_event_definition *stream_event;
 
 		if (!event)

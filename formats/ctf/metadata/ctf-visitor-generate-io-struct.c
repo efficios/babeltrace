@@ -1585,7 +1585,7 @@ struct declaration *ctf_type_specifier_list_visit(FILE *fd,
 }
 
 static
-int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_event *event, struct ctf_trace *trace)
+int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_event_declaration *event, struct ctf_trace *trace)
 {
 	int ret = 0;
 
@@ -1741,9 +1741,9 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	struct ctf_event *event;
+	struct ctf_event_declaration *event;
 
-	event = g_new0(struct ctf_event, 1);
+	event = g_new0(struct ctf_event_declaration, 1);
 	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	event->loglevel = -1;
 	bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
