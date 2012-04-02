@@ -84,7 +84,7 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  */
 int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(struct ctf_event_definition *ctf_data,
+		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 					   void *caller_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,

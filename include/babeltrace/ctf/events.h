@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 struct definition;
-struct ctf_event_definition;
+struct bt_ctf_event;
 
 /*
  * the top-level scopes in CTF
@@ -77,32 +77,32 @@ enum ctf_string_encoding {
  * between the enum and the actual definition of top-level scopes.
  * On error return NULL.
  */
-const struct definition *bt_ctf_get_top_level_scope(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
 		enum bt_ctf_scope scope);
 
 /*
  * bt_ctf_event_get_name: returns the name of the event or NULL on error
  */
-const char *bt_ctf_event_name(const struct ctf_event_definition *event);
+const char *bt_ctf_event_name(const struct bt_ctf_event *event);
 
 /*
  * bt_ctf_get_timestamp_raw: returns the timestamp of the event as written in
  * the packet or -1ULL on error
  */
-uint64_t bt_ctf_get_timestamp_raw(const struct ctf_event_definition *event);
+uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event);
 
 /*
  * bt_ctf_get_timestamp: returns the timestamp of the event offsetted with the
  * system clock source or -1ULL on error
  */
-uint64_t bt_ctf_get_timestamp(const struct ctf_event_definition *event);
+uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 
 /*
  * bt_ctf_get_field_list: set list pointer to an array of definition
  * pointers and set count to the number of elements in the array.
  * Return 0 on success and a negative value on error.
  */
-int bt_ctf_get_field_list(const struct ctf_event_definition *event,
+int bt_ctf_get_field_list(const struct bt_ctf_event *event,
 		const struct definition *scope,
 		struct definition const * const **list,
 		unsigned int *count);
@@ -110,7 +110,7 @@ int bt_ctf_get_field_list(const struct ctf_event_definition *event,
 /*
  * bt_ctf_get_field: returns the definition of a specific field
  */
-const struct definition *bt_ctf_get_field(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_field(const struct bt_ctf_event *event,
 		const struct definition *scope,
 		const char *field);
 
@@ -118,7 +118,7 @@ const struct definition *bt_ctf_get_field(const struct ctf_event_definition *eve
  * bt_ctf_get_index: if the field is an array or a sequence, return the element
  * at position index, otherwise return NULL;
  */
-const struct definition *bt_ctf_get_index(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 		const struct definition *field,
 		unsigned int index);
 

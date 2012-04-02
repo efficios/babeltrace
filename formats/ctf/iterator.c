@@ -86,10 +86,10 @@ struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter)
 	return &iter->parent;
 }
 
-struct ctf_event_definition *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 {
 	struct ctf_file_stream *file_stream;
-	struct ctf_event_definition *ret = &iter->current_ctf_event;
+	struct bt_ctf_event *ret = &iter->current_ctf_event;
 	struct ctf_stream_definition *stream;
 
 	file_stream = heap_maximum(iter->parent.stream_heap);
@@ -98,13 +98,13 @@ struct ctf_event_definition *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 		goto stop;
 	}
 	stream = &file_stream->parent;
-	ret = g_ptr_array_index(stream->events_by_id,
+	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
-	if (ret->stream->stream_id > iter->callbacks->len)
+	if (ret->parent->stream->stream_id > iter->callbacks->len)
 		goto end;
 
-	process_callbacks(iter, ret->stream);
+	process_callbacks(iter, ret->parent->stream);
 
 end:
 	return ret;

@@ -31,9 +31,20 @@
 
 struct ctf_stream_definition;
 
+/*
+ * These structures are public mappings to internal ctf_event structures.
+ */
+struct bt_ctf_event {
+	struct ctf_event_definition *parent;
+};
+
+struct bt_ctf_event_decl {
+	struct ctf_event_declaration *parent;
+};
+
 struct bt_ctf_iter {
 	struct bt_iter parent;
-	struct ctf_event_definition current_ctf_event;	/* last read event */
+	struct bt_ctf_event current_ctf_event;	/* last read event */
 	GArray *callbacks;				/* Array of struct bt_stream_callbacks */
 	struct bt_callback_chain main_callbacks;	/* For all events */
 	/*

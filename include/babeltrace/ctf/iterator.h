@@ -26,7 +26,7 @@
 #include <babeltrace/iterator.h>
 
 struct bt_ctf_iter;
-struct ctf_event_definition;
+struct bt_ctf_event;
 
 /*
  * bt_ctf_iter_create - Allocate a CTF trace collection iterator.
@@ -68,6 +68,6 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
  *
  * Return current event on success, NULL on end of trace.
  */
-struct ctf_event_definition *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
 #endif /* _BABELTRACE_CTF_ITERATOR_H */

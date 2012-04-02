@@ -407,7 +407,7 @@ int convert_trace(struct trace_descriptor *td_write,
 	struct bt_ctf_iter *iter;
 	struct ctf_text_stream_pos *sout;
 	struct bt_iter_pos begin_pos;
-	struct ctf_event_definition *ctf_event;
+	struct bt_ctf_event *ctf_event;
 	int ret;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
@@ -420,7 +420,7 @@ int convert_trace(struct trace_descriptor *td_write,
 		goto error_iter;
 	}
 	while ((ctf_event = bt_ctf_iter_read_event(iter))) {
-		ret = sout->parent.event_cb(&sout->parent, ctf_event->stream);
+		ret = sout->parent.event_cb(&sout->parent, ctf_event->parent->stream);
 		if (ret) {
 			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;

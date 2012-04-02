@@ -64,7 +64,7 @@ struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
  */
 int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 		bt_intern_str event, void *private_data, int flags,
-		enum bt_cb_ret (*callback)(struct ctf_event_definition *ctf_data,
+		enum bt_cb_ret (*callback)(struct bt_ctf_event *ctf_data,
 					   void *private_data),
 		struct bt_dependencies *depends,
 		struct bt_dependencies *weak_depends,
@@ -146,29 +146,29 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 }
 
 static
-struct ctf_event_definition *extract_ctf_stream_event(struct ctf_stream_definition *stream)
+int extract_ctf_stream_event(struct ctf_stream_definition *stream,
+		struct bt_ctf_event *event)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event_declaration *event_class;
-	struct ctf_event_definition *event;
 	uint64_t id = stream->event_id;
 
 	if (id >= stream_class->events_by_id->len) {
 		fprintf(stderr, "[error] Event id %" PRIu64 " is outside range.\n", id);
-		return NULL;
+		return -1;
 	}
-	event = g_ptr_array_index(stream->events_by_id, id);
-	if (!event) {
+	event->parent = g_ptr_array_index(stream->events_by_id, id);
+	if (!event->parent) {
 		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
-		return NULL;
+		return -1;
 	}
 	event_class = g_ptr_array_index(stream_class->events_by_id, id);
 	if (!event_class) {
 		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
-		return NULL;
+		return -1;
 	}
 
-	return event;
+	return 0;
 }
 
 void process_callbacks(struct bt_ctf_iter *iter,
@@ -179,9 +179,9 @@ void process_callbacks(struct bt_ctf_iter *iter,
 	struct bt_callback *cb;
 	int i;
 	enum bt_cb_ret ret;
-	struct ctf_event_definition *ctf_data;
+	struct bt_ctf_event ctf_data;
 
-	ctf_data = extract_ctf_stream_event(stream);
+	ret = extract_ctf_stream_event(stream, &ctf_data);
 
 	/* process all events callback first */
 	if (iter->main_callbacks.callback) {
@@ -189,7 +189,7 @@ void process_callbacks(struct bt_ctf_iter *iter,
 			cb = &g_array_index(iter->main_callbacks.callback, struct bt_callback, i);
 			if (!cb)
 				goto end;
-			ret = cb->callback(ctf_data, cb->private_data);
+			ret = cb->callback(&ctf_data, cb->private_data);
 			switch (ret) {
 			case BT_CB_OK_STOP:
 			case BT_CB_ERROR_STOP:
@@ -217,7 +217,7 @@ void process_callbacks(struct bt_ctf_iter *iter,
 		cb = &g_array_index(bt_chain->callback, struct bt_callback, i);
 		if (!cb)
 			goto end;
-		ret = cb->callback(ctf_data, cb->private_data);
+		ret = cb->callback(&ctf_data, cb->private_data);
 		switch (ret) {
 		case BT_CB_OK_STOP:
 		case BT_CB_ERROR_STOP:

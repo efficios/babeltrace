@@ -29,7 +29,7 @@
 /* struct bt_context is opaque to the user */
 struct bt_context;
 struct stream_pos;
-struct ctf_event_definition;
+struct bt_ctf_event;
 
 /*
  * bt_context_create : create a Babeltrace context
@@ -102,6 +102,6 @@ void bt_context_put(struct bt_context *ctx);
  *
  * Returns NULL on error
  */
-struct bt_context *bt_ctf_event_get_context(const struct ctf_event_definition *event);
+struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
 
 #endif /* _BABELTRACE_CONTEXT_H */

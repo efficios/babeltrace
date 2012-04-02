@@ -38,10 +38,11 @@
  */
 __thread int bt_ctf_last_field_error = 0;
 
-const struct definition *bt_ctf_get_top_level_scope(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope)
 {
 	struct definition *tmp = NULL;
+	struct ctf_event_definition *event = ctf_event->parent;
 
 	switch (scope) {
 	case BT_TRACE_PACKET_HEADER:
@@ -83,7 +84,7 @@ error:
 	return NULL;
 }
 
-const struct definition *bt_ctf_get_field(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 		const struct definition *scope,
 		const char *field)
 {
@@ -114,7 +115,7 @@ const struct definition *bt_ctf_get_field(const struct ctf_event_definition *eve
 	return NULL;
 }
 
-const struct definition *bt_ctf_get_index(const struct ctf_event_definition *event,
+const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 		const struct definition *field,
 		unsigned int index)
 {
@@ -134,10 +135,11 @@ const struct definition *bt_ctf_get_index(const struct ctf_event_definition *eve
 	return ret;
 }
 
-const char *bt_ctf_event_name(const struct ctf_event_definition *event)
+const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event)
 {
 	struct ctf_event_declaration *event_class;
 	struct ctf_stream_declaration *stream_class;
+	struct ctf_event_definition *event = ctf_event->parent;
 
 	if (!event)
 		return NULL;
@@ -161,7 +163,7 @@ enum ctf_type_id bt_ctf_field_type(const struct definition *def)
 	return CTF_TYPE_UNKNOWN;
 }
 
-int bt_ctf_get_field_list(const struct ctf_event_definition *event,
+int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 		const struct definition *scope,
 		struct definition const * const **list,
 		unsigned int *count)
@@ -247,11 +249,12 @@ error:
 	return -1;
 }
 
-struct bt_context *bt_ctf_event_get_context(const struct ctf_event_definition *event)
+struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *ctf_event)
 {
 	struct bt_context *ret = NULL;
 	struct ctf_file_stream *cfs;
 	struct ctf_trace *trace;
+	struct ctf_event_definition *event = ctf_event->parent;
 
 	cfs = container_of(event->stream, struct ctf_file_stream,
 			parent);
@@ -262,11 +265,12 @@ struct bt_context *bt_ctf_event_get_context(const struct ctf_event_definition *e
 	return ret;
 }
 
-int bt_ctf_event_get_handle_id(const struct ctf_event_definition *event)
+int bt_ctf_event_get_handle_id(const struct bt_ctf_event *ctf_event)
 {
 	int ret = -1;
 	struct ctf_file_stream *cfs;
 	struct ctf_trace *trace;
+	struct ctf_event_definition *event = ctf_event->parent;
 
 	cfs = container_of(event->stream, struct ctf_file_stream,
 			parent);
@@ -277,8 +281,9 @@ int bt_ctf_event_get_handle_id(const struct ctf_event_definition *event)
 	return ret;
 }
 
-uint64_t bt_ctf_get_timestamp_raw(const struct ctf_event_definition *event)
+uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *ctf_event)
 {
+	struct ctf_event_definition *event = ctf_event->parent;
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp_raw(event->stream,
 				event->stream->timestamp);
@@ -286,8 +291,9 @@ uint64_t bt_ctf_get_timestamp_raw(const struct ctf_event_definition *event)
 		return -1ULL;
 }
 
-uint64_t bt_ctf_get_timestamp(const struct ctf_event_definition *event)
+uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event)
 {
+	struct ctf_event_definition *event = ctf_event->parent;
 	if (event && event->stream->has_timestamp)
 		return ctf_get_timestamp(event->stream,
 				event->stream->timestamp);
