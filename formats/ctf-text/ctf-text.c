@@ -236,8 +236,8 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		return -EINVAL;
 	}
 	event_class = g_ptr_array_index(stream_class->events_by_id, id);
-	if (!event) {
-		fprintf(stderr, "[error] Event id %" PRIu64 " is unknown.\n", id);
+	if (!event_class) {
+		fprintf(stderr, "[error] Event class id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
 
