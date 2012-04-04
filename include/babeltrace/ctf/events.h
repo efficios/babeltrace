@@ -24,9 +24,11 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/context.h>
 
 struct definition;
 struct bt_ctf_event;
+struct bt_ctf_event_decl;
 
 /*
  * the top-level scopes in CTF
@@ -185,5 +187,20 @@ char *bt_ctf_get_string(const struct definition *field);
  * Return 0 if no error, a negative value otherwise.
  */
 int bt_ctf_field_get_error(void);
+
+/*
+ * bt_ctf_get_event_decl_list: set list pointer to an array of bt_ctf_event_decl
+ * pointers and set count to the number of elements in the array.
+ *
+ * Return 0 on success and a negative value on error.
+ */
+int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
+		struct bt_ctf_event_decl const * const **list,
+		unsigned int *count);
+
+/*
+ * bt_ctf_get_decl_event_name: return the name of the event or NULL on error
+ */
+const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 
 #endif /* _BABELTRACE_CTF_EVENTS_H */

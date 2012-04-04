@@ -39,7 +39,7 @@ struct bt_ctf_event {
 };
 
 struct bt_ctf_event_decl {
-	struct ctf_event_declaration *parent;
+	struct ctf_event_declaration parent;
 };
 
 struct bt_ctf_iter {

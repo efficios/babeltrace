@@ -140,6 +140,7 @@ struct ctf_trace {
 	GHashTable *clocks;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */
 	struct trace_collection *collection;	/* Container of this trace */
+	GPtrArray *event_declarations;		/* Array of all the struct bt_ctf_event_decl */
 
 	struct declaration_struct *packet_header_decl;
 

@@ -1617,6 +1617,16 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 		}
 		g_ptr_array_free(td->streams, TRUE);
 	}
+
+	if (td->event_declarations) {
+		for (i = 0; i < td->event_declarations->len; i++) {
+			struct bt_ctf_event_decl *event;
+
+			event = g_ptr_array_index(td->event_declarations, i);
+			g_free(event);
+		}
+		g_ptr_array_free(td->event_declarations, TRUE);
+	}
 	closedir(td->dir);
 	g_free(td);
 }

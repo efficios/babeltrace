@@ -441,3 +441,37 @@ char *bt_ctf_get_string(const struct definition *field)
 
 	return ret;
 }
+
+int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
+		struct bt_ctf_event_decl const * const **list,
+		unsigned int *count)
+{
+	struct bt_trace_handle *handle;
+	struct trace_descriptor *td;
+	struct ctf_trace *tin;
+
+	if (!ctx)
+		goto error;
+
+	handle = g_hash_table_lookup(ctx->trace_handles,
+			(gpointer) (unsigned long) handle_id);
+	if (!handle)
+		goto error;
+
+	td = handle->td;
+	tin = container_of(td, struct ctf_trace, parent);
+
+	*list = (struct bt_ctf_event_decl const* const*) tin->event_declarations->pdata;
+	*count = tin->event_declarations->len;
+	return 0;
+
+error:
+	return -1;
+}
+
+const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event)
+{
+	if (!event)
+		return NULL;
+	return g_quark_to_string(event->parent.name);
+}

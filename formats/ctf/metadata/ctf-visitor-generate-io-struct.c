@@ -30,6 +30,7 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/uuid.h>
 #include <babeltrace/endian.h>
+#include <babeltrace/ctf/events-internal.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
@@ -1742,8 +1743,10 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_event_declaration *event;
+	struct bt_ctf_event_decl *event_decl;
 
-	event = g_new0(struct ctf_event_declaration, 1);
+	event_decl = g_new0(struct bt_ctf_event_decl, 1);
+	event = &event_decl->parent;
 	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
 	event->loglevel = -1;
 	bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
@@ -1787,6 +1790,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	g_hash_table_insert(event->stream->event_quark_to_id,
 			    (gpointer) (unsigned long) event->name,
 			    &event->id);
+	g_ptr_array_add(trace->event_declarations, event_decl);
 	return 0;
 
 error:
@@ -1795,7 +1799,7 @@ error:
 	if (event->context_decl)
 		declaration_unref(&event->context_decl->p);
 	free_declaration_scope(event->declaration_scope);
-	g_free(event);
+	g_free(event_decl);
 	return ret;
 }
 
@@ -2128,6 +2132,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		return -EEXIST;
 	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
 	trace->streams = g_ptr_array_new();
+	trace->event_declarations = g_ptr_array_new();
 	bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
 		ret = ctf_trace_declaration_visit(fd, depth + 1, iter, trace);
 		if (ret)
@@ -2166,6 +2171,7 @@ error:
 		trace->packet_header_decl = NULL;
 	}
 	g_ptr_array_free(trace->streams, TRUE);
+	g_ptr_array_free(trace->event_declarations, TRUE);
 	free_declaration_scope(trace->declaration_scope);
 	trace->declaration_scope = NULL;
 	return ret;
