@@ -39,14 +39,14 @@ struct bt_ctf_event;
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
 
 /*
- * bt_trace_handle_get_timestamp_begin : returns the beginning timestamp
+ * bt_trace_handle_get_timestamp_begin : returns the creation time of the buffers
  * of a trace.
  */
 uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id);
 
 /*
- * bt_trace_handle_get_timestamp_end : returns the end timestamp of a
- * trace.
+ * bt_trace_handle_get_timestamp_end : returns the destruction timestamp of the
+ * buffers of a trace.
  */
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id);
 

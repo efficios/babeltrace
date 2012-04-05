@@ -104,6 +104,8 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	}
 	handle->format = fmt;
 	handle->td = td;
+	handle->timestamp_begin = fmt->timestamp_begin(td, handle);
+	handle->timestamp_end = fmt->timestamp_end(td, handle);
 	strncpy(handle->path, path, PATH_MAX);
 	handle->path[PATH_MAX - 1] = '\0';
 

@@ -62,6 +62,10 @@ struct format {
 			struct bt_context *ctx);
 	void (*set_handle)(struct trace_descriptor *descriptor,
 			struct bt_trace_handle *handle);
+	uint64_t (*timestamp_begin)(struct trace_descriptor *descriptor,
+			struct bt_trace_handle *handle);
+	uint64_t (*timestamp_end)(struct trace_descriptor *descriptor,
+			struct bt_trace_handle *handle);
 };
 
 extern struct format *bt_lookup_format(bt_intern_str qname);

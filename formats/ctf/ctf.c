@@ -87,6 +87,12 @@ void ctf_set_handle(struct trace_descriptor *descriptor,
 
 static
 void ctf_close_trace(struct trace_descriptor *descriptor);
+static
+uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle);
+static
+uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle);
 
 static
 rw_dispatch read_dispatch_table[] = {
@@ -119,7 +125,96 @@ struct format ctf_format = {
 	.close_trace = ctf_close_trace,
 	.set_context = ctf_set_context,
 	.set_handle = ctf_set_handle,
+	.timestamp_begin = ctf_timestamp_begin,
+	.timestamp_end = ctf_timestamp_end,
 };
+
+static
+uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle)
+{
+	struct ctf_trace *tin;
+	uint64_t begin = ULLONG_MAX;
+	int i, j;
+
+	tin = container_of(descriptor, struct ctf_trace, parent);
+
+	if (!tin)
+		goto error;
+
+	/* for each stream_class */
+	for (i = 0; i < tin->streams->len; i++) {
+		struct ctf_stream_declaration *stream_class;
+
+		stream_class = g_ptr_array_index(tin->streams, i);
+		/* for each file_stream */
+		for (j = 0; j < stream_class->streams->len; j++) {
+			struct ctf_stream_definition *stream;
+			struct ctf_file_stream *cfs;
+			struct ctf_stream_pos *stream_pos;
+			struct packet_index *index;
+
+			stream = g_ptr_array_index(stream_class->streams, j);
+			cfs = container_of(stream, struct ctf_file_stream,
+					parent);
+			stream_pos = &cfs->pos;
+
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index, 0);
+			if (index->timestamp_begin < begin)
+				begin = index->timestamp_begin;
+		}
+	}
+
+	return begin;
+
+error:
+	return -1ULL;
+}
+
+static
+uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+		struct bt_trace_handle *handle)
+{
+	struct ctf_trace *tin;
+	uint64_t end = 0;
+	int i, j;
+
+	tin = container_of(descriptor, struct ctf_trace, parent);
+
+	if (!tin)
+		goto error;
+
+	/* for each stream_class */
+	for (i = 0; i < tin->streams->len; i++) {
+		struct ctf_stream_declaration *stream_class;
+
+		stream_class = g_ptr_array_index(tin->streams, i);
+		/* for each file_stream */
+		for (j = 0; j < stream_class->streams->len; j++) {
+			struct ctf_stream_definition *stream;
+			struct ctf_file_stream *cfs;
+			struct ctf_stream_pos *stream_pos;
+			struct packet_index *index;
+
+			stream = g_ptr_array_index(stream_class->streams, j);
+			cfs = container_of(stream, struct ctf_file_stream,
+					parent);
+			stream_pos = &cfs->pos;
+
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index,
+					stream_pos->packet_index->len - 1);
+			if (index->timestamp_end > end)
+				end = index->timestamp_end;
+		}
+	}
+
+	return end;
+
+error:
+	return -1ULL;
+}
 
 /*
  * Update stream current timestamp, keep at clock frequency.
