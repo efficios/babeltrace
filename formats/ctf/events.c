@@ -443,7 +443,7 @@ char *bt_ctf_get_string(const struct definition *field)
 }
 
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
-		struct bt_ctf_event_decl const * const **list,
+		struct bt_ctf_event_decl * const **list,
 		unsigned int *count)
 {
 	struct bt_trace_handle *handle;
@@ -461,7 +461,7 @@ int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 	td = handle->td;
 	tin = container_of(td, struct ctf_trace, parent);
 
-	*list = (struct bt_ctf_event_decl const* const*) tin->event_declarations->pdata;
+	*list = (struct bt_ctf_event_decl * const*) tin->event_declarations->pdata;
 	*count = tin->event_declarations->len;
 	return 0;
 
@@ -474,4 +474,124 @@ const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event)
 	if (!event)
 		return NULL;
 	return g_quark_to_string(event->parent.name);
+}
+
+int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
+		enum bt_ctf_scope scope,
+		struct bt_ctf_field_decl const * const **list,
+		unsigned int *count)
+{
+	int i;
+	GArray *fields = NULL;
+	gpointer *ret_list = NULL;
+	GPtrArray *fields_array = NULL;
+	int ret = 0;
+	*count = 0;
+
+	switch (scope) {
+	case BT_EVENT_CONTEXT:
+		if (event_decl->context_decl) {
+			ret_list = event_decl->context_decl->pdata;
+			*count = event_decl->context_decl->len;
+			goto end;
+		}
+		event_decl->context_decl = g_ptr_array_new();
+		if (!event_decl->parent.context_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.context_decl->fields;
+		fields_array = event_decl->context_decl;
+		break;
+	case BT_EVENT_FIELDS:
+		if (event_decl->fields_decl) {
+			ret_list = event_decl->fields_decl->pdata;
+			*count = event_decl->fields_decl->len;
+			goto end;
+		}
+		event_decl->fields_decl = g_ptr_array_new();
+		if (!event_decl->parent.fields_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.fields_decl->fields;
+		fields_array = event_decl->fields_decl;
+		break;
+	case BT_STREAM_PACKET_CONTEXT:
+		if (event_decl->packet_context_decl) {
+			ret_list = event_decl->packet_context_decl->pdata;
+			*count = event_decl->packet_context_decl->len;
+			goto end;
+		}
+		event_decl->packet_context_decl = g_ptr_array_new();
+		if (!event_decl->parent.stream->packet_context_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.stream->packet_context_decl->fields;
+		fields_array = event_decl->packet_context_decl;
+		break;
+	case BT_STREAM_EVENT_CONTEXT:
+		if (event_decl->event_context_decl) {
+			ret_list = event_decl->event_context_decl->pdata;
+			*count = event_decl->event_context_decl->len;
+			goto end;
+		}
+		event_decl->event_context_decl = g_ptr_array_new();
+		if (!event_decl->parent.stream->event_context_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.stream->event_context_decl->fields;
+		fields_array = event_decl->event_context_decl;
+		break;
+	case BT_STREAM_EVENT_HEADER:
+		if (event_decl->event_header_decl) {
+			ret_list = event_decl->event_header_decl->pdata;
+			*count = event_decl->event_header_decl->len;
+			goto end;
+		}
+		event_decl->event_header_decl = g_ptr_array_new();
+		if (!event_decl->parent.stream->event_header_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.stream->event_header_decl->fields;
+		fields_array = event_decl->event_header_decl;
+		break;
+	case BT_TRACE_PACKET_HEADER:
+		if (event_decl->packet_header_decl) {
+			ret_list = event_decl->packet_header_decl->pdata;
+			*count = event_decl->packet_header_decl->len;
+			goto end;
+		}
+		event_decl->packet_header_decl = g_ptr_array_new();
+		if (!event_decl->parent.stream->trace->packet_header_decl) {
+			ret = -1;
+			goto end;
+		}
+		fields = event_decl->parent.stream->trace->packet_header_decl->fields;
+		fields_array = event_decl->packet_header_decl;
+		break;
+	}
+
+	for (i = 0; i < fields->len; i++) {
+		g_ptr_array_add(fields_array,
+				&g_array_index(fields,
+					struct declaration_field, i));
+	}
+	ret_list = fields_array->pdata;
+	*count = fields->len;
+
+end:
+	*list = (struct bt_ctf_field_decl const* const*) ret_list;
+
+	return ret;
+}
+
+const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field)
+{
+	if (field)
+		return rem_(g_quark_to_string(((struct declaration_field *) field)->name));
+	return NULL;
 }

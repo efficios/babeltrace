@@ -1718,6 +1718,18 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 			struct bt_ctf_event_decl *event;
 
 			event = g_ptr_array_index(td->event_declarations, i);
+			if (event->context_decl)
+				g_ptr_array_free(event->context_decl, TRUE);
+			if (event->fields_decl)
+				g_ptr_array_free(event->fields_decl, TRUE);
+			if (event->packet_header_decl)
+				g_ptr_array_free(event->packet_header_decl, TRUE);
+			if (event->event_context_decl)
+				g_ptr_array_free(event->event_context_decl, TRUE);
+			if (event->event_header_decl)
+				g_ptr_array_free(event->event_header_decl, TRUE);
+			if (event->packet_context_decl)
+				g_ptr_array_free(event->packet_context_decl, TRUE);
 			g_free(event);
 		}
 		g_ptr_array_free(td->event_declarations, TRUE);

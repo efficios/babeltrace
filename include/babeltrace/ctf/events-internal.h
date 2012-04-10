@@ -40,6 +40,12 @@ struct bt_ctf_event {
 
 struct bt_ctf_event_decl {
 	struct ctf_event_declaration parent;
+	GPtrArray *context_decl;
+	GPtrArray *fields_decl;
+	GPtrArray *packet_header_decl;
+	GPtrArray *event_context_decl;
+	GPtrArray *event_header_decl;
+	GPtrArray *packet_context_decl;
 };
 
 struct bt_ctf_iter {

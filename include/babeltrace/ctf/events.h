@@ -29,6 +29,7 @@
 struct definition;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
+struct bt_ctf_field_decl;
 
 /*
  * the top-level scopes in CTF
@@ -195,12 +196,28 @@ int bt_ctf_field_get_error(void);
  * Return 0 on success and a negative value on error.
  */
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
-		struct bt_ctf_event_decl const * const **list,
+		struct bt_ctf_event_decl * const **list,
 		unsigned int *count);
 
 /*
  * bt_ctf_get_decl_event_name: return the name of the event or NULL on error
  */
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
+
+/*
+ * bt_ctf_get_decl_fields: set list pointer to an array of bt_ctf_field_decl
+ * pointers and set count to the number of elements in the array.
+ *
+ * Returns 0 on success and a negative value on error
+ */
+int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
+		enum bt_ctf_scope scope,
+		struct bt_ctf_field_decl const * const **list,
+		unsigned int *count);
+
+/*
+ * bt_ctf_get_decl_field_name: return the name of a field decl or NULL on error
+ */
+const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
 
 #endif /* _BABELTRACE_CTF_EVENTS_H */
