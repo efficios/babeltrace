@@ -40,6 +40,13 @@
 #define _bt_list_first_entry(ptr, type, member)	\
 	bt_list_entry((ptr)->next, type, member)
 
+struct last_enum_value {
+	union {
+		int64_t s;
+		uint64_t u;
+	} u;
+};
+
 int opt_clock_force_correlate;
 
 static
@@ -933,7 +940,8 @@ error:
 static
 int ctf_enumerator_list_visit(FILE *fd, int depth,
 		struct ctf_node *enumerator,
-		struct declaration_enum *enum_declaration)
+		struct declaration_enum *enum_declaration,
+		struct last_enum_value *last)
 {
 	GQuark q;
 	struct ctf_node *iter;
@@ -969,8 +977,11 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 			}
 			nr_vals++;
 		}
-		if (nr_vals == 1)
+		if (nr_vals == 0)
+			start = last->u.s;
+		if (nr_vals <= 1)
 			end = start;
+		last->u.s = end + 1;
 		enum_signed_insert(enum_declaration, start, end, q);
 	} else {
 		uint64_t start, end;
@@ -1006,8 +1017,11 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 			}
 			nr_vals++;
 		}
-		if (nr_vals == 1)
+		if (nr_vals == 0)
+			start = last->u.u;
+		if (nr_vals <= 1)
 			end = start;
+		last->u.u = end + 1;
 		enum_unsigned_insert(enum_declaration, start, end, q);
 	}
 	return 0;
@@ -1025,6 +1039,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 	struct declaration *declaration;
 	struct declaration_enum *enum_declaration;
 	struct declaration_integer *integer_declaration;
+	struct last_enum_value last_value;
 	struct ctf_node *iter;
 	GQuark dummy_id;
 	int ret;
@@ -1076,8 +1091,14 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		integer_declaration = container_of(declaration, struct declaration_integer, p);
 		enum_declaration = enum_declaration_new(integer_declaration);
 		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
+		if (enum_declaration->integer_declaration->signedness) {
+			last_value.u.s = 0;
+		} else {
+			last_value.u.u = 0;
+		}
 		bt_list_for_each_entry(iter, enumerator_list, siblings) {
-			ret = ctf_enumerator_list_visit(fd, depth + 1, iter, enum_declaration);
+			ret = ctf_enumerator_list_visit(fd, depth + 1, iter, enum_declaration,
+					&last_value);
 			if (ret)
 				goto error;
 		}
