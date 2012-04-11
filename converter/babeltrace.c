@@ -383,10 +383,10 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 				node->fts_accpath, format_str,
 				packet_seek, NULL, NULL);
 			if (trace_id < 0) {
-				fprintf(stderr, "[error] [Context] opening trace \"%s\" from %s "
+				fprintf(stderr, "[warning] [Context] opening trace \"%s\" from %s "
 					"for reading.\n", node->fts_accpath, path);
-				ret = trace_id;
-				goto error;
+				/* Allow to skip erroneous traces. */
+				continue;
 			}
 			g_array_append_val(trace_ids, trace_id);
 		}
