@@ -1426,14 +1426,14 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	/* Open trace directory */
 	td->dir = opendir(path);
 	if (!td->dir) {
-		fprintf(stderr, "[error] Unable to open trace directory.\n");
+		fprintf(stderr, "[error] Unable to open trace directory \"%s\".\n", path);
 		ret = -ENOENT;
 		goto error;
 	}
 
 	td->dirfd = open(path, 0);
 	if (td->dirfd < 0) {
-		fprintf(stderr, "[error] Unable to open trace directory file descriptor.\n");
+		fprintf(stderr, "[error] Unable to open trace directory file descriptor for path \"%s\".\n", path);
 		perror("Trace directory open");
 		ret = -errno;
 		goto error_dirfd;
@@ -1447,6 +1447,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 
 	ret = ctf_open_trace_metadata_read(td, packet_seek, metadata_fp);
 	if (ret) {
+		fprintf(stderr, "[warning] Unable to open trace metadata for path \"%s\".\n", path);
 		goto error_metadata;
 	}
 
