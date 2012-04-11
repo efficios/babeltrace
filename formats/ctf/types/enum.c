@@ -19,6 +19,7 @@
  */
 
 #include <babeltrace/ctf/types.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -38,13 +39,21 @@ int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	ret = ctf_integer_read(ppos, &integer_definition->p);
 	if (ret)
 		return ret;
-	if (!integer_declaration->signedness)
+	if (!integer_declaration->signedness) {
 		qs = enum_uint_to_quark_set(enum_declaration,
 			integer_definition->value._unsigned);
-	else
+		if (!qs) {
+			fprintf(stderr, "[warning] Unknown value %" PRIu64 " in enum.\n",
+				integer_definition->value._unsigned);
+		}
+	} else {
 		qs = enum_int_to_quark_set(enum_declaration,
 			integer_definition->value._signed);
-	assert(qs);
+		if (!qs) {
+			fprintf(stderr, "[warning] Unknown value %" PRId64 " in enum.\n",
+				integer_definition->value._signed);
+		}
+	}
 	/* unref previous quark set */
 	if (enum_definition->value)
 		g_array_unref(enum_definition->value);
