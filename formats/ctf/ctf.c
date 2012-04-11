@@ -983,7 +983,8 @@ end:
 	ctf_scanner_free(scanner);
 end_scanner_alloc:
 end_packet_read:
-	fclose(fp);
+	if (fp)
+		fclose(fp);
 	free(buf);
 end_stream:
 	close(metadata_stream->pos.fd);
