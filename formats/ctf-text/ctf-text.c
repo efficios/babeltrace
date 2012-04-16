@@ -249,7 +249,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		ctf_print_timestamp(stderr, stream, stream->prev_timestamp);
 		fprintf(stderr, "] and [");
 		ctf_print_timestamp(stderr, stream, stream->prev_timestamp_end);
-		fprintf(stderr, "]. You should consider increasing the buffer size.\n");
+		fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
 		fflush(stderr);
 		stream->events_discarded = 0;
 	}

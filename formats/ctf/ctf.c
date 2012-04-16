@@ -650,7 +650,7 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 					fprintf(stderr, "] and [");
 					ctf_print_timestamp(stderr, &file_stream->parent,
 							file_stream->parent.prev_timestamp_end);
-					fprintf(stderr, "]. You should consider increasing the buffer size.\n");
+					fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
 					fflush(stderr);
 				}
 				file_stream->parent.events_discarded = 0;
