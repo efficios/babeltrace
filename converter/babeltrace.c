@@ -123,8 +123,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --no-delta                 Do not print time delta between consecutive events\n");
 	fprintf(fp, "  -n, --names name1<,name2,...>  Print field names:\n");
 	fprintf(fp, "                                     (payload OR args OR arg)\n");
-	fprintf(fp, "                                     all, scope, header, (context OR ctx)\n");
-	fprintf(fp, "                                        (payload active by default)\n");
+	fprintf(fp, "                                     none, all, scope, header, (context OR ctx)\n");
+	fprintf(fp, "                                        (default: payload,context)\n");
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
 	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
 	fprintf(fp, "                                     trace:vpid, loglevel.\n");
@@ -145,6 +145,7 @@ static int get_names_args(poptContext *pc)
 	char *str, *strlist, *strctx;
 
 	opt_payload_field_names = 0;
+	opt_context_field_names = 0;
 	strlist = (char *) poptGetOptArg(*pc);
 	if (!strlist) {
 		return -EINVAL;
@@ -161,7 +162,13 @@ static int get_names_args(poptContext *pc)
 			opt_header_field_names = 1;
 		else if (!strcmp(str, "payload") || !strcmp(str, "args") || !strcmp(str, "arg"))
 			opt_payload_field_names = 1;
-		else {
+		else if (!strcmp(str, "none")) {
+			opt_all_field_names = 0;
+			opt_scope_field_names = 0;
+			opt_context_field_names = 0;
+			opt_header_field_names = 0;
+			opt_payload_field_names = 0;
+		} else {
 			fprintf(stderr, "[error] unknown field name type %s\n", str);
 			return -EINVAL;
 		}
