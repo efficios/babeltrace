@@ -217,6 +217,7 @@ static int parse_options(int argc, char **argv)
 	poptReadDefaultConfig(pc, 0);
 
 	/* set default */
+	opt_context_field_names = 1;
 	opt_payload_field_names = 1;
 
 	while ((opt = poptGetNextOpt(pc)) != -1) {
