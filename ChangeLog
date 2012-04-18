@@ -1,3 +1,30 @@
+2012-04-18 Babeltrace 1.0.0-rc1
+	* Fix: -n "field names" option should allow "none"
+	* Fix: Show context field name by default
+	* Manpage fix: babeltrace-log manpage should refer to lttng(1)
+	* Clarify warning message for events discarded
+	* Fix: babeltrace should skip erroneous traces
+	* Fix: put explicit error messages and warnings when opening a trace
+	* Fix: segfault on error handling
+	* Fix: enum must use last value + 1 as next item value
+	* Fix: warn, and don't assert, when reading a value outside enum range
+	* API Fix : missing list fields of event decl
+	* API fix : fill the values for timestamp begin and end
+	* API : list of events in the trace
+	* UUID field should be optional, as specified by CTF spec
+	* Babeltrace ctf-text duplicated error message
+	* API fix/breakage : reexporting bt_ctf_event
+	* fix/breakage API : replace bt_ctf_event
+	* add ctf_event_definition pointer to ctf_stream_definition
+	* Rename ctf_event to ctf_event_declaration
+	* Rename ctf_stream to ctf_stream_definition
+	* Rename ctf_stream_event to ctf_event_definition
+	* Rename ctf_stream_class to ctf_stream_declaration
+	* Cleanup: Remove unneeded local variables from function
+	* API Fix : give access to trace_handle and context
+	* API Fix : handle id to use the public functions
+	* Fix : add the missing seek begin
+
 2012-03-16 Babeltrace 1.0.0-pre4
 	* fix : bt_ctf_iter_create defaults to BEGIN pos
 	* Fix : only one iterator per context
