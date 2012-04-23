@@ -135,14 +135,13 @@ void bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 
 	/* Remove from containers */
 	trace_collection_remove(ctx->tc, handle->td);
-	g_hash_table_remove(ctx->trace_handles,
-		(gpointer) (unsigned long) handle_id);
-
 	/* Close the trace */
 	handle->format->close_trace(handle->td);
 
-	/* Destory the handle */
-	bt_trace_handle_destroy(handle);
+	/* Remove and free the handle */
+	g_hash_table_remove(ctx->trace_handles,
+			(gpointer) (unsigned long) handle_id);
+
 }
 
 static
