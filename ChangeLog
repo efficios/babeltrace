@@ -1,3 +1,7 @@
+2012-04-24 Babeltrace 1.0.0-rc2
+	* Fix: return an error if no trace can be opened
+	* Fix: double destroy in context remove
+
 2012-04-18 Babeltrace 1.0.0-rc1
 	* Fix: -n "field names" option should allow "none"
 	* Fix: Show context field name by default
