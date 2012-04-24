@@ -400,10 +400,15 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		}
 	}
 
-	g_array_free(trace_ids, TRUE);
-	return ret;
-
 error:
+	/*
+	 * Return an error if no trace can be opened.
+	 */
+	if (ret == 0 && trace_ids->len == 0) {
+		fprintf(stderr, "[error] Cannot open any trace for reading.\n\n");
+		ret = -ENOENT;
+	}
+	g_array_free(trace_ids, TRUE);
 	return ret;
 }
 
