@@ -355,6 +355,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 
 	while ((node = fts_read(tree))) {
 		int dirfd, metafd;
+		int closeret;
 
 		if (!(node->fts_info & FTS_D))
 			continue;
@@ -368,11 +369,13 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		}
 		metafd = openat(dirfd, "metadata", O_RDONLY);
 		if (metafd < 0) {
-			ret = close(dirfd);
-			if (ret < 0) {
+			closeret = close(dirfd);
+			if (closeret < 0) {
 				perror("close");
 				goto error;
 			}
+			ret = -1;
+			continue;
 		} else {
 			int trace_id;
 
