@@ -371,6 +371,7 @@ int64_t get_signed_int(const struct definition *field);
 int get_int_signedness(const struct definition *field);
 int get_int_byte_order(const struct definition *field);
 int get_int_base(const struct definition *field);
+size_t get_int_len(const struct definition *field);	/* in bits */
 enum ctf_string_encoding get_int_encoding(const struct definition *field);
 
 /*

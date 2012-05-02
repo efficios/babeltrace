@@ -129,6 +129,17 @@ int get_int_base(const struct definition *field)
 	return integer_declaration->base;
 }
 
+size_t get_int_len(const struct definition *field)
+{
+	struct definition_integer *integer_definition;
+	const struct declaration_integer *integer_declaration;
+
+	integer_definition = container_of(field, struct definition_integer, p);
+	integer_declaration = integer_definition->declaration;
+
+	return integer_declaration->len;
+}
+
 int get_int_byte_order(const struct definition *field)
 {
 	struct definition_integer *integer_definition;

@@ -357,6 +357,20 @@ int bt_ctf_get_int_byte_order(const struct definition *field)
 	return ret;
 }
 
+ssize_t bt_ctf_get_int_len(const struct definition *field)
+{
+	ssize_t ret;
+
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER) {
+		ret = (ssize_t) get_int_len(field);
+	} else {
+		ret = -1;
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
 enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field)
 {
 	enum ctf_string_encoding ret = 0;

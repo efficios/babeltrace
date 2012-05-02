@@ -156,6 +156,12 @@ int bt_ctf_get_int_base(const struct definition *field);
 int bt_ctf_get_int_byte_order(const struct definition *field);
 
 /*
+ * bt_ctf_get_int_len: return the size, in bits, of an int or a negative
+ * value on error
+ */
+ssize_t bt_ctf_get_int_len(const struct definition *field);
+
+/*
  * bt_ctf_get_encoding: return the encoding of an int or a string.
  * return a negative value on error
  */
