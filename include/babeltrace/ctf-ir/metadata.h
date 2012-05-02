@@ -52,9 +52,9 @@ struct ctf_stream_definition {
 	struct ctf_clock *current_clock;
 
 	/* Event discarded information */
-	uint32_t events_discarded;
-	uint64_t prev_timestamp;	/* Last event */
-	uint64_t prev_timestamp_end;	/* End-of-packet timestamp */
+	uint64_t events_discarded;
+	uint64_t prev_timestamp;	/* Start-of-last-packet timestamp */
+	uint64_t prev_timestamp_end;	/* End-of-last-packet timestamp */
 };
 
 struct ctf_event_definition {

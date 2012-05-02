@@ -40,7 +40,8 @@ struct packet_index {
 	uint64_t content_size;	/* content size, in bits */
 	uint64_t timestamp_begin;
 	uint64_t timestamp_end;
-	uint32_t events_discarded;
+	uint64_t events_discarded;
+	size_t events_discarded_len;	/* length of the field, in bits */
 };
 
 /*

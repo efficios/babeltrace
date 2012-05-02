@@ -594,7 +594,7 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 		switch (whence) {
 		case SEEK_CUR:
 		{
-			uint32_t events_discarded_diff;
+			uint64_t events_discarded_diff;
 
 			if (pos->offset == EOF) {
 				return;
@@ -610,6 +610,13 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 						struct packet_index,
 						pos->cur_index - 1);
 				events_discarded_diff -= packet_index->events_discarded;
+				/*
+				 * Deal with 32-bit wrap-around if the
+				 * tracer provided a 32-bit field.
+				 */
+				if (packet_index->events_discarded_len == 32) {
+					events_discarded_diff = (uint32_t) events_discarded_diff;
+				}
 			}
 			file_stream->parent.events_discarded = events_discarded_diff;
 			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
@@ -643,7 +650,7 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 				 */
 				if ((&file_stream->parent)->stream_class->trace->collection) {
 					fflush(stdout);
-					fprintf(stderr, "[warning] Tracer discarded %d events at end of stream between [",
+					fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events at end of stream between [",
 							file_stream->parent.events_discarded);
 					ctf_print_timestamp(stderr, &file_stream->parent,
 							file_stream->parent.prev_timestamp);
@@ -1296,6 +1303,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.events_discarded = get_unsigned_int(field);
+				packet_index.events_discarded_len = get_int_len(field);
 			}
 		} else {
 			/* Use file size for packet size */

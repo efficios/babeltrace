@@ -244,7 +244,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 	/* Print events discarded */
 	if (stream->events_discarded) {
 		fflush(pos->fp);
-		fprintf(stderr, "[warning] Tracer discarded %d events between [",
+		fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events between [",
 			stream->events_discarded);
 		ctf_print_timestamp(stderr, stream, stream->prev_timestamp);
 		fprintf(stderr, "] and [");
