@@ -1321,7 +1321,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 		if (packet_index.packet_size > ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT) {
 			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
-				packet_index.content_size, ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT);
+				packet_index.packet_size, ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT);
 			return -EINVAL;
 		}
 
