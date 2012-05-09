@@ -321,9 +321,10 @@ end:
  * path, and add them to the context. The packet_seek parameter can be
  * NULL: this specify to use the default format packet_seek.
  *
- * Return: 0 on success, nonzero on failure.
+ * Return: 0 on success, < 0 on failure, > 0 on partial failure.
  * Unable to open toplevel: failure.
- * Unable to open some subdirectory or file: warn and continue;
+ * Unable to open some subdirectory or file: warn and continue (partial
+ * failure);
  */
 int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		const char *format_str,
@@ -335,7 +336,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	GArray *trace_ids;
 	char lpath[PATH_MAX];
 	char * const paths[2] = { lpath, NULL };
-	int ret = -1;
+	int ret = 0;
 
 	/*
 	 * Need to copy path, because fts_open can change it.
@@ -364,7 +365,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		if (dirfd < 0) {
 			fprintf(stderr, "[error] [Context] Unable to open trace "
 				"directory file descriptor.\n");
-			ret = dirfd;
+			ret = 1;	/* partial error */
 			goto error;
 		}
 		metafd = openat(dirfd, "metadata", O_RDONLY);
@@ -372,21 +373,23 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 			closeret = close(dirfd);
 			if (closeret < 0) {
 				perror("close");
+				ret = -1;	/* failure */
 				goto error;
 			}
-			ret = -1;
 			continue;
 		} else {
 			int trace_id;
 
-			ret = close(metafd);
-			if (ret < 0) {
+			closeret = close(metafd);
+			if (closeret < 0) {
 				perror("close");
+				ret = -1;	/* failure */
 				goto error;
 			}
-			ret = close(dirfd);
-			if (ret < 0) {
+			closeret = close(dirfd);
+			if (closeret < 0) {
 				perror("close");
+				ret = -1;	/* failure */
 				goto error;
 			}
 
@@ -397,6 +400,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 				fprintf(stderr, "[warning] [Context] opening trace \"%s\" from %s "
 					"for reading.\n", node->fts_accpath, path);
 				/* Allow to skip erroneous traces. */
+				ret = 1;	/* partial error */
 				continue;
 			}
 			g_array_append_val(trace_ids, trace_id);
@@ -407,9 +411,9 @@ error:
 	/*
 	 * Return an error if no trace can be opened.
 	 */
-	if (ret == 0 && trace_ids->len == 0) {
+	if (trace_ids->len == 0) {
 		fprintf(stderr, "[error] Cannot open any trace for reading.\n\n");
-		ret = -ENOENT;
+		ret = -ENOENT;		/* failure */
 	}
 	g_array_free(trace_ids, TRUE);
 	return ret;
@@ -455,7 +459,7 @@ error_iter:
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, partial_error = 0;
 	struct format *fmt_write;
 	struct trace_descriptor *td_write;
 	struct bt_context *ctx;
@@ -505,10 +509,14 @@ int main(int argc, char **argv)
 
 	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
 			opt_input_format, NULL);
-	if (ret) {
+	if (ret < 0) {
 		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
 			opt_input_path);
 		goto error_td_read;
+	} else if (ret > 0) {
+		fprintf(stderr, "[warning] errors occurred when opening trace \"%s\" for reading, continuing anyway.\n\n",
+			opt_input_path);
+		partial_error = 1;
 	}
 
 	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
@@ -529,7 +537,10 @@ int main(int argc, char **argv)
 	bt_context_put(ctx);
 	printf_verbose("finished converting. Output written to:\n%s\n",
 			opt_output_path ? : "<stdout>");
-	exit(EXIT_SUCCESS);
+	if (partial_error)
+		exit(EXIT_FAILURE);
+	else
+		exit(EXIT_SUCCESS);
 
 	/* Error handling */
 error_copy_trace:
