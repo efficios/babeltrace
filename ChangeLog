@@ -1,3 +1,10 @@
+2012-05-29 Babeltrace 1.0.0-rc3
+	* Fix: converter error logic
+	* Fix: report appropriate field in error message
+	* Fix: support 64-bit events discarded counter types
+	* Fix: add missing bt_ctf_get_int_len API
+	* Fix bt_context_add_traces_recursive error code
+
 2012-04-24 Babeltrace 1.0.0-rc2
 	* Fix: return an error if no trace can be opened
 	* Fix: double destroy in context remove
