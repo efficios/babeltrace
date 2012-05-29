@@ -40,18 +40,21 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <fts.h>
+#include <string.h>
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
 
 #define DEFAULT_FILE_ARRAY_SIZE	1
-static char *opt_input_format;
-static char *opt_output_format;
+static char *opt_input_format, *opt_output_format;
+/* Pointer into const argv */
+static const char *opt_input_format_arg, *opt_output_format_arg;
 
 static const char *opt_input_path;
 static const char *opt_output_path;
 
 static struct format *fmt_read;
 
+static
 void strlower(char *str)
 {
 	while (*str) {
@@ -79,8 +82,8 @@ enum {
 
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "input-format", 'i', POPT_ARG_STRING, &opt_input_format, OPT_NONE, NULL, NULL },
-	{ "output-format", 'o', POPT_ARG_STRING, &opt_output_format, OPT_NONE, NULL, NULL },
+	{ "input-format", 'i', POPT_ARG_STRING, &opt_input_format_arg, OPT_NONE, NULL, NULL },
+	{ "output-format", 'o', POPT_ARG_STRING, &opt_output_format_arg, OPT_NONE, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
@@ -475,10 +478,22 @@ int main(int argc, char **argv)
 	printf_verbose("Verbose mode active.\n");
 	printf_debug("Debug mode active.\n");
 
-	if (opt_input_format)
+	if (opt_input_format_arg) {
+		opt_input_format = strdup(opt_input_format_arg);
+		if (!opt_input_format) {
+			partial_error = 1;
+			goto end;
+		}
 		strlower(opt_input_format);
-	if (opt_output_format)
+	}
+	if (opt_output_format) {
+		opt_output_format = strdup(opt_output_format_arg);
+		if (!opt_output_format) {
+			partial_error = 1;
+			goto end;
+		}
 		strlower(opt_output_format);
+	}
 
 	printf_verbose("Converting from directory: %s\n", opt_input_path);
 	printf_verbose("Converting from format: %s\n",
@@ -488,21 +503,33 @@ int main(int argc, char **argv)
 	printf_verbose("Converting to format: %s\n",
 		opt_output_format ? : "text <default>");
 
-	if (!opt_input_format)
-		opt_input_format = "ctf";
-	if (!opt_output_format)
-		opt_output_format = "text";
+	if (!opt_input_format) {
+		opt_input_format = strdup("ctf");
+		if (!opt_input_format) {
+			partial_error = 1;
+			goto end;
+		}
+	}
+	if (!opt_output_format) {
+		opt_output_format = strdup("text");
+		if (!opt_output_format) {
+			partial_error = 1;
+			goto end;
+		}
+	}
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
 	if (!fmt_read) {
 		fprintf(stderr, "[error] Format \"%s\" is not supported.\n\n",
 			opt_input_format);
-		exit(EXIT_FAILURE);
+		partial_error = 1;
+		goto end;
 	}
 	fmt_write = bt_lookup_format(g_quark_from_static_string(opt_output_format));
 	if (!fmt_write) {
 		fprintf(stderr, "[error] format \"%s\" is not supported.\n\n",
 			opt_output_format);
-		exit(EXIT_FAILURE);
+		partial_error = 1;
+		goto end;
 	}
 
 	ctx = bt_context_create();
@@ -537,10 +564,7 @@ int main(int argc, char **argv)
 	bt_context_put(ctx);
 	printf_verbose("finished converting. Output written to:\n%s\n",
 			opt_output_path ? : "<stdout>");
-	if (partial_error)
-		exit(EXIT_FAILURE);
-	else
-		exit(EXIT_SUCCESS);
+	goto end;
 
 	/* Error handling */
 error_copy_trace:
@@ -548,5 +572,14 @@ error_copy_trace:
 error_td_write:
 	bt_context_put(ctx);
 error_td_read:
-	exit(EXIT_FAILURE);
+	partial_error = 1;
+
+	/* teardown and exit */
+end:
+	free(opt_input_format);
+	free(opt_output_format);
+	if (partial_error)
+		exit(EXIT_FAILURE);
+	else
+		exit(EXIT_SUCCESS);
 }
