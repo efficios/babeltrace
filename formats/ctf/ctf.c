@@ -147,6 +147,8 @@ uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
 		struct ctf_stream_declaration *stream_class;
 
 		stream_class = g_ptr_array_index(tin->streams, i);
+		if (!stream_class)
+			continue;
 		/* for each file_stream */
 		for (j = 0; j < stream_class->streams->len; j++) {
 			struct ctf_stream_definition *stream;
@@ -190,6 +192,8 @@ uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
 		struct ctf_stream_declaration *stream_class;
 
 		stream_class = g_ptr_array_index(tin->streams, i);
+		if (!stream_class)
+			continue;
 		/* for each file_stream */
 		for (j = 0; j < stream_class->streams->len; j++) {
 			struct ctf_stream_definition *stream;
