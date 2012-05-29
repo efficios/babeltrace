@@ -145,6 +145,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	struct definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos destp;
+	struct mmap_align mma;
 	int ret;
 
 	switch (float_declaration->mantissa->len + 1) {
@@ -163,7 +164,8 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	ctf_init_pos(&destp, -1, O_RDWR);
-	destp.base = (char *) u.bits;
+	mmap_align_set_addr(&mma, (char *) u.bits);
+	destp.base_mma = &mma;
 	destp.packet_size = sizeof(u) * CHAR_BIT;
 	ctf_align_pos(pos, float_declaration->p.alignment);
 	ret = _ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
@@ -192,6 +194,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	struct definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos srcp;
+	struct mmap_align mma;
 	int ret;
 
 	switch (float_declaration->mantissa->len + 1) {
@@ -210,7 +213,8 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	ctf_init_pos(&srcp, -1, O_RDONLY);
-	srcp.base = (char *) u.bits;
+	mmap_align_set_addr(&mma, (char *) u.bits);
+	srcp.base_mma = &mma;
 	srcp.packet_size = sizeof(u) * CHAR_BIT;
 	switch (float_declaration->mantissa->len + 1) {
 	case FLT_MANT_DIG:

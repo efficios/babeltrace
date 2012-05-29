@@ -491,7 +491,7 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 	pos->packet_size = 0;
 	pos->content_size = 0;
 	pos->content_size_loc = NULL;
-	pos->base = NULL;
+	pos->base_mma = NULL;
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;
@@ -526,9 +526,9 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
-	if (pos->base) {
+	if (pos->base_mma) {
 		/* unmap old base */
-		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
+		ret = munmap_align(pos->base_mma);
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
@@ -555,15 +555,15 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 
-	if (pos->base) {
+	if (pos->base_mma) {
 		/* unmap old base */
-		ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
+		ret = munmap_align(pos->base_mma);
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
 			assert(0);
 		}
-		pos->base = NULL;
+		pos->base_mma = NULL;
 	}
 
 	/*
@@ -686,9 +686,9 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 		}
 	}
 	/* map new base. Need mapping length from header. */
-	pos->base = mmap(NULL, pos->packet_size / CHAR_BIT, pos->prot,
-			 pos->flags, pos->fd, pos->mmap_offset);
-	if (pos->base == MAP_FAILED) {
+	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
+			pos->flags, pos->fd, pos->mmap_offset);
+	if (pos->base_mma == MAP_FAILED) {
 		fprintf(stderr, "[error] mmap error %s.\n",
 			strerror(errno));
 		assert(0);
@@ -1145,19 +1145,20 @@ int create_stream_packet_index(struct ctf_trace *td,
 	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
 		uint64_t stream_id = 0;
 
-		if (pos->base) {
+		if (pos->base_mma) {
 			/* unmap old base */
-			ret = munmap(pos->base, pos->packet_size / CHAR_BIT);
+			ret = munmap_align(pos->base_mma);
 			if (ret) {
 				fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 					strerror(errno));
 				return ret;
 			}
-			pos->base = NULL;
+			pos->base_mma = NULL;
 		}
 		/* map new base. Need mapping length from header. */
-		pos->base = mmap(NULL, MAX_PACKET_HEADER_LEN / CHAR_BIT, PROT_READ,
+		pos->base_mma = mmap_align(MAX_PACKET_HEADER_LEN / CHAR_BIT, PROT_READ,
 				 MAP_PRIVATE, pos->fd, pos->mmap_offset);
+		assert(pos->base_mma != MAP_FAILED);
 		pos->content_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
 		pos->packet_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
 		pos->offset = 0;	/* Position of the packet header */
@@ -1553,7 +1554,7 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 	pos->content_size = 0;
 	pos->content_size_loc = NULL;
 	pos->fd = mmap_info->fd;
-	pos->base = 0;
+	pos->base_mma = NULL;
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;

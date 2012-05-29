@@ -24,12 +24,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <glib.h>
 #include <stdio.h>
+#include <babeltrace/mmap-align.h>
 
 struct bt_stream_callbacks;
 
@@ -59,7 +59,7 @@ struct ctf_stream_pos {
 	size_t packet_size;	/* current packet size, in bits */
 	size_t content_size;	/* current content size, in bits */
 	uint32_t *content_size_loc; /* pointer to current content size */
-	char *base;		/* mmap base address */
+	struct mmap_align *base_mma;/* mmap base address */
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 	ssize_t last_offset;	/* offset before the last read_event */
 	size_t cur_index;	/* current index in packet index */
@@ -145,7 +145,7 @@ char *ctf_get_pos_addr(struct ctf_stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	assert(!(pos->offset % CHAR_BIT));
-	return pos->base + (pos->offset / CHAR_BIT);
+	return mmap_align_addr(pos->base_mma) + (pos->offset / CHAR_BIT);
 }
 
 static inline
