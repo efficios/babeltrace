@@ -58,7 +58,7 @@ static
 void strlower(char *str)
 {
 	while (*str) {
-		*str = tolower(*str);
+		*str = tolower((int) *str);
 		str++;
 	}
 }
@@ -266,7 +266,8 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_CLOCK_OFFSET:
 		{
-			char *str, *endptr;
+			const char *str;
+			char *endptr;
 
 			str = poptGetOptArg(pc);
 			if (!str) {
