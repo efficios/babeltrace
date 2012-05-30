@@ -1,3 +1,14 @@
+2012-05-30 Babeltrace 1.0.0-rc4
+	* Add CodingStyle to tarball
+	* Add coding style document
+	* Fix: babeltrace should use output format argument
+	* Fix: accept traces which skip stream ids
+	* Use mmap_align
+	* align header: define PAGE_SIZE
+	* Implement mmap alignment header
+	* Cleanup: type warnings
+	* Cleanup: do not overwrite const argv parameters
+
 2012-05-29 Babeltrace 1.0.0-rc3
 	* Fix: converter error logic
 	* Fix: report appropriate field in error message
