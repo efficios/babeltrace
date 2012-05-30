@@ -487,7 +487,7 @@ int main(int argc, char **argv)
 		}
 		strlower(opt_input_format);
 	}
-	if (opt_output_format) {
+	if (opt_output_format_arg) {
 		opt_output_format = strdup(opt_output_format_arg);
 		if (!opt_output_format) {
 			partial_error = 1;
