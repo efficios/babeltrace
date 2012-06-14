@@ -118,11 +118,10 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 			continue;
 
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
-		while (cfs->parent.timestamp < timestamp) {
+		do {
 			ret = stream_read_event(cfs);
-			if (ret < 0)
-				break;
-		}
+		} while (cfs->parent.timestamp < timestamp && ret >= 0);
+
 		return 0;
 	}
 	return EOF;
