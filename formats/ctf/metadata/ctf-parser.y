@@ -52,8 +52,6 @@ int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
 int yylex_destroy(yyscan_t yyscanner);
 void yyrestart(FILE * in_str, yyscan_t scanner);
 
-int yydebug;
-
 struct gc_string {
 	struct bt_list_head gc;
 	size_t alloclen;
