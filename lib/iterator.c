@@ -100,8 +100,8 @@ void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
  * are looking for (either the exact timestamp or the event just after the
  * timestamp).
  *
- * Return 0 if the seek succeded and EOF if we didn't find any packet
- * containing the timestamp.
+ * Return 0 if the seek succeded, EOF if we didn't find any packet
+ * containing the timestamp, or a positive integer for error.
  */
 static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 		uint64_t timestamp)
@@ -114,16 +114,21 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 	for (i = 0; i < stream_pos->packet_index->len; i++) {
 		index = &g_array_index(stream_pos->packet_index,
 				struct packet_index, i);
-		if (index->timestamp_end <= timestamp)
+		if (index->timestamp_end < timestamp)
 			continue;
 
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
 		do {
 			ret = stream_read_event(cfs);
-		} while (cfs->parent.timestamp < timestamp && ret >= 0);
+		} while (cfs->parent.timestamp < timestamp && ret == 0);
 
-		return 0;
+		/* Can return either EOF, 0, or error (> 0). */
+		return ret;
 	}
+	/*
+	 * Cannot find the timestamp within the stream packets, return
+	 * EOF.
+	 */
 	return EOF;
 }
 
@@ -133,42 +138,52 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
  *
  * Return 0 on success.
  * If the timestamp is not part of any file stream, return EOF to inform the
- * user the timestamp is out of the scope
+ * user the timestamp is out of the scope.
+ * On other errors, return positive value.
  */
 static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
 		uint64_t timestamp, struct ptr_heap *stream_heap)
 {
 	int i, j, ret;
-	int found = EOF;
+	int found = 0;
 
 	/* for each stream_class */
 	for (i = 0; i < tin->streams->len; i++) {
 		struct ctf_stream_declaration *stream_class;
 
 		stream_class = g_ptr_array_index(tin->streams, i);
+		if (!stream_class)
+			continue;
 		/* for each file_stream */
 		for (j = 0; j < stream_class->streams->len; j++) {
 			struct ctf_stream_definition *stream;
 			struct ctf_file_stream *cfs;
 
 			stream = g_ptr_array_index(stream_class->streams, j);
+			if (!stream)
+				continue;
 			cfs = container_of(stream, struct ctf_file_stream,
 					parent);
 			ret = seek_file_stream_by_timestamp(cfs, timestamp);
 			if (ret == 0) {
 				/* Add to heap */
 				ret = heap_insert(stream_heap, cfs);
-				if (ret)
-					goto error;
-				found = 0;
+				if (ret) {
+					/* Return positive error. */
+					return -ret;
+				}
+				found = 1;
+			} else if (ret > 0) {
+				/*
+				 * Error in seek (not EOF), failure.
+				 */
+				return ret;
 			}
+			/* on EOF just do not put stream into heap. */
 		}
 	}
 
-	return found;
-
-error:
-	return -2;
+	return found ? 0 : EOF;
 }
 
 int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
@@ -241,12 +256,21 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			struct trace_descriptor *td_read;
 
 			td_read = g_ptr_array_index(tc->array, i);
+			if (!td_read)
+				continue;
 			tin = container_of(td_read, struct ctf_trace, parent);
 
 			ret = seek_ctf_trace_by_timestamp(tin,
 					iter_pos->u.seek_time,
 					iter->stream_heap);
-			if (ret < 0)
+			/*
+			 * Positive errors are failure. Negative value
+			 * is EOF (for which we continue with other
+			 * traces). 0 is success. Note: on EOF, it just
+			 * means that no stream has been added to the
+			 * iterator for that trace, which is fine.
+			 */
+			if (ret != 0 && ret != EOF)
 				goto error;
 		}
 		return 0;
@@ -258,6 +282,8 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			int stream_id;
 
 			td_read = g_ptr_array_index(tc->array, i);
+			if (!td_read)
+				continue;
 			tin = container_of(td_read, struct ctf_trace, parent);
 
 			/* Populate heap with each stream */
@@ -276,9 +302,14 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 					file_stream = g_ptr_array_index(
 							stream->streams,
 							filenr);
+					if (!file_stream)
+						continue;
 					ret = babeltrace_filestream_seek(
 							file_stream, iter_pos,
 							stream_id);
+					if (ret != 0 && ret != EOF) {
+						goto error;
+					}
 				}
 			}
 		}
@@ -320,6 +351,8 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 		struct trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
+		if (!td_read)
+			continue;
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		for (stream_class_id = 0; stream_class_id < tin->streams->len;
@@ -328,6 +361,8 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 
 			stream_class = g_ptr_array_index(tin->streams,
 					stream_class_id);
+			if (!stream_class)
+				continue;
 			for (stream_id = 0;
 					stream_id < stream_class->streams->len;
 					stream_id++) {
@@ -338,6 +373,8 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 				stream = g_ptr_array_index(
 						stream_class->streams,
 						stream_id);
+				if (!stream)
+					continue;
 				cfs = container_of(stream,
 						struct ctf_file_stream,
 						parent);
@@ -438,6 +475,8 @@ int bt_iter_seek(struct bt_iter *iter,
 		struct trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
+		if (!td_read)
+			continue;
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		/* Populate heap with each stream */
@@ -447,12 +486,16 @@ int bt_iter_seek(struct bt_iter *iter,
 			int filenr;
 
 			stream = g_ptr_array_index(tin->streams, stream_id);
+			if (!stream)
+				continue;
 			for (filenr = 0; filenr < stream->streams->len;
 					filenr++) {
 				struct ctf_file_stream *file_stream;
 
 				file_stream = g_ptr_array_index(stream->streams,
 						filenr);
+				if (!file_stream)
+					continue;
 				ret = babeltrace_filestream_seek(file_stream, begin_pos,
 						stream_id);
 				if (ret < 0)
@@ -491,6 +534,8 @@ int bt_iter_init(struct bt_iter *iter,
 		struct trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(ctx->tc->array, i);
+		if (!td_read)
+			continue;
 		tin = container_of(td_read, struct ctf_trace, parent);
 
 		/* Populate heap with each stream */
@@ -508,7 +553,8 @@ int bt_iter_init(struct bt_iter *iter,
 
 				file_stream = g_ptr_array_index(stream->streams,
 						filenr);
-
+				if (!file_stream)
+					continue;
 				if (begin_pos) {
 					ret = babeltrace_filestream_seek(
 							file_stream,
