@@ -81,7 +81,7 @@ void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
 	if (!iter_pos)
 		return;
 
-	if (iter_pos->u.restore) {
+	if (iter_pos->type == BT_SEEK_RESTORE && iter_pos->u.restore) {
 		if (iter_pos->u.restore->stream_saved_pos) {
 			g_array_free(
 				iter_pos->u.restore->stream_saved_pos,
@@ -242,6 +242,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			if (ret)
 				goto error;
 		}
+		return 0;
 	case BT_SEEK_TIME:
 		tc = iter->ctx->tc;
 
@@ -339,6 +340,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 	int i, stream_class_id, stream_id;
 
 	pos = g_new0(struct bt_iter_pos, 1);
+	pos->type = BT_SEEK_RESTORE;
 	pos->u.restore = g_new0(struct bt_saved_pos, 1);
 	pos->u.restore->tc = tc;
 	pos->u.restore->stream_saved_pos = g_array_new(FALSE, TRUE,
