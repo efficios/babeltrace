@@ -1378,14 +1378,29 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence))
 {
-	int ret;
+	int ret, fd;
 	struct ctf_file_stream *file_stream;
+	struct stat statbuf;
 
-	ret = openat(td->dirfd, path, flags);
-	if (ret < 0) {
+	fd = openat(td->dirfd, path, flags);
+	if (fd < 0) {
 		perror("File stream openat()");
+		ret = fd;
 		goto error;
 	}
+
+	/* Don't try to mmap subdirectories. Skip them, return success. */
+	ret = fstat(fd, &statbuf);
+	if (ret) {
+		perror("File stream fstat()");
+		goto fstat_error;
+	}
+	if (S_ISDIR(statbuf.st_mode)) {
+		fprintf(stderr, "[warning] Skipping directory '%s' found in trace\n", path);
+		ret = 0;
+		goto fd_is_dir_ok;
+	}
+
 	file_stream = g_new0(struct ctf_file_stream, 1);
 
 	if (packet_seek) {
@@ -1396,7 +1411,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		goto error_def;
 	}
 
-	ctf_init_pos(&file_stream->pos, ret, flags);
+	ctf_init_pos(&file_stream->pos, fd, flags);
 	ret = create_trace_definitions(td, &file_stream->parent);
 	if (ret)
 		goto error_def;
@@ -1417,8 +1432,10 @@ error_index:
 		definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	ctf_fini_pos(&file_stream->pos);
-	close(file_stream->pos.fd);
 	g_free(file_stream);
+fd_is_dir_ok:
+fstat_error:
+	close(fd);
 error:
 	return ret;
 }
