@@ -114,4 +114,13 @@ extern void *heap_cherrypick(struct ptr_heap *heap, void *p);
  */
 extern void *heap_replace_max(struct ptr_heap *heap, void *p);
 
+/**
+ * heap_copy - copy a heap
+ * @dst: the destination heap (must be allocated)
+ * @src: the source heap
+ *
+ * Returns -ENOMEM if out of memory.
+ */
+extern int heap_copy(struct ptr_heap *dst, struct ptr_heap *src);
+
 #endif /* _BABELTRACE_PRIO_HEAP_H */

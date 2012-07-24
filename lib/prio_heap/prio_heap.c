@@ -214,3 +214,21 @@ found:
 	heapify(heap, pos);
 	return p;
 }
+
+int heap_copy(struct ptr_heap *dst, struct ptr_heap *src)
+{
+	int ret;
+
+	ret = heap_init(dst, src->alloc_len, src->gt);
+	if (ret < 0)
+		goto end;
+
+	ret = heap_set_len(dst, src->len);
+	if (ret < 0)
+		goto end;
+
+	memcpy(dst->ptrs, src->ptrs, src->len * sizeof(void *));
+
+end:
+	return ret;
+}
