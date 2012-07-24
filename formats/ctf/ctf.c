@@ -337,8 +337,6 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 
 	/* save the current position as a restore point */
 	pos->last_offset = pos->offset;
-	/* we just read the event, it is consumed when used by the caller */
-	stream->consumed = 0;
 
 	/*
 	 * This is the EOF check after we've advanced the position in
@@ -908,6 +906,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 	int ret = 0;
 
 	metadata_stream = g_new0(struct ctf_file_stream, 1);
+	metadata_stream->pos.last_offset = LAST_OFFSET_POISON;
 
 	if (packet_seek) {
 		metadata_stream->pos.packet_seek = packet_seek;
@@ -1402,6 +1401,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	}
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
+	file_stream->pos.last_offset = LAST_OFFSET_POISON;
 
 	if (packet_seek) {
 		file_stream->pos.packet_seek = packet_seek;
@@ -1624,6 +1624,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	struct ctf_file_stream *file_stream;
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
+	file_stream->pos.last_offset = LAST_OFFSET_POISON;
 	ctf_init_mmap_pos(&file_stream->pos, mmap_info);
 
 	file_stream->pos.packet_seek = packet_seek;

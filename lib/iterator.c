@@ -223,11 +223,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			 */
 			stream->timestamp = saved_pos->current_timestamp;
 			stream_pos->offset = saved_pos->offset;
-			stream_pos->last_offset = saved_pos->offset;
+			stream_pos->last_offset = LAST_OFFSET_POISON;
 
 			stream->prev_timestamp = 0;
 			stream->prev_timestamp_end = 0;
-			stream->consumed = 0;
 
 			printf_debug("restored to cur_index = %zd and "
 				"offset = %zd, timestamp = %" PRIu64 "\n",
@@ -383,19 +382,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 
 				saved_pos.file_stream = cfs;
 				saved_pos.cur_index = cfs->pos.cur_index;
-
-				/*
-				 * It is possible that an event was read during
-				 * the last restore, never consumed and its
-				 * position saved again.  For this case, we
-				 * need to check if the event really was
-				 * consumed by the caller otherwise it is lost.
-				 */
-				if (stream->consumed)
-					saved_pos.offset = cfs->pos.offset;
-				else
-					saved_pos.offset = cfs->pos.last_offset;
-
+				saved_pos.offset = cfs->pos.last_offset;
 				saved_pos.current_timestamp = stream->timestamp;
 
 				g_array_append_val(

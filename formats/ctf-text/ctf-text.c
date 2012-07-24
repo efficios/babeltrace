@@ -448,7 +448,6 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 	/* newline */
 	fprintf(pos->fp, "\n");
 	pos->field_nr = 0;
-	stream->consumed = 1;
 
 	return 0;
 

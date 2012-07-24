@@ -39,7 +39,6 @@ struct ctf_stream_definition {
 	uint64_t event_id;			/* Current event ID */
 	int has_timestamp;
 	uint64_t stream_id;
-	int consumed;				/* Last packet used by caller */
 
 	struct definition_struct *trace_packet_header;
 	struct definition_struct *stream_packet_context;

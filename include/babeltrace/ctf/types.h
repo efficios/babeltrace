@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <babeltrace/mmap-align.h>
 
+#define LAST_OFFSET_POISON	((ssize_t) -1L)
+
 struct bt_stream_callbacks;
 
 struct packet_index {
