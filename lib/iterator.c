@@ -336,7 +336,9 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 {
 	struct bt_iter_pos *pos;
 	struct trace_collection *tc = iter->ctx->tc;
-	int i, stream_class_id, stream_id;
+	struct ctf_file_stream *file_stream = NULL, *removed;
+	struct ptr_heap iter_heap_copy;
+	int ret;
 
 	pos = g_new0(struct bt_iter_pos, 1);
 	pos->type = BT_SEEK_RESTORE;
@@ -347,61 +349,46 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 	if (!pos->u.restore->stream_saved_pos)
 		goto error;
 
-	for (i = 0; i < tc->array->len; i++) {
-		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+	ret = heap_copy(&iter_heap_copy, iter->stream_heap);
+	if (ret < 0)
+		goto error_heap;
 
-		td_read = g_ptr_array_index(tc->array, i);
-		if (!td_read)
-			continue;
-		tin = container_of(td_read, struct ctf_trace, parent);
+	/* iterate over each stream in the heap */
+	file_stream = heap_maximum(&iter_heap_copy);
+	while (file_stream != NULL) {
+		struct stream_saved_pos saved_pos;
 
-		for (stream_class_id = 0; stream_class_id < tin->streams->len;
-				stream_class_id++) {
-			struct ctf_stream_declaration *stream_class;
+		assert(file_stream->pos.last_offset != LAST_OFFSET_POISON);
+		saved_pos.offset = file_stream->pos.last_offset;
+		saved_pos.file_stream = file_stream;
+		saved_pos.cur_index = file_stream->pos.cur_index;
 
-			stream_class = g_ptr_array_index(tin->streams,
-					stream_class_id);
-			if (!stream_class)
-				continue;
-			for (stream_id = 0;
-					stream_id < stream_class->streams->len;
-					stream_id++) {
-				struct ctf_stream_definition *stream;
-				struct ctf_file_stream *cfs;
-				struct stream_saved_pos saved_pos;
+		saved_pos.current_timestamp = file_stream->parent.timestamp;
 
-				stream = g_ptr_array_index(
-						stream_class->streams,
-						stream_id);
-				if (!stream)
-					continue;
-				cfs = container_of(stream,
-						struct ctf_file_stream,
-						parent);
+		g_array_append_val(
+				pos->u.restore->stream_saved_pos,
+				saved_pos);
 
-				saved_pos.file_stream = cfs;
-				saved_pos.cur_index = cfs->pos.cur_index;
-				saved_pos.offset = cfs->pos.last_offset;
-				saved_pos.current_timestamp = stream->timestamp;
+		printf_debug("stream : %" PRIu64 ", cur_index : %zd, "
+				"offset : %zd, "
+				"timestamp = %" PRIu64 "\n",
+				file_stream->parent.stream_id,
+				saved_pos.cur_index, saved_pos.offset,
+				saved_pos.current_timestamp);
 
-				g_array_append_val(
-					pos->u.restore->stream_saved_pos,
-					saved_pos);
+		/* remove the stream from the heap copy */
+		removed = heap_remove(&iter_heap_copy);
+		assert(removed == file_stream);
 
-				printf_debug("stream : %" PRIu64 ", cur_index : %zd, "
-					"offset : %zd, "
-					"timestamp = %" PRIu64 "\n",
-					stream->stream_id, saved_pos.cur_index,
-					saved_pos.offset,
-					saved_pos.current_timestamp);
-			}
-		}
+		file_stream = heap_maximum(&iter_heap_copy);
 	}
-
+	heap_free(&iter_heap_copy);
 	return pos;
 
+error_heap:
+	g_array_free(pos->u.restore->stream_saved_pos, TRUE);
 error:
+	g_free(pos);
 	return NULL;
 }
 
