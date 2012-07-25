@@ -34,19 +34,20 @@ struct bt_trace_handle;
 struct bt_ctf_event;
 
 /*
- * bt_trace_handle_get_path : returns the path of a trace_handle.
+ * bt_trace_handle_get_path : returns the path of a trace_handle or NULL
+ * on error.
  */
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
 
 /*
  * bt_trace_handle_get_timestamp_begin : returns the creation time of the buffers
- * of a trace.
+ * of a trace or -1ULL on error.
  */
 uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id);
 
 /*
  * bt_trace_handle_get_timestamp_end : returns the destruction timestamp of the
- * buffers of a trace.
+ * buffers of a trace or -1ULL on error.
  */
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id);
 
