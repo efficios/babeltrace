@@ -276,6 +276,11 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		return 0;
 	case BT_SEEK_BEGIN:
 		tc = iter->ctx->tc;
+		heap_free(iter->stream_heap);
+		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		if (ret < 0)
+			goto error;
+
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
 			struct trace_descriptor *td_read;
@@ -310,6 +315,9 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 					if (ret != 0 && ret != EOF) {
 						goto error;
 					}
+					ret = heap_insert(iter->stream_heap, file_stream);
+					if (ret)
+						goto error;
 				}
 			}
 		}
