@@ -444,53 +444,6 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 	return ret;
 }
 
-/*
- * bt_iter_seek: seek iterator to given position.
- */
-int bt_iter_seek(struct bt_iter *iter,
-		const struct bt_iter_pos *begin_pos)
-{
-	int i, stream_id;
-	int ret = 0;
-	struct trace_collection *tc = iter->ctx->tc;
-
-	for (i = 0; i < tc->array->len; i++) {
-		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
-
-		td_read = g_ptr_array_index(tc->array, i);
-		if (!td_read)
-			continue;
-		tin = container_of(td_read, struct ctf_trace, parent);
-
-		/* Populate heap with each stream */
-		for (stream_id = 0; stream_id < tin->streams->len;
-				stream_id++) {
-			struct ctf_stream_declaration *stream;
-			int filenr;
-
-			stream = g_ptr_array_index(tin->streams, stream_id);
-			if (!stream)
-				continue;
-			for (filenr = 0; filenr < stream->streams->len;
-					filenr++) {
-				struct ctf_file_stream *file_stream;
-
-				file_stream = g_ptr_array_index(stream->streams,
-						filenr);
-				if (!file_stream)
-					continue;
-				ret = babeltrace_filestream_seek(file_stream, begin_pos,
-						stream_id);
-				if (ret < 0)
-					goto end;
-			}
-		}
-	}
-end:
-	return ret;
-}
-
 int bt_iter_init(struct bt_iter *iter,
 		struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos,
