@@ -173,7 +173,8 @@ uint64_t get_unsigned_int(const struct definition *field)
 	if (!integer_declaration->signedness) {
 		return integer_definition->value._unsigned;
 	}
-	fprintf(stderr, "[warning] Extracting unsigned value in a signed int\n");
+	fprintf(stderr, "[warning] Extracting unsigned value in a signed int (%s)\n",
+		g_quark_to_string(field->name));
 	return (uint64_t)integer_definition->value._signed;
 }
 
@@ -188,6 +189,7 @@ int64_t get_signed_int(const struct definition *field)
 	if (integer_declaration->signedness) {
 		return integer_definition->value._signed;
 	}
-	fprintf(stderr, "[warning] Extracting signed value in an unsigned int\n");
+	fprintf(stderr, "[warning] Extracting signed value in an unsigned int (%s)\n", 
+		g_quark_to_string(field->name));
 	return (int64_t)integer_definition->value._unsigned;
 }
