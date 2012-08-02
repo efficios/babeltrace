@@ -199,7 +199,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		heap_free(iter->stream_heap);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
-			goto error;
+			goto error_heap_init;
 
 		for (i = 0; i < iter_pos->u.restore->stream_saved_pos->len;
 				i++) {
@@ -248,7 +248,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		heap_free(iter->stream_heap);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
-			goto error;
+			goto error_heap_init;
 
 		/* for each trace in the trace_collection */
 		for (i = 0; i < tc->array->len; i++) {
@@ -279,7 +279,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		heap_free(iter->stream_heap);
 		ret = heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
-			goto error;
+			goto error_heap_init;
 
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
@@ -331,12 +331,14 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 
 error:
 	heap_free(iter->stream_heap);
+error_heap_init:
 	if (heap_init(iter->stream_heap, 0, stream_compare) < 0) {
 		heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
 		iter->stream_heap = NULL;
 		ret = -ENOMEM;
 	}
+
 	return ret;
 }
 
@@ -525,6 +527,7 @@ error:
 	heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
+	iter->stream_heap = NULL;
 error_ctx:
 	return ret;
 }
