@@ -36,7 +36,7 @@ struct bt_saved_pos;
  *
  * type represents the type of seek to use.
  * u is the argument of the seek if necessary :
- * - seek_time is the timestamp to seek to when using BT_SEEK_TIME, it
+ * - seek_time is the real timestamp to seek to when using BT_SEEK_TIME, it
  *   is expressed in "raw" seconds (not offsetted)
  * - restore is a position saved with bt_iter_get_pos, it is used with
  *   BT_SEEK_RESTORE.
@@ -94,7 +94,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
  *
  * This function allocates and returns a new bt_iter_pos (which must be freed
  * with bt_iter_free_pos) to be able to restore an iterator position based on a
- * timestamp.
+ * real timestamp.
  */
 struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
 		uint64_t timestamp);

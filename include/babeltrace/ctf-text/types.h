@@ -39,7 +39,8 @@ struct ctf_text_stream_pos {
 	int dummy;		/* disable output */
 	int print_names;	/* print field names */
 	int field_nr;
-	uint64_t last_timestamp;	/* to print delta */
+	uint64_t last_real_timestamp;	/* to print delta */
+	uint64_t last_cycles_timestamp;	/* to print delta */
 	GString *string;	/* Current string */
 };
 

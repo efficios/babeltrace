@@ -41,7 +41,8 @@ struct stream_saved_pos {
 	struct ctf_file_stream *file_stream;
 	size_t cur_index;	/* current index in packet index */
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
-	uint64_t current_timestamp;
+	uint64_t current_real_timestamp;
+	uint64_t current_cycles_timestamp;
 };
 
 struct bt_saved_pos {
@@ -70,7 +71,7 @@ int stream_compare(void *a, void *b)
 {
 	struct ctf_file_stream *s_a = a, *s_b = b;
 
-	if (s_a->parent.timestamp < s_b->parent.timestamp)
+	if (s_a->parent.real_timestamp < s_b->parent.real_timestamp)
 		return 1;
 	else
 		return 0;
@@ -111,8 +112,8 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 	int i, ret;
 
 	stream_pos = &cfs->pos;
-	for (i = 0; i < stream_pos->packet_index->len; i++) {
-		index = &g_array_index(stream_pos->packet_index,
+	for (i = 0; i < stream_pos->packet_real_index->len; i++) {
+		index = &g_array_index(stream_pos->packet_real_index,
 				struct packet_index, i);
 		if (index->timestamp_end < timestamp)
 			continue;
@@ -120,7 +121,7 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
 		do {
 			ret = stream_read_event(cfs);
-		} while (cfs->parent.timestamp < timestamp && ret == 0);
+		} while (cfs->parent.real_timestamp < timestamp && ret == 0);
 
 		/* Can return either EOF, 0, or error (> 0). */
 		return ret;
@@ -221,17 +222,20 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			 * packet_seek, because this function resets
 			 * the timestamp to the beginning of the packet
 			 */
-			stream->timestamp = saved_pos->current_timestamp;
+			stream->real_timestamp = saved_pos->current_real_timestamp;
+			stream->cycles_timestamp = saved_pos->current_cycles_timestamp;
 			stream_pos->offset = saved_pos->offset;
 			stream_pos->last_offset = LAST_OFFSET_POISON;
 
-			stream->prev_timestamp = 0;
-			stream->prev_timestamp_end = 0;
+			stream->prev_real_timestamp = 0;
+			stream->prev_real_timestamp_end = 0;
+			stream->prev_cycles_timestamp = 0;
+			stream->prev_cycles_timestamp_end = 0;
 
 			printf_debug("restored to cur_index = %zd and "
 				"offset = %zd, timestamp = %" PRIu64 "\n",
 				stream_pos->cur_index,
-				stream_pos->offset, stream->timestamp);
+				stream_pos->offset, stream->real_timestamp);
 
 			stream_read_event(saved_pos->file_stream);
 
@@ -373,7 +377,8 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 		saved_pos.file_stream = file_stream;
 		saved_pos.cur_index = file_stream->pos.cur_index;
 
-		saved_pos.current_timestamp = file_stream->parent.timestamp;
+		saved_pos.current_real_timestamp = file_stream->parent.real_timestamp;
+		saved_pos.current_cycles_timestamp = file_stream->parent.cycles_timestamp;
 
 		g_array_append_val(
 				pos->u.restore->stream_saved_pos,
@@ -384,7 +389,7 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 				"timestamp = %" PRIu64 "\n",
 				file_stream->parent.stream_id,
 				saved_pos.cur_index, saved_pos.offset,
-				saved_pos.current_timestamp);
+				saved_pos.current_real_timestamp);
 
 		/* remove the stream from the heap copy */
 		removed = heap_remove(&iter_heap_copy);

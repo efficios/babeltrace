@@ -281,22 +281,20 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *ctf_event)
 	return ret;
 }
 
-uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *ctf_event)
+uint64_t bt_ctf_get_real_timestamp(const struct bt_ctf_event *ctf_event)
 {
 	struct ctf_event_definition *event = ctf_event->parent;
 	if (event && event->stream->has_timestamp)
-		return ctf_get_timestamp_raw(event->stream,
-				event->stream->timestamp);
+		return event->stream->real_timestamp;
 	else
 		return -1ULL;
 }
 
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event)
+uint64_t bt_ctf_get_cycles_timestamp(const struct bt_ctf_event *ctf_event)
 {
 	struct ctf_event_definition *event = ctf_event->parent;
 	if (event && event->stream->has_timestamp)
-		return ctf_get_timestamp(event->stream,
-				event->stream->timestamp);
+		return event->stream->cycles_timestamp;
 	else
 		return -1ULL;
 }

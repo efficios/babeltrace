@@ -41,7 +41,7 @@ uint64_t ctf_get_timestamp_raw(struct ctf_stream_definition *stream,
 }
 
 static inline
-uint64_t ctf_get_timestamp(struct ctf_stream_definition *stream,
+uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
 			uint64_t timestamp)
 {
 	uint64_t ts_nsec;

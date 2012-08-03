@@ -5,7 +5,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/iterator.h \
 	babeltrace/trace-collection.h \
 	babeltrace/trace-handle.h \
-	babeltrace/list.h
+	babeltrace/list.h \
+	babeltrace/clock-types.h
 
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h \

@@ -52,7 +52,8 @@ struct packet_index {
 struct ctf_stream_pos {
 	struct stream_pos parent;
 	int fd;			/* backing file fd. -1 if unset. */
-	GArray *packet_index;	/* contains struct packet_index */
+	GArray *packet_cycles_index;	/* contains struct packet_index in cycles */
+	GArray *packet_real_index;	/* contains struct packet_index in ns */
 	int prot;		/* mmap protection */
 	int flags;		/* mmap flags */
 

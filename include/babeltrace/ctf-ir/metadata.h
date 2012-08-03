@@ -35,7 +35,8 @@ struct ctf_clock;
 
 struct ctf_stream_definition {
 	struct ctf_stream_declaration *stream_class;
-	uint64_t timestamp;			/* Current timestamp, in ns */
+	uint64_t real_timestamp;		/* Current timestamp, in ns */
+	uint64_t cycles_timestamp;		/* Current timestamp, in cycles */
 	uint64_t event_id;			/* Current event ID */
 	int has_timestamp;
 	uint64_t stream_id;
@@ -52,8 +53,10 @@ struct ctf_stream_definition {
 
 	/* Event discarded information */
 	uint64_t events_discarded;
-	uint64_t prev_timestamp;	/* Start-of-last-packet timestamp */
-	uint64_t prev_timestamp_end;	/* End-of-last-packet timestamp */
+	uint64_t prev_real_timestamp;		/* Start-of-last-packet timestamp in ns */
+	uint64_t prev_real_timestamp_end;	/* End-of-last-packet timestamp in ns */
+	uint64_t prev_cycles_timestamp;		/* Start-of-last-packet timestamp in cycles */
+	uint64_t prev_cycles_timestamp_end;	/* End-of-last-packet timestamp in cycles */
 };
 
 struct ctf_event_definition {

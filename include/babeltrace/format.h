@@ -22,6 +22,7 @@
  */
 
 #include <babeltrace/list.h>
+#include <babeltrace/clock-types.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -63,9 +64,10 @@ struct format {
 	void (*set_handle)(struct trace_descriptor *descriptor,
 			struct bt_trace_handle *handle);
 	uint64_t (*timestamp_begin)(struct trace_descriptor *descriptor,
-			struct bt_trace_handle *handle);
+			struct bt_trace_handle *handle, enum bt_clock_type type);
 	uint64_t (*timestamp_end)(struct trace_descriptor *descriptor,
-			struct bt_trace_handle *handle);
+			struct bt_trace_handle *handle, enum bt_clock_type type);
+	int (*convert_index_timestamp)(struct trace_descriptor *descriptor);
 };
 
 extern struct format *bt_lookup_format(bt_intern_str qname);

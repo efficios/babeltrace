@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <babeltrace/context.h>
+#include <babeltrace/clock-types.h>
 
 struct definition;
 struct bt_ctf_event;
@@ -89,16 +90,16 @@ const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *e
 const char *bt_ctf_event_name(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_timestamp_raw: returns the timestamp of the event as written in
- * the packet or -1ULL on error
+ * bt_ctf_get_cycles_timestamp: returns the timestamp of the event as written
+ * in the packet (in cycles) or -1ULL on error.
  */
-uint64_t bt_ctf_get_timestamp_raw(const struct bt_ctf_event *event);
+uint64_t bt_ctf_get_cycles_timestamp(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_timestamp: returns the timestamp of the event offsetted with the
- * system clock source or -1ULL on error
+ * bt_ctf_get_real_timestamp: returns the timestamp of the event offsetted
+ * with the system clock source (in ns) or -1ULL on error
  */
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
+uint64_t bt_ctf_get_real_timestamp(const struct bt_ctf_event *event);
 
 /*
  * bt_ctf_get_field_list: set list pointer to an array of definition

@@ -132,7 +132,8 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 
 /*
  * Whenever we add a trace to the trace collection, check that we can
- * correlate this trace with at least one other clock in the trace.
+ * correlate this trace with at least one other clock in the trace and
+ * convert the index from cycles to real time.
  */
 int trace_collection_add(struct trace_collection *tc,
 				struct trace_descriptor *td)
@@ -177,6 +178,7 @@ int trace_collection_add(struct trace_collection *tc,
 				clock_add,
 				&clock_match);
 	}
+
 	return 0;
 error:
 	return -EPERM;

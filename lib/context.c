@@ -104,8 +104,6 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	}
 	handle->format = fmt;
 	handle->td = td;
-	handle->timestamp_begin = fmt->timestamp_begin(td, handle);
-	handle->timestamp_end = fmt->timestamp_end(td, handle);
 	strncpy(handle->path, path, PATH_MAX);
 	handle->path[PATH_MAX - 1] = '\0';
 
@@ -119,8 +117,19 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		(gpointer) (unsigned long) handle->id,
 		handle);
 	ret = trace_collection_add(ctx->tc, td);
-	if (ret == 0)
-		return handle->id;
+	if (ret != 0)
+		goto end;
+
+	ret = fmt->convert_index_timestamp(td);
+	if (ret < 0)
+		goto end;
+
+	handle->real_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_REAL);
+	handle->real_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_REAL);
+	handle->cycles_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_CYCLES);
+	handle->cycles_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_CYCLES);
+
+	return handle->id;
 end:
 	return ret;
 }

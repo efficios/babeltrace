@@ -38,8 +38,10 @@ struct bt_trace_handle {
 	struct trace_descriptor *td;
 	struct format *format;
 	char path[PATH_MAX];
-	uint64_t timestamp_begin;
-	uint64_t timestamp_end;
+	uint64_t real_timestamp_begin;
+	uint64_t real_timestamp_end;
+	uint64_t cycles_timestamp_begin;
+	uint64_t cycles_timestamp_end;
 };
 
 /*

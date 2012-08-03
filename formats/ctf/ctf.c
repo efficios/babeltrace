@@ -58,7 +58,7 @@
 
 #define NSEC_PER_SEC 1000000000ULL
 
-int opt_clock_raw,
+int opt_clock_cycles,
 	opt_clock_seconds,
 	opt_clock_date,
 	opt_clock_gmt;
@@ -89,10 +89,12 @@ static
 void ctf_close_trace(struct trace_descriptor *descriptor);
 static
 uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
-		struct bt_trace_handle *handle);
+		struct bt_trace_handle *handle, enum bt_clock_type type);
 static
 uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
-		struct bt_trace_handle *handle);
+		struct bt_trace_handle *handle, enum bt_clock_type type);
+static
+int ctf_convert_index_timestamp(struct trace_descriptor *tdp);
 
 static
 rw_dispatch read_dispatch_table[] = {
@@ -127,11 +129,12 @@ struct format ctf_format = {
 	.set_handle = ctf_set_handle,
 	.timestamp_begin = ctf_timestamp_begin,
 	.timestamp_end = ctf_timestamp_end,
+	.convert_index_timestamp = ctf_convert_index_timestamp,
 };
 
 static
 uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
-		struct bt_trace_handle *handle)
+		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
 	uint64_t begin = ULLONG_MAX;
@@ -161,8 +164,21 @@ uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			index = &g_array_index(stream_pos->packet_index,
-					struct packet_index, 0);
+			if (!stream_pos->packet_real_index)
+				goto error;
+
+			if (type == BT_CLOCK_REAL) {
+				index = &g_array_index(stream_pos->packet_real_index,
+						struct packet_index,
+						stream_pos->packet_real_index->len - 1);
+			} else if (type == BT_CLOCK_CYCLES) {
+				index = &g_array_index(stream_pos->packet_cycles_index,
+						struct packet_index,
+						stream_pos->packet_real_index->len - 1);
+
+			} else {
+				goto error;
+			}
 			if (index->timestamp_begin < begin)
 				begin = index->timestamp_begin;
 		}
@@ -176,7 +192,7 @@ error:
 
 static
 uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
-		struct bt_trace_handle *handle)
+		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
 	uint64_t end = 0;
@@ -206,9 +222,21 @@ uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			index = &g_array_index(stream_pos->packet_index,
-					struct packet_index,
-					stream_pos->packet_index->len - 1);
+			if (!stream_pos->packet_real_index)
+				goto error;
+
+			if (type == BT_CLOCK_REAL) {
+				index = &g_array_index(stream_pos->packet_real_index,
+						struct packet_index,
+						stream_pos->packet_real_index->len - 1);
+			} else if (type == BT_CLOCK_CYCLES) {
+				index = &g_array_index(stream_pos->packet_cycles_index,
+						struct packet_index,
+						stream_pos->packet_real_index->len - 1);
+
+			} else {
+				goto error;
+			}
 			if (index->timestamp_end > end)
 				end = index->timestamp_end;
 		}
@@ -221,7 +249,7 @@ error:
 }
 
 /*
- * Update stream current timestamp, keep at clock frequency.
+ * Update stream current timestamp
  */
 static
 void ctf_update_timestamp(struct ctf_stream_definition *stream,
@@ -232,39 +260,46 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
 	uint64_t oldval, newval, updateval;
 
 	if (unlikely(integer_declaration->len == 64)) {
-		stream->timestamp = integer_definition->value._unsigned;
+		stream->prev_cycles_timestamp = stream->cycles_timestamp;
+		stream->cycles_timestamp = integer_definition->value._unsigned;
+		stream->prev_real_timestamp = ctf_get_real_timestamp(stream,
+				stream->prev_cycles_timestamp);
+		stream->real_timestamp = ctf_get_real_timestamp(stream,
+				stream->cycles_timestamp);
 		return;
 	}
 	/* keep low bits */
-	oldval = stream->timestamp;
+	oldval = stream->cycles_timestamp;
 	oldval &= (1ULL << integer_declaration->len) - 1;
 	newval = integer_definition->value._unsigned;
 	/* Test for overflow by comparing low bits */
 	if (newval < oldval)
 		newval += 1ULL << integer_declaration->len;
 	/* updateval contains old high bits, and new low bits (sum) */
-	updateval = stream->timestamp;
+	updateval = stream->cycles_timestamp;
 	updateval &= ~((1ULL << integer_declaration->len) - 1);
 	updateval += newval;
-	stream->prev_timestamp = stream->timestamp;
-	stream->timestamp = updateval;
+	stream->prev_cycles_timestamp = stream->cycles_timestamp;
+	stream->cycles_timestamp = updateval;
+
+	/* convert to real timestamp */
+	stream->prev_real_timestamp = ctf_get_real_timestamp(stream,
+			stream->prev_cycles_timestamp);
+	stream->real_timestamp = ctf_get_real_timestamp(stream,
+			stream->cycles_timestamp);
 }
 
 /*
  * Print timestamp, rescaling clock frequency to nanoseconds and
  * applying offsets as needed (unix time).
  */
-void ctf_print_timestamp(FILE *fp,
+void ctf_print_timestamp_real(FILE *fp,
 			struct ctf_stream_definition *stream,
 			uint64_t timestamp)
 {
 	uint64_t ts_sec = 0, ts_nsec;
 
-	if (opt_clock_raw) {
-		ts_nsec = ctf_get_timestamp_raw(stream, timestamp);
-	} else {
-		ts_nsec = ctf_get_timestamp(stream, timestamp);
-	}
+	ts_nsec = timestamp;
 
 	/* Add command-line offset */
 	ts_sec += opt_clock_offset;
@@ -317,6 +352,27 @@ seconds:
 
 end:
 	return;
+}
+
+/*
+ * Print timestamp, in cycles
+ */
+void ctf_print_timestamp_cycles(FILE *fp,
+		struct ctf_stream_definition *stream,
+		uint64_t timestamp)
+{
+	fprintf(fp, "%020" PRIu64, timestamp);
+}
+
+void ctf_print_timestamp(FILE *fp,
+		struct ctf_stream_definition *stream,
+		uint64_t timestamp)
+{
+	if (opt_clock_cycles) {
+		ctf_print_timestamp_cycles(fp, stream, timestamp);
+	} else {
+		ctf_print_timestamp_real(fp, stream, timestamp);
+	}
 }
 
 static
@@ -497,11 +553,12 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;
+	pos->packet_real_index = NULL;
 	if (fd >= 0)
-		pos->packet_index = g_array_new(FALSE, TRUE,
+		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
 						sizeof(struct packet_index));
 	else
-		pos->packet_index = NULL;
+		pos->packet_cycles_index = NULL;
 	switch (open_flags & O_ACCMODE) {
 	case O_RDONLY:
 		pos->prot = PROT_READ;
@@ -537,7 +594,8 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 			assert(0);
 		}
 	}
-	(void) g_array_free(pos->packet_index, TRUE);
+	(void) g_array_free(pos->packet_cycles_index, TRUE);
+	(void) g_array_free(pos->packet_real_index, TRUE);
 }
 
 /*
@@ -602,13 +660,23 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 				return;
 			}
 			/* For printing discarded event count */
-			packet_index = &g_array_index(pos->packet_index,
+			packet_index = &g_array_index(pos->packet_cycles_index,
 					struct packet_index, pos->cur_index);
-			events_discarded_diff = packet_index->events_discarded;
-			file_stream->parent.prev_timestamp_end =
+			file_stream->parent.prev_cycles_timestamp_end =
+				packet_index->timestamp_end;
+			file_stream->parent.prev_cycles_timestamp =
+				packet_index->timestamp_begin;
+
+			packet_index = &g_array_index(pos->packet_real_index,
+					struct packet_index, pos->cur_index);
+			file_stream->parent.prev_real_timestamp_end =
 						packet_index->timestamp_end;
+			file_stream->parent.prev_real_timestamp =
+				packet_index->timestamp_begin;
+
+			events_discarded_diff = packet_index->events_discarded;
 			if (pos->cur_index > 0) {
-				packet_index = &g_array_index(pos->packet_index,
+				packet_index = &g_array_index(pos->packet_real_index,
 						struct packet_index,
 						pos->cur_index - 1);
 				events_discarded_diff -= packet_index->events_discarded;
@@ -621,20 +689,23 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 				}
 			}
 			file_stream->parent.events_discarded = events_discarded_diff;
-			file_stream->parent.prev_timestamp = file_stream->parent.timestamp;
+			file_stream->parent.prev_real_timestamp = file_stream->parent.real_timestamp;
+			file_stream->parent.prev_cycles_timestamp = file_stream->parent.cycles_timestamp;
 			/* The reader will expect us to skip padding */
 			++pos->cur_index;
 			break;
 		}
 		case SEEK_SET:
 			pos->cur_index = index;
-			file_stream->parent.prev_timestamp = 0;
-			file_stream->parent.prev_timestamp_end = 0;
+			file_stream->parent.prev_real_timestamp = 0;
+			file_stream->parent.prev_real_timestamp_end = 0;
+			file_stream->parent.prev_cycles_timestamp = 0;
+			file_stream->parent.prev_cycles_timestamp_end = 0;
 			break;
 		default:
 			assert(0);
 		}
-		if (pos->cur_index >= pos->packet_index->len) {
+		if (pos->cur_index >= pos->packet_real_index->len) {
 			/*
 			 * When a stream reaches the end of the
 			 * file, we need to show the number of
@@ -654,11 +725,21 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 					fflush(stdout);
 					fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events at end of stream between [",
 							file_stream->parent.events_discarded);
-					ctf_print_timestamp(stderr, &file_stream->parent,
-							file_stream->parent.prev_timestamp);
-					fprintf(stderr, "] and [");
-					ctf_print_timestamp(stderr, &file_stream->parent,
-							file_stream->parent.prev_timestamp_end);
+					if (opt_clock_cycles) {
+						ctf_print_timestamp(stderr,
+								&file_stream->parent,
+								file_stream->parent.prev_cycles_timestamp);
+						fprintf(stderr, "] and [");
+						ctf_print_timestamp(stderr, &file_stream->parent,
+								file_stream->parent.prev_cycles_timestamp_end);
+					} else {
+						ctf_print_timestamp(stderr,
+								&file_stream->parent,
+								file_stream->parent.prev_real_timestamp);
+						fprintf(stderr, "] and [");
+						ctf_print_timestamp(stderr, &file_stream->parent,
+								file_stream->parent.prev_real_timestamp_end);
+					}
 					fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
 					fflush(stderr);
 				}
@@ -667,12 +748,18 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			pos->offset = EOF;
 			return;
 		}
-		packet_index = &g_array_index(pos->packet_index, struct packet_index,
-				       pos->cur_index);
+		packet_index = &g_array_index(pos->packet_cycles_index,
+				struct packet_index,
+				pos->cur_index);
+		file_stream->parent.cycles_timestamp = packet_index->timestamp_begin;
+
+		packet_index = &g_array_index(pos->packet_real_index,
+				struct packet_index,
+				pos->cur_index);
+		file_stream->parent.real_timestamp = packet_index->timestamp_begin;
 		pos->mmap_offset = packet_index->offset;
 
 		/* Lookup context/packet size in index */
-		file_stream->parent.timestamp = packet_index->timestamp_begin;
 		pos->content_size = packet_index->content_size;
 		pos->packet_size = packet_index->packet_size;
 		if (packet_index->data_offset < packet_index->content_size) {
@@ -1189,7 +1276,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				if (magic != CTF_MAGIC) {
 					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
 							magic,
-							file_stream->pos.packet_index->len,
+							file_stream->pos.packet_cycles_index->len,
 							(ssize_t) pos->mmap_offset);
 					return -EINVAL;
 				}
@@ -1289,6 +1376,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_begin = get_unsigned_int(field);
+				if (file_stream->parent.stream_class->trace->collection) {
+					packet_index.timestamp_begin =
+						ctf_get_real_timestamp(
+							&file_stream->parent,
+							packet_index.timestamp_begin);
+				}
 			}
 
 			/* read timestamp end from header */
@@ -1298,6 +1391,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_end = get_unsigned_int(field);
+				if (file_stream->parent.stream_class->trace->collection) {
+					packet_index.timestamp_end =
+						ctf_get_real_timestamp(
+							&file_stream->parent,
+							packet_index.timestamp_end);
+				}
 			}
 
 			/* read events discarded from header */
@@ -1333,13 +1432,10 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.data_offset = pos->offset;
 
 		/* add index to packet array */
-		g_array_append_val(file_stream->pos.packet_index, packet_index);
+		g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
 
 		pos->mmap_offset += packet_index.packet_size / CHAR_BIT;
 	}
-
-	/* Move pos back to beginning of file */
-	ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 
 	return 0;
 }
@@ -1526,6 +1622,11 @@ error:
 	return ret;
 }
 
+/*
+ * ctf_open_trace: Open a CTF trace and index it.
+ * Note that the user must seek the trace after the open (using the iterator)
+ * since the index creation read it entirely.
+ */
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
@@ -1579,7 +1680,8 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;
-	pos->packet_index = NULL;
+	pos->packet_cycles_index = NULL;
+	pos->packet_real_index = NULL;
 	pos->prot = PROT_READ;
 	pos->flags = MAP_PRIVATE;
 	pos->parent.rw_table = read_dispatch_table;
@@ -1713,6 +1815,56 @@ error_free:
 	g_free(td);
 error:
 	return NULL;
+}
+
+static
+int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
+{
+	int i, j, k;
+	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
+
+	/* for each stream_class */
+	for (i = 0; i < td->streams->len; i++) {
+		struct ctf_stream_declaration *stream_class;
+
+		stream_class = g_ptr_array_index(td->streams, i);
+		if (!stream_class)
+			continue;
+		/* for each file_stream */
+		for (j = 0; j < stream_class->streams->len; j++) {
+			struct ctf_stream_definition *stream;
+			struct ctf_stream_pos *stream_pos;
+			struct ctf_file_stream *cfs;
+
+			stream = g_ptr_array_index(stream_class->streams, j);
+			if (!stream)
+				continue;
+			cfs = container_of(stream, struct ctf_file_stream,
+					parent);
+			stream_pos = &cfs->pos;
+			stream_pos->packet_real_index = g_array_new(FALSE, TRUE,
+					sizeof(struct packet_index));
+
+			for (k = 0; k < stream_pos->packet_cycles_index->len; k++) {
+				struct packet_index *index;
+				struct packet_index new_index;
+
+				index = &g_array_index(stream_pos->packet_cycles_index,
+						struct packet_index, k);
+				memcpy(&new_index, index,
+						sizeof(struct packet_index));
+				new_index.timestamp_begin =
+					ctf_get_real_timestamp(stream,
+							index->timestamp_begin);
+				new_index.timestamp_end =
+					ctf_get_real_timestamp(stream,
+							index->timestamp_end);
+				g_array_append_val(stream_pos->packet_real_index,
+						new_index);
+			}
+		}
+	}
+	return 0;
 }
 
 static

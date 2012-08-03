@@ -73,7 +73,7 @@ enum {
 	OPT_FIELDS,
 	OPT_NO_DELTA,
 	OPT_CLOCK_OFFSET,
-	OPT_CLOCK_RAW,
+	OPT_CLOCK_CYCLES,
 	OPT_CLOCK_SECONDS,
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_GMT,
@@ -92,7 +92,7 @@ static struct poptOption long_options[] = {
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "no-delta", 0, POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "clock-offset", 0, POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
-	{ "clock-raw", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_RAW, NULL, NULL },
+	{ "clock-cycles", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
 	{ "clock-seconds", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
 	{ "clock-date", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
@@ -131,7 +131,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
 	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
 	fprintf(fp, "                                     trace:vpid, loglevel.\n");
-	fprintf(fp, "      --clock-raw                Disregard internal clock offset (use raw value)\n");
+	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
 	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
 	fprintf(fp, "                                 (default is: [hh:mm:ss.ns])\n");
@@ -261,8 +261,8 @@ static int parse_options(int argc, char **argv)
 		case OPT_NO_DELTA:
 			opt_delta_field = 0;
 			break;
-		case OPT_CLOCK_RAW:
-			opt_clock_raw = 1;
+		case OPT_CLOCK_CYCLES:
+			opt_clock_cycles = 1;
 			break;
 		case OPT_CLOCK_OFFSET:
 		{
