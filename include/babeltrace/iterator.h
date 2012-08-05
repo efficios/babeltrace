@@ -37,7 +37,7 @@ struct bt_saved_pos;
  * type represents the type of seek to use.
  * u is the argument of the seek if necessary :
  * - seek_time is the real timestamp to seek to when using BT_SEEK_TIME, it
- *   is expressed in "raw" seconds (not offsetted)
+ *   is expressed in nanoseconds
  * - restore is a position saved with bt_iter_get_pos, it is used with
  *   BT_SEEK_RESTORE.
  */
