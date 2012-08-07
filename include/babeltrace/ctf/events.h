@@ -90,16 +90,16 @@ const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *e
 const char *bt_ctf_event_name(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_cycles_timestamp: returns the timestamp of the event as written
+ * bt_ctf_get_cycles: returns the timestamp of the event as written
  * in the packet (in cycles) or -1ULL on error.
  */
-uint64_t bt_ctf_get_cycles_timestamp(const struct bt_ctf_event *event);
+uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_real_timestamp: returns the timestamp of the event offsetted
+ * bt_ctf_get_timestamp: returns the timestamp of the event offsetted
  * with the system clock source (in ns) or -1ULL on error
  */
-uint64_t bt_ctf_get_real_timestamp(const struct bt_ctf_event *event);
+uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 
 /*
  * bt_ctf_get_field_list: set list pointer to an array of definition
