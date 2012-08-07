@@ -407,7 +407,7 @@ int bt_ctf_get_array_len(const struct definition *field)
 
 uint64_t bt_ctf_get_uint64(const struct definition *field)
 {
-	unsigned int ret = 0;
+	uint64_t ret = 0;
 
 	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER)
 		ret = get_unsigned_int(field);
@@ -419,7 +419,7 @@ uint64_t bt_ctf_get_uint64(const struct definition *field)
 
 int64_t bt_ctf_get_int64(const struct definition *field)
 {
-	int ret = 0;
+	int64_t ret = 0;
 
 	if (field && bt_ctf_field_type(field) == CTF_TYPE_INTEGER)
 		ret = get_signed_int(field);
