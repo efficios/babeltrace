@@ -34,7 +34,7 @@
 /*
  * thread local storage to store the last error that occured
  * while reading a field, this variable must be accessed by
- * bt_ctf_field_error only
+ * bt_ctf_field_get_error only
  */
 __thread int bt_ctf_last_field_error = 0;
 

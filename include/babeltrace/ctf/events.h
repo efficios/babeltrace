@@ -182,7 +182,7 @@ int bt_ctf_get_array_len(const struct definition *field);
  *
  * If the field does not exist or is not of the type requested, the value
  * returned is undefined. To check if an error occured, use the
- * bt_ctf_field_error() function after accessing a field.
+ * bt_ctf_field_get_error() function after accessing a field.
  */
 uint64_t bt_ctf_get_uint64(const struct definition *field);
 int64_t bt_ctf_get_int64(const struct definition *field);
@@ -190,7 +190,7 @@ char *bt_ctf_get_char_array(const struct definition *field);
 char *bt_ctf_get_string(const struct definition *field);
 
 /*
- * bt_ctf_field_error: returns the last error code encountered while
+ * bt_ctf_field_get_error: returns the last error code encountered while
  * accessing a field and reset the error flag.
  * Return 0 if no error, a negative value otherwise.
  */
