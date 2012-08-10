@@ -167,6 +167,9 @@ uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
 			if (!stream_pos->packet_real_index)
 				goto error;
 
+			if (stream_pos->packet_real_index->len <= 0)
+				continue;
+
 			if (type == BT_CLOCK_REAL) {
 				index = &g_array_index(stream_pos->packet_real_index,
 						struct packet_index,
@@ -224,6 +227,9 @@ uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
 
 			if (!stream_pos->packet_real_index)
 				goto error;
+
+			if (stream_pos->packet_real_index->len <= 0)
+				continue;
 
 			if (type == BT_CLOCK_REAL) {
 				index = &g_array_index(stream_pos->packet_real_index,
@@ -1844,6 +1850,9 @@ int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
 			stream_pos = &cfs->pos;
 			stream_pos->packet_real_index = g_array_new(FALSE, TRUE,
 					sizeof(struct packet_index));
+
+			if (!stream_pos->packet_cycles_index)
+				continue;
 
 			for (k = 0; k < stream_pos->packet_cycles_index->len; k++) {
 				struct packet_index *index;
