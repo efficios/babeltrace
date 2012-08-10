@@ -1,0 +1,70 @@
+PYTHON BINDINGS
+----------------
+
+This is a brief howto for using the Babeltrace Python module.
+
+
+INSTALLATION:
+
+By default, the Python bindings are installed.
+If you do not wish the Python bindings, you can configure with the
+--disable-python option during the installation procedure:
+
+  $ ./configure --disable-python
+
+The Python module is automatically generated using SWIG, therefore the
+swig2.0 package on Debian/Ubuntu is requied.
+
+
+USAGE:
+
+Once installed, the Python module can be used by importing it in Python.
+In the Python interpreter:
+
+  >>> import babeltrace
+
+Then the starting point is to create a context and add a trace to it.
+
+  >>> ctx = babeltrace.Context()
+  >>> ctx.add_trace("path/to/trace", <format>)
+
+Where <format> is a string containing the format name in which the trace
+was produced.  To print a list of available formats to the standard
+output, it is possible to use the print_format_list function.
+
+  >>> out = babeltrace.File(None)	# This returns stdout
+  >>> babeltrace.print_format_list(out)
+
+When a trace is added to a context, it is opened and ready to read using
+an iterator.  While creating an iterator, optional starting and ending
+position may be specified.  So far, only ctf iterator are supported.
+
+  >>> begin_pos = babeltrace.IterPos(babeltrace.SEEK_BEGIN)
+  >>> iterator = babeltrace.ctf.Iterator(ctx, begin_pos)
+
+From there, it is possible to read the events.
+
+  >>> event = iterator.read_event()
+
+It is simple to obtain the timestamp of that event.
+
+  >>> timestamp = event.get_timestamp()
+
+Let's say that we want to extract the prev_comm context info for a
+sched_switch event.  To do so, it is needed to set an event scope
+with which we can obtain the field wanted.
+
+  >>> if event.get_name == "sched_switch":
+  ...   #prev_comm only for sched_switch events
+  ...   scope = event.get_top_level_scope(babeltrace.ctf.scope.EVENT_FIELDS)
+  ...   field = event.get_field(scope, "_prev_comm")
+  ...   prev_comm = field.get_char_array()
+
+It is also possible to move on to the next event.
+
+  >>> ret = iterator.next()		# Move the iterator
+  >>> if ret == 0:			# No error occured
+  ...   event = iterator.read_event()	# Read the next event
+
+For many usage script examples of the Babeltrace Python module, see the
+bindings/python/examples directory.

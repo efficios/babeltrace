@@ -4,7 +4,7 @@ set -x
 if [ ! -e config ]; then
 	mkdir config
 fi
-aclocal
+aclocal -I m4
 libtoolize --force --copy
 autoheader
 automake --add-missing --copy

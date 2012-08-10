@@ -25,6 +25,7 @@ BUILDING
 	make install
 	ldconfig
 
+	If you do not want Python bindings, run ./configure --disable-python.
 
 DEPENDENCIES
 ------------
@@ -44,6 +45,11 @@ To compile Babeltrace, you will need:
 	libpopt >= 1.13 development libraries
 	  (Debian : libpopt-dev)
 	  (Fedora : popt)
+	python headers (optional)
+	  (Debian/Ubuntu : python-dev)
+	swig >= 2.0 (optional)
+	  (Debian/Ubuntu : swig2.0)
+
 
 For developers using the git tree:
 

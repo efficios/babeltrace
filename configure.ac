@@ -74,6 +74,41 @@ AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]
 )
 
+
+# For Python
+# SWIG version needed or newer:
+swig_version=2.0.0
+
+AC_ARG_ENABLE([python],
+              [AC_HELP_STRING([--disable-python],
+                              [do not compile Python bindings])],
+              [], [enable_python=yes])
+
+AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
+
+if test "x${enable_python:-yes}" = xyes; then
+  AC_MSG_NOTICE([You may configure with --disable-python ]dnl
+[if you do not want Python bindings.])
+
+  AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
+  AM_PATH_PYTHON
+
+  AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
+  AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
+  AS_IF([test -z "$PYTHON_INCLUDE"], [
+    AS_IF([test -z "$PYTHON_CONFIG"], [
+      AC_PATH_PROGS([PYTHON_CONFIG],
+                    [python$PYTHON_VERSION-config python-config],
+                    [no],
+                    [`dirname $PYTHON`])
+      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+    ])
+    AC_MSG_CHECKING([python include flags])
+    PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
+    AC_MSG_RESULT([$PYTHON_INCLUDE])
+  ])
+fi
+
 pkg_modules="gmodule-2.0 >= 2.0.0"
 PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
 AC_SUBST(PACKAGE_LIBS)
@@ -103,6 +138,8 @@ AC_CONFIG_FILES([
 	lib/Makefile
 	lib/prio_heap/Makefile
 	include/Makefile
+	bindings/Makefile
+	bindings/python/Makefile
 	tests/Makefile
 ])
 AC_OUTPUT

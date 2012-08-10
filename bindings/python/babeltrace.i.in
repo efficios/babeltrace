@@ -1,0 +1,1098 @@
+/*
+ * babeltrace.i.in
+ *
+ * Babeltrace Python Module interface file
+ *
+ * Copyright 2012 EfficiOS Inc.
+ *
+ * Author: Danny Serres <danny.serres@efficios.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+
+%define DOCSTRING
+"BABELTRACE_VERSION_STR
+
+Babeltrace  is a trace viewer and converter reading and writing the
+Common Trace Format (CTF). Its main use is to pretty-print CTF
+traces into a human-readable text output.
+
+To use this module, the first step is to create a Context and add a
+trace to it."
+%enddef
+
+%module(docstring=DOCSTRING) babeltrace
+
+%include "typemaps.i"
+%{
+#define SWIG_FILE_WITH_INIT
+#include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/trace-handle.h>
+#include <babeltrace/trace-handle-internal.h>
+#include <babeltrace/context.h>
+#include <babeltrace/context-internal.h>
+#include <babeltrace/iterator.h>
+#include <babeltrace/iterator-internal.h>
+#include <babeltrace/format.h>
+#include <babeltrace/list.h>
+#include <babeltrace/uuid.h>
+#include <babeltrace/types.h>
+#include <babeltrace/ctf/iterator.h>
+#include "python-complements.h"
+%}
+
+typedef unsigned long long uint64_t;
+typedef long long int64_t;
+typedef int bt_intern_str;
+
+/* =================================================================
+		CONTEXT.H, CONTEXT-INTERNAL.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+%rename("_bt_context_create") bt_context_create(void);
+%rename("_bt_context_add_trace") bt_context_add_trace(
+		struct bt_context *ctx, const char *path, const char *format,
+		void (*packet_seek)(struct stream_pos *pos, size_t index, int whence),
+		struct mmap_stream_list *stream_list, FILE *metadata);
+%rename("_bt_context_remove_trace") bt_context_remove_trace(
+		struct bt_context *ctx, int trace_id);
+%rename("_bt_context_get") bt_context_get(struct bt_context *ctx);
+%rename("_bt_context_put") bt_context_put(struct bt_context *ctx);
+%rename("_bt_ctf_event_get_context") bt_ctf_event_get_context(
+		const struct bt_ctf_event *event);
+
+struct bt_context *bt_context_create(void);
+int bt_context_add_trace(struct bt_context *ctx, const char *path, const char *format,
+		void (*packet_seek)(struct stream_pos *pos, size_t index, int whence),
+		struct mmap_stream_list *stream_list, FILE *metadata);
+void bt_context_remove_trace(struct bt_context *ctx, int trace_id);
+void bt_context_get(struct bt_context *ctx);
+void bt_context_put(struct bt_context *ctx);
+struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
+
+// class Context to prevent direct access to struct bt_context
+%pythoncode%{
+class Context:
+	"""
+	The context represents the object in which a trace_collection is
+	open. As long as this structure is allocated, the trace_collection
+	is open and the traces it contains can be read and seeked by the
+	iterators and callbacks.
+	"""
+
+	def __init__(self):
+		self._c = _bt_context_create()
+
+	def __del__(self):
+		_bt_context_put(self._c)
+
+	def add_trace(self, path, format_str,
+			packet_seek=None, stream_list=None, metadata=None):
+		"""
+		Add a trace by path to the context.
+
+		Open a trace.
+
+		path is the path to the trace, it is not recursive.
+		If "path" is None, stream_list is used instead as a list
+		of mmap streams to open for the trace.
+
+		format is a string containing the format name in which the trace was
+		produced.
+
+		packet_seek is not implemented for Python.  Should be left None to
+		use the	default packet_seek handler provided by	the trace format.
+
+		stream_list is a linked list of streams, it is used to open a trace
+		where the trace data is located in memory mapped areas instead of
+		trace files, this argument should be None when path is not None.
+
+		The metadata parameter acts as a metadata override when not None,
+		otherwise the format handles the metadata opening.
+
+		Return: the corresponding TraceHandle on success or None on error.
+		"""
+		if metadata is not None:
+			metadata = metadata._file
+
+		ret = _bt_context_add_trace(self._c, path, format_str, packet_seek,
+			stream_list, metadata)
+		if ret < 0:
+			return None
+
+		th = TraceHandle.__new__(TraceHandle)
+		th._id = ret
+		return th
+
+	def add_traces_recursive(self, path, format_str):
+		"""
+		Open a trace recursively.
+
+		Find each trace present in the subdirectory starting from the given
+		path, and add them to the context.
+
+		Return a dict of TraceHandle instances (the full path is the key).
+		Return None on error.
+		"""
+
+		import os
+
+		trace_handles = {}
+
+		noTrace = True
+		error = False
+
+		for fullpath, dirs, files in os.walk(path):
+			if "metadata" in files:
+				trace_handle = self.add_trace(fullpath, format_str)
+				if trace_handle is None:
+					error = True
+					continue
+
+				trace_handles[fullpath] = trace_handle
+				noTrace = False
+
+		if noTrace and error:
+			return None
+		return trace_handles
+
+	def remove_trace(self, trace_handle):
+		"""
+		Remove a trace from the context.
+		Effectively closing the trace.
+		"""
+		try:
+			_bt_context_remove_trace(self._c, trace_handle._id)
+		except AttributeError:
+			raise TypeError("in remove_trace, "
+				"argument 2 must be a TraceHandle instance")
+%}
+
+
+
+/* =================================================================
+		FORMAT.H, REGISTRY
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+%rename("lookup_format") bt_lookup_format(bt_intern_str qname);
+%rename("_bt_print_format_list") bt_fprintf_format_list(FILE *fp);
+%rename("register_format") bt_register_format(struct format *format);
+
+extern struct format *bt_lookup_format(bt_intern_str qname);
+extern void bt_fprintf_format_list(FILE *fp);
+extern int bt_register_format(struct format *format);
+
+void format_init(void);
+void format_finalize(void);
+
+%pythoncode %{
+
+def print_format_list(babeltrace_file):
+	"""
+	Print a list of available formats to file.
+
+	babeltrace_file must be a File instance opened in write mode.
+	"""
+	try:
+		if babeltrace_file._file is not None:
+			_bt_print_format_list(babeltrace_file._file)
+	except AttributeError:
+		raise TypeError("in print_format_list, "
+			"argument 1 must be a File instance")
+
+%}
+
+
+/* =================================================================
+		ITERATOR.H, ITERATOR-INTERNAL.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+%rename("_bt_iter_create") bt_iter_create(struct bt_context *ctx,
+		const struct bt_iter_pos *begin_pos, const struct bt_iter_pos *end_pos);
+%rename("_bt_iter_destroy") bt_iter_destroy(struct bt_iter *iter);
+%rename("_bt_iter_next") bt_iter_next(struct bt_iter *iter);
+%rename("_bt_iter_get_pos") bt_iter_get_pos(struct bt_iter *iter);
+%rename("_bt_iter_free_pos") bt_iter_free_pos(struct bt_iter_pos *pos);
+%rename("_bt_iter_set_pos") bt_iter_set_pos(struct bt_iter *iter,
+		const struct bt_iter_pos *pos);
+%rename("_bt_iter_create_time_pos") bt_iter_create_time_pos(struct bt_iter *iter,
+		uint64_t timestamp);
+
+struct bt_iter *bt_iter_create(struct bt_context *ctx,
+		const struct bt_iter_pos *begin_pos, const struct bt_iter_pos *end_pos);
+void bt_iter_destroy(struct bt_iter *iter);
+int bt_iter_next(struct bt_iter *iter);
+struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter);
+void bt_iter_free_pos(struct bt_iter_pos *pos);
+int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
+struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter, uint64_t timestamp);
+
+%rename("_bt_iter_pos") bt_iter_pos;
+%rename("SEEK_TIME") BT_SEEK_TIME;
+%rename("SEEK_RESTORE") BT_SEEK_RESTORE;
+%rename("SEEK_CUR") BT_SEEK_CUR;
+%rename("SEEK_BEGIN") BT_SEEK_BEGIN;
+%rename("SEEK_END") BT_SEEK_END;
+
+
+// This struct is taken from iterator.h
+// All changes to the struct must also be made here
+struct bt_iter_pos {
+	enum {
+		BT_SEEK_TIME,		/* uses u.seek_time */
+		BT_SEEK_RESTORE,	/* uses u.restore */
+		BT_SEEK_CUR,
+		BT_SEEK_BEGIN,
+		BT_SEEK_END,
+	} type;
+	union {
+		uint64_t seek_time;
+		struct bt_saved_pos *restore;
+	} u;
+};
+
+
+%pythoncode%{
+
+class IterPos:
+	"""This class represents the position where to set an iterator."""
+
+	__can_access = False
+
+	def __init__(self, seek_type, seek_time = None):
+		"""
+		seek_type represents the type of seek to use.
+		seek_time is the timestamp to seek to when using SEEK_TIME, it
+		is expressed in nanoseconds
+		Only use SEEK_RESTORE on IterPos obtained from the get_pos function
+		in Iter class.
+		"""
+
+		self._pos = _bt_iter_pos()
+		self._pos.type = seek_type
+		if seek_time and seek_type == SEEK_TIME:
+			self._pos.u.seek_time = seek_time
+		self.__can_access = True
+
+	def __del__(self):
+		if not self.__can_access:
+			_bt_iter_free_pos(self._pos)
+
+	def _get_type(self):
+		if not __can_access:
+			raise AttributeError("seek_type is not available")
+		return self._pos.type
+
+	def _set_type(self, seek_type):
+		if not __can_access:
+			raise AttributeError("seek_type is not available")
+		self._pos.type = seek_type
+
+	def _get_time(self):
+		if not __can_access:
+			raise AttributeError("seek_time is not available")
+
+		elif self._pos.type is not SEEK_TIME:
+			raise TypeError("seek_type is not SEEK_TIME")
+
+		return self._pos.u.seek_time
+
+	def _set_time(self, time):
+		if not __can_access:
+			raise AttributeError("seek_time is not available")
+
+		elif self._pos.type is not SEEK_TIME:
+			raise TypeError("seek_type is not SEEK_TIME")
+
+		self._pos.u.seek_time = time
+
+	def _get_pos(self):
+		return self._pos
+
+
+	seek_type = property(_get_type, _set_type)
+	seek_time = property(_get_time, _set_time)
+
+
+class Iterator:
+
+	__with_init = False
+
+	def __init__(self, context, begin_pos = None, end_pos = None, _no_init = None):
+		"""
+		Allocate a trace collection iterator.
+
+		begin_pos and end_pos are optional parameters to specify the
+		position at which the trace collection should be seeked upon
+		iterator creation, and the position  at which iteration will
+		start returning "EOF".
+
+		By default, if begin_pos is None, a BT_SEEK_CUR is performed at
+		creation. By default, if end_pos is None, a BT_SEEK_END (end of
+		trace) is the EOF criterion.
+		"""
+		if _no_init is None:
+			if begin_pos is None:
+				bp = None
+			else:
+				try:
+					bp = begin_pos._pos
+				except AttributeError:
+					raise TypeError("in __init__, "
+						"argument 3 must be a IterPos instance")
+
+			if end_pos is None:
+				ep = None
+			else:
+				try:
+					ep = end_pos._pos
+				except AttributeError:
+					raise TypeError("in __init__, "
+						"argument 4 must be a IterPos instance")
+
+			try:
+				self._bi = _bt_iter_create(context._c, bp, ep)
+			except AttributeError:
+				raise TypeError("in __init__, "
+					"argument 2 must be a Context instance")
+
+			self.__with_init = True
+
+		else:
+			self._bi = _no_init
+
+	def __del__(self):
+		if self.__with_init:
+			_bt_iter_destroy(self._bi)
+
+	def next(self):
+		"""
+		Move trace collection position to the next event.
+		Returns 0 on success, a negative value on error.
+		"""
+		return _bt_iter_next(self._bi)
+
+	def get_pos(self):
+		"""Return a IterPos class of the current iterator position."""
+		ret = IterPos(0)
+		ret.__can_access = False
+		ret._pos = _bt_iter_get_pos(self._bi)
+		return ret
+
+	def set_pos(self, pos):
+		"""
+		Move the iterator to a given position.
+
+		On error, the stream_heap is reinitialized and returned empty.
+		Return 0 for success.
+		Return EOF if the position requested is after the last event of the
+		trace collection.
+		Return -EINVAL when called with invalid parameter.
+		Return -ENOMEM if the stream_heap could not be properly initialized.
+		"""
+		try:
+			return _bt_iter_set_pos(self._bi, pos._pos)
+		except AttributeError:
+			raise TypeError("in set_pos, "
+				"argument 2 must be a IterPos instance")
+
+	def create_time_pos(self, timestamp):
+		"""
+		Create a position based on time
+		This function allocates and returns a new IterPos to be able to
+		restore an iterator position based on a timestamp.
+		"""
+
+		if timestamp < 0:
+			raise TypeError("timestamp must be an unsigned int")
+
+		ret = IterPos(0)
+		ret.__can_access = False
+		ret._pos = _bt_iter_create_time_pos(self._bi, timestamp)
+		return ret
+%}
+
+
+/* =================================================================
+		CLOCK-TYPE.H
+		¯¯¯¯¯¯¯¯¯¯¯¯
+	*** Enum copied from clock-type.h­
+		All changes must also be made here
+*/
+%rename("CLOCK_CYCLES") BT_CLOCK_CYCLES;
+%rename("CLOCK_REAL") BT_CLOCK_REAL;
+
+enum bt_clock_type {
+	BT_CLOCK_CYCLES = 0,
+	BT_CLOCK_REAL
+};
+
+/* =================================================================
+		TRACE-HANDLE.H, TRACE-HANDLE-INTERNAL.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+%rename("_bt_trace_handle_create") bt_trace_handle_create(struct bt_context *ctx);
+%rename("_bt_trace_handle_destroy") bt_trace_handle_destroy(struct bt_trace_handle *bt);
+struct bt_trace_handle *bt_trace_handle_create(struct bt_context *ctx);
+void bt_trace_handle_destroy(struct bt_trace_handle *bt);
+
+%rename("_bt_trace_handle_get_path") bt_trace_handle_get_path(struct bt_context *ctx,
+		int handle_id);
+%rename("_bt_trace_handle_get_timestamp_begin") bt_trace_handle_get_timestamp_begin(
+		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
+%rename("_bt_trace_handle_get_timestamp_end") bt_trace_handle_get_timestamp_end(
+		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
+%rename("_bt_trace_handle_get_id") bt_trace_handle_get_id(struct bt_trace_handle *th);
+int bt_trace_handle_get_id(struct bt_trace_handle *th);
+const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
+uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id,
+		enum bt_clock_type type);
+uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id,
+		enum bt_clock_type type);
+
+%rename("_bt_ctf_event_get_handle_id") bt_ctf_event_get_handle_id(
+		const struct bt_ctf_event *event);
+int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event);
+
+
+%pythoncode%{
+
+class TraceHandle(object):
+	"""
+	The TraceHandle allows the user to manipulate a trace file directly.
+	It is a unique identifier representing a trace file.
+	Do not instantiate.
+	"""
+
+	def __init__(self):
+		raise NotImplementedError("TraceHandle cannot be instantiated")
+
+	def __repr__(self):
+		return "Babeltrace TraceHandle: trace_id('{}')".format(self._id)
+
+	def get_id(self):
+		"""Return the TraceHandle id."""
+		return self._id
+
+	def get_path(self, context):
+		"""Return the path of a TraceHandle."""
+		try:
+			return _bt_trace_handle_get_path(context._c, self._id)
+		except AttributeError:
+			raise TypeError("in get_path, "
+				"argument 2 must be a Context instance")
+
+	def get_timestamp_begin(self, context, clock_type):
+		"""Return the creation time of the buffers of a trace."""
+		try:
+			return _bt_trace_handle_get_timestamp_begin(
+				context._c, self._id,clock_type)
+		except AttributeError:
+			raise TypeError("in get_timestamp_begin, "
+				"argument 2 must be a Context instance")
+
+	def get_timestamp_end(self, context, clock_type):
+		"""Return the destruction timestamp of the buffers of a trace."""
+		try:
+			return _bt_trace_handle_get_timestamp_end(
+				context._c, self._id, clock_type)
+		except AttributeError:
+			raise TypeError("in get_timestamp_end, "
+				"argument 2 must be a Context instance")
+
+%}
+
+
+
+// =================================================================
+//				CTF
+// =================================================================
+
+/* =================================================================
+		ITERATOR.H, EVENTS.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+//Iterator
+%rename("_bt_ctf_iter_create") bt_ctf_iter_create(struct bt_context *ctx,
+		const struct bt_iter_pos *begin_pos,
+		const struct bt_iter_pos *end_pos);
+%rename("_bt_ctf_get_iter") bt_ctf_get_iter(struct bt_ctf_iter *iter);
+%rename("_bt_ctf_iter_destroy") bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
+%rename("_bt_ctf_iter_read_event") bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+
+struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
+		const struct bt_iter_pos *begin_pos,
+		const struct bt_iter_pos *end_pos);
+struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter);
+void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+
+
+//Events
+
+%rename("_bt_ctf_get_top_level_scope") bt_ctf_get_top_level_scope(const struct
+		bt_ctf_event *event, enum bt_ctf_scope scope);
+%rename("_bt_ctf_event_name") bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
+%rename("_bt_ctf_get_timestamp") bt_ctf_get_timestamp(
+		const struct bt_ctf_event *ctf_event);
+%rename("_bt_ctf_get_cycles") bt_ctf_get_cycles(
+		const struct bt_ctf_event *ctf_event);
+
+%rename("_bt_ctf_get_field") bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
+		const struct definition *scope,	const char *field);
+%rename("_bt_ctf_get_index") bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
+		const struct definition *field,	unsigned int index);
+%rename("_bt_ctf_field_name") bt_ctf_field_name(const struct definition *def);
+%rename("_bt_ctf_field_type") bt_ctf_field_type(const struct definition *def);
+%rename("_bt_ctf_get_int_signedness") bt_ctf_get_int_signedness(
+		const struct definition *field);
+%rename("_bt_ctf_get_int_base") bt_ctf_get_int_base(const struct definition *field);
+%rename("_bt_ctf_get_int_byte_order") bt_ctf_get_int_byte_order(
+		const struct definition *field);
+%rename("_bt_ctf_get_int_len") bt_ctf_get_int_len(const struct definition *field);
+%rename("_bt_ctf_get_encoding") bt_ctf_get_encoding(const struct definition *field);
+%rename("_bt_ctf_get_array_len") bt_ctf_get_array_len(const struct definition *field);
+%rename("_bt_ctf_get_uint64") bt_ctf_get_uint64(const struct definition *field);
+%rename("_bt_ctf_get_int64") bt_ctf_get_int64(const struct definition *field);
+%rename("_bt_ctf_get_char_array") bt_ctf_get_char_array(const struct definition *field);
+%rename("_bt_ctf_get_string") bt_ctf_get_string(const struct definition *field);
+%rename("_bt_ctf_field_get_error") bt_ctf_field_get_error(void);
+%rename("_bt_ctf_get_decl_event_name") bt_ctf_get_decl_event_name(const struct
+		bt_ctf_event_decl *event);
+%rename("_bt_ctf_get_decl_field_name") bt_ctf_get_decl_field_name(
+		const struct bt_ctf_field_decl *field);
+
+const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
+		enum bt_ctf_scope scope);
+const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
+uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event);
+uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *ctf_event);
+const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
+		const struct definition *scope,
+		const char *field);
+const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
+		const struct definition *field,
+		unsigned int index);
+const char *bt_ctf_field_name(const struct definition *def);
+enum ctf_type_id bt_ctf_field_type(const struct definition *def);
+int bt_ctf_get_int_signedness(const struct definition *field);
+int bt_ctf_get_int_base(const struct definition *field);
+int bt_ctf_get_int_byte_order(const struct definition *field);
+ssize_t bt_ctf_get_int_len(const struct definition *field);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field);
+int bt_ctf_get_array_len(const struct definition *field);
+uint64_t bt_ctf_get_uint64(const struct definition *field);
+int64_t bt_ctf_get_int64(const struct definition *field);
+char *bt_ctf_get_char_array(const struct definition *field);
+char *bt_ctf_get_string(const struct definition *field);
+int bt_ctf_field_get_error(void);
+const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
+const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
+
+%pythoncode%{
+
+class ctf:
+
+	#enum equivalent, accessible constants
+	#These are taken directly from ctf/events.h
+	#All changes to enums must also be made here
+	class type_id:
+		UNKNOWN = 0
+		INTEGER = 1
+		FLOAT = 2
+		ENUM = 3
+		STRING = 4
+		STRUCT = 5
+		UNTAGGED_VARIANT = 6
+		VARIANT = 7
+		ARRAY = 8
+		SEQUENCE = 9
+		NR_CTF_TYPES = 10
+
+	class scope:
+		TRACE_PACKET_HEADER = 0
+		STREAM_PACKET_CONTEXT = 1
+		STREAM_EVENT_HEADER = 2
+		STREAM_EVENT_CONTEXT = 3
+		EVENT_CONTEXT = 4
+		EVENT_FIELDS = 5
+
+	class string_encoding:
+		NONE = 0
+		UTF8 = 1
+		ASCII = 2
+		UNKNOWN = 3
+
+	class Iterator(Iterator, object):
+		"""
+		Allocate a CTF trace collection iterator.
+
+		begin_pos and end_pos are optional parameters to specify the
+		position at which the trace collection should be seeked upon
+		iterator creation, and the position at which iteration will
+		start returning "EOF".
+
+		By default, if begin_pos is None, a SEEK_CUR is performed at
+		creation. By default, if end_pos is None, a SEEK_END (end of
+		trace) is the EOF criterion.
+
+		Only one iterator can be created against a context. If more than one
+		iterator is being created for the same context, the second creation
+		will return None. The previous iterator must be destroyed before
+		creation of the new iterator for this function to succeed.
+		"""
+
+		def __new__(cls, context, begin_pos = None, end_pos = None):
+			# __new__ is used to control the return value
+			# as the ctf.Iterator class should return None
+			# if bt_ctf_iter_create returns NULL
+
+			if begin_pos is None:
+				bp = None
+			else:
+				bp = begin_pos._pos
+			if end_pos is None:
+				ep = None
+			else:
+				ep = end_pos._pos
+			try:
+				it = _bt_ctf_iter_create(context._c, bp, ep)
+			except AttributeError:
+				raise TypeError("in __init__, "
+					"argument 2 must be a Context instance")
+			if it is None:
+				return None
+
+			ret_class = super(ctf.Iterator, cls).__new__(cls)
+			ret_class._i = it
+			return ret_class
+
+		def __init__(self, context, begin_pos = None, end_pos = None):
+			Iterator.__init__(self, None, None, None,
+				_bt_ctf_get_iter(self._i))
+
+		def __del__(self):
+			_bt_ctf_iter_destroy(self._i)
+
+		def read_event(self):
+			"""
+			Read the iterator's current event data.
+			Return current event on success, None on end of trace.
+			"""
+			ret = _bt_ctf_iter_read_event(self._i)
+			if ret is None:
+				return ret
+			ev = ctf.Event.__new__(ctf.Event)
+			ev._e = ret
+			return ev
+
+
+	class Event(object):
+		"""
+		This class represents an event from the trace.
+		It is obtained with read_event() from ctf.Iterator.
+		Do not instantiate.
+		"""
+
+		def __init__(self):
+			raise NotImplementedError("ctf.Event cannot be instantiated")
+
+		def get_top_level_scope(self, scope):
+			"""
+			Return a definition of the top-level scope
+			Top-level scopes are defined in ctf.scope.
+			In order to get a field or a field list, the user needs to pass a
+			scope as argument, this scope can be a top-level scope or a scope
+			relative to an arbitrary field. This function provides the mapping
+			between the scope and the actual definition of top-level scopes.
+			On error return None.
+			"""
+			evDef = ctf.Definition.__new__(ctf.Definition)
+			evDef._d = _bt_ctf_get_top_level_scope(self._e, scope)
+			if evDef._d is None:
+				return None
+			return evDef
+
+		def get_name(self):
+			"""Return the name of the event or None on error."""
+			return _bt_ctf_event_name(self._e)
+
+		def get_cycles(self):
+			"""
+			Return the timestamp of the event as written in
+			the packet (in cycles) or -1ULL on error.
+			"""
+			return _bt_ctf_get_cycles(self._e)
+
+		def get_timestamp(self):
+			"""
+			Return the timestamp of the event offsetted with the
+			system clock source or -1ULL on error.
+			"""
+			return _bt_ctf_get_timestamp(self._e)
+
+		def get_field(self, scope, field):
+			"""Return the definition of a specific field."""
+			evDef = ctf.Definition.__new__(ctf.Definition)
+			try:
+				evDef._d = _bt_ctf_get_field(self._e, scope._d, field)
+			except AttributeError:
+				raise TypeError("in get_field, argument 2 must be a "
+					"Definition (scope) instance")
+			return evDef
+
+		def get_field_list(self, scope):
+			"""
+			Return a list of Definitions
+			Return None on error.
+			"""
+			try:
+				field_lc = _bt_python_field_listcaller(self._e, scope._d)
+			except AttributeError:
+				raise TypeError("in get_field_list, argument 2 must be a "
+					"Definition (scope) instance")
+
+			if field_lc is None:
+				return None
+
+			def_list = []
+			i = 0
+			while True:
+				tmp = ctf.Definition.__new__(ctf.Definition)
+				tmp._d = _bt_python_field_one_from_list(field_lc, i)
+
+				if tmp._d is None:
+					#Last item of list is None, assured in
+					#_bt_python_field_listcaller
+					break
+
+				def_list.append(tmp)
+				i += 1
+			return def_list
+
+		def get_index(self, field, index):
+			"""
+			If the field is an array or a sequence, return the element
+			at position index, otherwise return None
+			"""
+			evDef = ctf.Definition.__new__(ctf.Definition)
+			try:
+				evDef._d = _bt_ctf_get_index(self._e, field._d, index)
+			except AttributeError:
+				raise TypeError("in get_index, argument 2 must be a "
+					"Definition (field) instance")
+
+			if evDef._d is None:
+				return None
+			return evDef
+
+		def get_handle(self):
+			"""
+			Get the TraceHandle associated with an event
+			Return None on error
+			"""
+			ret = _bt_ctf_event_get_handle_id(self._e)
+			if ret < 0:
+				return None
+
+			th = TraceHandle.__new__(TraceHandle)
+			th._id = ret
+			return th
+
+		def get_context(self):
+			"""
+			Get the context associated with an event.
+			Return None on error.
+			"""
+			ctx = Context()
+			ctx._c = _bt_ctf_event_get_context(self._e);
+			if ctx._c is None:
+				return None
+			else:
+				return ctx
+
+
+	class Definition(object):
+		"""Definition class.  Do not instantiate."""
+
+		def __init__(self):
+			raise NotImplementedError("ctf.Definition cannot be instantiated")
+
+		def __repr__(self):
+			return "Babeltrace Definition: name('{}'), type({})".format(
+				self.field_name(), self.field_type())
+
+		def field_name(self):
+			"""Return the name of a field or None on error."""
+			return _bt_ctf_field_name(self._d)
+
+		def field_type(self):
+			"""Return the type of a field or -1 if unknown."""
+			return _bt_ctf_field_type(self._d)
+
+		def get_int_signedness(self):
+			"""
+			Return the signedness of an integer:
+			0 if unsigned; 1 if signed; -1 on error.
+			"""
+			return _bt_ctf_get_int_signedness(self._d)
+
+		def get_int_base(self):
+			"""Return the base of an int or a negative value on error."""
+			return _bt_ctf_get_int_base(self._d)
+
+		def get_int_byte_order(self):
+			"""
+			Return the byte order of an int or a negative
+			value on error.
+			"""
+			return _bt_ctf_get_int_byte_order(self._d)
+
+		def get_int_len(self):
+			"""
+			Return the size, in bits, of an int or a negative
+			value on error.
+			"""
+			return _bt_ctf_get_int_len(self._d)
+
+		def get_encoding(self):
+			"""
+			Return the encoding of an int or a string.
+			Return a negative value on error.
+			"""
+			return _bt_ctf_get_encoding(self._d)
+
+		def get_array_len(self):
+			"""
+			Return the len of an array or a negative
+			value on error.
+			"""
+			return _bt_ctf_get_array_len(self._d)
+
+		def get_uint64(self):
+			"""
+			Return the value associated with the field.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the	ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_uint64(self._d)
+
+		def get_int64(self):
+			"""
+			Return the value associated with the field.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_int64(self._d)
+
+		def get_char_array(self):
+			"""
+			Return the value associated with the field.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_char_array(self._d)
+
+		def get_str(self):
+			"""
+			Return the value associated with the field.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_string(self._d)
+
+
+	class EventDecl(object):
+		"""Event declaration class.  Do not instantiate."""
+
+		def __init__(self):
+			raise NotImplementedError("ctf.EventDecl cannot be instantiated")
+
+		def __repr__(self):
+			return "Babeltrace EventDecl: name {}".format(self.get_name())
+
+		def get_name(self):
+			"""Return the name of the event or None on error"""
+			return _bt_ctf_get_decl_event_name(self._d)
+
+		def get_decl_fields(self, scope):
+			"""
+			Return a list of ctf.FieldDecl
+			Return None on error.
+			"""
+			ptr_list = _by_python_field_decl_listcaller(self._d, scope)
+
+			if ptr_list is None:
+				return None
+
+			decl_list = []
+			i = 0
+			while True:
+				tmp = ctf.FieldDecl.__new__(ctf.FieldDecl)
+				tmp._d =  _bt_python_field_decl_one_from_list(
+					ptr_list, i)
+
+				if tmp._d is None:
+					#Last item of list is None
+					break
+
+				decl_list.append(tmp)
+				i += 1
+			return decl_list
+
+
+	class FieldDecl(object):
+		"""Field declaration class.  Do not instantiate."""
+
+		def __init__(self):
+			raise NotImplementedError("ctf.FieldDecl cannot be instantiated")
+
+		def __repr__(self):
+			return "Babeltrace FieldDecl: name {}".format(self.get_name())
+
+		def get_name(self):
+			"""Return the name of a FieldDecl or None on error"""
+			return _bt_ctf_get_decl_field_name(self._d)
+
+
+	@staticmethod
+	def field_error():
+		"""
+		Return the last error code encountered while
+		accessing a field and reset the error flag.
+		Return 0 if no error, a negative value otherwise.
+		"""
+		return _bt_ctf_field_get_error()
+
+	@staticmethod
+	def get_event_decl_list(trace_handle, context):
+		"""
+		Return a list of ctf.EventDecl
+		Return None on error.
+		"""
+		try:
+			handle_id = trace_handle._id
+		except AttributeError:
+				raise TypeError("in get_event_decl_list, "
+					"argument 1 must be a TraceHandle instance")
+		try:
+			ptr_list = _bt_python_event_decl_listcaller(handle_id, context._c)
+		except AttributeError:
+				raise TypeError("in get_event_decl_list, "
+					"argument 2 must be a Context instance")
+
+		if ptr_list is None:
+			return None
+
+		decl_list = []
+		i = 0
+		while True:
+			tmp = ctf.EventDecl.__new__(ctf.EventDecl)
+			tmp._d =  _bt_python_decl_one_from_list(ptr_list, i)
+
+			if tmp._d is None:
+				#Last item of list is None
+				break
+
+			decl_list.append(tmp)
+			i += 1
+		return decl_list
+
+%}
+
+
+
+// =================================================================
+//			      NEW FUNCTIONS
+//			   File and list-related
+//			   python-complements.h
+// =================================================================
+
+%include python-complements.c
+
+%pythoncode %{
+
+class File(object):
+	"""
+	Open a file for babeltrace.
+
+	file_path is a string containing the path or None to use the
+	standard output in writing mode.
+
+	The mode can be 'r', 'w' or 'a' for reading (default), writing or
+	appending.  The file will be created if it doesn't exist when
+	opened for writing or appending; it will be truncated when opened
+	for writing.  Add a 'b' to the mode for	binary files.  Add a '+'
+	to the mode to allow simultaneous reading and writing.
+	"""
+
+	def __new__(cls, file_path, mode='r'):
+		# __new__ is used to control the return value
+		# as the File class should return None
+		# if _bt_file_open returns NULL
+
+		# Type check
+		if file_path is not None and type(file_path) is not str:
+			raise TypeError("in method __init__, argument 2 of type 'str'")
+		if type(mode) is not str:
+			raise TypeError("in method __init__, argument 3 of type 'str'")
+
+		# Opening file
+		file_ptr = _bt_file_open(file_path, mode)
+		if file_ptr is None:
+			return None
+
+		# Class instantiation
+		file_inst = super(File, cls).__new__(cls)
+		file_inst._file = file_ptr
+		return file_inst
+
+	def __init__(self, file_path, mode='r'):
+		self._opened = True
+		self._use_stdout = False
+
+		if file_path is None:
+			# use stdout
+			file_path = "stdout"
+			mode = 'w'
+			self._use_stdout = True
+
+		self._file_path = file_path
+		self._mode = mode
+
+	def __del__(self):
+		self.close()
+
+	def __repr__(self):
+		if self._opened:
+			stat = 'opened'
+		else:
+			stat = 'closed'
+		return "{} babeltrace File; file_path('{}'), mode('{}')".format(
+			stat, self._file_path, self._mode)
+
+	def close(self):
+		"""Close the file.  Is also called using del."""
+		if self._opened and not self._use_stdout:
+			_bt_file_close(self._file)
+			self._opened = False
+%}
