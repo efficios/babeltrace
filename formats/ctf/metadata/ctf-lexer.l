@@ -23,7 +23,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-extern
+__attribute__((visibility("protected")))
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
 
 static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
