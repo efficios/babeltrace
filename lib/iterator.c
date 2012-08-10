@@ -67,7 +67,7 @@ static int stream_read_event(struct ctf_file_stream *sin)
 /*
  * returns true if a < b, false otherwise.
  */
-int stream_compare(void *a, void *b)
+static int stream_compare(void *a, void *b)
 {
 	struct ctf_file_stream *s_a = a, *s_b = b;
 
