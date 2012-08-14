@@ -1746,6 +1746,11 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	if (ret)
 		goto error_index;
 
+	/*
+	 * For now, only a single slock is supported.
+	 */
+	file_stream->parent.current_clock = td->single_clock;
+
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
 			&file_stream->parent);
