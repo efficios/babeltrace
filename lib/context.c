@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #include <fts.h>
 #include <fcntl.h> /* For O_RDONLY */
@@ -68,6 +69,9 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	struct format *fmt;
 	struct bt_trace_handle *handle;
 	int ret;
+
+	if (!ctx || !format_name || (!path && !stream_list))
+		return -EINVAL;
 
 	fmt = bt_lookup_format(g_quark_from_string(format_name));
 	if (!fmt) {
@@ -136,13 +140,17 @@ end:
 	return ret;
 }
 
-void bt_context_remove_trace(struct bt_context *ctx, int handle_id)
+int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 {
 	struct bt_trace_handle *handle;
 
+	if (!ctx)
+		return -EINVAL;
+
 	handle = g_hash_table_lookup(ctx->trace_handles,
 		(gpointer) (unsigned long) handle_id);
-	assert(handle != NULL);
+	if (!handle)
+		return -ENOENT;
 
 	/* Remove from containers */
 	trace_collection_remove(ctx->tc, handle->td);
@@ -152,12 +160,13 @@ void bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 	/* Remove and free the handle */
 	g_hash_table_remove(ctx->trace_handles,
 			(gpointer) (unsigned long) handle_id);
-
+	return 0;
 }
 
 static
 void bt_context_destroy(struct bt_context *ctx)
 {
+	assert(ctx);
 	finalize_trace_collection(ctx->tc);
 
 	/* Remote all traces. The g_hash_table_destroy will call
@@ -173,11 +182,13 @@ void bt_context_destroy(struct bt_context *ctx)
 
 void bt_context_get(struct bt_context *ctx)
 {
+	assert(ctx);
 	ctx->refcount++;
 }
 
 void bt_context_put(struct bt_context *ctx)
 {
+	assert(ctx);
 	ctx->refcount--;
 	if (ctx->refcount == 0)
 		bt_context_destroy(ctx);

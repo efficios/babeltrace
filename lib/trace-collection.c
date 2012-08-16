@@ -138,8 +138,12 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 int trace_collection_add(struct trace_collection *tc,
 				struct trace_descriptor *td)
 {
-	struct ctf_trace *trace = container_of(td, struct ctf_trace, parent);
+	struct ctf_trace *trace;
 
+	if (!tc || !td)
+		return -EINVAL;
+
+	trace = container_of(td, struct ctf_trace, parent);
 	g_ptr_array_add(tc->array, td);
 	trace->collection = tc;
 
@@ -187,6 +191,9 @@ error:
 int trace_collection_remove(struct trace_collection *tc,
 			    struct trace_descriptor *td)
 {
+	if (!tc || !td)
+		return -EINVAL;
+
 	if (g_ptr_array_remove(tc->array, td)) {
 		return 0;
 	} else {
@@ -197,6 +204,7 @@ int trace_collection_remove(struct trace_collection *tc,
 
 void init_trace_collection(struct trace_collection *tc)
 {
+	assert(tc);
 	tc->array = g_ptr_array_new();
 	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
 	tc->single_clock_offset_avg = 0;
@@ -211,6 +219,7 @@ void init_trace_collection(struct trace_collection *tc)
  */
 void finalize_trace_collection(struct trace_collection *tc)
 {
+	assert(tc);
 	g_ptr_array_free(tc->array, TRUE);
 	g_hash_table_destroy(tc->clocks);
 }

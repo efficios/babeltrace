@@ -192,6 +192,9 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 	struct trace_collection *tc;
 	int i, ret;
 
+	if (!iter || !iter_pos)
+		return -EINVAL;
+
 	switch (iter_pos->type) {
 	case BT_SEEK_RESTORE:
 		if (!iter_pos->u.restore)
@@ -349,11 +352,15 @@ error_heap_init:
 struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 {
 	struct bt_iter_pos *pos;
-	struct trace_collection *tc = iter->ctx->tc;
+	struct trace_collection *tc;
 	struct ctf_file_stream *file_stream = NULL, *removed;
 	struct ptr_heap iter_heap_copy;
 	int ret;
 
+	if (!iter)
+		return NULL;
+
+	tc = iter->ctx->tc;
 	pos = g_new0(struct bt_iter_pos, 1);
 	pos->type = BT_SEEK_RESTORE;
 	pos->u.restore = g_new0(struct bt_saved_pos, 1);
@@ -412,6 +419,9 @@ struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
 {
 	struct bt_iter_pos *pos;
 
+	if (!iter)
+		return NULL;
+
 	pos = g_new0(struct bt_iter_pos, 1);
 	pos->type = BT_SEEK_TIME;
 	pos->u.seek_time = timestamp;
@@ -428,6 +438,9 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 		unsigned long stream_id)
 {
 	int ret = 0;
+
+	if (!file_stream || !begin_pos)
+		return -EINVAL;
 
 	switch (begin_pos->type) {
 	case BT_SEEK_CUR:
@@ -458,6 +471,9 @@ int bt_iter_init(struct bt_iter *iter,
 {
 	int i, stream_id;
 	int ret = 0;
+
+	if (!iter || !ctx)
+		return -EINVAL;
 
 	if (ctx->current_iterator) {
 		ret = -1;
@@ -544,6 +560,9 @@ struct bt_iter *bt_iter_create(struct bt_context *ctx,
 	struct bt_iter *iter;
 	int ret;
 
+	if (!ctx)
+		return NULL;
+
 	iter = g_new0(struct bt_iter, 1);
 	ret = bt_iter_init(iter, ctx, begin_pos, end_pos);
 	if (ret) {
@@ -555,6 +574,7 @@ struct bt_iter *bt_iter_create(struct bt_context *ctx,
 
 void bt_iter_fini(struct bt_iter *iter)
 {
+	assert(iter);
 	if (iter->stream_heap) {
 		heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
@@ -565,6 +585,7 @@ void bt_iter_fini(struct bt_iter *iter)
 
 void bt_iter_destroy(struct bt_iter *iter)
 {
+	assert(iter);
 	bt_iter_fini(iter);
 	g_free(iter);
 }
@@ -573,6 +594,9 @@ int bt_iter_next(struct bt_iter *iter)
 {
 	struct ctf_file_stream *file_stream, *removed;
 	int ret;
+
+	if (!iter)
+		return -EINVAL;
 
 	file_stream = heap_maximum(iter->stream_heap);
 	if (!file_stream) {

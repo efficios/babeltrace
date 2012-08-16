@@ -58,13 +58,13 @@ void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
  *            
  * @callback: function pointer to call
  * @depends: struct bt_dependency detailing the required computation results.
- *           Ends with 0.
+ *           Ends with 0. NULL is accepted as empty dependency.
  * @weak_depends: struct bt_dependency detailing the optional computation
  *                results that can be optionally consumed by this
- *                callback.
+ *                callback. NULL is accepted as empty dependency.
  * @provides: struct bt_dependency detailing the computation results
  *            provided by this callback.
- *            Ends with 0.
+ *            Ends with 0. NULL is accepted as empty dependency.
  *
  * "depends", "weak_depends" and "provides" memory is handled by the
  * babeltrace library after this call succeeds or fails. These objects

@@ -73,8 +73,12 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 	int i, stream_id;
 	gpointer *event_id_ptr;
 	unsigned long event_id;
-	struct trace_collection *tc = iter->parent.ctx->tc;
+	struct trace_collection *tc;
 
+	if (!iter || !callback)
+		return -EINVAL;
+
+	tc = iter->parent.ctx->tc;
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
 		struct trace_descriptor *td_read;
@@ -180,6 +184,8 @@ void process_callbacks(struct bt_ctf_iter *iter,
 	int i;
 	enum bt_cb_ret ret;
 	struct bt_ctf_event ctf_data;
+
+	assert(iter && stream);
 
 	ret = extract_ctf_stream_event(stream, &ctf_data);
 
