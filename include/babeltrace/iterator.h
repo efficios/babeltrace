@@ -40,6 +40,13 @@ struct bt_saved_pos;
  *   is expressed in nanoseconds
  * - restore is a position saved with bt_iter_get_pos, it is used with
  *   BT_SEEK_RESTORE.
+ *
+ * Note about BT_SEEK_LAST: if many events happen to be at the last
+ * timestamp, it is implementation-defined which event will be the last,
+ * and the order of events with the same timestamp may not be the same
+ * as normal iteration on the trace. Therefore, it is recommended to
+ * only use BT_SEEK_LAST to get the timestamp of the last event(s) in
+ * the trace.
  */
 struct bt_iter_pos {
 	enum {
@@ -48,6 +55,7 @@ struct bt_iter_pos {
 		BT_SEEK_CUR,
 		BT_SEEK_BEGIN,
 		BT_SEEK_END,
+		BT_SEEK_LAST,
 	} type;
 	union {
 		uint64_t seek_time;
