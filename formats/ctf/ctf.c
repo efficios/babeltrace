@@ -1011,6 +1011,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	if (metadata_fp) {
 		fp = metadata_fp;
+		metadata_stream->pos.fd = -1;
 	} else {
 		td->metadata = &metadata_stream->parent;
 		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
@@ -1090,7 +1091,8 @@ end_packet_read:
 		fclose(fp);
 	free(buf);
 end_stream:
-	close(metadata_stream->pos.fd);
+	if (metadata_stream->pos.fd >= 0)
+		close(metadata_stream->pos.fd);
 	if (ret)
 		g_free(metadata_stream);
 	return ret;
