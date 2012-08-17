@@ -240,7 +240,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 				stream_pos->cur_index,
 				stream_pos->offset, stream->real_timestamp);
 
-			stream_read_event(saved_pos->file_stream);
+			ret = stream_read_event(saved_pos->file_stream);
+			if (ret != 0) {
+				goto error;
+			}
 
 			/* Add to heap */
 			ret = heap_insert(iter->stream_heap,
