@@ -560,11 +560,15 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 	pos->dummy = false;
 	pos->cur_index = 0;
 	pos->packet_real_index = NULL;
-	if (fd >= 0)
+	if (fd >= 0) {
 		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
 						sizeof(struct packet_index));
-	else
+		pos->packet_real_index = g_array_new(FALSE, TRUE,
+				sizeof(struct packet_index));
+	} else {
 		pos->packet_cycles_index = NULL;
+		pos->packet_real_index = NULL;
+	}
 	switch (open_flags & O_ACCMODE) {
 	case O_RDONLY:
 		pos->prot = PROT_READ;
@@ -600,8 +604,10 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 			assert(0);
 		}
 	}
-	(void) g_array_free(pos->packet_cycles_index, TRUE);
-	(void) g_array_free(pos->packet_real_index, TRUE);
+	if (pos->packet_cycles_index)
+		(void) g_array_free(pos->packet_cycles_index, TRUE);
+	if (pos->packet_real_index)
+		(void) g_array_free(pos->packet_real_index, TRUE);
 }
 
 /*
@@ -1855,9 +1861,6 @@ int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
 			cfs = container_of(stream, struct ctf_file_stream,
 					parent);
 			stream_pos = &cfs->pos;
-			stream_pos->packet_real_index = g_array_new(FALSE, TRUE,
-					sizeof(struct packet_index));
-
 			if (!stream_pos->packet_cycles_index)
 				continue;
 
