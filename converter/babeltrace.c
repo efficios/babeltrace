@@ -39,7 +39,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <inttypes.h>
-#include <fts.h>
+#include <ftw.h>
 #include <string.h>
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
@@ -317,7 +317,62 @@ end:
 	return ret;
 }
 
+static GPtrArray *traversed_paths = 0;
 
+/*
+ * traverse_trace_dir() is the callback function for File Tree Walk (nftw).
+ * it receives the path of the current entry (file, dir, link..etc) with
+ * a flag to indicate the type of the entry.
+ * if the entry being visited is a directory and contains a metadata file,
+ * then add the path to a global list to be processed later in
+ * add_traces_recursive.
+ */
+static int traverse_trace_dir(const char *fpath, const struct stat *sb,
+			int tflag, struct FTW *ftwbuf)
+{
+	int dirfd, metafd;
+	int closeret;
+
+	if (tflag != FTW_D)
+		return 0;
+
+	dirfd = open(fpath, 0);
+	if (dirfd < 0) {
+		fprintf(stderr, "[error] [Context] Unable to open trace "
+			"directory file descriptor.\n");
+		return 0;	/* partial error */
+	}
+	metafd = openat(dirfd, "metadata", O_RDONLY);
+	if (metafd < 0) {
+		closeret = close(dirfd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;
+		}
+		/* No meta data, just return */
+		return 0;
+	} else {
+		closeret = close(metafd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;	/* failure */
+		}
+		closeret = close(dirfd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;	/* failure */
+		}
+
+		/* Add path to the global list */
+		if (traversed_paths == NULL) {
+			fprintf(stderr, "[error] [Context] Invalid open path array.\n");	
+			return -1;
+		}
+		g_ptr_array_add(traversed_paths, g_string_new(fpath));
+	}
+
+	return 0;
+}
 /*
  * bt_context_add_traces_recursive: Open a trace recursively
  *
@@ -335,83 +390,45 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		void (*packet_seek)(struct stream_pos *pos,
 			size_t offset, int whence))
 {
-	FTS *tree;
-	FTSENT *node;
+
 	GArray *trace_ids;
-	char lpath[PATH_MAX];
-	char * const paths[2] = { lpath, NULL };
 	int ret = 0;
+	int i;
 
-	/*
-	 * Need to copy path, because fts_open can change it.
-	 * It is the pointer array, not the strings, that are constant.
-	 */
-	strncpy(lpath, path, PATH_MAX);
-	lpath[PATH_MAX - 1] = '\0';
+	/* Should lock traversed_paths mutex here if used in multithread */
 
-	tree = fts_open(paths, FTS_NOCHDIR | FTS_LOGICAL, 0);
-	if (tree == NULL) {
-		fprintf(stderr, "[error] [Context] Cannot traverse \"%s\" for reading.\n",
-				path);
-		return -EINVAL;
-	}
-
+	traversed_paths = g_ptr_array_new();
 	trace_ids = g_array_new(FALSE, TRUE, sizeof(int));
 
-	while ((node = fts_read(tree))) {
-		int dirfd, metafd;
-		int closeret;
+	ret = nftw(path, traverse_trace_dir, 10, 0);
 
-		if (!(node->fts_info & FTS_D))
-			continue;
-
-		dirfd = open(node->fts_accpath, 0);
-		if (dirfd < 0) {
-			fprintf(stderr, "[error] [Context] Unable to open trace "
-				"directory file descriptor.\n");
-			ret = 1;	/* partial error */
-			goto error;
-		}
-		metafd = openat(dirfd, "metadata", O_RDONLY);
-		if (metafd < 0) {
-			closeret = close(dirfd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-			continue;
-		} else {
-			int trace_id;
-
-			closeret = close(metafd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-			closeret = close(dirfd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-
-			trace_id = bt_context_add_trace(ctx,
-				node->fts_accpath, format_str,
-				packet_seek, NULL, NULL);
+	/* Process the array if ntfw did not return a fatal error */
+	if (ret >= 0) {
+		for (i = 0; i < traversed_paths->len; i++) {
+			GString *trace_path = g_ptr_array_index(traversed_paths,
+								i);
+			int trace_id = bt_context_add_trace(ctx,
+							    trace_path->str,
+							    format_str,
+							    packet_seek,
+							    NULL,
+							    NULL);
 			if (trace_id < 0) {
 				fprintf(stderr, "[warning] [Context] cannot open trace \"%s\" from %s "
-					"for reading.\n", node->fts_accpath, path);
+					"for reading.\n", trace_path->str, path);
 				/* Allow to skip erroneous traces. */
 				ret = 1;	/* partial error */
-				continue;
+			} else {
+				g_array_append_val(trace_ids, trace_id);
 			}
-			g_array_append_val(trace_ids, trace_id);
+			g_string_free(trace_path, TRUE);
 		}
 	}
+	g_ptr_array_free(traversed_paths, TRUE);
+	traversed_paths = NULL;
 
-error:
+	/* Should unlock traversed paths mutex here if used in multithread */
+
 	/*
 	 * Return an error if no trace can be opened.
 	 */
@@ -422,8 +439,6 @@ error:
 	g_array_free(trace_ids, TRUE);
 	return ret;
 }
-
-
 
 int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
