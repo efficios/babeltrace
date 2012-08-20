@@ -551,15 +551,6 @@ error:
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
 	pos->fd = fd;
-	pos->mmap_offset = 0;
-	pos->packet_size = 0;
-	pos->content_size = 0;
-	pos->content_size_loc = NULL;
-	pos->base_mma = NULL;
-	pos->offset = 0;
-	pos->dummy = false;
-	pos->cur_index = 0;
-	pos->packet_real_index = NULL;
 	if (fd >= 0) {
 		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
 						sizeof(struct packet_index));
