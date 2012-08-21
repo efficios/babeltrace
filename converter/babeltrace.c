@@ -549,6 +549,9 @@ int main(int argc, char **argv)
 	}
 
 	ctx = bt_context_create();
+	if (!ctx) {
+		goto error_td_read;
+	}
 
 	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
 			opt_input_format, NULL);
