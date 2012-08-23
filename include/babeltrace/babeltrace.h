@@ -20,7 +20,6 @@
 #include <babeltrace/context.h>
 #include <babeltrace/format.h>
 #include <babeltrace/iterator.h>
-#include <babeltrace/trace-collection.h>
 #include <babeltrace/trace-handle.h>
 
 #endif /* _BABELTRACE_H */
