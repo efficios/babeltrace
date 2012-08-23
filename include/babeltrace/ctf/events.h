@@ -102,9 +102,19 @@ uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *event);
 uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_field_list: set list pointer to an array of definition
+ * bt_ctf_get_field_list: obtain the list of fields for compound type
+ *
+ * This function can be used to obtain the list of fields 
+ * contained within a compound type: array, sequence,
+ * structure, or variant.
+
+ * This function sets the "list" pointer to an array of definition
  * pointers and set count to the number of elements in the array.
  * Return 0 on success and a negative value on error.
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the event is unchanged (as long as the iterator
+ * from which the event is extracted is unchanged).
  */
 int bt_ctf_get_field_list(const struct bt_ctf_event *event,
 		const struct definition *scope,
