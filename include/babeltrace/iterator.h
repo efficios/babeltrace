@@ -54,7 +54,6 @@ struct bt_iter_pos {
 		BT_SEEK_RESTORE,	/* uses u.restore */
 		BT_SEEK_CUR,
 		BT_SEEK_BEGIN,
-		BT_SEEK_END,
 		BT_SEEK_LAST,
 	} type;
 	union {

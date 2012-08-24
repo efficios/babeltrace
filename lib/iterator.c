@@ -625,7 +625,6 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 		break;
 	case BT_SEEK_TIME:
 	case BT_SEEK_RESTORE:
-	case BT_SEEK_END:
 	default:
 		assert(0); /* Not yet defined */
 	}
