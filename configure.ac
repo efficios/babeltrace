@@ -14,6 +14,8 @@ AM_PROG_MKDIR_P
 
 AC_CONFIG_HEADERS([config.h])
 
+AC_SYS_LARGEFILE
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
@@ -79,7 +81,7 @@ PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
 AC_SUBST(PACKAGE_LIBS)
 
 LIBS="$LIBS $GMODULE_LIBS"
-PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
+PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat -include config.h"
 AC_SUBST(PACKAGE_CFLAGS)
 
 babeltraceincludedir="${includedir}/babeltrace"
