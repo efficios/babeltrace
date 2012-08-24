@@ -162,7 +162,9 @@ These functions give access to the value associated with a field :
 	* bt_ctf_get_uint64();
 	* bt_ctf_get_int64();
 	* bt_ctf_get_char_array();
-	* bt_ctf_get_string().
+	* bt_ctf_get_string();
+	* bt_ctf_get_enum_int();
+	* bt_ctf_get_enum_str().
 
 If the field does not exist or is not of the type requested, the value returned
 with these four functions is undefined. To check if an error occured, use the
