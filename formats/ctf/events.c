@@ -405,6 +405,54 @@ ssize_t bt_ctf_get_int_len(const struct definition *field)
 	return ret;
 }
 
+const struct definition *bt_ctf_get_enum_int(const struct definition *field)
+{
+	struct definition_enum *def_enum;
+
+	if (!field || bt_ctf_field_type(field) != CTF_TYPE_ENUM) {
+		bt_ctf_field_set_error(-EINVAL);
+		return NULL;
+	}
+	def_enum = container_of(field, struct definition_enum, p);
+	return &def_enum->integer->p;
+}
+
+const char *bt_ctf_get_enum_str(const struct definition *field)
+{
+	struct definition_enum *def_enum;
+	struct declaration_enum *decl_enum;
+	GArray *array;
+	const char *ret;
+
+	if (!field || bt_ctf_field_type(field) != CTF_TYPE_ENUM) {
+		bt_ctf_field_set_error(-EINVAL);
+		return NULL;
+	}
+	def_enum = container_of(field, struct definition_enum, p);
+	decl_enum = def_enum->declaration;
+	if (get_int_signedness(&def_enum->integer->p)) {
+		array = enum_int_to_quark_set(decl_enum,
+			get_signed_int(&def_enum->integer->p));
+	} else {
+		array = enum_uint_to_quark_set(decl_enum,
+			get_unsigned_int(&def_enum->integer->p));
+	}
+	if (!array) {
+		bt_ctf_field_set_error(-ENOENT);
+		return NULL;
+	}
+
+	if (array->len == 0) {
+		g_array_unref(array);
+		bt_ctf_field_set_error(-ENOENT);
+		return NULL;
+	}	
+	/* Return first string. Arbitrary choice. */
+	ret = g_quark_to_string(g_array_index(array, GQuark, 0));
+	g_array_unref(array);
+	return ret;
+}
+
 enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field)
 {
 	enum ctf_string_encoding ret = 0;

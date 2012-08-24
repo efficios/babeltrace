@@ -193,9 +193,15 @@ int bt_ctf_get_array_len(const struct definition *field);
  * If the field does not exist or is not of the type requested, the value
  * returned is undefined. To check if an error occured, use the
  * bt_ctf_field_get_error() function after accessing a field.
+ *
+ * bt_ctf_get_enum_int gets the integer field of an enumeration.
+ * bt_ctf_get_enum_str gets the string matching the current enumeration
+ * value, or NULL if the current value does not match any string.
  */
 uint64_t bt_ctf_get_uint64(const struct definition *field);
 int64_t bt_ctf_get_int64(const struct definition *field);
+const struct definition *bt_ctf_get_enum_int(const struct definition *field);
+const char *bt_ctf_get_enum_str(const struct definition *field);
 char *bt_ctf_get_char_array(const struct definition *field);
 char *bt_ctf_get_string(const struct definition *field);
 
