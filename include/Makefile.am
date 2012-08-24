@@ -16,6 +16,7 @@ noinst_HEADERS = \
 	babeltrace/align.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield.h \
+	babeltrace/clock-internal.h \
 	babeltrace/compiler.h \
 	babeltrace/context-internal.h \
 	babeltrace/iterator-internal.h \

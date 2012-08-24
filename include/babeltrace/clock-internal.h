@@ -1,12 +1,12 @@
-#ifndef _CTF_EVENTS_PRIVATE_H
-#define _CTF_EVENTS_PRIVATE_H
+#ifndef _BABELTRACE_CLOCK_INTERNAL_H
+#define _BABELTRACE_CLOCK_INTERNAL_H
 
 /*
- * ctf/events-private.h
+ * BabelTrace
  *
- * Babeltrace Library
+ * clocks header (internal)
  *
- * Copyright 2011-2012 EfficiOS Inc. and Linux Foundation
+ * Copyright 2012 EfficiOS Inc. and Linux Foundation
  *
  * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *         Julien Desfossez <julien.desfossez@efficios.com>
@@ -22,22 +22,16 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <babeltrace/ctf/events.h>
-#include <babeltrace/ctf-ir/metadata.h>
-#include <babeltrace/clock-internal.h>
-
 static inline
-uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
-			uint64_t timestamp)
+uint64_t clock_cycles_to_ns(struct ctf_clock *clock, uint64_t cycles)
 {
-	uint64_t ts_nsec;
-	struct ctf_trace *trace = stream->stream_class->trace;
-	struct trace_collection *tc = trace->collection;
-	uint64_t tc_offset = tc->single_clock_offset_avg;
-
-	ts_nsec = clock_cycles_to_ns(stream->current_clock, timestamp);
-	ts_nsec += tc_offset;	/* Add offset */
-	return ts_nsec;
+	if (clock->freq == 1000000000ULL) {
+		/* 1GHZ freq, no need to scale cycles value */
+		return cycles;
+	} else {
+		return (double) cycles * 1000000000.0
+				/ (double) clock->freq;
+	}
 }
 
-#endif /* _CTF_EVENTS_PRIVATE_H */
+#endif /* _BABELTRACE_CLOCK_INTERNAL_H */

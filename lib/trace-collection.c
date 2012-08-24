@@ -24,6 +24,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
+#include <babeltrace/clock-internal.h>
 
 #include <inttypes.h>
 
@@ -63,6 +64,19 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 	}
 }
 
+/*
+ * Note: if using a frequency different from 1GHz for clock->offset, it
+ * is recommended to express the seconds in offset_s, otherwise there
+ * will be a loss of precision caused by the limited size of the double
+ * mantissa.
+ */
+static
+uint64_t clock_offset_ns(struct ctf_clock *clock)
+{
+	return clock->offset_s * 1000000000ULL
+			+ clock_cycles_to_ns(clock, clock->offset);
+}
+
 static void clock_add(gpointer key, gpointer value, gpointer user_data)
 {
 	struct clock_match *clock_match = user_data;
@@ -88,8 +102,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
 			}
 			if (!clock_match->tc->offset_nr) {
-				clock_match->tc->offset_first =
-					(t_clock->offset_s * 1000000000ULL) + t_clock->offset;
+				clock_match->tc->offset_first = clock_offset_ns(t_clock);
 				clock_match->tc->delta_offset_first_sum = 0;
 				clock_match->tc->offset_nr++;
 				clock_match->tc->single_clock_offset_avg =
@@ -105,23 +118,18 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 			 * Check that the offsets match. If not, warn
 			 * the user that we do an arbitrary choice.
 			 */
-			diff_ns = tc_clock->offset_s;
-			diff_ns -= t_clock->offset_s;
-			diff_ns *= 1000000000ULL;
-			diff_ns += tc_clock->offset;
-			diff_ns -= t_clock->offset;
+			diff_ns = clock_offset_ns(tc_clock) - clock_offset_ns(t_clock);
 			printf_debug("Clock \"%s\" offset between traces has a delta of %" PRIu64 " ns.",
 				g_quark_to_string(tc_clock->name),
 				diff_ns < 0 ? -diff_ns : diff_ns);
-			if (diff_ns > 10000) {
+			if (diff_ns > 10000 || diff_ns < -10000) {
 				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Using average.\n",
 					g_quark_to_string(tc_clock->name),
 					diff_ns < 0 ? -diff_ns : diff_ns);
 			}
 			/* Compute average */
 			clock_match->tc->delta_offset_first_sum +=
-				(t_clock->offset_s * 1000000000ULL) + t_clock->offset
-				- clock_match->tc->offset_first;
+				clock_offset_ns(t_clock) - clock_match->tc->offset_first;
 			clock_match->tc->offset_nr++;
 			clock_match->tc->single_clock_offset_avg =
 				clock_match->tc->offset_first
