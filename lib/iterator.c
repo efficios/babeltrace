@@ -480,11 +480,11 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		break;
 	case BT_SEEK_LAST:
 	{
-		struct ctf_file_stream *cfs;
+		struct ctf_file_stream *cfs = NULL;
 
 		tc = iter->ctx->tc;
 		ret = seek_last_ctf_trace_collection(tc, &cfs);
-		if (ret != 0)
+		if (ret != 0 || !cfs)
 			goto error;
 		/* remove all streams from the heap */
 		heap_free(iter->stream_heap);
