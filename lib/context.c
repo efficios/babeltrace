@@ -32,7 +32,6 @@
 #include <assert.h>
 #include <errno.h>
 
-#include <fts.h>
 #include <fcntl.h> /* For O_RDONLY */
 
 #include <glib.h>
