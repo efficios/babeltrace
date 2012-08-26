@@ -1517,7 +1517,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	if (ret)
 		goto error_def;
 	/*
-	 * For now, only a single slock is supported.
+	 * For now, only a single clock per trace is supported.
 	 */
 	file_stream->parent.current_clock = td->single_clock;
 	ret = create_stream_packet_index(td, file_stream);
@@ -1746,7 +1746,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		goto error_index;
 
 	/*
-	 * For now, only a single slock is supported.
+	 * For now, only a single clock per trace is supported.
 	 */
 	file_stream->parent.current_clock = td->single_clock;
 

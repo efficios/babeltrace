@@ -2360,7 +2360,7 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	}
 	if (!CTF_CLOCK_FIELD_IS_SET(clock, name)) {
 		ret = -EPERM;
-		fprintf(fd, "[error] %s: missing namefield in clock declaration\n", __func__);
+		fprintf(fd, "[error] %s: missing name field in clock declaration\n", __func__);
 		goto error;
 	}
 	if (g_hash_table_size(trace->clocks) > 0) {

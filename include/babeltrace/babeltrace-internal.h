@@ -46,6 +46,7 @@ struct trace_collection {
 	uint64_t offset_first;
 	int64_t delta_offset_first_sum;
 	int offset_nr;
+	int clock_use_offset_avg;
 };
 
 extern int opt_all_field_names,

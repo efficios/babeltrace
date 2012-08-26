@@ -39,24 +39,24 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 	struct clock_match *match = user_data;
 	struct ctf_clock *clock_a = value, *clock_b;
 
-	if (clock_a->uuid != 0) {
-		/*
-		 * Lookup the the trace clocks into the collection
-		 * clocks.
-		 */
-		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->uuid);
-		if (clock_b) {
-			match->clock_match = clock_b;
-			return;
-		}
-	} else if (clock_a->absolute) {
+	if (clock_a->absolute) {
 		/*
 		 * Absolute time references, such as NTP, are looked up
 		 * by clock name.
 		 */
 		clock_b = g_hash_table_lookup(match->clocks,
 			(gpointer) (unsigned long) clock_a->name);
+		if (clock_b) {
+			match->clock_match = clock_b;
+			return;
+		}
+	} else if (clock_a->uuid != 0) {
+		/*
+		 * Lookup the the trace clocks into the collection
+		 * clocks.
+		 */
+		clock_b = g_hash_table_lookup(match->clocks,
+			(gpointer) (unsigned long) clock_a->uuid);
 		if (clock_b) {
 			match->clock_match = clock_b;
 			return;
@@ -95,8 +95,9 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				(gpointer) (unsigned long) v);
 		if (!tc_clock) {
 			/*
-			 * For now, we only support CTF that has one
-			 * single clock uuid or name (absolute ref).
+			 * For now we only support CTF that has one
+			 * single clock uuid or name (absolute ref) per
+			 * trace.
 			 */
 			if (g_hash_table_size(tc_clocks) > 0) {
 				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
@@ -111,12 +112,13 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 			g_hash_table_insert(tc_clocks,
 				(gpointer) (unsigned long) v,
 				value);
-		} else {
+		} else if (!t_clock->absolute) {
 			int64_t diff_ns;
 
 			/*
-			 * Check that the offsets match. If not, warn
-			 * the user that we do an arbitrary choice.
+			 * For non-absolute clocks, check that the
+			 * offsets match. If not, warn the user that we
+			 * do an arbitrary choice.
 			 */
 			diff_ns = clock_offset_ns(tc_clock) - clock_offset_ns(t_clock);
 			printf_debug("Clock \"%s\" offset between traces has a delta of %" PRIu64 " ns.",
@@ -134,6 +136,8 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 			clock_match->tc->single_clock_offset_avg =
 				clock_match->tc->offset_first
 				+ (clock_match->tc->delta_offset_first_sum / clock_match->tc->offset_nr);
+			/* Time need to use offset average */
+			clock_match->tc->clock_use_offset_avg = 1;
 		}
 	}
 }
