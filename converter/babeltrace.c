@@ -51,7 +51,7 @@ static char *opt_input_format, *opt_output_format;
 /* Pointer into const argv */
 static const char *opt_input_format_arg, *opt_output_format_arg;
 
-static const char *opt_input_path;
+static GPtrArray *opt_input_paths;
 static const char *opt_output_path;
 
 static struct format *fmt_read;
@@ -84,6 +84,7 @@ enum {
 
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "output", 'w', POPT_ARG_STRING, &opt_output_path, OPT_NONE, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, &opt_input_format_arg, OPT_NONE, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, &opt_output_format_arg, OPT_NONE, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
@@ -111,10 +112,11 @@ static void list_formats(FILE *fp)
 static void usage(FILE *fp)
 {
 	fprintf(fp, "BabelTrace Trace Viewer and Converter %s\n\n", VERSION);
-	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT <OUTPUT>\n");
+	fprintf(fp, "usage : babeltrace [OPTIONS] FILE...\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  INPUT                          Input trace path\n");
-	fprintf(fp, "  OUTPUT                         Output trace path (default: stdout)\n");
+	fprintf(fp, "  FILE                           Input trace file(s) and/or directory(ies)\n");
+	fprintf(fp, "                                     (space-separated)\n");
+	fprintf(fp, "  -w, --output OUTPUT            Output trace path (default: stdout)\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -i, --input-format FORMAT      Input trace format (default: ctf)\n");
 	fprintf(fp, "  -o, --output-format FORMAT     Output trace format (default: text)\n");
@@ -219,6 +221,7 @@ static int parse_options(int argc, char **argv)
 {
 	poptContext pc;
 	int opt, ret = 0;
+	const char *ipath;
 
 	if (argc == 1) {
 		usage(stdout);
@@ -305,12 +308,15 @@ static int parse_options(int argc, char **argv)
 		}
 	}
 
-	opt_input_path = poptGetArg(pc);
-	if (!opt_input_path) {
+	do {
+		ipath = poptGetArg(pc);
+		if (ipath)
+			g_ptr_array_add(opt_input_paths, (gpointer) ipath);
+	} while (ipath);
+	if (opt_input_paths->len == 0) {
 		ret = -EINVAL;
 		goto end;
 	}
-	opt_output_path = poptGetArg(pc);
 
 end:
 	if (pc) {
@@ -480,17 +486,22 @@ error_iter:
 
 int main(int argc, char **argv)
 {
-	int ret, partial_error = 0;
+	int ret, partial_error = 0, open_success = 0;
 	struct format *fmt_write;
 	struct trace_descriptor *td_write;
 	struct bt_context *ctx;
+	int i;
+
+	opt_input_paths = g_ptr_array_new();
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
 		fprintf(stderr, "Error parsing options.\n\n");
 		usage(stderr);
+		g_ptr_array_free(opt_input_paths, TRUE);
 		exit(EXIT_FAILURE);
 	} else if (ret > 0) {
+		g_ptr_array_free(opt_input_paths, TRUE);
 		exit(EXIT_SUCCESS);
 	}
 	printf_verbose("Verbose mode active.\n");
@@ -513,7 +524,11 @@ int main(int argc, char **argv)
 		strlower(opt_output_format);
 	}
 
-	printf_verbose("Converting from directory: %s\n", opt_input_path);
+	printf_verbose("Converting from directory(ies):\n");
+	for (i = 0; i < opt_input_paths->len; i++) {
+		const char *ipath = g_ptr_array_index(opt_input_paths, i);
+		printf_verbose("    %s\n", ipath);
+	}
 	printf_verbose("Converting from format: %s\n",
 		opt_input_format ? : "ctf <default>");
 	printf_verbose("Converting to directory: %s\n",
@@ -555,16 +570,25 @@ int main(int argc, char **argv)
 		goto error_td_read;
 	}
 
-	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
-			opt_input_format, NULL);
-	if (ret < 0) {
-		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
-			opt_input_path);
+	for (i = 0; i < opt_input_paths->len; i++) {
+		const char *ipath = g_ptr_array_index(opt_input_paths, i);
+		ret = bt_context_add_traces_recursive(ctx, ipath,
+				opt_input_format, NULL);
+		if (ret < 0) {
+			fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
+				ipath);
+		} else if (ret > 0) {
+			fprintf(stderr, "[warning] errors occurred when opening trace \"%s\" for reading, continuing anyway.\n\n",
+				ipath);
+			open_success = 1;	/* some traces were OK */
+			partial_error = 1;
+		} else {
+			open_success = 1;	/* all traces were OK */
+		}
+	}
+	if (!open_success) {
+		fprintf(stderr, "[error] none of the specified trace paths could be opened.\n\n");
 		goto error_td_read;
-	} else if (ret > 0) {
-		fprintf(stderr, "[warning] errors occurred when opening trace \"%s\" for reading, continuing anyway.\n\n",
-			opt_input_path);
-		partial_error = 1;
 	}
 
 	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
@@ -578,9 +602,8 @@ int main(int argc, char **argv)
 	 * Errors happened when opening traces, but we continue anyway.
 	 * sleep to let user see the stderr output before stdout.
 	 */
-	if (partial_error) {
+	if (partial_error)
 		sleep(PARTIAL_ERROR_SLEEP);
-	}
 
 	ret = convert_trace(td_write, ctx);
 	if (ret) {
@@ -607,6 +630,7 @@ error_td_read:
 end:
 	free(opt_input_format);
 	free(opt_output_format);
+	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
 	else

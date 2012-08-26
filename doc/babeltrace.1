@@ -7,7 +7,7 @@ babeltrace \(em Babeltrace Trace Viewer and Converter
 
 .PP
 .nf
-babeltrace [OPTIONS] INPUT <OUTPUT>
+babeltrace [OPTIONS] FILE...
 .fi
 .SH "DESCRIPTION"
 
@@ -22,10 +22,10 @@ starting with two dashes. Below is a summary of the available options.
 .PP
 
 .TP
-.BR "INPUT"
-Input trace path
+.BR "FILE"
+Input trace FILE(s) or directory(ies)
 .TP
-.BR "OUTPUT"
+.BR "-w, --output OUTPUT"
 Output trace path (default: stdout)
 .TP
 .BR "-i, --input-format FORMAT"
