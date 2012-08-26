@@ -44,6 +44,8 @@
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
 
+#define PARTIAL_ERROR_SLEEP	3	/* 3 seconds */
+
 #define DEFAULT_FILE_ARRAY_SIZE	1
 static char *opt_input_format, *opt_output_format;
 /* Pointer into const argv */
@@ -570,6 +572,14 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error opening trace \"%s\" for writing.\n\n",
 			opt_output_path ? : "<none>");
 		goto error_td_write;
+	}
+
+	/*
+	 * Errors happened when opening traces, but we continue anyway.
+	 * sleep to let user see the stderr output before stdout.
+	 */
+	if (partial_error) {
+		sleep(PARTIAL_ERROR_SLEEP);
 	}
 
 	ret = convert_trace(td_write, ctx);
