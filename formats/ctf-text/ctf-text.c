@@ -47,6 +47,7 @@ int opt_all_field_names,
 	opt_trace_procname_field,
 	opt_trace_vpid_field,
 	opt_trace_hostname_field,
+	opt_trace_default_fields = 1,
 	opt_loglevel_field,
 	opt_delta_field = 1;
 
@@ -323,7 +324,8 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		else
 			fprintf(pos->fp, " ");
 	}
-	if ((opt_trace_hostname_field && !opt_all_fields) && stream_class->trace->env.hostname[0] != '\0') {
+	if ((opt_trace_hostname_field || opt_all_fields || opt_trace_default_fields)
+			&& stream_class->trace->env.hostname[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:hostname = ");
@@ -333,7 +335,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_domain_field && !opt_all_fields) && stream_class->trace->env.domain[0] != '\0') {
+	if ((opt_trace_domain_field || opt_all_fields) && stream_class->trace->env.domain[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:domain = ");
@@ -343,7 +345,8 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_procname_field && !opt_all_fields) && stream_class->trace->env.procname[0] != '\0') {
+	if ((opt_trace_procname_field || opt_all_fields || opt_trace_default_fields)
+			&& stream_class->trace->env.procname[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:procname = ");
@@ -355,7 +358,8 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
-	if ((opt_trace_vpid_field && !opt_all_fields) && stream_class->trace->env.vpid != -1) {
+	if ((opt_trace_vpid_field || opt_all_fields || opt_trace_default_fields)
+			&& stream_class->trace->env.vpid != -1) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:vpid = ");

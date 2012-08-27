@@ -135,6 +135,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
 	fprintf(fp, "                                     all, trace, trace:hostname, trace:domain,\n");
 	fprintf(fp, "                                     trace:procname, trace:vpid, loglevel.\n");
+	fprintf(fp, "                                     (default: trace:hostname,trace:procname,trace:vpid)\n");
 	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
 	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
@@ -193,18 +194,19 @@ static int get_fields_args(poptContext *pc)
 	}
 	str = strtok_r(strlist, ",", &strctx);
 	do {
+		opt_trace_default_fields = 0;
 		if (!strcmp(str, "all"))
 			opt_all_fields = 1;
 		else if (!strcmp(str, "trace"))
 			opt_trace_field = 1;
+		else if (!strcmp(str, "trace:hostname"))
+			opt_trace_hostname_field = 1;
 		else if (!strcmp(str, "trace:domain"))
 			opt_trace_domain_field = 1;
 		else if (!strcmp(str, "trace:procname"))
 			opt_trace_procname_field = 1;
 		else if (!strcmp(str, "trace:vpid"))
 			opt_trace_vpid_field = 1;
-		else if (!strcmp(str, "trace:hostname"))
-			opt_trace_hostname_field = 1;
 		else if (!strcmp(str, "loglevel"))
 			opt_loglevel_field = 1;
 		else {
