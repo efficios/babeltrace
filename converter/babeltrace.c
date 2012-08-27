@@ -133,8 +133,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                     none, all, scope, header, (context OR ctx)\n");
 	fprintf(fp, "                                        (default: payload,context)\n");
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
-	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
-	fprintf(fp, "                                     trace:vpid, loglevel.\n");
+	fprintf(fp, "                                     all, trace, trace:hostname, trace:domain,\n");
+	fprintf(fp, "                                     trace:procname, trace:vpid, loglevel.\n");
 	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
 	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
@@ -203,6 +203,8 @@ static int get_fields_args(poptContext *pc)
 			opt_trace_procname_field = 1;
 		else if (!strcmp(str, "trace:vpid"))
 			opt_trace_vpid_field = 1;
+		else if (!strcmp(str, "trace:hostname"))
+			opt_trace_hostname_field = 1;
 		else if (!strcmp(str, "loglevel"))
 			opt_loglevel_field = 1;
 		else {

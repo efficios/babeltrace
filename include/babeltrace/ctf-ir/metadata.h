@@ -123,6 +123,7 @@ struct ctf_tracer_env {
 
 	/* All strings below: "" if unset. */
 	char procname[TRACER_ENV_LEN];
+	char hostname[TRACER_ENV_LEN];
 	char domain[TRACER_ENV_LEN];
 	char sysname[TRACER_ENV_LEN];
 	char release[TRACER_ENV_LEN];
