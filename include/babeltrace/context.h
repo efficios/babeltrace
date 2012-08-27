@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include <babeltrace/format.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* struct bt_context is opaque to the user */
 struct bt_context;
 struct stream_pos;
@@ -104,5 +108,9 @@ void bt_context_put(struct bt_context *ctx);
  * Returns NULL on error
  */
 struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CONTEXT_H */

@@ -26,6 +26,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int bt_intern_str;
 
 /* forward declaration */
@@ -75,5 +79,8 @@ extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct format *format);
 
 /* TBD: format unregistration */
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_FORMAT_H */

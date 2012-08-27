@@ -27,6 +27,10 @@
 #include <babeltrace/context.h>
 #include <babeltrace/clock-types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct definition;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
@@ -242,5 +246,9 @@ int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
  * bt_ctf_get_decl_field_name: return the name of a field decl or NULL on error
  */
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CTF_EVENTS_H */

@@ -25,6 +25,10 @@
 
 #include <babeltrace/format.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Forward declarations */
 struct bt_ctf_iter;
 struct bt_dependencies;
@@ -96,5 +100,9 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 enum {
 	BT_FLAGS_FREE_PRIVATE_DATA	= (1 << 0),
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*_BABELTRACE_CTF_CALLBACKS_H */

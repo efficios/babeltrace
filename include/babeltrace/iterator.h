@@ -20,6 +20,10 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Forward declarations */
 struct bt_iter;
 struct bt_saved_pos;
@@ -105,5 +109,9 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
  */
 struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
 		uint64_t timestamp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_ITERATOR_H */

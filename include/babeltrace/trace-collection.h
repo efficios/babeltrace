@@ -21,6 +21,10 @@
  * all copies or substantial portions of the Software.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct trace_collection;
 
 void init_trace_collection(struct trace_collection *tc);
@@ -29,5 +33,9 @@ int trace_collection_add(struct trace_collection *tc,
 			 struct trace_descriptor *td);
 int trace_collection_remove(struct trace_collection *tc,
 			 struct trace_descriptor *td);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_TRACE_COLLECTION_H */

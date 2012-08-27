@@ -25,6 +25,10 @@
 
 #include <babeltrace/iterator.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bt_ctf_iter;
 struct bt_ctf_event;
 
@@ -69,5 +73,9 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
  * Return current event on success, NULL on end of trace.
  */
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CTF_ITERATOR_H */
