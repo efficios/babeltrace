@@ -515,12 +515,18 @@ int64_t bt_ctf_get_int64(const struct definition *field)
 char *bt_ctf_get_char_array(const struct definition *field)
 {
 	char *ret = NULL;
+	GString *char_array;
 
-	if (field && bt_ctf_field_type(field) == CTF_TYPE_ARRAY)
-		ret = get_char_array(field)->str;
-	else
-		bt_ctf_field_set_error(-EINVAL);
+	if (field && bt_ctf_field_type(field) == CTF_TYPE_ARRAY) {
+		char_array = get_char_array(field);
+		if (char_array) {
+			ret = char_array->str;
+			goto end;
+		}
+	}
+	bt_ctf_field_set_error(-EINVAL);
 
+end:
 	return ret;
 }
 
