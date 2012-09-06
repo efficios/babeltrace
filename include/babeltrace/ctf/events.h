@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 struct definition;
+struct declaration;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
 struct bt_ctf_field_decl;
@@ -146,9 +147,15 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 const char *bt_ctf_field_name(const struct definition *def);
 
 /*
+ * bt_ctf_get_field_decl: return the declaration of a field or NULL
+ * on error
+ */
+const struct declaration *bt_ctf_get_field_decl(const struct definition *def);
+
+/*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
  */
-enum ctf_type_id bt_ctf_field_type(const struct definition *def);
+enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_signedness: return the signedness of an integer
@@ -157,36 +164,36 @@ enum ctf_type_id bt_ctf_field_type(const struct definition *def);
  * return 1 if signed
  * return -1 on error
  */
-int bt_ctf_get_int_signedness(const struct definition *field);
+int bt_ctf_get_int_signedness(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_base: return the base of an int or a negative value on error
  */
-int bt_ctf_get_int_base(const struct definition *field);
+int bt_ctf_get_int_base(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_byte_order: return the byte order of an int or a negative
  * value on error
  */
-int bt_ctf_get_int_byte_order(const struct definition *field);
+int bt_ctf_get_int_byte_order(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_len: return the size, in bits, of an int or a negative
  * value on error
  */
-ssize_t bt_ctf_get_int_len(const struct definition *field);
+ssize_t bt_ctf_get_int_len(const struct declaration *decl);
 
 /*
  * bt_ctf_get_encoding: return the encoding of an int or a string.
  * return a negative value on error
  */
-enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
 
 /*
  * bt_ctf_get_array_len: return the len of an array or a negative
  * value on error
  */
-int bt_ctf_get_array_len(const struct definition *field);
+int bt_ctf_get_array_len(const struct declaration *decl);
 
 /*
  * Field access functions
