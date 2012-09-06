@@ -27,7 +27,12 @@
 #include <babeltrace/context.h>
 #include <babeltrace/clock-types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct definition;
+struct declaration;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
 struct bt_ctf_field_decl;
@@ -102,9 +107,19 @@ uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *event);
 uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_field_list: set list pointer to an array of definition
+ * bt_ctf_get_field_list: obtain the list of fields for compound type
+ *
+ * This function can be used to obtain the list of fields 
+ * contained within a compound type: array, sequence,
+ * structure, or variant.
+
+ * This function sets the "list" pointer to an array of definition
  * pointers and set count to the number of elements in the array.
  * Return 0 on success and a negative value on error.
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the event is unchanged (as long as the iterator
+ * from which the event is extracted is unchanged).
  */
 int bt_ctf_get_field_list(const struct bt_ctf_event *event,
 		const struct definition *scope,
@@ -132,9 +147,15 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 const char *bt_ctf_field_name(const struct definition *def);
 
 /*
+ * bt_ctf_get_field_decl: return the declaration of a field or NULL
+ * on error
+ */
+const struct declaration *bt_ctf_get_field_decl(const struct definition *def);
+
+/*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
  */
-enum ctf_type_id bt_ctf_field_type(const struct definition *def);
+enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_signedness: return the signedness of an integer
@@ -143,36 +164,36 @@ enum ctf_type_id bt_ctf_field_type(const struct definition *def);
  * return 1 if signed
  * return -1 on error
  */
-int bt_ctf_get_int_signedness(const struct definition *field);
+int bt_ctf_get_int_signedness(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_base: return the base of an int or a negative value on error
  */
-int bt_ctf_get_int_base(const struct definition *field);
+int bt_ctf_get_int_base(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_byte_order: return the byte order of an int or a negative
  * value on error
  */
-int bt_ctf_get_int_byte_order(const struct definition *field);
+int bt_ctf_get_int_byte_order(const struct declaration *decl);
 
 /*
  * bt_ctf_get_int_len: return the size, in bits, of an int or a negative
  * value on error
  */
-ssize_t bt_ctf_get_int_len(const struct definition *field);
+ssize_t bt_ctf_get_int_len(const struct declaration *decl);
 
 /*
  * bt_ctf_get_encoding: return the encoding of an int or a string.
  * return a negative value on error
  */
-enum ctf_string_encoding bt_ctf_get_encoding(const struct definition *field);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
 
 /*
  * bt_ctf_get_array_len: return the len of an array or a negative
  * value on error
  */
-int bt_ctf_get_array_len(const struct definition *field);
+int bt_ctf_get_array_len(const struct declaration *decl);
 
 /*
  * Field access functions
@@ -183,9 +204,15 @@ int bt_ctf_get_array_len(const struct definition *field);
  * If the field does not exist or is not of the type requested, the value
  * returned is undefined. To check if an error occured, use the
  * bt_ctf_field_get_error() function after accessing a field.
+ *
+ * bt_ctf_get_enum_int gets the integer field of an enumeration.
+ * bt_ctf_get_enum_str gets the string matching the current enumeration
+ * value, or NULL if the current value does not match any string.
  */
 uint64_t bt_ctf_get_uint64(const struct definition *field);
 int64_t bt_ctf_get_int64(const struct definition *field);
+const struct definition *bt_ctf_get_enum_int(const struct definition *field);
+const char *bt_ctf_get_enum_str(const struct definition *field);
 char *bt_ctf_get_char_array(const struct definition *field);
 char *bt_ctf_get_string(const struct definition *field);
 
@@ -226,5 +253,9 @@ int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
  * bt_ctf_get_decl_field_name: return the name of a field decl or NULL on error
  */
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CTF_EVENTS_H */

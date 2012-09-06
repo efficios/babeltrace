@@ -20,6 +20,10 @@
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Forward declarations */
 struct bt_iter;
 struct bt_saved_pos;
@@ -40,6 +44,13 @@ struct bt_saved_pos;
  *   is expressed in nanoseconds
  * - restore is a position saved with bt_iter_get_pos, it is used with
  *   BT_SEEK_RESTORE.
+ *
+ * Note about BT_SEEK_LAST: if many events happen to be at the last
+ * timestamp, it is implementation-defined which event will be the last,
+ * and the order of events with the same timestamp may not be the same
+ * as normal iteration on the trace. Therefore, it is recommended to
+ * only use BT_SEEK_LAST to get the timestamp of the last event(s) in
+ * the trace.
  */
 struct bt_iter_pos {
 	enum {
@@ -47,7 +58,7 @@ struct bt_iter_pos {
 		BT_SEEK_RESTORE,	/* uses u.restore */
 		BT_SEEK_CUR,
 		BT_SEEK_BEGIN,
-		BT_SEEK_END,
+		BT_SEEK_LAST,
 	} type;
 	union {
 		uint64_t seek_time;
@@ -98,5 +109,9 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *pos);
  */
 struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
 		uint64_t timestamp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_ITERATOR_H */

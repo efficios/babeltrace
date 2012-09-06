@@ -551,20 +551,15 @@ error:
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
 	pos->fd = fd;
-	pos->mmap_offset = 0;
-	pos->packet_size = 0;
-	pos->content_size = 0;
-	pos->content_size_loc = NULL;
-	pos->base_mma = NULL;
-	pos->offset = 0;
-	pos->dummy = false;
-	pos->cur_index = 0;
-	pos->packet_real_index = NULL;
-	if (fd >= 0)
+	if (fd >= 0) {
 		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
 						sizeof(struct packet_index));
-	else
+		pos->packet_real_index = g_array_new(FALSE, TRUE,
+				sizeof(struct packet_index));
+	} else {
 		pos->packet_cycles_index = NULL;
+		pos->packet_real_index = NULL;
+	}
 	switch (open_flags & O_ACCMODE) {
 	case O_RDONLY:
 		pos->prot = PROT_READ;
@@ -600,8 +595,10 @@ void ctf_fini_pos(struct ctf_stream_pos *pos)
 			assert(0);
 		}
 	}
-	(void) g_array_free(pos->packet_cycles_index, TRUE);
-	(void) g_array_free(pos->packet_real_index, TRUE);
+	if (pos->packet_cycles_index)
+		(void) g_array_free(pos->packet_cycles_index, TRUE);
+	if (pos->packet_real_index)
+		(void) g_array_free(pos->packet_real_index, TRUE);
 }
 
 /*
@@ -1011,6 +1008,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	if (metadata_fp) {
 		fp = metadata_fp;
+		metadata_stream->pos.fd = -1;
 	} else {
 		td->metadata = &metadata_stream->parent;
 		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
@@ -1090,7 +1088,8 @@ end_packet_read:
 		fclose(fp);
 	free(buf);
 end_stream:
-	close(metadata_stream->pos.fd);
+	if (metadata_stream->pos.fd >= 0)
+		close(metadata_stream->pos.fd);
 	if (ret)
 		g_free(metadata_stream);
 	return ret;
@@ -1518,7 +1517,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	if (ret)
 		goto error_def;
 	/*
-	 * For now, only a single slock is supported.
+	 * For now, only a single clock per trace is supported.
 	 */
 	file_stream->parent.current_clock = td->single_clock;
 	ret = create_stream_packet_index(td, file_stream);
@@ -1746,6 +1745,11 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	if (ret)
 		goto error_index;
 
+	/*
+	 * For now, only a single clock per trace is supported.
+	 */
+	file_stream->parent.current_clock = td->single_clock;
+
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
 			&file_stream->parent);
@@ -1848,9 +1852,6 @@ int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
 			cfs = container_of(stream, struct ctf_file_stream,
 					parent);
 			stream_pos = &cfs->pos;
-			stream_pos->packet_real_index = g_array_new(FALSE, TRUE,
-					sizeof(struct packet_index));
-
 			if (!stream_pos->packet_cycles_index)
 				continue;
 

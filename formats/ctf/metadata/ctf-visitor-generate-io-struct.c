@@ -2360,7 +2360,7 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	}
 	if (!CTF_CLOCK_FIELD_IS_SET(clock, name)) {
 		ret = -EPERM;
-		fprintf(fd, "[error] %s: missing namefield in clock declaration\n", __func__);
+		fprintf(fd, "[error] %s: missing name field in clock declaration\n", __func__);
 		goto error;
 	}
 	if (g_hash_table_size(trace->clocks) > 0) {
@@ -2458,6 +2458,21 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->procname, right, TRACER_ENV_LEN);
 			env->procname[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.procname = \"%s\"\n", env->procname);
+		} else if (!strcmp(left, "hostname")) {
+			char *right;
+
+			if (env->hostname[0]) {
+				fprintf(fd, "[warning] %s: duplicated env hostname\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[warning] %s: unexpected unary expression for env hostname\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			strncpy(env->hostname, right, TRACER_ENV_LEN);
+			env->hostname[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.hostname = \"%s\"\n", env->hostname);
 		} else if (!strcmp(left, "domain")) {
 			char *right;
 
@@ -2562,6 +2577,7 @@ int ctf_env_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *
 
 	trace->env.vpid = -1;
 	trace->env.procname[0] = '\0';
+	trace->env.hostname[0] = '\0';
 	trace->env.domain[0] = '\0';
 	trace->env.sysname[0] = '\0';
 	trace->env.release[0] = '\0';

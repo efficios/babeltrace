@@ -25,6 +25,9 @@
    found in the Linux kernel headers to enable people familiar with
    the latter find their way in these sources as well.  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Basic type for the double-link list.  */
 struct bt_list_head
@@ -167,5 +170,9 @@ static inline void bt_list_replace_init(struct bt_list_head *old,
 	bt_list_add_tail(_new, head);
 	BT_INIT_LIST_HEAD(old);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* _BT_LIST_H */

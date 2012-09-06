@@ -38,6 +38,9 @@ struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 	struct bt_ctf_iter *iter;
 	int ret;
 
+	if (!ctx)
+		return NULL;
+
 	iter = g_new0(struct bt_ctf_iter, 1);
 	ret = bt_iter_init(&iter->parent, ctx, begin_pos, end_pos);
 	if (ret) {
@@ -56,6 +59,8 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 	struct bt_stream_callbacks *bt_stream_cb;
 	struct bt_callback_chain *bt_chain;
 	int i, j;
+
+	assert(iter);
 
 	/* free all events callbacks */
 	if (iter->main_callbacks.callback)
@@ -83,15 +88,25 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 
 struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter)
 {
+	if (!iter)
+		return NULL;
+
 	return &iter->parent;
 }
 
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 {
 	struct ctf_file_stream *file_stream;
-	struct bt_ctf_event *ret = &iter->current_ctf_event;
+	struct bt_ctf_event *ret;
 	struct ctf_stream_definition *stream;
 
+	/*
+	 * We do not want to fail for any other reason than end of
+	 * trace, hence the assert.
+	 */
+	assert(iter);
+
+	ret = &iter->current_ctf_event;
 	file_stream = heap_maximum(iter->parent.stream_heap);
 	if (!file_stream) {
 		/* end of file for all streams */

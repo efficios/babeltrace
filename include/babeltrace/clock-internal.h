@@ -1,14 +1,15 @@
-#ifndef _BABELTRACE_TRACE_COLLECTION_H
-#define _BABELTRACE_TRACE_COLLECTION_H
+#ifndef _BABELTRACE_CLOCK_INTERNAL_H
+#define _BABELTRACE_CLOCK_INTERNAL_H
+
 /*
- * BabelTrace lib
+ * BabelTrace
  *
- * trace collection header
+ * clocks header (internal)
  *
  * Copyright 2012 EfficiOS Inc. and Linux Foundation
  *
  * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
- * Author: Yannick Brosseau <yannick.brosseau@gmail.com>
+ *         Julien Desfossez <julien.desfossez@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +22,16 @@
  * all copies or substantial portions of the Software.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct trace_collection;
-
-void init_trace_collection(struct trace_collection *tc);
-void finalize_trace_collection(struct trace_collection *tc);
-int trace_collection_add(struct trace_collection *tc,
-			 struct trace_descriptor *td);
-int trace_collection_remove(struct trace_collection *tc,
-			 struct trace_descriptor *td);
-
-#ifdef __cplusplus
+static inline
+uint64_t clock_cycles_to_ns(struct ctf_clock *clock, uint64_t cycles)
+{
+	if (clock->freq == 1000000000ULL) {
+		/* 1GHZ freq, no need to scale cycles value */
+		return cycles;
+	} else {
+		return (double) cycles * 1000000000.0
+				/ (double) clock->freq;
+	}
 }
-#endif
 
-#endif /* _BABELTRACE_TRACE_COLLECTION_H */
+#endif /* _BABELTRACE_CLOCK_INTERNAL_H */

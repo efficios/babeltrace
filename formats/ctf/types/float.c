@@ -163,6 +163,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 		return -EINVAL;
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
+	memset(&destp, 0, sizeof(destp));
 	ctf_init_pos(&destp, -1, O_RDWR);
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	destp.base_mma = &mma;

@@ -44,6 +44,7 @@ struct format *bt_lookup_format(bt_intern_str name)
 {
 	if (!init_done)
 		return NULL;
+
 	return g_hash_table_lookup(format_registry,
 				   (gconstpointer) (unsigned long) name);
 }
@@ -61,6 +62,8 @@ void bt_fprintf_format_list(FILE *fp)
 {
 	struct walk_data data;
 
+	assert(fp);
+
 	data.fp = fp;
 	data.iter = 0;
 
@@ -75,6 +78,9 @@ void bt_fprintf_format_list(FILE *fp)
 
 int bt_register_format(struct format *format)
 {
+	if (!format)
+		return -EINVAL;
+
 	if (!init_done)
 		format_init();
 

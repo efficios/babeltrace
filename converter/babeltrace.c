@@ -39,17 +39,19 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <inttypes.h>
-#include <fts.h>
+#include <ftw.h>
 #include <string.h>
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
+
+#define PARTIAL_ERROR_SLEEP	3	/* 3 seconds */
 
 #define DEFAULT_FILE_ARRAY_SIZE	1
 static char *opt_input_format, *opt_output_format;
 /* Pointer into const argv */
 static const char *opt_input_format_arg, *opt_output_format_arg;
 
-static const char *opt_input_path;
+static GPtrArray *opt_input_paths;
 static const char *opt_output_path;
 
 static struct format *fmt_read;
@@ -82,6 +84,7 @@ enum {
 
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "output", 'w', POPT_ARG_STRING, &opt_output_path, OPT_NONE, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, &opt_input_format_arg, OPT_NONE, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, &opt_output_format_arg, OPT_NONE, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
@@ -109,10 +112,11 @@ static void list_formats(FILE *fp)
 static void usage(FILE *fp)
 {
 	fprintf(fp, "BabelTrace Trace Viewer and Converter %s\n\n", VERSION);
-	fprintf(fp, "usage : babeltrace [OPTIONS] INPUT <OUTPUT>\n");
+	fprintf(fp, "usage : babeltrace [OPTIONS] FILE...\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  INPUT                          Input trace path\n");
-	fprintf(fp, "  OUTPUT                         Output trace path (default: stdout)\n");
+	fprintf(fp, "  FILE                           Input trace file(s) and/or directory(ies)\n");
+	fprintf(fp, "                                     (space-separated)\n");
+	fprintf(fp, "  -w, --output OUTPUT            Output trace path (default: stdout)\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -i, --input-format FORMAT      Input trace format (default: ctf)\n");
 	fprintf(fp, "  -o, --output-format FORMAT     Output trace format (default: text)\n");
@@ -129,8 +133,9 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                     none, all, scope, header, (context OR ctx)\n");
 	fprintf(fp, "                                        (default: payload,context)\n");
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
-	fprintf(fp, "                                     all, trace, trace:domain, trace:procname,\n");
-	fprintf(fp, "                                     trace:vpid, loglevel.\n");
+	fprintf(fp, "                                     all, trace, trace:hostname, trace:domain,\n");
+	fprintf(fp, "                                     trace:procname, trace:vpid, loglevel.\n");
+	fprintf(fp, "                                     (default: trace:hostname,trace:procname,trace:vpid)\n");
 	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
 	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
@@ -189,10 +194,13 @@ static int get_fields_args(poptContext *pc)
 	}
 	str = strtok_r(strlist, ",", &strctx);
 	do {
+		opt_trace_default_fields = 0;
 		if (!strcmp(str, "all"))
 			opt_all_fields = 1;
 		else if (!strcmp(str, "trace"))
 			opt_trace_field = 1;
+		else if (!strcmp(str, "trace:hostname"))
+			opt_trace_hostname_field = 1;
 		else if (!strcmp(str, "trace:domain"))
 			opt_trace_domain_field = 1;
 		else if (!strcmp(str, "trace:procname"))
@@ -217,6 +225,7 @@ static int parse_options(int argc, char **argv)
 {
 	poptContext pc;
 	int opt, ret = 0;
+	const char *ipath;
 
 	if (argc == 1) {
 		usage(stdout);
@@ -303,12 +312,15 @@ static int parse_options(int argc, char **argv)
 		}
 	}
 
-	opt_input_path = poptGetArg(pc);
-	if (!opt_input_path) {
+	do {
+		ipath = poptGetArg(pc);
+		if (ipath)
+			g_ptr_array_add(opt_input_paths, (gpointer) ipath);
+	} while (ipath);
+	if (opt_input_paths->len == 0) {
 		ret = -EINVAL;
 		goto end;
 	}
-	opt_output_path = poptGetArg(pc);
 
 end:
 	if (pc) {
@@ -317,7 +329,62 @@ end:
 	return ret;
 }
 
+static GPtrArray *traversed_paths = 0;
 
+/*
+ * traverse_trace_dir() is the callback function for File Tree Walk (nftw).
+ * it receives the path of the current entry (file, dir, link..etc) with
+ * a flag to indicate the type of the entry.
+ * if the entry being visited is a directory and contains a metadata file,
+ * then add the path to a global list to be processed later in
+ * add_traces_recursive.
+ */
+static int traverse_trace_dir(const char *fpath, const struct stat *sb,
+			int tflag, struct FTW *ftwbuf)
+{
+	int dirfd, metafd;
+	int closeret;
+
+	if (tflag != FTW_D)
+		return 0;
+
+	dirfd = open(fpath, 0);
+	if (dirfd < 0) {
+		fprintf(stderr, "[error] [Context] Unable to open trace "
+			"directory file descriptor.\n");
+		return 0;	/* partial error */
+	}
+	metafd = openat(dirfd, "metadata", O_RDONLY);
+	if (metafd < 0) {
+		closeret = close(dirfd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;
+		}
+		/* No meta data, just return */
+		return 0;
+	} else {
+		closeret = close(metafd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;	/* failure */
+		}
+		closeret = close(dirfd);
+		if (closeret < 0) {
+			perror("close");
+			return -1;	/* failure */
+		}
+
+		/* Add path to the global list */
+		if (traversed_paths == NULL) {
+			fprintf(stderr, "[error] [Context] Invalid open path array.\n");	
+			return -1;
+		}
+		g_ptr_array_add(traversed_paths, g_string_new(fpath));
+	}
+
+	return 0;
+}
 /*
  * bt_context_add_traces_recursive: Open a trace recursively
  *
@@ -335,83 +402,45 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		void (*packet_seek)(struct stream_pos *pos,
 			size_t offset, int whence))
 {
-	FTS *tree;
-	FTSENT *node;
+
 	GArray *trace_ids;
-	char lpath[PATH_MAX];
-	char * const paths[2] = { lpath, NULL };
 	int ret = 0;
+	int i;
 
-	/*
-	 * Need to copy path, because fts_open can change it.
-	 * It is the pointer array, not the strings, that are constant.
-	 */
-	strncpy(lpath, path, PATH_MAX);
-	lpath[PATH_MAX - 1] = '\0';
+	/* Should lock traversed_paths mutex here if used in multithread */
 
-	tree = fts_open(paths, FTS_NOCHDIR | FTS_LOGICAL, 0);
-	if (tree == NULL) {
-		fprintf(stderr, "[error] [Context] Cannot traverse \"%s\" for reading.\n",
-				path);
-		return -EINVAL;
-	}
-
+	traversed_paths = g_ptr_array_new();
 	trace_ids = g_array_new(FALSE, TRUE, sizeof(int));
 
-	while ((node = fts_read(tree))) {
-		int dirfd, metafd;
-		int closeret;
+	ret = nftw(path, traverse_trace_dir, 10, 0);
 
-		if (!(node->fts_info & FTS_D))
-			continue;
-
-		dirfd = open(node->fts_accpath, 0);
-		if (dirfd < 0) {
-			fprintf(stderr, "[error] [Context] Unable to open trace "
-				"directory file descriptor.\n");
-			ret = 1;	/* partial error */
-			goto error;
-		}
-		metafd = openat(dirfd, "metadata", O_RDONLY);
-		if (metafd < 0) {
-			closeret = close(dirfd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-			continue;
-		} else {
-			int trace_id;
-
-			closeret = close(metafd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-			closeret = close(dirfd);
-			if (closeret < 0) {
-				perror("close");
-				ret = -1;	/* failure */
-				goto error;
-			}
-
-			trace_id = bt_context_add_trace(ctx,
-				node->fts_accpath, format_str,
-				packet_seek, NULL, NULL);
+	/* Process the array if ntfw did not return a fatal error */
+	if (ret >= 0) {
+		for (i = 0; i < traversed_paths->len; i++) {
+			GString *trace_path = g_ptr_array_index(traversed_paths,
+								i);
+			int trace_id = bt_context_add_trace(ctx,
+							    trace_path->str,
+							    format_str,
+							    packet_seek,
+							    NULL,
+							    NULL);
 			if (trace_id < 0) {
-				fprintf(stderr, "[warning] [Context] opening trace \"%s\" from %s "
-					"for reading.\n", node->fts_accpath, path);
+				fprintf(stderr, "[warning] [Context] cannot open trace \"%s\" from %s "
+					"for reading.\n", trace_path->str, path);
 				/* Allow to skip erroneous traces. */
 				ret = 1;	/* partial error */
-				continue;
+			} else {
+				g_array_append_val(trace_ids, trace_id);
 			}
-			g_array_append_val(trace_ids, trace_id);
+			g_string_free(trace_path, TRUE);
 		}
 	}
+	g_ptr_array_free(traversed_paths, TRUE);
+	traversed_paths = NULL;
 
-error:
+	/* Should unlock traversed paths mutex here if used in multithread */
+
 	/*
 	 * Return an error if no trace can be opened.
 	 */
@@ -422,8 +451,6 @@ error:
 	g_array_free(trace_ids, TRUE);
 	return ret;
 }
-
-
 
 int convert_trace(struct trace_descriptor *td_write,
 		  struct bt_context *ctx)
@@ -463,17 +490,22 @@ error_iter:
 
 int main(int argc, char **argv)
 {
-	int ret, partial_error = 0;
+	int ret, partial_error = 0, open_success = 0;
 	struct format *fmt_write;
 	struct trace_descriptor *td_write;
 	struct bt_context *ctx;
+	int i;
+
+	opt_input_paths = g_ptr_array_new();
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
 		fprintf(stderr, "Error parsing options.\n\n");
 		usage(stderr);
+		g_ptr_array_free(opt_input_paths, TRUE);
 		exit(EXIT_FAILURE);
 	} else if (ret > 0) {
+		g_ptr_array_free(opt_input_paths, TRUE);
 		exit(EXIT_SUCCESS);
 	}
 	printf_verbose("Verbose mode active.\n");
@@ -496,7 +528,11 @@ int main(int argc, char **argv)
 		strlower(opt_output_format);
 	}
 
-	printf_verbose("Converting from directory: %s\n", opt_input_path);
+	printf_verbose("Converting from directory(ies):\n");
+	for (i = 0; i < opt_input_paths->len; i++) {
+		const char *ipath = g_ptr_array_index(opt_input_paths, i);
+		printf_verbose("    %s\n", ipath);
+	}
 	printf_verbose("Converting from format: %s\n",
 		opt_input_format ? : "ctf <default>");
 	printf_verbose("Converting to directory: %s\n",
@@ -534,17 +570,29 @@ int main(int argc, char **argv)
 	}
 
 	ctx = bt_context_create();
-
-	ret = bt_context_add_traces_recursive(ctx, opt_input_path,
-			opt_input_format, NULL);
-	if (ret < 0) {
-		fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
-			opt_input_path);
+	if (!ctx) {
 		goto error_td_read;
-	} else if (ret > 0) {
-		fprintf(stderr, "[warning] errors occurred when opening trace \"%s\" for reading, continuing anyway.\n\n",
-			opt_input_path);
-		partial_error = 1;
+	}
+
+	for (i = 0; i < opt_input_paths->len; i++) {
+		const char *ipath = g_ptr_array_index(opt_input_paths, i);
+		ret = bt_context_add_traces_recursive(ctx, ipath,
+				opt_input_format, NULL);
+		if (ret < 0) {
+			fprintf(stderr, "[error] opening trace \"%s\" for reading.\n\n",
+				ipath);
+		} else if (ret > 0) {
+			fprintf(stderr, "[warning] errors occurred when opening trace \"%s\" for reading, continuing anyway.\n\n",
+				ipath);
+			open_success = 1;	/* some traces were OK */
+			partial_error = 1;
+		} else {
+			open_success = 1;	/* all traces were OK */
+		}
+	}
+	if (!open_success) {
+		fprintf(stderr, "[error] none of the specified trace paths could be opened.\n\n");
+		goto error_td_read;
 	}
 
 	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
@@ -553,6 +601,13 @@ int main(int argc, char **argv)
 			opt_output_path ? : "<none>");
 		goto error_td_write;
 	}
+
+	/*
+	 * Errors happened when opening traces, but we continue anyway.
+	 * sleep to let user see the stderr output before stdout.
+	 */
+	if (partial_error)
+		sleep(PARTIAL_ERROR_SLEEP);
 
 	ret = convert_trace(td_write, ctx);
 	if (ret) {
@@ -579,6 +634,7 @@ error_td_read:
 end:
 	free(opt_input_format);
 	free(opt_output_format);
+	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
 	else

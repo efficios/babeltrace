@@ -1,10 +1,10 @@
-#ifndef _BABELTRACE_CLOCKS_H
-#define _BABELTRACE_CLOCKS_H
+#ifndef _BABELTRACE_CLOCK_TYPES_H
+#define _BABELTRACE_CLOCK_TYPES_H
 
 /*
  * BabelTrace
  *
- * clocks header
+ * Clock types header
  *
  * Copyright 2012 EfficiOS Inc. and Linux Foundation
  *
@@ -22,12 +22,20 @@
  * all copies or substantial portions of the Software.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
- * the Babeltrace clock representations
+ * The Babeltrace clock representations
  */
 enum bt_clock_type {
 	BT_CLOCK_CYCLES = 0,
 	BT_CLOCK_REAL,
 };
 
-#endif /* _BABELTRACE_CLOCKS_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _BABELTRACE_CLOCK_TYPES_H */

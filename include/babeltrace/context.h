@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include <babeltrace/format.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* struct bt_context is opaque to the user */
 struct bt_context;
 struct stream_pos;
@@ -60,7 +64,7 @@ struct bt_context *bt_context_create(void);
  *
  * stream_list is a linked list of streams, it is used to open a trace where
  * the trace data is located in memory mapped areas instead of trace files,
- * this argument should be set to NULL when path is not NULL.
+ * this argument should be set to NULL when path is NULL.
  *
  * The metadata parameter acts as a metadata override when not NULL, otherwise
  * the format handles the metadata opening.
@@ -78,9 +82,10 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 /*
  * bt_context_remove_trace: Remove a trace from the context.
  *
- * Effectively closing the trace.
+ * Effectively closing the trace. Return negative error value if trace
+ * is not in context.
  */
-void bt_context_remove_trace(struct bt_context *ctx, int trace_id);
+int bt_context_remove_trace(struct bt_context *ctx, int trace_id);
 
 /*
  * bt_context_get and bt_context_put : increments and decrement the
@@ -103,5 +108,9 @@ void bt_context_put(struct bt_context *ctx);
  * Returns NULL on error
  */
 struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CONTEXT_H */

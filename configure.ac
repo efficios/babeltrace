@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([babeltrace],[1.0.0-rc4],[mathieu dot desnoyers at efficios dot com])
+AC_INIT([babeltrace],[1.0.0-rc5],[mathieu dot desnoyers at efficios dot com])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -13,6 +13,8 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_PROG_MKDIR_P
 
 AC_CONFIG_HEADERS([config.h])
+
+AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC
@@ -114,7 +116,7 @@ PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
 AC_SUBST(PACKAGE_LIBS)
 
 LIBS="$LIBS $GMODULE_LIBS"
-PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
+PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat -include config.h"
 AC_SUBST(PACKAGE_CFLAGS)
 
 babeltraceincludedir="${includedir}/babeltrace"

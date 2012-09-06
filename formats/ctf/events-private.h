@@ -24,21 +24,7 @@
 
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/ctf-ir/metadata.h>
-
-static inline
-uint64_t ctf_get_timestamp_raw(struct ctf_stream_definition *stream,
-			uint64_t timestamp)
-{
-	uint64_t ts_nsec;
-
-	if (stream->current_clock->freq == 1000000000ULL) {
-		ts_nsec = timestamp;
-	} else {
-		ts_nsec = (uint64_t) ((double) timestamp * 1000000000.0
-				/ (double) stream->current_clock->freq);
-	}
-	return ts_nsec;
-}
+#include <babeltrace/clock-internal.h>
 
 static inline
 uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
@@ -47,9 +33,14 @@ uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
 	uint64_t ts_nsec;
 	struct ctf_trace *trace = stream->stream_class->trace;
 	struct trace_collection *tc = trace->collection;
-	uint64_t tc_offset = tc->single_clock_offset_avg;
+	uint64_t tc_offset;
 
-	ts_nsec = ctf_get_timestamp_raw(stream, timestamp);
+	if (tc->clock_use_offset_avg)
+		tc_offset = tc->single_clock_offset_avg;
+	else
+		tc_offset = trace->single_clock->offset;
+
+	ts_nsec = clock_cycles_to_ns(stream->current_clock, timestamp);
 	ts_nsec += tc_offset;	/* Add offset */
 	return ts_nsec;
 }

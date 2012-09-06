@@ -1,0 +1,249 @@
+Babeltrace API documentation
+
+Babeltrace provides trace read and write libraries, as well as a trace
+converter. A plugin can be created for any trace format to allow its
+conversion to/from another trace format.
+
+The main format expected to be converted to/from is the Common Trace
+Format (CTF). The latest version of the CTF specification can be found at:
+	git tree:   git://git.efficios.com/ctf.git
+	gitweb:     http://git.efficios.com/?p=ctf.git
+
+This document describes the main concepts to use the libbabeltrace,
+which exposes the Babeltrace trace reading capability.
+
+
+TERMINOLOGY
+¯¯¯¯¯¯¯¯¯¯¯
+
+* A "callback" is a reference to a piece of executable code (such as a
+  function) that is passed as an argument to another piece of code
+  (like another function).
+
+* A "context" is a structure that represents an object in which a trace
+  collection is opened.
+
+* An "iterator" is a structure that enables the user to traverse a trace.
+
+* A "trace handle" is a unique identifier representing a trace file.
+  It allows the user to manipulate a trace directly.
+
+
+
+USAGE
+¯¯¯¯¯¯
+
+Context:
+
+In order to use libbabeltrace to read a trace, the first step is to create a
+context structure and to add a trace to it. This is done using the
+bt_context_create() and bt_context_add_trace() functions. As long as this
+context structure is allocated and the trace is valid, the trace can be
+manipulated by the library.
+
+The context can be destroyed by calling one more bt_context_put() than
+bt_context_get(), functions which respectively decrement and increment the
+refcount of the context. These functions ensures that the context won't be
+destroyed when it is in use.
+
+Once a trace is added to the context, it can be read and seeked using iterators
+and callbacks.
+
+
+Iterator:
+
+An iterator can be created using the bt_iter_create() function. As of now, only
+ctf iterator are supported. These are used to traverse a ctf-formatted trace.
+Such iterators can be created with bt_ctf_iter_create().
+
+While creating an iterator, a begin and an end position may be specified. To do
+so, one or two struct bt_iter_pos must be passed. Such struct have two
+attributes: type and u. "type" is the seek type, can be either:
+	BT_SEEK_TIME
+	BT_SEEK_RESTORE
+	BT_SEEK_CUR
+	BT_SEEK_BEGIN
+	BT_SEEK_END
+and "u" is a union of the seek time (if using BT_SEEK_TIME) and the restore
+position (if using BT_SEEK_RESTORE).
+
+Once the iterator is created, various functions become available. We have
+bt_ctf_iter_read_event() which returns the ctf event of the trace where the
+iterator is set. There is also bt_ctf_iter_destroy() which frees the iterator.
+Note that only one iterator can be created in a context at the same time. If
+more than one iterator is being created for the same context, the second
+creation will return NULL. The previous iterator must be destroyed before
+creation of the new iterator. In the future, creation of multiples iterators
+will be allowed.
+
+Finally, we have the bt_ctf_get_iter() function which returns a struct bt_iter
+with which the iterator can be moved using one of these functions:
+	bt_iter_next(),		moves the iterator to the next event
+	bt_iter_set_pos(),	moves the iterator to the specified position
+
+To get the current position (struct bt_iter_pos) of the iterator, the function
+bt_iter_get_pos() must be used. To create an arbitrary position based on a
+specific time, bt_iter_create_time_pos() is the function to use. The
+bt_iter_pos structure returned by these two functions must be freed with
+bt_iter_free_pos() after use.
+
+
+CTF Event:
+
+A CTF event is obtained from an iterator via the bt_ctf_iter_read_event()
+function or via the call_data parameter of a callback. To read the data of a
+CTF event :
+	* bt_ctf_event_name() 		returns the name of the event;
+	* bt_ctf_get_timestamp() 	returns the timestamp of the event
+					offsetted with the system clock
+					source (in ns);
+	* bt_ctf_get_cycles() 		returns the timestamp of the event as
+					written in the packet (in cycles).
+
+The payload of an event is divided in various scopes depending on the type of
+information. There are six top-level scopes (defined in the bt_ctf_scope enum)
+which can be accessed by the bt_ctf_get_top_level_scope() function :
+	BT_TRACE_PACKET_HEADER		= 0,
+	BT_STREAM_PACKET_CONTEXT        = 1,
+	BT_STREAM_EVENT_HEADER          = 2,
+	BT_STREAM_EVENT_CONTEXT         = 3,
+	BT_EVENT_CONTEXT                = 4,
+	BT_EVENT_FIELDS                 = 5.
+
+In order to access a field or a field list, the user needs to pass a scope as
+argument, this scope can be a top-level scope or a scope relative to an
+arbitrary field in the case of compound types (array, sequence, structure or
+variant)
+
+For more information on each scope, see the CTF specifications.
+
+The function to get a field list is the bt_ctf_get_field_list(). The function
+to get the definition of a specific field is bt_ctf_get_field().
+
+Once the field is obtained, we can obtain its name and type using the
+bt_ctf_field_name() and bt_ctf_field_type() functions respectively. The
+possible types are defined in the ctf_type_id enum:
+	CTF_TYPE_UNKNOWN = 0,
+	CTF_TYPE_INTEGER,
+	CTF_TYPE_FLOAT,
+	CTF_TYPE_ENUM,
+	CTF_TYPE_STRING,
+	CTF_TYPE_STRUCT,
+	CTF_TYPE_UNTAGGED_VARIANT,
+	CTF_TYPE_VARIANT,
+	CTF_TYPE_ARRAY,
+	CTF_TYPE_SEQUENCE,
+	NR_CTF_TYPES.
+
+Depending on the field type, we can get informations about the field with these
+functions:
+	* bt_ctf_get_index()		return the element at the index
+					position of an array of a sequence;
+
+	* bt_ctf_get_array_len()	return the length of an array;
+
+	* bt_ctf_get_int_signedness() 	return the signedness of an integer;
+
+	* bt_ctf_get_int_base()		return the base of an integer;
+
+	* bt_ctf_get_int_byte_order() 	return the byte order of an integer;
+
+	* bt_ctf_get_int_len()		return the size in bits of an integer;
+
+	* bt_ctf_get_encoding()		return the encoding of an int or a
+					string defined in the
+					ctf_string_encoding enum:
+						CTF_STRING_NONE = 0,
+						CTF_STRING_UTF8,
+						CTF_STRING_ASCII,
+						CTF_STRING_UNKNOWN.
+
+These functions give access to the value associated with a field :
+	* bt_ctf_get_uint64();
+	* bt_ctf_get_int64();
+	* bt_ctf_get_char_array();
+	* bt_ctf_get_string();
+	* bt_ctf_get_enum_int();
+	* bt_ctf_get_enum_str().
+
+If the field does not exist or is not of the type requested, the value returned
+with these four functions is undefined. To check if an error occured, use the
+bt_ctf_field_get_error() function after accessing a field. If no error
+occured, the function will return 0.
+
+It is also possible to access the declaration fields, the same way as the
+definition ones. bt_ctf_get_event_decl_list() sets a list to an array of
+bt_ctf_event_decl pointers and bt_ctf_get_event_decl_fields() sets a list to an
+array of bt_ctf_field_decl pointers.  From the first type, the name of the
+event can be obtained with bt_ctf_get_decl_event_name().  For the second type,
+the field decl name is obtained with bt_ctf_get_decl_field_name().
+
+The declaration functions allow the user to list the events, fields and
+contexts fields enabled in the trace once it is opened, whereas the definition
+functions apply on the current event being read.
+
+
+Callback:
+
+The iterator allow the user to read the trace, in order to access the events
+and fields, the user can either call the functions listed previously on each
+event, or register callbacks functions that are called when specific (or all)
+events are read.
+
+This is done with the bt_ctf_iter_add_callback() function. It requires a valid
+ctf iterator as the first argument. Here are all arguments:
+	iter: trace collection iterator (input)
+	event: event to target. 0 for all events.
+	private_data: private data pointer to pass to the callback
+	flags: specific flags controlling the behavior of this callback
+		(or'd).
+	callback: function pointer to call
+	depends: struct bt_dependency detailing the required computation
+		results.  Ends with 0.
+	weak_depends: struct bt_dependency detailing the optional computation
+		results that can be optionally consumed by this
+		callback.
+	provides: struct bt_dependency detailing the computation results
+		provided by this callback.
+		Ends with 0.
+
+"depends", "weak_depends" and "provides" memory is handled by the babeltrace
+library after this call succeeds or fails. These objects can still be used by
+the caller until the babeltrace iterator is destroyed, but they belong to the
+babeltrace library.
+
+As of now the flags and dependencies are not used, the callbacks are
+processed in FIFO order.
+
+Note: once implemented, the dependency graph will be calculated when
+bt_ctf_iter_read_event() is executed after a bt_ctf_iter_add_callback(). It is
+valid to create/add callbacks/read/add more callbacks/read some more.
+
+The callback function passed to bt_ctf_iter_add_callback() must return a
+bt_cb_ret value:
+	BT_CB_OK		= 0,
+	BT_CB_OK_STOP		= 1,
+	BT_CB_ERROR_STOP	= 2,
+	BT_CB_ERROR_CONTINUE	= 3.
+
+
+Trace handle:
+
+When a trace is added to a context, bt_context_add_trace() returns a trace
+handle id.  This id is associated with its corresponding trace handle.  With
+that id, it is possible to manipulate directly the trace.
+
+	* bt_trace_handle_get_path()
+		-> returns the path of the trace handle	(path to the trace).
+
+	* bt_trace_handle_get_timestamp_begin()
+	* bt_trace_handle_get_timestamp_end()
+		-> return the creation/destruction timestamps (in ns or cycles
+			depending on the type specified) of the buffers of a
+			trace.
+
+	* bt_ctf_event_get_handle_id()
+		-> returns the handle id associated with an event.
+
+
+For more information on CTF, see the CTF documentation.

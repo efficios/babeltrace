@@ -7,7 +7,7 @@ babeltrace \(em Babeltrace Trace Viewer and Converter
 
 .PP
 .nf
-babeltrace [OPTIONS] INPUT <OUTPUT>
+babeltrace [OPTIONS] FILE...
 .fi
 .SH "DESCRIPTION"
 
@@ -22,10 +22,10 @@ starting with two dashes. Below is a summary of the available options.
 .PP
 
 .TP
-.BR "INPUT"
-Input trace path
+.BR "FILE"
+Input trace FILE(s) or directory(ies)
 .TP
-.BR "OUTPUT"
+.BR "-w, --output OUTPUT"
 Output trace path (default: stdout)
 .TP
 .BR "-i, --input-format FORMAT"
@@ -54,8 +54,8 @@ Print field names: (payload OR args OR arg), none, all, scope, header,
 (context OR ctx), (default: payload,context).
 .TP
 .BR "-f, --fields name1<,name2,...>"
-Print additional fields: all, trace, trace:domain, trace:procname,
-trace:vpid, loglevel.
+Print additional fields: all, trace, trace:hostname, trace:domain,
+trace:procname, trace:vpid, loglevel.
 .TP
 .BR "--clock-raw"
 Disregard internal clock offset (use raw value)

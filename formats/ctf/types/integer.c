@@ -223,20 +223,24 @@ int ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
-			bt_bitfield_read_le(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_read_le(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._unsigned);
 		else
-			bt_bitfield_read_be(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_read_be(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._unsigned);
 	} else {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
-			bt_bitfield_read_le(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_read_le(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._signed);
 		else
-			bt_bitfield_read_be(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_read_be(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._signed);
 	}
@@ -266,20 +270,24 @@ int ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
 		goto end;
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
-			bt_bitfield_write_le(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._unsigned);
 		else
-			bt_bitfield_write_be(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_write_be(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._unsigned);
 	} else {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
-			bt_bitfield_write_le(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._signed);
 		else
-			bt_bitfield_write_be(mmap_align_addr(pos->base_mma), unsigned long,
+			bt_bitfield_write_be(mmap_align_addr(pos->base_mma) +
+					pos->mmap_base_offset, unsigned long,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._signed);
 	}

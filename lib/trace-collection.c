@@ -24,6 +24,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
+#include <babeltrace/clock-internal.h>
 
 #include <inttypes.h>
 
@@ -38,18 +39,7 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 	struct clock_match *match = user_data;
 	struct ctf_clock *clock_a = value, *clock_b;
 
-	if (clock_a->uuid != 0) {
-		/*
-		 * Lookup the the trace clocks into the collection
-		 * clocks.
-		 */
-		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->uuid);
-		if (clock_b) {
-			match->clock_match = clock_b;
-			return;
-		}
-	} else if (clock_a->absolute) {
+	if (clock_a->absolute) {
 		/*
 		 * Absolute time references, such as NTP, are looked up
 		 * by clock name.
@@ -60,7 +50,31 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 			match->clock_match = clock_b;
 			return;
 		}
+	} else if (clock_a->uuid != 0) {
+		/*
+		 * Lookup the the trace clocks into the collection
+		 * clocks.
+		 */
+		clock_b = g_hash_table_lookup(match->clocks,
+			(gpointer) (unsigned long) clock_a->uuid);
+		if (clock_b) {
+			match->clock_match = clock_b;
+			return;
+		}
 	}
+}
+
+/*
+ * Note: if using a frequency different from 1GHz for clock->offset, it
+ * is recommended to express the seconds in offset_s, otherwise there
+ * will be a loss of precision caused by the limited size of the double
+ * mantissa.
+ */
+static
+uint64_t clock_offset_ns(struct ctf_clock *clock)
+{
+	return clock->offset_s * 1000000000ULL
+			+ clock_cycles_to_ns(clock, clock->offset);
 }
 
 static void clock_add(gpointer key, gpointer value, gpointer user_data)
@@ -81,15 +95,15 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				(gpointer) (unsigned long) v);
 		if (!tc_clock) {
 			/*
-			 * For now, we only support CTF that has one
-			 * single clock uuid or name (absolute ref).
+			 * For now we only support CTF that has one
+			 * single clock uuid or name (absolute ref) per
+			 * trace.
 			 */
 			if (g_hash_table_size(tc_clocks) > 0) {
 				fprintf(stderr, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
 			}
 			if (!clock_match->tc->offset_nr) {
-				clock_match->tc->offset_first =
-					(t_clock->offset_s * 1000000000ULL) + t_clock->offset;
+				clock_match->tc->offset_first = clock_offset_ns(t_clock);
 				clock_match->tc->delta_offset_first_sum = 0;
 				clock_match->tc->offset_nr++;
 				clock_match->tc->single_clock_offset_avg =
@@ -98,34 +112,32 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 			g_hash_table_insert(tc_clocks,
 				(gpointer) (unsigned long) v,
 				value);
-		} else {
+		} else if (!t_clock->absolute) {
 			int64_t diff_ns;
 
 			/*
-			 * Check that the offsets match. If not, warn
-			 * the user that we do an arbitrary choice.
+			 * For non-absolute clocks, check that the
+			 * offsets match. If not, warn the user that we
+			 * do an arbitrary choice.
 			 */
-			diff_ns = tc_clock->offset_s;
-			diff_ns -= t_clock->offset_s;
-			diff_ns *= 1000000000ULL;
-			diff_ns += tc_clock->offset;
-			diff_ns -= t_clock->offset;
+			diff_ns = clock_offset_ns(tc_clock) - clock_offset_ns(t_clock);
 			printf_debug("Clock \"%s\" offset between traces has a delta of %" PRIu64 " ns.",
 				g_quark_to_string(tc_clock->name),
 				diff_ns < 0 ? -diff_ns : diff_ns);
-			if (diff_ns > 10000) {
+			if (diff_ns > 10000 || diff_ns < -10000) {
 				fprintf(stderr, "[warning] Clock \"%s\" offset differs between traces (delta %" PRIu64 " ns). Using average.\n",
 					g_quark_to_string(tc_clock->name),
 					diff_ns < 0 ? -diff_ns : diff_ns);
 			}
 			/* Compute average */
 			clock_match->tc->delta_offset_first_sum +=
-				(t_clock->offset_s * 1000000000ULL) + t_clock->offset
-				- clock_match->tc->offset_first;
+				clock_offset_ns(t_clock) - clock_match->tc->offset_first;
 			clock_match->tc->offset_nr++;
 			clock_match->tc->single_clock_offset_avg =
 				clock_match->tc->offset_first
 				+ (clock_match->tc->delta_offset_first_sum / clock_match->tc->offset_nr);
+			/* Time need to use offset average */
+			clock_match->tc->clock_use_offset_avg = 1;
 		}
 	}
 }
@@ -138,8 +150,12 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 int trace_collection_add(struct trace_collection *tc,
 				struct trace_descriptor *td)
 {
-	struct ctf_trace *trace = container_of(td, struct ctf_trace, parent);
+	struct ctf_trace *trace;
 
+	if (!tc || !td)
+		return -EINVAL;
+
+	trace = container_of(td, struct ctf_trace, parent);
 	g_ptr_array_add(tc->array, td);
 	trace->collection = tc;
 
@@ -187,6 +203,9 @@ error:
 int trace_collection_remove(struct trace_collection *tc,
 			    struct trace_descriptor *td)
 {
+	if (!tc || !td)
+		return -EINVAL;
+
 	if (g_ptr_array_remove(tc->array, td)) {
 		return 0;
 	} else {
@@ -197,6 +216,7 @@ int trace_collection_remove(struct trace_collection *tc,
 
 void init_trace_collection(struct trace_collection *tc)
 {
+	assert(tc);
 	tc->array = g_ptr_array_new();
 	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
 	tc->single_clock_offset_avg = 0;
@@ -211,6 +231,7 @@ void init_trace_collection(struct trace_collection *tc)
  */
 void finalize_trace_collection(struct trace_collection *tc)
 {
+	assert(tc);
 	g_ptr_array_free(tc->array, TRUE);
 	g_hash_table_destroy(tc->clocks);
 }
