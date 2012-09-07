@@ -550,7 +550,6 @@ error:
 
 void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
-	memset(pos, 0, sizeof(*pos));
 	pos->fd = fd;
 	if (fd >= 0) {
 		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
