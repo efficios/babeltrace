@@ -230,6 +230,7 @@ void trace_text(FILE *input, int output)
 	char *line = NULL, *nl;
 	size_t linesize;
 
+	memset(&pos, 0, sizeof(pos));
 	ctf_init_pos(&pos, output, O_RDWR);
 
 	write_packet_header(&pos, s_uuid);
