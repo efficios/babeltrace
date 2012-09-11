@@ -240,9 +240,12 @@ void trace_text(FILE *input, int output)
 		if (len < 0)
 			break;
 		nl = strrchr(line, '\n');
-		if (nl)
+		if (nl) {
 			*nl = '\0';
-		trace_string(line, &pos, nl - line + 1);
+			trace_string(line, &pos, nl - line + 1);
+		} else {
+			trace_string(line, &pos, strlen(line) + 1);
+		}
 	}
 	ctf_fini_pos(&pos);
 }
