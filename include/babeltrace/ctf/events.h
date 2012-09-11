@@ -147,10 +147,17 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 const char *bt_ctf_field_name(const struct definition *def);
 
 /*
- * bt_ctf_get_field_decl: return the declaration of a field or NULL
- * on error
+ * bt_ctf_get_decl_from_def: return the declaration of a field from
+ * its definition or NULL on error
  */
-const struct declaration *bt_ctf_get_field_decl(const struct definition *def);
+const struct declaration *bt_ctf_get_decl_from_def(const struct definition *def);
+
+/*
+ * bt_ctf_get_decl_from_field_decl: return the declaration of a field from
+ * a field_decl or NULL on error
+ */
+const struct declaration *bt_ctf_get_decl_from_field_decl(
+		const struct bt_ctf_field_decl *field);
 
 /*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown

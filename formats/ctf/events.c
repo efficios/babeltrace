@@ -110,7 +110,7 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 		def = lookup_definition(scope, field_underscore);
 		g_free(field_underscore);
 	}
-	if (bt_ctf_field_type(bt_ctf_get_field_decl(def)) == CTF_TYPE_VARIANT) {
+	if (bt_ctf_field_type(bt_ctf_get_decl_from_def(def)) == CTF_TYPE_VARIANT) {
 		const struct definition_variant *variant_definition;
 		variant_definition = container_of(def,
 				const struct definition_variant, p);
@@ -128,12 +128,12 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 	if (!ctf_event || !field)
 		return NULL;
 
-	if (bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_ARRAY) {
+	if (bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_ARRAY) {
 		struct definition_array *array_definition;
 		array_definition = container_of(field,
 				struct definition_array, p);
 		ret = array_index(array_definition, index);
-	} else if (bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_SEQUENCE) {
+	} else if (bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_SEQUENCE) {
 		struct definition_sequence *sequence_definition;
 		sequence_definition = container_of(field,
 				struct definition_sequence, p);
@@ -182,7 +182,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 	if (!ctf_event || !scope || !list || !count)
 		return -EINVAL;
 
-	switch (bt_ctf_field_type(bt_ctf_get_field_decl(scope))) {
+	switch (bt_ctf_field_type(bt_ctf_get_decl_from_def(scope))) {
 	case CTF_TYPE_INTEGER:
 	case CTF_TYPE_FLOAT:
 	case CTF_TYPE_STRING:
@@ -425,7 +425,7 @@ const struct definition *bt_ctf_get_enum_int(const struct definition *field)
 {
 	const struct definition_enum *def_enum;
 
-	if (!field || bt_ctf_field_type(bt_ctf_get_field_decl(field)) != CTF_TYPE_ENUM) {
+	if (!field || bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) != CTF_TYPE_ENUM) {
 		bt_ctf_field_set_error(-EINVAL);
 		return NULL;
 	}
@@ -440,7 +440,7 @@ const char *bt_ctf_get_enum_str(const struct definition *field)
 	GArray *array;
 	const char *ret;
 
-	if (!field || bt_ctf_field_type(bt_ctf_get_field_decl(field)) != CTF_TYPE_ENUM) {
+	if (!field || bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) != CTF_TYPE_ENUM) {
 		bt_ctf_field_set_error(-EINVAL);
 		return NULL;
 	}
@@ -520,7 +520,7 @@ uint64_t bt_ctf_get_uint64(const struct definition *field)
 {
 	uint64_t ret = 0;
 
-	if (field && bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_INTEGER)
+	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_INTEGER)
 		ret = get_unsigned_int(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
@@ -532,7 +532,7 @@ int64_t bt_ctf_get_int64(const struct definition *field)
 {
 	int64_t ret = 0;
 
-	if (field && bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_INTEGER)
+	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_INTEGER)
 		ret = get_signed_int(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
@@ -545,7 +545,7 @@ char *bt_ctf_get_char_array(const struct definition *field)
 	char *ret = NULL;
 	GString *char_array;
 
-	if (field && bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_ARRAY) {
+	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_ARRAY) {
 		char_array = get_char_array(field);
 		if (char_array) {
 			ret = char_array->str;
@@ -562,7 +562,7 @@ char *bt_ctf_get_string(const struct definition *field)
 {
 	char *ret = NULL;
 
-	if (field && bt_ctf_field_type(bt_ctf_get_field_decl(field)) == CTF_TYPE_STRING)
+	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_STRING)
 		ret = get_string(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
@@ -729,10 +729,19 @@ const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field)
 	return rem_(g_quark_to_string(((struct declaration_field *) field)->name));
 }
 
-const struct declaration *bt_ctf_get_field_decl(const struct definition *def)
+const struct declaration *bt_ctf_get_decl_from_def(const struct definition *def)
 {
 	if (def)
 		return def->declaration;
+
+	return NULL;
+}
+
+const struct declaration *bt_ctf_get_decl_from_field_decl(
+		const struct bt_ctf_field_decl *field)
+{
+	if (field)
+		return ((struct declaration_field *) field)->declaration;
 
 	return NULL;
 }
