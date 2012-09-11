@@ -68,6 +68,7 @@ struct bt_ctf_iter {
 	 * bt_iter.
 	 */
 	GPtrArray *dep_gc;
+	uint64_t events_lost;
 };
 
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

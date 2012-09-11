@@ -24,6 +24,11 @@
 extern "C" {
 #endif
 
+/* Flags for the iterator read_event */
+enum {
+	BT_ITER_FLAG_LOST_EVENTS	= (1 << 0),
+};
+
 /* Forward declarations */
 struct bt_iter;
 struct bt_saved_pos;

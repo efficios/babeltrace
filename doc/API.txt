@@ -76,6 +76,14 @@ creation will return NULL. The previous iterator must be destroyed before
 creation of the new iterator. In the future, creation of multiples iterators
 will be allowed.
 
+The bt_ctf_iter_read_event_flags() function has the same behaviour as
+bt_ctf_iter_read_event() but takes an additionnal flag pointer. This flag is
+used to inform the user if a special condition occured while reading the event.
+As of now, only the BT_ITER_LOST_EVENTS is handled, it informs the user that
+some events were discarded by the tracer. To get the number of events lost
+immediately prior to the last event read, the user can call the
+bt_ctf_get_lost_events_count() function.
+
 Finally, we have the bt_ctf_get_iter() function which returns a struct bt_iter
 with which the iterator can be moved using one of these functions:
 	bt_iter_next(),		moves the iterator to the next event

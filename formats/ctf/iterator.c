@@ -94,11 +94,13 @@ struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter)
 	return &iter->parent;
 }
 
-struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
+		int *flags)
 {
 	struct ctf_file_stream *file_stream;
 	struct bt_ctf_event *ret;
 	struct ctf_stream_definition *stream;
+	struct packet_index *packet_index;
 
 	/*
 	 * We do not want to fail for any other reason than end of
@@ -116,6 +118,24 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
+	if (flags)
+		*flags = 0;
+	if (!file_stream->pos.packet_cycles_index)
+		packet_index = NULL;
+	else
+		packet_index = &g_array_index(file_stream->pos.packet_cycles_index,
+				struct packet_index, file_stream->pos.cur_index);
+	iter->events_lost = 0;
+	if (packet_index && packet_index->events_discarded >
+			file_stream->pos.last_events_discarded) {
+		if (flags)
+			*flags |= BT_ITER_FLAG_LOST_EVENTS;
+		iter->events_lost += packet_index->events_discarded -
+			file_stream->pos.last_events_discarded;
+		file_stream->pos.last_events_discarded =
+			packet_index->events_discarded;
+	}
+
 	if (ret->parent->stream->stream_id > iter->callbacks->len)
 		goto end;
 
@@ -125,4 +145,17 @@ end:
 	return ret;
 stop:
 	return NULL;
+}
+
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+{
+	return bt_ctf_iter_read_event_flags(iter, NULL);
+}
+
+uint64_t bt_ctf_get_lost_events_count(struct bt_ctf_iter *iter)
+{
+	if (!iter)
+		return -1ULL;
+
+	return iter->events_lost;
 }

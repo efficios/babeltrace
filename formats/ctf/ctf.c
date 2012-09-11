@@ -699,6 +699,9 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			break;
 		}
 		case SEEK_SET:
+			packet_index = &g_array_index(pos->packet_cycles_index,
+					struct packet_index, index);
+			pos->last_events_discarded = packet_index->events_discarded;
 			pos->cur_index = index;
 			file_stream->parent.prev_real_timestamp = 0;
 			file_stream->parent.prev_real_timestamp_end = 0;

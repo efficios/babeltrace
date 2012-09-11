@@ -67,6 +67,7 @@ struct ctf_stream_pos {
 	ssize_t offset;		/* offset from base, in bits. EOF for end of file. */
 	ssize_t last_offset;	/* offset before the last read_event */
 	size_t cur_index;	/* current index in packet index */
+	uint64_t last_events_discarded;	/* last known amount of event discarded */
 	void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence); /* function called to switch packet */
 
