@@ -373,6 +373,14 @@ get_declaration_array(const struct declaration *decl)
 	return container_of(decl, const struct declaration_array, p);
 }
 
+static const struct declaration_sequence *
+get_declaration_sequence(const struct declaration *decl)
+{
+	if (!decl || bt_ctf_field_type(decl) != CTF_TYPE_SEQUENCE)
+		return NULL;
+	return container_of(decl, const struct declaration_sequence, p);
+}
+
 int bt_ctf_get_int_signedness(const struct declaration *decl)
 {
 	const struct declaration_integer *integer;
@@ -472,27 +480,49 @@ const char *bt_ctf_get_enum_str(const struct definition *field)
 enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl)
 {
 	enum ctf_string_encoding ret = 0;
+	enum ctf_type_id type;
 	const struct declaration_integer *integer;
 	const struct declaration_string *string;
+	const struct declaration_array *array;
+	const struct declaration_sequence *sequence;
 
 	if (!decl)
 		goto error;
 
-	if (bt_ctf_field_type(decl) == CTF_TYPE_INTEGER) {
-		integer = get_declaration_integer(decl);
-		if (integer) {
-			ret = integer->encoding;
-		} else {
+	type = bt_ctf_field_type(decl);
+
+	switch (type) {
+	case CTF_TYPE_ARRAY:
+		array = get_declaration_array(decl);
+		if (!array)
 			goto error;
-		}
-	} else if (bt_ctf_field_type(decl) == CTF_TYPE_STRING) {
+		integer = get_declaration_integer(array->elem);
+		if (!integer)
+			goto error;
+		ret = integer->encoding;
+		break;
+	case CTF_TYPE_SEQUENCE:
+		sequence = get_declaration_sequence(decl);
+		if (!sequence)
+			goto error;
+		integer = get_declaration_integer(sequence->elem);
+		if (!integer)
+			goto error;
+		ret = integer->encoding;
+		break;
+	case CTF_TYPE_STRING:
 		string = get_declaration_string(decl);
-		if (string) {
-			ret = string->encoding;
-		} else {
+		if (!string)
 			goto error;
-		}
-	} else {
+		ret = string->encoding;
+		break;
+	case CTF_TYPE_INTEGER:
+		integer = get_declaration_integer(decl);
+		if (!integer)
+			goto error;
+		ret = integer->encoding;
+		break;
+	default:
 		goto error;
 	}
 	return ret;

@@ -191,7 +191,8 @@ int bt_ctf_get_int_byte_order(const struct declaration *decl);
 ssize_t bt_ctf_get_int_len(const struct declaration *decl);
 
 /*
- * bt_ctf_get_encoding: return the encoding of an int or a string.
+ * bt_ctf_get_encoding: return the encoding of an int, a string, or of
+ * the integer contained in a char array or a sequence.
  * return a negative value on error
  */
 enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
