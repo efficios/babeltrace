@@ -54,7 +54,7 @@ uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
 
 /*
  * bt_trace_handle_get_timestamp_end : returns the destruction timestamp
- * (in anoseconds or cycles depending on type) of the buffers of a trace
+ * (in nanoseconds or cycles depending on type) of the buffers of a trace
  * or -1ULL on error.
  */
 uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx,

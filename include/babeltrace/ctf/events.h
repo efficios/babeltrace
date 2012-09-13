@@ -109,9 +109,9 @@ uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 /*
  * bt_ctf_get_field_list: obtain the list of fields for compound type
  *
- * This function can be used to obtain the list of fields 
- * contained within a compound type: array, sequence,
- * structure, or variant.
+ * This function can be used to obtain the list of fields contained
+ * within a top-level scope of an event or a compound type: array,
+ * sequence, structure, or variant.
 
  * This function sets the "list" pointer to an array of definition
  * pointers and set count to the number of elements in the array.
@@ -232,10 +232,16 @@ char *bt_ctf_get_string(const struct definition *field);
 int bt_ctf_field_get_error(void);
 
 /*
- * bt_ctf_get_event_decl_list: set list pointer to an array of bt_ctf_event_decl
- * pointers and set count to the number of elements in the array.
+ * bt_ctf_get_event_decl_list: get a list of all the event declarations in
+ * a trace.
+ *
+ * The list array is pointed to the array of event declarations.
+ * The number of events in the array is written in count.
  *
  * Return 0 on success and a negative value on error.
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the trace is opened.
  */
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		struct bt_ctf_event_decl * const **list,
@@ -247,10 +253,15 @@ int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 
 /*
- * bt_ctf_get_decl_fields: set list pointer to an array of bt_ctf_field_decl
- * pointers and set count to the number of elements in the array.
+ * bt_ctf_get_decl_fields: get all field declarations in a scope of an event
+ *
+ * The list array is pointed to the array of field declaration.
+ * The number of field declaration in the array is written in count.
  *
  * Returns 0 on success and a negative value on error
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the trace is opened.
  */
 int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
 		enum bt_ctf_scope scope,
