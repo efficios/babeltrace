@@ -74,10 +74,6 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
  */
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
-#ifdef __cplusplus
-}
-#endif
-
 /*
  * bt_ctf_iter_read_event_flags: Read the iterator's current event data.
  *
@@ -99,5 +95,9 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
  * Return the number of lost events or -1ULL on error.
  */
 uint64_t bt_ctf_get_lost_events_count(struct bt_ctf_iter *iter);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_CTF_ITERATOR_H */
