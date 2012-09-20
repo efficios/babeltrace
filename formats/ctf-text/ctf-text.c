@@ -49,6 +49,7 @@ int opt_all_field_names,
 	opt_trace_hostname_field,
 	opt_trace_default_fields = 1,
 	opt_loglevel_field,
+	opt_emf_field,
 	opt_delta_field = 1;
 
 enum field_item {
@@ -381,6 +382,19 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		fprintf(pos->fp, "%s (%d)",
 			print_loglevel(event_class->loglevel),
 			event_class->loglevel);
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if ((opt_emf_field || opt_all_fields) && event_class->model_emf_uri) {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "model.emf.uri = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
+		}
+		fprintf(pos->fp, "%s",
+			g_quark_to_string(event_class->model_emf_uri));
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;

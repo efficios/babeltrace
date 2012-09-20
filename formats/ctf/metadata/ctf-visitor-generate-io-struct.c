@@ -1741,6 +1741,23 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			event->loglevel = (int) loglevel;
 			CTF_EVENT_SET_FIELD(event, loglevel);
+		} else if (!strcmp(left, "model.emf.uri")) {
+			char *right;
+
+			if (CTF_EVENT_FIELD_IS_SET(event, model_emf_uri)) {
+				fprintf(fd, "[error] %s: model.emf.uri already declared in event declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for event model.emf.uri\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			event->model_emf_uri = g_quark_from_string(right);
+			g_free(right);
+			CTF_EVENT_SET_FIELD(event, model_emf_uri);
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
 			/* Fall-through after warning */

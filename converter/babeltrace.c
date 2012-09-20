@@ -134,7 +134,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                        (default: payload,context)\n");
 	fprintf(fp, "  -f, --fields name1<,name2,...> Print additional fields:\n");
 	fprintf(fp, "                                     all, trace, trace:hostname, trace:domain,\n");
-	fprintf(fp, "                                     trace:procname, trace:vpid, loglevel.\n");
+	fprintf(fp, "                                     trace:procname, trace:vpid, loglevel, emf.\n");
 	fprintf(fp, "                                     (default: trace:hostname,trace:procname,trace:vpid)\n");
 	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
@@ -209,6 +209,8 @@ static int get_fields_args(poptContext *pc)
 			opt_trace_vpid_field = 1;
 		else if (!strcmp(str, "loglevel"))
 			opt_loglevel_field = 1;
+		else if (!strcmp(str, "emf"))
+			opt_emf_field = 1;
 		else {
 			fprintf(stderr, "[error] unknown field type %s\n", str);
 			return -EINVAL;
