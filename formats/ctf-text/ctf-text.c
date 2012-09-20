@@ -393,7 +393,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		} else if (dom_print) {
 			fprintf(pos->fp, ":");
 		}
-		fprintf(pos->fp, "%s",
+		fprintf(pos->fp, "\"%s\"",
 			g_quark_to_string(event_class->model_emf_uri));
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
