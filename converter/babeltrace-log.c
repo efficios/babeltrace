@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
@@ -53,6 +54,7 @@ static const char metadata_fmt[] =
 "/* CTF 1.8 */\n"
 "typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
 "typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
+"typealias integer { size = 64; align = 64; signed = false; } := uint64_t;\n"
 "\n"
 "trace {\n"
 "	major = %u;\n"			/* major (e.g. 0) */
@@ -67,8 +69,8 @@ static const char metadata_fmt[] =
 "\n"
 "stream {\n"
 "	packet.context := struct {\n"
-"		uint32_t content_size;\n"
-"		uint32_t packet_size;\n"
+"		uint64_t content_size;\n"
+"		uint64_t packet_size;\n"
 "	};\n"
 "%s"					/* Stream event header (opt.) */
 "};\n"
@@ -136,24 +138,24 @@ void write_packet_context(struct ctf_stream_pos *pos)
 
 	/* content_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
 	
-	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) ctf_get_pos_addr(pos) = -1U;	/* Not known yet */
-	pos->content_size_loc = (uint32_t *) ctf_get_pos_addr(pos);
-	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
+	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
+	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 
 	/* packet_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
 	
-	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) ctf_get_pos_addr(pos) = pos->packet_size;
-	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
+	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 }
 
 static
@@ -209,7 +211,7 @@ retry:
 		write_packet_header(pos, s_uuid);
 		write_packet_context(pos);
 		if (attempt++ == 1) {
-			fprintf(stderr, "[Error] Line too large for packet size (%zukB) (discarded)\n",
+			fprintf(stderr, "[Error] Line too large for packet size (%" PRIu64 "kB) (discarded)\n",
 				pos->packet_size / CHAR_BIT / 1024);
 			return;
 		}

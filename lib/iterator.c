@@ -381,8 +381,8 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			stream->prev_cycles_timestamp = 0;
 			stream->prev_cycles_timestamp_end = 0;
 
-			printf_debug("restored to cur_index = %zd and "
-				"offset = %zd, timestamp = %" PRIu64 "\n",
+			printf_debug("restored to cur_index = %" PRId64 " and "
+				"offset = %" PRId64 ", timestamp = %" PRIu64 "\n",
 				stream_pos->cur_index,
 				stream_pos->offset, stream->real_timestamp);
 
