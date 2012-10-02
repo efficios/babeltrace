@@ -443,6 +443,17 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 		print_tabs(fd, depth);
 		fprintf(fd, "</clock>\n");
 		break;
+	case NODE_CALLSITE:
+		print_tabs(fd, depth);
+		fprintf(fd, "<callsite>\n");
+		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
+			ret = ctf_visitor_print_xml(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		print_tabs(fd, depth);
+		fprintf(fd, "</callsite>\n");
+		break;
 
 
 	case NODE_CTF_EXPRESSION:

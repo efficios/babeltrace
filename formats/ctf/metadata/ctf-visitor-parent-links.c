@@ -211,6 +211,12 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
+		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		break;
 
 	case NODE_EVENT:
@@ -247,6 +253,14 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_CLOCK:
 		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
+	case NODE_CALLSITE:
+		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)

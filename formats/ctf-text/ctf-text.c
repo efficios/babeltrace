@@ -50,6 +50,7 @@ int opt_all_field_names,
 	opt_trace_default_fields = 1,
 	opt_loglevel_field,
 	opt_emf_field,
+	opt_callsite_field,
 	opt_delta_field = 1;
 
 enum field_item {
@@ -115,6 +116,14 @@ void __attribute__((constructor)) init_quarks(void)
 	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED = g_quark_from_static_string("stream.packet.context.events_discarded");
 	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE = g_quark_from_static_string("stream.packet.context.content_size");
 	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE = g_quark_from_static_string("stream.packet.context.packet_size");
+}
+
+static
+struct ctf_callsite *ctf_trace_callsite_lookup(struct ctf_trace *trace,
+			GQuark callsite_name)
+{
+	return g_hash_table_lookup(trace->callsites,
+			(gpointer) (unsigned long) callsite_name);
 }
 
 int print_field(struct definition *definition)
@@ -398,6 +407,26 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
+	}
+	if ((opt_callsite_field || opt_all_fields)) {
+		struct ctf_callsite *callsite;
+
+		callsite = ctf_trace_callsite_lookup(stream_class->trace,
+				event_class->name);
+		if (callsite) {
+			set_field_names_print(pos, ITEM_HEADER);
+			if (pos->print_names) {
+				fprintf(pos->fp, "callsite = ");
+			} else if (dom_print) {
+				fprintf(pos->fp, ":");
+			}
+			fprintf(pos->fp, "[%s@%s:%" PRIu64 "]",
+				callsite->func, callsite->file,
+				callsite->line);
+			if (pos->print_names)
+				fprintf(pos->fp, ", ");
+			dom_print = 1;
+		}
 	}
 	if (dom_print && !pos->print_names)
 		fprintf(pos->fp, " ");

@@ -112,6 +112,7 @@ stream				setstring(yyextra, yylval, yytext); return STREAM;
 string				setstring(yyextra, yylval, yytext); return STRING;
 struct				setstring(yyextra, yylval, yytext); return STRUCT;
 trace				setstring(yyextra, yylval, yytext); return TRACE;
+callsite			setstring(yyextra, yylval, yytext); return CALLSITE;
 typealias			setstring(yyextra, yylval, yytext); return TYPEALIAS;
 typedef				setstring(yyextra, yylval, yytext); return TYPEDEF;
 unsigned			setstring(yyextra, yylval, yytext); return UNSIGNED;

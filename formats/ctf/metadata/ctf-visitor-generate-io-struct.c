@@ -2434,6 +2434,150 @@ void clock_free(gpointer data)
 }
 
 static
+int ctf_callsite_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
+		struct ctf_callsite *callsite, struct ctf_trace *trace)
+{
+	int ret = 0;
+
+	switch (node->type) {
+	case NODE_CTF_EXPRESSION:
+	{
+		char *left;
+
+		left = concatenate_unary_strings(&node->u.ctf_expression.left);
+		if (!strcmp(left, "name")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, name)) {
+				fprintf(fd, "[error] %s: name already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite name\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->name = g_quark_from_string(right);
+			g_free(right);
+			CTF_CALLSITE_SET_FIELD(callsite, name);
+		} else if (!strcmp(left, "func")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, func)) {
+				fprintf(fd, "[error] %s: func already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite func\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->func = right;
+			CTF_CALLSITE_SET_FIELD(callsite, func);
+		} else if (!strcmp(left, "file")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, file)) {
+				fprintf(fd, "[error] %s: file already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite file\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->file = right;
+			CTF_CALLSITE_SET_FIELD(callsite, file);
+		} else if (!strcmp(left, "line")) {
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, line)) {
+				fprintf(fd, "[error] %s: line already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &callsite->line);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite line\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			CTF_CALLSITE_SET_FIELD(callsite, line);
+		} else {
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in callsite declaration.\n", __func__, left);
+		}
+
+error:
+		g_free(left);
+		break;
+	}
+	default:
+		return -EPERM;
+	/* TODO: declaration specifier should be added. */
+	}
+
+	return ret;
+}
+
+static
+int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+{
+	int ret = 0;
+	struct ctf_node *iter;
+	struct ctf_callsite *callsite;
+
+	callsite = g_new0(struct ctf_callsite, 1);
+	bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
+		ret = ctf_callsite_declaration_visit(fd, depth + 1, iter, callsite, trace);
+		if (ret)
+			goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, name)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing name field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, func)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing func field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, file)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing file field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, line)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing line field in callsite declaration\n", __func__);
+		goto error;
+	}
+
+	g_hash_table_insert(trace->callsites, (gpointer) (unsigned long) callsite->name, callsite);
+	return 0;
+
+error:
+	g_free(callsite->func);
+	g_free(callsite->file);
+	g_free(callsite);
+	return ret;
+}
+
+static
+void callsite_free(gpointer data)
+{
+	struct ctf_callsite *callsite = data;
+
+	g_free(callsite->func);
+	g_free(callsite->file);
+	g_free(callsite);
+}
+
+static
 int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 		struct ctf_trace *trace)
 {
@@ -2665,6 +2809,8 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	trace->byte_order = byte_order;
 	trace->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 				NULL, clock_free);
+	trace->callsites = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+				NULL, callsite_free);
 
 retry:
 	trace->root_declaration_scope = new_declaration_scope(NULL);
@@ -2714,6 +2860,14 @@ retry:
 				goto error;
 			}
 		}
+		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
+			ret = ctf_callsite_visit(fd, depth + 1, iter,
+					      trace);
+			if (ret) {
+				fprintf(fd, "[error] %s: callsite declaration error\n", __func__);
+				goto error;
+			}
+		}
 		if (!trace->streams) {
 			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
 			ret = -EINVAL;
@@ -2755,6 +2909,7 @@ retry:
 
 error:
 	free_declaration_scope(trace->root_declaration_scope);
+	g_hash_table_destroy(trace->callsites);
 	g_hash_table_destroy(trace->clocks);
 	return ret;
 }

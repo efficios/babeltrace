@@ -72,6 +72,7 @@ static const char *node_type_to_str[] = {
 	[ NODE_STREAM ] = "NODE_STREAM",
 	[ NODE_TRACE ] = "NODE_TRACE",
 	[ NODE_CLOCK ] = "NODE_CLOCK",
+	[ NODE_CALLSITE ] = "NODE_CALLSITE",
 	[ NODE_CTF_EXPRESSION ] = "NODE_CTF_EXPRESSION",
 	[ NODE_UNARY_EXPRESSION ] = "NODE_UNARY_EXPRESSION",
 	[ NODE_TYPEDEF ] = "NODE_TYPEDEF",
@@ -261,6 +262,9 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	case NODE_CLOCK:
 		BT_INIT_LIST_HEAD(&node->u.clock.declaration_list);
 		break;
+	case NODE_CALLSITE:
+		BT_INIT_LIST_HEAD(&node->u.callsite.declaration_list);
+		break;
 
 	case NODE_CTF_EXPRESSION:
 		BT_INIT_LIST_HEAD(&node->u.ctf_expression.left);
@@ -347,6 +351,9 @@ static int reparent_ctf_expression(struct ctf_node *node,
 	case NODE_CLOCK:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.clock.declaration_list);
 		break;
+	case NODE_CALLSITE:
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.callsite.declaration_list);
+		break;
 	case NODE_FLOATING_POINT:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.floating_point.expressions);
 		break;
@@ -405,6 +412,9 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_CLOCK:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.clock.declaration_list);
 		break;
+	case NODE_CALLSITE:
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.callsite.declaration_list);
+		break;
 	case NODE_VARIANT:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.variant.declaration_list);
 		break;
@@ -460,6 +470,9 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 	case NODE_CLOCK:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.clock.declaration_list);
 		break;
+	case NODE_CALLSITE:
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.callsite.declaration_list);
+		break;
 	case NODE_VARIANT:
 		_bt_list_splice_tail(&node->tmp_head, &parent->u.variant.declaration_list);
 		break;
@@ -508,6 +521,7 @@ static int reparent_type_specifier(struct ctf_node *node,
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_VARIANT:
 	case NODE_STRUCT:
 	case NODE_TYPEDEF:
@@ -556,6 +570,9 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 		break;
 	case NODE_CLOCK:
 		bt_list_add_tail(&node->siblings, &parent->u.clock.declaration_list);
+		break;
+	case NODE_CALLSITE:
+		bt_list_add_tail(&node->siblings, &parent->u.callsite.declaration_list);
 		break;
 	case NODE_VARIANT:
 		bt_list_add_tail(&node->siblings, &parent->u.variant.declaration_list);
@@ -626,6 +643,7 @@ static int reparent_type_declarator(struct ctf_node *node,
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_VARIANT:
 	case NODE_STRUCT:
 	case NODE_TYPEALIAS:
@@ -701,6 +719,13 @@ static int set_parent_node(struct ctf_node *node,
 	case NODE_CLOCK:
 		if (parent->type == NODE_ROOT) {
 			_bt_list_splice_tail(&node->tmp_head, &parent->u.root.clock);
+		} else {
+			return -EPERM;
+		}
+		break;
+	case NODE_CALLSITE:
+		if (parent->type == NODE_ROOT) {
+			_bt_list_splice_tail(&node->tmp_head, &parent->u.root.callsite);
 		} else {
 			return -EPERM;
 		}
@@ -825,6 +850,7 @@ static struct ctf_ast *ctf_ast_alloc(void)
 	BT_INIT_LIST_HEAD(&ast->root.u.root.stream);
 	BT_INIT_LIST_HEAD(&ast->root.u.root.event);
 	BT_INIT_LIST_HEAD(&ast->root.u.root.clock);
+	BT_INIT_LIST_HEAD(&ast->root.u.root.callsite);
 	return ast;
 }
 
@@ -913,7 +939,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
+%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
 %union
@@ -935,6 +961,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> env_declaration
 %type <n> trace_declaration
 %type <n> clock_declaration
+%type <n> callsite_declaration
 %type <n> integer_declaration_specifiers
 %type <n> declaration_specifiers
 %type <n> alias_declaration_specifiers
@@ -1030,6 +1057,8 @@ keywords:
 	|	TRACE
 		{	$$ = yylval.gs;		}
 	|	CLOCK
+		{	$$ = yylval.gs;		}
+	|	CALLSITE
 		{	$$ = yylval.gs;		}
 	|	TOK_ALIGN
 		{	$$ = yylval.gs;		}
@@ -1232,6 +1261,8 @@ declaration:
 		{	$$ = $1;	}
 	|	clock_declaration
 		{	$$ = $1;	}
+	|	callsite_declaration
+		{	$$ = $1;	}
 	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
 		{
 			struct ctf_node *list;
@@ -1395,6 +1426,29 @@ clock_declaration_begin:
 	;
 
 clock_declaration_end:
+		RBRAC SEMICOLON
+		{	pop_scope(scanner);	}
+	;
+
+callsite_declaration:
+		CALLSITE callsite_declaration_begin callsite_declaration_end
+		{
+			$$ = make_node(scanner, NODE_CALLSITE);
+		}
+	|	CALLSITE callsite_declaration_begin ctf_assignment_expression_list callsite_declaration_end
+		{
+			$$ = make_node(scanner, NODE_CALLSITE);
+			if (set_parent_node($3, $$))
+				reparent_error(scanner, "trace_declaration");
+		}
+	;
+
+callsite_declaration_begin:
+		LBRAC
+		{	push_scope(scanner);	}
+	;
+
+callsite_declaration_end:
 		RBRAC SEMICOLON
 		{	pop_scope(scanner);	}
 	;

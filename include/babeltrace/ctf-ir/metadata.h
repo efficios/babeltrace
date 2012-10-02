@@ -32,6 +32,7 @@ struct ctf_trace;
 struct ctf_stream_declaration;
 struct ctf_event_declaration;
 struct ctf_clock;
+struct ctf_callsite;
 
 struct ctf_stream_definition {
 	struct ctf_stream_declaration *stream_class;
@@ -101,6 +102,33 @@ struct ctf_clock {
 	} field_mask;
 };
 
+#define CTF_CALLSITE_SET_FIELD(ctf_callsite, field)			\
+	do {								\
+		(ctf_callsite)->field_mask |= CTF_CALLSITE_ ## field;	\
+	} while (0)
+
+#define CTF_CALLSITE_FIELD_IS_SET(ctf_callsite, field)			\
+		((ctf_callsite)->field_mask & CTF_CALLSITE_ ## field)
+
+#define CTF_CALLSITE_GET_FIELD(ctf_callsite, field)			\
+	({								\
+		assert(CTF_CALLSITE_FIELD_IS_SET(ctf_callsite, field));	\
+		(ctf_callsite)->(field);				\
+	})
+
+struct ctf_callsite {
+	GQuark name;		/* event name associated with callsite */
+	char *func;
+	char *file;
+	uint64_t line;
+	enum {					/* Fields populated mask */
+		CTF_CALLSITE_name	=	(1U << 0),
+		CTF_CALLSITE_func	=	(1U << 1),
+		CTF_CALLSITE_file	=	(1U << 2),
+		CTF_CALLSITE_line	=	(1U << 3),
+	} field_mask;
+};
+
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\
 	do {								\
 		(ctf_trace)->field_mask |= CTF_TRACE_ ## field;		\
@@ -141,6 +169,7 @@ struct ctf_trace {
 	GPtrArray *streams;			/* Array of struct ctf_stream_declaration pointers */
 	struct ctf_stream_definition *metadata;
 	GHashTable *clocks;
+	GHashTable *callsites;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */
 	struct trace_collection *collection;	/* Container of this trace */
 	GPtrArray *event_declarations;		/* Array of all the struct bt_ctf_event_decl */
