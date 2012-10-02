@@ -119,7 +119,7 @@ void __attribute__((constructor)) init_quarks(void)
 }
 
 static
-struct ctf_callsite *ctf_trace_callsite_lookup(struct ctf_trace *trace,
+struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
 			GQuark callsite_name)
 {
 	return g_hash_table_lookup(trace->callsites,
@@ -409,20 +409,30 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		dom_print = 1;
 	}
 	if ((opt_callsite_field || opt_all_fields)) {
+		struct ctf_callsite_dups *cs_dups;
 		struct ctf_callsite *callsite;
 
-		callsite = ctf_trace_callsite_lookup(stream_class->trace,
+		cs_dups = ctf_trace_callsite_lookup(stream_class->trace,
 				event_class->name);
-		if (callsite) {
+		if (cs_dups) {
+			int i = 0;
+
 			set_field_names_print(pos, ITEM_HEADER);
 			if (pos->print_names) {
 				fprintf(pos->fp, "callsite = ");
 			} else if (dom_print) {
 				fprintf(pos->fp, ":");
 			}
-			fprintf(pos->fp, "[%s@%s:%" PRIu64 "]",
-				callsite->func, callsite->file,
-				callsite->line);
+			fprintf(pos->fp, "[");
+			bt_list_for_each_entry(callsite, &cs_dups->head, node) {
+				if (i != 0)
+					fprintf(pos->fp, ",");
+				fprintf(pos->fp, "%s@%s:%" PRIu64 "",
+					callsite->func, callsite->file,
+					callsite->line);
+				i++;
+			}
+			fprintf(pos->fp, "]");
 			if (pos->print_names)
 				fprintf(pos->fp, ", ");
 			dom_print = 1;

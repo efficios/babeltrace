@@ -121,12 +121,17 @@ struct ctf_callsite {
 	char *func;
 	char *file;
 	uint64_t line;
+	struct bt_list_head node;
 	enum {					/* Fields populated mask */
 		CTF_CALLSITE_name	=	(1U << 0),
 		CTF_CALLSITE_func	=	(1U << 1),
 		CTF_CALLSITE_file	=	(1U << 2),
 		CTF_CALLSITE_line	=	(1U << 3),
 	} field_mask;
+};
+
+struct ctf_callsite_dups {
+	struct bt_list_head head;
 };
 
 #define CTF_TRACE_SET_FIELD(ctf_trace, field)				\

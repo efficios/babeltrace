@@ -2529,6 +2529,7 @@ int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_tr
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_callsite *callsite;
+	struct ctf_callsite_dups *cs_dups;
 
 	callsite = g_new0(struct ctf_callsite, 1);
 	bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
@@ -2557,7 +2558,15 @@ int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_tr
 		goto error;
 	}
 
-	g_hash_table_insert(trace->callsites, (gpointer) (unsigned long) callsite->name, callsite);
+	cs_dups = g_hash_table_lookup(trace->callsites,
+		(gpointer) (unsigned long) callsite->name);
+	if (!cs_dups) {
+		cs_dups = g_new0(struct ctf_callsite_dups, 1);
+		BT_INIT_LIST_HEAD(&cs_dups->head);
+		g_hash_table_insert(trace->callsites,
+			(gpointer) (unsigned long) callsite->name, cs_dups);
+	}
+	bt_list_add_tail(&callsite->node, &cs_dups->head);
 	return 0;
 
 error:
@@ -2570,11 +2579,14 @@ error:
 static
 void callsite_free(gpointer data)
 {
-	struct ctf_callsite *callsite = data;
+	struct ctf_callsite_dups *cs_dups = data;
+	struct ctf_callsite *callsite, *cs_n;
 
-	g_free(callsite->func);
-	g_free(callsite->file);
-	g_free(callsite);
+	bt_list_for_each_entry_safe(callsite, cs_n, &cs_dups->head, node) {
+		g_free(callsite->func);
+		g_free(callsite->file);
+		g_free(callsite);
+	}
 }
 
 static
