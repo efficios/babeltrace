@@ -151,6 +151,7 @@ static void usage(FILE *fp)
 static int get_names_args(poptContext *pc)
 {
 	char *str, *strlist, *strctx;
+	int ret = 0;
 
 	opt_payload_field_names = 0;
 	opt_context_field_names = 0;
@@ -178,15 +179,20 @@ static int get_names_args(poptContext *pc)
 			opt_payload_field_names = 0;
 		} else {
 			fprintf(stderr, "[error] unknown field name type %s\n", str);
-			return -EINVAL;
+			free(strlist);
+			ret = -EINVAL;
+			goto end;
 		}
 	} while ((str = strtok_r(NULL, ",", &strctx)));
-	return 0;
+end:
+	free(strlist);
+	return ret;
 }
 
 static int get_fields_args(poptContext *pc)
 {
 	char *str, *strlist, *strctx;
+	int ret = 0;
 
 	strlist = (char *) poptGetOptArg(*pc);
 	if (!strlist) {
@@ -215,10 +221,13 @@ static int get_fields_args(poptContext *pc)
 			opt_callsite_field = 1;
 		else {
 			fprintf(stderr, "[error] unknown field type %s\n", str);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto end;
 		}
 	} while ((str = strtok_r(NULL, ",", &strctx)));
-	return 0;
+end:
+	free(strlist);
+	return ret;
 }
 
 /*
@@ -279,10 +288,10 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_CLOCK_OFFSET:
 		{
-			const char *str;
+			char *str;
 			char *endptr;
 
-			str = poptGetOptArg(pc);
+			str = (char *) poptGetOptArg(pc);
 			if (!str) {
 				fprintf(stderr, "[error] Missing --clock-offset argument\n");
 				ret = -EINVAL;
@@ -293,8 +302,10 @@ static int parse_options(int argc, char **argv)
 			if (*endptr != '\0' || str == endptr || errno != 0) {
 				fprintf(stderr, "[error] Incorrect --clock-offset argument: %s\n", str);
 				ret = -EINVAL;
+				free(str);
 				goto end;
 			}
+			free(str);
 			break;
 		}
 		case OPT_CLOCK_SECONDS:
