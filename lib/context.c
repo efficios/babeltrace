@@ -103,7 +103,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		ret = -1;
-		goto end;
+		goto error;
 	}
 	handle->format = fmt;
 	handle->td = td;
@@ -123,11 +123,11 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		handle);
 	ret = trace_collection_add(ctx->tc, td);
 	if (ret != 0)
-		goto end;
+		goto error;
 
 	ret = fmt->convert_index_timestamp(td);
 	if (ret < 0)
-		goto end;
+		goto error;
 
 	handle->real_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_REAL);
 	handle->real_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_REAL);
@@ -135,6 +135,9 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	handle->cycles_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_CYCLES);
 
 	return handle->id;
+
+error:
+	fmt->close_trace(td);
 end:
 	return ret;
 }
@@ -168,7 +171,8 @@ void bt_context_destroy(struct bt_context *ctx)
 	assert(ctx);
 	finalize_trace_collection(ctx->tc);
 
-	/* Remote all traces. The g_hash_table_destroy will call
+	/*
+	 * Remove all traces. The g_hash_table_destroy will call
 	 * bt_trace_handle_destroy on each elements.
 	 */
 	g_hash_table_destroy(ctx->trace_handles);
