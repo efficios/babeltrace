@@ -1935,6 +1935,7 @@ void ctf_set_handle(struct trace_descriptor *descriptor,
 	td->handle = handle;
 }
 
+static
 void __attribute__((constructor)) ctf_init(void)
 {
 	int ret;
@@ -1944,4 +1945,8 @@ void __attribute__((constructor)) ctf_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) ctf_exit(void)
+{
+	bt_unregister_format(&ctf_format);
+}

@@ -78,10 +78,11 @@ enum bt_loglevel {
         BT_LOGLEVEL_DEBUG                  = 14,
 };
 
-
+static
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
+static
 void ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
@@ -545,7 +546,7 @@ error:
 	return ret;
 }
 
-
+static
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
@@ -582,6 +583,7 @@ error:
 	return NULL;
 }
 
+static
 void ctf_text_close_trace(struct trace_descriptor *td)
 {
 	struct ctf_text_stream_pos *pos =
@@ -590,6 +592,7 @@ void ctf_text_close_trace(struct trace_descriptor *td)
 	g_free(pos);
 }
 
+static
 void __attribute__((constructor)) ctf_text_init(void)
 {
 	int ret;
@@ -599,4 +602,8 @@ void __attribute__((constructor)) ctf_text_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) ctf_text_exit(void)
+{
+	bt_unregister_format(&ctf_text_format);
+}

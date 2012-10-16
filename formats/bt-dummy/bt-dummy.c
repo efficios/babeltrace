@@ -74,4 +74,8 @@ void __attribute__((constructor)) bt_dummy_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) bt_dummy_exit(void)
+{
+	bt_unregister_format(&bt_dummy_format);
+}

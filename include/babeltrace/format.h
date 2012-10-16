@@ -77,8 +77,8 @@ struct format {
 extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct format *format);
+extern void bt_unregister_format(struct format *format);
 
-/* TBD: format unregistration */
 #ifdef __cplusplus
 }
 #endif
