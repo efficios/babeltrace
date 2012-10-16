@@ -2612,6 +2612,7 @@ void callsite_free(gpointer data)
 		g_free(callsite->file);
 		g_free(callsite);
 	}
+	g_free(cs_dups);
 }
 
 static
