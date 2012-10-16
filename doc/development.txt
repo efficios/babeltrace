@@ -1,0 +1,10 @@
+This document describes some principles that should be respected when
+developing in Babeltrace.
+
+Memory usage :
+Since Babeltrace exports a library, we need to make sure that all allocated
+memory is freed, we do not want any memory leaks.
+Since Babeltrace uses the glib, it is necessary to assist a little valgrind
+when trying to identify memory leaks.
+So the proper invocation of Babeltrace with Valgrind is :
+G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind --leak-check=full babeltrace
