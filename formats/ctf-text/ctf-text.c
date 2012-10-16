@@ -427,9 +427,15 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 			bt_list_for_each_entry(callsite, &cs_dups->head, node) {
 				if (i != 0)
 					fprintf(pos->fp, ",");
-				fprintf(pos->fp, "%s@%s:%" PRIu64 "",
-					callsite->func, callsite->file,
-					callsite->line);
+				if (CTF_CALLSITE_FIELD_IS_SET(callsite, ip)) {
+					fprintf(pos->fp, "%s@0x%" PRIx64 ":%s:%" PRIu64 "",
+						callsite->func, callsite->ip, callsite->file,
+						callsite->line);
+				} else {
+					fprintf(pos->fp, "%s:%s:%" PRIu64 "",
+						callsite->func, callsite->file,
+						callsite->line);
+				}
 				i++;
 			}
 			fprintf(pos->fp, "]");

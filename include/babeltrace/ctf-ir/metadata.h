@@ -121,12 +121,14 @@ struct ctf_callsite {
 	char *func;
 	char *file;
 	uint64_t line;
+	uint64_t ip;
 	struct bt_list_head node;
 	enum {					/* Fields populated mask */
 		CTF_CALLSITE_name	=	(1U << 0),
 		CTF_CALLSITE_func	=	(1U << 1),
 		CTF_CALLSITE_file	=	(1U << 2),
 		CTF_CALLSITE_line	=	(1U << 3),
+		CTF_CALLSITE_ip		=	(1U << 4),
 	} field_mask;
 };
 

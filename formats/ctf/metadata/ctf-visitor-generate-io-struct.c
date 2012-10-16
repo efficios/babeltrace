@@ -2507,6 +2507,19 @@ int ctf_callsite_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				goto error;
 			}
 			CTF_CALLSITE_SET_FIELD(callsite, line);
+		} else if (!strcmp(left, "ip")) {
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, ip)) {
+				fprintf(fd, "[error] %s: ip already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &callsite->ip);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite ip\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			CTF_CALLSITE_SET_FIELD(callsite, ip);
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in callsite declaration.\n", __func__, left);
 		}
