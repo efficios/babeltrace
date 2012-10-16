@@ -47,7 +47,8 @@ struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 		g_free(iter);
 		return NULL;
 	}
-	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
+	iter->callbacks = g_array_new(FALSE, TRUE,
+			sizeof(struct bt_stream_callbacks));
 	iter->recalculate_dep_graph = 0;
 	iter->main_callbacks.callback = NULL;
 	iter->dep_gc = g_ptr_array_new();
@@ -81,6 +82,8 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 		}
 		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
 	}
+	g_array_free(iter->callbacks, TRUE);
+	g_ptr_array_free(iter->dep_gc, TRUE);
 
 	bt_iter_fini(&iter->parent);
 	g_free(iter);
