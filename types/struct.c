@@ -169,6 +169,7 @@ void _struct_definition_free(struct definition *definition)
 	}
 	free_definition_scope(_struct->p.scope);
 	declaration_unref(_struct->p.declaration);
+	g_ptr_array_free(_struct->fields, TRUE);
 	g_free(_struct);
 }
 

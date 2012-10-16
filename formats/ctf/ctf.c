@@ -1267,6 +1267,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.timestamp_begin = 0;
 		packet_index.timestamp_end = 0;
 		packet_index.events_discarded = 0;
+		packet_index.events_discarded_len = 0;
 
 		/* read and check header, set stream id (and check) */
 		if (file_stream->parent.trace_packet_header) {
@@ -1903,35 +1904,13 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 				continue;
 			for (j = 0; j < stream->streams->len; j++) {
 				struct ctf_file_stream *file_stream;
-				file_stream = container_of(g_ptr_array_index(stream->streams, j), struct ctf_file_stream, parent);
+				file_stream = container_of(g_ptr_array_index(stream->streams, j),
+						struct ctf_file_stream, parent);
 				ctf_close_file_stream(file_stream);
 			}
-
 		}
-		g_ptr_array_free(td->streams, TRUE);
 	}
-
-	if (td->event_declarations) {
-		for (i = 0; i < td->event_declarations->len; i++) {
-			struct bt_ctf_event_decl *event;
-
-			event = g_ptr_array_index(td->event_declarations, i);
-			if (event->context_decl)
-				g_ptr_array_free(event->context_decl, TRUE);
-			if (event->fields_decl)
-				g_ptr_array_free(event->fields_decl, TRUE);
-			if (event->packet_header_decl)
-				g_ptr_array_free(event->packet_header_decl, TRUE);
-			if (event->event_context_decl)
-				g_ptr_array_free(event->event_context_decl, TRUE);
-			if (event->event_header_decl)
-				g_ptr_array_free(event->event_header_decl, TRUE);
-			if (event->packet_context_decl)
-				g_ptr_array_free(event->packet_context_decl, TRUE);
-			g_free(event);
-		}
-		g_ptr_array_free(td->event_declarations, TRUE);
-	}
+	ctf_destroy_metadata(td);
 	closedir(td->dir);
 	g_free(td);
 }

@@ -860,6 +860,7 @@ static void ctf_ast_free(struct ctf_ast *ast)
 
 	bt_list_for_each_entry_safe(node, tmp, &ast->allocated_nodes, gc)
 		free(node);
+	free(ast);
 }
 
 int ctf_scanner_append_ast(struct ctf_scanner *scanner)

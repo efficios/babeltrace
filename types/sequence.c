@@ -206,8 +206,8 @@ void _sequence_definition_free(struct definition *definition)
 			field = g_ptr_array_index(sequence->elems, i);
 			field->declaration->definition_free(field);
 		}
+		(void) g_ptr_array_free(sequence->elems, TRUE);
 	}
-	(void) g_ptr_array_free(sequence->elems, TRUE);
 	definition_unref(len_definition);
 	free_definition_scope(sequence->p.scope);
 	declaration_unref(sequence->p.declaration);

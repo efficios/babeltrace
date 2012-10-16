@@ -32,10 +32,13 @@ GQuark prefix_quark(const char *prefix, GQuark quark)
 {
 	GQuark nq;
 	GString *str;
+	char *quark_str;
 
 	str = g_string_new(prefix);
 	g_string_append(str, g_quark_to_string(quark));
-	nq = g_quark_from_string(g_string_free(str, FALSE));
+	quark_str = g_string_free(str, FALSE);
+	nq = g_quark_from_string(quark_str);
+	g_free(quark_str);
 	return nq;
 }
 

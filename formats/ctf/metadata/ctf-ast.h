@@ -307,5 +307,6 @@ int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 			struct ctf_trace *trace, int byte_order);
+int ctf_destroy_metadata(struct ctf_trace *trace);
 
 #endif /* _CTF_AST_H */
