@@ -25,6 +25,7 @@
 #include <float.h>	/* C99 floating point definitions */
 #include <limits.h>	/* C99 limits */
 #include <babeltrace/endian.h>
+#include <pthread.h>
 
 /*
  * This library is limited to binary representation of floating point values.
@@ -58,12 +59,34 @@ union doubleIEEE754 {
 #endif
 };
 
+/*
+ * This mutex protects the static temporary float and double
+ * declarations (static_float_declaration and static_double_declaration).
+ */
+static pthread_mutex_t float_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static struct declaration_float *static_float_declaration,
 		*static_double_declaration;
 
 struct pos_len {
 	size_t sign_start, exp_start, mantissa_start, len;
 };
+
+static void float_lock(void)
+{
+	int ret;
+
+	ret = pthread_mutex_lock(&float_mutex);
+	assert(!ret);
+}
+
+static void float_unlock(void)
+{
+	int ret;
+
+	ret = pthread_mutex_unlock(&float_mutex);
+	assert(!ret);
+}
 
 int _ctf_float_copy(struct stream_pos *destp,
 		    struct definition_float *dest_definition,
@@ -148,6 +171,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	struct mmap_align mma;
 	int ret;
 
+	float_lock();
 	switch (float_declaration->mantissa->len + 1) {
 	case FLT_MANT_DIG:
 		tmpdef = static_float_declaration->p.definition_new(
@@ -160,7 +184,8 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 				NULL, 0, 0, "__tmpfloat");
 		break;
 	default:
-		return -EINVAL;
+		ret = -EINVAL;
+		goto end;
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	memset(&destp, 0, sizeof(destp));
@@ -178,9 +203,14 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 		float_definition->value = u.vd;
 		break;
 	default:
-		return -EINVAL;
+		ret = -EINVAL;
+		goto end_unref;
 	}
+
+end_unref:
 	definition_unref(tmpdef);
+end:
+	float_unlock();
 	return ret;
 }
 
@@ -198,6 +228,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	struct mmap_align mma;
 	int ret;
 
+	float_lock();
 	switch (float_declaration->mantissa->len + 1) {
 	case FLT_MANT_DIG:
 		tmpdef = static_float_declaration->p.definition_new(
@@ -210,7 +241,8 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 				NULL, 0, 0, "__tmpfloat");
 		break;
 	default:
-		return -EINVAL;
+		ret = -EINVAL;
+		goto end;
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	ctf_init_pos(&srcp, -1, O_RDONLY);
@@ -225,11 +257,16 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 		u.vd = float_definition->value;
 		break;
 	default:
-		return -EINVAL;
+		ret = -EINVAL;
+		goto end_unref;
 	}
 	ctf_align_pos(pos, float_declaration->p.alignment);
 	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
+
+end_unref:
 	definition_unref(tmpdef);
+end:
+	float_unlock();
 	return ret;
 }
 
