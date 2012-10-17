@@ -83,7 +83,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
 static
-void ctf_text_close_trace(struct trace_descriptor *descriptor);
+int ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
 rw_dispatch write_dispatch_table[] = {
@@ -584,12 +584,18 @@ error:
 }
 
 static
-void ctf_text_close_trace(struct trace_descriptor *td)
+int ctf_text_close_trace(struct trace_descriptor *td)
 {
+	int ret;
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
-	fclose(pos->fp);
+	ret = fclose(pos->fp);
+	if (ret) {
+		perror("Error on fclose");
+		return -1;
+	}
 	g_free(pos);
+	return 0;
 }
 
 static

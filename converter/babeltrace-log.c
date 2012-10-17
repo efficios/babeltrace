@@ -231,10 +231,14 @@ void trace_text(FILE *input, int output)
 	ssize_t len;
 	char *line = NULL, *nl;
 	size_t linesize;
+	int ret;
 
 	memset(&pos, 0, sizeof(pos));
-	ctf_init_pos(&pos, output, O_RDWR);
-
+	ret = ctf_init_pos(&pos, output, O_RDWR);
+	if (ret) {
+		fprintf(stderr, "Error in ctf_init_pos\n");
+		return;
+	}
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
 	for (;;) {
@@ -249,7 +253,10 @@ void trace_text(FILE *input, int output)
 			trace_string(line, &pos, strlen(line) + 1);
 		}
 	}
-	ctf_fini_pos(&pos);
+	ret = ctf_fini_pos(&pos);
+	if (ret) {
+		fprintf(stderr, "Error in ctf_fini_pos\n");
+	}
 }
 
 static
@@ -347,7 +354,9 @@ int main(int argc, char **argv)
 	print_metadata(metadata_fp);
 	trace_text(stdin, fd);
 
-	close(fd);
+	ret = close(fd);
+	if (ret)
+		perror("close");
 	exit(EXIT_SUCCESS);
 
 	/* error handling */

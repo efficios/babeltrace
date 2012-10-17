@@ -67,7 +67,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	struct trace_descriptor *td;
 	struct format *fmt;
 	struct bt_trace_handle *handle;
-	int ret;
+	int ret, closeret;
 
 	if (!ctx || !format_name || (!path && !stream_list))
 		return -EINVAL;
@@ -137,7 +137,10 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	return handle->id;
 
 error:
-	fmt->close_trace(td);
+	closeret = fmt->close_trace(td);
+	if (closeret) {
+		fprintf(stderr, "Error in close_trace callback\n");
+	}
 end:
 	return ret;
 }
@@ -145,6 +148,7 @@ end:
 int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 {
 	struct bt_trace_handle *handle;
+	int ret;
 
 	if (!ctx)
 		return -EINVAL;
@@ -157,8 +161,11 @@ int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 	/* Remove from containers */
 	trace_collection_remove(ctx->tc, handle->td);
 	/* Close the trace */
-	handle->format->close_trace(handle->td);
-
+	ret = handle->format->close_trace(handle->td);
+	if (ret) {
+		fprintf(stderr, "Error in close_trace callback\n");
+		return ret;
+	}
 	/* Remove and free the handle */
 	g_hash_table_remove(ctx->trace_handles,
 			(gpointer) (unsigned long) handle_id);

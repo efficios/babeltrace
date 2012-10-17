@@ -50,12 +50,13 @@ struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
 }
 
 static
-void bt_dummy_close_trace(struct trace_descriptor *td)
+int bt_dummy_close_trace(struct trace_descriptor *td)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos,
 			trace_descriptor);
 	free(pos);
+	return 0;
 }
 
 static

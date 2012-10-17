@@ -99,8 +99,8 @@ int ctf_sequence_write(struct stream_pos *pos, struct definition *definition);
 
 void ctf_packet_seek(struct stream_pos *pos, size_t index, int whence);
 
-void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
-void ctf_fini_pos(struct ctf_stream_pos *pos);
+int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
+int ctf_fini_pos(struct ctf_stream_pos *pos);
 
 /*
  * move_pos - move position of a relative bit offset
