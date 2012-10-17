@@ -1911,6 +1911,7 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 		}
 	}
 	ctf_destroy_metadata(td);
+	close(td->dirfd);
 	closedir(td->dir);
 	g_free(td);
 }
