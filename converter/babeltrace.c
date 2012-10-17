@@ -432,6 +432,7 @@ static int traverse_trace_dir(const char *fpath, const struct stat *sb,
 
 	return 0;
 }
+
 /*
  * bt_context_add_traces_recursive: Open a trace recursively
  *
@@ -483,6 +484,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 			g_string_free(trace_path, TRUE);
 		}
 	}
+
 	g_ptr_array_free(traversed_paths, TRUE);
 	traversed_paths = NULL;
 
