@@ -48,12 +48,15 @@
 
 #define DEFAULT_FILE_ARRAY_SIZE	1
 
-/*
- * casting these to const char * to please libpopt. It allocates memory
- * behind our back (this is of course not documented).
- */
 static char *opt_input_format, *opt_output_format;
 
+/*
+ * We are not freeing opt_input_paths ipath elements when exiting from
+ * main() for backward compatibility with libpop 0.13, which does not
+ * allocate copies for arguments returned by poptGetArg(), and for
+ * general compatibility with the documented behavior. This is known to
+ * cause a small memory leak with libpop 0.16.
+ */
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
 
@@ -91,7 +94,10 @@ enum {
 /*
  * We are _not_ using POPT_ARG_STRING ability to store directly into
  * variables, because we want to cast the return to non-const, which is
- * not possible without using poptGetOptArg explicitly.
+ * not possible without using poptGetOptArg explicitly. This helps us
+ * controlling memory allocation correctly without making assumptions
+ * about undocumented behaviors. poptGetOptArg is documented as
+ * requiring the returned const char * to be freed by the caller.
  */
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
@@ -249,7 +255,7 @@ static int parse_options(int argc, char **argv)
 {
 	poptContext pc;
 	int opt, ret = 0;
-	char *ipath;
+	const char *ipath;
 
 	if (argc == 1) {
 		usage(stdout);
@@ -360,7 +366,7 @@ static int parse_options(int argc, char **argv)
 	}
 
 	do {
-		ipath = (char *) poptGetArg(pc);
+		ipath = poptGetArg(pc);
 		if (ipath)
 			g_ptr_array_add(opt_input_paths, (gpointer) ipath);
 	} while (ipath);
@@ -672,10 +678,6 @@ end:
 	free(opt_input_format);
 	free(opt_output_format);
 	free(opt_output_path);
-	for (i = 0; i < opt_input_paths->len; i++) {
-		char *ipath = g_ptr_array_index(opt_input_paths, i);
-		free(ipath);
-	}
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
