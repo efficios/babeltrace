@@ -1,3 +1,39 @@
+2012-10-18 Babeltrace 1.0.0-rc6
+	* Add valgrind suppression file for libpopt
+	* Fix: unplug memory leak that causes popt-0.13 to segfault
+	* Fix: test all close/fclose ret val, fix double close
+	* Cleanup: add missing newline
+	* Fix: fd leak on trace close
+	* Fix memory leaks induced by lack of libpopt documentation
+	* babeltrace: fix poptGetOptArg memleak
+	* plugins: implement plugin unregister
+	* Doc: valgrind with babeltrace (glib workaround)
+	* callsites: fix memory leak
+	* Fix: free all the metadata-related memory
+	* Fix : Free the iterator callback arrays
+	* Fix : cleanup teardown of context
+	* Fix : protect static float and double declarations
+	* callsite: support instruction pointer field
+	* Document that list.h is LGPLv2.1, but entirely trivial
+	* Fix: callsite support: list multiple callsites
+	* Add callsite support
+	* Fix: Allow 64-bit packet offset
+	* Fix: emf uri: surround by " "
+	* Handle model.emf.uri event info
+	* Fix: Documentation cleanup
+	* Fix: misplaced C++ ifdef
+	* Fix babeltrace-log get big line when the input file last line don't have enter
+	* API Fix: bt_ctf_iter_read_event_flags
+	* Fix: get encoding for char arrays and sequences
+	* Fix: access to declaration from declaration_field
+	* Fix: get_declaration_* should not cast to field
+	* Fix babeltrace-log uninitialized memory (v2)
+	* Revert "Fix babeltrace-log uninitialized memory"
+	* Fix babeltrace-log uninitialized memory
+	* Fix: access field properties by declaration
+	* Fix: check return value of get_char_array
+	* Fix: C++ support to API header files
+
 2012-08-27 Babeltrace 1.0.0-rc5
 	* Change default printout to add host, process names and vpid
 	* Add support for trace:hostname field
