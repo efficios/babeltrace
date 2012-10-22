@@ -459,7 +459,6 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 
 	GArray *trace_ids;
 	int ret = 0;
-	int i;
 
 	/* Should lock traversed_paths mutex here if used in multithread */
 
@@ -470,6 +469,8 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 
 	/* Process the array if ntfw did not return a fatal error */
 	if (ret >= 0) {
+		int i;
+
 		for (i = 0; i < traversed_paths->len; i++) {
 			GString *trace_path = g_ptr_array_index(traversed_paths,
 								i);

@@ -583,11 +583,11 @@ int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 
 int ctf_fini_pos(struct ctf_stream_pos *pos)
 {
-	int ret;
-
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 	if (pos->base_mma) {
+		int ret;
+
 		/* unmap old base */
 		ret = munmap_align(pos->base_mma);
 		if (ret) {
@@ -1940,9 +1940,11 @@ static
 int ctf_close_trace(struct trace_descriptor *tdp)
 {
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
-	int i, ret;
+	int ret;
 
 	if (td->streams) {
+		int i;
+
 		for (i = 0; i < td->streams->len; i++) {
 			struct ctf_stream_declaration *stream;
 			int j;

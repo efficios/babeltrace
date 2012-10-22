@@ -117,10 +117,10 @@ static int compare_paths(GArray *a, GArray *b, int len)
 
 static int is_path_child_of(GArray *path, GArray *maybe_parent)
 {
-	int i, ret;
+	int ret;
 
 	if (babeltrace_debug) {
-		int need_dot = 0;
+		int i, need_dot = 0;
 
 		printf_debug("Is path \"");
 		for (i = 0; i < path->len; need_dot = 1, i++)
@@ -497,7 +497,6 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 	GQuark path;
 	GString *str;
 	gchar *c_str;
-	int i;
 	int need_dot = 0;
 
 	str = g_string_new("");
@@ -505,6 +504,8 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 		g_string_append(str, root_name);
 		need_dot = 1;
 	} else if (parent_scope) {
+		int i;
+
 		for (i = 0; i < parent_scope->scope_path->len; i++) {
 			GQuark q = g_array_index(parent_scope->scope_path,
 						 GQuark, i);

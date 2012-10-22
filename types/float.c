@@ -83,7 +83,6 @@ struct definition *
 		container_of(declaration, struct declaration_float, p);
 	struct definition_float *_float;
 	struct definition *tmp;
-	int ret;
 
 	_float = g_new(struct definition_float, 1);
 	declaration_ref(&float_declaration->p);
@@ -121,6 +120,8 @@ struct definition *
 	_float->p.name = field_name;
 	_float->value = 0.0;
 	if (parent_scope) {
+		int ret;
+
 		ret = register_field_definition(field_name, &_float->p,
 						parent_scope);
 		assert(!ret);

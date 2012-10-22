@@ -69,7 +69,7 @@ static struct declaration_float *static_float_declaration,
 		*static_double_declaration;
 
 struct pos_len {
-	size_t sign_start, exp_start, mantissa_start, len;
+	size_t len;
 };
 
 static void float_lock(void)

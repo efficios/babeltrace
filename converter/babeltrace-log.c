@@ -164,13 +164,14 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			uint64_t *ts)
 {
 	unsigned long sec, usec;
-	int ret;
 
 	if (!s_timestamp)
 		return;
 
 	/* Only need to be executed on first pass (dummy) */
 	if (pos->dummy) {
+		int ret;
+
 		/* Extract time from input line */
 		ret = sscanf(line, "[%lu.%lu] ", &sec, &usec);
 		if (ret == 2) {
@@ -201,21 +202,25 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 	uint64_t ts = 0;
 
 	printf_debug("read: %s\n", line);
-retry:
-	ctf_dummy_pos(pos, &dummy);
-	write_event_header(&dummy, line, &tline, len, &tlen, &ts);
-	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, tlen * CHAR_BIT);
-	if (ctf_pos_packet(&dummy)) {
-		ctf_pos_pad_packet(pos);
-		write_packet_header(pos, s_uuid);
-		write_packet_context(pos);
-		if (attempt++ == 1) {
-			fprintf(stderr, "[Error] Line too large for packet size (%" PRIu64 "kB) (discarded)\n",
-				pos->packet_size / CHAR_BIT / 1024);
-			return;
+
+	for (;;) {
+		ctf_dummy_pos(pos, &dummy);
+		write_event_header(&dummy, line, &tline, len, &tlen, &ts);
+		ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
+		ctf_move_pos(&dummy, tlen * CHAR_BIT);
+		if (ctf_pos_packet(&dummy)) {
+			ctf_pos_pad_packet(pos);
+			write_packet_header(pos, s_uuid);
+			write_packet_context(pos);
+			if (attempt++ == 1) {
+				fprintf(stderr, "[Error] Line too large for packet size (%" PRIu64 "kB) (discarded)\n",
+					pos->packet_size / CHAR_BIT / 1024);
+				return;
+			}
+			continue;
+		} else {
+			break;
 		}
-		goto retry;
 	}
 
 	write_event_header(pos, line, &tline, len, &tlen, &ts);

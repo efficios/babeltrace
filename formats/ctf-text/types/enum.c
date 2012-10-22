@@ -30,7 +30,7 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		enum_definition->integer;
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	GArray *qs;
-	int i, ret;
+	int ret;
 	int field_nr_saved;
 
 	if (!print_field(definition))
@@ -53,6 +53,8 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	qs = enum_definition->value;
 
 	if (qs) {
+		int i;
+
 		for (i = 0; i < qs->len; i++) {
 			GQuark q = g_array_index(qs, GQuark, i);
 			const char *str = g_quark_to_string(q);
