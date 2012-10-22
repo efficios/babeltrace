@@ -1028,7 +1028,6 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
 		if (metadata_stream->pos.fd < 0) {
 			fprintf(stderr, "Unable to open metadata.\n");
-			g_free(metadata_stream);
 			ret = -1;
 			goto end_free;
 		}
