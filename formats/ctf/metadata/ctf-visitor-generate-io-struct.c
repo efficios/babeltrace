@@ -823,7 +823,6 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 {
 	struct declaration_struct *struct_declaration;
 	struct ctf_node *iter;
-	int ret;
 
 	/*
 	 * For named struct (without body), lookup in
@@ -851,6 +850,8 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 			}
 		}
 		if (!bt_list_empty(min_align)) {
+			int ret;
+
 			ret = get_unary_unsigned(min_align, &min_align_value);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for structure \"align\" attribute\n", __func__);
@@ -861,12 +862,16 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		struct_declaration = struct_declaration_new(declaration_scope,
 							    min_align_value);
 		bt_list_for_each_entry(iter, declaration_list, siblings) {
+			int ret;
+
 			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
 				struct_declaration, trace);
 			if (ret)
 				goto error_free_declaration;
 		}
 		if (name) {
+			int ret;
+
 			ret = register_struct_declaration(g_quark_from_string(name),
 					struct_declaration,
 					declaration_scope);
