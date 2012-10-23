@@ -188,6 +188,8 @@ void process_callbacks(struct bt_ctf_iter *iter,
 	assert(iter && stream);
 
 	ret = extract_ctf_stream_event(stream, &ctf_data);
+	if (ret)
+		goto end;
 
 	/* process all events callback first */
 	if (iter->main_callbacks.callback) {
