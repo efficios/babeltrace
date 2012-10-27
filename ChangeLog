@@ -1,3 +1,13 @@
+2012-10-27 Babeltrace 1.0.0
+	* tests: add test traces to distribution tarball
+	* Document bash requirement for make check in README
+	* Add tests to make check
+	* Fix: add missing header size validation
+	* callbacks.c: handle extract_ctf_stream_event return value
+	* Cleanup: fix cppcheck warning
+	* Cleanup: fix cppcheck warnings
+	* fix double-free on error path
+
 2012-10-18 Babeltrace 1.0.0-rc6
 	* Add valgrind suppression file for libpopt
 	* Fix: unplug memory leak that causes popt-0.13 to segfault
