@@ -61,3 +61,5 @@ compile the git repository tree :
 If you get the tree from the repository, you will need to use the "bootstrap"
 script in the root of the tree. It calls all the GNU tools needed to prepare the
 tree configuration.
+
+Running "make check": bash is required.
