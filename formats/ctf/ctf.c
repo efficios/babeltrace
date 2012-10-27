@@ -902,6 +902,9 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 			return -EINVAL;
 	}
 
+	if ((header.content_size / CHAR_BIT) < header_sizeof(header))
+		return -EINVAL;
+
 	toread = (header.content_size / CHAR_BIT) - header_sizeof(header);
 
 	for (;;) {
