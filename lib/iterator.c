@@ -471,6 +471,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 					if (ret != 0 && ret != EOF) {
 						goto error;
 					}
+					if (ret == EOF) {
+						/* Do not add EOF streams */
+						continue;
+					}
 					ret = heap_insert(iter->stream_heap, file_stream);
 					if (ret)
 						goto error;
