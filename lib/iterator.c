@@ -253,7 +253,7 @@ static int find_max_timestamp_ctf_stream_class(
 		struct ctf_file_stream **cfsp,
 		uint64_t *max_timestamp)
 {
-	int ret = EOF, i;
+	int ret = EOF, i, found = 0;
 
 	for (i = 0; i < stream_class->streams->len; i++) {
 		struct ctf_stream_definition *stream;
@@ -272,9 +272,13 @@ static int find_max_timestamp_ctf_stream_class(
 		if (current_max_ts >= *max_timestamp) {
 			*max_timestamp = current_max_ts;
 			*cfsp = cfs;
+			found = 1;
 		}
 	}
 	assert(ret >= 0 || ret == EOF);
+	if (found) {
+		return 0;
+	}
 	return ret;
 }
 
