@@ -1,4 +1,5 @@
 /tests/test-bitfield
+/tests/lib/test-seeks
 *.o
 *.a
 *.la

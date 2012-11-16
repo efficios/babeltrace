@@ -106,6 +106,7 @@ AC_CONFIG_FILES([
 	lib/prio_heap/Makefile
 	include/Makefile
 	tests/Makefile
+	tests/lib/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 ])
