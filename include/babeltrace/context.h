@@ -72,7 +72,7 @@ struct bt_context *bt_context_create(void);
  *
  * stream_list is a linked list of streams, it is used to open a trace where
  * the trace data is located in memory mapped areas instead of trace files,
- * this argument should be set to NULL when path is NULL.
+ * this argument should be non-NULL when path is NULL.
  *
  * The metadata parameter acts as a metadata override when not NULL, otherwise
  * the format handles the metadata opening.
