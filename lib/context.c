@@ -90,16 +90,16 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (path) {
 		td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
 		if (!td) {
-			fprintf(stderr, "[warning] [Context] Cannot open_trace of the format %s .\n\n",
-					path);
+			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n\n",
+					format_name, path);
 			ret = -1;
 			goto end;
 		}
 	} else {
 		td = fmt->open_mmap_trace(stream_list, packet_seek, metadata);
 		if (!td) {
-			fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
-					path);
+			fprintf(stderr, "[error] [Context] Cannot open_mmap_trace of format %s.\n\n",
+					format_name);
 			ret = -1;
 			goto end;
 		}
