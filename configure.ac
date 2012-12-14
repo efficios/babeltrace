@@ -109,5 +109,6 @@ AC_CONFIG_FILES([
 	tests/lib/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
+	babeltrace.pc
 ])
 AC_OUTPUT
