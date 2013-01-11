@@ -2,7 +2,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 noinst_LIBRARIES = libtestcommon.a
 
-libtestcommon_a_SOURCES = tap.c common.c
+libtestcommon_a_SOURCES = tap.c tap.h common.c common.h
 
 test_seeks_LDADD = libtestcommon.a \
 	$(top_builddir)/lib/libbabeltrace.la \
@@ -11,6 +11,8 @@ test_seeks_LDADD = libtestcommon.a \
 noinst_PROGRAMS = test-seeks
 
 test_seeks_SOURCES = test-seeks.c
+
+EXTRA_DIST = README.tap
 
 check-am:
 	./runall.sh
