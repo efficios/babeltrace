@@ -1,3 +1,6 @@
+2012-01-11 Babeltrace 1.0.2
+	* Fix: add tests/lib missing files to Makefile.am
+
 2012-01-11 Babeltrace 1.0.1
 	* Provides a basic pkg-config file for libbabeltrace
 	* Fix erroneous warning/error messages
