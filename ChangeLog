@@ -1,3 +1,16 @@
+2012-01-11 Babeltrace 1.0.1
+	* Provides a basic pkg-config file for libbabeltrace
+	* Fix erroneous warning/error messages
+	* Fix comment in context.h
+	* Cleanup: Remove whitespace at EOL from mit-license.txt
+	* Add missing permission notice in each source file
+	* Adding a test which do a sequence of seek BEGIN, LAST, BEGIN, LAST
+	* Run seek tests on a second trace file
+	* Add #define _GNU_SOURCE to remove warning about asprintf
+	* Include a test for SEEK_BEGIN and SEEK_LAST
+	* Fix: Report success even if we find at least one valid stream in find_max_timestamp_ctf_stream_class
+	* Fix SEEK_BEGIN for streams that do not contain any event
+
 2012-10-27 Babeltrace 1.0.0
 	* tests: add test traces to distribution tarball
 	* Document bash requirement for make check in README
