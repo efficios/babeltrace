@@ -14,6 +14,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdio.h>
@@ -211,6 +219,12 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 			if (ret)
 				return ret;
 		}
+		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
 		break;
 
 	case NODE_EVENT:
@@ -247,6 +261,14 @@ int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node)
 		break;
 	case NODE_CLOCK:
 		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
+			iter->parent = node;
+			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
+	case NODE_CALLSITE:
+		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(fd, depth + 1, iter);
 			if (ret)

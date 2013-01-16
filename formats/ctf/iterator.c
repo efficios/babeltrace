@@ -17,6 +17,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/babeltrace.h>
@@ -47,7 +55,8 @@ struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 		g_free(iter);
 		return NULL;
 	}
-	iter->callbacks = g_array_new(0, 1, sizeof(struct bt_stream_callbacks));
+	iter->callbacks = g_array_new(FALSE, TRUE,
+			sizeof(struct bt_stream_callbacks));
 	iter->recalculate_dep_graph = 0;
 	iter->main_callbacks.callback = NULL;
 	iter->dep_gc = g_ptr_array_new();
@@ -81,6 +90,8 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 		}
 		g_array_free(bt_stream_cb->per_id_callbacks, TRUE);
 	}
+	g_array_free(iter->callbacks, TRUE);
+	g_ptr_array_free(iter->dep_gc, TRUE);
 
 	bt_iter_fini(&iter->parent);
 	g_free(iter);
@@ -94,11 +105,13 @@ struct bt_iter *bt_ctf_get_iter(struct bt_ctf_iter *iter)
 	return &iter->parent;
 }
 
-struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
+		int *flags)
 {
 	struct ctf_file_stream *file_stream;
 	struct bt_ctf_event *ret;
 	struct ctf_stream_definition *stream;
+	struct packet_index *packet_index;
 
 	/*
 	 * We do not want to fail for any other reason than end of
@@ -116,6 +129,24 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
 	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
+	if (flags)
+		*flags = 0;
+	if (!file_stream->pos.packet_cycles_index)
+		packet_index = NULL;
+	else
+		packet_index = &g_array_index(file_stream->pos.packet_cycles_index,
+				struct packet_index, file_stream->pos.cur_index);
+	iter->events_lost = 0;
+	if (packet_index && packet_index->events_discarded >
+			file_stream->pos.last_events_discarded) {
+		if (flags)
+			*flags |= BT_ITER_FLAG_LOST_EVENTS;
+		iter->events_lost += packet_index->events_discarded -
+			file_stream->pos.last_events_discarded;
+		file_stream->pos.last_events_discarded =
+			packet_index->events_discarded;
+	}
+
 	if (ret->parent->stream->stream_id > iter->callbacks->len)
 		goto end;
 
@@ -125,4 +156,17 @@ end:
 	return ret;
 stop:
 	return NULL;
+}
+
+struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter)
+{
+	return bt_ctf_iter_read_event_flags(iter, NULL);
+}
+
+uint64_t bt_ctf_get_lost_events_count(struct bt_ctf_iter *iter)
+{
+	if (!iter)
+		return -1ULL;
+
+	return iter->events_lost;
 }

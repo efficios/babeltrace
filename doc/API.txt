@@ -28,6 +28,20 @@ TERMINOLOGY
 * A "trace handle" is a unique identifier representing a trace file.
   It allows the user to manipulate a trace directly.
 
+* The "declaration" of a field or an event, is the structure which contains
+  the representaion of an object as declared in the metadata. All the
+  declarations of all events and fields can be accessed as soon as the trace is
+  open, but of course they contain no trace data, just the layout.
+
+* The "definition" of a field or an event is the structure in which the actual
+  trace data is contained. When we read an event in the trace, we access its
+  definition and we can access all the field definitions contained in all the
+  scopes of this event to the get the actual data.
+
+* "Scopes" allow specifying the level at which the information about the
+  current event must be fetched: event header, event payload, event context,
+  stream context. Compound-type (arrays, structures, sequences and variants)
+  fields are relative scopes which contain fields.
 
 
 USAGE
@@ -76,6 +90,14 @@ creation will return NULL. The previous iterator must be destroyed before
 creation of the new iterator. In the future, creation of multiples iterators
 will be allowed.
 
+The bt_ctf_iter_read_event_flags() function has the same behaviour as
+bt_ctf_iter_read_event() but takes an additionnal flag pointer. This flag is
+used to inform the user if a special condition occured while reading the event.
+As of now, only the BT_ITER_LOST_EVENTS is handled, it informs the user that
+some events were discarded by the tracer. To get the number of events lost
+immediately prior to the last event read, the user can call the
+bt_ctf_get_lost_events_count() function.
+
 Finally, we have the bt_ctf_get_iter() function which returns a struct bt_iter
 with which the iterator can be moved using one of these functions:
 	bt_iter_next(),		moves the iterator to the next event
@@ -117,8 +139,13 @@ variant)
 
 For more information on each scope, see the CTF specifications.
 
-The function to get a field list is the bt_ctf_get_field_list(). The function
-to get the definition of a specific field is bt_ctf_get_field().
+The bt_ctf_get_field_list() function gives access to the list of fields in the
+current event. The bt_ctf_get_field() function gives acces to of a specific
+field of an event.
+
+The bt_ctf_get_event_decl_list() and bt_ctf_get_decl_fields() functions give
+respectively access to the list of the events declared in a trace and the list
+of the fields declared in an event.
 
 Once the field is obtained, we can obtain its name and type using the
 bt_ctf_field_name() and bt_ctf_field_type() functions respectively. The
@@ -135,8 +162,8 @@ possible types are defined in the ctf_type_id enum:
 	CTF_TYPE_SEQUENCE,
 	NR_CTF_TYPES.
 
-Depending on the field type, we can get informations about the field with these
-functions:
+Depending on the field type, we can get informations about the field with the
+following functions:
 	* bt_ctf_get_index()		return the element at the index
 					position of an array of a sequence;
 
@@ -158,7 +185,13 @@ functions:
 						CTF_STRING_ASCII,
 						CTF_STRING_UNKNOWN.
 
-These functions give access to the value associated with a field :
+All of these functions require a field declaration as parameter, depending on
+the source type of data (struct definition* or struct bt_ctf_field_decl*), the
+user might have to call bt_ctf_get_decl_from_def() or
+bt_ctf_get_decl_from_field_decl().
+
+The following functions give access to the value associated with a field
+defintion:
 	* bt_ctf_get_uint64();
 	* bt_ctf_get_int64();
 	* bt_ctf_get_char_array();

@@ -13,3 +13,10 @@ in both free and proprietary software. See mit-license.txt for details.
 
 Library test code is distributed under the GPLv2 license, as specified in the
 per-file license. See gpl-2.0.txt for details.
+
+* LGPLv2.1
+
+The file include/babeltrace/list.h is licensed under LGPLv2.1. It only
+contains trivial static inline functions and macros, and, therefore,
+including it does not make babeltrace a derivative work on this header.
+Please refer to the LGPLv2.1 license for details.

@@ -21,6 +21,14 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <unistd.h>
@@ -64,7 +72,7 @@ struct bt_context *bt_context_create(void);
  *
  * stream_list is a linked list of streams, it is used to open a trace where
  * the trace data is located in memory mapped areas instead of trace files,
- * this argument should be set to NULL when path is NULL.
+ * this argument should be non-NULL when path is NULL.
  *
  * The metadata parameter acts as a metadata override when not NULL, otherwise
  * the format handles the metadata opening.

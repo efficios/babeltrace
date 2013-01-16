@@ -14,6 +14,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdio.h>
@@ -508,6 +516,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				fprintf(fd, "[error] %s: cannot create array declaration.\n", __func__);
 				return NULL;
 			}
+			declaration_unref(nested_declaration);
 			declaration = &array_declaration->p;
 			break;
 		}
@@ -520,9 +529,12 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			sequence_declaration = sequence_declaration_new(length_name, nested_declaration, declaration_scope);
 			if (!sequence_declaration) {
 				fprintf(fd, "[error] %s: cannot create sequence declaration.\n", __func__);
+				g_free(length_name);
 				return NULL;
 			}
+			declaration_unref(nested_declaration);
 			declaration = &sequence_declaration->p;
+			g_free(length_name);
 			break;
 		}
 		default:
@@ -571,6 +583,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 		struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
+		declaration_unref(field_declaration);
 	}
 	return 0;
 }
@@ -604,10 +617,10 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 			return -EINVAL;
 		}
 
-
 		untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
+		declaration_unref(field_declaration);
 	}
 	return 0;
 }
@@ -647,6 +660,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 			type_declaration->declaration_free(type_declaration);
 			return ret;
 		}
+		declaration_unref(type_declaration);
 	}
 	return 0;
 }
@@ -711,6 +725,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	err = register_declaration(alias_q, type_declaration, scope);
 	if (err)
 		goto error;
+	declaration_unref(type_declaration);
 	return 0;
 
 error:
@@ -816,7 +831,6 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 {
 	struct declaration_struct *struct_declaration;
 	struct ctf_node *iter;
-	int ret;
 
 	/*
 	 * For named struct (without body), lookup in
@@ -828,6 +842,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		struct_declaration =
 			lookup_struct_declaration(g_quark_from_string(name),
 						  declaration_scope);
+		declaration_ref(&struct_declaration->p);
 		return &struct_declaration->p;
 	} else {
 		uint64_t min_align_value = 0;
@@ -843,6 +858,8 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 			}
 		}
 		if (!bt_list_empty(min_align)) {
+			int ret;
+
 			ret = get_unary_unsigned(min_align, &min_align_value);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for structure \"align\" attribute\n", __func__);
@@ -853,12 +870,16 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		struct_declaration = struct_declaration_new(declaration_scope,
 							    min_align_value);
 		bt_list_for_each_entry(iter, declaration_list, siblings) {
+			int ret;
+
 			ret = ctf_struct_declaration_list_visit(fd, depth + 1, iter,
 				struct_declaration, trace);
 			if (ret)
 				goto error_free_declaration;
 		}
 		if (name) {
+			int ret;
+
 			ret = register_struct_declaration(g_quark_from_string(name),
 					struct_declaration,
 					declaration_scope);
@@ -882,7 +903,6 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 	struct declaration_untagged_variant *untagged_variant_declaration;
 	struct declaration_variant *variant_declaration;
 	struct ctf_node *iter;
-	int ret;
 
 	/*
 	 * For named variant (without body), lookup in
@@ -894,6 +914,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		untagged_variant_declaration =
 			lookup_variant_declaration(g_quark_from_string(name),
 						   declaration_scope);
+		declaration_ref(&untagged_variant_declaration->p);
 	} else {
 		/* For unnamed variant, create type */
 		/* For named variant (with body), create type and add to declaration scope */
@@ -907,12 +928,16 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		}
 		untagged_variant_declaration = untagged_variant_declaration_new(declaration_scope);
 		bt_list_for_each_entry(iter, declaration_list, siblings) {
+			int ret;
+
 			ret = ctf_variant_declaration_list_visit(fd, depth + 1, iter,
 				untagged_variant_declaration, trace);
 			if (ret)
 				goto error;
 		}
 		if (name) {
+			int ret;
+
 			ret = register_variant_declaration(g_quark_from_string(name),
 					untagged_variant_declaration,
 					declaration_scope);
@@ -1042,7 +1067,6 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 	struct last_enum_value last_value;
 	struct ctf_node *iter;
 	GQuark dummy_id;
-	int ret;
 
 	/*
 	 * For named enum (without body), lookup in
@@ -1054,6 +1078,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		enum_declaration =
 			lookup_enum_declaration(g_quark_from_string(name),
 						declaration_scope);
+		declaration_ref(&enum_declaration->p);
 		return &enum_declaration->p;
 	} else {
 		/* For unnamed enum, create type */
@@ -1097,16 +1122,21 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			last_value.u.u = 0;
 		}
 		bt_list_for_each_entry(iter, enumerator_list, siblings) {
+			int ret;
+
 			ret = ctf_enumerator_list_visit(fd, depth + 1, iter, enum_declaration,
 					&last_value);
 			if (ret)
 				goto error;
 		}
 		if (name) {
+			int ret;
+
 			ret = register_enum_declaration(g_quark_from_string(name),
 					enum_declaration,
 					declaration_scope);
 			assert(!ret);
+			declaration_unref(&enum_declaration->p);
 		}
 		return &enum_declaration->p;
 	}
@@ -1134,6 +1164,7 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 	id_q = g_quark_from_string(str_c);
 	g_free(str_c);
 	declaration = lookup_declaration(id_q, declaration_scope);
+	declaration_ref(declaration);
 	return declaration;
 }
 
@@ -1741,6 +1772,23 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			event->loglevel = (int) loglevel;
 			CTF_EVENT_SET_FIELD(event, loglevel);
+		} else if (!strcmp(left, "model.emf.uri")) {
+			char *right;
+
+			if (CTF_EVENT_FIELD_IS_SET(event, model_emf_uri)) {
+				fprintf(fd, "[error] %s: model.emf.uri already declared in event declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for event model.emf.uri\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			event->model_emf_uri = g_quark_from_string(right);
+			g_free(right);
+			CTF_EVENT_SET_FIELD(event, model_emf_uri);
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in event declaration.\n", __func__, left);
 			/* Fall-through after warning */
@@ -2417,6 +2465,176 @@ void clock_free(gpointer data)
 }
 
 static
+int ctf_callsite_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
+		struct ctf_callsite *callsite, struct ctf_trace *trace)
+{
+	int ret = 0;
+
+	switch (node->type) {
+	case NODE_CTF_EXPRESSION:
+	{
+		char *left;
+
+		left = concatenate_unary_strings(&node->u.ctf_expression.left);
+		if (!strcmp(left, "name")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, name)) {
+				fprintf(fd, "[error] %s: name already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite name\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->name = g_quark_from_string(right);
+			g_free(right);
+			CTF_CALLSITE_SET_FIELD(callsite, name);
+		} else if (!strcmp(left, "func")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, func)) {
+				fprintf(fd, "[error] %s: func already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite func\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->func = right;
+			CTF_CALLSITE_SET_FIELD(callsite, func);
+		} else if (!strcmp(left, "file")) {
+			char *right;
+
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, file)) {
+				fprintf(fd, "[error] %s: file already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite file\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			callsite->file = right;
+			CTF_CALLSITE_SET_FIELD(callsite, file);
+		} else if (!strcmp(left, "line")) {
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, line)) {
+				fprintf(fd, "[error] %s: line already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &callsite->line);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite line\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			CTF_CALLSITE_SET_FIELD(callsite, line);
+		} else if (!strcmp(left, "ip")) {
+			if (CTF_CALLSITE_FIELD_IS_SET(callsite, ip)) {
+				fprintf(fd, "[error] %s: ip already declared in callsite declaration\n", __func__);
+				ret = -EPERM;
+				goto error;
+			}
+			ret = get_unary_unsigned(&node->u.ctf_expression.right, &callsite->ip);
+			if (ret) {
+				fprintf(fd, "[error] %s: unexpected unary expression for callsite ip\n", __func__);
+				ret = -EINVAL;
+				goto error;
+			}
+			CTF_CALLSITE_SET_FIELD(callsite, ip);
+		} else {
+			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in callsite declaration.\n", __func__, left);
+		}
+
+error:
+		g_free(left);
+		break;
+	}
+	default:
+		return -EPERM;
+	/* TODO: declaration specifier should be added. */
+	}
+
+	return ret;
+}
+
+static
+int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
+{
+	int ret = 0;
+	struct ctf_node *iter;
+	struct ctf_callsite *callsite;
+	struct ctf_callsite_dups *cs_dups;
+
+	callsite = g_new0(struct ctf_callsite, 1);
+	bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
+		ret = ctf_callsite_declaration_visit(fd, depth + 1, iter, callsite, trace);
+		if (ret)
+			goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, name)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing name field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, func)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing func field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, file)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing file field in callsite declaration\n", __func__);
+		goto error;
+	}
+	if (!CTF_CALLSITE_FIELD_IS_SET(callsite, line)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: missing line field in callsite declaration\n", __func__);
+		goto error;
+	}
+
+	cs_dups = g_hash_table_lookup(trace->callsites,
+		(gpointer) (unsigned long) callsite->name);
+	if (!cs_dups) {
+		cs_dups = g_new0(struct ctf_callsite_dups, 1);
+		BT_INIT_LIST_HEAD(&cs_dups->head);
+		g_hash_table_insert(trace->callsites,
+			(gpointer) (unsigned long) callsite->name, cs_dups);
+	}
+	bt_list_add_tail(&callsite->node, &cs_dups->head);
+	return 0;
+
+error:
+	g_free(callsite->func);
+	g_free(callsite->file);
+	g_free(callsite);
+	return ret;
+}
+
+static
+void callsite_free(gpointer data)
+{
+	struct ctf_callsite_dups *cs_dups = data;
+	struct ctf_callsite *callsite, *cs_n;
+
+	bt_list_for_each_entry_safe(callsite, cs_n, &cs_dups->head, node) {
+		g_free(callsite->func);
+		g_free(callsite->file);
+		g_free(callsite);
+	}
+	g_free(cs_dups);
+}
+
+static
 int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 		struct ctf_trace *trace)
 {
@@ -2458,6 +2676,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->procname, right, TRACER_ENV_LEN);
 			env->procname[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.procname = \"%s\"\n", env->procname);
+			g_free(right);
 		} else if (!strcmp(left, "hostname")) {
 			char *right;
 
@@ -2473,6 +2692,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->hostname, right, TRACER_ENV_LEN);
 			env->hostname[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.hostname = \"%s\"\n", env->hostname);
+			g_free(right);
 		} else if (!strcmp(left, "domain")) {
 			char *right;
 
@@ -2488,6 +2708,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->domain, right, TRACER_ENV_LEN);
 			env->domain[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.domain = \"%s\"\n", env->domain);
+			g_free(right);
 		} else if (!strcmp(left, "sysname")) {
 			char *right;
 
@@ -2503,6 +2724,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->sysname, right, TRACER_ENV_LEN);
 			env->sysname[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.sysname = \"%s\"\n", env->sysname);
+			g_free(right);
 		} else if (!strcmp(left, "kernel_release")) {
 			char *right;
 
@@ -2518,6 +2740,7 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->release, right, TRACER_ENV_LEN);
 			env->release[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.release = \"%s\"\n", env->release);
+			g_free(right);
 		} else if (!strcmp(left, "kernel_version")) {
 			char *right;
 
@@ -2533,12 +2756,14 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			strncpy(env->version, right, TRACER_ENV_LEN);
 			env->version[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.version = \"%s\"\n", env->version);
+			g_free(right);
 		} else {
 			if (is_unary_string(&node->u.ctf_expression.right)) {
 				char *right;
 
 				right = concatenate_unary_strings(&node->u.ctf_expression.right);
 				printf_verbose("env.%s = \"%s\"\n", left, right);
+				g_free(right);
 			} else if (is_unary_unsigned(&node->u.ctf_expression.right)) {
 				uint64_t v;
 				int ret;
@@ -2636,7 +2861,6 @@ int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struc
 	return 0;
 }
 
-/* TODO: missing metadata "destroy" (memory leak) */
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 		struct ctf_trace *trace, int byte_order)
 {
@@ -2648,6 +2872,8 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	trace->byte_order = byte_order;
 	trace->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 				NULL, clock_free);
+	trace->callsites = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+				NULL, callsite_free);
 
 retry:
 	trace->root_declaration_scope = new_declaration_scope(NULL);
@@ -2697,6 +2923,14 @@ retry:
 				goto error;
 			}
 		}
+		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
+			ret = ctf_callsite_visit(fd, depth + 1, iter,
+					      trace);
+			if (ret) {
+				fprintf(fd, "[error] %s: callsite declaration error\n", __func__);
+				goto error;
+			}
+		}
 		if (!trace->streams) {
 			fprintf(fd, "[error] %s: missing trace declaration\n", __func__);
 			ret = -EINVAL;
@@ -2738,6 +2972,110 @@ retry:
 
 error:
 	free_declaration_scope(trace->root_declaration_scope);
+	g_hash_table_destroy(trace->callsites);
 	g_hash_table_destroy(trace->clocks);
 	return ret;
+}
+
+int ctf_destroy_metadata(struct ctf_trace *trace)
+{
+	int i;
+	struct ctf_file_stream *metadata_stream;
+
+	if (trace->streams) {
+		for (i = 0; i < trace->streams->len; i++) {
+			struct ctf_stream_declaration *stream;
+			int j;
+
+			stream = g_ptr_array_index(trace->streams, i);
+			if (!stream)
+				continue;
+			for (j = 0; j < stream->streams->len; j++) {
+				struct ctf_stream_definition *stream_def;
+				int k;
+
+				stream_def = g_ptr_array_index(stream->streams, j);
+				if (!stream_def)
+					continue;
+				for (k = 0; k < stream_def->events_by_id->len; k++) {
+					struct ctf_event_definition *event;
+
+					event = g_ptr_array_index(stream_def->events_by_id, k);
+					if (!event)
+						continue;
+					if (&event->event_fields->p)
+						definition_unref(&event->event_fields->p);
+					if (&event->event_context->p)
+						definition_unref(&event->event_context->p);
+					g_free(event);
+				}
+				if (&stream_def->trace_packet_header->p)
+					definition_unref(&stream_def->trace_packet_header->p);
+				if (&stream_def->stream_event_header->p)
+					definition_unref(&stream_def->stream_event_header->p);
+				if (&stream_def->stream_packet_context->p)
+					definition_unref(&stream_def->stream_packet_context->p);
+				if (&stream_def->stream_event_context->p)
+					definition_unref(&stream_def->stream_event_context->p);
+				g_ptr_array_free(stream_def->events_by_id, TRUE);
+				g_free(stream_def);
+			}
+			if (stream->event_header_decl)
+				declaration_unref(&stream->event_header_decl->p);
+			if (stream->event_context_decl)
+				declaration_unref(&stream->event_context_decl->p);
+			if (stream->packet_context_decl)
+				declaration_unref(&stream->packet_context_decl->p);
+			g_ptr_array_free(stream->streams, TRUE);
+			g_ptr_array_free(stream->events_by_id, TRUE);
+			g_hash_table_destroy(stream->event_quark_to_id);
+			free_declaration_scope(stream->declaration_scope);
+			g_free(stream);
+		}
+		g_ptr_array_free(trace->streams, TRUE);
+	}
+
+	if (trace->event_declarations) {
+		for (i = 0; i < trace->event_declarations->len; i++) {
+			struct bt_ctf_event_decl *event_decl;
+			struct ctf_event_declaration *event;
+
+			event_decl = g_ptr_array_index(trace->event_declarations, i);
+			if (event_decl->context_decl)
+				g_ptr_array_free(event_decl->context_decl, TRUE);
+			if (event_decl->fields_decl)
+				g_ptr_array_free(event_decl->fields_decl, TRUE);
+			if (event_decl->packet_header_decl)
+				g_ptr_array_free(event_decl->packet_header_decl, TRUE);
+			if (event_decl->event_context_decl)
+				g_ptr_array_free(event_decl->event_context_decl, TRUE);
+			if (event_decl->event_header_decl)
+				g_ptr_array_free(event_decl->event_header_decl, TRUE);
+			if (event_decl->packet_context_decl)
+				g_ptr_array_free(event_decl->packet_context_decl, TRUE);
+
+			event = &event_decl->parent;
+			if (event->fields_decl)
+				declaration_unref(&event->fields_decl->p);
+			if (event->context_decl)
+				declaration_unref(&event->context_decl->p);
+			free_declaration_scope(event->declaration_scope);
+
+			g_free(event);
+		}
+		g_ptr_array_free(trace->event_declarations, TRUE);
+	}
+	if (trace->packet_header_decl)
+		declaration_unref(&trace->packet_header_decl->p);
+
+	free_declaration_scope(trace->root_declaration_scope);
+	free_declaration_scope(trace->declaration_scope);
+
+	g_hash_table_destroy(trace->callsites);
+	g_hash_table_destroy(trace->clocks);
+
+	metadata_stream = container_of(trace->metadata, struct ctf_file_stream, parent);
+	g_free(metadata_stream);
+
+	return 0;
 }

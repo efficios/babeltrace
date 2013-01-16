@@ -14,6 +14,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdio.h>
@@ -110,6 +118,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_TYPEDEF:
 	case NODE_TYPEALIAS_TARGET:
 	case NODE_TYPEALIAS_ALIAS:
@@ -214,6 +223,7 @@ int ctf_visitor_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_UNARY_EXPRESSION:
 	case NODE_TYPEALIAS:
 	case NODE_TYPE_SPECIFIER:
@@ -255,6 +265,7 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_UNARY_EXPRESSION:
 	case NODE_TYPEALIAS:
 	case NODE_TYPE_SPECIFIER:
@@ -337,6 +348,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	case NODE_ENV:
 	case NODE_TRACE:
 	case NODE_CLOCK:
+	case NODE_CALLSITE:
 	case NODE_CTF_EXPRESSION:
 	case NODE_UNARY_EXPRESSION:
 	case NODE_TYPEALIAS:
@@ -516,7 +528,20 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 				return ret;
 		}
 		break;
+	case NODE_CALLSITE:
+		switch (node->parent->type) {
+		case NODE_ROOT:
+			break;			/* OK */
+		default:
+			goto errinval;
+		}
 
+		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
+			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			if (ret)
+				return ret;
+		}
+		break;
 
 	case NODE_CTF_EXPRESSION:
 		switch (node->parent->type) {
@@ -526,6 +551,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ENV:
 		case NODE_TRACE:
 		case NODE_CLOCK:
+		case NODE_CALLSITE:
 		case NODE_FLOATING_POINT:
 		case NODE_INTEGER:
 		case NODE_STRING:
@@ -593,6 +619,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ENUMERATOR:
 		case NODE_ENUM:
 		case NODE_CLOCK:
+		case NODE_CALLSITE:
 		case NODE_ENV:
 		default:
 			goto errinval;
@@ -699,6 +726,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		case NODE_ENUMERATOR:
 		case NODE_ENUM:
 		case NODE_CLOCK:
+		case NODE_CALLSITE:
 		case NODE_ENV:
 		default:
 			goto errinval;

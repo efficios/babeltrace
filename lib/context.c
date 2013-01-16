@@ -17,6 +17,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/babeltrace.h>
@@ -67,7 +75,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	struct trace_descriptor *td;
 	struct format *fmt;
 	struct bt_trace_handle *handle;
-	int ret;
+	int ret, closeret;
 
 	if (!ctx || !format_name || (!path && !stream_list))
 		return -EINVAL;
@@ -82,16 +90,16 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (path) {
 		td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
 		if (!td) {
-			fprintf(stderr, "[warning] [Context] Cannot open_trace of the format %s .\n\n",
-					path);
+			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n\n",
+					format_name, path);
 			ret = -1;
 			goto end;
 		}
 	} else {
 		td = fmt->open_mmap_trace(stream_list, packet_seek, metadata);
 		if (!td) {
-			fprintf(stderr, "[error] [Context] Cannot open_trace of the format %s .\n\n",
-					path);
+			fprintf(stderr, "[error] [Context] Cannot open_mmap_trace of format %s.\n\n",
+					format_name);
 			ret = -1;
 			goto end;
 		}
@@ -103,7 +111,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		ret = -1;
-		goto end;
+		goto error;
 	}
 	handle->format = fmt;
 	handle->td = td;
@@ -123,11 +131,11 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		handle);
 	ret = trace_collection_add(ctx->tc, td);
 	if (ret != 0)
-		goto end;
+		goto error;
 
 	ret = fmt->convert_index_timestamp(td);
 	if (ret < 0)
-		goto end;
+		goto error;
 
 	handle->real_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_REAL);
 	handle->real_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_REAL);
@@ -135,6 +143,12 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	handle->cycles_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_CYCLES);
 
 	return handle->id;
+
+error:
+	closeret = fmt->close_trace(td);
+	if (closeret) {
+		fprintf(stderr, "Error in close_trace callback\n");
+	}
 end:
 	return ret;
 }
@@ -142,6 +156,7 @@ end:
 int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 {
 	struct bt_trace_handle *handle;
+	int ret;
 
 	if (!ctx)
 		return -EINVAL;
@@ -154,8 +169,11 @@ int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 	/* Remove from containers */
 	trace_collection_remove(ctx->tc, handle->td);
 	/* Close the trace */
-	handle->format->close_trace(handle->td);
-
+	ret = handle->format->close_trace(handle->td);
+	if (ret) {
+		fprintf(stderr, "Error in close_trace callback\n");
+		return ret;
+	}
 	/* Remove and free the handle */
 	g_hash_table_remove(ctx->trace_handles,
 			(gpointer) (unsigned long) handle_id);
@@ -168,7 +186,8 @@ void bt_context_destroy(struct bt_context *ctx)
 	assert(ctx);
 	finalize_trace_collection(ctx->tc);
 
-	/* Remote all traces. The g_hash_table_destroy will call
+	/*
+	 * Remove all traces. The g_hash_table_destroy will call
 	 * bt_trace_handle_destroy on each elements.
 	 */
 	g_hash_table_destroy(ctx->trace_handles);

@@ -1,0 +1,21 @@
+This document describes some principles that should be respected when
+developing in Babeltrace.
+
+Memory usage :
+
+Since Babeltrace exports a library, we need to make sure that all allocated
+memory is freed, we do not want any memory leaks.
+Since Babeltrace uses the glib, it is necessary to assist a little valgrind
+when trying to identify memory leaks.
+
+libpopt has issues with inconsistency between versions. Namely, libpopt
+0.16 allocates memory for the string returned by poptgetArg(), but not
+libpopt 0.13. Therefore, we are providing a warning suppression file
+that covers this case in the extras/ directory of the source code.
+
+So the proper invocation of Babeltrace with Valgrind is :
+
+G_SLICE=always-malloc G_DEBUG=gc-friendly \
+	valgrind --leak-check=full \
+	--suppressions=path_to_babeltrace_src/extras/valgrind/popt.supp \
+	babeltrace

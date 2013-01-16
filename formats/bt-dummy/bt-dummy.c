@@ -14,6 +14,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/ctf-text/types.h>
@@ -50,12 +58,13 @@ struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
 }
 
 static
-void bt_dummy_close_trace(struct trace_descriptor *td)
+int bt_dummy_close_trace(struct trace_descriptor *td)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos,
 			trace_descriptor);
 	free(pos);
+	return 0;
 }
 
 static
@@ -74,4 +83,8 @@ void __attribute__((constructor)) bt_dummy_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) bt_dummy_exit(void)
+{
+	bt_unregister_format(&bt_dummy_format);
+}

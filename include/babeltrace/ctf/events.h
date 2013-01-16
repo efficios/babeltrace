@@ -21,6 +21,14 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdint.h>
@@ -109,9 +117,9 @@ uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
 /*
  * bt_ctf_get_field_list: obtain the list of fields for compound type
  *
- * This function can be used to obtain the list of fields 
- * contained within a compound type: array, sequence,
- * structure, or variant.
+ * This function can be used to obtain the list of fields contained
+ * within a top-level scope of an event or a compound type: array,
+ * sequence, structure, or variant.
 
  * This function sets the "list" pointer to an array of definition
  * pointers and set count to the number of elements in the array.
@@ -147,10 +155,17 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
 const char *bt_ctf_field_name(const struct definition *def);
 
 /*
- * bt_ctf_get_field_decl: return the declaration of a field or NULL
- * on error
+ * bt_ctf_get_decl_from_def: return the declaration of a field from
+ * its definition or NULL on error
  */
-const struct declaration *bt_ctf_get_field_decl(const struct definition *def);
+const struct declaration *bt_ctf_get_decl_from_def(const struct definition *def);
+
+/*
+ * bt_ctf_get_decl_from_field_decl: return the declaration of a field from
+ * a field_decl or NULL on error
+ */
+const struct declaration *bt_ctf_get_decl_from_field_decl(
+		const struct bt_ctf_field_decl *field);
 
 /*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
@@ -184,7 +199,8 @@ int bt_ctf_get_int_byte_order(const struct declaration *decl);
 ssize_t bt_ctf_get_int_len(const struct declaration *decl);
 
 /*
- * bt_ctf_get_encoding: return the encoding of an int or a string.
+ * bt_ctf_get_encoding: return the encoding of an int, a string, or of
+ * the integer contained in a char array or a sequence.
  * return a negative value on error
  */
 enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
@@ -224,10 +240,16 @@ char *bt_ctf_get_string(const struct definition *field);
 int bt_ctf_field_get_error(void);
 
 /*
- * bt_ctf_get_event_decl_list: set list pointer to an array of bt_ctf_event_decl
- * pointers and set count to the number of elements in the array.
+ * bt_ctf_get_event_decl_list: get a list of all the event declarations in
+ * a trace.
+ *
+ * The list array is pointed to the array of event declarations.
+ * The number of events in the array is written in count.
  *
  * Return 0 on success and a negative value on error.
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the trace is opened.
  */
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		struct bt_ctf_event_decl * const **list,
@@ -239,10 +261,15 @@ int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 
 /*
- * bt_ctf_get_decl_fields: set list pointer to an array of bt_ctf_field_decl
- * pointers and set count to the number of elements in the array.
+ * bt_ctf_get_decl_fields: get all field declarations in a scope of an event
+ *
+ * The list array is pointed to the array of field declaration.
+ * The number of field declaration in the array is written in count.
  *
  * Returns 0 on success and a negative value on error
+ *
+ * The content pointed to by "list" should *not* be freed. It stays
+ * valid as long as the trace is opened.
  */
 int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
 		enum bt_ctf_scope scope,

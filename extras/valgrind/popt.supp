@@ -1,0 +1,8 @@
+{
+	<poptGetArg-within-popt>
+	Memcheck:Leak
+	fun:malloc
+	fun:poptGetNextOpt
+	fun:main
+}
+

@@ -19,6 +19,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/list.h>
@@ -62,7 +70,7 @@ struct format {
 			void (*packet_seek)(struct stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
-	void (*close_trace)(struct trace_descriptor *descriptor);
+	int (*close_trace)(struct trace_descriptor *descriptor);
 	void (*set_context)(struct trace_descriptor *descriptor,
 			struct bt_context *ctx);
 	void (*set_handle)(struct trace_descriptor *descriptor,
@@ -77,8 +85,8 @@ struct format {
 extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct format *format);
+extern void bt_unregister_format(struct format *format);
 
-/* TBD: format unregistration */
 #ifdef __cplusplus
 }
 #endif

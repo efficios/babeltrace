@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/format.h>
@@ -86,7 +94,7 @@ void ctf_set_handle(struct trace_descriptor *descriptor,
 		struct bt_trace_handle *handle);
 
 static
-void ctf_close_trace(struct trace_descriptor *descriptor);
+int ctf_close_trace(struct trace_descriptor *descriptor);
 static
 uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type);
@@ -548,7 +556,7 @@ error:
 	return ret;
 }
 
-void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
+int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 {
 	pos->fd = fd;
 	if (fd >= 0) {
@@ -578,27 +586,29 @@ void ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 	default:
 		assert(0);
 	}
+	return 0;
 }
 
-void ctf_fini_pos(struct ctf_stream_pos *pos)
+int ctf_fini_pos(struct ctf_stream_pos *pos)
 {
-	int ret;
-
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 	if (pos->base_mma) {
+		int ret;
+
 		/* unmap old base */
 		ret = munmap_align(pos->base_mma);
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
-			assert(0);
+			return -1;
 		}
 	}
 	if (pos->packet_cycles_index)
 		(void) g_array_free(pos->packet_cycles_index, TRUE);
 	if (pos->packet_real_index)
 		(void) g_array_free(pos->packet_real_index, TRUE);
+	return 0;
 }
 
 /*
@@ -699,6 +709,9 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			break;
 		}
 		case SEEK_SET:
+			packet_index = &g_array_index(pos->packet_cycles_index,
+					struct packet_index, index);
+			pos->last_events_discarded = packet_index->events_discarded;
 			pos->cur_index = index;
 			file_stream->parent.prev_real_timestamp = 0;
 			file_stream->parent.prev_real_timestamp_end = 0;
@@ -897,6 +910,9 @@ int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 			return -EINVAL;
 	}
 
+	if ((header.content_size / CHAR_BIT) < header_sizeof(header))
+		return -EINVAL;
+
 	toread = (header.content_size / CHAR_BIT) - header_sizeof(header);
 
 	for (;;) {
@@ -970,11 +986,20 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	/* close to flush the buffer */
 	ret = babeltrace_close_memstream(buf, &size, out);
 	if (ret < 0) {
+		int closeret;
+
 		perror("babeltrace_flush_memstream");
-		fclose(in);
-		return -errno;
+		ret = -errno;
+		closeret = fclose(in);
+		if (closeret) {
+			perror("Error in fclose");
+		}
+		return ret;
 	}
-	fclose(in);
+	ret = fclose(in);
+	if (ret) {
+		perror("Error in fclose");
+	}
 	/* open for reading */
 	*fp = babeltrace_fmemopen(*buf, strlen(*buf), "rb");
 	if (!*fp) {
@@ -993,7 +1018,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 	struct ctf_file_stream *metadata_stream;
 	FILE *fp;
 	char *buf = NULL;
-	int ret = 0;
+	int ret = 0, closeret;
 
 	metadata_stream = g_new0(struct ctf_file_stream, 1);
 	metadata_stream->pos.last_offset = LAST_OFFSET_POISON;
@@ -1003,7 +1028,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 	} else {
 		fprintf(stderr, "[error] packet_seek function undefined.\n");
 		ret = -1;
-		goto end_stream;
+		goto end_free;
 	}
 
 	if (metadata_fp) {
@@ -1014,7 +1039,8 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		metadata_stream->pos.fd = openat(td->dirfd, "metadata", O_RDONLY);
 		if (metadata_stream->pos.fd < 0) {
 			fprintf(stderr, "Unable to open metadata.\n");
-			return metadata_stream->pos.fd;
+			ret = -1;
+			goto end_free;
 		}
 
 		fp = fdopen(metadata_stream->pos.fd, "r");
@@ -1024,6 +1050,8 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 			ret = -errno;
 			goto end_stream;
 		}
+		/* fd now belongs to fp */
+		metadata_stream->pos.fd = -1;
 	}
 	if (babeltrace_debug)
 		yydebug = 1;
@@ -1084,12 +1112,21 @@ end:
 	ctf_scanner_free(scanner);
 end_scanner_alloc:
 end_packet_read:
-	if (fp)
-		fclose(fp);
+	if (fp) {
+		closeret = fclose(fp);
+		if (closeret) {
+			perror("Error on fclose");
+		}
+	}
 	free(buf);
 end_stream:
-	if (metadata_stream->pos.fd >= 0)
-		close(metadata_stream->pos.fd);
+	if (metadata_stream->pos.fd >= 0) {
+		closeret = close(metadata_stream->pos.fd);
+		if (closeret) {
+			perror("Error on metadata stream fd close");
+		}
+	}
+end_free:
 	if (ret)
 		g_free(metadata_stream);
 	return ret;
@@ -1264,6 +1301,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 		packet_index.timestamp_begin = 0;
 		packet_index.timestamp_end = 0;
 		packet_index.events_discarded = 0;
+		packet_index.events_discarded_len = 0;
 
 		/* read and check header, set stream id (and check) */
 		if (file_stream->parent.trace_packet_header) {
@@ -1478,7 +1516,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence))
 {
-	int ret, fd;
+	int ret, fd, closeret;
 	struct ctf_file_stream *file_stream;
 	struct stat statbuf;
 
@@ -1512,7 +1550,9 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		goto error_def;
 	}
 
-	ctf_init_pos(&file_stream->pos, fd, flags);
+	ret = ctf_init_pos(&file_stream->pos, fd, flags);
+	if (ret)
+		goto error_def;
 	ret = create_trace_definitions(td, &file_stream->parent);
 	if (ret)
 		goto error_def;
@@ -1532,11 +1572,17 @@ error_index:
 	if (file_stream->parent.trace_packet_header)
 		definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
-	ctf_fini_pos(&file_stream->pos);
+	closeret = ctf_fini_pos(&file_stream->pos);
+	if (closeret) {
+		fprintf(stderr, "Error on ctf_fini_pos\n");
+	}
 	g_free(file_stream);
 fd_is_dir_ok:
 fstat_error:
-	close(fd);
+	closeret = close(fd);
+	if (closeret) {
+		perror("Error on fd close");
+	}
 error:
 	return ret;
 }
@@ -1547,7 +1593,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
-	int ret;
+	int ret, closeret;
 	struct dirent *dirent;
 	struct dirent *diriter;
 	size_t dirent_len;
@@ -1620,9 +1666,15 @@ int ctf_open_trace_read(struct ctf_trace *td,
 readdir_error:
 	free(dirent);
 error_metadata:
-	close(td->dirfd);
+	closeret = close(td->dirfd);
+	if (closeret) {
+		perror("Error on fd close");
+	}
 error_dirfd:
-	closedir(td->dir);
+	closeret = closedir(td->dir);
+	if (closeret) {
+		perror("Error on closedir");
+	}
 error:
 	return ret;
 }
@@ -1878,19 +1930,32 @@ int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
 }
 
 static
-void ctf_close_file_stream(struct ctf_file_stream *file_stream)
+int ctf_close_file_stream(struct ctf_file_stream *file_stream)
 {
-	ctf_fini_pos(&file_stream->pos);
-	close(file_stream->pos.fd);
+	int ret;
+
+	ret = ctf_fini_pos(&file_stream->pos);
+	if (ret) {
+		fprintf(stderr, "Error on ctf_fini_pos\n");
+		return -1;
+	}
+	ret = close(file_stream->pos.fd);
+	if (ret) {
+		perror("Error closing file fd");
+		return -1;
+	}
+	return 0;
 }
 
 static
-void ctf_close_trace(struct trace_descriptor *tdp)
+int ctf_close_trace(struct trace_descriptor *tdp)
 {
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
-	int i;
+	int ret;
 
 	if (td->streams) {
+		int i;
+
 		for (i = 0; i < td->streams->len; i++) {
 			struct ctf_stream_declaration *stream;
 			int j;
@@ -1900,37 +1965,27 @@ void ctf_close_trace(struct trace_descriptor *tdp)
 				continue;
 			for (j = 0; j < stream->streams->len; j++) {
 				struct ctf_file_stream *file_stream;
-				file_stream = container_of(g_ptr_array_index(stream->streams, j), struct ctf_file_stream, parent);
-				ctf_close_file_stream(file_stream);
+				file_stream = container_of(g_ptr_array_index(stream->streams, j),
+						struct ctf_file_stream, parent);
+				ret = ctf_close_file_stream(file_stream);
+				if (ret)
+					return ret;
 			}
-
 		}
-		g_ptr_array_free(td->streams, TRUE);
 	}
-
-	if (td->event_declarations) {
-		for (i = 0; i < td->event_declarations->len; i++) {
-			struct bt_ctf_event_decl *event;
-
-			event = g_ptr_array_index(td->event_declarations, i);
-			if (event->context_decl)
-				g_ptr_array_free(event->context_decl, TRUE);
-			if (event->fields_decl)
-				g_ptr_array_free(event->fields_decl, TRUE);
-			if (event->packet_header_decl)
-				g_ptr_array_free(event->packet_header_decl, TRUE);
-			if (event->event_context_decl)
-				g_ptr_array_free(event->event_context_decl, TRUE);
-			if (event->event_header_decl)
-				g_ptr_array_free(event->event_header_decl, TRUE);
-			if (event->packet_context_decl)
-				g_ptr_array_free(event->packet_context_decl, TRUE);
-			g_free(event);
-		}
-		g_ptr_array_free(td->event_declarations, TRUE);
+	ctf_destroy_metadata(td);
+	ret = close(td->dirfd);
+	if (ret) {
+		perror("Error closing dirfd");
+		return ret;
 	}
-	closedir(td->dir);
+	ret = closedir(td->dir);
+	if (ret) {
+		perror("Error closedir");
+		return ret;
+	}
 	g_free(td);
+	return 0;
 }
 
 static
@@ -1953,6 +2008,7 @@ void ctf_set_handle(struct trace_descriptor *descriptor,
 	td->handle = handle;
 }
 
+static
 void __attribute__((constructor)) ctf_init(void)
 {
 	int ret;
@@ -1962,4 +2018,8 @@ void __attribute__((constructor)) ctf_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) ctf_exit(void)
+{
+	bt_unregister_format(&ctf_format);
+}

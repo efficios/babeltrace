@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdlib.h>
@@ -253,7 +261,7 @@ static int find_max_timestamp_ctf_stream_class(
 		struct ctf_file_stream **cfsp,
 		uint64_t *max_timestamp)
 {
-	int ret = EOF, i;
+	int ret = EOF, i, found = 0;
 
 	for (i = 0; i < stream_class->streams->len; i++) {
 		struct ctf_stream_definition *stream;
@@ -272,9 +280,13 @@ static int find_max_timestamp_ctf_stream_class(
 		if (current_max_ts >= *max_timestamp) {
 			*max_timestamp = current_max_ts;
 			*cfsp = cfs;
+			found = 1;
 		}
 	}
 	assert(ret >= 0 || ret == EOF);
+	if (found) {
+		return 0;
+	}
 	return ret;
 }
 
@@ -381,8 +393,8 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			stream->prev_cycles_timestamp = 0;
 			stream->prev_cycles_timestamp_end = 0;
 
-			printf_debug("restored to cur_index = %zd and "
-				"offset = %zd, timestamp = %" PRIu64 "\n",
+			printf_debug("restored to cur_index = %" PRId64 " and "
+				"offset = %" PRId64 ", timestamp = %" PRIu64 "\n",
 				stream_pos->cur_index,
 				stream_pos->offset, stream->real_timestamp);
 
@@ -470,6 +482,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 							stream_id);
 					if (ret != 0 && ret != EOF) {
 						goto error;
+					}
+					if (ret == EOF) {
+						/* Do not add EOF streams */
+						continue;
 					}
 					ret = heap_insert(iter->stream_heap, file_stream);
 					if (ret)

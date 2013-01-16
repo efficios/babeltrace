@@ -18,6 +18,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/format.h>
@@ -32,10 +40,13 @@ GQuark prefix_quark(const char *prefix, GQuark quark)
 {
 	GQuark nq;
 	GString *str;
+	char *quark_str;
 
 	str = g_string_new(prefix);
 	g_string_append(str, g_quark_to_string(quark));
-	nq = g_quark_from_string(g_string_free(str, FALSE));
+	quark_str = g_string_free(str, FALSE);
+	nq = g_quark_from_string(quark_str);
+	g_free(quark_str);
 	return nq;
 }
 
@@ -114,10 +125,10 @@ static int compare_paths(GArray *a, GArray *b, int len)
 
 static int is_path_child_of(GArray *path, GArray *maybe_parent)
 {
-	int i, ret;
+	int ret;
 
 	if (babeltrace_debug) {
-		int need_dot = 0;
+		int i, need_dot = 0;
 
 		printf_debug("Is path \"");
 		for (i = 0; i < path->len; need_dot = 1, i++)
@@ -494,7 +505,6 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 	GQuark path;
 	GString *str;
 	gchar *c_str;
-	int i;
 	int need_dot = 0;
 
 	str = g_string_new("");
@@ -502,6 +512,8 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 		g_string_append(str, root_name);
 		need_dot = 1;
 	} else if (parent_scope) {
+		int i;
+
 		for (i = 0; i < parent_scope->scope_path->len; i++) {
 			GQuark q = g_array_index(parent_scope->scope_path,
 						 GQuark, i);

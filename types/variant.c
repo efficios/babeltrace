@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/compiler.h>
@@ -90,8 +98,9 @@ void _variant_declaration_free(struct declaration *declaration)
 	struct declaration_variant *variant_declaration =
 		container_of(declaration, struct declaration_variant, p);
 
-	_untagged_variant_declaration_free(&variant_declaration->untagged_variant->p);
+	declaration_unref(&variant_declaration->untagged_variant->p);
 	g_array_free(variant_declaration->tag_name, TRUE);
+	g_free(variant_declaration);
 }
 
 struct declaration_variant *
@@ -244,6 +253,7 @@ void _variant_definition_free(struct definition *definition)
 	definition_unref(variant->enum_tag);
 	free_definition_scope(variant->p.scope);
 	declaration_unref(variant->p.declaration);
+	g_ptr_array_free(variant->fields, TRUE);
 	g_free(variant);
 }
 

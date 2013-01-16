@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/format.h>
@@ -29,16 +37,35 @@ struct walk_data {
 	int iter;
 };
 
-static int init_done;
-void __attribute__((constructor)) format_init(void);
-void __attribute__((destructor)) format_finalize(void);
-
 /*
  * Format registry hash table contains the registered formats. Format
  * registration is typically performed by a format plugin.
- * TODO: support plugin unload (unregistration of formats).
  */
-GHashTable *format_registry;
+static GHashTable *format_registry;
+static int format_refcount;
+static int init_done;
+
+static __attribute__((constructor)) void format_init(void);
+
+static
+void format_refcount_inc(void)
+{
+	format_refcount++;
+}
+
+static
+void format_cleanup(void)
+{
+	if (format_registry)
+		g_hash_table_destroy(format_registry);
+}
+
+static
+void format_refcount_dec(void)
+{
+	if (!--format_refcount)
+		format_cleanup();
+}
 
 struct format *bt_lookup_format(bt_intern_str name)
 {
@@ -87,22 +114,41 @@ int bt_register_format(struct format *format)
 	if (bt_lookup_format(format->name))
 		return -EEXIST;
 
+	format_refcount_inc();
 	g_hash_table_insert(format_registry,
 			    (gpointer) (unsigned long) format->name,
 			    format);
 	return 0;
 }
 
+void bt_unregister_format(struct format *format)
+{
+	assert(bt_lookup_format(format->name));
+	g_hash_table_remove(format_registry,
+			    (gpointer) (unsigned long) format->name);
+	format_refcount_dec();
+}
+
+/*
+ * We cannot assume that the constructor and destructor order will be
+ * right: another library might be loaded before us, and initialize us
+ * from bt_register_format(). This is why we use a reference count to
+ * handle cleanup of this module. The format_finalize destructor
+ * refcount decrement matches format_init refcount increment.
+ */
+static __attribute__((constructor))
 void format_init(void)
 {
 	if (init_done)
 		return;
+	format_refcount_inc();
 	format_registry = g_hash_table_new(g_direct_hash, g_direct_equal);
 	assert(format_registry);
 	init_done = 1;
 }
 
+static __attribute__((destructor))
 void format_finalize(void)
 {
-	g_hash_table_destroy(format_registry);
+	format_refcount_dec();
 }

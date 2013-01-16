@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/format.h>
@@ -49,6 +57,8 @@ int opt_all_field_names,
 	opt_trace_hostname_field,
 	opt_trace_default_fields = 1,
 	opt_loglevel_field,
+	opt_emf_field,
+	opt_callsite_field,
 	opt_delta_field = 1;
 
 enum field_item {
@@ -76,11 +86,12 @@ enum bt_loglevel {
         BT_LOGLEVEL_DEBUG                  = 14,
 };
 
-
+static
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
-void ctf_text_close_trace(struct trace_descriptor *descriptor);
+static
+int ctf_text_close_trace(struct trace_descriptor *descriptor);
 
 static
 rw_dispatch write_dispatch_table[] = {
@@ -114,6 +125,14 @@ void __attribute__((constructor)) init_quarks(void)
 	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED = g_quark_from_static_string("stream.packet.context.events_discarded");
 	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE = g_quark_from_static_string("stream.packet.context.content_size");
 	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE = g_quark_from_static_string("stream.packet.context.packet_size");
+}
+
+static
+struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
+			GQuark callsite_name)
+{
+	return g_hash_table_lookup(trace->callsites,
+			(gpointer) (unsigned long) callsite_name);
 }
 
 int print_field(struct definition *definition)
@@ -385,6 +404,55 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 			fprintf(pos->fp, ", ");
 		dom_print = 1;
 	}
+	if ((opt_emf_field || opt_all_fields) && event_class->model_emf_uri) {
+		set_field_names_print(pos, ITEM_HEADER);
+		if (pos->print_names) {
+			fprintf(pos->fp, "model.emf.uri = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
+		}
+		fprintf(pos->fp, "\"%s\"",
+			g_quark_to_string(event_class->model_emf_uri));
+		if (pos->print_names)
+			fprintf(pos->fp, ", ");
+		dom_print = 1;
+	}
+	if ((opt_callsite_field || opt_all_fields)) {
+		struct ctf_callsite_dups *cs_dups;
+		struct ctf_callsite *callsite;
+
+		cs_dups = ctf_trace_callsite_lookup(stream_class->trace,
+				event_class->name);
+		if (cs_dups) {
+			int i = 0;
+
+			set_field_names_print(pos, ITEM_HEADER);
+			if (pos->print_names) {
+				fprintf(pos->fp, "callsite = ");
+			} else if (dom_print) {
+				fprintf(pos->fp, ":");
+			}
+			fprintf(pos->fp, "[");
+			bt_list_for_each_entry(callsite, &cs_dups->head, node) {
+				if (i != 0)
+					fprintf(pos->fp, ",");
+				if (CTF_CALLSITE_FIELD_IS_SET(callsite, ip)) {
+					fprintf(pos->fp, "%s@0x%" PRIx64 ":%s:%" PRIu64 "",
+						callsite->func, callsite->ip, callsite->file,
+						callsite->line);
+				} else {
+					fprintf(pos->fp, "%s:%s:%" PRIu64 "",
+						callsite->func, callsite->file,
+						callsite->line);
+				}
+				i++;
+			}
+			fprintf(pos->fp, "]");
+			if (pos->print_names)
+				fprintf(pos->fp, ", ");
+			dom_print = 1;
+		}
+	}
 	if (dom_print && !pos->print_names)
 		fprintf(pos->fp, " ");
 	set_field_names_print(pos, ITEM_HEADER);
@@ -486,7 +554,7 @@ error:
 	return ret;
 }
 
-
+static
 struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
@@ -523,14 +591,22 @@ error:
 	return NULL;
 }
 
-void ctf_text_close_trace(struct trace_descriptor *td)
+static
+int ctf_text_close_trace(struct trace_descriptor *td)
 {
+	int ret;
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
-	fclose(pos->fp);
+	ret = fclose(pos->fp);
+	if (ret) {
+		perror("Error on fclose");
+		return -1;
+	}
 	g_free(pos);
+	return 0;
 }
 
+static
 void __attribute__((constructor)) ctf_text_init(void)
 {
 	int ret;
@@ -540,4 +616,8 @@ void __attribute__((constructor)) ctf_text_init(void)
 	assert(!ret);
 }
 
-/* TODO: finalize */
+static
+void __attribute__((destructor)) ctf_text_exit(void)
+{
+	bt_unregister_format(&ctf_text_format);
+}

@@ -41,6 +41,7 @@ enum node_type {
 	NODE_ENV,
 	NODE_TRACE,
 	NODE_CLOCK,
+	NODE_CALLSITE,
 
 	NODE_CTF_EXPRESSION,
 	NODE_UNARY_EXPRESSION,
@@ -91,6 +92,7 @@ struct ctf_node {
 			struct bt_list_head stream;
 			struct bt_list_head event;
 			struct bt_list_head clock;
+			struct bt_list_head callsite;
 		} root;
 		struct {
 			/*
@@ -127,6 +129,13 @@ struct ctf_node {
 			 */
 			struct bt_list_head declaration_list;
 		} clock;
+		struct {
+			/*
+			 * Children nodes are ctf_expression, typedef,
+			 * typealias and type_specifier_list.
+			 */
+			struct bt_list_head declaration_list;
+		} callsite;
 		struct {
 			struct bt_list_head left;	/* Should be string */
 			struct bt_list_head right;	/* Unary exp. or type */
@@ -298,5 +307,6 @@ int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 			struct ctf_trace *trace, int byte_order);
+int ctf_destroy_metadata(struct ctf_trace *trace);
 
 #endif /* _CTF_AST_H */

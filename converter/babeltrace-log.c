@@ -17,6 +17,14 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
  * Depends on glibc 2.10 for getline().
  */
 
@@ -33,6 +41,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
@@ -53,6 +62,7 @@ static const char metadata_fmt[] =
 "/* CTF 1.8 */\n"
 "typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
 "typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
+"typealias integer { size = 64; align = 64; signed = false; } := uint64_t;\n"
 "\n"
 "trace {\n"
 "	major = %u;\n"			/* major (e.g. 0) */
@@ -67,8 +77,8 @@ static const char metadata_fmt[] =
 "\n"
 "stream {\n"
 "	packet.context := struct {\n"
-"		uint32_t content_size;\n"
-"		uint32_t packet_size;\n"
+"		uint64_t content_size;\n"
+"		uint64_t packet_size;\n"
 "	};\n"
 "%s"					/* Stream event header (opt.) */
 "};\n"
@@ -136,24 +146,24 @@ void write_packet_context(struct ctf_stream_pos *pos)
 
 	/* content_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
 	
-	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) ctf_get_pos_addr(pos) = -1U;	/* Not known yet */
-	pos->content_size_loc = (uint32_t *) ctf_get_pos_addr(pos);
-	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
+	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
+	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 
 	/* packet_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
 	
-	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
-	*(uint32_t *) ctf_get_pos_addr(pos) = pos->packet_size;
-	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
+	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 }
 
 static
@@ -162,13 +172,14 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			uint64_t *ts)
 {
 	unsigned long sec, usec;
-	int ret;
 
 	if (!s_timestamp)
 		return;
 
 	/* Only need to be executed on first pass (dummy) */
 	if (pos->dummy) {
+		int ret;
+
 		/* Extract time from input line */
 		ret = sscanf(line, "[%lu.%lu] ", &sec, &usec);
 		if (ret == 2) {
@@ -199,21 +210,25 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 	uint64_t ts = 0;
 
 	printf_debug("read: %s\n", line);
-retry:
-	ctf_dummy_pos(pos, &dummy);
-	write_event_header(&dummy, line, &tline, len, &tlen, &ts);
-	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, tlen * CHAR_BIT);
-	if (ctf_pos_packet(&dummy)) {
-		ctf_pos_pad_packet(pos);
-		write_packet_header(pos, s_uuid);
-		write_packet_context(pos);
-		if (attempt++ == 1) {
-			fprintf(stderr, "[Error] Line too large for packet size (%zukB) (discarded)\n",
-				pos->packet_size / CHAR_BIT / 1024);
-			return;
+
+	for (;;) {
+		ctf_dummy_pos(pos, &dummy);
+		write_event_header(&dummy, line, &tline, len, &tlen, &ts);
+		ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
+		ctf_move_pos(&dummy, tlen * CHAR_BIT);
+		if (ctf_pos_packet(&dummy)) {
+			ctf_pos_pad_packet(pos);
+			write_packet_header(pos, s_uuid);
+			write_packet_context(pos);
+			if (attempt++ == 1) {
+				fprintf(stderr, "[Error] Line too large for packet size (%" PRIu64 "kB) (discarded)\n",
+					pos->packet_size / CHAR_BIT / 1024);
+				return;
+			}
+			continue;
+		} else {
+			break;
 		}
-		goto retry;
 	}
 
 	write_event_header(pos, line, &tline, len, &tlen, &ts);
@@ -229,9 +244,14 @@ void trace_text(FILE *input, int output)
 	ssize_t len;
 	char *line = NULL, *nl;
 	size_t linesize;
+	int ret;
 
-	ctf_init_pos(&pos, output, O_RDWR);
-
+	memset(&pos, 0, sizeof(pos));
+	ret = ctf_init_pos(&pos, output, O_RDWR);
+	if (ret) {
+		fprintf(stderr, "Error in ctf_init_pos\n");
+		return;
+	}
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
 	for (;;) {
@@ -239,11 +259,17 @@ void trace_text(FILE *input, int output)
 		if (len < 0)
 			break;
 		nl = strrchr(line, '\n');
-		if (nl)
+		if (nl) {
 			*nl = '\0';
-		trace_string(line, &pos, nl - line + 1);
+			trace_string(line, &pos, nl - line + 1);
+		} else {
+			trace_string(line, &pos, strlen(line) + 1);
+		}
 	}
-	ctf_fini_pos(&pos);
+	ret = ctf_fini_pos(&pos);
+	if (ret) {
+		fprintf(stderr, "Error in ctf_fini_pos\n");
+	}
 }
 
 static
@@ -341,7 +367,9 @@ int main(int argc, char **argv)
 	print_metadata(metadata_fp);
 	trace_text(stdin, fd);
 
-	close(fd);
+	ret = close(fd);
+	if (ret)
+		perror("close");
 	exit(EXIT_SUCCESS);
 
 	/* error handling */

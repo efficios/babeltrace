@@ -21,6 +21,14 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/iterator.h>
@@ -73,6 +81,28 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
  * Return current event on success, NULL on end of trace.
  */
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
+
+/*
+ * bt_ctf_iter_read_event_flags: Read the iterator's current event data.
+ *
+ * @iter: trace collection iterator (input). Should NOT be NULL.
+ * @flags: pointer passed by the user, in which the trace reader populates
+ * flags on special condition (BT_ITER_FLAG_*).
+ *
+ * Return current event on success, NULL on end of trace.
+ */
+struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
+		int *flags);
+
+/*
+ * bt_ctf_get_lost_events_count: returns the number of events discarded
+ * immediately prior to the last event read
+ *
+ * @iter: trace collection iterator (input). Should NOT be NULL.
+ *
+ * Return the number of lost events or -1ULL on error.
+ */
+uint64_t bt_ctf_get_lost_events_count(struct bt_ctf_iter *iter);
 
 #ifdef __cplusplus
 }

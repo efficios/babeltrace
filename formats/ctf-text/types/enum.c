@@ -16,6 +16,14 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <babeltrace/ctf-text/types.h>
@@ -30,7 +38,7 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 		enum_definition->integer;
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	GArray *qs;
-	int i, ret;
+	int ret;
 	int field_nr_saved;
 
 	if (!print_field(definition))
@@ -53,6 +61,8 @@ int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
 	qs = enum_definition->value;
 
 	if (qs) {
+		int i;
+
 		for (i = 0; i < qs->len; i++) {
 			GQuark q = g_array_index(qs, GQuark, i);
 			const char *str = g_quark_to_string(q);
