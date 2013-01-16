@@ -245,8 +245,7 @@ struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter, uint64_t times
 %rename("SEEK_RESTORE") BT_SEEK_RESTORE;
 %rename("SEEK_CUR") BT_SEEK_CUR;
 %rename("SEEK_BEGIN") BT_SEEK_BEGIN;
-%rename("SEEK_END") BT_SEEK_END;
-
+%rename("SEEK_LAST") BT_SEEK_LAST;
 
 // This struct is taken from iterator.h
 // All changes to the struct must also be made here
@@ -256,7 +255,7 @@ struct bt_iter_pos {
 		BT_SEEK_RESTORE,	/* uses u.restore */
 		BT_SEEK_CUR,
 		BT_SEEK_BEGIN,
-		BT_SEEK_END,
+		BT_SEEK_LAST
 	} type;
 	union {
 		uint64_t seek_time;
