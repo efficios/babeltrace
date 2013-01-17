@@ -84,8 +84,7 @@ struct declaration_array *
 	array_declaration->elem = elem_declaration;
 	array_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_ARRAY;
-	/* No need to align the array, the first element will align itself */
-	declaration->alignment = 1;
+	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _array_declaration_free;
 	declaration->definition_new = _array_definition_new;
 	declaration->definition_free = _array_definition_free;
