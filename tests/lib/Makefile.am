@@ -12,7 +12,7 @@ noinst_PROGRAMS = test-seeks
 
 test_seeks_SOURCES = test-seeks.c
 
-EXTRA_DIST = README.tap
+EXTRA_DIST = README.tap runall.sh
 
 check-am:
 	./runall.sh
