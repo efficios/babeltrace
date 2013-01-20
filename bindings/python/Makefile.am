@@ -23,6 +23,5 @@ _babeltrace_la_LIBADD = $(top_srcdir)/formats/ctf/libbabeltrace-ctf.la	\
 # SWIG 'warning md variable unused' fixed after SWIG build:
 babeltrace_wrap.c: babeltrace.i
 	$(SWIG) -python -Wall -I. -I$(top_srcdir)/include babeltrace.i
-	sed -i "s/PyObject \*m, \*d, \*md;/PyObject \*m, \*d;\n#if defined(SWIGPYTHON_BUILTIN)\nPyObject *md;\n#endif/g" babeltrace_wrap.c
-	sed -i "s/md = d/d/g" babeltrace_wrap.c
-	sed -i "s/(void)public_symbol;/(void)public_symbol;\n  md = d;/g" babeltrace_wrap.c
+
+CLEANFILES = babeltrace.i babeltrace.py babeltrace_wrap.c
