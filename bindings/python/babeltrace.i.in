@@ -194,9 +194,6 @@ extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct format *format);
 
-void format_init(void);
-void format_finalize(void);
-
 %pythoncode %{
 
 def print_format_list(babeltrace_file):
