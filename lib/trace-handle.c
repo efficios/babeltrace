@@ -49,7 +49,6 @@ struct bt_trace_handle *bt_trace_handle_create(struct bt_context *ctx)
 
 void bt_trace_handle_destroy(struct bt_trace_handle *th)
 {
-	th->format->close_trace(th->td);
 	g_free(th);
 }
 
