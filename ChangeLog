@@ -1,3 +1,8 @@
+2012-01-24 Babeltrace 1.0.3
+	* Fix: Double free when calling bt_context_remove_trace()
+	* Add missing runall.sh to dist packaging
+	* Fix: alignment of compound types containing array field
+
 2012-01-11 Babeltrace 1.0.2
 	* Fix: add tests/lib missing files to Makefile.am
 
