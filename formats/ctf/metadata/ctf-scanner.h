@@ -49,7 +49,7 @@ struct ctf_ast *ctf_scanner_get_ast(struct ctf_scanner *scanner)
 	return scanner->ast;
 }
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int is_type(struct ctf_scanner *scanner, const char *id);
 
 #endif /* _CTF_SCANNER_H */

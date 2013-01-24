@@ -39,7 +39,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yydebug;
 
 /* Join two lists, put "add" at the end of "head".  */
@@ -55,15 +55,15 @@ _bt_list_splice_tail (struct bt_list_head *add, struct bt_list_head *head)
 	}
 }
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yyparse(struct ctf_scanner *scanner);
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yylex(union YYSTYPE *yyval, struct ctf_scanner *scanner);
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yylex_destroy(yyscan_t yyscanner);
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 void yyrestart(FILE * in_str, yyscan_t scanner);
 
 struct gc_string {
@@ -101,7 +101,7 @@ static const char *node_type_to_str[] = {
 	[ NODE_STRUCT ] = "NODE_STRUCT",
 };
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 const char *node_type(struct ctf_node *node)
 {
 	if (node->type < NR_NODE_TYPES)
@@ -132,7 +132,7 @@ static struct gc_string *gc_string_alloc(struct ctf_scanner *scanner,
  * gsrc will be garbage collected immediately, and gstr might be.
  * Should only be used to append characters to a string literal or constant.
  */
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 struct gc_string *gc_string_append(struct ctf_scanner *scanner,
 				   struct gc_string *gstr,
 				   struct gc_string *gsrc)
@@ -211,7 +211,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 	return ret;
 }
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int is_type(struct ctf_scanner *scanner, const char *id)
 {
 	struct ctf_scanner_scope *it;
@@ -815,13 +815,13 @@ static int set_parent_node(struct ctf_node *node,
 	return 0;
 }
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 void yyerror(struct ctf_scanner *scanner, const char *str)
 {
 	fprintf(stderr, "error %s\n", str);
 }
  
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int yywrap(void)
 {
 	return 1;
