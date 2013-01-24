@@ -364,8 +364,8 @@ int compare_definition_path(struct definition *definition, GQuark path)
 	return definition->path == path;
 }
 
-void declaration_ref(struct declaration *declaration);
-void declaration_unref(struct declaration *declaration);
+void bt_declaration_ref(struct declaration *declaration);
+void bt_declaration_unref(struct declaration *declaration);
 
 void definition_ref(struct definition *definition);
 void definition_unref(struct definition *definition);

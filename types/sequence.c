@@ -95,7 +95,7 @@ void _sequence_declaration_free(struct declaration *declaration)
 
 	free_declaration_scope(sequence_declaration->scope);
 	g_array_free(sequence_declaration->length_name, TRUE);
-	declaration_unref(sequence_declaration->elem);
+	bt_declaration_unref(sequence_declaration->elem);
 	g_free(sequence_declaration);
 }
 
@@ -113,7 +113,7 @@ struct declaration_sequence *
 	sequence_declaration->length_name = g_array_new(FALSE, TRUE, sizeof(GQuark));
 	bt_append_scope_path(length, sequence_declaration->length_name);
 
-	declaration_ref(elem_declaration);
+	bt_declaration_ref(elem_declaration);
 	sequence_declaration->elem = elem_declaration;
 	sequence_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_SEQUENCE;
@@ -138,7 +138,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	int ret;
 
 	sequence = g_new(struct definition_sequence, 1);
-	declaration_ref(&sequence_declaration->p);
+	bt_declaration_ref(&sequence_declaration->p);
 	sequence->p.declaration = declaration;
 	sequence->declaration = sequence_declaration;
 	sequence->p.ref = 1;
@@ -192,7 +192,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 
 error:
 	free_definition_scope(sequence->p.scope);
-	declaration_unref(&sequence_declaration->p);
+	bt_declaration_unref(&sequence_declaration->p);
 	g_free(sequence);
 	return NULL;
 }
@@ -218,7 +218,7 @@ void _sequence_definition_free(struct definition *definition)
 	}
 	definition_unref(len_definition);
 	free_definition_scope(sequence->p.scope);
-	declaration_unref(sequence->p.declaration);
+	bt_declaration_unref(sequence->p.declaration);
 	g_free(sequence);
 }
 

@@ -74,7 +74,7 @@ void _struct_declaration_free(struct declaration *declaration)
 		struct declaration_field *declaration_field =
 			&g_array_index(struct_declaration->fields,
 				       struct declaration_field, i);
-		declaration_unref(declaration_field->declaration);
+		bt_declaration_unref(declaration_field->declaration);
 	}
 	g_array_free(struct_declaration->fields, true);
 	g_free(struct_declaration);
@@ -118,7 +118,7 @@ struct definition *
 	int ret;
 
 	_struct = g_new(struct definition_struct, 1);
-	declaration_ref(&struct_declaration->p);
+	bt_declaration_ref(&struct_declaration->p);
 	_struct->p.declaration = declaration;
 	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
@@ -158,7 +158,7 @@ error:
 		definition_unref(field);
 	}
 	free_definition_scope(_struct->p.scope);
-	declaration_unref(&struct_declaration->p);
+	bt_declaration_unref(&struct_declaration->p);
 	g_free(_struct);
 	return NULL;
 }
@@ -176,7 +176,7 @@ void _struct_definition_free(struct definition *definition)
 		definition_unref(field);
 	}
 	free_definition_scope(_struct->p.scope);
-	declaration_unref(_struct->p.declaration);
+	bt_declaration_unref(_struct->p.declaration);
 	g_ptr_array_free(_struct->fields, TRUE);
 	g_free(_struct);
 }
@@ -192,7 +192,7 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 	index = struct_declaration->fields->len - 1;	/* last field (new) */
 	field = &g_array_index(struct_declaration->fields, struct declaration_field, index);
 	field->name = g_quark_from_string(field_name);
-	declaration_ref(field_declaration);
+	bt_declaration_ref(field_declaration);
 	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
 	g_hash_table_insert(struct_declaration->fields_by_name,

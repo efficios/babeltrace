@@ -76,7 +76,7 @@ struct definition *
 	int ret;
 
 	string = g_new(struct definition_string, 1);
-	declaration_ref(&string_declaration->p);
+	bt_declaration_ref(&string_declaration->p);
 	string->p.declaration = declaration;
 	string->declaration = string_declaration;
 	string->p.ref = 1;
@@ -104,7 +104,7 @@ void _string_definition_free(struct definition *definition)
 	struct definition_string *string =
 		container_of(definition, struct definition_string, p);
 
-	declaration_unref(string->p.declaration);
+	bt_declaration_unref(string->p.declaration);
 	g_free(string->value);
 	g_free(string);
 }

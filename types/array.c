@@ -65,7 +65,7 @@ void _array_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_array, p);
 
 	free_declaration_scope(array_declaration->scope);
-	declaration_unref(array_declaration->elem);
+	bt_declaration_unref(array_declaration->elem);
 	g_free(array_declaration);
 }
 
@@ -80,7 +80,7 @@ struct declaration_array *
 	array_declaration = g_new(struct declaration_array, 1);
 	declaration = &array_declaration->p;
 	array_declaration->len = len;
-	declaration_ref(elem_declaration);
+	bt_declaration_ref(elem_declaration);
 	array_declaration->elem = elem_declaration;
 	array_declaration->scope = new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_ARRAY;
@@ -105,7 +105,7 @@ struct definition *
 	int i;
 
 	array = g_new(struct definition_array, 1);
-	declaration_ref(&array_declaration->p);
+	bt_declaration_ref(&array_declaration->p);
 	array->p.declaration = declaration;
 	array->declaration = array_declaration;
 	array->p.ref = 1;
@@ -170,7 +170,7 @@ error:
 	}
 	(void) g_ptr_array_free(array->elems, TRUE);
 	free_definition_scope(array->p.scope);
-	declaration_unref(array->p.declaration);
+	bt_declaration_unref(array->p.declaration);
 	g_free(array);
 	return NULL;
 }
@@ -194,7 +194,7 @@ void _array_definition_free(struct definition *definition)
 		(void) g_ptr_array_free(array->elems, TRUE);
 	}
 	free_definition_scope(array->p.scope);
-	declaration_unref(array->p.declaration);
+	bt_declaration_unref(array->p.declaration);
 	g_free(array);
 }
 

@@ -386,7 +386,7 @@ void _enum_declaration_free(struct declaration *declaration)
 		g_free(iter);
 	}
 	g_hash_table_destroy(enum_declaration->table.quark_to_range_set);
-	declaration_unref(&enum_declaration->integer_declaration->p);
+	bt_declaration_unref(&enum_declaration->integer_declaration->p);
 	g_free(enum_declaration);
 }
 
@@ -405,7 +405,7 @@ struct declaration_enum *
 	enum_declaration->table.quark_to_range_set = g_hash_table_new_full(g_direct_hash,
 							g_direct_equal,
 							NULL, enum_range_set_free);
-	declaration_ref(&integer_declaration->p);
+	bt_declaration_ref(&integer_declaration->p);
 	enum_declaration->integer_declaration = integer_declaration;
 	enum_declaration->p.id = CTF_TYPE_ENUM;
 	enum_declaration->p.alignment = 1;
@@ -430,7 +430,7 @@ struct definition *
 	int ret;
 
 	_enum = g_new(struct definition_enum, 1);
-	declaration_ref(&enum_declaration->p);
+	bt_declaration_ref(&enum_declaration->p);
 	_enum->p.declaration = declaration;
 	_enum->declaration = enum_declaration;
 	_enum->p.ref = 1;
@@ -463,7 +463,7 @@ void _enum_definition_free(struct definition *definition)
 
 	definition_unref(&_enum->integer->p);
 	free_definition_scope(_enum->p.scope);
-	declaration_unref(_enum->p.declaration);
+	bt_declaration_unref(_enum->p.declaration);
 	if (_enum->value)
 		g_array_unref(_enum->value);
 	g_free(_enum);

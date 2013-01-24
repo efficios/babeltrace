@@ -296,6 +296,6 @@ void __attribute__((constructor)) ctf_float_init(void)
 static
 void __attribute__((destructor)) ctf_float_fini(void)
 {
-	declaration_unref(&static_float_declaration->p);
-	declaration_unref(&static_double_declaration->p);
+	bt_declaration_unref(&static_float_declaration->p);
+	bt_declaration_unref(&static_double_declaration->p);
 }

@@ -516,7 +516,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				fprintf(fd, "[error] %s: cannot create array declaration.\n", __func__);
 				return NULL;
 			}
-			declaration_unref(nested_declaration);
+			bt_declaration_unref(nested_declaration);
 			declaration = &array_declaration->p;
 			break;
 		}
@@ -532,7 +532,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				g_free(length_name);
 				return NULL;
 			}
-			declaration_unref(nested_declaration);
+			bt_declaration_unref(nested_declaration);
 			declaration = &sequence_declaration->p;
 			g_free(length_name);
 			break;
@@ -583,7 +583,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 		struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
-		declaration_unref(field_declaration);
+		bt_declaration_unref(field_declaration);
 	}
 	return 0;
 }
@@ -620,7 +620,7 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 		untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
-		declaration_unref(field_declaration);
+		bt_declaration_unref(field_declaration);
 	}
 	return 0;
 }
@@ -652,7 +652,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		 */
 		if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
 			fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
-			declaration_unref(type_declaration);
+			bt_declaration_unref(type_declaration);
 			return -EPERM;
 		}
 		ret = register_declaration(identifier, type_declaration, scope);
@@ -660,7 +660,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 			type_declaration->declaration_free(type_declaration);
 			return ret;
 		}
-		declaration_unref(type_declaration);
+		bt_declaration_unref(type_declaration);
 	}
 	return 0;
 }
@@ -702,7 +702,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 */
 	if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
 		fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
-		declaration_unref(type_declaration);
+		bt_declaration_unref(type_declaration);
 		return -EPERM;
 	}
 	/*
@@ -725,7 +725,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	err = register_declaration(alias_q, type_declaration, scope);
 	if (err)
 		goto error;
-	declaration_unref(type_declaration);
+	bt_declaration_unref(type_declaration);
 	return 0;
 
 error:
@@ -842,7 +842,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		struct_declaration =
 			lookup_struct_declaration(g_quark_from_string(name),
 						  declaration_scope);
-		declaration_ref(&struct_declaration->p);
+		bt_declaration_ref(&struct_declaration->p);
 		return &struct_declaration->p;
 	} else {
 		uint64_t min_align_value = 0;
@@ -914,7 +914,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		untagged_variant_declaration =
 			lookup_variant_declaration(g_quark_from_string(name),
 						   declaration_scope);
-		declaration_ref(&untagged_variant_declaration->p);
+		bt_declaration_ref(&untagged_variant_declaration->p);
 	} else {
 		/* For unnamed variant, create type */
 		/* For named variant (with body), create type and add to declaration scope */
@@ -954,7 +954,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		variant_declaration = variant_declaration_new(untagged_variant_declaration, choice);
 		if (!variant_declaration)
 			goto error;
-		declaration_unref(&untagged_variant_declaration->p);
+		bt_declaration_unref(&untagged_variant_declaration->p);
 		return &variant_declaration->p;
 	}
 error:
@@ -1078,7 +1078,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		enum_declaration =
 			lookup_enum_declaration(g_quark_from_string(name),
 						declaration_scope);
-		declaration_ref(&enum_declaration->p);
+		bt_declaration_ref(&enum_declaration->p);
 		return &enum_declaration->p;
 	} else {
 		/* For unnamed enum, create type */
@@ -1115,7 +1115,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		}
 		integer_declaration = container_of(declaration, struct declaration_integer, p);
 		enum_declaration = enum_declaration_new(integer_declaration);
-		declaration_unref(&integer_declaration->p);	/* leave ref to enum */
+		bt_declaration_unref(&integer_declaration->p);	/* leave ref to enum */
 		if (enum_declaration->integer_declaration->signedness) {
 			last_value.u.s = 0;
 		} else {
@@ -1136,7 +1136,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 					enum_declaration,
 					declaration_scope);
 			assert(!ret);
-			declaration_unref(&enum_declaration->p);
+			bt_declaration_unref(&enum_declaration->p);
 		}
 		return &enum_declaration->p;
 	}
@@ -1164,7 +1164,7 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 	id_q = g_quark_from_string(str_c);
 	g_free(str_c);
 	declaration = lookup_declaration(id_q, declaration_scope);
-	declaration_ref(declaration);
+	bt_declaration_ref(declaration);
 	return declaration;
 }
 
@@ -1864,9 +1864,9 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 
 error:
 	if (event->fields_decl)
-		declaration_unref(&event->fields_decl->p);
+		bt_declaration_unref(&event->fields_decl->p);
 	if (event->context_decl)
-		declaration_unref(&event->context_decl->p);
+		bt_declaration_unref(&event->context_decl->p);
 	free_declaration_scope(event->declaration_scope);
 	g_free(event_decl);
 	return ret;
@@ -2040,11 +2040,11 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 
 error:
 	if (stream->event_header_decl)
-		declaration_unref(&stream->event_header_decl->p);
+		bt_declaration_unref(&stream->event_header_decl->p);
 	if (stream->event_context_decl)
-		declaration_unref(&stream->event_context_decl->p);
+		bt_declaration_unref(&stream->event_context_decl->p);
 	if (stream->packet_context_decl)
-		declaration_unref(&stream->packet_context_decl->p);
+		bt_declaration_unref(&stream->packet_context_decl->p);
 	g_ptr_array_free(stream->streams, TRUE);
 	g_ptr_array_free(stream->events_by_id, TRUE);
 	g_hash_table_destroy(stream->event_quark_to_id);
@@ -2236,7 +2236,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 
 error:
 	if (trace->packet_header_decl) {
-		declaration_unref(&trace->packet_header_decl->p);
+		bt_declaration_unref(&trace->packet_header_decl->p);
 		trace->packet_header_decl = NULL;
 	}
 	g_ptr_array_free(trace->streams, TRUE);
@@ -2851,7 +2851,7 @@ int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struc
 			node, trace->root_declaration_scope, trace);
 		if (!declaration)
 			return -ENOMEM;
-		declaration_unref(declaration);
+		bt_declaration_unref(declaration);
 		break;
 	}
 	default:
@@ -3021,11 +3021,11 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 				g_free(stream_def);
 			}
 			if (stream->event_header_decl)
-				declaration_unref(&stream->event_header_decl->p);
+				bt_declaration_unref(&stream->event_header_decl->p);
 			if (stream->event_context_decl)
-				declaration_unref(&stream->event_context_decl->p);
+				bt_declaration_unref(&stream->event_context_decl->p);
 			if (stream->packet_context_decl)
-				declaration_unref(&stream->packet_context_decl->p);
+				bt_declaration_unref(&stream->packet_context_decl->p);
 			g_ptr_array_free(stream->streams, TRUE);
 			g_ptr_array_free(stream->events_by_id, TRUE);
 			g_hash_table_destroy(stream->event_quark_to_id);
@@ -3056,9 +3056,9 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 
 			event = &event_decl->parent;
 			if (event->fields_decl)
-				declaration_unref(&event->fields_decl->p);
+				bt_declaration_unref(&event->fields_decl->p);
 			if (event->context_decl)
-				declaration_unref(&event->context_decl->p);
+				bt_declaration_unref(&event->context_decl->p);
 			free_declaration_scope(event->declaration_scope);
 
 			g_free(event);
@@ -3066,7 +3066,7 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 		g_ptr_array_free(trace->event_declarations, TRUE);
 	}
 	if (trace->packet_header_decl)
-		declaration_unref(&trace->packet_header_decl->p);
+		bt_declaration_unref(&trace->packet_header_decl->p);
 
 	free_declaration_scope(trace->root_declaration_scope);
 	free_declaration_scope(trace->declaration_scope);

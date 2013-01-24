@@ -85,7 +85,7 @@ struct definition *
 	int ret;
 
 	integer = g_new(struct definition_integer, 1);
-	declaration_ref(&integer_declaration->p);
+	bt_declaration_ref(&integer_declaration->p);
 	integer->p.declaration = declaration;
 	integer->declaration = integer_declaration;
 	integer->p.ref = 1;
@@ -111,7 +111,7 @@ void _integer_definition_free(struct definition *definition)
 	struct definition_integer *integer =
 		container_of(definition, struct definition_integer, p);
 
-	declaration_unref(integer->p.declaration);
+	bt_declaration_unref(integer->p.declaration);
 	g_free(integer);
 }
 

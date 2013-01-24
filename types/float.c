@@ -45,9 +45,9 @@ void _float_declaration_free(struct declaration *declaration)
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
 
-	declaration_unref(&float_declaration->exp->p);
-	declaration_unref(&float_declaration->mantissa->p);
-	declaration_unref(&float_declaration->sign->p);
+	bt_declaration_unref(&float_declaration->exp->p);
+	bt_declaration_unref(&float_declaration->mantissa->p);
+	bt_declaration_unref(&float_declaration->sign->p);
 	g_free(float_declaration);
 }
 
@@ -93,7 +93,7 @@ struct definition *
 	struct definition *tmp;
 
 	_float = g_new(struct definition_float, 1);
-	declaration_ref(&float_declaration->p);
+	bt_declaration_ref(&float_declaration->p);
 	_float->p.declaration = declaration;
 	_float->declaration = float_declaration;
 	_float->p.scope = new_definition_scope(parent_scope, field_name, root_name);
@@ -147,6 +147,6 @@ void _float_definition_free(struct definition *definition)
 	definition_unref(&_float->exp->p);
 	definition_unref(&_float->mantissa->p);
 	free_definition_scope(_float->p.scope);
-	declaration_unref(_float->p.declaration);
+	bt_declaration_unref(_float->p.declaration);
 	g_free(_float);
 }

@@ -87,7 +87,7 @@ int register_declaration(GQuark name, struct declaration *declaration,
 	g_hash_table_insert(scope->typedef_declarations,
 			    (gpointer) (unsigned long) name,
 			    declaration);
-	declaration_ref(declaration);
+	bt_declaration_ref(declaration);
 	return 0;
 }
 
@@ -279,12 +279,12 @@ int register_field_definition(GQuark field_name, struct definition *definition,
 	return 0;
 }
 
-void declaration_ref(struct declaration *declaration)
+void bt_declaration_ref(struct declaration *declaration)
 {
 	declaration->ref++;
 }
 
-void declaration_unref(struct declaration *declaration)
+void bt_declaration_unref(struct declaration *declaration)
 {
 	if (!declaration)
 		return;
@@ -312,16 +312,16 @@ struct declaration_scope *
 
 	scope->typedef_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->struct_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->variant_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->enum_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->parent_scope = parent_scope;
 	return scope;
 }
@@ -374,7 +374,7 @@ int register_struct_declaration(GQuark struct_name,
 	g_hash_table_insert(scope->struct_declarations,
 			    (gpointer) (unsigned long) struct_name,
 			    struct_declaration);
-	declaration_ref(&struct_declaration->p);
+	bt_declaration_ref(&struct_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("struct ", struct_name);
@@ -424,7 +424,7 @@ int register_variant_declaration(GQuark variant_name,
 	g_hash_table_insert(scope->variant_declarations,
 			    (gpointer) (unsigned long) variant_name,
 			    untagged_variant_declaration);
-	declaration_ref(&untagged_variant_declaration->p);
+	bt_declaration_ref(&untagged_variant_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("variant ", variant_name);
@@ -475,7 +475,7 @@ int register_enum_declaration(GQuark enum_name,
 	g_hash_table_insert(scope->enum_declarations,
 			    (gpointer) (unsigned long) enum_name,
 			    enum_declaration);
-	declaration_ref(&enum_declaration->p);
+	bt_declaration_ref(&enum_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("enum ", enum_name);
