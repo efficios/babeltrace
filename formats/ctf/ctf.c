@@ -1317,7 +1317,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				uint64_t magic;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				magic = get_unsigned_int(field);
+				magic = bt_get_unsigned_int(field);
 				if (magic != CTF_MAGIC) {
 					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
 							magic,
@@ -1344,7 +1344,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 					struct definition *elem;
 
 					elem = bt_array_index(defarray, i);
-					uuidval[i] = get_unsigned_int(elem);
+					uuidval[i] = bt_get_unsigned_int(elem);
 				}
 				ret = babeltrace_uuid_compare(td->uuid, uuidval);
 				if (ret) {
@@ -1359,7 +1359,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				stream_id = get_unsigned_int(field);
+				stream_id = bt_get_unsigned_int(field);
 			}
 		}
 
@@ -1396,7 +1396,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.content_size = get_unsigned_int(field);
+				packet_index.content_size = bt_get_unsigned_int(field);
 			} else {
 				/* Use file size for packet size */
 				packet_index.content_size = filestats.st_size * CHAR_BIT;
@@ -1408,7 +1408,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.packet_size = get_unsigned_int(field);
+				packet_index.packet_size = bt_get_unsigned_int(field);
 			} else {
 				/* Use content size if non-zero, else file size */
 				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
@@ -1420,7 +1420,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_begin = get_unsigned_int(field);
+				packet_index.timestamp_begin = bt_get_unsigned_int(field);
 				if (file_stream->parent.stream_class->trace->collection) {
 					packet_index.timestamp_begin =
 						ctf_get_real_timestamp(
@@ -1435,7 +1435,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_end = get_unsigned_int(field);
+				packet_index.timestamp_end = bt_get_unsigned_int(field);
 				if (file_stream->parent.stream_class->trace->collection) {
 					packet_index.timestamp_end =
 						ctf_get_real_timestamp(
@@ -1450,8 +1450,8 @@ int create_stream_packet_index(struct ctf_trace *td,
 				struct definition *field;
 
 				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.events_discarded = get_unsigned_int(field);
-				packet_index.events_discarded_len = get_int_len(field);
+				packet_index.events_discarded = bt_get_unsigned_int(field);
+				packet_index.events_discarded_len = bt_get_int_len(field);
 			}
 		} else {
 			/* Use file size for packet size */

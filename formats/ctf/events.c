@@ -462,12 +462,12 @@ const char *bt_ctf_get_enum_str(const struct definition *field)
 	}
 	def_enum = container_of(field, const struct definition_enum, p);
 	decl_enum = def_enum->declaration;
-	if (get_int_signedness(&def_enum->integer->p)) {
+	if (bt_get_int_signedness(&def_enum->integer->p)) {
 		array = bt_enum_int_to_quark_set(decl_enum,
-			get_signed_int(&def_enum->integer->p));
+			bt_get_signed_int(&def_enum->integer->p));
 	} else {
 		array = bt_enum_uint_to_quark_set(decl_enum,
-			get_unsigned_int(&def_enum->integer->p));
+			bt_get_unsigned_int(&def_enum->integer->p));
 	}
 	if (!array) {
 		bt_ctf_field_set_error(-ENOENT);
@@ -559,7 +559,7 @@ uint64_t bt_ctf_get_uint64(const struct definition *field)
 	uint64_t ret = 0;
 
 	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_INTEGER)
-		ret = get_unsigned_int(field);
+		ret = bt_get_unsigned_int(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
 
@@ -571,7 +571,7 @@ int64_t bt_ctf_get_int64(const struct definition *field)
 	int64_t ret = 0;
 
 	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_INTEGER)
-		ret = get_signed_int(field);
+		ret = bt_get_signed_int(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
 

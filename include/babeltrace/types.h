@@ -374,13 +374,13 @@ struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
 				  int base, enum ctf_string_encoding encoding,
 				  struct ctf_clock *clock);
-uint64_t get_unsigned_int(const struct definition *field);
-int64_t get_signed_int(const struct definition *field);
-int get_int_signedness(const struct definition *field);
-int get_int_byte_order(const struct definition *field);
-int get_int_base(const struct definition *field);
-size_t get_int_len(const struct definition *field);	/* in bits */
-enum ctf_string_encoding get_int_encoding(const struct definition *field);
+uint64_t bt_get_unsigned_int(const struct definition *field);
+int64_t bt_get_signed_int(const struct definition *field);
+int bt_get_int_signedness(const struct definition *field);
+int bt_get_int_byte_order(const struct definition *field);
+int bt_get_int_base(const struct definition *field);
+size_t bt_get_int_len(const struct definition *field);	/* in bits */
+enum ctf_string_encoding bt_get_int_encoding(const struct definition *field);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa

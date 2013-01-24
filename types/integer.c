@@ -115,7 +115,7 @@ void _integer_definition_free(struct definition *definition)
 	g_free(integer);
 }
 
-enum ctf_string_encoding get_int_encoding(const struct definition *field)
+enum ctf_string_encoding bt_get_int_encoding(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -126,7 +126,7 @@ enum ctf_string_encoding get_int_encoding(const struct definition *field)
 	return integer_declaration->encoding;
 }
 
-int get_int_base(const struct definition *field)
+int bt_get_int_base(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -137,7 +137,7 @@ int get_int_base(const struct definition *field)
 	return integer_declaration->base;
 }
 
-size_t get_int_len(const struct definition *field)
+size_t bt_get_int_len(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -148,7 +148,7 @@ size_t get_int_len(const struct definition *field)
 	return integer_declaration->len;
 }
 
-int get_int_byte_order(const struct definition *field)
+int bt_get_int_byte_order(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -159,7 +159,7 @@ int get_int_byte_order(const struct definition *field)
 	return integer_declaration->byte_order;
 }
 
-int get_int_signedness(const struct definition *field)
+int bt_get_int_signedness(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -170,7 +170,7 @@ int get_int_signedness(const struct definition *field)
 	return integer_declaration->signedness;
 }
 
-uint64_t get_unsigned_int(const struct definition *field)
+uint64_t bt_get_unsigned_int(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -186,7 +186,7 @@ uint64_t get_unsigned_int(const struct definition *field)
 	return (uint64_t)integer_definition->value._signed;
 }
 
-int64_t get_signed_int(const struct definition *field)
+int64_t bt_get_signed_int(const struct definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
