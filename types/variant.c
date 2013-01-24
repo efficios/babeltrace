@@ -114,7 +114,7 @@ struct declaration_variant *
 	variant_declaration->untagged_variant = untagged_variant;
 	declaration_ref(&untagged_variant->p);
 	variant_declaration->tag_name = g_array_new(FALSE, TRUE, sizeof(GQuark));
-	append_scope_path(tag, variant_declaration->tag_name);
+	bt_append_scope_path(tag, variant_declaration->tag_name);
 	declaration->id = CTF_TYPE_VARIANT;
 	declaration->alignment = 1;
 	declaration->declaration_free = _variant_declaration_free;

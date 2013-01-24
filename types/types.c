@@ -547,7 +547,7 @@ struct definition_scope *
 
 	if (root_name) {
 		scope = _new_definition_scope(parent_scope, 0);
-		append_scope_path(root_name, scope->scope_path);
+		bt_append_scope_path(root_name, scope->scope_path);
 	} else {
 		int scope_path_len = 1;
 
@@ -574,7 +574,7 @@ struct definition_scope *
 /*
  * in: path (dot separated), out: q (GArray of GQuark)
  */
-void append_scope_path(const char *path, GArray *q)
+void bt_append_scope_path(const char *path, GArray *q)
 {
 	const char *ptrbegin, *ptrend = path;
 	GQuark quark;

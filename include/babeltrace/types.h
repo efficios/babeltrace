@@ -511,7 +511,7 @@ int sequence_rw(struct stream_pos *pos, struct definition *definition);
 /*
  * in: path (dot separated), out: q (GArray of GQuark)
  */
-void append_scope_path(const char *path, GArray *q);
+void bt_append_scope_path(const char *path, GArray *q);
 
 /*
  * Lookup helpers.

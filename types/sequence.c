@@ -111,7 +111,7 @@ struct declaration_sequence *
 	declaration = &sequence_declaration->p;
 
 	sequence_declaration->length_name = g_array_new(FALSE, TRUE, sizeof(GQuark));
-	append_scope_path(length, sequence_declaration->length_name);
+	bt_append_scope_path(length, sequence_declaration->length_name);
 
 	declaration_ref(elem_declaration);
 	sequence_declaration->elem = elem_declaration;
