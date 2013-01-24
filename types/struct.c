@@ -67,7 +67,7 @@ void _struct_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_struct, p);
 	unsigned long i;
 
-	free_declaration_scope(struct_declaration->scope);
+	bt_free_declaration_scope(struct_declaration->scope);
 	g_hash_table_destroy(struct_declaration->fields_by_name);
 
 	for (i = 0; i < struct_declaration->fields->len; i++) {
@@ -94,7 +94,7 @@ struct declaration_struct *
 	struct_declaration->fields = g_array_sized_new(FALSE, TRUE,
 						sizeof(struct declaration_field),
 						DEFAULT_NR_STRUCT_FIELDS);
-	struct_declaration->scope = new_declaration_scope(parent_scope);
+	struct_declaration->scope = bt_new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_STRUCT;
 	declaration->alignment = max(1, min_align);
 	declaration->declaration_free = _struct_declaration_free;

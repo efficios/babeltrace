@@ -445,7 +445,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			 */
 			alias_q = create_typealias_identifier(fd, depth,
 				type_specifier_list, node_type_declarator);
-			nested_declaration = lookup_declaration(alias_q, declaration_scope);
+			nested_declaration = bt_lookup_declaration(alias_q, declaration_scope);
 			if (!nested_declaration) {
 				fprintf(fd, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
 				return NULL;
@@ -460,7 +460,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 					 * integer declaration to modify it. There could be other references to
 					 * it.
 					 */
-					integer_declaration = integer_declaration_new(integer_declaration->len,
+					integer_declaration = bt_integer_declaration_new(integer_declaration->len,
 						integer_declaration->byte_order, integer_declaration->signedness,
 						integer_declaration->p.alignment, 16, integer_declaration->encoding,
 						integer_declaration->clock);
@@ -612,12 +612,12 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 			return -EINVAL;
 		}
 
-		if (untagged_variant_declaration_get_field_from_tag(untagged_variant_declaration, field_name) != NULL) {
+		if (bt_untagged_variant_declaration_get_field_from_tag(untagged_variant_declaration, field_name) != NULL) {
 			fprintf(fd, "[error] %s: duplicate field %s in variant\n", __func__, g_quark_to_string(field_name));
 			return -EINVAL;
 		}
 
-		untagged_variant_declaration_add_field(untagged_variant_declaration,
+		bt_untagged_variant_declaration_add_field(untagged_variant_declaration,
 					      g_quark_to_string(field_name),
 					      field_declaration);
 		bt_declaration_unref(field_declaration);
@@ -655,7 +655,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 			bt_declaration_unref(type_declaration);
 			return -EPERM;
 		}
-		ret = register_declaration(identifier, type_declaration, scope);
+		ret = bt_register_declaration(identifier, type_declaration, scope);
 		if (ret) {
 			type_declaration->declaration_free(type_declaration);
 			return ret;
@@ -722,7 +722,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 				struct ctf_node, siblings);
 	alias_q = create_typealias_identifier(fd, depth,
 			alias->u.typealias_alias.type_specifier_list, node);
-	err = register_declaration(alias_q, type_declaration, scope);
+	err = bt_register_declaration(alias_q, type_declaration, scope);
 	if (err)
 		goto error;
 	bt_declaration_unref(type_declaration);
@@ -912,21 +912,21 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 	if (!has_body) {
 		assert(name);
 		untagged_variant_declaration =
-			lookup_variant_declaration(g_quark_from_string(name),
+			bt_lookup_variant_declaration(g_quark_from_string(name),
 						   declaration_scope);
 		bt_declaration_ref(&untagged_variant_declaration->p);
 	} else {
 		/* For unnamed variant, create type */
 		/* For named variant (with body), create type and add to declaration scope */
 		if (name) {
-			if (lookup_variant_declaration(g_quark_from_string(name),
+			if (bt_lookup_variant_declaration(g_quark_from_string(name),
 						       declaration_scope)) {
 				
 				fprintf(fd, "[error] %s: variant %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
 		}
-		untagged_variant_declaration = untagged_variant_declaration_new(declaration_scope);
+		untagged_variant_declaration = bt_untagged_bt_variant_declaration_new(declaration_scope);
 		bt_list_for_each_entry(iter, declaration_list, siblings) {
 			int ret;
 
@@ -938,7 +938,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 		if (name) {
 			int ret;
 
-			ret = register_variant_declaration(g_quark_from_string(name),
+			ret = bt_register_variant_declaration(g_quark_from_string(name),
 					untagged_variant_declaration,
 					declaration_scope);
 			assert(!ret);
@@ -951,7 +951,7 @@ struct declaration *ctf_declaration_variant_visit(FILE *fd,
 	if (!choice) {
 		return &untagged_variant_declaration->p;
 	} else {
-		variant_declaration = variant_declaration_new(untagged_variant_declaration, choice);
+		variant_declaration = bt_variant_declaration_new(untagged_variant_declaration, choice);
 		if (!variant_declaration)
 			goto error;
 		bt_declaration_unref(&untagged_variant_declaration->p);
@@ -1076,7 +1076,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 	if (!has_body) {
 		assert(name);
 		enum_declaration =
-			lookup_enum_declaration(g_quark_from_string(name),
+			bt_lookup_enum_declaration(g_quark_from_string(name),
 						declaration_scope);
 		bt_declaration_ref(&enum_declaration->p);
 		return &enum_declaration->p;
@@ -1084,7 +1084,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		/* For unnamed enum, create type */
 		/* For named enum (with body), create type and add to declaration scope */
 		if (name) {
-			if (lookup_enum_declaration(g_quark_from_string(name),
+			if (bt_lookup_enum_declaration(g_quark_from_string(name),
 						    declaration_scope)) {
 				
 				fprintf(fd, "[error] %s: enum %s already declared in scope\n", __func__, name);
@@ -1092,7 +1092,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			}
 		}
 		if (!container_type) {
-			declaration = lookup_declaration(g_quark_from_static_string("int"),
+			declaration = bt_lookup_declaration(g_quark_from_static_string("int"),
 							 declaration_scope);
 			if (!declaration) {
 				fprintf(fd, "[error] %s: \"int\" type declaration missing for enumeration\n", __func__);
@@ -1132,7 +1132,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		if (name) {
 			int ret;
 
-			ret = register_enum_declaration(g_quark_from_string(name),
+			ret = bt_register_enum_declaration(g_quark_from_string(name),
 					enum_declaration,
 					declaration_scope);
 			assert(!ret);
@@ -1163,7 +1163,7 @@ struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 	str_c = g_string_free(str, FALSE);
 	id_q = g_quark_from_string(str_c);
 	g_free(str_c);
-	declaration = lookup_declaration(id_q, declaration_scope);
+	declaration = bt_lookup_declaration(id_q, declaration_scope);
 	bt_declaration_ref(declaration);
 	return declaration;
 }
@@ -1442,7 +1442,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			alignment = CHAR_BIT;
 		}
 	}
-	integer_declaration = integer_declaration_new(size,
+	integer_declaration = bt_integer_declaration_new(size,
 				byte_order, signedness, alignment,
 				base, encoding, clock);
 	return &integer_declaration->p;
@@ -1522,7 +1522,7 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 			alignment = CHAR_BIT;
 		}
 	}
-	float_declaration = float_declaration_new(mant_dig, exp_dig,
+	float_declaration = bt_float_declaration_new(mant_dig, exp_dig,
 				byte_order, alignment);
 	return &float_declaration->p;
 }
@@ -1816,7 +1816,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 
 	event_decl = g_new0(struct bt_ctf_event_decl, 1);
 	event = &event_decl->parent;
-	event->declaration_scope = new_declaration_scope(parent_declaration_scope);
+	event->declaration_scope = bt_new_declaration_scope(parent_declaration_scope);
 	event->loglevel = -1;
 	bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
 		ret = ctf_event_declaration_visit(fd, depth + 1, iter, event, trace);
@@ -1867,7 +1867,7 @@ error:
 		bt_declaration_unref(&event->fields_decl->p);
 	if (event->context_decl)
 		bt_declaration_unref(&event->context_decl->p);
-	free_declaration_scope(event->declaration_scope);
+	bt_free_declaration_scope(event->declaration_scope);
 	g_free(event_decl);
 	return ret;
 }
@@ -2003,7 +2003,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	struct ctf_stream_declaration *stream;
 
 	stream = g_new0(struct ctf_stream_declaration, 1);
-	stream->declaration_scope = new_declaration_scope(parent_declaration_scope);
+	stream->declaration_scope = bt_new_declaration_scope(parent_declaration_scope);
 	stream->events_by_id = g_ptr_array_new();
 	stream->event_quark_to_id = g_hash_table_new(g_direct_hash, g_direct_equal);
 	stream->streams = g_ptr_array_new();
@@ -2048,7 +2048,7 @@ error:
 	g_ptr_array_free(stream->streams, TRUE);
 	g_ptr_array_free(stream->events_by_id, TRUE);
 	g_hash_table_destroy(stream->event_quark_to_id);
-	free_declaration_scope(stream->declaration_scope);
+	bt_free_declaration_scope(stream->declaration_scope);
 	g_free(stream);
 	return ret;
 }
@@ -2199,7 +2199,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 
 	if (trace->declaration_scope)
 		return -EEXIST;
-	trace->declaration_scope = new_declaration_scope(trace->root_declaration_scope);
+	trace->declaration_scope = bt_new_declaration_scope(trace->root_declaration_scope);
 	trace->streams = g_ptr_array_new();
 	trace->event_declarations = g_ptr_array_new();
 	bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
@@ -2241,7 +2241,7 @@ error:
 	}
 	g_ptr_array_free(trace->streams, TRUE);
 	g_ptr_array_free(trace->event_declarations, TRUE);
-	free_declaration_scope(trace->declaration_scope);
+	bt_free_declaration_scope(trace->declaration_scope);
 	trace->declaration_scope = NULL;
 	return ret;
 }
@@ -2876,7 +2876,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 				NULL, callsite_free);
 
 retry:
-	trace->root_declaration_scope = new_declaration_scope(NULL);
+	trace->root_declaration_scope = bt_new_declaration_scope(NULL);
 
 	switch (node->type) {
 	case NODE_ROOT:
@@ -2910,7 +2910,7 @@ retry:
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
 			if (ret == -EINTR) {
-				free_declaration_scope(trace->root_declaration_scope);
+				bt_free_declaration_scope(trace->root_declaration_scope);
 				/*
 				 * Need to restart creation of type
 				 * definitions, aliases and
@@ -2971,7 +2971,7 @@ retry:
 	return ret;
 
 error:
-	free_declaration_scope(trace->root_declaration_scope);
+	bt_free_declaration_scope(trace->root_declaration_scope);
 	g_hash_table_destroy(trace->callsites);
 	g_hash_table_destroy(trace->clocks);
 	return ret;
@@ -3029,7 +3029,7 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 			g_ptr_array_free(stream->streams, TRUE);
 			g_ptr_array_free(stream->events_by_id, TRUE);
 			g_hash_table_destroy(stream->event_quark_to_id);
-			free_declaration_scope(stream->declaration_scope);
+			bt_free_declaration_scope(stream->declaration_scope);
 			g_free(stream);
 		}
 		g_ptr_array_free(trace->streams, TRUE);
@@ -3059,7 +3059,7 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 				bt_declaration_unref(&event->fields_decl->p);
 			if (event->context_decl)
 				bt_declaration_unref(&event->context_decl->p);
-			free_declaration_scope(event->declaration_scope);
+			bt_free_declaration_scope(event->declaration_scope);
 
 			g_free(event);
 		}
@@ -3068,8 +3068,8 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 	if (trace->packet_header_decl)
 		bt_declaration_unref(&trace->packet_header_decl->p);
 
-	free_declaration_scope(trace->root_declaration_scope);
-	free_declaration_scope(trace->declaration_scope);
+	bt_free_declaration_scope(trace->root_declaration_scope);
+	bt_free_declaration_scope(trace->declaration_scope);
 
 	g_hash_table_destroy(trace->callsites);
 	g_hash_table_destroy(trace->clocks);

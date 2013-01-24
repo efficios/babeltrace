@@ -305,10 +305,10 @@ struct definition_sequence {
 	GString *string;		/* String for encoded integer children */
 };
 
-int register_declaration(GQuark declaration_name,
+int bt_register_declaration(GQuark declaration_name,
 			 struct declaration *declaration,
 			 struct declaration_scope *scope);
-struct declaration *lookup_declaration(GQuark declaration_name,
+struct declaration *bt_lookup_declaration(GQuark declaration_name,
 				struct declaration_scope *scope);
 
 /*
@@ -323,21 +323,21 @@ int bt_register_struct_declaration(GQuark struct_name,
 struct declaration_struct *
 	bt_lookup_struct_declaration(GQuark struct_name,
 				  struct declaration_scope *scope);
-int register_variant_declaration(GQuark variant_name,
+int bt_register_variant_declaration(GQuark variant_name,
 			  struct declaration_untagged_variant *untagged_variant_declaration,
 		          struct declaration_scope *scope);
-struct declaration_untagged_variant *lookup_variant_declaration(GQuark variant_name,
+struct declaration_untagged_variant *bt_lookup_variant_declaration(GQuark variant_name,
 					 struct declaration_scope *scope);
-int register_enum_declaration(GQuark enum_name,
+int bt_register_enum_declaration(GQuark enum_name,
 			      struct declaration_enum *enum_declaration,
 			      struct declaration_scope *scope);
 struct declaration_enum *
-	lookup_enum_declaration(GQuark enum_name,
+	bt_lookup_enum_declaration(GQuark enum_name,
 			        struct declaration_scope *scope);
 
 struct declaration_scope *
-	new_declaration_scope(struct declaration_scope *parent_scope);
-void free_declaration_scope(struct declaration_scope *scope);
+	bt_new_declaration_scope(struct declaration_scope *parent_scope);
+void bt_free_declaration_scope(struct declaration_scope *scope);
 
 /*
  * field_definition is for field definitions. They are registered into
@@ -370,7 +370,7 @@ void bt_declaration_unref(struct declaration *declaration);
 void bt_definition_ref(struct definition *definition);
 void bt_definition_unref(struct definition *definition);
 
-struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
+struct declaration_integer *bt_integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
 				  int base, enum ctf_string_encoding encoding,
 				  struct ctf_clock *clock);
@@ -386,7 +386,7 @@ enum ctf_string_encoding bt_get_int_encoding(const struct definition *field);
  * mantissa_len is the length of the number of bytes represented by the mantissa
  * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
  */
-struct declaration_float *float_declaration_new(size_t mantissa_len,
+struct declaration_float *bt_float_declaration_new(size_t mantissa_len,
 				  size_t exp_len, int byte_order,
 				  size_t alignment);
 
@@ -458,16 +458,16 @@ uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct declaration_untagged_variant *untagged_variant_declaration_new(
+struct declaration_untagged_variant *bt_untagged_bt_variant_declaration_new(
 		struct declaration_scope *parent_scope);
-struct declaration_variant *variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
+struct declaration_variant *bt_variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
 		const char *tag);
 
-void untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
+void bt_untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
 		const char *field_name,
 		struct declaration *field_declaration);
 struct declaration_field *
-	untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration,
+	bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration,
 		GQuark tag);
 /*
  * Returns 0 on success, -EPERM on error.

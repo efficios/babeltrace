@@ -52,7 +52,7 @@ void _float_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_float *
-	float_declaration_new(size_t mantissa_len,
+	bt_float_declaration_new(size_t mantissa_len,
 		       size_t exp_len, int byte_order, size_t alignment)
 {
 	struct declaration_float *float_declaration;
@@ -68,13 +68,13 @@ struct declaration_float *
 	declaration->ref = 1;
 	float_declaration->byte_order = byte_order;
 
-	float_declaration->sign = integer_declaration_new(1,
+	float_declaration->sign = bt_integer_declaration_new(1,
 						byte_order, false, 1, 2,
 						CTF_STRING_NONE, NULL);
-	float_declaration->mantissa = integer_declaration_new(mantissa_len - 1,
+	float_declaration->mantissa = bt_integer_declaration_new(mantissa_len - 1,
 						byte_order, false, 1, 10,
 						CTF_STRING_NONE, NULL);
-	float_declaration->exp = integer_declaration_new(exp_len,
+	float_declaration->exp = bt_integer_declaration_new(exp_len,
 						byte_order, true, 1, 10,
 						CTF_STRING_NONE, NULL);
 	return float_declaration;

@@ -56,7 +56,7 @@ void _untagged_variant_declaration_free(struct declaration *declaration)
 		container_of(declaration, struct declaration_untagged_variant, p);
 	unsigned long i;
 
-	free_declaration_scope(untagged_variant_declaration->scope);
+	bt_free_declaration_scope(untagged_variant_declaration->scope);
 	g_hash_table_destroy(untagged_variant_declaration->fields_by_tag);
 
 	for (i = 0; i < untagged_variant_declaration->fields->len; i++) {
@@ -69,7 +69,7 @@ void _untagged_variant_declaration_free(struct declaration *declaration)
 	g_free(untagged_variant_declaration);
 }
 
-struct declaration_untagged_variant *untagged_variant_declaration_new(
+struct declaration_untagged_variant *bt_untagged_bt_variant_declaration_new(
 				      struct declaration_scope *parent_scope)
 {
 	struct declaration_untagged_variant *untagged_variant_declaration;
@@ -82,7 +82,7 @@ struct declaration_untagged_variant *untagged_variant_declaration_new(
 	untagged_variant_declaration->fields = g_array_sized_new(FALSE, TRUE,
 						 sizeof(struct declaration_field),
 						 DEFAULT_NR_STRUCT_FIELDS);
-	untagged_variant_declaration->scope = new_declaration_scope(parent_scope);
+	untagged_variant_declaration->scope = bt_new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_UNTAGGED_VARIANT;
 	declaration->alignment = 1;
 	declaration->declaration_free = _untagged_variant_declaration_free;
@@ -104,7 +104,7 @@ void _variant_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_variant *
-	variant_declaration_new(struct declaration_untagged_variant *untagged_variant, const char *tag)
+	bt_variant_declaration_new(struct declaration_untagged_variant *untagged_variant, const char *tag)
 {
 	struct declaration_variant *variant_declaration;
 	struct declaration *declaration;
@@ -257,7 +257,7 @@ void _variant_definition_free(struct definition *definition)
 	g_free(variant);
 }
 
-void untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
+void bt_untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
 			    const char *field_name,
 			    struct declaration *field_declaration)
 {
@@ -282,7 +282,7 @@ void untagged_variant_declaration_add_field(struct declaration_untagged_variant 
 }
 
 struct declaration_field *
-untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration, GQuark tag)
+bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration, GQuark tag)
 {
 	gpointer index;
 	gboolean found;

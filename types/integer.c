@@ -49,7 +49,7 @@ void _integer_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_integer *
-	integer_declaration_new(size_t len, int byte_order,
+	bt_integer_declaration_new(size_t len, int byte_order,
 			 int signedness, size_t alignment, int base,
 			 enum ctf_string_encoding encoding,
 			 struct ctf_clock *clock)

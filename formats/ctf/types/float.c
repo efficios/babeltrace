@@ -282,12 +282,12 @@ static
 void __attribute__((constructor)) ctf_float_init(void)
 {
 	static_float_declaration =
-		float_declaration_new(FLT_MANT_DIG,
+		bt_float_declaration_new(FLT_MANT_DIG,
 				sizeof(float) * CHAR_BIT - FLT_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(float));
 	static_double_declaration =
-		float_declaration_new(DBL_MANT_DIG,
+		bt_float_declaration_new(DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));

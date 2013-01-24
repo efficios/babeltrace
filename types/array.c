@@ -64,7 +64,7 @@ void _array_declaration_free(struct declaration *declaration)
 	struct declaration_array *array_declaration =
 		container_of(declaration, struct declaration_array, p);
 
-	free_declaration_scope(array_declaration->scope);
+	bt_free_declaration_scope(array_declaration->scope);
 	bt_declaration_unref(array_declaration->elem);
 	g_free(array_declaration);
 }
@@ -82,7 +82,7 @@ struct declaration_array *
 	array_declaration->len = len;
 	bt_declaration_ref(elem_declaration);
 	array_declaration->elem = elem_declaration;
-	array_declaration->scope = new_declaration_scope(parent_scope);
+	array_declaration->scope = bt_new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_ARRAY;
 	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _array_declaration_free;

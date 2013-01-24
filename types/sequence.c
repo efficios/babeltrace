@@ -93,7 +93,7 @@ void _sequence_declaration_free(struct declaration *declaration)
 	struct declaration_sequence *sequence_declaration =
 		container_of(declaration, struct declaration_sequence, p);
 
-	free_declaration_scope(sequence_declaration->scope);
+	bt_free_declaration_scope(sequence_declaration->scope);
 	g_array_free(sequence_declaration->length_name, TRUE);
 	bt_declaration_unref(sequence_declaration->elem);
 	g_free(sequence_declaration);
@@ -115,7 +115,7 @@ struct declaration_sequence *
 
 	bt_declaration_ref(elem_declaration);
 	sequence_declaration->elem = elem_declaration;
-	sequence_declaration->scope = new_declaration_scope(parent_scope);
+	sequence_declaration->scope = bt_new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_SEQUENCE;
 	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _sequence_declaration_free;

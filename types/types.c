@@ -52,20 +52,20 @@ GQuark prefix_quark(const char *prefix, GQuark quark)
 
 static
 struct declaration *
-	lookup_declaration_scope(GQuark declaration_name,
+	bt_lookup_declaration_scope(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->typedef_declarations,
 				   (gconstpointer) (unsigned long) declaration_name);
 }
 
-struct declaration *lookup_declaration(GQuark declaration_name,
+struct declaration *bt_lookup_declaration(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
 	struct declaration *declaration;
 
 	while (scope) {
-		declaration = lookup_declaration_scope(declaration_name,
+		declaration = bt_lookup_declaration_scope(declaration_name,
 						       scope);
 		if (declaration)
 			return declaration;
@@ -74,14 +74,14 @@ struct declaration *lookup_declaration(GQuark declaration_name,
 	return NULL;
 }
 
-int register_declaration(GQuark name, struct declaration *declaration,
+int bt_register_declaration(GQuark name, struct declaration *declaration,
 		struct declaration_scope *scope)
 {
 	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_declaration_scope(name, scope))
+	if (bt_lookup_declaration_scope(name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->typedef_declarations,
@@ -306,7 +306,7 @@ void bt_definition_unref(struct definition *definition)
 }
 
 struct declaration_scope *
-	new_declaration_scope(struct declaration_scope *parent_scope)
+	bt_new_declaration_scope(struct declaration_scope *parent_scope)
 {
 	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
 
@@ -326,7 +326,7 @@ struct declaration_scope *
 	return scope;
 }
 
-void free_declaration_scope(struct declaration_scope *scope)
+void bt_free_declaration_scope(struct declaration_scope *scope)
 {
 	g_hash_table_destroy(scope->enum_declarations);
 	g_hash_table_destroy(scope->variant_declarations);
@@ -378,14 +378,14 @@ int bt_register_struct_declaration(GQuark struct_name,
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("struct ", struct_name);
-	ret = register_declaration(prefix_name, &struct_declaration->p, scope);
+	ret = bt_register_declaration(prefix_name, &struct_declaration->p, scope);
 	assert(!ret);
 	return 0;
 }
 
 static
 struct declaration_untagged_variant *
-	lookup_variant_declaration_scope(GQuark variant_name,
+	bt_lookup_variant_declaration_scope(GQuark variant_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->variant_declarations,
@@ -393,13 +393,13 @@ struct declaration_untagged_variant *
 }
 
 struct declaration_untagged_variant *
-	lookup_variant_declaration(GQuark variant_name,
+	bt_lookup_variant_declaration(GQuark variant_name,
 		struct declaration_scope *scope)
 {
 	struct declaration_untagged_variant *declaration;
 
 	while (scope) {
-		declaration = lookup_variant_declaration_scope(variant_name, scope);
+		declaration = bt_lookup_variant_declaration_scope(variant_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -407,7 +407,7 @@ struct declaration_untagged_variant *
 	return NULL;
 }
 
-int register_variant_declaration(GQuark variant_name,
+int bt_register_variant_declaration(GQuark variant_name,
 		struct declaration_untagged_variant *untagged_variant_declaration,
 		struct declaration_scope *scope)
 {
@@ -418,7 +418,7 @@ int register_variant_declaration(GQuark variant_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_variant_declaration_scope(variant_name, scope))
+	if (bt_lookup_variant_declaration_scope(variant_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->variant_declarations,
@@ -428,7 +428,7 @@ int register_variant_declaration(GQuark variant_name,
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("variant ", variant_name);
-	ret = register_declaration(prefix_name,
+	ret = bt_register_declaration(prefix_name,
 			&untagged_variant_declaration->p, scope);
 	assert(!ret);
 	return 0;
@@ -436,7 +436,7 @@ int register_variant_declaration(GQuark variant_name,
 
 static
 struct declaration_enum *
-	lookup_enum_declaration_scope(GQuark enum_name,
+	bt_lookup_enum_declaration_scope(GQuark enum_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->enum_declarations,
@@ -444,13 +444,13 @@ struct declaration_enum *
 }
 
 struct declaration_enum *
-	lookup_enum_declaration(GQuark enum_name,
+	bt_lookup_enum_declaration(GQuark enum_name,
 		struct declaration_scope *scope)
 {
 	struct declaration_enum *declaration;
 
 	while (scope) {
-		declaration = lookup_enum_declaration_scope(enum_name, scope);
+		declaration = bt_lookup_enum_declaration_scope(enum_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -458,7 +458,7 @@ struct declaration_enum *
 	return NULL;
 }
 
-int register_enum_declaration(GQuark enum_name,
+int bt_register_enum_declaration(GQuark enum_name,
 		struct declaration_enum *enum_declaration,
 		struct declaration_scope *scope)
 {
@@ -469,7 +469,7 @@ int register_enum_declaration(GQuark enum_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_enum_declaration_scope(enum_name, scope))
+	if (bt_lookup_enum_declaration_scope(enum_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->enum_declarations,
@@ -479,7 +479,7 @@ int register_enum_declaration(GQuark enum_name,
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("enum ", enum_name);
-	ret = register_declaration(prefix_name, &enum_declaration->p, scope);
+	ret = bt_register_declaration(prefix_name, &enum_declaration->p, scope);
 	assert(!ret);
 	return 0;
 }
