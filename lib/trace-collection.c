@@ -155,7 +155,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
  * correlate this trace with at least one other clock in the trace and
  * convert the index from cycles to real time.
  */
-int trace_collection_add(struct trace_collection *tc,
+int bt_trace_collection_add(struct trace_collection *tc,
 				struct trace_descriptor *td)
 {
 	struct ctf_trace *trace;
@@ -208,7 +208,7 @@ error:
 	return -EPERM;
 }
 
-int trace_collection_remove(struct trace_collection *tc,
+int bt_trace_collection_remove(struct trace_collection *tc,
 			    struct trace_descriptor *td)
 {
 	if (!tc || !td)
@@ -222,7 +222,7 @@ int trace_collection_remove(struct trace_collection *tc,
 
 }
 
-void init_trace_collection(struct trace_collection *tc)
+void bt_init_trace_collection(struct trace_collection *tc)
 {
 	assert(tc);
 	tc->array = g_ptr_array_new();
@@ -234,10 +234,10 @@ void init_trace_collection(struct trace_collection *tc)
 }
 
 /*
- * finalize_trace_collection() closes the opened traces for read
+ * bt_finalize_trace_collection() closes the opened traces for read
  * and free the memory allocated for trace collection
  */
-void finalize_trace_collection(struct trace_collection *tc)
+void bt_finalize_trace_collection(struct trace_collection *tc)
 {
 	assert(tc);
 	g_ptr_array_free(tc->array, TRUE);
