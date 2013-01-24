@@ -184,7 +184,7 @@ static struct definition_scope *
  * scope: the definition scope containing the variant definition.
  */
 struct definition *
-	lookup_path_definition(GArray *cur_path,
+	bt_lookup_path_definition(GArray *cur_path,
 			       GArray *lookup_path,
 			       struct definition_scope *scope)
 {
@@ -262,7 +262,7 @@ lookup:
 	return NULL;
 }
 
-int register_field_definition(GQuark field_name, struct definition *definition,
+int bt_register_field_definition(GQuark field_name, struct definition *definition,
 		struct definition_scope *scope)
 {
 	if (!scope || !field_name)
@@ -485,7 +485,7 @@ int bt_register_enum_declaration(GQuark enum_name,
 }
 
 static struct definition_scope *
-	_new_definition_scope(struct definition_scope *parent_scope,
+	_bt_new_definition_scope(struct definition_scope *parent_scope,
 			      int scope_path_len)
 {
 	struct definition_scope *scope = g_new(struct definition_scope, 1);
@@ -499,7 +499,7 @@ static struct definition_scope *
 	return scope;
 }
 
-GQuark new_definition_path(struct definition_scope *parent_scope,
+GQuark bt_new_definition_path(struct definition_scope *parent_scope,
 			   GQuark field_name, const char *root_name)
 {
 	GQuark path;
@@ -540,20 +540,20 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 }
 
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope,
+	bt_new_definition_scope(struct definition_scope *parent_scope,
 			     GQuark field_name, const char *root_name)
 {
 	struct definition_scope *scope;
 
 	if (root_name) {
-		scope = _new_definition_scope(parent_scope, 0);
+		scope = _bt_new_definition_scope(parent_scope, 0);
 		bt_append_scope_path(root_name, scope->scope_path);
 	} else {
 		int scope_path_len = 1;
 
 		assert(parent_scope);
 		scope_path_len += parent_scope->scope_path->len;
-		scope = _new_definition_scope(parent_scope, scope_path_len);
+		scope = _bt_new_definition_scope(parent_scope, scope_path_len);
 		memcpy(scope->scope_path->data, parent_scope->scope_path->data,
 		       sizeof(GQuark) * (scope_path_len - 1));
 		g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
@@ -605,14 +605,14 @@ void bt_append_scope_path(const char *path, GArray *q)
 	}
 }
 
-void free_definition_scope(struct definition_scope *scope)
+void bt_free_definition_scope(struct definition_scope *scope)
 {
 	g_array_free(scope->scope_path, TRUE);
 	g_hash_table_destroy(scope->definitions);
 	g_free(scope);
 }
 
-struct definition *lookup_definition(const struct definition *definition,
+struct definition *bt_lookup_definition(const struct definition *definition,
 				     const char *field_name)
 {
 	struct definition_scope *scope = get_definition_scope(definition);
@@ -631,7 +631,7 @@ struct definition_integer *lookup_integer(const struct definition *definition,
 	struct definition *lookup;
 	struct definition_integer *lookup_integer;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_INTEGER)
@@ -649,7 +649,7 @@ struct definition_enum *bt_lookup_enum(const struct definition *definition,
 	struct definition *lookup;
 	struct definition_enum *lookup_enum;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_ENUM)
@@ -666,7 +666,7 @@ struct definition *bt_lookup_variant(const struct definition *definition,
 	struct definition *lookup;
 	struct definition_variant *bt_lookup_variant;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_VARIANT)

@@ -96,8 +96,8 @@ struct definition *
 	bt_declaration_ref(&float_declaration->p);
 	_float->p.declaration = declaration;
 	_float->declaration = float_declaration;
-	_float->p.scope = new_definition_scope(parent_scope, field_name, root_name);
-	_float->p.path = new_definition_path(parent_scope, field_name, root_name);
+	_float->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
+	_float->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
 	if (float_declaration->byte_order == LITTLE_ENDIAN) {
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
 			_float->p.scope, g_quark_from_static_string("mantissa"), 0, NULL);
@@ -130,7 +130,7 @@ struct definition *
 	if (parent_scope) {
 		int ret;
 
-		ret = register_field_definition(field_name, &_float->p,
+		ret = bt_register_field_definition(field_name, &_float->p,
 						parent_scope);
 		assert(!ret);
 	}
@@ -146,7 +146,7 @@ void _float_definition_free(struct definition *definition)
 	bt_definition_unref(&_float->sign->p);
 	bt_definition_unref(&_float->exp->p);
 	bt_definition_unref(&_float->mantissa->p);
-	free_definition_scope(_float->p.scope);
+	bt_free_definition_scope(_float->p.scope);
 	bt_declaration_unref(_float->p.declaration);
 	g_free(_float);
 }

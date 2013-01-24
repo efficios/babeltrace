@@ -440,10 +440,10 @@ struct definition *
 	 */
 	_enum->p.index = root_name ? INT_MAX : index;
 	_enum->p.name = field_name;
-	_enum->p.path = new_definition_path(parent_scope, field_name, root_name);
-	_enum->p.scope = new_definition_scope(parent_scope, field_name, root_name);
+	_enum->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
+	_enum->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
 	_enum->value = NULL;
-	ret = register_field_definition(field_name, &_enum->p,
+	ret = bt_register_field_definition(field_name, &_enum->p,
 					parent_scope);
 	assert(!ret);
 	definition_integer_parent =
@@ -462,7 +462,7 @@ void _enum_definition_free(struct definition *definition)
 		container_of(definition, struct definition_enum, p);
 
 	bt_definition_unref(&_enum->integer->p);
-	free_definition_scope(_enum->p.scope);
+	bt_free_definition_scope(_enum->p.scope);
 	bt_declaration_unref(_enum->p.declaration);
 	if (_enum->value)
 		g_array_unref(_enum->value);

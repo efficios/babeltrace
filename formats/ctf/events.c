@@ -106,7 +106,7 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 	if (!ctf_event || !scope || !field)
 		return NULL;
 
-	def = lookup_definition(scope, field);
+	def = bt_lookup_definition(scope, field);
 	/*
 	 * optionally a field can have an underscore prefix, try
 	 * to lookup the field with this prefix if it failed
@@ -115,7 +115,7 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 		field_underscore = g_new(char, strlen(field) + 2);
 		field_underscore[0] = '_';
 		strcpy(&field_underscore[1], field);
-		def = lookup_definition(scope, field_underscore);
+		def = bt_lookup_definition(scope, field_underscore);
 		g_free(field_underscore);
 	}
 	if (bt_ctf_field_type(bt_ctf_get_decl_from_def(def)) == CTF_TYPE_VARIANT) {

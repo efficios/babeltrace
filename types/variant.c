@@ -195,14 +195,14 @@ struct definition *
 	 */
 	variant->p.index = root_name ? INT_MAX : index;
 	variant->p.name = field_name;
-	variant->p.path = new_definition_path(parent_scope, field_name, root_name);
-	variant->p.scope = new_definition_scope(parent_scope, field_name, root_name);
+	variant->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
+	variant->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
 
-	ret = register_field_definition(field_name, &variant->p,
+	ret = bt_register_field_definition(field_name, &variant->p,
 					parent_scope);
 	assert(!ret);
 
-	variant->enum_tag = lookup_path_definition(variant->p.scope->scope_path,
+	variant->enum_tag = bt_lookup_path_definition(variant->p.scope->scope_path,
 						   variant_declaration->tag_name,
 						   parent_scope);
 					      
@@ -232,7 +232,7 @@ struct definition *
 	variant->current_field = NULL;
 	return &variant->p;
 error:
-	free_definition_scope(variant->p.scope);
+	bt_free_definition_scope(variant->p.scope);
 	bt_declaration_unref(&variant_declaration->p);
 	g_free(variant);
 	return NULL;
@@ -251,7 +251,7 @@ void _variant_definition_free(struct definition *definition)
 		bt_definition_unref(field);
 	}
 	bt_definition_unref(variant->enum_tag);
-	free_definition_scope(variant->p.scope);
+	bt_free_definition_scope(variant->p.scope);
 	bt_declaration_unref(variant->p.declaration);
 	g_ptr_array_free(variant->fields, TRUE);
 	g_free(variant);

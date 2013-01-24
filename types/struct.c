@@ -128,10 +128,10 @@ struct definition *
 	 */
 	_struct->p.index = root_name ? INT_MAX : index;
 	_struct->p.name = field_name;
-	_struct->p.path = new_definition_path(parent_scope, field_name, root_name);
-	_struct->p.scope = new_definition_scope(parent_scope, field_name, root_name);
+	_struct->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
+	_struct->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
 
-	ret = register_field_definition(field_name, &_struct->p,
+	ret = bt_register_field_definition(field_name, &_struct->p,
 					parent_scope);
 	assert(!ret || ret == -EPERM);
 
@@ -157,7 +157,7 @@ error:
 		struct definition *field = g_ptr_array_index(_struct->fields, i);
 		bt_definition_unref(field);
 	}
-	free_definition_scope(_struct->p.scope);
+	bt_free_definition_scope(_struct->p.scope);
 	bt_declaration_unref(&struct_declaration->p);
 	g_free(_struct);
 	return NULL;
@@ -175,7 +175,7 @@ void _struct_definition_free(struct definition *definition)
 		struct definition *field = g_ptr_array_index(_struct->fields, i);
 		bt_definition_unref(field);
 	}
-	free_definition_scope(_struct->p.scope);
+	bt_free_definition_scope(_struct->p.scope);
 	bt_declaration_unref(_struct->p.declaration);
 	g_ptr_array_free(_struct->fields, TRUE);
 	g_free(_struct);

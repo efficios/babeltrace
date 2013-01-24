@@ -86,13 +86,13 @@ struct definition *
 	 */
 	string->p.index = root_name ? INT_MAX : index;
 	string->p.name = field_name;
-	string->p.path = new_definition_path(parent_scope, field_name,
+	string->p.path = bt_new_definition_path(parent_scope, field_name,
 					root_name);
 	string->p.scope = NULL;
 	string->value = NULL;
 	string->len = 0;
 	string->alloc_len = 0;
-	ret = register_field_definition(field_name, &string->p,
+	ret = bt_register_field_definition(field_name, &string->p,
 					parent_scope);
 	assert(!ret);
 	return &string->p;

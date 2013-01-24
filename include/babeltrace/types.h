@@ -344,18 +344,18 @@ void bt_free_declaration_scope(struct declaration_scope *scope);
  * definition scopes.
  */
 struct definition *
-	lookup_path_definition(GArray *cur_path,	/* array of GQuark */
+	bt_lookup_path_definition(GArray *cur_path,	/* array of GQuark */
 			       GArray *lookup_path,	/* array of GQuark */
 			       struct definition_scope *scope);
-int register_field_definition(GQuark field_name,
+int bt_register_field_definition(GQuark field_name,
 			      struct definition *definition,
 			      struct definition_scope *scope);
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope,
+	bt_new_definition_scope(struct definition_scope *parent_scope,
 			     GQuark field_name, const char *root_name);
-void free_definition_scope(struct definition_scope *scope);
+void bt_free_definition_scope(struct definition_scope *scope);
 
-GQuark new_definition_path(struct definition_scope *parent_scope,
+GQuark bt_new_definition_path(struct definition_scope *parent_scope,
 			   GQuark field_name, const char *root_name);
 
 static inline
@@ -516,7 +516,7 @@ void bt_append_scope_path(const char *path, GArray *q);
 /*
  * Lookup helpers.
  */
-struct definition *lookup_definition(const struct definition *definition,
+struct definition *bt_lookup_definition(const struct definition *definition,
 				     const char *field_name);
 struct definition_integer *lookup_integer(const struct definition *definition,
 					  const char *field_name,
