@@ -63,7 +63,7 @@ int ctf_text_array_write(struct stream_pos *ppos, struct definition *definition)
 			    && integer_declaration->p.alignment == CHAR_BIT)) {
 				pos->string = array_definition->string;
 				g_string_assign(array_definition->string, "");
-				ret = array_rw(ppos, definition);
+				ret = bt_array_rw(ppos, definition);
 				pos->string = NULL;
 			}
 			fprintf(pos->fp, "\"%s\"", array_definition->string->str);
@@ -77,7 +77,7 @@ int ctf_text_array_write(struct stream_pos *ppos, struct definition *definition)
 	}
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
-	ret = array_rw(ppos, definition);
+	ret = bt_array_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		fprintf(pos->fp, " ]");

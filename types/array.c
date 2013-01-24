@@ -38,7 +38,7 @@ struct definition *_array_definition_new(struct declaration *declaration,
 static
 void _array_definition_free(struct definition *definition);
 
-int array_rw(struct stream_pos *pos, struct definition *definition)
+int bt_array_rw(struct stream_pos *pos, struct definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);
@@ -70,7 +70,7 @@ void _array_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_array *
-	array_declaration_new(size_t len,
+	bt_array_declaration_new(size_t len,
 			      struct declaration *elem_declaration,
 			      struct declaration_scope *parent_scope)
 {
@@ -198,14 +198,14 @@ void _array_definition_free(struct definition *definition)
 	g_free(array);
 }
 
-uint64_t array_len(struct definition_array *array)
+uint64_t bt_array_len(struct definition_array *array)
 {
 	if (!array->elems)
 		return array->string->len;
 	return array->elems->len;
 }
 
-struct definition *array_index(struct definition_array *array, uint64_t i)
+struct definition *bt_array_index(struct definition_array *array, uint64_t i)
 {
 	if (!array->elems)
 		return NULL;
@@ -214,7 +214,7 @@ struct definition *array_index(struct definition_array *array, uint64_t i)
 	return g_ptr_array_index(array->elems, i);
 }
 
-int get_array_len(const struct definition *field)
+int bt_get_array_len(const struct definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;
@@ -225,7 +225,7 @@ int get_array_len(const struct definition *field)
 	return array_declaration->len;
 }
 
-GString *get_char_array(const struct definition *field)
+GString *bt_get_char_array(const struct definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;

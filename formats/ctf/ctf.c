@@ -1338,12 +1338,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
-				assert(array_len(defarray) == BABELTRACE_UUID_LEN);
+				assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
 
 				for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
 					struct definition *elem;
 
-					elem = array_index(defarray, i);
+					elem = bt_array_index(defarray, i);
 					uuidval[i] = get_unsigned_int(elem);
 				}
 				ret = babeltrace_uuid_compare(td->uuid, uuidval);

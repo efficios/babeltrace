@@ -140,7 +140,7 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 		struct definition_array *array_definition;
 		array_definition = container_of(field,
 				struct definition_array, p);
-		ret = array_index(array_definition, index);
+		ret = bt_array_index(array_definition, index);
 	} else if (bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_SEQUENCE) {
 		struct definition_sequence *sequence_definition;
 		sequence_definition = container_of(field,
@@ -584,7 +584,7 @@ char *bt_ctf_get_char_array(const struct definition *field)
 	GString *char_array;
 
 	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_ARRAY) {
-		char_array = get_char_array(field);
+		char_array = bt_get_char_array(field);
 		if (char_array) {
 			ret = char_array->str;
 			goto end;

@@ -488,13 +488,13 @@ int variant_rw(struct stream_pos *pos, struct definition *definition);
  * array.
  */
 struct declaration_array *
-	array_declaration_new(size_t len, struct declaration *elem_declaration,
+	bt_array_declaration_new(size_t len, struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
-uint64_t array_len(struct definition_array *array);
-struct definition *array_index(struct definition_array *array, uint64_t i);
-int array_rw(struct stream_pos *pos, struct definition *definition);
-GString *get_char_array(const struct definition *field);
-int get_array_len(const struct definition *field);
+uint64_t bt_array_len(struct definition_array *array);
+struct definition *bt_array_index(struct definition_array *array, uint64_t i);
+int bt_array_rw(struct stream_pos *pos, struct definition *definition);
+GString *bt_get_char_array(const struct definition *field);
+int bt_get_array_len(const struct definition *field);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong

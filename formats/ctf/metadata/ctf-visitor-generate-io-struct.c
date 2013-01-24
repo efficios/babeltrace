@@ -509,7 +509,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			size_t len;
 
 			len = first->u.unary_expression.u.unsigned_constant;
-			array_declaration = array_declaration_new(len, nested_declaration,
+			array_declaration = bt_array_declaration_new(len, nested_declaration,
 						declaration_scope);
 
 			if (!array_declaration) {

@@ -61,7 +61,7 @@ int ctf_array_read(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return array_rw(ppos, definition);
+	return bt_array_rw(ppos, definition);
 }
 
 int ctf_array_write(struct stream_pos *ppos, struct definition *definition)
@@ -96,5 +96,5 @@ int ctf_array_write(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return array_rw(ppos, definition);
+	return bt_array_rw(ppos, definition);
 }
