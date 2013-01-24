@@ -34,5 +34,5 @@ int ctf_struct_rw(struct stream_pos *ppos, struct definition *definition)
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	ctf_align_pos(pos, declaration->alignment);
-	return struct_rw(ppos, definition);
+	return bt_struct_rw(ppos, definition);
 }

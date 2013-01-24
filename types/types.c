@@ -336,20 +336,20 @@ void free_declaration_scope(struct declaration_scope *scope)
 }
 
 static
-struct declaration_struct *lookup_struct_declaration_scope(GQuark struct_name,
+struct declaration_struct *bt_lookup_struct_declaration_scope(GQuark struct_name,
 					     struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->struct_declarations,
 				   (gconstpointer) (unsigned long) struct_name);
 }
 
-struct declaration_struct *lookup_struct_declaration(GQuark struct_name,
+struct declaration_struct *bt_lookup_struct_declaration(GQuark struct_name,
 				       struct declaration_scope *scope)
 {
 	struct declaration_struct *declaration;
 
 	while (scope) {
-		declaration = lookup_struct_declaration_scope(struct_name, scope);
+		declaration = bt_lookup_struct_declaration_scope(struct_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -357,7 +357,7 @@ struct declaration_struct *lookup_struct_declaration(GQuark struct_name,
 	return NULL;
 }
 
-int register_struct_declaration(GQuark struct_name,
+int bt_register_struct_declaration(GQuark struct_name,
 	struct declaration_struct *struct_declaration,
 	struct declaration_scope *scope)
 {
@@ -368,7 +368,7 @@ int register_struct_declaration(GQuark struct_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_struct_declaration_scope(struct_name, scope))
+	if (bt_lookup_struct_declaration_scope(struct_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->struct_declarations,

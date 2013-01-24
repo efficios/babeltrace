@@ -317,11 +317,11 @@ struct declaration *lookup_declaration(GQuark declaration_name,
  * that a named variant can be declared without specifying its target
  * "choice" tag field immediately.
  */
-int register_struct_declaration(GQuark struct_name,
+int bt_register_struct_declaration(GQuark struct_name,
 				struct declaration_struct *struct_declaration,
 				struct declaration_scope *scope);
 struct declaration_struct *
-	lookup_struct_declaration(GQuark struct_name,
+	bt_lookup_struct_declaration(GQuark struct_name,
 				  struct declaration_scope *scope);
 int register_variant_declaration(GQuark variant_name,
 			  struct declaration_untagged_variant *untagged_variant_declaration,
@@ -431,27 +431,27 @@ char *bt_get_string(const struct definition *field);
 enum ctf_string_encoding bt_get_string_encoding(const struct definition *field);
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope,
+	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align);
-void struct_declaration_add_field(struct declaration_struct *struct_declaration,
+void bt_struct_declaration_add_field(struct declaration_struct *struct_declaration,
 				  const char *field_name,
 				  struct declaration *field_declaration);
 /*
  * Returns the index of a field within a structure.
  */
-int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+int bt_struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 						    GQuark field_name);
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
 struct declaration_field *
-struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
+bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					int index);
 struct definition *
-struct_definition_get_field_from_index(struct definition_struct *struct_definition,
+bt_struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
-int struct_rw(struct stream_pos *pos, struct definition *definition);
-uint64_t struct_declaration_len(struct declaration_struct *struct_declaration);
+int bt_struct_rw(struct stream_pos *pos, struct definition *definition);
+uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings

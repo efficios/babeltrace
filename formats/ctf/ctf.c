@@ -1311,12 +1311,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
 			if (ret)
 				return ret;
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
 				struct definition *field;
 				uint64_t magic;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				magic = bt_get_unsigned_int(field);
 				if (magic != CTF_MAGIC) {
 					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
@@ -1328,14 +1328,14 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
 				struct definition *field;
 				uint64_t i;
 				uint8_t uuidval[BABELTRACE_UUID_LEN];
 
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				assert(field->declaration->id == CTF_TYPE_ARRAY);
 				defarray = container_of(field, struct definition_array, p);
 				assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
@@ -1354,11 +1354,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				stream_id = bt_get_unsigned_int(field);
 			}
 		}
@@ -1391,11 +1391,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			if (ret)
 				return ret;
 			/* read content size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.content_size = bt_get_unsigned_int(field);
 			} else {
 				/* Use file size for packet size */
@@ -1403,11 +1403,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read packet size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.packet_size = bt_get_unsigned_int(field);
 			} else {
 				/* Use content size if non-zero, else file size */
@@ -1415,11 +1415,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read timestamp begin from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_begin = bt_get_unsigned_int(field);
 				if (file_stream->parent.stream_class->trace->collection) {
 					packet_index.timestamp_begin =
@@ -1430,11 +1430,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read timestamp end from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_end = bt_get_unsigned_int(field);
 				if (file_stream->parent.stream_class->trace->collection) {
 					packet_index.timestamp_end =
@@ -1445,11 +1445,11 @@ int create_stream_packet_index(struct ctf_trace *td,
 			}
 
 			/* read events discarded from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
+			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
 			if (len_index >= 0) {
 				struct definition *field;
 
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.events_discarded = bt_get_unsigned_int(field);
 				packet_index.events_discarded_len = bt_get_int_len(field);
 			}

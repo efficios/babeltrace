@@ -575,12 +575,12 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 		}
 
 		/* Check if field with same name already exists */
-		if (struct_declaration_lookup_field_index(struct_declaration, field_name) >= 0) {
+		if (bt_struct_declaration_lookup_field_index(struct_declaration, field_name) >= 0) {
 			fprintf(fd, "[error] %s: duplicate field %s in struct\n", __func__, g_quark_to_string(field_name));
 			return -EINVAL;
 		}
 
-		struct_declaration_add_field(struct_declaration,
+		bt_struct_declaration_add_field(struct_declaration,
 					     g_quark_to_string(field_name),
 					     field_declaration);
 		bt_declaration_unref(field_declaration);
@@ -840,7 +840,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 	if (!has_body) {
 		assert(name);
 		struct_declaration =
-			lookup_struct_declaration(g_quark_from_string(name),
+			bt_lookup_struct_declaration(g_quark_from_string(name),
 						  declaration_scope);
 		bt_declaration_ref(&struct_declaration->p);
 		return &struct_declaration->p;
@@ -850,7 +850,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		/* For unnamed struct, create type */
 		/* For named struct (with body), create type and add to declaration scope */
 		if (name) {
-			if (lookup_struct_declaration(g_quark_from_string(name),
+			if (bt_lookup_struct_declaration(g_quark_from_string(name),
 						      declaration_scope)) {
 				
 				fprintf(fd, "[error] %s: struct %s already declared in scope\n", __func__, name);
@@ -867,7 +867,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 				goto error;
 			}
 		}
-		struct_declaration = struct_declaration_new(declaration_scope,
+		struct_declaration = bt_struct_declaration_new(declaration_scope,
 							    min_align_value);
 		bt_list_for_each_entry(iter, declaration_list, siblings) {
 			int ret;
@@ -880,7 +880,7 @@ struct declaration *ctf_declaration_struct_visit(FILE *fd,
 		if (name) {
 			int ret;
 
-			ret = register_struct_declaration(g_quark_from_string(name),
+			ret = bt_register_struct_declaration(g_quark_from_string(name),
 					struct_declaration,
 					declaration_scope);
 			assert(!ret);
@@ -2017,7 +2017,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	if (CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
 		/* check that packet header has stream_id field. */
 		if (!trace->packet_header_decl
-		    || struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("stream_id")) < 0) {
+		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("stream_id")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing stream_id field in packet header declaration, but stream_id attribute is declared for stream.\n", __func__);
 			goto error;
@@ -2226,7 +2226,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (!CTF_TRACE_FIELD_IS_SET(trace, byte_order)) {
 		/* check that the packet header contains a "magic" field */
 		if (!trace->packet_header_decl
-		    || struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("magic")) < 0) {
+		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("magic")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing both byte_order and packet header magic number in trace declaration\n", __func__);
 			goto error;

@@ -43,7 +43,7 @@ struct definition *_struct_definition_new(struct declaration *declaration,
 static
 void _struct_definition_free(struct definition *definition);
 
-int struct_rw(struct stream_pos *ppos, struct definition *definition)
+int bt_struct_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);
@@ -81,7 +81,7 @@ void _struct_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope,
+	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align)
 {
 	struct declaration_struct *struct_declaration;
@@ -181,7 +181,7 @@ void _struct_definition_free(struct definition *definition)
 	g_free(_struct);
 }
 
-void struct_declaration_add_field(struct declaration_struct *struct_declaration,
+void bt_struct_declaration_add_field(struct declaration_struct *struct_declaration,
 			   const char *field_name,
 			   struct declaration *field_declaration)
 {
@@ -207,12 +207,12 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 }
 
 /*
- * struct_declaration_lookup_field_index - returns field index
+ * bt_struct_declaration_lookup_field_index - returns field index
  *
  * Returns the index of a field in a structure, or -1 if it does not
  * exist.
  */
-int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+int bt_struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 				       GQuark field_name)
 {
 	gpointer index;
@@ -230,7 +230,7 @@ int struct_declaration_lookup_field_index(struct declaration_struct *struct_decl
  * field returned only valid as long as the field structure is not appended to.
  */
 struct declaration_field *
-	struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
+	bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					 int index)
 {
 	if (index < 0)
@@ -242,7 +242,7 @@ struct declaration_field *
  * field returned only valid as long as the field structure is not appended to.
  */
 struct definition *
-struct_definition_get_field_from_index(struct definition_struct *_struct,
+bt_struct_definition_get_field_from_index(struct definition_struct *_struct,
 					int index)
 {
 	if (index < 0)
@@ -250,7 +250,7 @@ struct_definition_get_field_from_index(struct definition_struct *_struct,
 	return g_ptr_array_index(_struct->fields, index);
 }
 
-uint64_t struct_declaration_len(struct declaration_struct *struct_declaration)
+uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration)
 {
 	return struct_declaration->fields->len;
 }
