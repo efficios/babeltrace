@@ -1168,9 +1168,9 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 
 error:
 	if (stream_event->event_fields)
-		definition_unref(&stream_event->event_fields->p);
+		bt_definition_unref(&stream_event->event_fields->p);
 	if (stream_event->event_context)
-		definition_unref(&stream_event->event_context->p);
+		bt_definition_unref(&stream_event->event_context->p);
 	return NULL;
 }
 
@@ -1246,11 +1246,11 @@ error_event:
 	g_ptr_array_free(stream->events_by_id, TRUE);
 error:
 	if (stream->stream_event_context)
-		definition_unref(&stream->stream_event_context->p);
+		bt_definition_unref(&stream->stream_event_context->p);
 	if (stream->stream_event_header)
-		definition_unref(&stream->stream_event_header->p);
+		bt_definition_unref(&stream->stream_event_header->p);
 	if (stream->stream_packet_context)
-		definition_unref(&stream->stream_packet_context->p);
+		bt_definition_unref(&stream->stream_packet_context->p);
 	return ret;
 }
 
@@ -1572,7 +1572,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 
 error_index:
 	if (file_stream->parent.trace_packet_header)
-		definition_unref(&file_stream->parent.trace_packet_header->p);
+		bt_definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	closeret = ctf_fini_pos(&file_stream->pos);
 	if (closeret) {
@@ -1811,7 +1811,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 
 error_index:
 	if (file_stream->parent.trace_packet_header)
-		definition_unref(&file_stream->parent.trace_packet_header->p);
+		bt_definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	g_free(file_stream);
 	return ret;

@@ -216,7 +216,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	}
 
 end_unref:
-	definition_unref(tmpdef);
+	bt_definition_unref(tmpdef);
 end:
 	float_unlock();
 	return ret;
@@ -272,7 +272,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
 
 end_unref:
-	definition_unref(tmpdef);
+	bt_definition_unref(tmpdef);
 end:
 	float_unlock();
 	return ret;

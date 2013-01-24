@@ -461,7 +461,7 @@ void _enum_definition_free(struct definition *definition)
 	struct definition_enum *_enum =
 		container_of(definition, struct definition_enum, p);
 
-	definition_unref(&_enum->integer->p);
+	bt_definition_unref(&_enum->integer->p);
 	free_definition_scope(_enum->p.scope);
 	bt_declaration_unref(_enum->p.declaration);
 	if (_enum->value)

@@ -166,7 +166,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 		printf("[error] Sequence length field should be unsigned.\n");
 		goto error;
 	}
-	definition_ref(len_parent);
+	bt_definition_ref(len_parent);
 
 	sequence->string = NULL;
 	sequence->elems = NULL;
@@ -216,7 +216,7 @@ void _sequence_definition_free(struct definition *definition)
 		}
 		(void) g_ptr_array_free(sequence->elems, TRUE);
 	}
-	definition_unref(len_definition);
+	bt_definition_unref(len_definition);
 	free_definition_scope(sequence->p.scope);
 	bt_declaration_unref(sequence->p.declaration);
 	g_free(sequence);

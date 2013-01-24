@@ -209,7 +209,7 @@ struct definition *
 	if (!variant->enum_tag
 	    || check_enum_tag(variant, variant->enum_tag) < 0)
 		goto error;
-	definition_ref(variant->enum_tag);
+	bt_definition_ref(variant->enum_tag);
 	variant->fields = g_ptr_array_sized_new(variant_declaration->untagged_variant->fields->len);
 	g_ptr_array_set_size(variant->fields, variant_declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant_declaration->untagged_variant->fields->len; i++) {
@@ -248,9 +248,9 @@ void _variant_definition_free(struct definition *definition)
 	assert(variant->fields->len == variant->declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
 		struct definition *field = g_ptr_array_index(variant->fields, i);
-		definition_unref(field);
+		bt_definition_unref(field);
 	}
-	definition_unref(variant->enum_tag);
+	bt_definition_unref(variant->enum_tag);
 	free_definition_scope(variant->p.scope);
 	bt_declaration_unref(variant->p.declaration);
 	g_ptr_array_free(variant->fields, TRUE);

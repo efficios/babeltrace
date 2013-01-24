@@ -155,7 +155,7 @@ struct definition *
 error:
 	for (i--; i >= 0; i--) {
 		struct definition *field = g_ptr_array_index(_struct->fields, i);
-		definition_unref(field);
+		bt_definition_unref(field);
 	}
 	free_definition_scope(_struct->p.scope);
 	bt_declaration_unref(&struct_declaration->p);
@@ -173,7 +173,7 @@ void _struct_definition_free(struct definition *definition)
 	assert(_struct->fields->len == _struct->declaration->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
 		struct definition *field = g_ptr_array_index(_struct->fields, i);
-		definition_unref(field);
+		bt_definition_unref(field);
 	}
 	free_definition_scope(_struct->p.scope);
 	bt_declaration_unref(_struct->p.declaration);

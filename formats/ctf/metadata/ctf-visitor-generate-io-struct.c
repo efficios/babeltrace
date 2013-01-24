@@ -3004,19 +3004,19 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 					if (!event)
 						continue;
 					if (&event->event_fields->p)
-						definition_unref(&event->event_fields->p);
+						bt_definition_unref(&event->event_fields->p);
 					if (&event->event_context->p)
-						definition_unref(&event->event_context->p);
+						bt_definition_unref(&event->event_context->p);
 					g_free(event);
 				}
 				if (&stream_def->trace_packet_header->p)
-					definition_unref(&stream_def->trace_packet_header->p);
+					bt_definition_unref(&stream_def->trace_packet_header->p);
 				if (&stream_def->stream_event_header->p)
-					definition_unref(&stream_def->stream_event_header->p);
+					bt_definition_unref(&stream_def->stream_event_header->p);
 				if (&stream_def->stream_packet_context->p)
-					definition_unref(&stream_def->stream_packet_context->p);
+					bt_definition_unref(&stream_def->stream_packet_context->p);
 				if (&stream_def->stream_event_context->p)
-					definition_unref(&stream_def->stream_event_context->p);
+					bt_definition_unref(&stream_def->stream_event_context->p);
 				g_ptr_array_free(stream_def->events_by_id, TRUE);
 				g_free(stream_def);
 			}

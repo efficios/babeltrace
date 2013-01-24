@@ -143,9 +143,9 @@ void _float_definition_free(struct definition *definition)
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
 
-	definition_unref(&_float->sign->p);
-	definition_unref(&_float->exp->p);
-	definition_unref(&_float->mantissa->p);
+	bt_definition_unref(&_float->sign->p);
+	bt_definition_unref(&_float->exp->p);
+	bt_definition_unref(&_float->mantissa->p);
 	free_definition_scope(_float->p.scope);
 	bt_declaration_unref(_float->p.declaration);
 	g_free(_float);

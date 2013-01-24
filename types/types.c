@@ -292,12 +292,12 @@ void bt_declaration_unref(struct declaration *declaration)
 		declaration->declaration_free(declaration);
 }
 
-void definition_ref(struct definition *definition)
+void bt_definition_ref(struct definition *definition)
 {
 	definition->ref++;
 }
 
-void definition_unref(struct definition *definition)
+void bt_definition_unref(struct definition *definition)
 {
 	if (!definition)
 		return;
