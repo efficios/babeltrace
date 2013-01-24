@@ -642,7 +642,7 @@ struct definition_integer *lookup_integer(const struct definition *definition,
 	return lookup_integer;
 }
 
-struct definition_enum *lookup_enum(const struct definition *definition,
+struct definition_enum *bt_lookup_enum(const struct definition *definition,
 				    const char *field_name,
 				    int signedness)
 {

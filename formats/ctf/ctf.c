@@ -431,7 +431,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 		} else {
 			struct definition_enum *enum_definition;
 
-			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
+			enum_definition = bt_lookup_enum(&stream->stream_event_header->p, "id", FALSE);
 			if (enum_definition) {
 				id = enum_definition->integer->value._unsigned;
 			}

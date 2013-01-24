@@ -521,7 +521,7 @@ struct definition *lookup_definition(const struct definition *definition,
 struct definition_integer *lookup_integer(const struct definition *definition,
 					  const char *field_name,
 					  int signedness);
-struct definition_enum *lookup_enum(const struct definition *definition,
+struct definition_enum *bt_lookup_enum(const struct definition *definition,
 				    const char *field_name,
 				    int signedness);
 struct definition *lookup_variant(const struct definition *definition,
