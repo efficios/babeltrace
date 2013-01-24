@@ -479,8 +479,8 @@ int variant_definition_set_tag(struct definition_variant *variant,
  * field returned only valid as long as the variant structure is not appended
  * to.
  */
-struct definition *variant_get_current_field(struct definition_variant *variant);
-int variant_rw(struct stream_pos *pos, struct definition *definition);
+struct definition *bt_variant_get_current_field(struct definition_variant *variant);
+int bt_variant_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * elem_declaration passed as parameter now belongs to the array. No
@@ -524,7 +524,7 @@ struct definition_integer *lookup_integer(const struct definition *definition,
 struct definition_enum *bt_lookup_enum(const struct definition *definition,
 				    const char *field_name,
 				    int signedness);
-struct definition *lookup_variant(const struct definition *definition,
+struct definition *bt_lookup_variant(const struct definition *definition,
 				  const char *field_name);
 
 static inline

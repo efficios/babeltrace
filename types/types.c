@@ -660,19 +660,19 @@ struct definition_enum *bt_lookup_enum(const struct definition *definition,
 	return lookup_enum;
 }
 
-struct definition *lookup_variant(const struct definition *definition,
+struct definition *bt_lookup_variant(const struct definition *definition,
 				  const char *field_name)
 {
 	struct definition *lookup;
-	struct definition_variant *lookup_variant;
+	struct definition_variant *bt_lookup_variant;
 
 	lookup = lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_VARIANT)
 		return NULL;
-	lookup_variant = container_of(lookup, struct definition_variant, p);
-	lookup = variant_get_current_field(lookup_variant);
+	bt_lookup_variant = container_of(lookup, struct definition_variant, p);
+	lookup = bt_variant_get_current_field(bt_lookup_variant);
 	assert(lookup);
 	return lookup;
 }

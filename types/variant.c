@@ -39,13 +39,13 @@ struct definition *_variant_definition_new(struct declaration *declaration,
 static
 void _variant_definition_free(struct definition *definition);
 
-int variant_rw(struct stream_pos *ppos, struct definition *definition)
+int bt_variant_rw(struct stream_pos *ppos, struct definition *definition)
 {
 	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);
 	struct definition *field;
 
-	field = variant_get_current_field(variant_definition);
+	field = bt_variant_get_current_field(variant_definition);
 	return generic_rw(ppos, field);
 }
 
@@ -301,7 +301,7 @@ bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_v
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct definition *variant_get_current_field(struct definition_variant *variant)
+struct definition *bt_variant_get_current_field(struct definition_variant *variant)
 {
 	struct definition_enum *_enum =
 		container_of(variant->enum_tag, struct definition_enum, p);

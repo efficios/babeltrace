@@ -52,7 +52,7 @@ int ctf_text_variant_write(struct stream_pos *ppos, struct definition *definitio
 	}
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
-	ret = variant_rw(ppos, definition);
+	ret = bt_variant_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		if (pos->depth >= 0) {

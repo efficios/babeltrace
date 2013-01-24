@@ -439,7 +439,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 			}
 		}
 
-		variant = lookup_variant(&stream->stream_event_header->p, "v");
+		variant = bt_lookup_variant(&stream->stream_event_header->p, "v");
 		if (variant) {
 			integer_definition = lookup_integer(variant, "id", FALSE);
 			if (integer_definition) {
