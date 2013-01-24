@@ -501,12 +501,12 @@ int bt_get_array_len(const struct definition *field);
  * to the sequence. No need to free them explicitly.
  */
 struct declaration_sequence *
-	sequence_declaration_new(const char *length_name,
+	bt_sequence_declaration_new(const char *length_name,
 		struct declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
-uint64_t sequence_len(struct definition_sequence *sequence);
-struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i);
-int sequence_rw(struct stream_pos *pos, struct definition *definition);
+uint64_t bt_sequence_len(struct definition_sequence *sequence);
+struct definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
+int bt_sequence_rw(struct stream_pos *pos, struct definition *definition);
 
 /*
  * in: path (dot separated), out: q (GArray of GQuark)

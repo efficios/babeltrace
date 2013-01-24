@@ -39,7 +39,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 static
 void _sequence_definition_free(struct definition *definition);
 
-int sequence_rw(struct stream_pos *pos, struct definition *definition)
+int bt_sequence_rw(struct stream_pos *pos, struct definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
@@ -100,7 +100,7 @@ void _sequence_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_sequence *
-	sequence_declaration_new(const char *length,
+	bt_sequence_declaration_new(const char *length,
 			  struct declaration *elem_declaration,
 			  struct declaration_scope *parent_scope)
 {
@@ -222,12 +222,12 @@ void _sequence_definition_free(struct definition *definition)
 	g_free(sequence);
 }
 
-uint64_t sequence_len(struct definition_sequence *sequence)
+uint64_t bt_sequence_len(struct definition_sequence *sequence)
 {
 	return sequence->length->value._unsigned;
 }
 
-struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i)
+struct definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i)
 {
 	if (!sequence->elems)
 		return NULL;

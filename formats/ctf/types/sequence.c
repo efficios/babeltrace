@@ -46,7 +46,7 @@ int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
 
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = sequence_len(sequence_definition);
+				uint64_t len = bt_sequence_len(sequence_definition);
 
 				ctf_align_pos(pos, integer_declaration->p.alignment);
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
@@ -60,7 +60,7 @@ int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return sequence_rw(ppos, definition);
+	return bt_sequence_rw(ppos, definition);
 }
 
 int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
@@ -81,7 +81,7 @@ int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
 
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = sequence_len(sequence_definition);
+				uint64_t len = bt_sequence_len(sequence_definition);
 
 				ctf_align_pos(pos, integer_declaration->p.alignment);
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
@@ -94,5 +94,5 @@ int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return sequence_rw(ppos, definition);
+	return bt_sequence_rw(ppos, definition);
 }

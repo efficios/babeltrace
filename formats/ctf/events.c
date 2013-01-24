@@ -145,7 +145,7 @@ const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 		struct definition_sequence *sequence_definition;
 		sequence_definition = container_of(field,
 				struct definition_sequence, p);
-		ret = sequence_index(sequence_definition, index);
+		ret = bt_sequence_index(sequence_definition, index);
 	}
 	return ret;
 }

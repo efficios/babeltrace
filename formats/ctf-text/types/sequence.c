@@ -63,7 +63,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 			    && integer_declaration->p.alignment == CHAR_BIT)) {
 				pos->string = sequence_definition->string;
 				g_string_assign(sequence_definition->string, "");
-				ret = sequence_rw(ppos, definition);
+				ret = bt_sequence_rw(ppos, definition);
 				pos->string = NULL;
 			}
 			fprintf(pos->fp, "\"%s\"", sequence_definition->string->str);
@@ -77,7 +77,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 	}
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
-	ret = sequence_rw(ppos, definition);
+	ret = bt_sequence_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		fprintf(pos->fp, " ]");

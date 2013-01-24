@@ -526,7 +526,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			char *length_name = concatenate_unary_strings(&node_type_declarator->u.type_declarator.u.nested.length);
 			struct declaration_sequence *sequence_declaration;
 
-			sequence_declaration = sequence_declaration_new(length_name, nested_declaration, declaration_scope);
+			sequence_declaration = bt_sequence_declaration_new(length_name, nested_declaration, declaration_scope);
 			if (!sequence_declaration) {
 				fprintf(fd, "[error] %s: cannot create sequence declaration.\n", __func__);
 				g_free(length_name);
