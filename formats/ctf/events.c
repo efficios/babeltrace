@@ -601,7 +601,7 @@ char *bt_ctf_get_string(const struct definition *field)
 	char *ret = NULL;
 
 	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_STRING)
-		ret = get_string(field);
+		ret = bt_get_string(field);
 	else
 		bt_ctf_field_set_error(-EINVAL);
 

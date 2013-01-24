@@ -1558,7 +1558,7 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 	}
 	if (encoding_c && !strcmp(encoding_c, "ASCII"))
 		encoding = CTF_STRING_ASCII;
-	string_declaration = string_declaration_new(encoding);
+	string_declaration = bt_string_declaration_new(encoding);
 	return &string_declaration->p;
 }
 

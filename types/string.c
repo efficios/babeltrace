@@ -48,7 +48,7 @@ void _string_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_string *
-	string_declaration_new(enum ctf_string_encoding encoding)
+	bt_string_declaration_new(enum ctf_string_encoding encoding)
 {
 	struct declaration_string *string_declaration;
 
@@ -109,7 +109,7 @@ void _string_definition_free(struct definition *definition)
 	g_free(string);
 }
 
-enum ctf_string_encoding get_string_encoding(const struct definition *field)
+enum ctf_string_encoding bt_get_string_encoding(const struct definition *field)
 {
 	struct definition_string *string_definition;
 	const struct declaration_string *string_declaration;
@@ -120,7 +120,7 @@ enum ctf_string_encoding get_string_encoding(const struct definition *field)
 	return string_declaration->encoding;
 }
 
-char *get_string(const struct definition *field)
+char *bt_get_string(const struct definition *field)
 {
 	struct definition_string *string_definition =
 		container_of(field, struct definition_string, p);
