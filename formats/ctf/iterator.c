@@ -120,7 +120,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
 	assert(iter);
 
 	ret = &iter->current_ctf_event;
-	file_stream = heap_maximum(iter->parent.stream_heap);
+	file_stream = bt_heap_maximum(iter->parent.stream_heap);
 	if (!file_stream) {
 		/* end of file for all streams */
 		goto stop;

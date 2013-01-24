@@ -102,7 +102,7 @@ int heap_set_len(struct ptr_heap *heap, size_t new_len)
 	return 0;
 }
 
-int heap_init(struct ptr_heap *heap, size_t alloc_len,
+int bt_heap_init(struct ptr_heap *heap, size_t alloc_len,
 	      int gt(void *a, void *b))
 {
 	heap->ptrs = NULL;
@@ -111,12 +111,12 @@ int heap_init(struct ptr_heap *heap, size_t alloc_len,
 	heap->gt = gt;
 	/*
 	 * Minimum size allocated is 1 entry to ensure memory allocation
-	 * never fails within heap_replace_max.
+	 * never fails within bt_heap_replace_max.
 	 */
 	return heap_grow(heap, max_t(size_t, 1, alloc_len));
 }
 
-void heap_free(struct ptr_heap *heap)
+void bt_heap_free(struct ptr_heap *heap)
 {
 	free(heap->ptrs);
 }
@@ -147,7 +147,7 @@ static void heapify(struct ptr_heap *heap, size_t i)
 	check_heap(heap);
 }
 
-void *heap_replace_max(struct ptr_heap *heap, void *p)
+void *bt_heap_replace_max(struct ptr_heap *heap, void *p)
 {
 	void *res;
 
@@ -165,7 +165,7 @@ void *heap_replace_max(struct ptr_heap *heap, void *p)
 	return res;
 }
 
-int heap_insert(struct ptr_heap *heap, void *p)
+int bt_heap_insert(struct ptr_heap *heap, void *p)
 {
 	void **ptrs;
 	size_t pos;
@@ -186,7 +186,7 @@ int heap_insert(struct ptr_heap *heap, void *p)
 	return 0;
 }
 
-void *heap_remove(struct ptr_heap *heap)
+void *bt_heap_remove(struct ptr_heap *heap)
 {
 	switch (heap->len) {
 	case 0:
@@ -198,10 +198,10 @@ void *heap_remove(struct ptr_heap *heap)
 	/* Shrink, replace the current max by previous last entry and heapify */
 	heap_set_len(heap, heap->len - 1);
 	/* len changed. previous last entry is at heap->len */
-	return heap_replace_max(heap, heap->ptrs[heap->len]);
+	return bt_heap_replace_max(heap, heap->ptrs[heap->len]);
 }
 
-void *heap_cherrypick(struct ptr_heap *heap, void *p)
+void *bt_heap_cherrypick(struct ptr_heap *heap, void *p)
 {
 	size_t pos, len = heap->len;
 
@@ -223,11 +223,11 @@ found:
 	return p;
 }
 
-int heap_copy(struct ptr_heap *dst, struct ptr_heap *src)
+int bt_heap_copy(struct ptr_heap *dst, struct ptr_heap *src)
 {
 	int ret;
 
-	ret = heap_init(dst, src->alloc_len, src->gt);
+	ret = bt_heap_init(dst, src->alloc_len, src->gt);
 	if (ret < 0)
 		goto end;
 
