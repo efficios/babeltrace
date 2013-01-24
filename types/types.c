@@ -624,7 +624,7 @@ struct definition *bt_lookup_definition(const struct definition *definition,
 					     scope);
 }
 
-struct definition_integer *lookup_integer(const struct definition *definition,
+struct definition_integer *bt_lookup_integer(const struct definition *definition,
 					  const char *field_name,
 					  int signedness)
 {

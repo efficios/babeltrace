@@ -427,7 +427,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 		if (unlikely(ret))
 			goto error;
 		/* lookup event id */
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
+		integer_definition = bt_lookup_integer(&stream->stream_event_header->p, "id", FALSE);
 		if (integer_definition) {
 			id = integer_definition->value._unsigned;
 		} else {
@@ -441,7 +441,7 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 
 		variant = bt_lookup_variant(&stream->stream_event_header->p, "v");
 		if (variant) {
-			integer_definition = lookup_integer(variant, "id", FALSE);
+			integer_definition = bt_lookup_integer(variant, "id", FALSE);
 			if (integer_definition) {
 				id = integer_definition->value._unsigned;
 			}
@@ -450,13 +450,13 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 
 		/* lookup timestamp */
 		stream->has_timestamp = 0;
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
+		integer_definition = bt_lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
 		if (integer_definition) {
 			ctf_update_timestamp(stream, integer_definition);
 			stream->has_timestamp = 1;
 		} else {
 			if (variant) {
-				integer_definition = lookup_integer(variant, "timestamp", FALSE);
+				integer_definition = bt_lookup_integer(variant, "timestamp", FALSE);
 				if (integer_definition) {
 					ctf_update_timestamp(stream, integer_definition);
 					stream->has_timestamp = 1;
