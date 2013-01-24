@@ -307,6 +307,7 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
  * Print timestamp, rescaling clock frequency to nanoseconds and
  * applying offsets as needed (unix time).
  */
+static
 void ctf_print_timestamp_real(FILE *fp,
 			struct ctf_stream_definition *stream,
 			uint64_t timestamp)
@@ -371,6 +372,7 @@ end:
 /*
  * Print timestamp, in cycles
  */
+static
 void ctf_print_timestamp_cycles(FILE *fp,
 		struct ctf_stream_definition *stream,
 		uint64_t timestamp)
@@ -1724,7 +1726,7 @@ error:
 	return NULL;
 }
 
-
+static
 void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 		struct mmap_stream *mmap_info)
 {
@@ -1815,6 +1817,7 @@ error_def:
 	return ret;
 }
 
+static
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct stream_pos *pos, size_t index,

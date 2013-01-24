@@ -96,7 +96,7 @@ static void float_unlock(void)
 	assert(!ret);
 }
 
-int _ctf_float_copy(struct stream_pos *destp,
+static int _ctf_float_copy(struct stream_pos *destp,
 		    struct definition_float *dest_definition,
 		    struct stream_pos *srcp,
 		    const struct definition_float *src_definition)
@@ -278,6 +278,7 @@ end:
 	return ret;
 }
 
+static
 void __attribute__((constructor)) ctf_float_init(void)
 {
 	static_float_declaration =
@@ -292,6 +293,7 @@ void __attribute__((constructor)) ctf_float_init(void)
 				__alignof__(double));
 }
 
+static
 void __attribute__((destructor)) ctf_float_fini(void)
 {
 	declaration_unref(&static_float_declaration->p);

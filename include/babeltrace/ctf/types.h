@@ -90,19 +90,33 @@ struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
 	return container_of(pos, struct ctf_stream_pos, parent);
 }
 
+BT_HIDDEN
 int ctf_integer_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_integer_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_float_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_float_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_string_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_string_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_enum_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_enum_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_array_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_array_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_sequence_read(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
 int ctf_sequence_write(struct stream_pos *pos, struct definition *definition);
 
 void ctf_packet_seek(struct stream_pos *pos, size_t index, int whence);
