@@ -1007,7 +1007,7 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 		if (nr_vals <= 1)
 			end = start;
 		last->u.s = end + 1;
-		enum_signed_insert(enum_declaration, start, end, q);
+		bt_enum_signed_insert(enum_declaration, start, end, q);
 	} else {
 		uint64_t start, end;
 		int nr_vals = 0;
@@ -1047,7 +1047,7 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 		if (nr_vals <= 1)
 			end = start;
 		last->u.u = end + 1;
-		enum_unsigned_insert(enum_declaration, start, end, q);
+		bt_enum_unsigned_insert(enum_declaration, start, end, q);
 	}
 	return 0;
 }
@@ -1114,7 +1114,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			return NULL;
 		}
 		integer_declaration = container_of(declaration, struct declaration_integer, p);
-		enum_declaration = enum_declaration_new(integer_declaration);
+		enum_declaration = bt_enum_declaration_new(integer_declaration);
 		bt_declaration_unref(&integer_declaration->p);	/* leave ref to enum */
 		if (enum_declaration->integer_declaration->signedness) {
 			last_value.u.s = 0;

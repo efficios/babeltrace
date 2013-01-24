@@ -144,14 +144,14 @@ int check_enum_tag(struct definition_variant *variant,
 	 * variant choice map to an enumerator too. We then validate that the
 	 * number of enumerators equals the number of variant choices.
 	 */
-	if (variant->declaration->untagged_variant->fields->len != enum_get_nr_enumerators(enum_declaration))
+	if (variant->declaration->untagged_variant->fields->len != bt_enum_get_nr_enumerators(enum_declaration))
 		return -EPERM;
 
 	for (i = 0; i < variant->declaration->untagged_variant->fields->len; i++) {
 		struct declaration_field *field_declaration =
 			&g_array_index(variant->declaration->untagged_variant->fields,
 				       struct declaration_field, i);
-		if (!enum_quark_to_range_set(enum_declaration, field_declaration->name)) {
+		if (!bt_enum_quark_to_range_set(enum_declaration, field_declaration->name)) {
 			missing_field = 1;
 			break;
 		}

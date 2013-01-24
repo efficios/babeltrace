@@ -463,10 +463,10 @@ const char *bt_ctf_get_enum_str(const struct definition *field)
 	def_enum = container_of(field, const struct definition_enum, p);
 	decl_enum = def_enum->declaration;
 	if (get_int_signedness(&def_enum->integer->p)) {
-		array = enum_int_to_quark_set(decl_enum,
+		array = bt_enum_int_to_quark_set(decl_enum,
 			get_signed_int(&def_enum->integer->p));
 	} else {
-		array = enum_uint_to_quark_set(decl_enum,
+		array = bt_enum_uint_to_quark_set(decl_enum,
 			get_unsigned_int(&def_enum->integer->p));
 	}
 	if (!array) {

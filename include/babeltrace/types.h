@@ -399,14 +399,14 @@ struct declaration_float *float_declaration_new(size_t mantissa_len,
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
 			       uint64_t v);
 
 /*
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 			      int64_t v);
 
 /*
@@ -414,16 +414,16 @@ GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
  * Callers do _not_ own the returned GArray (and therefore _don't_ need to
  * release it).
  */
-GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
 				GQuark q);
-void enum_signed_insert(struct declaration_enum *enum_declaration,
+void bt_enum_signed_insert(struct declaration_enum *enum_declaration,
                         int64_t start, int64_t end, GQuark q);
-void enum_unsigned_insert(struct declaration_enum *enum_declaration,
+void bt_enum_unsigned_insert(struct declaration_enum *enum_declaration,
 			  uint64_t start, uint64_t end, GQuark q);
-size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
+size_t bt_enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
 
 struct declaration_enum *
-	enum_declaration_new(struct declaration_integer *integer_declaration);
+	bt_enum_declaration_new(struct declaration_integer *integer_declaration);
 
 struct declaration_string *
 	string_declaration_new(enum ctf_string_encoding encoding);
