@@ -553,8 +553,8 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 		const struct definition *scope,	const char *field);
 %rename("_bt_ctf_get_index") bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 		const struct definition *field,	unsigned int index);
-%rename("_bt_ctf_field_name") bt_ctf_field_name(const struct definition *def);
-%rename("_bt_ctf_field_type") bt_ctf_field_type(const struct declaration *def);
+%rename("_bt_ctf_field_name") bt_ctf_field_name(const struct definition *field);
+%rename("_bt_ctf_field_type") bt_ctf_field_type(const struct declaration *field);
 %rename("_bt_ctf_get_int_signedness") bt_ctf_get_int_signedness(
 		const struct declaration *field);
 %rename("_bt_ctf_get_int_base") bt_ctf_get_int_base(const struct declaration *field);
@@ -572,6 +572,8 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 		bt_ctf_event_decl *event);
 %rename("_bt_ctf_get_decl_field_name") bt_ctf_get_decl_field_name(
 		const struct bt_ctf_field_decl *field);
+%rename("_bt_ctf_get_decl_from_def") bt_ctf_get_decl_from_def(
+		const struct definition *field);
 
 const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
@@ -584,8 +586,8 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
 		const struct definition *field,
 		unsigned int index);
-const char *bt_ctf_field_name(const struct definition *def);
-enum ctf_type_id bt_ctf_field_type(const struct declaration *def);
+const char *bt_ctf_field_name(const struct definition *field);
+enum ctf_type_id bt_ctf_field_type(const struct declaration *field);
 int bt_ctf_get_int_signedness(const struct declaration *field);
 int bt_ctf_get_int_base(const struct declaration *field);
 int bt_ctf_get_int_byte_order(const struct declaration *field);
@@ -599,6 +601,7 @@ char *bt_ctf_get_string(const struct definition *field);
 int bt_ctf_field_get_error(void);
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
+const struct declaration *bt_ctf_get_decl_from_def(const struct definition *field);
 
 %pythoncode%{
 
@@ -839,25 +842,25 @@ class ctf:
 
 		def field_type(self):
 			"""Return the type of a field or -1 if unknown."""
-			return _bt_ctf_field_type(self._d)
+			return _bt_ctf_field_type(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_int_signedness(self):
 			"""
 			Return the signedness of an integer:
 			0 if unsigned; 1 if signed; -1 on error.
 			"""
-			return _bt_ctf_get_int_signedness(self._d)
+			return _bt_ctf_get_int_signedness(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_int_base(self):
 			"""Return the base of an int or a negative value on error."""
-			return _bt_ctf_get_int_base(self._d)
+			return _bt_ctf_get_int_base(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_int_byte_order(self):
 			"""
 			Return the byte order of an int or a negative
 			value on error.
 			"""
-			return _bt_ctf_get_int_byte_order(self._d)
+			return _bt_ctf_get_int_byte_order(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_int_len(self):
 			"""
@@ -871,14 +874,14 @@ class ctf:
 			Return the encoding of an int or a string.
 			Return a negative value on error.
 			"""
-			return _bt_ctf_get_encoding(self._d)
+			return _bt_ctf_get_encoding(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_array_len(self):
 			"""
 			Return the len of an array or a negative
 			value on error.
 			"""
-			return _bt_ctf_get_array_len(self._d)
+			return _bt_ctf_get_array_len(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_uint64(self):
 			"""
