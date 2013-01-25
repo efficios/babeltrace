@@ -27,3 +27,4 @@ converter/babeltrace-log
 core
 formats/ctf/metadata/ctf-parser.output
 stamp-h1
+babeltrace.pc
