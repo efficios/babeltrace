@@ -168,7 +168,7 @@ const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event)
 
 const char *bt_ctf_field_name(const struct definition *def)
 {
-	if (!def)
+	if (!def || !def->name)
 		return NULL;
 
 	return rem_(g_quark_to_string(def->name));
