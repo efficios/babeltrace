@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # babeltrace_and_lttng.py
 # 
 # Babeltrace and LTTng example script
@@ -59,17 +60,22 @@ ret = lttng.create(ses_name,trace_path)
 if ret < 0:
 	raise LTTngError(lttng.strerror(ret))
 
+domain = lttng.Domain()
+domain.type = lttng.DOMAIN_KERNEL
+
 han = None
-han = lttng.Handle(ses_name, lttng.Domain())
+han = lttng.Handle(ses_name, domain)
 if han is None:
 	raise LTTngError("Handle not created")
 
 
 # Enabling all events
-ret = lttng.enable_event(han, lttng.Event(), None)
+event = lttng.Event()
+event.type = lttng.EVENT_ALL
+event.loglevel_type = lttng.EVENT_LOGLEVEL_ALL
+ret = lttng.enable_event(han, event, None)
 if ret < 0:
 	raise LTTngError(lttng.strerror(ret))
-
 
 # Start, wait, stop
 ret = lttng.start(ses_name)

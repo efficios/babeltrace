@@ -1,5 +1,5 @@
 # pprint_table.py
-# 
+#
 # This module is used to pretty-print a table
 # Adapted from
 # http://ginstrom.com/scribbles/2007/09/04/pretty-printing-a-table-in-python/
