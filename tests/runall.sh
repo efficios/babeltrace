@@ -53,13 +53,6 @@ function run_babeltrace ()
 	return $?
 }
 
-echo -e "Running test-bitfield..."
-./test-bitfield
-test_check
-if [ $? -ne 0 ]; then
-	exit 1
-fi
-
 #run babeltrace expects success
 echo -e "Running babeltrace without argument..."
 run_babeltrace
