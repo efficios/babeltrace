@@ -2398,7 +2398,7 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (opt_clock_force_correlate) {
 		/*
 		 * User requested to forcibly correlate the clock
-		 * sources, even if we have no correlatation
+		 * sources, even if we have no correlation
 		 * information.
 		 */
 		if (!clock->absolute) {

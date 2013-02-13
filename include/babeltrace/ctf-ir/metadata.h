@@ -234,7 +234,7 @@ struct ctf_trace {
 
 struct ctf_stream_declaration {
 	struct ctf_trace *trace;
-	/* parent is lexical scope conaining the stream scope */
+	/* parent is lexical scope containing the stream scope */
 	struct declaration_scope *declaration_scope;
 	/* innermost definition scope. to be used as parent of event. */
 	struct definition_scope *definition_scope;
@@ -271,7 +271,7 @@ struct ctf_stream_declaration {
 struct ctf_event_declaration {
 	/* stream mapped by stream_id */
 	struct ctf_stream_declaration *stream;
-	/* parent is lexical scope conaining the event scope */
+	/* parent is lexical scope containing the event scope */
 	struct declaration_scope *declaration_scope;
 
 	struct declaration_struct *context_decl;
