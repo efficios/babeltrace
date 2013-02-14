@@ -109,7 +109,7 @@ enum {
  */
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_NONE, NULL, NULL },
+	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
