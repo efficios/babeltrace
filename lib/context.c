@@ -90,7 +90,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (path) {
 		td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
 		if (!td) {
-			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n\n",
+			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n",
 					format_name, path);
 			ret = -1;
 			goto end;

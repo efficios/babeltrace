@@ -961,7 +961,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 					char **buf)
 {
 	FILE *in, *out;
-	size_t size;
+	size_t size, buflen;
 	int ret;
 
 	in = *fp;
@@ -1003,7 +1003,12 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 		perror("Error in fclose");
 	}
 	/* open for reading */
-	*fp = babeltrace_fmemopen(*buf, strlen(*buf), "rb");
+	buflen = strlen(*buf);
+	if (!buflen) {
+		*fp = NULL;
+		return -ENODATA;
+	}
+	*fp = babeltrace_fmemopen(*buf, buflen, "rb");
 	if (!*fp) {
 		perror("Metadata fmemopen");
 		return -errno;
@@ -1060,8 +1065,11 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	if (packet_metadata(td, fp)) {
 		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
-		if (ret)
+		if (ret) {
+			/* Warn about empty metadata */
+			fprintf(stderr, "[warning] Empty metadata.\n");
 			goto end_packet_read;
+		}
 	} else {
 		unsigned int major, minor;
 		ssize_t nr_items;
