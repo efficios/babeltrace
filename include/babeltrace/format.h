@@ -58,7 +58,7 @@ struct bt_mmap_stream_list {
 	struct bt_list_head head;
 };
 
-struct format {
+struct bt_format {
 	bt_intern_str name;
 
 	struct bt_trace_descriptor *(*open_trace)(const char *path, int flags,
@@ -82,10 +82,10 @@ struct format {
 	int (*convert_index_timestamp)(struct bt_trace_descriptor *descriptor);
 };
 
-extern struct format *bt_lookup_format(bt_intern_str qname);
+extern struct bt_format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
-extern int bt_register_format(struct format *format);
-extern void bt_unregister_format(struct format *format);
+extern int bt_register_format(struct bt_format *format);
+extern void bt_unregister_format(struct bt_format *format);
 
 #ifdef __cplusplus
 }

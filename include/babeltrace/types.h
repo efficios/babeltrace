@@ -44,7 +44,7 @@
 
 struct ctf_stream_definition;
 struct bt_stream_pos;
-struct format;
+struct bt_format;
 struct definition;
 struct ctf_clock;
 

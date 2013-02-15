@@ -68,7 +68,7 @@ int bt_dummy_close_trace(struct bt_trace_descriptor *td)
 }
 
 static
-struct format bt_dummy_format = {
+struct bt_format bt_dummy_format = {
 	.open_trace = bt_dummy_open_trace,
 	.close_trace = bt_dummy_close_trace,
 };

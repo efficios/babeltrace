@@ -106,7 +106,7 @@ rw_dispatch write_dispatch_table[] = {
 };
 
 static
-struct format ctf_text_format = {
+struct bt_format ctf_text_format = {
 	.open_trace = ctf_text_open_trace,
 	.close_trace = ctf_text_close_trace,
 };

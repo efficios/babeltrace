@@ -73,7 +73,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		FILE *metadata)
 {
 	struct bt_trace_descriptor *td;
-	struct format *fmt;
+	struct bt_format *fmt;
 	struct bt_trace_handle *handle;
 	int ret, closeret;
 

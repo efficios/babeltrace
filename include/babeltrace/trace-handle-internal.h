@@ -44,7 +44,7 @@
 struct bt_trace_handle {
 	int id;
 	struct bt_trace_descriptor *td;
-	struct format *format;
+	struct bt_format *format;
 	char path[PATH_MAX];
 	uint64_t real_timestamp_begin;
 	uint64_t real_timestamp_end;

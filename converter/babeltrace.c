@@ -68,7 +68,7 @@ static char *opt_input_format, *opt_output_format;
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
 
-static struct format *fmt_read;
+static struct bt_format *fmt_read;
 
 static
 void strlower(char *str)
@@ -555,7 +555,7 @@ error_iter:
 int main(int argc, char **argv)
 {
 	int ret, partial_error = 0, open_success = 0;
-	struct format *fmt_write;
+	struct bt_format *fmt_write;
 	struct bt_trace_descriptor *td_write;
 	struct bt_context *ctx;
 	int i;
