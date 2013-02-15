@@ -38,7 +38,7 @@
 #include <inttypes.h>
 
 static
-struct bt_dependencies *_babeltrace_dependencies_create(const char *first,
+struct bt_dependencies *_bt_dependencies_create(const char *first,
 							va_list ap)
 {
 	const char *iter;
@@ -56,13 +56,13 @@ struct bt_dependencies *_babeltrace_dependencies_create(const char *first,
 	return dep;
 }
 
-struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
+struct bt_dependencies *bt_dependencies_create(const char *first, ...)
 {
 	va_list ap;
 	struct bt_dependencies *deps;
 
 	va_start(ap, first);
-	deps = _babeltrace_dependencies_create(first, ap);
+	deps = _bt_dependencies_create(first, ap);
 	va_end(ap);
 	return deps;
 }
