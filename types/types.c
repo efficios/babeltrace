@@ -92,7 +92,7 @@ int bt_register_declaration(GQuark name, struct declaration *declaration,
 }
 
 static
-struct definition *
+struct bt_definition *
 	lookup_field_definition_scope(GQuark field_name,
 		struct definition_scope *scope)
 {
@@ -158,7 +158,7 @@ end:
 }
 
 static struct definition_scope *
-	get_definition_scope(const struct definition *definition)
+	get_definition_scope(const struct bt_definition *definition)
 {
 	return definition->scope;
 }
@@ -183,12 +183,12 @@ static struct definition_scope *
  * lookup_path: the path leading to the enum we want to look for.
  * scope: the definition scope containing the variant definition.
  */
-struct definition *
+struct bt_definition *
 	bt_lookup_path_definition(GArray *cur_path,
 			       GArray *lookup_path,
 			       struct definition_scope *scope)
 {
-	struct definition *definition, *lookup_definition;
+	struct bt_definition *definition, *lookup_definition;
 	GQuark last;
 	int index;
 
@@ -262,7 +262,7 @@ lookup:
 	return NULL;
 }
 
-int bt_register_field_definition(GQuark field_name, struct definition *definition,
+int bt_register_field_definition(GQuark field_name, struct bt_definition *definition,
 		struct definition_scope *scope)
 {
 	if (!scope || !field_name)
@@ -292,12 +292,12 @@ void bt_declaration_unref(struct declaration *declaration)
 		declaration->declaration_free(declaration);
 }
 
-void bt_definition_ref(struct definition *definition)
+void bt_definition_ref(struct bt_definition *definition)
 {
 	definition->ref++;
 }
 
-void bt_definition_unref(struct definition *definition)
+void bt_definition_unref(struct bt_definition *definition)
 {
 	if (!definition)
 		return;
@@ -612,7 +612,7 @@ void bt_free_definition_scope(struct definition_scope *scope)
 	g_free(scope);
 }
 
-struct definition *bt_lookup_definition(const struct definition *definition,
+struct bt_definition *bt_lookup_definition(const struct bt_definition *definition,
 				     const char *field_name)
 {
 	struct definition_scope *scope = get_definition_scope(definition);
@@ -624,11 +624,11 @@ struct definition *bt_lookup_definition(const struct definition *definition,
 					     scope);
 }
 
-struct definition_integer *bt_lookup_integer(const struct definition *definition,
+struct definition_integer *bt_lookup_integer(const struct bt_definition *definition,
 					  const char *field_name,
 					  int signedness)
 {
-	struct definition *lookup;
+	struct bt_definition *lookup;
 	struct definition_integer *lookup_integer;
 
 	lookup = bt_lookup_definition(definition, field_name);
@@ -642,11 +642,11 @@ struct definition_integer *bt_lookup_integer(const struct definition *definition
 	return lookup_integer;
 }
 
-struct definition_enum *bt_lookup_enum(const struct definition *definition,
+struct definition_enum *bt_lookup_enum(const struct bt_definition *definition,
 				    const char *field_name,
 				    int signedness)
 {
-	struct definition *lookup;
+	struct bt_definition *lookup;
 	struct definition_enum *lookup_enum;
 
 	lookup = bt_lookup_definition(definition, field_name);
@@ -660,10 +660,10 @@ struct definition_enum *bt_lookup_enum(const struct definition *definition,
 	return lookup_enum;
 }
 
-struct definition *bt_lookup_variant(const struct definition *definition,
+struct bt_definition *bt_lookup_variant(const struct bt_definition *definition,
 				  const char *field_name)
 {
-	struct definition *lookup;
+	struct bt_definition *lookup;
 	struct definition_variant *bt_lookup_variant;
 
 	lookup = bt_lookup_definition(definition, field_name);

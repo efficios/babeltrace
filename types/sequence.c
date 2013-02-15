@@ -32,14 +32,14 @@
 #include <inttypes.h>
 
 static
-struct definition *_sequence_definition_new(struct declaration *declaration,
+struct bt_definition *_sequence_definition_new(struct declaration *declaration,
 					struct definition_scope *parent_scope,
 					GQuark field_name, int index,
 					const char *root_name);
 static
-void _sequence_definition_free(struct definition *definition);
+void _sequence_definition_free(struct bt_definition *definition);
 
-int bt_sequence_rw(struct bt_stream_pos *pos, struct definition *definition)
+int bt_sequence_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
@@ -62,7 +62,7 @@ int bt_sequence_rw(struct bt_stream_pos *pos, struct definition *definition)
 		g_ptr_array_set_size(sequence_definition->elems, len);
 
 	for (i = oldlen; i < len; i++) {
-		struct definition **field;
+		struct bt_definition **field;
 		GString *str;
 		GQuark name;
 
@@ -71,15 +71,15 @@ int bt_sequence_rw(struct bt_stream_pos *pos, struct definition *definition)
 		name = g_quark_from_string(str->str);
 		(void) g_string_free(str, TRUE);
 
-		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
+		field = (struct bt_definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		*field = sequence_declaration->elem->definition_new(sequence_declaration->elem,
 					  sequence_definition->p.scope,
 					  name, i, NULL);
 	}
 	for (i = 0; i < len; i++) {
-		struct definition **field;
+		struct bt_definition **field;
 
-		field = (struct definition **) &g_ptr_array_index(sequence_definition->elems, i);
+		field = (struct bt_definition **) &g_ptr_array_index(sequence_definition->elems, i);
 		ret = generic_rw(pos, *field);
 		if (ret)
 			return ret;
@@ -126,7 +126,7 @@ struct declaration_sequence *
 }
 
 static
-struct definition *_sequence_definition_new(struct declaration *declaration,
+struct bt_definition *_sequence_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name)
@@ -134,7 +134,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 	struct declaration_sequence *sequence_declaration =
 		container_of(declaration, struct declaration_sequence, p);
 	struct definition_sequence *sequence;
-	struct definition *len_parent;
+	struct bt_definition *len_parent;
 	int ret;
 
 	sequence = g_new(struct definition_sequence, 1);
@@ -198,18 +198,18 @@ error:
 }
 
 static
-void _sequence_definition_free(struct definition *definition)
+void _sequence_definition_free(struct bt_definition *definition)
 {
 	struct definition_sequence *sequence =
 		container_of(definition, struct definition_sequence, p);
-	struct definition *len_definition = &sequence->length->p;
+	struct bt_definition *len_definition = &sequence->length->p;
 	uint64_t i;
 
 	if (sequence->string)
 		(void) g_string_free(sequence->string, TRUE);
 	if (sequence->elems) {
 		for (i = 0; i < sequence->elems->len; i++) {
-			struct definition *field;
+			struct bt_definition *field;
 
 			field = g_ptr_array_index(sequence->elems, i);
 			field->declaration->definition_free(field);
@@ -227,7 +227,7 @@ uint64_t bt_sequence_len(struct definition_sequence *sequence)
 	return sequence->length->value._unsigned;
 }
 
-struct definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i)
+struct bt_definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i)
 {
 	if (!sequence->elems)
 		return NULL;

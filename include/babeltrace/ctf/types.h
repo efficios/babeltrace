@@ -91,33 +91,33 @@ struct ctf_stream_pos *ctf_pos(struct bt_stream_pos *pos)
 }
 
 BT_HIDDEN
-int ctf_integer_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_integer_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_integer_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_integer_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_float_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_float_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_float_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_float_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_string_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_string_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_string_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_string_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_enum_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_enum_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_enum_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_enum_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_struct_rw(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_struct_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_variant_rw(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_variant_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_array_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_array_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_array_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_array_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_sequence_read(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_sequence_read(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_sequence_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_sequence_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 
 void ctf_packet_seek(struct bt_stream_pos *pos, size_t index, int whence);
 

@@ -135,7 +135,7 @@ struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
 			(gpointer) (unsigned long) callsite_name);
 }
 
-int print_field(struct definition *definition)
+int print_field(struct bt_definition *definition)
 {
 	/* Print all fields in verbose mode */
 	if (babeltrace_verbose)

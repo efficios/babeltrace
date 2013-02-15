@@ -46,10 +46,10 @@
  */
 __thread int bt_ctf_last_field_error = 0;
 
-const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
+const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope)
 {
-	const struct definition *tmp = NULL;
+	const struct bt_definition *tmp = NULL;
 	const struct ctf_event_definition *event;
 
 	if (!ctf_event)
@@ -96,11 +96,11 @@ error:
 	return NULL;
 }
 
-const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
-		const struct definition *scope,
+const struct bt_definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
+		const struct bt_definition *scope,
 		const char *field)
 {
-	const struct definition *def;
+	const struct bt_definition *def;
 	char *field_underscore;
 
 	if (!ctf_event || !scope || !field)
@@ -127,11 +127,11 @@ const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 	return def;
 }
 
-const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
-		const struct definition *field,
+const struct bt_definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
+		const struct bt_definition *field,
 		unsigned int index)
 {
-	struct definition *ret = NULL;
+	struct bt_definition *ret = NULL;
 
 	if (!ctf_event || !field)
 		return NULL;
@@ -166,7 +166,7 @@ const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event)
 	return g_quark_to_string(event_class->name);
 }
 
-const char *bt_ctf_field_name(const struct definition *def)
+const char *bt_ctf_field_name(const struct bt_definition *def)
 {
 	if (!def || !def->name)
 		return NULL;
@@ -183,8 +183,8 @@ enum ctf_type_id bt_ctf_field_type(const struct declaration *decl)
 }
 
 int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
-		const struct definition *scope,
-		struct definition const * const **list,
+		const struct bt_definition *scope,
+		struct bt_definition const * const **list,
 		unsigned int *count)
 {
 	if (!ctf_event || !scope || !list || !count)
@@ -204,7 +204,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 		if (!def_struct)
 			goto error;
 		if (def_struct->fields->pdata) {
-			*list = (struct definition const* const*) def_struct->fields->pdata;
+			*list = (struct bt_definition const* const*) def_struct->fields->pdata;
 			*count = def_struct->fields->len;
 			goto end;
 		} else {
@@ -222,7 +222,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 		if (!def_variant)
 			goto error;
 		if (def_variant->fields->pdata) {
-			*list = (struct definition const* const*) def_variant->fields->pdata;
+			*list = (struct bt_definition const* const*) def_variant->fields->pdata;
 			*count = def_variant->fields->len;
 			goto end;
 		} else {
@@ -238,7 +238,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 		if (!def_array)
 			goto error;
 		if (def_array->elems->pdata) {
-			*list = (struct definition const* const*) def_array->elems->pdata;
+			*list = (struct bt_definition const* const*) def_array->elems->pdata;
 			*count = def_array->elems->len;
 			goto end;
 		} else {
@@ -254,7 +254,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 		if (!def_sequence)
 			goto error;
 		if (def_sequence->elems->pdata) {
-			*list = (struct definition const* const*) def_sequence->elems->pdata;
+			*list = (struct bt_definition const* const*) def_sequence->elems->pdata;
 			*count = def_sequence->elems->len;
 			goto end;
 		} else {
@@ -437,7 +437,7 @@ ssize_t bt_ctf_get_int_len(const struct declaration *decl)
 	return (ssize_t) integer->len;
 }
 
-const struct definition *bt_ctf_get_enum_int(const struct definition *field)
+const struct bt_definition *bt_ctf_get_enum_int(const struct bt_definition *field)
 {
 	const struct definition_enum *def_enum;
 
@@ -449,7 +449,7 @@ const struct definition *bt_ctf_get_enum_int(const struct definition *field)
 	return &def_enum->integer->p;
 }
 
-const char *bt_ctf_get_enum_str(const struct definition *field)
+const char *bt_ctf_get_enum_str(const struct bt_definition *field)
 {
 	const struct definition_enum *def_enum;
 	const struct declaration_enum *decl_enum;
@@ -554,7 +554,7 @@ error:
 	return -1;
 }
 
-uint64_t bt_ctf_get_uint64(const struct definition *field)
+uint64_t bt_ctf_get_uint64(const struct bt_definition *field)
 {
 	uint64_t ret = 0;
 
@@ -566,7 +566,7 @@ uint64_t bt_ctf_get_uint64(const struct definition *field)
 	return ret;
 }
 
-int64_t bt_ctf_get_int64(const struct definition *field)
+int64_t bt_ctf_get_int64(const struct bt_definition *field)
 {
 	int64_t ret = 0;
 
@@ -578,7 +578,7 @@ int64_t bt_ctf_get_int64(const struct definition *field)
 	return ret;
 }
 
-char *bt_ctf_get_char_array(const struct definition *field)
+char *bt_ctf_get_char_array(const struct bt_definition *field)
 {
 	char *ret = NULL;
 	GString *char_array;
@@ -596,7 +596,7 @@ end:
 	return ret;
 }
 
-char *bt_ctf_get_string(const struct definition *field)
+char *bt_ctf_get_string(const struct bt_definition *field)
 {
 	char *ret = NULL;
 
@@ -767,7 +767,7 @@ const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field)
 	return rem_(g_quark_to_string(((struct declaration_field *) field)->name));
 }
 
-const struct declaration *bt_ctf_get_decl_from_def(const struct definition *def)
+const struct declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def)
 {
 	if (def)
 		return def->declaration;

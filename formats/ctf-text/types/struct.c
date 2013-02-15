@@ -29,7 +29,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-int ctf_text_struct_write(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_text_struct_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct declaration *declaration = definition->declaration;
 	struct declaration_struct *struct_declaration =

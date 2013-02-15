@@ -40,7 +40,7 @@
 
 static
 int _aligned_integer_read(struct bt_stream_pos *ppos,
-			  struct definition *definition)
+			  struct bt_definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -142,7 +142,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 
 static
 int _aligned_integer_write(struct bt_stream_pos *ppos,
-			    struct definition *definition)
+			    struct bt_definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -211,7 +211,7 @@ end:
 	return 0;
 }
 
-int ctf_integer_read(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_integer_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -256,7 +256,7 @@ int ctf_integer_read(struct bt_stream_pos *ppos, struct definition *definition)
 	return 0;
 }
 
-int ctf_integer_write(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);

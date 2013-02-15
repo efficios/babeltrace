@@ -32,12 +32,12 @@
 #include <babeltrace/types.h>
 
 static
-struct definition *_string_definition_new(struct declaration *declaration,
+struct bt_definition *_string_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
 static
-void _string_definition_free(struct definition *definition);
+void _string_definition_free(struct bt_definition *definition);
 
 static
 void _string_declaration_free(struct declaration *declaration)
@@ -64,7 +64,7 @@ struct declaration_string *
 }
 
 static
-struct definition *
+struct bt_definition *
 	_string_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
@@ -99,7 +99,7 @@ struct definition *
 }
 
 static
-void _string_definition_free(struct definition *definition)
+void _string_definition_free(struct bt_definition *definition)
 {
 	struct definition_string *string =
 		container_of(definition, struct definition_string, p);
@@ -109,7 +109,7 @@ void _string_definition_free(struct definition *definition)
 	g_free(string);
 }
 
-enum ctf_string_encoding bt_get_string_encoding(const struct definition *field)
+enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *field)
 {
 	struct definition_string *string_definition;
 	const struct declaration_string *string_declaration;
@@ -120,7 +120,7 @@ enum ctf_string_encoding bt_get_string_encoding(const struct definition *field)
 	return string_declaration->encoding;
 }
 
-char *bt_get_string(const struct definition *field)
+char *bt_get_string(const struct bt_definition *field)
 {
 	struct definition_string *string_definition =
 		container_of(field, struct definition_string, p);

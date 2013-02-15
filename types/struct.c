@@ -36,14 +36,14 @@
 #endif
 
 static
-struct definition *_struct_definition_new(struct declaration *declaration,
+struct bt_definition *_struct_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
 static
-void _struct_definition_free(struct definition *definition);
+void _struct_definition_free(struct bt_definition *definition);
 
-int bt_struct_rw(struct bt_stream_pos *ppos, struct definition *definition)
+int bt_struct_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);
@@ -51,7 +51,7 @@ int bt_struct_rw(struct bt_stream_pos *ppos, struct definition *definition)
 	int ret;
 
 	for (i = 0; i < struct_definition->fields->len; i++) {
-		struct definition *field =
+		struct bt_definition *field =
 			g_ptr_array_index(struct_definition->fields, i);
 		ret = generic_rw(ppos, field);
 		if (ret)
@@ -105,7 +105,7 @@ struct declaration_struct *
 }
 
 static
-struct definition *
+struct bt_definition *
 	_struct_definition_new(struct declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
@@ -141,8 +141,8 @@ struct definition *
 		struct declaration_field *declaration_field =
 			&g_array_index(struct_declaration->fields,
 				       struct declaration_field, i);
-		struct definition **field =
-			(struct definition **) &g_ptr_array_index(_struct->fields, i);
+		struct bt_definition **field =
+			(struct bt_definition **) &g_ptr_array_index(_struct->fields, i);
 
 		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
 							  _struct->p.scope,
@@ -154,7 +154,7 @@ struct definition *
 
 error:
 	for (i--; i >= 0; i--) {
-		struct definition *field = g_ptr_array_index(_struct->fields, i);
+		struct bt_definition *field = g_ptr_array_index(_struct->fields, i);
 		bt_definition_unref(field);
 	}
 	bt_free_definition_scope(_struct->p.scope);
@@ -164,7 +164,7 @@ error:
 }
 
 static
-void _struct_definition_free(struct definition *definition)
+void _struct_definition_free(struct bt_definition *definition)
 {
 	struct definition_struct *_struct =
 		container_of(definition, struct definition_struct, p);
@@ -172,7 +172,7 @@ void _struct_definition_free(struct definition *definition)
 
 	assert(_struct->fields->len == _struct->declaration->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
-		struct definition *field = g_ptr_array_index(_struct->fields, i);
+		struct bt_definition *field = g_ptr_array_index(_struct->fields, i);
 		bt_definition_unref(field);
 	}
 	bt_free_definition_scope(_struct->p.scope);
@@ -241,7 +241,7 @@ struct declaration_field *
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct definition *
+struct bt_definition *
 bt_struct_definition_get_field_from_index(struct definition_struct *_struct,
 					int index)
 {

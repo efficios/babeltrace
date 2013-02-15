@@ -41,12 +41,12 @@
 #endif
 
 static
-struct definition *_enum_definition_new(struct declaration *declaration,
+struct bt_definition *_enum_definition_new(struct declaration *declaration,
 					struct definition_scope *parent_scope,
 					GQuark field_name, int index,
 					const char *root_name);
 static
-void _enum_definition_free(struct definition *definition);
+void _enum_definition_free(struct bt_definition *definition);
 
 static
 void enum_range_set_free(void *ptr)
@@ -417,7 +417,7 @@ struct declaration_enum *
 }
 
 static
-struct definition *
+struct bt_definition *
 	_enum_definition_new(struct declaration *declaration,
 			     struct definition_scope *parent_scope,
 			     GQuark field_name, int index,
@@ -426,7 +426,7 @@ struct definition *
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
 	struct definition_enum *_enum;
-	struct definition *definition_integer_parent;
+	struct bt_definition *definition_integer_parent;
 	int ret;
 
 	_enum = g_new(struct definition_enum, 1);
@@ -456,7 +456,7 @@ struct definition *
 }
 
 static
-void _enum_definition_free(struct definition *definition)
+void _enum_definition_free(struct bt_definition *definition)
 {
 	struct definition_enum *_enum =
 		container_of(definition, struct definition_enum, p);

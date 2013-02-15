@@ -32,18 +32,18 @@
 #include <errno.h>
 
 static
-struct definition *_variant_definition_new(struct declaration *declaration,
+struct bt_definition *_variant_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
 static
-void _variant_definition_free(struct definition *definition);
+void _variant_definition_free(struct bt_definition *definition);
 
-int bt_variant_rw(struct bt_stream_pos *ppos, struct definition *definition)
+int bt_variant_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);
-	struct definition *field;
+	struct bt_definition *field;
 
 	field = bt_variant_get_current_field(variant_definition);
 	return generic_rw(ppos, field);
@@ -130,7 +130,7 @@ struct declaration_variant *
  */
 static
 int check_enum_tag(struct definition_variant *variant,
-		   struct definition *enum_tag)
+		   struct bt_definition *enum_tag)
 {
 	struct definition_enum *_enum =
 		container_of(enum_tag, struct definition_enum, p);
@@ -172,7 +172,7 @@ int check_enum_tag(struct definition_variant *variant,
 
 
 static
-struct definition *
+struct bt_definition *
 	_variant_definition_new(struct declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
@@ -216,8 +216,8 @@ struct definition *
 		struct declaration_field *declaration_field =
 			&g_array_index(variant_declaration->untagged_variant->fields,
 				       struct declaration_field, i);
-		struct definition **field =
-			(struct definition **) &g_ptr_array_index(variant->fields, i);
+		struct bt_definition **field =
+			(struct bt_definition **) &g_ptr_array_index(variant->fields, i);
 
 		/*
 		 * All child definition are at index 0, because they are
@@ -239,7 +239,7 @@ error:
 }
 
 static
-void _variant_definition_free(struct definition *definition)
+void _variant_definition_free(struct bt_definition *definition)
 {
 	struct definition_variant *variant =
 		container_of(definition, struct definition_variant, p);
@@ -247,7 +247,7 @@ void _variant_definition_free(struct definition *definition)
 
 	assert(variant->fields->len == variant->declaration->untagged_variant->fields->len);
 	for (i = 0; i < variant->fields->len; i++) {
-		struct definition *field = g_ptr_array_index(variant->fields, i);
+		struct bt_definition *field = g_ptr_array_index(variant->fields, i);
 		bt_definition_unref(field);
 	}
 	bt_definition_unref(variant->enum_tag);
@@ -301,7 +301,7 @@ bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_v
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct definition *bt_variant_get_current_field(struct definition_variant *variant)
+struct bt_definition *bt_variant_get_current_field(struct definition_variant *variant)
 {
 	struct definition_enum *_enum =
 		container_of(variant->enum_tag, struct definition_enum, p);

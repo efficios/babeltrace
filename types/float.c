@@ -32,12 +32,12 @@
 #include <babeltrace/endian.h>
 
 static
-struct definition *_float_definition_new(struct declaration *declaration,
+struct bt_definition *_float_definition_new(struct declaration *declaration,
 				   struct definition_scope *parent_scope,
 				   GQuark field_name, int index,
 				   const char *root_name);
 static
-void _float_definition_free(struct definition *definition);
+void _float_definition_free(struct bt_definition *definition);
 
 static
 void _float_declaration_free(struct declaration *declaration)
@@ -81,7 +81,7 @@ struct declaration_float *
 }
 
 static
-struct definition *
+struct bt_definition *
 	_float_definition_new(struct declaration *declaration,
 			      struct definition_scope *parent_scope,
 			      GQuark field_name, int index,
@@ -90,7 +90,7 @@ struct definition *
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
 	struct definition_float *_float;
-	struct definition *tmp;
+	struct bt_definition *tmp;
 
 	_float = g_new(struct definition_float, 1);
 	bt_declaration_ref(&float_declaration->p);
@@ -138,7 +138,7 @@ struct definition *
 }
 
 static
-void _float_definition_free(struct definition *definition)
+void _float_definition_free(struct bt_definition *definition)
 {
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);

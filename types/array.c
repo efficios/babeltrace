@@ -32,13 +32,13 @@
 #include <inttypes.h>
 
 static
-struct definition *_array_definition_new(struct declaration *declaration,
+struct bt_definition *_array_definition_new(struct declaration *declaration,
 			struct definition_scope *parent_scope,
 			GQuark field_name, int index, const char *root_name);
 static
-void _array_definition_free(struct definition *definition);
+void _array_definition_free(struct bt_definition *definition);
 
-int bt_array_rw(struct bt_stream_pos *pos, struct definition *definition)
+int bt_array_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);
@@ -49,7 +49,7 @@ int bt_array_rw(struct bt_stream_pos *pos, struct definition *definition)
 
 	/* No need to align, because the first field will align itself. */
 	for (i = 0; i < array_declaration->len; i++) {
-		struct definition *field =
+		struct bt_definition *field =
 			g_ptr_array_index(array_definition->elems, i);
 		ret = generic_rw(pos, field);
 		if (ret)
@@ -93,7 +93,7 @@ struct declaration_array *
 }
 
 static
-struct definition *
+struct bt_definition *
 	_array_definition_new(struct declaration *declaration,
 			      struct definition_scope *parent_scope,
 			      GQuark field_name, int index, const char *root_name)
@@ -142,7 +142,7 @@ struct definition *
 	array->elems = g_ptr_array_sized_new(array_declaration->len);
 	g_ptr_array_set_size(array->elems, array_declaration->len);
 	for (i = 0; i < array_declaration->len; i++) {
-		struct definition **field;
+		struct bt_definition **field;
 		GString *str;
 		GQuark name;
 
@@ -151,7 +151,7 @@ struct definition *
 		name = g_quark_from_string(str->str);
 		(void) g_string_free(str, TRUE);
 
-		field = (struct definition **) &g_ptr_array_index(array->elems, i);
+		field = (struct bt_definition **) &g_ptr_array_index(array->elems, i);
 		*field = array_declaration->elem->definition_new(array_declaration->elem,
 					  array->p.scope,
 					  name, i, NULL);
@@ -163,7 +163,7 @@ struct definition *
 
 error:
 	for (i--; i >= 0; i--) {
-		struct definition *field;
+		struct bt_definition *field;
 
 		field = g_ptr_array_index(array->elems, i);
 		field->declaration->definition_free(field);
@@ -176,7 +176,7 @@ error:
 }
 
 static
-void _array_definition_free(struct definition *definition)
+void _array_definition_free(struct bt_definition *definition)
 {
 	struct definition_array *array =
 		container_of(definition, struct definition_array, p);
@@ -186,7 +186,7 @@ void _array_definition_free(struct definition *definition)
 		(void) g_string_free(array->string, TRUE);
 	if (array->elems) {
 		for (i = 0; i < array->elems->len; i++) {
-			struct definition *field;
+			struct bt_definition *field;
 
 			field = g_ptr_array_index(array->elems, i);
 			field->declaration->definition_free(field);
@@ -205,7 +205,7 @@ uint64_t bt_array_len(struct definition_array *array)
 	return array->elems->len;
 }
 
-struct definition *bt_array_index(struct definition_array *array, uint64_t i)
+struct bt_definition *bt_array_index(struct definition_array *array, uint64_t i)
 {
 	if (!array->elems)
 		return NULL;
@@ -214,7 +214,7 @@ struct definition *bt_array_index(struct definition_array *array, uint64_t i)
 	return g_ptr_array_index(array->elems, i);
 }
 
-int bt_get_array_len(const struct definition *field)
+int bt_get_array_len(const struct bt_definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;
@@ -225,7 +225,7 @@ int bt_get_array_len(const struct definition *field)
 	return array_declaration->len;
 }
 
-GString *bt_get_char_array(const struct definition *field)
+GString *bt_get_char_array(const struct bt_definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;

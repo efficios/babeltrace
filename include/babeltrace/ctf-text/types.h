@@ -62,21 +62,21 @@ struct ctf_text_stream_pos *ctf_text_pos(struct bt_stream_pos *pos)
  * Write only is supported for now.
  */
 BT_HIDDEN
-int ctf_text_integer_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_integer_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_float_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_float_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_string_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_string_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_enum_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_enum_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_struct_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_struct_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_variant_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_variant_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_array_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_array_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 BT_HIDDEN
-int ctf_text_sequence_write(struct bt_stream_pos *pos, struct definition *definition);
+int ctf_text_sequence_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 
 static inline
 void print_pos_tabs(struct ctf_text_stream_pos *pos)
@@ -91,6 +91,6 @@ void print_pos_tabs(struct ctf_text_stream_pos *pos)
  * Check if the field must be printed.
  */
 BT_HIDDEN
-int print_field(struct definition *definition);
+int print_field(struct bt_definition *definition);
 
 #endif /* _BABELTRACE_CTF_TEXT_TYPES_H */

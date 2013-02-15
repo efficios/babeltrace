@@ -165,7 +165,7 @@ static int _ctf_float_copy(struct bt_stream_pos *destp,
 	return 0;
 }
 
-int ctf_float_read(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_float_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -173,7 +173,7 @@ int ctf_float_read(struct bt_stream_pos *ppos, struct definition *definition)
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	union doubleIEEE754 u;
-	struct definition *tmpdef;
+	struct bt_definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos destp;
 	struct mmap_align mma;
@@ -222,7 +222,7 @@ end:
 	return ret;
 }
 
-int ctf_float_write(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -230,7 +230,7 @@ int ctf_float_write(struct bt_stream_pos *ppos, struct definition *definition)
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	union doubleIEEE754 u;
-	struct definition *tmpdef;
+	struct bt_definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos srcp;
 	struct mmap_align mma;

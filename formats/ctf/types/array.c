@@ -28,7 +28,7 @@
 
 #include <babeltrace/ctf/types.h>
 
-int ctf_array_read(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);
@@ -64,7 +64,7 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct definition *definition)
 	return bt_array_rw(ppos, definition);
 }
 
-int ctf_array_write(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_array_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);

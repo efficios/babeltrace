@@ -421,7 +421,7 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	/* Read event header */
 	if (likely(stream->stream_event_header)) {
 		struct definition_integer *integer_definition;
-		struct definition *variant;
+		struct bt_definition *variant;
 
 		ret = generic_rw(ppos, &stream->stream_event_header->p);
 		if (unlikely(ret))
@@ -1150,7 +1150,7 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 	struct ctf_event_definition *stream_event = g_new0(struct ctf_event_definition, 1);
 
 	if (event->context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			event->context_decl->p.definition_new(&event->context_decl->p,
 				stream->parent_def_scope, 0, 0, "event.context");
 		if (!definition) {
@@ -1161,7 +1161,7 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 		stream->parent_def_scope = stream_event->event_context->p.scope;
 	}
 	if (event->fields_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			event->fields_decl->p.definition_new(&event->fields_decl->p,
 				stream->parent_def_scope, 0, 0, "event.fields");
 		if (!definition) {
@@ -1195,7 +1195,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 	stream_class = stream->stream_class;
 
 	if (stream_class->packet_context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->packet_context_decl->p.definition_new(&stream_class->packet_context_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.packet.context");
 		if (!definition) {
@@ -1207,7 +1207,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		stream->parent_def_scope = stream->stream_packet_context->p.scope;
 	}
 	if (stream_class->event_header_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->event_header_decl->p.definition_new(&stream_class->event_header_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.event.header");
 		if (!definition) {
@@ -1219,7 +1219,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		stream->parent_def_scope = stream->stream_event_header->p.scope;
 	}
 	if (stream_class->event_context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->event_context_decl->p.definition_new(&stream_class->event_context_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.event.context");
 		if (!definition) {
@@ -1321,7 +1321,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				return ret;
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 				uint64_t magic;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
@@ -1339,7 +1339,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
 			if (len_index >= 0) {
 				struct definition_array *defarray;
-				struct definition *field;
+				struct bt_definition *field;
 				uint64_t i;
 				uint8_t uuidval[BABELTRACE_UUID_LEN];
 
@@ -1349,7 +1349,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 				assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
 
 				for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
-					struct definition *elem;
+					struct bt_definition *elem;
 
 					elem = bt_array_index(defarray, i);
 					uuidval[i] = bt_get_unsigned_int(elem);
@@ -1364,7 +1364,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
 				stream_id = bt_get_unsigned_int(field);
@@ -1401,7 +1401,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read content size from header */
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.content_size = bt_get_unsigned_int(field);
@@ -1413,7 +1413,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read packet size from header */
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.packet_size = bt_get_unsigned_int(field);
@@ -1425,7 +1425,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read timestamp begin from header */
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_begin = bt_get_unsigned_int(field);
@@ -1440,7 +1440,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read timestamp end from header */
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.timestamp_end = bt_get_unsigned_int(field);
@@ -1455,7 +1455,7 @@ int create_stream_packet_index(struct ctf_trace *td,
 			/* read events discarded from header */
 			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
 			if (len_index >= 0) {
-				struct definition *field;
+				struct bt_definition *field;
 
 				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 				packet_index.events_discarded = bt_get_unsigned_int(field);
@@ -1499,7 +1499,7 @@ int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition 
 	int ret;
 
 	if (td->packet_header_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			td->packet_header_decl->p.definition_new(&td->packet_header_decl->p,
 				stream->parent_def_scope, 0, 0, "trace.packet.header");
 		if (!definition) {

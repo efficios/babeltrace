@@ -29,7 +29,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-int ctf_text_sequence_write(struct bt_stream_pos *ppos, struct definition *definition)
+int ctf_text_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	struct definition_sequence *sequence_definition =
