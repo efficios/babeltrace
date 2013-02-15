@@ -31,7 +31,7 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-int ctf_string_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_string_read(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_string *string_definition =
 		container_of(definition, struct definition_string, p);
@@ -68,7 +68,7 @@ int ctf_string_read(struct stream_pos *ppos, struct definition *definition)
 	return 0;
 }
 
-int ctf_string_write(struct stream_pos *ppos,
+int ctf_string_write(struct bt_stream_pos *ppos,
 		      struct definition *definition)
 {
 	struct definition_string *string_definition =

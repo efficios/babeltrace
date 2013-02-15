@@ -43,7 +43,7 @@ struct definition *_struct_definition_new(struct declaration *declaration,
 static
 void _struct_definition_free(struct definition *definition);
 
-int bt_struct_rw(struct stream_pos *ppos, struct definition *definition)
+int bt_struct_rw(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);

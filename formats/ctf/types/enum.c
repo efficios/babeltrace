@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <glib.h>
 
-int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_enum_read(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);
@@ -69,7 +69,7 @@ int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	return 0;
 }
 
-int ctf_enum_write(struct stream_pos *pos, struct definition *definition)
+int ctf_enum_write(struct bt_stream_pos *pos, struct definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);

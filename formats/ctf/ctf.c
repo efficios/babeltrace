@@ -77,13 +77,13 @@ extern int yydebug;
 
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
@@ -392,7 +392,7 @@ void ctf_print_timestamp(FILE *fp,
 }
 
 static
-int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
+int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
@@ -504,7 +504,7 @@ error:
 }
 
 static
-int ctf_write_event(struct stream_pos *pos, struct ctf_stream_definition *stream)
+int ctf_write_event(struct bt_stream_pos *pos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event_definition *event;
@@ -617,7 +617,7 @@ int ctf_fini_pos(struct ctf_stream_pos *pos)
  * for SEEK_CUR: go to next packet.
  * for SEEK_POS: go to packet numer (index).
  */
-void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
+void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 {
 	struct ctf_stream_pos *pos =
 		container_of(stream_pos, struct ctf_stream_pos, parent);
@@ -1018,7 +1018,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -1523,7 +1523,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret, fd, closeret;
@@ -1600,7 +1600,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	int ret, closeret;
@@ -1696,7 +1696,7 @@ error:
  */
 static
 struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1786,7 +1786,7 @@ end:
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		struct mmap_stream *mmap_info,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret;
@@ -1828,7 +1828,7 @@ error_def:
 static
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
@@ -1861,7 +1861,7 @@ error:
 static
 struct trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {

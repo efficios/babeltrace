@@ -43,7 +43,7 @@
 #define DEFAULT_NR_STRUCT_FIELDS 8
 
 struct ctf_stream_definition;
-struct stream_pos;
+struct bt_stream_pos;
 struct format;
 struct definition;
 struct ctf_clock;
@@ -106,19 +106,19 @@ struct definition {
 	struct definition_scope *scope;
 };
 
-typedef int (*rw_dispatch)(struct stream_pos *pos,
+typedef int (*rw_dispatch)(struct bt_stream_pos *pos,
 			   struct definition *definition);
 
 /* Parent of per-plugin positions */
-struct stream_pos {
+struct bt_stream_pos {
 	/* read/write dispatch table. Specific to plugin used for stream. */
 	rw_dispatch *rw_table;	/* rw dispatch table */
-	int (*event_cb)(struct stream_pos *pos,
+	int (*event_cb)(struct bt_stream_pos *pos,
 			struct ctf_stream_definition *stream);
 };
 
 static inline
-int generic_rw(struct stream_pos *pos, struct definition *definition)
+int generic_rw(struct bt_stream_pos *pos, struct definition *definition)
 {
 	enum ctf_type_id dispatch_id = definition->declaration->id;
 	rw_dispatch call;
@@ -450,7 +450,7 @@ bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_dec
 struct definition *
 bt_struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
-int bt_struct_rw(struct stream_pos *pos, struct definition *definition);
+int bt_struct_rw(struct bt_stream_pos *pos, struct definition *definition);
 uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration);
 
 /*
@@ -480,7 +480,7 @@ int variant_definition_set_tag(struct definition_variant *variant,
  * to.
  */
 struct definition *bt_variant_get_current_field(struct definition_variant *variant);
-int bt_variant_rw(struct stream_pos *pos, struct definition *definition);
+int bt_variant_rw(struct bt_stream_pos *pos, struct definition *definition);
 
 /*
  * elem_declaration passed as parameter now belongs to the array. No
@@ -492,7 +492,7 @@ struct declaration_array *
 		struct declaration_scope *parent_scope);
 uint64_t bt_array_len(struct definition_array *array);
 struct definition *bt_array_index(struct definition_array *array, uint64_t i);
-int bt_array_rw(struct stream_pos *pos, struct definition *definition);
+int bt_array_rw(struct bt_stream_pos *pos, struct definition *definition);
 GString *bt_get_char_array(const struct definition *field);
 int bt_get_array_len(const struct definition *field);
 
@@ -506,7 +506,7 @@ struct declaration_sequence *
 		struct declaration_scope *parent_scope);
 uint64_t bt_sequence_len(struct definition_sequence *sequence);
 struct definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
-int bt_sequence_rw(struct stream_pos *pos, struct definition *definition);
+int bt_sequence_rw(struct bt_stream_pos *pos, struct definition *definition);
 
 /*
  * in: path (dot separated), out: q (GArray of GQuark)

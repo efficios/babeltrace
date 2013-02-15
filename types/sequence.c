@@ -39,7 +39,7 @@ struct definition *_sequence_definition_new(struct declaration *declaration,
 static
 void _sequence_definition_free(struct definition *definition);
 
-int bt_sequence_rw(struct stream_pos *pos, struct definition *definition)
+int bt_sequence_rw(struct bt_stream_pos *pos, struct definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);

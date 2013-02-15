@@ -38,7 +38,7 @@ struct definition *_array_definition_new(struct declaration *declaration,
 static
 void _array_definition_free(struct definition *definition);
 
-int bt_array_rw(struct stream_pos *pos, struct definition *definition)
+int bt_array_rw(struct bt_stream_pos *pos, struct definition *definition)
 {
 	struct definition_array *array_definition =
 		container_of(definition, struct definition_array, p);

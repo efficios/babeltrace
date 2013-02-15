@@ -39,7 +39,7 @@ struct definition *_variant_definition_new(struct declaration *declaration,
 static
 void _variant_definition_free(struct definition *definition);
 
-int bt_variant_rw(struct stream_pos *ppos, struct definition *definition)
+int bt_variant_rw(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_variant *variant_definition =
 		container_of(definition, struct definition_variant, p);

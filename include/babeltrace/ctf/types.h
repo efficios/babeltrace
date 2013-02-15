@@ -59,7 +59,7 @@ struct packet_index {
  * Always update ctf_stream_pos with ctf_move_pos and ctf_init_pos.
  */
 struct ctf_stream_pos {
-	struct stream_pos parent;
+	struct bt_stream_pos parent;
 	int fd;			/* backing file fd. -1 if unset. */
 	GArray *packet_cycles_index;	/* contains struct packet_index in cycles */
 	GArray *packet_real_index;	/* contains struct packet_index in ns */
@@ -77,7 +77,7 @@ struct ctf_stream_pos {
 	int64_t last_offset;	/* offset before the last read_event */
 	uint64_t cur_index;	/* current index in packet index */
 	uint64_t last_events_discarded;	/* last known amount of event discarded */
-	void (*packet_seek)(struct stream_pos *pos, size_t index,
+	void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence); /* function called to switch packet */
 
 	int dummy;		/* dummy position, for length calculation */
@@ -85,41 +85,41 @@ struct ctf_stream_pos {
 };
 
 static inline
-struct ctf_stream_pos *ctf_pos(struct stream_pos *pos)
+struct ctf_stream_pos *ctf_pos(struct bt_stream_pos *pos)
 {
 	return container_of(pos, struct ctf_stream_pos, parent);
 }
 
 BT_HIDDEN
-int ctf_integer_read(struct stream_pos *pos, struct definition *definition);
+int ctf_integer_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_integer_write(struct stream_pos *pos, struct definition *definition);
+int ctf_integer_write(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_float_read(struct stream_pos *pos, struct definition *definition);
+int ctf_float_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_float_write(struct stream_pos *pos, struct definition *definition);
+int ctf_float_write(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_string_read(struct stream_pos *pos, struct definition *definition);
+int ctf_string_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_string_write(struct stream_pos *pos, struct definition *definition);
+int ctf_string_write(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_enum_read(struct stream_pos *pos, struct definition *definition);
+int ctf_enum_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_enum_write(struct stream_pos *pos, struct definition *definition);
+int ctf_enum_write(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_struct_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_struct_rw(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_variant_rw(struct stream_pos *pos, struct definition *definition);
+int ctf_variant_rw(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_array_read(struct stream_pos *pos, struct definition *definition);
+int ctf_array_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_array_write(struct stream_pos *pos, struct definition *definition);
+int ctf_array_write(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_sequence_read(struct stream_pos *pos, struct definition *definition);
+int ctf_sequence_read(struct bt_stream_pos *pos, struct definition *definition);
 BT_HIDDEN
-int ctf_sequence_write(struct stream_pos *pos, struct definition *definition);
+int ctf_sequence_write(struct bt_stream_pos *pos, struct definition *definition);
 
-void ctf_packet_seek(struct stream_pos *pos, size_t index, int whence);
+void ctf_packet_seek(struct bt_stream_pos *pos, size_t index, int whence);
 
 int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
 int ctf_fini_pos(struct ctf_stream_pos *pos);

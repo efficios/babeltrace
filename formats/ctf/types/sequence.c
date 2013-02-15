@@ -28,7 +28,7 @@
 
 #include <babeltrace/ctf/types.h>
 
-int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_sequence_read(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
@@ -63,7 +63,7 @@ int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
 	return bt_sequence_rw(ppos, definition);
 }
 
-int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_sequence_write(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);

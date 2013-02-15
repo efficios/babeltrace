@@ -96,9 +96,9 @@ static void float_unlock(void)
 	assert(!ret);
 }
 
-static int _ctf_float_copy(struct stream_pos *destp,
+static int _ctf_float_copy(struct bt_stream_pos *destp,
 		    struct definition_float *dest_definition,
-		    struct stream_pos *srcp,
+		    struct bt_stream_pos *srcp,
 		    const struct definition_float *src_definition)
 {
 	int ret;
@@ -165,7 +165,7 @@ static int _ctf_float_copy(struct stream_pos *destp,
 	return 0;
 }
 
-int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_read(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -222,7 +222,7 @@ end:
 	return ret;
 }
 
-int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_write(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);

@@ -31,7 +31,7 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-int ctf_text_string_write(struct stream_pos *ppos,
+int ctf_text_string_write(struct bt_stream_pos *ppos,
 			  struct definition *definition)
 {
 	struct definition_string *string_definition =

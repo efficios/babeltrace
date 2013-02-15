@@ -39,7 +39,7 @@
  */
 
 static
-int _aligned_integer_read(struct stream_pos *ppos,
+int _aligned_integer_read(struct bt_stream_pos *ppos,
 			  struct definition *definition)
 {
 	struct definition_integer *integer_definition =
@@ -141,7 +141,7 @@ int _aligned_integer_read(struct stream_pos *ppos,
 }
 
 static
-int _aligned_integer_write(struct stream_pos *ppos,
+int _aligned_integer_write(struct bt_stream_pos *ppos,
 			    struct definition *definition)
 {
 	struct definition_integer *integer_definition =
@@ -211,7 +211,7 @@ end:
 	return 0;
 }
 
-int ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_integer_read(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);
@@ -256,7 +256,7 @@ int ctf_integer_read(struct stream_pos *ppos, struct definition *definition)
 	return 0;
 }
 
-int ctf_integer_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_integer_write(struct bt_stream_pos *ppos, struct definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);

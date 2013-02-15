@@ -41,7 +41,7 @@ extern "C" {
 typedef int bt_intern_str;
 
 /* forward declaration */
-struct stream_pos;
+struct bt_stream_pos;
 struct bt_context;
 struct bt_trace_handle;
 
@@ -62,12 +62,12 @@ struct format {
 	bt_intern_str name;
 
 	struct trace_descriptor *(*open_trace)(const char *path, int flags,
-			void (*packet_seek)(struct stream_pos *pos,
+			void (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
 	struct trace_descriptor *(*open_mmap_trace)(
 			struct mmap_stream_list *mmap_list,
-			void (*packet_seek)(struct stream_pos *pos,
+			void (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
 	int (*close_trace)(struct trace_descriptor *descriptor);
