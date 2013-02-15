@@ -58,7 +58,7 @@ struct last_enum_value {
 int opt_clock_force_correlate;
 
 static
-struct declaration *ctf_type_specifier_list_visit(FILE *fd,
+struct bt_declaration *ctf_type_specifier_list_visit(FILE *fd,
 		int depth, struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace);
@@ -411,12 +411,12 @@ GQuark create_typealias_identifier(FILE *fd, int depth,
 }
 
 static
-struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 	struct ctf_node *type_specifier_list,
 	GQuark *field_name,
 	struct ctf_node *node_type_declarator,
 	struct declaration_scope *declaration_scope,
-	struct declaration *nested_declaration,
+	struct bt_declaration *nested_declaration,
 	struct ctf_trace *trace)
 {
 	/*
@@ -483,7 +483,7 @@ struct declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			*field_name = 0;
 		return nested_declaration;
 	} else {
-		struct declaration *declaration;
+		struct bt_declaration *declaration;
 		struct ctf_node *first;
 
 		/* TYPEDEC_NESTED */
@@ -562,7 +562,7 @@ int ctf_struct_type_declarators_visit(FILE *fd, int depth,
 	GQuark field_name;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
-		struct declaration *field_declaration;
+		struct bt_declaration *field_declaration;
 
 		field_declaration = ctf_type_declarator_visit(fd, depth,
 						type_specifier_list,
@@ -600,7 +600,7 @@ int ctf_variant_type_declarators_visit(FILE *fd, int depth,
 	GQuark field_name;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
-		struct declaration *field_declaration;
+		struct bt_declaration *field_declaration;
 
 		field_declaration = ctf_type_declarator_visit(fd, depth,
 						type_specifier_list,
@@ -635,7 +635,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	GQuark identifier;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
-		struct declaration *type_declaration;
+		struct bt_declaration *type_declaration;
 		int ret;
 	
 		type_declaration = ctf_type_declarator_visit(fd, depth,
@@ -670,7 +670,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		struct ctf_node *target, struct ctf_node *alias,
 		struct ctf_trace *trace)
 {
-	struct declaration *type_declaration;
+	struct bt_declaration *type_declaration;
 	struct ctf_node *node;
 	GQuark dummy_id;
 	GQuark alias_q;
@@ -744,7 +744,7 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 
 	switch (iter->type) {
 	case NODE_TYPEDEF:
-		/* For each declarator, declare type and add type to struct declaration scope */
+		/* For each declarator, declare type and add type to struct bt_declaration scope */
 		ret = ctf_typedef_visit(fd, depth,
 			struct_declaration->scope,
 			iter->u._typedef.type_specifier_list,
@@ -753,7 +753,7 @@ int ctf_struct_declaration_list_visit(FILE *fd, int depth,
 			return ret;
 		break;
 	case NODE_TYPEALIAS:
-		/* Declare type with declarator and add type to struct declaration scope */
+		/* Declare type with declarator and add type to struct bt_declaration scope */
 		ret = ctf_typealias_visit(fd, depth,
 			struct_declaration->scope,
 			iter->u.typealias.target,
@@ -823,7 +823,7 @@ int ctf_variant_declaration_list_visit(FILE *fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_struct_visit(FILE *fd,
+struct bt_declaration *ctf_declaration_struct_visit(FILE *fd,
 	int depth, const char *name, struct bt_list_head *declaration_list,
 	int has_body, struct bt_list_head *min_align,
 	struct declaration_scope *declaration_scope,
@@ -894,7 +894,7 @@ error:
 }
 
 static
-struct declaration *ctf_declaration_variant_visit(FILE *fd,
+struct bt_declaration *ctf_declaration_variant_visit(FILE *fd,
 	int depth, const char *name, const char *choice,
 	struct bt_list_head *declaration_list,
 	int has_body, struct declaration_scope *declaration_scope,
@@ -1053,7 +1053,7 @@ int ctf_enumerator_list_visit(FILE *fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			const char *name,
 			struct ctf_node *container_type,
 			struct bt_list_head *enumerator_list,
@@ -1061,7 +1061,7 @@ struct declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			struct declaration_scope *declaration_scope,
 			struct ctf_trace *trace)
 {
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 	struct declaration_enum *enum_declaration;
 	struct declaration_integer *integer_declaration;
 	struct last_enum_value last_value;
@@ -1146,12 +1146,12 @@ error:
 }
 
 static
-struct declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 		struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope)
 {
 	GString *str;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 	char *str_c;
 	int ret;
 	GQuark id_q;
@@ -1263,7 +1263,7 @@ int get_byte_order(FILE *fd, int depth, struct ctf_node *unary_expression,
 }
 
 static
-struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 		struct bt_list_head *expressions,
 		struct ctf_trace *trace)
 {
@@ -1449,7 +1449,7 @@ struct declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 		struct bt_list_head *expressions,
 		struct ctf_trace *trace)
 {
@@ -1528,7 +1528,7 @@ struct declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 }
 
 static
-struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
+struct bt_declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 		struct bt_list_head *expressions,
 		struct ctf_trace *trace)
 {
@@ -1564,7 +1564,7 @@ struct declaration *ctf_declaration_string_visit(FILE *fd, int depth,
 
 
 static
-struct declaration *ctf_type_specifier_list_visit(FILE *fd,
+struct bt_declaration *ctf_type_specifier_list_visit(FILE *fd,
 		int depth, struct ctf_node *type_specifier_list,
 		struct declaration_scope *declaration_scope,
 		struct ctf_trace *trace)
@@ -1715,7 +1715,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_EVENT_SET_FIELD(event, stream_id);
 		} else if (!strcmp(left, "context")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (event->context_decl) {
 				fprintf(fd, "[error] %s: context already declared in event declaration\n", __func__);
@@ -1736,7 +1736,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			event->context_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "fields")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (event->fields_decl) {
 				fprintf(fd, "[error] %s: fields already declared in event declaration\n", __func__);
@@ -1915,7 +1915,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 			}
 			CTF_STREAM_SET_FIELD(stream, stream_id);
 		} else if (!strcmp(left, "event.header")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (stream->event_header_decl) {
 				fprintf(fd, "[error] %s: event.header already declared in stream declaration\n", __func__);
@@ -1936,7 +1936,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 			}
 			stream->event_header_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "event.context")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (stream->event_context_decl) {
 				fprintf(fd, "[error] %s: event.context already declared in stream declaration\n", __func__);
@@ -1957,7 +1957,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 			}
 			stream->event_context_decl = container_of(declaration, struct declaration_struct, p);
 		} else if (!strcmp(left, "packet.context")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (stream->packet_context_decl) {
 				fprintf(fd, "[error] %s: packet.context already declared in stream declaration\n", __func__);
@@ -2155,7 +2155,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 			}
 			CTF_TRACE_SET_FIELD(trace, byte_order);
 		} else if (!strcmp(left, "packet.header")) {
-			struct declaration *declaration;
+			struct bt_declaration *declaration;
 
 			if (trace->packet_header_decl) {
 				fprintf(fd, "[error] %s: packet.header already declared in trace declaration\n", __func__);
@@ -2841,7 +2841,7 @@ int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struc
 		break;
 	case NODE_TYPE_SPECIFIER_LIST:
 	{
-		struct declaration *declaration;
+		struct bt_declaration *declaration;
 
 		/*
 		 * Just add the type specifier to the root scope

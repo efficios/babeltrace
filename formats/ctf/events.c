@@ -174,7 +174,7 @@ const char *bt_ctf_field_name(const struct bt_definition *def)
 	return rem_(g_quark_to_string(def->name));
 }
 
-enum ctf_type_id bt_ctf_field_type(const struct declaration *decl)
+enum ctf_type_id bt_ctf_field_type(const struct bt_declaration *decl)
 {
 	if (!decl)
 		return CTF_TYPE_UNKNOWN;
@@ -358,7 +358,7 @@ int bt_ctf_field_get_error(void)
 }
 
 static const struct declaration_integer *
-get_declaration_integer(const struct declaration *decl)
+get_declaration_integer(const struct bt_declaration *decl)
 {
 	if (!decl || bt_ctf_field_type(decl) != CTF_TYPE_INTEGER)
 		return NULL;
@@ -366,7 +366,7 @@ get_declaration_integer(const struct declaration *decl)
 }
 
 static const struct declaration_string *
-get_declaration_string(const struct declaration *decl)
+get_declaration_string(const struct bt_declaration *decl)
 {
 	if (!decl || bt_ctf_field_type(decl) != CTF_TYPE_STRING)
 		return NULL;
@@ -374,7 +374,7 @@ get_declaration_string(const struct declaration *decl)
 }
 
 static const struct declaration_array *
-get_declaration_array(const struct declaration *decl)
+get_declaration_array(const struct bt_declaration *decl)
 {
 	if (!decl || bt_ctf_field_type(decl) != CTF_TYPE_ARRAY)
 		return NULL;
@@ -382,14 +382,14 @@ get_declaration_array(const struct declaration *decl)
 }
 
 static const struct declaration_sequence *
-get_declaration_sequence(const struct declaration *decl)
+get_declaration_sequence(const struct bt_declaration *decl)
 {
 	if (!decl || bt_ctf_field_type(decl) != CTF_TYPE_SEQUENCE)
 		return NULL;
 	return container_of(decl, const struct declaration_sequence, p);
 }
 
-int bt_ctf_get_int_signedness(const struct declaration *decl)
+int bt_ctf_get_int_signedness(const struct bt_declaration *decl)
 {
 	const struct declaration_integer *integer;
 
@@ -401,7 +401,7 @@ int bt_ctf_get_int_signedness(const struct declaration *decl)
 	return integer->signedness;
 }
 
-int bt_ctf_get_int_base(const struct declaration *decl)
+int bt_ctf_get_int_base(const struct bt_declaration *decl)
 {
 	const struct declaration_integer *integer;
 
@@ -413,7 +413,7 @@ int bt_ctf_get_int_base(const struct declaration *decl)
 	return integer->base;
 }
 
-int bt_ctf_get_int_byte_order(const struct declaration *decl)
+int bt_ctf_get_int_byte_order(const struct bt_declaration *decl)
 {
 	const struct declaration_integer *integer;
 
@@ -425,7 +425,7 @@ int bt_ctf_get_int_byte_order(const struct declaration *decl)
 	return integer->byte_order;
 }
 
-ssize_t bt_ctf_get_int_len(const struct declaration *decl)
+ssize_t bt_ctf_get_int_len(const struct bt_declaration *decl)
 {
 	const struct declaration_integer *integer;
 
@@ -485,7 +485,7 @@ const char *bt_ctf_get_enum_str(const struct bt_definition *field)
 	return ret;
 }
 
-enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl)
+enum ctf_string_encoding bt_ctf_get_encoding(const struct bt_declaration *decl)
 {
 	enum ctf_string_encoding ret = 0;
 	enum ctf_type_id type;
@@ -540,7 +540,7 @@ error:
 	return -1;
 }
 
-int bt_ctf_get_array_len(const struct declaration *decl)
+int bt_ctf_get_array_len(const struct bt_declaration *decl)
 {
 	const struct declaration_array *array;
 
@@ -767,7 +767,7 @@ const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field)
 	return rem_(g_quark_to_string(((struct declaration_field *) field)->name));
 }
 
-const struct declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def)
+const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def)
 {
 	if (def)
 		return def->declaration;
@@ -775,7 +775,7 @@ const struct declaration *bt_ctf_get_decl_from_def(const struct bt_definition *d
 	return NULL;
 }
 
-const struct declaration *bt_ctf_get_decl_from_field_decl(
+const struct bt_declaration *bt_ctf_get_decl_from_field_decl(
 		const struct bt_ctf_field_decl *field)
 {
 	if (field)

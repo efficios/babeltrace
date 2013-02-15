@@ -51,7 +51,7 @@ GQuark prefix_quark(const char *prefix, GQuark quark)
 }
 
 static
-struct declaration *
+struct bt_declaration *
 	bt_lookup_declaration_scope(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
@@ -59,10 +59,10 @@ struct declaration *
 				   (gconstpointer) (unsigned long) declaration_name);
 }
 
-struct declaration *bt_lookup_declaration(GQuark declaration_name,
+struct bt_declaration *bt_lookup_declaration(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	while (scope) {
 		declaration = bt_lookup_declaration_scope(declaration_name,
@@ -74,7 +74,7 @@ struct declaration *bt_lookup_declaration(GQuark declaration_name,
 	return NULL;
 }
 
-int bt_register_declaration(GQuark name, struct declaration *declaration,
+int bt_register_declaration(GQuark name, struct bt_declaration *declaration,
 		struct declaration_scope *scope)
 {
 	if (!name)
@@ -279,12 +279,12 @@ int bt_register_field_definition(GQuark field_name, struct bt_definition *defini
 	return 0;
 }
 
-void bt_declaration_ref(struct declaration *declaration)
+void bt_declaration_ref(struct bt_declaration *declaration)
 {
 	declaration->ref++;
 }
 
-void bt_declaration_unref(struct declaration *declaration)
+void bt_declaration_unref(struct bt_declaration *declaration)
 {
 	if (!declaration)
 		return;

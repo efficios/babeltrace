@@ -36,7 +36,7 @@
 #endif
 
 static
-struct bt_definition *_struct_definition_new(struct declaration *declaration,
+struct bt_definition *_struct_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
@@ -61,7 +61,7 @@ int bt_struct_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 }
 
 static
-void _struct_declaration_free(struct declaration *declaration)
+void _struct_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_struct *struct_declaration =
 		container_of(declaration, struct declaration_struct, p);
@@ -85,7 +85,7 @@ struct declaration_struct *
 			       uint64_t min_align)
 {
 	struct declaration_struct *struct_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	struct_declaration = g_new(struct declaration_struct, 1);
 	declaration = &struct_declaration->p;
@@ -106,7 +106,7 @@ struct declaration_struct *
 
 static
 struct bt_definition *
-	_struct_definition_new(struct declaration *declaration,
+	_struct_definition_new(struct bt_declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
 			       const char *root_name)
@@ -183,7 +183,7 @@ void _struct_definition_free(struct bt_definition *definition)
 
 void bt_struct_declaration_add_field(struct declaration_struct *struct_declaration,
 			   const char *field_name,
-			   struct declaration *field_declaration)
+			   struct bt_declaration *field_declaration)
 {
 	struct declaration_field *field;
 	unsigned long index;

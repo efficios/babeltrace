@@ -36,7 +36,7 @@ int ctf_text_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *de
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	int field_nr_saved;
 	int ret = 0;
 

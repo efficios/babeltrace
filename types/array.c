@@ -32,7 +32,7 @@
 #include <inttypes.h>
 
 static
-struct bt_definition *_array_definition_new(struct declaration *declaration,
+struct bt_definition *_array_definition_new(struct bt_declaration *declaration,
 			struct definition_scope *parent_scope,
 			GQuark field_name, int index, const char *root_name);
 static
@@ -59,7 +59,7 @@ int bt_array_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 }
 
 static
-void _array_declaration_free(struct declaration *declaration)
+void _array_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_array *array_declaration =
 		container_of(declaration, struct declaration_array, p);
@@ -71,11 +71,11 @@ void _array_declaration_free(struct declaration *declaration)
 
 struct declaration_array *
 	bt_array_declaration_new(size_t len,
-			      struct declaration *elem_declaration,
+			      struct bt_declaration *elem_declaration,
 			      struct declaration_scope *parent_scope)
 {
 	struct declaration_array *array_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	array_declaration = g_new(struct declaration_array, 1);
 	declaration = &array_declaration->p;
@@ -94,7 +94,7 @@ struct declaration_array *
 
 static
 struct bt_definition *
-	_array_definition_new(struct declaration *declaration,
+	_array_definition_new(struct bt_declaration *declaration,
 			      struct definition_scope *parent_scope,
 			      GQuark field_name, int index, const char *root_name)
 {
@@ -229,7 +229,7 @@ GString *bt_get_char_array(const struct bt_definition *field)
 {
 	struct definition_array *array_definition;
 	struct declaration_array *array_declaration;
-	struct declaration *elem;
+	struct bt_declaration *elem;
 
 	array_definition = container_of(field, struct definition_array, p);
 	array_declaration = array_definition->declaration;

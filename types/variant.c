@@ -32,7 +32,7 @@
 #include <errno.h>
 
 static
-struct bt_definition *_variant_definition_new(struct declaration *declaration,
+struct bt_definition *_variant_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
@@ -50,7 +50,7 @@ int bt_variant_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 }
 
 static
-void _untagged_variant_declaration_free(struct declaration *declaration)
+void _untagged_variant_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_untagged_variant *untagged_variant_declaration =
 		container_of(declaration, struct declaration_untagged_variant, p);
@@ -73,7 +73,7 @@ struct declaration_untagged_variant *bt_untagged_bt_variant_declaration_new(
 				      struct declaration_scope *parent_scope)
 {
 	struct declaration_untagged_variant *untagged_variant_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	untagged_variant_declaration = g_new(struct declaration_untagged_variant, 1);
 	declaration = &untagged_variant_declaration->p;
@@ -93,7 +93,7 @@ struct declaration_untagged_variant *bt_untagged_bt_variant_declaration_new(
 }
 
 static
-void _variant_declaration_free(struct declaration *declaration)
+void _variant_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_variant *variant_declaration =
 		container_of(declaration, struct declaration_variant, p);
@@ -107,7 +107,7 @@ struct declaration_variant *
 	bt_variant_declaration_new(struct declaration_untagged_variant *untagged_variant, const char *tag)
 {
 	struct declaration_variant *variant_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	variant_declaration = g_new(struct declaration_variant, 1);
 	declaration = &variant_declaration->p;
@@ -173,7 +173,7 @@ int check_enum_tag(struct definition_variant *variant,
 
 static
 struct bt_definition *
-	_variant_definition_new(struct declaration *declaration,
+	_variant_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name)
@@ -259,7 +259,7 @@ void _variant_definition_free(struct bt_definition *definition)
 
 void bt_untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
 			    const char *field_name,
-			    struct declaration *field_declaration)
+			    struct bt_declaration *field_declaration)
 {
 	struct declaration_field *field;
 	unsigned long index;

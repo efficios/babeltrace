@@ -32,7 +32,7 @@
 #include <inttypes.h>
 
 static
-struct bt_definition *_sequence_definition_new(struct declaration *declaration,
+struct bt_definition *_sequence_definition_new(struct bt_declaration *declaration,
 					struct definition_scope *parent_scope,
 					GQuark field_name, int index,
 					const char *root_name);
@@ -88,7 +88,7 @@ int bt_sequence_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 }
 
 static
-void _sequence_declaration_free(struct declaration *declaration)
+void _sequence_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_sequence *sequence_declaration =
 		container_of(declaration, struct declaration_sequence, p);
@@ -101,11 +101,11 @@ void _sequence_declaration_free(struct declaration *declaration)
 
 struct declaration_sequence *
 	bt_sequence_declaration_new(const char *length,
-			  struct declaration *elem_declaration,
+			  struct bt_declaration *elem_declaration,
 			  struct declaration_scope *parent_scope)
 {
 	struct declaration_sequence *sequence_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	sequence_declaration = g_new(struct declaration_sequence, 1);
 	declaration = &sequence_declaration->p;
@@ -126,7 +126,7 @@ struct declaration_sequence *
 }
 
 static
-struct bt_definition *_sequence_definition_new(struct declaration *declaration,
+struct bt_definition *_sequence_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name)

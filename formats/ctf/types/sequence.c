@@ -34,7 +34,7 @@ int ctf_sequence_read(struct bt_stream_pos *ppos, struct bt_definition *definiti
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	if (elem->id == CTF_TYPE_INTEGER) {
@@ -69,7 +69,7 @@ int ctf_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definit
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	if (elem->id == CTF_TYPE_INTEGER) {

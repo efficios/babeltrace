@@ -41,7 +41,7 @@
 #endif
 
 static
-struct bt_definition *_enum_definition_new(struct declaration *declaration,
+struct bt_definition *_enum_definition_new(struct bt_declaration *declaration,
 					struct definition_scope *parent_scope,
 					GQuark field_name, int index,
 					const char *root_name);
@@ -374,7 +374,7 @@ size_t bt_enum_get_nr_enumerators(struct declaration_enum *enum_declaration)
 }
 
 static
-void _enum_declaration_free(struct declaration *declaration)
+void _enum_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
@@ -418,7 +418,7 @@ struct declaration_enum *
 
 static
 struct bt_definition *
-	_enum_definition_new(struct declaration *declaration,
+	_enum_definition_new(struct bt_declaration *declaration,
 			     struct definition_scope *parent_scope,
 			     GQuark field_name, int index,
 			     const char *root_name)

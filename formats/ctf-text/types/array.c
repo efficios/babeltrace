@@ -36,7 +36,7 @@ int ctf_text_array_write(struct bt_stream_pos *ppos, struct bt_definition *defin
 		container_of(definition, struct definition_array, p);
 	struct declaration_array *array_declaration =
 		array_definition->declaration;
-	struct declaration *elem = array_declaration->elem;
+	struct bt_declaration *elem = array_declaration->elem;
 	int field_nr_saved;
 	int ret = 0;
 

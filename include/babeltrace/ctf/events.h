@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 struct bt_definition;
-struct declaration;
+struct bt_declaration;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
 struct bt_ctf_field_decl;
@@ -158,19 +158,19 @@ const char *bt_ctf_field_name(const struct bt_definition *def);
  * bt_ctf_get_decl_from_def: return the declaration of a field from
  * its definition or NULL on error
  */
-const struct declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def);
+const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def);
 
 /*
  * bt_ctf_get_decl_from_field_decl: return the declaration of a field from
  * a field_decl or NULL on error
  */
-const struct declaration *bt_ctf_get_decl_from_field_decl(
+const struct bt_declaration *bt_ctf_get_decl_from_field_decl(
 		const struct bt_ctf_field_decl *field);
 
 /*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
  */
-enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
+enum ctf_type_id bt_ctf_field_type(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_signedness: return the signedness of an integer
@@ -179,37 +179,37 @@ enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
  * return 1 if signed
  * return -1 on error
  */
-int bt_ctf_get_int_signedness(const struct declaration *decl);
+int bt_ctf_get_int_signedness(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_base: return the base of an int or a negative value on error
  */
-int bt_ctf_get_int_base(const struct declaration *decl);
+int bt_ctf_get_int_base(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_byte_order: return the byte order of an int or a negative
  * value on error
  */
-int bt_ctf_get_int_byte_order(const struct declaration *decl);
+int bt_ctf_get_int_byte_order(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_len: return the size, in bits, of an int or a negative
  * value on error
  */
-ssize_t bt_ctf_get_int_len(const struct declaration *decl);
+ssize_t bt_ctf_get_int_len(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_encoding: return the encoding of an int, a string, or of
  * the integer contained in a char array or a sequence.
  * return a negative value on error
  */
-enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_array_len: return the len of an array or a negative
  * value on error
  */
-int bt_ctf_get_array_len(const struct declaration *decl);
+int bt_ctf_get_array_len(const struct bt_declaration *decl);
 
 /*
  * Field access functions

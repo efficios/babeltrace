@@ -34,7 +34,7 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 		container_of(definition, struct definition_array, p);
 	struct declaration_array *array_declaration =
 		array_definition->declaration;
-	struct declaration *elem = array_declaration->elem;
+	struct bt_declaration *elem = array_declaration->elem;
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 
@@ -70,7 +70,7 @@ int ctf_array_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 		container_of(definition, struct definition_array, p);
 	struct declaration_array *array_declaration =
 		array_definition->declaration;
-	struct declaration *elem = array_declaration->elem;
+	struct bt_declaration *elem = array_declaration->elem;
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 

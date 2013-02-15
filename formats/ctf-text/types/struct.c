@@ -31,7 +31,7 @@
 
 int ctf_text_struct_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
-	struct declaration *declaration = definition->declaration;
+	struct bt_declaration *declaration = definition->declaration;
 	struct declaration_struct *struct_declaration =
 		container_of(declaration, struct declaration_struct, p);
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
