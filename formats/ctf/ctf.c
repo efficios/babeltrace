@@ -82,7 +82,7 @@ struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 		FILE *metadata_fp);
 static
 struct bt_trace_descriptor *ctf_open_mmap_trace(
-		struct mmap_stream_list *mmap_list,
+		struct bt_mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
@@ -1736,7 +1736,7 @@ error:
 
 static
 void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
-		struct mmap_stream *mmap_info)
+		struct bt_mmap_stream *mmap_info)
 {
 	pos->mmap_offset = 0;
 	pos->packet_size = 0;
@@ -1785,7 +1785,7 @@ end:
 
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
-		struct mmap_stream *mmap_info,
+		struct bt_mmap_stream *mmap_info,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
@@ -1827,13 +1827,13 @@ error_def:
 
 static
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
-		struct mmap_stream_list *mmap_list,
+		struct bt_mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
 	int ret;
-	struct mmap_stream *mmap_info;
+	struct bt_mmap_stream *mmap_info;
 
 	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp);
 	if (ret) {
@@ -1860,7 +1860,7 @@ error:
 
 static
 struct bt_trace_descriptor *ctf_open_mmap_trace(
-		struct mmap_stream_list *mmap_list,
+		struct bt_mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)

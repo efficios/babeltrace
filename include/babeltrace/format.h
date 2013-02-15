@@ -49,12 +49,12 @@ struct bt_trace_handle;
 struct bt_trace_descriptor {
 };
 
-struct mmap_stream {
+struct bt_mmap_stream {
 	int fd;
 	struct bt_list_head list;
 };
 
-struct mmap_stream_list {
+struct bt_mmap_stream_list {
 	struct bt_list_head head;
 };
 
@@ -66,7 +66,7 @@ struct format {
 				size_t index, int whence),
 			FILE *metadata_fp);
 	struct bt_trace_descriptor *(*open_mmap_trace)(
-			struct mmap_stream_list *mmap_list,
+			struct bt_mmap_stream_list *mmap_list,
 			void (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
