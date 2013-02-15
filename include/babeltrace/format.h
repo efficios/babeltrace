@@ -46,7 +46,7 @@ struct bt_context;
 struct bt_trace_handle;
 
 /* Parent trace descriptor */
-struct trace_descriptor {
+struct bt_trace_descriptor {
 };
 
 struct mmap_stream {
@@ -61,25 +61,25 @@ struct mmap_stream_list {
 struct format {
 	bt_intern_str name;
 
-	struct trace_descriptor *(*open_trace)(const char *path, int flags,
+	struct bt_trace_descriptor *(*open_trace)(const char *path, int flags,
 			void (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
-	struct trace_descriptor *(*open_mmap_trace)(
+	struct bt_trace_descriptor *(*open_mmap_trace)(
 			struct mmap_stream_list *mmap_list,
 			void (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
-	int (*close_trace)(struct trace_descriptor *descriptor);
-	void (*set_context)(struct trace_descriptor *descriptor,
+	int (*close_trace)(struct bt_trace_descriptor *descriptor);
+	void (*set_context)(struct bt_trace_descriptor *descriptor,
 			struct bt_context *ctx);
-	void (*set_handle)(struct trace_descriptor *descriptor,
+	void (*set_handle)(struct bt_trace_descriptor *descriptor,
 			struct bt_trace_handle *handle);
-	uint64_t (*timestamp_begin)(struct trace_descriptor *descriptor,
+	uint64_t (*timestamp_begin)(struct bt_trace_descriptor *descriptor,
 			struct bt_trace_handle *handle, enum bt_clock_type type);
-	uint64_t (*timestamp_end)(struct trace_descriptor *descriptor,
+	uint64_t (*timestamp_end)(struct bt_trace_descriptor *descriptor,
 			struct bt_trace_handle *handle, enum bt_clock_type type);
-	int (*convert_index_timestamp)(struct trace_descriptor *descriptor);
+	int (*convert_index_timestamp)(struct bt_trace_descriptor *descriptor);
 };
 
 extern struct format *bt_lookup_format(bt_intern_str qname);

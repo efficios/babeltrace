@@ -613,7 +613,7 @@ int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		unsigned int *count)
 {
 	struct bt_trace_handle *handle;
-	struct trace_descriptor *td;
+	struct bt_trace_descriptor *td;
 	struct ctf_trace *tin;
 
 	if (!ctx || !list || !count)

@@ -156,7 +156,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
  * convert the index from cycles to real time.
  */
 int bt_trace_collection_add(struct trace_collection *tc,
-				struct trace_descriptor *td)
+				struct bt_trace_descriptor *td)
 {
 	struct ctf_trace *trace;
 
@@ -209,7 +209,7 @@ error:
 }
 
 int bt_trace_collection_remove(struct trace_collection *tc,
-			    struct trace_descriptor *td)
+			    struct bt_trace_descriptor *td)
 {
 	if (!tc || !td)
 		return -EINVAL;

@@ -76,33 +76,33 @@ uint64_t opt_clock_offset;
 extern int yydebug;
 
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
+struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
-struct trace_descriptor *ctf_open_mmap_trace(
+struct bt_trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
-void ctf_set_context(struct trace_descriptor *descriptor,
+void ctf_set_context(struct bt_trace_descriptor *descriptor,
 		struct bt_context *ctx);
 static
-void ctf_set_handle(struct trace_descriptor *descriptor,
+void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle);
 
 static
-int ctf_close_trace(struct trace_descriptor *descriptor);
+int ctf_close_trace(struct bt_trace_descriptor *descriptor);
 static
-uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type);
 static
-uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type);
 static
-int ctf_convert_index_timestamp(struct trace_descriptor *tdp);
+int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp);
 
 static
 rw_dispatch read_dispatch_table[] = {
@@ -141,7 +141,7 @@ struct format ctf_format = {
 };
 
 static
-uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
@@ -202,7 +202,7 @@ error:
 }
 
 static
-uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
@@ -1695,7 +1695,7 @@ error:
  * since the index creation read it entirely.
  */
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
+struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
@@ -1859,7 +1859,7 @@ error:
 }
 
 static
-struct trace_descriptor *ctf_open_mmap_trace(
+struct bt_trace_descriptor *ctf_open_mmap_trace(
 		struct mmap_stream_list *mmap_list,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
@@ -1891,7 +1891,7 @@ error:
 }
 
 static
-int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
+int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp)
 {
 	int i, j, k;
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
@@ -1959,7 +1959,7 @@ int ctf_close_file_stream(struct ctf_file_stream *file_stream)
 }
 
 static
-int ctf_close_trace(struct trace_descriptor *tdp)
+int ctf_close_trace(struct bt_trace_descriptor *tdp)
 {
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
 	int ret;
@@ -2000,7 +2000,7 @@ int ctf_close_trace(struct trace_descriptor *tdp)
 }
 
 static
-void ctf_set_context(struct trace_descriptor *descriptor,
+void ctf_set_context(struct bt_trace_descriptor *descriptor,
 		struct bt_context *ctx)
 {
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
@@ -2010,7 +2010,7 @@ void ctf_set_context(struct trace_descriptor *descriptor,
 }
 
 static
-void ctf_set_handle(struct trace_descriptor *descriptor,
+void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle)
 {
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,

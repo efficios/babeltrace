@@ -174,7 +174,7 @@ struct ctf_tracer_env {
 };
 
 struct ctf_trace {
-	struct trace_descriptor parent;
+	struct bt_trace_descriptor parent;
 	/* root scope */
 	struct declaration_scope *root_declaration_scope;
 

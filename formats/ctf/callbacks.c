@@ -89,7 +89,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 	tc = iter->parent.ctx->tc;
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
 		tin = container_of(td_read, struct ctf_trace, parent);

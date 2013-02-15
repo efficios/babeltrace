@@ -37,11 +37,11 @@
 #include <babeltrace/format.h>
 
 /*
- * Inherit from both struct bt_stream_pos and struct trace_descriptor.
+ * Inherit from both struct bt_stream_pos and struct bt_trace_descriptor.
  */
 struct ctf_text_stream_pos {
 	struct bt_stream_pos parent;
-	struct trace_descriptor trace_descriptor;
+	struct bt_trace_descriptor trace_descriptor;
 	FILE *fp;		/* File pointer. NULL if unset. */
 	int depth;
 	int dummy;		/* disable output */

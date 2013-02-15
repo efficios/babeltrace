@@ -45,7 +45,7 @@ int bt_dummy_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 }
 
 static
-struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
+struct bt_trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
@@ -58,7 +58,7 @@ struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
 }
 
 static
-int bt_dummy_close_trace(struct trace_descriptor *td)
+int bt_dummy_close_trace(struct bt_trace_descriptor *td)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos,

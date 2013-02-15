@@ -72,7 +72,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		struct mmap_stream_list *stream_list,
 		FILE *metadata)
 {
-	struct trace_descriptor *td;
+	struct bt_trace_descriptor *td;
 	struct format *fmt;
 	struct bt_trace_handle *handle;
 	int ret, closeret;

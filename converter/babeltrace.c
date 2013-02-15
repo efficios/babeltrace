@@ -516,7 +516,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	return ret;
 }
 
-int convert_trace(struct trace_descriptor *td_write,
+int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
 	struct bt_ctf_iter *iter;
@@ -556,7 +556,7 @@ int main(int argc, char **argv)
 {
 	int ret, partial_error = 0, open_success = 0;
 	struct format *fmt_write;
-	struct trace_descriptor *td_write;
+	struct bt_trace_descriptor *td_write;
 	struct bt_context *ctx;
 	int i;
 

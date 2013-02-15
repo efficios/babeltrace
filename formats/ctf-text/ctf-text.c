@@ -87,11 +87,11 @@ enum bt_loglevel {
 };
 
 static
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
 static
-int ctf_text_close_trace(struct trace_descriptor *descriptor);
+int ctf_text_close_trace(struct bt_trace_descriptor *descriptor);
 
 static
 rw_dispatch write_dispatch_table[] = {
@@ -555,7 +555,7 @@ error:
 }
 
 static
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
@@ -592,7 +592,7 @@ error:
 }
 
 static
-int ctf_text_close_trace(struct trace_descriptor *td)
+int ctf_text_close_trace(struct bt_trace_descriptor *td)
 {
 	int ret;
 	struct ctf_text_stream_pos *pos =

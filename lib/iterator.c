@@ -309,7 +309,7 @@ static int seek_last_ctf_trace_collection(struct trace_collection *tc,
 	/* For each trace in the trace_collection */
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
 		if (!td_read)
@@ -421,7 +421,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		/* for each trace in the trace_collection */
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
-			struct trace_descriptor *td_read;
+			struct bt_trace_descriptor *td_read;
 
 			td_read = g_ptr_array_index(tc->array, i);
 			if (!td_read)
@@ -451,7 +451,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
-			struct trace_descriptor *td_read;
+			struct bt_trace_descriptor *td_read;
 			int stream_id;
 
 			td_read = g_ptr_array_index(tc->array, i);
@@ -675,7 +675,7 @@ int bt_iter_init(struct bt_iter *iter,
 
 	for (i = 0; i < ctx->tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(ctx->tc->array, i);
 		if (!td_read)
