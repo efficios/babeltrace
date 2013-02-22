@@ -1228,7 +1228,7 @@ int get_trace_byte_order(FILE *fd, int depth, struct ctf_node *unary_expression)
 	else if (!strcmp(unary_expression->u.unary_expression.u.string, "le"))
 		byte_order = LITTLE_ENDIAN;
 	else {
-		fprintf(fd, "[error] %s: unexpected string \"%s\". Should be \"native\", \"network\", \"be\" or \"le\".\n",
+		fprintf(fd, "[error] %s: unexpected string \"%s\". Should be \"be\" or \"le\".\n",
 			__func__, unary_expression->u.unary_expression.u.string);
 		return -EINVAL;
 	}
