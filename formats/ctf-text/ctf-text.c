@@ -597,10 +597,12 @@ int ctf_text_close_trace(struct bt_trace_descriptor *td)
 	int ret;
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
-	ret = fclose(pos->fp);
-	if (ret) {
-		perror("Error on fclose");
-		return -1;
+	if (pos->fp != stdout) {
+		ret = fclose(pos->fp);
+		if (ret) {
+			perror("Error on fclose");
+			return -1;
+		}
 	}
 	g_free(pos);
 	return 0;
