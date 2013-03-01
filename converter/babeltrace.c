@@ -606,7 +606,7 @@ int main(int argc, char **argv)
 		}
 	}
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
-	if (!fmt_read) {
+	if (!fmt_read || fmt_read->name != g_quark_from_static_string("ctf")) {
 		fprintf(stderr, "[error] Format \"%s\" is not supported.\n\n",
 			opt_input_format);
 		partial_error = 1;
