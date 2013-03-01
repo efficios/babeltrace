@@ -204,7 +204,6 @@ static int get_names_args(poptContext *pc)
 			opt_payload_field_names = 0;
 		} else {
 			fprintf(stderr, "[error] unknown field name type %s\n", str);
-			free(strlist);
 			ret = -EINVAL;
 			goto end;
 		}
