@@ -1372,7 +1372,9 @@ int create_stream_packet_index(struct ctf_trace *td,
 		}
 
 		if (!first_packet && file_stream->parent.stream_id != stream_id) {
-			fprintf(stderr, "[error] Stream ID is changing within a stream.\n");
+			fprintf(stderr, "[error] Stream ID is changing within a stream: expecting %" PRIu64 ", but packet has %" PRIu64 "\n",
+				stream_id,
+				file_stream->parent.stream_id);
 			return -EINVAL;
 		}
 		if (first_packet) {
