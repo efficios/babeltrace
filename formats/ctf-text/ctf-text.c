@@ -304,7 +304,7 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 		else
 			fprintf(pos->fp, " ");
 	}
-	if ((opt_delta_field || opt_all_fields) && stream->has_timestamp) {
+	if (opt_delta_field && stream->has_timestamp) {
 		uint64_t delta, delta_sec, delta_nsec;
 
 		set_field_names_print(pos, ITEM_HEADER);
