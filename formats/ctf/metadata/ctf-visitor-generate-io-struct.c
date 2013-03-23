@@ -2868,7 +2868,7 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 	struct ctf_node *iter;
 	int env_clock_done = 0;
 
-	printf_verbose("CTF visitor: metadata construction... ");
+	printf_verbose("CTF visitor: metadata construction...\n");
 	trace->byte_order = byte_order;
 	trace->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 				NULL, clock_free);
