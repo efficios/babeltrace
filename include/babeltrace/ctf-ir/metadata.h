@@ -210,7 +210,7 @@ struct ctf_trace {
 	int dirfd;
 	int flags;		/* open flags */
 
-	/* Heap of streams, ordered to always get the lowest timestam */
+	/* Heap of streams, ordered to always get the lowest timestamp */
 	struct ptr_heap *stream_heap;
 	char path[PATH_MAX];
 
