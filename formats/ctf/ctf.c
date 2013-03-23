@@ -400,10 +400,12 @@ void print_uuid(FILE *fp, unsigned char *uuid)
 		fprintf(fp, "%x", (unsigned int) uuid[i]);
 }
 
-void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream)
+void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream,
+		int end_stream)
 {
-	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events between [",
-		stream->events_discarded);
+	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events %sbetween [",
+		stream->events_discarded,
+		end_stream ? "at end of stream " : "");
 	if (opt_clock_cycles) {
 		ctf_print_timestamp(fp, stream,
 				stream->prev_cycles_timestamp);
@@ -781,7 +783,9 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 				 */
 				if (file_stream->parent.events_discarded) {
 					fflush(stdout);
-					ctf_print_discarded(stderr, &file_stream->parent);
+					ctf_print_discarded(stderr,
+						&file_stream->parent,
+						1);
 					file_stream->parent.events_discarded = 0;
 				}
 			}

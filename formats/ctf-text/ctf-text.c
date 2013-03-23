@@ -265,7 +265,7 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 	/* Print events discarded */
 	if (stream->events_discarded) {
 		fflush(pos->fp);
-		ctf_print_discarded(stderr, stream);
+		ctf_print_discarded(stderr, stream, 0);
 		stream->events_discarded = 0;
 	}
 
