@@ -586,7 +586,7 @@ int main(int argc, char **argv)
 	}
 	printf_verbose("Converting from format: %s\n",
 		opt_input_format ? : "ctf <default>");
-	printf_verbose("Converting to directory: %s\n",
+	printf_verbose("Converting to target: %s\n",
 		opt_output_path ? : "<stdout>");
 	printf_verbose("Converting to format: %s\n",
 		opt_output_format ? : "text <default>");
