@@ -265,23 +265,7 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 	/* Print events discarded */
 	if (stream->events_discarded) {
 		fflush(pos->fp);
-		fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events between [",
-			stream->events_discarded);
-		if (opt_clock_cycles) {
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_cycles_timestamp);
-			fprintf(stderr, "] and [");
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_cycles_timestamp_end);
-		} else {
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_real_timestamp);
-			fprintf(stderr, "] and [");
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_real_timestamp_end);
-		}
-		fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
-		fflush(stderr);
+		ctf_print_discarded(stderr, stream);
 		stream->events_discarded = 0;
 	}
 

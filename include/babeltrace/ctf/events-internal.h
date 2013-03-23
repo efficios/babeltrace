@@ -79,4 +79,6 @@ struct bt_ctf_iter {
 	uint64_t events_lost;
 };
 
+void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream);
+
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

@@ -66,6 +66,7 @@ struct ctf_stream_definition {
 	uint64_t prev_real_timestamp_end;	/* End-of-last-packet timestamp in ns */
 	uint64_t prev_cycles_timestamp;		/* Start-of-last-packet timestamp in cycles */
 	uint64_t prev_cycles_timestamp_end;	/* End-of-last-packet timestamp in cycles */
+	char path[PATH_MAX];			/* Path to stream. '\0' for mmap traces */
 };
 
 struct ctf_event_definition {

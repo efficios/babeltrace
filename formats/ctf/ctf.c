@@ -392,6 +392,47 @@ void ctf_print_timestamp(FILE *fp,
 }
 
 static
+void print_uuid(FILE *fp, unsigned char *uuid)
+{
+	int i;
+
+	for (i = 0; i < BABELTRACE_UUID_LEN; i++)
+		fprintf(fp, "%x", (unsigned int) uuid[i]);
+}
+
+void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream)
+{
+	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events between [",
+		stream->events_discarded);
+	if (opt_clock_cycles) {
+		ctf_print_timestamp(fp, stream,
+				stream->prev_cycles_timestamp);
+		fprintf(fp, "] and [");
+		ctf_print_timestamp(fp, stream,
+				stream->prev_cycles_timestamp_end);
+	} else {
+		ctf_print_timestamp(fp, stream,
+				stream->prev_real_timestamp);
+		fprintf(fp, "] and [");
+		ctf_print_timestamp(fp, stream,
+				stream->prev_real_timestamp_end);
+	}
+	fprintf(fp, "] in trace UUID ");
+	print_uuid(fp, stream->stream_class->trace->uuid);
+	if (stream->stream_class->trace->path[0])
+		fprintf(fp, ", at path: \"%s\"",
+			stream->stream_class->trace->path);
+
+	fprintf(fp, ", within stream id %" PRIu64, stream->stream_id);
+	if (stream->path[0])
+		fprintf(fp, ", at relative path: \"%s\"", stream->path);
+	fprintf(fp, ". ");
+	fprintf(fp, "You should consider recording a new trace with larger "
+		"buffers or with fewer events enabled.\n");
+	fflush(fp);
+}
+
+static
 int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_pos *pos =
@@ -725,43 +766,24 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		if (pos->cur_index >= pos->packet_real_index->len) {
 			/*
-			 * When a stream reaches the end of the
-			 * file, we need to show the number of
-			 * events discarded ourselves, because
-			 * there is no next event scheduled to
-			 * be printed in the output.
+			 * We need to check if we are in trace read or
+			 * called from packet indexing.  In this last
+			 * case, the collection is not there, so we
+			 * cannot print the timestamps.
 			 */
-			if (file_stream->parent.events_discarded) {
+			if ((&file_stream->parent)->stream_class->trace->collection) {
 				/*
-				 * We need to check if we are in trace
-				 * read or called from packet indexing.
-				 * In this last case, the collection is
-				 * not there, so we cannot print the
-				 * timestamps.
+				 * When a stream reaches the end of the
+				 * file, we need to show the number of
+				 * events discarded ourselves, because
+				 * there is no next event scheduled to
+				 * be printed in the output.
 				 */
-				if ((&file_stream->parent)->stream_class->trace->collection) {
+				if (file_stream->parent.events_discarded) {
 					fflush(stdout);
-					fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events at end of stream between [",
-							file_stream->parent.events_discarded);
-					if (opt_clock_cycles) {
-						ctf_print_timestamp(stderr,
-								&file_stream->parent,
-								file_stream->parent.prev_cycles_timestamp);
-						fprintf(stderr, "] and [");
-						ctf_print_timestamp(stderr, &file_stream->parent,
-								file_stream->parent.prev_cycles_timestamp_end);
-					} else {
-						ctf_print_timestamp(stderr,
-								&file_stream->parent,
-								file_stream->parent.prev_real_timestamp);
-						fprintf(stderr, "] and [");
-						ctf_print_timestamp(stderr, &file_stream->parent,
-								file_stream->parent.prev_real_timestamp_end);
-					}
-					fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
-					fflush(stderr);
+					ctf_print_discarded(stderr, &file_stream->parent);
+					file_stream->parent.events_discarded = 0;
 				}
-				file_stream->parent.events_discarded = 0;
 			}
 			pos->offset = EOF;
 			return;
@@ -1553,6 +1575,9 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
+
+	strncpy(file_stream->parent.path, path, PATH_MAX);
+	file_stream->parent.path[PATH_MAX - 1] = '\0';
 
 	if (packet_seek) {
 		file_stream->pos.packet_seek = packet_seek;
