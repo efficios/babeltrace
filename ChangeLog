@@ -1,3 +1,50 @@
+2013-03-23 Babeltrace 1.1.0
+	* Reinsert "at end of stream" message for discarded events
+	* Improvement: Message from babeltrace concerning discarded events needs i
+	* Cleanup: typo fix
+	* Cleanup: add end of line at end of verbose message
+	* Fix: misleading message from babeltrace --verbose
+	* Fix: babeltrace --fields all  overrides --no-delta
+	* Add verbosity to stream id error message
+	* Fix: Ensure the specified input format is CTF
+	* Fix: Undefined behavior of double free on strlist in get_names_args
+	* Fix: ctf-text: don't close stdout
+	* Fix: warning message for unexpected trace byte order
+	* Namespace the struct declaration
+	* Namespace the struct definition
+	* Namespace the struct format
+	* Namespace the struct mmap_stream
+	* Namespace the struct trace_descriptor
+	* Namespace struct stream_pos
+	* Namespace compliance for dependencies function
+	* Cleanup error messages
+	* Fix: babeltrace: make '-w' actually work
+	* Convert the unit tests to the TAP format
+	* Spelling cleanups within comments
+	* Move the bitfield test to tests/lib/
+	* Fix: Added a null pointer check to bt_ctf_field_name
+	* Add babeltrace.pc to gitignore
+	* namespacing: place flex/bison symbols under bt_yy namespace
+	* namespace the lookup_integer function
+	* namespace the definition functions
+	* namespace the variant functions
+	* namespace the declaration functions
+	* namespace the collection functions
+	* namespace the heap functions
+	* namespace the struct functions
+	* namespace the string functions
+	* namespace the sequence functions
+	* namespace the int functions
+	* namespace the enum functions
+	* namespace definition_ref and definition_unref
+	* namespace declaration_ref and declaration_unref
+	* namespace the array functions
+	* namespace the scope_path functions
+	* Hide internal functions of libbabeltrace-ctf
+	* Hide internal functions of ctf-text
+	* BT_HIDDEN macro
+	* Namespace the lookup_enum function
+
 2012-01-24 Babeltrace 1.0.3
 	* Fix: Double free when calling bt_context_remove_trace()
 	* Add missing runall.sh to dist packaging
