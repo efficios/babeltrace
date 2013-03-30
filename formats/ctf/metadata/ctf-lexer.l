@@ -64,11 +64,11 @@ ESCSEQ				\\(\'|\"|\?|\\|a|b|f|n|r|t|v|{OCTALDIGIT}{1,3}|u{HEXDIGIT}{4}|U{HEXDIG
 "/*"				BEGIN(comment_ml);
 <comment_ml>[^*\n]*		/* eat anything that's not a '*' */
 <comment_ml>"*"+[^*/\n]*	/* eat up '*'s not followed by '/'s */
-<comment_ml>\n			++yylineno;
+<comment_ml>\n
 <comment_ml>"*"+"/"		BEGIN(INITIAL);
 
 "//"				BEGIN(comment_sl);
-<comment_sl>[^\n]*\n		++yylineno; BEGIN(INITIAL);
+<comment_sl>[^\n]*\n		BEGIN(INITIAL);
 
 L\'				BEGIN(char_const); return CHARACTER_CONSTANT_START;
 \'				BEGIN(char_const); return CHARACTER_CONSTANT_START;

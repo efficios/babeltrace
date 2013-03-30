@@ -65,6 +65,8 @@ BT_HIDDEN
 int yylex_destroy(yyscan_t yyscanner);
 BT_HIDDEN
 void yyrestart(FILE * in_str, yyscan_t scanner);
+BT_HIDDEN
+int yyget_lineno(yyscan_t yyscanner);
 
 struct gc_string {
 	struct bt_list_head gc;
@@ -818,7 +820,8 @@ static int set_parent_node(struct ctf_node *node,
 BT_HIDDEN
 void yyerror(struct ctf_scanner *scanner, const char *str)
 {
-	fprintf(stderr, "error %s\n", str);
+	fprintf(stderr, "error at line %d: %s\n",
+		yyget_lineno(scanner->scanner), str);
 }
  
 BT_HIDDEN
@@ -936,6 +939,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 
 %define api.pure
 	/* %locations */
+%error-verbose
 %parse-param {struct ctf_scanner *scanner}
 %lex-param {struct ctf_scanner *scanner}
 /*
