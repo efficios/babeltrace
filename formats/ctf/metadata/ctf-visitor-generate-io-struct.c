@@ -1158,8 +1158,10 @@ struct bt_declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 
 	str = g_string_new("");
 	ret = visit_type_specifier_list(fd, type_specifier_list, str);
-	if (ret)
+	if (ret) {
+		(void) g_string_free(str, TRUE);
 		return NULL;
+	}
 	str_c = g_string_free(str, FALSE);
 	id_q = g_quark_from_string(str_c);
 	g_free(str_c);
