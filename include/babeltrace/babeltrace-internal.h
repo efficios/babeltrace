@@ -42,6 +42,55 @@ extern int babeltrace_verbose, babeltrace_debug;
 			fprintf(stdout, "[debug] " fmt, ## args);	\
 	} while (0)
 
+#define _bt_printf(fp, kindstr, fmt, args...)				\
+	fprintf(fp, "[%s]%s%s%s: " fmt "\n",				\
+		kindstr,						\
+		(babeltrace_debug ? " \"" : ""),			\
+		(babeltrace_debug ? __func__ : ""),			\
+		(babeltrace_debug ? "\"" : ""),				\
+		## args)
+
+#define _bt_printfl(fp, kindstr, lineno, fmt, args...)			\
+	fprintf(fp, "[%s]%s%s%s at line %u: " fmt "\n",			\
+		kindstr,						\
+		(babeltrace_debug ? " \"" : ""),			\
+		(babeltrace_debug ? __func__ : ""),			\
+		(babeltrace_debug ? "\"" : ""),				\
+		lineno,							\
+		## args)
+
+/* printf without lineno information */
+#define printf_fatal(fmt, args...)					\
+	_bt_printf(stderr, "fatal", fmt, ## args)
+#define printf_error(fmt, args...)					\
+	_bt_printf(stderr, "error", fmt, ## args)
+#define printf_warning(fmt, args...)					\
+	_bt_printf(stderr, "warning", fmt, ## args)
+
+/* printf with lineno information */
+#define printfl_fatal(lineno, fmt, args...)				\
+	_bt_printfl(stderr, "fatal", lineno, fmt, ## args)
+#define printfl_error(lineno, fmt, args...)				\
+	_bt_printfl(stderr, "error", lineno, fmt, ## args)
+#define printfl_warning(lineno, fmt, args...)				\
+	_bt_printfl(stderr, "warning", lineno, fmt, ## args)
+
+/* printf with node lineno information */
+#define printfn_fatal(node, fmt, args...)				\
+	_bt_printfl(stderr, "fatal", (node)->lineno, fmt, ## args)
+#define printfn_error(node, fmt, args...)				\
+	_bt_printfl(stderr, "error", (node)->lineno, fmt, ## args)
+#define printfn_warning(node, fmt, args...)				\
+	_bt_printfl(stderr, "warning", (node)->lineno, fmt, ## args)
+
+/* fprintf with Node lineno information */
+#define fprintfn_fatal(fp, node, fmt, args...)				\
+	_bt_printfl(fp, "fatal", (node)->lineno, fmt, ## args)
+#define fprintfn_error(fp, node, fmt, args...)				\
+	_bt_printfl(fp, "error", (node)->lineno, fmt, ## args)
+#define fprintfn_warning(fp, node, fmt, args...)			\
+	_bt_printfl(fp, "warning", (node)->lineno, fmt, ## args)
+
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 
