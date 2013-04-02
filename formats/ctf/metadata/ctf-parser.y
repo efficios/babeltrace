@@ -1225,7 +1225,13 @@ unary_expression:
 		postfix_expression
 		{	$$ = $1;				}
 	|	PLUS postfix_expression
-		{	$$ = $2;				}
+		{
+			$$ = $2;
+			if ($$->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT
+				&& $$->u.unary_expression.type != UNARY_SIGNED_CONSTANT) {
+				reparent_error(scanner, "expecting numeric constant");
+			}
+		}
 	|	MINUS postfix_expression
 		{
 			$$ = $2;
