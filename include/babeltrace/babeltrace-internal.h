@@ -91,8 +91,21 @@ extern int babeltrace_verbose, babeltrace_debug;
 #define fprintfn_warning(fp, node, fmt, args...)			\
 	_bt_printfl(fp, "warning", (node)->lineno, fmt, ## args)
 
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
+#ifndef likely
+# ifdef __GNUC__
+#  define likely(x)      __builtin_expect(!!(x), 1)
+# else
+#  define likely(x)      (!!(x))
+# endif
+#endif
+
+#ifndef unlikely
+# ifdef __GNUC__
+#  define unlikely(x)    __builtin_expect(!!(x), 0)
+# else
+#  define unlikely(x)    (!!(x))
+# endif
+#endif
 
 /*
  * BT_HIDDEN: set the hidden attribute for internal functions
