@@ -1229,17 +1229,15 @@ unary_expression:
 	|	MINUS postfix_expression
 		{
 			$$ = $2;
-			if ($$->u.unary_expression.type != UNARY_SIGNED_CONSTANT
-				&& $$->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
-				reparent_error(scanner, "expecting numeric constant");
-
 			if ($$->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT) {
 				$$->u.unary_expression.type = UNARY_SIGNED_CONSTANT;
 				$$->u.unary_expression.u.signed_constant =
 					-($$->u.unary_expression.u.unsigned_constant);
-			} else {
+			} else if ($$->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT) {
 				$$->u.unary_expression.u.signed_constant =
 					-($$->u.unary_expression.u.signed_constant);
+			} else {
+				reparent_error(scanner, "expecting numeric constant");
 			}
 		}
 	;
