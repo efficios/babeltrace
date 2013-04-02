@@ -257,7 +257,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	switch (type) {
 	case NODE_ROOT:
-		fprintf(stderr, "[error] %s: trying to create root node\n", __func__);
+		printfn_fatal(node, "trying to create root node");
 		break;
 
 	case NODE_EVENT:
@@ -337,8 +337,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) type);
+		printfn_fatal(node, "unknown node type '%d'", (int) type);
 		break;
 	}
 
@@ -397,8 +396,7 @@ static int reparent_ctf_expression(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -455,8 +453,7 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type %d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -513,8 +510,7 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -555,8 +551,7 @@ static int reparent_type_specifier(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -622,8 +617,7 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -674,8 +668,7 @@ static int reparent_type_declarator(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -698,7 +691,7 @@ static int set_parent_node(struct ctf_node *node,
 
 	switch (node->type) {
 	case NODE_ROOT:
-		fprintf(stderr, "[error] %s: trying to reparent root node\n", __func__);
+		printfn_fatal(node, "trying to reparent root node");
 		return -EINVAL;
 
 	case NODE_EVENT:
@@ -813,8 +806,7 @@ static int set_parent_node(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(stderr, "[error] %s: unknown node type %d\n", __func__,
-			(int) parent->type);
+		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -823,8 +815,8 @@ static int set_parent_node(struct ctf_node *node,
 BT_HIDDEN
 void yyerror(struct ctf_scanner *scanner, const char *str)
 {
-	fprintf(stderr, "error at line %d, token \"%s\": %s\n",
-		yyget_lineno(scanner->scanner),
+	printfl_error(yyget_lineno(scanner->scanner),
+		"token \"%s\": %s\n",
 		yyget_text(scanner->scanner), str);
 }
  
@@ -836,7 +828,7 @@ int yywrap(void)
 
 #define reparent_error(scanner, str)				\
 do {								\
-	yyerror(scanner, YY_("reparent_error: " str "\n"));	\
+	yyerror(scanner, YY_("reparent_error: " str));	\
 	YYERROR;						\
 } while (0)
 
@@ -897,7 +889,7 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 
 	ret = yylex_init_extra(scanner, &scanner->scanner);
 	if (ret) {
-		fprintf(stderr, "yylex_init error\n");
+		printf_fatal("yylex_init error");
 		goto cleanup_scanner;
 	}
 	/* Start processing new stream */
@@ -920,7 +912,7 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 cleanup_lexer:
 	ret = yylex_destroy(scanner->scanner);
 	if (!ret)
-		fprintf(stderr, "yylex_destroy error\n");
+		printf_fatal("yylex_destroy error");
 cleanup_scanner:
 	free(scanner);
 	return NULL;
@@ -935,7 +927,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	ctf_ast_free(scanner->ast);
 	ret = yylex_destroy(scanner->scanner);
 	if (ret)
-		fprintf(stderr, "yylex_destroy error\n");
+		printf_error("yylex_destroy error");
 	free(scanner);
 }
 
