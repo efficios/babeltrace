@@ -1164,6 +1164,8 @@ struct bt_declaration *ctf_declaration_type_specifier_visit(FILE *fd, int depth,
 	id_q = g_quark_from_string(str_c);
 	g_free(str_c);
 	declaration = bt_lookup_declaration(id_q, declaration_scope);
+	if (!declaration)
+		return NULL;
 	bt_declaration_ref(declaration);
 	return declaration;
 }
