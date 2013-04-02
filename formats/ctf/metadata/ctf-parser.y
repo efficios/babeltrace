@@ -250,6 +250,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		return NULL;
 	memset(node, 0, sizeof(*node));
 	node->type = type;
+	node->lineno = yyget_lineno(scanner->scanner);
 	BT_INIT_LIST_HEAD(&node->tmp_head);
 	bt_list_add(&node->gc, &ast->allocated_nodes);
 	bt_list_add(&node->siblings, &node->tmp_head);
