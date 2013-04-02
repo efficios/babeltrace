@@ -133,6 +133,6 @@ _Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return OCTAL_CONSTANT;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return HEXADECIMAL_CONSTANT;
 {IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
-[ \t\n\r]+			; /* ignore */
-.				return ERROR;
+[ \t\r\n]			; /* ignore */
+.				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return ERROR;
 %%
