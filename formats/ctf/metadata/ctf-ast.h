@@ -35,6 +35,7 @@ struct ctf_parser;
 #define FOREACH_CTF_NODES(F) \
 	F(NODE_UNKNOWN) \
 	F(NODE_ROOT) \
+	F(NODE_ERROR) \
 	F(NODE_EVENT) \
 	F(NODE_STREAM) \
 	F(NODE_ENV) \
