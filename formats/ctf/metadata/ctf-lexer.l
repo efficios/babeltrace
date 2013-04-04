@@ -26,10 +26,21 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <babeltrace/babeltrace-internal.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
+
+#define PARSE_INTEGER_LITERAL(base)					\
+	do {								\
+		errno = 0;						\
+		yylval->ull = strtoull(yytext, NULL, base);		\
+		if (errno) {						\
+			printfl_perror(yylineno, "Integer literal");	\
+			return ERROR;					\
+		}							\
+	} while (0)
 
 BT_HIDDEN
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
@@ -47,7 +58,7 @@ int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, 
 %option reentrant yylineno noyywrap bison-bridge
 %option extra-type="struct ctf_scanner *"
 	/* bison-locations */
-INTEGER_SUFFIX			[ \n\t]*(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
+INTEGER_SUFFIX			[ \r\n\t]*(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
 DIGIT				[0-9]
 NONDIGIT			[a-zA-Z_]
 HEXDIGIT			[0-9A-Fa-f]
@@ -122,9 +133,10 @@ void				setstring(yyextra, yylval, yytext); return VOID;
 _Bool				setstring(yyextra, yylval, yytext); return _BOOL;
 _Complex			setstring(yyextra, yylval, yytext); return _COMPLEX;
 _Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
-[1-9]{DIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return DECIMAL_CONSTANT;
-0{OCTALDIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return OCTAL_CONSTANT;
-0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return HEXADECIMAL_CONSTANT;
+[1-9]{DIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(10); return INTEGER_LITERAL;
+0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return INTEGER_LITERAL;
+0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return INTEGER_LITERAL;
+
 {IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
 .				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return ERROR;

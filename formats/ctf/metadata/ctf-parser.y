@@ -1064,12 +1064,13 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token STRING_LITERAL CHARACTER_LITERAL LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
+%token INTEGER_LITERAL STRING_LITERAL CHARACTER_LITERAL LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY TOK_ALIGN
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
 %union
 {
 	long long ll;
+	unsigned long long ull;
 	char c;
 	struct gc_string *gs;
 	struct ctf_node *n;
@@ -1079,6 +1080,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 
 %type <gs> keywords
 
+%type <ull> INTEGER_LITERAL
 %type <n> postfix_expression unary_expression unary_expression_or_range
 
 %type <n> declaration
@@ -1212,26 +1214,11 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.gs->s;
 		}
-	|	DECIMAL_CONSTANT
+	|	INTEGER_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "%" PRIu64,
-			       &$$->u.unary_expression.u.unsigned_constant);
-		}
-	|	OCTAL_CONSTANT
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0%" PRIo64,
-			       &$$->u.unary_expression.u.unsigned_constant);
-		}
-	|	HEXADECIMAL_CONSTANT
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
-			sscanf(yylval.gs->s, "0x%" PRIx64,
-			       &$$->u.unary_expression.u.unsigned_constant);
+			$$->u.unary_expression.u.unsigned_constant = $1;
 		}
 	|	STRING_LITERAL
 		{
