@@ -1199,9 +1199,7 @@ postfix_expression:
 		}
 	|	LPAREN unary_expression RPAREN
 		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_NESTED;
-			$$->u.unary_expression.u.nested_exp = $2;
+			$$ = $2;
 		}
 	|	postfix_expression LSBRAC unary_expression RSBRAC
 		{

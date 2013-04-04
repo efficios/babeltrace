@@ -148,7 +148,6 @@ struct ctf_node {
 				UNARY_SIGNED_CONSTANT,
 				UNARY_UNSIGNED_CONSTANT,
 				UNARY_SBRAC,
-				UNARY_NESTED,
 			} type;
 			union {
 				/*
@@ -159,7 +158,6 @@ struct ctf_node {
 				int64_t signed_constant;
 				uint64_t unsigned_constant;
 				struct ctf_node *sbrac_exp;
-				struct ctf_node *nested_exp;
 			} u;
 			enum {
 				UNARY_LINK_UNKNOWN = 0,
