@@ -83,6 +83,11 @@ static const char *node_type_to_str[] = {
 #undef ENTRY
 };
 
+/* Static node for out of memory errors */
+static __thread struct ctf_node error_node = {
+	.type = NODE_ERROR,
+};
+
 BT_HIDDEN
 const char *node_type(struct ctf_node *node)
 {
@@ -327,8 +332,11 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	struct ctf_node *node;
 
 	node = malloc(sizeof(*node));
-	if (!node)
-		return NULL;
+	if (!node) {
+		error_node.lineno = yyget_lineno(scanner->scanner);
+		printfl_fatal(error_node.lineno, "out of memory");
+		return &error_node;
+	}
 	memset(node, 0, sizeof(*node));
 	node->type = type;
 	node->lineno = yyget_lineno(scanner->scanner);
@@ -338,6 +346,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	switch (type) {
 	case NODE_ROOT:
+		node->type = NODE_ERROR;
 		printfn_fatal(node, "trying to create root node");
 		break;
 
@@ -418,6 +427,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	case NODE_UNKNOWN:
 	default:
+		node->type = NODE_ERROR;
 		printfn_fatal(node, "unknown node type '%d'", (int) type);
 		break;
 	}
