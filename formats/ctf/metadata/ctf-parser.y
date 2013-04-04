@@ -109,41 +109,6 @@ static struct gc_string *gc_string_alloc(struct ctf_scanner *scanner,
 	return gstr;
 }
 
-/*
- * note: never use gc_string_append on a string that has external references.
- * gsrc will be garbage collected immediately, and gstr might be.
- * Should only be used to append characters to a string literal or constant.
- */
-BT_HIDDEN
-struct gc_string *gc_string_append(struct ctf_scanner *scanner,
-				   struct gc_string *gstr,
-				   struct gc_string *gsrc)
-{
-	size_t newlen = strlen(gsrc->s) + strlen(gstr->s) + 1;
-	size_t alloclen;
-
-	/* TODO: could be faster with find first bit or glib Gstring */
-	/* sizeof long to account for malloc header (int or long ?) */
-	for (alloclen = 8; alloclen < sizeof(long) + sizeof(*gstr) + newlen;
-	     alloclen *= 2);
-
-	if (alloclen > gstr->alloclen) {
-		struct gc_string *newgstr;
-
-		newgstr = gc_string_alloc(scanner, newlen);
-		strcpy(newgstr->s, gstr->s);
-		strcat(newgstr->s, gsrc->s);
-		bt_list_del(&gstr->gc);
-		free(gstr);
-		gstr = newgstr;
-	} else {
-		strcat(gstr->s, gsrc->s);
-	}
-	bt_list_del(&gsrc->gc);
-	free(gsrc);
-	return gstr;
-}
-
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src)
 {
 	lvalp->gs = gc_string_alloc(scanner, strlen(src) + 1);
