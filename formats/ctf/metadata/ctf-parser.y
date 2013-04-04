@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -147,6 +148,144 @@ void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src)
 {
 	lvalp->gs = gc_string_alloc(scanner, strlen(src) + 1);
 	strcpy(lvalp->gs->s, src);
+}
+
+static
+int str_check(size_t str_len, size_t offset, size_t len)
+{
+	/* check overflow */
+	if (offset + len < offset)
+		return -1;
+	if (offset + len > str_len)
+		return -1;
+	return 0;
+}
+
+static
+int import_basic_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
+		size_t len, const char *src, char delim)
+{
+	size_t pos = 0, dpos = 0;
+
+	if (str_check(len, pos, 1))
+		return -1;
+	if (src[pos++] != delim)
+		return -1;
+
+	while (src[pos] != delim) {
+		char c;
+
+		if (str_check(len, pos, 1))
+			return -1;
+		c = src[pos++];
+		if (c == '\\') {
+			if (str_check(len, pos, 1))
+				return -1;
+			c = src[pos++];
+
+			switch (c) {
+			case '0':
+				c = '\0';
+				break;
+			case 'a':
+				c = '\a';
+				break;
+			case 'b':
+				c = '\b';
+				break;
+			case 'f':
+				c = '\f';
+				break;
+			case 'n':
+				c = '\n';
+				break;
+			case 'r':
+				c = '\r';
+				break;
+			case 't':
+				c = '\t';
+				break;
+			case 'v':
+				c = '\v';
+				break;
+			case '\\':
+				c = '\\';
+				break;
+			case '\'':
+				c = '\'';
+				break;
+			case '\"':
+				c = '\"';
+				break;
+			case '?':
+				c = '?';
+				break;
+			case 'o':
+			{
+				size_t oct_len = 3;
+
+				if (str_check(len, pos, oct_len))
+					return -1;
+				if (!isdigit((int) src[pos]) || !isdigit((int) src[pos+1]) || !isdigit((int) src[pos+2]))
+					return -1;
+				char oct_buffer[4] = { src[pos], src[pos+1], src[pos+2], '\0' };
+				c = strtoul(&oct_buffer[0], NULL, 8);
+				pos += oct_len;
+				break;
+			}
+			case 'x':
+			{
+				size_t hex_len = 2;
+
+				if (str_check(len, pos, hex_len))
+					return -1;
+				if (!isxdigit((int) src[pos]) || !isxdigit((int) src[pos+1]))
+					return -1;
+				char hex_buffer[3] = { src[pos], src[pos+1], '\0' };
+				c = strtoul(&hex_buffer[0], NULL, 16);
+				pos += hex_len;
+				break;
+			}
+			default:
+				return -1;
+			}
+		}
+		if (str_check(len, dpos, 1))
+			return -1;
+		lvalp->gs->s[dpos++] = c;
+	}
+
+	if (str_check(len, dpos, 1))
+		return -1;
+	lvalp->gs->s[dpos++] = '\0';
+
+	if (str_check(len, pos, 1))
+		return -1;
+	if (src[pos++] != delim)
+		return -1;
+
+	if (str_check(len, pos, 1))
+		return -1;
+	if (src[pos] != '\0')
+		return -1;
+	return 0;
+}
+
+int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
+		const char *src, char delim)
+{
+	size_t len;
+
+	len = strlen(src) + 1;
+	lvalp->gs = gc_string_alloc(scanner, len);
+	if (src[0] == 'L') {
+		// TODO: import wide string
+		printfl_error(yyget_lineno(scanner),
+			"Wide string not supported yet.");
+		return -1;
+	} else {
+		return import_basic_string(scanner, lvalp, len, src, delim);
+	}
 }
 
 static void init_scope(struct ctf_scanner_scope *scope,
@@ -925,7 +1064,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token CHARACTER_CONSTANT_START SQUOTE STRING_LITERAL_START DQUOTE ESCSEQ CHAR_STRING_TOKEN LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
+%token STRING_LITERAL CHARACTER_LITERAL LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY DECIMAL_CONSTANT OCTAL_CONSTANT HEXADECIMAL_CONSTANT TOK_ALIGN
 %token <gs> IDENTIFIER ID_TYPE
 %token ERROR
 %union
@@ -936,8 +1075,9 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	struct ctf_node *n;
 }
 
+%type <gs> STRING_LITERAL CHARACTER_LITERAL
+
 %type <gs> keywords
-%type <gs> s_char s_char_sequence c_char c_char_sequence
 
 %type <n> postfix_expression unary_expression unary_expression_or_range
 
@@ -1050,41 +1190,6 @@ keywords:
 		{	$$ = yylval.gs;		}
 	;
 
-/* 1.5 Constants */
-
-c_char_sequence:
-		c_char
-		{	$$ = $1;					}
-	|	c_char_sequence c_char
-		{	$$ = gc_string_append(scanner, $1, $2);		}
-	;
-
-c_char:
-		CHAR_STRING_TOKEN
-		{	$$ = yylval.gs;					}
-	|	ESCSEQ
-		{
-			reparent_error(scanner, "escape sequences not supported yet");
-		}
-	;
-
-/* 1.6 String literals */
-
-s_char_sequence:
-		s_char
-		{	$$ = $1;					}
-	|	s_char_sequence s_char
-		{	$$ = gc_string_append(scanner, $1, $2);		}
-	;
-
-s_char:
-		CHAR_STRING_TOKEN
-		{	$$ = yylval.gs;					}
-	|	ESCSEQ
-		{
-			reparent_error(scanner, "escape sequences not supported yet");
-		}
-	;
 
 /* 2: Phrase structure grammar */
 
@@ -1128,23 +1233,17 @@ postfix_expression:
 			sscanf(yylval.gs->s, "0x%" PRIx64,
 			       &$$->u.unary_expression.u.unsigned_constant);
 		}
-	|	STRING_LITERAL_START DQUOTE
+	|	STRING_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = "";
+			$$->u.unary_expression.u.string = $1->s;
 		}
-	|	STRING_LITERAL_START s_char_sequence DQUOTE
+	|	CHARACTER_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = $2->s;
-		}
-	|	CHARACTER_CONSTANT_START c_char_sequence SQUOTE
-		{
-			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
-			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = $2->s;
+			$$->u.unary_expression.u.string = $1->s;
 		}
 	|	LPAREN unary_expression RPAREN
 		{
@@ -2187,15 +2286,10 @@ enumerator:
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1->s;
 		}
-	|	STRING_LITERAL_START DQUOTE
+	|	STRING_LITERAL
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = "";
-		}
-	|	STRING_LITERAL_START s_char_sequence DQUOTE
-		{
-			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $2->s;
+			$$->u.enumerator.id = $1->s;
 		}
 	|	IDENTIFIER EQUAL unary_expression_or_range
 		{
@@ -2215,17 +2309,11 @@ enumerator:
 			$$->u.enumerator.id = $1->s;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
-	|	STRING_LITERAL_START DQUOTE EQUAL unary_expression_or_range
+	|	STRING_LITERAL EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = "";
-			bt_list_splice(&($4)->tmp_head, &($$)->u.enumerator.values);
-		}
-	|	STRING_LITERAL_START s_char_sequence DQUOTE EQUAL unary_expression_or_range
-		{
-			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $2->s;
-			bt_list_splice(&($5)->tmp_head, &($$)->u.enumerator.values);
+			$$->u.enumerator.id = $1->s;
+			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
 	;
 

@@ -38,6 +38,9 @@ static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
 	__attribute__((unused));
 static int input (yyscan_t yyscanner) __attribute__((unused));
 
+BT_HIDDEN
+int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
+
 %}
 
 %x comment_ml comment_sl string_lit char_const
@@ -53,7 +56,6 @@ UCHARLOWERCASE			\\u{HEXDIGIT}{4}
 UCHARUPPERCASE			\\U{HEXDIGIT}{8}
 ID_NONDIGIT			{NONDIGIT}|{UCHARLOWERCASE}|{UCHARUPPERCASE}
 IDENTIFIER			{ID_NONDIGIT}({ID_NONDIGIT}|{DIGIT})*
-ESCSEQ				\\(\'|\"|\?|\\|a|b|f|n|r|t|v|{OCTALDIGIT}{1,3}|u{HEXDIGIT}{4}|U{HEXDIGIT}{8}|x{HEXDIGIT}+)
 %%
 
 				/*
@@ -70,17 +72,8 @@ ESCSEQ				\\(\'|\"|\?|\\|a|b|f|n|r|t|v|{OCTALDIGIT}{1,3}|u{HEXDIGIT}{4}|U{HEXDIG
 "//"				BEGIN(comment_sl);
 <comment_sl>[^\n]*\n		BEGIN(INITIAL);
 
-L\'				BEGIN(char_const); return CHARACTER_CONSTANT_START;
-\'				BEGIN(char_const); return CHARACTER_CONSTANT_START;
-<char_const>\'			BEGIN(INITIAL); return SQUOTE;
-
-L\"				BEGIN(string_lit); return STRING_LITERAL_START;
-\"				BEGIN(string_lit); return STRING_LITERAL_START;
-<string_lit>\"			BEGIN(INITIAL); return DQUOTE;
-
-<char_const,string_lit>ESCSEQ	return ESCSEQ;
-<char_const,string_lit>\n	; /* ignore */
-<char_const,string_lit>.	setstring(yyextra, yylval, yytext); return CHAR_STRING_TOKEN;
+L?\"(\\.|[^\\"])*\"		{ if (import_string(yyextra, yylval, yytext, '\"') < 0) return ERROR; else return STRING_LITERAL; }
+L?\'(\\.|[^\\'])*\'		{ if (import_string(yyextra, yylval, yytext, '\'') < 0) return ERROR; else return CHARACTER_LITERAL; }
 
 "["				return LSBRAC;
 "]"				return RSBRAC;
