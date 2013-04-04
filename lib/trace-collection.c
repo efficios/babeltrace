@@ -164,8 +164,6 @@ int bt_trace_collection_add(struct trace_collection *tc,
 		return -EINVAL;
 
 	trace = container_of(td, struct ctf_trace, parent);
-	g_ptr_array_add(tc->array, td);
-	trace->collection = tc;
 
 	if (tc->array->len > 1) {
 		struct clock_match clock_match = {
@@ -186,6 +184,9 @@ int bt_trace_collection_add(struct trace_collection *tc,
 			goto error;
 		}
 	}
+
+	g_ptr_array_add(tc->array, td);
+	trace->collection = tc;
 
 	{
 		struct clock_match clock_match = {
