@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <glib.h>
 #include <stdint.h>
+#include <string.h>
+
+#define PERROR_BUFLEN	200
 
 extern int babeltrace_verbose, babeltrace_debug;
 
@@ -45,19 +48,78 @@ extern int babeltrace_verbose, babeltrace_debug;
 #define _bt_printf(fp, kindstr, fmt, args...)				\
 	fprintf(fp, "[%s]%s%s%s: " fmt "\n",				\
 		kindstr,						\
-		(babeltrace_debug ? " \"" : ""),			\
-		(babeltrace_debug ? __func__ : ""),			\
-		(babeltrace_debug ? "\"" : ""),				\
+		babeltrace_debug ? " \"" : "",				\
+		babeltrace_debug ? __func__ : "",			\
+		babeltrace_debug ? "\"" : "",				\
 		## args)
 
 #define _bt_printfl(fp, kindstr, lineno, fmt, args...)			\
 	fprintf(fp, "[%s]%s%s%s at line %u: " fmt "\n",			\
 		kindstr,						\
-		(babeltrace_debug ? " \"" : ""),			\
-		(babeltrace_debug ? __func__ : ""),			\
-		(babeltrace_debug ? "\"" : ""),				\
+		babeltrace_debug ? " \"" : "",				\
+		babeltrace_debug ? __func__ : "",			\
+		babeltrace_debug ? "\"" : "",				\
 		lineno,							\
 		## args)
+
+#define _bt_printfe(fp, kindstr, perrorstr, fmt, args...)		\
+	fprintf(fp, "[%s]%s%s%s: %s: " fmt "\n",			\
+		kindstr,						\
+		babeltrace_debug ? " \"" : "",				\
+		babeltrace_debug ? __func__ : "",			\
+		babeltrace_debug ? "\"" : "",				\
+		perrorstr,						\
+		## args)
+
+#define _bt_printfle(fp, kindstr, lineno, perrorstr, fmt, args...)	\
+	fprintf(fp, "[%s]%s%s%s at line %u: %s: " fmt "\n",		\
+		kindstr,						\
+		babeltrace_debug ? " \"" : "",				\
+		babeltrace_debug ? __func__ : "",			\
+		babeltrace_debug ? "\"" : "",				\
+		lineno,							\
+		perrorstr,						\
+		## args)
+
+#if !defined(__linux__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
+
+#define _bt_printf_perror(fp, fmt, args...)				\
+	({								\
+		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
+		strerror_r(errno, buf, sizeof(buf));			\
+		_bt_printfe(fp, "error", buf, fmt, ## args);		\
+	})
+
+#define _bt_printfl_perror(fp, lineno, fmt, args...)			\
+	({								\
+		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
+		strerror_r(errno, buf, sizeof(buf));			\
+		_bt_printfle(fp, "error", lineno, buf, fmt, ## args);	\
+	})
+
+#else
+
+/*
+ * Version using GNU strerror_r, for linux with appropriate defines.
+ */
+
+#define _bt_printf_perror(fp, fmt, args...)				\
+	({								\
+		char *buf;						\
+		char tmp[PERROR_BUFLEN] = "Error in strerror_r()";	\
+		buf = strerror_r(errno, tmp, sizeof(tmp));		\
+		_bt_printfe(fp, "error", buf, fmt, ## args);		\
+	})
+
+#define _bt_printfl_perror(fp, lineno, fmt, args...)			\
+	({								\
+		char *buf;						\
+		char tmp[PERROR_BUFLEN] = "Error in strerror_r()";	\
+		buf = strerror_r(errno, tmp, sizeof(tmp));		\
+		_bt_printfle(fp, "error", lineno, buf, fmt, ## args);	\
+	})
+
+#endif
 
 /* printf without lineno information */
 #define printf_fatal(fmt, args...)					\
@@ -66,6 +128,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 	_bt_printf(stderr, "error", fmt, ## args)
 #define printf_warning(fmt, args...)					\
 	_bt_printf(stderr, "warning", fmt, ## args)
+#define printf_perror(fmt, args...)					\
+	_bt_printf_perror(stderr, fmt, ## args)
 
 /* printf with lineno information */
 #define printfl_fatal(lineno, fmt, args...)				\
@@ -74,6 +138,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 	_bt_printfl(stderr, "error", lineno, fmt, ## args)
 #define printfl_warning(lineno, fmt, args...)				\
 	_bt_printfl(stderr, "warning", lineno, fmt, ## args)
+#define printfl_perror(lineno, fmt, args...)				\
+	_bt_printfl_perror(stderr, lineno, fmt, ## args)
 
 /* printf with node lineno information */
 #define printfn_fatal(node, fmt, args...)				\
@@ -82,6 +148,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 	_bt_printfl(stderr, "error", (node)->lineno, fmt, ## args)
 #define printfn_warning(node, fmt, args...)				\
 	_bt_printfl(stderr, "warning", (node)->lineno, fmt, ## args)
+#define printfn_perror(node, fmt, args...)				\
+	_bt_printfl_perror(stderr, (node)->lineno, fmt, ## args)
 
 /* fprintf with Node lineno information */
 #define fprintfn_fatal(fp, node, fmt, args...)				\
@@ -90,6 +158,8 @@ extern int babeltrace_verbose, babeltrace_debug;
 	_bt_printfl(fp, "error", (node)->lineno, fmt, ## args)
 #define fprintfn_warning(fp, node, fmt, args...)			\
 	_bt_printfl(fp, "warning", (node)->lineno, fmt, ## args)
+#define fprintfn_perror(fp, node, fmt, args...)				\
+	_bt_printfl_perror(fp, (node)->lineno, fmt, ## args)
 
 #ifndef likely
 # ifdef __GNUC__
