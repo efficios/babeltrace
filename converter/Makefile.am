@@ -14,6 +14,7 @@ babeltrace_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
 	$(top_builddir)/formats/ctf-text/libbabeltrace-ctf-text.la \
+	$(top_builddir)/formats/ctf-metadata/libbabeltrace-ctf-metadata.la \
 	$(top_builddir)/formats/bt-dummy/libbabeltrace-dummy.la
 
 babeltrace_log_SOURCES = babeltrace-log.c
