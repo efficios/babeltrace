@@ -184,6 +184,8 @@ struct ctf_trace {
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream_declaration pointers */
 	struct ctf_stream_definition *metadata;
+	char *metadata_string;
+	int metadata_packetized;
 	GHashTable *clocks;
 	GHashTable *callsites;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */

@@ -182,6 +182,9 @@ extern int babeltrace_verbose, babeltrace_debug;
  */
 #define BT_HIDDEN __attribute__((visibility("hidden")))
 
+#define BT_CTF_MAJOR	1
+#define BT_CTF_MINOR	8
+
 struct bt_trace_descriptor;
 struct trace_collection {
 	GPtrArray *array;	/* struct bt_trace_descriptor */

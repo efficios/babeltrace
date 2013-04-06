@@ -115,6 +115,10 @@ struct bt_stream_pos {
 	rw_dispatch *rw_table;	/* rw dispatch table */
 	int (*event_cb)(struct bt_stream_pos *pos,
 			struct ctf_stream_definition *stream);
+	int (*pre_trace_cb)(struct bt_stream_pos *pos,
+			struct bt_trace_descriptor *trace);
+	int (*post_trace_cb)(struct bt_stream_pos *pos,
+			struct bt_trace_descriptor *trace);
 };
 
 static inline

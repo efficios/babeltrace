@@ -31,6 +31,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>
+#include <babeltrace/context-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/events.h>
 /* TODO: fix object model for format-agnostic callbacks */
@@ -515,6 +516,67 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	return ret;
 }
 
+static
+int trace_pre_handler(struct bt_trace_descriptor *td_write,
+		  struct bt_context *ctx)
+{
+	struct ctf_text_stream_pos *sout;
+	struct trace_collection *tc;
+	int ret, i;
+
+	sout = container_of(td_write, struct ctf_text_stream_pos,
+			trace_descriptor);
+
+	if (!sout->parent.pre_trace_cb)
+		return 0;
+
+	tc = ctx->tc;
+	for (i = 0; i < tc->array->len; i++) {
+		struct bt_trace_descriptor *td =
+			g_ptr_array_index(tc->array, i);
+
+		ret = sout->parent.pre_trace_cb(&sout->parent, td);
+		if (ret) {
+			fprintf(stderr, "[error] Writing to trace pre handler failed.\n");
+			goto end;
+		}
+	}
+	ret = 0;
+end:
+	return ret;
+}
+
+static
+int trace_post_handler(struct bt_trace_descriptor *td_write,
+		  struct bt_context *ctx)
+{
+	struct ctf_text_stream_pos *sout;
+	struct trace_collection *tc;
+	int ret, i;
+
+	sout = container_of(td_write, struct ctf_text_stream_pos,
+			trace_descriptor);
+
+	if (!sout->parent.post_trace_cb)
+		return 0;
+
+	tc = ctx->tc;
+	for (i = 0; i < tc->array->len; i++) {
+		struct bt_trace_descriptor *td =
+			g_ptr_array_index(tc->array, i);
+
+		ret = sout->parent.post_trace_cb(&sout->parent, td);
+		if (ret) {
+			fprintf(stderr, "[error] Writing to trace post handler failed.\n");
+			goto end;
+		}
+	}
+	ret = 0;
+end:
+	return ret;
+}
+
+static
 int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
@@ -526,6 +588,9 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
+
+	if (!sout->parent.event_cb)
+		return 0;
 
 	begin_pos.type = BT_SEEK_BEGIN;
 	iter = bt_ctf_iter_create(ctx, &begin_pos, NULL);
@@ -660,9 +725,21 @@ int main(int argc, char **argv)
 	if (partial_error)
 		sleep(PARTIAL_ERROR_SLEEP);
 
+	ret = trace_pre_handler(td_write, ctx);
+	if (ret) {
+		fprintf(stderr, "Error in trace pre handle.\n\n");
+		goto error_copy_trace;
+	}
+
 	ret = convert_trace(td_write, ctx);
 	if (ret) {
 		fprintf(stderr, "Error printing trace.\n\n");
+		goto error_copy_trace;
+	}
+
+	ret = trace_post_handler(td_write, ctx);
+	if (ret) {
+		fprintf(stderr, "Error in trace post handle.\n\n");
 		goto error_copy_trace;
 	}
 

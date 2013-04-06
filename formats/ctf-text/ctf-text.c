@@ -94,6 +94,13 @@ static
 int ctf_text_close_trace(struct bt_trace_descriptor *descriptor);
 
 static
+struct bt_trace_descriptor *ctf_metadata_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+			int whence), FILE *metadata_fp);
+static
+int ctf_metadata_close_trace(struct bt_trace_descriptor *descriptor);
+
+static
 rw_dispatch write_dispatch_table[] = {
 	[ CTF_TYPE_INTEGER ] = ctf_text_integer_write,
 	[ CTF_TYPE_FLOAT ] = ctf_text_float_write,
@@ -109,6 +116,12 @@ static
 struct bt_format ctf_text_format = {
 	.open_trace = ctf_text_open_trace,
 	.close_trace = ctf_text_close_trace,
+};
+
+static
+struct bt_format ctf_metadata_format = {
+	.open_trace = ctf_metadata_open_trace,
+	.close_trace = ctf_metadata_close_trace,
 };
 
 static GQuark Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN,
@@ -593,6 +606,78 @@ int ctf_text_close_trace(struct bt_trace_descriptor *td)
 }
 
 static
+int ctf_metadata_trace_pre_handler(struct bt_stream_pos *ppos,
+			struct bt_trace_descriptor *td)
+{
+	struct ctf_text_stream_pos *pos =
+		container_of(ppos, struct ctf_text_stream_pos, parent);
+	struct ctf_trace *trace;
+
+	trace = container_of(td, struct ctf_trace, parent);
+	if (!trace->metadata_string)
+		return -EINVAL;
+	if (trace->metadata_packetized) {
+		fprintf(pos->fp, "/* CTF %u.%u */\n",
+			BT_CTF_MAJOR, BT_CTF_MINOR);
+	}
+	fprintf(pos->fp, "%s", trace->metadata_string);
+	return 0;
+}
+
+static
+struct bt_trace_descriptor *ctf_metadata_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+			int whence), FILE *metadata_fp)
+{
+	struct ctf_text_stream_pos *pos;
+	FILE *fp;
+
+	pos = g_new0(struct ctf_text_stream_pos, 1);
+
+	pos->last_real_timestamp = -1ULL;
+	pos->last_cycles_timestamp = -1ULL;
+	switch (flags & O_ACCMODE) {
+	case O_RDWR:
+		if (!path)
+			fp = stdout;
+		else
+			fp = fopen(path, "w");
+		if (!fp)
+			goto error;
+		pos->fp = fp;
+		pos->parent.pre_trace_cb = ctf_metadata_trace_pre_handler;
+		pos->print_names = 0;
+		break;
+	case O_RDONLY:
+	default:
+		fprintf(stderr, "[error] Incorrect open flags.\n");
+		goto error;
+	}
+
+	return &pos->trace_descriptor;
+error:
+	g_free(pos);
+	return NULL;
+}
+
+static
+int ctf_metadata_close_trace(struct bt_trace_descriptor *td)
+{
+	int ret;
+	struct ctf_text_stream_pos *pos =
+		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
+	if (pos->fp != stdout) {
+		ret = fclose(pos->fp);
+		if (ret) {
+			perror("Error on fclose");
+			return -1;
+		}
+	}
+	g_free(pos);
+	return 0;
+}
+
+static
 void __attribute__((constructor)) ctf_text_init(void)
 {
 	int ret;
@@ -600,10 +685,14 @@ void __attribute__((constructor)) ctf_text_init(void)
 	ctf_text_format.name = g_quark_from_static_string("text");
 	ret = bt_register_format(&ctf_text_format);
 	assert(!ret);
+	ctf_metadata_format.name = g_quark_from_static_string("ctf-metadata");
+	ret = bt_register_format(&ctf_metadata_format);
+	assert(!ret);
 }
 
 static
 void __attribute__((destructor)) ctf_text_exit(void)
 {
+	bt_unregister_format(&ctf_metadata_format);
 	bt_unregister_format(&ctf_text_format);
 }

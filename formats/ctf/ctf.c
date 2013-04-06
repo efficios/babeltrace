@@ -1096,6 +1096,8 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 			fprintf(stderr, "[warning] Empty metadata.\n");
 			goto end_packet_read;
 		}
+		td->metadata_string = buf;
+		td->metadata_packetized = 1;
 	} else {
 		unsigned int major, minor;
 		ssize_t nr_items;
@@ -1154,7 +1156,6 @@ end_packet_read:
 			perror("Error on fclose");
 		}
 	}
-	free(buf);
 end_stream:
 	if (metadata_stream->pos.fd >= 0) {
 		closeret = close(metadata_stream->pos.fd);
@@ -2026,6 +2027,7 @@ int ctf_close_trace(struct bt_trace_descriptor *tdp)
 		perror("Error closedir");
 		return ret;
 	}
+	free(td->metadata_string);
 	g_free(td);
 	return 0;
 }
