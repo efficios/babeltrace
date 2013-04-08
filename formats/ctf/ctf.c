@@ -53,11 +53,16 @@
 #include "events-private.h"
 #include "memstream.h"
 
+#define LOG2_CHAR_BIT	3
+
 /*
- * We currently simply map a page to read the packet header and packet
- * context to get the packet length and content length. (in bits)
+ * Length of first attempt at mapping a packet header, in bits.
  */
-#define MAX_PACKET_HEADER_LEN	(getpagesize() * CHAR_BIT)
+#define DEFAULT_HEADER_LEN	(getpagesize() * CHAR_BIT)
+
+/*
+ * Lenght of packet to write, in bits.
+ */
 #define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
 
 #ifndef min
@@ -1289,17 +1294,268 @@ error:
 	return ret;
 }
 
+static
+int create_stream_one_packet_index(struct ctf_stream_pos *pos,
+			struct ctf_trace *td,
+			struct ctf_file_stream *file_stream,
+			size_t filesize)
+{
+	struct packet_index packet_index;
+	struct ctf_stream_declaration *stream;
+	int len_index;
+	uint64_t stream_id = 0;
+	int first_packet = 0;
+	size_t packet_map_len = DEFAULT_HEADER_LEN, tmp_map_len;
+	int ret;
+
+begin:
+	if (!pos->mmap_offset) {
+		first_packet = 1;
+	}
+
+	if (filesize - pos->mmap_offset < (packet_map_len >> LOG2_CHAR_BIT)) {
+		packet_map_len = (filesize - pos->mmap_offset) << LOG2_CHAR_BIT;
+	}
+
+	if (pos->base_mma) {
+		/* unmap old base */
+		ret = munmap_align(pos->base_mma);
+		if (ret) {
+			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
+				strerror(errno));
+			return ret;
+		}
+		pos->base_mma = NULL;
+	}
+	/* map new base. Need mapping length from header. */
+	pos->base_mma = mmap_align(packet_map_len >> LOG2_CHAR_BIT, PROT_READ,
+			 MAP_PRIVATE, pos->fd, pos->mmap_offset);
+	assert(pos->base_mma != MAP_FAILED);
+	/*
+	 * Use current mapping size as temporary content and packet
+	 * size.
+	 */
+	pos->content_size = packet_map_len;
+	pos->packet_size = packet_map_len;
+	pos->offset = 0;	/* Position of the packet header */
+
+	packet_index.offset = pos->mmap_offset;
+	packet_index.content_size = 0;
+	packet_index.packet_size = 0;
+	packet_index.timestamp_begin = 0;
+	packet_index.timestamp_end = 0;
+	packet_index.events_discarded = 0;
+	packet_index.events_discarded_len = 0;
+
+	/* read and check header, set stream id (and check) */
+	if (file_stream->parent.trace_packet_header) {
+		/* Read packet header */
+		ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
+		if (ret) {
+			if (ret == -EFAULT)
+				goto retry;
+			return ret;
+		}
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+			uint64_t magic;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			magic = bt_get_unsigned_int(field);
+			if (magic != CTF_MAGIC) {
+				fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
+						magic,
+						file_stream->pos.packet_cycles_index->len,
+						(ssize_t) pos->mmap_offset);
+				return -EINVAL;
+			}
+		}
+
+		/* check uuid */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
+		if (len_index >= 0) {
+			struct definition_array *defarray;
+			struct bt_definition *field;
+			uint64_t i;
+			uint8_t uuidval[BABELTRACE_UUID_LEN];
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			assert(field->declaration->id == CTF_TYPE_ARRAY);
+			defarray = container_of(field, struct definition_array, p);
+			assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
+
+			for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
+				struct bt_definition *elem;
+
+				elem = bt_array_index(defarray, i);
+				uuidval[i] = bt_get_unsigned_int(elem);
+			}
+			ret = babeltrace_uuid_compare(td->uuid, uuidval);
+			if (ret) {
+				fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
+				return -EINVAL;
+			}
+		}
+
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			stream_id = bt_get_unsigned_int(field);
+		}
+	}
+
+	if (!first_packet && file_stream->parent.stream_id != stream_id) {
+		fprintf(stderr, "[error] Stream ID is changing within a stream: expecting %" PRIu64 ", but packet has %" PRIu64 "\n",
+			stream_id,
+			file_stream->parent.stream_id);
+		return -EINVAL;
+	}
+	if (first_packet) {
+		file_stream->parent.stream_id = stream_id;
+		if (stream_id >= td->streams->len) {
+			fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+			return -EINVAL;
+		}
+		stream = g_ptr_array_index(td->streams, stream_id);
+		if (!stream) {
+			fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+			return -EINVAL;
+		}
+		file_stream->parent.stream_class = stream;
+		ret = create_stream_definitions(td, &file_stream->parent);
+		if (ret)
+			return ret;
+	}
+
+	if (file_stream->parent.stream_packet_context) {
+		/* Read packet context */
+		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
+		if (ret) {
+			if (ret == -EFAULT)
+				goto retry;
+			return ret;
+		}
+		/* read content size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.content_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use file size for packet size */
+			packet_index.content_size = filesize * CHAR_BIT;
+		}
+
+		/* read packet size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.packet_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use content size if non-zero, else file size */
+			packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+		}
+
+		/* read timestamp begin from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.timestamp_begin = bt_get_unsigned_int(field);
+			if (file_stream->parent.stream_class->trace->collection) {
+				packet_index.timestamp_begin =
+					ctf_get_real_timestamp(
+						&file_stream->parent,
+						packet_index.timestamp_begin);
+			}
+		}
+
+		/* read timestamp end from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.timestamp_end = bt_get_unsigned_int(field);
+			if (file_stream->parent.stream_class->trace->collection) {
+				packet_index.timestamp_end =
+					ctf_get_real_timestamp(
+						&file_stream->parent,
+						packet_index.timestamp_end);
+			}
+		}
+
+		/* read events discarded from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.events_discarded = bt_get_unsigned_int(field);
+			packet_index.events_discarded_len = bt_get_int_len(field);
+		}
+	} else {
+		/* Use file size for packet size */
+		packet_index.content_size = filesize * CHAR_BIT;
+		/* Use content size if non-zero, else file size */
+		packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+	}
+
+	/* Validate content size and packet size values */
+	if (packet_index.content_size > packet_index.packet_size) {
+		fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
+			packet_index.content_size, packet_index.packet_size);
+		return -EINVAL;
+	}
+
+	if (packet_index.packet_size > ((uint64_t) filesize - packet_index.offset) * CHAR_BIT) {
+		fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
+			packet_index.packet_size, ((uint64_t) filesize - packet_index.offset) * CHAR_BIT);
+		return -EINVAL;
+	}
+
+	/* Save position after header and context */
+	packet_index.data_offset = pos->offset;
+
+	/* add index to packet array */
+	g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
+
+	pos->mmap_offset += packet_index.packet_size >> LOG2_CHAR_BIT;
+
+	return 0;
+
+	/* Retry with larger mapping */
+retry:
+	if (packet_map_len == ((filesize - pos->mmap_offset) << LOG2_CHAR_BIT)) {
+		/*
+		 * Reached EOF, but still expecting header/context data.
+		 */
+		fprintf(stderr, "[error] Reached end of file, but still expecting header or context fields.\n");
+		return -EFAULT;
+	}
+	/* Double the mapping len, and retry */
+	tmp_map_len = packet_map_len << 1;
+	if (tmp_map_len >> 1 != packet_map_len) {
+		/* Overflow */
+		return -EFAULT;
+	}
+	packet_map_len = tmp_map_len;
+	goto begin;
+}
 
 static
 int create_stream_packet_index(struct ctf_trace *td,
-			       struct ctf_file_stream *file_stream)
+			struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream_declaration *stream;
-	int len_index;
 	struct ctf_stream_pos *pos;
 	struct stat filestats;
-	struct packet_index packet_index;
-	int first_packet = 1;
 	int ret;
 
 	pos = &file_stream->pos;
@@ -1308,217 +1564,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 	if (ret < 0)
 		return ret;
 
-	if (filestats.st_size < MAX_PACKET_HEADER_LEN / CHAR_BIT)
-		return -EINVAL;
-
 	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
-		uint64_t stream_id = 0;
-
-		if (pos->base_mma) {
-			/* unmap old base */
-			ret = munmap_align(pos->base_mma);
-			if (ret) {
-				fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
-					strerror(errno));
-				return ret;
-			}
-			pos->base_mma = NULL;
-		}
-		/* map new base. Need mapping length from header. */
-		pos->base_mma = mmap_align(MAX_PACKET_HEADER_LEN / CHAR_BIT, PROT_READ,
-				 MAP_PRIVATE, pos->fd, pos->mmap_offset);
-		assert(pos->base_mma != MAP_FAILED);
-		pos->content_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
-		pos->packet_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
-		pos->offset = 0;	/* Position of the packet header */
-
-		packet_index.offset = pos->mmap_offset;
-		packet_index.content_size = 0;
-		packet_index.packet_size = 0;
-		packet_index.timestamp_begin = 0;
-		packet_index.timestamp_end = 0;
-		packet_index.events_discarded = 0;
-		packet_index.events_discarded_len = 0;
-
-		/* read and check header, set stream id (and check) */
-		if (file_stream->parent.trace_packet_header) {
-			/* Read packet header */
-			ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
-			if (ret)
-				return ret;
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-				uint64_t magic;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				magic = bt_get_unsigned_int(field);
-				if (magic != CTF_MAGIC) {
-					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
-							magic,
-							file_stream->pos.packet_cycles_index->len,
-							(ssize_t) pos->mmap_offset);
-					return -EINVAL;
-				}
-			}
-
-			/* check uuid */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
-			if (len_index >= 0) {
-				struct definition_array *defarray;
-				struct bt_definition *field;
-				uint64_t i;
-				uint8_t uuidval[BABELTRACE_UUID_LEN];
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				assert(field->declaration->id == CTF_TYPE_ARRAY);
-				defarray = container_of(field, struct definition_array, p);
-				assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
-
-				for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
-					struct bt_definition *elem;
-
-					elem = bt_array_index(defarray, i);
-					uuidval[i] = bt_get_unsigned_int(elem);
-				}
-				ret = babeltrace_uuid_compare(td->uuid, uuidval);
-				if (ret) {
-					fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
-					return -EINVAL;
-				}
-			}
-
-
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				stream_id = bt_get_unsigned_int(field);
-			}
-		}
-
-		if (!first_packet && file_stream->parent.stream_id != stream_id) {
-			fprintf(stderr, "[error] Stream ID is changing within a stream: expecting %" PRIu64 ", but packet has %" PRIu64 "\n",
-				stream_id,
-				file_stream->parent.stream_id);
-			return -EINVAL;
-		}
-		if (first_packet) {
-			file_stream->parent.stream_id = stream_id;
-			if (stream_id >= td->streams->len) {
-				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-				return -EINVAL;
-			}
-			stream = g_ptr_array_index(td->streams, stream_id);
-			if (!stream) {
-				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-				return -EINVAL;
-			}
-			file_stream->parent.stream_class = stream;
-			ret = create_stream_definitions(td, &file_stream->parent);
-			if (ret)
-				return ret;
-		}
-		first_packet = 0;
-
-		if (file_stream->parent.stream_packet_context) {
-			/* Read packet context */
-			ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
-			if (ret)
-				return ret;
-			/* read content size from header */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.content_size = bt_get_unsigned_int(field);
-			} else {
-				/* Use file size for packet size */
-				packet_index.content_size = filestats.st_size * CHAR_BIT;
-			}
-
-			/* read packet size from header */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.packet_size = bt_get_unsigned_int(field);
-			} else {
-				/* Use content size if non-zero, else file size */
-				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
-			}
-
-			/* read timestamp begin from header */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_begin = bt_get_unsigned_int(field);
-				if (file_stream->parent.stream_class->trace->collection) {
-					packet_index.timestamp_begin =
-						ctf_get_real_timestamp(
-							&file_stream->parent,
-							packet_index.timestamp_begin);
-				}
-			}
-
-			/* read timestamp end from header */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_end = bt_get_unsigned_int(field);
-				if (file_stream->parent.stream_class->trace->collection) {
-					packet_index.timestamp_end =
-						ctf_get_real_timestamp(
-							&file_stream->parent,
-							packet_index.timestamp_end);
-				}
-			}
-
-			/* read events discarded from header */
-			len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
-			if (len_index >= 0) {
-				struct bt_definition *field;
-
-				field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.events_discarded = bt_get_unsigned_int(field);
-				packet_index.events_discarded_len = bt_get_int_len(field);
-			}
-		} else {
-			/* Use file size for packet size */
-			packet_index.content_size = filestats.st_size * CHAR_BIT;
-			/* Use content size if non-zero, else file size */
-			packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
-		}
-
-		/* Validate content size and packet size values */
-		if (packet_index.content_size > packet_index.packet_size) {
-			fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
-				packet_index.content_size, packet_index.packet_size);
-			return -EINVAL;
-		}
-
-		if (packet_index.packet_size > ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT) {
-			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
-				packet_index.packet_size, ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT);
-			return -EINVAL;
-		}
-
-		/* Save position after header and context */
-		packet_index.data_offset = pos->offset;
-
-		/* add index to packet array */
-		g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
-
-		pos->mmap_offset += packet_index.packet_size / CHAR_BIT;
+		ret = create_stream_one_packet_index(pos, td, file_stream,
+			filestats.st_size);
+		if (ret)
+			return ret;
 	}
-
 	return 0;
 }
 
