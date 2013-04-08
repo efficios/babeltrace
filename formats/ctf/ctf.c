@@ -1302,10 +1302,10 @@ int create_stream_one_packet_index(struct ctf_stream_pos *pos,
 {
 	struct packet_index packet_index;
 	struct ctf_stream_declaration *stream;
-	int len_index;
 	uint64_t stream_id = 0;
+	uint64_t packet_map_len = DEFAULT_HEADER_LEN, tmp_map_len;
 	int first_packet = 0;
-	size_t packet_map_len = DEFAULT_HEADER_LEN, tmp_map_len;
+	int len_index;
 	int ret;
 
 begin:
