@@ -80,8 +80,7 @@ IDENTIFIER			{ID_NONDIGIT}({ID_NONDIGIT}|{DIGIT})*
 <comment_ml>\n
 <comment_ml>"*"+"/"		BEGIN(INITIAL);
 
-"//"				BEGIN(comment_sl);
-<comment_sl>[^\n]*\n		BEGIN(INITIAL);
+"//"[^\n]*\n			/* skip comment */
 
 L?\"(\\.|[^\\"])*\"		{ if (import_string(yyextra, yylval, yytext, '\"') < 0) return ERROR; else return STRING_LITERAL; }
 L?\'(\\.|[^\\'])*\'		{ if (import_string(yyextra, yylval, yytext, '\'') < 0) return ERROR; else return CHARACTER_LITERAL; }
