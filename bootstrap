@@ -5,4 +5,5 @@ if [ ! -e config ]; then
 	mkdir config
 fi
 
+libtoolize --force --copy
 autoreconf -i
