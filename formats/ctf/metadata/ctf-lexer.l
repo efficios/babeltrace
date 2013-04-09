@@ -58,7 +58,7 @@ int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, 
 %option reentrant yylineno noyywrap bison-bridge
 %option extra-type="struct ctf_scanner *"
 	/* bison-locations */
-INTEGER_SUFFIX			[ \r\n\t]*(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
+INTEGER_SUFFIX			(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
 DIGIT				[0-9]
 NONDIGIT			[a-zA-Z_]
 HEXDIGIT			[0-9A-Fa-f]
