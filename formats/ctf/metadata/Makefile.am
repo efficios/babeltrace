@@ -7,9 +7,10 @@ noinst_LTLIBRARIES = libctf-parser.la libctf-ast.la
 noinst_HEADERS = \
 	ctf-scanner.h \
 	ctf-ast.h \
-	ctf-scanner-symbols.h
+	ctf-scanner-symbols.h \
+	objstack.h
 
-libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y
+libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y objstack.c
 libctf_parser_la_CFLAGS = $(AM_CFLAGS) -include ctf-scanner-symbols.h
 
 libctf_ast_la_SOURCES = ctf-visitor-xml.c \
