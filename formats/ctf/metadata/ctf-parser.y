@@ -83,8 +83,12 @@ static const char *node_type_to_str[] = {
 #undef ENTRY
 };
 
-/* Static node for out of memory errors */
-static __thread struct ctf_node error_node = {
+/*
+ * Static node for out of memory errors. Only "type" is used. lineno is
+ * always left at 0. The rest of the node content can be overwritten,
+ * but is never used.
+ */
+static struct ctf_node error_node = {
 	.type = NODE_ERROR,
 };
 
@@ -333,8 +337,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	node = malloc(sizeof(*node));
 	if (!node) {
-		error_node.lineno = yyget_lineno(scanner->scanner);
-		printfl_fatal(error_node.lineno, "out of memory");
+		printfl_fatal(yyget_lineno(scanner->scanner), "out of memory");
 		return &error_node;
 	}
 	memset(node, 0, sizeof(*node));
