@@ -136,6 +136,56 @@ int str_check(size_t str_len, size_t offset, size_t len)
 }
 
 static
+int bt_isodigit(int c)
+{
+	switch (c) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+static
+int parse_base_sequence(const char *src, size_t len, size_t pos,
+		char *buffer, size_t *buf_len, int base)
+{
+	const size_t max_char = 3;
+	int nr_char = 0;
+
+	while (!str_check(len, pos, 1) && nr_char < max_char) {
+		char c = src[pos++];
+
+		if (base == 8) {
+			if (bt_isodigit(c))
+				buffer[nr_char++] = c;
+			else
+				break;
+		} else if (base == 16) {
+			if (isxdigit(c))
+				buffer[nr_char++] = c;
+			else
+				break;
+
+		} else {
+			/* Unsupported base */
+			return -1;
+		}
+	}
+	assert(nr_char > 0);
+	buffer[nr_char] = '\0';
+	*buf_len = nr_char;
+	return 0;
+}
+
+static
 int import_basic_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 		size_t len, const char *src, char delim)
 {
@@ -158,9 +208,6 @@ int import_basic_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 			c = src[pos++];
 
 			switch (c) {
-			case '0':
-				c = '\0';
-				break;
 			case 'a':
 				c = '\a';
 				break;
@@ -194,28 +241,33 @@ int import_basic_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 			case '?':
 				c = '?';
 				break;
-			case 'o':
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
 			{
-				size_t oct_len = 3;
+				char oct_buffer[4];
+				size_t oct_len;
 
-				if (str_check(len, pos, oct_len))
+				if (parse_base_sequence(src, len, pos - 1,
+						oct_buffer, &oct_len, 8))
 					return -1;
-				if (!isdigit((int) src[pos]) || !isdigit((int) src[pos+1]) || !isdigit((int) src[pos+2]))
-					return -1;
-				char oct_buffer[4] = { src[pos], src[pos+1], src[pos+2], '\0' };
 				c = strtoul(&oct_buffer[0], NULL, 8);
-				pos += oct_len;
+				pos += oct_len - 1;
 				break;
 			}
 			case 'x':
 			{
-				size_t hex_len = 2;
+				char hex_buffer[4];
+				size_t hex_len;
 
-				if (str_check(len, pos, hex_len))
+				if (parse_base_sequence(src, len, pos,
+						hex_buffer, &hex_len, 16))
 					return -1;
-				if (!isxdigit((int) src[pos]) || !isxdigit((int) src[pos+1]))
-					return -1;
-				char hex_buffer[3] = { src[pos], src[pos+1], '\0' };
 				c = strtoul(&hex_buffer[0], NULL, 16);
 				pos += hex_len;
 				break;
