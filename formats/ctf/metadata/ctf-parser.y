@@ -39,6 +39,7 @@
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
+#include "objstack.h"
 
 BT_HIDDEN
 int yydebug;
@@ -71,12 +72,6 @@ int yyget_lineno(yyscan_t yyscanner);
 BT_HIDDEN
 char *yyget_text(yyscan_t yyscanner);
 
-struct gc_string {
-	struct bt_list_head gc;
-	size_t alloclen;
-	char s[];
-};
-
 static const char *node_type_to_str[] = {
 #define ENTRY(S)	[S] = #S,
 	FOREACH_CTF_NODES(ENTRY)
@@ -101,27 +96,10 @@ const char *node_type(struct ctf_node *node)
 		return NULL;
 }
 
-static struct gc_string *gc_string_alloc(struct ctf_scanner *scanner,
-					 size_t len)
-{
-	struct gc_string *gstr;
-	size_t alloclen;
-
-	/* TODO: could be faster with find first bit or glib Gstring */
-	/* sizeof long to account for malloc header (int or long ?) */
-	for (alloclen = 8; alloclen < sizeof(long) + sizeof(*gstr) + len;
-	     alloclen *= 2);
-
-	gstr = malloc(alloclen);
-	bt_list_add(&gstr->gc, &scanner->allocated_strings);
-	gstr->alloclen = alloclen;
-	return gstr;
-}
-
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src)
 {
-	lvalp->gs = gc_string_alloc(scanner, strlen(src) + 1);
-	strcpy(lvalp->gs->s, src);
+	lvalp->s = objstack_alloc(scanner->objstack, strlen(src) + 1);
+	strcpy(lvalp->s, src);
 }
 
 static
@@ -278,12 +256,12 @@ int import_basic_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 		}
 		if (str_check(len, dpos, 1))
 			return -1;
-		lvalp->gs->s[dpos++] = c;
+		lvalp->s[dpos++] = c;
 	}
 
 	if (str_check(len, dpos, 1))
 		return -1;
-	lvalp->gs->s[dpos++] = '\0';
+	lvalp->s[dpos++] = '\0';
 
 	if (str_check(len, pos, 1))
 		return -1;
@@ -303,7 +281,7 @@ int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 	size_t len;
 
 	len = strlen(src) + 1;
-	lvalp->gs = gc_string_alloc(scanner, len);
+	lvalp->s = objstack_alloc(scanner->objstack, len);
 	if (src[0] == 'L') {
 		// TODO: import wide string
 		printfl_error(yyget_lineno(scanner),
@@ -373,12 +351,12 @@ int is_type(struct ctf_scanner *scanner, const char *id)
 	return ret;
 }
 
-static void add_type(struct ctf_scanner *scanner, struct gc_string *id)
+static void add_type(struct ctf_scanner *scanner, char *id)
 {
-	printf_debug("add type %s\n", id->s);
-	if (lookup_type(scanner->cs, id->s))
+	printf_debug("add type %s\n", id);
+	if (lookup_type(scanner->cs, id))
 		return;
-	g_hash_table_insert(scanner->cs->types, id->s, id->s);
+	g_hash_table_insert(scanner->cs->types, id, id);
 }
 
 static struct ctf_node *make_node(struct ctf_scanner *scanner,
@@ -978,14 +956,6 @@ do {								\
 	YYERROR;						\
 } while (0)
 
-static void free_strings(struct bt_list_head *list)
-{
-	struct gc_string *gstr, *tmp;
-
-	bt_list_for_each_entry_safe(gstr, tmp, list, gc)
-		free(gstr);
-}
-
 static struct ctf_ast *ctf_ast_alloc(void)
 {
 	struct ctf_ast *ast;
@@ -1044,9 +1014,11 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 	scanner->ast = ctf_ast_alloc();
 	if (!scanner->ast)
 		goto cleanup_lexer;
+	scanner->objstack = objstack_create();
+	if (!scanner->objstack)
+		goto cleanup_ast;
 	init_scope(&scanner->root_scope, NULL);
 	scanner->cs = &scanner->root_scope;
-	BT_INIT_LIST_HEAD(&scanner->allocated_strings);
 
 	if (yydebug)
 		fprintf(stdout, "Scanner input is a%s.\n",
@@ -1055,6 +1027,8 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 
 	return scanner;
 
+cleanup_ast:
+	ctf_ast_free(scanner->ast);
 cleanup_lexer:
 	ret = yylex_destroy(scanner->scanner);
 	if (!ret)
@@ -1069,7 +1043,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	int ret;
 
 	finalize_scope(&scanner->root_scope);
-	free_strings(&scanner->allocated_strings);
+	objstack_destroy(scanner->objstack);
 	ctf_ast_free(scanner->ast);
 	ret = yylex_destroy(scanner->scanner);
 	if (ret)
@@ -1095,20 +1069,20 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %expect 2
 %start file
 %token INTEGER_LITERAL STRING_LITERAL CHARACTER_LITERAL LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY TOK_ALIGN
-%token <gs> IDENTIFIER ID_TYPE
+%token <s> IDENTIFIER ID_TYPE
 %token ERROR
 %union
 {
 	long long ll;
 	unsigned long long ull;
 	char c;
-	struct gc_string *gs;
+	char *s;
 	struct ctf_node *n;
 }
 
-%type <gs> STRING_LITERAL CHARACTER_LITERAL
+%type <s> STRING_LITERAL CHARACTER_LITERAL
 
-%type <gs> keywords
+%type <s> keywords
 
 %type <ull> INTEGER_LITERAL
 %type <n> postfix_expression unary_expression unary_expression_or_range
@@ -1167,59 +1141,59 @@ file:
 
 keywords:
 		VOID
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	CHAR
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	SHORT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	INT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	LONG
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	FLOAT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	DOUBLE
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	SIGNED
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	UNSIGNED
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	_BOOL
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	_COMPLEX
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	_IMAGINARY
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	FLOATING_POINT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	INTEGER
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	STRING
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	ENUM
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	VARIANT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	STRUCT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	CONST
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	TYPEDEF
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	EVENT
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	STREAM
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	ENV
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	TRACE
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	CLOCK
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	CALLSITE
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	|	TOK_ALIGN
-		{	$$ = yylval.gs;		}
+		{	$$ = yylval.s;		}
 	;
 
 
@@ -1230,19 +1204,19 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 		}
 	|	keywords
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 		}
 	|	INTEGER_LITERAL
 		{
@@ -1254,13 +1228,13 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = $1->s;
+			$$->u.unary_expression.u.string = $1;
 		}
 	|	CHARACTER_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = $1->s;
+			$$->u.unary_expression.u.string = $1;
 		}
 	|	LPAREN unary_expression RPAREN
 		{
@@ -1278,7 +1252,7 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 			$$->u.unary_expression.link = UNARY_DOTLINK;
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
@@ -1287,7 +1261,7 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 			$$->u.unary_expression.link = UNARY_DOTLINK;
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
@@ -1296,7 +1270,7 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 			$$->u.unary_expression.link = UNARY_ARROWLINK;
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
@@ -1305,7 +1279,7 @@ postfix_expression:
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
-			$$->u.unary_expression.u.string = yylval.gs->s;
+			$$->u.unary_expression.u.string = yylval.s;
 			$$->u.unary_expression.link = UNARY_ARROWLINK;
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
@@ -1675,7 +1649,7 @@ integer_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			$$->u.type_specifier.id_type = yylval.gs->s;
+			$$->u.type_specifier.id_type = yylval.s;
 		}
 	|	INTEGER LBRAC RBRAC
 		{
@@ -1758,7 +1732,7 @@ type_specifier:
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			$$->u.type_specifier.id_type = yylval.gs->s;
+			$$->u.type_specifier.id_type = yylval.s;
 		}
 	|	FLOATING_POINT LBRAC RBRAC
 		{
@@ -1840,7 +1814,7 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
@@ -1848,7 +1822,7 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
@@ -1856,13 +1830,13 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 0;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 0;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 		}
 	|	struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
 		{
@@ -1876,7 +1850,7 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 			bt_list_add_tail(&($7)->siblings, &$$->u._struct.min_align);
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
@@ -1885,7 +1859,7 @@ struct_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
-			$$->u._struct.name = $1->s;
+			$$->u._struct.name = $1;
 			bt_list_add_tail(&($7)->siblings, &$$->u._struct.min_align);
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
@@ -1914,7 +1888,7 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.choice = $2->s;
+			$$->u.variant.choice = $2;
 			if ($5 && set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1922,7 +1896,7 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.choice = $2->s;
+			$$->u.variant.choice = $2;
 			if ($5 && set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1930,7 +1904,7 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
+			$$->u.variant.name = $1;
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1938,8 +1912,8 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1947,15 +1921,15 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 		}
 	|	IDENTIFIER LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1963,14 +1937,14 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 		}
 	|	ID_TYPE variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
+			$$->u.variant.name = $1;
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1978,8 +1952,8 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -1987,15 +1961,15 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 		}
 	|	ID_TYPE LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
@@ -2003,8 +1977,8 @@ variant_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
-			$$->u.variant.name = $1->s;
-			$$->u.variant.choice = $3->s;
+			$$->u.variant.name = $1;
+			$$->u.variant.choice = $3;
 		}
 	;
 
@@ -2036,14 +2010,14 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
@@ -2051,14 +2025,14 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
@@ -2079,14 +2053,14 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
@@ -2094,20 +2068,20 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 		}
 	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
@@ -2115,7 +2089,7 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 0;
-			$$->u._enum.enum_id = $1->s;
+			$$->u._enum.enum_id = $1;
 		}
 	;
 
@@ -2222,7 +2196,7 @@ alias_declaration_specifiers:
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
 			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			node->u.type_specifier.id_type = yylval.gs->s;
+			node->u.type_specifier.id_type = yylval.s;
 			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	|	alias_declaration_specifiers CONST
@@ -2247,7 +2221,7 @@ alias_declaration_specifiers:
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
 			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			node->u.type_specifier.id_type = yylval.gs->s;
+			node->u.type_specifier.id_type = yylval.s;
 			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
 	;
@@ -2289,45 +2263,45 @@ enumerator:
 		IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 		}
 	|	keywords
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 		}
 	|	STRING_LITERAL
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 		}
 	|	IDENTIFIER EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
 	|	ID_TYPE EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
 	|	keywords EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
 	|	STRING_LITERAL EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1->s;
+			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
 	;
@@ -2363,7 +2337,7 @@ direct_abstract_declarator:
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1->s;
+			$$->u.type_declarator.u.id = $1;
 		}
 	|	LPAREN abstract_declarator RPAREN
 		{
@@ -2453,7 +2427,7 @@ direct_declarator:
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1->s;
+			$$->u.type_declarator.u.id = $1;
 		}
 	|	LPAREN declarator RPAREN
 		{
@@ -2487,7 +2461,7 @@ direct_type_declarator:
 			add_type(scanner, $1);
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1->s;
+			$$->u.type_declarator.u.id = $1;
 		}
 	|	LPAREN type_declarator RPAREN
 		{
