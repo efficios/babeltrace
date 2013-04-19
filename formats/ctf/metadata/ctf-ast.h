@@ -294,7 +294,6 @@ struct ctf_node {
 
 struct ctf_ast {
 	struct ctf_node root;
-	struct bt_list_head allocated_nodes;
 };
 
 const char *node_type(struct ctf_node *node);

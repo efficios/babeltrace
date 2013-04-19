@@ -362,19 +362,16 @@ static void add_type(struct ctf_scanner *scanner, char *id)
 static struct ctf_node *make_node(struct ctf_scanner *scanner,
 				  enum node_type type)
 {
-	struct ctf_ast *ast = ctf_scanner_get_ast(scanner);
 	struct ctf_node *node;
 
-	node = malloc(sizeof(*node));
+	node = objstack_alloc(scanner->objstack, sizeof(*node));
 	if (!node) {
 		printfl_fatal(yyget_lineno(scanner->scanner), "out of memory");
 		return &error_node;
 	}
-	memset(node, 0, sizeof(*node));
 	node->type = type;
 	node->lineno = yyget_lineno(scanner->scanner);
 	BT_INIT_LIST_HEAD(&node->tmp_head);
-	bt_list_add(&node->gc, &ast->allocated_nodes);
 	bt_list_add(&node->siblings, &node->tmp_head);
 
 	switch (type) {
@@ -964,7 +961,6 @@ static struct ctf_ast *ctf_ast_alloc(void)
 	if (!ast)
 		return NULL;
 	memset(ast, 0, sizeof(*ast));
-	BT_INIT_LIST_HEAD(&ast->allocated_nodes);
 	ast->root.type = NODE_ROOT;
 	BT_INIT_LIST_HEAD(&ast->root.tmp_head);
 	BT_INIT_LIST_HEAD(&ast->root.u.root.declaration_list);
@@ -979,10 +975,6 @@ static struct ctf_ast *ctf_ast_alloc(void)
 
 static void ctf_ast_free(struct ctf_ast *ast)
 {
-	struct ctf_node *node, *tmp;
-
-	bt_list_for_each_entry_safe(node, tmp, &ast->allocated_nodes, gc)
-		free(node);
 	free(ast);
 }
 
