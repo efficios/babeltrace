@@ -75,7 +75,6 @@ struct ctf_node {
 	struct ctf_node *parent;
 	struct bt_list_head siblings;
 	struct bt_list_head tmp_head;
-	struct bt_list_head gc;
 	unsigned int lineno;
 
 	enum node_type type;
