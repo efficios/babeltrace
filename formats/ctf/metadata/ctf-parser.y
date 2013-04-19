@@ -953,14 +953,13 @@ do {								\
 	YYERROR;						\
 } while (0)
 
-static struct ctf_ast *ctf_ast_alloc(void)
+static struct ctf_ast *ctf_ast_alloc(struct ctf_scanner *scanner)
 {
 	struct ctf_ast *ast;
 
-	ast = malloc(sizeof(*ast));
+	ast = objstack_alloc(scanner->objstack, sizeof(*ast));
 	if (!ast)
 		return NULL;
-	memset(ast, 0, sizeof(*ast));
 	ast->root.type = NODE_ROOT;
 	BT_INIT_LIST_HEAD(&ast->root.tmp_head);
 	BT_INIT_LIST_HEAD(&ast->root.u.root.declaration_list);
@@ -971,11 +970,6 @@ static struct ctf_ast *ctf_ast_alloc(void)
 	BT_INIT_LIST_HEAD(&ast->root.u.root.clock);
 	BT_INIT_LIST_HEAD(&ast->root.u.root.callsite);
 	return ast;
-}
-
-static void ctf_ast_free(struct ctf_ast *ast)
-{
-	free(ast);
 }
 
 int ctf_scanner_append_ast(struct ctf_scanner *scanner)
@@ -1003,12 +997,12 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 	/* Start processing new stream */
 	yyrestart(input, scanner->scanner);
 
-	scanner->ast = ctf_ast_alloc();
-	if (!scanner->ast)
-		goto cleanup_lexer;
 	scanner->objstack = objstack_create();
 	if (!scanner->objstack)
-		goto cleanup_ast;
+		goto cleanup_lexer;
+	scanner->ast = ctf_ast_alloc(scanner);
+	if (!scanner->ast)
+		goto cleanup_objstack;
 	init_scope(&scanner->root_scope, NULL);
 	scanner->cs = &scanner->root_scope;
 
@@ -1019,8 +1013,8 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 
 	return scanner;
 
-cleanup_ast:
-	ctf_ast_free(scanner->ast);
+cleanup_objstack:
+	objstack_destroy(scanner->objstack);
 cleanup_lexer:
 	ret = yylex_destroy(scanner->scanner);
 	if (!ret)
@@ -1036,7 +1030,6 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 
 	finalize_scope(&scanner->root_scope);
 	objstack_destroy(scanner->objstack);
-	ctf_ast_free(scanner->ast);
 	ret = yylex_destroy(scanner->scanner);
 	if (ret)
 		printf_error("yylex_destroy error");
