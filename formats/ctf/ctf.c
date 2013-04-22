@@ -1037,7 +1037,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	buflen = strlen(*buf);
 	if (!buflen) {
 		*fp = NULL;
-		return -ENODATA;
+		return -ENOENT;
 	}
 	*fp = babeltrace_fmemopen(*buf, buflen, "rb");
 	if (!*fp) {
