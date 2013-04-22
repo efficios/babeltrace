@@ -191,6 +191,11 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			}
 			*tlen = len + line - *tline;
 			*ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
+			/*
+			 * Default CTF clock has 1GHz frequency. Convert
+			 * from usec to nsec.
+			 */
+			*ts *= 1000;
 		}
 	}
 	/* timestamp */
