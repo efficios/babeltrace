@@ -289,8 +289,8 @@ struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *ctf_event
 	cfs = container_of(event->stream, const struct ctf_file_stream,
 			parent);
 	trace = cfs->parent.stream_class->trace;
-	if (trace->ctx)
-		ret = trace->ctx;
+	if (trace->parent.ctx)
+		ret = trace->parent.ctx;
 
 	return ret;
 }

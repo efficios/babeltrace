@@ -218,7 +218,6 @@ struct ctf_trace {
 	/* Heap of streams, ordered to always get the lowest timestamp */
 	struct ptr_heap *stream_heap;
 
-	struct bt_context *ctx;
 	struct bt_trace_handle *handle;
 };
 

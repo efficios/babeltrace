@@ -30,6 +30,7 @@
  */
 
 #include <limits.h>
+#include <babeltrace/context-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,7 @@ extern "C" {
 /* Parent trace descriptor */
 struct bt_trace_descriptor {
 	char path[PATH_MAX];		/* trace path */
+	struct bt_context *ctx;
 };
 
 #ifdef __cplusplus

@@ -2093,7 +2093,7 @@ void ctf_set_context(struct bt_trace_descriptor *descriptor,
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
 			parent);
 
-	td->ctx = ctx;
+	td->parent.ctx = ctx;
 }
 
 static
