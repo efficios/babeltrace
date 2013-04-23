@@ -316,12 +316,12 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 		pos->last_cycles_timestamp = stream->cycles_timestamp;
 	}
 
-	if ((opt_trace_field || opt_all_fields) && stream_class->trace->path[0] != '\0') {
+	if ((opt_trace_field || opt_all_fields) && stream_class->trace->parent.path[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace = ");
 		}
-		fprintf(pos->fp, "%s", stream_class->trace->path);
+		fprintf(pos->fp, "%s", stream_class->trace->parent.path);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		else

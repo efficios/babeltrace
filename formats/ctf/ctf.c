@@ -426,9 +426,9 @@ void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream,
 	}
 	fprintf(fp, "] in trace UUID ");
 	print_uuid(fp, stream->stream_class->trace->uuid);
-	if (stream->stream_class->trace->path[0])
+	if (stream->stream_class->trace->parent.path[0])
 		fprintf(fp, ", at path: \"%s\"",
-			stream->stream_class->trace->path);
+			stream->stream_class->trace->parent.path);
 
 	fprintf(fp, ", within stream id %" PRIu64, stream->stream_id);
 	if (stream->path[0])
@@ -1711,8 +1711,8 @@ int ctf_open_trace_read(struct ctf_trace *td,
 		ret = -errno;
 		goto error_dirfd;
 	}
-	strncpy(td->path, path, sizeof(td->path));
-	td->path[sizeof(td->path) - 1] = '\0';
+	strncpy(td->parent.path, path, sizeof(td->parent.path));
+	td->parent.path[sizeof(td->parent.path) - 1] = '\0';
 
 	/*
 	 * Keep the metadata file separate.

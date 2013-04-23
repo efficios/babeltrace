@@ -44,10 +44,7 @@ typedef int bt_intern_str;
 struct bt_stream_pos;
 struct bt_context;
 struct bt_trace_handle;
-
-/* Parent trace descriptor */
-struct bt_trace_descriptor {
-};
+struct bt_trace_descriptor;
 
 struct bt_mmap_stream {
 	int fd;

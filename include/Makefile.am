@@ -19,6 +19,7 @@ noinst_HEADERS = \
 	babeltrace/clock-internal.h \
 	babeltrace/compiler.h \
 	babeltrace/context-internal.h \
+	babeltrace/format-internal.h \
 	babeltrace/iterator-internal.h \
 	babeltrace/trace-collection.h \
 	babeltrace/prio_heap.h \

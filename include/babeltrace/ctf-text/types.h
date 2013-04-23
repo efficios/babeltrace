@@ -35,6 +35,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 
 /*
  * Inherit from both struct bt_stream_pos and struct bt_trace_descriptor.

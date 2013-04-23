@@ -29,6 +29,7 @@
 
 #include <babeltrace/types.h>
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -176,6 +177,7 @@ struct ctf_tracer_env {
 
 struct ctf_trace {
 	struct bt_trace_descriptor parent;
+
 	/* root scope */
 	struct declaration_scope *root_declaration_scope;
 
@@ -215,7 +217,6 @@ struct ctf_trace {
 
 	/* Heap of streams, ordered to always get the lowest timestamp */
 	struct ptr_heap *stream_heap;
-	char path[PATH_MAX];
 
 	struct bt_context *ctx;
 	struct bt_trace_handle *handle;
