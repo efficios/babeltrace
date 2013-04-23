@@ -31,6 +31,7 @@
 
 #include <limits.h>
 #include <babeltrace/context-internal.h>
+#include <babeltrace/babeltrace-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +42,7 @@ struct bt_trace_descriptor {
 	char path[PATH_MAX];		/* trace path */
 	struct bt_context *ctx;
 	struct bt_trace_handle *handle;
+	struct trace_collection *collection;	/* Container of this trace */
 };
 
 #ifdef __cplusplus

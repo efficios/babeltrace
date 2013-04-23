@@ -186,7 +186,7 @@ int bt_trace_collection_add(struct trace_collection *tc,
 	}
 
 	g_ptr_array_add(tc->array, td);
-	trace->collection = tc;
+	trace->parent.collection = tc;
 
 	{
 		struct clock_match clock_match = {

@@ -781,7 +781,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			 * case, the collection is not there, so we
 			 * cannot print the timestamps.
 			 */
-			if ((&file_stream->parent)->stream_class->trace->collection) {
+			if ((&file_stream->parent)->stream_class->trace->parent.collection) {
 				/*
 				 * When a stream reaches the end of the
 				 * file, we need to show the number of
@@ -1472,7 +1472,7 @@ begin:
 
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 			packet_index.timestamp_begin = bt_get_unsigned_int(field);
-			if (file_stream->parent.stream_class->trace->collection) {
+			if (file_stream->parent.stream_class->trace->parent.collection) {
 				packet_index.timestamp_begin =
 					ctf_get_real_timestamp(
 						&file_stream->parent,
@@ -1487,7 +1487,7 @@ begin:
 
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 			packet_index.timestamp_end = bt_get_unsigned_int(field);
-			if (file_stream->parent.stream_class->trace->collection) {
+			if (file_stream->parent.stream_class->trace->parent.collection) {
 				packet_index.timestamp_end =
 					ctf_get_real_timestamp(
 						&file_stream->parent,
