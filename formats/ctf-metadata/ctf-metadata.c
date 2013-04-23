@@ -95,6 +95,7 @@ struct bt_trace_descriptor *ctf_metadata_open_trace(const char *path, int flags,
 			goto error;
 		pos->fp = fp;
 		pos->parent.pre_trace_cb = ctf_metadata_trace_pre_handler;
+		pos->parent.trace = &pos->trace_descriptor;
 		pos->print_names = 0;
 		break;
 	case O_RDONLY:

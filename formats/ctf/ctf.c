@@ -606,7 +606,8 @@ error:
 	return ret;
 }
 
-int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
+int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
+		int fd, int open_flags)
 {
 	pos->fd = fd;
 	if (fd >= 0) {
@@ -624,12 +625,14 @@ int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->flags = MAP_PRIVATE;
 		pos->parent.rw_table = read_dispatch_table;
 		pos->parent.event_cb = ctf_read_event;
+		pos->parent.trace = trace;
 		break;
 	case O_RDWR:
 		pos->prot = PROT_WRITE;	/* Write has priority */
 		pos->flags = MAP_SHARED;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
+		pos->parent.trace = trace;
 		if (fd >= 0)
 			ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 		break;
@@ -1643,7 +1646,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		goto error_def;
 	}
 
-	ret = ctf_init_pos(&file_stream->pos, fd, flags);
+	ret = ctf_init_pos(&file_stream->pos, &td->parent, fd, flags);
 	if (ret)
 		goto error_def;
 	ret = create_trace_definitions(td, &file_stream->parent);

@@ -119,6 +119,7 @@ struct bt_stream_pos {
 			struct bt_trace_descriptor *trace);
 	int (*post_trace_cb)(struct bt_stream_pos *pos,
 			struct bt_trace_descriptor *trace);
+	struct bt_trace_descriptor *trace;
 };
 
 static inline

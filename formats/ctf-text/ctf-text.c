@@ -561,6 +561,7 @@ struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		pos->fp = fp;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_text_write_event;
+		pos->parent.trace = &pos->trace_descriptor;
 		pos->print_names = 0;
 		break;
 	case O_RDONLY:

@@ -252,7 +252,7 @@ void trace_text(FILE *input, int output)
 	int ret;
 
 	memset(&pos, 0, sizeof(pos));
-	ret = ctf_init_pos(&pos, output, O_RDWR);
+	ret = ctf_init_pos(&pos, NULL, output, O_RDWR);
 	if (ret) {
 		fprintf(stderr, "Error in ctf_init_pos\n");
 		return;

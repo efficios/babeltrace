@@ -121,7 +121,8 @@ int ctf_sequence_write(struct bt_stream_pos *pos, struct bt_definition *definiti
 
 void ctf_packet_seek(struct bt_stream_pos *pos, size_t index, int whence);
 
-int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags);
+int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
+		int fd, int open_flags);
 int ctf_fini_pos(struct ctf_stream_pos *pos);
 
 /*
