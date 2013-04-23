@@ -217,8 +217,6 @@ struct ctf_trace {
 
 	/* Heap of streams, ordered to always get the lowest timestamp */
 	struct ptr_heap *stream_heap;
-
-	struct bt_trace_handle *handle;
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\

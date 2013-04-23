@@ -309,8 +309,8 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *ctf_event)
 	cfs = container_of(event->stream, const struct ctf_file_stream,
 			parent);
 	trace = cfs->parent.stream_class->trace;
-	if (trace->handle)
-		ret = trace->handle->id;
+	if (trace->parent.handle)
+		ret = trace->parent.handle->id;
 
 	return ret;
 }

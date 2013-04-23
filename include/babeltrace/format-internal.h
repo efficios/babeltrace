@@ -40,6 +40,7 @@ extern "C" {
 struct bt_trace_descriptor {
 	char path[PATH_MAX];		/* trace path */
 	struct bt_context *ctx;
+	struct bt_trace_handle *handle;
 };
 
 #ifdef __cplusplus

@@ -2103,7 +2103,7 @@ void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
 			parent);
 
-	td->handle = handle;
+	td->parent.handle = handle;
 }
 
 static
