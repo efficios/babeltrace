@@ -271,7 +271,7 @@ struct ctf_stream_declaration *trace_stream_lookup(struct ctf_trace *trace, uint
 static
 struct ctf_clock *trace_clock_lookup(struct ctf_trace *trace, GQuark clock_name)
 {
-	return g_hash_table_lookup(trace->clocks, (gpointer) (unsigned long) clock_name);
+	return g_hash_table_lookup(trace->parent.clocks, (gpointer) (unsigned long) clock_name);
 }
 
 static
@@ -2450,13 +2450,13 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		fprintf(fd, "[error] %s: missing name field in clock declaration\n", __func__);
 		goto error;
 	}
-	if (g_hash_table_size(trace->clocks) > 0) {
+	if (g_hash_table_size(trace->parent.clocks) > 0) {
 		fprintf(fd, "[error] Only CTF traces with a single clock description are supported by this babeltrace version.\n");
 		ret = -EINVAL;
 		goto error;
 	}
-	trace->single_clock = clock;
-	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);
+	trace->parent.single_clock = clock;
+	g_hash_table_insert(trace->parent.clocks, (gpointer) (unsigned long) clock->name, clock);
 	return 0;
 
 error:
@@ -2490,8 +2490,8 @@ void ctf_clock_default(FILE *fd, int depth, struct ctf_trace *trace)
 		clock->absolute = 0;	/* Not an absolute reference across traces */
 	}
 
-	trace->single_clock = clock;
-	g_hash_table_insert(trace->clocks, (gpointer) (unsigned long) clock->name, clock);
+	trace->parent.single_clock = clock;
+	g_hash_table_insert(trace->parent.clocks, (gpointer) (unsigned long) clock->name, clock);
 }
 
 static
@@ -2920,8 +2920,8 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 
 	printf_verbose("CTF visitor: metadata construction...\n");
 	trace->byte_order = byte_order;
-	trace->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-				NULL, clock_free);
+	trace->parent.clocks = g_hash_table_new_full(g_direct_hash,
+				g_direct_equal, NULL, clock_free);
 	trace->callsites = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 				NULL, callsite_free);
 
@@ -3023,7 +3023,7 @@ retry:
 error:
 	bt_free_declaration_scope(trace->root_declaration_scope);
 	g_hash_table_destroy(trace->callsites);
-	g_hash_table_destroy(trace->clocks);
+	g_hash_table_destroy(trace->parent.clocks);
 	return ret;
 }
 
@@ -3122,7 +3122,7 @@ int ctf_destroy_metadata(struct ctf_trace *trace)
 	bt_free_declaration_scope(trace->declaration_scope);
 
 	g_hash_table_destroy(trace->callsites);
-	g_hash_table_destroy(trace->clocks);
+	g_hash_table_destroy(trace->parent.clocks);
 
 	metadata_stream = container_of(trace->metadata, struct ctf_file_stream, parent);
 	g_free(metadata_stream);

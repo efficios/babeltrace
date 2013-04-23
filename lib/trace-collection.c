@@ -156,14 +156,10 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
  * convert the index from cycles to real time.
  */
 int bt_trace_collection_add(struct trace_collection *tc,
-				struct bt_trace_descriptor *td)
+			struct bt_trace_descriptor *trace)
 {
-	struct ctf_trace *trace;
-
-	if (!tc || !td)
+	if (!tc || !trace)
 		return -EINVAL;
-
-	trace = container_of(td, struct ctf_trace, parent);
 
 	if (tc->array->len > 1) {
 		struct clock_match clock_match = {
@@ -185,8 +181,8 @@ int bt_trace_collection_add(struct trace_collection *tc,
 		}
 	}
 
-	g_ptr_array_add(tc->array, td);
-	trace->parent.collection = tc;
+	g_ptr_array_add(tc->array, trace);
+	trace->collection = tc;
 
 	{
 		struct clock_match clock_match = {

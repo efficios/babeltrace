@@ -43,6 +43,8 @@ struct bt_trace_descriptor {
 	struct bt_context *ctx;
 	struct bt_trace_handle *handle;
 	struct trace_collection *collection;	/* Container of this trace */
+	GHashTable *clocks;
+	struct ctf_clock *single_clock;		/* currently supports only one clock */
 };
 
 #ifdef __cplusplus

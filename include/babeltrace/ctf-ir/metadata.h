@@ -188,9 +188,7 @@ struct ctf_trace {
 	struct ctf_stream_definition *metadata;
 	char *metadata_string;
 	int metadata_packetized;
-	GHashTable *clocks;
 	GHashTable *callsites;
-	struct ctf_clock *single_clock;		/* currently supports only one clock */
 	GPtrArray *event_declarations;		/* Array of all the struct bt_ctf_event_decl */
 
 	struct declaration_struct *packet_header_decl;
