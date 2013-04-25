@@ -1214,6 +1214,8 @@ error:
 		bt_definition_unref(&stream_event->event_fields->p);
 	if (stream_event->event_context)
 		bt_definition_unref(&stream_event->event_context->p);
+	fprintf(stderr, "[error] Unable to create event definition for event \"%s\".\n",
+		g_quark_to_string(event->name));
 	return NULL;
 }
 
@@ -1274,8 +1276,10 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		if (!event)
 			continue;
 		stream_event = create_event_definitions(td, stream, event);
-		if (!stream_event)
+		if (!stream_event) {
+			ret = -EINVAL;
 			goto error_event;
+		}
 		g_ptr_array_index(stream->events_by_id, i) = stream_event;
 	}
 	return 0;
@@ -1294,6 +1298,8 @@ error:
 		bt_definition_unref(&stream->stream_event_header->p);
 	if (stream->stream_packet_context)
 		bt_definition_unref(&stream->stream_packet_context->p);
+	fprintf(stderr, "[error] Unable to create stream (%" PRIu64 ") definitions: %s\n",
+		stream_class->stream_id, strerror(-ret));
 	return ret;
 }
 
@@ -1357,6 +1363,7 @@ begin:
 		if (ret) {
 			if (ret == -EFAULT)
 				goto retry;
+			fprintf(stderr, "[error] Unable to read packet header: %s\n", strerror(-ret));
 			return ret;
 		}
 		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
@@ -1439,6 +1446,7 @@ begin:
 		if (ret) {
 			if (ret == -EFAULT)
 				goto retry;
+			fprintf(stderr, "[error] Unable to read packet context: %s\n", strerror(-ret));
 			return ret;
 		}
 		/* read content size from header */
@@ -1547,6 +1555,7 @@ retry:
 	tmp_map_len = packet_map_len << 1;
 	if (tmp_map_len >> 1 != packet_map_len) {
 		/* Overflow */
+		fprintf(stderr, "[error] Packet mapping length overflow\n");
 		return -EFAULT;
 	}
 	packet_map_len = tmp_map_len;
@@ -1597,6 +1606,7 @@ int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition 
 	return 0;
 
 error:
+	fprintf(stderr, "[error] Unable to create trace definitions: %s\n", strerror(-ret));
 	return ret;
 }
 
@@ -1657,8 +1667,10 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	 */
 	file_stream->parent.current_clock = td->parent.single_clock;
 	ret = create_stream_packet_index(td, file_stream);
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "[error] Stream index creation error.\n");
 		goto error_index;
+	}
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
 			&file_stream->parent);
