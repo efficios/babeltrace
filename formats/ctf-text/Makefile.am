@@ -12,4 +12,5 @@ libbabeltrace_ctf_text_la_LDFLAGS = \
 	types/libctf-text-types.la
 
 libbabeltrace_ctf_text_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
