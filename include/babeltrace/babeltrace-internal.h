@@ -220,5 +220,6 @@ extern int opt_all_field_names,
 	opt_clock_force_correlate;
 
 extern uint64_t opt_clock_offset;
+extern uint64_t opt_clock_offset_ns;
 
 #endif

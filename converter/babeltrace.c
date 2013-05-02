@@ -93,6 +93,7 @@ enum {
 	OPT_FIELDS,
 	OPT_NO_DELTA,
 	OPT_CLOCK_OFFSET,
+	OPT_CLOCK_OFFSET_NS,
 	OPT_CLOCK_CYCLES,
 	OPT_CLOCK_SECONDS,
 	OPT_CLOCK_DATE,
@@ -121,6 +122,7 @@ static struct poptOption long_options[] = {
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "no-delta", 0, POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "clock-offset", 0, POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
+	{ "clock-offset-ns", 0, POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
 	{ "clock-cycles", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
 	{ "clock-seconds", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
 	{ "clock-date", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
@@ -164,6 +166,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "                                     (default: trace:hostname,trace:procname,trace:vpid)\n");
 	fprintf(fp, "      --clock-cycles             Timestamp in cycles\n");
 	fprintf(fp, "      --clock-offset seconds     Clock offset in seconds\n");
+	fprintf(fp, "      --clock-offset-ns ns       Clock offset in nanoseconds\n");
 	fprintf(fp, "      --clock-seconds            Print the timestamps as [sec.ns]\n");
 	fprintf(fp, "                                 (default is: [hh:mm:ss.ns])\n");
 	fprintf(fp, "      --clock-date               Print clock date\n");
@@ -357,6 +360,29 @@ static int parse_options(int argc, char **argv)
 		case OPT_CLOCK_SECONDS:
 			opt_clock_seconds = 1;
 			break;
+		case OPT_CLOCK_OFFSET_NS:
+		{
+			char *str;
+			char *endptr;
+
+			str = (char *) poptGetOptArg(pc);
+			if (!str) {
+				fprintf(stderr, "[error] Missing --clock-offset-ns argument\n");
+				ret = -EINVAL;
+				goto end;
+			}
+			errno = 0;
+			opt_clock_offset_ns = strtoull(str, &endptr, 0);
+			if (*endptr != '\0' || str == endptr || errno != 0) {
+				fprintf(stderr, "[error] Incorrect --clock-offset-ns argument: %s\n", str);
+				ret = -EINVAL;
+				free(str);
+				goto end;
+			}
+			free(str);
+			break;
+		}
+
 		case OPT_CLOCK_DATE:
 			opt_clock_date = 1;
 			break;

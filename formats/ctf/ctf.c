@@ -77,6 +77,7 @@ int opt_clock_cycles,
 	opt_clock_gmt;
 
 uint64_t opt_clock_offset;
+uint64_t opt_clock_offset_ns;
 
 extern int yydebug;
 
@@ -320,6 +321,9 @@ void ctf_print_timestamp_real(FILE *fp,
 	uint64_t ts_sec = 0, ts_nsec;
 
 	ts_nsec = timestamp;
+
+	/* Add command-line offset in ns*/
+        ts_nsec += opt_clock_offset_ns;
 
 	/* Add command-line offset */
 	ts_sec += opt_clock_offset;
