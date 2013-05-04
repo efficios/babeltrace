@@ -682,6 +682,14 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	off_t off;
 	struct packet_index *packet_index;
 
+	switch (whence) {
+	case SEEK_CUR:
+	case SEEK_SET:	/* Fall-through */
+		break;	/* OK */
+	default:
+		assert(0);
+	}
+
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 
@@ -721,6 +729,14 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		pos->offset = 0;
 	} else {
 	read_next_packet:
+		if (pos->cur_index >= pos->packet_cycles_index->len) {
+			pos->offset = EOF;
+			return;
+		}
+		if (pos->cur_index >= pos->packet_real_index->len) {
+			pos->offset = EOF;
+			return;
+		}
 		switch (whence) {
 		case SEEK_CUR:
 		{
@@ -1308,13 +1324,37 @@ error:
 }
 
 static
+int stream_assign_class(struct ctf_trace *td,
+		struct ctf_file_stream *file_stream,
+		uint64_t stream_id)
+{
+	struct ctf_stream_declaration *stream;
+	int ret;
+
+	file_stream->parent.stream_id = stream_id;
+	if (stream_id >= td->streams->len) {
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+		return -EINVAL;
+	}
+	stream = g_ptr_array_index(td->streams, stream_id);
+	if (!stream) {
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+		return -EINVAL;
+	}
+	file_stream->parent.stream_class = stream;
+	ret = create_stream_definitions(td, &file_stream->parent);
+	if (ret)
+		return ret;
+	return 0;
+}
+
+static
 int create_stream_one_packet_index(struct ctf_stream_pos *pos,
 			struct ctf_trace *td,
 			struct ctf_file_stream *file_stream,
 			size_t filesize)
 {
 	struct packet_index packet_index;
-	struct ctf_stream_declaration *stream;
 	uint64_t stream_id = 0;
 	uint64_t packet_map_len = DEFAULT_HEADER_LEN, tmp_map_len;
 	int first_packet = 0;
@@ -1428,18 +1468,7 @@ begin:
 		return -EINVAL;
 	}
 	if (first_packet) {
-		file_stream->parent.stream_id = stream_id;
-		if (stream_id >= td->streams->len) {
-			fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-			return -EINVAL;
-		}
-		stream = g_ptr_array_index(td->streams, stream_id);
-		if (!stream) {
-			fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-			return -EINVAL;
-		}
-		file_stream->parent.stream_class = stream;
-		ret = create_stream_definitions(td, &file_stream->parent);
+		ret = stream_assign_class(td, file_stream, stream_id);
 		if (ret)
 			return ret;
 	}
@@ -1579,6 +1608,30 @@ int create_stream_packet_index(struct ctf_trace *td,
 	ret = fstat(pos->fd, &filestats);
 	if (ret < 0)
 		return ret;
+
+	/* Deal with empty files */
+	if (!filestats.st_size) {
+		if (file_stream->parent.trace_packet_header
+				|| file_stream->parent.stream_packet_context) {
+			/*
+			 * We expect a trace packet header and/or stream packet
+			 * context. Since a trace needs to have at least one
+			 * packet, empty files are therefore not accepted.
+			 */
+			fprintf(stderr, "[error] Encountered an empty file, but expecting a trace packet header.\n");
+			return -EINVAL;
+		} else {
+			/*
+			 * Without trace packet header nor stream packet
+			 * context, a one-packet trace can indeed be empty. This
+			 * is only valid if there is only one stream class: 0.
+			 */
+			ret = stream_assign_class(td, file_stream, 0);
+			if (ret)
+				return ret;
+			return 0;
+		}
+	}
 
 	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
 		ret = create_stream_one_packet_index(pos, td, file_stream,
