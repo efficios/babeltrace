@@ -33,7 +33,7 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/trace-handle-internal.h>
 #include <babeltrace/context-internal.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -51,7 +51,7 @@
 #include "metadata/ctf-parser.h"
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
-#include "memstream.h"
+#include <babeltrace/compat/memstream.h>"
 
 #define LOG2_CHAR_BIT	3
 

@@ -45,7 +45,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
 
 #define USEC_PER_SEC 1000000UL

@@ -36,7 +36,7 @@
 #include <babeltrace/list.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/metadata.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
 #include <babeltrace/ctf/events-internal.h>
 #include "ctf-scanner.h"

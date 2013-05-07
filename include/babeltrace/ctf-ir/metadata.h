@@ -33,7 +33,7 @@
 #include <babeltrace/ctf/types.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <assert.h>
 #include <glib.h>
 
