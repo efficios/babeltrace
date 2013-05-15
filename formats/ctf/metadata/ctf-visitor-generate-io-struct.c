@@ -1476,9 +1476,9 @@ struct bt_declaration *ctf_declaration_floating_point_visit(FILE *fd, int depth,
 		struct ctf_trace *trace)
 {
 	struct ctf_node *expression;
-	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0,
-		byte_order = trace->byte_order;
-	int has_alignment = 0, has_exp_dig = 0, has_mant_dig = 0;
+	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0;
+	int byte_order = trace->byte_order, has_alignment = 0,
+		has_exp_dig = 0, has_mant_dig = 0;
 	struct declaration_float *float_declaration;
 
 	bt_list_for_each_entry(expression, expressions, siblings) {
