@@ -51,7 +51,7 @@
 #include "metadata/ctf-parser.h"
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
-#include <babeltrace/compat/memstream.h>"
+#include <babeltrace/compat/memstream.h>
 
 #define LOG2_CHAR_BIT	3
 
