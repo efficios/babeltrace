@@ -653,11 +653,11 @@ int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
 	gpointer *ret_list = NULL;
 	GPtrArray *fields_array = NULL;
 	int ret = 0;
-	*count = 0;
 
 	if (!event_decl || !list || !count)
 		return -EINVAL;
 
+	*count = 0;
 	switch (scope) {
 	case BT_EVENT_CONTEXT:
 		if (event_decl->context_decl) {
