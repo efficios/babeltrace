@@ -107,7 +107,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 
 	/* Create an handle for the trace */
 	handle = bt_trace_handle_create(ctx);
-	if (handle < 0) {
+	if (!handle) {
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		ret = -1;
