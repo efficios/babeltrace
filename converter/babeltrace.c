@@ -490,15 +490,11 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		void (*packet_seek)(struct bt_stream_pos *pos,
 			size_t offset, int whence))
 {
-
-	GArray *trace_ids;
-	int ret = 0;
+	int ret = 0, trace_ids = 0;
 
 	/* Should lock traversed_paths mutex here if used in multithread */
 
 	traversed_paths = g_ptr_array_new();
-	trace_ids = g_array_new(FALSE, TRUE, sizeof(int));
-
 	ret = nftw(path, traverse_trace_dir, 10, 0);
 
 	/* Process the array if ntfw did not return a fatal error */
@@ -520,7 +516,7 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 				/* Allow to skip erroneous traces. */
 				ret = 1;	/* partial error */
 			} else {
-				g_array_append_val(trace_ids, trace_id);
+				trace_ids++;
 			}
 			g_string_free(trace_path, TRUE);
 		}
@@ -534,11 +530,10 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 	/*
 	 * Return an error if no trace can be opened.
 	 */
-	if (trace_ids->len == 0) {
+	if (trace_ids == 0) {
 		fprintf(stderr, "[error] Cannot open any trace for reading.\n\n");
 		ret = -ENOENT;		/* failure */
 	}
-	g_array_free(trace_ids, TRUE);
 	return ret;
 }
 
