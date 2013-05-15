@@ -649,7 +649,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
 		struct bt_declaration *type_declaration;
 		int ret;
-	
+
 		type_declaration = ctf_type_declarator_visit(fd, depth,
 					type_specifier_list,
 					&identifier, iter,
@@ -865,7 +865,6 @@ struct bt_declaration *ctf_declaration_struct_visit(FILE *fd,
 		if (name) {
 			if (bt_lookup_struct_declaration(g_quark_from_string(name),
 						      declaration_scope)) {
-				
 				fprintf(fd, "[error] %s: struct %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
@@ -936,7 +935,6 @@ struct bt_declaration *ctf_declaration_variant_visit(FILE *fd,
 		if (name) {
 			if (bt_lookup_variant_declaration(g_quark_from_string(name),
 						       declaration_scope)) {
-				
 				fprintf(fd, "[error] %s: variant %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
@@ -1105,7 +1103,6 @@ struct bt_declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 		if (name) {
 			if (bt_lookup_enum_declaration(g_quark_from_string(name),
 						    declaration_scope)) {
-				
 				fprintf(fd, "[error] %s: enum %s already declared in scope\n", __func__, name);
 				return NULL;
 			}
@@ -1233,7 +1230,7 @@ int get_boolean(FILE *fd, int depth, struct ctf_node *unary_expression)
 		fprintf(fd, "[error] %s: unexpected unary expression type\n",
 			__func__);
 		return -EINVAL;
-	} 
+	}
 
 }
 
