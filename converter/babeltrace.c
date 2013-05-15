@@ -451,15 +451,20 @@ static int traverse_trace_dir(const char *fpath, const struct stat *sb,
 		/* No meta data, just return */
 		return 0;
 	} else {
+		int err_close = 0;
+
 		closeret = close(metafd);
 		if (closeret < 0) {
 			perror("close");
-			return -1;	/* failure */
+			err_close = 1;
 		}
 		closeret = close(dirfd);
 		if (closeret < 0) {
 			perror("close");
-			return -1;	/* failure */
+			err_close = 1;
+		}
+		if (err_close) {
+			return -1;
 		}
 
 		/* Add path to the global list */
