@@ -358,7 +358,7 @@ int main(int argc, char **argv)
 
 	metadata_fd = openat(dir_fd, "metadata", O_RDWR|O_CREAT,
 			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-	if (fd < 0) {
+	if (metadata_fd < 0) {
 		perror("openat");
 		goto error_closedatastream;
 	}
