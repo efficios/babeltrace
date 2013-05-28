@@ -875,7 +875,6 @@ struct bt_declaration *ctf_declaration_struct_visit(FILE *fd,
 			ret = get_unary_unsigned(min_align, &min_align_value);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for structure \"align\" attribute\n", __func__);
-				ret = -EINVAL;
 				goto error;
 			}
 		}
