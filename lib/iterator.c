@@ -73,16 +73,24 @@ static int stream_read_event(struct ctf_file_stream *sin)
 }
 
 /*
- * returns true if a < b, false otherwise.
+ * Return true if a < b, false otherwise.
+ * If time stamps are exactly the same, compare by stream path. This
+ * ensures we get the same result between runs on the same trace
+ * collection on different environments.
+ * The result will be random for memory-mapped traces since there is no
+ * fixed path leading to those (they have empty path string).
  */
 static int stream_compare(void *a, void *b)
 {
 	struct ctf_file_stream *s_a = a, *s_b = b;
 
-	if (s_a->parent.real_timestamp < s_b->parent.real_timestamp)
+	if (s_a->parent.real_timestamp < s_b->parent.real_timestamp) {
 		return 1;
-	else
+	} else if (likely(s_a->parent.real_timestamp > s_b->parent.real_timestamp)) {
 		return 0;
+	} else {
+		return strcmp(s_a->parent.path, s_b->parent.path);
+	}
 }
 
 void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
