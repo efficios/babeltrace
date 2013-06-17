@@ -729,14 +729,6 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		pos->offset = 0;
 	} else {
 	read_next_packet:
-		if (pos->cur_index >= pos->packet_cycles_index->len) {
-			pos->offset = EOF;
-			return;
-		}
-		if (pos->cur_index >= pos->packet_real_index->len) {
-			pos->offset = EOF;
-			return;
-		}
 		switch (whence) {
 		case SEEK_CUR:
 		{
@@ -745,6 +737,9 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			if (pos->offset == EOF) {
 				return;
 			}
+			assert(pos->cur_index < pos->packet_cycles_index->len);
+			assert(pos->cur_index < pos->packet_real_index->len);
+
 			/* For printing discarded event count */
 			packet_index = &g_array_index(pos->packet_cycles_index,
 					struct packet_index, pos->cur_index);
@@ -782,6 +777,10 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			break;
 		}
 		case SEEK_SET:
+			if (index >= pos->packet_cycles_index->len) {
+				pos->offset = EOF;
+				return;
+			}
 			packet_index = &g_array_index(pos->packet_cycles_index,
 					struct packet_index, index);
 			pos->last_events_discarded = packet_index->events_discarded;
