@@ -1,7 +1,7 @@
 babeltrace.i: babeltrace.i.in
 	sed "s/BABELTRACE_VERSION_STR/Babeltrace $(PACKAGE_VERSION)/g" <babeltrace.i.in >babeltrace.i
 
-AM_CFLAGS = -I$(PYTHON_INCLUDE) -I$(top_srcdir)/include/
+AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
 
 EXTRA_DIST = babeltrace.i
 python_PYTHON = babeltrace.py
