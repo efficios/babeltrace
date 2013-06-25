@@ -123,7 +123,7 @@ void write_packet_header(struct ctf_stream_pos *pos, unsigned char *uuid)
 	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
 	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
@@ -149,7 +149,7 @@ void write_packet_context(struct ctf_stream_pos *pos)
 	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
 	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
@@ -160,7 +160,7 @@ void write_packet_context(struct ctf_stream_pos *pos)
 	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
 	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
