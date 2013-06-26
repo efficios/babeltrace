@@ -670,7 +670,7 @@ int ctf_fini_pos(struct ctf_stream_pos *pos)
 
 /*
  * for SEEK_CUR: go to next packet.
- * for SEEK_POS: go to packet numer (index).
+ * for SEEK_SET: go to packet numer (index).
  */
 void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 {
