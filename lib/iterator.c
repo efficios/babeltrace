@@ -73,16 +73,24 @@ static int stream_read_event(struct ctf_file_stream *sin)
 }
 
 /*
- * returns true if a < b, false otherwise.
+ * Return true if a < b, false otherwise.
+ * If time stamps are exactly the same, compare by stream path. This
+ * ensures we get the same result between runs on the same trace
+ * collection on different environments.
+ * The result will be random for memory-mapped traces since there is no
+ * fixed path leading to those (they have empty path string).
  */
 static int stream_compare(void *a, void *b)
 {
 	struct ctf_file_stream *s_a = a, *s_b = b;
 
-	if (s_a->parent.real_timestamp < s_b->parent.real_timestamp)
+	if (s_a->parent.real_timestamp < s_b->parent.real_timestamp) {
 		return 1;
-	else
+	} else if (likely(s_a->parent.real_timestamp > s_b->parent.real_timestamp)) {
 		return 0;
+	} else {
+		return strcmp(s_a->parent.path, s_b->parent.path);
+	}
 }
 
 void bt_iter_free_pos(struct bt_iter_pos *iter_pos)
@@ -180,7 +188,7 @@ static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
 			ret = seek_file_stream_by_timestamp(cfs, timestamp);
 			if (ret == 0) {
 				/* Add to heap */
-				ret = heap_insert(stream_heap, cfs);
+				ret = bt_heap_insert(stream_heap, cfs);
 				if (ret) {
 					/* Return positive error. */
 					return -ret;
@@ -309,7 +317,7 @@ static int seek_last_ctf_trace_collection(struct trace_collection *tc,
 	/* For each trace in the trace_collection */
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
 		if (!td_read)
@@ -358,8 +366,8 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		if (!iter_pos->u.restore)
 			return -EINVAL;
 
-		heap_free(iter->stream_heap);
-		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		bt_heap_free(iter->stream_heap);
+		ret = bt_heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
 			goto error_heap_init;
 
@@ -404,7 +412,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			}
 
 			/* Add to heap */
-			ret = heap_insert(iter->stream_heap,
+			ret = bt_heap_insert(iter->stream_heap,
 					saved_pos->file_stream);
 			if (ret)
 				goto error;
@@ -413,15 +421,15 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 	case BT_SEEK_TIME:
 		tc = iter->ctx->tc;
 
-		heap_free(iter->stream_heap);
-		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		bt_heap_free(iter->stream_heap);
+		ret = bt_heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
 			goto error_heap_init;
 
 		/* for each trace in the trace_collection */
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
-			struct trace_descriptor *td_read;
+			struct bt_trace_descriptor *td_read;
 
 			td_read = g_ptr_array_index(tc->array, i);
 			if (!td_read)
@@ -444,14 +452,14 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		return 0;
 	case BT_SEEK_BEGIN:
 		tc = iter->ctx->tc;
-		heap_free(iter->stream_heap);
-		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		bt_heap_free(iter->stream_heap);
+		ret = bt_heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
 			goto error_heap_init;
 
 		for (i = 0; i < tc->array->len; i++) {
 			struct ctf_trace *tin;
-			struct trace_descriptor *td_read;
+			struct bt_trace_descriptor *td_read;
 			int stream_id;
 
 			td_read = g_ptr_array_index(tc->array, i);
@@ -487,7 +495,7 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 						/* Do not add EOF streams */
 						continue;
 					}
-					ret = heap_insert(iter->stream_heap, file_stream);
+					ret = bt_heap_insert(iter->stream_heap, file_stream);
 					if (ret)
 						goto error;
 				}
@@ -503,13 +511,13 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 		if (ret != 0 || !cfs)
 			goto error;
 		/* remove all streams from the heap */
-		heap_free(iter->stream_heap);
+		bt_heap_free(iter->stream_heap);
 		/* Create a new empty heap */
-		ret = heap_init(iter->stream_heap, 0, stream_compare);
+		ret = bt_heap_init(iter->stream_heap, 0, stream_compare);
 		if (ret < 0)
 			goto error;
 		/* Insert the stream that contains the last event */
-		ret = heap_insert(iter->stream_heap, cfs);
+		ret = bt_heap_insert(iter->stream_heap, cfs);
 		if (ret)
 			goto error;
 		break;
@@ -522,10 +530,10 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 	return 0;
 
 error:
-	heap_free(iter->stream_heap);
+	bt_heap_free(iter->stream_heap);
 error_heap_init:
-	if (heap_init(iter->stream_heap, 0, stream_compare) < 0) {
-		heap_free(iter->stream_heap);
+	if (bt_heap_init(iter->stream_heap, 0, stream_compare) < 0) {
+		bt_heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
 		iter->stream_heap = NULL;
 		ret = -ENOMEM;
@@ -555,12 +563,12 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 	if (!pos->u.restore->stream_saved_pos)
 		goto error;
 
-	ret = heap_copy(&iter_heap_copy, iter->stream_heap);
+	ret = bt_heap_copy(&iter_heap_copy, iter->stream_heap);
 	if (ret < 0)
 		goto error_heap;
 
 	/* iterate over each stream in the heap */
-	file_stream = heap_maximum(&iter_heap_copy);
+	file_stream = bt_heap_maximum(&iter_heap_copy);
 	while (file_stream != NULL) {
 		struct stream_saved_pos saved_pos;
 
@@ -584,12 +592,12 @@ struct bt_iter_pos *bt_iter_get_pos(struct bt_iter *iter)
 				saved_pos.current_real_timestamp);
 
 		/* remove the stream from the heap copy */
-		removed = heap_remove(&iter_heap_copy);
+		removed = bt_heap_remove(&iter_heap_copy);
 		assert(removed == file_stream);
 
-		file_stream = heap_maximum(&iter_heap_copy);
+		file_stream = bt_heap_maximum(&iter_heap_copy);
 	}
-	heap_free(&iter_heap_copy);
+	bt_heap_free(&iter_heap_copy);
 	return pos;
 
 error_heap:
@@ -669,13 +677,13 @@ int bt_iter_init(struct bt_iter *iter,
 	bt_context_get(ctx);
 	iter->ctx = ctx;
 
-	ret = heap_init(iter->stream_heap, 0, stream_compare);
+	ret = bt_heap_init(iter->stream_heap, 0, stream_compare);
 	if (ret < 0)
 		goto error_heap_init;
 
 	for (i = 0; i < ctx->tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(ctx->tc->array, i);
 		if (!td_read)
@@ -718,7 +726,7 @@ int bt_iter_init(struct bt_iter *iter,
 					goto error;
 				}
 				/* Add to heap */
-				ret = heap_insert(iter->stream_heap, file_stream);
+				ret = bt_heap_insert(iter->stream_heap, file_stream);
 				if (ret)
 					goto error;
 			}
@@ -729,7 +737,7 @@ int bt_iter_init(struct bt_iter *iter,
 	return 0;
 
 error:
-	heap_free(iter->stream_heap);
+	bt_heap_free(iter->stream_heap);
 error_heap_init:
 	g_free(iter->stream_heap);
 	iter->stream_heap = NULL;
@@ -760,7 +768,7 @@ void bt_iter_fini(struct bt_iter *iter)
 {
 	assert(iter);
 	if (iter->stream_heap) {
-		heap_free(iter->stream_heap);
+		bt_heap_free(iter->stream_heap);
 		g_free(iter->stream_heap);
 	}
 	iter->ctx->current_iterator = NULL;
@@ -782,7 +790,7 @@ int bt_iter_next(struct bt_iter *iter)
 	if (!iter)
 		return -EINVAL;
 
-	file_stream = heap_maximum(iter->stream_heap);
+	file_stream = bt_heap_maximum(iter->stream_heap);
 	if (!file_stream) {
 		/* end of file for all streams */
 		ret = 0;
@@ -791,7 +799,7 @@ int bt_iter_next(struct bt_iter *iter)
 
 	ret = stream_read_event(file_stream);
 	if (ret == EOF) {
-		removed = heap_remove(iter->stream_heap);
+		removed = bt_heap_remove(iter->stream_heap);
 		assert(removed == file_stream);
 		ret = 0;
 		goto end;
@@ -799,7 +807,7 @@ int bt_iter_next(struct bt_iter *iter)
 		goto end;
 	}
 	/* Reinsert the file stream into the heap, and rebalance. */
-	removed = heap_replace_max(iter->stream_heap, file_stream);
+	removed = bt_heap_replace_max(iter->stream_heap, file_stream);
 	assert(removed == file_stream);
 
 end:

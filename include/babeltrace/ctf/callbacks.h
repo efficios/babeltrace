@@ -51,13 +51,13 @@ enum bt_cb_ret {
 /*
  * Receives a variable number of strings as parameter, ended with NULL.
  */
-struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...);
+struct bt_dependencies *bt_dependencies_create(const char *first, ...);
 
 /*
  * struct bt_dependencies must be destroyed explicitly if not passed as
  * parameter to a bt_ctf_iter_add_callback().
  */
-void babeltrace_dependencies_destroy(struct bt_dependencies *dep);
+void bt_dependencies_destroy(struct bt_dependencies *dep);
 
 /*
  * bt_ctf_iter_add_callback: Add a callback to iterator.

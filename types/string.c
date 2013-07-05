@@ -32,15 +32,15 @@
 #include <babeltrace/types.h>
 
 static
-struct definition *_string_definition_new(struct declaration *declaration,
+struct bt_definition *_string_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
 static
-void _string_definition_free(struct definition *definition);
+void _string_definition_free(struct bt_definition *definition);
 
 static
-void _string_declaration_free(struct declaration *declaration)
+void _string_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_string *string_declaration =
 		container_of(declaration, struct declaration_string, p);
@@ -48,7 +48,7 @@ void _string_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_string *
-	string_declaration_new(enum ctf_string_encoding encoding)
+	bt_string_declaration_new(enum ctf_string_encoding encoding)
 {
 	struct declaration_string *string_declaration;
 
@@ -64,8 +64,8 @@ struct declaration_string *
 }
 
 static
-struct definition *
-	_string_definition_new(struct declaration *declaration,
+struct bt_definition *
+	_string_definition_new(struct bt_declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
 			       const char *root_name)
@@ -76,7 +76,7 @@ struct definition *
 	int ret;
 
 	string = g_new(struct definition_string, 1);
-	declaration_ref(&string_declaration->p);
+	bt_declaration_ref(&string_declaration->p);
 	string->p.declaration = declaration;
 	string->declaration = string_declaration;
 	string->p.ref = 1;
@@ -86,30 +86,30 @@ struct definition *
 	 */
 	string->p.index = root_name ? INT_MAX : index;
 	string->p.name = field_name;
-	string->p.path = new_definition_path(parent_scope, field_name,
+	string->p.path = bt_new_definition_path(parent_scope, field_name,
 					root_name);
 	string->p.scope = NULL;
 	string->value = NULL;
 	string->len = 0;
 	string->alloc_len = 0;
-	ret = register_field_definition(field_name, &string->p,
+	ret = bt_register_field_definition(field_name, &string->p,
 					parent_scope);
 	assert(!ret);
 	return &string->p;
 }
 
 static
-void _string_definition_free(struct definition *definition)
+void _string_definition_free(struct bt_definition *definition)
 {
 	struct definition_string *string =
 		container_of(definition, struct definition_string, p);
 
-	declaration_unref(string->p.declaration);
+	bt_declaration_unref(string->p.declaration);
 	g_free(string->value);
 	g_free(string);
 }
 
-enum ctf_string_encoding get_string_encoding(const struct definition *field)
+enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *field)
 {
 	struct definition_string *string_definition;
 	const struct declaration_string *string_declaration;
@@ -120,7 +120,7 @@ enum ctf_string_encoding get_string_encoding(const struct definition *field)
 	return string_declaration->encoding;
 }
 
-char *get_string(const struct definition *field)
+char *bt_get_string(const struct bt_definition *field)
 {
 	struct definition_string *string_definition =
 		container_of(field, struct definition_string, p);

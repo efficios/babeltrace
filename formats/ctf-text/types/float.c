@@ -31,7 +31,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-int ctf_text_float_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);

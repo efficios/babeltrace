@@ -32,31 +32,31 @@
 #include <babeltrace/endian.h>
 
 static
-struct definition *_float_definition_new(struct declaration *declaration,
+struct bt_definition *_float_definition_new(struct bt_declaration *declaration,
 				   struct definition_scope *parent_scope,
 				   GQuark field_name, int index,
 				   const char *root_name);
 static
-void _float_definition_free(struct definition *definition);
+void _float_definition_free(struct bt_definition *definition);
 
 static
-void _float_declaration_free(struct declaration *declaration)
+void _float_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
 
-	declaration_unref(&float_declaration->exp->p);
-	declaration_unref(&float_declaration->mantissa->p);
-	declaration_unref(&float_declaration->sign->p);
+	bt_declaration_unref(&float_declaration->exp->p);
+	bt_declaration_unref(&float_declaration->mantissa->p);
+	bt_declaration_unref(&float_declaration->sign->p);
 	g_free(float_declaration);
 }
 
 struct declaration_float *
-	float_declaration_new(size_t mantissa_len,
+	bt_float_declaration_new(size_t mantissa_len,
 		       size_t exp_len, int byte_order, size_t alignment)
 {
 	struct declaration_float *float_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	float_declaration = g_new(struct declaration_float, 1);
 	declaration = &float_declaration->p;
@@ -68,21 +68,21 @@ struct declaration_float *
 	declaration->ref = 1;
 	float_declaration->byte_order = byte_order;
 
-	float_declaration->sign = integer_declaration_new(1,
+	float_declaration->sign = bt_integer_declaration_new(1,
 						byte_order, false, 1, 2,
 						CTF_STRING_NONE, NULL);
-	float_declaration->mantissa = integer_declaration_new(mantissa_len - 1,
+	float_declaration->mantissa = bt_integer_declaration_new(mantissa_len - 1,
 						byte_order, false, 1, 10,
 						CTF_STRING_NONE, NULL);
-	float_declaration->exp = integer_declaration_new(exp_len,
+	float_declaration->exp = bt_integer_declaration_new(exp_len,
 						byte_order, true, 1, 10,
 						CTF_STRING_NONE, NULL);
 	return float_declaration;
 }
 
 static
-struct definition *
-	_float_definition_new(struct declaration *declaration,
+struct bt_definition *
+	_float_definition_new(struct bt_declaration *declaration,
 			      struct definition_scope *parent_scope,
 			      GQuark field_name, int index,
 			      const char *root_name)
@@ -90,14 +90,14 @@ struct definition *
 	struct declaration_float *float_declaration =
 		container_of(declaration, struct declaration_float, p);
 	struct definition_float *_float;
-	struct definition *tmp;
+	struct bt_definition *tmp;
 
 	_float = g_new(struct definition_float, 1);
-	declaration_ref(&float_declaration->p);
+	bt_declaration_ref(&float_declaration->p);
 	_float->p.declaration = declaration;
 	_float->declaration = float_declaration;
-	_float->p.scope = new_definition_scope(parent_scope, field_name, root_name);
-	_float->p.path = new_definition_path(parent_scope, field_name, root_name);
+	_float->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
+	_float->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
 	if (float_declaration->byte_order == LITTLE_ENDIAN) {
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
 			_float->p.scope, g_quark_from_static_string("mantissa"), 0, NULL);
@@ -130,7 +130,7 @@ struct definition *
 	if (parent_scope) {
 		int ret;
 
-		ret = register_field_definition(field_name, &_float->p,
+		ret = bt_register_field_definition(field_name, &_float->p,
 						parent_scope);
 		assert(!ret);
 	}
@@ -138,15 +138,15 @@ struct definition *
 }
 
 static
-void _float_definition_free(struct definition *definition)
+void _float_definition_free(struct bt_definition *definition)
 {
 	struct definition_float *_float =
 		container_of(definition, struct definition_float, p);
 
-	definition_unref(&_float->sign->p);
-	definition_unref(&_float->exp->p);
-	definition_unref(&_float->mantissa->p);
-	free_definition_scope(_float->p.scope);
-	declaration_unref(_float->p.declaration);
+	bt_definition_unref(&_float->sign->p);
+	bt_definition_unref(&_float->exp->p);
+	bt_definition_unref(&_float->mantissa->p);
+	bt_free_definition_scope(_float->p.scope);
+	bt_declaration_unref(_float->p.declaration);
 	g_free(_float);
 }

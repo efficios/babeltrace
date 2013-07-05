@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([babeltrace],[1.0.2],[mathieu dot desnoyers at efficios dot com])
+AC_INIT([babeltrace],[1.1.1],[mathieu dot desnoyers at efficios dot com])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -10,14 +10,14 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_PROG_MKDIR_P
+AC_PROG_MKDIR_P
 
 AC_CONFIG_HEADERS([config.h])
 
 AC_SYS_LARGEFILE
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_STDC
 AC_PROG_MAKE_SET
 LT_INIT
 AC_PROG_YACC
@@ -133,6 +133,7 @@ AC_CONFIG_FILES([
 	formats/ctf/types/Makefile
 	formats/ctf-text/Makefile
 	formats/ctf-text/types/Makefile
+	formats/ctf-metadata/Makefile
 	formats/bt-dummy/Makefile
 	formats/ctf/metadata/Makefile
 	converter/Makefile

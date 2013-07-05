@@ -36,14 +36,14 @@
 #endif
 
 static
-struct definition *_struct_definition_new(struct declaration *declaration,
+struct bt_definition *_struct_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name);
 static
-void _struct_definition_free(struct definition *definition);
+void _struct_definition_free(struct bt_definition *definition);
 
-int struct_rw(struct stream_pos *ppos, struct definition *definition)
+int bt_struct_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_struct *struct_definition =
 		container_of(definition, struct definition_struct, p);
@@ -51,7 +51,7 @@ int struct_rw(struct stream_pos *ppos, struct definition *definition)
 	int ret;
 
 	for (i = 0; i < struct_definition->fields->len; i++) {
-		struct definition *field =
+		struct bt_definition *field =
 			g_ptr_array_index(struct_definition->fields, i);
 		ret = generic_rw(ppos, field);
 		if (ret)
@@ -61,31 +61,31 @@ int struct_rw(struct stream_pos *ppos, struct definition *definition)
 }
 
 static
-void _struct_declaration_free(struct declaration *declaration)
+void _struct_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_struct *struct_declaration =
 		container_of(declaration, struct declaration_struct, p);
 	unsigned long i;
 
-	free_declaration_scope(struct_declaration->scope);
+	bt_free_declaration_scope(struct_declaration->scope);
 	g_hash_table_destroy(struct_declaration->fields_by_name);
 
 	for (i = 0; i < struct_declaration->fields->len; i++) {
 		struct declaration_field *declaration_field =
 			&g_array_index(struct_declaration->fields,
 				       struct declaration_field, i);
-		declaration_unref(declaration_field->declaration);
+		bt_declaration_unref(declaration_field->declaration);
 	}
 	g_array_free(struct_declaration->fields, true);
 	g_free(struct_declaration);
 }
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope,
+	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align)
 {
 	struct declaration_struct *struct_declaration;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	struct_declaration = g_new(struct declaration_struct, 1);
 	declaration = &struct_declaration->p;
@@ -94,7 +94,7 @@ struct declaration_struct *
 	struct_declaration->fields = g_array_sized_new(FALSE, TRUE,
 						sizeof(struct declaration_field),
 						DEFAULT_NR_STRUCT_FIELDS);
-	struct_declaration->scope = new_declaration_scope(parent_scope);
+	struct_declaration->scope = bt_new_declaration_scope(parent_scope);
 	declaration->id = CTF_TYPE_STRUCT;
 	declaration->alignment = max(1, min_align);
 	declaration->declaration_free = _struct_declaration_free;
@@ -105,8 +105,8 @@ struct declaration_struct *
 }
 
 static
-struct definition *
-	_struct_definition_new(struct declaration *declaration,
+struct bt_definition *
+	_struct_definition_new(struct bt_declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
 			       const char *root_name)
@@ -118,7 +118,7 @@ struct definition *
 	int ret;
 
 	_struct = g_new(struct definition_struct, 1);
-	declaration_ref(&struct_declaration->p);
+	bt_declaration_ref(&struct_declaration->p);
 	_struct->p.declaration = declaration;
 	_struct->declaration = struct_declaration;
 	_struct->p.ref = 1;
@@ -128,10 +128,10 @@ struct definition *
 	 */
 	_struct->p.index = root_name ? INT_MAX : index;
 	_struct->p.name = field_name;
-	_struct->p.path = new_definition_path(parent_scope, field_name, root_name);
-	_struct->p.scope = new_definition_scope(parent_scope, field_name, root_name);
+	_struct->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
+	_struct->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
 
-	ret = register_field_definition(field_name, &_struct->p,
+	ret = bt_register_field_definition(field_name, &_struct->p,
 					parent_scope);
 	assert(!ret || ret == -EPERM);
 
@@ -141,8 +141,8 @@ struct definition *
 		struct declaration_field *declaration_field =
 			&g_array_index(struct_declaration->fields,
 				       struct declaration_field, i);
-		struct definition **field =
-			(struct definition **) &g_ptr_array_index(_struct->fields, i);
+		struct bt_definition **field =
+			(struct bt_definition **) &g_ptr_array_index(_struct->fields, i);
 
 		*field = declaration_field->declaration->definition_new(declaration_field->declaration,
 							  _struct->p.scope,
@@ -154,17 +154,17 @@ struct definition *
 
 error:
 	for (i--; i >= 0; i--) {
-		struct definition *field = g_ptr_array_index(_struct->fields, i);
-		definition_unref(field);
+		struct bt_definition *field = g_ptr_array_index(_struct->fields, i);
+		bt_definition_unref(field);
 	}
-	free_definition_scope(_struct->p.scope);
-	declaration_unref(&struct_declaration->p);
+	bt_free_definition_scope(_struct->p.scope);
+	bt_declaration_unref(&struct_declaration->p);
 	g_free(_struct);
 	return NULL;
 }
 
 static
-void _struct_definition_free(struct definition *definition)
+void _struct_definition_free(struct bt_definition *definition)
 {
 	struct definition_struct *_struct =
 		container_of(definition, struct definition_struct, p);
@@ -172,18 +172,18 @@ void _struct_definition_free(struct definition *definition)
 
 	assert(_struct->fields->len == _struct->declaration->fields->len);
 	for (i = 0; i < _struct->fields->len; i++) {
-		struct definition *field = g_ptr_array_index(_struct->fields, i);
-		definition_unref(field);
+		struct bt_definition *field = g_ptr_array_index(_struct->fields, i);
+		bt_definition_unref(field);
 	}
-	free_definition_scope(_struct->p.scope);
-	declaration_unref(_struct->p.declaration);
+	bt_free_definition_scope(_struct->p.scope);
+	bt_declaration_unref(_struct->p.declaration);
 	g_ptr_array_free(_struct->fields, TRUE);
 	g_free(_struct);
 }
 
-void struct_declaration_add_field(struct declaration_struct *struct_declaration,
+void bt_struct_declaration_add_field(struct declaration_struct *struct_declaration,
 			   const char *field_name,
-			   struct declaration *field_declaration)
+			   struct bt_declaration *field_declaration)
 {
 	struct declaration_field *field;
 	unsigned long index;
@@ -192,7 +192,7 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 	index = struct_declaration->fields->len - 1;	/* last field (new) */
 	field = &g_array_index(struct_declaration->fields, struct declaration_field, index);
 	field->name = g_quark_from_string(field_name);
-	declaration_ref(field_declaration);
+	bt_declaration_ref(field_declaration);
 	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
 	g_hash_table_insert(struct_declaration->fields_by_name,
@@ -207,12 +207,12 @@ void struct_declaration_add_field(struct declaration_struct *struct_declaration,
 }
 
 /*
- * struct_declaration_lookup_field_index - returns field index
+ * bt_struct_declaration_lookup_field_index - returns field index
  *
  * Returns the index of a field in a structure, or -1 if it does not
  * exist.
  */
-int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+int bt_struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 				       GQuark field_name)
 {
 	gpointer index;
@@ -230,7 +230,7 @@ int struct_declaration_lookup_field_index(struct declaration_struct *struct_decl
  * field returned only valid as long as the field structure is not appended to.
  */
 struct declaration_field *
-	struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
+	bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					 int index)
 {
 	if (index < 0)
@@ -241,8 +241,8 @@ struct declaration_field *
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
-struct definition *
-struct_definition_get_field_from_index(struct definition_struct *_struct,
+struct bt_definition *
+bt_struct_definition_get_field_from_index(struct definition_struct *_struct,
 					int index)
 {
 	if (index < 0)
@@ -250,7 +250,7 @@ struct_definition_get_field_from_index(struct definition_struct *_struct,
 	return g_ptr_array_index(_struct->fields, index);
 }
 
-uint64_t struct_declaration_len(struct declaration_struct *struct_declaration)
+uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration)
 {
 	return struct_declaration->fields->len;
 }

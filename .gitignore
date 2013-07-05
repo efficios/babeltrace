@@ -1,5 +1,5 @@
-/tests/test-bitfield
 *~
+/tests/lib/test-bitfield
 /tests/lib/test-seeks
 *.o
 *.a
@@ -36,3 +36,4 @@ stamp-h1
 bindings/python/babeltrace.i
 bindings/python/babeltrace.py
 bindings/python/babeltrace_wrap.c
+babeltrace.pc

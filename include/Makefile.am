@@ -19,6 +19,7 @@ noinst_HEADERS = \
 	babeltrace/clock-internal.h \
 	babeltrace/compiler.h \
 	babeltrace/context-internal.h \
+	babeltrace/format-internal.h \
 	babeltrace/iterator-internal.h \
 	babeltrace/trace-collection.h \
 	babeltrace/prio_heap.h \
@@ -30,6 +31,8 @@ noinst_HEADERS = \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
 	babeltrace/trace-handle-internal.h \
-	babeltrace/uuid.h \
+	babeltrace/compat/uuid.h \
+	babeltrace/compat/memstream.h \
+	babeltrace/compat/utc.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h

@@ -4,9 +4,6 @@ set -x
 if [ ! -e config ]; then
 	mkdir config
 fi
-aclocal -I m4
-libtoolize --force --copy
-autoheader
-automake --add-missing --copy
-autoconf
 
+libtoolize --force --copy
+autoreconf -i

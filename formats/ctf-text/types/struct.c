@@ -29,13 +29,9 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_struct_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
-	struct declaration *declaration = definition->declaration;
-	struct declaration_struct *struct_declaration =
-		container_of(declaration, struct declaration_struct, p);
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
-	uint64_t len = struct_declaration_len(struct_declaration);
 	int field_nr_saved;
 	int ret;
 
@@ -46,22 +42,20 @@ int ctf_text_struct_write(struct stream_pos *ppos, struct definition *definition
 		if (pos->depth >= 0) {
 			if (pos->field_nr++ != 0)
 				fprintf(pos->fp, ",");
-			if (pos->print_names || len > 1)
-				fprintf(pos->fp, " ");
+			fprintf(pos->fp, " ");
 			if (pos->print_names && definition->name != 0)
 				fprintf(pos->fp, "%s = ",
 					rem_(g_quark_to_string(definition->name)));
-			if (pos->print_names || len > 1)
-				fprintf(pos->fp, "{");
+			fprintf(pos->fp, "{");
 		}
 		pos->depth++;
 	}
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
-	ret = struct_rw(ppos, definition);
+	ret = bt_struct_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
-		if (pos->depth >= 0 && (pos->print_names || len > 1)) {
+		if (pos->depth >= 0) {
 			fprintf(pos->fp, " }");
 		}
 	}

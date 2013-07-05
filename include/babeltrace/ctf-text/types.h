@@ -35,13 +35,14 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 
 /*
- * Inherit from both struct stream_pos and struct trace_descriptor.
+ * Inherit from both struct bt_stream_pos and struct bt_trace_descriptor.
  */
 struct ctf_text_stream_pos {
-	struct stream_pos parent;
-	struct trace_descriptor trace_descriptor;
+	struct bt_stream_pos parent;
+	struct bt_trace_descriptor trace_descriptor;
 	FILE *fp;		/* File pointer. NULL if unset. */
 	int depth;
 	int dummy;		/* disable output */
@@ -53,7 +54,7 @@ struct ctf_text_stream_pos {
 };
 
 static inline
-struct ctf_text_stream_pos *ctf_text_pos(struct stream_pos *pos)
+struct ctf_text_stream_pos *ctf_text_pos(struct bt_stream_pos *pos)
 {
 	return container_of(pos, struct ctf_text_stream_pos, parent);
 }
@@ -61,14 +62,22 @@ struct ctf_text_stream_pos *ctf_text_pos(struct stream_pos *pos)
 /*
  * Write only is supported for now.
  */
-int ctf_text_integer_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_float_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_string_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_enum_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_struct_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_variant_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_array_write(struct stream_pos *pos, struct definition *definition);
-int ctf_text_sequence_write(struct stream_pos *pos, struct definition *definition);
+BT_HIDDEN
+int ctf_text_integer_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_float_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_string_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_enum_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_struct_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_variant_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_array_write(struct bt_stream_pos *pos, struct bt_definition *definition);
+BT_HIDDEN
+int ctf_text_sequence_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 
 static inline
 void print_pos_tabs(struct ctf_text_stream_pos *pos)
@@ -82,6 +91,7 @@ void print_pos_tabs(struct ctf_text_stream_pos *pos)
 /*
  * Check if the field must be printed.
  */
-int print_field(struct definition *definition);
+BT_HIDDEN
+int print_field(struct bt_definition *definition);
 
 #endif /* _BABELTRACE_CTF_TEXT_TYPES_H */

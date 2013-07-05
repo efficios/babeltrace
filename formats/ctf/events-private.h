@@ -40,13 +40,13 @@ uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
 {
 	uint64_t ts_nsec;
 	struct ctf_trace *trace = stream->stream_class->trace;
-	struct trace_collection *tc = trace->collection;
+	struct trace_collection *tc = trace->parent.collection;
 	uint64_t tc_offset;
 
 	if (tc->clock_use_offset_avg)
 		tc_offset = tc->single_clock_offset_avg;
 	else
-		tc_offset = trace->single_clock->offset;
+		tc_offset = trace->parent.single_clock->offset;
 
 	ts_nsec = clock_cycles_to_ns(stream->current_clock, timestamp);
 	ts_nsec += tc_offset;	/* Add offset */

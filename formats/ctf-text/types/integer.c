@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <babeltrace/bitfield.h>
 
-int ctf_text_integer_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_integer *integer_definition =
 		container_of(definition, struct definition_integer, p);

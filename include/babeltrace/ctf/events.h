@@ -39,8 +39,8 @@
 extern "C" {
 #endif
 
-struct definition;
-struct declaration;
+struct bt_definition;
+struct bt_declaration;
 struct bt_ctf_event;
 struct bt_ctf_event_decl;
 struct bt_ctf_field_decl;
@@ -94,7 +94,7 @@ enum ctf_string_encoding {
  * between the enum and the actual definition of top-level scopes.
  * On error return NULL.
  */
-const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
+const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
 		enum bt_ctf_scope scope);
 
 /*
@@ -130,47 +130,47 @@ uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
  * from which the event is extracted is unchanged).
  */
 int bt_ctf_get_field_list(const struct bt_ctf_event *event,
-		const struct definition *scope,
-		struct definition const * const **list,
+		const struct bt_definition *scope,
+		struct bt_definition const * const **list,
 		unsigned int *count);
 
 /*
  * bt_ctf_get_field: returns the definition of a specific field
  */
-const struct definition *bt_ctf_get_field(const struct bt_ctf_event *event,
-		const struct definition *scope,
+const struct bt_definition *bt_ctf_get_field(const struct bt_ctf_event *event,
+		const struct bt_definition *scope,
 		const char *field);
 
 /*
  * bt_ctf_get_index: if the field is an array or a sequence, return the element
  * at position index, otherwise return NULL;
  */
-const struct definition *bt_ctf_get_index(const struct bt_ctf_event *event,
-		const struct definition *field,
+const struct bt_definition *bt_ctf_get_index(const struct bt_ctf_event *event,
+		const struct bt_definition *field,
 		unsigned int index);
 
 /*
  * bt_ctf_field_name: returns the name of a field or NULL on error
  */
-const char *bt_ctf_field_name(const struct definition *def);
+const char *bt_ctf_field_name(const struct bt_definition *def);
 
 /*
  * bt_ctf_get_decl_from_def: return the declaration of a field from
  * its definition or NULL on error
  */
-const struct declaration *bt_ctf_get_decl_from_def(const struct definition *def);
+const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *def);
 
 /*
  * bt_ctf_get_decl_from_field_decl: return the declaration of a field from
  * a field_decl or NULL on error
  */
-const struct declaration *bt_ctf_get_decl_from_field_decl(
+const struct bt_declaration *bt_ctf_get_decl_from_field_decl(
 		const struct bt_ctf_field_decl *field);
 
 /*
  * bt_ctf_field_type: returns the type of a field or -1 if unknown
  */
-enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
+enum ctf_type_id bt_ctf_field_type(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_signedness: return the signedness of an integer
@@ -179,37 +179,37 @@ enum ctf_type_id bt_ctf_field_type(const struct declaration *decl);
  * return 1 if signed
  * return -1 on error
  */
-int bt_ctf_get_int_signedness(const struct declaration *decl);
+int bt_ctf_get_int_signedness(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_base: return the base of an int or a negative value on error
  */
-int bt_ctf_get_int_base(const struct declaration *decl);
+int bt_ctf_get_int_base(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_byte_order: return the byte order of an int or a negative
  * value on error
  */
-int bt_ctf_get_int_byte_order(const struct declaration *decl);
+int bt_ctf_get_int_byte_order(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_int_len: return the size, in bits, of an int or a negative
  * value on error
  */
-ssize_t bt_ctf_get_int_len(const struct declaration *decl);
+ssize_t bt_ctf_get_int_len(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_encoding: return the encoding of an int, a string, or of
  * the integer contained in a char array or a sequence.
  * return a negative value on error
  */
-enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *decl);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct bt_declaration *decl);
 
 /*
  * bt_ctf_get_array_len: return the len of an array or a negative
  * value on error
  */
-int bt_ctf_get_array_len(const struct declaration *decl);
+int bt_ctf_get_array_len(const struct bt_declaration *decl);
 
 /*
  * Field access functions
@@ -225,12 +225,12 @@ int bt_ctf_get_array_len(const struct declaration *decl);
  * bt_ctf_get_enum_str gets the string matching the current enumeration
  * value, or NULL if the current value does not match any string.
  */
-uint64_t bt_ctf_get_uint64(const struct definition *field);
-int64_t bt_ctf_get_int64(const struct definition *field);
-const struct definition *bt_ctf_get_enum_int(const struct definition *field);
-const char *bt_ctf_get_enum_str(const struct definition *field);
-char *bt_ctf_get_char_array(const struct definition *field);
-char *bt_ctf_get_string(const struct definition *field);
+uint64_t bt_ctf_get_uint64(const struct bt_definition *field);
+int64_t bt_ctf_get_int64(const struct bt_definition *field);
+const struct bt_definition *bt_ctf_get_enum_int(const struct bt_definition *field);
+const char *bt_ctf_get_enum_str(const struct bt_definition *field);
+char *bt_ctf_get_char_array(const struct bt_definition *field);
+char *bt_ctf_get_string(const struct bt_definition *field);
 
 /*
  * bt_ctf_field_get_error: returns the last error code encountered while

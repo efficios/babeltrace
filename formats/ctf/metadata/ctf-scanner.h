@@ -36,7 +36,7 @@ struct ctf_scanner {
 	struct ctf_ast *ast;
 	struct ctf_scanner_scope root_scope;
 	struct ctf_scanner_scope *cs;
-	struct bt_list_head allocated_strings;
+	struct objstack *objstack;
 };
 
 struct ctf_scanner *ctf_scanner_alloc(FILE *input);
@@ -49,7 +49,7 @@ struct ctf_ast *ctf_scanner_get_ast(struct ctf_scanner *scanner)
 	return scanner->ast;
 }
 
-__attribute__((visibility("hidden")))
+BT_HIDDEN
 int is_type(struct ctf_scanner *scanner, const char *id);
 
 #endif /* _CTF_SCANNER_H */

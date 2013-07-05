@@ -33,7 +33,7 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/trace-handle-internal.h>
 #include <babeltrace/context-internal.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -51,13 +51,18 @@
 #include "metadata/ctf-parser.h"
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
-#include "memstream.h"
+#include <babeltrace/compat/memstream.h>
+
+#define LOG2_CHAR_BIT	3
 
 /*
- * We currently simply map a page to read the packet header and packet
- * context to get the packet length and content length. (in bits)
+ * Length of first attempt at mapping a packet header, in bits.
  */
-#define MAX_PACKET_HEADER_LEN	(getpagesize() * CHAR_BIT)
+#define DEFAULT_HEADER_LEN	(getpagesize() * CHAR_BIT)
+
+/*
+ * Lenght of packet to write, in bits.
+ */
 #define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
 
 #ifndef min
@@ -72,37 +77,38 @@ int opt_clock_cycles,
 	opt_clock_gmt;
 
 uint64_t opt_clock_offset;
+uint64_t opt_clock_offset_ns;
 
 extern int yydebug;
 
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
-struct trace_descriptor *ctf_open_mmap_trace(
-		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_open_mmap_trace(
+		struct bt_mmap_stream_list *mmap_list,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
-void ctf_set_context(struct trace_descriptor *descriptor,
+void ctf_set_context(struct bt_trace_descriptor *descriptor,
 		struct bt_context *ctx);
 static
-void ctf_set_handle(struct trace_descriptor *descriptor,
+void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle);
 
 static
-int ctf_close_trace(struct trace_descriptor *descriptor);
+int ctf_close_trace(struct bt_trace_descriptor *descriptor);
 static
-uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type);
 static
-uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type);
 static
-int ctf_convert_index_timestamp(struct trace_descriptor *tdp);
+int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp);
 
 static
 rw_dispatch read_dispatch_table[] = {
@@ -129,7 +135,7 @@ rw_dispatch write_dispatch_table[] = {
 };
 
 static
-struct format ctf_format = {
+struct bt_format ctf_format = {
 	.open_trace = ctf_open_trace,
 	.open_mmap_trace = ctf_open_mmap_trace,
 	.close_trace = ctf_close_trace,
@@ -141,7 +147,7 @@ struct format ctf_format = {
 };
 
 static
-uint64_t ctf_timestamp_begin(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
@@ -202,7 +208,7 @@ error:
 }
 
 static
-uint64_t ctf_timestamp_end(struct trace_descriptor *descriptor,
+uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type)
 {
 	struct ctf_trace *tin;
@@ -307,6 +313,7 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
  * Print timestamp, rescaling clock frequency to nanoseconds and
  * applying offsets as needed (unix time).
  */
+static
 void ctf_print_timestamp_real(FILE *fp,
 			struct ctf_stream_definition *stream,
 			uint64_t timestamp)
@@ -314,6 +321,9 @@ void ctf_print_timestamp_real(FILE *fp,
 	uint64_t ts_sec = 0, ts_nsec;
 
 	ts_nsec = timestamp;
+
+	/* Add command-line offset in ns*/
+        ts_nsec += opt_clock_offset_ns;
 
 	/* Add command-line offset */
 	ts_sec += opt_clock_offset;
@@ -371,6 +381,7 @@ end:
 /*
  * Print timestamp, in cycles
  */
+static
 void ctf_print_timestamp_cycles(FILE *fp,
 		struct ctf_stream_definition *stream,
 		uint64_t timestamp)
@@ -390,7 +401,50 @@ void ctf_print_timestamp(FILE *fp,
 }
 
 static
-int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
+void print_uuid(FILE *fp, unsigned char *uuid)
+{
+	int i;
+
+	for (i = 0; i < BABELTRACE_UUID_LEN; i++)
+		fprintf(fp, "%x", (unsigned int) uuid[i]);
+}
+
+void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream,
+		int end_stream)
+{
+	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events %sbetween [",
+		stream->events_discarded,
+		end_stream ? "at end of stream " : "");
+	if (opt_clock_cycles) {
+		ctf_print_timestamp(fp, stream,
+				stream->prev_cycles_timestamp);
+		fprintf(fp, "] and [");
+		ctf_print_timestamp(fp, stream,
+				stream->prev_cycles_timestamp_end);
+	} else {
+		ctf_print_timestamp(fp, stream,
+				stream->prev_real_timestamp);
+		fprintf(fp, "] and [");
+		ctf_print_timestamp(fp, stream,
+				stream->prev_real_timestamp_end);
+	}
+	fprintf(fp, "] in trace UUID ");
+	print_uuid(fp, stream->stream_class->trace->uuid);
+	if (stream->stream_class->trace->parent.path[0])
+		fprintf(fp, ", at path: \"%s\"",
+			stream->stream_class->trace->parent.path);
+
+	fprintf(fp, ", within stream id %" PRIu64, stream->stream_id);
+	if (stream->path[0])
+		fprintf(fp, ", at relative path: \"%s\"", stream->path);
+	fprintf(fp, ". ");
+	fprintf(fp, "You should consider recording a new trace with larger "
+		"buffers or with fewer events enabled.\n");
+	fflush(fp);
+}
+
+static
+int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
@@ -419,27 +473,27 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 	/* Read event header */
 	if (likely(stream->stream_event_header)) {
 		struct definition_integer *integer_definition;
-		struct definition *variant;
+		struct bt_definition *variant;
 
 		ret = generic_rw(ppos, &stream->stream_event_header->p);
 		if (unlikely(ret))
 			goto error;
 		/* lookup event id */
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "id", FALSE);
+		integer_definition = bt_lookup_integer(&stream->stream_event_header->p, "id", FALSE);
 		if (integer_definition) {
 			id = integer_definition->value._unsigned;
 		} else {
 			struct definition_enum *enum_definition;
 
-			enum_definition = lookup_enum(&stream->stream_event_header->p, "id", FALSE);
+			enum_definition = bt_lookup_enum(&stream->stream_event_header->p, "id", FALSE);
 			if (enum_definition) {
 				id = enum_definition->integer->value._unsigned;
 			}
 		}
 
-		variant = lookup_variant(&stream->stream_event_header->p, "v");
+		variant = bt_lookup_variant(&stream->stream_event_header->p, "v");
 		if (variant) {
-			integer_definition = lookup_integer(variant, "id", FALSE);
+			integer_definition = bt_lookup_integer(variant, "id", FALSE);
 			if (integer_definition) {
 				id = integer_definition->value._unsigned;
 			}
@@ -448,13 +502,13 @@ int ctf_read_event(struct stream_pos *ppos, struct ctf_stream_definition *stream
 
 		/* lookup timestamp */
 		stream->has_timestamp = 0;
-		integer_definition = lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
+		integer_definition = bt_lookup_integer(&stream->stream_event_header->p, "timestamp", FALSE);
 		if (integer_definition) {
 			ctf_update_timestamp(stream, integer_definition);
 			stream->has_timestamp = 1;
 		} else {
 			if (variant) {
-				integer_definition = lookup_integer(variant, "timestamp", FALSE);
+				integer_definition = bt_lookup_integer(variant, "timestamp", FALSE);
 				if (integer_definition) {
 					ctf_update_timestamp(stream, integer_definition);
 					stream->has_timestamp = 1;
@@ -502,7 +556,7 @@ error:
 }
 
 static
-int ctf_write_event(struct stream_pos *pos, struct ctf_stream_definition *stream)
+int ctf_write_event(struct bt_stream_pos *pos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class = stream->stream_class;
 	struct ctf_event_definition *event;
@@ -556,7 +610,8 @@ error:
 	return ret;
 }
 
-int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
+int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
+		int fd, int open_flags)
 {
 	pos->fd = fd;
 	if (fd >= 0) {
@@ -574,12 +629,14 @@ int ctf_init_pos(struct ctf_stream_pos *pos, int fd, int open_flags)
 		pos->flags = MAP_PRIVATE;
 		pos->parent.rw_table = read_dispatch_table;
 		pos->parent.event_cb = ctf_read_event;
+		pos->parent.trace = trace;
 		break;
 	case O_RDWR:
 		pos->prot = PROT_WRITE;	/* Write has priority */
 		pos->flags = MAP_SHARED;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
+		pos->parent.trace = trace;
 		if (fd >= 0)
 			ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 		break;
@@ -613,9 +670,9 @@ int ctf_fini_pos(struct ctf_stream_pos *pos)
 
 /*
  * for SEEK_CUR: go to next packet.
- * for SEEK_POS: go to packet numer (index).
+ * for SEEK_SET: go to packet numer (index).
  */
-void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
+void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 {
 	struct ctf_stream_pos *pos =
 		container_of(stream_pos, struct ctf_stream_pos, parent);
@@ -624,6 +681,14 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 	int ret;
 	off_t off;
 	struct packet_index *packet_index;
+
+	switch (whence) {
+	case SEEK_CUR:
+	case SEEK_SET:	/* Fall-through */
+		break;	/* OK */
+	default:
+		assert(0);
+	}
 
 	if (pos->prot == PROT_WRITE && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
@@ -672,6 +737,9 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			if (pos->offset == EOF) {
 				return;
 			}
+			assert(pos->cur_index < pos->packet_cycles_index->len);
+			assert(pos->cur_index < pos->packet_real_index->len);
+
 			/* For printing discarded event count */
 			packet_index = &g_array_index(pos->packet_cycles_index,
 					struct packet_index, pos->cur_index);
@@ -709,6 +777,10 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 			break;
 		}
 		case SEEK_SET:
+			if (index >= pos->packet_cycles_index->len) {
+				pos->offset = EOF;
+				return;
+			}
 			packet_index = &g_array_index(pos->packet_cycles_index,
 					struct packet_index, index);
 			pos->last_events_discarded = packet_index->events_discarded;
@@ -723,43 +795,26 @@ void ctf_packet_seek(struct stream_pos *stream_pos, size_t index, int whence)
 		}
 		if (pos->cur_index >= pos->packet_real_index->len) {
 			/*
-			 * When a stream reaches the end of the
-			 * file, we need to show the number of
-			 * events discarded ourselves, because
-			 * there is no next event scheduled to
-			 * be printed in the output.
+			 * We need to check if we are in trace read or
+			 * called from packet indexing.  In this last
+			 * case, the collection is not there, so we
+			 * cannot print the timestamps.
 			 */
-			if (file_stream->parent.events_discarded) {
+			if ((&file_stream->parent)->stream_class->trace->parent.collection) {
 				/*
-				 * We need to check if we are in trace
-				 * read or called from packet indexing.
-				 * In this last case, the collection is
-				 * not there, so we cannot print the
-				 * timestamps.
+				 * When a stream reaches the end of the
+				 * file, we need to show the number of
+				 * events discarded ourselves, because
+				 * there is no next event scheduled to
+				 * be printed in the output.
 				 */
-				if ((&file_stream->parent)->stream_class->trace->collection) {
+				if (file_stream->parent.events_discarded) {
 					fflush(stdout);
-					fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events at end of stream between [",
-							file_stream->parent.events_discarded);
-					if (opt_clock_cycles) {
-						ctf_print_timestamp(stderr,
-								&file_stream->parent,
-								file_stream->parent.prev_cycles_timestamp);
-						fprintf(stderr, "] and [");
-						ctf_print_timestamp(stderr, &file_stream->parent,
-								file_stream->parent.prev_cycles_timestamp_end);
-					} else {
-						ctf_print_timestamp(stderr,
-								&file_stream->parent,
-								file_stream->parent.prev_real_timestamp);
-						fprintf(stderr, "] and [");
-						ctf_print_timestamp(stderr, &file_stream->parent,
-								file_stream->parent.prev_real_timestamp_end);
-					}
-					fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
-					fflush(stderr);
+					ctf_print_discarded(stderr,
+						&file_stream->parent,
+						1);
+					file_stream->parent.events_discarded = 0;
 				}
-				file_stream->parent.events_discarded = 0;
 			}
 			pos->offset = EOF;
 			return;
@@ -959,7 +1014,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 					char **buf)
 {
 	FILE *in, *out;
-	size_t size;
+	size_t size, buflen;
 	int ret;
 
 	in = *fp;
@@ -1001,7 +1056,12 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 		perror("Error in fclose");
 	}
 	/* open for reading */
-	*fp = babeltrace_fmemopen(*buf, strlen(*buf), "rb");
+	buflen = strlen(*buf);
+	if (!buflen) {
+		*fp = NULL;
+		return -ENOENT;
+	}
+	*fp = babeltrace_fmemopen(*buf, buflen, "rb");
 	if (!*fp) {
 		perror("Metadata fmemopen");
 		return -errno;
@@ -1011,7 +1071,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -1058,8 +1118,13 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	if (packet_metadata(td, fp)) {
 		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
-		if (ret)
+		if (ret) {
+			/* Warn about empty metadata */
+			fprintf(stderr, "[warning] Empty metadata.\n");
 			goto end_packet_read;
+		}
+		td->metadata_string = buf;
+		td->metadata_packetized = 1;
 	} else {
 		unsigned int major, minor;
 		ssize_t nr_items;
@@ -1118,7 +1183,6 @@ end_packet_read:
 			perror("Error on fclose");
 		}
 	}
-	free(buf);
 end_stream:
 	if (metadata_stream->pos.fd >= 0) {
 		closeret = close(metadata_stream->pos.fd);
@@ -1140,7 +1204,7 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 	struct ctf_event_definition *stream_event = g_new0(struct ctf_event_definition, 1);
 
 	if (event->context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			event->context_decl->p.definition_new(&event->context_decl->p,
 				stream->parent_def_scope, 0, 0, "event.context");
 		if (!definition) {
@@ -1151,7 +1215,7 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 		stream->parent_def_scope = stream_event->event_context->p.scope;
 	}
 	if (event->fields_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			event->fields_decl->p.definition_new(&event->fields_decl->p,
 				stream->parent_def_scope, 0, 0, "event.fields");
 		if (!definition) {
@@ -1166,9 +1230,11 @@ struct ctf_event_definition *create_event_definitions(struct ctf_trace *td,
 
 error:
 	if (stream_event->event_fields)
-		definition_unref(&stream_event->event_fields->p);
+		bt_definition_unref(&stream_event->event_fields->p);
 	if (stream_event->event_context)
-		definition_unref(&stream_event->event_context->p);
+		bt_definition_unref(&stream_event->event_context->p);
+	fprintf(stderr, "[error] Unable to create event definition for event \"%s\".\n",
+		g_quark_to_string(event->name));
 	return NULL;
 }
 
@@ -1185,7 +1251,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 	stream_class = stream->stream_class;
 
 	if (stream_class->packet_context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->packet_context_decl->p.definition_new(&stream_class->packet_context_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.packet.context");
 		if (!definition) {
@@ -1197,7 +1263,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		stream->parent_def_scope = stream->stream_packet_context->p.scope;
 	}
 	if (stream_class->event_header_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->event_header_decl->p.definition_new(&stream_class->event_header_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.event.header");
 		if (!definition) {
@@ -1209,7 +1275,7 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		stream->parent_def_scope = stream->stream_event_header->p.scope;
 	}
 	if (stream_class->event_context_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			stream_class->event_context_decl->p.definition_new(&stream_class->event_context_decl->p,
 				stream->parent_def_scope, 0, 0, "stream.event.context");
 		if (!definition) {
@@ -1229,8 +1295,10 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		if (!event)
 			continue;
 		stream_event = create_event_definitions(td, stream, event);
-		if (!stream_event)
+		if (!stream_event) {
+			ret = -EINVAL;
 			goto error_event;
+		}
 		g_ptr_array_index(stream->events_by_id, i) = stream_event;
 	}
 	return 0;
@@ -1244,25 +1312,294 @@ error_event:
 	g_ptr_array_free(stream->events_by_id, TRUE);
 error:
 	if (stream->stream_event_context)
-		definition_unref(&stream->stream_event_context->p);
+		bt_definition_unref(&stream->stream_event_context->p);
 	if (stream->stream_event_header)
-		definition_unref(&stream->stream_event_header->p);
+		bt_definition_unref(&stream->stream_event_header->p);
 	if (stream->stream_packet_context)
-		definition_unref(&stream->stream_packet_context->p);
+		bt_definition_unref(&stream->stream_packet_context->p);
+	fprintf(stderr, "[error] Unable to create stream (%" PRIu64 ") definitions: %s\n",
+		stream_class->stream_id, strerror(-ret));
 	return ret;
 }
 
+static
+int stream_assign_class(struct ctf_trace *td,
+		struct ctf_file_stream *file_stream,
+		uint64_t stream_id)
+{
+	struct ctf_stream_declaration *stream;
+	int ret;
+
+	file_stream->parent.stream_id = stream_id;
+	if (stream_id >= td->streams->len) {
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+		return -EINVAL;
+	}
+	stream = g_ptr_array_index(td->streams, stream_id);
+	if (!stream) {
+		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
+		return -EINVAL;
+	}
+	file_stream->parent.stream_class = stream;
+	ret = create_stream_definitions(td, &file_stream->parent);
+	if (ret)
+		return ret;
+	return 0;
+}
+
+static
+int create_stream_one_packet_index(struct ctf_stream_pos *pos,
+			struct ctf_trace *td,
+			struct ctf_file_stream *file_stream,
+			size_t filesize)
+{
+	struct packet_index packet_index;
+	uint64_t stream_id = 0;
+	uint64_t packet_map_len = DEFAULT_HEADER_LEN, tmp_map_len;
+	int first_packet = 0;
+	int len_index;
+	int ret;
+
+begin:
+	if (!pos->mmap_offset) {
+		first_packet = 1;
+	}
+
+	if (filesize - pos->mmap_offset < (packet_map_len >> LOG2_CHAR_BIT)) {
+		packet_map_len = (filesize - pos->mmap_offset) << LOG2_CHAR_BIT;
+	}
+
+	if (pos->base_mma) {
+		/* unmap old base */
+		ret = munmap_align(pos->base_mma);
+		if (ret) {
+			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
+				strerror(errno));
+			return ret;
+		}
+		pos->base_mma = NULL;
+	}
+	/* map new base. Need mapping length from header. */
+	pos->base_mma = mmap_align(packet_map_len >> LOG2_CHAR_BIT, PROT_READ,
+			 MAP_PRIVATE, pos->fd, pos->mmap_offset);
+	assert(pos->base_mma != MAP_FAILED);
+	/*
+	 * Use current mapping size as temporary content and packet
+	 * size.
+	 */
+	pos->content_size = packet_map_len;
+	pos->packet_size = packet_map_len;
+	pos->offset = 0;	/* Position of the packet header */
+
+	packet_index.offset = pos->mmap_offset;
+	packet_index.content_size = 0;
+	packet_index.packet_size = 0;
+	packet_index.timestamp_begin = 0;
+	packet_index.timestamp_end = 0;
+	packet_index.events_discarded = 0;
+	packet_index.events_discarded_len = 0;
+
+	/* read and check header, set stream id (and check) */
+	if (file_stream->parent.trace_packet_header) {
+		/* Read packet header */
+		ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
+		if (ret) {
+			if (ret == -EFAULT)
+				goto retry;
+			fprintf(stderr, "[error] Unable to read packet header: %s\n", strerror(-ret));
+			return ret;
+		}
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+			uint64_t magic;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			magic = bt_get_unsigned_int(field);
+			if (magic != CTF_MAGIC) {
+				fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
+						magic,
+						file_stream->pos.packet_cycles_index->len,
+						(ssize_t) pos->mmap_offset);
+				return -EINVAL;
+			}
+		}
+
+		/* check uuid */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
+		if (len_index >= 0) {
+			struct definition_array *defarray;
+			struct bt_definition *field;
+			uint64_t i;
+			uint8_t uuidval[BABELTRACE_UUID_LEN];
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			assert(field->declaration->id == CTF_TYPE_ARRAY);
+			defarray = container_of(field, struct definition_array, p);
+			assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
+
+			for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
+				struct bt_definition *elem;
+
+				elem = bt_array_index(defarray, i);
+				uuidval[i] = bt_get_unsigned_int(elem);
+			}
+			ret = babeltrace_uuid_compare(td->uuid, uuidval);
+			if (ret) {
+				fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
+				return -EINVAL;
+			}
+		}
+
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
+			stream_id = bt_get_unsigned_int(field);
+		}
+	}
+
+	if (!first_packet && file_stream->parent.stream_id != stream_id) {
+		fprintf(stderr, "[error] Stream ID is changing within a stream: expecting %" PRIu64 ", but packet has %" PRIu64 "\n",
+			stream_id,
+			file_stream->parent.stream_id);
+		return -EINVAL;
+	}
+	if (first_packet) {
+		ret = stream_assign_class(td, file_stream, stream_id);
+		if (ret)
+			return ret;
+	}
+
+	if (file_stream->parent.stream_packet_context) {
+		/* Read packet context */
+		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
+		if (ret) {
+			if (ret == -EFAULT)
+				goto retry;
+			fprintf(stderr, "[error] Unable to read packet context: %s\n", strerror(-ret));
+			return ret;
+		}
+		/* read content size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.content_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use file size for packet size */
+			packet_index.content_size = filesize * CHAR_BIT;
+		}
+
+		/* read packet size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.packet_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use content size if non-zero, else file size */
+			packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+		}
+
+		/* read timestamp begin from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.timestamp_begin = bt_get_unsigned_int(field);
+			if (file_stream->parent.stream_class->trace->parent.collection) {
+				packet_index.timestamp_begin =
+					ctf_get_real_timestamp(
+						&file_stream->parent,
+						packet_index.timestamp_begin);
+			}
+		}
+
+		/* read timestamp end from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.timestamp_end = bt_get_unsigned_int(field);
+			if (file_stream->parent.stream_class->trace->parent.collection) {
+				packet_index.timestamp_end =
+					ctf_get_real_timestamp(
+						&file_stream->parent,
+						packet_index.timestamp_end);
+			}
+		}
+
+		/* read events discarded from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.events_discarded = bt_get_unsigned_int(field);
+			packet_index.events_discarded_len = bt_get_int_len(field);
+		}
+	} else {
+		/* Use file size for packet size */
+		packet_index.content_size = filesize * CHAR_BIT;
+		/* Use content size if non-zero, else file size */
+		packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+	}
+
+	/* Validate content size and packet size values */
+	if (packet_index.content_size > packet_index.packet_size) {
+		fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
+			packet_index.content_size, packet_index.packet_size);
+		return -EINVAL;
+	}
+
+	if (packet_index.packet_size > ((uint64_t) filesize - packet_index.offset) * CHAR_BIT) {
+		fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
+			packet_index.packet_size, ((uint64_t) filesize - packet_index.offset) * CHAR_BIT);
+		return -EINVAL;
+	}
+
+	/* Save position after header and context */
+	packet_index.data_offset = pos->offset;
+
+	/* add index to packet array */
+	g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
+
+	pos->mmap_offset += packet_index.packet_size >> LOG2_CHAR_BIT;
+
+	return 0;
+
+	/* Retry with larger mapping */
+retry:
+	if (packet_map_len == ((filesize - pos->mmap_offset) << LOG2_CHAR_BIT)) {
+		/*
+		 * Reached EOF, but still expecting header/context data.
+		 */
+		fprintf(stderr, "[error] Reached end of file, but still expecting header or context fields.\n");
+		return -EFAULT;
+	}
+	/* Double the mapping len, and retry */
+	tmp_map_len = packet_map_len << 1;
+	if (tmp_map_len >> 1 != packet_map_len) {
+		/* Overflow */
+		fprintf(stderr, "[error] Packet mapping length overflow\n");
+		return -EFAULT;
+	}
+	packet_map_len = tmp_map_len;
+	goto begin;
+}
 
 static
 int create_stream_packet_index(struct ctf_trace *td,
-			       struct ctf_file_stream *file_stream)
+			struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream_declaration *stream;
-	int len_index;
 	struct ctf_stream_pos *pos;
 	struct stat filestats;
-	struct packet_index packet_index;
-	int first_packet = 1;
 	int ret;
 
 	pos = &file_stream->pos;
@@ -1271,215 +1608,36 @@ int create_stream_packet_index(struct ctf_trace *td,
 	if (ret < 0)
 		return ret;
 
-	if (filestats.st_size < MAX_PACKET_HEADER_LEN / CHAR_BIT)
-		return -EINVAL;
-
-	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
-		uint64_t stream_id = 0;
-
-		if (pos->base_mma) {
-			/* unmap old base */
-			ret = munmap_align(pos->base_mma);
-			if (ret) {
-				fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
-					strerror(errno));
-				return ret;
-			}
-			pos->base_mma = NULL;
-		}
-		/* map new base. Need mapping length from header. */
-		pos->base_mma = mmap_align(MAX_PACKET_HEADER_LEN / CHAR_BIT, PROT_READ,
-				 MAP_PRIVATE, pos->fd, pos->mmap_offset);
-		assert(pos->base_mma != MAP_FAILED);
-		pos->content_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
-		pos->packet_size = MAX_PACKET_HEADER_LEN;	/* Unknown at this point */
-		pos->offset = 0;	/* Position of the packet header */
-
-		packet_index.offset = pos->mmap_offset;
-		packet_index.content_size = 0;
-		packet_index.packet_size = 0;
-		packet_index.timestamp_begin = 0;
-		packet_index.timestamp_end = 0;
-		packet_index.events_discarded = 0;
-		packet_index.events_discarded_len = 0;
-
-		/* read and check header, set stream id (and check) */
-		if (file_stream->parent.trace_packet_header) {
-			/* Read packet header */
-			ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
-			if (ret)
-				return ret;
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
-			if (len_index >= 0) {
-				struct definition *field;
-				uint64_t magic;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				magic = get_unsigned_int(field);
-				if (magic != CTF_MAGIC) {
-					fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
-							magic,
-							file_stream->pos.packet_cycles_index->len,
-							(ssize_t) pos->mmap_offset);
-					return -EINVAL;
-				}
-			}
-
-			/* check uuid */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
-			if (len_index >= 0) {
-				struct definition_array *defarray;
-				struct definition *field;
-				uint64_t i;
-				uint8_t uuidval[BABELTRACE_UUID_LEN];
-
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				assert(field->declaration->id == CTF_TYPE_ARRAY);
-				defarray = container_of(field, struct definition_array, p);
-				assert(array_len(defarray) == BABELTRACE_UUID_LEN);
-
-				for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
-					struct definition *elem;
-
-					elem = array_index(defarray, i);
-					uuidval[i] = get_unsigned_int(elem);
-				}
-				ret = babeltrace_uuid_compare(td->uuid, uuidval);
-				if (ret) {
-					fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
-					return -EINVAL;
-				}
-			}
-
-
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-				stream_id = get_unsigned_int(field);
-			}
-		}
-
-		if (!first_packet && file_stream->parent.stream_id != stream_id) {
-			fprintf(stderr, "[error] Stream ID is changing within a stream.\n");
+	/* Deal with empty files */
+	if (!filestats.st_size) {
+		if (file_stream->parent.trace_packet_header
+				|| file_stream->parent.stream_packet_context) {
+			/*
+			 * We expect a trace packet header and/or stream packet
+			 * context. Since a trace needs to have at least one
+			 * packet, empty files are therefore not accepted.
+			 */
+			fprintf(stderr, "[error] Encountered an empty file, but expecting a trace packet header.\n");
 			return -EINVAL;
-		}
-		if (first_packet) {
-			file_stream->parent.stream_id = stream_id;
-			if (stream_id >= td->streams->len) {
-				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-				return -EINVAL;
-			}
-			stream = g_ptr_array_index(td->streams, stream_id);
-			if (!stream) {
-				fprintf(stderr, "[error] Stream %" PRIu64 " is not declared in metadata.\n", stream_id);
-				return -EINVAL;
-			}
-			file_stream->parent.stream_class = stream;
-			ret = create_stream_definitions(td, &file_stream->parent);
-			if (ret)
-				return ret;
-		}
-		first_packet = 0;
-
-		if (file_stream->parent.stream_packet_context) {
-			/* Read packet context */
-			ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
-			if (ret)
-				return ret;
-			/* read content size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.content_size = get_unsigned_int(field);
-			} else {
-				/* Use file size for packet size */
-				packet_index.content_size = filestats.st_size * CHAR_BIT;
-			}
-
-			/* read packet size from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.packet_size = get_unsigned_int(field);
-			} else {
-				/* Use content size if non-zero, else file size */
-				packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
-			}
-
-			/* read timestamp begin from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_begin = get_unsigned_int(field);
-				if (file_stream->parent.stream_class->trace->collection) {
-					packet_index.timestamp_begin =
-						ctf_get_real_timestamp(
-							&file_stream->parent,
-							packet_index.timestamp_begin);
-				}
-			}
-
-			/* read timestamp end from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.timestamp_end = get_unsigned_int(field);
-				if (file_stream->parent.stream_class->trace->collection) {
-					packet_index.timestamp_end =
-						ctf_get_real_timestamp(
-							&file_stream->parent,
-							packet_index.timestamp_end);
-				}
-			}
-
-			/* read events discarded from header */
-			len_index = struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
-			if (len_index >= 0) {
-				struct definition *field;
-
-				field = struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-				packet_index.events_discarded = get_unsigned_int(field);
-				packet_index.events_discarded_len = get_int_len(field);
-			}
 		} else {
-			/* Use file size for packet size */
-			packet_index.content_size = filestats.st_size * CHAR_BIT;
-			/* Use content size if non-zero, else file size */
-			packet_index.packet_size = packet_index.content_size ? : filestats.st_size * CHAR_BIT;
+			/*
+			 * Without trace packet header nor stream packet
+			 * context, a one-packet trace can indeed be empty. This
+			 * is only valid if there is only one stream class: 0.
+			 */
+			ret = stream_assign_class(td, file_stream, 0);
+			if (ret)
+				return ret;
+			return 0;
 		}
-
-		/* Validate content size and packet size values */
-		if (packet_index.content_size > packet_index.packet_size) {
-			fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
-				packet_index.content_size, packet_index.packet_size);
-			return -EINVAL;
-		}
-
-		if (packet_index.packet_size > ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT) {
-			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
-				packet_index.packet_size, ((uint64_t)filestats.st_size - packet_index.offset) * CHAR_BIT);
-			return -EINVAL;
-		}
-
-		/* Save position after header and context */
-		packet_index.data_offset = pos->offset;
-
-		/* add index to packet array */
-		g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
-
-		pos->mmap_offset += packet_index.packet_size / CHAR_BIT;
 	}
 
+	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
+		ret = create_stream_one_packet_index(pos, td, file_stream,
+			filestats.st_size);
+		if (ret)
+			return ret;
+	}
 	return 0;
 }
 
@@ -1489,7 +1647,7 @@ int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition 
 	int ret;
 
 	if (td->packet_header_decl) {
-		struct definition *definition =
+		struct bt_definition *definition =
 			td->packet_header_decl->p.definition_new(&td->packet_header_decl->p,
 				stream->parent_def_scope, 0, 0, "trace.packet.header");
 		if (!definition) {
@@ -1504,6 +1662,7 @@ int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition 
 	return 0;
 
 error:
+	fprintf(stderr, "[error] Unable to create trace definitions: %s\n", strerror(-ret));
 	return ret;
 }
 
@@ -1513,7 +1672,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret, fd, closeret;
@@ -1542,6 +1701,9 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
 
+	strncpy(file_stream->parent.path, path, PATH_MAX);
+	file_stream->parent.path[PATH_MAX - 1] = '\0';
+
 	if (packet_seek) {
 		file_stream->pos.packet_seek = packet_seek;
 	} else {
@@ -1550,7 +1712,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		goto error_def;
 	}
 
-	ret = ctf_init_pos(&file_stream->pos, fd, flags);
+	ret = ctf_init_pos(&file_stream->pos, &td->parent, fd, flags);
 	if (ret)
 		goto error_def;
 	ret = create_trace_definitions(td, &file_stream->parent);
@@ -1559,10 +1721,12 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	/*
 	 * For now, only a single clock per trace is supported.
 	 */
-	file_stream->parent.current_clock = td->single_clock;
+	file_stream->parent.current_clock = td->parent.single_clock;
 	ret = create_stream_packet_index(td, file_stream);
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "[error] Stream index creation error.\n");
 		goto error_index;
+	}
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
 			&file_stream->parent);
@@ -1570,7 +1734,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 
 error_index:
 	if (file_stream->parent.trace_packet_header)
-		definition_unref(&file_stream->parent.trace_packet_header->p);
+		bt_definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	closeret = ctf_fini_pos(&file_stream->pos);
 	if (closeret) {
@@ -1590,7 +1754,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	int ret, closeret;
@@ -1615,8 +1779,8 @@ int ctf_open_trace_read(struct ctf_trace *td,
 		ret = -errno;
 		goto error_dirfd;
 	}
-	strncpy(td->path, path, sizeof(td->path));
-	td->path[sizeof(td->path) - 1] = '\0';
+	strncpy(td->parent.path, path, sizeof(td->parent.path));
+	td->parent.path[sizeof(td->parent.path) - 1] = '\0';
 
 	/*
 	 * Keep the metadata file separate.
@@ -1685,8 +1849,8 @@ error:
  * since the index creation read it entirely.
  */
 static
-struct trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -1724,9 +1888,9 @@ error:
 	return NULL;
 }
 
-
+static
 void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
-		struct mmap_stream *mmap_info)
+		struct bt_mmap_stream *mmap_info)
 {
 	pos->mmap_offset = 0;
 	pos->packet_size = 0;
@@ -1775,8 +1939,8 @@ end:
 
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
-		struct mmap_stream *mmap_info,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		struct bt_mmap_stream *mmap_info,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret;
@@ -1800,7 +1964,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	/*
 	 * For now, only a single clock per trace is supported.
 	 */
-	file_stream->parent.current_clock = td->single_clock;
+	file_stream->parent.current_clock = td->parent.single_clock;
 
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
@@ -1809,20 +1973,21 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 
 error_index:
 	if (file_stream->parent.trace_packet_header)
-		definition_unref(&file_stream->parent.trace_packet_header->p);
+		bt_definition_unref(&file_stream->parent.trace_packet_header->p);
 error_def:
 	g_free(file_stream);
 	return ret;
 }
 
+static
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
-		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		struct bt_mmap_stream_list *mmap_list,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
 	int ret;
-	struct mmap_stream *mmap_info;
+	struct bt_mmap_stream *mmap_info;
 
 	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp);
 	if (ret) {
@@ -1848,9 +2013,9 @@ error:
 }
 
 static
-struct trace_descriptor *ctf_open_mmap_trace(
-		struct mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_open_mmap_trace(
+		struct bt_mmap_stream_list *mmap_list,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
@@ -1880,7 +2045,7 @@ error:
 }
 
 static
-int ctf_convert_index_timestamp(struct trace_descriptor *tdp)
+int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp)
 {
 	int i, j, k;
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
@@ -1948,7 +2113,7 @@ int ctf_close_file_stream(struct ctf_file_stream *file_stream)
 }
 
 static
-int ctf_close_trace(struct trace_descriptor *tdp)
+int ctf_close_trace(struct bt_trace_descriptor *tdp)
 {
 	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
 	int ret;
@@ -1984,28 +2149,29 @@ int ctf_close_trace(struct trace_descriptor *tdp)
 		perror("Error closedir");
 		return ret;
 	}
+	free(td->metadata_string);
 	g_free(td);
 	return 0;
 }
 
 static
-void ctf_set_context(struct trace_descriptor *descriptor,
+void ctf_set_context(struct bt_trace_descriptor *descriptor,
 		struct bt_context *ctx)
 {
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
 			parent);
 
-	td->ctx = ctx;
+	td->parent.ctx = ctx;
 }
 
 static
-void ctf_set_handle(struct trace_descriptor *descriptor,
+void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle)
 {
 	struct ctf_trace *td = container_of(descriptor, struct ctf_trace,
 			parent);
 
-	td->handle = handle;
+	td->parent.handle = handle;
 }
 
 static

@@ -29,14 +29,14 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
 
-int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct ctf_text_stream_pos *pos = ctf_text_pos(ppos);
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	int field_nr_saved;
 	int ret = 0;
 
@@ -63,7 +63,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 			    && integer_declaration->p.alignment == CHAR_BIT)) {
 				pos->string = sequence_definition->string;
 				g_string_assign(sequence_definition->string, "");
-				ret = sequence_rw(ppos, definition);
+				ret = bt_sequence_rw(ppos, definition);
 				pos->string = NULL;
 			}
 			fprintf(pos->fp, "\"%s\"", sequence_definition->string->str);
@@ -77,7 +77,7 @@ int ctf_text_sequence_write(struct stream_pos *ppos, struct definition *definiti
 	}
 	field_nr_saved = pos->field_nr;
 	pos->field_nr = 0;
-	ret = sequence_rw(ppos, definition);
+	ret = bt_sequence_rw(ppos, definition);
 	if (!pos->dummy) {
 		pos->depth--;
 		fprintf(pos->fp, " ]");

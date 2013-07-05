@@ -41,12 +41,12 @@
 #endif
 
 static
-struct definition *_enum_definition_new(struct declaration *declaration,
+struct bt_definition *_enum_definition_new(struct bt_declaration *declaration,
 					struct definition_scope *parent_scope,
 					GQuark field_name, int index,
 					const char *root_name);
 static
-void _enum_definition_free(struct definition *definition);
+void _enum_definition_free(struct bt_definition *definition);
 
 static
 void enum_range_set_free(void *ptr)
@@ -124,7 +124,7 @@ void enum_val_free(void *ptr)
  * Returns a GArray or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
 			       uint64_t v)
 {
 	struct enum_range_to_quark *iter;
@@ -171,7 +171,7 @@ GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
  * Returns a GArray or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 			      int64_t v)
 {
 	struct enum_range_to_quark *iter;
@@ -215,7 +215,7 @@ GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 }
 
 static
-void enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
+void bt_enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
 			 uint64_t v, GQuark q)
 {
 	uint64_t *valuep;
@@ -241,7 +241,7 @@ void enum_unsigned_insert_value_to_quark_set(struct declaration_enum *enum_decla
 }
 
 static
-void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
+void bt_enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declaration,
 			int64_t v, GQuark q)
 {
 	int64_t *valuep;
@@ -266,7 +266,7 @@ void enum_signed_insert_value_to_quark_set(struct declaration_enum *enum_declara
 	}
 }
 
-GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
 				GQuark q)
 {
 	return g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
@@ -274,7 +274,7 @@ GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
 }
 
 static
-void enum_signed_insert_range_to_quark(struct declaration_enum *enum_declaration,
+void bt_enum_signed_insert_range_to_quark(struct declaration_enum *enum_declaration,
                         int64_t start, int64_t end, GQuark q)
 {
 	struct enum_range_to_quark *rtoq;
@@ -287,7 +287,7 @@ void enum_signed_insert_range_to_quark(struct declaration_enum *enum_declaration
 }
 
 static
-void enum_unsigned_insert_range_to_quark(struct declaration_enum *enum_declaration,
+void bt_enum_unsigned_insert_range_to_quark(struct declaration_enum *enum_declaration,
                         uint64_t start, uint64_t end, GQuark q)
 {
 	struct enum_range_to_quark *rtoq;
@@ -299,14 +299,14 @@ void enum_unsigned_insert_range_to_quark(struct declaration_enum *enum_declarati
 	rtoq->quark = q;
 }
 
-void enum_signed_insert(struct declaration_enum *enum_declaration,
+void bt_enum_signed_insert(struct declaration_enum *enum_declaration,
                         int64_t start, int64_t end, GQuark q)
 {
 	GArray *array;
 	struct enum_range *range;
 
 	if (start == end) {
-		enum_signed_insert_value_to_quark_set(enum_declaration, start, q);
+		bt_enum_signed_insert_value_to_quark_set(enum_declaration, start, q);
 	} else {
 		if (start > end) {
 			uint64_t tmp;
@@ -315,7 +315,7 @@ void enum_signed_insert(struct declaration_enum *enum_declaration,
 			start = end;
 			end = tmp;
 		}
-		enum_signed_insert_range_to_quark(enum_declaration, start, end, q);
+		bt_enum_signed_insert_range_to_quark(enum_declaration, start, end, q);
 	}
 
 	array = g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
@@ -333,7 +333,7 @@ void enum_signed_insert(struct declaration_enum *enum_declaration,
 	range->end._signed = end;
 }
 
-void enum_unsigned_insert(struct declaration_enum *enum_declaration,
+void bt_enum_unsigned_insert(struct declaration_enum *enum_declaration,
 			  uint64_t start, uint64_t end, GQuark q)
 {
 	GArray *array;
@@ -341,7 +341,7 @@ void enum_unsigned_insert(struct declaration_enum *enum_declaration,
 
 
 	if (start == end) {
-		enum_unsigned_insert_value_to_quark_set(enum_declaration, start, q);
+		bt_enum_unsigned_insert_value_to_quark_set(enum_declaration, start, q);
 	} else {
 		if (start > end) {
 			uint64_t tmp;
@@ -350,7 +350,7 @@ void enum_unsigned_insert(struct declaration_enum *enum_declaration,
 			start = end;
 			end = tmp;
 		}
-		enum_unsigned_insert_range_to_quark(enum_declaration, start, end, q);
+		bt_enum_unsigned_insert_range_to_quark(enum_declaration, start, end, q);
 	}
 
 	array = g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
@@ -368,13 +368,13 @@ void enum_unsigned_insert(struct declaration_enum *enum_declaration,
 	range->end._unsigned = end;
 }
 
-size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration)
+size_t bt_enum_get_nr_enumerators(struct declaration_enum *enum_declaration)
 {
 	return g_hash_table_size(enum_declaration->table.quark_to_range_set);
 }
 
 static
-void _enum_declaration_free(struct declaration *declaration)
+void _enum_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
@@ -386,12 +386,12 @@ void _enum_declaration_free(struct declaration *declaration)
 		g_free(iter);
 	}
 	g_hash_table_destroy(enum_declaration->table.quark_to_range_set);
-	declaration_unref(&enum_declaration->integer_declaration->p);
+	bt_declaration_unref(&enum_declaration->integer_declaration->p);
 	g_free(enum_declaration);
 }
 
 struct declaration_enum *
-	enum_declaration_new(struct declaration_integer *integer_declaration)
+	bt_enum_declaration_new(struct declaration_integer *integer_declaration)
 {
 	struct declaration_enum *enum_declaration;
 
@@ -405,7 +405,7 @@ struct declaration_enum *
 	enum_declaration->table.quark_to_range_set = g_hash_table_new_full(g_direct_hash,
 							g_direct_equal,
 							NULL, enum_range_set_free);
-	declaration_ref(&integer_declaration->p);
+	bt_declaration_ref(&integer_declaration->p);
 	enum_declaration->integer_declaration = integer_declaration;
 	enum_declaration->p.id = CTF_TYPE_ENUM;
 	enum_declaration->p.alignment = 1;
@@ -417,8 +417,8 @@ struct declaration_enum *
 }
 
 static
-struct definition *
-	_enum_definition_new(struct declaration *declaration,
+struct bt_definition *
+	_enum_definition_new(struct bt_declaration *declaration,
 			     struct definition_scope *parent_scope,
 			     GQuark field_name, int index,
 			     const char *root_name)
@@ -426,11 +426,11 @@ struct definition *
 	struct declaration_enum *enum_declaration =
 		container_of(declaration, struct declaration_enum, p);
 	struct definition_enum *_enum;
-	struct definition *definition_integer_parent;
+	struct bt_definition *definition_integer_parent;
 	int ret;
 
 	_enum = g_new(struct definition_enum, 1);
-	declaration_ref(&enum_declaration->p);
+	bt_declaration_ref(&enum_declaration->p);
 	_enum->p.declaration = declaration;
 	_enum->declaration = enum_declaration;
 	_enum->p.ref = 1;
@@ -440,10 +440,10 @@ struct definition *
 	 */
 	_enum->p.index = root_name ? INT_MAX : index;
 	_enum->p.name = field_name;
-	_enum->p.path = new_definition_path(parent_scope, field_name, root_name);
-	_enum->p.scope = new_definition_scope(parent_scope, field_name, root_name);
+	_enum->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
+	_enum->p.scope = bt_new_definition_scope(parent_scope, field_name, root_name);
 	_enum->value = NULL;
-	ret = register_field_definition(field_name, &_enum->p,
+	ret = bt_register_field_definition(field_name, &_enum->p,
 					parent_scope);
 	assert(!ret);
 	definition_integer_parent =
@@ -456,14 +456,14 @@ struct definition *
 }
 
 static
-void _enum_definition_free(struct definition *definition)
+void _enum_definition_free(struct bt_definition *definition)
 {
 	struct definition_enum *_enum =
 		container_of(definition, struct definition_enum, p);
 
-	definition_unref(&_enum->integer->p);
-	free_definition_scope(_enum->p.scope);
-	declaration_unref(_enum->p.declaration);
+	bt_definition_unref(&_enum->integer->p);
+	bt_free_definition_scope(_enum->p.scope);
+	bt_declaration_unref(_enum->p.declaration);
 	if (_enum->value)
 		g_array_unref(_enum->value);
 	g_free(_enum);

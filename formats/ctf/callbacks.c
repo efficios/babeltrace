@@ -38,7 +38,7 @@
 #include <inttypes.h>
 
 static
-struct bt_dependencies *_babeltrace_dependencies_create(const char *first,
+struct bt_dependencies *_bt_dependencies_create(const char *first,
 							va_list ap)
 {
 	const char *iter;
@@ -56,13 +56,13 @@ struct bt_dependencies *_babeltrace_dependencies_create(const char *first,
 	return dep;
 }
 
-struct bt_dependencies *babeltrace_dependencies_create(const char *first, ...)
+struct bt_dependencies *bt_dependencies_create(const char *first, ...)
 {
 	va_list ap;
 	struct bt_dependencies *deps;
 
 	va_start(ap, first);
-	deps = _babeltrace_dependencies_create(first, ap);
+	deps = _bt_dependencies_create(first, ap);
 	va_end(ap);
 	return deps;
 }
@@ -89,7 +89,7 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 	tc = iter->parent.ctx->tc;
 	for (i = 0; i < tc->array->len; i++) {
 		struct ctf_trace *tin;
-		struct trace_descriptor *td_read;
+		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(tc->array, i);
 		tin = container_of(td_read, struct ctf_trace, parent);
@@ -231,8 +231,6 @@ void process_callbacks(struct bt_ctf_iter *iter,
 
 	for (i = 0; i < bt_chain->callback->len; i++) {
 		cb = &g_array_index(bt_chain->callback, struct bt_callback, i);
-		if (!cb)
-			goto end;
 		ret = cb->callback(&ctf_data, cb->private_data);
 		switch (ret) {
 		case BT_CB_OK_STOP:

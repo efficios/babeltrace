@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "tap.h"
+
 unsigned int glob;
 
 /*
@@ -39,6 +41,10 @@ void fct(void)
 /* Test array size, in bytes */
 #define TEST_LEN 128
 #define NR_TESTS 10
+#define SIGNED_TEST_DESC_FMT_STR "Writing and reading back 0x%X, signed"
+#define UNSIGNED_TEST_DESC_FMT_STR "Writing and reading back 0x%X, unsigned"
+#define DIAG_FMT_STR "Failed reading value written \"%s\"-wise, with start=%i" \
+	" and length=%i. Read %llX"
 
 unsigned int srcrand;
 
@@ -116,7 +122,19 @@ do {					\
 		(c)[i] = (val);		\
 } while (0)
 
-int run_test_unsigned(void)
+#define check_result(ref, val, buffer, typename, start, len,		\
+		     desc_fmt_str)					\
+({									\
+	if ((val) != (ref)) {						\
+		fail(desc_fmt_str, ref);				\
+		diag(DIAG_FMT_STR, #typename, start, len, val);		\
+		printf("# ");						\
+		print_byte_array(buffer, TEST_LEN);			\
+	}								\
+	(val) != (ref);							\
+})
+
+void run_test_unsigned(void)
 {
 	unsigned int src, nrbits;
 	union {
@@ -128,9 +146,6 @@ int run_test_unsigned(void)
 	} target;
 	unsigned long long readval;
 	unsigned int s, l;
-	int err = 0;
-
-	printf("Running unsigned test with 0x%X\n", srcrand);
 
 	src = srcrand;
 	nrbits = fls(src);
@@ -140,62 +155,49 @@ int run_test_unsigned(void)
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, unsigned char, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (bytewise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, unsigned char,
+					  s, l, UNSIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.s, unsigned short, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (shortwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, unsigned short,
+					  s, l, UNSIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.i, unsigned int, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (intwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, unsigned int,
+					   s, l, UNSIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.l, unsigned long, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (longwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, unsigned long,
+					  s, l, UNSIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.ll, unsigned long long, s, l, src);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (longlongwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, unsigned long long,
+				     s, l, UNSIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 		}
 	}
-	if (!err)
-		printf("Success!\n");
-	else
-		printf("Failed!\n");
-	return err;
+
+	pass(UNSIGNED_TEST_DESC_FMT_STR, src);
 }
 
-int run_test_signed(void)
+void run_test_signed(void)
 {
 	int src, nrbits;
 	union {
@@ -207,9 +209,6 @@ int run_test_signed(void)
 	} target;
 	long long readval;
 	unsigned int s, l;
-	int err = 0;
-
-	printf("Running signed test with 0x%X\n", srcrand);
 
 	src = srcrand;
 	if (src & 0x80000000U)
@@ -217,99 +216,87 @@ int run_test_signed(void)
 	else
 		nrbits = fls(src) + 1;	/* Keep sign at 0 */
 
-	for (s = 0; s < 8 * TEST_LEN; s++) {
-		for (l = nrbits; l < (8 * TEST_LEN) - s; l++) {
+	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
+		for (l = nrbits; l < (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.c, signed char, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (bytewise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, signed char,
+					  s, l, SIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.s, short, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (shortwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, short,
+					  s, l, SIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.i, int, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (intwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, int,
+					  s, l, SIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.l, long, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (longwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, long,
+					  s, l, SIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.ll, long long, s, l, src);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
-			if (readval != src) {
-				printf("Error (longlongwise) src %X read %llX shift %d len %d\n",
-				       src, readval, s, l);
-				print_byte_array(target.c, TEST_LEN);
-				err = 1;
+			if (check_result(src, readval, target.c, long long,
+					  s, l, SIGNED_TEST_DESC_FMT_STR)) {
+				return;
 			}
 		}
 	}
-	if (!err)
-		printf("Success!\n");
-	else
-		printf("Failed!\n");
-	return err;
+
+	pass(SIGNED_TEST_DESC_FMT_STR, src);
 }
 
-int run_test(void)
+void run_test(void)
 {
-	int err = 0;
 	int i;
+	plan_tests(NR_TESTS * 2 + 6);
 
 	srand(time(NULL));
 
 	srcrand = 0;
-	err |= run_test_unsigned();
+	run_test_unsigned();
 	srcrand = 0;
-	err |= run_test_signed();
+	run_test_signed();
+
 	srcrand = 1;
-	err |= run_test_unsigned();
+	run_test_unsigned();
+
 	srcrand = ~0U;
-	err |= run_test_unsigned();
+	run_test_unsigned();
+
 	srcrand = -1;
-	err |= run_test_signed();
+	run_test_signed();
+
 	srcrand = (int)0x80000000U;
-	err |= run_test_signed();
+	run_test_signed();
 
 	for (i = 0; i < NR_TESTS; i++) {
 		srcrand = rand();
-		err |= run_test_unsigned();
-		err |= run_test_signed();
+		run_test_unsigned();
+		run_test_signed();
 	}
-	return err;
 }
 
-int main(int argc, char **argv)
+static
+int print_encodings(unsigned long src, unsigned int shift, unsigned int len)
 {
-	unsigned long src;
-	unsigned int shift, len;
-	int ret;
 	union {
 		unsigned char c[8];
 		unsigned short s[4];
@@ -319,53 +306,58 @@ int main(int argc, char **argv)
 	} target;
 	unsigned long long readval;
 
-	if (argc > 1)
-		src = atoi(argv[1]);
-	else
-		src = 0x12345678;
-	if (argc > 2)
-		shift = atoi(argv[2]);
-	else
-		shift = 12;
-	if (argc > 3)
-		len = atoi(argv[3]);
-	else
-		len = 40;
-
-	target.i[0] = 0xFFFFFFFF;
-	target.i[1] = 0xFFFFFFFF;
+	init_byte_array(target.c, 8, 0xFF);
 	bt_bitfield_write(target.c, unsigned char, shift, len, src);
 	printf("bytewise\n");
 	print_byte_array(target.c, 8);
 
-	target.i[0] = 0xFFFFFFFF;
-	target.i[1] = 0xFFFFFFFF;
+	init_byte_array(target.c, 8, 0xFF);
 	bt_bitfield_write(target.s, unsigned short, shift, len, src);
 	printf("shortwise\n");
 	print_byte_array(target.c, 8);
 
-	target.i[0] = 0xFFFFFFFF;
-	target.i[1] = 0xFFFFFFFF;
+	init_byte_array(target.c, 8, 0xFF);
 	bt_bitfield_write(target.i, unsigned int, shift, len, src);
 	printf("intwise\n");
 	print_byte_array(target.c, 8);
 
-	target.i[0] = 0xFFFFFFFF;
-	target.i[1] = 0xFFFFFFFF;
+	init_byte_array(target.c, 8, 0xFF);
 	bt_bitfield_write(target.l, unsigned long, shift, len, src);
 	printf("longwise\n");
 	print_byte_array(target.c, 8);
 
-	target.i[0] = 0xFFFFFFFF;
-	target.i[1] = 0xFFFFFFFF;
+	init_byte_array(target.c, 8, 0xFF);
 	bt_bitfield_write(target.ll, unsigned long long, shift, len, src);
 	printf("lluwise\n");
 	print_byte_array(target.c, 8);
 
 	bt_bitfield_read(target.c, unsigned char, shift, len, &readval);
 	printf("read: %llX\n", readval);
+	print_byte_array(target.c, 8);
 
-	ret = run_test();
+	return 0;
+}
 
-	return ret;
+int main(int argc, char **argv)
+{
+	if (argc > 1) {
+		/* Print encodings */
+		unsigned long src;
+		unsigned int shift, len;
+
+		src = atoi(argv[1]);
+		if (argc > 2)
+			shift = atoi(argv[2]);
+		else
+			shift = 12;
+		if (argc > 3)
+			len = atoi(argv[3]);
+		else
+			len = 40;
+		return print_encodings(src, shift, len);
+	}
+
+	/* Run tap-formated tests */
+	run_test();
+	return exit_status();
 }

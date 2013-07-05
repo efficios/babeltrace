@@ -26,17 +26,31 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <babeltrace/babeltrace-internal.h>
 #include "ctf-scanner.h"
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-__attribute__((visibility("hidden")))
+#define PARSE_INTEGER_LITERAL(base)					\
+	do {								\
+		errno = 0;						\
+		yylval->ull = strtoull(yytext, NULL, base);		\
+		if (errno) {						\
+			printfl_perror(yylineno, "Integer literal");	\
+			return ERROR;					\
+		}							\
+	} while (0)
+
+BT_HIDDEN
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
 
 static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
 	__attribute__((unused));
 static int input (yyscan_t yyscanner) __attribute__((unused));
+
+BT_HIDDEN
+int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
 
 %}
 
@@ -44,7 +58,7 @@ static int input (yyscan_t yyscanner) __attribute__((unused));
 %option reentrant yylineno noyywrap bison-bridge
 %option extra-type="struct ctf_scanner *"
 	/* bison-locations */
-INTEGER_SUFFIX			[ \n\t]*(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
+INTEGER_SUFFIX			(U|UL|ULL|LU|LLU|Ul|Ull|lU|llU|u|uL|uLL|Lu|LLu|ul|ull|lu|llu)
 DIGIT				[0-9]
 NONDIGIT			[a-zA-Z_]
 HEXDIGIT			[0-9A-Fa-f]
@@ -53,7 +67,6 @@ UCHARLOWERCASE			\\u{HEXDIGIT}{4}
 UCHARUPPERCASE			\\U{HEXDIGIT}{8}
 ID_NONDIGIT			{NONDIGIT}|{UCHARLOWERCASE}|{UCHARUPPERCASE}
 IDENTIFIER			{ID_NONDIGIT}({ID_NONDIGIT}|{DIGIT})*
-ESCSEQ				\\(\'|\"|\?|\\|a|b|f|n|r|t|v|{OCTALDIGIT}{1,3}|u{HEXDIGIT}{4}|U{HEXDIGIT}{8}|x{HEXDIGIT}+)
 %%
 
 				/*
@@ -64,23 +77,13 @@ ESCSEQ				\\(\'|\"|\?|\\|a|b|f|n|r|t|v|{OCTALDIGIT}{1,3}|u{HEXDIGIT}{4}|U{HEXDIG
 "/*"				BEGIN(comment_ml);
 <comment_ml>[^*\n]*		/* eat anything that's not a '*' */
 <comment_ml>"*"+[^*/\n]*	/* eat up '*'s not followed by '/'s */
-<comment_ml>\n			++yylineno;
+<comment_ml>\n
 <comment_ml>"*"+"/"		BEGIN(INITIAL);
 
-"//"				BEGIN(comment_sl);
-<comment_sl>[^\n]*\n		++yylineno; BEGIN(INITIAL);
+"//"[^\n]*\n			/* skip comment */
 
-L\'				BEGIN(char_const); return CHARACTER_CONSTANT_START;
-\'				BEGIN(char_const); return CHARACTER_CONSTANT_START;
-<char_const>\'			BEGIN(INITIAL); return SQUOTE;
-
-L\"				BEGIN(string_lit); return STRING_LITERAL_START;
-\"				BEGIN(string_lit); return STRING_LITERAL_START;
-<string_lit>\"			BEGIN(INITIAL); return DQUOTE;
-
-<char_const,string_lit>ESCSEQ	return ESCSEQ;
-<char_const,string_lit>\n	; /* ignore */
-<char_const,string_lit>.	setstring(yyextra, yylval, yytext); return CHAR_STRING_TOKEN;
+L?\"(\\.|[^\\"])*\"		{ if (import_string(yyextra, yylval, yytext, '\"') < 0) return ERROR; else return STRING_LITERAL; }
+L?\'(\\.|[^\\'])*\'		{ if (import_string(yyextra, yylval, yytext, '\'') < 0) return ERROR; else return CHARACTER_LITERAL; }
 
 "["				return LSBRAC;
 "]"				return RSBRAC;
@@ -129,10 +132,11 @@ void				setstring(yyextra, yylval, yytext); return VOID;
 _Bool				setstring(yyextra, yylval, yytext); return _BOOL;
 _Complex			setstring(yyextra, yylval, yytext); return _COMPLEX;
 _Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
-[1-9]{DIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return DECIMAL_CONSTANT;
-0{OCTALDIGIT}*{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return OCTAL_CONSTANT;
-0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	setstring(yyextra, yylval, yytext); return HEXADECIMAL_CONSTANT;
+[1-9]{DIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(10); return INTEGER_LITERAL;
+0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return INTEGER_LITERAL;
+0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return INTEGER_LITERAL;
+
 {IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
-[ \t\n]+			; /* ignore */
-.				return ERROR;
+[ \t\r\n]			; /* ignore */
+.				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return ERROR;
 %%

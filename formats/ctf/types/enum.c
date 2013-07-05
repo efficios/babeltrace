@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <glib.h>
 
-int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_enum_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);
@@ -48,14 +48,14 @@ int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	if (ret)
 		return ret;
 	if (!integer_declaration->signedness) {
-		qs = enum_uint_to_quark_set(enum_declaration,
+		qs = bt_enum_uint_to_quark_set(enum_declaration,
 			integer_definition->value._unsigned);
 		if (!qs) {
 			fprintf(stderr, "[warning] Unknown value %" PRIu64 " in enum.\n",
 				integer_definition->value._unsigned);
 		}
 	} else {
-		qs = enum_int_to_quark_set(enum_declaration,
+		qs = bt_enum_int_to_quark_set(enum_declaration,
 			integer_definition->value._signed);
 		if (!qs) {
 			fprintf(stderr, "[warning] Unknown value %" PRId64 " in enum.\n",
@@ -69,7 +69,7 @@ int ctf_enum_read(struct stream_pos *ppos, struct definition *definition)
 	return 0;
 }
 
-int ctf_enum_write(struct stream_pos *pos, struct definition *definition)
+int ctf_enum_write(struct bt_stream_pos *pos, struct bt_definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);

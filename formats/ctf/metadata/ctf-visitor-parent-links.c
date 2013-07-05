@@ -69,13 +69,6 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		if (ret)
 			return ret;
 		break;
-	case UNARY_NESTED:
-		node->u.unary_expression.u.nested_exp->parent = node;
-		ret = ctf_visitor_unary_expression(fd, depth + 1,
-			node->u.unary_expression.u.nested_exp);
-		if (ret)
-			return ret;
-		break;
 
 	case UNARY_UNKNOWN:
 	default:

@@ -45,9 +45,13 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
+#include <babeltrace/compat/utc.h>
 #include <babeltrace/endian.h>
 
+#define NSEC_PER_USEC 1000UL
+#define NSEC_PER_MSEC 1000000UL
+#define NSEC_PER_SEC 1000000000ULL
 #define USEC_PER_SEC 1000000UL
 
 int babeltrace_debug, babeltrace_verbose;
@@ -123,7 +127,7 @@ void write_packet_header(struct ctf_stream_pos *pos, unsigned char *uuid)
 	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
 	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
 	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
@@ -149,7 +153,7 @@ void write_packet_context(struct ctf_stream_pos *pos)
 	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
 	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
@@ -160,7 +164,7 @@ void write_packet_context(struct ctf_stream_pos *pos)
 	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
 	assert(!ctf_pos_packet(&dummy));
-	
+
 	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
 	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
 	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
@@ -171,18 +175,46 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			char **tline, size_t len, size_t *tlen,
 			uint64_t *ts)
 {
-	unsigned long sec, usec;
-
 	if (!s_timestamp)
 		return;
 
 	/* Only need to be executed on first pass (dummy) */
-	if (pos->dummy) {
-		int ret;
+	if (pos->dummy)	{
+		int has_timestamp = 0;
+		unsigned long sec, usec, msec;
+		unsigned int year, mon, mday, hour, min;
 
 		/* Extract time from input line */
-		ret = sscanf(line, "[%lu.%lu] ", &sec, &usec);
-		if (ret == 2) {
+		if (sscanf(line, "[%lu.%lu] ", &sec, &usec) == 2) {
+			*ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
+			/*
+			 * Default CTF clock has 1GHz frequency. Convert
+			 * from usec to nsec.
+			 */
+			*ts *= NSEC_PER_USEC;
+			has_timestamp = 1;
+		} else if (sscanf(line, "[%u-%u-%u %u:%u:%lu.%lu] ",
+				&year, &mon, &mday, &hour, &min,
+				&sec, &msec) == 7) {
+			time_t ep_sec;
+			struct tm ti;
+
+			memset(&ti, 0, sizeof(ti));
+			ti.tm_year = year - 1900;	/* from 1900 */
+			ti.tm_mon = mon - 1;		/* 0 to 11 */
+			ti.tm_mday = mday;
+			ti.tm_hour = hour;
+			ti.tm_min = min;
+			ti.tm_sec = sec;
+
+			ep_sec = babeltrace_timegm(&ti);
+			if (ep_sec != (time_t) -1) {
+				*ts = (uint64_t) ep_sec * NSEC_PER_SEC
+					+ (uint64_t) msec * NSEC_PER_MSEC;
+			}
+			has_timestamp = 1;
+		}
+		if (has_timestamp) {
 			*tline = strchr(line, ']');
 			assert(*tline);
 			(*tline)++;
@@ -190,7 +222,6 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 				(*tline)++;
 			}
 			*tlen = len + line - *tline;
-			*ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
 		}
 	}
 	/* timestamp */
@@ -247,7 +278,7 @@ void trace_text(FILE *input, int output)
 	int ret;
 
 	memset(&pos, 0, sizeof(pos));
-	ret = ctf_init_pos(&pos, output, O_RDWR);
+	ret = ctf_init_pos(&pos, NULL, output, O_RDWR);
 	if (ret) {
 		fprintf(stderr, "Error in ctf_init_pos\n");
 		return;
@@ -284,6 +315,7 @@ void usage(FILE *fp)
 	fprintf(fp, "  OUTPUT                         Output trace path\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -t                             With timestamps (format: [sec.usec] string\\n)\n");
+	fprintf(fp, "                                                 (format: [YYYY-MM-DD HH:MM:SS.MS] string\\n)\n");
 	fprintf(fp, "\n");
 }
 
@@ -353,7 +385,7 @@ int main(int argc, char **argv)
 
 	metadata_fd = openat(dir_fd, "metadata", O_RDWR|O_CREAT,
 			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-	if (fd < 0) {
+	if (metadata_fd < 0) {
 		perror("openat");
 		goto error_closedatastream;
 	}

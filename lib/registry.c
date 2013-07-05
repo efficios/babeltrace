@@ -67,7 +67,7 @@ void format_refcount_dec(void)
 		format_cleanup();
 }
 
-struct format *bt_lookup_format(bt_intern_str name)
+struct bt_format *bt_lookup_format(bt_intern_str name)
 {
 	if (!init_done)
 		return NULL;
@@ -103,7 +103,7 @@ void bt_fprintf_format_list(FILE *fp)
 	fprintf(fp, ".\n");
 }
 
-int bt_register_format(struct format *format)
+int bt_register_format(struct bt_format *format)
 {
 	if (!format)
 		return -EINVAL;
@@ -121,7 +121,7 @@ int bt_register_format(struct format *format)
 	return 0;
 }
 
-void bt_unregister_format(struct format *format)
+void bt_unregister_format(struct bt_format *format)
 {
 	assert(bt_lookup_format(format->name));
 	g_hash_table_remove(format_registry,

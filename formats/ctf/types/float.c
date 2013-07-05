@@ -96,9 +96,9 @@ static void float_unlock(void)
 	assert(!ret);
 }
 
-int _ctf_float_copy(struct stream_pos *destp,
+static int _ctf_float_copy(struct bt_stream_pos *destp,
 		    struct definition_float *dest_definition,
-		    struct stream_pos *srcp,
+		    struct bt_stream_pos *srcp,
 		    const struct definition_float *src_definition)
 {
 	int ret;
@@ -165,7 +165,7 @@ int _ctf_float_copy(struct stream_pos *destp,
 	return 0;
 }
 
-int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -173,7 +173,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	union doubleIEEE754 u;
-	struct definition *tmpdef;
+	struct bt_definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos destp;
 	struct mmap_align mma;
@@ -197,7 +197,7 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
 	memset(&destp, 0, sizeof(destp));
-	ctf_init_pos(&destp, -1, O_RDWR);
+	ctf_init_pos(&destp, NULL, -1, O_RDWR);
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	destp.base_mma = &mma;
 	destp.packet_size = sizeof(u) * CHAR_BIT;
@@ -216,13 +216,13 @@ int ctf_float_read(struct stream_pos *ppos, struct definition *definition)
 	}
 
 end_unref:
-	definition_unref(tmpdef);
+	bt_definition_unref(tmpdef);
 end:
 	float_unlock();
 	return ret;
 }
 
-int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_float *float_definition =
 		container_of(definition, struct definition_float, p);
@@ -230,7 +230,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 		float_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	union doubleIEEE754 u;
-	struct definition *tmpdef;
+	struct bt_definition *tmpdef;
 	struct definition_float *tmpfloat;
 	struct ctf_stream_pos srcp;
 	struct mmap_align mma;
@@ -253,7 +253,7 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 		goto end;
 	}
 	tmpfloat = container_of(tmpdef, struct definition_float, p);
-	ctf_init_pos(&srcp, -1, O_RDONLY);
+	ctf_init_pos(&srcp, NULL, -1, O_RDONLY);
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	srcp.base_mma = &mma;
 	srcp.packet_size = sizeof(u) * CHAR_BIT;
@@ -272,28 +272,30 @@ int ctf_float_write(struct stream_pos *ppos, struct definition *definition)
 	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
 
 end_unref:
-	definition_unref(tmpdef);
+	bt_definition_unref(tmpdef);
 end:
 	float_unlock();
 	return ret;
 }
 
+static
 void __attribute__((constructor)) ctf_float_init(void)
 {
 	static_float_declaration =
-		float_declaration_new(FLT_MANT_DIG,
+		bt_float_declaration_new(FLT_MANT_DIG,
 				sizeof(float) * CHAR_BIT - FLT_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(float));
 	static_double_declaration =
-		float_declaration_new(DBL_MANT_DIG,
+		bt_float_declaration_new(DBL_MANT_DIG,
 				sizeof(double) * CHAR_BIT - DBL_MANT_DIG,
 				BYTE_ORDER,
 				__alignof__(double));
 }
 
+static
 void __attribute__((destructor)) ctf_float_fini(void)
 {
-	declaration_unref(&static_float_declaration->p);
-	declaration_unref(&static_double_declaration->p);
+	bt_declaration_unref(&static_float_declaration->p);
+	bt_declaration_unref(&static_double_declaration->p);
 }

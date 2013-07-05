@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-int ctf_text_enum_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_text_enum_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_enum *enum_definition =
 		container_of(definition, struct definition_enum, p);

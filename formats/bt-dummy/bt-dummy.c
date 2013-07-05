@@ -39,14 +39,14 @@
 #include <stdlib.h>
 
 static
-int bt_dummy_write_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
+int bt_dummy_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	return 0;
 }
 
 static
-struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;
@@ -54,11 +54,12 @@ struct trace_descriptor *bt_dummy_open_trace(const char *path, int flags,
 	pos = g_new0(struct ctf_text_stream_pos, 1);
 	pos->parent.rw_table = NULL;
 	pos->parent.event_cb = bt_dummy_write_event;
+	pos->parent.trace = &pos->trace_descriptor;
 	return &pos->trace_descriptor;
 }
 
 static
-int bt_dummy_close_trace(struct trace_descriptor *td)
+int bt_dummy_close_trace(struct bt_trace_descriptor *td)
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos,
@@ -68,7 +69,7 @@ int bt_dummy_close_trace(struct trace_descriptor *td)
 }
 
 static
-struct format bt_dummy_format = {
+struct bt_format bt_dummy_format = {
 	.open_trace = bt_dummy_open_trace,
 	.close_trace = bt_dummy_close_trace,
 };

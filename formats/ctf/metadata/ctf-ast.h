@@ -32,39 +32,39 @@
 struct ctf_node;
 struct ctf_parser;
 
+#define FOREACH_CTF_NODES(F) \
+	F(NODE_UNKNOWN) \
+	F(NODE_ROOT) \
+	F(NODE_ERROR) \
+	F(NODE_EVENT) \
+	F(NODE_STREAM) \
+	F(NODE_ENV) \
+	F(NODE_TRACE) \
+	F(NODE_CLOCK) \
+	F(NODE_CALLSITE) \
+	F(NODE_CTF_EXPRESSION) \
+	F(NODE_UNARY_EXPRESSION) \
+	F(NODE_TYPEDEF) \
+	F(NODE_TYPEALIAS_TARGET) \
+	F(NODE_TYPEALIAS_ALIAS) \
+	F(NODE_TYPEALIAS) \
+	F(NODE_TYPE_SPECIFIER) \
+	F(NODE_TYPE_SPECIFIER_LIST) \
+	F(NODE_POINTER) \
+	F(NODE_TYPE_DECLARATOR) \
+	F(NODE_FLOATING_POINT) \
+	F(NODE_INTEGER) \
+	F(NODE_STRING) \
+	F(NODE_ENUMERATOR) \
+	F(NODE_ENUM) \
+	F(NODE_STRUCT_OR_VARIANT_DECLARATION) \
+	F(NODE_VARIANT) \
+	F(NODE_STRUCT)
+
 enum node_type {
-	NODE_UNKNOWN = 0,
-	NODE_ROOT,
-
-	NODE_EVENT,
-	NODE_STREAM,
-	NODE_ENV,
-	NODE_TRACE,
-	NODE_CLOCK,
-	NODE_CALLSITE,
-
-	NODE_CTF_EXPRESSION,
-	NODE_UNARY_EXPRESSION,
-
-	NODE_TYPEDEF,
-	NODE_TYPEALIAS_TARGET,
-	NODE_TYPEALIAS_ALIAS,
-	NODE_TYPEALIAS,
-
-	NODE_TYPE_SPECIFIER,
-	NODE_TYPE_SPECIFIER_LIST,
-	NODE_POINTER,
-	NODE_TYPE_DECLARATOR,
-
-	NODE_FLOATING_POINT,
-	NODE_INTEGER,
-	NODE_STRING,
-	NODE_ENUMERATOR,
-	NODE_ENUM,
-	NODE_STRUCT_OR_VARIANT_DECLARATION,
-	NODE_VARIANT,
-	NODE_STRUCT,
-
+#define ENTRY(S)	S,
+	FOREACH_CTF_NODES(ENTRY)
+#undef ENTRY
 	NR_NODE_TYPES,
 };
 
@@ -75,7 +75,7 @@ struct ctf_node {
 	struct ctf_node *parent;
 	struct bt_list_head siblings;
 	struct bt_list_head tmp_head;
-	struct bt_list_head gc;
+	unsigned int lineno;
 
 	enum node_type type;
 	union {
@@ -147,7 +147,6 @@ struct ctf_node {
 				UNARY_SIGNED_CONSTANT,
 				UNARY_UNSIGNED_CONSTANT,
 				UNARY_SBRAC,
-				UNARY_NESTED,
 			} type;
 			union {
 				/*
@@ -158,7 +157,6 @@ struct ctf_node {
 				int64_t signed_constant;
 				uint64_t unsigned_constant;
 				struct ctf_node *sbrac_exp;
-				struct ctf_node *nested_exp;
 			} u;
 			enum {
 				UNARY_LINK_UNKNOWN = 0,
@@ -295,18 +293,22 @@ struct ctf_node {
 
 struct ctf_ast {
 	struct ctf_node root;
-	struct bt_list_head allocated_nodes;
 };
 
 const char *node_type(struct ctf_node *node);
 
 struct ctf_trace;
 
+BT_HIDDEN
 int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node);
+BT_HIDDEN
 int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
+BT_HIDDEN
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
+BT_HIDDEN
 int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 			struct ctf_trace *trace, int byte_order);
+BT_HIDDEN
 int ctf_destroy_metadata(struct ctf_trace *trace);
 
 #endif /* _CTF_AST_H */

@@ -60,20 +60,20 @@ struct bt_context *bt_context_create(void)
 
 	ctx->current_iterator = NULL;
 	ctx->tc = g_new0(struct trace_collection, 1);
-	init_trace_collection(ctx->tc);
+	bt_init_trace_collection(ctx->tc);
 
 	return ctx;
 }
 
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format_name,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
-		struct mmap_stream_list *stream_list,
+		struct bt_mmap_stream_list *stream_list,
 		FILE *metadata)
 {
-	struct trace_descriptor *td;
-	struct format *fmt;
+	struct bt_trace_descriptor *td;
+	struct bt_format *fmt;
 	struct bt_trace_handle *handle;
 	int ret, closeret;
 
@@ -90,7 +90,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (path) {
 		td = fmt->open_trace(path, O_RDONLY, packet_seek, NULL);
 		if (!td) {
-			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n\n",
+			fprintf(stderr, "[warning] [Context] Cannot open_trace of format %s at path %s.\n",
 					format_name, path);
 			ret = -1;
 			goto end;
@@ -107,7 +107,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 
 	/* Create an handle for the trace */
 	handle = bt_trace_handle_create(ctx);
-	if (handle < 0) {
+	if (!handle) {
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		ret = -1;
@@ -129,7 +129,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	g_hash_table_insert(ctx->trace_handles,
 		(gpointer) (unsigned long) handle->id,
 		handle);
-	ret = trace_collection_add(ctx->tc, td);
+	ret = bt_trace_collection_add(ctx->tc, td);
 	if (ret != 0)
 		goto error;
 
@@ -167,7 +167,7 @@ int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 		return -ENOENT;
 
 	/* Remove from containers */
-	trace_collection_remove(ctx->tc, handle->td);
+	bt_trace_collection_remove(ctx->tc, handle->td);
 	/* Close the trace */
 	ret = handle->format->close_trace(handle->td);
 	if (ret) {
@@ -184,7 +184,7 @@ static
 void bt_context_destroy(struct bt_context *ctx)
 {
 	assert(ctx);
-	finalize_trace_collection(ctx->tc);
+	bt_finalize_trace_collection(ctx->tc);
 
 	/*
 	 * Remove all traces. The g_hash_table_destroy will call

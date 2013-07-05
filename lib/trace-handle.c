@@ -52,14 +52,6 @@ void bt_trace_handle_destroy(struct bt_trace_handle *th)
 	g_free(th);
 }
 
-int bt_trace_handle_get_id(struct bt_trace_handle *th)
-{
-	if (!th)
-		return -1;
-
-	return th->id;
-}
-
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id)
 {
 	struct bt_trace_handle *handle;

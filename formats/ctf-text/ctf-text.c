@@ -87,11 +87,11 @@ enum bt_loglevel {
 };
 
 static
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
 static
-int ctf_text_close_trace(struct trace_descriptor *descriptor);
+int ctf_text_close_trace(struct bt_trace_descriptor *descriptor);
 
 static
 rw_dispatch write_dispatch_table[] = {
@@ -106,7 +106,7 @@ rw_dispatch write_dispatch_table[] = {
 };
 
 static
-struct format ctf_text_format = {
+struct bt_format ctf_text_format = {
 	.open_trace = ctf_text_open_trace,
 	.close_trace = ctf_text_close_trace,
 };
@@ -135,7 +135,7 @@ struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
 			(gpointer) (unsigned long) callsite_name);
 }
 
-int print_field(struct definition *definition)
+int print_field(struct bt_definition *definition)
 {
 	/* Print all fields in verbose mode */
 	if (babeltrace_verbose)
@@ -232,7 +232,7 @@ const char *print_loglevel(int value)
 }
 
 static
-int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *stream)
+int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 			 
 {
 	struct ctf_text_stream_pos *pos =
@@ -265,23 +265,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 	/* Print events discarded */
 	if (stream->events_discarded) {
 		fflush(pos->fp);
-		fprintf(stderr, "[warning] Tracer discarded %" PRIu64 " events between [",
-			stream->events_discarded);
-		if (opt_clock_cycles) {
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_cycles_timestamp);
-			fprintf(stderr, "] and [");
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_cycles_timestamp_end);
-		} else {
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_real_timestamp);
-			fprintf(stderr, "] and [");
-			ctf_print_timestamp(stderr, stream,
-					stream->prev_real_timestamp_end);
-		}
-		fprintf(stderr, "]. You should consider recording a new trace with larger buffers or with fewer events enabled.\n");
-		fflush(stderr);
+		ctf_print_discarded(stderr, stream, 0);
 		stream->events_discarded = 0;
 	}
 
@@ -304,7 +288,7 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		else
 			fprintf(pos->fp, " ");
 	}
-	if ((opt_delta_field || opt_all_fields) && stream->has_timestamp) {
+	if (opt_delta_field && stream->has_timestamp) {
 		uint64_t delta, delta_sec, delta_nsec;
 
 		set_field_names_print(pos, ITEM_HEADER);
@@ -332,12 +316,12 @@ int ctf_text_write_event(struct stream_pos *ppos, struct ctf_stream_definition *
 		pos->last_cycles_timestamp = stream->cycles_timestamp;
 	}
 
-	if ((opt_trace_field || opt_all_fields) && stream_class->trace->path[0] != '\0') {
+	if ((opt_trace_field || opt_all_fields) && stream_class->trace->parent.path[0] != '\0') {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace = ");
 		}
-		fprintf(pos->fp, "%s", stream_class->trace->path);
+		fprintf(pos->fp, "%s", stream_class->trace->parent.path);
 		if (pos->print_names)
 			fprintf(pos->fp, ", ");
 		else
@@ -555,8 +539,8 @@ error:
 }
 
 static
-struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct stream_pos *pos, size_t index,
+struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;
@@ -577,6 +561,7 @@ struct trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		pos->fp = fp;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_text_write_event;
+		pos->parent.trace = &pos->trace_descriptor;
 		pos->print_names = 0;
 		break;
 	case O_RDONLY:
@@ -592,15 +577,17 @@ error:
 }
 
 static
-int ctf_text_close_trace(struct trace_descriptor *td)
+int ctf_text_close_trace(struct bt_trace_descriptor *td)
 {
 	int ret;
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
-	ret = fclose(pos->fp);
-	if (ret) {
-		perror("Error on fclose");
-		return -1;
+	if (pos->fp != stdout) {
+		ret = fclose(pos->fp);
+		if (ret) {
+			perror("Error on fclose");
+			return -1;
+		}
 	}
 	g_free(pos);
 	return 0;

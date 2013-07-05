@@ -33,15 +33,15 @@
 #include <stdint.h>
 
 static
-struct definition *_integer_definition_new(struct declaration *declaration,
+struct bt_definition *_integer_definition_new(struct bt_declaration *declaration,
 			       struct definition_scope *parent_scope,
 			       GQuark field_name, int index,
 			       const char *root_name);
 static
-void _integer_definition_free(struct definition *definition);
+void _integer_definition_free(struct bt_definition *definition);
 
 static
-void _integer_declaration_free(struct declaration *declaration)
+void _integer_declaration_free(struct bt_declaration *declaration)
 {
 	struct declaration_integer *integer_declaration =
 		container_of(declaration, struct declaration_integer, p);
@@ -49,7 +49,7 @@ void _integer_declaration_free(struct declaration *declaration)
 }
 
 struct declaration_integer *
-	integer_declaration_new(size_t len, int byte_order,
+	bt_integer_declaration_new(size_t len, int byte_order,
 			 int signedness, size_t alignment, int base,
 			 enum ctf_string_encoding encoding,
 			 struct ctf_clock *clock)
@@ -73,8 +73,8 @@ struct declaration_integer *
 }
 
 static
-struct definition *
-	_integer_definition_new(struct declaration *declaration,
+struct bt_definition *
+	_integer_definition_new(struct bt_declaration *declaration,
 				struct definition_scope *parent_scope,
 				GQuark field_name, int index,
 				const char *root_name)
@@ -85,7 +85,7 @@ struct definition *
 	int ret;
 
 	integer = g_new(struct definition_integer, 1);
-	declaration_ref(&integer_declaration->p);
+	bt_declaration_ref(&integer_declaration->p);
 	integer->p.declaration = declaration;
 	integer->declaration = integer_declaration;
 	integer->p.ref = 1;
@@ -95,27 +95,27 @@ struct definition *
 	 */
 	integer->p.index = root_name ? INT_MAX : index;
 	integer->p.name = field_name;
-	integer->p.path = new_definition_path(parent_scope, field_name,
+	integer->p.path = bt_new_definition_path(parent_scope, field_name,
 					root_name);
 	integer->p.scope = NULL;
 	integer->value._unsigned = 0;
-	ret = register_field_definition(field_name, &integer->p,
+	ret = bt_register_field_definition(field_name, &integer->p,
 					parent_scope);
 	assert(!ret);
 	return &integer->p;
 }
 
 static
-void _integer_definition_free(struct definition *definition)
+void _integer_definition_free(struct bt_definition *definition)
 {
 	struct definition_integer *integer =
 		container_of(definition, struct definition_integer, p);
 
-	declaration_unref(integer->p.declaration);
+	bt_declaration_unref(integer->p.declaration);
 	g_free(integer);
 }
 
-enum ctf_string_encoding get_int_encoding(const struct definition *field)
+enum ctf_string_encoding bt_get_int_encoding(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -126,7 +126,7 @@ enum ctf_string_encoding get_int_encoding(const struct definition *field)
 	return integer_declaration->encoding;
 }
 
-int get_int_base(const struct definition *field)
+int bt_get_int_base(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -137,7 +137,7 @@ int get_int_base(const struct definition *field)
 	return integer_declaration->base;
 }
 
-size_t get_int_len(const struct definition *field)
+size_t bt_get_int_len(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -148,7 +148,7 @@ size_t get_int_len(const struct definition *field)
 	return integer_declaration->len;
 }
 
-int get_int_byte_order(const struct definition *field)
+int bt_get_int_byte_order(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -159,7 +159,7 @@ int get_int_byte_order(const struct definition *field)
 	return integer_declaration->byte_order;
 }
 
-int get_int_signedness(const struct definition *field)
+int bt_get_int_signedness(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -170,7 +170,7 @@ int get_int_signedness(const struct definition *field)
 	return integer_declaration->signedness;
 }
 
-uint64_t get_unsigned_int(const struct definition *field)
+uint64_t bt_get_unsigned_int(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;
@@ -186,7 +186,7 @@ uint64_t get_unsigned_int(const struct definition *field)
 	return (uint64_t)integer_definition->value._signed;
 }
 
-int64_t get_signed_int(const struct definition *field)
+int64_t bt_get_signed_int(const struct bt_definition *field)
 {
 	struct definition_integer *integer_definition;
 	const struct declaration_integer *integer_declaration;

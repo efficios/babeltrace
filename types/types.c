@@ -51,21 +51,21 @@ GQuark prefix_quark(const char *prefix, GQuark quark)
 }
 
 static
-struct declaration *
-	lookup_declaration_scope(GQuark declaration_name,
+struct bt_declaration *
+	bt_lookup_declaration_scope(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->typedef_declarations,
 				   (gconstpointer) (unsigned long) declaration_name);
 }
 
-struct declaration *lookup_declaration(GQuark declaration_name,
+struct bt_declaration *bt_lookup_declaration(GQuark declaration_name,
 		struct declaration_scope *scope)
 {
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 
 	while (scope) {
-		declaration = lookup_declaration_scope(declaration_name,
+		declaration = bt_lookup_declaration_scope(declaration_name,
 						       scope);
 		if (declaration)
 			return declaration;
@@ -74,25 +74,25 @@ struct declaration *lookup_declaration(GQuark declaration_name,
 	return NULL;
 }
 
-int register_declaration(GQuark name, struct declaration *declaration,
+int bt_register_declaration(GQuark name, struct bt_declaration *declaration,
 		struct declaration_scope *scope)
 {
 	if (!name)
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_declaration_scope(name, scope))
+	if (bt_lookup_declaration_scope(name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->typedef_declarations,
 			    (gpointer) (unsigned long) name,
 			    declaration);
-	declaration_ref(declaration);
+	bt_declaration_ref(declaration);
 	return 0;
 }
 
 static
-struct definition *
+struct bt_definition *
 	lookup_field_definition_scope(GQuark field_name,
 		struct definition_scope *scope)
 {
@@ -158,7 +158,7 @@ end:
 }
 
 static struct definition_scope *
-	get_definition_scope(const struct definition *definition)
+	get_definition_scope(const struct bt_definition *definition)
 {
 	return definition->scope;
 }
@@ -183,12 +183,12 @@ static struct definition_scope *
  * lookup_path: the path leading to the enum we want to look for.
  * scope: the definition scope containing the variant definition.
  */
-struct definition *
-	lookup_path_definition(GArray *cur_path,
+struct bt_definition *
+	bt_lookup_path_definition(GArray *cur_path,
 			       GArray *lookup_path,
 			       struct definition_scope *scope)
 {
-	struct definition *definition, *lookup_definition;
+	struct bt_definition *definition, *lookup_definition;
 	GQuark last;
 	int index;
 
@@ -262,7 +262,7 @@ lookup:
 	return NULL;
 }
 
-int register_field_definition(GQuark field_name, struct definition *definition,
+int bt_register_field_definition(GQuark field_name, struct bt_definition *definition,
 		struct definition_scope *scope)
 {
 	if (!scope || !field_name)
@@ -279,12 +279,12 @@ int register_field_definition(GQuark field_name, struct definition *definition,
 	return 0;
 }
 
-void declaration_ref(struct declaration *declaration)
+void bt_declaration_ref(struct bt_declaration *declaration)
 {
 	declaration->ref++;
 }
 
-void declaration_unref(struct declaration *declaration)
+void bt_declaration_unref(struct bt_declaration *declaration)
 {
 	if (!declaration)
 		return;
@@ -292,12 +292,12 @@ void declaration_unref(struct declaration *declaration)
 		declaration->declaration_free(declaration);
 }
 
-void definition_ref(struct definition *definition)
+void bt_definition_ref(struct bt_definition *definition)
 {
 	definition->ref++;
 }
 
-void definition_unref(struct definition *definition)
+void bt_definition_unref(struct bt_definition *definition)
 {
 	if (!definition)
 		return;
@@ -306,27 +306,27 @@ void definition_unref(struct definition *definition)
 }
 
 struct declaration_scope *
-	new_declaration_scope(struct declaration_scope *parent_scope)
+	bt_new_declaration_scope(struct declaration_scope *parent_scope)
 {
 	struct declaration_scope *scope = g_new(struct declaration_scope, 1);
 
 	scope->typedef_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->struct_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->variant_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->enum_declarations = g_hash_table_new_full(g_direct_hash,
 					g_direct_equal, NULL,
-					(GDestroyNotify) declaration_unref);
+					(GDestroyNotify) bt_declaration_unref);
 	scope->parent_scope = parent_scope;
 	return scope;
 }
 
-void free_declaration_scope(struct declaration_scope *scope)
+void bt_free_declaration_scope(struct declaration_scope *scope)
 {
 	g_hash_table_destroy(scope->enum_declarations);
 	g_hash_table_destroy(scope->variant_declarations);
@@ -336,20 +336,20 @@ void free_declaration_scope(struct declaration_scope *scope)
 }
 
 static
-struct declaration_struct *lookup_struct_declaration_scope(GQuark struct_name,
+struct declaration_struct *bt_lookup_struct_declaration_scope(GQuark struct_name,
 					     struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->struct_declarations,
 				   (gconstpointer) (unsigned long) struct_name);
 }
 
-struct declaration_struct *lookup_struct_declaration(GQuark struct_name,
+struct declaration_struct *bt_lookup_struct_declaration(GQuark struct_name,
 				       struct declaration_scope *scope)
 {
 	struct declaration_struct *declaration;
 
 	while (scope) {
-		declaration = lookup_struct_declaration_scope(struct_name, scope);
+		declaration = bt_lookup_struct_declaration_scope(struct_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -357,7 +357,7 @@ struct declaration_struct *lookup_struct_declaration(GQuark struct_name,
 	return NULL;
 }
 
-int register_struct_declaration(GQuark struct_name,
+int bt_register_struct_declaration(GQuark struct_name,
 	struct declaration_struct *struct_declaration,
 	struct declaration_scope *scope)
 {
@@ -368,24 +368,24 @@ int register_struct_declaration(GQuark struct_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_struct_declaration_scope(struct_name, scope))
+	if (bt_lookup_struct_declaration_scope(struct_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->struct_declarations,
 			    (gpointer) (unsigned long) struct_name,
 			    struct_declaration);
-	declaration_ref(&struct_declaration->p);
+	bt_declaration_ref(&struct_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("struct ", struct_name);
-	ret = register_declaration(prefix_name, &struct_declaration->p, scope);
+	ret = bt_register_declaration(prefix_name, &struct_declaration->p, scope);
 	assert(!ret);
 	return 0;
 }
 
 static
 struct declaration_untagged_variant *
-	lookup_variant_declaration_scope(GQuark variant_name,
+	bt_lookup_variant_declaration_scope(GQuark variant_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->variant_declarations,
@@ -393,13 +393,13 @@ struct declaration_untagged_variant *
 }
 
 struct declaration_untagged_variant *
-	lookup_variant_declaration(GQuark variant_name,
+	bt_lookup_variant_declaration(GQuark variant_name,
 		struct declaration_scope *scope)
 {
 	struct declaration_untagged_variant *declaration;
 
 	while (scope) {
-		declaration = lookup_variant_declaration_scope(variant_name, scope);
+		declaration = bt_lookup_variant_declaration_scope(variant_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -407,7 +407,7 @@ struct declaration_untagged_variant *
 	return NULL;
 }
 
-int register_variant_declaration(GQuark variant_name,
+int bt_register_variant_declaration(GQuark variant_name,
 		struct declaration_untagged_variant *untagged_variant_declaration,
 		struct declaration_scope *scope)
 {
@@ -418,17 +418,17 @@ int register_variant_declaration(GQuark variant_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_variant_declaration_scope(variant_name, scope))
+	if (bt_lookup_variant_declaration_scope(variant_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->variant_declarations,
 			    (gpointer) (unsigned long) variant_name,
 			    untagged_variant_declaration);
-	declaration_ref(&untagged_variant_declaration->p);
+	bt_declaration_ref(&untagged_variant_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("variant ", variant_name);
-	ret = register_declaration(prefix_name,
+	ret = bt_register_declaration(prefix_name,
 			&untagged_variant_declaration->p, scope);
 	assert(!ret);
 	return 0;
@@ -436,7 +436,7 @@ int register_variant_declaration(GQuark variant_name,
 
 static
 struct declaration_enum *
-	lookup_enum_declaration_scope(GQuark enum_name,
+	bt_lookup_enum_declaration_scope(GQuark enum_name,
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->enum_declarations,
@@ -444,13 +444,13 @@ struct declaration_enum *
 }
 
 struct declaration_enum *
-	lookup_enum_declaration(GQuark enum_name,
+	bt_lookup_enum_declaration(GQuark enum_name,
 		struct declaration_scope *scope)
 {
 	struct declaration_enum *declaration;
 
 	while (scope) {
-		declaration = lookup_enum_declaration_scope(enum_name, scope);
+		declaration = bt_lookup_enum_declaration_scope(enum_name, scope);
 		if (declaration)
 			return declaration;
 		scope = scope->parent_scope;
@@ -458,7 +458,7 @@ struct declaration_enum *
 	return NULL;
 }
 
-int register_enum_declaration(GQuark enum_name,
+int bt_register_enum_declaration(GQuark enum_name,
 		struct declaration_enum *enum_declaration,
 		struct declaration_scope *scope)
 {
@@ -469,23 +469,23 @@ int register_enum_declaration(GQuark enum_name,
 		return -EPERM;
 
 	/* Only lookup in local scope */
-	if (lookup_enum_declaration_scope(enum_name, scope))
+	if (bt_lookup_enum_declaration_scope(enum_name, scope))
 		return -EEXIST;
 
 	g_hash_table_insert(scope->enum_declarations,
 			    (gpointer) (unsigned long) enum_name,
 			    enum_declaration);
-	declaration_ref(&enum_declaration->p);
+	bt_declaration_ref(&enum_declaration->p);
 
 	/* Also add in typedef/typealias scopes */
 	prefix_name = prefix_quark("enum ", enum_name);
-	ret = register_declaration(prefix_name, &enum_declaration->p, scope);
+	ret = bt_register_declaration(prefix_name, &enum_declaration->p, scope);
 	assert(!ret);
 	return 0;
 }
 
 static struct definition_scope *
-	_new_definition_scope(struct definition_scope *parent_scope,
+	_bt_new_definition_scope(struct definition_scope *parent_scope,
 			      int scope_path_len)
 {
 	struct definition_scope *scope = g_new(struct definition_scope, 1);
@@ -499,7 +499,7 @@ static struct definition_scope *
 	return scope;
 }
 
-GQuark new_definition_path(struct definition_scope *parent_scope,
+GQuark bt_new_definition_path(struct definition_scope *parent_scope,
 			   GQuark field_name, const char *root_name)
 {
 	GQuark path;
@@ -540,20 +540,20 @@ GQuark new_definition_path(struct definition_scope *parent_scope,
 }
 
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope,
+	bt_new_definition_scope(struct definition_scope *parent_scope,
 			     GQuark field_name, const char *root_name)
 {
 	struct definition_scope *scope;
 
 	if (root_name) {
-		scope = _new_definition_scope(parent_scope, 0);
-		append_scope_path(root_name, scope->scope_path);
+		scope = _bt_new_definition_scope(parent_scope, 0);
+		bt_append_scope_path(root_name, scope->scope_path);
 	} else {
 		int scope_path_len = 1;
 
 		assert(parent_scope);
 		scope_path_len += parent_scope->scope_path->len;
-		scope = _new_definition_scope(parent_scope, scope_path_len);
+		scope = _bt_new_definition_scope(parent_scope, scope_path_len);
 		memcpy(scope->scope_path->data, parent_scope->scope_path->data,
 		       sizeof(GQuark) * (scope_path_len - 1));
 		g_array_index(scope->scope_path, GQuark, scope_path_len - 1) =
@@ -574,7 +574,7 @@ struct definition_scope *
 /*
  * in: path (dot separated), out: q (GArray of GQuark)
  */
-void append_scope_path(const char *path, GArray *q)
+void bt_append_scope_path(const char *path, GArray *q)
 {
 	const char *ptrbegin, *ptrend = path;
 	GQuark quark;
@@ -605,14 +605,14 @@ void append_scope_path(const char *path, GArray *q)
 	}
 }
 
-void free_definition_scope(struct definition_scope *scope)
+void bt_free_definition_scope(struct definition_scope *scope)
 {
 	g_array_free(scope->scope_path, TRUE);
 	g_hash_table_destroy(scope->definitions);
 	g_free(scope);
 }
 
-struct definition *lookup_definition(const struct definition *definition,
+struct bt_definition *bt_lookup_definition(const struct bt_definition *definition,
 				     const char *field_name)
 {
 	struct definition_scope *scope = get_definition_scope(definition);
@@ -624,14 +624,14 @@ struct definition *lookup_definition(const struct definition *definition,
 					     scope);
 }
 
-struct definition_integer *lookup_integer(const struct definition *definition,
+struct definition_integer *bt_lookup_integer(const struct bt_definition *definition,
 					  const char *field_name,
 					  int signedness)
 {
-	struct definition *lookup;
+	struct bt_definition *lookup;
 	struct definition_integer *lookup_integer;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_INTEGER)
@@ -642,14 +642,14 @@ struct definition_integer *lookup_integer(const struct definition *definition,
 	return lookup_integer;
 }
 
-struct definition_enum *lookup_enum(const struct definition *definition,
+struct definition_enum *bt_lookup_enum(const struct bt_definition *definition,
 				    const char *field_name,
 				    int signedness)
 {
-	struct definition *lookup;
+	struct bt_definition *lookup;
 	struct definition_enum *lookup_enum;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_ENUM)
@@ -660,19 +660,19 @@ struct definition_enum *lookup_enum(const struct definition *definition,
 	return lookup_enum;
 }
 
-struct definition *lookup_variant(const struct definition *definition,
+struct bt_definition *bt_lookup_variant(const struct bt_definition *definition,
 				  const char *field_name)
 {
-	struct definition *lookup;
-	struct definition_variant *lookup_variant;
+	struct bt_definition *lookup;
+	struct definition_variant *bt_lookup_variant;
 
-	lookup = lookup_definition(definition, field_name);
+	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
 	if (lookup->declaration->id != CTF_TYPE_VARIANT)
 		return NULL;
-	lookup_variant = container_of(lookup, struct definition_variant, p);
-	lookup = variant_get_current_field(lookup_variant);
+	bt_lookup_variant = container_of(lookup, struct definition_variant, p);
+	lookup = bt_variant_get_current_field(bt_lookup_variant);
 	assert(lookup);
 	return lookup;
 }

@@ -29,10 +29,11 @@
 
 #include <babeltrace/types.h>
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <babeltrace/uuid.h>
+#include <babeltrace/compat/uuid.h>
 #include <assert.h>
 #include <glib.h>
 
@@ -66,6 +67,7 @@ struct ctf_stream_definition {
 	uint64_t prev_real_timestamp_end;	/* End-of-last-packet timestamp in ns */
 	uint64_t prev_cycles_timestamp;		/* Start-of-last-packet timestamp in cycles */
 	uint64_t prev_cycles_timestamp_end;	/* End-of-last-packet timestamp in cycles */
+	char path[PATH_MAX];			/* Path to stream. '\0' for mmap traces */
 };
 
 struct ctf_event_definition {
@@ -174,7 +176,8 @@ struct ctf_tracer_env {
 };
 
 struct ctf_trace {
-	struct trace_descriptor parent;
+	struct bt_trace_descriptor parent;
+
 	/* root scope */
 	struct declaration_scope *root_declaration_scope;
 
@@ -183,10 +186,9 @@ struct ctf_trace {
 	struct definition_scope *definition_scope;
 	GPtrArray *streams;			/* Array of struct ctf_stream_declaration pointers */
 	struct ctf_stream_definition *metadata;
-	GHashTable *clocks;
+	char *metadata_string;
+	int metadata_packetized;
 	GHashTable *callsites;
-	struct ctf_clock *single_clock;		/* currently supports only one clock */
-	struct trace_collection *collection;	/* Container of this trace */
 	GPtrArray *event_declarations;		/* Array of all the struct bt_ctf_event_decl */
 
 	struct declaration_struct *packet_header_decl;
@@ -209,13 +211,6 @@ struct ctf_trace {
 	DIR *dir;
 	int dirfd;
 	int flags;		/* open flags */
-
-	/* Heap of streams, ordered to always get the lowest timestam */
-	struct ptr_heap *stream_heap;
-	char path[PATH_MAX];
-
-	struct bt_context *ctx;
-	struct bt_trace_handle *handle;
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\
@@ -234,7 +229,7 @@ struct ctf_trace {
 
 struct ctf_stream_declaration {
 	struct ctf_trace *trace;
-	/* parent is lexical scope conaining the stream scope */
+	/* parent is lexical scope containing the stream scope */
 	struct declaration_scope *declaration_scope;
 	/* innermost definition scope. to be used as parent of event. */
 	struct definition_scope *definition_scope;
@@ -271,7 +266,7 @@ struct ctf_stream_declaration {
 struct ctf_event_declaration {
 	/* stream mapped by stream_id */
 	struct ctf_stream_declaration *stream;
-	/* parent is lexical scope conaining the event scope */
+	/* parent is lexical scope containing the event scope */
 	struct declaration_scope *declaration_scope;
 
 	struct declaration_struct *context_decl;

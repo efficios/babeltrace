@@ -40,7 +40,7 @@ extern "C" {
 
 /* struct bt_context is opaque to the user */
 struct bt_context;
-struct stream_pos;
+struct bt_stream_pos;
 struct bt_ctf_event;
 
 /*
@@ -82,9 +82,9 @@ struct bt_context *bt_context_create(void);
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format,
-		void (*packet_seek)(struct stream_pos *pos,
+		void (*packet_seek)(struct bt_stream_pos *pos,
 			size_t index, int whence),
-		struct mmap_stream_list *stream_list,
+		struct bt_mmap_stream_list *stream_list,
 		FILE *metadata);
 
 /*

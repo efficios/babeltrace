@@ -31,8 +31,8 @@
 #include <limits.h>		/* C99 limits */
 #include <string.h>
 
-int ctf_text_string_write(struct stream_pos *ppos,
-			  struct definition *definition)
+int ctf_text_string_write(struct bt_stream_pos *ppos,
+			  struct bt_definition *definition)
 {
 	struct definition_string *string_definition =
 		container_of(definition, struct definition_string, p);

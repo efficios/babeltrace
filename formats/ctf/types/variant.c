@@ -28,11 +28,11 @@
 
 #include <babeltrace/ctf/types.h>
 
-int ctf_variant_rw(struct stream_pos *ppos, struct definition *definition)
+int ctf_variant_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
-	struct declaration *declaration = definition->declaration;
+	struct bt_declaration *declaration = definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	ctf_align_pos(pos, declaration->alignment);
-	return variant_rw(ppos, definition);
+	return bt_variant_rw(ppos, definition);
 }

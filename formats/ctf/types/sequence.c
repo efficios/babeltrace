@@ -28,13 +28,13 @@
 
 #include <babeltrace/ctf/types.h>
 
-int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
+int ctf_sequence_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	if (elem->id == CTF_TYPE_INTEGER) {
@@ -46,7 +46,7 @@ int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
 
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = sequence_len(sequence_definition);
+				uint64_t len = bt_sequence_len(sequence_definition);
 
 				ctf_align_pos(pos, integer_declaration->p.alignment);
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
@@ -60,16 +60,16 @@ int ctf_sequence_read(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return sequence_rw(ppos, definition);
+	return bt_sequence_rw(ppos, definition);
 }
 
-int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
+int ctf_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
 	struct definition_sequence *sequence_definition =
 		container_of(definition, struct definition_sequence, p);
 	struct declaration_sequence *sequence_declaration =
 		sequence_definition->declaration;
-	struct declaration *elem = sequence_declaration->elem;
+	struct bt_declaration *elem = sequence_declaration->elem;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
 	if (elem->id == CTF_TYPE_INTEGER) {
@@ -81,7 +81,7 @@ int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
 
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = sequence_len(sequence_definition);
+				uint64_t len = bt_sequence_len(sequence_definition);
 
 				ctf_align_pos(pos, integer_declaration->p.alignment);
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
@@ -94,5 +94,5 @@ int ctf_sequence_write(struct stream_pos *ppos, struct definition *definition)
 			}
 		}
 	}
-	return sequence_rw(ppos, definition);
+	return bt_sequence_rw(ppos, definition);
 }

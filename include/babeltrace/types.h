@@ -43,9 +43,9 @@
 #define DEFAULT_NR_STRUCT_FIELDS 8
 
 struct ctf_stream_definition;
-struct stream_pos;
-struct format;
-struct definition;
+struct bt_stream_pos;
+struct bt_format;
+struct bt_definition;
 struct ctf_clock;
 
 /* type scope */
@@ -78,27 +78,27 @@ struct definition_scope {
 	GArray *scope_path;	/* array of GQuark */
 };
 
-struct declaration {
+struct bt_declaration {
 	enum ctf_type_id id;
 	size_t alignment;	/* type alignment, in bits */
 	int ref;		/* number of references to the type */
 	/*
 	 * declaration_free called with declaration ref is decremented to 0.
 	 */
-	void (*declaration_free)(struct declaration *declaration);
-	struct definition *
-		(*definition_new)(struct declaration *declaration,
+	void (*declaration_free)(struct bt_declaration *declaration);
+	struct bt_definition *
+		(*definition_new)(struct bt_declaration *declaration,
 				  struct definition_scope *parent_scope,
 				  GQuark field_name, int index,
 				  const char *root_name);
 	/*
 	 * definition_free called with definition ref is decremented to 0.
 	 */
-	void (*definition_free)(struct definition *definition);
+	void (*definition_free)(struct bt_definition *definition);
 };
 
-struct definition {
-	struct declaration *declaration;
+struct bt_definition {
+	struct bt_declaration *declaration;
 	int index;		/* Position of the definition in its container */
 	GQuark name;		/* Field name in its container (or 0 if unset) */
 	int ref;		/* number of references to the definition */
@@ -106,19 +106,24 @@ struct definition {
 	struct definition_scope *scope;
 };
 
-typedef int (*rw_dispatch)(struct stream_pos *pos,
-			   struct definition *definition);
+typedef int (*rw_dispatch)(struct bt_stream_pos *pos,
+			   struct bt_definition *definition);
 
 /* Parent of per-plugin positions */
-struct stream_pos {
+struct bt_stream_pos {
 	/* read/write dispatch table. Specific to plugin used for stream. */
 	rw_dispatch *rw_table;	/* rw dispatch table */
-	int (*event_cb)(struct stream_pos *pos,
+	int (*event_cb)(struct bt_stream_pos *pos,
 			struct ctf_stream_definition *stream);
+	int (*pre_trace_cb)(struct bt_stream_pos *pos,
+			struct bt_trace_descriptor *trace);
+	int (*post_trace_cb)(struct bt_stream_pos *pos,
+			struct bt_trace_descriptor *trace);
+	struct bt_trace_descriptor *trace;
 };
 
 static inline
-int generic_rw(struct stream_pos *pos, struct definition *definition)
+int generic_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 {
 	enum ctf_type_id dispatch_id = definition->declaration->id;
 	rw_dispatch call;
@@ -134,7 +139,7 @@ int generic_rw(struct stream_pos *pos, struct definition *definition)
  * read/write non aligned on CHAR_BIT.
  */
 struct declaration_integer {
-	struct declaration p;
+	struct bt_declaration p;
 	size_t len;		/* length, in bits. */
 	int byte_order;		/* byte order */
 	int signedness;
@@ -144,7 +149,7 @@ struct declaration_integer {
 };
 
 struct definition_integer {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_integer *declaration;
 	/* Last values read */
 	union {
@@ -154,7 +159,7 @@ struct definition_integer {
 };
 
 struct declaration_float {
-	struct declaration p;
+	struct bt_declaration p;
 	struct declaration_integer *sign;
 	struct declaration_integer *mantissa;
 	struct declaration_integer *exp;
@@ -163,7 +168,7 @@ struct declaration_float {
 };
 
 struct definition_float {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_float *declaration;
 	struct definition_integer *sign;
 	struct definition_integer *mantissa;
@@ -211,13 +216,13 @@ struct enum_table {
 };
 
 struct declaration_enum {
-	struct declaration p;
+	struct bt_declaration p;
 	struct declaration_integer *integer_declaration;
 	struct enum_table table;
 };
 
 struct definition_enum {
-	struct definition p;
+	struct bt_definition p;
 	struct definition_integer *integer;
 	struct declaration_enum *declaration;
 	/* Last GQuark values read. Keeping a reference on the GQuark array. */
@@ -225,12 +230,12 @@ struct definition_enum {
 };
 
 struct declaration_string {
-	struct declaration p;
+	struct bt_declaration p;
 	enum ctf_string_encoding encoding;
 };
 
 struct definition_string {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_string *declaration;
 	char *value;	/* freed at definition_string teardown */
 	size_t len, alloc_len;
@@ -238,77 +243,77 @@ struct definition_string {
 
 struct declaration_field {
 	GQuark name;
-	struct declaration *declaration;
+	struct bt_declaration *declaration;
 };
 
 struct declaration_struct {
-	struct declaration p;
+	struct bt_declaration p;
 	GHashTable *fields_by_name;	/* Tuples (field name, field index) */
 	struct declaration_scope *scope;
 	GArray *fields;			/* Array of declaration_field */
 };
 
 struct definition_struct {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_struct *declaration;
-	GPtrArray *fields;		/* Array of pointers to struct definition */
+	GPtrArray *fields;		/* Array of pointers to struct bt_definition */
 };
 
 struct declaration_untagged_variant {
-	struct declaration p;
+	struct bt_declaration p;
 	GHashTable *fields_by_tag;	/* Tuples (field tag, field index) */
 	struct declaration_scope *scope;
 	GArray *fields;			/* Array of declaration_field */
 };
 
 struct declaration_variant {
-	struct declaration p;
+	struct bt_declaration p;
 	struct declaration_untagged_variant *untagged_variant;
 	GArray *tag_name;		/* Array of GQuark */
 };
 
 /* A variant needs to be tagged to be defined. */
 struct definition_variant {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_variant *declaration;
-	struct definition *enum_tag;
-	GPtrArray *fields;		/* Array of pointers to struct definition */
-	struct definition *current_field;	/* Last field read */
+	struct bt_definition *enum_tag;
+	GPtrArray *fields;		/* Array of pointers to struct bt_definition */
+	struct bt_definition *current_field;	/* Last field read */
 };
 
 struct declaration_array {
-	struct declaration p;
+	struct bt_declaration p;
 	size_t len;
-	struct declaration *elem;
+	struct bt_declaration *elem;
 	struct declaration_scope *scope;
 };
 
 struct definition_array {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_array *declaration;
-	GPtrArray *elems;		/* Array of pointers to struct definition */
+	GPtrArray *elems;		/* Array of pointers to struct bt_definition */
 	GString *string;		/* String for encoded integer children */
 };
 
 struct declaration_sequence {
-	struct declaration p;
+	struct bt_declaration p;
 	GArray *length_name;		/* Array of GQuark */
-	struct declaration *elem;
+	struct bt_declaration *elem;
 	struct declaration_scope *scope;
 };
 
 struct definition_sequence {
-	struct definition p;
+	struct bt_definition p;
 	struct declaration_sequence *declaration;
 	struct definition_integer *length;
-	GPtrArray *elems;		/* Array of pointers to struct definition */
+	GPtrArray *elems;		/* Array of pointers to struct bt_definition */
 	GString *string;		/* String for encoded integer children */
 };
 
-int register_declaration(GQuark declaration_name,
-			 struct declaration *declaration,
+int bt_register_declaration(GQuark declaration_name,
+			 struct bt_declaration *declaration,
 			 struct declaration_scope *scope);
-struct declaration *lookup_declaration(GQuark declaration_name,
+struct bt_declaration *bt_lookup_declaration(GQuark declaration_name,
 				struct declaration_scope *scope);
 
 /*
@@ -317,76 +322,76 @@ struct declaration *lookup_declaration(GQuark declaration_name,
  * that a named variant can be declared without specifying its target
  * "choice" tag field immediately.
  */
-int register_struct_declaration(GQuark struct_name,
+int bt_register_struct_declaration(GQuark struct_name,
 				struct declaration_struct *struct_declaration,
 				struct declaration_scope *scope);
 struct declaration_struct *
-	lookup_struct_declaration(GQuark struct_name,
+	bt_lookup_struct_declaration(GQuark struct_name,
 				  struct declaration_scope *scope);
-int register_variant_declaration(GQuark variant_name,
+int bt_register_variant_declaration(GQuark variant_name,
 			  struct declaration_untagged_variant *untagged_variant_declaration,
 		          struct declaration_scope *scope);
-struct declaration_untagged_variant *lookup_variant_declaration(GQuark variant_name,
+struct declaration_untagged_variant *bt_lookup_variant_declaration(GQuark variant_name,
 					 struct declaration_scope *scope);
-int register_enum_declaration(GQuark enum_name,
+int bt_register_enum_declaration(GQuark enum_name,
 			      struct declaration_enum *enum_declaration,
 			      struct declaration_scope *scope);
 struct declaration_enum *
-	lookup_enum_declaration(GQuark enum_name,
+	bt_lookup_enum_declaration(GQuark enum_name,
 			        struct declaration_scope *scope);
 
 struct declaration_scope *
-	new_declaration_scope(struct declaration_scope *parent_scope);
-void free_declaration_scope(struct declaration_scope *scope);
+	bt_new_declaration_scope(struct declaration_scope *parent_scope);
+void bt_free_declaration_scope(struct declaration_scope *scope);
 
 /*
  * field_definition is for field definitions. They are registered into
  * definition scopes.
  */
-struct definition *
-	lookup_path_definition(GArray *cur_path,	/* array of GQuark */
+struct bt_definition *
+	bt_lookup_path_definition(GArray *cur_path,	/* array of GQuark */
 			       GArray *lookup_path,	/* array of GQuark */
 			       struct definition_scope *scope);
-int register_field_definition(GQuark field_name,
-			      struct definition *definition,
+int bt_register_field_definition(GQuark field_name,
+			      struct bt_definition *definition,
 			      struct definition_scope *scope);
 struct definition_scope *
-	new_definition_scope(struct definition_scope *parent_scope,
+	bt_new_definition_scope(struct definition_scope *parent_scope,
 			     GQuark field_name, const char *root_name);
-void free_definition_scope(struct definition_scope *scope);
+void bt_free_definition_scope(struct definition_scope *scope);
 
-GQuark new_definition_path(struct definition_scope *parent_scope,
+GQuark bt_new_definition_path(struct definition_scope *parent_scope,
 			   GQuark field_name, const char *root_name);
 
 static inline
-int compare_definition_path(struct definition *definition, GQuark path)
+int compare_definition_path(struct bt_definition *definition, GQuark path)
 {
 	return definition->path == path;
 }
 
-void declaration_ref(struct declaration *declaration);
-void declaration_unref(struct declaration *declaration);
+void bt_declaration_ref(struct bt_declaration *declaration);
+void bt_declaration_unref(struct bt_declaration *declaration);
 
-void definition_ref(struct definition *definition);
-void definition_unref(struct definition *definition);
+void bt_definition_ref(struct bt_definition *definition);
+void bt_definition_unref(struct bt_definition *definition);
 
-struct declaration_integer *integer_declaration_new(size_t len, int byte_order,
+struct declaration_integer *bt_integer_declaration_new(size_t len, int byte_order,
 				  int signedness, size_t alignment,
 				  int base, enum ctf_string_encoding encoding,
 				  struct ctf_clock *clock);
-uint64_t get_unsigned_int(const struct definition *field);
-int64_t get_signed_int(const struct definition *field);
-int get_int_signedness(const struct definition *field);
-int get_int_byte_order(const struct definition *field);
-int get_int_base(const struct definition *field);
-size_t get_int_len(const struct definition *field);	/* in bits */
-enum ctf_string_encoding get_int_encoding(const struct definition *field);
+uint64_t bt_get_unsigned_int(const struct bt_definition *field);
+int64_t bt_get_signed_int(const struct bt_definition *field);
+int bt_get_int_signedness(const struct bt_definition *field);
+int bt_get_int_byte_order(const struct bt_definition *field);
+int bt_get_int_base(const struct bt_definition *field);
+size_t bt_get_int_len(const struct bt_definition *field);	/* in bits */
+enum ctf_string_encoding bt_get_int_encoding(const struct bt_definition *field);
 
 /*
  * mantissa_len is the length of the number of bytes represented by the mantissa
  * (e.g. result of DBL_MANT_DIG). It includes the leading 1.
  */
-struct declaration_float *float_declaration_new(size_t mantissa_len,
+struct declaration_float *bt_float_declaration_new(size_t mantissa_len,
 				  size_t exp_len, int byte_order,
 				  size_t alignment);
 
@@ -399,14 +404,14 @@ struct declaration_float *float_declaration_new(size_t mantissa_len,
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_uint_to_quark_set(const struct declaration_enum *enum_declaration,
 			       uint64_t v);
 
 /*
  * Returns a GArray of GQuark or NULL.
  * Caller must release the GArray with g_array_unref().
  */
-GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
 			      int64_t v);
 
 /*
@@ -414,73 +419,73 @@ GArray *enum_int_to_quark_set(const struct declaration_enum *enum_declaration,
  * Callers do _not_ own the returned GArray (and therefore _don't_ need to
  * release it).
  */
-GArray *enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
+GArray *bt_enum_quark_to_range_set(const struct declaration_enum *enum_declaration,
 				GQuark q);
-void enum_signed_insert(struct declaration_enum *enum_declaration,
+void bt_enum_signed_insert(struct declaration_enum *enum_declaration,
                         int64_t start, int64_t end, GQuark q);
-void enum_unsigned_insert(struct declaration_enum *enum_declaration,
+void bt_enum_unsigned_insert(struct declaration_enum *enum_declaration,
 			  uint64_t start, uint64_t end, GQuark q);
-size_t enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
+size_t bt_enum_get_nr_enumerators(struct declaration_enum *enum_declaration);
 
 struct declaration_enum *
-	enum_declaration_new(struct declaration_integer *integer_declaration);
+	bt_enum_declaration_new(struct declaration_integer *integer_declaration);
 
 struct declaration_string *
-	string_declaration_new(enum ctf_string_encoding encoding);
-char *get_string(const struct definition *field);
-enum ctf_string_encoding get_string_encoding(const struct definition *field);
+	bt_string_declaration_new(enum ctf_string_encoding encoding);
+char *bt_get_string(const struct bt_definition *field);
+enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *field);
 
 struct declaration_struct *
-	struct_declaration_new(struct declaration_scope *parent_scope,
+	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align);
-void struct_declaration_add_field(struct declaration_struct *struct_declaration,
+void bt_struct_declaration_add_field(struct declaration_struct *struct_declaration,
 				  const char *field_name,
-				  struct declaration *field_declaration);
+				  struct bt_declaration *field_declaration);
 /*
  * Returns the index of a field within a structure.
  */
-int struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
+int bt_struct_declaration_lookup_field_index(struct declaration_struct *struct_declaration,
 						    GQuark field_name);
 /*
  * field returned only valid as long as the field structure is not appended to.
  */
 struct declaration_field *
-struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
+bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					int index);
-struct definition *
-struct_definition_get_field_from_index(struct definition_struct *struct_definition,
+struct bt_definition *
+bt_struct_definition_get_field_from_index(struct definition_struct *struct_definition,
 				       int index);
-int struct_rw(struct stream_pos *pos, struct definition *definition);
-uint64_t struct_declaration_len(struct declaration_struct *struct_declaration);
+int bt_struct_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
+uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings
  * from numeric values to a single tag. Overlapping tag value ranges are
  * therefore forbidden.
  */
-struct declaration_untagged_variant *untagged_variant_declaration_new(
+struct declaration_untagged_variant *bt_untagged_bt_variant_declaration_new(
 		struct declaration_scope *parent_scope);
-struct declaration_variant *variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
+struct declaration_variant *bt_variant_declaration_new(struct declaration_untagged_variant *untagged_variant,
 		const char *tag);
 
-void untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
+void bt_untagged_variant_declaration_add_field(struct declaration_untagged_variant *untagged_variant_declaration,
 		const char *field_name,
-		struct declaration *field_declaration);
+		struct bt_declaration *field_declaration);
 struct declaration_field *
-	untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration,
+	bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_variant *untagged_variant_declaration,
 		GQuark tag);
 /*
  * Returns 0 on success, -EPERM on error.
  */
 int variant_definition_set_tag(struct definition_variant *variant,
-			       struct definition *enum_tag);
+			       struct bt_definition *enum_tag);
 /*
  * Returns the field selected by the current tag value.
  * field returned only valid as long as the variant structure is not appended
  * to.
  */
-struct definition *variant_get_current_field(struct definition_variant *variant);
-int variant_rw(struct stream_pos *pos, struct definition *definition);
+struct bt_definition *bt_variant_get_current_field(struct definition_variant *variant);
+int bt_variant_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
 
 /*
  * elem_declaration passed as parameter now belongs to the array. No
@@ -488,43 +493,43 @@ int variant_rw(struct stream_pos *pos, struct definition *definition);
  * array.
  */
 struct declaration_array *
-	array_declaration_new(size_t len, struct declaration *elem_declaration,
+	bt_array_declaration_new(size_t len, struct bt_declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
-uint64_t array_len(struct definition_array *array);
-struct definition *array_index(struct definition_array *array, uint64_t i);
-int array_rw(struct stream_pos *pos, struct definition *definition);
-GString *get_char_array(const struct definition *field);
-int get_array_len(const struct definition *field);
+uint64_t bt_array_len(struct definition_array *array);
+struct bt_definition *bt_array_index(struct definition_array *array, uint64_t i);
+int bt_array_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
+GString *bt_get_char_array(const struct bt_definition *field);
+int bt_get_array_len(const struct bt_definition *field);
 
 /*
  * int_declaration and elem_declaration passed as parameter now belong
  * to the sequence. No need to free them explicitly.
  */
 struct declaration_sequence *
-	sequence_declaration_new(const char *length_name,
-		struct declaration *elem_declaration,
+	bt_sequence_declaration_new(const char *length_name,
+		struct bt_declaration *elem_declaration,
 		struct declaration_scope *parent_scope);
-uint64_t sequence_len(struct definition_sequence *sequence);
-struct definition *sequence_index(struct definition_sequence *sequence, uint64_t i);
-int sequence_rw(struct stream_pos *pos, struct definition *definition);
+uint64_t bt_sequence_len(struct definition_sequence *sequence);
+struct bt_definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
+int bt_sequence_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
 
 /*
  * in: path (dot separated), out: q (GArray of GQuark)
  */
-void append_scope_path(const char *path, GArray *q);
+void bt_append_scope_path(const char *path, GArray *q);
 
 /*
  * Lookup helpers.
  */
-struct definition *lookup_definition(const struct definition *definition,
+struct bt_definition *bt_lookup_definition(const struct bt_definition *definition,
 				     const char *field_name);
-struct definition_integer *lookup_integer(const struct definition *definition,
+struct definition_integer *bt_lookup_integer(const struct bt_definition *definition,
 					  const char *field_name,
 					  int signedness);
-struct definition_enum *lookup_enum(const struct definition *definition,
+struct definition_enum *bt_lookup_enum(const struct bt_definition *definition,
 				    const char *field_name,
 				    int signedness);
-struct definition *lookup_variant(const struct definition *definition,
+struct bt_definition *bt_lookup_variant(const struct bt_definition *definition,
 				  const char *field_name);
 
 static inline

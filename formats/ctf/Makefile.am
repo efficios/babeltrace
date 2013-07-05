@@ -9,8 +9,7 @@ libbabeltrace_ctf_la_SOURCES = \
 	events.c \
 	iterator.c \
 	callbacks.c \
-	events-private.h \
-	memstream.h
+	events-private.h
 
 # Request that the linker keeps all static libraries objects.
 libbabeltrace_ctf_la_LDFLAGS = \

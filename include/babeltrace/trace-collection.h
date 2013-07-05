@@ -35,12 +35,12 @@ extern "C" {
 
 struct trace_collection;
 
-void init_trace_collection(struct trace_collection *tc);
-void finalize_trace_collection(struct trace_collection *tc);
-int trace_collection_add(struct trace_collection *tc,
-			 struct trace_descriptor *td);
-int trace_collection_remove(struct trace_collection *tc,
-			 struct trace_descriptor *td);
+void bt_init_trace_collection(struct trace_collection *tc);
+void bt_finalize_trace_collection(struct trace_collection *tc);
+int bt_trace_collection_add(struct trace_collection *tc,
+			 struct bt_trace_descriptor *td);
+int bt_trace_collection_remove(struct trace_collection *tc,
+			 struct bt_trace_descriptor *td);
 
 #ifdef __cplusplus
 }
