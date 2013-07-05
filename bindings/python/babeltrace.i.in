@@ -45,7 +45,6 @@ trace to it."
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/format.h>
 #include <babeltrace/list.h>
-#include <babeltrace/uuid.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/iterator.h>
 #include "python-complements.h"
@@ -63,8 +62,8 @@ typedef int bt_intern_str;
 %rename("_bt_context_create") bt_context_create(void);
 %rename("_bt_context_add_trace") bt_context_add_trace(
 		struct bt_context *ctx, const char *path, const char *format,
-		void (*packet_seek)(struct stream_pos *pos, size_t index, int whence),
-		struct mmap_stream_list *stream_list, FILE *metadata);
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index, int whence),
+		struct bt_mmap_stream_list *stream_list, FILE *metadata);
 %rename("_bt_context_remove_trace") bt_context_remove_trace(
 		struct bt_context *ctx, int trace_id);
 %rename("_bt_context_get") bt_context_get(struct bt_context *ctx);
@@ -74,8 +73,8 @@ typedef int bt_intern_str;
 
 struct bt_context *bt_context_create(void);
 int bt_context_add_trace(struct bt_context *ctx, const char *path, const char *format,
-		void (*packet_seek)(struct stream_pos *pos, size_t index, int whence),
-		struct mmap_stream_list *stream_list, FILE *metadata);
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index, int whence),
+		struct bt_mmap_stream_list *stream_list, FILE *metadata);
 void bt_context_remove_trace(struct bt_context *ctx, int trace_id);
 void bt_context_get(struct bt_context *ctx);
 void bt_context_put(struct bt_context *ctx);
@@ -192,7 +191,7 @@ class Context:
 
 extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
-extern int bt_register_format(struct format *format);
+extern int bt_register_format(struct bt_format *format);
 
 %pythoncode %{
 
@@ -452,8 +451,6 @@ void bt_trace_handle_destroy(struct bt_trace_handle *bt);
 		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
 %rename("_bt_trace_handle_get_timestamp_end") bt_trace_handle_get_timestamp_end(
 		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
-%rename("_bt_trace_handle_get_id") bt_trace_handle_get_id(struct bt_trace_handle *th);
-int bt_trace_handle_get_id(struct bt_trace_handle *th);
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
 uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id,
 		enum bt_clock_type type);
@@ -550,58 +547,58 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 		const struct bt_ctf_event *ctf_event);
 
 %rename("_bt_ctf_get_field") bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
-		const struct definition *scope,	const char *field);
+		const struct bt_definition *scope,	const char *field);
 %rename("_bt_ctf_get_index") bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
-		const struct definition *field,	unsigned int index);
-%rename("_bt_ctf_field_name") bt_ctf_field_name(const struct definition *field);
-%rename("_bt_ctf_field_type") bt_ctf_field_type(const struct declaration *field);
+		const struct bt_definition *field,	unsigned int index);
+%rename("_bt_ctf_field_name") bt_ctf_field_name(const struct bt_definition *field);
+%rename("_bt_ctf_field_type") bt_ctf_field_type(const struct bt_declaration *field);
 %rename("_bt_ctf_get_int_signedness") bt_ctf_get_int_signedness(
-		const struct declaration *field);
-%rename("_bt_ctf_get_int_base") bt_ctf_get_int_base(const struct declaration *field);
+		const struct bt_declaration *field);
+%rename("_bt_ctf_get_int_base") bt_ctf_get_int_base(const struct bt_declaration *field);
 %rename("_bt_ctf_get_int_byte_order") bt_ctf_get_int_byte_order(
-		const struct declaration *field);
-%rename("_bt_ctf_get_int_len") bt_ctf_get_int_len(const struct declaration *field);
-%rename("_bt_ctf_get_encoding") bt_ctf_get_encoding(const struct declaration *field);
-%rename("_bt_ctf_get_array_len") bt_ctf_get_array_len(const struct declaration *field);
-%rename("_bt_ctf_get_uint64") bt_ctf_get_uint64(const struct definition *field);
-%rename("_bt_ctf_get_int64") bt_ctf_get_int64(const struct definition *field);
-%rename("_bt_ctf_get_char_array") bt_ctf_get_char_array(const struct definition *field);
-%rename("_bt_ctf_get_string") bt_ctf_get_string(const struct definition *field);
+		const struct bt_declaration *field);
+%rename("_bt_ctf_get_int_len") bt_ctf_get_int_len(const struct bt_declaration *field);
+%rename("_bt_ctf_get_encoding") bt_ctf_get_encoding(const struct bt_declaration *field);
+%rename("_bt_ctf_get_array_len") bt_ctf_get_array_len(const struct bt_declaration *field);
+%rename("_bt_ctf_get_uint64") bt_ctf_get_uint64(const struct bt_definition *field);
+%rename("_bt_ctf_get_int64") bt_ctf_get_int64(const struct bt_definition *field);
+%rename("_bt_ctf_get_char_array") bt_ctf_get_char_array(const struct bt_definition *field);
+%rename("_bt_ctf_get_string") bt_ctf_get_string(const struct bt_definition *field);
 %rename("_bt_ctf_field_get_error") bt_ctf_field_get_error(void);
 %rename("_bt_ctf_get_decl_event_name") bt_ctf_get_decl_event_name(const struct
 		bt_ctf_event_decl *event);
 %rename("_bt_ctf_get_decl_field_name") bt_ctf_get_decl_field_name(
 		const struct bt_ctf_field_decl *field);
 %rename("_bt_ctf_get_decl_from_def") bt_ctf_get_decl_from_def(
-		const struct definition *field);
+		const struct bt_definition *field);
 
-const struct definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
+const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
 const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
 uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event);
 uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *ctf_event);
-const struct definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
-		const struct definition *scope,
+const struct bt_definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
+		const struct bt_definition *scope,
 		const char *field);
-const struct definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
-		const struct definition *field,
+const struct bt_definition *bt_ctf_get_index(const struct bt_ctf_event *ctf_event,
+		const struct bt_definition *field,
 		unsigned int index);
-const char *bt_ctf_field_name(const struct definition *field);
-enum ctf_type_id bt_ctf_field_type(const struct declaration *field);
-int bt_ctf_get_int_signedness(const struct declaration *field);
-int bt_ctf_get_int_base(const struct declaration *field);
-int bt_ctf_get_int_byte_order(const struct declaration *field);
-ssize_t bt_ctf_get_int_len(const struct declaration *field);
-enum ctf_string_encoding bt_ctf_get_encoding(const struct declaration *field);
-int bt_ctf_get_array_len(const struct declaration *field);
-uint64_t bt_ctf_get_uint64(const struct definition *field);
-int64_t bt_ctf_get_int64(const struct definition *field);
-char *bt_ctf_get_char_array(const struct definition *field);
-char *bt_ctf_get_string(const struct definition *field);
+const char *bt_ctf_field_name(const struct bt_definition *field);
+enum ctf_type_id bt_ctf_field_type(const struct bt_declaration *field);
+int bt_ctf_get_int_signedness(const struct bt_declaration *field);
+int bt_ctf_get_int_base(const struct bt_declaration *field);
+int bt_ctf_get_int_byte_order(const struct bt_declaration *field);
+ssize_t bt_ctf_get_int_len(const struct bt_declaration *field);
+enum ctf_string_encoding bt_ctf_get_encoding(const struct bt_declaration *field);
+int bt_ctf_get_array_len(const struct bt_declaration *field);
+uint64_t bt_ctf_get_uint64(const struct bt_definition *field);
+int64_t bt_ctf_get_int64(const struct bt_definition *field);
+char *bt_ctf_get_char_array(const struct bt_definition *field);
+char *bt_ctf_get_string(const struct bt_definition *field);
 int bt_ctf_field_get_error(void);
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
-const struct declaration *bt_ctf_get_decl_from_def(const struct definition *field);
+const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *field);
 
 %pythoncode%{
 

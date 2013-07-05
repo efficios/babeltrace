@@ -44,16 +44,16 @@ void _bt_file_close(FILE *fp)
 */
 
 /* ctf-field-list */
-struct definition **_bt_python_field_listcaller(
+struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
-		const struct definition *scope)
+		const struct bt_definition *scope)
 {
-	struct definition **list;
+	struct bt_definition **list;
 	unsigned int count;
 	int ret;
 
 	ret = bt_ctf_get_field_list(ctf_event, scope,
-		(const struct definition * const **)&list, &count);
+		(const struct bt_definition * const **)&list, &count);
 
 	if (ret < 0)	/* For python to know an error occured */
 		list = NULL;
@@ -63,8 +63,8 @@ struct definition **_bt_python_field_listcaller(
 	return list;
 }
 
-struct definition *_bt_python_field_one_from_list(
-		struct definition **list, int index)
+struct bt_definition *_bt_python_field_one_from_list(
+		struct bt_definition **list, int index)
 {
 	return list[index];
 }

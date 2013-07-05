@@ -32,11 +32,11 @@ FILE *_bt_file_open(char *file_path, char *mode);
 void _bt_file_close(FILE *fp);
 
 /* ctf-field-list */
-struct definition **_bt_python_field_listcaller(
+struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
-		const struct definition *scope);
-struct definition *_bt_python_field_one_from_list(
-		struct definition **list, int index);
+		const struct bt_definition *scope);
+struct bt_definition *_bt_python_field_one_from_list(
+		struct bt_definition **list, int index);
 
 /* event_decl_list */
 struct bt_ctf_event_decl **_bt_python_event_decl_listcaller(
