@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <stdint.h>
-#include <string.h>
+#include <babeltrace/compat/string.h>
 
 #define PERROR_BUFLEN	200
 
@@ -81,45 +81,19 @@ extern int babeltrace_verbose, babeltrace_debug;
 		perrorstr,						\
 		## args)
 
-#if !defined(__linux__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
-
 #define _bt_printf_perror(fp, fmt, args...)				\
 	({								\
 		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		strerror_r(errno, buf, sizeof(buf));			\
+		compat_strerror_r(errno, buf, sizeof(buf));		\
 		_bt_printfe(fp, "error", buf, fmt, ## args);		\
 	})
 
 #define _bt_printfl_perror(fp, lineno, fmt, args...)			\
 	({								\
 		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		strerror_r(errno, buf, sizeof(buf));			\
+		compat_strerror_r(errno, buf, sizeof(buf));		\
 		_bt_printfle(fp, "error", lineno, buf, fmt, ## args);	\
 	})
-
-#else
-
-/*
- * Version using GNU strerror_r, for linux with appropriate defines.
- */
-
-#define _bt_printf_perror(fp, fmt, args...)				\
-	({								\
-		char *buf;						\
-		char tmp[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		buf = strerror_r(errno, tmp, sizeof(tmp));		\
-		_bt_printfe(fp, "error", buf, fmt, ## args);		\
-	})
-
-#define _bt_printfl_perror(fp, lineno, fmt, args...)			\
-	({								\
-		char *buf;						\
-		char tmp[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		buf = strerror_r(errno, tmp, sizeof(tmp));		\
-		_bt_printfle(fp, "error", lineno, buf, fmt, ## args);	\
-	})
-
-#endif
 
 /* printf without lineno information */
 #define printf_fatal(fmt, args...)					\
