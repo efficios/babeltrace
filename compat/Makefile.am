@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-lib_LTLIBRARIES = libcompat.la
+noinst_LTLIBRARIES = libcompat.la
 
 libcompat_la_SOURCES =
 
