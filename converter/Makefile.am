@@ -29,3 +29,8 @@ endif
 if BABELTRACE_BUILD_WITH_LIBC_UUID
 babeltrace_log_LDADD += -lc
 endif
+
+if BABELTRACE_BUILD_WITH_MINGW
+babeltrace_log_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
+babeltrace_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
+endif

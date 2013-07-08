@@ -37,6 +37,15 @@ AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([bzero gettimeofday munmap strtoul])
 
+# Check for MinGW32.
+MINGW32=no
+case $host in
+  *-*-mingw*)
+	MINGW32=yes;;
+esac
+
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
+
 # Check for libuuid
 AC_CHECK_LIB([uuid], [uuid_generate],
 [
