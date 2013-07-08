@@ -4,6 +4,7 @@
 *.a
 *.la
 *.lo
+*.exe
 .libs
 .deps
 *.bkp
