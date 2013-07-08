@@ -60,7 +60,10 @@ AC_CHECK_LIB([uuid], [uuid_generate],
 		have_libc_uuid=yes
 	],
 	[
-		AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+		# for MinGW32 we have our own internal implemenation of uuid using Windows functions.
+		if test "x$MINGW32" = xno; then
+			AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+		fi
 	])
 ]
 )
@@ -102,6 +105,7 @@ AC_SUBST(babeltracectfincludedir)
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
+	compat/Makefile
 	formats/Makefile
 	formats/ctf/Makefile
 	formats/ctf/types/Makefile

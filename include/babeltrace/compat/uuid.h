@@ -1,8 +1,8 @@
-#ifndef _BABELTRACE_UUID_H
-#define _BABELTRACE_UUID_H
+#ifndef _BABELTRACE_COMPAT_UUID_H
+#define _BABELTRACE_COMPAT_UUID_H
 
 /*
- * babeltrace/uuid.h
+ * babeltrace/compat/uuid.h
  *
  * Copyright (C) 2011   Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -122,8 +122,16 @@ int babeltrace_uuid_compare(const unsigned char *uuid_a,
 		return -1;
 }
 
+#elif defined(__MINGW32__)
+
+int babeltrace_uuid_generate(unsigned char *uuid_out);
+int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out);
+int babeltrace_uuid_parse(const char *str_in, unsigned char *uuid_out);
+int babeltrace_uuid_compare(const unsigned char *uuid_a,
+		const unsigned char *uuid_b);
+
 #else
 #error "Babeltrace needs to have a UUID generator configured."
 #endif
 
-#endif /* _BABELTRACE_UUID_H */
+#endif /* _BABELTRACE_COMPAT_UUID_H */

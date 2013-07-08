@@ -13,6 +13,7 @@ babeltrace_LDFLAGS = -Wl,--no-as-needed
 babeltrace_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
+	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/formats/ctf-text/libbabeltrace-ctf-text.la \
 	$(top_builddir)/formats/ctf-metadata/libbabeltrace-ctf-metadata.la \
 	$(top_builddir)/formats/bt-dummy/libbabeltrace-dummy.la
@@ -21,7 +22,8 @@ babeltrace_log_SOURCES = babeltrace-log.c
 
 babeltrace_log_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
+	$(top_builddir)/compat/libcompat.la
 
 if BABELTRACE_BUILD_WITH_LIBUUID
 babeltrace_log_LDADD += -luuid
