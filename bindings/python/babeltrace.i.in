@@ -188,10 +188,12 @@ class Context:
 %rename("lookup_format") bt_lookup_format(bt_intern_str qname);
 %rename("_bt_print_format_list") bt_fprintf_format_list(FILE *fp);
 %rename("register_format") bt_register_format(struct format *format);
+%rename("unregister_format") bt_unregister_format(struct bt_format *format);
 
 extern struct format *bt_lookup_format(bt_intern_str qname);
 extern void bt_fprintf_format_list(FILE *fp);
 extern int bt_register_format(struct bt_format *format);
+extern void bt_unregister_format(struct bt_format *format);
 
 %pythoncode %{
 
