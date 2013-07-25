@@ -744,19 +744,48 @@ class ctf:
 			"""
 			return _bt_ctf_get_timestamp(self._e)
 
-		def get_field(self, scope, field):
-			"""Return the definition of a specific field."""
+		def get_field_with_scope(self, scope, field):
+			"""
+			Return the definition of a specific field.
+			Return None on error.
+			"""
 			evDef = ctf.Definition.__new__(ctf.Definition)
 			try:
 				evDef._d = _bt_ctf_get_field(self._e, scope._d, field)
 			except AttributeError:
 				raise TypeError("in get_field, argument 2 must be a "
 					"Definition (scope) instance")
+			if evDef._d is None:
+				return None
+			evDef._s = scope
 			return evDef
 
-		def get_field_list(self, scope):
+		def get_field(self, field):
 			"""
-			Return a list of Definitions
+			Return the definition of fields by a name
+			Return None on error
+			"""
+			eventScope = self.get_top_level_scope(ctf.scope.EVENT_FIELDS)
+			streamScope = self.get_top_level_scope(ctf.scope.STREAM_EVENT_CONTEXT)
+			fields_by_name = []
+
+			if eventScope is not None:
+				evDef = self.get_field_with_scope(eventScope, field)
+				if evDef is not None:
+					fields_by_name.append(evDef)
+
+			if streamScope is not None:
+				evDef = self.get_field_with_scope(streamScope, field)
+				if evDef is not None:
+					fields_by_name.append(evDef);
+
+			if not fields_by_name:
+				return None
+			return fields_by_name
+
+		def get_field_list_with_scope(self, scope):
+			"""
+			Return a list of Definitions associated with the scope
 			Return None on error.
 			"""
 			try:
@@ -779,8 +808,29 @@ class ctf:
 					#_bt_python_field_listcaller
 					break
 
+				tmp._s = scope
 				def_list.append(tmp)
 				i += 1
+			return def_list
+
+		def get_field_list(self):
+			"""Return a list of Definitions or None on error."""
+			eventScope = self.get_top_level_scope(ctf.scope.EVENT_FIELDS)
+			streamScope = self.get_top_level_scope(ctf.scope.STREAM_EVENT_CONTEXT)
+
+			def_list = []
+			if eventScope is not None:
+				event_field_list = self.get_field_list_with_scope(eventScope)
+				if event_field_list is not None:
+					def_list = event_field_list
+
+			if streamScope is not None:
+				event_field_list = self.get_field_list_with_scope(streamScope)
+				if event_field_list is not None:
+					def_list.extend(event_field_list)
+
+			if not def_list:
+				return None
 			return def_list
 
 		def get_index(self, field, index):
@@ -918,6 +968,9 @@ class ctf:
 			"""
 			return _bt_ctf_get_string(self._d)
 
+		def get_scope(self):
+			"""Return the scope of a field or None on error."""
+			return self._s
 
 	class EventDecl(object):
 		"""Event declaration class.  Do not instantiate."""

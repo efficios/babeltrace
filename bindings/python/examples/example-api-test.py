@@ -50,23 +50,19 @@ while(event is not None):
 		event.get_cycles(), event.get_name()))
 
 	if event.get_name() == "sched_switch":
-		sco = event.get_top_level_scope(ctf.scope.EVENT_FIELDS)
-		prev_field = event.get_field(sco, "_prev_comm")
-		prev_comm = prev_field.get_char_array()
-
-		if ctf.field_error():
+		prev_field = event.get_field("_prev_comm")
+		if prev_field is None:
 			print("ERROR: Missing prev_comm context info")
 		else:
+			prev_comm = prev_field[0].get_char_array()
 			print("sched_switch prev_comm: {}".format(prev_comm))
 
 	if event.get_name() == "exit_syscall":
-		sco = event.get_top_level_scope(ctf.scope.EVENT_FIELDS)
-		ret_field = event.get_field(sco, "_ret")
-		ret_code = ret_field.get_int64()
-
-		if ctf.field_error():
+		ret_field = event.get_field("_ret")
+		if ret_field is None:
 			print("ERROR: Unable to extract ret")
 		else:
+			ret_code = ret_field[0].get_int64()
 			print("exit_syscall ret: {}".format(ret_code))
 
 	ret = ctf_it.next()
