@@ -575,6 +575,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 		const struct bt_ctf_field_decl *field);
 %rename("_bt_ctf_get_decl_from_def") bt_ctf_get_decl_from_def(
 		const struct bt_definition *field);
+%rename("_bt_array_index") bt_array_index(struct definition_array *array, uint64_t i);
 
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
@@ -597,6 +598,7 @@ const struct bt_definition *bt_ctf_get_enum_int(const struct bt_definition *fiel
 const char *bt_ctf_get_enum_str(const struct bt_definition *field);
 enum ctf_string_encoding bt_ctf_get_encoding(const struct bt_declaration *field);
 int bt_ctf_get_array_len(const struct bt_declaration *field);
+struct bt_definition *bt_array_index(struct definition_array *array, uint64_t i);
 uint64_t bt_ctf_get_uint64(const struct bt_definition *field);
 int64_t bt_ctf_get_int64(const struct bt_definition *field);
 char *bt_ctf_get_char_array(const struct bt_definition *field);
@@ -943,6 +945,21 @@ class ctf:
 			"""
 			return _bt_ctf_get_array_len(_bt_ctf_get_decl_from_def(self._d))
 
+		def get_array_element_at(self, index):
+			"""
+			Return the array's element at position index.
+			Return None on error
+			"""
+			array = _bt_python_get_array_from_def(self._d)
+			if array is None:
+				return None
+
+			element = ctf.Definition.__new__(ctf.Definition)
+			element._d =  _bt_array_index(array, index)
+			if element._d is None:
+				return None
+			return element
+
 		def get_uint64(self):
 			"""
 			Return the value associated with the field.
@@ -978,6 +995,29 @@ class ctf:
 			use the ctf.field_error() function after accessing a field.
 			"""
 			return _bt_ctf_get_string(self._d)
+
+		def get_value(self):
+			"""
+			Return the value associated with the field according to its type.
+			Return None on error.
+			"""
+			id = self.field_type()
+			if id == ctf.type_id.STRING:
+				return self.get_str()
+			if id == ctf.type_id.ARRAY:
+				array = []
+				for i in range(self.get_array_len()):
+					element = self.get_array_element_at(i)
+					array.append(element.get_value())
+				return array
+			if id == ctf.type_id.INTEGER:
+				if self.get_int_signedness() == 0:
+					return self.get_uint64()
+				else:
+					return self.get_int64()
+			if id == ctf.type_id.ENUM:
+				return self.get_enum_str()
+			return None
 
 		def get_scope(self):
 			"""Return the scope of a field or None on error."""

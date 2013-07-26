@@ -119,3 +119,21 @@ struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
 {
 	return list[index];
 }
+
+struct definition_array *_bt_python_get_array_from_def(
+		struct bt_definition *field)
+{
+	const struct bt_declaration *array_decl;
+	struct definition_array *array = NULL;
+
+	if (!field) {
+		goto end;
+	}
+
+	array_decl = bt_ctf_get_decl_from_def(field);
+	if (bt_ctf_field_type(array_decl) == CTF_TYPE_ARRAY) {
+		array = container_of(field, struct definition_array, p);
+	}
+end:
+	return array;
+}

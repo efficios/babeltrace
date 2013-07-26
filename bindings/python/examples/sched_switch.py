@@ -58,12 +58,10 @@ while event is not None:
 
 			# Getting PID
 			pid_field = event.get_field_with_scope(sco, "pid")
-			pid = pid_field.get_int64()
-
-			if ctf.field_error():
+			if pid_field is None:
 				print("ERROR: Missing PID info for sched_switch")
 				break # Next event
-
+			pid = pid_field.get_value()
 			if usePID and (pid != long(sys.argv[1])):
 				break # Next event
 
@@ -71,45 +69,45 @@ while event is not None:
 
 			# prev_comm
 			field = event.get_field_with_scope(sco, "prev_comm")
-			prev_comm = field.get_char_array()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing prev_comm context info")
+			prev_comm = field.get_value()
 
 			# prev_tid
 			field = event.get_field_with_scope(sco, "prev_tid")
-			prev_tid = field.get_int64()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing prev_tid context info")
+			prev_tid = field.get_value()
 
 			# prev_prio
 			field = event.get_field_with_scope(sco, "prev_prio")
-			prev_prio = field.get_int64()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing prev_prio context info")
+			prev_prio = field.get_value()
 
 			# prev_state
 			field = event.get_field_with_scope(sco, "prev_state")
-			prev_state = field.get_int64()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing prev_state context info")
+			prev_state = field.get_value()
 
 			# next_comm
 			field = event.get_field_with_scope(sco, "next_comm")
-			next_comm = field.get_char_array()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing next_comm context info")
+			next_comm = field.get_value()
 
 			# next_tid
 			field = event.get_field_with_scope(sco, "next_tid")
-			next_tid = field.get_int64()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing next_tid context info")
+			next_tid = field.get_value()
 
 			# next_prio
 			field = event.get_field_with_scope(sco, "next_prio")
-			next_prio = field.get_int64()
-			if ctf.field_error():
+			if field is None:
 				print("ERROR: Missing next_prio context info")
+			next_prio = field.get_value()
 
 			# Output
 			print("sched_switch, pid = {}, TS = {}, prev_comm = {},\n\t"

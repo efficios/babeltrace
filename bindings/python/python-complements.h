@@ -50,3 +50,7 @@ struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
 		enum bt_ctf_scope scope);
 struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
 		struct bt_ctf_field_decl **list, int index);
+
+/* definitions */
+struct definition_array *_bt_python_get_array_from_def(
+		struct bt_definition *field);

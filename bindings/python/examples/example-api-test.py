@@ -54,16 +54,18 @@ while(event is not None):
 		if prev_field is None:
 			print("ERROR: Missing prev_comm context info")
 		else:
-			prev_comm = prev_field[0].get_char_array()
-			print("sched_switch prev_comm: {}".format(prev_comm))
+			prev_comm = prev_field[0].get_value()
+			if prev_comm is not None:
+				print("sched_switch prev_comm: {}".format(prev_comm))
 
 	if event.get_name() == "exit_syscall":
 		ret_field = event.get_field("ret")
 		if ret_field is None:
 			print("ERROR: Unable to extract ret")
 		else:
-			ret_code = ret_field[0].get_int64()
-			print("exit_syscall ret: {}".format(ret_code))
+			ret_code = ret_field[0].get_value()
+			if ret_code is not None:
+				print("exit_syscall ret: {}".format(ret_code))
 
 	ret = ctf_it.next()
 	if ret < 0:
