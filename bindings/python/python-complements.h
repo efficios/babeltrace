@@ -54,3 +54,5 @@ struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
 /* definitions */
 struct definition_array *_bt_python_get_array_from_def(
 		struct bt_definition *field);
+struct definition_sequence *_bt_python_get_sequence_from_def(
+		struct bt_definition *field);

@@ -576,6 +576,8 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 %rename("_bt_ctf_get_decl_from_def") bt_ctf_get_decl_from_def(
 		const struct bt_definition *field);
 %rename("_bt_array_index") bt_array_index(struct definition_array *array, uint64_t i);
+%rename("_bt_sequence_len")  bt_sequence_len(struct definition_sequence *sequence);
+%rename("_bt_sequence_index") bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
 
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
@@ -607,6 +609,8 @@ int bt_ctf_field_get_error(void);
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
 const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *field);
+uint64_t bt_sequence_len(struct definition_sequence *sequence);
+struct bt_definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
 
 %pythoncode%{
 
@@ -960,6 +964,27 @@ class ctf:
 				return None
 			return element
 
+		def get_sequence_len(self):
+			"""
+			Return the len of a sequence or a negative
+			value on error.
+			"""
+			seq = _bt_python_get_sequence_from_def(self._d)
+			return _bt_sequence_len(seq)
+
+		def get_sequence_element_at(self, index):
+			"""
+			Return the sequence's element at position index,
+			otherwise return None
+			"""
+			seq = _bt_python_get_sequence_from_def(self._d)
+			if seq is not None:
+				element = ctf.Definition.__new__(ctf.Definition)
+				element._d = _bt_sequence_index(seq, index)
+				if element._d is not None:
+					return element
+			return None
+
 		def get_uint64(self):
 			"""
 			Return the value associated with the field.
@@ -1017,6 +1042,13 @@ class ctf:
 					return self.get_int64()
 			if id == ctf.type_id.ENUM:
 				return self.get_enum_str()
+			if id == ctf.type_id.SEQUENCE:
+				seq_len = self.get_sequence_len()
+				values = []
+				for i in range(seq_len):
+					evDef = self.get_sequence_element_at(i)
+					values.append(evDef.get_value())
+				return values
 			return None
 
 		def get_scope(self):

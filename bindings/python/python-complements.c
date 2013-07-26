@@ -137,3 +137,14 @@ struct definition_array *_bt_python_get_array_from_def(
 end:
 	return array;
 }
+
+struct definition_sequence *_bt_python_get_sequence_from_def(
+		struct bt_definition *field)
+{
+	if (field && bt_ctf_field_type(
+		bt_ctf_get_decl_from_def(field)) == CTF_TYPE_SEQUENCE) {
+		return container_of(field, struct definition_sequence, p);
+	}
+
+	return NULL;
+}
