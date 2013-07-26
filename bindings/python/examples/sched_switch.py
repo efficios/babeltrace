@@ -57,7 +57,7 @@ while event is not None:
 				break # Next event
 
 			# Getting PID
-			pid_field = event.get_field_with_scope(sco, "_pid")
+			pid_field = event.get_field_with_scope(sco, "pid")
 			pid = pid_field.get_int64()
 
 			if ctf.field_error():
@@ -70,43 +70,43 @@ while event is not None:
 			sco = event.get_top_level_scope(ctf.scope.EVENT_FIELDS)
 
 			# prev_comm
-			field = event.get_field_with_scope(sco, "_prev_comm")
+			field = event.get_field_with_scope(sco, "prev_comm")
 			prev_comm = field.get_char_array()
 			if ctf.field_error():
 				print("ERROR: Missing prev_comm context info")
 
 			# prev_tid
-			field = event.get_field_with_scope(sco, "_prev_tid")
+			field = event.get_field_with_scope(sco, "prev_tid")
 			prev_tid = field.get_int64()
 			if ctf.field_error():
 				print("ERROR: Missing prev_tid context info")
 
 			# prev_prio
-			field = event.get_field_with_scope(sco, "_prev_prio")
+			field = event.get_field_with_scope(sco, "prev_prio")
 			prev_prio = field.get_int64()
 			if ctf.field_error():
 				print("ERROR: Missing prev_prio context info")
 
 			# prev_state
-			field = event.get_field_with_scope(sco, "_prev_state")
+			field = event.get_field_with_scope(sco, "prev_state")
 			prev_state = field.get_int64()
 			if ctf.field_error():
 				print("ERROR: Missing prev_state context info")
 
 			# next_comm
-			field = event.get_field_with_scope(sco, "_next_comm")
+			field = event.get_field_with_scope(sco, "next_comm")
 			next_comm = field.get_char_array()
 			if ctf.field_error():
 				print("ERROR: Missing next_comm context info")
 
 			# next_tid
-			field = event.get_field_with_scope(sco, "_next_tid")
+			field = event.get_field_with_scope(sco, "next_tid")
 			next_tid = field.get_int64()
 			if ctf.field_error():
 				print("ERROR: Missing next_tid context info")
 
 			# next_prio
-			field = event.get_field_with_scope(sco, "_next_prio")
+			field = event.get_field_with_scope(sco, "next_prio")
 			next_prio = field.get_int64()
 			if ctf.field_error():
 				print("ERROR: Missing next_prio context info")

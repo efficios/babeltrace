@@ -50,7 +50,7 @@ while(event is not None):
 		event.get_cycles(), event.get_name()))
 
 	if event.get_name() == "sched_switch":
-		prev_field = event.get_field("_prev_comm")
+		prev_field = event.get_field("prev_comm")
 		if prev_field is None:
 			print("ERROR: Missing prev_comm context info")
 		else:
@@ -58,7 +58,7 @@ while(event is not None):
 			print("sched_switch prev_comm: {}".format(prev_comm))
 
 	if event.get_name() == "exit_syscall":
-		ret_field = event.get_field("_ret")
+		ret_field = event.get_field("ret")
 		if ret_field is None:
 			print("ERROR: Unable to extract ret")
 		else:
