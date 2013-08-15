@@ -137,5 +137,6 @@ AC_CONFIG_FILES([
 	extras/Makefile
 	extras/valgrind/Makefile
 	babeltrace.pc
+	babeltrace-ctf.pc
 ])
 AC_OUTPUT
