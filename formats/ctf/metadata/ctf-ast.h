@@ -26,9 +26,6 @@
 // data is a pointer to a 'SParserParam' structure
 //#define YYPARSE_PARAM	scanner
 
-// the argument for the 'yylex' function
-#define YYLEX_PARAM	((struct ctf_scanner *) scanner)->scanner
-
 struct ctf_node;
 struct ctf_parser;
 
