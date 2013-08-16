@@ -37,3 +37,5 @@ ctf_parser_test_SOURCES = ctf-parser-test.c
 ctf_parser_test_LDADD = \
 		libctf-parser.la \
 		libctf-ast.la
+
+CLEANFILES = ctf-lexer.c ctf-parser.c ctf-parser.h ctf-parser.output
