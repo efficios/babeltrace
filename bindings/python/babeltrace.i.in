@@ -477,7 +477,7 @@ class TraceHandle(object):
 		raise NotImplementedError("TraceHandle cannot be instantiated")
 
 	def __repr__(self):
-		return "Babeltrace TraceHandle: trace_id('{}')".format(self._id)
+		return "Babeltrace TraceHandle: trace_id('{0}')".format(self._id)
 
 	def get_id(self):
 		"""Return the TraceHandle id."""
@@ -832,7 +832,7 @@ class ctf:
 			raise NotImplementedError("ctf.Definition cannot be instantiated")
 
 		def __repr__(self):
-			return "Babeltrace Definition: name('{}'), type({})".format(
+			return "Babeltrace Definition: name('{0}'), type({1})".format(
 				self.field_name(), self.field_type())
 
 		def field_name(self):
@@ -926,7 +926,7 @@ class ctf:
 			raise NotImplementedError("ctf.EventDecl cannot be instantiated")
 
 		def __repr__(self):
-			return "Babeltrace EventDecl: name {}".format(self.get_name())
+			return "Babeltrace EventDecl: name {0}".format(self.get_name())
 
 		def get_name(self):
 			"""Return the name of the event or None on error"""
@@ -965,7 +965,7 @@ class ctf:
 			raise NotImplementedError("ctf.FieldDecl cannot be instantiated")
 
 		def __repr__(self):
-			return "Babeltrace FieldDecl: name {}".format(self.get_name())
+			return "Babeltrace FieldDecl: name {0}".format(self.get_name())
 
 		def get_name(self):
 			"""Return the name of a FieldDecl or None on error"""
@@ -1085,7 +1085,7 @@ class File(object):
 			stat = 'opened'
 		else:
 			stat = 'closed'
-		return "{} babeltrace File; file_path('{}'), mode('{}')".format(
+		return "{0} babeltrace File; file_path('{1}'), mode('{2}')".format(
 			stat, self._file_path, self._mode)
 
 	def close(self):
