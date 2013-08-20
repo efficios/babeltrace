@@ -866,7 +866,7 @@ class ctf:
 			Return the size, in bits, of an int or a negative
 			value on error.
 			"""
-			return _bt_ctf_get_int_len(self._d)
+			return _bt_ctf_get_int_len(_bt_ctf_get_decl_from_def(self._d))
 
 		def get_encoding(self):
 			"""
