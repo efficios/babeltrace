@@ -133,6 +133,7 @@ AC_CONFIG_FILES([
 	lib/prio_heap/Makefile
 	include/Makefile
 	tests/Makefile
+	tests/bin/Makefile
 	tests/lib/Makefile
 	tests/utils/Makefile
 	tests/utils/tap/Makefile

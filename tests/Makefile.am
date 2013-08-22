@@ -1,8 +1,3 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
+SUBDIRS = utils bin lib
 
-SUBDIRS = utils lib
-
-EXTRA_DIST = runall.sh ctf-traces/**
-
-check-am:
-	./runall.sh
+EXTRA_DIST = ctf-traces/**
