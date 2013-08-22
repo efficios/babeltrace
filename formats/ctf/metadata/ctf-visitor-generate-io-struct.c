@@ -2364,6 +2364,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				goto error;
 			}
 			clock->absolute = ret;
+			ret = 0;
 		} else {
 			fprintf(fd, "[warning] %s: attribute \"%s\" is unknown in clock declaration.\n", __func__, left);
 		}
