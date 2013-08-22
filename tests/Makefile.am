@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-SUBDIRS = lib
+SUBDIRS = utils lib
 
 EXTRA_DIST = runall.sh ctf-traces/**
 

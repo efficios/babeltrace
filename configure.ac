@@ -134,6 +134,8 @@ AC_CONFIG_FILES([
 	include/Makefile
 	tests/Makefile
 	tests/lib/Makefile
+	tests/utils/Makefile
+	tests/utils/tap/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	babeltrace.pc

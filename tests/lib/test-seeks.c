@@ -29,8 +29,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#include <tap/tap.h>
 #include "common.h"
-#include "tap.h"
 
 #define NR_TESTS	29
 
