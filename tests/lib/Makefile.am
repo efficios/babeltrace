@@ -17,7 +17,4 @@ noinst_PROGRAMS = test_seek test_bitfield
 test_seek_SOURCES = test_seek.c
 test_bitfield_SOURCES = test_bitfield.c
 
-EXTRA_DIST = runall.sh
-
-check-am:
-	./runall.sh
+EXTRA_DIST = test_seek_big_trace test_seek_empty_packet
