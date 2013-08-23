@@ -6,7 +6,7 @@ trace {
 	major = 0;
 	minor = 1;
 	test = "\"";
-	test2 = "?\x20\o040?";
+	test2 = "?\x20\040?";
 	test3 = '\n';
 	uuid = "2a6422d0-6cee-11e0-8c08-cb07d7b3a564";
 	byte_order = le;
