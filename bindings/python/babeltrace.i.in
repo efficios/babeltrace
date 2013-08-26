@@ -53,7 +53,6 @@ trace to it."
 typedef unsigned long long uint64_t;
 typedef long long int64_t;
 typedef int bt_intern_str;
-typedef unsigned long ssize_t;
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
