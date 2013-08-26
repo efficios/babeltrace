@@ -1,8 +1,4 @@
-SUBDIRS = utils bin lib
-
-EXTRA_DIST = ctf-traces/** tests
-
-SCRIPT_LIST = run.sh
+SCRIPT_LIST = test_trace_read
 
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
@@ -19,6 +15,3 @@ clean-local:
 			rm -f $(builddir)/$$script; \
 		done; \
 	fi
-
-check-am:
-	./run.sh tests

@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "tap.h"
+#include <tap/tap.h>
 
 unsigned int glob;
 

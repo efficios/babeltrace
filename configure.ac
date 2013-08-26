@@ -23,7 +23,20 @@ LT_INIT
 AC_PROG_YACC
 AC_PROG_LEX
 
-AC_DEFUN([AC_PROG_BISON], [AC_CHECK_PROGS(BISON, bison, bison)]) 
+if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
+        if test x"$YACC" != "xbison -y"; then
+                AC_MSG_ERROR([[bison not found and is required when building from git.
+                Please install bison]])
+        fi
+fi
+
+if test ! -f "$srcdir/formats/ctf/metadata/ctf-lexer.c"; then
+        if test x"$LEX" != "xflex"; then
+                AC_MSG_ERROR([[flex not found and is required when building from git.
+                Please install flex]])
+        fi
+fi
+
 
 AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
 
@@ -36,6 +49,15 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([bzero gettimeofday munmap strtoul])
+
+# Check for MinGW32.
+MINGW32=no
+case $host in
+  *-*-mingw*)
+	MINGW32=yes;;
+esac
+
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
 
 # Check for libuuid
 AC_CHECK_LIB([uuid], [uuid_generate],
@@ -51,7 +73,10 @@ AC_CHECK_LIB([uuid], [uuid_generate],
 		have_libc_uuid=yes
 	],
 	[
-		AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+		# for MinGW32 we have our own internal implemenation of uuid using Windows functions.
+		if test "x$MINGW32" = xno; then
+			AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+		fi
 	])
 ]
 )
@@ -128,6 +153,7 @@ AC_SUBST(babeltracectfincludedir)
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
+	compat/Makefile
 	formats/Makefile
 	formats/ctf/Makefile
 	formats/ctf/types/Makefile
@@ -144,9 +170,13 @@ AC_CONFIG_FILES([
 	bindings/Makefile
 	bindings/python/Makefile
 	tests/Makefile
+	tests/bin/Makefile
 	tests/lib/Makefile
+	tests/utils/Makefile
+	tests/utils/tap/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	babeltrace.pc
+	babeltrace-ctf.pc
 ])
 AC_OUTPUT

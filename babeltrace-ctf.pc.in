@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Babeltrace CTF parser
+Description: libbabeltrace-ctf provides the specific bits necessary to read a Common Trace Format (CTF) trace.
+Version: @PACKAGE_VERSION@
+Requires: babeltrace
+Requires.private: 
+Libs: -L${libdir} -lbabeltrace-ctf
+Cflags: -I${includedir} 
+

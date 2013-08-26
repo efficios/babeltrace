@@ -1,8 +1,7 @@
-SUBDIRS = utils bin lib
+noinst_LTLIBRARIES = libtap.la
+libtap_la_SOURCES = tap.c tap.h
 
-EXTRA_DIST = ctf-traces/** tests
-
-SCRIPT_LIST = run.sh
+SCRIPT_LIST = tap.sh
 
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
@@ -19,6 +18,3 @@ clean-local:
 			rm -f $(builddir)/$$script; \
 		done; \
 	fi
-
-check-am:
-	./run.sh tests

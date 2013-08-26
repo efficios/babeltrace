@@ -33,6 +33,7 @@ noinst_HEADERS = \
 	babeltrace/trace-handle-internal.h \
 	babeltrace/compat/uuid.h \
 	babeltrace/compat/memstream.h \
+	babeltrace/compat/string.h \
 	babeltrace/compat/utc.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h

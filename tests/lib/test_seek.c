@@ -23,14 +23,15 @@
 #include <babeltrace/iterator.h>
 #include <babeltrace/ctf/iterator.h>
 #include <babeltrace/ctf/events.h>
+#include <babeltrace/babeltrace-internal.h>	/* For symbol side-effects */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
 
+#include <tap/tap.h>
 #include "common.h"
-#include "tap.h"
 
 #define NR_TESTS	29
 
@@ -272,6 +273,13 @@ int main(int argc, char **argv)
 	char *path;
 	uint64_t expected_begin;
 	uint64_t expected_last;
+
+	/*
+	 * Side-effects ensuring libs are not optimized away by static
+	 * linking.
+	 */
+	babeltrace_debug = 0;	/* libbabeltrace.la */
+	opt_clock_offset = 0;	/* libbabeltrace-ctf.la */
 
 	plan_tests(NR_TESTS);
 

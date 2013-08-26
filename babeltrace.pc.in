@@ -9,6 +9,6 @@ Common Trace Format (CTF).
 Version: @PACKAGE_VERSION@
 Requires:
 Requires.private: uuid popt
-Libs: -L${libdir} -lbabeltrace -lbabeltrace-ctf
+Libs: -L${libdir} -lbabeltrace
 Cflags: -I${includedir} 
 

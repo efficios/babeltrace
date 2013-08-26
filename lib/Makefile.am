@@ -14,4 +14,5 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 libbabeltrace_la_LDFLAGS = \
 	-Wl,--no-as-needed \
 	prio_heap/libprio_heap.la \
-	$(top_builddir)/types/libbabeltrace_types.la
+	$(top_builddir)/types/libbabeltrace_types.la \
+	$(top_builddir)/compat/libcompat.la

@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# Copyright (C) - 2013 Christian Babeux <christian.babeux@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+CURDIR=$(dirname $0)
+TESTDIR=$CURDIR/..
+
+BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+
+CTF_TRACES=$TESTDIR/ctf-traces
+
+source $TESTDIR/utils/tap/tap.sh
+
+SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
+FAIL_TRACES=(${CTF_TRACES}/fail/*)
+
+NUM_TESTS=$((${#SUCCESS_TRACES[@]} + ${#FAIL_TRACES[@]}))
+
+plan_tests $NUM_TESTS
+
+for path in ${SUCCESS_TRACES[@]}; do
+	trace=$(basename ${path})
+	$BABELTRACE_BIN ${path} > /dev/null 2>&1
+	ok $? "Run babeltrace with trace ${trace}"
+done
+
+for path in ${FAIL_TRACES[@]}; do
+	trace=$(basename ${path})
+	$BABELTRACE_BIN ${path} > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		fail "Run babeltrace with invalid trace ${trace}"
+	else
+		pass "Run babeltrace with invalid trace ${trace}"
+	fi
+done
