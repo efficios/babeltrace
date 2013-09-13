@@ -632,6 +632,15 @@ class ctf:
 		SEQUENCE = 9
 		NR_CTF_TYPES = 10
 
+		def get_type_id_name(id):
+			name = "UNKNOWN"
+			constants = [attr for attr in dir(ctf.type_id) if not callable(getattr(ctf.type_id, attr)) and not attr.startswith("__")]
+			for attr in constants:
+				if getattr(ctf.type_id, attr) == id:
+					name = attr
+					break
+			return name
+
 	class scope:
 		TRACE_PACKET_HEADER = 0
 		STREAM_PACKET_CONTEXT = 1
@@ -884,6 +893,12 @@ class ctf:
 			else:
 				return ctx
 
+	class FieldError(Exception):
+		def __init__(self, value):
+			self.value = value
+
+		def __str__(self):
+			return repr(self.value)
 
 	class Definition(object):
 		"""Definition class.  Do not instantiate."""
@@ -1027,29 +1042,30 @@ class ctf:
 			Return None on error.
 			"""
 			id = self.field_type()
+			value = None
 			if id == ctf.type_id.STRING:
-				return self.get_str()
-			if id == ctf.type_id.ARRAY:
-				array = []
+				value = self.get_str()
+			elif id == ctf.type_id.ARRAY:
+				value = []
 				for i in range(self.get_array_len()):
 					element = self.get_array_element_at(i)
-					array.append(element.get_value())
-				return array
-			if id == ctf.type_id.INTEGER:
+					value.append(element.get_value())
+			elif id == ctf.type_id.INTEGER:
 				if self.get_int_signedness() == 0:
-					return self.get_uint64()
+					value = self.get_uint64()
 				else:
-					return self.get_int64()
-			if id == ctf.type_id.ENUM:
-				return self.get_enum_str()
-			if id == ctf.type_id.SEQUENCE:
+					value = self.get_int64()
+			elif id == ctf.type_id.ENUM:
+				value = self.get_enum_str()
+			elif id == ctf.type_id.SEQUENCE:
 				seq_len = self.get_sequence_len()
-				values = []
+				value = []
 				for i in range(seq_len):
 					evDef = self.get_sequence_element_at(i)
-					values.append(evDef.get_value())
-				return values
-			return None
+					value.append(evDef.get_value())
+			if ctf.field_error():
+				raise ctf.FieldError("Error occured while accessing field {} of type {}".format(self.field_name(), ctf.type_id.get_type_id_name(self.field_type())))
+			return value
 
 		def get_scope(self):
 			"""Return the scope of a field or None on error."""
