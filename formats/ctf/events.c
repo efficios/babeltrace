@@ -621,6 +621,29 @@ double bt_ctf_get_float(const struct bt_definition *field)
 	return ret;
 }
 
+const struct bt_definition *bt_ctf_get_variant(const struct bt_definition *field)
+{
+	const struct bt_definition *ret = NULL;
+
+	if (field && bt_ctf_field_type(
+		bt_ctf_get_decl_from_def(field)) == CTF_TYPE_VARIANT) {
+		struct definition_variant *variant = container_of(field,
+			struct definition_variant, p);
+
+		ret = bt_variant_get_current_field(variant);
+	} else {
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+	} else {
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		struct bt_ctf_event_decl * const **list,
 		unsigned int *count)

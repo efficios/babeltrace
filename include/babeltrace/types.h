@@ -437,6 +437,8 @@ enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *fiel
 
 double bt_get_float(const struct bt_definition *field);
 
+const struct bt_definition *bt_get_variant_field(struct bt_definition *definition);
+
 struct declaration_struct *
 	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align);

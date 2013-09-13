@@ -232,6 +232,7 @@ const char *bt_ctf_get_enum_str(const struct bt_definition *field);
 char *bt_ctf_get_char_array(const struct bt_definition *field);
 char *bt_ctf_get_string(const struct bt_definition *field);
 double bt_ctf_get_float(const struct bt_definition *field);
+const struct bt_definition *bt_ctf_get_variant(const struct bt_definition *field);
 
 /*
  * bt_ctf_field_get_error: returns the last error code encountered while
