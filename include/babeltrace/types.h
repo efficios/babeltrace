@@ -435,6 +435,8 @@ struct declaration_string *
 char *bt_get_string(const struct bt_definition *field);
 enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *field);
 
+double bt_get_float(const struct bt_definition *field);
+
 struct declaration_struct *
 	bt_struct_declaration_new(struct declaration_scope *parent_scope,
 			       uint64_t min_align);

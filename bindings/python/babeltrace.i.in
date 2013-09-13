@@ -568,6 +568,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 %rename("_bt_ctf_get_int64") bt_ctf_get_int64(const struct bt_definition *field);
 %rename("_bt_ctf_get_char_array") bt_ctf_get_char_array(const struct bt_definition *field);
 %rename("_bt_ctf_get_string") bt_ctf_get_string(const struct bt_definition *field);
+%rename("_bt_ctf_get_float") bt_ctf_get_float(const struct bt_definition *field);
 %rename("_bt_ctf_field_get_error") bt_ctf_field_get_error(void);
 %rename("_bt_ctf_get_decl_event_name") bt_ctf_get_decl_event_name(const struct
 		bt_ctf_event_decl *event);
@@ -605,6 +606,7 @@ uint64_t bt_ctf_get_uint64(const struct bt_definition *field);
 int64_t bt_ctf_get_int64(const struct bt_definition *field);
 char *bt_ctf_get_char_array(const struct bt_definition *field);
 char *bt_ctf_get_string(const struct bt_definition *field);
+double bt_ctf_get_float(const struct bt_definition *field);
 int bt_ctf_field_get_error(void);
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
@@ -1036,6 +1038,15 @@ class ctf:
 			"""
 			return _bt_ctf_get_string(self._d)
 
+		def get_float(self):
+			"""
+			Return the value associated with the field.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_float(self._d)
+
 		def get_value(self):
 			"""
 			Return the value associated with the field according to its type.
@@ -1063,6 +1074,9 @@ class ctf:
 				for i in range(seq_len):
 					evDef = self.get_sequence_element_at(i)
 					value.append(evDef.get_value())
+			elif id == ctf.type_id.FLOAT:
+				value = self.get_float()
+
 			if ctf.field_error():
 				raise ctf.FieldError("Error occured while accessing field {} of type {}".format(self.field_name(), ctf.type_id.get_type_id_name(self.field_type())))
 			return value

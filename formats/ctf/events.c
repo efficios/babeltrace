@@ -608,6 +608,19 @@ char *bt_ctf_get_string(const struct bt_definition *field)
 	return ret;
 }
 
+double bt_ctf_get_float(const struct bt_definition *field)
+{
+	double ret = 0.0;
+
+	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_FLOAT) {
+		ret = bt_get_float(field);
+	} else {
+		bt_ctf_field_set_error(-EINVAL);
+	}
+
+	return ret;
+}
+
 int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		struct bt_ctf_event_decl * const **list,
 		unsigned int *count)

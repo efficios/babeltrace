@@ -278,6 +278,14 @@ end:
 	return ret;
 }
 
+double bt_get_float(const struct bt_definition *field)
+{
+	struct definition_float *definition =
+		container_of(field, struct definition_float, p);
+
+	return definition->value;
+}
+
 static
 void __attribute__((constructor)) ctf_float_init(void)
 {
