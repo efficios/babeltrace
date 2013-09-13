@@ -65,14 +65,16 @@ struct bt_saved_pos;
  * only use BT_SEEK_LAST to get the timestamp of the last event(s) in
  * the trace.
  */
+enum bt_iter_pos_type {
+	BT_SEEK_TIME,		/* uses u.seek_time */
+	BT_SEEK_RESTORE,	/* uses u.restore */
+	BT_SEEK_CUR,
+	BT_SEEK_BEGIN,
+	BT_SEEK_LAST,
+};
+
 struct bt_iter_pos {
-	enum {
-		BT_SEEK_TIME,		/* uses u.seek_time */
-		BT_SEEK_RESTORE,	/* uses u.restore */
-		BT_SEEK_CUR,
-		BT_SEEK_BEGIN,
-		BT_SEEK_LAST,
-	} type;
+	enum bt_iter_pos_type type;
 	union {
 		uint64_t seek_time;
 		struct bt_saved_pos *restore;
