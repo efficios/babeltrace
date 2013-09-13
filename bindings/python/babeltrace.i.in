@@ -580,6 +580,8 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 %rename("_bt_array_index") bt_array_index(struct definition_array *array, uint64_t i);
 %rename("_bt_sequence_len")  bt_sequence_len(struct definition_sequence *sequence);
 %rename("_bt_sequence_index") bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
+%rename("_bt_ctf_get_struct_field_count") bt_ctf_get_struct_field_count(const struct bt_definition *structure);
+%rename("_bt_ctf_get_struct_field_index") bt_ctf_get_struct_field_index(const struct bt_definition *structure, uint64_t i);
 
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
@@ -615,6 +617,8 @@ const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
 const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *field);
 uint64_t bt_sequence_len(struct definition_sequence *sequence);
 struct bt_definition *bt_sequence_index(struct definition_sequence *sequence, uint64_t i);
+uint64_t bt_ctf_get_struct_field_count(const struct bt_definition *structure);
+const struct bt_definition *bt_ctf_get_struct_field_index(const struct bt_definition *structure, uint64_t i);
 
 %pythoncode%{
 
@@ -1058,6 +1062,23 @@ class ctf:
 			"""
 			return _bt_ctf_get_variant(self._d)
 
+		def get_struct_field_count(self):
+			"""
+			Return the number of fields contained in the structure.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined.
+			"""
+			return _bt_ctf_get_struct_field_count(self._d)
+
+		def get_struct_field_at(self, i):
+			"""
+			Return the structure's field at position i.
+			If the field does not exist or is not of the type requested,
+			the value returned is undefined. To check if an error occured,
+			use the ctf.field_error() function after accessing a field.
+			"""
+			return _bt_ctf_get_struct_field_index(self._d, i)
+
 		def get_value(self):
 			"""
 			Return the value associated with the field according to its type.
@@ -1091,6 +1112,12 @@ class ctf:
 				variant = ctf.Definition.__new__(ctf.Definition)
 				variant._d = self.get_variant();
 				value = variant.get_value()
+			elif id == ctf.type_id.STRUCT:
+				value = {}
+				for i in range(self.get_struct_field_count()):
+					member = ctf.Definition.__new__(ctf.Definition)
+					member._d = self.get_struct_field_at(i);
+					value[member.field_name()] = member.get_value()
 
 			if ctf.field_error():
 				raise ctf.FieldError("Error occured while accessing field {} of type {}".format(self.field_name(), ctf.type_id.get_type_id_name(self.field_type())))

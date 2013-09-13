@@ -242,7 +242,7 @@ struct declaration_field *
  * field returned only valid as long as the field structure is not appended to.
  */
 struct bt_definition *
-bt_struct_definition_get_field_from_index(struct definition_struct *_struct,
+bt_struct_definition_get_field_from_index(const struct definition_struct *_struct,
 					int index)
 {
 	if (index < 0)
@@ -250,7 +250,7 @@ bt_struct_definition_get_field_from_index(struct definition_struct *_struct,
 	return g_ptr_array_index(_struct->fields, index);
 }
 
-uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration)
+uint64_t bt_struct_declaration_len(const struct declaration_struct *struct_declaration)
 {
 	return struct_declaration->fields->len;
 }

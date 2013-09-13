@@ -457,10 +457,10 @@ struct declaration_field *
 bt_struct_declaration_get_field_from_index(struct declaration_struct *struct_declaration,
 					int index);
 struct bt_definition *
-bt_struct_definition_get_field_from_index(struct definition_struct *struct_definition,
+bt_struct_definition_get_field_from_index(const struct definition_struct *struct_definition,
 				       int index);
 int bt_struct_rw(struct bt_stream_pos *pos, struct bt_definition *definition);
-uint64_t bt_struct_declaration_len(struct declaration_struct *struct_declaration);
+uint64_t bt_struct_declaration_len(const struct declaration_struct *struct_declaration);
 
 /*
  * The tag enumeration is validated to ensure that it contains only mappings
