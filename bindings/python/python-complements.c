@@ -46,19 +46,17 @@ void _bt_file_close(FILE *fp)
 /* ctf-field-list */
 struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
-		const struct bt_definition *scope)
+		const struct bt_definition *scope,
+		unsigned int *len)
 {
 	struct bt_definition **list;
-	unsigned int count;
 	int ret;
 
 	ret = bt_ctf_get_field_list(ctf_event, scope,
-		(const struct bt_definition * const **)&list, &count);
+		(const struct bt_definition * const **)&list, len);
 
 	if (ret < 0)	/* For python to know an error occured */
 		list = NULL;
-	else		/* For python to know the end is reached */
-		list[count] = NULL;
 
 	return list;
 }
@@ -71,19 +69,18 @@ struct bt_definition *_bt_python_field_one_from_list(
 
 /* event_decl_list */
 struct bt_ctf_event_decl **_bt_python_event_decl_listcaller(
-		int handle_id, struct bt_context *ctx)
+		int handle_id,
+		struct bt_context *ctx,
+		unsigned int *len)
 {
 	struct bt_ctf_event_decl **list;
-	unsigned int count;
 	int ret;
 
 	ret = bt_ctf_get_event_decl_list(handle_id, ctx,
-		(struct bt_ctf_event_decl * const **)&list, &count);
+		(struct bt_ctf_event_decl * const **)&list, len);
 
 	if (ret < 0)	/* For python to know an error occured */
 		list = NULL;
-	else		/* For python to know the end is reached */
-		list[count] = NULL;
 
 	return list;
 }
@@ -97,19 +94,17 @@ struct bt_ctf_event_decl *_bt_python_decl_one_from_list(
 /* decl_fields */
 struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
 		struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope)
+		enum bt_ctf_scope scope,
+		unsigned int *len)
 {
 	struct bt_ctf_field_decl **list;
-	unsigned int count;
 	int ret;
 
 	ret = bt_ctf_get_decl_fields(event_decl, scope,
-		(const struct bt_ctf_field_decl * const **)&list, &count);
+		(const struct bt_ctf_field_decl * const **)&list, len);
 
 	if (ret < 0)	/* For python to know an error occured */
 		list = NULL;
-	else		/* For python to know the end is reached */
-		list[count] = NULL;
 
 	return list;
 }

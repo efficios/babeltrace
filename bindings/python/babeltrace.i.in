@@ -55,6 +55,36 @@ typedef long long int64_t;
 typedef int bt_intern_str;
 
 /* =================================================================
+		PYTHON-COMPLEMENTS.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+FILE *_bt_file_open(char *file_path, char *mode);
+void _bt_file_close(FILE *fp);
+struct bt_definition **_bt_python_field_listcaller(
+		const struct bt_ctf_event *ctf_event,
+		const struct bt_definition *scope,
+		unsigned int *OUTPUT);
+struct bt_definition *_bt_python_field_one_from_list(
+		struct bt_definition **list, int index);
+struct bt_ctf_event_decl **_bt_python_event_decl_listcaller(
+		int handle_id,
+		struct bt_context *ctx,
+		unsigned int *OUTPUT);
+struct bt_ctf_event_decl *_bt_python_decl_one_from_list(
+		struct bt_ctf_event_decl **list, int index);
+struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
+		struct bt_ctf_event_decl *event_decl,
+		enum bt_ctf_scope scope,
+		unsigned int *OUTPUT);
+struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
+		struct bt_ctf_field_decl **list, int index);
+struct definition_array *_bt_python_get_array_from_def(
+		struct bt_definition *field);
+struct definition_sequence *_bt_python_get_sequence_from_def(
+		struct bt_definition *field);
+
+/* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
@@ -816,7 +846,7 @@ class ctf:
 			Return None on error.
 			"""
 			try:
-				field_lc = _bt_python_field_listcaller(self._e, scope._d)
+				field_lc, count = _bt_python_field_listcaller(self._e, scope._d)
 			except AttributeError:
 				raise TypeError("in get_field_list, argument 2 must be a "
 					"Definition (scope) instance")
@@ -825,19 +855,12 @@ class ctf:
 				return None
 
 			def_list = []
-			i = 0
-			while True:
+			for i in range(count):
 				tmp = ctf.Definition.__new__(ctf.Definition)
 				tmp._d = _bt_python_field_one_from_list(field_lc, i)
-
-				if tmp._d is None:
-					#Last item of list is None, assured in
-					#_bt_python_field_listcaller
-					break
-
 				tmp._s = scope
 				def_list.append(tmp)
-				i += 1
+
 			return def_list
 
 		def get_field_list(self):
@@ -1201,7 +1224,7 @@ class ctf:
 				raise TypeError("in get_event_decl_list, "
 					"argument 1 must be a TraceHandle instance")
 		try:
-			ptr_list = _bt_python_event_decl_listcaller(handle_id, context._c)
+			ptr_list, count = _bt_python_event_decl_listcaller(handle_id, context._c)
 		except AttributeError:
 				raise TypeError("in get_event_decl_list, "
 					"argument 2 must be a Context instance")
@@ -1210,17 +1233,11 @@ class ctf:
 			return None
 
 		decl_list = []
-		i = 0
-		while True:
+		for i in range(count):
 			tmp = ctf.EventDecl.__new__(ctf.EventDecl)
 			tmp._d =  _bt_python_decl_one_from_list(ptr_list, i)
-
-			if tmp._d is None:
-				#Last item of list is None
-				break
-
 			decl_list.append(tmp)
-			i += 1
+
 		return decl_list
 
 %}
@@ -1232,8 +1249,6 @@ class ctf:
 //			   File and list-related
 //			   python-complements.h
 // =================================================================
-
-%include python-complements.c
 
 %pythoncode %{
 

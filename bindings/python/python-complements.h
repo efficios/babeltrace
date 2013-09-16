@@ -34,20 +34,24 @@ void _bt_file_close(FILE *fp);
 /* ctf-field-list */
 struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
-		const struct bt_definition *scope);
+		const struct bt_definition *scope,
+		unsigned int *len);
 struct bt_definition *_bt_python_field_one_from_list(
 		struct bt_definition **list, int index);
 
 /* event_decl_list */
 struct bt_ctf_event_decl **_bt_python_event_decl_listcaller(
-		int handle_id, struct bt_context *ctx);
+		int handle_id,
+		struct bt_context *ctx,
+		unsigned int *len);
 struct bt_ctf_event_decl *_bt_python_decl_one_from_list(
 		struct bt_ctf_event_decl **list, int index);
 
 /* decl_fields */
 struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
 		struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope);
+		enum bt_ctf_scope scope,
+		unsigned int *len);
 struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
 		struct bt_ctf_field_decl **list, int index);
 
