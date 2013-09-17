@@ -26,6 +26,7 @@
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/ctf-writer/event-fields.h>
 
 /* File */
 FILE *_bt_file_open(char *file_path, char *mode);
@@ -60,3 +61,7 @@ struct definition_array *_bt_python_get_array_from_def(
 		struct bt_definition *field);
 struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field);
+
+/* ctf writer */
+int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
+enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);

@@ -19,6 +19,8 @@
  */
 
 #include "python-complements.h"
+#include <babeltrace/ctf-writer/event-types-internal.h>
+#include <babeltrace/ctf-writer/event-fields-internal.h>
 
 /* FILE functions
    ----------------------------------------------------
@@ -142,4 +144,33 @@ struct definition_sequence *_bt_python_get_sequence_from_def(
 	}
 
 	return NULL;
+}
+
+int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field)
+{
+	int ret;
+
+	if (!field || field->type->declaration->id != CTF_TYPE_INTEGER) {
+		ret = -1;
+		goto end;
+	}
+
+	const struct bt_ctf_field_type_integer *type = container_of(field->type,
+		const struct bt_ctf_field_type_integer, parent);
+	ret = type->declaration.signedness;
+end:
+	return ret;
+}
+
+enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field)
+{
+	enum ctf_type_id type_id = CTF_TYPE_UNKNOWN;
+
+	if (!field) {
+		goto end;
+	}
+
+	type_id = field->type->declaration->id;
+end:
+	return type_id;
 }

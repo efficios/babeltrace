@@ -48,6 +48,12 @@ trace to it."
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/iterator.h>
 #include "python-complements.h"
+#include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-writer/event.h>
+#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/ctf-writer/writer.h>
 %}
 
 typedef unsigned long long uint64_t;
@@ -83,6 +89,8 @@ struct definition_array *_bt_python_get_array_from_def(
 		struct bt_definition *field);
 struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field);
+int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
+enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
@@ -691,12 +699,6 @@ class CTFReader:
 		STREAM_EVENT_CONTEXT = 3
 		EVENT_CONTEXT = 4
 		EVENT_FIELDS = 5
-
-	class string_encoding:
-		NONE = 0
-		UTF8 = 1
-		ASCII = 2
-		UNKNOWN = 3
 
 	class Iterator(Iterator, object):
 		"""
@@ -1321,4 +1323,811 @@ class File(object):
 		if self._opened and not self._use_stdout:
 			_bt_file_close(self._file)
 			self._opened = False
+%}
+
+// =================================================================
+//				CTF Writer
+// =================================================================
+
+/* =================================================================
+			CLOCK.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_clock_create") bt_ctf_clock_create(const char *name);
+%rename("_bt_ctf_clock_set_description") bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc);
+%rename("_bt_ctf_clock_set_frequency") bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
+%rename("_bt_ctf_clock_set_precision") bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
+%rename("_bt_ctf_clock_set_offset_s") bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
+%rename("_bt_ctf_clock_set_offset") bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+%rename("_bt_ctf_clock_set_is_absolute") bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
+%rename("_bt_ctf_clock_set_time") bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
+%rename("_bt_ctf_clock_get") bt_ctf_clock_get(struct bt_ctf_clock *clock);
+%rename("_bt_ctf_clock_put") bt_ctf_clock_put(struct bt_ctf_clock *clock);
+
+struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
+int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc);
+int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
+int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
+int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
+int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
+int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
+void bt_ctf_clock_get(struct bt_ctf_clock *clock);
+void bt_ctf_clock_put(struct bt_ctf_clock *clock);
+
+/* =================================================================
+			EVENT-TYPES.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_field_type_integer_create") bt_ctf_field_type_integer_create(unsigned int size);
+%rename("_bt_ctf_field_type_integer_set_signed") bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *integer, int is_signed);
+%rename("_bt_ctf_field_type_integer_set_base") bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer, enum bt_ctf_integer_base base);
+%rename("_bt_ctf_field_type_integer_set_encoding") bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *integer, enum ctf_string_encoding encoding);
+%rename("_bt_ctf_field_type_enumeration_create") bt_ctf_field_type_enumeration_create(struct bt_ctf_field_type *integer_container_type);
+%rename("_bt_ctf_field_type_enumeration_add_mapping") bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *string, int64_t range_start, int64_t range_end);
+%rename("_bt_ctf_field_type_floating_point_create") bt_ctf_field_type_floating_point_create(void);
+%rename("_bt_ctf_field_type_floating_point_set_exponent_digits") bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
+%rename("_bt_ctf_field_type_floating_point_set_mantissa_digits") bt_ctf_field_type_floating_point_set_mantissa_digits(struct bt_ctf_field_type *floating_point, unsigned int mantissa_digits);
+%rename("_bt_ctf_field_type_structure_create") bt_ctf_field_type_structure_create(void);
+%rename("_bt_ctf_field_type_structure_add_field") bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
+%rename("_bt_ctf_field_type_variant_create") bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
+%rename("_bt_ctf_field_type_variant_add_field") bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *variant, struct bt_ctf_field_type *field_type, const char *field_name);
+%rename("_bt_ctf_field_type_array_create") bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
+%rename("_bt_ctf_field_type_sequence_create") bt_ctf_field_type_sequence_create(struct bt_ctf_field_type *element_type, const char *length_field_name);
+%rename("_bt_ctf_field_type_string_create") bt_ctf_field_type_string_create(void);
+%rename("_bt_ctf_field_type_string_set_encoding") bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string, enum ctf_string_encoding encoding);
+%rename("_bt_ctf_field_type_set_alignment") bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type, unsigned int alignment);
+%rename("_bt_ctf_field_type_set_byte_order") bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type, enum bt_ctf_byte_order byte_order);
+%rename("_bt_ctf_field_type_get") bt_ctf_field_type_get(struct bt_ctf_field_type *type);
+%rename("_bt_ctf_field_type_put") bt_ctf_field_type_put(struct bt_ctf_field_type *type);
+
+struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size);
+int bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *integer, int is_signed);
+int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer, enum bt_ctf_integer_base base);
+int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *integer, enum ctf_string_encoding encoding);
+struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(struct bt_ctf_field_type *integer_container_type);
+int bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *string, int64_t range_start, int64_t range_end);
+struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
+int bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
+int bt_ctf_field_type_floating_point_set_mantissa_digits(struct bt_ctf_field_type *floating_point, unsigned int mantissa_digits);
+struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
+int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
+int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *variant, struct bt_ctf_field_type *field_type, const char *field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(struct bt_ctf_field_type *element_type, const char *length_field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
+int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string, enum ctf_string_encoding encoding);
+int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type, unsigned int alignment);
+int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type, enum bt_ctf_byte_order byte_order);
+void bt_ctf_field_type_get(struct bt_ctf_field_type *type);
+void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
+
+/* =================================================================
+			EVENT-FIELDS.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_field_create") bt_ctf_field_create(struct bt_ctf_field_type *type);
+%rename("_bt_ctf_field_structure_get_field") bt_ctf_field_structure_get_field(struct bt_ctf_field *structure, const char *name);
+%rename("_bt_ctf_field_array_get_field") bt_ctf_field_array_get_field(struct bt_ctf_field *array, uint64_t index);
+%rename("_bt_ctf_field_sequence_set_length") bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence, struct bt_ctf_field *length_field);
+%rename("_bt_ctf_field_sequence_get_field") bt_ctf_field_sequence_get_field(struct bt_ctf_field *sequence, uint64_t index);
+%rename("_bt_ctf_field_variant_get_field") bt_ctf_field_variant_get_field(struct bt_ctf_field *variant, struct bt_ctf_field *tag);
+%rename("_bt_ctf_field_enumeration_get_container") bt_ctf_field_enumeration_get_container(struct bt_ctf_field *enumeration);
+%rename("_bt_ctf_field_signed_integer_set_value") bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer, int64_t value);
+%rename("_bt_ctf_field_unsigned_integer_set_value") bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
+%rename("_bt_ctf_field_floating_point_set_value") bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
+%rename("_bt_ctf_field_string_set_value") bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+%rename("_bt_ctf_field_get") bt_ctf_field_get(struct bt_ctf_field *field);
+%rename("_bt_ctf_field_put") bt_ctf_field_put(struct bt_ctf_field *field);
+
+struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type);
+struct bt_ctf_field *bt_ctf_field_structure_get_field(struct bt_ctf_field *structure, const char *name);
+struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *array, uint64_t index);
+int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence, struct bt_ctf_field *length_field);
+struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *sequence, uint64_t index);
+struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *variant, struct bt_ctf_field *tag);
+struct bt_ctf_field *bt_ctf_field_enumeration_get_container(struct bt_ctf_field *enumeration);
+int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer, int64_t value);
+int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
+int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
+int bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+void bt_ctf_field_get(struct bt_ctf_field *field);
+void bt_ctf_field_put(struct bt_ctf_field *field);
+
+/* =================================================================
+			EVENT.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_event_class_create") bt_ctf_event_class_create(const char *name);
+%rename("_bt_ctf_event_class_add_field") bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
+%rename("_bt_ctf_event_class_get") bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_class_put") bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_create") bt_ctf_event_create(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+%rename("_bt_ctf_event_get_payload") bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
+%rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
+
+struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
+int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
+void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
+void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
+struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class);
+int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
+void bt_ctf_event_get(struct bt_ctf_event *event);
+void bt_ctf_event_put(struct bt_ctf_event *event);
+
+/* =================================================================
+			STREAM.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_stream_class_create") bt_ctf_stream_class_create(const char *name);
+%rename("_bt_ctf_stream_class_set_clock") bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class, struct bt_ctf_clock *clock);
+%rename("_bt_ctf_stream_class_add_event_class") bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
+%rename("_bt_ctf_stream_append_event") bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
+%rename("_bt_ctf_stream_flush") bt_ctf_stream_flush(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_get") bt_ctf_stream_get(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_put") bt_ctf_stream_put(struct bt_ctf_stream *stream);
+
+struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
+int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class, struct bt_ctf_clock *clock);
+int bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
+void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
+void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
+int bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
+int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
+void bt_ctf_stream_get(struct bt_ctf_stream *stream);
+void bt_ctf_stream_put(struct bt_ctf_stream *stream);
+
+/* =================================================================
+			WRITER.H
+		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+%rename("_bt_ctf_writer_create") bt_ctf_writer_create(const char *path);
+%rename("_bt_ctf_writer_create_stream") bt_ctf_writer_create_stream(struct bt_ctf_writer *writer, struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_writer_add_environment_field") bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer, const char *name, const char *value);
+%rename("_bt_ctf_writer_add_clock") bt_ctf_writer_add_clock(struct bt_ctf_writer *writer, struct bt_ctf_clock *clock);
+%newobject bt_ctf_writer_get_metadata_string;
+%rename("_bt_ctf_writer_get_metadata_string") bt_ctf_writer_get_metadata_string(struct bt_ctf_writer *writer);
+%rename("_bt_ctf_writer_flush_metadata") bt_ctf_writer_flush_metadata(struct bt_ctf_writer *writer);
+%rename("_bt_ctf_writer_set_byte_order") bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer, enum bt_ctf_byte_order byte_order);
+%rename("_bt_ctf_writer_get") bt_ctf_writer_get(struct bt_ctf_writer *writer);
+%rename("_bt_ctf_writer_put") bt_ctf_writer_put(struct bt_ctf_writer *writer);
+
+struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
+struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer, struct bt_ctf_stream_class *stream_class);
+int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer, const char *name, const char *value);
+int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer, struct bt_ctf_clock *clock);
+char *bt_ctf_writer_get_metadata_string(struct bt_ctf_writer *writer);
+void bt_ctf_writer_flush_metadata(struct bt_ctf_writer *writer);
+int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer, enum bt_ctf_byte_order byte_order);
+void bt_ctf_writer_get(struct bt_ctf_writer *writer);
+void bt_ctf_writer_put(struct bt_ctf_writer *writer);
+
+%pythoncode %{
+
+class CTFWriter:
+	class ByteOrder:
+		BYTE_ORDER_NATIVE = 0
+		BYTE_ORDER_LITTLE_ENDIAN = 1
+		BYTE_ORDER_BIG_ENDIAN = 2
+		BYTE_ORDER_NETWORK = 3
+
+	class Clock:
+		def __init__(self, name):
+			self._c = _bt_ctf_clock_create(name)
+			if self._c is None:
+				raise ValueError("Invalid clock name.")
+
+		def __del__(self):
+			_bt_ctf_clock_put(self._c)
+
+		"""
+		Set the clock's description. The description appears in the clock's TSDL
+		meta-data.
+		"""
+		def set_description(self, desc):
+			ret = _bt_ctf_clock_set_description(self._c, desc)
+			if ret < 0:
+				raise ValueError("Invalid clock description.")
+
+		"""
+		Set the clock's frequency (Hz).
+		"""
+		def set_frequency(self, freq):
+			ret = _bt_ctf_clock_set_frequency(self._c, freq)
+			if ret < 0:
+				raise ValueError("Invalid frequency value.")
+
+		"""
+		Set the clock's precision (in clock ticks).
+		"""
+		def set_precision(self, precision):
+			ret = _bt_ctf_clock_set_precision(self._c, precision)
+
+		"""
+		Set the clock's offset in seconds from POSIX.1 Epoch.
+		"""
+		def set_offset_seconds(self, offset_s):
+			ret = _bt_ctf_clock_set_offset_s(self._c, offset_s)
+			if ret < 0:
+				raise ValueError("Invalid offset value.")
+
+		"""
+		Set the clock's offset in ticks from POSIX.1 Epoch + offset in seconds.
+		"""
+		def set_offset_seconds(self, offset):
+			ret = _bt_ctf_clock_set_offset(self._c, offset)
+			if ret < 0:
+				raise ValueError("Invalid offset value.")
+
+		"""
+		Set a clock's absolute attribute. A clock is absolute if the clock
+		is a global reference across the trace's other clocks.
+		"""
+		def set_is_absolute(self, is_absolute):
+			ret = _bt_ctf_clock_set_is_absolute(self._c, is_absolute)
+			if ret < 0:
+				raise ValueError("Could not set the clock's absolute attribute.")
+
+		"""
+		Set the current time in nanoseconds since the clock's origin (offset and
+		offset_s attributes). The clock's value will be sampled as events are
+		appended to a stream.
+		"""
+		def set_time(self, time):
+			ret = _bt_ctf_clock_set_time(self._c, time)
+			if ret < 0:
+				raise ValueError("Invalid time value.")
+
+	class FieldType:
+		"""
+		FieldType should not be instantiated directly. Please instantiate
+		one of the concrete FieldType classes.
+		"""
+		class IntegerBase:
+			# These values are based on the bt_ctf_integer_base enum
+			# declared in event-types.h.
+			INTEGER_BASE_UNKNOWN = -1
+			INTEGER_BASE_BINARY = 2
+			INTEGER_BASE_OCTAL = 8
+			INTEGER_BASE_DECIMAL = 10
+			INTEGER_BASE_HEXADECIMAL = 16
+
+		def __init__(self):
+			if self._ft is None:
+				raise ValueError("FieldType creation failed.")
+
+		def __del__(self):
+			_bt_ctf_field_type_put(self._ft)
+
+		"""
+		Set the field type's alignment. Defaults to 1 (bit-aligned). However,
+		some types, such as structures and string, may impose other alignment
+		constraints.
+		"""
+		def set_alignment(self, alignment):
+			ret = _bt_ctf_field_type_set_alignment(self._ft, alignment)
+			if ret < 0:
+				raise ValueError("Invalid alignment value.")
+
+		"""
+		Set the field type's byte order. Use constants defined in the ByteOrder
+		class.
+		"""
+		def set_byte_order(self, byte_order):
+			ret = _bt_ctf_field_type_set_byte_order(self._ft, byte_order)
+			if ret < 0:
+				raise ValueError("Could not set byte order value.")
+
+	class FieldTypeInteger(FieldType):
+		"""
+		Create a new integer field type of the given size.
+		"""
+		def __init__(self, size):
+			self._ft = _bt_ctf_field_type_integer_create(size)
+			super().__init__()
+
+		"""
+		Set an integer type's signedness attribute.
+		"""
+		def set_signed(self, signed):
+			ret = _bt_ctf_field_type_integer_set_signed(self._ft, signed)
+			if ret < 0:
+				raise ValueError("Could not set signed attribute.")
+
+		"""
+		Set the integer type's base used to pretty-print the resulting trace.
+		The base must be a constant of the IntegerBase class.
+		"""
+		def set_base(self, base):
+			ret = _bt_ctf_field_type_integer_set_base(self._ft, base)
+			if ret < 0:
+				raise ValueError("Could not set base value.")
+
+		"""
+		An integer encoding may be set to signal that the integer must be printed
+		as a text character. Must be a constant from the CTFStringEncoding class.
+		"""
+		def set_encoding(self, encoding):
+			ret = _bt_ctf_field_type_integer_set_encoding(self._ft, encoding)
+			if ret < 0:
+				raise ValueError("Could not set integer encoding.")
+
+	class FieldTypeEnumeration(FieldType):
+		"""
+		Create a new enumeration field type with the given underlying type.
+		"""
+		def __init__(self, integer_type):
+			if integer_type is None or not isinstance(integer_type, CTFWriter.FieldTypeInteger):
+				raise TypeError("Invalid integer container.")
+
+			self._ft = _bt_ctf_field_type_enumeration_create(integer_type._ft)
+			super().__init__()
+
+		"""
+		Add a mapping to the enumeration. The range's values are inclusive.
+		"""
+		def add_mapping(self, name, range_start, range_end):
+			ret = _bt_ctf_field_type_enumeration_add_mapping(self._ft, name, range_start, range_end)
+			if ret < 0:
+				raise ValueError("Could not add mapping to enumeration type.")
+
+	class FieldTypeFloatingPoint(FieldType):
+		FLT_EXP_DIG = 8
+		DBL_EXP_DIG = 11
+		FLT_MANT_DIG = 24
+		DBL_MANT_DIG = 53
+
+		"""
+		Create a new floating point field type.
+		"""
+		def __init__(self):
+			self._ft = _bt_ctf_field_type_floating_point_create()
+			super().__init__()
+
+		"""
+		Set the number of exponent digits to use to store the floatingpoint field.
+		The only values currently supported are FLT_EXP_DIG and DBL_EXP_DIG which
+		are defined as constants of this class.
+		"""
+		def set_exponent_digits(self, exponent_digits):
+			ret = _bt_ctf_field_type_floating_point_set_exponent_digits(self._ft, exponent_digits)
+			if ret < 0:
+				raise ValueError("Could not set exponent digit count.")
+
+		"""
+		Set the numberof mantissa digits to use to store the floatingpoint field.
+		The only values currently supported are FLT_MANT_DIG and DBL_MANT_DIG which
+		are defined as constants of this class.
+		"""
+		def set_mantissa_digits(self, mantissa_digits):
+			ret = _bt_ctf_field_type_floating_point_set_mantissa_digits(self._ft, mantissa_digits)
+			if ret < 0:
+				raise ValueError("Could not set mantissa digit count.")
+
+	class FieldTypeStructure(FieldType):
+		"""
+		Create a new structure field type.
+		"""
+		def __init__(self):
+			self._ft = _bt_ctf_field_type_structure_create()
+			super().__init__()
+
+		"""
+		Add a field of type "field_type" to the structure.
+		"""
+		def add_field(self, field_type, field_name):
+			ret = _bt_ctf_field_type_structure_add_field(self._ft, field_type._ft, field_name)
+			if ret < 0:
+				raise ValueError("Could not add field to structure.")
+
+	class FieldTypeVariant(FieldType):
+		"""
+		Create a new variant field type.
+		"""
+		def __init__(self, enum_tag, tag_name):
+			if enum_tag is None or not isinstance(enum_tag, CTFWriter.FieldTypeEnumeration):
+				raise TypeError("Invalid tag type; must be of type FieldTypeEnumeration.")
+
+			self._ft = _bt_ctf_field_type_variant_create(enum_tag._ft, tag_name)
+			super().__init__()
+
+		"""
+		Add a field of type "field_type" to the variant.
+		"""
+		def add_field(self, field_type, field_name):
+			ret = _bt_ctf_field_type_variant_add_field(self._ft, field_type._ft, field_name)
+			if ret < 0:
+				raise ValueError("Could not add field to variant.")
+
+	class FieldTypeArray(FieldType):
+		"""
+		Create a new array field type.
+		"""
+		def __init__(self, element_type, length):
+			self._ft = _bt_ctf_field_type_array_create(element_type._ft, length)
+			super().__init__()
+
+	class FieldTypeSequence(FieldType):
+		"""
+		Create a new sequence field type.
+		"""
+		def __init__(self, element_type, length_field_name):
+			self._ft = _bt_ctf_field_type_sequence_create(element_type._ft, length_field_name)
+			super().__init__()
+
+	class FieldTypeString(FieldType):
+		"""
+		Create a new string field type.
+		"""
+		def __init__(self):
+			self._ft = _bt_ctf_field_type_string_create()
+			super().__init__()
+
+		"""
+		Set a string type's encoding. Must be a constant from the CTFStringEncoding class.
+		"""
+		def set_encoding(self, encoding):
+			ret = _bt_ctf_field_type_string_set_encoding(self._ft, encoding)
+			if ret < 0:
+				raise ValueError("Could not set string encoding.")
+
+	"""
+	Create an instance of a field.
+	"""
+	@staticmethod
+	def create_field(self, field_type):
+		if field_type is None or not isinstance(field_type, CTFWriter.FieldType):
+			raise TypeError("Invalid field_type. Type must be a FieldType-derived class.")
+
+		if isinstance(field_type, CTFWriter.FieldTypeInteger):
+			return CTFWriter.FieldInteger(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeEnumeration):
+			return CTFWriter.FieldEnumeration(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeFloatingPoint):
+			return CTFWriter.FieldFloatingPoint(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeStructure):
+			return CTFWriter.FieldStructure(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeVariant):
+			return CTFWriter.FieldVariant(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeArray):
+			return CTFWriter.FieldArray(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeSequence):
+			return CTFWriter.FieldSequence(field_type)
+		elif isinstance(field_type, CTFWriter.FieldTypeString):
+			return CTFWriter.FieldString(field_type)
+
+	class Field:
+		"""
+		Base class, do not instantiate.
+		"""
+		def __init__(self, field_type):
+			if not isinstance(field_type, CTFWriter.FieldType):
+				raise TypeError("Invalid field_type argument.")
+
+			self._f = _bt_ctf_field_create(field_type._ft)
+			if self._f is None:
+				raise ValueError("Field creation failed.")
+
+		def __del__(self):
+			_bt_ctf_field_put(self._f)
+
+		@staticmethod
+		def _create_field_from_native_instance(native_field_instance):
+			type_dict = {
+				CTFTypeId.INTEGER : CTFWriter.FieldInteger,
+				CTFTypeId.FLOAT : CTFWriter.FieldFloatingPoint,
+				CTFTypeId.ENUM : CTFWriter.FieldEnumeration,
+				CTFTypeId.STRING : CTFWriter.FieldString,
+				CTFTypeId.STRUCT : CTFWriter.FieldStructure,
+				CTFTypeId.VARIANT : CTFWriter.FieldVariant,
+				CTFTypeId.ARRAY : CTFWriter.FieldArray,
+				CTFTypeId.SEQUENCE : CTFWriter.FieldSequence
+			}
+
+			field_type = _bt_python_get_field_type(native_field_instance)
+			if field_type == CTFTypeId.UNKNOWN:
+				raise TypeError("Invalid field instance")
+
+			field = CTFWriter.Field.__new__(CTFWriter.Field)
+			field._f = native_field_instance
+			field.__class__ = type_dict[field_type]
+			return field
+
+	class FieldInteger(Field):
+		"""
+		Set an integer field's value.
+		"""
+		def set_value(self, value):
+			signedness = _bt_python_field_integer_get_signedness(self._f)
+			if signedness < 0:
+				raise TypeError("Invalid integer instance.")
+
+			if signedness == 0:
+				ret = _bt_ctf_field_unsigned_integer_set_value(self._f, value)
+			else:
+				ret = _bt_ctf_field_signed_integer_set_value(self._f, value)
+
+			if ret < 0:
+				raise ValueError("Could not set integer field value.")
+
+	class FieldEnumeration(Field):
+		"""
+		Return the enumeration's underlying container field (an integer field).
+		"""
+		def get_container(self):
+			container = CTFWriter.FieldInteger.__new__(CTFWriter.FieldInteger)
+			container._f = _bt_ctf_field_enumeration_get_container(self._f)
+			if container._f is None:
+				raise TypeError("Invalid enumeration field type.")
+			return container
+
+	class FieldFloatingPoint(Field):
+		"""
+		Set a floating point field's value.
+		"""
+		def set_value(self, value):
+			ret = _bt_ctf_field_floating_point_set_value(self._f, value)
+			if ret < 0:
+				raise ValueError("Could not set floating point field value.")
+
+	class FieldStructure(Field):
+		"""
+		Get the structure's field corresponding to the provided field name.
+		"""
+		def get_field(self, field_name):
+			native_instance = _bt_ctf_field_structure_get_field(self._f, field_name)
+			if native_instance is None:
+				raise ValueError("Invalid field_name provided.")
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+	class FieldVariant(Field):
+		"""
+		Return the variant's selected field. The "tag" field is the selector enum field.
+		"""
+		def get_field(self, tag):
+			native_instance = _bt_ctf_field_variant_get_field(self._f, tag._f)
+			if native_instance is None:
+				raise ValueError("Invalid tag provided.")
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+	class FieldArray(Field):
+		"""
+		Return the array's field at position "index".
+		"""
+		def get_field(self, index):
+			native_instance = _bt_ctf_field_array_get_field(self._f, index)
+			if native_instance is None:
+				raise IndexError("Invalid index provided.")
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+	class FieldSequence(Field):
+		"""
+		Set the sequence's length field (IntegerField).
+		"""
+		def set_length(self, length):
+			if not isinstance(length, CTFWriter.FieldInteger):
+				raise TypeError("Invalid length field.")
+			ret = _bt_ctf_field_sequence_set_length(self._f, length._f)
+			if ret < 0:
+				raise ValueError("Could not set sequence length.")
+
+		"""
+		Return the sequence's field at position "index".
+		"""
+		def get_field(self, index):
+			native_instance = _bt_ctf_field_sequence_get_field(self._f, index)
+			if native_instance is None:
+				raise ValueError("Could not get sequence element at index.")
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+	class FieldString(Field):
+		"""
+		Set a string field's value.
+		"""
+		def set_value(self, value):
+			ret = _bt_ctf_field_string_set_value(self._f, value)
+			if ret < 0:
+				raise ValueError("Could not set string field value.")
+
+	class EventClass:
+		"""
+		Create a new event class of the given name.
+		"""
+		def __init__(self, name):
+			self._ec = _bt_ctf_event_class_create(name)
+			if self._ec is None:
+				raise ValueError("Event class creation failed.")
+
+		def __del__(self):
+			_bt_ctf_event_class_put(self._ec)
+
+		"""
+		Add a field of type "field_type" to the event class.
+		"""
+		def add_field(self, field_type, field_name):
+			ret = _bt_ctf_event_class_add_field(self._ec, field_type._ft, field_name)
+			if ret < 0:
+				raise ValueError("Could not add field to event class.")
+
+	class Event:
+		"""
+		Create a new event of the given event class.
+		"""
+		def __init__(self, event_class):
+			if not isinstance(event_class, CTFWriter.EventClass):
+				raise TypeError("Invalid event_class argument.")
+
+			self._e = _bt_ctf_event_create(event_class._ec)
+			if self._e is None:
+				raise ValueError("Event creation failed.")
+
+		def __del__(self):
+			_bt_ctf_event_put(self._e)
+
+		"""
+		Set a manually created field as an event's payload.
+		"""
+		def set_payload(self, field_name, value):
+			if not isinstance(value, CTFWriter.Field):
+				raise TypeError("Invalid value type.")
+			ret = _bt_ctf_event_set_payload(self._e, field_name, value._f)
+			if ret < 0:
+				raise ValueError("Could not set event field payload.")
+
+		"""
+		Set a manually created field as an event's payload.
+		"""
+		def get_payload(self, field_name):
+			native_instance = _bt_ctf_event_get_payload(self._e, field_name)
+			if native_instance is None:
+				raise ValueError("Could not get event payload.")
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+	class StreamClass:
+		"""
+		Create a new stream class of the given name.
+		"""
+		def __init__(self, name):
+			self._sc = _bt_ctf_stream_class_create(name)
+			if self._sc is None:
+				raise ValueError("Stream class creation failed.")
+
+		def __del__(self):
+			_bt_ctf_stream_class_put(self._sc)
+
+		"""
+		Assign a clock to a stream class.
+		"""
+		def set_clock(self, clock):
+			if not isinstance(clock, CTFWriter.Clock):
+				raise TypeError("Invalid clock type.")
+
+			ret = _bt_ctf_stream_class_set_clock(self._sc, clock._c)
+			if ret < 0:
+				raise ValueError("Could not set stream class clock.")
+
+		"""
+		Add an event class to a stream class. New events can be added even after a
+		stream has beem instanciated and events have been appended. However, a stream
+		will not accept events of a class that has not been registered beforehand.
+		"""
+		def add_event_class(self, event_class):
+			if not isinstance(event_class, CTFWriter.EventClass):
+				raise TypeError("Invalid event_class type.")
+
+			ret = _bt_ctf_stream_class_add_event_class(self._sc, event_class._ec)
+			if ret < 0:
+				raise ValueError("Could not add event class.")
+
+	class Stream:
+		"""
+		Create a stream of the given class.
+		"""
+		def __init__(self, stream_class):
+			if not isinstance(stream_class, CTFWriter.StreamClass):
+				raise TypeError("Invalid stream_class type.")
+
+			self._s = _bt_ctf_stream_create(stream_class._sc)
+			if self._s is None:
+				raise ValueError("Stream creation failed.")
+
+		def __del__(self):
+			_bt_ctf_stream_put(self._s)
+
+		"""
+		Increase the current packet's discarded event count.
+		"""
+		def append_discarded_events(self, event_count):
+			ret = _bt_ctf_stream_append_discarded_events(self._s, event_count)
+			if ret < 0:
+				raise ValueError("Could not append discarded events.")
+
+		"""
+		Append "event" to the stream's current packet. The stream's associated clock
+		will be sampled during this call. The event shall not be modified after
+		being appended to a stream.
+		"""
+		def append_event(self, event):
+			ret = _bt_ctf_stream_append_event(self._s, event._e)
+			if ret < 0:
+				raise ValueError("Could not append event to stream.")
+
+		"""
+		The stream's current packet's events will be flushed to disk. Events
+		subsequently appended to the stream will be added to a new packet.
+		"""
+		def flush(self):
+			ret = _bt_ctf_stream_flush(self._s)
+			if ret < 0:
+				raise ValueError("Could not flush stream.")
+
+	class Writer:
+		"""
+		Create a new writer that will produce a trace in the given path.
+		"""
+		def __init__(self, path):
+			self._w = _bt_ctf_writer_create(path)
+			if self._w is None:
+				raise ValueError("Writer creation failed.")
+
+		def __del__(self):
+			_bt_ctf_writer_put(self._w)
+
+		"""
+		Create a new stream instance and register it to the writer.
+		"""
+		def create_stream(self, stream_class):
+			if not isinstance(stream_class, CTFWriter.StreamClass):
+				raise TypeError("Invalid stream_class type.")
+
+			stream = CTFWriter.Stream.__new__(CTFWriter.Stream)
+			stream._s = _bt_ctf_writer_create_stream(self._w, stream_class._sc)
+			return stream
+
+		"""
+		Add an environment field to the trace.
+		"""
+		def add_environment_field(self, name, value):
+			ret = _bt_ctf_writer_add_environment_field(self._w, name, value)
+			if ret < 0:
+				raise ValueError("Could not add environment field to trace.")
+
+		"""
+		Add a clock to the trace. Clocks assigned to stream classes must be
+		registered to the writer.
+		"""
+		def add_clock(self, clock):
+			ret = _bt_ctf_writer_add_clock(self._w, clock._c)
+			if ret < 0:
+				raise ValueError("Could not add clock to Writer.")
+
+		"""
+		Get the trace's TSDL meta-data.
+		"""
+		def get_metadata(self):
+			return _bt_ctf_writer_get_metadata_string(self._w)
+
+		"""
+		Flush the trace's metadata to the metadata file.
+		"""
+		def flush_metadata(self):
+			_bt_ctf_writer_flush_metadata(self._w)
+
+		"""
+		Set the trace's byte order. Must be a constant from the ByteOrder
+		class. Defaults to BYTE_ORDER_NATIVE, the host machine's endianness.
+		"""
+		def set_byte_order(self, byte_order):
+			ret = _bt_ctf_writer_set_byte_order(self._w, byte_order)
+			if ret < 0:
+				raise ValueError("Could not set trace's byte order.")
+
 %}
