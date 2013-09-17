@@ -43,7 +43,7 @@ if ret is None:
 
 # Setting iterator
 bp = IterPos(SEEK_BEGIN)
-ctf_it = ctf.Iterator(ctx, bp)
+ctf_it = CTFReader.Iterator(ctx, bp)
 
 # Reading events
 event = ctf_it.read_event()
@@ -51,7 +51,7 @@ while event is not None:
 	while True:
 		if event.get_name() == "sched_switch":
 			# Getting scope definition
-			sco = event.get_top_level_scope(ctf.scope.STREAM_EVENT_CONTEXT)
+			sco = event.get_top_level_scope(CTFReader.scope.STREAM_EVENT_CONTEXT)
 			if sco is None:
 				print("ERROR: Cannot get definition scope for sched_switch")
 				break # Next event
@@ -65,7 +65,7 @@ while event is not None:
 			if usePID and (pid != long(sys.argv[1])):
 				break # Next event
 
-			sco = event.get_top_level_scope(ctf.scope.EVENT_FIELDS)
+			sco = event.get_top_level_scope(CTFReader.scope.EVENT_FIELDS)
 
 			# prev_comm
 			field = event.get_field_with_scope(sco, "prev_comm")

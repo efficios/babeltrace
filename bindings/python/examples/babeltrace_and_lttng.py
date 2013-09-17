@@ -105,7 +105,7 @@ if ret is None:
 
 # Iterator setup
 bp = babeltrace.IterPos(babeltrace.SEEK_BEGIN)
-ctf_it = babeltrace.ctf.Iterator(ctx,bp)
+ctf_it = babeltrace.CTFReader.Iterator(ctx,bp)
 
 # Reading events from trace
 # and outputting timestamps and event names

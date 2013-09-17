@@ -36,7 +36,7 @@ if trace_handle is None:
 	raise IOError("Error adding trace")
 
 # Listing events
-lst = ctf.get_event_decl_list(trace_handle, ctx)
+lst = CTFReader.get_event_decl_list(trace_handle, ctx)
 print("--- Event list ---")
 for item in lst:
 	print("event : {}".format(item.get_name()))
@@ -44,7 +44,7 @@ print("--- Done ---")
 
 # Iter trace
 bp = IterPos(SEEK_BEGIN)
-ctf_it = ctf.Iterator(ctx,bp)
+ctf_it = CTFReader.Iterator(ctx,bp)
 event = ctf_it.read_event()
 
 while(event is not None):
