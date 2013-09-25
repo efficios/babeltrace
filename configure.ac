@@ -106,17 +106,14 @@ AC_CHECK_LIB([popt], [poptGetContext], [],
 # SWIG version needed or newer:
 swig_version=2.0.0
 
-AC_ARG_ENABLE([python],
-              [AC_HELP_STRING([--disable-python],
-                              [do not compile Python bindings])],
-              [], [enable_python=yes])
+AC_ARG_ENABLE([python-bindings],
+              [AC_HELP_STRING([--enable-python-bindings],
+                              [generate Python bindings])],
+              [enable_python=yes], [enable_python=no])
 
 AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
 
 if test "x${enable_python:-yes}" = xyes; then
-  AC_MSG_NOTICE([You may configure with --disable-python ]dnl
-[if you do not want Python bindings.])
-
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
   AM_PATH_PYTHON
 
@@ -128,12 +125,17 @@ if test "x${enable_python:-yes}" = xyes; then
                     [python$PYTHON_VERSION-config python-config],
                     [no],
                     [`dirname $PYTHON`])
-      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Do you have python-dev installed?])])
     ])
     AC_MSG_CHECKING([python include flags])
     PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
     AC_MSG_RESULT([$PYTHON_INCLUDE])
   ])
+
+else
+    AC_MSG_NOTICE([You may configure with --enable-python-bindings ]dnl
+[if you want Python bindings.])
+
 fi
 
 pkg_modules="gmodule-2.0 >= 2.0.0"

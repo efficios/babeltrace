@@ -6,11 +6,11 @@ This is a brief howto for using the Babeltrace Python module.
 
 INSTALLATION:
 
-By default, the Python bindings are installed.
-If you do not wish the Python bindings, you can configure with the
---disable-python option during the installation procedure:
+By default, the Python bindings are not generated.
+If you wish to generate and install the Python bindings, you can use the
+--enable-python-bindings configure option.
 
-  $ ./configure --disable-python
+  $ ./configure --enable-python-bindings
 
 The Python module is automatically generated using SWIG, therefore the
 swig2.0 package on Debian/Ubuntu is requied.
