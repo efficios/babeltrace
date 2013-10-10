@@ -34,6 +34,7 @@
 #include <babeltrace/trace-handle-internal.h>
 #include <babeltrace/trace-collection.h>
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,9 @@
 #include <fcntl.h> /* For O_RDONLY */
 
 #include <glib.h>
+
+static
+void remove_trace_handle(struct bt_trace_handle *handle);
 
 struct bt_context *bt_context_create(void)
 {
@@ -56,7 +60,7 @@ struct bt_context *bt_context_create(void)
 	/* Instanciate the trace handle container */
 	ctx->trace_handles = g_hash_table_new_full(g_direct_hash,
 				g_direct_equal, NULL,
-				(GDestroyNotify) bt_trace_handle_destroy);
+				(GDestroyNotify) remove_trace_handle);
 
 	ctx->current_iterator = NULL;
 	ctx->tc = g_new0(struct trace_collection, 1);
@@ -155,42 +159,38 @@ end:
 
 int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 {
-	struct bt_trace_handle *handle;
-	int ret;
+	int ret = 0;
 
-	if (!ctx)
-		return -EINVAL;
-
-	handle = g_hash_table_lookup(ctx->trace_handles,
-		(gpointer) (unsigned long) handle_id);
-	if (!handle)
-		return -ENOENT;
-
-	/* Remove from containers */
-	bt_trace_collection_remove(ctx->tc, handle->td);
-	/* Close the trace */
-	ret = handle->format->close_trace(handle->td);
-	if (ret) {
-		fprintf(stderr, "Error in close_trace callback\n");
-		return ret;
+	if (!ctx) {
+		ret = -EINVAL;
+		goto end;
 	}
-	/* Remove and free the handle */
-	g_hash_table_remove(ctx->trace_handles,
-			(gpointer) (unsigned long) handle_id);
-	return 0;
+
+	/*
+	 * Remove the handle. remove_trace_handle will be called
+	 * automatically.
+	 */
+	if (!g_hash_table_remove(ctx->trace_handles,
+		(gpointer) (unsigned long) handle_id)) {
+		ret = -ENOENT;
+		goto end;
+	}
+end:
+	return ret;
 }
 
 static
 void bt_context_destroy(struct bt_context *ctx)
 {
 	assert(ctx);
-	bt_finalize_trace_collection(ctx->tc);
 
 	/*
 	 * Remove all traces. The g_hash_table_destroy will call
-	 * bt_trace_handle_destroy on each elements.
+	 * remove_trace_handle on each element.
 	 */
 	g_hash_table_destroy(ctx->trace_handles);
+
+	bt_finalize_trace_collection(ctx->tc);
 
 	/* ctx->tc should always be valid */
 	assert(ctx->tc != NULL);
@@ -210,4 +210,20 @@ void bt_context_put(struct bt_context *ctx)
 	ctx->refcount--;
 	if (ctx->refcount == 0)
 		bt_context_destroy(ctx);
+}
+
+static
+void remove_trace_handle(struct bt_trace_handle *handle)
+{
+	int ret;
+
+	/* Remove from containers */
+	bt_trace_collection_remove(handle->td->ctx->tc, handle->td);
+	/* Close the trace */
+	ret = handle->format->close_trace(handle->td);
+	if (ret) {
+		fprintf(stderr, "Error in close_trace callback\n");
+	}
+
+	bt_trace_handle_destroy(handle);
 }
