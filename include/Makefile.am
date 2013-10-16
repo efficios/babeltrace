@@ -10,7 +10,9 @@ babeltraceinclude_HEADERS = \
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h \
 	babeltrace/ctf/callbacks.h \
-	babeltrace/ctf/iterator.h \
+	babeltrace/ctf/iterator.h
+
+babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/writer.h \
 	babeltrace/ctf-writer/event-fields.h \
@@ -36,6 +38,14 @@ noinst_HEADERS = \
 	babeltrace/ctf-text/types.h \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
+	babeltrace/ctf-writer/ref-internal.h \
+	babeltrace/ctf-writer/writer-internal.h \
+	babeltrace/ctf-writer/event-types-internal.h \
+	babeltrace/ctf-writer/event-fields-internal.h \
+	babeltrace/ctf-writer/event-internal.h \
+	babeltrace/ctf-writer/clock-internal.h \
+	babeltrace/ctf-writer/stream-internal.h \
+	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/trace-handle-internal.h \
 	babeltrace/compat/uuid.h \
 	babeltrace/compat/memstream.h \
