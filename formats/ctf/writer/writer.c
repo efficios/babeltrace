@@ -355,12 +355,13 @@ static
 void append_trace_metadata(struct bt_ctf_writer *writer,
 		struct metadata_context *context)
 {
+	unsigned char *uuid = writer->uuid;
+
 	g_string_append(context->string, "trace {\n");
 
 	g_string_append(context->string, "\tmajor = 1;\n");
 	g_string_append(context->string, "\tminor = 8;\n");
 
-	unsigned char *uuid = writer->uuid;
 	g_string_append_printf(context->string,
 		"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
 		uuid[0], uuid[1], uuid[2], uuid[3],
