@@ -190,6 +190,7 @@ static
 void bt_ctf_field_type_init(struct bt_ctf_field_type *type)
 {
 	enum ctf_type_id type_id = type->declaration->id;
+	int ret;
 
 	assert(type && (type_id > CTF_TYPE_UNKNOWN) &&
 		(type_id < NR_CTF_TYPES));
@@ -197,7 +198,8 @@ void bt_ctf_field_type_init(struct bt_ctf_field_type *type)
 	bt_ctf_ref_init(&type->ref_count);
 	type->freeze = type_freeze_funcs[type_id];
 	type->serialize = type_serialize_funcs[type_id];
-	bt_ctf_field_type_set_byte_order(type, BT_CTF_BYTE_ORDER_NATIVE);
+	ret = bt_ctf_field_type_set_byte_order(type, BT_CTF_BYTE_ORDER_NATIVE);
+	assert(!ret);
 	type->declaration->alignment = 1;
 }
 

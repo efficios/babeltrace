@@ -356,6 +356,7 @@ void append_trace_metadata(struct bt_ctf_writer *writer,
 		struct metadata_context *context)
 {
 	unsigned char *uuid = writer->uuid;
+	int ret;
 
 	g_string_append(context->string, "trace {\n");
 
@@ -374,7 +375,9 @@ void append_trace_metadata(struct bt_ctf_writer *writer,
 	g_string_append(context->string, "\tpacket.header := ");
 	context->current_indentation_level++;
 	g_string_assign(context->field_name, "");
-	bt_ctf_field_type_serialize(writer->trace_packet_header_type, context);
+	ret = bt_ctf_field_type_serialize(writer->trace_packet_header_type,
+		context);
+	assert(!ret);
 	context->current_indentation_level--;
 
 	g_string_append(context->string, ";\n};\n\n");
