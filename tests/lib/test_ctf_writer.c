@@ -110,12 +110,14 @@ result:
 			perror("fdopen on metadata_fd");
 			goto close_fp;
 		}
+		metadata_fd = -1;
 
 		parser_output_fp = fdopen(parser_output_fd, "r");
 		if (!parser_output_fp) {
 			perror("fdopen on parser_output_fd");
 			goto close_fp;
 		}
+		parser_output_fd = -1;
 
 		line = malloc(len);
 		if (!line) {
@@ -136,12 +138,28 @@ result:
 
 		free(line);
 close_fp:
-		fclose(metadata_fp);
-		fclose(parser_output_fp);
+		if (metadata_fp) {
+			if (fclose(metadata_fp)) {
+				diag("fclose failure");
+			}
+		}
+		if (parser_output_fp) {
+			if (fclose(parser_output_fp)) {
+				diag("fclose failure");
+			}
+		}
 	}
 
-	close(parser_output_fd);
-	close(metadata_fd);
+	if (parser_output_fd > 0) {
+		if (close(parser_output_fd)) {
+			diag("close error");
+		}
+	}
+	if (metadata_fd > 0) {
+		if (close(metadata_fd)) {
+			diag("close error");
+		}
+	}
 }
 
 void validate_trace(char *parser_path, char *trace_path)
@@ -199,8 +217,12 @@ result:
 			perror("fdopen on babeltrace_output_fd");
 			goto close_fp;
 		}
+		babeltrace_output_fd = -1;
 
 		line = malloc(len);
+		if (!line) {
+			diag("malloc error");
+		}
 		rewind(babeltrace_output_fp);
 		while (getline(&line, &len, babeltrace_output_fp) > 0) {
 			diag("%s", line);
@@ -208,10 +230,18 @@ result:
 
 		free(line);
 close_fp:
-		fclose(babeltrace_output_fp);
+		if (babeltrace_output_fp) {
+			if (fclose(babeltrace_output_fp)) {
+				diag("fclose error");
+			}
+		}
 	}
 
-	close(babeltrace_output_fd);
+	if (babeltrace_output_fd > 0) {
+		if (close(babeltrace_output_fd)) {
+			diag("close error");
+		}
+	}
 }
 
 void append_simple_event(struct bt_ctf_stream_class *stream_class,
