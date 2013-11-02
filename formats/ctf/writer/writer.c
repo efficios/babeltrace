@@ -168,11 +168,17 @@ void bt_ctf_writer_destroy(struct bt_ctf_ref *ref)
 	}
 
 	if (writer->trace_dir_fd > 0) {
-		close(writer->trace_dir_fd);
+		if (close(writer->trace_dir_fd)) {
+			perror("close");
+			abort();
+		}
 	}
 
 	if (writer->metadata_fd > 0) {
-		close(writer->metadata_fd);
+		if (close(writer->metadata_fd)) {
+			perror("close");
+			abort();
+		}
 	}
 
 	if (writer->environment) {
