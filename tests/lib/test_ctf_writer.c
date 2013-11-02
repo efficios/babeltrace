@@ -100,7 +100,7 @@ void validate_metadata(char *parser_path, char *metadata_path)
 result:
 	ok(ret == 0, "Metadata string is valid");
 
-	if (ret && metadata_fd > 0 && parser_output_fd > 0) {
+	if (ret && metadata_fd >= 0 && parser_output_fd >= 0) {
 		char *line;
 		size_t len = METADATA_LINE_SIZE;
 		FILE *metadata_fp = NULL, *parser_output_fp = NULL;
@@ -150,12 +150,12 @@ close_fp:
 		}
 	}
 
-	if (parser_output_fd > 0) {
+	if (parser_output_fd >= 0) {
 		if (close(parser_output_fd)) {
 			diag("close error");
 		}
 	}
-	if (metadata_fd > 0) {
+	if (metadata_fd >= 0) {
 		if (close(metadata_fd)) {
 			diag("close error");
 		}
@@ -207,7 +207,7 @@ void validate_trace(char *parser_path, char *trace_path)
 result:
 	ok(ret == 0, "Babeltrace could read the resulting trace");
 
-	if (ret && babeltrace_output_fd > 0) {
+	if (ret && babeltrace_output_fd >= 0) {
 		char *line;
 		size_t len = METADATA_LINE_SIZE;
 		FILE *babeltrace_output_fp = NULL;
@@ -237,7 +237,7 @@ close_fp:
 		}
 	}
 
-	if (babeltrace_output_fd > 0) {
+	if (babeltrace_output_fd >= 0) {
 		if (close(babeltrace_output_fd)) {
 			diag("close error");
 		}
