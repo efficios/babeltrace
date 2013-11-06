@@ -115,8 +115,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	writer->trace_dir_fd = open(path, O_RDONLY | O_DIRECTORY,
-		S_IRWXU | S_IRWXG);
+	writer->trace_dir_fd = open(path, O_RDONLY, S_IRWXU | S_IRWXG);
 	if (writer->trace_dir_fd < 0) {
 		perror("open");
 		goto error_destroy;
