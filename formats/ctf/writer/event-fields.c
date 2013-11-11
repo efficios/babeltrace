@@ -247,13 +247,14 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		bt_ctf_field_put(sequence->length);
 	}
 
-	sequence->elements = g_ptr_array_new_full((size_t)sequence_length,
-		(GDestroyNotify)bt_ctf_field_put);
+	sequence->elements = g_ptr_array_sized_new((size_t)sequence_length);
 	if (!sequence->elements) {
 		ret = -1;
 		goto end;
 	}
 
+	g_ptr_array_set_free_func(sequence->elements,
+		(GDestroyNotify)bt_ctf_field_put);
 	g_ptr_array_set_size(sequence->elements, (size_t)sequence_length);
 	bt_ctf_field_get(length_field);
 	sequence->length = length_field;
@@ -768,12 +769,13 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 
 	array_type = container_of(type, struct bt_ctf_field_type_array, parent);
 	array_length = array_type->length;
-	array->elements = g_ptr_array_new_full(array_length,
-		(GDestroyNotify)bt_ctf_field_put);
+	array->elements = g_ptr_array_sized_new(array_length);
 	if (!array->elements) {
 		goto error;
 	}
 
+	g_ptr_array_set_free_func(array->elements,
+		(GDestroyNotify)bt_ctf_field_put);
 	g_ptr_array_set_size(array->elements, array_length);
 	return &array->parent;
 error:

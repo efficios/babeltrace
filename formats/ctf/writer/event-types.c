@@ -214,8 +214,8 @@ int add_structure_field(GPtrArray *fields,
 	struct structure_field *field;
 
 	/* Make sure structure does not contain a field of the same name */
-	if (g_hash_table_contains(field_name_to_index,
-			GUINT_TO_POINTER(name_quark))) {
+	if (g_hash_table_lookup_extended(field_name_to_index,
+		GUINT_TO_POINTER(name_quark), NULL, NULL)) {
 		ret = -1;
 		goto end;
 	}
