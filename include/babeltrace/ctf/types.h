@@ -137,23 +137,6 @@ void ctf_move_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
 	if (unlikely(pos->offset == EOF))
 		return;
 
-	if (pos->fd >= 0) {
-		/*
-		 * PROT_READ ctf_packet_seek is called from within
-		 * ctf_pos_get_event so end of packet does not change
-		 * the packet context on for the last event of the
-		 * packet.
-		 */
-		if ((pos->prot == PROT_WRITE)
-		    	&& (unlikely(pos->offset + bit_offset >= pos->packet_size))) {
-			printf_debug("ctf_packet_seek (before call): %" PRId64 "\n",
-				     pos->offset);
-			ctf_packet_seek(&pos->parent, 0, SEEK_CUR);
-			printf_debug("ctf_packet_seek (after call): %" PRId64 "\n",
-				     pos->offset);
-			return;
-		}
-	}
 	pos->offset += bit_offset;
 	printf_debug("ctf_move_pos after increment: %" PRId64 "\n", pos->offset);
 }
@@ -201,7 +184,7 @@ int ctf_pos_packet(struct ctf_stream_pos *dummy)
 static inline
 void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 {
-	ctf_move_pos(pos, pos->packet_size - pos->offset);
+	ctf_packet_seek(&pos->parent, 0, SEEK_CUR);
 }
 
 static inline

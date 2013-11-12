@@ -232,7 +232,7 @@ int ctf_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 	union doubleIEEE754 u;
 	struct bt_definition *tmpdef;
 	struct definition_float *tmpfloat;
-	struct ctf_stream_pos srcp;
+	struct ctf_stream_pos srcp = { { 0 } };
 	struct mmap_align mma;
 	int ret;
 

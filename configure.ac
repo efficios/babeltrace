@@ -150,6 +150,9 @@ AC_SUBST(babeltraceincludedir)
 babeltracectfincludedir="${includedir}/babeltrace/ctf"
 AC_SUBST(babeltracectfincludedir)
 
+babeltracectfwriterincludedir="${includedir}/babeltrace/ctf-writer"
+AC_SUBST(babeltracectfwriterincludedir)
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
@@ -162,6 +165,7 @@ AC_CONFIG_FILES([
 	formats/ctf-metadata/Makefile
 	formats/bt-dummy/Makefile
 	formats/ctf/metadata/Makefile
+	formats/ctf/writer/Makefile
 	converter/Makefile
 	doc/Makefile
 	lib/Makefile
