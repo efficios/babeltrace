@@ -131,11 +131,6 @@ struct bt_definition *
 		      || integer_declaration->encoding == CTF_STRING_ASCII) {
 
 			array->string = g_string_new("");
-
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-				return &array->p;
-			}
 		}
 	}
 

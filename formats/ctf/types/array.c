@@ -56,8 +56,6 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 				g_string_insert_len(array_definition->string,
 					0, (char *) ctf_get_pos_addr(pos),
 					array_declaration->len);
-				ctf_move_pos(pos, array_declaration->len * CHAR_BIT);
-				return 0;
 			}
 		}
 	}
