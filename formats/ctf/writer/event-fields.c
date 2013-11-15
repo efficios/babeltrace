@@ -1125,7 +1125,10 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 	while (!ctf_pos_access_ok(pos,
 		offset_align(pos->offset,
 			field->type->declaration->alignment))) {
-		increase_packet_size(pos);
+		ret = increase_packet_size(pos);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	ctf_align_pos(pos, field->type->declaration->alignment);
@@ -1139,7 +1142,7 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 			break;
 		}
 	}
-
+end:
 	return ret;
 }
 
