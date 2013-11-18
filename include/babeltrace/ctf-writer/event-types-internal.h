@@ -147,4 +147,7 @@ BT_HIDDEN
 int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 		struct metadata_context *context);
 
+BT_HIDDEN
+int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
+
 #endif /* BABELTRACE_CTF_WRITER_EVENT_TYPES_INTERNAL_H */

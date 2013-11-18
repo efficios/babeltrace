@@ -179,8 +179,8 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(type);
-	if (type_id <= CTF_TYPE_UNKNOWN ||
-		type_id >= NR_CTF_TYPES) {
+	if (type_id <= CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES ||
+		bt_ctf_field_type_validate(type)) {
 		goto error;
 	}
 
