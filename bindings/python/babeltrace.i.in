@@ -6,6 +6,7 @@
  * Copyright 2012 EfficiOS Inc.
  *
  * Author: Danny Serres <danny.serres@efficios.com>
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,7 @@ Babeltrace  is a trace viewer and converter reading and writing the
 Common Trace Format (CTF). Its main use is to pretty-print CTF
 traces into a human-readable text output.
 
-To use this module, the first step is to create a Context and add a
+To use this module, the first step is to create a TraceCollection and add a
 trace to it."
 %enddef
 
@@ -118,26 +119,22 @@ void bt_context_get(struct bt_context *ctx);
 void bt_context_put(struct bt_context *ctx);
 struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
 
-// class Context to prevent direct access to struct bt_context
+// class TraceCollection to prevent direct access to struct bt_context
 %pythoncode%{
-class Context:
+class TraceCollection:
 	"""
-	The context represents the object in which a trace_collection is
-	open. As long as this structure is allocated, the trace_collection
-	is open and the traces it contains can be read and seeked by the
-	iterators and callbacks.
+	The TraceCollection is the object that contains all currently opened traces.
 	"""
 
 	def __init__(self):
-		self._c = _bt_context_create()
+		self._tc = _bt_context_create()
 
 	def __del__(self):
-		_bt_context_put(self._c)
+		_bt_context_put(self._tc)
 
-	def add_trace(self, path, format_str,
-			packet_seek=None, stream_list=None, metadata=None):
+	def add_trace(self, path, format_str):
 		"""
-		Add a trace by path to the context.
+		Add a trace by path to the TraceCollection.
 
 		Open a trace.
 
@@ -148,23 +145,10 @@ class Context:
 		format is a string containing the format name in which the trace was
 		produced.
 
-		packet_seek is not implemented for Python.  Should be left None to
-		use the	default packet_seek handler provided by	the trace format.
-
-		stream_list is a linked list of streams, it is used to open a trace
-		where the trace data is located in memory mapped areas instead of
-		trace files, this argument should be None when path is not None.
-
-		The metadata parameter acts as a metadata override when not None,
-		otherwise the format handles the metadata opening.
-
 		Return: the corresponding TraceHandle on success or None on error.
 		"""
-		if metadata is not None:
-			metadata = metadata._file
-
-		ret = _bt_context_add_trace(self._c, path, format_str, packet_seek,
-			stream_list, metadata)
+		ret = _bt_context_add_trace(self._tc, path, format_str, None,
+			None, None)
 		if ret < 0:
 			return None
 
@@ -177,7 +161,7 @@ class Context:
 		Open a trace recursively.
 
 		Find each trace present in the subdirectory starting from the given
-		path, and add them to the context.
+		path, and add them to the TraceCollection.
 
 		Return a dict of TraceHandle instances (the full path is the key).
 		Return None on error.
@@ -206,14 +190,88 @@ class Context:
 
 	def remove_trace(self, trace_handle):
 		"""
-		Remove a trace from the context.
+		Remove a trace from the TraceCollection.
 		Effectively closing the trace.
 		"""
 		try:
-			_bt_context_remove_trace(self._c, trace_handle._id)
+			_bt_context_remove_trace(self._tc, trace_handle._id)
 		except AttributeError:
 			raise TypeError("in remove_trace, "
 				"argument 2 must be a TraceHandle instance")
+
+	@property
+	def events(self):
+		"""
+		Generator function to iterate over the events of open in the current
+		TraceCollection.
+		"""
+		begin_pos_ptr = _bt_iter_pos()
+		end_pos_ptr = _bt_iter_pos()
+		begin_pos_ptr.type = SEEK_BEGIN
+		end_pos_ptr.type = SEEK_LAST
+
+		for event in self._events(begin_pos_ptr, end_pos_ptr):
+			yield event
+
+	def events_timestamps(self, timestamp_begin, timestamp_end):
+		"""
+		Generator function to iterate over the events of open in the current
+		TraceCollection from timestamp_begin to timestamp_end.
+		"""
+		begin_pos_ptr = _bt_iter_pos()
+		end_pos_ptr = _bt_iter_pos()
+		begin_pos_ptr.type = end_pos_ptr.type = SEEK_TIME
+		begin_pos_ptr.u.seek_time = timestamp_begin
+		end_pos_ptr.u.seek_time = timestamp_end
+
+		for event in self._events(begin_pos_ptr, end_pos_ptr):
+			yield event
+
+	@property
+	def timestamp_begin(self):
+		pos_ptr = _bt_iter_pos()
+		pos_ptr.type = SEEK_BEGIN
+		return self._timestamp_at_pos(pos_ptr)
+
+	@property
+	def timestamp_end(self):
+		pos_ptr = _bt_iter_pos()
+		pos_ptr.type = SEEK_LAST
+		return self._timestamp_at_pos(pos_ptr)
+
+	def _timestamp_at_pos(self, pos_ptr):
+		ctf_it_ptr = _bt_ctf_iter_create(self._tc, pos_ptr, pos_ptr)
+		if ctf_it_ptr is None:
+			raise NotImplementedError("Creation of multiple iterators is unsupported.")
+		ev_ptr = _bt_ctf_iter_read_event(ctf_it_ptr)
+		_bt_ctf_iter_destroy(ctf_it_ptr)
+		if ev_ptr is None:
+			return None;
+
+	def _events(self, begin_pos_ptr, end_pos_ptr):
+		ctf_it_ptr = _bt_ctf_iter_create(self._tc, begin_pos_ptr, end_pos_ptr)
+		if ctf_it_ptr is None:
+			raise NotImplementedError(
+				"Creation of multiple iterators is unsupported.")
+
+		while True:
+			ev_ptr = _bt_ctf_iter_read_event(ctf_it_ptr)
+			if ev_ptr is None:
+				break
+
+			ev = CTFReader.Event.__new__(CTFReader.Event)
+			ev._e = ev_ptr
+			try:
+				yield ev
+			except GeneratorExit:
+				break
+
+			ret = _bt_iter_next(_bt_ctf_get_iter(ctf_it_ptr))
+			if ret != 0:
+				break
+
+		_bt_ctf_iter_destroy(ctf_it_ptr)
+
 %}
 
 
@@ -299,168 +357,6 @@ struct bt_iter_pos {
 	} u;
 };
 
-
-%pythoncode%{
-
-class IterPos:
-	"""This class represents the position where to set an iterator."""
-
-	__can_access = False
-
-	def __init__(self, seek_type, seek_time = None):
-		"""
-		seek_type represents the type of seek to use.
-		seek_time is the timestamp to seek to when using SEEK_TIME, it
-		is expressed in nanoseconds
-		Only use SEEK_RESTORE on IterPos obtained from the get_pos function
-		in Iter class.
-		"""
-
-		self._pos = _bt_iter_pos()
-		self._pos.type = seek_type
-		if seek_time and seek_type == SEEK_TIME:
-			self._pos.u.seek_time = seek_time
-		self.__can_access = True
-
-	def __del__(self):
-		if not self.__can_access:
-			_bt_iter_free_pos(self._pos)
-
-	def _get_type(self):
-		if not __can_access:
-			raise AttributeError("seek_type is not available")
-		return self._pos.type
-
-	def _set_type(self, seek_type):
-		if not __can_access:
-			raise AttributeError("seek_type is not available")
-		self._pos.type = seek_type
-
-	def _get_time(self):
-		if not __can_access:
-			raise AttributeError("seek_time is not available")
-
-		elif self._pos.type is not SEEK_TIME:
-			raise TypeError("seek_type is not SEEK_TIME")
-
-		return self._pos.u.seek_time
-
-	def _set_time(self, time):
-		if not __can_access:
-			raise AttributeError("seek_time is not available")
-
-		elif self._pos.type is not SEEK_TIME:
-			raise TypeError("seek_type is not SEEK_TIME")
-
-		self._pos.u.seek_time = time
-
-	def _get_pos(self):
-		return self._pos
-
-
-	seek_type = property(_get_type, _set_type)
-	seek_time = property(_get_time, _set_time)
-
-
-class Iterator:
-
-	__with_init = False
-
-	def __init__(self, context, begin_pos = None, end_pos = None, _no_init = None):
-		"""
-		Allocate a trace collection iterator.
-
-		begin_pos and end_pos are optional parameters to specify the
-		position at which the trace collection should be seeked upon
-		iterator creation, and the position  at which iteration will
-		start returning "EOF".
-
-		By default, if begin_pos is None, a BT_SEEK_CUR is performed at
-		creation. By default, if end_pos is None, a BT_SEEK_END (end of
-		trace) is the EOF criterion.
-		"""
-		if _no_init is None:
-			if begin_pos is None:
-				bp = None
-			else:
-				try:
-					bp = begin_pos._pos
-				except AttributeError:
-					raise TypeError("in __init__, "
-						"argument 3 must be a IterPos instance")
-
-			if end_pos is None:
-				ep = None
-			else:
-				try:
-					ep = end_pos._pos
-				except AttributeError:
-					raise TypeError("in __init__, "
-						"argument 4 must be a IterPos instance")
-
-			try:
-				self._bi = _bt_iter_create(context._c, bp, ep)
-			except AttributeError:
-				raise TypeError("in __init__, "
-					"argument 2 must be a Context instance")
-
-			self.__with_init = True
-
-		else:
-			self._bi = _no_init
-
-	def __del__(self):
-		if self.__with_init:
-			_bt_iter_destroy(self._bi)
-
-	def next(self):
-		"""
-		Move trace collection position to the next event.
-		Returns 0 on success, a negative value on error.
-		"""
-		return _bt_iter_next(self._bi)
-
-	def get_pos(self):
-		"""Return a IterPos class of the current iterator position."""
-		ret = IterPos(0)
-		ret.__can_access = False
-		ret._pos = _bt_iter_get_pos(self._bi)
-		return ret
-
-	def set_pos(self, pos):
-		"""
-		Move the iterator to a given position.
-
-		On error, the stream_heap is reinitialized and returned empty.
-		Return 0 for success.
-		Return EOF if the position requested is after the last event of the
-		trace collection.
-		Return -EINVAL when called with invalid parameter.
-		Return -ENOMEM if the stream_heap could not be properly initialized.
-		"""
-		try:
-			return _bt_iter_set_pos(self._bi, pos._pos)
-		except AttributeError:
-			raise TypeError("in set_pos, "
-				"argument 2 must be a IterPos instance")
-
-	def create_time_pos(self, timestamp):
-		"""
-		Create a position based on time
-		This function allocates and returns a new IterPos to be able to
-		restore an iterator position based on a timestamp.
-		"""
-
-		if timestamp < 0:
-			raise TypeError("timestamp must be an unsigned int")
-
-		ret = IterPos(0)
-		ret.__can_access = False
-		ret._pos = _bt_iter_create_time_pos(self._bi, timestamp)
-		return ret
-%}
-
-
 /* =================================================================
 		CLOCK-TYPE.H
 		¯¯¯¯¯¯¯¯¯¯¯¯
@@ -521,31 +417,31 @@ class TraceHandle(object):
 		"""Return the TraceHandle id."""
 		return self._id
 
-	def get_path(self, context):
+	def get_path(self, trace_collection):
 		"""Return the path of a TraceHandle."""
 		try:
-			return _bt_trace_handle_get_path(context._c, self._id)
+			return _bt_trace_handle_get_path(trace_collection._tc, self._id)
 		except AttributeError:
 			raise TypeError("in get_path, "
-				"argument 2 must be a Context instance")
+				"argument 2 must be a TraceCollection instance")
 
-	def get_timestamp_begin(self, context, clock_type):
+	def get_timestamp_begin(self, trace_collection, clock_type):
 		"""Return the creation time of the buffers of a trace."""
 		try:
 			return _bt_trace_handle_get_timestamp_begin(
-				context._c, self._id,clock_type)
+				trace_collection._tc, self._id,clock_type)
 		except AttributeError:
 			raise TypeError("in get_timestamp_begin, "
-				"argument 2 must be a Context instance")
+				"argument 2 must be a TraceCollection instance")
 
-	def get_timestamp_end(self, context, clock_type):
+	def get_timestamp_end(self, trace_collection, clock_type):
 		"""Return the destruction timestamp of the buffers of a trace."""
 		try:
 			return _bt_trace_handle_get_timestamp_end(
-				context._c, self._id, clock_type)
+				trace_collection._tc, self._id, clock_type)
 		except AttributeError:
 			raise TypeError("in get_timestamp_end, "
-				"argument 2 must be a Context instance")
+				"argument 2 must be a TraceCollection instance")
 
 %}
 
@@ -700,74 +596,10 @@ class CTFReader:
 		EVENT_CONTEXT = 4
 		EVENT_FIELDS = 5
 
-	class Iterator(Iterator, object):
-		"""
-		Allocate a CTF trace collection iterator.
-
-		begin_pos and end_pos are optional parameters to specify the
-		position at which the trace collection should be seeked upon
-		iterator creation, and the position at which iteration will
-		start returning "EOF".
-
-		By default, if begin_pos is None, a SEEK_CUR is performed at
-		creation. By default, if end_pos is None, a SEEK_END (end of
-		trace) is the EOF criterion.
-
-		Only one iterator can be created against a context. If more than one
-		iterator is being created for the same context, the second creation
-		will return None. The previous iterator must be destroyed before
-		creation of the new iterator for this function to succeed.
-		"""
-
-		def __new__(cls, context, begin_pos = None, end_pos = None):
-			# __new__ is used to control the return value
-			# as the CTFReader.Iterator class should return None
-			# if bt_ctf_iter_create returns NULL
-
-			if begin_pos is None:
-				bp = None
-			else:
-				bp = begin_pos._pos
-			if end_pos is None:
-				ep = None
-			else:
-				ep = end_pos._pos
-			try:
-				it = _bt_ctf_iter_create(context._c, bp, ep)
-			except AttributeError:
-				raise TypeError("in __init__, "
-					"argument 2 must be a Context instance")
-			if it is None:
-				return None
-
-			ret_class = super(CTFReader.Iterator, cls).__new__(cls)
-			ret_class._i = it
-			return ret_class
-
-		def __init__(self, context, begin_pos = None, end_pos = None):
-			Iterator.__init__(self, None, None, None,
-				_bt_ctf_get_iter(self._i))
-
-		def __del__(self):
-			_bt_ctf_iter_destroy(self._i)
-
-		def read_event(self):
-			"""
-			Read the iterator's current event data.
-			Return current event on success, None on end of trace.
-			"""
-			ret = _bt_ctf_iter_read_event(self._i)
-			if ret is None:
-				return ret
-			ev = CTFReader.Event.__new__(CTFReader.Event)
-			ev._e = ret
-			return ev
-
-
 	class Event(object):
 		"""
 		This class represents an event from the trace.
-		It is obtained with read_event() from CTFReader.Iterator.
+		It is obtained using the TraceCollection generator functions.
 		Do not instantiate.
 		"""
 
@@ -908,7 +740,7 @@ class CTFReader:
 
 		def get_handle(self):
 			"""
-			Get the TraceHandle associated with an event
+			Get the TraceHandle associated with this event
 			Return None on error
 			"""
 			ret = _bt_ctf_event_get_handle_id(self._e)
@@ -919,17 +751,17 @@ class CTFReader:
 			th._id = ret
 			return th
 
-		def get_context(self):
+		def get_trace_collection(self):
 			"""
-			Get the context associated with an event.
+			Get the TraceCollection associated with this event.
 			Return None on error.
 			"""
-			ctx = Context()
-			ctx._c = _bt_ctf_event_get_context(self._e);
-			if ctx._c is None:
+			trace_collection = TraceCollection()
+			trace_collection._tc = _bt_ctf_event_get_context(self._e);
+			if trace_collection._tc is None:
 				return None
 			else:
-				return ctx
+				return trace_collection
 
 	class FieldError(Exception):
 		def __init__(self, value):
@@ -1220,7 +1052,7 @@ class CTFReader:
 		return _bt_ctf_field_get_error()
 
 	@staticmethod
-	def get_event_decl_list(trace_handle, context):
+	def get_event_decl_list(trace_handle, trace_collection):
 		"""
 		Return a list of CTFReader.EventDecl
 		Return None on error.
@@ -1231,10 +1063,10 @@ class CTFReader:
 				raise TypeError("in get_event_decl_list, "
 					"argument 1 must be a TraceHandle instance")
 		try:
-			ptr_list, count = _bt_python_event_decl_listcaller(handle_id, context._c)
+			ptr_list, count = _bt_python_event_decl_listcaller(handle_id, trace_collection._tc)
 		except AttributeError:
 				raise TypeError("in get_event_decl_list, "
-					"argument 2 must be a Context instance")
+					"argument 2 must be a TraceCollection instance")
 
 		if ptr_list is None:
 			return None
@@ -1249,81 +1081,6 @@ class CTFReader:
 
 %}
 
-
-
-// =================================================================
-//			      NEW FUNCTIONS
-//			   File and list-related
-//			   python-complements.h
-// =================================================================
-
-%pythoncode %{
-
-class File(object):
-	"""
-	Open a file for babeltrace.
-
-	file_path is a string containing the path or None to use the
-	standard output in writing mode.
-
-	The mode can be 'r', 'w' or 'a' for reading (default), writing or
-	appending.  The file will be created if it doesn't exist when
-	opened for writing or appending; it will be truncated when opened
-	for writing.  Add a 'b' to the mode for	binary files.  Add a '+'
-	to the mode to allow simultaneous reading and writing.
-	"""
-
-	def __new__(cls, file_path, mode='r'):
-		# __new__ is used to control the return value
-		# as the File class should return None
-		# if _bt_file_open returns NULL
-
-		# Type check
-		if file_path is not None and type(file_path) is not str:
-			raise TypeError("in method __init__, argument 2 of type 'str'")
-		if type(mode) is not str:
-			raise TypeError("in method __init__, argument 3 of type 'str'")
-
-		# Opening file
-		file_ptr = _bt_file_open(file_path, mode)
-		if file_ptr is None:
-			return None
-
-		# Class instantiation
-		file_inst = super(File, cls).__new__(cls)
-		file_inst._file = file_ptr
-		return file_inst
-
-	def __init__(self, file_path, mode='r'):
-		self._opened = True
-		self._use_stdout = False
-
-		if file_path is None:
-			# use stdout
-			file_path = "stdout"
-			mode = 'w'
-			self._use_stdout = True
-
-		self._file_path = file_path
-		self._mode = mode
-
-	def __del__(self):
-		self.close()
-
-	def __repr__(self):
-		if self._opened:
-			stat = 'opened'
-		else:
-			stat = 'closed'
-		return "{0} babeltrace File; file_path('{1}'), mode('{2}')".format(
-			stat, self._file_path, self._mode)
-
-	def close(self):
-		"""Close the file.  Is also called using del."""
-		if self._opened and not self._use_stdout:
-			_bt_file_close(self._file)
-			self._opened = False
-%}
 
 // =================================================================
 //				CTF Writer

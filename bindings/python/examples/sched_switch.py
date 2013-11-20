@@ -35,19 +35,12 @@ elif len(sys.argv) == 3:
 else:
 	usePID = False
 
-
-ctx = Context()
-ret = ctx.add_trace(sys.argv[len(sys.argv)-1], "ctf")
+traces = TraceCollection()
+ret = traces.add_trace(sys.argv[len(sys.argv)-1], "ctf")
 if ret is None:
 	raise IOError("Error adding trace")
 
-# Setting iterator
-bp = IterPos(SEEK_BEGIN)
-ctf_it = CTFReader.Iterator(ctx, bp)
-
-# Reading events
-event = ctf_it.read_event()
-while event is not None:
+for event in traces.events:
 	while True:
 		if event.get_name() == "sched_switch":
 			# Getting scope definition
@@ -117,11 +110,3 @@ while event is not None:
 				prev_prio, prev_state, next_comm, next_tid, next_prio))
 
 		break # Next event
-
-	# Next event
-	ret = ctf_it.next()
-	if ret < 0:
-		break
-	event = ctf_it.read_event()
-
-del ctf_it

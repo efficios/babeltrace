@@ -29,25 +29,20 @@ from babeltrace import *
 if len(sys.argv) < 2:
 	raise TypeError("Usage: sequence_test.py path/to/file")
 
-# Create context and add trace:
-ctx = Context()
-trace_handle = ctx.add_trace(sys.argv[1], "ctf")
+# Create TraceCollection and add trace:
+traces = TraceCollection()
+trace_handle = traces.add_trace(sys.argv[1], "ctf")
 if trace_handle is None:
 	raise IOError("Error adding trace")
 
 # Listing events
-lst = CTFReader.get_event_decl_list(trace_handle, ctx)
+lst = CTFReader.get_event_decl_list(trace_handle, traces)
 print("--- Event list ---")
 for item in lst:
 	print("event : {}".format(item.get_name()))
 print("--- Done ---")
 
-# Iter trace
-bp = IterPos(SEEK_BEGIN)
-ctf_it = CTFReader.Iterator(ctx,bp)
-event = ctf_it.read_event()
-
-while(event is not None):
+for event in traces.events:
 	print("TS: {}, {} : {}".format(event.get_timestamp(),
 		event.get_cycles(), event.get_name()))
 	field = event.get_field("seq_int_field")
@@ -56,11 +51,3 @@ while(event is not None):
 	field = event.get_field("seq_long_field")
 	if field is not None:
 		print("long sequence values: {}". format(field[0].get_value()))
-
-	ret = ctf_it.next()
-	if ret < 0:
-		break
-	else:
-		event = ctf_it.read_event()
-
-del ctf_it

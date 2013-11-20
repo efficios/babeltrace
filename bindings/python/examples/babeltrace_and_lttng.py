@@ -97,15 +97,11 @@ if ret < 0:
 
 # BABELTRACE
 
-# Create context and add trace:
-ctx = babeltrace.Context()
-ret = ctx.add_trace(trace_path + "/kernel", "ctf")
+# Create TraceCollecion and add trace:
+traces = babeltrace.TraceCollection()
+ret = traces.add_trace(trace_path + "/kernel", "ctf")
 if ret is None:
 	raise BabeltraceError("Error adding trace")
-
-# Iterator setup
-bp = babeltrace.IterPos(babeltrace.SEEK_BEGIN)
-ctf_it = babeltrace.CTFReader.Iterator(ctx,bp)
 
 # Reading events from trace
 # and outputting timestamps and event names
@@ -113,20 +109,11 @@ ctf_it = babeltrace.CTFReader.Iterator(ctx,bp)
 print("Writing trace file...")
 output = open(out_file, "wt")
 
-event = ctf_it.read_event()
-while(event is not None):
+for event in traces.events:
 	output.write("TS: {}, {} : {}\n".format(event.get_timestamp(),
 		event.get_cycles(), event.get_name()))
-
-	# Next event
-	ret = ctf_it.next()
-	if ret < 0:
-		break
-	event = ctf_it.read_event()
 
 # Closing file
 output.close()
 
-# Destroying dynamic elements
-del ctf_it, han
 print("Done.")
