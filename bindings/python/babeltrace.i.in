@@ -147,13 +147,13 @@ class TraceCollection:
 
 		Return: the corresponding TraceHandle on success or None on error.
 		"""
-		ret = _bt_context_add_trace(self._tc, path, format_str, None,
-			None, None)
+		ret = _bt_context_add_trace(self._tc, path, format_str, None, None, None)
 		if ret < 0:
 			return None
 
 		th = TraceHandle.__new__(TraceHandle)
 		th._id = ret
+		th._trace_collection = self
 		return th
 
 	def add_traces_recursive(self, path, format_str):
@@ -358,20 +358,6 @@ struct bt_iter_pos {
 };
 
 /* =================================================================
-		CLOCK-TYPE.H
-		¯¯¯¯¯¯¯¯¯¯¯¯
-	*** Enum copied from clock-type.h­
-		All changes must also be made here
-*/
-%rename("CLOCK_CYCLES") BT_CLOCK_CYCLES;
-%rename("CLOCK_REAL") BT_CLOCK_REAL;
-
-enum bt_clock_type {
-	BT_CLOCK_CYCLES = 0,
-	BT_CLOCK_REAL
-};
-
-/* =================================================================
 		TRACE-HANDLE.H, TRACE-HANDLE-INTERNAL.H
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
@@ -400,6 +386,11 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event);
 
 %pythoncode%{
 
+# Based on enum bt_clock_type in clock-type.h­
+class ClockType:
+	CLOCK_CYCLES = 0
+	CLOCK_REAL = 1
+
 class TraceHandle(object):
 	"""
 	The TraceHandle allows the user to manipulate a trace file directly.
@@ -413,35 +404,27 @@ class TraceHandle(object):
 	def __repr__(self):
 		return "Babeltrace TraceHandle: trace_id('{0}')".format(self._id)
 
-	def get_id(self):
+	@property
+	def id(self):
 		"""Return the TraceHandle id."""
 		return self._id
 
-	def get_path(self, trace_collection):
+	@property
+	def path(self):
 		"""Return the path of a TraceHandle."""
-		try:
-			return _bt_trace_handle_get_path(trace_collection._tc, self._id)
-		except AttributeError:
-			raise TypeError("in get_path, "
-				"argument 2 must be a TraceCollection instance")
+		return _bt_trace_handle_get_path(self._trace_collection._tc, self._id)
 
-	def get_timestamp_begin(self, trace_collection, clock_type):
+	@property
+	def timestamp_begin(self):
 		"""Return the creation time of the buffers of a trace."""
-		try:
-			return _bt_trace_handle_get_timestamp_begin(
-				trace_collection._tc, self._id,clock_type)
-		except AttributeError:
-			raise TypeError("in get_timestamp_begin, "
-				"argument 2 must be a TraceCollection instance")
+		return _bt_trace_handle_get_timestamp_begin(
+			self._trace_collection._tc, self._id, ClockType.CLOCK_REAL)
 
-	def get_timestamp_end(self, trace_collection, clock_type):
+	@property
+	def timestamp_end(self):
 		"""Return the destruction timestamp of the buffers of a trace."""
-		try:
-			return _bt_trace_handle_get_timestamp_end(
-				trace_collection._tc, self._id, clock_type)
-		except AttributeError:
-			raise TypeError("in get_timestamp_end, "
-				"argument 2 must be a TraceCollection instance")
+		return _bt_trace_handle_get_timestamp_end(
+			self._trace_collection._tc, self._id, ClockType.CLOCK_REAL)
 
 %}
 
@@ -749,6 +732,7 @@ class CTFReader:
 
 			th = TraceHandle.__new__(TraceHandle)
 			th._id = ret
+			th._trace_collection = self.get_trace_collection()
 			return th
 
 		def get_trace_collection(self):
