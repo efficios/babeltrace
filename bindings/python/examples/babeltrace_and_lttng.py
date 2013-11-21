@@ -110,8 +110,7 @@ print("Writing trace file...")
 output = open(out_file, "wt")
 
 for event in traces.events:
-	output.write("TS: {}, {} : {}\n".format(event.get_timestamp(),
-		event.get_cycles(), event.get_name()))
+	output.write("TS: {}, {} : {}\n".format(event.timestamp, event.cycles, event.name))
 
 # Closing file
 output.close()

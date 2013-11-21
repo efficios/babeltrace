@@ -42,71 +42,29 @@ if ret is None:
 
 for event in traces.events:
 	while True:
-		if event.get_name() == "sched_switch":
-			# Getting scope definition
-			sco = event.get_top_level_scope(CTFReader.scope.STREAM_EVENT_CONTEXT)
-			if sco is None:
-				print("ERROR: Cannot get definition scope for sched_switch")
-				break # Next event
-
+		if event.name == "sched_switch":
 			# Getting PID
-			pid_field = event.get_field_with_scope(sco, "pid")
-			if pid_field is None:
+			pid = event.field_with_scope("pid", scope.STREAM_EVENT_CONTEXT)
+			if pid is None:
 				print("ERROR: Missing PID info for sched_switch")
 				break # Next event
-			pid = pid_field.get_value()
+
 			if usePID and (pid != long(sys.argv[1])):
 				break # Next event
 
-			sco = event.get_top_level_scope(CTFReader.scope.EVENT_FIELDS)
-
-			# prev_comm
-			field = event.get_field_with_scope(sco, "prev_comm")
-			if field is None:
-				print("ERROR: Missing prev_comm context info")
-			prev_comm = field.get_value()
-
-			# prev_tid
-			field = event.get_field_with_scope(sco, "prev_tid")
-			if field is None:
-				print("ERROR: Missing prev_tid context info")
-			prev_tid = field.get_value()
-
-			# prev_prio
-			field = event.get_field_with_scope(sco, "prev_prio")
-			if field is None:
-				print("ERROR: Missing prev_prio context info")
-			prev_prio = field.get_value()
-
-			# prev_state
-			field = event.get_field_with_scope(sco, "prev_state")
-			if field is None:
-				print("ERROR: Missing prev_state context info")
-			prev_state = field.get_value()
-
-			# next_comm
-			field = event.get_field_with_scope(sco, "next_comm")
-			if field is None:
-				print("ERROR: Missing next_comm context info")
-			next_comm = field.get_value()
-
-			# next_tid
-			field = event.get_field_with_scope(sco, "next_tid")
-			if field is None:
-				print("ERROR: Missing next_tid context info")
-			next_tid = field.get_value()
-
-			# next_prio
-			field = event.get_field_with_scope(sco, "next_prio")
-			if field is None:
-				print("ERROR: Missing next_prio context info")
-			next_prio = field.get_value()
+			prev_comm = event["prev_comm"]
+			prev_tid = event["prev_tid"]
+			prev_prio = event["prev_prio"]
+			prev_state = event["prev_state"]
+			next_comm = event["next_comm"]
+			next_tid = event["next_tid"]
+			next_prio = event["next_prio"]
 
 			# Output
 			print("sched_switch, pid = {}, TS = {}, prev_comm = {},\n\t"
 				"prev_tid = {}, prev_prio = {}, prev_state = {},\n\t"
 				"next_comm = {}, next_tid = {}, next_prio = {}".format(
-				pid, event.get_timestamp(), prev_comm, prev_tid,
+				pid, event.timestamp, prev_comm, prev_tid,
 				prev_prio, prev_state, next_comm, next_tid, next_prio))
 
 		break # Next event

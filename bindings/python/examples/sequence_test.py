@@ -36,18 +36,24 @@ if trace_handle is None:
 	raise IOError("Error adding trace")
 
 # Listing events
-lst = CTFReader.get_event_decl_list(trace_handle, traces)
+lst = get_event_decl_list(trace_handle, traces)
 print("--- Event list ---")
 for item in lst:
 	print("event : {}".format(item.get_name()))
 print("--- Done ---")
 
 for event in traces.events:
-	print("TS: {}, {} : {}".format(event.get_timestamp(),
-		event.get_cycles(), event.get_name()))
-	field = event.get_field("seq_int_field")
-	if field is not None:
-		print("int sequence values: {}". format(field[0].get_value()))
-	field = event.get_field("seq_long_field")
-	if field is not None:
-		print("long sequence values: {}". format(field[0].get_value()))
+	print("TS: {}, {} : {}".format(event.timestamp,
+		event.cycles, event.name))
+
+	try:
+		sequence = event["seq_int_field"]
+		print("int sequence values: {}". format(sequence))
+	except KeyError:
+		pass
+
+	try:
+		sequence = event["seq_long_field"]
+		print("long sequence values: {}". format(sequence))
+	except KeyError:
+		pass

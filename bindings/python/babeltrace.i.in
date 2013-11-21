@@ -259,7 +259,7 @@ class TraceCollection:
 			if ev_ptr is None:
 				break
 
-			ev = CTFReader.Event.__new__(CTFReader.Event)
+			ev = Event.__new__(Event)
 			ev._e = ev_ptr
 			try:
 				yield ev
@@ -570,498 +570,507 @@ class CTFTypeId:
 				break
 		return name
 
-class CTFReader:
-	class scope:
-		TRACE_PACKET_HEADER = 0
-		STREAM_PACKET_CONTEXT = 1
-		STREAM_EVENT_HEADER = 2
-		STREAM_EVENT_CONTEXT = 3
-		EVENT_CONTEXT = 4
-		EVENT_FIELDS = 5
 
-	class Event(object):
+class scope:
+	TRACE_PACKET_HEADER = 0
+	STREAM_PACKET_CONTEXT = 1
+	STREAM_EVENT_HEADER = 2
+	STREAM_EVENT_CONTEXT = 3
+	EVENT_CONTEXT = 4
+	EVENT_FIELDS = 5
+
+import collections
+class Event(collections.Mapping):
+	"""
+	This class represents an event from the trace.
+	It is obtained using the TraceCollection generator functions.
+	Do not instantiate.
+	"""
+	i = scope.EVENT_FIELDS
+	_scopes = [scope.EVENT_FIELDS, scope.EVENT_CONTEXT, scope.STREAM_EVENT_CONTEXT,
+		scope.STREAM_EVENT_HEADER, scope.STREAM_PACKET_CONTEXT, scope.TRACE_PACKET_HEADER]
+
+	def __init__(self):
+		raise NotImplementedError("Event cannot be instantiated")
+
+	@property
+	def name(self):
+		"""Return the name of the event or None on error."""
+		return _bt_ctf_event_name(self._e)
+
+	@property
+	def cycles(self):
 		"""
-		This class represents an event from the trace.
-		It is obtained using the TraceCollection generator functions.
-		Do not instantiate.
+		Return the timestamp of the event as written in
+		the packet (in cycles) or -1ULL on error.
 		"""
+		return _bt_ctf_get_cycles(self._e)
 
-		def __init__(self):
-			raise NotImplementedError("CTFReader.Event cannot be instantiated")
+	@property
+	def timestamp(self):
+		"""
+		Return the timestamp of the event offset with the
+		system clock source or -1ULL on error.
+		"""
+		return _bt_ctf_get_timestamp(self._e)
 
-		def get_top_level_scope(self, scope):
-			"""
-			Return a definition of the top-level scope
-			Top-level scopes are defined in CTFReader.scope.
-			In order to get a field or a field list, the user needs to pass a
-			scope as argument, this scope can be a top-level scope or a scope
-			relative to an arbitrary field. This function provides the mapping
-			between the scope and the actual definition of top-level scopes.
-			On error return None.
-			"""
-			evDef = CTFReader.Definition.__new__(CTFReader.Definition)
-			evDef._d = _bt_ctf_get_top_level_scope(self._e, scope)
-			if evDef._d is None:
-				return None
-			return evDef
+	def field_with_scope(self, field_name, scope):
+		"""
+		Get field_name's value in scope.
+		None is returned if no field matches field_name.
+		"""
+		if not scope in self._scopes:
+			raise ValueError("Invalid scope provided")
+		field = self._field_with_scope(field_name, scope)
+		if field is not None:
+			return field.value
+		return None
 
-		def get_name(self):
-			"""Return the name of the event or None on error."""
-			return _bt_ctf_event_name(self._e)
+	def field_list_with_scope(self, scope):
+		"""Return a list of field names in scope."""
+		if not scope in self._scopes:
+			raise ValueError("Invalid scope provided")
+		field_names = []
+		for field in self._field_list_with_scope(scope):
+			field_names.append(field.name)
+		return field_names
 
-		def get_cycles(self):
-			"""
-			Return the timestamp of the event as written in
-			the packet (in cycles) or -1ULL on error.
-			"""
-			return _bt_ctf_get_cycles(self._e)
-
-		def get_timestamp(self):
-			"""
-			Return the timestamp of the event offsetted with the
-			system clock source or -1ULL on error.
-			"""
-			return _bt_ctf_get_timestamp(self._e)
-
-		def get_field_with_scope(self, scope, field):
-			"""
-			Return the definition of a specific field.
-			Return None on error.
-			"""
-			evDef = CTFReader.Definition.__new__(CTFReader.Definition)
-			try:
-				evDef._d = _bt_ctf_get_field(self._e, scope._d, field)
-			except AttributeError:
-				raise TypeError("in get_field, argument 2 must be a "
-					"Definition (scope) instance")
-			if evDef._d is None:
-				return None
-			evDef._s = scope
-			return evDef
-
-		def get_field(self, field):
-			"""
-			Return the definition of fields by a name
-			Return None on error
-			"""
-			eventScope = self.get_top_level_scope(CTFReader.scope.EVENT_FIELDS)
-			streamScope = self.get_top_level_scope(CTFReader.scope.STREAM_EVENT_CONTEXT)
-			fields_by_name = []
-
-			if eventScope is not None:
-				evDef = self.get_field_with_scope(eventScope, field)
-				if evDef is not None:
-					fields_by_name.append(evDef)
-
-			if streamScope is not None:
-				evDef = self.get_field_with_scope(streamScope, field)
-				if evDef is not None:
-					fields_by_name.append(evDef);
-
-			if not fields_by_name:
-				return None
-			return fields_by_name
-
-		def get_field_list_with_scope(self, scope):
-			"""
-			Return a list of Definitions associated with the scope
-			Return None on error.
-			"""
-			try:
-				field_lc, count = _bt_python_field_listcaller(self._e, scope._d)
-			except AttributeError:
-				raise TypeError("in get_field_list, argument 2 must be a "
-					"Definition (scope) instance")
-
-			if field_lc is None:
-				return None
-
-			def_list = []
-			for i in range(count):
-				tmp = CTFReader.Definition.__new__(CTFReader.Definition)
-				tmp._d = _bt_python_field_one_from_list(field_lc, i)
-				tmp._s = scope
-				def_list.append(tmp)
-
-			return def_list
-
-		def get_field_list(self):
-			"""Return a list of Definitions or None on error."""
-			eventScope = self.get_top_level_scope(CTFReader.scope.EVENT_FIELDS)
-			streamScope = self.get_top_level_scope(CTFReader.scope.STREAM_EVENT_CONTEXT)
-
-			def_list = []
-			if eventScope is not None:
-				event_field_list = self.get_field_list_with_scope(eventScope)
-				if event_field_list is not None:
-					def_list = event_field_list
-
-			if streamScope is not None:
-				event_field_list = self.get_field_list_with_scope(streamScope)
-				if event_field_list is not None:
-					def_list.extend(event_field_list)
-
-			if not def_list:
-				return None
-			return def_list
-
-		def get_index(self, field, index):
-			"""
-			If the field is an array or a sequence, return the element
-			at position index, otherwise return None
-			"""
-			evDef = CTFReader.Definition.__new__(CTFReader.Definition)
-			try:
-				evDef._d = _bt_ctf_get_index(self._e, field._d, index)
-			except AttributeError:
-				raise TypeError("in get_index, argument 2 must be a "
-					"Definition (field) instance")
-
-			if evDef._d is None:
-				return None
-			return evDef
-
-		def get_handle(self):
-			"""
-			Get the TraceHandle associated with this event
-			Return None on error
-			"""
-			ret = _bt_ctf_event_get_handle_id(self._e)
-			if ret < 0:
-				return None
-
-			th = TraceHandle.__new__(TraceHandle)
-			th._id = ret
-			th._trace_collection = self.get_trace_collection()
-			return th
-
-		def get_trace_collection(self):
-			"""
-			Get the TraceCollection associated with this event.
-			Return None on error.
-			"""
-			trace_collection = TraceCollection()
-			trace_collection._tc = _bt_ctf_event_get_context(self._e);
-			if trace_collection._tc is None:
-				return None
-			else:
-				return trace_collection
-
-	class FieldError(Exception):
-		def __init__(self, value):
-			self.value = value
-
-		def __str__(self):
-			return repr(self.value)
-
-	class Definition(object):
-		"""Definition class.  Do not instantiate."""
-
-		def __init__(self):
-			raise NotImplementedError("CTFReader.Definition cannot be instantiated")
-
-		def __repr__(self):
-			return "Babeltrace Definition: name('{0}'), type({1})".format(
-				self.field_name(), self.field_type())
-
-		def field_name(self):
-			"""Return the name of a field or None on error."""
-			return _bt_ctf_field_name(self._d)
-
-		def field_type(self):
-			"""Return the type of a field or -1 if unknown."""
-			return _bt_ctf_field_type(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_int_signedness(self):
-			"""
-			Return the signedness of an integer:
-			0 if unsigned; 1 if signed; -1 on error.
-			"""
-			return _bt_ctf_get_int_signedness(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_int_base(self):
-			"""Return the base of an int or a negative value on error."""
-			return _bt_ctf_get_int_base(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_int_byte_order(self):
-			"""
-			Return the byte order of an int or a negative
-			value on error.
-			"""
-			return _bt_ctf_get_int_byte_order(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_int_len(self):
-			"""
-			Return the size, in bits, of an int or a negative
-			value on error.
-			"""
-			return _bt_ctf_get_int_len(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_enum_str(self):
-			"""
-			Return the string matching the current enumeration.
-			Return None on error.
-			"""
-			return _bt_ctf_get_enum_str(self._d)
-
-		def get_encoding(self):
-			"""
-			Return the encoding of an int or a string.
-			Return a negative value on error.
-			"""
-			return _bt_ctf_get_encoding(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_array_len(self):
-			"""
-			Return the len of an array or a negative
-			value on error.
-			"""
-			return _bt_ctf_get_array_len(_bt_ctf_get_decl_from_def(self._d))
-
-		def get_array_element_at(self, index):
-			"""
-			Return the array's element at position index.
-			Return None on error
-			"""
-			array = _bt_python_get_array_from_def(self._d)
-			if array is None:
-				return None
-
-			element = CTFReader.Definition.__new__(CTFReader.Definition)
-			element._d =  _bt_array_index(array, index)
-			if element._d is None:
-				return None
-			return element
-
-		def get_sequence_len(self):
-			"""
-			Return the len of a sequence or a negative
-			value on error.
-			"""
-			seq = _bt_python_get_sequence_from_def(self._d)
-			return _bt_sequence_len(seq)
-
-		def get_sequence_element_at(self, index):
-			"""
-			Return the sequence's element at position index,
-			otherwise return None
-			"""
-			seq = _bt_python_get_sequence_from_def(self._d)
-			if seq is not None:
-				element = CTFReader.Definition.__new__(CTFReader.Definition)
-				element._d = _bt_sequence_index(seq, index)
-				if element._d is not None:
-					return element
+	@property
+	def handle(self):
+		"""
+		Get the TraceHandle associated with this event
+		Return None on error
+		"""
+		ret = _bt_ctf_event_get_handle_id(self._e)
+		if ret < 0:
 			return None
 
-		def get_uint64(self):
-			"""
-			Return the value associated with the field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the	CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_uint64(self._d)
+		th = TraceHandle.__new__(TraceHandle)
+		th._id = ret
+		th._trace_collection = self.get_trace_collection()
+		return th
 
-		def get_int64(self):
-			"""
-			Return the value associated with the field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_int64(self._d)
-
-		def get_char_array(self):
-			"""
-			Return the value associated with the field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_char_array(self._d)
-
-		def get_str(self):
-			"""
-			Return the value associated with the field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_string(self._d)
-
-		def get_float(self):
-			"""
-			Return the value associated with the field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_float(self._d)
-
-		def get_variant(self):
-			"""
-			Return the variant's selected field.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_variant(self._d)
-
-		def get_struct_field_count(self):
-			"""
-			Return the number of fields contained in the structure.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined.
-			"""
-			return _bt_ctf_get_struct_field_count(self._d)
-
-		def get_struct_field_at(self, i):
-			"""
-			Return the structure's field at position i.
-			If the field does not exist or is not of the type requested,
-			the value returned is undefined. To check if an error occured,
-			use the CTFReader.field_error() function after accessing a field.
-			"""
-			return _bt_ctf_get_struct_field_index(self._d, i)
-
-		def get_value(self):
-			"""
-			Return the value associated with the field according to its type.
-			Return None on error.
-			"""
-			id = self.field_type()
-			value = None
-			if id == CTFTypeId.STRING:
-				value = self.get_str()
-			elif id == CTFTypeId.ARRAY:
-				value = []
-				for i in range(self.get_array_len()):
-					element = self.get_array_element_at(i)
-					value.append(element.get_value())
-			elif id == CTFTypeId.INTEGER:
-				if self.get_int_signedness() == 0:
-					value = self.get_uint64()
-				else:
-					value = self.get_int64()
-			elif id == CTFTypeId.ENUM:
-				value = self.get_enum_str()
-			elif id == CTFTypeId.SEQUENCE:
-				seq_len = self.get_sequence_len()
-				value = []
-				for i in range(seq_len):
-					evDef = self.get_sequence_element_at(i)
-					value.append(evDef.get_value())
-			elif id == CTFTypeId.FLOAT:
-				value = self.get_float()
-			elif id == CTFTypeId.VARIANT:
-				variant = CTFReader.Definition.__new__(CTFReader.Definition)
-				variant._d = self.get_variant();
-				value = variant.get_value()
-			elif id == CTFTypeId.STRUCT:
-				value = {}
-				for i in range(self.get_struct_field_count()):
-					member = CTFReader.Definition.__new__(CTFReader.Definition)
-					member._d = self.get_struct_field_at(i);
-					value[member.field_name()] = member.get_value()
-
-			if CTFReader.field_error():
-				raise CTFReader.FieldError("Error occured while accessing field {} of type {}".format(self.field_name(), CTFTypeId.get_type_name(self.field_type())))
-			return value
-
-		def get_scope(self):
-			"""Return the scope of a field or None on error."""
-			return self._s
-
-	class EventDecl(object):
-		"""Event declaration class.  Do not instantiate."""
-
-		def __init__(self):
-			raise NotImplementedError("CTFReader.EventDecl cannot be instantiated")
-
-		def __repr__(self):
-			return "Babeltrace EventDecl: name {0}".format(self.get_name())
-
-		def get_name(self):
-			"""Return the name of the event or None on error"""
-			return _bt_ctf_get_decl_event_name(self._d)
-
-		def get_decl_fields(self, scope):
-			"""
-			Return a list of CTFReader.FieldDecl
-			Return None on error.
-			"""
-			ptr_list = _by_python_field_decl_listcaller(self._d, scope)
-
-			if ptr_list is None:
-				return None
-
-			decl_list = []
-			i = 0
-			while True:
-				tmp = CTFReader.FieldDecl.__new__(CTFReader.FieldDecl)
-				tmp._d =  _bt_python_field_decl_one_from_list(
-					ptr_list, i)
-
-				if tmp._d is None:
-					#Last item of list is None
-					break
-
-				decl_list.append(tmp)
-				i += 1
-			return decl_list
-
-
-	class FieldDecl(object):
-		"""Field declaration class.  Do not instantiate."""
-
-		def __init__(self):
-			raise NotImplementedError("CTFReader.FieldDecl cannot be instantiated")
-
-		def __repr__(self):
-			return "Babeltrace FieldDecl: name {0}".format(self.get_name())
-
-		def get_name(self):
-			"""Return the name of a FieldDecl or None on error"""
-			return _bt_ctf_get_decl_field_name(self._d)
-
-
-	@staticmethod
-	def field_error():
+	@property
+	def trace_collection(self):
 		"""
-		Return the last error code encountered while
-		accessing a field and reset the error flag.
-		Return 0 if no error, a negative value otherwise.
-		"""
-		return _bt_ctf_field_get_error()
-
-	@staticmethod
-	def get_event_decl_list(trace_handle, trace_collection):
-		"""
-		Return a list of CTFReader.EventDecl
+		Get the TraceCollection associated with this event.
 		Return None on error.
 		"""
-		try:
-			handle_id = trace_handle._id
-		except AttributeError:
-				raise TypeError("in get_event_decl_list, "
-					"argument 1 must be a TraceHandle instance")
-		try:
-			ptr_list, count = _bt_python_event_decl_listcaller(handle_id, trace_collection._tc)
-		except AttributeError:
-				raise TypeError("in get_event_decl_list, "
-					"argument 2 must be a TraceCollection instance")
+		trace_collection = TraceCollection()
+		trace_collection._tc = _bt_ctf_event_get_context(self._e);
+		if trace_collection._tc is None:
+			return None
+		else:
+			return trace_collection
+
+	def __getitem__(self, field_name):
+		"""
+		Get field_name's value. If the field_name exists in multiple
+		scopes, the first field found is returned. The scopes are searched
+		in the following order:
+		1) EVENT_FIELDS
+		2) EVENT_CONTEXT
+		3) STREAM_EVENT_CONTEXT
+		4) STREAM_EVENT_HEADER
+		5) STREAM_PACKET_CONTEXT
+		6) TRACE_PACKET_HEADER
+		None is returned if no field matches field_name.
+
+		Use field_with_scope() to explicitly access fields in a given
+		scope.
+		"""
+		field = self._field(field_name)
+		if field is not None:
+			return field.value
+		raise KeyError(field_name)
+
+	def __iter__(self):
+		for key in self.keys():
+			yield key
+
+	def __len__(self):
+		count = 0
+		for scope in self._scopes:
+			scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
+			ret = _bt_python_field_listcaller(self._e, scope_ptr)
+			if isinstance(ret, list):
+				count += ret[1]
+		return count
+
+	def __contains__(self, field_name):
+		return self._field(field_name) is not None
+
+	def keys(self):
+		"""Return a list of field names."""
+		field_names = set()
+		for scope in self._scopes:
+			for name in self.field_list_with_scope(scope):
+				field_names.add(name)
+		return list(field_names)
+
+	def get(self, field_name, default = None):
+		field = self._field(field_name)
+		if field is None:
+			return default
+		return field.value
+
+	def items(self):
+		for field in self.keys():
+			yield (field, self[field])
+
+	def _field_with_scope(self, field_name, scope):
+		scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
+		if scope_ptr is None:
+			return None
+
+		definition_ptr = _bt_ctf_get_field(self._e, scope_ptr, field_name)
+		if definition_ptr is None:
+			return None
+
+		field = _Definition(definition_ptr, scope)
+		return field
+
+	def _field(self, field_name):
+		field = None
+		for scope in self._scopes:
+			field = self._field_with_scope(field_name, scope)
+			if field is not None:
+				break
+		return field
+
+	def _field_list_with_scope(self, scope):
+		fields = []
+		scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
+		
+		# Returns a list [list_ptr, count]. If list_ptr is NULL, SWIG will only
+		# provide the "count" return value
+		count = 0
+		list_ptr = None
+		ret = _bt_python_field_listcaller(self._e, scope_ptr)
+		if isinstance(ret, list):
+			list_ptr, count = ret
+
+		for i in range(count):
+			definition_ptr = _bt_python_field_one_from_list(list_ptr, i)
+			if definition_ptr is not None:
+				definition = _Definition(definition_ptr, scope)
+				fields.append(definition)
+		return fields
+
+class FieldError(Exception):
+	def __init__(self, value):
+		self.value = value
+
+	def __str__(self):
+		return repr(self.value)
+
+class EventDecl(object):
+	"""Event declaration class.  Do not instantiate."""
+
+	def __init__(self):
+		raise NotImplementedError("EventDecl cannot be instantiated")
+
+	def __repr__(self):
+		return "Babeltrace EventDecl: name {0}".format(self.get_name())
+
+	def get_name(self):
+		"""Return the name of the event or None on error"""
+		return _bt_ctf_get_decl_event_name(self._d)
+
+	def get_decl_fields(self, scope):
+		"""
+		Return a list of FieldDecl
+		Return None on error.
+		"""
+		ptr_list = _by_python_field_decl_listcaller(self._d, scope)
 
 		if ptr_list is None:
 			return None
 
 		decl_list = []
-		for i in range(count):
-			tmp = CTFReader.EventDecl.__new__(CTFReader.EventDecl)
-			tmp._d =  _bt_python_decl_one_from_list(ptr_list, i)
-			decl_list.append(tmp)
+		i = 0
+		while True:
+			tmp = FieldDecl.__new__(FieldDecl)
+			tmp._d =  _bt_python_field_decl_one_from_list(
+				ptr_list, i)
 
+			if tmp._d is None:
+				#Last item of list is None
+				break
+
+			decl_list.append(tmp)
+			i += 1
 		return decl_list
+
+
+class FieldDecl(object):
+	"""Field declaration class.  Do not instantiate."""
+
+	def __init__(self):
+		raise NotImplementedError("FieldDecl cannot be instantiated")
+
+	def __repr__(self):
+		return "Babeltrace FieldDecl: name {0}".format(self.get_name())
+
+	def get_name(self):
+		"""Return the name of a FieldDecl or None on error"""
+		return _bt_ctf_get_decl_field_name(self._d)
+
+
+def field_error():
+	"""
+	Return the last error code encountered while
+	accessing a field and reset the error flag.
+	Return 0 if no error, a negative value otherwise.
+	"""
+	return _bt_ctf_field_get_error()
+
+def get_event_decl_list(trace_handle, trace_collection):
+	"""
+	Return a list of EventDecl
+	Return None on error.
+	"""
+	try:
+		handle_id = trace_handle._id
+	except AttributeError:
+			raise TypeError("in get_event_decl_list, "
+				"argument 1 must be a TraceHandle instance")
+	try:
+		ptr_list, count = _bt_python_event_decl_listcaller(handle_id, trace_collection._tc)
+	except AttributeError:
+			raise TypeError("in get_event_decl_list, "
+				"argument 2 must be a TraceCollection instance")
+
+	if ptr_list is None:
+		return None
+
+	decl_list = []
+	for i in range(count):
+		tmp = EventDecl.__new__(EventDecl)
+		tmp._d =  _bt_python_decl_one_from_list(ptr_list, i)
+		decl_list.append(tmp)
+
+	return decl_list
+
+class _Definition(object):
+	def __init__(self, definition_ptr, scope):
+		self._d = definition_ptr
+		self._s = scope
+		if not scope in Event._scopes:
+			ValueError("Invalid scope provided")
+
+	def __repr__(self):
+		return "Babeltrace Definition: name('{0}'), type({1})".format(self.name, self.type)
+
+	@property
+	def name(self):
+		"""Return the name of a field or None on error."""
+		return _bt_ctf_field_name(self._d)
+
+	@property	
+	def type(self):
+		"""Return the type of a field or -1 if unknown."""
+		return _bt_ctf_field_type(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_int_signedness(self):
+		"""
+		Return the signedness of an integer:
+		0 if unsigned; 1 if signed; -1 on error.
+		"""
+		return _bt_ctf_get_int_signedness(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_int_base(self):
+		"""Return the base of an int or a negative value on error."""
+		return _bt_ctf_get_int_base(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_int_byte_order(self):
+		"""
+		Return the byte order of an int or a negative
+		value on error.
+		"""
+		return _bt_ctf_get_int_byte_order(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_int_len(self):
+		"""
+		Return the size, in bits, of an int or a negative
+		value on error.
+		"""
+		return _bt_ctf_get_int_len(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_enum_str(self):
+		"""
+		Return the string matching the current enumeration.
+		Return None on error.
+		"""
+		return _bt_ctf_get_enum_str(self._d)
+
+	def get_encoding(self):
+		"""
+		Return the encoding of an int or a string.
+		Return a negative value on error.
+		"""
+		return _bt_ctf_get_encoding(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_array_len(self):
+		"""
+		Return the len of an array or a negative
+		value on error.
+		"""
+		return _bt_ctf_get_array_len(_bt_ctf_get_decl_from_def(self._d))
+
+	def get_array_element_at(self, index):
+		"""
+		Return the array's element at position index.
+		Return None on error
+		"""
+		array_ptr = _bt_python_get_array_from_def(self._d)
+		if array_ptr is None:
+			return None
+
+		definition_ptr = _bt_array_index(array_ptr, index)
+		if definition_ptr is None:
+			return None
+		return _Definition(definition_ptr, self.scope)
+
+	def get_sequence_len(self):
+		"""
+		Return the len of a sequence or a negative
+		value on error.
+		"""
+		seq = _bt_python_get_sequence_from_def(self._d)
+		return _bt_sequence_len(seq)
+
+	def get_sequence_element_at(self, index):
+		"""
+		Return the sequence's element at position index,
+		otherwise return None
+		"""
+		seq = _bt_python_get_sequence_from_def(self._d)
+		if seq is not None:
+			definition_ptr = _bt_sequence_index(seq, index)
+			if definition_ptr is not None:
+				return _Definition(definition_ptr, self.scope)
+		return None
+
+	def get_uint64(self):
+		"""
+		Return the value associated with the field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occured,
+		use the	field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_uint64(self._d)
+
+	def get_int64(self):
+		"""
+		Return the value associated with the field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occured,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_int64(self._d)
+
+	def get_char_array(self):
+		"""
+		Return the value associated with the field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occurred,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_char_array(self._d)
+
+	def get_str(self):
+		"""
+		Return the value associated with the field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occurred,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_string(self._d)
+
+	def get_float(self):
+		"""
+		Return the value associated with the field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occurred,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_float(self._d)
+
+	def get_variant(self):
+		"""
+		Return the variant's selected field.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occurred,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_variant(self._d)
+
+	def get_struct_field_count(self):
+		"""
+		Return the number of fields contained in the structure.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined.
+		"""
+		return _bt_ctf_get_struct_field_count(self._d)
+
+	def get_struct_field_at(self, i):
+		"""
+		Return the structure's field at position i.
+		If the field does not exist or is not of the type requested,
+		the value returned is undefined. To check if an error occurred,
+		use the field_error() function after accessing a field.
+		"""
+		return _bt_ctf_get_struct_field_index(self._d, i)
+
+	@property
+	def value(self):
+		"""
+		Return the value associated with the field according to its type.
+		Return None on error.
+		"""
+		id = self.type
+		value = None
+		if id == CTFTypeId.STRING:
+			value = self.get_str()
+		elif id == CTFTypeId.ARRAY:
+			value = []
+			for i in range(self.get_array_len()):
+				element = self.get_array_element_at(i)
+				value.append(element.value)
+		elif id == CTFTypeId.INTEGER:
+			if self.get_int_signedness() == 0:
+				value = self.get_uint64()
+			else:
+				value = self.get_int64()
+		elif id == CTFTypeId.ENUM:
+			value = self.get_enum_str()
+		elif id == CTFTypeId.SEQUENCE:
+			seq_len = self.get_sequence_len()
+			value = []
+			for i in range(seq_len):
+				evDef = self.get_sequence_element_at(i)
+				value.append(evDef.value)
+		elif id == CTFTypeId.FLOAT:
+			value = self.get_float()
+		elif id == CTFTypeId.VARIANT:
+			variant = Definition.__new__(Definition)
+			variant._d = self.get_variant();
+			value = variant.value
+		elif id == CTFTypeId.STRUCT:
+			value = {}
+			for i in range(self.get_struct_field_count()):
+				member = _Definition(self.get_struct_field_at(i), self.scope)
+				value[member.name] = member.value
+
+		if field_error():
+			raise FieldError("Error occurred while accessing field {} of type {}".format(self.field_name(), CTFTypeId.get_type_name(self.field_type())))
+		return value
+
+	@property
+	def scope(self):
+		"""Return the scope of a field or None on error."""
+		return self._s
 
 %}
 
