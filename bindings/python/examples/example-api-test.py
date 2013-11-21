@@ -34,10 +34,12 @@ if trace_handle is None:
 	raise IOError("Error adding trace")
 
 # Listing events
-lst = event_declaration_list(trace_handle, traces)
 print("--- Event list ---")
-for item in lst:
-	print("event : {}".format(item.name))
+for event_declaration in trace_handle.events:
+	print("event : {}".format(event_declaration.name))
+	if event_declaration.name == "sched_switch":
+		for field_declaration in event_declaration.fields:
+			print(field_declaration)
 print("--- Done ---")
 
 for event in traces.events:

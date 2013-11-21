@@ -44,7 +44,7 @@ for event in traces.events:
 	while True:
 		if event.name == "sched_switch":
 			# Getting PID
-			pid = event.field_with_scope("pid", scope.STREAM_EVENT_CONTEXT)
+			pid = event.field_with_scope("pid", CTFScope.STREAM_EVENT_CONTEXT)
 			if pid is None:
 				print("ERROR: Missing PID info for sched_switch")
 				break # Next event
