@@ -702,23 +702,17 @@ int bt_iter_init(struct bt_iter *iter,
 			for (filenr = 0; filenr < stream->streams->len;
 					filenr++) {
 				struct ctf_file_stream *file_stream;
+				struct bt_iter_pos pos;
 
 				file_stream = g_ptr_array_index(stream->streams,
 						filenr);
 				if (!file_stream)
 					continue;
-				if (begin_pos) {
-					ret = babeltrace_filestream_seek(
-							file_stream,
-							begin_pos,
-							stream_id);
-				} else {
-					struct bt_iter_pos pos;
-					pos.type = BT_SEEK_BEGIN;
-					ret = babeltrace_filestream_seek(
-							file_stream, &pos,
-							stream_id);
-				}
+
+				pos.type = BT_SEEK_BEGIN;
+				ret = babeltrace_filestream_seek(file_stream,
+					&pos, stream_id);
+
 				if (ret == EOF) {
 					ret = 0;
 					continue;
@@ -734,7 +728,11 @@ int bt_iter_init(struct bt_iter *iter,
 	}
 
 	ctx->current_iterator = iter;
-	return 0;
+	if (begin_pos && begin_pos->type != BT_SEEK_BEGIN) {
+		ret = bt_iter_set_pos(iter, begin_pos);
+	}
+
+	return ret;
 
 error:
 	bt_heap_free(iter->stream_heap);
