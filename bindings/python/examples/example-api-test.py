@@ -34,10 +34,10 @@ if trace_handle is None:
 	raise IOError("Error adding trace")
 
 # Listing events
-lst = get_event_decl_list(trace_handle, traces)
+lst = event_declaration_list(trace_handle, traces)
 print("--- Event list ---")
 for item in lst:
-	print("event : {}".format(item.get_name()))
+	print("event : {}".format(item.name))
 print("--- Done ---")
 
 for event in traces.events:

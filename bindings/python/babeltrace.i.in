@@ -762,55 +762,46 @@ class FieldError(Exception):
 	def __str__(self):
 		return repr(self.value)
 
-class EventDecl(object):
+class EventDeclaration(object):
 	"""Event declaration class.  Do not instantiate."""
 
 	def __init__(self):
-		raise NotImplementedError("EventDecl cannot be instantiated")
+		raise NotImplementedError("EventDeclaration cannot be instantiated")
 
-	def get_name(self):
+	@property
+	def name(self):
 		"""Return the name of the event or None on error"""
-		return _bt_ctf_get_decl_event_name(self._d)
+		return _bt_ctf_get_decl_event_name(self._ed)
 
 	def fields(self, scope):
 		"""
-		Return a list of FieldDecl
+		Return a list of FieldDeclaration
 		Return None on error.
 		"""
-		ptr_list = _by_python_field_decl_listcaller(self._d, scope)
+		ret = _by_python_field_decl_listcaller(self._ed, scope)
 
-		if ptr_list is None:
+		if not isinstance(ret, list):
 			return None
 
-		decl_list = []
-		i = 0
-		while True:
-			tmp = FieldDecl.__new__(FieldDecl)
-			tmp._d =  _bt_python_field_decl_one_from_list(
-				ptr_list, i)
+		list_ptr, count = ret
+		declarations = []
+		for i in range(count):
+			declaration_ptr = _bt_python_field_decl_one_from_list(list_ptr, i)
+			if declaration_ptr is not None:
+				declaration = FieldDeclaration.__new__(FieldDeclaration)
+				declaration._fd = declaration_ptr
+				declarations.append(declaration)
+		return declarations
 
-			if tmp._d is None:
-				#Last item of list is None
-				break
-
-			decl_list.append(tmp)
-			i += 1
-		return decl_list
-
-
-class FieldDecl(object):
-	"""Field declaration class.  Do not instantiate."""
-
+class FieldDeclaration(object):
+	"""Field declaration class. Do not instantiate."""
 	def __init__(self):
-		raise NotImplementedError("FieldDecl cannot be instantiated")
+		raise NotImplementedError("FieldDeclaration cannot be instantiated")
 
-	def __repr__(self):
-		return "Babeltrace FieldDecl: name {0}".format(self.get_name())
-
-	def get_name(self):
-		"""Return the name of a FieldDecl or None on error"""
-		return _bt_ctf_get_decl_field_name(self._d)
-
+	@property
+	def name(self):
+		"""Return the name of a FieldDeclaration or None on error"""
+		return _bt_ctf_get_decl_field_name(self._fd)
 
 def field_error():
 	"""
@@ -820,9 +811,9 @@ def field_error():
 	"""
 	return _bt_ctf_field_get_error()
 
-def get_event_decl_list(trace_handle, trace_collection):
+def event_declaration_list(trace_handle, trace_collection):
 	"""
-	Return a list of EventDecl
+	Return a list of EventDeclaration
 	Return None on error.
 	"""
 	try:
@@ -841,8 +832,8 @@ def get_event_decl_list(trace_handle, trace_collection):
 
 	decl_list = []
 	for i in range(count):
-		tmp = EventDecl.__new__(EventDecl)
-		tmp._d =  _bt_python_decl_one_from_list(ptr_list, i)
+		tmp = EventDeclaration.__new__(EventDeclaration)
+		tmp._ed =  _bt_python_decl_one_from_list(ptr_list, i)
 		decl_list.append(tmp)
 
 	return decl_list
