@@ -456,7 +456,6 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
 
 //Events
-
 %rename("_bt_ctf_get_top_level_scope") bt_ctf_get_top_level_scope(const struct
 		bt_ctf_event *event, enum bt_ctf_scope scope);
 %rename("_bt_ctf_event_name") bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
@@ -570,7 +569,6 @@ class CTFTypeId:
 				break
 		return name
 
-
 class scope:
 	TRACE_PACKET_HEADER = 0
 	STREAM_PACKET_CONTEXT = 1
@@ -579,6 +577,10 @@ class scope:
 	EVENT_CONTEXT = 4
 	EVENT_FIELDS = 5
 
+# Priority of the scopes when searching for event fields
+_scopes = [scope.EVENT_FIELDS, scope.EVENT_CONTEXT, scope.STREAM_EVENT_CONTEXT,
+	scope.STREAM_EVENT_HEADER, scope.STREAM_PACKET_CONTEXT, scope.TRACE_PACKET_HEADER]
+
 import collections
 class Event(collections.Mapping):
 	"""
@@ -586,10 +588,6 @@ class Event(collections.Mapping):
 	It is obtained using the TraceCollection generator functions.
 	Do not instantiate.
 	"""
-	i = scope.EVENT_FIELDS
-	_scopes = [scope.EVENT_FIELDS, scope.EVENT_CONTEXT, scope.STREAM_EVENT_CONTEXT,
-		scope.STREAM_EVENT_HEADER, scope.STREAM_PACKET_CONTEXT, scope.TRACE_PACKET_HEADER]
-
 	def __init__(self):
 		raise NotImplementedError("Event cannot be instantiated")
 
@@ -619,7 +617,7 @@ class Event(collections.Mapping):
 		Get field_name's value in scope.
 		None is returned if no field matches field_name.
 		"""
-		if not scope in self._scopes:
+		if not scope in _scopes:
 			raise ValueError("Invalid scope provided")
 		field = self._field_with_scope(field_name, scope)
 		if field is not None:
@@ -628,7 +626,7 @@ class Event(collections.Mapping):
 
 	def field_list_with_scope(self, scope):
 		"""Return a list of field names in scope."""
-		if not scope in self._scopes:
+		if not scope in _scopes:
 			raise ValueError("Invalid scope provided")
 		field_names = []
 		for field in self._field_list_with_scope(scope):
@@ -690,7 +688,7 @@ class Event(collections.Mapping):
 
 	def __len__(self):
 		count = 0
-		for scope in self._scopes:
+		for scope in _scopes:
 			scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
 			ret = _bt_python_field_listcaller(self._e, scope_ptr)
 			if isinstance(ret, list):
@@ -703,7 +701,7 @@ class Event(collections.Mapping):
 	def keys(self):
 		"""Return a list of field names."""
 		field_names = set()
-		for scope in self._scopes:
+		for scope in _scopes:
 			for name in self.field_list_with_scope(scope):
 				field_names.add(name)
 		return list(field_names)
@@ -732,7 +730,7 @@ class Event(collections.Mapping):
 
 	def _field(self, field_name):
 		field = None
-		for scope in self._scopes:
+		for scope in _scopes:
 			field = self._field_with_scope(field_name, scope)
 			if field is not None:
 				break
@@ -770,14 +768,11 @@ class EventDecl(object):
 	def __init__(self):
 		raise NotImplementedError("EventDecl cannot be instantiated")
 
-	def __repr__(self):
-		return "Babeltrace EventDecl: name {0}".format(self.get_name())
-
 	def get_name(self):
 		"""Return the name of the event or None on error"""
 		return _bt_ctf_get_decl_event_name(self._d)
 
-	def get_decl_fields(self, scope):
+	def fields(self, scope):
 		"""
 		Return a list of FieldDecl
 		Return None on error.
@@ -856,7 +851,7 @@ class _Definition(object):
 	def __init__(self, definition_ptr, scope):
 		self._d = definition_ptr
 		self._s = scope
-		if not scope in Event._scopes:
+		if not scope in _scopes:
 			ValueError("Invalid scope provided")
 
 	def __repr__(self):
