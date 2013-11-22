@@ -939,7 +939,7 @@ void bt_ctf_field_string_destroy(struct bt_ctf_field *field)
 static
 int bt_ctf_field_generic_validate(struct bt_ctf_field *field)
 {
-	return !(field && field->payload_set);
+	return (field && field->payload_set) ? 0 : -1;
 }
 
 static
