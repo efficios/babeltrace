@@ -27,45 +27,45 @@ print("Writing trace at {}".format(trace_path))
 writer = CTFWriter.Writer(trace_path)
 
 clock = CTFWriter.Clock("A_clock")
-clock.set_description("Simple clock")
+clock.description = "Simple clock"
 
 writer.add_clock(clock)
 writer.add_environment_field("Python_version", str(sys.version_info))
 
 stream_class = CTFWriter.StreamClass("test_stream")
-stream_class.set_clock(clock)
+stream_class.clock = clock
 
 event_class = CTFWriter.EventClass("SimpleEvent")
 
 # Create a int32_t equivalent type
-int32_type = CTFWriter.FieldTypeInteger(32)
-int32_type.set_signed(True)
+int32_type = CTFWriter.IntegerFieldDeclaration(32)
+int32_type.signed = True
 
 # Create a string type
-string_type = CTFWriter.FieldTypeString()
+string_type = CTFWriter.StringFieldDeclaration()
 
 # Create a structure type containing both an integer and a string
-structure_type = CTFWriter.FieldTypeStructure()
+structure_type = CTFWriter.StructureFieldDeclaration()
 structure_type.add_field(int32_type, "an_integer")
 structure_type.add_field(string_type, "a_string_field")
 event_class.add_field(structure_type, "structure_field")
 
 # Create a floating point type
-floating_point_type = CTFWriter.FieldTypeFloatingPoint()
-floating_point_type.set_exponent_digits(CTFWriter.FieldTypeFloatingPoint.FLT_EXP_DIG)
-floating_point_type.set_mantissa_digits(CTFWriter.FieldTypeFloatingPoint.FLT_MANT_DIG)
+floating_point_type = CTFWriter.FloatFieldDeclaration()
+floating_point_type.exponent_digits = CTFWriter.FloatFieldDeclaration.FLT_EXP_DIG
+floating_point_type.mantissa_digits = CTFWriter.FloatFieldDeclaration.FLT_MANT_DIG
 event_class.add_field(floating_point_type, "float_field")
 
 # Create an enumeration type
-int10_type = CTFWriter.FieldTypeInteger(10)
-enumeration_type = CTFWriter.FieldTypeEnumeration(int10_type)
+int10_type = CTFWriter.IntegerFieldDeclaration(10)
+enumeration_type = CTFWriter.EnumerationFieldDeclaration(int10_type)
 enumeration_type.add_mapping("FIRST_ENTRY", 0, 4)
 enumeration_type.add_mapping("SECOND_ENTRY", 5, 5)
 enumeration_type.add_mapping("THIRD_ENTRY", 6, 10)
 event_class.add_field(enumeration_type, "enum_field")
 
 # Create an array type
-array_type = CTFWriter.FieldTypeArray(int10_type, 5)
+array_type = CTFWriter.ArrayFieldDeclaration(int10_type, 5)
 event_class.add_field(array_type, "array_field")
 
 stream_class.add_event_class(event_class)
@@ -74,24 +74,25 @@ stream = writer.create_stream(stream_class)
 for i in range(100):
 	event = CTFWriter.Event(event_class)
 
-	structure_field = event.get_payload("structure_field")
-	integer_field = structure_field.get_field("an_integer")
-	integer_field.set_value(i)
+	clock.time = i * 1000
+	structure_field = event.payload("structure_field")
+	integer_field = structure_field.field("an_integer")
+	integer_field.value = i
 
-	string_field = structure_field.get_field("a_string_field")
-	string_field.set_value("Test string.")
+	string_field = structure_field.field("a_string_field")
+	string_field.value = "Test string."
 
-	float_field = event.get_payload("float_field")
-	float_field.set_value(float(i) + (float(i) / 100.0))
+	float_field = event.payload("float_field")
+	float_field.value = float(i) + (float(i) / 100.0)
 
-	array_field = event.get_payload("array_field")
+	array_field = event.payload("array_field")
 	for j in range(5):
-		element = array_field.get_field(j)
-		element.set_value(i+j)
+		element = array_field.field(j)
+		element.value = i + j
 
-	enumeration_field = event.get_payload("enum_field")
-	integer_field = enumeration_field.get_container()
-	integer_field.set_value(i % 10)
+	enumeration_field = event.payload("enum_field")
+	integer_field = enumeration_field.container
+	integer_field.value = i % 10
 
 	stream.append_event(event)
 
