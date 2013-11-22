@@ -126,6 +126,11 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
 		goto stop;
 	}
 	stream = &file_stream->parent;
+	if (iter->parent.end_pos &&
+		iter->parent.end_pos->type == BT_SEEK_TIME &&
+		stream->real_timestamp > iter->parent.end_pos->u.seek_time) {
+		goto stop;
+	}
 	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
