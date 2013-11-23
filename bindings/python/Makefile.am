@@ -3,14 +3,14 @@ babeltrace.i: babeltrace.i.in
 
 AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
 
-EXTRA_DIST = babeltrace.i
-python_PYTHON = babeltrace.py
+EXTRA_DIST = babeltrace.i.in
+nodist_python_PYTHON = babeltrace.py
 pyexec_LTLIBRARIES = _babeltrace.la
 
 MAINTAINERCLEANFILES = babeltrace_wrap.c babeltrace.py
 
-_babeltrace_la_SOURCES = babeltrace_wrap.c python-complements.c
-
+nodist__babeltrace_la_SOURCES = babeltrace_wrap.c
+_babeltrace_la_SOURCES = python-complements.h python-complements.c
 _babeltrace_la_LDFLAGS = -module
 
 _babeltrace_la_CFLAGS = $(GLIB_CFLAGS) $(AM_CFLAGS)
