@@ -38,6 +38,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-text/types.h \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
+	babeltrace/ctf/ctf-index.h \
 	babeltrace/ctf-writer/ref-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/ctf-writer/event-types-internal.h \
