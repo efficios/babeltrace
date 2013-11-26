@@ -548,6 +548,11 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 			goto error;
 	}
 
+	if (pos->last_offset == pos->offset) {
+		fprintf(stderr, "[error] Invalid 0 byte event encountered.\n");
+		return -EINVAL;
+	}
+
 	return 0;
 
 error:
