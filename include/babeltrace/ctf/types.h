@@ -198,7 +198,7 @@ int ctf_pos_access_ok(struct ctf_stream_pos *pos, uint64_t bit_len)
 }
 
 /*
- * Update the stream position for to the current event. This moves to
+ * Update the stream position to the current event. This moves to
  * the next packet if we are located at the end of the current packet.
  */
 static inline
