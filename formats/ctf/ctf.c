@@ -1572,6 +1572,11 @@ begin:
 		return -EINVAL;
 	}
 
+	if (packet_index.content_size < pos->offset) {
+		fprintf(stderr, "[error] Invalid CTF stream: content size is smaller than packet headers.\n");
+		return -EINVAL;
+	}
+
 	if ((packet_index.packet_size >> LOG2_CHAR_BIT) == 0) {
 		fprintf(stderr, "[error] Invalid CTF stream: packet size needs to be at least one byte\n");
 		return -EINVAL;
