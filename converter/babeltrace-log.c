@@ -120,23 +120,36 @@ void write_packet_header(struct ctf_stream_pos *pos, unsigned char *uuid)
 
 	/* magic */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT);
+	if (!ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT))
+		goto error;
+	if (!ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT))
+		goto error;
 	assert(!ctf_pos_packet(&dummy));
 
-	ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT))
+		goto error;
 	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
-	ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT);
+	if (!ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT))
+		goto error;
 
 	/* uuid */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, 16 * CHAR_BIT);
+	if (!ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT))
+		goto error;
+	if (!ctf_move_pos(&dummy, 16 * CHAR_BIT))
+		goto error;
 	assert(!ctf_pos_packet(&dummy));
 
-	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT))
+		goto error;
 	memcpy(ctf_get_pos_addr(pos), uuid, BABELTRACE_UUID_LEN);
-	ctf_move_pos(pos, BABELTRACE_UUID_LEN * CHAR_BIT);
+	if (!ctf_move_pos(pos, BABELTRACE_UUID_LEN * CHAR_BIT))
+		goto error;
+	return;
+
+error:
+	fprintf(stderr, "[error] Out of packet bounds when writing packet header\n");
+	abort();
 }
 
 static
@@ -146,24 +159,37 @@ void write_packet_context(struct ctf_stream_pos *pos)
 
 	/* content_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
+	if (!ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 	assert(!ctf_pos_packet(&dummy));
 
-	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
 	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
-	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 
 	/* packet_size */
 	ctf_dummy_pos(pos, &dummy);
-	ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
-	ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
+	if (!ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 	assert(!ctf_pos_packet(&dummy));
 
-	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
-	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
+	return;
+
+error:
+	fprintf(stderr, "[error] Out of packet bounds when writing packet context\n");
+	abort();
 }
 
 static
@@ -199,10 +225,17 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 		}
 	}
 	/* timestamp */
-	ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
 	if (!pos->dummy)
 		*(uint64_t *) ctf_get_pos_addr(pos) = *ts;
-	ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT);
+	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
+		goto error;
+	return;
+
+error:
+	fprintf(stderr, "[error] Out of packet bounds when writing event header\n");
+	abort();
 }
 
 static
@@ -219,8 +252,10 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 	for (;;) {
 		ctf_dummy_pos(pos, &dummy);
 		write_event_header(&dummy, line, &tline, len, &tlen, &ts);
-		ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT);
-		ctf_move_pos(&dummy, tlen * CHAR_BIT);
+		if (!ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT))
+			goto error;
+		if (!ctf_move_pos(&dummy, tlen * CHAR_BIT))
+			goto error;
 		if (ctf_pos_packet(&dummy)) {
 			ctf_pos_pad_packet(pos);
 			write_packet_header(pos, s_uuid);
@@ -237,9 +272,16 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 	}
 
 	write_event_header(pos, line, &tline, len, &tlen, &ts);
-	ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT);
+	if (!ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT))
+		goto error;
 	memcpy(ctf_get_pos_addr(pos), tline, tlen);
-	ctf_move_pos(pos, tlen * CHAR_BIT);
+	if (!ctf_move_pos(pos, tlen * CHAR_BIT))
+		goto error;
+	return;
+
+error:
+	fprintf(stderr, "[error] Out of packet bounds when writing event payload\n");
+	abort();
 }
 
 static

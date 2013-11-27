@@ -49,7 +49,8 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	ctf_align_pos(pos, integer_declaration->p.alignment);
+	if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+		return -EFAULT;
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
@@ -136,7 +137,8 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 			assert(0);
 		}
 	}
-	ctf_move_pos(pos, integer_declaration->len);
+	if (!ctf_move_pos(pos, integer_declaration->len))
+		return -EFAULT;
 	return 0;
 }
 
@@ -151,7 +153,8 @@ int _aligned_integer_write(struct bt_stream_pos *ppos,
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	int rbo = (integer_declaration->byte_order != BYTE_ORDER);	/* reverse byte order */
 
-	ctf_align_pos(pos, integer_declaration->p.alignment);
+	if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+		return -EFAULT;
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
@@ -207,7 +210,8 @@ int _aligned_integer_write(struct bt_stream_pos *ppos,
 		}
 	}
 end:
-	ctf_move_pos(pos, integer_declaration->len);
+	if (!ctf_move_pos(pos, integer_declaration->len))
+		return -EFAULT;
 	return 0;
 }
 
@@ -224,7 +228,8 @@ int ctf_integer_read(struct bt_stream_pos *ppos, struct bt_definition *definitio
 		return _aligned_integer_read(ppos, definition);
 	}
 
-	ctf_align_pos(pos, integer_declaration->p.alignment);
+	if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+		return -EFAULT;
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
@@ -252,7 +257,8 @@ int ctf_integer_read(struct bt_stream_pos *ppos, struct bt_definition *definitio
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._signed);
 	}
-	ctf_move_pos(pos, integer_declaration->len);
+	if (!ctf_move_pos(pos, integer_declaration->len))
+		return -EFAULT;
 	return 0;
 }
 
@@ -269,7 +275,8 @@ int ctf_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definiti
 		return _aligned_integer_write(ppos, definition);
 	}
 
-	ctf_align_pos(pos, integer_declaration->p.alignment);
+	if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+		return -EFAULT;
 
 	if (!ctf_pos_access_ok(pos, integer_declaration->len))
 		return -EFAULT;
@@ -300,6 +307,7 @@ int ctf_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definiti
 				integer_definition->value._signed);
 	}
 end:
-	ctf_move_pos(pos, integer_declaration->len);
+	if (!ctf_move_pos(pos, integer_declaration->len))
+		return -EFAULT;
 	return 0;
 }
