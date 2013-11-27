@@ -725,7 +725,7 @@ int bt_iter_init(struct bt_iter *iter,
 				if (ret == EOF) {
 					ret = 0;
 					continue;
-				} else if (ret) {
+				} else if (ret != 0 && ret != EAGAIN) {
 					goto error;
 				}
 				/* Add to heap */
@@ -820,6 +820,13 @@ reinsert:
 	/* Reinsert the file stream into the heap, and rebalance. */
 	removed = bt_heap_replace_max(iter->stream_heap, file_stream);
 	assert(removed == file_stream);
+
+	file_stream = bt_heap_maximum(iter->stream_heap);
+	if (file_stream->pos.content_size == 0) {
+		ret = EAGAIN;
+	} else {
+		ret = 0;
+	}
 
 end:
 	return ret;
