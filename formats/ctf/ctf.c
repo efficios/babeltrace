@@ -1486,18 +1486,6 @@ begin:
 			fprintf(stderr, "[error] Unable to read packet context: %s\n", strerror(-ret));
 			return ret;
 		}
-		/* read content size from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
-		if (len_index >= 0) {
-			struct bt_definition *field;
-
-			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-			packet_index.content_size = bt_get_unsigned_int(field);
-		} else {
-			/* Use file size for packet size */
-			packet_index.content_size = filesize * CHAR_BIT;
-		}
-
 		/* read packet size from header */
 		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 		if (len_index >= 0) {
@@ -1506,8 +1494,20 @@ begin:
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 			packet_index.packet_size = bt_get_unsigned_int(field);
 		} else {
-			/* Use content size if non-zero, else file size */
-			packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+			/* Use file size for packet size */
+			packet_index.packet_size = filesize * CHAR_BIT;
+		}
+
+		/* read content size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.content_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use packet size if non-zero, else file size */
+			packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
 		}
 
 		/* read timestamp begin from header */
