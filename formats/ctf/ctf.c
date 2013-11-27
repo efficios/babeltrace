@@ -556,7 +556,7 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	return 0;
 
 error:
-	fprintf(stderr, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	fprintf(stderr, "[error] Unexpected end of packet. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
 	return ret;
 }
 
