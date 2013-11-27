@@ -39,7 +39,7 @@ int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition
 		string_definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 	size_t len;
-	ssize_t max_len;
+	ssize_t max_len_bits;
 	char *srcaddr;
 
 	if (!ctf_align_pos(pos, string_declaration->p.alignment))
@@ -48,11 +48,12 @@ int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition
 	srcaddr = ctf_get_pos_addr(pos);
 	if (pos->offset == EOF)
 		return -EFAULT;
-	/* Not counting \0 */
-	max_len = pos->packet_size - pos->offset - 1;
-	if (max_len < 0)
+	/* Not counting \0. Counting in bits. */
+	max_len_bits = pos->packet_size - pos->offset - CHAR_BIT;
+	if (max_len_bits < 0)
 		return -EFAULT;
-	len = strnlen(srcaddr, max_len) + 1;	/* Add \0 */
+	/* Add \0, counting in bytes. */
+	len = strnlen(srcaddr, (size_t) max_len_bits / CHAR_BIT) + 1;
 	/* Truncated string, unexpected. Trace probably corrupted. */
 	if (srcaddr[len - 1] != '\0')
 		return -EFAULT;
