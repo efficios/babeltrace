@@ -476,6 +476,10 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 		/* Stream is inactive for now (live reading). */
 		return EAGAIN;
 	}
+	/* Packet only contains headers */
+	if (pos->offset == pos->content_size)
+		return EAGAIN;
+
 	assert(pos->offset < pos->content_size);
 
 	/* Read event header */
