@@ -65,6 +65,9 @@ static int stream_read_event(struct ctf_file_stream *sin)
 	ret = sin->pos.parent.event_cb(&sin->pos.parent, &sin->parent);
 	if (ret == EOF)
 		return EOF;
+	else if (ret == EAGAIN)
+		/* Stream is inactive for now (live reading). */
+		return EAGAIN;
 	else if (ret) {
 		fprintf(stderr, "[error] Reading event failed.\n");
 		return ret;
@@ -803,9 +806,17 @@ int bt_iter_next(struct bt_iter *iter)
 		assert(removed == file_stream);
 		ret = 0;
 		goto end;
+	} else if (ret == EAGAIN) {
+		/*
+		 * The stream is inactive for now, we just updated the timestamp_end
+		 * to skip over this stream up to a certain point in time.
+		 */
+		goto reinsert;
 	} else if (ret) {
 		goto end;
 	}
+
+reinsert:
 	/* Reinsert the file stream into the heap, and rebalance. */
 	removed = bt_heap_replace_max(iter->stream_heap, file_stream);
 	assert(removed == file_stream);

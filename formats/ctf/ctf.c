@@ -471,6 +471,11 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	 */
 	if (unlikely(pos->offset == EOF))
 		return EOF;
+
+	if (pos->content_size == 0) {
+		/* Stream is inactive for now (live reading). */
+		return EAGAIN;
+	}
 	assert(pos->offset < pos->content_size);
 
 	/* Read event header */
