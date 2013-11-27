@@ -1551,9 +1551,9 @@ begin:
 		}
 	} else {
 		/* Use file size for packet size */
-		packet_index.content_size = filesize * CHAR_BIT;
-		/* Use content size if non-zero, else file size */
-		packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+		packet_index.packet_size = filesize * CHAR_BIT;
+		/* Use packet size if non-zero, else file size */
+		packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
 	}
 
 	/* Validate content size and packet size values */
@@ -1566,6 +1566,11 @@ begin:
 	if (packet_index.packet_size > ((uint64_t) filesize - packet_index.offset) * CHAR_BIT) {
 		fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
 			packet_index.packet_size, ((uint64_t) filesize - packet_index.offset) * CHAR_BIT);
+		return -EINVAL;
+	}
+
+	if ((packet_index.packet_size >> LOG2_CHAR_BIT) == 0) {
+		fprintf(stderr, "[error] Invalid CTF stream: packet size needs to be at least one byte\n");
 		return -EINVAL;
 	}
 
