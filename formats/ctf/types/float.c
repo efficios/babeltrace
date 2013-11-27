@@ -201,6 +201,7 @@ int ctf_float_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	destp.base_mma = &mma;
 	destp.packet_size = sizeof(u) * CHAR_BIT;
+	destp.content_size = sizeof(u) * CHAR_BIT;
 	if (!ctf_align_pos(pos, float_declaration->p.alignment)) {
 		ret = -EFAULT;
 		goto end_unref;
@@ -260,6 +261,7 @@ int ctf_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	srcp.base_mma = &mma;
 	srcp.packet_size = sizeof(u) * CHAR_BIT;
+	srcp.content_size = sizeof(u) * CHAR_BIT;
 	switch (float_declaration->mantissa->len + 1) {
 	case FLT_MANT_DIG:
 		u.vf = float_definition->value;
