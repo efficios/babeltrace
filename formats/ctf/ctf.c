@@ -1716,6 +1716,11 @@ int import_stream_packet_index(struct ctf_trace *td,
 		ret = -1;
 		goto error;
 	}
+	if (index_hdr.packet_index_len == 0) {
+		fprintf(stderr, "[error] Packet index length cannot be 0.\n");
+		ret = -1;
+		goto error;
+	}
 
 	while ((index_read = fread(&ctf_index, index_hdr.packet_index_len, 1,
 					pos->index_fp)) == 1) {
