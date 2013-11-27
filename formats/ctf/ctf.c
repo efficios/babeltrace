@@ -1849,6 +1849,10 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 			goto error_free;
 		}
 		file_stream->pos.index_fp = fdopen(ret, "r");
+		if (!file_stream->pos.index_fp) {
+			perror("fdopen() error");
+			goto error_free;
+		}
 		ret = import_stream_packet_index(td, file_stream);
 		if (ret) {
 			ret = -1;
