@@ -33,6 +33,7 @@ int ctf_variant_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 	struct bt_declaration *declaration = definition->declaration;
 	struct ctf_stream_pos *pos = ctf_pos(ppos);
 
-	ctf_align_pos(pos, declaration->alignment);
+	if (!ctf_align_pos(pos, declaration->alignment))
+		return -EFAULT;
 	return bt_variant_rw(ppos, definition);
 }

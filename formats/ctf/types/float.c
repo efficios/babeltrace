@@ -201,7 +201,10 @@ int ctf_float_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 	mmap_align_set_addr(&mma, (char *) u.bits);
 	destp.base_mma = &mma;
 	destp.packet_size = sizeof(u) * CHAR_BIT;
-	ctf_align_pos(pos, float_declaration->p.alignment);
+	if (!ctf_align_pos(pos, float_declaration->p.alignment)) {
+		ret = -EFAULT;
+		goto end_unref;
+	}
 	ret = _ctf_float_copy(&destp.parent, tmpfloat, ppos, float_definition);
 	switch (float_declaration->mantissa->len + 1) {
 	case FLT_MANT_DIG:
@@ -268,7 +271,10 @@ int ctf_float_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 		ret = -EINVAL;
 		goto end_unref;
 	}
-	ctf_align_pos(pos, float_declaration->p.alignment);
+	if (!ctf_align_pos(pos, float_declaration->p.alignment)) {
+		ret = -EFAULT;
+		goto end_unref;
+	}
 	ret = _ctf_float_copy(ppos, float_definition, &srcp.parent, tmpfloat);
 
 end_unref:

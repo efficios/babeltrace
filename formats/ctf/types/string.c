@@ -42,7 +42,8 @@ int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition
 	ssize_t max_len;
 	char *srcaddr;
 
-	ctf_align_pos(pos, string_declaration->p.alignment);
+	if (!ctf_align_pos(pos, string_declaration->p.alignment))
+		return -EFAULT;
 
 	srcaddr = ctf_get_pos_addr(pos);
 	if (pos->offset == EOF)
@@ -64,7 +65,8 @@ int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition
 	printf_debug("CTF string read %s\n", srcaddr);
 	memcpy(string_definition->value, srcaddr, len);
 	string_definition->len = len;
-	ctf_move_pos(pos, len * CHAR_BIT);
+	if (!ctf_move_pos(pos, len * CHAR_BIT))
+		return -EFAULT;
 	return 0;
 }
 
@@ -79,7 +81,8 @@ int ctf_string_write(struct bt_stream_pos *ppos,
 	size_t len;
 	char *destaddr;
 
-	ctf_align_pos(pos, string_declaration->p.alignment);
+	if (!ctf_align_pos(pos, string_declaration->p.alignment))
+		return -EFAULT;
 	assert(string_definition->value != NULL);
 	len = string_definition->len;
 
@@ -91,6 +94,7 @@ int ctf_string_write(struct bt_stream_pos *ppos,
 	destaddr = ctf_get_pos_addr(pos);
 	memcpy(destaddr, string_definition->value, len);
 end:
-	ctf_move_pos(pos, len * CHAR_BIT);
+	if (!ctf_move_pos(pos, len * CHAR_BIT))
+		return -EFAULT;
 	return 0;
 }

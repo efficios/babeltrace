@@ -1131,7 +1131,10 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 		}
 	}
 
-	ctf_align_pos(pos, field->type->declaration->alignment);
+	if (!ctf_align_pos(pos, field->type->declaration->alignment)) {
+		ret = -1;
+		goto end;
+	}
 
 	for (i = 0; i < structure->fields->len; i++) {
 		struct bt_ctf_field *field = g_ptr_array_index(
