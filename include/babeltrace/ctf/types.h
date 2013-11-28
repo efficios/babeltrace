@@ -141,7 +141,7 @@ int ctf_move_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
 	printf_debug("ctf_move_pos test EOF: %" PRId64 "\n", pos->offset);
 	if (unlikely(pos->offset == EOF))
 		return 0;
-	if (pos->flags & PROT_READ)
+	if (pos->prot == PROT_READ)
 		max_len = pos->content_size;
 	else
 		max_len = pos->packet_size;
@@ -208,7 +208,7 @@ int ctf_pos_access_ok(struct ctf_stream_pos *pos, uint64_t bit_len)
 
 	if (unlikely(pos->offset == EOF))
 		return 0;
-	if (pos->flags & PROT_READ)
+	if (pos->prot == PROT_READ)
 		max_len = pos->content_size;
 	else
 		max_len = pos->packet_size;
