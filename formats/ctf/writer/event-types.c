@@ -33,6 +33,7 @@
 #include <babeltrace/endian.h>
 #include <float.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 struct range_overlap_query {
 	int64_t range_start, range_end;
@@ -385,6 +386,7 @@ int bt_ctf_field_type_enumeration_add_mapping(
 	struct enumeration_mapping *mapping;
 	struct bt_ctf_field_type_enumeration *enumeration;
 	struct range_overlap_query query;
+	char *escaped_string;
 
 	if (!type || (type->declaration->id != CTF_TYPE_ENUM) ||
 		type->frozen ||
@@ -393,12 +395,18 @@ int bt_ctf_field_type_enumeration_add_mapping(
 		goto end;
 	}
 
-	if (validate_identifier(string)) {
+	if (!string || strlen(string) == 0) {
 		ret = -1;
 		goto end;
 	}
 
-	mapping_name = g_quark_from_string(string);
+	escaped_string = g_strescape(string, NULL);
+	if (!escaped_string) {
+		ret = -1;
+		goto end;
+	}
+
+	mapping_name = g_quark_from_string(escaped_string);
 	query = (struct range_overlap_query) { .range_start = range_start,
 		.range_end = range_end,
 		.mapping_name = mapping_name,
@@ -410,18 +418,20 @@ int bt_ctf_field_type_enumeration_add_mapping(
 	g_ptr_array_foreach(enumeration->entries, check_ranges_overlap, &query);
 	if (query.overlaps) {
 		ret = -1;
-		goto end;
+		goto error_free;
 	}
 
 	mapping = g_new(struct enumeration_mapping, 1);
 	if (!mapping) {
 		ret = -1;
-		goto end;
+		goto error_free;
 	}
 
 	*mapping = (struct enumeration_mapping) {.range_start = range_start,
 		.range_end = range_end, .string = mapping_name};
 	g_ptr_array_add(enumeration->entries, mapping);
+error_free:
+	free(escaped_string);
 end:
 	return ret;
 }
@@ -1200,12 +1210,13 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 			enumeration->entries->pdata[entry];
 
 		if (mapping->range_start == mapping->range_end) {
-			g_string_append_printf(context->string, "%s = %" PRId64,
+			g_string_append_printf(context->string,
+				"\"%s\" = %" PRId64,
 				g_quark_to_string(mapping->string),
 				mapping->range_start);
 		} else {
 			g_string_append_printf(context->string,
-				"%s = %" PRId64 " ... %" PRId64,
+				"\"%s\" = %" PRId64 " ... %" PRId64,
 				g_quark_to_string(mapping->string),
 				mapping->range_start, mapping->range_end);
 		}
