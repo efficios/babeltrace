@@ -254,13 +254,30 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_integer_create(12);
 	struct bt_ctf_field_type *float_type =
 		bt_ctf_field_type_floating_point_create();
+	struct bt_ctf_field_type *enum_type =
+		bt_ctf_field_type_enumeration_create(uint_12_type);
 	struct bt_ctf_event *simple_event;
 	struct bt_ctf_field *integer_field;
 	struct bt_ctf_field *float_field;
+	struct bt_ctf_field *enum_field;
+	struct bt_ctf_field *enum_container_field;
 
 	bt_ctf_field_type_set_alignment(float_type, 32);
 	bt_ctf_field_type_floating_point_set_exponent_digits(float_type, 11);
 	bt_ctf_field_type_floating_point_set_mantissa_digits(float_type, 53);
+
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"escaping; \"test\"", 0, 0) == 0,
+		"Accept enumeration mapping strings containing quotes");
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"\tanother \'escaping\'\n test\"", 1, 4) == 0,
+		"Accept enumeration mapping strings containing special characters");
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"event clock int float", 5, 22) == 0,
+		"Accept enumeration mapping strings containing reserved keywords");
+	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type,
+		"enum_field") == 0, "Add enumeration field to event");
+
 	ok(uint_12_type, "Create an unsigned integer type");
 	bt_ctf_event_class_add_field(simple_event_class, uint_12_type,
 		"integer_field");
@@ -281,6 +298,13 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	float_field = bt_ctf_event_get_payload(simple_event, "float_field");
 	bt_ctf_field_floating_point_set_value(float_field, 3.1415);
+	enum_field = bt_ctf_field_create(enum_type);
+	enum_container_field = bt_ctf_field_enumeration_get_container(
+		enum_field);
+	ok(bt_ctf_field_unsigned_integer_set_value(
+		enum_container_field, 1) == 0,
+		"Set enumeration container value");
+	bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
@@ -294,8 +318,11 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_put(simple_event);
 	bt_ctf_field_type_put(uint_12_type);
 	bt_ctf_field_type_put(float_type);
+	bt_ctf_field_type_put(enum_type);
 	bt_ctf_field_put(integer_field);
 	bt_ctf_field_put(float_field);
+	bt_ctf_field_put(enum_field);
+	bt_ctf_field_put(enum_container_field);
 }
 
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
