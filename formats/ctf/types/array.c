@@ -48,7 +48,8 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
 
-				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+					return -EFAULT;
 				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
 					return -EFAULT;
 
@@ -56,6 +57,11 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 				g_string_insert_len(array_definition->string,
 					0, (char *) ctf_get_pos_addr(pos),
 					array_declaration->len);
+				/*
+				 * We want to populate both the string
+				 * and the underlying values, so carry
+				 * on calling bt_array_rw().
+				 */
 			}
 		}
 	}
@@ -82,14 +88,16 @@ int ctf_array_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 			if (integer_declaration->len == CHAR_BIT
 			    && integer_declaration->p.alignment == CHAR_BIT) {
 
-				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+					return -EFAULT;
 				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
 					return -EFAULT;
 
 				memcpy((char *) ctf_get_pos_addr(pos),
 					array_definition->string->str,
 					array_declaration->len);
-				ctf_move_pos(pos, array_declaration->len * CHAR_BIT);
+				if (!ctf_move_pos(pos, array_declaration->len * CHAR_BIT))
+					return -EFAULT;
 				return 0;
 			}
 		}

@@ -254,13 +254,30 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_integer_create(12);
 	struct bt_ctf_field_type *float_type =
 		bt_ctf_field_type_floating_point_create();
+	struct bt_ctf_field_type *enum_type =
+		bt_ctf_field_type_enumeration_create(uint_12_type);
 	struct bt_ctf_event *simple_event;
 	struct bt_ctf_field *integer_field;
 	struct bt_ctf_field *float_field;
+	struct bt_ctf_field *enum_field;
+	struct bt_ctf_field *enum_container_field;
 
 	bt_ctf_field_type_set_alignment(float_type, 32);
 	bt_ctf_field_type_floating_point_set_exponent_digits(float_type, 11);
 	bt_ctf_field_type_floating_point_set_mantissa_digits(float_type, 53);
+
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"escaping; \"test\"", 0, 0) == 0,
+		"Accept enumeration mapping strings containing quotes");
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"\tanother \'escaping\'\n test\"", 1, 4) == 0,
+		"Accept enumeration mapping strings containing special characters");
+	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		"event clock int float", 5, 22) == 0,
+		"Accept enumeration mapping strings containing reserved keywords");
+	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type,
+		"enum_field") == 0, "Add enumeration field to event");
+
 	ok(uint_12_type, "Create an unsigned integer type");
 	bt_ctf_event_class_add_field(simple_event_class, uint_12_type,
 		"integer_field");
@@ -281,6 +298,13 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	float_field = bt_ctf_event_get_payload(simple_event, "float_field");
 	bt_ctf_field_floating_point_set_value(float_field, 3.1415);
+	enum_field = bt_ctf_field_create(enum_type);
+	enum_container_field = bt_ctf_field_enumeration_get_container(
+		enum_field);
+	ok(bt_ctf_field_unsigned_integer_set_value(
+		enum_container_field, 1) == 0,
+		"Set enumeration container value");
+	bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
@@ -294,8 +318,11 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_put(simple_event);
 	bt_ctf_field_type_put(uint_12_type);
 	bt_ctf_field_type_put(float_type);
+	bt_ctf_field_type_put(enum_type);
 	bt_ctf_field_put(integer_field);
 	bt_ctf_field_put(float_field);
+	bt_ctf_field_put(enum_field);
+	bt_ctf_field_put(enum_container_field);
 }
 
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
@@ -469,6 +496,7 @@ void type_field_tests()
 	struct bt_ctf_field *uint_12;
 	struct bt_ctf_field *int_16;
 	struct bt_ctf_field *string;
+	struct bt_ctf_field *enumeration;
 	struct bt_ctf_field_type *composite_structure_type;
 	struct bt_ctf_field_type *structure_seq_type;
 	struct bt_ctf_field_type *string_type;
@@ -477,6 +505,9 @@ void type_field_tests()
 	struct bt_ctf_field_type *int_16_type;
 	struct bt_ctf_field_type *uint_12_type =
 		bt_ctf_field_type_integer_create(12);
+	struct bt_ctf_field_type *enumeration_type;
+	struct bt_ctf_field_type *enumeration_sequence_type;
+	struct bt_ctf_field_type *enumeration_array_type;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 	ok(bt_ctf_field_type_integer_set_base(uint_12_type,
@@ -578,9 +609,28 @@ void type_field_tests()
 	ok(bt_ctf_field_string_set_value(string, "A value") == 0,
 		"Set a string's value");
 
+	enumeration_type = bt_ctf_field_type_enumeration_create(uint_12_type);
+	ok(enumeration_type,
+		"Create an enumeration type with an unsigned 12-bit integer as container");
+	enumeration_sequence_type = bt_ctf_field_type_sequence_create(
+		enumeration_type, "count");
+	ok(!enumeration_sequence_type,
+		"Check enumeration types are validated when creating a sequence");
+	enumeration_array_type = bt_ctf_field_type_array_create(
+		enumeration_type, 10);
+	ok(!enumeration_array_type,
+		"Check enumeration types are validated when creating an array");
+	ok(bt_ctf_field_type_structure_add_field(composite_structure_type,
+		enumeration_type, "enumeration") == 0,
+		"Check enumeration types are validated when adding them as structure members");
+	enumeration = bt_ctf_field_create(enumeration_type);
+	ok(!enumeration,
+		"Check enumeration types are validated before instantiation");
+
 	bt_ctf_field_put(string);
 	bt_ctf_field_put(uint_12);
 	bt_ctf_field_put(int_16);
+	bt_ctf_field_put(enumeration);
 	bt_ctf_field_type_put(composite_structure_type);
 	bt_ctf_field_type_put(structure_seq_type);
 	bt_ctf_field_type_put(string_type);
@@ -588,6 +638,9 @@ void type_field_tests()
 	bt_ctf_field_type_put(uint_8_type);
 	bt_ctf_field_type_put(int_16_type);
 	bt_ctf_field_type_put(uint_12_type);
+	bt_ctf_field_type_put(enumeration_type);
+	bt_ctf_field_type_put(enumeration_sequence_type);
+	bt_ctf_field_type_put(enumeration_array_type);
 }
 
 void packet_resize_test(struct bt_ctf_stream_class *stream_class,

@@ -48,14 +48,16 @@ int ctf_sequence_read(struct bt_stream_pos *ppos, struct bt_definition *definiti
 			    && integer_declaration->p.alignment == CHAR_BIT) {
 				uint64_t len = bt_sequence_len(sequence_definition);
 
-				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+					return -EFAULT;
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
 					return -EFAULT;
 
 				g_string_assign(sequence_definition->string, "");
 				g_string_insert_len(sequence_definition->string,
 					0, (char *) ctf_get_pos_addr(pos), len);
-				ctf_move_pos(pos, len * CHAR_BIT);
+				if (!ctf_move_pos(pos, len * CHAR_BIT))
+					return -EFAULT;
 				return 0;
 			}
 		}
@@ -83,13 +85,15 @@ int ctf_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definit
 			    && integer_declaration->p.alignment == CHAR_BIT) {
 				uint64_t len = bt_sequence_len(sequence_definition);
 
-				ctf_align_pos(pos, integer_declaration->p.alignment);
+				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+					return -EFAULT;
 				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
 					return -EFAULT;
 
 				memcpy((char *) ctf_get_pos_addr(pos),
 					sequence_definition->string->str, len);
-				ctf_move_pos(pos, len * CHAR_BIT);
+				if (!ctf_move_pos(pos, len * CHAR_BIT))
+					return -EFAULT;
 				return 0;
 			}
 		}

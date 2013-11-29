@@ -35,6 +35,7 @@
 #include <babeltrace/context-internal.h>
 #include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
+#include <babeltrace/ctf/ctf-index.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <sys/mman.h>
@@ -70,6 +71,8 @@
 #endif
 
 #define NSEC_PER_SEC 1000000000ULL
+
+#define INDEX_PATH "./index/%s.idx"
 
 int opt_clock_cycles,
 	opt_clock_seconds,
@@ -468,6 +471,15 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	 */
 	if (unlikely(pos->offset == EOF))
 		return EOF;
+
+	if (pos->content_size == 0) {
+		/* Stream is inactive for now (live reading). */
+		return EAGAIN;
+	}
+	/* Packet only contains headers */
+	if (pos->offset == pos->content_size)
+		return EAGAIN;
+
 	assert(pos->offset < pos->content_size);
 
 	/* Read event header */
@@ -548,10 +560,15 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 			goto error;
 	}
 
+	if (pos->last_offset == pos->offset) {
+		fprintf(stderr, "[error] Invalid 0 byte event encountered.\n");
+		return -EINVAL;
+	}
+
 	return 0;
 
 error:
-	fprintf(stderr, "[error] Unexpected end of stream. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
+	fprintf(stderr, "[error] Unexpected end of packet. Either the trace data stream is corrupted or metadata description does not match data layout.\n");
 	return ret;
 }
 
@@ -1481,18 +1498,6 @@ begin:
 			fprintf(stderr, "[error] Unable to read packet context: %s\n", strerror(-ret));
 			return ret;
 		}
-		/* read content size from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
-		if (len_index >= 0) {
-			struct bt_definition *field;
-
-			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-			packet_index.content_size = bt_get_unsigned_int(field);
-		} else {
-			/* Use file size for packet size */
-			packet_index.content_size = filesize * CHAR_BIT;
-		}
-
 		/* read packet size from header */
 		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
 		if (len_index >= 0) {
@@ -1501,8 +1506,20 @@ begin:
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 			packet_index.packet_size = bt_get_unsigned_int(field);
 		} else {
-			/* Use content size if non-zero, else file size */
-			packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+			/* Use file size for packet size */
+			packet_index.packet_size = filesize * CHAR_BIT;
+		}
+
+		/* read content size from header */
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
+			packet_index.content_size = bt_get_unsigned_int(field);
+		} else {
+			/* Use packet size if non-zero, else file size */
+			packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
 		}
 
 		/* read timestamp begin from header */
@@ -1546,9 +1563,9 @@ begin:
 		}
 	} else {
 		/* Use file size for packet size */
-		packet_index.content_size = filesize * CHAR_BIT;
-		/* Use content size if non-zero, else file size */
-		packet_index.packet_size = packet_index.content_size ? : filesize * CHAR_BIT;
+		packet_index.packet_size = filesize * CHAR_BIT;
+		/* Use packet size if non-zero, else file size */
+		packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
 	}
 
 	/* Validate content size and packet size values */
@@ -1561,6 +1578,16 @@ begin:
 	if (packet_index.packet_size > ((uint64_t) filesize - packet_index.offset) * CHAR_BIT) {
 		fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
 			packet_index.packet_size, ((uint64_t) filesize - packet_index.offset) * CHAR_BIT);
+		return -EINVAL;
+	}
+
+	if (packet_index.content_size < pos->offset) {
+		fprintf(stderr, "[error] Invalid CTF stream: content size is smaller than packet headers.\n");
+		return -EINVAL;
+	}
+
+	if ((packet_index.packet_size >> LOG2_CHAR_BIT) == 0) {
+		fprintf(stderr, "[error] Invalid CTF stream: packet size needs to be at least one byte\n");
 		return -EINVAL;
 	}
 
@@ -1666,6 +1693,93 @@ error:
 	return ret;
 }
 
+static
+int import_stream_packet_index(struct ctf_trace *td,
+		struct ctf_file_stream *file_stream)
+{
+	struct ctf_stream_declaration *stream;
+	struct ctf_stream_pos *pos;
+	struct ctf_packet_index ctf_index;
+	struct ctf_packet_index_file_hdr index_hdr;
+	struct packet_index index;
+	int index_read;
+	int ret = 0;
+	int first_packet = 1;
+	size_t len;
+
+	pos = &file_stream->pos;
+
+	len = fread(&index_hdr, sizeof(index_hdr), 1, pos->index_fp);
+	if (len != 1) {
+		perror("read index file header");
+		goto error;
+	}
+
+	/* Check the index header */
+	if (be32toh(index_hdr.magic) != CTF_INDEX_MAGIC) {
+		fprintf(stderr, "[error] wrong index magic\n");
+		ret = -1;
+		goto error;
+	}
+	if (be32toh(index_hdr.index_major) != CTF_INDEX_MAJOR) {
+		fprintf(stderr, "[error] Incompatible index file %" PRIu64
+				".%" PRIu64 ", supported %d.%d\n",
+				be64toh(index_hdr.index_major),
+				be64toh(index_hdr.index_minor), CTF_INDEX_MAJOR,
+				CTF_INDEX_MINOR);
+		ret = -1;
+		goto error;
+	}
+	if (index_hdr.packet_index_len == 0) {
+		fprintf(stderr, "[error] Packet index length cannot be 0.\n");
+		ret = -1;
+		goto error;
+	}
+
+	while ((index_read = fread(&ctf_index, index_hdr.packet_index_len, 1,
+					pos->index_fp)) == 1) {
+		uint64_t stream_id;
+
+		memset(&index, 0, sizeof(index));
+		index.offset = be64toh(ctf_index.offset);
+		index.packet_size = be64toh(ctf_index.packet_size);
+		index.content_size = be64toh(ctf_index.content_size);
+		index.timestamp_begin = be64toh(ctf_index.timestamp_begin);
+		index.timestamp_end = be64toh(ctf_index.timestamp_end);
+		index.events_discarded = be64toh(ctf_index.events_discarded);
+		index.events_discarded_len = 64;
+		stream_id = be64toh(ctf_index.stream_id);
+
+		if (!first_packet) {
+			/* add index to packet array */
+			g_array_append_val(file_stream->pos.packet_cycles_index, index);
+			continue;
+		}
+
+		file_stream->parent.stream_id = stream_id;
+		stream = g_ptr_array_index(td->streams, stream_id);
+		if (!stream) {
+			fprintf(stderr, "[error] Stream %" PRIu64
+					" is not declared in metadata.\n",
+					stream_id);
+			ret = -EINVAL;
+			goto error;
+		}
+		file_stream->parent.stream_class = stream;
+		ret = create_stream_definitions(td, &file_stream->parent);
+		if (ret)
+			goto error;
+		first_packet = 0;
+		/* add index to packet array */
+		g_array_append_val(file_stream->pos.packet_cycles_index, index);
+	}
+
+	ret = 0;
+
+error:
+	return ret;
+}
+
 /*
  * Note: many file streams can inherit from the same stream class
  * description (metadata).
@@ -1678,6 +1792,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	int ret, fd, closeret;
 	struct ctf_file_stream *file_stream;
 	struct stat statbuf;
+	char *index_name;
 
 	fd = openat(td->dirfd, path, flags);
 	if (fd < 0) {
@@ -1693,13 +1808,18 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		goto fstat_error;
 	}
 	if (S_ISDIR(statbuf.st_mode)) {
-		fprintf(stderr, "[warning] Skipping directory '%s' found in trace\n", path);
+		if (strncmp(path, "index", 5) != 0) {
+			fprintf(stderr, "[warning] Skipping directory '%s' "
+					"found in trace\n", path);
+		}
 		ret = 0;
 		goto fd_is_dir_ok;
 	}
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
+	file_stream->pos.fd = -1;
+	file_stream->pos.index_fp = NULL;
 
 	strncpy(file_stream->parent.path, path, PATH_MAX);
 	file_stream->parent.path[PATH_MAX - 1] = '\0';
@@ -1722,19 +1842,65 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	 * For now, only a single clock per trace is supported.
 	 */
 	file_stream->parent.current_clock = td->parent.single_clock;
-	ret = create_stream_packet_index(td, file_stream);
-	if (ret) {
-		fprintf(stderr, "[error] Stream index creation error.\n");
-		goto error_index;
+
+	/*
+	 * Allocate the index name for this stream and try to open it.
+	 */
+	index_name = malloc((strlen(path) + sizeof(INDEX_PATH)) * sizeof(char));
+	if (!index_name) {
+		fprintf(stderr, "[error] Cannot allocate index filename\n");
+		goto error_def;
 	}
+	snprintf(index_name, strlen(path) + sizeof(INDEX_PATH),
+			INDEX_PATH, path);
+
+	if (faccessat(td->dirfd, index_name, O_RDONLY, flags) < 0) {
+		ret = create_stream_packet_index(td, file_stream);
+		if (ret) {
+			fprintf(stderr, "[error] Stream index creation error.\n");
+			goto error_index;
+		}
+	} else {
+		ret = openat(td->dirfd, index_name, flags);
+		if (ret < 0) {
+			perror("Index file openat()");
+			ret = -1;
+			goto error_free;
+		}
+		file_stream->pos.index_fp = fdopen(ret, "r");
+		if (!file_stream->pos.index_fp) {
+			perror("fdopen() error");
+			goto error_free;
+		}
+		ret = import_stream_packet_index(td, file_stream);
+		if (ret) {
+			ret = -1;
+			goto error_index;
+		}
+		ret = fclose(file_stream->pos.index_fp);
+		if (ret < 0) {
+			perror("close index");
+			goto error_free;
+		}
+	}
+	free(index_name);
+
 	/* Add stream file to stream class */
 	g_ptr_array_add(file_stream->parent.stream_class->streams,
 			&file_stream->parent);
 	return 0;
 
 error_index:
+	if (file_stream->pos.index_fp) {
+		ret = fclose(file_stream->pos.index_fp);
+		if (ret < 0) {
+			perror("close index");
+		}
+	}
 	if (file_stream->parent.trace_packet_header)
 		bt_definition_unref(&file_stream->parent.trace_packet_header->p);
+error_free:
+	free(index_name);
 error_def:
 	closeret = ctf_fini_pos(&file_stream->pos);
 	if (closeret) {
@@ -1761,6 +1927,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	struct dirent *dirent;
 	struct dirent *diriter;
 	size_t dirent_len;
+	char *ext;
 
 	td->flags = flags;
 
@@ -1816,6 +1983,13 @@ int ctf_open_trace_read(struct ctf_trace *td,
 				|| !strcmp(diriter->d_name, "..")
 				|| !strcmp(diriter->d_name, "metadata"))
 			continue;
+
+		/* Ignore index files : *.idx */
+		ext = strrchr(diriter->d_name, '.');
+		if (ext && (!strcmp(ext, ".idx"))) {
+			continue;
+		}
+
 		ret = ctf_open_file_stream_read(td, diriter->d_name,
 					flags, packet_seek);
 		if (ret) {

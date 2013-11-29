@@ -368,7 +368,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	int ret = 0;
 	size_t i;
 	uint64_t timestamp_begin, timestamp_end;
-	struct bt_ctf_stream_class *stream_class = stream->stream_class;
+	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_field *integer = NULL;
 	struct ctf_stream_pos packet_context_pos;
 
@@ -385,6 +385,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		stream->flush.func(stream, stream->flush.data);
 	}
 
+	stream_class = stream->stream_class;
 	timestamp_begin = ((struct bt_ctf_event *) g_ptr_array_index(
 		stream->events, 0))->timestamp;
 	timestamp_end = ((struct bt_ctf_event *) g_ptr_array_index(
@@ -518,7 +519,9 @@ void bt_ctf_stream_destroy(struct bt_ctf_ref *ref)
 
 	stream = container_of(ref, struct bt_ctf_stream, ref_count);
 	ctf_fini_pos(&stream->pos);
-	close(stream->pos.fd);
+	if (close(stream->pos.fd)) {
+		perror("close");
+	}
 	bt_ctf_stream_class_put(stream->stream_class);
 	g_ptr_array_free(stream->events, TRUE);
 	g_free(stream);

@@ -560,8 +560,9 @@ int validate_identifier(const char *input_string)
 
 	token = strtok_r(string, " ", &save_ptr);
 	while (token) {
-		if (g_hash_table_contains(reserved_keywords_set,
-			GINT_TO_POINTER(g_quark_from_string(token)))) {
+		if (g_hash_table_lookup_extended(reserved_keywords_set,
+			GINT_TO_POINTER(g_quark_from_string(token)),
+			NULL, NULL)) {
 			ret = -1;
 			goto end;
 		}
@@ -737,8 +738,10 @@ void writer_init(void)
 
 	reserved_keywords_set = g_hash_table_new(g_direct_hash, g_direct_equal);
 	for (i = 0; i < reserved_keywords_count; i++) {
-		g_hash_table_add(reserved_keywords_set,
-		GINT_TO_POINTER(g_quark_from_string(reserved_keywords_str[i])));
+		gpointer quark = GINT_TO_POINTER(g_quark_from_string(
+			reserved_keywords_str[i]));
+
+		g_hash_table_insert(reserved_keywords_set, quark, quark);
 	}
 
 	init_done = 1;

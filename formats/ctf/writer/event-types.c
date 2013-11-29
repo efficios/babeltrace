@@ -33,6 +33,7 @@
 #include <babeltrace/endian.h>
 #include <float.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 struct range_overlap_query {
 	int64_t range_start, range_end;
@@ -214,8 +215,8 @@ int add_structure_field(GPtrArray *fields,
 	struct structure_field *field;
 
 	/* Make sure structure does not contain a field of the same name */
-	if (g_hash_table_contains(field_name_to_index,
-			GUINT_TO_POINTER(name_quark))) {
+	if (g_hash_table_lookup_extended(field_name_to_index,
+		GUINT_TO_POINTER(name_quark), NULL, NULL)) {
 		ret = -1;
 		goto end;
 	}
@@ -234,6 +235,27 @@ int add_structure_field(GPtrArray *fields,
 		(gpointer) (unsigned long) fields->len);
 	g_ptr_array_add(fields, field);
 	bt_ctf_field_type_freeze(field_type);
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_ctf_field_type_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+
+	if (!type) {
+		ret = -1;
+		goto end;
+	}
+
+	if (type->declaration->id == CTF_TYPE_ENUM) {
+		struct bt_ctf_field_type_enumeration *enumeration =
+			container_of(type, struct bt_ctf_field_type_enumeration,
+			parent);
+
+		ret = enumeration->entries->len ? 0 : -1;
+	}
 end:
 	return ret;
 }
@@ -364,6 +386,7 @@ int bt_ctf_field_type_enumeration_add_mapping(
 	struct enumeration_mapping *mapping;
 	struct bt_ctf_field_type_enumeration *enumeration;
 	struct range_overlap_query query;
+	char *escaped_string;
 
 	if (!type || (type->declaration->id != CTF_TYPE_ENUM) ||
 		type->frozen ||
@@ -372,12 +395,18 @@ int bt_ctf_field_type_enumeration_add_mapping(
 		goto end;
 	}
 
-	if (validate_identifier(string)) {
+	if (!string || strlen(string) == 0) {
 		ret = -1;
 		goto end;
 	}
 
-	mapping_name = g_quark_from_string(string);
+	escaped_string = g_strescape(string, NULL);
+	if (!escaped_string) {
+		ret = -1;
+		goto end;
+	}
+
+	mapping_name = g_quark_from_string(escaped_string);
 	query = (struct range_overlap_query) { .range_start = range_start,
 		.range_end = range_end,
 		.mapping_name = mapping_name,
@@ -389,18 +418,20 @@ int bt_ctf_field_type_enumeration_add_mapping(
 	g_ptr_array_foreach(enumeration->entries, check_ranges_overlap, &query);
 	if (query.overlaps) {
 		ret = -1;
-		goto end;
+		goto error_free;
 	}
 
 	mapping = g_new(struct enumeration_mapping, 1);
 	if (!mapping) {
 		ret = -1;
-		goto end;
+		goto error_free;
 	}
 
 	*mapping = (struct enumeration_mapping) {.range_start = range_start,
 		.range_end = range_end, .string = mapping_name};
 	g_ptr_array_add(enumeration->entries, mapping);
+error_free:
+	free(escaped_string);
 end:
 	return ret;
 }
@@ -517,7 +548,8 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 
 	if (!type || !field_type || type->frozen ||
 		validate_identifier(field_name) ||
-		(type->declaration->id != CTF_TYPE_STRUCT)) {
+		(type->declaration->id != CTF_TYPE_STRUCT) ||
+		bt_ctf_field_type_validate(field_type)) {
 		goto end;
 	}
 
@@ -579,7 +611,8 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 
 	if (!type || !field_type || type->frozen ||
 		validate_identifier(field_name) ||
-		(type->declaration->id != CTF_TYPE_VARIANT)) {
+		(type->declaration->id != CTF_TYPE_VARIANT) ||
+		bt_ctf_field_type_validate(field_type)) {
 		ret = -1;
 		goto end;
 	}
@@ -611,7 +644,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 {
 	struct bt_ctf_field_type_array *array = NULL;
 
-	if (!element_type || length == 0) {
+	if (!element_type || length == 0 ||
+		bt_ctf_field_type_validate(element_type)) {
 		goto error;
 	}
 
@@ -639,7 +673,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 {
 	struct bt_ctf_field_type_sequence *sequence = NULL;
 
-	if (!element_type || validate_identifier(length_field_name)) {
+	if (!element_type || validate_identifier(length_field_name) ||
+		bt_ctf_field_type_validate(element_type)) {
 		goto error;
 	}
 
@@ -1154,9 +1189,14 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 		struct metadata_context *context)
 {
 	size_t entry;
-	int ret = 0;
+	int ret;
 	struct bt_ctf_field_type_enumeration *enumeration = container_of(type,
 		struct bt_ctf_field_type_enumeration, parent);
+
+	ret = bt_ctf_field_type_validate(type);
+	if (ret) {
+		goto end;
+	}
 
 	g_string_append(context->string, "enum : ");
 	ret = bt_ctf_field_type_serialize(enumeration->container, context);
@@ -1170,12 +1210,13 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 			enumeration->entries->pdata[entry];
 
 		if (mapping->range_start == mapping->range_end) {
-			g_string_append_printf(context->string, "%s = %" PRId64,
+			g_string_append_printf(context->string,
+				"\"%s\" = %" PRId64,
 				g_quark_to_string(mapping->string),
 				mapping->range_start);
 		} else {
 			g_string_append_printf(context->string,
-				"%s = %" PRId64 " ... %" PRId64,
+				"\"%s\" = %" PRId64 " ... %" PRId64,
 				g_quark_to_string(mapping->string),
 				mapping->range_start, mapping->range_end);
 		}

@@ -61,6 +61,7 @@ struct packet_index {
 struct ctf_stream_pos {
 	struct bt_stream_pos parent;
 	int fd;			/* backing file fd. -1 if unset. */
+	FILE *index_fp;		/* backing index file fp. NULL if unset. */
 	GArray *packet_cycles_index;	/* contains struct packet_index in cycles */
 	GArray *packet_real_index;	/* contains struct packet_index in ns */
 	int prot;		/* mmap protection */
@@ -128,28 +129,41 @@ int ctf_fini_pos(struct ctf_stream_pos *pos);
 /*
  * move_pos - move position of a relative bit offset
  *
+ * Return 1 if OK, 0 if out-of-bound.
+ *
  * TODO: allow larger files by updating base too.
  */
 static inline
-void ctf_move_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
+int ctf_move_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
 {
+	uint64_t max_len;
+
 	printf_debug("ctf_move_pos test EOF: %" PRId64 "\n", pos->offset);
 	if (unlikely(pos->offset == EOF))
-		return;
+		return 0;
+	if (pos->prot == PROT_READ)
+		max_len = pos->content_size;
+	else
+		max_len = pos->packet_size;
+	if (unlikely(pos->offset + bit_offset > max_len))
+		return 0;
 
 	pos->offset += bit_offset;
 	printf_debug("ctf_move_pos after increment: %" PRId64 "\n", pos->offset);
+	return 1;
 }
 
 /*
  * align_pos - align position on a bit offset (> 0)
  *
+ * Return 1 if OK, 0 if out-of-bound.
+ *
  * TODO: allow larger files by updating base too.
  */
 static inline
-void ctf_align_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
+int ctf_align_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
 {
-	ctf_move_pos(pos, offset_align(pos->offset, bit_offset));
+	return ctf_move_pos(pos, offset_align(pos->offset, bit_offset));
 }
 
 static inline
@@ -190,15 +204,21 @@ void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 static inline
 int ctf_pos_access_ok(struct ctf_stream_pos *pos, uint64_t bit_len)
 {
+	uint64_t max_len;
+
 	if (unlikely(pos->offset == EOF))
 		return 0;
-	if (unlikely(pos->offset + bit_len > pos->packet_size))
+	if (pos->prot == PROT_READ)
+		max_len = pos->content_size;
+	else
+		max_len = pos->packet_size;
+	if (unlikely(pos->offset + bit_len > max_len))
 		return 0;
 	return 1;
 }
 
 /*
- * Update the stream position for to the current event. This moves to
+ * Update the stream position to the current event. This moves to
  * the next packet if we are located at the end of the current packet.
  */
 static inline
