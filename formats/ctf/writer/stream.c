@@ -464,7 +464,10 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	/*
 	 * Update the packet total size and content size and overwrite the
 	 * packet context.
+	 * Copy base_mma as the packet may have been remapped (e.g. when a
+	 * packet is resized).
 	 */
+	packet_context_pos.base_mma = stream->pos.base_mma;
 	ret = set_structure_field_integer(stream_class->packet_context,
 		"content_size", stream->pos.offset);
 	if (ret) {
