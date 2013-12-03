@@ -1809,7 +1809,6 @@ int import_stream_packet_index(struct ctf_trace *td,
 	struct ctf_packet_index ctf_index;
 	struct ctf_packet_index_file_hdr index_hdr;
 	struct packet_index index;
-	int index_read;
 	int ret = 0;
 	int first_packet = 1;
 	size_t len;
@@ -1843,8 +1842,8 @@ int import_stream_packet_index(struct ctf_trace *td,
 		goto error;
 	}
 
-	while ((index_read = fread(&ctf_index, index_hdr.packet_index_len, 1,
-					pos->index_fp)) == 1) {
+	while (fread(&ctf_index, index_hdr.packet_index_len, 1,
+			pos->index_fp) == 1) {
 		uint64_t stream_id;
 
 		memset(&index, 0, sizeof(index));
