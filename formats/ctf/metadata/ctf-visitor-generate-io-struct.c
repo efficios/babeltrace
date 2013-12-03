@@ -1319,6 +1319,11 @@ struct bt_declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 				return NULL;
 			}
 			size = right->u.unary_expression.u.unsigned_constant;
+			if (!size) {
+				fprintf(fd, "[error] %s: integer size: expecting non-zero constant\n",
+					__func__);
+				return NULL;
+			}
 			has_size = 1;
 		} else if (!strcmp(left->u.unary_expression.u.string, "align")) {
 			if (right->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT) {
