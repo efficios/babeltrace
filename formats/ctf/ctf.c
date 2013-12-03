@@ -2188,6 +2188,7 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 	pos->flags = MAP_PRIVATE;
 	pos->parent.rw_table = read_dispatch_table;
 	pos->parent.event_cb = ctf_read_event;
+	pos->priv = mmap_info->priv;
 }
 
 static

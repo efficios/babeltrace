@@ -49,6 +49,7 @@ struct bt_trace_descriptor;
 struct bt_mmap_stream {
 	int fd;
 	struct bt_list_head list;
+	void *priv;
 };
 
 struct bt_mmap_stream_list {

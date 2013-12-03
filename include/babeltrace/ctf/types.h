@@ -83,6 +83,7 @@ struct ctf_stream_pos {
 
 	int dummy;		/* dummy position, for length calculation */
 	struct bt_stream_callbacks *cb;	/* Callbacks registered for iterator. */
+	void *priv;
 };
 
 static inline
