@@ -57,6 +57,10 @@
 
 #define DEFAULT_FILE_ARRAY_SIZE	1
 
+#define NET_URL_PREFIX	"net://"
+#define NET4_URL_PREFIX	"net4://"
+#define NET6_URL_PREFIX	"net6://"
+
 static char *opt_input_format, *opt_output_format;
 
 /*
@@ -497,6 +501,19 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 {
 	int ret = 0, trace_ids = 0;
 
+	if ((strncmp(path, NET4_URL_PREFIX, sizeof(NET4_URL_PREFIX) - 1)) == 0 ||
+			(strncmp(path, NET6_URL_PREFIX, sizeof(NET6_URL_PREFIX) - 1)) == 0 ||
+			(strncmp(path, NET_URL_PREFIX, sizeof(NET_URL_PREFIX) - 1)) == 0) {
+		ret = bt_context_add_trace(ctx,
+				path, format_str, packet_seek, NULL, NULL);
+		if (ret < 0) {
+			fprintf(stderr, "[warning] [Context] cannot open trace \"%s\" "
+					"for reading.\n", path);
+			/* Allow to skip erroneous traces. */
+			ret = 1;	/* partial error */
+		}
+		return ret;
+	}
 	/* Should lock traversed_paths mutex here if used in multithread */
 
 	traversed_paths = g_ptr_array_new();
@@ -697,7 +714,7 @@ int main(int argc, char **argv)
 		}
 	}
 	fmt_read = bt_lookup_format(g_quark_from_static_string(opt_input_format));
-	if (!fmt_read || fmt_read->name != g_quark_from_static_string("ctf")) {
+	if (!fmt_read) {
 		fprintf(stderr, "[error] Format \"%s\" is not supported.\n\n",
 			opt_input_format);
 		partial_error = 1;
@@ -757,10 +774,13 @@ int main(int argc, char **argv)
 		goto error_copy_trace;
 	}
 
-	ret = convert_trace(td_write, ctx);
-	if (ret) {
-		fprintf(stderr, "Error printing trace.\n\n");
-		goto error_copy_trace;
+	/* For now, we support only CTF iterators */
+	if (fmt_read->name == g_quark_from_static_string("ctf")) {
+		ret = convert_trace(td_write, ctx);
+		if (ret) {
+			fprintf(stderr, "Error printing trace.\n\n");
+			goto error_copy_trace;
+		}
 	}
 
 	ret = trace_post_handler(td_write, ctx);

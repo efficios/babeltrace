@@ -137,14 +137,24 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 	if (ret != 0)
 		goto error;
 
-	ret = fmt->convert_index_timestamp(td);
-	if (ret < 0)
-		goto error;
+	if (fmt->convert_index_timestamp) {
+		ret = fmt->convert_index_timestamp(td);
+		if (ret < 0)
+			goto error;
+	}
 
-	handle->real_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_REAL);
-	handle->real_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_REAL);
-	handle->cycles_timestamp_begin = fmt->timestamp_begin(td, handle, BT_CLOCK_CYCLES);
-	handle->cycles_timestamp_end = fmt->timestamp_end(td, handle, BT_CLOCK_CYCLES);
+	if (fmt->timestamp_begin)
+		handle->real_timestamp_begin = fmt->timestamp_begin(td,
+				handle, BT_CLOCK_REAL);
+	if (fmt->timestamp_end)
+		handle->real_timestamp_end = fmt->timestamp_end(td, handle,
+				BT_CLOCK_REAL);
+	if (fmt->timestamp_begin)
+		handle->cycles_timestamp_begin = fmt->timestamp_begin(td,
+				handle, BT_CLOCK_CYCLES);
+	if (fmt->timestamp_end)
+		handle->cycles_timestamp_end = fmt->timestamp_end(td, handle,
+				BT_CLOCK_CYCLES);
 
 	return handle->id;
 
@@ -217,6 +227,8 @@ void remove_trace_handle(struct bt_trace_handle *handle)
 {
 	int ret;
 
+	if (!handle->td->ctx)
+		return;
 	/* Remove from containers */
 	bt_trace_collection_remove(handle->td->ctx->tc, handle->td);
 	/* Close the trace */

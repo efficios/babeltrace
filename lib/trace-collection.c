@@ -161,6 +161,9 @@ int bt_trace_collection_add(struct trace_collection *tc,
 	if (!tc || !trace)
 		return -EINVAL;
 
+	if (!trace->clocks)
+		return 0;
+
 	if (tc->array->len > 1) {
 		struct clock_match clock_match = {
 			.clocks = tc->clocks,
