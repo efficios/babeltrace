@@ -46,6 +46,9 @@ int bt_variant_rw(struct bt_stream_pos *ppos, struct bt_definition *definition)
 	struct bt_definition *field;
 
 	field = bt_variant_get_current_field(variant_definition);
+	if (!field) {
+		return -EINVAL;
+	}
 	return generic_rw(ppos, field);
 }
 
@@ -261,16 +264,30 @@ struct bt_definition *bt_variant_get_current_field(struct definition_variant *va
 	unsigned long index;
 	GArray *tag_array;
 	GQuark tag;
+	gpointer orig_key, value;
 
 	tag_array = _enum->value;
+	if (!tag_array) {
+		/* Enumeration has unknown tag. */
+		fprintf(stderr, "[error] Enumeration used for variant has unknown tag.\n");
+		return NULL;
+	}
 	/*
 	 * The 1 to 1 mapping from enumeration to value should have been already
 	 * checked. (see TODO above)
 	 */
 	assert(tag_array->len == 1);
 	tag = g_array_index(tag_array, GQuark, 0);
-	index = (unsigned long) g_hash_table_lookup(variant_declaration->untagged_variant->fields_by_tag,
-						    (gconstpointer) (unsigned long) tag);
+	if (!g_hash_table_lookup_extended(variant_declaration->untagged_variant->fields_by_tag,
+			(gconstpointer) (unsigned long) tag,
+			&orig_key,
+			&value)) {
+		/* Cannot find matching field. */
+		fprintf(stderr, "[error] Cannot find matching field for enum field \"%s\" in variant.\n",
+			g_quark_to_string(tag));
+		return NULL;
+	}
+	index = (unsigned long) value;
 	variant->current_field = g_ptr_array_index(variant->fields, index);
 	return variant->current_field;
 }
