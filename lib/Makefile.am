@@ -11,7 +11,6 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 			   trace-collection.c \
 			   registry.c
 
-libbabeltrace_la_LDFLAGS = \
-	-Wl,--no-as-needed \
+libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
 	$(top_builddir)/types/libbabeltrace_types.la
