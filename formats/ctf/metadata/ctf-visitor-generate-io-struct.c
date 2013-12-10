@@ -269,6 +269,14 @@ struct ctf_stream_declaration *trace_stream_lookup(struct ctf_trace *trace, uint
 }
 
 static
+struct ctf_event_declaration *stream_event_lookup(struct ctf_stream_declaration *stream, uint64_t event_id)
+{
+	if (stream->events_by_id->len <= event_id)
+		return NULL;
+	return g_ptr_array_index(stream->events_by_id, event_id);
+}
+
+static
 struct ctf_clock *trace_clock_lookup(struct ctf_trace *trace, GQuark clock_name)
 {
 	return g_hash_table_lookup(trace->parent.clocks, (gpointer) (unsigned long) clock_name);
@@ -1883,6 +1891,13 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	    && event->stream->events_by_id->len != 0) {
 		ret = -EPERM;
 		fprintf(fd, "[error] %s: missing id field in event declaration\n", __func__);
+		goto error;
+	}
+	/* Disallow re-using the same event ID in the same stream */
+	if (stream_event_lookup(event->stream, event->id)) {
+		ret = -EPERM;
+		fprintf(fd, "[error] %s: event ID %" PRIu64 " used more than once in stream %" PRIu64 "\n",
+			__func__, event->id, event->stream_id);
 		goto error;
 	}
 	if (event->stream->events_by_id->len <= event->id)
