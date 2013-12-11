@@ -1,6 +1,4 @@
 BabelTrace - Trace Format Babel Tower
-Mathieu Desnoyers, EfficiOS Inc.
-September 2010
 
 This project provides trace read and write libraries, as well as a trace
 converter. A plugin can be created for any trace format to allow its conversion
@@ -15,6 +13,13 @@ Format (CTF). The latest version of the CTF specification can be found at:
 The CE Workgroup of the Linux Foundation, Ericsson, and EfficiOS have
 sponsored this work.
 
+The current maintainers are:
+  Jérémie Galarneau <jeremie.galarneau@efficios.com>
+  Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+
+Questions should be addressed to this mailing list:
+  lttng-dev@lists.lttng.org
+
 
 BUILDING
 --------
@@ -24,6 +29,7 @@ BUILDING
 	make
 	make install
 	ldconfig
+
 
 DEPENDENCIES
 ------------
