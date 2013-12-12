@@ -16,7 +16,8 @@ babeltrace_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/formats/ctf-text/libbabeltrace-ctf-text.la \
 	$(top_builddir)/formats/ctf-metadata/libbabeltrace-ctf-metadata.la \
-	$(top_builddir)/formats/bt-dummy/libbabeltrace-dummy.la
+	$(top_builddir)/formats/bt-dummy/libbabeltrace-dummy.la \
+	$(top_builddir)/formats/lttng-live/libbabeltrace-lttng-live.la
 
 babeltrace_log_SOURCES = babeltrace-log.c
 

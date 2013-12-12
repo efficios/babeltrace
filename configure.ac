@@ -166,6 +166,7 @@ AC_CONFIG_FILES([
 	formats/ctf-text/types/Makefile
 	formats/ctf-metadata/Makefile
 	formats/bt-dummy/Makefile
+	formats/lttng-live/Makefile
 	formats/ctf/metadata/Makefile
 	formats/ctf/writer/Makefile
 	converter/Makefile
