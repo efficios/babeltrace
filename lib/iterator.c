@@ -806,9 +806,18 @@ int bt_iter_next(struct bt_iter *iter)
 		goto end;
 	} else if (ret == EAGAIN) {
 		/*
-		 * The stream is inactive for now, we just updated the timestamp_end
-		 * to skip over this stream up to a certain point in time.
+		 * Live streaming: the stream is inactive for now, we
+		 * just updated the timestamp_end to skip over this
+		 * stream up to a certain point in time.
+		 *
+		 * Since we can't guarantee that a stream will ever have
+		 * any activity, we can't rely on the fact that
+		 * bt_iter_next will be called for each stream and deal
+		 * with inactive streams. So instead, we return 0 here
+		 * to the caller and let the read API handle the
+		 * retry case.
 		 */
+		ret = 0;
 		goto reinsert;
 	} else if (ret) {
 		goto end;
@@ -820,11 +829,6 @@ reinsert:
 	assert(removed == file_stream);
 
 	file_stream = bt_heap_maximum(iter->stream_heap);
-	if (file_stream->pos.content_size == 0) {
-		ret = EAGAIN;
-	} else {
-		ret = 0;
-	}
 
 end:
 	return ret;

@@ -472,12 +472,16 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	if (unlikely(pos->offset == EOF))
 		return EOF;
 
-	if (pos->content_size == 0) {
-		/* Stream is inactive for now (live reading). */
+	/* Stream is inactive for now (live reading). */
+	if (unlikely(pos->content_size == 0))
 		return EAGAIN;
-	}
-	/* Packet only contains headers */
-	if (pos->offset == pos->content_size)
+
+	/*
+	 * Packet seeked to by ctf_pos_get_event() only contains
+	 * headers, no event. Consider stream as inactive (live
+	 * reading).
+	 */
+	if (unlikely(pos->data_offset == pos->content_size))
 		return EAGAIN;
 
 	assert(pos->offset < pos->content_size);
@@ -957,9 +961,10 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		pos->content_size = packet_index->content_size;
 		pos->packet_size = packet_index->packet_size;
 		pos->mmap_offset = packet_index->offset;
-		if (packet_index->data_offset < packet_index->content_size) {
+		pos->data_offset = packet_index->data_offset;
+		if (pos->data_offset < packet_index->content_size) {
 			pos->offset = 0;	/* will read headers */
-		} else if (packet_index->data_offset == packet_index->content_size) {
+		} else if (pos->data_offset == packet_index->content_size) {
 			/* empty packet */
 			pos->offset = packet_index->data_offset;
 			whence = SEEK_CUR;
@@ -2386,10 +2391,12 @@ int ctf_close_file_stream(struct ctf_file_stream *file_stream)
 		fprintf(stderr, "Error on ctf_fini_pos\n");
 		return -1;
 	}
-	ret = close(file_stream->pos.fd);
-	if (ret) {
-		perror("Error closing file fd");
-		return -1;
+	if (file_stream->pos.fd >= 0) {
+		ret = close(file_stream->pos.fd);
+		if (ret) {
+			perror("Error closing file fd");
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -2421,15 +2428,19 @@ int ctf_close_trace(struct bt_trace_descriptor *tdp)
 		}
 	}
 	ctf_destroy_metadata(td);
-	ret = close(td->dirfd);
-	if (ret) {
-		perror("Error closing dirfd");
-		return ret;
+	if (td->dirfd >= 0) {
+		ret = close(td->dirfd);
+		if (ret) {
+			perror("Error closing dirfd");
+			return ret;
+		}
 	}
-	ret = closedir(td->dir);
-	if (ret) {
-		perror("Error closedir");
-		return ret;
+	if (td->dir) {
+		ret = closedir(td->dir);
+		if (ret) {
+			perror("Error closedir");
+			return ret;
+		}
 	}
 	free(td->metadata_string);
 	g_free(td);

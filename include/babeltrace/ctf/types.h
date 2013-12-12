@@ -76,6 +76,7 @@ struct ctf_stream_pos {
 	struct mmap_align *base_mma;/* mmap base address */
 	int64_t offset;		/* offset from base, in bits. EOF for end of file. */
 	int64_t last_offset;	/* offset before the last read_event */
+	int64_t data_offset;	/* offset of data in current packet */
 	uint64_t cur_index;	/* current index in packet index */
 	uint64_t last_events_discarded;	/* last known amount of event discarded */
 	void (*packet_seek)(struct bt_stream_pos *pos, size_t index,

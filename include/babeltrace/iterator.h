@@ -35,6 +35,7 @@ extern "C" {
 /* Flags for the iterator read_event */
 enum {
 	BT_ITER_FLAG_LOST_EVENTS	= (1 << 0),
+	BT_ITER_FLAG_RETRY		= (1 << 1),
 };
 
 /* Forward declarations */

@@ -119,12 +119,30 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
 	 */
 	assert(iter);
 
+	if (flags)
+		*flags = 0;
+
 	ret = &iter->current_ctf_event;
 	file_stream = bt_heap_maximum(iter->parent.stream_heap);
 	if (!file_stream) {
 		/* end of file for all streams */
 		goto stop;
 	}
+
+	/*
+	 * If the packet is empty (contains only headers or is of size 0), the
+	 * caller has to know that we can't read the current event and we need
+	 * to do a bt_iter_next.
+	 */
+	if (file_stream->pos.data_offset == file_stream->pos.content_size
+			|| file_stream->pos.content_size == 0) {
+		/* More events may come. */
+		ret = NULL;
+		if (flags)
+			*flags |= BT_ITER_FLAG_RETRY;
+		goto end;
+	}
+
 	stream = &file_stream->parent;
 	if (iter->parent.end_pos &&
 		iter->parent.end_pos->type == BT_SEEK_TIME &&
@@ -134,8 +152,6 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
 	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
-	if (flags)
-		*flags = 0;
 	if (!file_stream->pos.packet_cycles_index)
 		packet_index = NULL;
 	else
