@@ -371,7 +371,6 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 			path = strdup(LTTNG_METADATA_PATH_TEMPLATE);
 			path = mkdtemp(path);
 			ctx->session->streams[i].metadata_flag = 1;
-			mkdir(path, S_IRWXU | S_IRWXG);
 			snprintf(ctx->session->streams[i].path,
 					sizeof(ctx->session->streams[i].path),
 					"%s/%s", path,
@@ -380,6 +379,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 					O_WRONLY | O_CREAT | O_TRUNC,
 					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 			if (ret < 0) {
+				perror("open");
 				goto error;
 			}
 			ctx->session->streams[i].fd = ret;
