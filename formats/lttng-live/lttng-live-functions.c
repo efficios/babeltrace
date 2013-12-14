@@ -110,6 +110,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 	cmd.data_size = sizeof(connect);
 	cmd.cmd_version = 0;
 
+	connect.viewer_session_id = -1ULL;	/* will be set on recv */
 	connect.major = htobe32(LTTNG_LIVE_MAJOR);
 	connect.minor = htobe32(LTTNG_LIVE_MINOR);
 	connect.type = htobe32(LTTNG_VIEWER_CLIENT_COMMAND);
