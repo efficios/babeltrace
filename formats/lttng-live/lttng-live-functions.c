@@ -201,6 +201,8 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 			goto error;
 		}
 		assert(ret_len == sizeof(lsession));
+		lsession.hostname[LTTNG_VIEWER_HOST_NAME_MAX - 1] = '\0';
+		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 
 		fprintf(stdout, "%s/%" PRIu64 " : %s on host %s (timer = %u, "
 				"%u stream(s), %u client(s) connected)\n",
@@ -355,6 +357,8 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 			goto error;
 		}
 		assert(ret_len == sizeof(stream));
+		stream.path_name[LTTNG_VIEWER_PATH_MAX - 1] = '\0';
+		stream.channel_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 
 		printf_verbose("    stream %" PRIu64 " : %s/%s\n",
 				be64toh(stream.id), stream.path_name,
