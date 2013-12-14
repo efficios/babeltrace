@@ -230,11 +230,6 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 			(gpointer) ctf_trace_id);
 	if (!trace) {
 		trace = g_new0(struct lttng_live_ctf_trace, 1);
-		if (!trace) {
-			ret = -1;
-			fprintf(stderr, "[error] ctf_trace allocation\n");
-			goto error;
-		}
 		trace->ctf_trace_id = ctf_trace_id;
 		trace->streams = g_ptr_array_new();
 		g_hash_table_insert(stream->session->ctf_traces,
@@ -247,7 +242,6 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	stream->ctf_trace = trace;
 	g_ptr_array_add(trace->streams, stream);
 
-error:
 	return ret;
 }
 
@@ -343,11 +337,6 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ctx->session->stream_count);
 	ctx->session->streams = g_new0(struct lttng_live_viewer_stream,
 			ctx->session->stream_count);
-	if (!ctx->session->streams) {
-		ret = -1;
-		goto error;
-	}
-
 	for (i = 0; i < be32toh(rp.streams_count); i++) {
 		do {
 			ret_len = recv(ctx->control_sock, &stream, sizeof(stream), 0);

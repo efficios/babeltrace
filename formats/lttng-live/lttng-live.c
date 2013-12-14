@@ -106,10 +106,7 @@ static int lttng_live_open_trace_read(const char *path)
 	opt_payload_field_names = 1;
 
 	ctx.session = g_new0(struct lttng_live_session, 1);
-	if (!ctx.session) {
-		ret = -1;
-		goto end;
-	}
+
 	/* We need a pointer to the context from the packet_seek function. */
 	ctx.session->ctx = &ctx;
 
@@ -148,7 +145,6 @@ static int lttng_live_open_trace_read(const char *path)
 end_free:
 	g_hash_table_destroy(ctx.session->ctf_traces);
 	g_free(ctx.session);
-end:
 	g_free(ctx.session->streams);
 	return ret;
 }
