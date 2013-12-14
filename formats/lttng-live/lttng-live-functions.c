@@ -374,7 +374,17 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 			char *path;
 
 			path = strdup(LTTNG_METADATA_PATH_TEMPLATE);
-			path = mkdtemp(path);
+			if (!path) {
+				perror("strdup");
+				ret = -1;
+				goto error;
+			}
+			if (!mkdtemp(path)) {
+				perror("mkdtemp");
+				free(path);
+				ret = -1;
+				goto error;
+			}
 			ctx->session->streams[i].metadata_flag = 1;
 			snprintf(ctx->session->streams[i].path,
 					sizeof(ctx->session->streams[i].path),
@@ -385,9 +395,11 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 			if (ret < 0) {
 				perror("open");
+				free(path);
 				goto error;
 			}
 			ctx->session->streams[i].fd = ret;
+			free(path);
 		}
 		ret = lttng_live_ctf_trace_assign(&ctx->session->streams[i],
 				be64toh(stream.ctf_trace_id));
