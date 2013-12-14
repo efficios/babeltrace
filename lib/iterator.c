@@ -827,9 +827,6 @@ reinsert:
 	/* Reinsert the file stream into the heap, and rebalance. */
 	removed = bt_heap_replace_max(iter->stream_heap, file_stream);
 	assert(removed == file_stream);
-
-	file_stream = bt_heap_maximum(iter->stream_heap);
-
 end:
 	return ret;
 }
