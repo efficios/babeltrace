@@ -55,7 +55,7 @@ static int parse_url(const char *path, char *hostname, int *port,
 	}
 	/* TODO : parse for IPv6 as well */
 	/* Parse the hostname or IP */
-	ret = sscanf(path + proto_offset, "%[a-zA-Z.1-9%-]%s",
+	ret = sscanf(path + proto_offset, "%[a-zA-Z.0-9%-]%s",
 		hostname, remain);
 	if (ret == 2) {
 		/* Optional port number */
