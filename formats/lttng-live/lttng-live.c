@@ -101,10 +101,6 @@ static int lttng_live_open_trace_read(const char *path)
 	int ret = 0;
 	struct lttng_live_ctx ctx;
 
-	/* set default */
-	opt_context_field_names = 1;
-	opt_payload_field_names = 1;
-
 	ctx.session = g_new0(struct lttng_live_session, 1);
 
 	/* We need a pointer to the context from the packet_seek function. */
