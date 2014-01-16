@@ -38,14 +38,26 @@
 #include <stdlib.h>
 #include "lttng-live-functions.h"
 
+/*
+ * hostname parameter needs to hold NAME_MAX chars.
+ */
 static int parse_url(const char *path, char *hostname, int *port,
 		uint64_t *session_id)
 {
-	char remain[NAME_MAX];
-	int ret, proto, proto_offset = 0;
+	char remain[2][NAME_MAX];
+	int ret = -1, proto, proto_offset = 0;
+	size_t path_len = strlen(path);
 
-	ret = sscanf(path, "net%d%s", &proto, remain);
-	if (ret < 2) {
+	/*
+	 * Since sscanf API does not allow easily checking string length
+	 * against a size defined by a macro. Test it beforehand on the
+	 * input. We know the output is always <= than the input length.
+	 */
+	if (path_len > NAME_MAX) {
+		goto end;
+	}
+	ret = sscanf(path, "net%d://", &proto);
+	if (ret < 1) {
 		proto = 4;
 		/* net:// */
 		proto_offset = strlen("net://");
@@ -53,24 +65,39 @@ static int parse_url(const char *path, char *hostname, int *port,
 		/* net4:// or net6:// */
 		proto_offset = strlen("netX://");
 	}
+	if (proto_offset > path_len) {
+		goto end;
+	}
 	/* TODO : parse for IPv6 as well */
 	/* Parse the hostname or IP */
-	ret = sscanf(path + proto_offset, "%[a-zA-Z.0-9%-]%s",
-		hostname, remain);
+	ret = sscanf(&path[proto_offset], "%[a-zA-Z.0-9%-]%s",
+		hostname, remain[0]);
 	if (ret == 2) {
 		/* Optional port number */
-		if (remain[0] == ':') {
-			ret = sscanf(remain, ":%d%s", port, remain);
+		switch (remain[0][0]) {
+		case ':':
+			ret = sscanf(remain[0], ":%d%s", port, remain[1]);
 			/* Optional session ID with port number */
 			if (ret == 2) {
-				ret = sscanf(remain, "/%" PRIu64, session_id);
+				ret = sscanf(remain[1], "/%" PRIu64,
+					session_id);
+				/* Accept 0 or 1 (optional) */
+				if (ret < 0) {
+					goto end;
+				}
 			}
+			break;
+		case '/':
 			/* Optional session ID */
-		} else if (remain[0] == '/') {
-			ret = sscanf(remain, "/%" PRIu64, session_id);
-		} else {
+			ret = sscanf(remain[0], "/%" PRIu64, session_id);
+			/* Accept 0 or 1 (optional) */
+			if (ret < 0) {
+				goto end;
+			}
+			break;
+		default:
 			fprintf(stderr, "[error] wrong delimitor : %c\n",
-				remain[0]);
+				remain[0][0]);
 			ret = -1;
 			goto end;
 		}
