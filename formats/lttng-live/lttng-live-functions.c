@@ -454,7 +454,13 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 		ret = ret_len;
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	if (ret_len != sizeof(rp)) {
+		fprintf(stderr, "[error] get_data_packet: expected %" PRId64
+				", received %" PRId64 "\n", ret_len,
+				sizeof(rp));
+		ret = -1;
+		goto error;
+	}
 
 	rp.flags = be32toh(rp.flags);
 
