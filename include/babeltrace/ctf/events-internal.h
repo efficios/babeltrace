@@ -81,5 +81,8 @@ struct bt_ctf_iter {
 
 void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream,
 			int end_stream);
+void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
+		struct packet_index *prev_index,
+		struct packet_index *cur_index);
 
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

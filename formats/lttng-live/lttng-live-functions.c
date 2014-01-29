@@ -774,7 +774,7 @@ void ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
 {
 	struct ctf_stream_pos *pos;
 	struct ctf_file_stream *file_stream;
-	struct packet_index packet_index;
+	struct packet_index *prev_index = NULL, *cur_index;
 	struct lttng_live_viewer_stream *viewer_stream;
 	struct lttng_live_session *session;
 	int ret;
@@ -785,31 +785,72 @@ retry:
 	viewer_stream = (struct lttng_live_viewer_stream *) pos->priv;
 	session = viewer_stream->session;
 
+	switch (pos->packet_index->len) {
+	case 0:
+		g_array_set_size(pos->packet_index, 1);
+		cur_index = &g_array_index(pos->packet_index,
+				struct packet_index, 0);
+		break;
+	case 1:
+		g_array_set_size(pos->packet_index, 2);
+		prev_index = &g_array_index(pos->packet_index,
+				struct packet_index, 0);
+		cur_index = &g_array_index(pos->packet_index,
+				struct packet_index, 1);
+		break;
+	case 2:
+		g_array_index(pos->packet_index,
+			struct packet_index, 0) =
+				g_array_index(pos->packet_index,
+					struct packet_index, 1);
+		prev_index = &g_array_index(pos->packet_index,
+				struct packet_index, 0);
+		cur_index = &g_array_index(pos->packet_index,
+				struct packet_index, 1);
+		break;
+	default:
+		abort();
+		break;
+	}
 	printf_verbose("get_next_index for stream %" PRIu64 "\n", viewer_stream->id);
-	ret = get_next_index(session->ctx, viewer_stream, &packet_index);
+	ret = get_next_index(session->ctx, viewer_stream, cur_index);
 	if (ret < 0) {
 		pos->offset = EOF;
 		fprintf(stderr, "[error] get_next_index failed\n");
 		return;
 	}
 
-	pos->packet_size = packet_index.packet_size;
-	pos->content_size = packet_index.content_size;
+	pos->packet_size = cur_index->packet_size;
+	pos->content_size = cur_index->content_size;
 	pos->mmap_base_offset = 0;
-	if (packet_index.offset == EOF) {
+	if (cur_index->offset == EOF) {
 		pos->offset = EOF;
 	} else {
 		pos->offset = 0;
 	}
 
-	if (packet_index.content_size == 0) {
-		file_stream->parent.cycles_timestamp = packet_index.ts_cycles.timestamp_end;
+	if (cur_index->content_size == 0) {
+		file_stream->parent.cycles_timestamp =
+				cur_index->ts_cycles.timestamp_end;
 		file_stream->parent.real_timestamp = ctf_get_real_timestamp(
-				&file_stream->parent, packet_index.ts_cycles.timestamp_end);
+				&file_stream->parent,
+				cur_index->ts_cycles.timestamp_end);
 	} else {
-		file_stream->parent.cycles_timestamp = packet_index.ts_cycles.timestamp_begin;
-		file_stream->parent.real_timestamp = ctf_get_real_timestamp(
-				&file_stream->parent, packet_index.ts_cycles.timestamp_begin);
+		/* Convert the timestamps and append to the real_index. */
+		cur_index->ts_real.timestamp_begin = ctf_get_real_timestamp(
+				&file_stream->parent,
+				cur_index->ts_cycles.timestamp_begin);
+		cur_index->ts_real.timestamp_end = ctf_get_real_timestamp(
+				&file_stream->parent,
+				cur_index->ts_cycles.timestamp_end);
+
+		ctf_update_current_packet_index(&file_stream->parent,
+				prev_index, cur_index);
+
+		file_stream->parent.cycles_timestamp =
+				cur_index->ts_cycles.timestamp_begin;
+		file_stream->parent.real_timestamp =
+				cur_index->ts_real.timestamp_begin;
 	}
 
 	if (pos->packet_size == 0 || pos->offset == EOF) {
@@ -819,8 +860,8 @@ retry:
 	printf_verbose("get_data_packet for stream %" PRIu64 "\n",
 			viewer_stream->id);
 	ret = get_data_packet(session->ctx, pos, viewer_stream,
-			be64toh(packet_index.offset),
-			packet_index.packet_size / CHAR_BIT);
+			be64toh(cur_index->offset),
+			cur_index->packet_size / CHAR_BIT);
 	if (ret == -2) {
 		goto retry;
 	} else if (ret < 0) {
@@ -832,9 +873,9 @@ retry:
 	printf_verbose("Index received : packet_size : %" PRIu64
 			", offset %" PRIu64 ", content_size %" PRIu64
 			", timestamp_end : %" PRIu64 "\n",
-			packet_index.packet_size, packet_index.offset,
-			packet_index.content_size,
-			packet_index.ts_cycles.timestamp_end);
+			cur_index->packet_size, cur_index->offset,
+			cur_index->content_size,
+			cur_index->ts_cycles.timestamp_end);
 
 	/* update trace_packet_header and stream_packet_context */
 	if (pos->prot != PROT_WRITE && file_stream->parent.trace_packet_header) {

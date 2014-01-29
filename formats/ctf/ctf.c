@@ -781,6 +781,42 @@ int ctf_fini_pos(struct ctf_stream_pos *pos)
 	return 0;
 }
 
+void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
+		struct packet_index *prev_index,
+		struct packet_index *cur_index)
+{
+	uint64_t events_discarded_diff;
+
+	/* Update packet index time information */
+	stream->prev_cycles_timestamp_end =
+		cur_index->ts_cycles.timestamp_end;
+	stream->prev_cycles_timestamp =
+		cur_index->ts_cycles.timestamp_begin;
+	stream->prev_real_timestamp_end =
+		cur_index->ts_real.timestamp_end;
+	stream->prev_real_timestamp =
+		cur_index->ts_real.timestamp_begin;
+
+	stream->prev_real_timestamp =
+		stream->real_timestamp;
+	stream->prev_cycles_timestamp =
+		stream->cycles_timestamp;
+
+	/* Update packet index discarded event information */
+	events_discarded_diff = cur_index->events_discarded;
+	if (prev_index) {
+		events_discarded_diff -= prev_index->events_discarded;
+		/*
+		 * Deal with 32-bit wrap-around if the tracer provided a
+		 * 32-bit field.
+		 */
+		if (prev_index->events_discarded_len == 32) {
+			events_discarded_diff = (uint32_t) events_discarded_diff;
+		}
+	}
+	stream->events_discarded = events_discarded_diff;
+}
+
 /*
  * for SEEK_CUR: go to next packet.
  * for SEEK_SET: go to packet numer (index).
@@ -845,42 +881,19 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		switch (whence) {
 		case SEEK_CUR:
 		{
-			uint64_t events_discarded_diff;
+			struct packet_index *prev_index = NULL;
 
 			if (pos->offset == EOF) {
 				return;
 			}
 			assert(pos->cur_index < pos->packet_index->len);
-
-			/* For printing discarded event count */
-			packet_index = &g_array_index(pos->packet_index,
-					struct packet_index, pos->cur_index);
-			file_stream->parent.prev_cycles_timestamp_end =
-					packet_index->ts_cycles.timestamp_end;
-			file_stream->parent.prev_cycles_timestamp =
-					packet_index->ts_cycles.timestamp_begin;
-			file_stream->parent.prev_real_timestamp_end =
-					packet_index->ts_real.timestamp_end;
-			file_stream->parent.prev_real_timestamp =
-					packet_index->ts_real.timestamp_begin;
-
-			events_discarded_diff = packet_index->events_discarded;
-			if (pos->cur_index > 0) {
-				packet_index = &g_array_index(pos->packet_index,
-						struct packet_index,
-						pos->cur_index - 1);
-				events_discarded_diff -= packet_index->events_discarded;
-				/*
-				 * Deal with 32-bit wrap-around if the
-				 * tracer provided a 32-bit field.
-				 */
-				if (packet_index->events_discarded_len == 32) {
-					events_discarded_diff = (uint32_t) events_discarded_diff;
-				}
+			if (index > 0) {
+				prev_index = &g_array_index(pos->packet_index,
+						struct packet_index, index - 1);
 			}
-			file_stream->parent.events_discarded = events_discarded_diff;
-			file_stream->parent.prev_real_timestamp = file_stream->parent.real_timestamp;
-			file_stream->parent.prev_cycles_timestamp = file_stream->parent.cycles_timestamp;
+			ctf_update_current_packet_index(&file_stream->parent,
+					prev_index, packet_index);
+
 			/* The reader will expect us to skip padding */
 			++pos->cur_index;
 			break;
@@ -2179,12 +2192,13 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;
-	pos->packet_index = NULL;
 	pos->prot = PROT_READ;
 	pos->flags = MAP_PRIVATE;
 	pos->parent.rw_table = read_dispatch_table;
 	pos->parent.event_cb = ctf_read_event;
 	pos->priv = mmap_info->priv;
+	pos->packet_index = g_array_new(FALSE, TRUE,
+			sizeof(struct packet_index));
 }
 
 static
