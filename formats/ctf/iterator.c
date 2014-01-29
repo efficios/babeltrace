@@ -152,10 +152,10 @@ struct bt_ctf_event *bt_ctf_iter_read_event_flags(struct bt_ctf_iter *iter,
 	ret->parent = g_ptr_array_index(stream->events_by_id,
 			stream->event_id);
 
-	if (!file_stream->pos.packet_cycles_index)
+	if (!file_stream->pos.packet_index)
 		packet_index = NULL;
 	else
-		packet_index = &g_array_index(file_stream->pos.packet_cycles_index,
+		packet_index = &g_array_index(file_stream->pos.packet_index,
 				struct packet_index, file_stream->pos.cur_index);
 	iter->events_lost = 0;
 	if (packet_index && packet_index->events_discarded >

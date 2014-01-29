@@ -181,26 +181,24 @@ uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			if (!stream_pos->packet_real_index)
+			if (!stream_pos->packet_index)
 				goto error;
 
-			if (stream_pos->packet_real_index->len <= 0)
+			if (stream_pos->packet_index->len <= 0)
 				continue;
 
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index,
+					stream_pos->packet_index->len - 1);
 			if (type == BT_CLOCK_REAL) {
-				index = &g_array_index(stream_pos->packet_real_index,
-						struct packet_index,
-						stream_pos->packet_real_index->len - 1);
+				if (index->ts_real.timestamp_begin < begin)
+					begin = index->ts_real.timestamp_begin;
 			} else if (type == BT_CLOCK_CYCLES) {
-				index = &g_array_index(stream_pos->packet_cycles_index,
-						struct packet_index,
-						stream_pos->packet_real_index->len - 1);
-
+				if (index->ts_cycles.timestamp_begin < begin)
+					begin = index->ts_cycles.timestamp_begin;
 			} else {
 				goto error;
 			}
-			if (index->timestamp_begin < begin)
-				begin = index->timestamp_begin;
 		}
 	}
 
@@ -242,26 +240,24 @@ uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			if (!stream_pos->packet_real_index)
+			if (!stream_pos->packet_index)
 				goto error;
 
-			if (stream_pos->packet_real_index->len <= 0)
+			if (stream_pos->packet_index->len <= 0)
 				continue;
 
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index,
+					stream_pos->packet_index->len - 1);
 			if (type == BT_CLOCK_REAL) {
-				index = &g_array_index(stream_pos->packet_real_index,
-						struct packet_index,
-						stream_pos->packet_real_index->len - 1);
+				if (index->ts_real.timestamp_end > end)
+					end = index->ts_real.timestamp_end;
 			} else if (type == BT_CLOCK_CYCLES) {
-				index = &g_array_index(stream_pos->packet_cycles_index,
-						struct packet_index,
-						stream_pos->packet_real_index->len - 1);
-
+				if (index->ts_cycles.timestamp_end > end)
+					end = index->ts_cycles.timestamp_end;
 			} else {
 				goto error;
 			}
-			if (index->timestamp_end > end)
-				end = index->timestamp_end;
 		}
 	}
 
@@ -737,13 +733,10 @@ int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 {
 	pos->fd = fd;
 	if (fd >= 0) {
-		pos->packet_cycles_index = g_array_new(FALSE, TRUE,
-						sizeof(struct packet_index));
-		pos->packet_real_index = g_array_new(FALSE, TRUE,
+		pos->packet_index = g_array_new(FALSE, TRUE,
 				sizeof(struct packet_index));
 	} else {
-		pos->packet_cycles_index = NULL;
-		pos->packet_real_index = NULL;
+		pos->packet_index = NULL;
 	}
 	switch (open_flags & O_ACCMODE) {
 	case O_RDONLY:
@@ -783,10 +776,8 @@ int ctf_fini_pos(struct ctf_stream_pos *pos)
 			return -1;
 		}
 	}
-	if (pos->packet_cycles_index)
-		(void) g_array_free(pos->packet_cycles_index, TRUE);
-	if (pos->packet_real_index)
-		(void) g_array_free(pos->packet_real_index, TRUE);
+	if (pos->packet_index)
+		(void) g_array_free(pos->packet_index, TRUE);
 	return 0;
 }
 
@@ -859,27 +850,23 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			if (pos->offset == EOF) {
 				return;
 			}
-			assert(pos->cur_index < pos->packet_cycles_index->len);
-			assert(pos->cur_index < pos->packet_real_index->len);
+			assert(pos->cur_index < pos->packet_index->len);
 
 			/* For printing discarded event count */
-			packet_index = &g_array_index(pos->packet_cycles_index,
+			packet_index = &g_array_index(pos->packet_index,
 					struct packet_index, pos->cur_index);
 			file_stream->parent.prev_cycles_timestamp_end =
-				packet_index->timestamp_end;
+					packet_index->ts_cycles.timestamp_end;
 			file_stream->parent.prev_cycles_timestamp =
-				packet_index->timestamp_begin;
-
-			packet_index = &g_array_index(pos->packet_real_index,
-					struct packet_index, pos->cur_index);
+					packet_index->ts_cycles.timestamp_begin;
 			file_stream->parent.prev_real_timestamp_end =
-						packet_index->timestamp_end;
+					packet_index->ts_real.timestamp_end;
 			file_stream->parent.prev_real_timestamp =
-				packet_index->timestamp_begin;
+					packet_index->ts_real.timestamp_begin;
 
 			events_discarded_diff = packet_index->events_discarded;
 			if (pos->cur_index > 0) {
-				packet_index = &g_array_index(pos->packet_real_index,
+				packet_index = &g_array_index(pos->packet_index,
 						struct packet_index,
 						pos->cur_index - 1);
 				events_discarded_diff -= packet_index->events_discarded;
@@ -899,11 +886,11 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			break;
 		}
 		case SEEK_SET:
-			if (index >= pos->packet_cycles_index->len) {
+			if (index >= pos->packet_index->len) {
 				pos->offset = EOF;
 				return;
 			}
-			packet_index = &g_array_index(pos->packet_cycles_index,
+			packet_index = &g_array_index(pos->packet_index,
 					struct packet_index, index);
 			pos->last_events_discarded = packet_index->events_discarded;
 			pos->cur_index = index;
@@ -915,7 +902,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		default:
 			assert(0);
 		}
-		if (pos->cur_index >= pos->packet_real_index->len) {
+		if (pos->cur_index >= pos->packet_index->len) {
 			/*
 			 * We need to check if we are in trace read or
 			 * called from packet indexing.  In this last
@@ -941,15 +928,12 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			pos->offset = EOF;
 			return;
 		}
-		packet_index = &g_array_index(pos->packet_cycles_index,
+		packet_index = &g_array_index(pos->packet_index,
 				struct packet_index,
 				pos->cur_index);
-		file_stream->parent.cycles_timestamp = packet_index->timestamp_begin;
+		file_stream->parent.cycles_timestamp = packet_index->ts_cycles.timestamp_begin;
 
-		packet_index = &g_array_index(pos->packet_real_index,
-				struct packet_index,
-				pos->cur_index);
-		file_stream->parent.real_timestamp = packet_index->timestamp_begin;
+		file_stream->parent.real_timestamp = packet_index->ts_real.timestamp_begin;
 
 		/* Lookup context/packet size in index */
 		if (packet_index->data_offset == -1) {
@@ -1523,8 +1507,10 @@ begin:
 	packet_index.offset = pos->mmap_offset;
 	packet_index.content_size = 0;
 	packet_index.packet_size = 0;
-	packet_index.timestamp_begin = 0;
-	packet_index.timestamp_end = 0;
+	packet_index.ts_real.timestamp_begin = 0;
+	packet_index.ts_real.timestamp_end = 0;
+	packet_index.ts_cycles.timestamp_begin = 0;
+	packet_index.ts_cycles.timestamp_end = 0;
 	packet_index.events_discarded = 0;
 	packet_index.events_discarded_len = 0;
 
@@ -1548,7 +1534,7 @@ begin:
 			if (magic != CTF_MAGIC) {
 				fprintf(stderr, "[error] Invalid magic number 0x%" PRIX64 " at packet %u (file offset %zd).\n",
 						magic,
-						file_stream->pos.packet_cycles_index->len,
+						file_stream->pos.packet_index->len,
 						(ssize_t) pos->mmap_offset);
 				return -EINVAL;
 			}
@@ -1640,12 +1626,12 @@ begin:
 			struct bt_definition *field;
 
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-			packet_index.timestamp_begin = bt_get_unsigned_int(field);
+			packet_index.ts_cycles.timestamp_begin = bt_get_unsigned_int(field);
 			if (file_stream->parent.stream_class->trace->parent.collection) {
-				packet_index.timestamp_begin =
+				packet_index.ts_real.timestamp_begin =
 					ctf_get_real_timestamp(
 						&file_stream->parent,
-						packet_index.timestamp_begin);
+						packet_index.ts_cycles.timestamp_begin);
 			}
 		}
 
@@ -1655,12 +1641,12 @@ begin:
 			struct bt_definition *field;
 
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
-			packet_index.timestamp_end = bt_get_unsigned_int(field);
+			packet_index.ts_cycles.timestamp_end = bt_get_unsigned_int(field);
 			if (file_stream->parent.stream_class->trace->parent.collection) {
-				packet_index.timestamp_end =
+				packet_index.ts_real.timestamp_end =
 					ctf_get_real_timestamp(
 						&file_stream->parent,
-						packet_index.timestamp_end);
+						packet_index.ts_cycles.timestamp_end);
 			}
 		}
 
@@ -1707,7 +1693,7 @@ begin:
 	packet_index.data_offset = pos->offset;
 
 	/* add index to packet array */
-	g_array_append_val(file_stream->pos.packet_cycles_index, packet_index);
+	g_array_append_val(file_stream->pos.packet_index, packet_index);
 
 	pos->mmap_offset += packet_index.packet_size >> LOG2_CHAR_BIT;
 
@@ -1855,8 +1841,8 @@ int import_stream_packet_index(struct ctf_trace *td,
 		index.offset = be64toh(ctf_index.offset);
 		index.packet_size = be64toh(ctf_index.packet_size);
 		index.content_size = be64toh(ctf_index.content_size);
-		index.timestamp_begin = be64toh(ctf_index.timestamp_begin);
-		index.timestamp_end = be64toh(ctf_index.timestamp_end);
+		index.ts_cycles.timestamp_begin = be64toh(ctf_index.timestamp_begin);
+		index.ts_cycles.timestamp_end = be64toh(ctf_index.timestamp_end);
 		index.events_discarded = be64toh(ctf_index.events_discarded);
 		index.events_discarded_len = 64;
 		index.data_offset = -1;
@@ -1864,7 +1850,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 
 		if (!first_packet) {
 			/* add index to packet array */
-			g_array_append_val(file_stream->pos.packet_cycles_index, index);
+			g_array_append_val(file_stream->pos.packet_index, index);
 			continue;
 		}
 
@@ -1883,7 +1869,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 			goto error;
 		first_packet = 0;
 		/* add index to packet array */
-		g_array_append_val(file_stream->pos.packet_cycles_index, index);
+		g_array_append_val(file_stream->pos.packet_index, index);
 	}
 
 	/* Index containing only the header. */
@@ -2193,8 +2179,7 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 	pos->offset = 0;
 	pos->dummy = false;
 	pos->cur_index = 0;
-	pos->packet_cycles_index = NULL;
-	pos->packet_real_index = NULL;
+	pos->packet_index = NULL;
 	pos->prot = PROT_READ;
 	pos->flags = MAP_PRIVATE;
 	pos->parent.rw_table = read_dispatch_table;
@@ -2362,25 +2347,20 @@ int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp)
 			cfs = container_of(stream, struct ctf_file_stream,
 					parent);
 			stream_pos = &cfs->pos;
-			if (!stream_pos->packet_cycles_index)
+			if (!stream_pos->packet_index)
 				continue;
 
-			for (k = 0; k < stream_pos->packet_cycles_index->len; k++) {
+			for (k = 0; k < stream_pos->packet_index->len; k++) {
 				struct packet_index *index;
-				struct packet_index new_index;
 
-				index = &g_array_index(stream_pos->packet_cycles_index,
+				index = &g_array_index(stream_pos->packet_index,
 						struct packet_index, k);
-				memcpy(&new_index, index,
-						sizeof(struct packet_index));
-				new_index.timestamp_begin =
+				index->ts_real.timestamp_begin =
 					ctf_get_real_timestamp(stream,
-							index->timestamp_begin);
-				new_index.timestamp_end =
+							index->ts_cycles.timestamp_begin);
+				index->ts_real.timestamp_end =
 					ctf_get_real_timestamp(stream,
-							index->timestamp_end);
-				g_array_append_val(stream_pos->packet_real_index,
-						new_index);
+							index->ts_cycles.timestamp_end);
 			}
 		}
 	}

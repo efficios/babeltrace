@@ -135,10 +135,10 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 	int i, ret;
 
 	stream_pos = &cfs->pos;
-	for (i = 0; i < stream_pos->packet_real_index->len; i++) {
-		index = &g_array_index(stream_pos->packet_real_index,
+	for (i = 0; i < stream_pos->packet_index->len; i++) {
+		index = &g_array_index(stream_pos->packet_index,
 				struct packet_index, i);
-		if (index->timestamp_end < timestamp)
+		if (index->ts_real.timestamp_end < timestamp)
 			continue;
 
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
@@ -229,7 +229,7 @@ static int find_max_timestamp_ctf_file_stream(struct ctf_file_stream *cfs,
 	 * either find at least one event, or we reach the first packet
 	 * (some packets can be empty).
 	 */
-	for (i = stream_pos->packet_real_index->len - 1; i >= 0; i--) {
+	for (i = stream_pos->packet_index->len - 1; i >= 0; i--) {
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
 		count = 0;
 		/* read each event until we reach the end of the stream */

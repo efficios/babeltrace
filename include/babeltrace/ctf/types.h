@@ -44,15 +44,20 @@
 
 struct bt_stream_callbacks;
 
+struct packet_index_time {
+	uint64_t timestamp_begin;
+	uint64_t timestamp_end;
+};
+
 struct packet_index {
 	off_t offset;		/* offset of the packet in the file, in bytes */
 	int64_t data_offset;	/* offset of data within the packet, in bits */
 	uint64_t packet_size;	/* packet size, in bits */
 	uint64_t content_size;	/* content size, in bits */
-	uint64_t timestamp_begin;
-	uint64_t timestamp_end;
 	uint64_t events_discarded;
 	uint64_t events_discarded_len;	/* length of the field, in bits */
+	struct packet_index_time ts_cycles;	/* timestamp in cycles */
+	struct packet_index_time ts_real;	/* realtime timestamp */
 };
 
 /*
@@ -62,8 +67,7 @@ struct ctf_stream_pos {
 	struct bt_stream_pos parent;
 	int fd;			/* backing file fd. -1 if unset. */
 	FILE *index_fp;		/* backing index file fp. NULL if unset. */
-	GArray *packet_cycles_index;	/* contains struct packet_index in cycles */
-	GArray *packet_real_index;	/* contains struct packet_index in ns */
+	GArray *packet_index;	/* contains struct packet_index */
 	int prot;		/* mmap protection */
 	int flags;		/* mmap flags */
 

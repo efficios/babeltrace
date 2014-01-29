@@ -722,7 +722,7 @@ retry:
 	case LTTNG_VIEWER_INDEX_INACTIVE:
 		printf_verbose("get_next_index: inactive\n");
 		memset(index, 0, sizeof(struct packet_index));
-		index->timestamp_end = be64toh(rp.timestamp_end);
+		index->ts_cycles.timestamp_end = be64toh(rp.timestamp_end);
 		break;
 	case LTTNG_VIEWER_INDEX_OK:
 		printf_verbose("get_next_index: Ok, need metadata update : %u\n",
@@ -730,8 +730,8 @@ retry:
 		index->offset = be64toh(rp.offset);
 		index->packet_size = be64toh(rp.packet_size);
 		index->content_size = be64toh(rp.content_size);
-		index->timestamp_begin = be64toh(rp.timestamp_begin);
-		index->timestamp_end = be64toh(rp.timestamp_end);
+		index->ts_cycles.timestamp_begin = be64toh(rp.timestamp_begin);
+		index->ts_cycles.timestamp_end = be64toh(rp.timestamp_end);
 		index->events_discarded = be64toh(rp.events_discarded);
 
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
@@ -803,13 +803,13 @@ retry:
 	}
 
 	if (packet_index.content_size == 0) {
-		file_stream->parent.cycles_timestamp = packet_index.timestamp_end;
+		file_stream->parent.cycles_timestamp = packet_index.ts_cycles.timestamp_end;
 		file_stream->parent.real_timestamp = ctf_get_real_timestamp(
-				&file_stream->parent, packet_index.timestamp_end);
+				&file_stream->parent, packet_index.ts_cycles.timestamp_end);
 	} else {
-		file_stream->parent.cycles_timestamp = packet_index.timestamp_begin;
+		file_stream->parent.cycles_timestamp = packet_index.ts_cycles.timestamp_begin;
 		file_stream->parent.real_timestamp = ctf_get_real_timestamp(
-				&file_stream->parent, packet_index.timestamp_begin);
+				&file_stream->parent, packet_index.ts_cycles.timestamp_begin);
 	}
 
 	if (pos->packet_size == 0 || pos->offset == EOF) {
@@ -833,7 +833,8 @@ retry:
 			", offset %" PRIu64 ", content_size %" PRIu64
 			", timestamp_end : %" PRIu64 "\n",
 			packet_index.packet_size, packet_index.offset,
-			packet_index.content_size, packet_index.timestamp_end);
+			packet_index.content_size,
+			packet_index.ts_cycles.timestamp_end);
 
 	/* update trace_packet_header and stream_packet_context */
 	if (pos->prot != PROT_WRITE && file_stream->parent.trace_packet_header) {
