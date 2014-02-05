@@ -972,6 +972,48 @@ end:
 	return;
 }
 
+int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
+{
+	struct lttng_viewer_cmd cmd;
+	struct lttng_viewer_create_session_response resp;
+	int ret;
+	ssize_t ret_len;
+
+	cmd.cmd = htobe32(LTTNG_VIEWER_CREATE_SESSION);
+	cmd.data_size = 0;
+	cmd.cmd_version = 0;
+
+	do {
+		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
+	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len < 0) {
+		fprintf(stderr, "[error] Error sending cmd\n");
+		ret = ret_len;
+		goto error;
+	}
+	assert(ret_len == sizeof(cmd));
+
+	do {
+		ret_len = recv(ctx->control_sock, &resp, sizeof(resp), 0);
+	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len < 0) {
+		fprintf(stderr, "[error] Error receiving create session reply\n");
+		ret = ret_len;
+		goto error;
+	}
+	assert(ret_len == sizeof(resp));
+
+	if (be32toh(resp.status) != LTTNG_VIEWER_CREATE_SESSION_OK) {
+		fprintf(stderr, "[error] Error creating viewer session\n");
+		ret = -1;
+		goto error;
+	}
+	ret = 0;
+
+error:
+	return ret;
+}
+
 void lttng_live_read(struct lttng_live_ctx *ctx, uint64_t session_id)
 {
 	int ret, active_session = 0;
@@ -1005,6 +1047,11 @@ void lttng_live_read(struct lttng_live_ctx *ctx, uint64_t session_id)
 			trace_descriptor);
 	if (!sout->parent.event_cb)
 		goto end_free;
+
+	ret = lttng_live_create_viewer_session(ctx);
+	if (ret < 0) {
+		goto end_free;
+	}
 
 	/*
 	 * As long as the session is active, we try to reattach to it,
