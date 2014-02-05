@@ -659,12 +659,60 @@ static int babeltrace_filestream_seek(struct ctf_file_stream *file_stream,
 	return ret;
 }
 
+int bt_iter_add_trace(struct bt_iter *iter,
+		struct bt_trace_descriptor *td_read)
+{
+	struct ctf_trace *tin;
+	int stream_id, ret;
+
+	tin = container_of(td_read, struct ctf_trace, parent);
+
+	/* Populate heap with each stream */
+	for (stream_id = 0; stream_id < tin->streams->len;
+			stream_id++) {
+		struct ctf_stream_declaration *stream;
+		int filenr;
+
+		stream = g_ptr_array_index(tin->streams, stream_id);
+		if (!stream)
+			continue;
+		for (filenr = 0; filenr < stream->streams->len;
+				filenr++) {
+			struct ctf_file_stream *file_stream;
+			struct bt_iter_pos pos;
+
+			file_stream = g_ptr_array_index(stream->streams,
+					filenr);
+			if (!file_stream)
+				continue;
+
+			pos.type = BT_SEEK_BEGIN;
+			ret = babeltrace_filestream_seek(file_stream,
+					&pos, stream_id);
+
+			if (ret == EOF) {
+				ret = 0;
+				continue;
+			} else if (ret != 0 && ret != EAGAIN) {
+				goto error;
+			}
+			/* Add to heap */
+			ret = bt_heap_insert(iter->stream_heap, file_stream);
+			if (ret)
+				goto error;
+		}
+	}
+
+error:
+	return ret;
+}
+
 int bt_iter_init(struct bt_iter *iter,
 		struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos,
 		const struct bt_iter_pos *end_pos)
 {
-	int i, stream_id;
+	int i;
 	int ret = 0;
 
 	if (!iter || !ctx)
@@ -685,49 +733,14 @@ int bt_iter_init(struct bt_iter *iter,
 		goto error_heap_init;
 
 	for (i = 0; i < ctx->tc->array->len; i++) {
-		struct ctf_trace *tin;
 		struct bt_trace_descriptor *td_read;
 
 		td_read = g_ptr_array_index(ctx->tc->array, i);
 		if (!td_read)
 			continue;
-		tin = container_of(td_read, struct ctf_trace, parent);
-
-		/* Populate heap with each stream */
-		for (stream_id = 0; stream_id < tin->streams->len;
-				stream_id++) {
-			struct ctf_stream_declaration *stream;
-			int filenr;
-
-			stream = g_ptr_array_index(tin->streams, stream_id);
-			if (!stream)
-				continue;
-			for (filenr = 0; filenr < stream->streams->len;
-					filenr++) {
-				struct ctf_file_stream *file_stream;
-				struct bt_iter_pos pos;
-
-				file_stream = g_ptr_array_index(stream->streams,
-						filenr);
-				if (!file_stream)
-					continue;
-
-				pos.type = BT_SEEK_BEGIN;
-				ret = babeltrace_filestream_seek(file_stream,
-					&pos, stream_id);
-
-				if (ret == EOF) {
-					ret = 0;
-					continue;
-				} else if (ret != 0 && ret != EAGAIN) {
-					goto error;
-				}
-				/* Add to heap */
-				ret = bt_heap_insert(iter->stream_heap, file_stream);
-				if (ret)
-					goto error;
-			}
-		}
+		ret = bt_iter_add_trace(iter, td_read);
+		if (ret < 0)
+			goto error;
 	}
 
 	ctx->current_iterator = iter;

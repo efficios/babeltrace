@@ -67,5 +67,7 @@ int bt_iter_init(struct bt_iter *iter,
 		const struct bt_iter_pos *begin_pos,
 		const struct bt_iter_pos *end_pos);
 void bt_iter_fini(struct bt_iter *iter);
+int bt_iter_add_trace(struct bt_iter *iter,
+		struct bt_trace_descriptor *td_read);
 
 #endif /* _BABELTRACE_ITERATOR_INTERNAL_H */
