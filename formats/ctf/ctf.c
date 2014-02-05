@@ -2324,6 +2324,7 @@ struct bt_trace_descriptor *ctf_open_mmap_trace(
 		goto error;
 	}
 	td = g_new0(struct ctf_trace, 1);
+	td->dirfd = -1;
 	ret = ctf_open_mmap_trace_read(td, mmap_list, packet_seek, metadata_fp);
 	if (ret)
 		goto error_free;

@@ -41,13 +41,12 @@
 /*
  * hostname parameter needs to hold NAME_MAX chars.
  */
-static int parse_url(const char *path, char *hostname, int *port,
-		uint64_t *session_id, GArray *session_ids)
+static
+int parse_url(const char *path, struct lttng_live_ctx *ctx)
 {
 	char remain[3][NAME_MAX];
 	int ret = -1, proto, proto_offset = 0;
 	size_t path_len = strlen(path);
-	char *str, *strctx;
 
 	/*
 	 * Since sscanf API does not allow easily checking string length
@@ -72,12 +71,12 @@ static int parse_url(const char *path, char *hostname, int *port,
 	/* TODO : parse for IPv6 as well */
 	/* Parse the hostname or IP */
 	ret = sscanf(&path[proto_offset], "%[a-zA-Z.0-9%-]%s",
-		hostname, remain[0]);
+		ctx->relay_hostname, remain[0]);
 	if (ret == 2) {
 		/* Optional port number */
 		switch (remain[0][0]) {
 		case ':':
-			ret = sscanf(remain[0], ":%d%s", port, remain[1]);
+			ret = sscanf(remain[0], ":%d%s", &ctx->port, remain[1]);
 			/* Optional session ID with port number */
 			if (ret == 2) {
 				ret = sscanf(remain[1], "/%s", remain[2]);
@@ -103,34 +102,29 @@ static int parse_url(const char *path, char *hostname, int *port,
 		}
 	}
 
-	if (*port < 0)
-		*port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
+	if (ctx->port < 0)
+		ctx->port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
 
 	if (strlen(remain[2]) == 0) {
 		printf_verbose("Connecting to hostname : %s, port : %d, "
 				"proto : IPv%d\n",
-				hostname, *port, proto);
+				ctx->relay_hostname, ctx->port, proto);
 		ret = 0;
+		goto end;
+	}
+	ret = sscanf(remain[2], "host/%[a-zA-Z.0-9%-]/%s",
+			ctx->traced_hostname, ctx->session_name);
+	if (ret != 2) {
+		fprintf(stderr, "[error] Format : "
+			"net://<hostname>/host/<traced_hostname>/<session_name>\n");
 		goto end;
 	}
 
 	printf_verbose("Connecting to hostname : %s, port : %d, "
-			"session id(s) : %s, proto : IPv%d\n",
-			hostname, *port, remain[2], proto);
-	str = strtok_r(remain[2], ",", &strctx);
-	do {
-		char *endptr;
-		uint64_t id;
-
-		id = strtoull(str, &endptr, 0);
-		if (*endptr != '\0' || str == endptr || errno != 0) {
-			fprintf(stderr, "[error] parsing session id\n");
-			ret = -1;
-			goto end;
-		}
-		g_array_append_val(session_ids, id);
-	} while ((str = strtok_r(NULL, ",", &strctx)));
-
+			"traced hostname : %s, session name : %s, "
+			"proto : IPv%d\n",
+			ctx->relay_hostname, ctx->port, ctx->traced_hostname,
+			ctx->session_name, proto);
 	ret = 0;
 
 end:
@@ -139,56 +133,53 @@ end:
 
 static int lttng_live_open_trace_read(const char *path)
 {
-	char hostname[NAME_MAX];
-	int port = -1;
-	uint64_t session_id = -1ULL;
 	int ret = 0;
-	struct lttng_live_ctx ctx;
+	struct lttng_live_ctx *ctx;
 
-	ctx.session = g_new0(struct lttng_live_session, 1);
+	ctx = g_new0(struct lttng_live_ctx, 1);
+	ctx->session = g_new0(struct lttng_live_session, 1);
 
 	/* We need a pointer to the context from the packet_seek function. */
-	ctx.session->ctx = &ctx;
+	ctx->session->ctx = ctx;
 
 	/* HT to store the CTF traces. */
-	ctx.session->ctf_traces = g_hash_table_new(g_direct_hash,
+	ctx->session->ctf_traces = g_hash_table_new(g_direct_hash,
 			g_direct_equal);
+	ctx->port = -1;
+	ctx->session_ids = g_array_new(FALSE, TRUE, sizeof(uint64_t));
 
-	ctx.session_ids = g_array_new(FALSE, TRUE, sizeof(uint64_t));
-
-	ret = parse_url(path, hostname, &port, &session_id, ctx.session_ids);
+	ret = parse_url(path, ctx);
 	if (ret < 0) {
 		goto end_free;
 	}
 
-	ret = lttng_live_connect_viewer(&ctx, hostname, port);
+	ret = lttng_live_connect_viewer(ctx);
 	if (ret < 0) {
 		fprintf(stderr, "[error] Connection failed\n");
 		goto end_free;
 	}
 	printf_verbose("LTTng-live connected to relayd\n");
 
-	ret = lttng_live_establish_connection(&ctx);
+	ret = lttng_live_establish_connection(ctx);
 	if (ret < 0) {
 		goto end_free;
 	}
 
-	if (ctx.session_ids->len == 0) {
-		printf_verbose("Listing sessions\n");
-		ret = lttng_live_list_sessions(&ctx, path);
-		if (ret < 0) {
-			fprintf(stderr, "[error] List error\n");
-			goto end_free;
-		}
-	} else {
-		lttng_live_read(&ctx);
+	printf_verbose("Listing sessions\n");
+	ret = lttng_live_list_sessions(ctx, path);
+	if (ret < 0) {
+		fprintf(stderr, "[error] List error\n");
+		goto end_free;
 	}
 
+	if (ctx->session_ids->len > 0)
+		lttng_live_read(ctx);
+
 end_free:
-	g_array_free(ctx.session_ids, TRUE);
-	g_hash_table_destroy(ctx.session->ctf_traces);
-	g_free(ctx.session);
-	g_free(ctx.session->streams);
+	g_hash_table_destroy(ctx->session->ctf_traces);
+	g_free(ctx->session);
+	g_free(ctx->session->streams);
+	g_free(ctx);
 	return ret;
 }
 

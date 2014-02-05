@@ -33,10 +33,14 @@
 #define LTTNG_LIVE_MINOR			4
 
 struct lttng_live_ctx {
+	char traced_hostname[NAME_MAX];
+	char session_name[NAME_MAX];
+	char relay_hostname[NAME_MAX];
 	int control_sock;
+	int port;
 	struct lttng_live_session *session;
-	GArray *session_ids;
 	struct bt_context *bt_ctx;
+	GArray *session_ids;
 };
 
 struct lttng_live_viewer_stream {
@@ -67,8 +71,16 @@ struct lttng_live_ctf_trace {
 	int in_use;
 };
 
-int lttng_live_connect_viewer(struct lttng_live_ctx *ctx, char *hostname,
-		int port);
+/* Just used in listing. */
+struct lttng_live_relay_session {
+	uint32_t streams;
+	uint32_t clients;
+	uint32_t timer;
+	char *name;
+	char *hostname;
+};
+
+int lttng_live_connect_viewer(struct lttng_live_ctx *ctx);
 int lttng_live_establish_connection(struct lttng_live_ctx *ctx);
 int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path);
 int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id);
