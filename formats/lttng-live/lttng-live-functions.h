@@ -35,6 +35,8 @@
 struct lttng_live_ctx {
 	int control_sock;
 	struct lttng_live_session *session;
+	GArray *session_ids;
+	struct bt_context *bt_ctx;
 };
 
 struct lttng_live_viewer_stream {
@@ -62,6 +64,7 @@ struct lttng_live_ctf_trace {
 	GPtrArray *streams;
 	FILE *metadata_fp;
 	int trace_id;
+	int in_use;
 };
 
 int lttng_live_connect_viewer(struct lttng_live_ctx *ctx, char *hostname,
@@ -69,6 +72,7 @@ int lttng_live_connect_viewer(struct lttng_live_ctx *ctx, char *hostname,
 int lttng_live_establish_connection(struct lttng_live_ctx *ctx);
 int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path);
 int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id);
-void lttng_live_read(struct lttng_live_ctx *ctx, uint64_t session_id);
+void lttng_live_read(struct lttng_live_ctx *ctx);
+int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id);
 
 #endif /* _LTTNG_LIVE_FUNCTIONS_H */

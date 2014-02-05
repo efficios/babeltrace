@@ -42,11 +42,12 @@
  * hostname parameter needs to hold NAME_MAX chars.
  */
 static int parse_url(const char *path, char *hostname, int *port,
-		uint64_t *session_id)
+		uint64_t *session_id, GArray *session_ids)
 {
-	char remain[2][NAME_MAX];
+	char remain[3][NAME_MAX];
 	int ret = -1, proto, proto_offset = 0;
 	size_t path_len = strlen(path);
+	char *str, *strctx;
 
 	/*
 	 * Since sscanf API does not allow easily checking string length
@@ -79,8 +80,7 @@ static int parse_url(const char *path, char *hostname, int *port,
 			ret = sscanf(remain[0], ":%d%s", port, remain[1]);
 			/* Optional session ID with port number */
 			if (ret == 2) {
-				ret = sscanf(remain[1], "/%" PRIu64,
-					session_id);
+				ret = sscanf(remain[1], "/%s", remain[2]);
 				/* Accept 0 or 1 (optional) */
 				if (ret < 0) {
 					goto end;
@@ -89,7 +89,7 @@ static int parse_url(const char *path, char *hostname, int *port,
 			break;
 		case '/':
 			/* Optional session ID */
-			ret = sscanf(remain[0], "/%" PRIu64, session_id);
+			ret = sscanf(remain[0], "/%s", remain[2]);
 			/* Accept 0 or 1 (optional) */
 			if (ret < 0) {
 				goto end;
@@ -106,14 +106,31 @@ static int parse_url(const char *path, char *hostname, int *port,
 	if (*port < 0)
 		*port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
 
-	if (*session_id == -1ULL)
+	if (strlen(remain[2]) == 0) {
 		printf_verbose("Connecting to hostname : %s, port : %d, "
 				"proto : IPv%d\n",
 				hostname, *port, proto);
-	else
-		printf_verbose("Connecting to hostname : %s, port : %d, "
-				"session id : %" PRIu64 ", proto : IPv%d\n",
-				hostname, *port, *session_id, proto);
+		ret = 0;
+		goto end;
+	}
+
+	printf_verbose("Connecting to hostname : %s, port : %d, "
+			"session id(s) : %s, proto : IPv%d\n",
+			hostname, *port, remain[2], proto);
+	str = strtok_r(remain[2], ",", &strctx);
+	do {
+		char *endptr;
+		uint64_t id;
+
+		id = strtoull(str, &endptr, 0);
+		if (*endptr != '\0' || str == endptr || errno != 0) {
+			fprintf(stderr, "[error] parsing session id\n");
+			ret = -1;
+			goto end;
+		}
+		g_array_append_val(session_ids, id);
+	} while ((str = strtok_r(NULL, ",", &strctx)));
+
 	ret = 0;
 
 end:
@@ -137,7 +154,9 @@ static int lttng_live_open_trace_read(const char *path)
 	ctx.session->ctf_traces = g_hash_table_new(g_direct_hash,
 			g_direct_equal);
 
-	ret = parse_url(path, hostname, &port, &session_id);
+	ctx.session_ids = g_array_new(FALSE, TRUE, sizeof(uint64_t));
+
+	ret = parse_url(path, hostname, &port, &session_id, ctx.session_ids);
 	if (ret < 0) {
 		goto end_free;
 	}
@@ -154,7 +173,7 @@ static int lttng_live_open_trace_read(const char *path)
 		goto end_free;
 	}
 
-	if (session_id == -1ULL) {
+	if (ctx.session_ids->len == 0) {
 		printf_verbose("Listing sessions\n");
 		ret = lttng_live_list_sessions(&ctx, path);
 		if (ret < 0) {
@@ -162,10 +181,11 @@ static int lttng_live_open_trace_read(const char *path)
 			goto end_free;
 		}
 	} else {
-		lttng_live_read(&ctx, session_id);
+		lttng_live_read(&ctx);
 	}
 
 end_free:
+	g_array_free(ctx.session_ids, TRUE);
 	g_hash_table_destroy(ctx.session->ctf_traces);
 	g_free(ctx.session);
 	g_free(ctx.session->streams);
