@@ -1,5 +1,5 @@
-#ifndef LTTNG_VIEWER_H
-#define LTTNG_VIEWER_H
+#ifndef LTTNG_VIEWER_ABI_H
+#define LTTNG_VIEWER_ABI_H
 
 /*
  * Copyright (C) 2013 - Julien Desfossez <jdesfossez@efficios.com>
@@ -46,6 +46,8 @@ enum lttng_viewer_command {
 	LTTNG_VIEWER_GET_NEXT_INDEX	= 4,
 	LTTNG_VIEWER_GET_PACKET		= 5,
 	LTTNG_VIEWER_GET_METADATA	= 6,
+	LTTNG_VIEWER_GET_NEW_STREAMS	= 7,
+	LTTNG_VIEWER_CREATE_SESSION	= 8,
 };
 
 enum lttng_viewer_attach_return_code {
@@ -54,6 +56,7 @@ enum lttng_viewer_attach_return_code {
 	LTTNG_VIEWER_ATTACH_UNK		= 3, /* The session ID is unknown. */
 	LTTNG_VIEWER_ATTACH_NOT_LIVE	= 4, /* The session is not live. */
 	LTTNG_VIEWER_ATTACH_SEEK_ERR	= 5, /* Seek error. */
+	LTTNG_VIEWER_ATTACH_NO_SESSION	= 6, /* No viewer session created. */
 };
 
 enum lttng_viewer_next_index_return_code {
@@ -90,6 +93,17 @@ enum lttng_viewer_seek {
 	LTTNG_VIEWER_SEEK_LAST		= 2,
 };
 
+enum lttng_viewer_new_streams_return_code {
+	LTTNG_VIEWER_NEW_STREAMS_OK           = 1, /* If new streams are being sent. */
+	LTTNG_VIEWER_NEW_STREAMS_NO_NEW       = 2, /* If no new streams are available. */
+	LTTNG_VIEWER_NEW_STREAMS_ERR          = 3, /* Error. */
+};
+
+enum lttng_viewer_create_session_return_code {
+	LTTNG_VIEWER_CREATE_SESSION_OK		= 1,
+	LTTNG_VIEWER_CREATE_SESSION_ERR		= 2,
+};
+
 struct lttng_viewer_session {
 	uint64_t id;
 	uint32_t live_timer;
@@ -102,7 +116,7 @@ struct lttng_viewer_session {
 struct lttng_viewer_stream {
 	uint64_t id;
 	uint64_t ctf_trace_id;
-	int metadata_flag;
+	uint32_t metadata_flag;
 	char path_name[LTTNG_VIEWER_PATH_MAX];
 	char channel_name[LTTNG_VIEWER_NAME_MAX];
 } __attribute__((__packed__));
@@ -197,4 +211,24 @@ struct lttng_viewer_metadata_packet {
 	char data[];
 } __attribute__((__packed__));
 
-#endif /* LTTNG_VIEWER_H */
+/*
+ * LTTNG_VIEWER_GET_NEW_STREAMS payload.
+ */
+struct lttng_viewer_new_streams_request {
+	uint64_t session_id;
+} __attribute__((__packed__));
+
+struct lttng_viewer_new_streams_response {
+	/* enum lttng_viewer_new_streams_return_code */
+	uint32_t status;
+	uint32_t streams_count;
+	/* struct lttng_viewer_stream */
+	char stream_list[];
+} __attribute__((__packed__));
+
+struct lttng_viewer_create_session_response {
+	/* enum lttng_viewer_create_session_return_code */
+	uint32_t status;
+} __attribute__((__packed__));
+
+#endif /* LTTNG_VIEWER_ABI_H */

@@ -50,7 +50,7 @@
 #include <formats/ctf/events-private.h>
 
 #include "lttng-live-functions.h"
-#include "lttng-viewer.h"
+#include "lttng-viewer-abi.h"
 
 /*
  * Memory allocation zeroed
