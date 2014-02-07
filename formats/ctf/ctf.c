@@ -1886,6 +1886,12 @@ int import_stream_packet_index(struct ctf_trace *td,
 		g_array_append_val(file_stream->pos.packet_cycles_index, index);
 	}
 
+	/* Index containing only the header. */
+	if (!file_stream->parent.stream_class) {
+		ret = -1;
+		goto error;
+	}
+
 	ret = 0;
 
 error:
