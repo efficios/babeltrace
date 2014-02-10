@@ -36,7 +36,7 @@
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "lttng-live-functions.h"
+#include "lttng-live.h"
 
 /*
  * hostname parameter needs to hold NAME_MAX chars.

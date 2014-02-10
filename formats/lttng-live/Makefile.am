@@ -4,10 +4,10 @@ lib_LTLIBRARIES = libbabeltrace-lttng-live.la
 
 noinst_HEADERS = \
 		 lttng-viewer-abi.h \
-		 lttng-live-functions.h
+		 lttng-live.h
 
 libbabeltrace_lttng_live_la_SOURCES = \
-	lttng-live.c lttng-live-functions.c
+	lttng-live-plugin.c lttng-live-comm.c
 
 libbabeltrace_lttng_live_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la

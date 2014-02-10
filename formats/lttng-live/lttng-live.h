@@ -1,5 +1,5 @@
-#ifndef _LTTNG_LIVE_FUNCTIONS_H
-#define _LTTNG_LIVE_FUNCTIONS_H
+#ifndef _LTTNG_LIVE_H
+#define _LTTNG_LIVE_H
 
 /*
  * Copyright 2013 Julien Desfossez <julien.desfossez@efficios.com>
@@ -87,4 +87,4 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id);
 void lttng_live_read(struct lttng_live_ctx *ctx);
 int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id);
 
-#endif /* _LTTNG_LIVE_FUNCTIONS_H */
+#endif /* _LTTNG_LIVE_H */

@@ -49,7 +49,7 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <formats/ctf/events-private.h>
 
-#include "lttng-live-functions.h"
+#include "lttng-live.h"
 #include "lttng-viewer-abi.h"
 
 /*
