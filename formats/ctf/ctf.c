@@ -887,9 +887,12 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 				return;
 			}
 			assert(pos->cur_index < pos->packet_index->len);
-			if (index > 0) {
+			packet_index = &g_array_index(pos->packet_index,
+					struct packet_index, pos->cur_index);
+			if (pos->cur_index > 0) {
 				prev_index = &g_array_index(pos->packet_index,
-						struct packet_index, index - 1);
+						struct packet_index,
+						pos->cur_index - 1);
 			}
 			ctf_update_current_packet_index(&file_stream->parent,
 					prev_index, packet_index);
