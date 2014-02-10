@@ -1,0 +1,27 @@
+LTTNG LIVE
+----------
+
+This is a brief howto for using the Babeltrace with LTTng live protocol.
+LTTng live allows the user to read a trace while it is running.
+
+In order to create a live LTTng session, please refer to the LTTng
+documentation (version >= 2.4).
+
+Once the session is created and Babeltrace is installed, you can list the
+sessions with :
+$ babeltrace -i lttng-live net://<your-relayd-hostname>
+
+The output should look like this :
+net://localhost/host/myhostname/mysessionname (timer = 1000000, 5 stream(s), 0 client(s) connected)
+
+It means that the session mysessionname on the host myhostname is currently
+streaming its data to the relayd on localhost.
+
+To attach to this session and start receiving the trace :
+$ babeltrace -i lttng-live net://localhost/host/myhostname/mysessionname
+
+You should now see trace data flowing in your console when events are produced.
+
+To report bugs, please use the same procedure as reporting bugs to Babeltrace,
+but don't forget to add the -v to the commands above to provide enough debug
+information.
