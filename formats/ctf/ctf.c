@@ -1811,7 +1811,6 @@ static
 int import_stream_packet_index(struct ctf_trace *td,
 		struct ctf_file_stream *file_stream)
 {
-	struct ctf_stream_declaration *stream;
 	struct ctf_stream_pos *pos;
 	struct ctf_packet_index ctf_index;
 	struct ctf_packet_index_file_hdr index_hdr;
@@ -1852,6 +1851,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 	while (fread(&ctf_index, index_hdr.packet_index_len, 1,
 			pos->index_fp) == 1) {
 		uint64_t stream_id;
+		struct ctf_stream_declaration *stream = NULL;
 
 		memset(&index, 0, sizeof(index));
 		index.offset = be64toh(ctf_index.offset);
@@ -1871,7 +1871,9 @@ int import_stream_packet_index(struct ctf_trace *td,
 		}
 
 		file_stream->parent.stream_id = stream_id;
-		stream = g_ptr_array_index(td->streams, stream_id);
+		if (stream_id < td->streams->len) {
+			stream = g_ptr_array_index(td->streams, stream_id);
+		}
 		if (!stream) {
 			fprintf(stderr, "[error] Stream %" PRIu64
 					" is not declared in metadata.\n",
