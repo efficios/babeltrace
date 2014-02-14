@@ -142,6 +142,11 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 	do {
 		ret_len = recv(ctx->control_sock, &connect, sizeof(connect), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving version\n");
 		ret = ret_len;
@@ -254,6 +259,11 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 	do {
 		ret_len = recv(ctx->control_sock, &list, sizeof(list), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving session list\n");
 		ret = ret_len;
@@ -266,6 +276,11 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 		do {
 			ret_len = recv(ctx->control_sock, &lsession, sizeof(lsession), 0);
 		} while (ret_len < 0 && errno == EINTR);
+		if (ret_len == 0) {
+			fprintf(stderr, "[error] Remote side has closed connection\n");
+			ret = -1;
+			goto error;
+		}
 		if (ret_len < 0) {
 			fprintf(stderr, "[error] Error receiving session\n");
 			ret = ret_len;
@@ -373,6 +388,11 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 	do {
 		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving attach response\n");
 		ret = ret_len;
@@ -427,6 +447,11 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		do {
 			ret_len = recv(ctx->control_sock, &stream, sizeof(stream), 0);
 		} while (ret_len < 0 && errno == EINTR);
+		if (ret_len == 0) {
+			fprintf(stderr, "[error] Remote side has closed connection\n");
+			ret = -1;
+			goto error;
+		}
 		if (ret_len < 0) {
 			fprintf(stderr, "[error] Error receiving stream\n");
 			ret = ret_len;
@@ -573,6 +598,11 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 	do {
 		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving data response\n");
 		ret = ret_len;
@@ -665,6 +695,11 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 			mmap_align_addr(pos->base_mma), len,
 			MSG_WAITALL);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving trace packet\n");
 		ret = ret_len;
@@ -724,6 +759,11 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 	do {
 		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving metadata response\n");
 		ret = ret_len;
@@ -765,6 +805,12 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 	do {
 		ret_len = recv(ctx->control_sock, data, len, MSG_WAITALL);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		free(data);
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving trace packet\n");
 		ret = ret_len;
@@ -840,6 +886,11 @@ retry:
 	do {
 		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving index response\n");
 		ret = ret_len;
@@ -1066,6 +1117,11 @@ int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
 	do {
 		ret_len = recv(ctx->control_sock, &resp, sizeof(resp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving create session reply\n");
 		ret = ret_len;
@@ -1221,6 +1277,11 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	do {
 		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
 	} while (ret_len < 0 && errno == EINTR);
+	if (ret_len == 0) {
+		fprintf(stderr, "[error] Remote side has closed connection\n");
+		ret = -1;
+		goto error;
+	}
 	if (ret_len < 0) {
 		fprintf(stderr, "[error] Error receiving get_new_streams response\n");
 		ret = ret_len;
@@ -1267,6 +1328,11 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		do {
 			ret_len = recv(ctx->control_sock, &stream, sizeof(stream), 0);
 		} while (ret_len < 0 && errno == EINTR);
+		if (ret_len == 0) {
+			fprintf(stderr, "[error] Remote side has closed connection\n");
+			ret = -1;
+			goto error;
+		}
 		if (ret_len < 0) {
 			fprintf(stderr, "[error] Error receiving stream\n");
 			ret = ret_len;
