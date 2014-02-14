@@ -1,3 +1,151 @@
+2014-02-14 Babeltrace 1.2.0-rc1
+	* Cleanup: lttng-live: use perror() rather than fprintf for err msg
+	* Fix: lttng-live: handle orderly shutdown
+	* Fix: Unchecked array index when importing trace indexes
+	* LTTng-live usage documentation
+	* Fix: ctf: uninitialized packet_index, misuse of index
+	* Cleanup: rename lttng live implementation files
+	* Attach and list by session name and hostname
+	* get_new_streams and multi-session
+	* Create the live viewer session before attaching
+	* Sync lttng live ABI with lttng-tools
+	* Extract adding a trace to the iterator from bt_iter_init
+	* Compute discarded events in live
+	* Merge real index and cycles index into a single index
+	* Fix: import index containing only a header
+	* Remove outdated Python bindings test
+	* Fix: replace assert with proper error handling
+	* Fix: lttng-live: unbounded use of sscanf() in parse_url()
+	* Fix: lttng-live should accept 0 in addresses
+	* Remove default to display field names in live
+	* Remove null checks on g_new0
+	* Cleanup: iterator unused pointer value
+	* Fix: lttng-live: resource leak
+	* Fix: lttng-live uninitialized scalar variable
+	* Fix: lttng-live non NULL-terminated strings
+	* lttng-live: fix unchecked mkdir return value
+	* lttng-live input plugin
+	* Live: let read API detect inactive streams, allow streams without fd
+	* Add Jérémie Galarneau as co-maintainer
+	* Fix: disallow re-using same event ID in same stream
+	* Fix: check for unknown enum/variant fields
+	* Fix: libbabeltrace lib build dependencies
+	* Fixes in babeltrace core to support non-CTF traces
+	* Add a private pointer to the ctf_stream_pos
+	* Be more widely accepting for missing variant/enum fields
+	* Cleanup: remove index_read (unused var)
+	* Refuse 0 integer size
+	* Fix ctf-writer: possible use after free
+	* Fix data_offset when importing the indexes
+	* Merge branch 'master' into bindings/python
+	* Python-bindings fix: Out of tree build fails to find babeltrace.i
+	* Test: Validate that enumeration mapping strings are properly escaped
+	* Fix ctf-writer: Quote strings provided as enumeration mappings
+	* Fix: read/write mode check
+	* Cleanup: do not duplicate code in float fix
+	* Fix: floats should set content size in tmp definition
+	* Handle empty streams on iterator init
+	* Handle packets containing only a header
+	* Handle the inactive streams
+	* Fix: test content size vs headers len
+	* Fix: check packet index len
+	* Fix: uncheck null pointer
+	* Fix: test for less than 1 byte packets
+	* Fix: reversed logic in packet vs content size
+	* Fix: clarify end of packet error
+	* Fix: string packet boundary handling, bits vs bytes
+	* Fix: add stricter checks on packet boundaries
+	* Parse CTF indexes
+	* Cleanup: fix typo
+	* Fix: fail when reading 0 byte event
+	* Python-bindings fix: outdated dist target babeltrace.i
+	* Python-bindings: Refactor the CTFWriter API
+	* Fix: bt_ctf_field_generic_validate should return < 0 on error
+	* Fix: Take the iterator's end position into account
+	* Fix: Use the bt_iter_set_pos function to set the begin_pos
+	* Python-bindings: Move declaration bindings out of the _Definition class
+	* Python-bindings: Refactor the FieldDecl and EventDecl classes
+	* Python-bindings: Move the _scopes array out of the Event class
+	* Python-bindings: Refactor the Event class
+	* Python-bindings: Refactor the TraceHandle class to use properties
+	* Python-bindings: Refactor the Context class
+	* Test ctf-writer: Verify that enumerations are validated before use
+	* Fix ctf-writer: Reject enumerations containing no mappings
+	* Fix lint warnings
+	* Expose text arrays the same way as regular arrays
+	* Don't generate Python bindings by default
+	* Add a usage example for the CTF Writer Python bindings
+	* Add CTF Writer Python bindings
+	* Rename the ctf class to CTFReader
+	* Fix: Python bindings array access functions write out of bounds
+	* Add support for structure fields in the Python bindings
+	* Add support for variant fields in the Python bindings
+	* Add support for floating point fields in the Python bindings
+	* Fix: Use of functions not provided by glib 2.22
+	* Fix: Throw a FieldError exception when get_value() fails
+	* Remove Python 2 specific examples
+	* Add a python bindings sequence test
+	* Support for the sequence type
+	* Add a generic get_value() implementation
+	* Support getting the value of enums
+	* Remove the unnecessary underscore prefix
+	* Return event fields by field name
+	* Merge branch 'master' into bindings/python
+	* ctf writer BSD compatibily: remove O_DIRECTORY
+	* Fix ctf writer lints
+	* linter fix: comparison of fd >= 0
+	* test ctf writer: fix lints
+	* ctf-writer: fix linter defects
+	* ctf-writer: Coding style fix
+	* Tests: Add a CTF Writer test
+	* Add CTF Writer implementation
+	* Add public CTF Writer API headers
+	* Fix: Don't create a new packet if ctf_move_pos() seeks out of a packet
+	* Fix: Uninitialized ctf_stream_pos structure in ctf_float_write()
+	* Fix: Use the packet's final size when mmap-ing the next packet
+	* Fix: Close traces on context destruction
+	* gcc warning fix: -Wextra
+	* Declare enum type to use from C++
+	* Fix: test_seek should only output one TAP plan
+	* Revert "Add missing declaration of ssize_t as unsigned long for SWIG"
+	* Add missing declaration of ssize_t as unsigned long for SWIG
+	* Fix (python): use of braces in format strings
+	* Add missing call to _bt_ctf_get_decl_from_def() when calling _bt_ctf_get_int_len().
+	* Merge branch 'master' into bindings/python
+	* Fix: test_seek static linking
+	* Tests: fix string octal encoding
+	* Add missing Makefile.am
+	* make check VPATH build
+	* Add missing test files to make dist
+	* Tests: Use Perl prove as the testsuite runner
+	* Tests: Add trace reading test with babeltrace bin
+	* Tests: Split lib tests in multiple standalone test scripts
+	* Tests: Rename tests under lib with tests naming convention
+	* Tests: Move TAP helpers to tests/utils/tap
+	* Fix ctf_clock_declaration_visit returning an error when reading a boolean
+	* Fix CTF parser hang with bison 3.0
+	* Add missing lex/bison generated files to make clean
+	* Put the libbabeltrace-ctf specific parts of babeltrace.pc into a babeltrace-ctf.pc file
+	* Test for presence of bison and flex when building from git
+	* Fix: Unchecked asprintf/vasprintf return values
+	* Missing NULL pointer init in tap.c
+	* Add bt_unregister_format function support
+	* Fix: libcompat should be noinst (statically linked)
+	* Add MinGW definitions to endian.h
+	* Add MinGW implementation of UUID functions
+	* Add Windows exe files to .gitignore
+	* Add MinGW32 libraries to executables
+	* Move strerror_r to compat directory
+	* Document: manpage: chronologically ordered events
+	* Make python bindings compile with trunk
+	* Merge branch 'master' into bindings/python
+	* babeltrace-log: UTC timestamps
+	* Cleanup: comment mismatch with code
+	* Add unit test validating seeking to last event of a trace
+	* Remove unused function bt_trace_handle_get_id
+	* Cleanup: remove whitespaces at end of lines
+	* Remove extra -I for python bindings
+
 2013-06-18 Babeltrace 1.1.1
 	* Compare traces by stream path as secondary key
 	* Fix: use index, not cur_index, for SEEK_SET validation
