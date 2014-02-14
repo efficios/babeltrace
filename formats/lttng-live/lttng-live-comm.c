@@ -123,7 +123,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -133,7 +133,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 		ret_len = send(ctx->control_sock, &connect, sizeof(connect), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending version\n");
+		perror("[error] Error sending version");
 		ret = ret_len;
 		goto error;
 	}
@@ -148,7 +148,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving version\n");
+		perror("[error] Error receiving version");
 		ret = ret_len;
 		goto error;
 	}
@@ -250,7 +250,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -265,7 +265,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving session list\n");
+		perror("[error] Error receiving session list");
 		ret = ret_len;
 		goto error;
 	}
@@ -282,7 +282,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 			goto error;
 		}
 		if (ret_len < 0) {
-			fprintf(stderr, "[error] Error receiving session\n");
+			perror("[error] Error receiving session");
 			ret = ret_len;
 			goto error;
 		}
@@ -369,7 +369,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -379,7 +379,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending attach request\n");
+		perror("[error] Error sending attach request");
 		ret = ret_len;
 		goto error;
 	}
@@ -394,7 +394,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving attach response\n");
+		perror("[error] Error receiving attach response");
 		ret = ret_len;
 		goto error;
 	}
@@ -407,7 +407,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ret = -LTTNG_VIEWER_ATTACH_UNK;
 		goto end;
 	case LTTNG_VIEWER_ATTACH_ALREADY:
-		fprintf(stderr, "[error] Already a viewer attached\n");
+		fprintf(stderr, "[error] There is already a viewer attached to this session\n");
 		ret = -1;
 		goto end;
 	case LTTNG_VIEWER_ATTACH_NOT_LIVE:
@@ -453,7 +453,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 			goto error;
 		}
 		if (ret_len < 0) {
-			fprintf(stderr, "[error] Error receiving stream\n");
+			perror("[error] Error receiving stream");
 			ret = ret_len;
 			goto error;
 		}
@@ -579,7 +579,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -589,7 +589,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending get_data_packet request\n");
+		perror("[error] Error sending get_data_packet request");
 		ret = ret_len;
 		goto error;
 	}
@@ -604,7 +604,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving data response\n");
+		perror("[error] Error receiving data response");
 		ret = ret_len;
 		goto error;
 	}
@@ -667,8 +667,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 			/* unmap old base */
 			ret = munmap_align(pos->base_mma);
 			if (ret) {
-				fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
-					strerror(errno));
+				perror("[error] Unable to unmap old base");
 				ret = -1;
 				goto error;
 			}
@@ -678,8 +677,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		if (pos->base_mma == MAP_FAILED) {
-			fprintf(stderr, "[error] mmap error %s.\n",
-				strerror(errno));
+			perror("[error] mmap error");
 			pos->base_mma = NULL;
 			ret = -1;
 			goto error;
@@ -701,7 +699,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving trace packet\n");
+		perror("[error] Error receiving trace packet");
 		ret = ret_len;
 		goto error;
 	}
@@ -740,7 +738,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -750,7 +748,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending get_metadata request\n");
+		perror("[error] Error sending get_metadata request");
 		ret = ret_len;
 		goto error;
 	}
@@ -765,7 +763,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving metadata response\n");
+		perror("[error] Error receiving metadata response");
 		ret = ret_len;
 		goto error;
 	}
@@ -812,7 +810,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving trace packet\n");
+		perror("[error] Error receiving trace packet");
 		ret = ret_len;
 		free(data);
 		goto error;
@@ -867,7 +865,7 @@ retry:
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -877,7 +875,7 @@ retry:
 		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending get_next_index request\n");
+		perror("[error] Error sending get_next_index request");
 		ret = ret_len;
 		goto error;
 	}
@@ -892,7 +890,7 @@ retry:
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving index response\n");
+		perror("[error] Error receiving index response");
 		ret = ret_len;
 		goto error;
 	}
@@ -1108,7 +1106,7 @@ int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -1123,7 +1121,7 @@ int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving create session reply\n");
+		perror("[error] Error receiving create session reply");
 		ret = ret_len;
 		goto error;
 	}
@@ -1258,7 +1256,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending cmd\n");
+		perror("[error] Error sending cmd");
 		ret = ret_len;
 		goto error;
 	}
@@ -1268,7 +1266,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error sending get_new_streams request\n");
+		perror("[error] Error sending get_new_streams request");
 		ret = ret_len;
 		goto error;
 	}
@@ -1283,7 +1281,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		goto error;
 	}
 	if (ret_len < 0) {
-		fprintf(stderr, "[error] Error receiving get_new_streams response\n");
+		perror("[error] Error receiving get_new_streams response");
 		ret = ret_len;
 		goto error;
 	}
@@ -1334,7 +1332,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 			goto error;
 		}
 		if (ret_len < 0) {
-			fprintf(stderr, "[error] Error receiving stream\n");
+			perror("[error] Error receiving stream");
 			ret = ret_len;
 			goto error;
 		}
