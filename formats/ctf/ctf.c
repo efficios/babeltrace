@@ -1201,9 +1201,9 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 static
 int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
-			int whence), FILE *metadata_fp)
+			int whence), FILE *metadata_fp,
+			struct ctf_scanner *scanner)
 {
-	struct ctf_scanner *scanner;
 	struct ctf_file_stream *metadata_stream;
 	FILE *fp;
 	char *buf = NULL;
@@ -1250,7 +1250,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		if (ret) {
 			/* Warn about empty metadata */
 			fprintf(stderr, "[warning] Empty metadata.\n");
-			goto end_packet_read;
+			goto end;
 		}
 		td->metadata_string = buf;
 		td->metadata_packetized = 1;
@@ -1266,17 +1266,11 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 			fprintf(stderr, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
 		if (check_version(major, minor) < 0) {
 			ret = -EINVAL;
-			goto end_packet_read;
+			goto end;
 		}
 		rewind(fp);
 	}
 
-	scanner = ctf_scanner_alloc();
-	if (!scanner) {
-		fprintf(stderr, "[error] Error allocating scanner\n");
-		ret = -ENOMEM;
-		goto end_scanner_alloc;
-	}
 	ret = ctf_scanner_append_ast(scanner, fp);
 	if (ret) {
 		fprintf(stderr, "[error] Error creating AST\n");
@@ -1303,9 +1297,6 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		goto end;
 	}
 end:
-	ctf_scanner_free(scanner);
-end_scanner_alloc:
-end_packet_read:
 	if (fp) {
 		closeret = fclose(fp);
 		if (closeret) {
@@ -2045,6 +2036,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
+	struct ctf_scanner *scanner;
 	int ret, closeret;
 	struct dirent *dirent;
 	struct dirent *diriter;
@@ -2074,8 +2066,15 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	/*
 	 * Keep the metadata file separate.
 	 */
-
-	ret = ctf_open_trace_metadata_read(td, packet_seek, metadata_fp);
+	scanner = ctf_scanner_alloc();
+	if (!scanner) {
+		fprintf(stderr, "[error] Error allocating scanner\n");
+		ret = -ENOMEM;
+		goto error_metadata;
+	}
+	ret = ctf_open_trace_metadata_read(td, packet_seek, metadata_fp,
+			scanner);
+	ctf_scanner_free(scanner);
 	if (ret) {
 		fprintf(stderr, "[warning] Unable to open trace metadata for path \"%s\".\n", path);
 		goto error_metadata;
@@ -2285,8 +2284,16 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 {
 	int ret;
 	struct bt_mmap_stream *mmap_info;
+	struct ctf_scanner *scanner;
 
-	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp);
+	scanner = ctf_scanner_alloc();
+	if (!scanner) {
+		fprintf(stderr, "[error] Error allocating scanner\n");
+		ret = -ENOMEM;
+		goto error_scanner_alloc;
+	}
+	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp,
+			scanner);
 	if (ret) {
 		goto error;
 	}
@@ -2302,10 +2309,12 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 			goto error;
 		}
 	}
-
+	ctf_scanner_free(scanner);
 	return 0;
 
 error:
+	ctf_scanner_free(scanner);
+error_scanner_alloc:
 	return ret;
 }
 
