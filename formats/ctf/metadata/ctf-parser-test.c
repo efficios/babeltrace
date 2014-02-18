@@ -45,12 +45,12 @@ int main(int argc, char **argv)
 
 	babeltrace_debug = 1;
 	babeltrace_verbose = 1;
-	scanner = ctf_scanner_alloc(stdin);
+	scanner = ctf_scanner_alloc();
 	if (!scanner) {
 		fprintf(stderr, "Error allocating scanner\n");
 		return -ENOMEM;
 	}
-	ret = ctf_scanner_append_ast(scanner);
+	ret = ctf_scanner_append_ast(scanner, stdin);
 	if (ret) {
 		fprintf(stderr, "Error creating AST\n");
 		goto end;

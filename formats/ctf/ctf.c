@@ -1271,13 +1271,13 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		rewind(fp);
 	}
 
-	scanner = ctf_scanner_alloc(fp);
+	scanner = ctf_scanner_alloc();
 	if (!scanner) {
 		fprintf(stderr, "[error] Error allocating scanner\n");
 		ret = -ENOMEM;
 		goto end_scanner_alloc;
 	}
-	ret = ctf_scanner_append_ast(scanner);
+	ret = ctf_scanner_append_ast(scanner, fp);
 	if (ret) {
 		fprintf(stderr, "[error] Error creating AST\n");
 		goto end;

@@ -39,9 +39,9 @@ struct ctf_scanner {
 	struct objstack *objstack;
 };
 
-struct ctf_scanner *ctf_scanner_alloc(FILE *input);
+struct ctf_scanner *ctf_scanner_alloc(void);
 void ctf_scanner_free(struct ctf_scanner *scanner);
-int ctf_scanner_append_ast(struct ctf_scanner *scanner);
+int ctf_scanner_append_ast(struct ctf_scanner *scanner, FILE *input);
 
 static inline
 struct ctf_ast *ctf_scanner_get_ast(struct ctf_scanner *scanner)

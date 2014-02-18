@@ -972,12 +972,18 @@ static struct ctf_ast *ctf_ast_alloc(struct ctf_scanner *scanner)
 	return ast;
 }
 
-int ctf_scanner_append_ast(struct ctf_scanner *scanner)
+int ctf_scanner_append_ast(struct ctf_scanner *scanner, FILE *input)
 {
+	/* Start processing new stream */
+	yyrestart(input, scanner->scanner);
+	if (yydebug)
+		fprintf(stdout, "Scanner input is a%s.\n",
+			isatty(fileno(input)) ? "n interactive tty" :
+						" noninteractive file");
 	return yyparse(scanner, scanner->scanner);
 }
 
-struct ctf_scanner *ctf_scanner_alloc(FILE *input)
+struct ctf_scanner *ctf_scanner_alloc(void)
 {
 	struct ctf_scanner *scanner;
 	int ret;
@@ -988,15 +994,11 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 	if (!scanner)
 		return NULL;
 	memset(scanner, 0, sizeof(*scanner));
-
 	ret = yylex_init_extra(scanner, &scanner->scanner);
 	if (ret) {
 		printf_fatal("yylex_init error");
 		goto cleanup_scanner;
 	}
-	/* Start processing new stream */
-	yyrestart(input, scanner->scanner);
-
 	scanner->objstack = objstack_create();
 	if (!scanner->objstack)
 		goto cleanup_lexer;
@@ -1005,11 +1007,6 @@ struct ctf_scanner *ctf_scanner_alloc(FILE *input)
 		goto cleanup_objstack;
 	init_scope(&scanner->root_scope, NULL);
 	scanner->cs = &scanner->root_scope;
-
-	if (yydebug)
-		fprintf(stdout, "Scanner input is a%s.\n",
-			isatty(fileno(input)) ? "n interactive tty" :
-						" noninteractive file");
 
 	return scanner;
 
