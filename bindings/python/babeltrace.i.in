@@ -60,6 +60,7 @@ trace to it."
 typedef unsigned long long uint64_t;
 typedef long long int64_t;
 typedef int bt_intern_str;
+typedef int64_t ssize_t;
 
 /* =================================================================
 		PYTHON-COMPLEMENTS.H
@@ -90,6 +91,9 @@ struct definition_array *_bt_python_get_array_from_def(
 		struct bt_definition *field);
 struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field);
+struct bt_declaration *_bt_python_get_array_element_declaration(
+		struct bt_declaration *field);
+const char *_bt_python_get_array_string(struct bt_definition *field);
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 
@@ -935,6 +939,14 @@ class ArrayFieldDeclaration(FieldDeclaration):
 		"""
 		return _bt_ctf_get_array_len(self._fd)
 
+	@property
+	def element_declaration(self):
+		"""
+		Return element declaration.
+		"""
+		field_decl_ptr = _bt_python_get_array_element_declaration(self._fd)
+		return _create_field_declaration(field_decl_ptr, "", self.scope)
+
 class SequenceFieldDeclaration(FieldDeclaration):
 	"""Do not instantiate."""
 	def __init__(self):
@@ -1015,7 +1027,7 @@ class _Definition(object):
 		"""Return the name of a field or None on error."""
 		return _bt_ctf_field_name(self._d)
 
-	@property	
+	@property
 	def type(self):
 		"""Return the type of a field or -1 if unknown."""
 		return _bt_ctf_field_type(_bt_ctf_get_decl_from_def(self._d))
@@ -1145,13 +1157,20 @@ class _Definition(object):
 		"""
 		id = self.type
 		value = None
+
 		if id == CTFTypeId.STRING:
 			value = self._get_str()
 		elif id == CTFTypeId.ARRAY:
-			value = []
-			for i in range(self.declaration.length):
-				element = self._get_array_element_at(i)
-				value.append(element.value)
+			element_decl = self.declaration.element_declaration
+			if ((element_decl.type == CTFTypeId.INTEGER
+				and element_decl.length == 8)
+				and (element_decl.encoding == CTFStringEncoding.ASCII or element_decl.encoding == CTFStringEncoding.UTF8)):
+				value = _bt_python_get_array_string(self._d)
+			else:
+				value = []
+				for i in range(self.declaration.length):
+					element = self._get_array_element_at(i)
+					value.append(element.value)
 		elif id == CTFTypeId.INTEGER:
 			if self.declaration.signedness == 0:
 				value = self._get_uint64()
@@ -1178,7 +1197,7 @@ class _Definition(object):
 				value[member.name] = member.value
 
 		if field_error():
-			raise FieldError("Error occurred while accessing field {} of type {}".format(self.name, CTFTypeId.type_name(self.declaration.type)))
+			raise FieldError("Error occurred while accessing field {} of type {}".format(self.name, CTFTypeId.type_name(id)))
 		return value
 
 	@property

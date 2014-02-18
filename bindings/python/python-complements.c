@@ -135,6 +135,37 @@ end:
 	return array;
 }
 
+struct bt_declaration *_bt_python_get_array_element_declaration(
+		struct bt_declaration *field)
+{
+	struct declaration_array *array_decl;
+	struct bt_declaration *ret = NULL;
+
+	if (!field) {
+		goto end;
+	}
+
+	array_decl = container_of(field, struct declaration_array, p);
+	ret = array_decl->elem;
+end:
+	return ret;
+}
+
+const char *_bt_python_get_array_string(struct bt_definition *field)
+{
+	struct definition_array *array;
+	const char *ret = NULL;
+
+	if (!field) {
+		goto end;
+	}
+
+	array = container_of(field, struct definition_array, p);
+	ret = array->string->str;
+end:
+	return ret;
+}
+
 struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field)
 {
