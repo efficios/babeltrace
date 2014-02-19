@@ -1261,7 +1261,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		td->byte_order = BYTE_ORDER;
 
 		/* Check text-only metadata header and version */
-		nr_items = fscanf(fp, "/* CTF %u.%u", &major, &minor);
+		nr_items = fscanf(fp, "/* CTF %10u.%10u", &major, &minor);
 		if (nr_items < 2)
 			fprintf(stderr, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
 		if (check_version(major, minor) < 0) {
