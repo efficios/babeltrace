@@ -66,6 +66,8 @@ static void ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
 		size_t index, int whence);
 static void add_traces(gpointer key, gpointer value, gpointer user_data);
 static int del_traces(gpointer key, gpointer value, gpointer user_data);
+static int get_new_metadata(struct lttng_live_ctx *ctx,
+		struct lttng_live_viewer_stream *viewer_stream);
 
 int lttng_live_connect_viewer(struct lttng_live_ctx *ctx)
 {
@@ -631,6 +633,10 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			printf_verbose("get_data_packet: new metadata needed\n");
+			ret = get_new_metadata(ctx, stream);
+			if (ret < 0) {
+				goto error;
+			}
 			ret = 0;
 			goto end;
 		}
@@ -710,29 +716,22 @@ error:
 	return ret;
 }
 
-/*
- * Return number of metadata bytes written or a negative value on error.
- */
 static
-int get_new_metadata(struct lttng_live_ctx *ctx,
-		struct lttng_live_viewer_stream *viewer_stream,
-		uint64_t *metadata_len)
+int get_one_metadata_packet(struct lttng_live_ctx *ctx,
+		struct lttng_live_viewer_stream *metadata_stream)
 {
 	uint64_t len = 0;
 	int ret;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_metadata rq;
 	struct lttng_viewer_metadata_packet rp;
-	struct lttng_live_viewer_stream *metadata_stream;
 	char *data = NULL;
 	ssize_t ret_len;
 
+	rq.stream_id = htobe64(metadata_stream->id);
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_METADATA);
 	cmd.data_size = sizeof(rq);
 	cmd.cmd_version = 0;
-
-	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
-	rq.stream_id = htobe64(metadata_stream->id);
 
 	do {
 		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
@@ -775,7 +774,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 			break;
 		case LTTNG_VIEWER_NO_NEW_METADATA:
 			printf_verbose("get_metadata : NO NEW\n");
-			ret = -1;
+			ret = 0;
 			goto end;
 		case LTTNG_VIEWER_METADATA_ERR:
 			printf_verbose("get_metadata : ERR\n");
@@ -826,12 +825,39 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		goto error;
 	}
 	assert(ret_len == len);
+	ret = len;
 
 	free(data);
 
-	*metadata_len = len;
-	ret = 0;
 end:
+error:
+	return ret;
+}
+
+/*
+ * Return 0 on success, a negative value on error.
+ */
+static
+int get_new_metadata(struct lttng_live_ctx *ctx,
+		struct lttng_live_viewer_stream *viewer_stream)
+{
+	int ret = 0;
+	struct lttng_live_viewer_stream *metadata_stream;
+
+	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
+
+	do {
+		/*
+		 * get_one_metadata_packet returns the number of bytes
+		 * received, 0 when we have received everything, a
+		 * negative value on error.
+		 */
+		ret = get_one_metadata_packet(ctx, metadata_stream);
+	} while (ret > 0);
+
+	fclose(metadata_stream->metadata_fp_write);
+	metadata_stream->metadata_fp_write = NULL;
+
 error:
 	return ret;
 }
@@ -850,7 +876,6 @@ int get_next_index(struct lttng_live_ctx *ctx,
 	struct lttng_viewer_get_next_index rq;
 	struct lttng_viewer_index rp;
 	int ret;
-	uint64_t metadata_len;
 	ssize_t ret_len;
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEXT_INDEX);
@@ -916,8 +941,7 @@ retry:
 
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			printf_verbose("get_next_index: new metadata needed\n");
-			ret = get_new_metadata(ctx, viewer_stream,
-					&metadata_len);
+			ret = get_new_metadata(ctx, viewer_stream);
 			if (ret < 0) {
 				goto error;
 			}
@@ -1156,8 +1180,7 @@ int del_traces(gpointer key, gpointer value, gpointer user_data)
 static
 void add_traces(gpointer key, gpointer value, gpointer user_data)
 {
-	int i, ret, total_metadata = 0;
-	uint64_t metadata_len;
+	int i, ret;
 	struct bt_context *bt_ctx = user_data;
 	struct lttng_live_ctf_trace *trace = value;
 	struct lttng_live_viewer_stream *stream;
@@ -1190,13 +1213,9 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 			bt_list_add(&new_mmap_stream->list, &mmap_list.head);
 		} else {
 			/* Get all possible metadata before starting */
-			do {
-				ret = get_new_metadata(ctx, stream,
-						&metadata_len);
-				if (ret == 0) {
-					total_metadata += metadata_len;
-				}
-			} while (ret == 0 || total_metadata == 0);
+			ret = get_new_metadata(ctx, stream);
+			if (ret)
+				goto end_free;
 			trace->metadata_fp = fopen(stream->path, "r");
 		}
 	}
