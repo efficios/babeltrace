@@ -73,6 +73,14 @@ struct ctf_node {
 	struct bt_list_head siblings;
 	struct bt_list_head tmp_head;
 	unsigned int lineno;
+	/*
+	 * We mark nodes visited in the generate-io-struct phase (last
+	 * phase). We only mark the 1-depth level nodes as visited
+	 * (never the root node, and not their sub-nodes). This allows
+	 * skipping already visited nodes when doing incremental
+	 * metadata append.
+	 */
+	int visited;
 
 	enum node_type type;
 	union {

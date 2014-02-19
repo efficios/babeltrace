@@ -357,6 +357,9 @@ int ctf_visitor_print_xml(FILE *fd, int depth, struct ctf_node *node)
 	int ret = 0;
 	struct ctf_node *iter;
 
+	if (node->visited)
+		return 0;
+
 	switch (node->type) {
 	case NODE_ROOT:
 		print_tabs(fd, depth);

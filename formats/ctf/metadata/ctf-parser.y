@@ -1025,6 +1025,8 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 {
 	int ret;
 
+	if (!scanner)
+		return;
 	finalize_scope(&scanner->root_scope);
 	objstack_destroy(scanner->objstack);
 	ret = yylex_destroy(scanner->scanner);

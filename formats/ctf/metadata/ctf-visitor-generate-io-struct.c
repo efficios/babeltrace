@@ -1854,6 +1854,10 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 	struct ctf_event_declaration *event;
 	struct bt_ctf_event_decl *event_decl;
 
+	if (node->visited)
+		return 0;
+	node->visited = 1;
+
 	event_decl = g_new0(struct bt_ctf_event_decl, 1);
 	event = &event_decl->parent;
 	event->declaration_scope = bt_new_declaration_scope(parent_declaration_scope);
@@ -2050,6 +2054,12 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	int ret = 0;
 	struct ctf_node *iter;
 	struct ctf_stream_declaration *stream;
+
+	if (node) {
+		if (node->visited)
+			return 0;
+		node->visited = 1;
+	}
 
 	stream = g_new0(struct ctf_stream_declaration, 1);
 	stream->declaration_scope = bt_new_declaration_scope(parent_declaration_scope);
@@ -2250,8 +2260,13 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	int ret = 0;
 	struct ctf_node *iter;
 
+	if (!trace->restart_root_decl && node->visited)
+		return 0;
+	node->visited = 1;
+
 	if (trace->declaration_scope)
 		return -EEXIST;
+
 	trace->declaration_scope = bt_new_declaration_scope(trace->root_declaration_scope);
 	trace->streams = g_ptr_array_new();
 	trace->event_declarations = g_ptr_array_new();
@@ -2443,6 +2458,10 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	struct ctf_node *iter;
 	struct ctf_clock *clock;
 
+	if (node->visited)
+		return 0;
+	node->visited = 1;
+
 	clock = g_new0(struct ctf_clock, 1);
 	/* Default clock frequency is set to 1000000000 */
 	clock->freq = 1000000000ULL;
@@ -2632,6 +2651,10 @@ int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_tr
 	struct ctf_node *iter;
 	struct ctf_callsite *callsite;
 	struct ctf_callsite_dups *cs_dups;
+
+	if (node->visited)
+		return 0;
+	node->visited = 1;
 
 	callsite = g_new0(struct ctf_callsite, 1);
 	bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
@@ -2867,6 +2890,10 @@ int ctf_env_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *
 	int ret = 0;
 	struct ctf_node *iter;
 
+	if (node->visited)
+		return 0;
+	node->visited = 1;
+
 	trace->env.vpid = -1;
 	trace->env.procname[0] = '\0';
 	trace->env.hostname[0] = '\0';
@@ -2887,6 +2914,10 @@ static
 int ctf_root_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace *trace)
 {
 	int ret = 0;
+
+	if (!trace->restart_root_decl && node->visited)
+		return 0;
+	node->visited = 1;
 
 	switch (node->type) {
 	case NODE_TYPEDEF:
@@ -2933,7 +2964,6 @@ int ctf_visitor_construct_metadata(FILE *fd, int depth, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	int env_clock_done = 0;
 
 	printf_verbose("CTF visitor: metadata construction...\n");
 	trace->byte_order = byte_order;
@@ -2947,24 +2977,21 @@ retry:
 
 	switch (node->type) {
 	case NODE_ROOT:
-		if (!env_clock_done) {
-			/*
-			 * declarations need to query clock hash table,
-			 * so clock need to be treated first.
-			 */
-			if (bt_list_empty(&node->u.root.clock)) {
-				ctf_clock_default(fd, depth + 1, trace);
-			} else {
-				bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
-					ret = ctf_clock_visit(fd, depth + 1, iter,
-							      trace);
-					if (ret) {
-						fprintf(fd, "[error] %s: clock declaration error\n", __func__);
-						goto error;
-					}
+		/*
+		 * declarations need to query clock hash table,
+		 * so clock need to be treated first.
+		 */
+		if (bt_list_empty(&node->u.root.clock)) {
+			ctf_clock_default(fd, depth + 1, trace);
+		} else {
+			bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
+				ret = ctf_clock_visit(fd, depth + 1, iter,
+						      trace);
+				if (ret) {
+					fprintf(fd, "[error] %s: clock declaration error\n", __func__);
+					goto error;
 				}
 			}
-			env_clock_done = 1;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.declaration_list,
 					siblings) {
@@ -2977,6 +3004,7 @@ retry:
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = ctf_trace_visit(fd, depth + 1, iter, trace);
 			if (ret == -EINTR) {
+				trace->restart_root_decl = 1;
 				bt_free_declaration_scope(trace->root_declaration_scope);
 				/*
 				 * Need to restart creation of type
@@ -2990,6 +3018,7 @@ retry:
 				goto error;
 			}
 		}
+		trace->restart_root_decl = 0;
 		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
 			ret = ctf_callsite_visit(fd, depth + 1, iter,
 					      trace);

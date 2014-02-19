@@ -1049,7 +1049,7 @@ warning:
 }
 
 static
-int ctf_open_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
+int ctf_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 					FILE *out)
 {
 	struct metadata_packet_header header;
@@ -1139,7 +1139,7 @@ read_padding:
 }
 
 static
-int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
+int ctf_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 					char **buf)
 {
 	FILE *in, *out;
@@ -1158,7 +1158,7 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 		return -errno;
 	}
 	for (;;) {
-		ret = ctf_open_trace_metadata_packet_read(td, in, out);
+		ret = ctf_trace_metadata_packet_read(td, in, out);
 		if (ret) {
 			break;
 		}
@@ -1199,10 +1199,8 @@ int ctf_open_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 }
 
 static
-int ctf_open_trace_metadata_read(struct ctf_trace *td,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
-			int whence), FILE *metadata_fp,
-			struct ctf_scanner *scanner)
+int ctf_trace_metadata_read(struct ctf_trace *td, FILE *metadata_fp,
+		struct ctf_scanner *scanner, int append)
 {
 	struct ctf_file_stream *metadata_stream;
 	FILE *fp;
@@ -1211,14 +1209,6 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 
 	metadata_stream = g_new0(struct ctf_file_stream, 1);
 	metadata_stream->pos.last_offset = LAST_OFFSET_POISON;
-
-	if (packet_seek) {
-		metadata_stream->pos.packet_seek = packet_seek;
-	} else {
-		fprintf(stderr, "[error] packet_seek function undefined.\n");
-		ret = -1;
-		goto end_free;
-	}
 
 	if (metadata_fp) {
 		fp = metadata_fp;
@@ -1246,7 +1236,7 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		yydebug = 1;
 
 	if (packet_metadata(td, fp)) {
-		ret = ctf_open_trace_metadata_stream_read(td, &fp, &buf);
+		ret = ctf_trace_metadata_stream_read(td, &fp, &buf);
 		if (ret) {
 			/* Warn about empty metadata */
 			fprintf(stderr, "[warning] Empty metadata.\n");
@@ -1255,20 +1245,22 @@ int ctf_open_trace_metadata_read(struct ctf_trace *td,
 		td->metadata_string = buf;
 		td->metadata_packetized = 1;
 	} else {
-		unsigned int major, minor;
-		ssize_t nr_items;
+		if (!append) {
+			unsigned int major, minor;
+			ssize_t nr_items;
 
-		td->byte_order = BYTE_ORDER;
+			td->byte_order = BYTE_ORDER;
 
-		/* Check text-only metadata header and version */
-		nr_items = fscanf(fp, "/* CTF %10u.%10u", &major, &minor);
-		if (nr_items < 2)
-			fprintf(stderr, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
-		if (check_version(major, minor) < 0) {
-			ret = -EINVAL;
-			goto end;
+			/* Check text-only metadata header and version */
+			nr_items = fscanf(fp, "/* CTF %10u.%10u", &major, &minor);
+			if (nr_items < 2)
+				fprintf(stderr, "[warning] Ill-shapen or missing \"/* CTF x.y\" header for text-only metadata.\n");
+			if (check_version(major, minor) < 0) {
+				ret = -EINVAL;
+				goto end;
+			}
+			rewind(fp);
 		}
-		rewind(fp);
 	}
 
 	ret = ctf_scanner_append_ast(scanner, fp);
@@ -1359,6 +1351,36 @@ error:
 }
 
 static
+int copy_event_declarations_stream_class_to_stream(struct ctf_trace *td,
+		struct ctf_stream_declaration *stream_class,
+		struct ctf_stream_definition *stream)
+{
+	size_t def_size, class_size, i;
+	int ret = 0;
+
+	def_size = stream->events_by_id->len;
+	class_size = stream_class->events_by_id->len;
+
+	g_ptr_array_set_size(stream->events_by_id, class_size);
+	for (i = def_size; i < class_size; i++) {
+		struct ctf_event_declaration *event =
+			g_ptr_array_index(stream_class->events_by_id, i);
+		struct ctf_event_definition *stream_event;
+
+		if (!event)
+			continue;
+		stream_event = create_event_definitions(td, stream, event);
+		if (!stream_event) {
+			ret = -EINVAL;
+			goto error;
+		}
+		g_ptr_array_index(stream->events_by_id, i) = stream_event;
+	}
+error:
+	return ret;
+}
+
+static
 int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_declaration *stream_class;
@@ -1407,20 +1429,10 @@ int create_stream_definitions(struct ctf_trace *td, struct ctf_stream_definition
 		stream->parent_def_scope = stream->stream_event_context->p.scope;
 	}
 	stream->events_by_id = g_ptr_array_new();
-	g_ptr_array_set_size(stream->events_by_id, stream_class->events_by_id->len);
-	for (i = 0; i < stream->events_by_id->len; i++) {
-		struct ctf_event_declaration *event = g_ptr_array_index(stream_class->events_by_id, i);
-		struct ctf_event_definition *stream_event;
-
-		if (!event)
-			continue;
-		stream_event = create_event_definitions(td, stream, event);
-		if (!stream_event) {
-			ret = -EINVAL;
-			goto error_event;
-		}
-		g_ptr_array_index(stream->events_by_id, i) = stream_event;
-	}
+	ret = copy_event_declarations_stream_class_to_stream(td,
+			stream_class, stream);
+	if (ret)
+		goto error_event;
 	return 0;
 
 error_event:
@@ -2065,6 +2077,8 @@ int ctf_open_trace_read(struct ctf_trace *td,
 
 	/*
 	 * Keep the metadata file separate.
+	 * Keep scanner object local to the open. We don't support
+	 * incremental metadata append for on-disk traces.
 	 */
 	scanner = ctf_scanner_alloc();
 	if (!scanner) {
@@ -2072,8 +2086,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 		ret = -ENOMEM;
 		goto error_metadata;
 	}
-	ret = ctf_open_trace_metadata_read(td, packet_seek, metadata_fp,
-			scanner);
+	ret = ctf_trace_metadata_read(td, metadata_fp, scanner, 0);
 	ctf_scanner_free(scanner);
 	if (ret) {
 		fprintf(stderr, "[warning] Unable to open trace metadata for path \"%s\".\n", path);
@@ -2284,16 +2297,14 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 {
 	int ret;
 	struct bt_mmap_stream *mmap_info;
-	struct ctf_scanner *scanner;
 
-	scanner = ctf_scanner_alloc();
-	if (!scanner) {
+	td->scanner = ctf_scanner_alloc();
+	if (!td->scanner) {
 		fprintf(stderr, "[error] Error allocating scanner\n");
 		ret = -ENOMEM;
-		goto error_scanner_alloc;
+		goto error;
 	}
-	ret = ctf_open_trace_metadata_read(td, ctf_packet_seek, metadata_fp,
-			scanner);
+	ret = ctf_trace_metadata_read(td, metadata_fp, td->scanner, 0);
 	if (ret) {
 		goto error;
 	}
@@ -2309,12 +2320,10 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 			goto error;
 		}
 	}
-	ctf_scanner_free(scanner);
 	return 0;
 
 error:
-	ctf_scanner_free(scanner);
-error_scanner_alloc:
+	ctf_scanner_free(td->scanner);
 	return ret;
 }
 
@@ -2349,6 +2358,41 @@ error_free:
 	g_free(td);
 error:
 	return NULL;
+}
+
+int ctf_append_trace_metadata(struct bt_trace_descriptor *tdp,
+		FILE *metadata_fp)
+{
+	struct ctf_trace *td = container_of(tdp, struct ctf_trace, parent);
+	int i, j;
+	int ret;
+
+	if (!td->scanner)
+		return -EINVAL;
+	ret = ctf_trace_metadata_read(td, metadata_fp, td->scanner, 1);
+	if (ret)
+		return ret;
+	/* for each stream_class */
+	for (i = 0; i < td->streams->len; i++) {
+		struct ctf_stream_declaration *stream_class;
+
+		stream_class = g_ptr_array_index(td->streams, i);
+		if (!stream_class)
+			continue;
+		/* for each stream */
+		for (j = 0; j < stream_class->streams->len; j++) {
+			struct ctf_stream_definition *stream;
+
+			stream = g_ptr_array_index(stream_class->streams, j);
+			if (!stream)
+				continue;
+			ret = copy_event_declarations_stream_class_to_stream(td,
+				stream_class, stream);
+			if (ret)
+				return ret;
+		}
+	}
+	return 0;
 }
 
 static
@@ -2443,6 +2487,7 @@ int ctf_close_trace(struct bt_trace_descriptor *tdp)
 		}
 	}
 	ctf_destroy_metadata(td);
+	ctf_scanner_free(td->scanner);
 	if (td->dirfd >= 0) {
 		ret = close(td->dirfd);
 		if (ret) {

@@ -42,6 +42,7 @@ struct ctf_stream_declaration;
 struct ctf_event_declaration;
 struct ctf_clock;
 struct ctf_callsite;
+struct ctf_scanner;
 
 struct ctf_stream_definition {
 	struct ctf_stream_declaration *stream_class;
@@ -192,6 +193,8 @@ struct ctf_trace {
 	GPtrArray *event_declarations;		/* Array of all the struct bt_ctf_event_decl */
 
 	struct declaration_struct *packet_header_decl;
+	struct ctf_scanner *scanner;
+	int restart_root_decl;
 
 	uint64_t major;
 	uint64_t minor;
