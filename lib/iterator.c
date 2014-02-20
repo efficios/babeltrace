@@ -663,7 +663,7 @@ int bt_iter_add_trace(struct bt_iter *iter,
 		struct bt_trace_descriptor *td_read)
 {
 	struct ctf_trace *tin;
-	int stream_id, ret;
+	int stream_id, ret = 0;
 
 	tin = container_of(td_read, struct ctf_trace, parent);
 
