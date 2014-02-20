@@ -26,7 +26,6 @@
 
 #include <stdint.h>
 
-#define LTTNG_METADATA_PATH_TEMPLATE		"/tmp/lttng-live-XXXXXX"
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
 
 #define LTTNG_LIVE_MAJOR			2
@@ -46,7 +45,8 @@ struct lttng_live_ctx {
 struct lttng_live_viewer_stream {
 	uint64_t id;
 	uint64_t mmap_size;
-	int fd;
+	FILE *metadata_fp_write;
+	ssize_t metadata_len;
 	int metadata_flag;
 	int first_read;
 	struct lttng_live_session *session;

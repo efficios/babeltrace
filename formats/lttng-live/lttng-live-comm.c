@@ -49,6 +49,8 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <formats/ctf/events-private.h>
 
+#include <babeltrace/compat/memstream.h>
+
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
 
@@ -67,7 +69,8 @@ static void ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
 static void add_traces(gpointer key, gpointer value, gpointer user_data);
 static int del_traces(gpointer key, gpointer value, gpointer user_data);
 static int get_new_metadata(struct lttng_live_ctx *ctx,
-		struct lttng_live_viewer_stream *viewer_stream);
+		struct lttng_live_viewer_stream *viewer_stream,
+		char **metadata_buf);
 
 int lttng_live_connect_viewer(struct lttng_live_ctx *ctx)
 {
@@ -348,6 +351,22 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	return ret;
 }
 
+static
+int open_metadata_fp_write(struct lttng_live_viewer_stream *stream,
+		char **metadata_buf, size_t *size)
+{
+	int ret = 0;
+
+	stream->metadata_fp_write =
+		babeltrace_open_memstream(metadata_buf, size);
+	if (!stream->metadata_fp_write) {
+		perror("Metadata open_memstream");
+		ret = -1;
+	}
+
+	return ret;
+}
+
 int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 {
 	struct lttng_viewer_cmd cmd;
@@ -473,35 +492,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ctx->session->streams[i].mmap_size = 0;
 
 		if (be32toh(stream.metadata_flag)) {
-			char *path;
-
-			path = strdup(LTTNG_METADATA_PATH_TEMPLATE);
-			if (!path) {
-				perror("strdup");
-				ret = -1;
-				goto error;
-			}
-			if (!mkdtemp(path)) {
-				perror("mkdtemp");
-				free(path);
-				ret = -1;
-				goto error;
-			}
 			ctx->session->streams[i].metadata_flag = 1;
-			snprintf(ctx->session->streams[i].path,
-					sizeof(ctx->session->streams[i].path),
-					"%s/%s", path,
-					stream.channel_name);
-			ret = open(ctx->session->streams[i].path,
-					O_WRONLY | O_CREAT | O_TRUNC,
-					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-			if (ret < 0) {
-				perror("open");
-				free(path);
-				goto error;
-			}
-			ctx->session->streams[i].fd = ret;
-			free(path);
 		}
 		ret = lttng_live_ctf_trace_assign(&ctx->session->streams[i],
 				be64toh(stream.ctf_trace_id));
@@ -813,14 +804,17 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 	assert(ret_len == len);
 
 	do {
-		ret_len = write(metadata_stream->fd, data, len);
+		ret_len = fwrite(data, 1, len,
+				metadata_stream->metadata_fp_write);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
+		fprintf(stderr, "[error] Writing in the metadata fp\n");
 		free(data);
 		ret = ret_len;
 		goto error;
 	}
 	assert(ret_len == len);
+	metadata_stream->metadata_len += len;
 	ret = len;
 
 	free(data);
@@ -835,12 +829,19 @@ error:
  */
 static
 int get_new_metadata(struct lttng_live_ctx *ctx,
-		struct lttng_live_viewer_stream *viewer_stream)
+		struct lttng_live_viewer_stream *viewer_stream,
+		char **metadata_buf)
 {
 	int ret = 0;
 	struct lttng_live_viewer_stream *metadata_stream;
+	size_t size;
 
 	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
+	metadata_stream->metadata_len = 0;
+	ret = open_metadata_fp_write(metadata_stream, metadata_buf, &size);
+	if (ret < 0) {
+		goto error;
+	}
 
 	do {
 		/*
@@ -851,6 +852,10 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		ret = get_one_metadata_packet(ctx, metadata_stream);
 	} while (ret > 0);
 
+	fclose(metadata_stream->metadata_fp_write);
+	metadata_stream->metadata_fp_write = NULL;
+
+error:
 	return ret;
 }
 
@@ -932,9 +937,21 @@ retry:
 		index->events_discarded = be64toh(rp.events_discarded);
 
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
+			struct lttng_live_viewer_stream *metadata;
+			char *metadata_buf = NULL;
+
 			printf_verbose("get_next_index: new metadata needed\n");
-			ret = get_new_metadata(ctx, viewer_stream);
+			ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
 			if (ret < 0) {
+				goto error;
+			}
+			metadata = viewer_stream->ctf_trace->metadata_stream;
+			metadata->ctf_trace->metadata_fp =
+				babeltrace_fmemopen(metadata_buf,
+					metadata->metadata_len, "rb");
+			if (!metadata->ctf_trace->metadata_fp) {
+				perror("Metadata fmemopen");
+				ret = -1;
 				goto error;
 			}
 		}
@@ -953,7 +970,6 @@ retry:
 	case LTTNG_VIEWER_INDEX_HUP:
 		printf_verbose("get_next_index: stream hung up\n");
 		viewer_stream->id = -1ULL;
-		viewer_stream->fd = -1;
 		index->offset = EOF;
 		ctx->session->stream_count--;
 		break;
@@ -1206,11 +1222,29 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 			new_mmap_stream->fd = -1;
 			bt_list_add(&new_mmap_stream->list, &mmap_list.head);
 		} else {
+			char *metadata_buf = NULL;
+
 			/* Get all possible metadata before starting */
-			ret = get_new_metadata(ctx, stream);
-			if (ret)
+			ret = get_new_metadata(ctx, stream, &metadata_buf);
+			if (ret) {
+				free(metadata_buf);
 				goto end_free;
-			trace->metadata_fp = fopen(stream->path, "r");
+			}
+			if (!stream->metadata_len) {
+				fprintf(stderr, "[error] empty metadata\n");
+				ret = -1;
+				free(metadata_buf);
+				goto end_free;
+			}
+
+			trace->metadata_fp = babeltrace_fmemopen(metadata_buf,
+					stream->metadata_len, "rb");
+			if (!trace->metadata_fp) {
+				perror("Metadata fmemopen");
+				ret = -1;
+				free(metadata_buf);
+				goto end_free;
+			}
 		}
 	}
 
@@ -1225,6 +1259,8 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 		fprintf(stderr, "[error] Error adding trace\n");
 		goto end_free;
 	}
+	trace->metadata_stream->metadata_len = 0;
+
 	handle = (struct bt_trace_handle *) g_hash_table_lookup(
 			bt_ctx->trace_handles,
 			(gpointer) (unsigned long) ret);
@@ -1360,35 +1396,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		ctx->session->streams[i].mmap_size = 0;
 
 		if (be32toh(stream.metadata_flag)) {
-			char *path;
-
-			path = strdup(LTTNG_METADATA_PATH_TEMPLATE);
-			if (!path) {
-				perror("strdup");
-				ret = -1;
-				goto error;
-			}
-			if (!mkdtemp(path)) {
-				perror("mkdtemp");
-				free(path);
-				ret = -1;
-				goto error;
-			}
 			ctx->session->streams[i].metadata_flag = 1;
-			snprintf(ctx->session->streams[i].path,
-					sizeof(ctx->session->streams[i].path),
-					"%s/%s", path,
-					stream.channel_name);
-			ret = open(ctx->session->streams[i].path,
-					O_WRONLY | O_CREAT | O_TRUNC,
-					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-			if (ret < 0) {
-				perror("open");
-				free(path);
-				goto error;
-			}
-			ctx->session->streams[i].fd = ret;
-			free(path);
 		}
 		ret = lttng_live_ctf_trace_assign(&ctx->session->streams[i],
 				be64toh(stream.ctf_trace_id));
