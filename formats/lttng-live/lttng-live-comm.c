@@ -547,6 +547,43 @@ end:
 }
 
 static
+int append_metadata(struct lttng_live_ctx *ctx,
+		struct lttng_live_viewer_stream *viewer_stream)
+{
+	int ret;
+	struct lttng_live_viewer_stream *metadata;
+	char *metadata_buf = NULL;
+
+	printf_verbose("get_next_index: new metadata needed\n");
+	ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
+	if (ret < 0) {
+		free(metadata_buf);
+		goto error;
+	}
+
+	metadata = viewer_stream->ctf_trace->metadata_stream;
+	metadata->ctf_trace->metadata_fp =
+		babeltrace_fmemopen(metadata_buf,
+				metadata->metadata_len, "rb");
+	if (!metadata->ctf_trace->metadata_fp) {
+		perror("Metadata fmemopen");
+		free(metadata_buf);
+		ret = -1;
+		goto error;
+	}
+	ret = ctf_append_trace_metadata(
+			viewer_stream->ctf_trace->handle->td,
+			metadata->ctf_trace->metadata_fp);
+	if (ret != 0) {
+		fprintf(stderr, "[error] Appending metadata\n");
+		goto error;
+	}
+
+error:
+	return ret;
+}
+
+static
 int get_data_packet(struct lttng_live_ctx *ctx,
 		struct ctf_stream_pos *pos,
 		struct lttng_live_viewer_stream *stream, uint64_t offset,
@@ -558,6 +595,7 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 	ssize_t ret_len;
 	int ret;
 
+retry:
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_PACKET);
 	cmd.data_size = sizeof(rq);
 	cmd.cmd_version = 0;
@@ -624,8 +662,10 @@ int get_data_packet(struct lttng_live_ctx *ctx,
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			printf_verbose("get_data_packet: new metadata needed\n");
-			ret = 0;
-			goto end;
+			ret = append_metadata(ctx, stream);
+			if (ret)
+				goto error;
+			goto retry;
 		}
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			ret = ask_new_streams(ctx);
@@ -837,6 +877,11 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 	size_t size;
 
 	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
+	if (!metadata_stream) {
+		fprintf(stderr, "[error] No metadata stream\n");
+		ret = -1;
+		goto error;
+	}
 	metadata_stream->metadata_len = 0;
 	ret = open_metadata_fp_write(metadata_stream, metadata_buf, &size);
 	if (ret < 0) {
@@ -937,23 +982,9 @@ retry:
 		index->events_discarded = be64toh(rp.events_discarded);
 
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
-			struct lttng_live_viewer_stream *metadata;
-			char *metadata_buf = NULL;
-
-			printf_verbose("get_next_index: new metadata needed\n");
-			ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
-			if (ret < 0) {
+			ret = append_metadata(ctx, viewer_stream);
+			if (ret)
 				goto error;
-			}
-			metadata = viewer_stream->ctf_trace->metadata_stream;
-			metadata->ctf_trace->metadata_fp =
-				babeltrace_fmemopen(metadata_buf,
-					metadata->metadata_len, "rb");
-			if (!metadata->ctf_trace->metadata_fp) {
-				perror("Metadata fmemopen");
-				ret = -1;
-				goto error;
-			}
 		}
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			ret = ask_new_streams(ctx);
