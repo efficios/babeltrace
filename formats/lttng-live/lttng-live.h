@@ -67,6 +67,7 @@ struct lttng_live_ctf_trace {
 	struct lttng_live_viewer_stream *metadata_stream;
 	GPtrArray *streams;
 	FILE *metadata_fp;
+	struct bt_trace_handle *handle;
 	int trace_id;
 	int in_use;
 };

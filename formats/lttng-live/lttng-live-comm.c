@@ -1179,6 +1179,8 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 	struct bt_mmap_stream *new_mmap_stream;
 	struct bt_mmap_stream_list mmap_list;
 	struct lttng_live_ctx *ctx = NULL;
+	struct bt_trace_descriptor *td;
+	struct bt_trace_handle *handle;
 
 	/*
 	 * We don't know how many streams we will receive for a trace, so
@@ -1223,15 +1225,12 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 		fprintf(stderr, "[error] Error adding trace\n");
 		goto end_free;
 	}
-
+	handle = (struct bt_trace_handle *) g_hash_table_lookup(
+			bt_ctx->trace_handles,
+			(gpointer) (unsigned long) ret);
+	td = handle->td;
+	trace->handle = handle;
 	if (bt_ctx->current_iterator) {
-		struct bt_trace_descriptor *td;
-		struct bt_trace_handle *handle;
-
-		handle = (struct bt_trace_handle *) g_hash_table_lookup(
-				bt_ctx->trace_handles,
-				(gpointer) (unsigned long) ret);
-		td = handle->td;
 		bt_iter_add_trace(bt_ctx->current_iterator, td);
 	}
 
