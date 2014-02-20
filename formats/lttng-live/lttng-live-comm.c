@@ -897,7 +897,8 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		ret = get_one_metadata_packet(ctx, metadata_stream);
 	} while (ret > 0);
 
-	fclose(metadata_stream->metadata_fp_write);
+	if (fclose(metadata_stream->metadata_fp_write))
+		perror("fclose");
 	metadata_stream->metadata_fp_write = NULL;
 
 error:
