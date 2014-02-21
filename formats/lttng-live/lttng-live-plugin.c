@@ -46,14 +46,14 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 {
 	char remain[3][NAME_MAX];
 	int ret = -1, proto, proto_offset = 0;
-	size_t path_len = strlen(path);
+	size_t path_len = strlen(path);	/* not accounting \0 */
 
 	/*
 	 * Since sscanf API does not allow easily checking string length
 	 * against a size defined by a macro. Test it beforehand on the
 	 * input. We know the output is always <= than the input length.
 	 */
-	if (path_len > NAME_MAX) {
+	if (path_len >= NAME_MAX) {
 		goto end;
 	}
 	ret = sscanf(path, "net%d://", &proto);
