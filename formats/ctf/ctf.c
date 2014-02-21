@@ -1815,7 +1815,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 		struct ctf_file_stream *file_stream)
 {
 	struct ctf_stream_pos *pos;
-	struct ctf_packet_index ctf_index;
+	struct ctf_packet_index *ctf_index = NULL;
 	struct ctf_packet_index_file_hdr index_hdr;
 	struct packet_index index;
 	int ret = 0;
@@ -1850,22 +1850,26 @@ int import_stream_packet_index(struct ctf_trace *td,
 		ret = -1;
 		goto error;
 	}
-
-	while (fread(&ctf_index, index_hdr.packet_index_len, 1,
+	/*
+	 * Allocate the index length found in header, not internal
+	 * representation.
+	 */
+	ctf_index = g_malloc0(index_hdr.packet_index_len);
+	while (fread(ctf_index, index_hdr.packet_index_len, 1,
 			pos->index_fp) == 1) {
 		uint64_t stream_id;
 		struct ctf_stream_declaration *stream = NULL;
 
 		memset(&index, 0, sizeof(index));
-		index.offset = be64toh(ctf_index.offset);
-		index.packet_size = be64toh(ctf_index.packet_size);
-		index.content_size = be64toh(ctf_index.content_size);
-		index.ts_cycles.timestamp_begin = be64toh(ctf_index.timestamp_begin);
-		index.ts_cycles.timestamp_end = be64toh(ctf_index.timestamp_end);
-		index.events_discarded = be64toh(ctf_index.events_discarded);
+		index.offset = be64toh(ctf_index->offset);
+		index.packet_size = be64toh(ctf_index->packet_size);
+		index.content_size = be64toh(ctf_index->content_size);
+		index.ts_cycles.timestamp_begin = be64toh(ctf_index->timestamp_begin);
+		index.ts_cycles.timestamp_end = be64toh(ctf_index->timestamp_end);
+		index.events_discarded = be64toh(ctf_index->events_discarded);
 		index.events_discarded_len = 64;
 		index.data_offset = -1;
-		stream_id = be64toh(ctf_index.stream_id);
+		stream_id = be64toh(ctf_index->stream_id);
 
 		if (!first_packet) {
 			/* add index to packet array */
@@ -1902,6 +1906,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 	ret = 0;
 
 error:
+	g_free(ctf_index);
 	return ret;
 }
 
