@@ -203,8 +203,6 @@ void process_callbacks(struct bt_ctf_iter *iter,
 	if (iter->main_callbacks.callback) {
 		for (i = 0; i < iter->main_callbacks.callback->len; i++) {
 			cb = &g_array_index(iter->main_callbacks.callback, struct bt_callback, i);
-			if (!cb)
-				goto end;
 			ret = cb->callback(&ctf_data, cb->private_data);
 			switch (ret) {
 			case BT_CB_OK_STOP:
