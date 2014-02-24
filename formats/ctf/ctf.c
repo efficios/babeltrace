@@ -1818,6 +1818,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 	struct ctf_packet_index *ctf_index = NULL;
 	struct ctf_packet_index_file_hdr index_hdr;
 	struct packet_index index;
+	uint32_t packet_index_len;
 	int ret = 0;
 	int first_packet = 1;
 	size_t len;
@@ -1845,7 +1846,8 @@ int import_stream_packet_index(struct ctf_trace *td,
 		ret = -1;
 		goto error;
 	}
-	if (index_hdr.packet_index_len == 0) {
+	packet_index_len = be32toh(index_hdr.packet_index_len);
+	if (packet_index_len == 0) {
 		fprintf(stderr, "[error] Packet index length cannot be 0.\n");
 		ret = -1;
 		goto error;
@@ -1854,8 +1856,8 @@ int import_stream_packet_index(struct ctf_trace *td,
 	 * Allocate the index length found in header, not internal
 	 * representation.
 	 */
-	ctf_index = g_malloc0(index_hdr.packet_index_len);
-	while (fread(ctf_index, index_hdr.packet_index_len, 1,
+	ctf_index = g_malloc0(packet_index_len);
+	while (fread(ctf_index, packet_index_len, 1,
 			pos->index_fp) == 1) {
 		uint64_t stream_id;
 		struct ctf_stream_declaration *stream = NULL;
