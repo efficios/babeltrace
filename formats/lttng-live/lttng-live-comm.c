@@ -589,10 +589,12 @@ int append_metadata(struct lttng_live_ctx *ctx,
 	ret = ctf_append_trace_metadata(
 			viewer_stream->ctf_trace->handle->td,
 			metadata->ctf_trace->metadata_fp);
-	if (ret != 0) {
+	/* We accept empty metadata packets */
+	if (ret != 0 && ret != -ENOENT) {
 		fprintf(stderr, "[error] Appending metadata\n");
 		goto error;
 	}
+	ret = 0;
 
 error:
 	return ret;

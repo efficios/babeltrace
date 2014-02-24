@@ -1238,8 +1238,6 @@ int ctf_trace_metadata_read(struct ctf_trace *td, FILE *metadata_fp,
 	if (packet_metadata(td, fp)) {
 		ret = ctf_trace_metadata_stream_read(td, &fp, &buf);
 		if (ret) {
-			/* Warn about empty metadata */
-			fprintf(stderr, "[warning] Empty metadata.\n");
 			goto end;
 		}
 		td->metadata_string = buf;
@@ -2096,6 +2094,9 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	ret = ctf_trace_metadata_read(td, metadata_fp, scanner, 0);
 	ctf_scanner_free(scanner);
 	if (ret) {
+		if (ret == -ENOENT) {
+			fprintf(stderr, "[warning] Empty metadata.\n");
+		}
 		fprintf(stderr, "[warning] Unable to open trace metadata for path \"%s\".\n", path);
 		goto error_metadata;
 	}
@@ -2313,6 +2314,9 @@ int ctf_open_mmap_trace_read(struct ctf_trace *td,
 	}
 	ret = ctf_trace_metadata_read(td, metadata_fp, td->scanner, 0);
 	if (ret) {
+		if (ret == -ENOENT) {
+			fprintf(stderr, "[warning] Empty metadata.\n");
+		}
 		goto error;
 	}
 
