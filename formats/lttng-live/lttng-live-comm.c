@@ -72,6 +72,38 @@ static int get_new_metadata(struct lttng_live_ctx *ctx,
 		struct lttng_live_viewer_stream *viewer_stream,
 		char **metadata_buf);
 
+static
+ssize_t lttng_live_recv(int fd, void *buf, size_t len)
+{
+	ssize_t ret;
+	size_t copied = 0, to_copy = len;
+
+	do {
+		ret = recv(fd, buf + copied, to_copy, 0);
+		if (ret > 0) {
+			assert(ret <= to_copy);
+			copied += ret;
+			to_copy -= ret;
+		}
+	} while ((ret > 0 && to_copy > 0)
+		|| (ret < 0 && errno == EINTR));
+	if (ret > 0)
+		ret = copied;
+	/* ret = 0 means orderly shutdown, ret < 0 is error. */
+	return ret;
+}
+
+static
+ssize_t lttng_live_send(int fd, const void *buf, size_t len)
+{
+	ssize_t ret;
+
+	do {
+		ret = send(fd, buf, len, MSG_NOSIGNAL);
+	} while (ret < 0 && errno == EINTR);
+	return ret;
+}
+
 int lttng_live_connect_viewer(struct lttng_live_ctx *ctx)
 {
 	struct hostent *host;
@@ -124,9 +156,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 	connect.minor = htobe32(LTTNG_LIVE_MINOR);
 	connect.type = htobe32(LTTNG_VIEWER_CLIENT_COMMAND);
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -134,9 +164,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &connect, sizeof(connect), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &connect, sizeof(connect));
 	if (ret_len < 0) {
 		perror("[error] Error sending version");
 		ret = ret_len;
@@ -144,9 +172,7 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 	}
 	assert(ret_len == sizeof(connect));
 
-	do {
-		ret_len = recv(ctx->control_sock, &connect, sizeof(connect), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &connect, sizeof(connect));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -251,9 +277,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 	cmd.data_size = 0;
 	cmd.cmd_version = 0;
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -261,9 +285,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = recv(ctx->control_sock, &list, sizeof(list), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &list, sizeof(list));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -278,9 +300,7 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 
 	sessions_count = be32toh(list.sessions_count);
 	for (i = 0; i < sessions_count; i++) {
-		do {
-			ret_len = recv(ctx->control_sock, &lsession, sizeof(lsession), 0);
-		} while (ret_len < 0 && errno == EINTR);
+		ret_len = lttng_live_recv(ctx->control_sock, &lsession, sizeof(lsession));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
 			ret = -1;
@@ -386,9 +406,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 	// rq.seek = htobe32(LTTNG_VIEWER_SEEK_BEGINNING);
 	rq.seek = htobe32(LTTNG_VIEWER_SEEK_LAST);
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -396,9 +414,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &rq, sizeof(rq));
 	if (ret_len < 0) {
 		perror("[error] Error sending attach request");
 		ret = ret_len;
@@ -406,9 +422,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 	}
 	assert(ret_len == sizeof(rq));
 
-	do {
-		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -465,9 +479,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 	ctx->session->streams = g_new0(struct lttng_live_viewer_stream,
 			ctx->session->stream_count);
 	for (i = 0; i < be32toh(rp.streams_count); i++) {
-		do {
-			ret_len = recv(ctx->control_sock, &stream, sizeof(stream), 0);
-		} while (ret_len < 0 && errno == EINTR);
+		ret_len = lttng_live_recv(ctx->control_sock, &stream, sizeof(stream));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
 			ret = -1;
@@ -606,9 +618,7 @@ retry:
 	rq.offset = offset;
 	rq.len = htobe32(len);
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -616,9 +626,7 @@ retry:
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &rq, sizeof(rq));
 	if (ret_len < 0) {
 		perror("[error] Error sending get_data_packet request");
 		ret = ret_len;
@@ -626,9 +634,7 @@ retry:
 	}
 	assert(ret_len == sizeof(rq));
 
-	do {
-		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -721,11 +727,8 @@ retry:
 				stream->mmap_size);
 	}
 
-	do {
-		ret_len = recv(ctx->control_sock,
-			mmap_align_addr(pos->base_mma), len,
-			MSG_WAITALL);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock,
+			mmap_align_addr(pos->base_mma), len);
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -760,9 +763,7 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 	cmd.data_size = sizeof(rq);
 	cmd.cmd_version = 0;
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -770,9 +771,7 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &rq, sizeof(rq));
 	if (ret_len < 0) {
 		perror("[error] Error sending get_metadata request");
 		ret = ret_len;
@@ -780,9 +779,7 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 	}
 	assert(ret_len == sizeof(rq));
 
-	do {
-		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -826,9 +823,7 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 		ret = -1;
 		goto error;
 	}
-	do {
-		ret_len = recv(ctx->control_sock, data, len, MSG_WAITALL);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, data, len);
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -929,9 +924,7 @@ int get_next_index(struct lttng_live_ctx *ctx,
 	rq.stream_id = htobe64(viewer_stream->id);
 
 retry:
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -939,9 +932,7 @@ retry:
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &rq, sizeof(rq));
 	if (ret_len < 0) {
 		perror("[error] Error sending get_next_index request");
 		ret = ret_len;
@@ -949,9 +940,7 @@ retry:
 	}
 	assert(ret_len == sizeof(rq));
 
-	do {
-		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -1166,9 +1155,7 @@ int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
 	cmd.data_size = 0;
 	cmd.cmd_version = 0;
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -1176,9 +1163,7 @@ int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = recv(ctx->control_sock, &resp, sizeof(resp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &resp, sizeof(resp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -1330,9 +1315,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	memset(&rq, 0, sizeof(rq));
 	rq.session_id = htobe64(id);
 
-	do {
-		ret_len = send(ctx->control_sock, &cmd, sizeof(cmd), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
 	if (ret_len < 0) {
 		perror("[error] Error sending cmd");
 		ret = ret_len;
@@ -1340,9 +1323,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	}
 	assert(ret_len == sizeof(cmd));
 
-	do {
-		ret_len = send(ctx->control_sock, &rq, sizeof(rq), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_send(ctx->control_sock, &rq, sizeof(rq));
 	if (ret_len < 0) {
 		perror("[error] Error sending get_new_streams request");
 		ret = ret_len;
@@ -1350,9 +1331,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	}
 	assert(ret_len == sizeof(rq));
 
-	do {
-		ret_len = recv(ctx->control_sock, &rp, sizeof(rp), 0);
-	} while (ret_len < 0 && errno == EINTR);
+	ret_len = lttng_live_recv(ctx->control_sock, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		fprintf(stderr, "[error] Remote side has closed connection\n");
 		ret = -1;
@@ -1401,9 +1380,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	ctx->session->streams = g_new0(struct lttng_live_viewer_stream,
 			ctx->session->stream_count);
 	for (i = 0; i < stream_count; i++) {
-		do {
-			ret_len = recv(ctx->control_sock, &stream, sizeof(stream), 0);
-		} while (ret_len < 0 && errno == EINTR);
+		ret_len = lttng_live_recv(ctx->control_sock, &stream, sizeof(stream));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
 			ret = -1;
