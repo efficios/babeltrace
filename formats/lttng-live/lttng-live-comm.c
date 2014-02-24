@@ -33,6 +33,7 @@
 #include <inttypes.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <poll.h>
 
 #include <babeltrace/ctf/ctf-index.h>
 
@@ -53,6 +54,8 @@
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
+
+#define ACTIVE_POLL_DELAY	100	/* ms */
 
 /*
  * Memory allocation zeroed
@@ -893,6 +896,9 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		if (ret > 0) {
 			len_read += ret;
 		}
+		if (!len_read) {
+			(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
+		}
 	} while (ret > 0 || !len_read);
 
 	if (fclose(metadata_stream->metadata_fp_write))
@@ -989,7 +995,7 @@ retry:
 		break;
 	case LTTNG_VIEWER_INDEX_RETRY:
 		printf_verbose("get_next_index: retry\n");
-		sleep(1);
+		(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
 		goto retry;
 	case LTTNG_VIEWER_INDEX_HUP:
 		printf_verbose("get_next_index: stream hung up\n");
@@ -1488,6 +1494,8 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto end_free;
+			if (!ctx->session->stream_count)
+				(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
 		}
 
 		g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
