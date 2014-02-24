@@ -357,7 +357,7 @@ const char *get_byte_order_string(int byte_order)
 }
 
 static
-void append_trace_metadata(struct bt_ctf_writer *writer,
+int append_trace_metadata(struct bt_ctf_writer *writer,
 		struct metadata_context *context)
 {
 	unsigned char *uuid = writer->uuid;
@@ -382,10 +382,14 @@ void append_trace_metadata(struct bt_ctf_writer *writer,
 	g_string_assign(context->field_name, "");
 	ret = bt_ctf_field_type_serialize(writer->trace_packet_header_type,
 		context);
-	assert(!ret);
+	if (ret) {
+		goto end;
+	}
 	context->current_indentation_level--;
 
 	g_string_append(context->string, ";\n};\n\n");
+end:
+	return ret;
 }
 
 static
@@ -429,7 +433,9 @@ char *bt_ctf_writer_get_metadata_string(struct bt_ctf_writer *writer)
 	context->field_name = g_string_sized_new(DEFAULT_IDENTIFIER_SIZE);
 	context->string = g_string_sized_new(DEFAULT_METADATA_STRING_SIZE);
 	g_string_append(context->string, "/* CTF 1.8 */\n\n");
-	append_trace_metadata(writer, context);
+	if (append_trace_metadata(writer, context)) {
+		goto error;
+	}
 	append_env_metadata(writer, context);
 	g_ptr_array_foreach(writer->clocks,
 		(GFunc)bt_ctf_clock_serialize, context);
