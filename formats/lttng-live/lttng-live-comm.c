@@ -869,7 +869,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 {
 	int ret = 0;
 	struct lttng_live_viewer_stream *metadata_stream;
-	size_t size;
+	size_t size, len_read = 0;;
 
 	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
 	if (!metadata_stream) {
@@ -890,7 +890,10 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		 * negative value on error.
 		 */
 		ret = get_one_metadata_packet(ctx, metadata_stream);
-	} while (ret > 0);
+		if (ret > 0) {
+			len_read += ret;
+		}
+	} while (ret > 0 || !len_read);
 
 	if (fclose(metadata_stream->metadata_fp_write))
 		perror("fclose");
