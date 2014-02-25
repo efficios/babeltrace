@@ -676,14 +676,18 @@ retry:
 			ret = append_metadata(ctx, stream);
 			if (ret)
 				goto error;
-			goto retry;
 		}
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
+			printf_verbose("get_data_packet: new streams needed\n");
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto error;
 			g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
 					ctx->bt_ctx);
+		}
+		if (rp.flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
+				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
+			goto retry;
 		}
 		fprintf(stderr, "[error] get_data_packet: error\n");
 		ret = -1;
@@ -745,7 +749,7 @@ retry:
 		goto error;
 	}
 	assert(ret_len == len);
-
+	ret = 0;
 end:
 error:
 	return ret;
