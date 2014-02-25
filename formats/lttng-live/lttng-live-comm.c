@@ -707,7 +707,7 @@ retry:
 	}
 
 	if (len <= 0) {
-		goto end;
+		goto error;
 	}
 
 	if (len > stream->mmap_size) {
