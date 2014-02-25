@@ -706,7 +706,7 @@ retry:
 		goto error;
 	}
 
-	if (len <= 0) {
+	if (len == 0) {
 		goto error;
 	}
 
