@@ -44,6 +44,16 @@ struct ctf_clock;
 struct ctf_callsite;
 struct ctf_scanner;
 
+struct ctf_stream_packet_limits {
+	uint64_t begin;
+	uint64_t end;
+};
+
+struct ctf_stream_packet_timestamp {
+	struct ctf_stream_packet_limits cycles;
+	struct ctf_stream_packet_limits real;
+};
+
 struct ctf_stream_definition {
 	struct ctf_stream_declaration *stream_class;
 	uint64_t real_timestamp;		/* Current timestamp, in ns */
@@ -64,10 +74,8 @@ struct ctf_stream_definition {
 
 	/* Event discarded information */
 	uint64_t events_discarded;
-	uint64_t prev_real_timestamp;		/* Start-of-last-packet timestamp in ns */
-	uint64_t prev_real_timestamp_end;	/* End-of-last-packet timestamp in ns */
-	uint64_t prev_cycles_timestamp;		/* Start-of-last-packet timestamp in cycles */
-	uint64_t prev_cycles_timestamp_end;	/* End-of-last-packet timestamp in cycles */
+	struct ctf_stream_packet_timestamp prev;
+	struct ctf_stream_packet_timestamp current;
 	char path[PATH_MAX];			/* Path to stream. '\0' for mmap traces */
 };
 

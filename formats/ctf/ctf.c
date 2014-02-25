@@ -84,6 +84,13 @@ uint64_t opt_clock_offset_ns;
 
 extern int yydebug;
 
+/*
+ * TODO: babeltrace_ctf_console_output ensures that we only print
+ * discarded events when ctf-text plugin is used. Should be cleaned up
+ * with the plugin system redesign.
+ */
+int babeltrace_ctf_console_output;
+
 static
 struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
@@ -279,10 +286,7 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
 	uint64_t oldval, newval, updateval;
 
 	if (unlikely(integer_declaration->len == 64)) {
-		stream->prev_cycles_timestamp = stream->cycles_timestamp;
 		stream->cycles_timestamp = integer_definition->value._unsigned;
-		stream->prev_real_timestamp = ctf_get_real_timestamp(stream,
-				stream->prev_cycles_timestamp);
 		stream->real_timestamp = ctf_get_real_timestamp(stream,
 				stream->cycles_timestamp);
 		return;
@@ -298,12 +302,9 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
 	updateval = stream->cycles_timestamp;
 	updateval &= ~((1ULL << integer_declaration->len) - 1);
 	updateval += newval;
-	stream->prev_cycles_timestamp = stream->cycles_timestamp;
 	stream->cycles_timestamp = updateval;
 
 	/* convert to real timestamp */
-	stream->prev_real_timestamp = ctf_get_real_timestamp(stream,
-			stream->prev_cycles_timestamp);
 	stream->real_timestamp = ctf_get_real_timestamp(stream,
 			stream->cycles_timestamp);
 }
@@ -408,24 +409,39 @@ void print_uuid(FILE *fp, unsigned char *uuid)
 		fprintf(fp, "%x", (unsigned int) uuid[i]);
 }
 
-void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream,
-		int end_stream)
+/*
+ * Discarded events can be either:
+ * - discarded after end of previous buffer due to buffer full:
+ *     happened within range: [ prev_timestamp_end, timestamp_begin ]
+ * - discarded within current buffer due to either event too large or
+ *   nested wrap-around:
+ *     happened within range: [ timestamp_begin, timestamp_end ]
+ *
+ * Given we have discarded counters of those two types merged into the
+ * events_discarded counter, we need to use the union of those ranges:
+ *   [ prev_timestamp_end, timestamp_end ]
+ */
+static
+void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream)
 {
-	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events %sbetween [",
-		stream->events_discarded,
-		end_stream ? "at end of stream " : "");
+	if (!stream->events_discarded || !babeltrace_ctf_console_output) {
+		return;
+	}
+	fflush(stdout);
+	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events between [",
+		stream->events_discarded);
 	if (opt_clock_cycles) {
 		ctf_print_timestamp(fp, stream,
-				stream->prev_cycles_timestamp);
+				stream->prev.cycles.end);
 		fprintf(fp, "] and [");
 		ctf_print_timestamp(fp, stream,
-				stream->prev_cycles_timestamp_end);
+				stream->current.cycles.end);
 	} else {
 		ctf_print_timestamp(fp, stream,
-				stream->prev_real_timestamp);
+				stream->prev.real.end);
 		fprintf(fp, "] and [");
 		ctf_print_timestamp(fp, stream,
-				stream->prev_real_timestamp_end);
+				stream->current.real.end);
 	}
 	fprintf(fp, "] in trace UUID ");
 	print_uuid(fp, stream->stream_class->trace->uuid);
@@ -788,23 +804,30 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 	uint64_t events_discarded_diff;
 
 	/* Update packet index time information */
-	stream->prev_cycles_timestamp_end =
-		cur_index->ts_cycles.timestamp_end;
-	stream->prev_cycles_timestamp =
-		cur_index->ts_cycles.timestamp_begin;
-	stream->prev_real_timestamp_end =
-		cur_index->ts_real.timestamp_end;
-	stream->prev_real_timestamp =
-		cur_index->ts_real.timestamp_begin;
 
-	stream->prev_real_timestamp =
-		stream->real_timestamp;
-	stream->prev_cycles_timestamp =
-		stream->cycles_timestamp;
+	/* Current packet begin/end */
+	stream->current.real.begin =
+		cur_index->ts_real.timestamp_begin;
+	stream->current.cycles.begin =
+		cur_index->ts_cycles.timestamp_begin;
+	stream->current.real.end =
+		cur_index->ts_real.timestamp_end;
+	stream->current.cycles.end =
+		cur_index->ts_cycles.timestamp_end;
 
 	/* Update packet index discarded event information */
 	events_discarded_diff = cur_index->events_discarded;
 	if (prev_index) {
+		/* Previous packet begin/end */
+		stream->prev.cycles.begin =
+			prev_index->ts_cycles.timestamp_begin;
+		stream->prev.real.begin =
+			prev_index->ts_real.timestamp_begin;
+		stream->prev.cycles.end =
+			prev_index->ts_cycles.timestamp_end;
+		stream->prev.real.end =
+			prev_index->ts_real.timestamp_end;
+
 		events_discarded_diff -= prev_index->events_discarded;
 		/*
 		 * Deal with 32-bit wrap-around if the tracer provided a
@@ -813,6 +836,17 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 		if (prev_index->events_discarded_len == 32) {
 			events_discarded_diff = (uint32_t) events_discarded_diff;
 		}
+	} else {
+		/*
+		 * First packet: use current packet info as limits for
+		 * previous packet.
+		 */
+		stream->prev.cycles.begin =
+			stream->prev.cycles.end =
+				stream->current.cycles.begin;
+		stream->prev.real.begin =
+			stream->prev.real.end =
+				stream->current.real.begin;
 	}
 	stream->events_discarded = events_discarded_diff;
 }
@@ -829,7 +863,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		container_of(pos, struct ctf_file_stream, pos);
 	int ret;
 	off_t off;
-	struct packet_index *packet_index;
+	struct packet_index *packet_index, *prev_index;
 
 	switch (whence) {
 	case SEEK_CUR:
@@ -881,22 +915,10 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		switch (whence) {
 		case SEEK_CUR:
 		{
-			struct packet_index *prev_index = NULL;
-
 			if (pos->offset == EOF) {
 				return;
 			}
 			assert(pos->cur_index < pos->packet_index->len);
-			packet_index = &g_array_index(pos->packet_index,
-					struct packet_index, pos->cur_index);
-			if (pos->cur_index > 0) {
-				prev_index = &g_array_index(pos->packet_index,
-						struct packet_index,
-						pos->cur_index - 1);
-			}
-			ctf_update_current_packet_index(&file_stream->parent,
-					prev_index, packet_index);
-
 			/* The reader will expect us to skip padding */
 			++pos->cur_index;
 			break;
@@ -906,44 +928,39 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 				pos->offset = EOF;
 				return;
 			}
-			packet_index = &g_array_index(pos->packet_index,
-					struct packet_index, index);
-			pos->last_events_discarded = packet_index->events_discarded;
 			pos->cur_index = index;
-			file_stream->parent.prev_real_timestamp = 0;
-			file_stream->parent.prev_real_timestamp_end = 0;
-			file_stream->parent.prev_cycles_timestamp = 0;
-			file_stream->parent.prev_cycles_timestamp_end = 0;
 			break;
 		default:
 			assert(0);
 		}
+
+		packet_index = &g_array_index(pos->packet_index,
+				struct packet_index, pos->cur_index);
+		if (pos->cur_index > 0) {
+			prev_index = &g_array_index(pos->packet_index,
+					struct packet_index,
+					pos->cur_index - 1);
+		} else {
+			prev_index = NULL;
+		}
+		ctf_update_current_packet_index(&file_stream->parent,
+				prev_index, packet_index);
+
 		if (pos->cur_index >= pos->packet_index->len) {
-			/*
-			 * We need to check if we are in trace read or
-			 * called from packet indexing.  In this last
-			 * case, the collection is not there, so we
-			 * cannot print the timestamps.
-			 */
-			if ((&file_stream->parent)->stream_class->trace->parent.collection) {
-				/*
-				 * When a stream reaches the end of the
-				 * file, we need to show the number of
-				 * events discarded ourselves, because
-				 * there is no next event scheduled to
-				 * be printed in the output.
-				 */
-				if (file_stream->parent.events_discarded) {
-					fflush(stdout);
-					ctf_print_discarded(stderr,
-						&file_stream->parent,
-						1);
-					file_stream->parent.events_discarded = 0;
-				}
-			}
 			pos->offset = EOF;
 			return;
 		}
+
+		/*
+		 * We need to check if we are in trace read or called
+		 * from packet indexing.  In this last case, the
+		 * collection is not there, so we cannot print the
+		 * timestamps.
+		 */
+		if ((&file_stream->parent)->stream_class->trace->parent.collection) {
+			ctf_print_discarded(stderr, &file_stream->parent);
+		}
+
 		packet_index = &g_array_index(pos->packet_index,
 				struct packet_index,
 				pos->cur_index);

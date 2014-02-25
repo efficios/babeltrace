@@ -262,13 +262,6 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 		return -EINVAL;
 	}
 
-	/* Print events discarded */
-	if (stream->events_discarded) {
-		fflush(pos->fp);
-		ctf_print_discarded(stderr, stream, 0);
-		stream->events_discarded = 0;
-	}
-
 	if (stream->has_timestamp) {
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names)
@@ -563,6 +556,7 @@ struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 		pos->parent.event_cb = ctf_text_write_event;
 		pos->parent.trace = &pos->trace_descriptor;
 		pos->print_names = 0;
+		babeltrace_ctf_console_output++;
 		break;
 	case O_RDONLY:
 	default:
@@ -582,6 +576,8 @@ int ctf_text_close_trace(struct bt_trace_descriptor *td)
 	int ret;
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos, trace_descriptor);
+
+	babeltrace_ctf_console_output--;
 	if (pos->fp != stdout) {
 		ret = fclose(pos->fp);
 		if (ret) {

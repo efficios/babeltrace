@@ -399,10 +399,15 @@ int bt_iter_set_pos(struct bt_iter *iter, const struct bt_iter_pos *iter_pos)
 			stream_pos->offset = saved_pos->offset;
 			stream_pos->last_offset = LAST_OFFSET_POISON;
 
-			stream->prev_real_timestamp = 0;
-			stream->prev_real_timestamp_end = 0;
-			stream->prev_cycles_timestamp = 0;
-			stream->prev_cycles_timestamp_end = 0;
+			stream->current.real.begin = 0;
+			stream->current.real.end = 0;
+			stream->current.cycles.begin = 0;
+			stream->current.cycles.end = 0;
+
+			stream->prev.real.begin = 0;
+			stream->prev.real.end = 0;
+			stream->prev.cycles.begin = 0;
+			stream->prev.cycles.end = 0;
 
 			printf_debug("restored to cur_index = %" PRId64 " and "
 				"offset = %" PRId64 ", timestamp = %" PRIu64 "\n",
