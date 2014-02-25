@@ -682,8 +682,8 @@ retry:
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto error;
-			g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
-					ctx->bt_ctx);
+			g_hash_table_foreach(ctx->session->ctf_traces,
+					add_traces, ctx->bt_ctx);
 		}
 		if (rp.flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
@@ -995,8 +995,8 @@ retry:
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto error;
-			g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
-					ctx->bt_ctx);
+			g_hash_table_foreach(ctx->session->ctf_traces,
+					add_traces, ctx->bt_ctx);
 		}
 		break;
 	case LTTNG_VIEWER_INDEX_RETRY:
