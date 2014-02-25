@@ -631,8 +631,7 @@ retry:
 
 	memset(&rq, 0, sizeof(rq));
 	rq.stream_id = htobe64(stream->id);
-	/* Already in big endian. */
-	rq.offset = offset;
+	rq.offset = htobe64(offset);
 	rq.len = htobe32(len);
 
 	ret_len = lttng_live_send(ctx->control_sock, &cmd, sizeof(cmd));
@@ -1110,7 +1109,7 @@ retry:
 	printf_verbose("get_data_packet for stream %" PRIu64 "\n",
 			viewer_stream->id);
 	ret = get_data_packet(session->ctx, pos, viewer_stream,
-			be64toh(cur_index->offset),
+			cur_index->offset,
 			cur_index->packet_size / CHAR_BIT);
 	if (ret == -2) {
 		goto retry;
