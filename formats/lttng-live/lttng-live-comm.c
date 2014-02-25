@@ -652,8 +652,8 @@ retry:
 	}
 	if (ret_len != sizeof(rp)) {
 		fprintf(stderr, "[error] get_data_packet: expected %" PRId64
-				", received %" PRId64 "\n", ret_len,
-				sizeof(rp));
+				", received %" PRId64 "\n", sizeof(rp),
+				ret_len);
 		ret = -1;
 		goto error;
 	}
