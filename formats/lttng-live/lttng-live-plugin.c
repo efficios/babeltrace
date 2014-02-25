@@ -102,8 +102,9 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 		}
 	}
 
-	if (ctx->port < 0)
+	if (ctx->port < 0) {
 		ctx->port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
+	}
 
 	if (strlen(remain[2]) == 0) {
 		printf_verbose("Connecting to hostname : %s, port : %d, "
@@ -172,8 +173,9 @@ static int lttng_live_open_trace_read(const char *path)
 		goto end_free;
 	}
 
-	if (ctx->session_ids->len > 0)
+	if (ctx->session_ids->len > 0) {
 		lttng_live_read(ctx);
+	}
 
 end_free:
 	g_hash_table_destroy(ctx->session->ctf_traces);
