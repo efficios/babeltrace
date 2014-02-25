@@ -1467,8 +1467,9 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
-	if (!sout->parent.event_cb)
+	if (!sout->parent.event_cb) {
 		goto end_free;
+	}
 
 	ret = lttng_live_create_viewer_session(ctx);
 	if (ret < 0) {
@@ -1495,13 +1496,16 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 		int flags;
 
 		while (!ctx->session->stream_count) {
-			if (ctx->session_ids->len == 0)
+			if (ctx->session_ids->len == 0) {
 				goto end_free;
+			}
 			ret = ask_new_streams(ctx);
-			if (ret < 0)
+			if (ret < 0) {
 				goto end_free;
-			if (!ctx->session->stream_count)
+			}
+			if (!ctx->session->stream_count) {
 				(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
+			}
 		}
 
 		g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
