@@ -36,7 +36,58 @@
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "lttng-live.h"
+
+static volatile int should_quit;
+
+int lttng_live_should_quit(void)
+{
+	return should_quit;
+}
+
+static
+void sighandler(int sig)
+{
+	switch (sig) {
+	case SIGTERM:
+	case SIGINT:
+		should_quit = 1;
+		break;
+	default:
+		break;
+	}
+}
+
+/*
+ * TODO: Eventually, this signal handler setup should be done at the
+ * plugin manager level, rather than within this plugin. Beware, we are
+ * not cleaning up the signal handler after plugin execution.
+ */
+static
+int setup_sighandler(void)
+{
+	struct sigaction sa;
+	sigset_t sigset;
+	int ret;
+
+	if ((ret = sigemptyset(&sigset)) < 0) {
+		perror("sigemptyset");
+		return ret;
+	}
+	sa.sa_handler = sighandler;
+	sa.sa_mask = sigset;
+	sa.sa_flags = 0;
+	if ((ret = sigaction(SIGTERM, &sa, NULL)) < 0) {
+		perror("sigaction");
+		return ret;
+	}
+	if ((ret = sigaction(SIGINT, &sa, NULL)) < 0) {
+		perror("sigaction");
+		return ret;
+	}
+	return 0;
+}
 
 /*
  * hostname parameter needs to hold NAME_MAX chars.
@@ -153,10 +204,12 @@ static int lttng_live_open_trace_read(const char *path)
 	if (ret < 0) {
 		goto end_free;
 	}
-
+	ret = setup_sighandler();
+	if (ret < 0) {
+		goto end_free;
+	}
 	ret = lttng_live_connect_viewer(ctx);
 	if (ret < 0) {
-		fprintf(stderr, "[error] Connection failed\n");
 		goto end_free;
 	}
 	printf_verbose("LTTng-live connected to relayd\n");
@@ -169,7 +222,6 @@ static int lttng_live_open_trace_read(const char *path)
 	printf_verbose("Listing sessions\n");
 	ret = lttng_live_list_sessions(ctx, path);
 	if (ret < 0) {
-		fprintf(stderr, "[error] List error\n");
 		goto end_free;
 	}
 
@@ -182,6 +234,10 @@ end_free:
 	g_free(ctx->session);
 	g_free(ctx->session->streams);
 	g_free(ctx);
+
+	if (lttng_live_should_quit()) {
+		ret = 0;
+	}
 	return ret;
 }
 
