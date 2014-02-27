@@ -1,3 +1,42 @@
+2014-02-27 Babeltrace 1.2.0-rc2
+	* Fix: events discarded timing inaccuracy
+	* Fix: Move offset endianness conversion to get_data_packet
+	* Fix: Remove negative comparison to unsigned value
+	* Fix: Uninitialized scalar variable
+	* Fix: Don't assert on metadata generation failure
+	* Fix: add missing SIGTERM and SIGINT handler
+	* Fix: Reverse incorrect error message argument order
+	* Cleanup: add brackets to lttng-live-plugin.c
+	* Cleanup lttng-live: add brackets in lttng_live_read()
+	* Cleanup lttng-live: 80 columns wrapping
+	* Fix: handle new streams in get_data_packet()
+	* Fix: accept empty metadata on append
+	* Fix: lttng-live: 100ms active poll delay
+	* Fix: lttng-live await metadata
+	* Fix: lttng-live recv() and send() flags, partial recv()
+	* Fix: missing little endian conversion for one index field
+	* Cleanup: remove logically dead code
+	* Fix: untrusted value as argument
+	* Fix: off by one in lttng-live path length check
+	* Fix: fclose return value unchecked
+	* Fix: call to append metadata when new metadata is added
+	* Fix: use memstream instead of tmp file for live metadata
+	* Fix: assign a trace handle to every live trace
+	* Fix: get_new_metadata receive all the metadata
+	* Fix: Coverity warning CWE-457: Use of Uninitialized Variable
+	* Revert "Fix: get_new_metadata receive all the metadata"
+	* Revert "Fix: assign a trace handle to every live trace"
+	* Fix: assign a trace handle to every live trace
+	* Fix: get_new_metadata receive all the metadata
+	* CTF: Support incremental metadata append
+	* Fix: ctf.c fscanf missing integer length check
+	* Bump soname version to 1.0.0
+	* Move scanner allocation/free outside of ctf_open_trace_metadata_read
+	* CTF parser: prepare for incremental metadata parsing
+	* Python bindings: return char arrays as strings in value()
+	* Python bindings: sched_switch example clean-up
+	* Fix: add missing test scripts to Makefile.am
+
 2014-02-14 Babeltrace 1.2.0-rc1
 	* Cleanup: lttng-live: use perror() rather than fprintf for err msg
 	* Fix: lttng-live: handle orderly shutdown
