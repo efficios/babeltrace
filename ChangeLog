@@ -1,3 +1,6 @@
+2014-02-28 Babeltrace 1.2.0
+	* Fix: lttng-live parse url port check
+
 2014-02-27 Babeltrace 1.2.0-rc2
 	* Fix: events discarded timing inaccuracy
 	* Fix: Move offset endianness conversion to get_data_packet
