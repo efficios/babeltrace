@@ -1,3 +1,42 @@
+2014-02-28 Babeltrace 1.1.2
+	* Cleanup: remove logically dead code
+	* Fix: ctf.c fscanf missing integer length check
+	* Add Jérémie Galarneau as co-maintainer
+	* Fix: disallow re-using same event ID in same stream
+	* Fix: check for unknown enum/variant fields
+	* Fix: libbabeltrace lib build dependencies
+	* Be more widely accepting for missing variant/enum fields
+	* Refuse 0 integer size
+	* Fix: read/write mode check
+	* Cleanup: do not duplicate code in float fix
+	* Fix: floats should set content size in tmp definition
+	* Fix: test content size vs headers len
+	* Fix: test for less than 1 byte packets
+	* Fix: reversed logic in packet vs content size
+	* Fix: clarify end of packet error
+	* Fix: string packet boundary handling, bits vs bytes
+	* Fix: add stricter checks on packet boundaries
+	* Cleanup: fix typo
+	* Fix: fail when reading 0 byte event
+	* Fix: Take the iterator's end position into account
+	* Fix: Use the bt_iter_set_pos function to set the begin_pos
+	* Fix: Don't create a new packet if ctf_move_pos() seeks out of a packet
+	* Fix: Uninitialized ctf_stream_pos structure in ctf_float_write()
+	* Fix: Use the packet's final size when mmap-ing the next packet
+	* Fix: Close traces on context destruction
+	* gcc warning fix: -Wextra
+	* Declare enum type to use from C++
+	* Tests: fix string octal encoding
+	* Fix ctf_clock_declaration_visit returning an error when reading a boolean
+	* Fix CTF parser hang with bison 3.0
+	* Add missing lex/bison generated files to make clean
+	* Test for presence of bison and flex when building from git
+	* Fix: Unchecked asprintf/vasprintf return values
+	* Missing NULL pointer init in tap.c
+	* Document: manpage: chronologically ordered events
+	* Cleanup: comment mismatch with code
+	* Cleanup: remove whitespaces at end of lines
+
 2013-06-18 Babeltrace 1.1.1
 	* Compare traces by stream path as secondary key
 	* Fix: use index, not cur_index, for SEEK_SET validation
