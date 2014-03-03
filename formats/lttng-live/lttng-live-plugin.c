@@ -135,7 +135,7 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 				if (ret < 0) {
 					goto end;
 				}
-			} else {
+			} else if (ret == 0) {
 				fprintf(stderr, "[error] Missing port number after delimitor ':'\n");
 				ret = -1;
 				goto end;
