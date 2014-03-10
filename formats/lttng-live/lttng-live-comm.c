@@ -1429,9 +1429,10 @@ error:
 	return -1;
 }
 
-void lttng_live_read(struct lttng_live_ctx *ctx)
+int lttng_live_read(struct lttng_live_ctx *ctx)
 {
-	int ret, i;
+	int ret = -1;
+	int i;
 	struct bt_ctf_iter *iter;
 	const struct bt_ctf_event *event;
 	struct bt_iter_pos begin_pos;
@@ -1489,12 +1490,14 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 		int flags;
 
 		if (lttng_live_should_quit()) {
+			ret = 0;
 			goto end_free;
 		}
 
 		while (!ctx->session->stream_count) {
 			if (lttng_live_should_quit()
 					|| ctx->session_ids->len == 0) {
+				ret = 0;
 				goto end_free;
 			}
 			ret = ask_new_streams(ctx);
@@ -1517,6 +1520,7 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 		}
 		for (;;) {
 			if (lttng_live_should_quit()) {
+				ret = 0;
 				goto end_free;
 			}
 			event = bt_ctf_iter_read_event_flags(iter, &flags);
@@ -1547,5 +1551,5 @@ void lttng_live_read(struct lttng_live_ctx *ctx)
 end_free:
 	bt_context_put(ctx->bt_ctx);
 end:
-	return;
+	return ret;
 }
