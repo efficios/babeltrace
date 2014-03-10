@@ -544,6 +544,9 @@ restart:
 		printf_verbose("Asking for new streams returns %d\n",
 				ret);
 		if (ret < 0) {
+			if (lttng_live_should_quit()) {
+				goto end;
+			}
 			if (ret == -LTTNG_VIEWER_NEW_STREAMS_HUP) {
 				printf_verbose("Session %" PRIu64 " closed\n",
 						id);
@@ -1065,7 +1068,9 @@ retry:
 	ret = get_next_index(session->ctx, viewer_stream, cur_index);
 	if (ret < 0) {
 		pos->offset = EOF;
-		fprintf(stderr, "[error] get_next_index failed\n");
+		if (!lttng_live_should_quit()) {
+			fprintf(stderr, "[error] get_next_index failed\n");
+		}
 		return;
 	}
 
@@ -1115,7 +1120,9 @@ retry:
 		goto retry;
 	} else if (ret < 0) {
 		pos->offset = EOF;
-		fprintf(stderr, "[error] get_data_packet failed\n");
+		if (!lttng_live_should_quit()) {
+			fprintf(stderr, "[error] get_data_packet failed\n");
+		}
 		return;
 	}
 
@@ -1515,6 +1522,10 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 		begin_pos.type = BT_SEEK_BEGIN;
 		iter = bt_ctf_iter_create(ctx->bt_ctx, &begin_pos, NULL);
 		if (!iter) {
+			if (lttng_live_should_quit()) {
+				ret = 0;
+				goto end;
+			}
 			fprintf(stderr, "[error] Iterator creation error\n");
 			goto end;
 		}
@@ -1551,5 +1562,8 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 end_free:
 	bt_context_put(ctx->bt_ctx);
 end:
+	if (lttng_live_should_quit()) {
+		ret = 0;
+	}
 	return ret;
 }
