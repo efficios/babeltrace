@@ -509,8 +509,6 @@ int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		if (ret < 0) {
 			fprintf(stderr, "[warning] [Context] cannot open trace \"%s\" "
 					"for reading.\n", path);
-			/* Allow to skip erroneous traces. */
-			ret = 1;	/* partial error */
 		}
 		return ret;
 	}

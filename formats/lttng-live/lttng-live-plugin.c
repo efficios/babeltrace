@@ -230,7 +230,7 @@ static int lttng_live_open_trace_read(const char *path)
 	}
 
 	if (ctx->session_ids->len > 0) {
-		lttng_live_read(ctx);
+		ret = lttng_live_read(ctx);
 	}
 
 end_free:
@@ -268,7 +268,9 @@ struct bt_trace_descriptor *lttng_live_open_trace(const char *path, int flags,
 	pos->parent.rw_table = NULL;
 	pos->parent.event_cb = NULL;
 	pos->parent.trace = &pos->trace_descriptor;
-	lttng_live_open_trace_read(path);
+	if (lttng_live_open_trace_read(path) < 0) {
+		goto error;
+	}
 	return &pos->trace_descriptor;
 
 error:
