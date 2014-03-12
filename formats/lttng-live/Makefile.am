@@ -1,4 +1,4 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_builddir)/include
+AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_srcdir)
 
 lib_LTLIBRARIES = libbabeltrace-lttng-live.la
 
