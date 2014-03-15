@@ -71,7 +71,7 @@ int ctf_text_enum_write(struct bt_stream_pos *ppos, struct bt_definition *defini
 			if (pos->field_nr++ != 0)
 				fprintf(pos->fp, ",");
 			fprintf(pos->fp, " ");
-			fprintf(pos->fp, "%s", str);
+			fprintf(pos->fp, "\"%s\"", str);
 		}
 	} else {
 		fprintf(pos->fp, " <unknown>");
