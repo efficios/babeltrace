@@ -1,6 +1,7 @@
 *~
 /tests/lib/test_bitfield
 /tests/lib/test_seek
+/tests/lib/test_ctf_writer
 *.o
 *.a
 *.la
@@ -38,3 +39,4 @@ bindings/python/babeltrace.i
 bindings/python/babeltrace.py
 bindings/python/babeltrace_wrap.c
 babeltrace.pc
+babeltrace-ctf.pc
