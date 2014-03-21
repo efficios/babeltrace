@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_CLOCK_INTERNAL_H
+#define BABELTRACE_CTF_IR_CLOCK_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Clock internal
+ * BabelTrace - CTF IR: Clock internal
  *
  * Copyright 2013 EfficiOS Inc.
  *
@@ -62,4 +62,4 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 BT_HIDDEN
 uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_CLOCK_INTERNAL_H */

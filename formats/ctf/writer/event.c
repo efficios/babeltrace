@@ -29,9 +29,9 @@
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/ctf-writer/event-fields-internal.h>
-#include <babeltrace/ctf-writer/event-types-internal.h>
-#include <babeltrace/ctf-writer/event-internal.h>
+#include <babeltrace/ctf-ir/event-fields-internal.h>
+#include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 

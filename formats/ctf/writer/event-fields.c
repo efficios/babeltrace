@@ -27,8 +27,8 @@
  */
 
 #include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/ctf-writer/event-fields-internal.h>
-#include <babeltrace/ctf-writer/event-types-internal.h>
+#include <babeltrace/ctf-ir/event-fields-internal.h>
+#include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/compiler.h>
 
 #define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)

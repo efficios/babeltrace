@@ -19,8 +19,8 @@
  */
 
 #include "python-complements.h"
-#include <babeltrace/ctf-writer/event-types-internal.h>
-#include <babeltrace/ctf-writer/event-fields-internal.h>
+#include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/event-fields-internal.h>
 
 /* FILE functions
    ----------------------------------------------------

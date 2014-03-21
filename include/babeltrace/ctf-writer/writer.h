@@ -30,6 +30,8 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ctf-ir/event-types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,13 +40,6 @@ struct bt_ctf_writer;
 struct bt_ctf_stream;
 struct bt_ctf_stream_class;
 struct bt_ctf_clock;
-
-enum bt_ctf_byte_order {
-	BT_CTF_BYTE_ORDER_NATIVE = 0,
-	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
-	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
-	BT_CTF_BYTE_ORDER_NETWORK,
-};
 
 /*
  * bt_ctf_writer_create: create a writer instance.

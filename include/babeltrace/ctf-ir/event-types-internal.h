@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_TYPES_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_EVENT_TYPES_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H
+#define BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Event types internal
+ * BabelTrace - CTF IR: Event types internal
  *
  * Copyright 2013 EfficiOS Inc.
  *
@@ -150,4 +150,4 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 BT_HIDDEN
 int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
 
-#endif /* BABELTRACE_CTF_WRITER_EVENT_TYPES_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

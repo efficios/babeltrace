@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_EVENT_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H
+#define BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Event internal
+ * BabelTrace - CTF IR: Stream class internal
  *
  * Copyright 2013 EfficiOS Inc.
  *
@@ -28,63 +28,44 @@
  */
 
 #include <babeltrace/ctf-writer/ref-internal.h>
-#include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
-struct bt_ctf_event_class {
+struct bt_ctf_stream_class {
 	struct bt_ctf_ref ref_count;
-	GQuark name;
+	GString *name;
+	struct bt_ctf_clock *clock;
+	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */
 	int id_set;
 	uint32_t id;
-	int stream_id_set;
-	uint32_t stream_id;
-	/* Structure type containing the event's context */
-	struct bt_ctf_field_type *context;
-	/* Structure type containing the event's fields */
-	struct bt_ctf_field_type *fields;
+	uint32_t next_event_id;
+	uint32_t next_stream_id;
+	struct bt_ctf_field_type *event_header_type;
+	struct bt_ctf_field *event_header;
+	struct bt_ctf_field_type *packet_context_type;
+	struct bt_ctf_field *packet_context;
+	struct bt_ctf_field_type *event_context_type;
+	struct bt_ctf_field *event_context;
 	int frozen;
 };
 
-struct bt_ctf_event {
-	struct bt_ctf_ref ref_count;
-	uint64_t timestamp;
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_field *context_payload;
-	struct bt_ctf_field *fields_payload;
-};
+BT_HIDDEN
+void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class);
 
 BT_HIDDEN
-void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class);
-
-BT_HIDDEN
-int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
+int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		uint32_t id);
 
 BT_HIDDEN
-uint32_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
-
-BT_HIDDEN
-int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
-		uint32_t id);
-
-BT_HIDDEN
-int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
+int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-int bt_ctf_event_validate(struct bt_ctf_event *event);
+int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
+		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
-int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct ctf_stream_pos *pos);
-
-BT_HIDDEN
-int bt_ctf_event_set_timestamp(struct bt_ctf_event *event, uint64_t timestamp);
-
-BT_HIDDEN
-uint64_t bt_ctf_event_get_timestamp(struct bt_ctf_event *event);
-
-#endif /* BABELTRACE_CTF_WRITER_EVENT_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H */

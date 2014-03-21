@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 #include <inttypes.h>

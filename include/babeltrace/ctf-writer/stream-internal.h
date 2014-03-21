@@ -37,24 +37,6 @@
 
 typedef void(*flush_func)(struct bt_ctf_stream *, void *);
 
-struct bt_ctf_stream_class {
-	struct bt_ctf_ref ref_count;
-	GString *name;
-	struct bt_ctf_clock *clock;
-	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */
-	int id_set;
-	uint32_t id;
-	uint32_t next_event_id;
-	uint32_t next_stream_id;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field *event_header;
-	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field *packet_context;
-	struct bt_ctf_field_type *event_context_type;
-	struct bt_ctf_field *event_context;
-	int frozen;
-};
-
 struct flush_callback {
 	flush_func func;
 	void *data;
@@ -71,21 +53,6 @@ struct bt_ctf_stream {
 	unsigned int flushed_packet_count;
 	uint64_t events_discarded;
 };
-
-BT_HIDDEN
-void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class);
-
-BT_HIDDEN
-int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-		uint32_t id);
-
-BT_HIDDEN
-int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
-		struct metadata_context *context);
-
-BT_HIDDEN
-int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order);
 
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(

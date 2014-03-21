@@ -18,7 +18,15 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event-types.h \
 	babeltrace/ctf-writer/event.h \
-	babeltrace/ctf-writer/stream.h
+	babeltrace/ctf-writer/stream.h \
+	babeltrace/ctf-writer/stream-class.h
+
+babeltracectfirinclude_HEADERS = \
+	babeltrace/ctf-ir/clock.h \
+	babeltrace/ctf-ir/event-fields.h \
+	babeltrace/ctf-ir/event-types.h \
+	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/stream-class.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
@@ -41,10 +49,11 @@ noinst_HEADERS = \
 	babeltrace/ctf/ctf-index.h \
 	babeltrace/ctf-writer/ref-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
-	babeltrace/ctf-writer/event-types-internal.h \
-	babeltrace/ctf-writer/event-fields-internal.h \
-	babeltrace/ctf-writer/event-internal.h \
-	babeltrace/ctf-writer/clock-internal.h \
+	babeltrace/ctf-ir/event-types-internal.h \
+	babeltrace/ctf-ir/event-fields-internal.h \
+	babeltrace/ctf-ir/event-internal.h \
+	babeltrace/ctf-ir/clock-internal.h \
+	babeltrace/ctf-ir/stream-class-internal.h \
 	babeltrace/ctf-writer/stream-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/trace-handle-internal.h \

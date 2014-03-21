@@ -161,6 +161,9 @@ AC_SUBST(babeltracectfincludedir)
 babeltracectfwriterincludedir="${includedir}/babeltrace/ctf-writer"
 AC_SUBST(babeltracectfwriterincludedir)
 
+babeltracectfirincludedir="${includedir}/babeltrace/ctf-ir"
+AC_SUBST(babeltracectfirincludedir)
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
