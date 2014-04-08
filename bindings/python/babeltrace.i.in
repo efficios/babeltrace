@@ -509,6 +509,8 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 %rename("_bt_ctf_field_get_error") bt_ctf_field_get_error(void);
 %rename("_bt_ctf_get_decl_event_name") bt_ctf_get_decl_event_name(const struct
 		bt_ctf_event_decl *event);
+%rename("_bt_ctf_get_decl_event_id") bt_ctf_get_decl_event_id(const struct
+		bt_ctf_event_decl *event);
 %rename("_bt_ctf_get_decl_field_name") bt_ctf_get_decl_field_name(
 		const struct bt_ctf_field_decl *field);
 %rename("_bt_ctf_get_decl_from_def") bt_ctf_get_decl_from_def(
@@ -551,6 +553,7 @@ double bt_ctf_get_float(const struct bt_definition *field);
 const struct bt_definition *bt_ctf_get_variant(const struct bt_definition *field);
 int bt_ctf_field_get_error(void);
 const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event);
+uint64_t bt_ctf_get_decl_event_id(const struct bt_ctf_event_decl *event);
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
 const struct bt_declaration *bt_ctf_get_decl_from_def(const struct bt_definition *field);
 const struct bt_declaration *bt_ctf_get_decl_from_field_decl(const struct bt_ctf_field_decl *field);
@@ -804,6 +807,7 @@ class FieldError(Exception):
 
 class EventDeclaration(object):
 	"""Event declaration class.  Do not instantiate."""
+	MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
 
 	def __init__(self):
 		raise NotImplementedError("EventDeclaration cannot be instantiated")
@@ -812,6 +816,14 @@ class EventDeclaration(object):
 	def name(self):
 		"""Return the name of the event or None on error"""
 		return _bt_ctf_get_decl_event_name(self._ed)
+
+	@property
+	def id(self):
+		"""Return the event-ID of the event or -1 on error"""
+		id = _bt_ctf_get_decl_event_id(self._ed)
+		if id == self.MAX_UINT64:
+			id = -1
+		return id
 
 	@property
 	def fields(self):

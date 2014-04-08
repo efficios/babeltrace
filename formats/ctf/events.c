@@ -712,6 +712,14 @@ const char *bt_ctf_get_decl_event_name(const struct bt_ctf_event_decl *event)
 	return g_quark_to_string(event->parent.name);
 }
 
+uint64_t bt_ctf_get_decl_event_id(const struct bt_ctf_event_decl *event)
+{
+	if (!event)
+		return (uint64_t)(-1);
+
+	return event->parent.id;
+}
+
 int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
 		enum bt_ctf_scope scope,
 		struct bt_ctf_field_decl const * const **list,
