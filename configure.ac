@@ -178,6 +178,7 @@ AC_CONFIG_FILES([
 	formats/lttng-live/Makefile
 	formats/ctf/metadata/Makefile
 	formats/ctf/writer/Makefile
+	formats/ctf/ir/Makefile
 	converter/Makefile
 	doc/Makefile
 	lib/Makefile
