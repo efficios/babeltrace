@@ -390,7 +390,7 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *event);
 
 %pythoncode%{
 
-# Based on enum bt_clock_type in clock-type.h­
+# Based on enum bt_clock_type in clock-type.h
 class ClockType:
 	CLOCK_CYCLES = 0
 	CLOCK_REAL = 1
