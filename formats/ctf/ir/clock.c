@@ -53,11 +53,6 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 		goto error_destroy;
 	}
 
-	clock->description = g_string_new(NULL);
-	if (!clock->description) {
-		goto error_destroy;
-	}
-
 	clock->precision = 1;
 	clock->frequency = 1000000000;
 	uuid_generate(clock->uuid);
@@ -66,8 +61,38 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 error_destroy:
 	bt_ctf_clock_destroy(&clock->ref_count);
 error:
-	clock = NULL;
-	return clock;
+	return NULL;
+}
+
+const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock)
+{
+	const char *ret = NULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	if (clock->name) {
+		ret = clock->name->str;
+	}
+
+end:
+	return ret;
+}
+
+const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock)
+{
+	const char *ret = NULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	if (clock->description) {
+		ret = clock->description->str;
+	}
+end:
+	return ret;
 }
 
 int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc)
@@ -79,8 +104,21 @@ int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc)
 		goto end;
 	}
 
-	clock->description = g_string_assign(clock->description, desc);
+	clock->description = g_string_new(desc);
 	ret = clock->description ? 0 : -1;
+end:
+	return ret;
+}
+
+uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->frequency;
 end:
 	return ret;
 }
@@ -99,6 +137,19 @@ end:
 	return ret;
 }
 
+uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->precision;
+end:
+	return ret;
+}
+
 int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision)
 {
 	int ret = 0;
@@ -109,6 +160,19 @@ int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision)
 	}
 
 	clock->precision = precision;
+end:
+	return ret;
+}
+
+uint64_t bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->offset_s;
 end:
 	return ret;
 }
@@ -127,6 +191,19 @@ end:
 	return ret;
 }
 
+uint64_t bt_ctf_clock_get_offset(struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->offset;
+end:
+	return ret;
+}
+
 int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset)
 {
 	int ret = 0;
@@ -141,6 +218,19 @@ end:
 	return ret;
 }
 
+int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock)
+{
+	int ret = -1;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->absolute;
+end:
+	return ret;
+}
+
 int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute)
 {
 	int ret = 0;
@@ -151,6 +241,19 @@ int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute)
 	}
 
 	clock->absolute = !!is_absolute;
+end:
+	return ret;
+}
+
+uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+
+	if (!clock) {
+		goto end;
+	}
+
+	ret = clock->time;
 end:
 	return ret;
 }
@@ -234,12 +337,6 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 	g_string_append_printf(context->string, "\tabsolute = %s;\n",
 		clock->absolute ? "TRUE" : "FALSE");
 	g_string_append(context->string, "};\n\n");
-}
-
-BT_HIDDEN
-uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock)
-{
-	return clock ? clock->time : 0;
 }
 
 static

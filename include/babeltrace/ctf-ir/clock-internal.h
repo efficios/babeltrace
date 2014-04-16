@@ -59,7 +59,4 @@ BT_HIDDEN
 void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 		struct metadata_context *context);
 
-BT_HIDDEN
-uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
-
 #endif /* BABELTRACE_CTF_IR_CLOCK_INTERNAL_H */
