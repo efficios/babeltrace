@@ -27,7 +27,15 @@ print("Writing trace at {}".format(trace_path))
 writer = CTFWriter.Writer(trace_path)
 
 clock = CTFWriter.Clock("A_clock")
+print("Clock name is \"{}\"".format(clock.name))
 clock.description = "Simple clock"
+print("Clock description is \"{}\"".format(clock.description))
+print("Clock frequency is {}".format(clock.frequency))
+print("Clock precision is {}".format(clock.precision))
+print("Clock offset_seconds is {}".format(clock.offset_seconds))
+print("Clock offset is {}".format(clock.offset))
+print("Clock is absolute: {}".format(clock.absolute))
+print("Clock time is {}".format(clock.time))
 
 writer.add_clock(clock)
 writer.add_environment_field("Python_version", str(sys.version_info))

@@ -1246,23 +1246,39 @@ class _Definition(object):
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 %rename("_bt_ctf_clock_create") bt_ctf_clock_create(const char *name);
+%rename("_bt_ctf_clock_get_name") bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
+%rename("_bt_ctf_clock_get_description") bt_ctf_clock_get_description(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_description") bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc);
+%rename("_bt_ctf_clock_get_frequency") bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_frequency") bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
+%rename("_bt_ctf_clock_get_precision") bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_precision") bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
+%rename("_bt_ctf_clock_get_offset_s") bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_offset_s") bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
+%rename("_bt_ctf_clock_get_offset") bt_ctf_clock_get_offset(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_offset") bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+%rename("_bt_ctf_clock_get_is_absolute") bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_is_absolute") bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
+%rename("_bt_ctf_clock_get_time") bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_time") bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
 %rename("_bt_ctf_clock_get") bt_ctf_clock_get(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_put") bt_ctf_clock_put(struct bt_ctf_clock *clock);
 
 struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
+const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
+const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc);
+uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
+uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
+uint64_t bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
+uint64_t bt_ctf_clock_get_offset(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
+uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
 void bt_ctf_clock_get(struct bt_ctf_clock *clock);
 void bt_ctf_clock_put(struct bt_ctf_clock *clock);
@@ -1425,6 +1441,8 @@ void bt_ctf_writer_put(struct bt_ctf_writer *writer);
 %pythoncode %{
 
 class CTFWriter:
+	# Used to compare to -1ULL in error checks
+	_MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
 
 	class Clock:
 		def __init__(self, name):
@@ -1436,11 +1454,21 @@ class CTFWriter:
 			_bt_ctf_clock_put(self._c)
 
 		"""
-		Get the clock's description.
+		Get the clock's name.
+		"""
+		@property
+		def name(self):
+			name = _bt_ctf_clock_get_name(self._c)
+			if name is None:
+				raise ValueError("Invalid clock instance.")
+			return name
+
+		"""
+		Get the clock's description. None if unset.
 		"""
 		@property
 		def description(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_clock_get_description(self._c)
 
 		"""
 		Set the clock's description. The description appears in the clock's TSDL
@@ -1457,7 +1485,10 @@ class CTFWriter:
 		"""
 		@property
 		def frequency(self):
-			raise NotImplementedError("Getter not implemented.")
+			freq = _bt_ctf_clock_get_frequency(self._c)
+			if freq == CTFWriter._MAX_UINT64:
+				raise ValueError("Invalid clock instance")
+			return freq
 
 		"""
 		Set the clock's frequency (Hz).
@@ -1473,7 +1504,10 @@ class CTFWriter:
 		"""
 		@property
 		def precision(self):
-			raise NotImplementedError("Getter not implemented.")
+			precision = _bt_ctf_clock_get_precision(self._c)
+			if precision == CTFWriter._MAX_UINT64:
+				raise ValueError("Invalid clock instance")
+			return precision
 
 		"""
 		Set the clock's precision (in clock ticks).
@@ -1487,7 +1521,10 @@ class CTFWriter:
 		"""
 		@property
 		def offset_seconds(self):
-			raise NotImplementedError("Getter not implemented.")
+			offset_s = _bt_ctf_clock_get_offset_s(self._c)
+			if offset_s == CTFWriter._MAX_UINT64:
+				raise ValueError("Invalid clock instance")
+			return offset_s
 
 		"""
 		Set the clock's offset in seconds from POSIX.1 Epoch.
@@ -1503,7 +1540,10 @@ class CTFWriter:
 		"""
 		@property
 		def offset(self):
-			raise NotImplementedError("Getter not implemented.")
+			offset = _bt_ctf_clock_get_offset(self._c)
+			if offset == CTFWriter._MAX_UINT64:
+				raise ValueError("Invalid clock instance")
+			return offset
 
 		"""
 		Set the clock's offset in ticks from POSIX.1 Epoch + offset in seconds.
@@ -1520,7 +1560,10 @@ class CTFWriter:
 		"""
 		@property
 		def absolute(self):
-			raise NotImplementedError("Getter not implemented.")
+			is_absolute = _bt_ctf_clock_get_is_absolute(self._c)
+			if is_absolute == -1:
+				raise ValueError("Invalid clock instance")
+			return False if is_absolute == 0 else True
 
 		"""
 		Set a clock's absolute attribute. A clock is absolute if the clock
@@ -1538,7 +1581,10 @@ class CTFWriter:
 		"""
 		@property
 		def time(self):
-			raise NotImplementedError("Getter not implemented.")
+			time = _bt_ctf_clock_get_time(self._c)
+			if time == CTFWriter._MAX_UINT64:
+				raise ValueError("Invalid clock instance")
+			return time
 
 		"""
 		Set the current time in nanoseconds since the clock's origin (offset and
