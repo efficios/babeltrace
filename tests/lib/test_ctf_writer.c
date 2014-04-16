@@ -44,7 +44,14 @@
 #define SEQUENCE_TEST_LENGTH 10
 #define PACKET_RESIZE_TEST_LENGTH 100000
 
-static uint64_t current_time;
+#define DEFAULT_CLOCK_FREQ 1000000000
+#define DEFAULT_CLOCK_PRECISION 1
+#define DEFAULT_CLOCK_OFFSET 0
+#define DEFAULT_CLOCK_OFFSET_S 0
+#define DEFAULT_CLOCK_IS_ABSOLUTE 0
+#define DEFAULT_CLOCK_TIME 0
+
+static uint64_t current_time = 42;
 
 void validate_metadata(char *parser_path, char *metadata_path)
 {
@@ -708,10 +715,13 @@ int main(int argc, char **argv)
 	char metadata_path[sizeof(trace_path) + 9];
 	const char *clock_name = "test_clock";
 	const char *clock_description = "This is a test clock";
-	const uint64_t frequency = 1000000000;
+	const char *returned_clock_name;
+	const char *returned_clock_description;
+	const uint64_t frequency = 1123456789;
 	const uint64_t offset_s = 1351530929945824323;
 	const uint64_t offset = 1234567;
 	const uint64_t precision = 10;
+	const int is_absolute = 0xFF;
 	char *metadata_string;
 	struct bt_ctf_writer *writer;
 	struct utsname name;
@@ -775,26 +785,104 @@ int main(int argc, char **argv)
 		name.machine);
 
 	/* Define a clock and add it to the trace */
-	ok(bt_ctf_clock_create("signed") == NULL, "Illegal clock name rejected");
+	ok(bt_ctf_clock_create("signed") == NULL,
+		"Illegal clock name rejected");
 	ok(bt_ctf_clock_create(NULL) == NULL, "NULL clock name rejected");
 	clock = bt_ctf_clock_create(clock_name);
 	ok(clock, "Clock created sucessfully");
-	bt_ctf_clock_set_description(clock, clock_description);
+	returned_clock_name = bt_ctf_clock_get_name(clock);
+	ok(returned_clock_name, "bt_ctf_clock_get_name returns a clock name");
+	ok(strcmp(returned_clock_name, clock_name) == 0,
+		"Returned clock name is valid");
 
+	returned_clock_description = bt_ctf_clock_get_description(clock);
+	ok(!returned_clock_description, "bt_ctf_clock_get_description returns NULL on an unset description");
+	ok(bt_ctf_clock_set_description(clock, clock_description) == 0,
+		"Clock description set successfully");
+
+	returned_clock_description = bt_ctf_clock_get_description(clock);
+	ok(returned_clock_description,
+		"bt_ctf_clock_get_description returns a description.");
+	ok(strcmp(returned_clock_description, clock_description) == 0,
+		"Returned clock description is valid");
+
+	ok(bt_ctf_clock_get_frequency(clock) == DEFAULT_CLOCK_FREQ,
+		"bt_ctf_clock_get_frequency returns the correct default frequency");
 	ok(bt_ctf_clock_set_frequency(clock, frequency) == 0,
 		"Set clock frequency");
+	ok(bt_ctf_clock_get_frequency(clock) == frequency,
+		"bt_ctf_clock_get_frequency returns the correct frequency once it is set");
+
+	ok(bt_ctf_clock_get_offset_s(clock) == DEFAULT_CLOCK_OFFSET_S,
+		"bt_ctf_clock_get_offset_s returns the correct default offset (in seconds)");
 	ok(bt_ctf_clock_set_offset_s(clock, offset_s) == 0,
 		"Set clock offset (seconds)");
+	ok(bt_ctf_clock_get_offset_s(clock) == offset_s,
+		"bt_ctf_clock_get_offset_s returns the correct default offset (in seconds) once it is set");
+
+	ok(bt_ctf_clock_get_offset(clock) == DEFAULT_CLOCK_OFFSET,
+		"bt_ctf_clock_get_frequency returns the correct default offset (in ticks)");
 	ok(bt_ctf_clock_set_offset(clock, offset) == 0, "Set clock offset");
+	ok(bt_ctf_clock_get_offset(clock) == offset,
+		"bt_ctf_clock_get_frequency returns the correct default offset (in ticks) once it is set");
+
+	ok(bt_ctf_clock_get_precision(clock) == DEFAULT_CLOCK_PRECISION,
+		"bt_ctf_clock_get_precision returns the correct default precision");
 	ok(bt_ctf_clock_set_precision(clock, precision) == 0,
 		"Set clock precision");
-	ok(bt_ctf_clock_set_is_absolute(clock, 0xFF) == 0,
+	ok(bt_ctf_clock_get_precision(clock) == precision,
+		"bt_ctf_clock_get_precision returns the correct precision once it is set");
+
+	ok(bt_ctf_clock_get_is_absolute(clock) == DEFAULT_CLOCK_IS_ABSOLUTE,
+		"bt_ctf_clock_get_precision returns the correct default is_absolute attribute");
+	ok(bt_ctf_clock_set_is_absolute(clock, is_absolute) == 0,
 		"Set clock absolute property");
+	ok(bt_ctf_clock_get_is_absolute(clock) == !!is_absolute,
+		"bt_ctf_clock_get_precision returns the correct is_absolute attribute once it is set");
+
+	ok(bt_ctf_clock_get_time(clock) == DEFAULT_CLOCK_TIME,
+		"bt_ctf_clock_get_time returns the correct default time");
+	ok(bt_ctf_clock_set_time(clock, current_time) == 0,
+		"Set clock time");
+	ok(bt_ctf_clock_get_time(clock) == current_time,
+		"bt_ctf_clock_get_time returns the correct time once it is set");
 
 	ok(bt_ctf_writer_add_clock(writer, clock) == 0,
 		"Add clock to writer instance");
 	ok(bt_ctf_writer_add_clock(writer, clock),
 		"Verify a clock can't be added twice to a writer instance");
+
+	ok(!bt_ctf_clock_get_name(NULL),
+		"bt_ctf_clock_get_name correctly handles NULL");
+	ok(!bt_ctf_clock_get_description(NULL),
+		"bt_ctf_clock_get_description correctly handles NULL");
+	ok(bt_ctf_clock_get_frequency(NULL) == -1ULL,
+		"bt_ctf_clock_get_frequency correctly handles NULL");
+	ok(bt_ctf_clock_get_precision(NULL) == -1ULL,
+		"bt_ctf_clock_get_precision correctly handles NULL");
+	ok(bt_ctf_clock_get_offset_s(NULL) == -1ULL,
+		"bt_ctf_clock_get_offset_s correctly handles NULL");
+	ok(bt_ctf_clock_get_offset(NULL) == -1ULL,
+		"bt_ctf_clock_get_offset correctly handles NULL");
+	ok(bt_ctf_clock_get_is_absolute(NULL) == -1,
+		"bt_ctf_clock_get_is_absolute correctly handles NULL");
+	ok(bt_ctf_clock_get_time(NULL) == -1ULL,
+		"bt_ctf_clock_get_time correctly handles NULL");
+
+	ok(bt_ctf_clock_set_description(NULL, NULL) == -1,
+		"bt_ctf_clock_set_description correctly handles NULL clock");
+	ok(bt_ctf_clock_set_frequency(NULL, frequency) == -1,
+		"bt_ctf_clock_set_frequency correctly handles NULL clock");
+	ok(bt_ctf_clock_set_precision(NULL, precision) == -1,
+		"bt_ctf_clock_get_precision correctly handles NULL clock");
+	ok(bt_ctf_clock_set_offset_s(NULL, offset_s) == -1,
+		"bt_ctf_clock_set_offset_s correctly handles NULL clock");
+	ok(bt_ctf_clock_set_offset(NULL, offset) == -1,
+		"bt_ctf_clock_set_offset correctly handles NULL clock");
+	ok(bt_ctf_clock_set_is_absolute(NULL, is_absolute) == -1,
+		"bt_ctf_clock_set_is_absolute correctly handles NULL clock");
+	ok(bt_ctf_clock_set_time(NULL, current_time) == -1,
+		"bt_ctf_clock_set_time correctly handles NULL clock");
 
 	/* Define a stream class */
 	stream_class = bt_ctf_stream_class_create("test_stream");
