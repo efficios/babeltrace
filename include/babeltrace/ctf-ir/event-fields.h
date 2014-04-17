@@ -116,7 +116,8 @@ extern struct bt_ctf_field *bt_ctf_field_sequence_get_length(
  * Set the sequence's length field.
  *
  * @param sequence Sequence field instance.
- * @param length_field Integer field instance indicating the sequence's length.
+ * @param length_field Unsigned integer field instance indicating the
+ *        sequence's length.
  *
  * Returns 0 on success, a negative value on error.
  */

@@ -269,6 +269,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 
 	length_type = container_of(length_field->type,
 		struct bt_ctf_field_type_integer, parent);
+	/* The length field must be unsigned */
 	if (length_type->declaration.signedness) {
 		ret = -1;
 		goto end;
