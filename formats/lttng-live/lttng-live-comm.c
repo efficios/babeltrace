@@ -50,6 +50,7 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <formats/ctf/events-private.h>
 
+#include <babeltrace/endian.h>
 #include <babeltrace/compat/memstream.h>
 
 #include "lttng-live.h"
