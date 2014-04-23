@@ -613,7 +613,7 @@ const char *bt_ctf_field_enumeration_get_mapping_name(
 	enumeration_type = container_of(field->type,
 		struct bt_ctf_field_type_enumeration, parent);
 
-	if (integer_type->declaration.signedness) {
+	if (!integer_type->declaration.signedness) {
 		uint64_t value;
 		ret = bt_ctf_field_unsigned_integer_get_value(container,
 		      &value);

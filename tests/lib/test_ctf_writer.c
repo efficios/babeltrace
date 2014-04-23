@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include "tap/tap.h"
+#include <math.h>
+#include <float.h>
 
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
@@ -268,6 +270,10 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *float_field;
 	struct bt_ctf_field *enum_field;
 	struct bt_ctf_field *enum_container_field;
+	const char *mapping_name_test = "truie";
+	const char *mapping_name;
+	const double double_test_value = 3.1415;
+	double ret_double;
 
 	bt_ctf_field_type_set_alignment(float_type, 32);
 	bt_ctf_field_type_floating_point_set_exponent_digits(float_type, 11);
@@ -282,6 +288,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type,
 		"event clock int float", 5, 22) == 0,
 		"Accept enumeration mapping strings containing reserved keywords");
+	bt_ctf_field_type_enumeration_add_mapping(enum_type,
+		mapping_name_test, 42, 42);
 	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type,
 		"enum_field") == 0, "Add enumeration field to event");
 
@@ -304,13 +312,30 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		integer_field) == 0, "Use bt_ctf_event_set_payload to set a manually allocated field");
 
 	float_field = bt_ctf_event_get_payload(simple_event, "float_field");
-	bt_ctf_field_floating_point_set_value(float_field, 3.1415);
+	ok(bt_ctf_field_floating_point_get_value(float_field, &ret_double),
+		"bt_ctf_field_floating_point_get_value fails on an unset float field");
+	bt_ctf_field_floating_point_set_value(float_field, double_test_value);
+	ok(bt_ctf_field_floating_point_get_value(NULL, &ret_double),
+		"bt_ctf_field_floating_point_get_value properly handles a NULL field");
+	ok(bt_ctf_field_floating_point_get_value(float_field, NULL),
+		"bt_ctf_field_floating_point_get_value properly handles a NULL return value pointer");
+	ok(!bt_ctf_field_floating_point_get_value(float_field, &ret_double),
+		"bt_ctf_field_floating_point_get_value returns a double value");
+	ok(fabs(ret_double - double_test_value) <= DBL_EPSILON,
+		"bt_ctf_field_floating_point_get_value returns a correct value");
+
 	enum_field = bt_ctf_field_create(enum_type);
+	mapping_name = bt_ctf_field_enumeration_get_mapping_name(NULL);
+	ok(!mapping_name, "bt_ctf_field_enumeration_get_mapping_name handles NULL correctly");
+	mapping_name = bt_ctf_field_enumeration_get_mapping_name(enum_field);
+	ok(!mapping_name, "bt_ctf_field_enumeration_get_mapping_name returns NULL if the enumeration's container field is unset");
 	enum_container_field = bt_ctf_field_enumeration_get_container(
 		enum_field);
 	ok(bt_ctf_field_unsigned_integer_set_value(
-		enum_container_field, 1) == 0,
+		enum_container_field, 42) == 0,
 		"Set enumeration container value");
+	mapping_name = bt_ctf_field_enumeration_get_mapping_name(enum_field);
+	ok(!strcmp(mapping_name, mapping_name_test), "bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name");
 	bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
@@ -336,6 +361,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
 	int i;
+	const char *test_string = "Test string";
 	struct bt_ctf_field_type *uint_35_type =
 		bt_ctf_field_type_integer_create(35);
 	struct bt_ctf_field_type *int_16_type =
@@ -360,6 +386,9 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		*inner_structure_field, *complex_structure_field,
 		*a_sequence_field, *enum_variant_field, *enum_container_field,
 		*variant_field, *ret_field;
+	int64_t ret_signed_int;
+	uint64_t ret_unsigned_int;
+	const char *ret_string;
 
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
@@ -427,16 +456,55 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(event, "Instanciate a complex event");
 
 	uint_35_field = bt_ctf_event_get_payload(event, "uint_35");
+	if (!uint_35_field)
+		printf("uint_35_field is NULL\n");
 	ok(uint_35_field, "Use bt_ctf_event_get_payload to get a field instance ");
 	bt_ctf_field_unsigned_integer_set_value(uint_35_field, 0x0DDF00D);
+	ok(bt_ctf_field_unsigned_integer_get_value(NULL, &ret_unsigned_int) == -1,
+		"bt_ctf_field_unsigned_integer_get_value properly properly handles a NULL field.");
+	ok(bt_ctf_field_unsigned_integer_get_value(uint_35_field, NULL) == -1,
+		"bt_ctf_field_unsigned_integer_get_value properly handles a NULL return value");
+	ok(bt_ctf_field_unsigned_integer_get_value(uint_35_field,
+		&ret_unsigned_int) == 0,
+		"bt_ctf_field_unsigned_integer_get_value succeeds after setting a value");
+	ok(ret_unsigned_int == 0x0DDF00D,
+		"bt_ctf_field_unsigned_integer_get_value returns the correct value");
+	ok(bt_ctf_field_signed_integer_get_value(uint_35_field,
+		&ret_signed_int) == -1,
+		"bt_ctf_field_signed_integer_get_value fails on an unsigned field");
 	bt_ctf_field_put(uint_35_field);
 
 	int_16_field = bt_ctf_event_get_payload(event, "int_16");
 	bt_ctf_field_signed_integer_set_value(int_16_field, -12345);
+	ok(bt_ctf_field_signed_integer_get_value(NULL, &ret_signed_int) == -1,
+		"bt_ctf_field_signed_integer_get_value properly handles a NULL field");
+	ok(bt_ctf_field_signed_integer_get_value(int_16_field, NULL) == -1,
+		"bt_ctf_field_signed_integer_get_value properly handles a NULL return value");
+	ok(bt_ctf_field_signed_integer_get_value(int_16_field,
+		&ret_signed_int) == 0,
+		"bt_ctf_field_signed_integer_get_value succeeds after setting a value");
+	ok(ret_signed_int == -12345,
+		"bt_ctf_field_signed_integer_get_value returns the correct value");
+	ok(bt_ctf_field_unsigned_integer_get_value(int_16_field,
+		&ret_unsigned_int) == -1,
+		"bt_ctf_field_unsigned_integer_get_value fails on a signed field");
 	bt_ctf_field_put(int_16_field);
 
 	complex_structure_field = bt_ctf_event_get_payload(event,
 		"complex_structure");
+
+	ok(bt_ctf_field_structure_get_field_by_index(NULL, 0) == NULL,
+		"bt_ctf_field_structure_get_field_by_index handles NULL correctly");
+	ok(bt_ctf_field_structure_get_field_by_index(NULL, 9) == NULL,
+		"bt_ctf_field_structure_get_field_by_index handles an invalid index correctly");
+	inner_structure_field = bt_ctf_field_structure_get_field_by_index(
+		complex_structure_field, 3);
+	ret_field_type = bt_ctf_field_get_type(inner_structure_field);
+	bt_ctf_field_put(inner_structure_field);
+	ok(ret_field_type == inner_structure_type,
+		"bt_ctf_field_structure_get_field_by_index returns a correct field");
+	bt_ctf_field_type_put(ret_field_type);
+
 	inner_structure_field = bt_ctf_field_structure_get_field(
 		complex_structure_field, "inner_structure");
 	a_string_field = bt_ctf_field_structure_get_field(
@@ -457,10 +525,21 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		enum_variant_field);
 	bt_ctf_field_signed_integer_set_value(int_16_field, -200);
 	bt_ctf_field_put(int_16_field);
+	ok(!bt_ctf_field_string_get_value(a_string_field),
+		"bt_ctf_field_string_get_value returns NULL on an unset field");
 	bt_ctf_field_string_set_value(a_string_field,
-		"Test string");
+		test_string);
+	ok(!bt_ctf_field_string_get_value(NULL),
+		"bt_ctf_field_string_get_value correctly handles NULL");
+	ret_string = bt_ctf_field_string_get_value(a_string_field);
+	ok(ret_string, "bt_ctf_field_string_get_value returns a string");
+	ok(!strcmp(ret_string, test_string),
+		"bt_ctf_field_string_get_value returns a correct value");
 	bt_ctf_field_unsigned_integer_set_value(uint_35_field,
 		SEQUENCE_TEST_LENGTH);
+
+	ok(bt_ctf_field_sequence_get_length(a_sequence_field) == NULL,
+		"bt_ctf_field_sequence_get_length returns NULL when length is unset");
 	ok(bt_ctf_field_sequence_set_length(a_sequence_field,
 		uint_35_field) == 0, "Set a sequence field's length");
 	ret_field = bt_ctf_field_sequence_get_length(a_sequence_field);
@@ -521,6 +600,10 @@ void type_field_tests()
 	struct bt_ctf_field_type *enumeration_type;
 	struct bt_ctf_field_type *enumeration_sequence_type;
 	struct bt_ctf_field_type *enumeration_array_type;
+	struct bt_ctf_field_type *returned_type;
+
+	returned_type = bt_ctf_field_get_type(NULL);
+	ok(!returned_type, "bt_ctf_field_get_type handles NULL correctly");
 
 	ok(uint_12_type, "Create an unsigned integer type");
 	ok(bt_ctf_field_type_integer_set_base(uint_12_type,
@@ -584,6 +667,10 @@ void type_field_tests()
 	ok(int_16, "Instanciate a signed 16-bit integer");
 	uint_12 = bt_ctf_field_create(uint_12_type);
 	ok(uint_12, "Instanciate an unsigned 12-bit integer");
+	returned_type = bt_ctf_field_get_type(int_16);
+	ok(returned_type == int_16_type,
+		"bt_ctf_field_get_type returns the correct type");
+	bt_ctf_field_type_put(returned_type);
 
 	/* Can't modify types after instanciating them */
 	ok(bt_ctf_field_type_integer_set_base(uint_12_type,
