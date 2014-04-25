@@ -1939,9 +1939,9 @@ class CTFWriter:
 		"""
 		@length.setter
 		def length(self, length_field):
-			if not isinstance(length, CTFWriter.IntegerField):
+			if not isinstance(length_field, CTFWriter.IntegerField):
 				raise TypeError("Invalid length field.")
-			ret = _bt_ctf_field_sequence_set_length(self._f, length._f)
+			ret = _bt_ctf_field_sequence_set_length(self._f, length_field._f)
 			if ret < 0:
 				raise ValueError("Could not set sequence length.")
 
@@ -2012,7 +2012,7 @@ class CTFWriter:
 		def set_payload(self, field_name, value_field):
 			if not isinstance(value, CTFWriter.Field):
 				raise TypeError("Invalid value type.")
-			ret = _bt_ctf_event_set_payload(self._e, str(field_name), value._f)
+			ret = _bt_ctf_event_set_payload(self._e, str(field_name), value_field._f)
 			if ret < 0:
 				raise ValueError("Could not set event field payload.")
 
