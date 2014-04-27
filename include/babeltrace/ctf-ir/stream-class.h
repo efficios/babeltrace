@@ -4,7 +4,7 @@
 /*
  * BabelTrace - CTF IR: Stream Class
  *
- * Copyright 2014 EfficiOS Inc.
+ * Copyright 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *

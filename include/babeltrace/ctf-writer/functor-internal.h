@@ -4,7 +4,7 @@
 /*
  * BabelTrace - CTF Writer: Functors for use with glib data structures
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
