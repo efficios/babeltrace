@@ -1338,28 +1338,42 @@ void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_create") bt_ctf_field_create(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_structure_get_field") bt_ctf_field_structure_get_field(struct bt_ctf_field *structure, const char *name);
 %rename("_bt_ctf_field_array_get_field") bt_ctf_field_array_get_field(struct bt_ctf_field *array, uint64_t index);
+%rename("_bt_ctf_field_sequence_get_length") bt_ctf_field_sequence_get_length(struct bt_ctf_field *sequence);
 %rename("_bt_ctf_field_sequence_set_length") bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence, struct bt_ctf_field *length_field);
 %rename("_bt_ctf_field_sequence_get_field") bt_ctf_field_sequence_get_field(struct bt_ctf_field *sequence, uint64_t index);
 %rename("_bt_ctf_field_variant_get_field") bt_ctf_field_variant_get_field(struct bt_ctf_field *variant, struct bt_ctf_field *tag);
 %rename("_bt_ctf_field_enumeration_get_container") bt_ctf_field_enumeration_get_container(struct bt_ctf_field *enumeration);
+%rename("_bt_ctf_field_enumeration_get_mapping_name") bt_ctf_field_enumeration_get_mapping_name(struct bt_ctf_field *enumeration);
+%rename("_bt_ctf_field_signed_integer_get_value") bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer, int64_t *value);
 %rename("_bt_ctf_field_signed_integer_set_value") bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer, int64_t value);
+%rename("_bt_ctf_field_unsigned_integer_get_value") bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *integer, uint64_t *value);
 %rename("_bt_ctf_field_unsigned_integer_set_value") bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
+%rename("_bt_ctf_field_floating_point_get_value") bt_ctf_field_floating_point_get_value(struct bt_ctf_field *floating_point, double *value);
 %rename("_bt_ctf_field_floating_point_set_value") bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
+%rename("_bt_ctf_field_string_get_value") bt_ctf_field_string_get_value(struct bt_ctf_field *string);
 %rename("_bt_ctf_field_string_set_value") bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+%rename("_bt_ctf_field_get_type") bt_ctf_field_get_type(struct bt_ctf_field *field);
 %rename("_bt_ctf_field_get") bt_ctf_field_get(struct bt_ctf_field *field);
 %rename("_bt_ctf_field_put") bt_ctf_field_put(struct bt_ctf_field *field);
 
 struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type);
 struct bt_ctf_field *bt_ctf_field_structure_get_field(struct bt_ctf_field *structure, const char *name);
 struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *array, uint64_t index);
+struct bt_ctf_field * bt_ctf_field_sequence_get_length(struct bt_ctf_field *sequence);
 int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence, struct bt_ctf_field *length_field);
 struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *sequence, uint64_t index);
 struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *variant, struct bt_ctf_field *tag);
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(struct bt_ctf_field *enumeration);
+const char *bt_ctf_field_enumeration_get_mapping_name(struct bt_ctf_field *enumeration);
+int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer, int64_t *OUTPUT);
 int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer, int64_t value);
+int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *integer, uint64_t *OUTPUT);
 int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
+int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *floating_point, double *OUTPUT);
 int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
+const char *bt_ctf_field_string_get_value(struct bt_ctf_field *string);
 int bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field);
 void bt_ctf_field_get(struct bt_ctf_field *field);
 void bt_ctf_field_put(struct bt_ctf_field *field);
 
@@ -1923,13 +1937,27 @@ class CTFWriter:
 		"""
 		@property
 		def value(self):
-			raise NotImplementedError("Getter not implemented.")
+			signedness = _bt_python_field_integer_get_signedness(self._f)
+			if signedness < 0:
+				raise TypeError("Invalid integer instance.")
+
+			if signedness == 0:
+				ret, value = _bt_ctf_field_unsigned_integer_get_value(self._f)
+			else:
+				ret, value = _bt_ctf_field_signed_integer_get_value(self._f)
+
+			if ret < 0:
+				raise ValueError("Could not get integer field value.")
+			return value
 
 		"""
 		Set an integer field's value.
 		"""
 		@value.setter
 		def value(self, value):
+			if not isinstance(value, int):
+				raise TypeError("IntegerField's value must be an int")
+
 			signedness = _bt_python_field_integer_get_signedness(self._f)
 			if signedness < 0:
 				raise TypeError("Invalid integer instance.")
@@ -1954,19 +1982,45 @@ class CTFWriter:
 				raise TypeError("Invalid enumeration field type.")
 			return container
 
+		"""
+		Get the enumeration field's mapping name.
+		"""
+		@property
+		def value(self):
+			value = _bt_ctf_field_enumeration_get_mapping_name(self._f)
+			if value is None:
+				raise ValueError("Could not get enumeration's mapping name.")
+			return value
+
+		"""
+		Set the enumeration field's value. Must be an integer as mapping names
+		may be ambiguous.
+		"""
+		@value.setter
+		def value(self, value):
+			if not isinstance(value, int):
+				raise TypeError("EnumerationField value must be an int")
+			self.container.value = value
+
 	class FloatFieldingPoint(Field):
 		"""
 		Get a floating point field's value.
 		"""
 		@property
 		def value(self):
-			raise NotImplementedError("Getter not implemented.")
+			ret, value = _bt_ctf_field_floating_point_get_value(self._f)
+			if ret < 0:
+				raise ValueError("Could not get floating point field value.")
+			return value
 
 		"""
 		Set a floating point field's value.
 		"""
 		@value.setter
 		def value(self, value):
+			if not isinstance(value, int) and not isinstance(value, float):
+				raise TypeError("Value must be either a float or an int")
+
 			ret = _bt_ctf_field_floating_point_set_value(self._f, float(value))
 			if ret < 0:
 				raise ValueError("Could not set floating point field value.")
@@ -2007,7 +2061,10 @@ class CTFWriter:
 		"""
 		@property
 		def length(self):
-			raise NotImplementedError("Getter not implemented.")
+			native_instance = _bt_ctf_field_sequence_get_length(self._f)
+			if native_instance is None:
+				length = -1
+			return CTFWriter.Field._create_field_from_native_instance(native_instance)
 
 		"""
 		Set the sequence's length field (IntegerField).
@@ -2035,7 +2092,7 @@ class CTFWriter:
 		"""
 		@property
 		def value(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_string_get_value(self._f)
 
 		"""
 		Set a string field's value.

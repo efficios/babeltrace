@@ -49,6 +49,10 @@ event_class = CTFWriter.EventClass("SimpleEvent")
 int32_type = CTFWriter.IntegerFieldDeclaration(32)
 int32_type.signed = True
 
+# Create a uint16_t equivalent type
+uint16_type = CTFWriter.IntegerFieldDeclaration(16)
+uint16_type.signed = False
+
 # Create a string type
 string_type = CTFWriter.StringFieldDeclaration()
 
@@ -76,6 +80,11 @@ event_class.add_field(enumeration_type, "enum_field")
 array_type = CTFWriter.ArrayFieldDeclaration(int10_type, 5)
 event_class.add_field(array_type, "array_field")
 
+# Create a sequence type
+sequence_type = CTFWriter.SequenceFieldDeclaration(int32_type, "sequence_len")
+event_class.add_field(uint16_type, "sequence_len")
+event_class.add_field(sequence_type, "sequence_field")
+
 stream_class.add_event_class(event_class)
 stream = writer.create_stream(stream_class)
 
@@ -98,9 +107,15 @@ for i in range(100):
 		element = array_field.field(j)
 		element.value = i + j
 
+	event.payload("sequence_len").value = i % 10
+	sequence_field = event.payload("sequence_field")
+	sequence_field.length = event.payload("sequence_len")
+	for j in range(event.payload("sequence_len").value):
+		sequence_field.field(j).value = i + j
+
 	enumeration_field = event.payload("enum_field")
 	integer_field = enumeration_field.container
-	integer_field.value = i % 10
+	enumeration_field.value = i % 10
 
 	stream.append_event(event)
 
