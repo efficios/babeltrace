@@ -59,8 +59,15 @@ struct bt_ctf_field_type_integer {
 };
 
 struct enumeration_mapping {
-	int64_t range_start;
-	int64_t range_end;
+	union {
+		uint64_t _unsigned;
+		int64_t _signed;
+	} range_start;
+
+	union {
+		uint64_t _unsigned;
+		int64_t _signed;
+	} range_end;
 	GQuark string;
 };
 
@@ -123,25 +130,12 @@ BT_HIDDEN
 void bt_ctf_field_type_freeze(struct bt_ctf_field_type *type);
 
 BT_HIDDEN
-enum ctf_type_id bt_ctf_field_type_get_type_id(
-		struct bt_ctf_field_type *type);
-
-BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_structure_get_type(
-		struct bt_ctf_field_type_structure *structure,
-		const char *name);
-
-BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(
-		struct bt_ctf_field_type_array *array);
-
-BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
-		struct bt_ctf_field_type_sequence *sequence);
-
-BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type(
+struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_signed(
 		struct bt_ctf_field_type_variant *variant, int64_t tag_value);
+
+BT_HIDDEN
+struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_unsigned(
+		struct bt_ctf_field_type_variant *variant, uint64_t tag_value);
 
 BT_HIDDEN
 int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,

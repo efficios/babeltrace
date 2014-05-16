@@ -305,8 +305,7 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 	struct bt_ctf_field *new_field = NULL;
 	GQuark field_quark;
 	struct bt_ctf_field_structure *structure;
-	struct bt_ctf_field_type_structure *structure_type;
-	struct bt_ctf_field_type *field_type;
+	struct bt_ctf_field_type *field_type = NULL;
 	size_t index;
 
 	if (!field || !name ||
@@ -317,9 +316,9 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 
 	field_quark = g_quark_from_string(name);
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
-	structure_type = container_of(field->type,
-		struct bt_ctf_field_type_structure, parent);
-	field_type = bt_ctf_field_type_structure_get_type(structure_type, name);
+	field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(field->type,
+		name);
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
 		GUINT_TO_POINTER(field_quark), NULL, (gpointer *)&index)) {
 		goto error;
@@ -339,6 +338,9 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 end:
 	bt_ctf_field_get(new_field);
 error:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
 	return new_field;
 }
 
@@ -402,8 +404,7 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	int ret = 0;
 	GQuark field_quark;
 	struct bt_ctf_field_structure *structure;
-	struct bt_ctf_field_type_structure *structure_type;
-	struct bt_ctf_field_type *expected_field_type;
+	struct bt_ctf_field_type *expected_field_type = NULL;
 	size_t index;
 
 	if (!field || !name || !value ||
@@ -415,10 +416,9 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 
 	field_quark = g_quark_from_string(name);
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
-	structure_type = container_of(field->type,
-		struct bt_ctf_field_type_structure, parent);
-	expected_field_type = bt_ctf_field_type_structure_get_type(
-		structure_type, name);
+	expected_field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(field->type,
+		name);
 	if (expected_field_type != value->type) {
 		ret = -1;
 		goto end;
@@ -436,6 +436,9 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	structure->fields->pdata[index] = value;
 	bt_ctf_field_get(value);
 end:
+	if (expected_field_type) {
+		bt_ctf_field_type_put(expected_field_type);
+	}
 	return ret;
 }
 
@@ -443,9 +446,8 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 		uint64_t index)
 {
 	struct bt_ctf_field *new_field = NULL;
+	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field_array *array;
-	struct bt_ctf_field_type_array *array_type;
-	struct bt_ctf_field_type *field_type;
 
 	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
 		CTF_TYPE_ARRAY) {
@@ -457,9 +459,7 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 		goto end;
 	}
 
-	array_type = container_of(field->type, struct bt_ctf_field_type_array,
-		parent);
-	field_type = bt_ctf_field_type_array_get_element_type(array_type);
+	field_type = bt_ctf_field_type_array_get_element_type(field->type);
 	if (array->elements->pdata[(size_t)index]) {
 		new_field = array->elements->pdata[(size_t)index];
 		goto end;
@@ -469,6 +469,9 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 	bt_ctf_field_get(new_field);
 	array->elements->pdata[(size_t)index] = new_field;
 end:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
 	return new_field;
 }
 
@@ -476,9 +479,8 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 		uint64_t index)
 {
 	struct bt_ctf_field *new_field = NULL;
+	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field_sequence *sequence;
-	struct bt_ctf_field_type_sequence *sequence_type;
-	struct bt_ctf_field_type *field_type;
 
 	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
 		CTF_TYPE_SEQUENCE) {
@@ -490,9 +492,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 		goto end;
 	}
 
-	sequence_type = container_of(field->type,
-		struct bt_ctf_field_type_sequence, parent);
-	field_type = bt_ctf_field_type_sequence_get_element_type(sequence_type);
+	field_type = bt_ctf_field_type_sequence_get_element_type(field->type);
 	if (sequence->elements->pdata[(size_t)index]) {
 		new_field = sequence->elements->pdata[(size_t)index];
 		goto end;
@@ -502,6 +502,9 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	bt_ctf_field_get(new_field);
 	sequence->elements->pdata[(size_t)index] = new_field;
 end:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
 	return new_field;
 }
 
@@ -540,8 +543,8 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	}
 
 	tag_enum_value = tag_enum_integer->definition.value._signed;
-	field_type = bt_ctf_field_type_variant_get_field_type(variant_type,
-		tag_enum_value);
+	field_type = bt_ctf_field_type_variant_get_field_type_signed(
+		variant_type, tag_enum_value);
 	if (!field_type) {
 		goto end;
 	}
@@ -568,7 +571,8 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	struct bt_ctf_field *container = NULL;
 	struct bt_ctf_field_enumeration *enumeration;
 
-	if (!field) {
+	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
+		CTF_TYPE_ENUM) {
 		goto end;
 	}
 
