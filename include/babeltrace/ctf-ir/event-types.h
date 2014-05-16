@@ -92,8 +92,7 @@ extern int bt_ctf_field_type_integer_set_signed(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_field_type_integer_set_base(
-		struct bt_ctf_field_type *integer,
+extern int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer,
 		enum bt_ctf_integer_base base);
 
 /*
