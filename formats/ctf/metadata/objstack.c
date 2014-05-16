@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <babeltrace/list.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/align.h>
 
 #define OBJSTACK_INIT_LEN		128
 #define OBJSTACK_POISON			0xcc
@@ -39,7 +40,7 @@ struct objstack_node {
 	struct bt_list_head node;
 	size_t len;
 	size_t used_len;
-	char data[];
+	char __attribute__ ((aligned (sizeof(void *)))) data[];
 };
 
 BT_HIDDEN
@@ -117,6 +118,8 @@ void *objstack_alloc(struct objstack *objstack, size_t len)
 {
 	struct objstack_node *last_node;
 	void *p;
+
+	len = ALIGN(len, sizeof(void *));
 
 	/* Get last node */
 	last_node = bt_list_entry(objstack->head.prev,
