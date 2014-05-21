@@ -255,7 +255,7 @@ int bt_ctf_get_field_list(const struct bt_ctf_event *ctf_event,
 			goto error;
 		if (def_sequence->elems->pdata) {
 			*list = (struct bt_definition const* const*) def_sequence->elems->pdata;
-			*count = def_sequence->elems->len;
+			*count = (unsigned int) def_sequence->length->value._unsigned;
 			goto end;
 		} else {
 			goto error;
