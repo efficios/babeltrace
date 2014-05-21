@@ -150,4 +150,14 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 BT_HIDDEN
 int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
 
+BT_HIDDEN
+const char *bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
+		struct bt_ctf_field_type_enumeration *enumeration_type,
+		uint64_t value);
+
+BT_HIDDEN
+const char *bt_ctf_field_type_enumeration_get_mapping_name_signed(
+		struct bt_ctf_field_type_enumeration *enumeration_type,
+		int64_t value);
+
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

@@ -436,6 +436,51 @@ end:
 	return ret;
 }
 
+const char *bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
+		struct bt_ctf_field_type_enumeration *enumeration_type,
+		uint64_t value)
+{
+	const char *name = NULL;
+	struct range_overlap_query query =
+		(struct range_overlap_query) {
+		/* FIXME: should not need a cast */
+		.range_start = (int64_t) value,
+		.range_end = (int64_t) value,
+		.overlaps = 0 };
+
+	g_ptr_array_foreach(enumeration_type->entries, check_ranges_overlap,
+		&query);
+	if (!query.overlaps) {
+		goto end;
+	}
+
+	name = g_quark_to_string(query.mapping_name);
+end:
+	return name;
+}
+
+const char *bt_ctf_field_type_enumeration_get_mapping_name_signed(
+		struct bt_ctf_field_type_enumeration *enumeration_type,
+		int64_t value)
+{
+	const char *name = NULL;
+	struct range_overlap_query query =
+		(struct range_overlap_query) {
+		.range_start = value,
+		.range_end = value,
+		.overlaps = 0 };
+
+	g_ptr_array_foreach(enumeration_type->entries, check_ranges_overlap,
+		&query);
+	if (!query.overlaps) {
+		goto end;
+	}
+
+	name = g_quark_to_string(query.mapping_name);
+end:
+	return name;
+}
+
 struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void)
 {
 	struct bt_ctf_field_type_floating_point *floating_point =
