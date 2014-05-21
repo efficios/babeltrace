@@ -359,6 +359,10 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 		goto error;
 	}
 
+	if (integer_container_type->declaration->id != CTF_TYPE_INTEGER) {
+		goto error;
+	}
+
 	enumeration = g_new0(struct bt_ctf_field_type_enumeration, 1);
 	if (!enumeration) {
 		goto error;
