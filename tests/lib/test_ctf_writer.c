@@ -44,6 +44,7 @@
 
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
+#define ARRAY_TEST_LENGTH 5
 #define PACKET_RESIZE_TEST_LENGTH 100000
 
 #define DEFAULT_CLOCK_FREQ 1000000000
@@ -522,6 +523,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field_type *string_type =
 		bt_ctf_field_type_string_create();
 	struct bt_ctf_field_type *sequence_type;
+	struct bt_ctf_field_type *array_type;
 	struct bt_ctf_field_type *inner_structure_type =
 		bt_ctf_field_type_structure_create();
 	struct bt_ctf_field_type *complex_structure_type =
@@ -532,9 +534,9 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *uint_35_field, *int_16_field, *a_string_field,
 		*inner_structure_field, *complex_structure_field,
 		*a_sequence_field, *enum_variant_field, *enum_container_field,
-		*variant_field, *ret_field;
-	int64_t ret_signed_int;
+		*variant_field, *an_array_field, *ret_field;
 	uint64_t ret_unsigned_int;
+	int64_t ret_signed_int;
 	const char *ret_string;
 	size_t ret_size_t;
 
@@ -543,6 +545,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_integer_set_base(uint_35_type,
 		BT_CTF_INTEGER_BASE_HEXADECIMAL);
 
+	array_type = bt_ctf_field_type_array_create(int_16_type, ARRAY_TEST_LENGTH);
 	sequence_type = bt_ctf_field_type_sequence_create(int_16_type,
 		"seq_len");
 
@@ -563,6 +566,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		uint_35_type, "seq_len");
 	bt_ctf_field_type_structure_add_field(inner_structure_type,
 		sequence_type, "a_sequence");
+	bt_ctf_field_type_structure_add_field(inner_structure_type,
+		array_type, "an_array");
 
 	bt_ctf_field_type_enumeration_add_mapping(enum_variant_type,
 		"UINT3_TYPE", 0, 0);
@@ -753,6 +758,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		inner_structure_field, "seq_len");
 	a_sequence_field = bt_ctf_field_structure_get_field(
 		inner_structure_field, "a_sequence");
+	an_array_field = bt_ctf_field_structure_get_field(
+		inner_structure_field, "an_array");
 
 	enum_container_field = bt_ctf_field_enumeration_get_container(
 		enum_variant_field);
@@ -802,6 +809,13 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_put(int_16_field);
 	}
 
+	for (i = 0; i < ARRAY_TEST_LENGTH; i++) {
+		int_16_field = bt_ctf_field_array_get_field(
+			an_array_field, i);
+		bt_ctf_field_signed_integer_set_value(int_16_field, i);
+		bt_ctf_field_put(int_16_field);
+	}
+
 	bt_ctf_clock_set_time(clock, ++current_time);
 	ok(bt_ctf_stream_append_event(stream, event) == 0,
 		"Append a complex event to a stream");
@@ -813,6 +827,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(inner_structure_field);
 	bt_ctf_field_put(complex_structure_field);
 	bt_ctf_field_put(a_sequence_field);
+	bt_ctf_field_put(an_array_field);
 	bt_ctf_field_put(enum_variant_field);
 	bt_ctf_field_put(enum_container_field);
 	bt_ctf_field_put(variant_field);
@@ -821,6 +836,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_put(int_16_type);
 	bt_ctf_field_type_put(string_type);
 	bt_ctf_field_type_put(sequence_type);
+	bt_ctf_field_type_put(array_type);
 	bt_ctf_field_type_put(inner_structure_type);
 	bt_ctf_field_type_put(complex_structure_type);
 	bt_ctf_field_type_put(uint_3_type);
