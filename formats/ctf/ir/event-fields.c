@@ -212,6 +212,42 @@ void bt_ctf_field_put(struct bt_ctf_field *field)
 	}
 }
 
+struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
+{
+	struct bt_ctf_field_type *ret = NULL;
+
+	if (!field) {
+		goto end;
+	}
+
+	ret = field->type;
+	bt_ctf_field_type_get(ret);
+end:
+	return ret;
+}
+
+struct bt_ctf_field *bt_ctf_field_sequence_get_length(
+		struct bt_ctf_field *field)
+{
+	struct bt_ctf_field *ret = NULL;
+	struct bt_ctf_field_sequence *sequence;
+
+	if (!field) {
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+		CTF_TYPE_SEQUENCE) {
+		goto end;
+	}
+
+	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
+	ret = sequence->length;
+	bt_ctf_field_get(ret);
+end:
+	return ret;
+}
+
 int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		struct bt_ctf_field *length_field)
 {
@@ -303,6 +339,59 @@ end:
 	bt_ctf_field_get(new_field);
 error:
 	return new_field;
+}
+
+struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
+		struct bt_ctf_field *field, size_t index)
+{
+	int ret;
+	const char *field_name;
+	struct bt_ctf_field_structure *structure;
+	struct bt_ctf_field_type *structure_type;
+	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_ctf_field *ret_field = NULL;
+
+	if (!field ||
+		bt_ctf_field_type_get_type_id(field->type) != CTF_TYPE_STRUCT) {
+		goto end;
+	}
+
+	structure = container_of(field, struct bt_ctf_field_structure, parent);
+	if (index >= structure->fields->len) {
+		goto error;
+	}
+
+	ret_field = structure->fields->pdata[index];
+	if (ret_field) {
+		goto end;
+	}
+
+	/* Field has not been instanciated yet, create it */
+	structure_type = bt_ctf_field_get_type(field);
+	if (!structure_type) {
+		goto error;
+	}
+
+	ret = bt_ctf_field_type_structure_get_field(structure_type,
+		&field_name, &field_type, index);
+	bt_ctf_field_type_put(structure_type);
+	if (ret) {
+		goto error;
+	}
+
+	ret_field = bt_ctf_field_create(field_type);
+	if (!ret_field) {
+		goto error;
+	}
+
+	structure->fields->pdata[index] = ret_field;
+end:
+	bt_ctf_field_get(ret_field);
+error:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
+	return ret_field;
 }
 
 BT_HIDDEN
@@ -498,6 +587,89 @@ end:
 	return container;
 }
 
+const char *bt_ctf_field_enumeration_get_mapping_name(
+	struct bt_ctf_field *field)
+{
+	int ret;
+	const char *name = NULL;
+	struct bt_ctf_field *container = NULL;
+	struct bt_ctf_field_type *container_type = NULL;
+	struct bt_ctf_field_type_integer *integer_type = NULL;
+	struct bt_ctf_field_type_enumeration *enumeration_type = NULL;
+
+	container = bt_ctf_field_enumeration_get_container(field);
+	if (!container) {
+		goto end;
+	}
+
+	container_type = bt_ctf_field_get_type(container);
+	if (!container_type) {
+		goto error_put_container;
+	}
+
+	integer_type = container_of(container_type,
+		struct bt_ctf_field_type_integer, parent);
+	enumeration_type = container_of(field->type,
+		struct bt_ctf_field_type_enumeration, parent);
+
+	if (integer_type->declaration.signedness) {
+		uint64_t value;
+		ret = bt_ctf_field_unsigned_integer_get_value(container,
+		      &value);
+		if (ret) {
+			goto error_put_container_type;
+		}
+
+		name = bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
+			enumeration_type, value);
+	} else {
+		int64_t value;
+		ret = bt_ctf_field_signed_integer_get_value(container,
+		      &value);
+		if (ret) {
+			goto error_put_container_type;
+		}
+
+		name = bt_ctf_field_type_enumeration_get_mapping_name_signed(
+			enumeration_type, value);
+	}
+
+error_put_container_type:
+	bt_ctf_field_type_put(container_type);
+error_put_container:
+	bt_ctf_field_put(container);
+end:
+	return name;
+}
+
+int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *field,
+		int64_t *value)
+{
+	int ret = 0;
+	struct bt_ctf_field_integer *integer;
+	struct bt_ctf_field_type_integer *integer_type;
+
+	if (!field || !value || !field->payload_set ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_INTEGER) {
+		ret = -1;
+		goto end;
+	}
+
+	integer_type = container_of(field->type,
+		struct bt_ctf_field_type_integer, parent);
+	if (!integer_type->declaration.signedness) {
+		ret = -1;
+		goto end;
+	}
+
+	integer = container_of(field,
+		struct bt_ctf_field_integer, parent);
+	*value = integer->definition.value._signed;
+end:
+	return ret;
+}
+
 int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 		int64_t value)
 {
@@ -532,6 +704,34 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 
 	integer->definition.value._signed = value;
 	integer->parent.payload_set = 1;
+end:
+	return ret;
+}
+
+int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *field,
+		uint64_t *value)
+{
+	int ret = 0;
+	struct bt_ctf_field_integer *integer;
+	struct bt_ctf_field_type_integer *integer_type;
+
+	if (!field || !value || !field->payload_set ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_INTEGER) {
+		ret = -1;
+		goto end;
+	}
+
+	integer_type = container_of(field->type,
+		struct bt_ctf_field_type_integer, parent);
+	if (integer_type->declaration.signedness) {
+		ret = -1;
+		goto end;
+	}
+
+	integer = container_of(field,
+		struct bt_ctf_field_integer, parent);
+	*value = integer->definition.value._unsigned;
 end:
 	return ret;
 }
@@ -573,6 +773,26 @@ end:
 	return ret;
 }
 
+int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *field,
+		double *value)
+{
+	int ret = 0;
+	struct bt_ctf_field_floating_point *floating_point;
+
+	if (!field || !value || !field->payload_set ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_FLOAT) {
+		ret = -1;
+		goto end;
+	}
+
+	floating_point = container_of(field,
+		struct bt_ctf_field_floating_point, parent);
+	*value = floating_point->definition.value;
+end:
+	return ret;
+}
+
 int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 		double value)
 {
@@ -589,6 +809,24 @@ int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 		parent);
 	floating_point->definition.value = value;
 	floating_point->parent.payload_set = 1;
+end:
+	return ret;
+}
+
+const char *bt_ctf_field_string_get_value(struct bt_ctf_field *field)
+{
+	const char *ret = NULL;
+	struct bt_ctf_field_string *string;
+
+	if (!field || !field->payload_set ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_STRING) {
+		goto end;
+	}
+
+	string = container_of(field,
+		struct bt_ctf_field_string, parent);
+	ret = string->payload->str;
 end:
 	return ret;
 }

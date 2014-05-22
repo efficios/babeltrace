@@ -359,7 +359,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *uint_35_field, *int_16_field, *a_string_field,
 		*inner_structure_field, *complex_structure_field,
 		*a_sequence_field, *enum_variant_field, *enum_container_field,
-		*variant_field;
+		*variant_field, *ret_field;
 
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
@@ -463,6 +463,11 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		SEQUENCE_TEST_LENGTH);
 	ok(bt_ctf_field_sequence_set_length(a_sequence_field,
 		uint_35_field) == 0, "Set a sequence field's length");
+	ret_field = bt_ctf_field_sequence_get_length(a_sequence_field);
+	ok(ret_field == uint_35_field,
+		"bt_ctf_field_sequence_get_length returns the correct length field");
+	ok(bt_ctf_field_sequence_get_length(NULL) == NULL,
+		"bt_ctf_field_sequence_get_length properly handles NULL");
 
 	for (i = 0; i < SEQUENCE_TEST_LENGTH; i++) {
 		int_16_field = bt_ctf_field_sequence_get_field(
@@ -485,6 +490,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(enum_variant_field);
 	bt_ctf_field_put(enum_container_field);
 	bt_ctf_field_put(variant_field);
+	bt_ctf_field_put(ret_field);
 	bt_ctf_field_type_put(uint_35_type);
 	bt_ctf_field_type_put(int_16_type);
 	bt_ctf_field_type_put(string_type);

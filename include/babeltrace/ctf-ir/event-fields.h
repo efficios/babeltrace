@@ -31,6 +31,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,6 +70,21 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
 		struct bt_ctf_field *structure, const char *name);
 
 /*
+ * bt_ctf_field_structure_get_field_by_index: get a structure's field by index.
+ *
+ * Get the structure's field corresponding to the provided field name.
+ * bt_ctf_field_put() must be called on the returned value.
+ * The indexes are the same as those provided for bt_ctf_field_type_structure.
+ *
+ * @param structure Structure field instance.
+ * @param index Index of the field in the provided structure.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
+		struct bt_ctf_field *structure, size_t index);
+
+/*
  * bt_ctf_field_array_get_field: get an array's field at position "index".
  *
  * Return the array's field at position "index". bt_ctf_field_put() must be
@@ -83,6 +99,18 @@ extern struct bt_ctf_field *bt_ctf_field_array_get_field(
 		struct bt_ctf_field *array, uint64_t index);
 
 /*
+ * bt_ctf_field_sequence_get_length: get a sequence's length.
+ *
+ * Get the sequence's length field.
+ *
+ * @param sequence Sequence field instance.
+ *
+ * Returns a field instance on success, NULL if a length was never set.
+ */
+extern struct bt_ctf_field *bt_ctf_field_sequence_get_length(
+		struct bt_ctf_field *sequence);
+
+/*
  * bt_ctf_field_sequence_set_length: set a sequence's length.
  *
  * Set the sequence's length field.
@@ -90,7 +118,7 @@ extern struct bt_ctf_field *bt_ctf_field_array_get_field(
  * @param sequence Sequence field instance.
  * @param length_field Integer field instance indicating the sequence's length.
  *
- * Returns a field instance on success, NULL on error.
+ * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence,
 		struct bt_ctf_field *length_field);
@@ -139,6 +167,33 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *enumeration);
 
 /*
+ * bt_ctf_field_enumeration_get_mapping_name: get an enumeration field's mapping
+ *	name.
+ *
+ * Return the enumeration's underlying container field (an integer).
+ * bt_ctf_field_put() must be called on the returned value.
+ *
+ * @param enumeration Enumeration field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern const char *bt_ctf_field_enumeration_get_mapping_name(
+		struct bt_ctf_field *enumeration);
+
+/*
+ * bt_ctf_field_signed_integer_get_value: get a signed integer field's value
+ *
+ * Get a signed integer field's value.
+ *
+ * @param integer Signed integer field instance.
+ * @param value Pointer to a signed integer where the value will be stored.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
+		int64_t *value);
+
+/*
  * bt_ctf_field_signed_integer_set_value: set a signed integer field's value
  *
  * Set a signed integer field's value. The value is checked to make sure it
@@ -153,6 +208,19 @@ extern int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer,
 		int64_t value);
 
 /*
+ * bt_ctf_field_unsigned_integer_get_value: get unsigned integer field's value
+ *
+ * Get an unsigned integer field's value.
+ *
+ * @param integer Unsigned integer field instance.
+ * @param value Pointer to an unsigned integer where the value will be stored.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *integer,
+		uint64_t *value);
+
+/*
  * bt_ctf_field_unsigned_integer_set_value: set unsigned integer field's value
  *
  * Set an unsigned integer field's value. The value is checked to make sure it
@@ -165,6 +233,19 @@ extern int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *integer,
  */
 extern int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer,
 		uint64_t value);
+
+/*
+ * bt_ctf_field_floating_point_get_value: get a floating point field's value
+ *
+ * Get a floating point field's value.
+ *
+ * @param floating_point Floating point field instance.
+ * @param value Pointer to a double where the value will be stored.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_floating_point_get_value(
+		struct bt_ctf_field *floating_point, double *value);
 
 /*
  * bt_ctf_field_floating_point_set_value: set a floating point field's value
@@ -182,17 +263,39 @@ extern int bt_ctf_field_floating_point_set_value(
 		double value);
 
 /*
+ * bt_ctf_field_string_get_value: get a string field's value
+ *
+ * Get a string field's value.
+ *
+ * @param string_field String field instance.
+ *
+ * Returns the string's value, NULL if unset.
+ */
+extern const char *bt_ctf_field_string_get_value(
+		struct bt_ctf_field *string_field);
+
+/*
  * bt_ctf_field_string_set_value: set a string field's value
  *
  * Set a string field's value.
  *
- * @param string String field instance.
+ * @param string_field String field instance.
  * @param value String field value (will be copied).
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_field_string_set_value(struct bt_ctf_field *string,
+extern int bt_ctf_field_string_set_value(struct bt_ctf_field *string_field,
 		const char *value);
+
+/*
+ * bt_ctf_field_get_type: get a field's type
+ *
+ * @param field Field intance.
+ *
+ * Returns a field type instance on success, NULL on error.
+ */
+extern struct bt_ctf_field_type *bt_ctf_field_get_type(
+		struct bt_ctf_field *field);
 
 /*
  * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
