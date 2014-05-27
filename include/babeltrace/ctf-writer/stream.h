@@ -110,8 +110,6 @@ extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
  * @param stream Stream instance.
  * @param event_count Number of discarded events to add to the stream's current
  *	packet.
- *
- * Returns 0 on success, a negative value on error.
  */
 extern void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		uint64_t event_count);
