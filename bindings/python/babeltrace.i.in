@@ -67,8 +67,6 @@ typedef int64_t ssize_t;
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 
-FILE *_bt_file_open(char *file_path, char *mode);
-void _bt_file_close(FILE *fp);
 struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
 		const struct bt_definition *scope,
@@ -99,6 +97,20 @@ const char *_bt_python_get_array_string(struct bt_definition *field);
 const char *_bt_python_get_sequence_string(struct bt_definition *field);
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
+const char *_bt_python_ctf_field_type_enumeration_get_mapping(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		int64_t *OUTPUT, int64_t *OUTPUT);
+const char *_bt_python_ctf_field_type_enumeration_get_mapping_unsigned(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		uint64_t *OUTPUT, uint64_t *OUTPUT);
+const char *_bt_python_ctf_field_type_structure_get_field_name(
+		struct bt_ctf_field_type *structure, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_field_type_structure_get_field_type(
+		struct bt_ctf_field_type *structure, size_t index);
+const char *_bt_python_ctf_field_type_variant_get_field_name(
+		struct bt_ctf_field_type *variant, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
+		struct bt_ctf_field_type *variant, size_t index);
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
@@ -596,7 +608,6 @@ class CTFTypeId:
 	ARRAY = 8
 	SEQUENCE = 9
 	NR_CTF_TYPES = 10
-
 	def type_name(id):
 		name = "UNKNOWN_TYPE"
 		constants = [attr for attr in dir(CTFTypeId) if not callable(getattr(CTFTypeId, attr)) and not attr.startswith("__")]
@@ -1288,46 +1299,108 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 %rename("_bt_ctf_field_type_integer_create") bt_ctf_field_type_integer_create(unsigned int size);
+%rename("_bt_ctf_field_type_integer_get_size") bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *integer);
+%rename("_bt_ctf_field_type_integer_get_signed") bt_ctf_field_type_integer_get_signed(struct bt_ctf_field_type *integer);
 %rename("_bt_ctf_field_type_integer_set_signed") bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *integer, int is_signed);
+%rename("_bt_ctf_field_type_integer_get_base") bt_ctf_field_type_integer_get_base(struct bt_ctf_field_type *integer);
 %rename("_bt_ctf_field_type_integer_set_base") bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer, enum bt_ctf_integer_base base);
+%rename("_bt_ctf_field_type_integer_get_encoding") bt_ctf_field_type_integer_get_encoding(struct bt_ctf_field_type *integer);
 %rename("_bt_ctf_field_type_integer_set_encoding") bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *integer, enum ctf_string_encoding encoding);
 %rename("_bt_ctf_field_type_enumeration_create") bt_ctf_field_type_enumeration_create(struct bt_ctf_field_type *integer_container_type);
-%rename("_bt_ctf_field_type_enumeration_add_mapping") bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *string, int64_t range_start, int64_t range_end);
+%rename("_bt_ctf_field_type_enumeration_get_container_type") bt_ctf_field_type_enumeration_get_container_type(struct bt_ctf_field_type *enumeration);
+%rename("_bt_ctf_field_type_enumeration_add_mapping") bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *name, int64_t range_start, int64_t range_end);
+%rename("_bt_ctf_field_type_enumeration_add_mapping_unsigned") bt_ctf_field_type_enumeration_add_mapping_unsigned(struct bt_ctf_field_type *enumeration, const char *name, uint64_t range_start, uint64_t range_end);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_count") bt_ctf_field_type_enumeration_get_mapping_count(struct bt_ctf_field_type *enumeration);
+%rename("_bt_ctf_field_type_enumeration_get_mapping") bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, size_t index, const char **name, int64_t *range_start, int64_t *range_end);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_unsigned") bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, size_t index, const char **name, uint64_t *range_start, uint64_t *range_end);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_name") bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name, size_t *index);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_value") bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value, size_t *index);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value") bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value, size_t *index);
 %rename("_bt_ctf_field_type_floating_point_create") bt_ctf_field_type_floating_point_create(void);
+%rename("_bt_ctf_field_type_floating_point_get_exponent_digits") bt_ctf_field_type_floating_point_get_exponent_digits(struct bt_ctf_field_type *floating_point);
 %rename("_bt_ctf_field_type_floating_point_set_exponent_digits") bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
+%rename("_bt_ctf_field_type_floating_point_get_mantissa_digits") bt_ctf_field_type_floating_point_get_mantissa_digits(struct bt_ctf_field_type *floating_point);
 %rename("_bt_ctf_field_type_floating_point_set_mantissa_digits") bt_ctf_field_type_floating_point_set_mantissa_digits(struct bt_ctf_field_type *floating_point, unsigned int mantissa_digits);
 %rename("_bt_ctf_field_type_structure_create") bt_ctf_field_type_structure_create(void);
 %rename("_bt_ctf_field_type_structure_add_field") bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
+%rename("_bt_ctf_field_type_structure_get_field_count") bt_ctf_field_type_structure_get_field_count(struct bt_ctf_field_type *structure);
+%rename("_bt_ctf_field_type_structure_get_field") bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+%rename("_bt_ctf_field_type_structure_get_field_type_by_name") bt_ctf_field_type_structure_get_field_type_by_name(struct bt_ctf_field_type *structure, const char *field_name);
 %rename("_bt_ctf_field_type_variant_create") bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
+%rename("_bt_ctf_field_type_variant_get_tag_type") bt_ctf_field_type_variant_get_tag_type(struct bt_ctf_field_type *variant);
+%rename("_bt_ctf_field_type_variant_get_tag_name") bt_ctf_field_type_variant_get_tag_name(struct bt_ctf_field_type *variant);
 %rename("_bt_ctf_field_type_variant_add_field") bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *variant, struct bt_ctf_field_type *field_type, const char *field_name);
+%rename("_bt_ctf_field_type_variant_get_field_type_by_name") bt_ctf_field_type_variant_get_field_type_by_name(struct bt_ctf_field_type *variant, const char *field_name);
+%rename("_bt_ctf_field_type_variant_get_field_type_from_tag") bt_ctf_field_type_variant_get_field_type_from_tag(struct bt_ctf_field_type *variant, struct bt_ctf_field *tag);
+%rename("_bt_ctf_field_type_variant_get_field_count") bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *variant);
+%rename("_bt_ctf_field_type_variant_get_field") bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
 %rename("_bt_ctf_field_type_array_create") bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
+%rename("_bt_ctf_field_type_array_get_element_type") bt_ctf_field_type_array_get_element_type(struct bt_ctf_field_type *array);
+%rename("_bt_ctf_field_type_array_get_length") bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *array);
 %rename("_bt_ctf_field_type_sequence_create") bt_ctf_field_type_sequence_create(struct bt_ctf_field_type *element_type, const char *length_field_name);
+%rename("_bt_ctf_field_type_sequence_get_element_type") bt_ctf_field_type_sequence_get_element_type(struct bt_ctf_field_type *sequence);
+%rename("_bt_ctf_field_type_sequence_get_length_field_name") bt_ctf_field_type_sequence_get_length_field_name(struct bt_ctf_field_type *sequence);
 %rename("_bt_ctf_field_type_string_create") bt_ctf_field_type_string_create(void);
-%rename("_bt_ctf_field_type_string_set_encoding") bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string, enum ctf_string_encoding encoding);
+%rename("_bt_ctf_field_type_string_get_encoding") bt_ctf_field_type_string_get_encoding(struct bt_ctf_field_type *string_type);
+%rename("_bt_ctf_field_type_string_set_encoding") bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string_type, enum ctf_string_encoding encoding);
+%rename("_bt_ctf_field_type_get_alignment") bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_type_set_alignment") bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type, unsigned int alignment);
+%rename("_bt_ctf_field_type_get_byte_order") bt_ctf_field_type_get_byte_order(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_type_set_byte_order") bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type, enum bt_ctf_byte_order byte_order);
+%rename("_bt_ctf_field_type_get_type_id") bt_ctf_field_type_get_type_id(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_type_get") bt_ctf_field_type_get(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_type_put") bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 
 struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size);
+int bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *integer);
+int bt_ctf_field_type_integer_get_signed(struct bt_ctf_field_type *integer);
 int bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *integer, int is_signed);
+enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(struct bt_ctf_field_type *integer);
 int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer, enum bt_ctf_integer_base base);
+enum ctf_string_encoding bt_ctf_field_type_integer_get_encoding(struct bt_ctf_field_type *integer);
 int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *integer, enum ctf_string_encoding encoding);
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(struct bt_ctf_field_type *integer_container_type);
-int bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *string, int64_t range_start, int64_t range_end);
+struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(struct bt_ctf_field_type *enumeration);
+int bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *name, int64_t range_start, int64_t range_end);
+int bt_ctf_field_type_enumeration_add_mapping_unsigned(struct bt_ctf_field_type *enumeration, const char *name, uint64_t range_start, uint64_t range_end);
+int64_t bt_ctf_field_type_enumeration_get_mapping_count(struct bt_ctf_field_type *enumeration);
+int bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, size_t index, const char **OUTPUT, int64_t *OUTPUT, int64_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, size_t index, const char **OUTPUT, uint64_t *OUTPUT, uint64_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name, size_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value, size_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value, size_t *OUTPUT);
 struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
+int bt_ctf_field_type_floating_point_get_exponent_digits(struct bt_ctf_field_type *floating_point);
 int bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
+int bt_ctf_field_type_floating_point_get_mantissa_digits(struct bt_ctf_field_type *floating_point);
 int bt_ctf_field_type_floating_point_set_mantissa_digits(struct bt_ctf_field_type *floating_point, unsigned int mantissa_digits);
 struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
 int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
+int64_t bt_ctf_field_type_structure_get_field_count(struct bt_ctf_field_type *structure);
+int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, size_t index);
+struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(struct bt_ctf_field_type *structure, const char *field_name);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
+struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(struct bt_ctf_field_type *variant);
+const char *bt_ctf_field_type_variant_get_tag_name(struct bt_ctf_field_type *variant);
 int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *variant, struct bt_ctf_field_type *field_type, const char *field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(struct bt_ctf_field_type *variant, const char *field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(struct bt_ctf_field_type *variant, struct bt_ctf_field *tag);
+int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *variant);
+int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, size_t index);
 struct bt_ctf_field_type *bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
+struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(struct bt_ctf_field_type *array);
+int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *array);
 struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(struct bt_ctf_field_type *element_type, const char *length_field_name);
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(struct bt_ctf_field_type *sequence);
+const char *bt_ctf_field_type_sequence_get_length_field_name(struct bt_ctf_field_type *sequence);
 struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
-int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string, enum ctf_string_encoding encoding);
+enum ctf_string_encoding bt_ctf_field_type_string_get_encoding(struct bt_ctf_field_type *string_type);
+int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *string_type, enum ctf_string_encoding encoding);
+int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type);
 int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type, unsigned int alignment);
+enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(struct bt_ctf_field_type *type);
 int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type, enum bt_ctf_byte_order byte_order);
+enum ctf_type_id bt_ctf_field_type_get_type_id(struct bt_ctf_field_type *type);
 void bt_ctf_field_type_get(struct bt_ctf_field_type *type);
 void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 
@@ -1350,8 +1423,8 @@ void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_unsigned_integer_set_value") bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
 %rename("_bt_ctf_field_floating_point_get_value") bt_ctf_field_floating_point_get_value(struct bt_ctf_field *floating_point, double *value);
 %rename("_bt_ctf_field_floating_point_set_value") bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
-%rename("_bt_ctf_field_string_get_value") bt_ctf_field_string_get_value(struct bt_ctf_field *string);
-%rename("_bt_ctf_field_string_set_value") bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+%rename("_bt_ctf_field_string_get_value") bt_ctf_field_string_get_value(struct bt_ctf_field *string_field);
+%rename("_bt_ctf_field_string_set_value") bt_ctf_field_string_set_value(struct bt_ctf_field *string_field, const char *value);
 %rename("_bt_ctf_field_get_type") bt_ctf_field_get_type(struct bt_ctf_field *field);
 %rename("_bt_ctf_field_get") bt_ctf_field_get(struct bt_ctf_field *field);
 %rename("_bt_ctf_field_put") bt_ctf_field_put(struct bt_ctf_field *field);
@@ -1371,8 +1444,8 @@ int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *integer, uint64
 int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *integer, uint64_t value);
 int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *floating_point, double *OUTPUT);
 int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *floating_point, double value);
-const char *bt_ctf_field_string_get_value(struct bt_ctf_field *string);
-int bt_ctf_field_string_set_value(struct bt_ctf_field *string, const char *value);
+const char *bt_ctf_field_string_get_value(struct bt_ctf_field *string_field);
+int bt_ctf_field_string_set_value(struct bt_ctf_field *string_field, const char *value);
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field);
 void bt_ctf_field_get(struct bt_ctf_field *field);
 void bt_ctf_field_put(struct bt_ctf_field *field);
@@ -1457,6 +1530,15 @@ void bt_ctf_writer_put(struct bt_ctf_writer *writer);
 class CTFWriter:
 	# Used to compare to -1ULL in error checks
 	_MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
+
+	"""
+	Enumeration mapping class. start and end values are inclusive.
+	"""
+	class EnumerationMapping:
+		def __init__(self, name, start, end):
+			self.name = name
+			self.start = start
+			self.end = end
 
 	class Clock:
 		def __init__(self, name):
@@ -1613,7 +1695,7 @@ class CTFWriter:
 
 	class FieldDeclaration:
 		"""
-		FieldDeclaration should not be instantiated directly. Please instantiate
+		FieldDeclaration should not be instantiated directly. Instantiate
 		one of the concrete FieldDeclaration classes.
 		"""
 		class IntegerBase:
@@ -1632,15 +1714,37 @@ class CTFWriter:
 		def __del__(self):
 			_bt_ctf_field_type_put(self._ft)
 
+		@staticmethod
+		def _create_field_declaration_from_native_instance(native_field_declaration):
+			type_dict = {
+				CTFTypeId.INTEGER : CTFWriter.IntegerFieldDeclaration,
+				CTFTypeId.FLOAT : CTFWriter.FloatFieldDeclaration,
+				CTFTypeId.ENUM : CTFWriter.EnumerationFieldDeclaration,
+				CTFTypeId.STRING : CTFWriter.StringFieldDeclaration,
+				CTFTypeId.STRUCT : CTFWriter.StructureFieldDeclaration,
+				CTFTypeId.VARIANT : CTFWriter.VariantFieldDeclaration,
+				CTFTypeId.ARRAY : CTFWriter.ArrayFieldDeclaration,
+				CTFTypeId.SEQUENCE : CTFWriter.SequenceFieldDeclaration
+			}
+
+			field_type_id = _bt_ctf_field_type_get_type_id(native_field_declaration)
+			if field_type_id == CTFTypeId.UNKNOWN:
+				raise TypeError("Invalid field instance")
+
+			declaration = CTFWriter.Field.__new__(CTFWriter.Field)
+			declaration._ft = native_field_declaration
+			declaration.__class__ = type_dict[field_type_id]
+			return declaration
+
 		"""
-		Get the field type's alignment.
+		Get the field declaration's alignment. Returns -1 on error.
 		"""
 		@property
 		def alignment(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_type_get_alignment(self._ft)
 
 		"""
-		Set the field type's alignment. Defaults to 1 (bit-aligned). However,
+		Set the field declaration's alignment. Defaults to 1 (bit-aligned). However,
 		some types, such as structures and string, may impose other alignment
 		constraints.
 		"""
@@ -1651,14 +1755,14 @@ class CTFWriter:
 				raise ValueError("Invalid alignment value.")
 
 		"""
-		Get the field type's byte order. One of the ByteOrder's constant.
+		Get the field declaration's byte order. One of the ByteOrder's constant.
 		"""
 		@property
 		def byte_order(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_type_get_byte_order(self._ft)
 
 		"""
-		Set the field type's byte order. Use constants defined in the ByteOrder
+		Set the field declaration's byte order. Use constants defined in the ByteOrder
 		class.
 		"""
 		@byte_order.setter
@@ -1669,18 +1773,35 @@ class CTFWriter:
 
 	class IntegerFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new integer field type of the given size.
+		Create a new integer field declaration of the given size.
 		"""
 		def __init__(self, size):
 			self._ft = _bt_ctf_field_type_integer_create(size)
 			super().__init__()
 
 		"""
+		Get an integer's size.
+		"""
+		@property
+		def size(self):
+			ret = _bt_ctf_field_type_integer_get_size(self._ft)
+			if ret < 0:
+				raise ValueError("Could not get Integer's size attribute.")
+			else:
+				return ret
+
+		"""
 		Get an integer's signedness attribute.
 		"""
 		@property
 		def signed(self):
-			raise NotImplementedError("Getter not implemented.")
+			ret = _bt_ctf_field_type_integer_get_signed(self._ft)
+			if ret < 0:
+				raise ValueError("Could not get Integer's signed attribute.")
+			elif ret > 0:
+				return True
+			else:
+				return False
 
 		"""
 		Set an integer's signedness attribute.
@@ -1689,32 +1810,34 @@ class CTFWriter:
 		def signed(self, signed):
 			ret = _bt_ctf_field_type_integer_set_signed(self._ft, signed)
 			if ret < 0:
-				raise ValueError("Could not set signed attribute.")
+				raise ValueError("Could not set Integer's signed attribute.")
 
 		"""
 		Get the integer's base used to pretty-print the resulting trace.
+		Returns a constant from the FieldDeclaration.IntegerBase class.
 		"""
 		@property
 		def base(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_type_integer_get_base(self._ft)
 
 		"""
 		Set the integer's base used to pretty-print the resulting trace.
-		The base must be a constant of the IntegerBase class.
+		The base must be a constant of the FieldDeclarationIntegerBase class.
 		"""
 		@base.setter
 		def base(self, base):
 			ret = _bt_ctf_field_type_integer_set_base(self._ft, base)
 			if ret < 0:
-				raise ValueError("Could not set base value.")
+				raise ValueError("Could not set Integer's base.")
 
 		"""
 		Get the integer's encoding (one of the constants of the
 		CTFStringEncoding class).
+		Returns a constant from the CTFStringEncoding class.
 		"""
 		@property
 		def encoding(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_type_integer_get_encoding(self._ft)
 
 		"""
 		An integer encoding may be set to signal that the integer must be printed
@@ -1724,11 +1847,11 @@ class CTFWriter:
 		def encoding(self, encoding):
 			ret = _bt_ctf_field_type_integer_set_encoding(self._ft, encoding)
 			if ret < 0:
-				raise ValueError("Could not set integer encoding.")
+				raise ValueError("Could not set Integer's encoding.")
 
 	class EnumerationFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new enumeration field type with the given underlying type.
+		Create a new enumeration field declaration with the given underlying container type.
 		"""
 		def __init__(self, integer_type):
 			if integer_type is None or not isinstance(integer_type, CTFWriter.IntegerFieldDeclaration):
@@ -1738,12 +1861,85 @@ class CTFWriter:
 			super().__init__()
 
 		"""
+		Get the enumeration's underlying container type.
+		"""
+		@property
+		def container(self):
+			ret = _bt_ctf_field_type_enumeration_get_container_type(self._ft)
+			if ret is None:
+				raise TypeError("Invalid enumeration declaration")
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(ret)
+
+		"""
 		Add a mapping to the enumeration. The range's values are inclusive.
 		"""
 		def add_mapping(self, name, range_start, range_end):
-			ret = _bt_ctf_field_type_enumeration_add_mapping(self._ft, str(name), range_start, range_end)
+			if range_start < 0 or range_end < 0:
+				ret = _bt_ctf_field_type_enumeration_add_mapping(self._ft, str(name), range_start, range_end)
+			else:
+				ret = _bt_ctf_field_type_enumeration_add_mapping_unsigned(self._ft, str(name), range_start, range_end)
+
 			if ret < 0:
-				raise ValueError("Could not add mapping to enumeration type.")
+				raise ValueError("Could not add mapping to enumeration declaration.")
+
+		"""
+		Generator returning instances of EnumerationMapping.
+		"""
+		@property
+		def mappings(self):
+			signed = self.container.signed
+
+			count = _bt_ctf_field_type_enumeration_get_mapping_count(self._ft)
+			for i in range(count):
+				if signed:
+					ret = _bt_python_ctf_field_type_enumeration_get_mapping(self._ft, i)
+				else:
+					ret = _bt_python_ctf_field_type_enumeration_get_mapping_unsigned(self._ft, i)
+
+				if len(ret) != 3:
+					raise TypeError("Could not get Enumeration mapping at index {}".format(i))
+				name, range_start, range_end = ret
+				yield CTFWriter.EnumerationMapping(name, range_start, range_end)
+
+		"""
+		Get a mapping by name (EnumerationMapping).
+		"""
+		def get_mapping_by_name(self, name):
+			ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_name(self._ft, name);
+			if ret < 0:
+				return None
+
+			if self.container.signed:
+				ret = _bt_python_ctf_field_type_enumeration_get_mapping(self._ft, index)
+			else:
+				ret = _bt_python_ctf_field_type_enumeration_get_mapping_unsigned(self._ft, index)
+
+			if len(ret) != 3:
+				raise TypeError("Could not get Enumeration mapping at index {}".format(i))
+			name, range_start, range_end = ret
+			return CTFWriter.EnumerationMapping(name, range_start, range_end)
+
+		"""
+		Get a mapping by value (EnumerationMapping).
+		"""
+		def get_mapping_by_value(self, value):
+			if value < 0:
+				ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_value(self._ft, value);
+			else:
+				ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(self._ft, value);
+
+			if ret < 0:
+				return None
+
+			if self.container.signed:
+				ret = _bt_python_ctf_field_type_enumeration_get_mapping(self._ft, index)
+			else:
+				ret = _bt_python_ctf_field_type_enumeration_get_mapping_unsigned(self._ft, index)
+
+			if len(ret) != 3:
+				raise TypeError("Could not get Enumeration mapping at index {}".format(i))
+			name, range_start, range_end = ret
+			return CTFWriter.EnumerationMapping(name, range_start, range_end)
 
 	class FloatFieldDeclaration(FieldDeclaration):
 		FLT_EXP_DIG = 8
@@ -1752,18 +1948,21 @@ class CTFWriter:
 		DBL_MANT_DIG = 53
 
 		"""
-		Create a new floating point field type.
+		Create a new floating point field declaration.
 		"""
 		def __init__(self):
 			self._ft = _bt_ctf_field_type_floating_point_create()
 			super().__init__()
 
 		"""
-		Get the number of exponent digits to use to store the floating point field.
+		Get the number of exponent digits used to store the floating point field.
 		"""
 		@property
 		def exponent_digits(self):
-			raise NotImplementedError("Getter not implemented.")
+			ret = _bt_ctf_field_type_floating_point_get_exponent_digits(self._ft)
+			if ret < 0:
+				raise TypeError("Could not get Floating point exponent digit count")
+			return ret
 
 		"""
 		Set the number of exponent digits to use to store the floating point field.
@@ -1777,11 +1976,14 @@ class CTFWriter:
 				raise ValueError("Could not set exponent digit count.")
 
 		"""
-		Get the number of mantissa digits to use to store the floating point field.
+		Get the number of mantissa digits used to store the floating point field.
 		"""
 		@property
 		def mantissa_digits(self):
-			raise NotImplementedError("Getter not implemented.")
+			ret = _bt_ctf_field_type_floating_point_get_mantissa_digits(self._ft)
+			if ret < 0:
+				raise TypeError("Could not get Floating point mantissa digit count")
+			return ret
 
 		"""
 		Set the number of mantissa digits to use to store the floating point field.
@@ -1796,7 +1998,7 @@ class CTFWriter:
 
 	class StructureFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new structure field type.
+		Create a new structure field declaration.
 		"""
 		def __init__(self):
 			self._ft = _bt_ctf_field_type_structure_create()
@@ -1810,9 +2012,40 @@ class CTFWriter:
 			if ret < 0:
 				raise ValueError("Could not add field to structure.")
 
+		"""
+		Generator returning the structure's field as tuples of (field name, field declaration).
+		"""
+		@property
+		def fields(self):
+			count = _bt_ctf_field_type_structure_get_field_count(self._ft)
+			if count < 0:
+				raise TypeError("Could not get Structure field count")
+
+			for i in range(count):
+				field_name = _bt_python_ctf_field_type_structure_get_field_name(self._ft, i)
+				if field_name is None:
+					raise TypeError("Could not get Structure field name at index {}".format(i))
+
+				field_type_native = _bt_python_ctf_field_type_structure_get_field_type(self._ft, i)
+				if field_type_native is None:
+					raise TypeError("Could not get Structure field type at index {}".format(i))
+
+				field_type = CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+				yield (field_name, field_type)
+
+		"""
+		Get a field declaration by name (FieldDeclaration).
+		"""
+		def get_field_by_name(self, name):
+			field_type_native = _bt_ctf_field_type_structure_get_field_type_by_name(self._ft, name)
+			if field_type_native is None:
+				raise TypeError("Could not find Structure field with name {}".format(name))
+
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+
 	class VariantFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new variant field type.
+		Create a new variant field declaration.
 		"""
 		def __init__(self, enum_tag, tag_name):
 			if enum_tag is None or not isinstance(enum_tag, CTFWriter.EnumerationFieldDeclaration):
@@ -1822,6 +2055,26 @@ class CTFWriter:
 			super().__init__()
 
 		"""
+		Get the variant's tag name.
+		"""
+		@property
+		def tag_name(self):
+			ret = _bt_ctf_field_type_variant_get_tag_name(self._ft)
+			if ret is None:
+				raise TypeError("Could not get Variant tag name")
+			return ret
+
+		"""
+		Get the variant's tag type.
+		"""
+		@property
+		def tag_type(self):
+			ret = _bt_ctf_field_type_variant_get_tag_type(self._ft)
+			if ret is None:
+				raise TypeError("Could not get Variant tag type")
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(ret)
+
+		"""
 		Add a field of type "field_type" to the variant.
 		"""
 		def add_field(self, field_type, field_name):
@@ -1829,39 +2082,120 @@ class CTFWriter:
 			if ret < 0:
 				raise ValueError("Could not add field to variant.")
 
+		"""
+		Generator returning the variant's field as tuples of (field name, field declaration).
+		"""
+		@property
+		def fields(self):
+			count = _bt_ctf_field_type_variant_get_field_count(self._ft)
+			if count < 0:
+				raise TypeError("Could not get Variant field count")
+
+			for i in range(count):
+				field_name = _bt_python_ctf_field_type_variant_get_field_name(self._ft, i)
+				if field_name is None:
+					raise TypeError("Could not get Variant field name at index {}".format(i))
+
+				field_type_native = _bt_python_ctf_field_type_variant_get_field_type(self._ft, i)
+				if field_type_native is None:
+					raise TypeError("Could not get Variant field type at index {}".format(i))
+
+				field_type = CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+				yield (field_name, field_type)
+
+		"""
+		Get a field declaration by name (FieldDeclaration).
+		"""
+		def get_field_by_name(self, name):
+			field_type_native = _bt_ctf_field_type_variant_get_field_type_by_name(self._ft, name)
+			if field_type_native is None:
+				raise TypeError("Could not find Variant field with name {}".format(name))
+
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+
+		"""
+		Get a field declaration from tag (EnumerationField).
+		"""
+		def get_field_from_tag(self, tag):
+			field_type_native = _bt_ctf_field_type_variant_get_field_type_from_tag(self._ft, tag._f)
+			if field_type_native is None:
+				raise TypeError("Could not find Variant field with tag value {}".format(tag.value))
+
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+
 	class ArrayFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new array field type.
+		Create a new array field declaration.
 		"""
 		def __init__(self, element_type, length):
 			self._ft = _bt_ctf_field_type_array_create(element_type._ft, length)
 			super().__init__()
 
+		"""
+		Get the array's element type.
+		"""
+		@property
+		def element_type(self):
+			ret = _bt_ctf_field_type_array_get_element_type(self._ft)
+			if ret is None:
+				raise TypeError("Could not get Array element type")
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(ret)
+
+		"""
+		Get the array's length.
+		"""
+		@property
+		def length(self):
+			ret = _bt_ctf_field_type_array_get_length(self._ft)
+			if ret < 0:
+				raise TypeError("Could not get Array length")
+			return ret
+
 	class SequenceFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new sequence field type.
+		Create a new sequence field declaration.
 		"""
 		def __init__(self, element_type, length_field_name):
 			self._ft = _bt_ctf_field_type_sequence_create(element_type._ft, str(length_field_name))
 			super().__init__()
 
+		"""
+		Get the sequence's element type.
+		"""
+		@property
+		def element_type(self):
+			ret = _bt_ctf_field_type_sequence_get_element_type(self._ft)
+			if ret is None:
+				raise TypeError("Could not get Sequence element type")
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(ret)
+
+		"""
+		Get the sequence's length field name.
+		"""
+		@property
+		def length_field_name(self):
+			ret = _bt_ctf_field_type_sequence_get_length_field_name(self._ft)
+			if ret is None:
+				raise TypeError("Could not get Sequence length field name")
+			return ret
+
 	class StringFieldDeclaration(FieldDeclaration):
 		"""
-		Create a new string field type.
+		Create a new string field declaration.
 		"""
 		def __init__(self):
 			self._ft = _bt_ctf_field_type_string_create()
 			super().__init__()
 
 		"""
-		Get a string type's encoding (a constant from the CTFStringEncoding class).
+		Get a string declaration's encoding (a constant from the CTFStringEncoding class).
 		"""
 		@property
 		def encoding(self):
-			raise NotImplementedError("Getter not implemented.")
+			return _bt_ctf_field_type_string_get_encoding(self._ft)
 
 		"""
-		Set a string type's encoding. Must be a constant from the CTFStringEncoding class.
+		Set a string declaration's encoding. Must be a constant from the CTFStringEncoding class.
 		"""
 		@encoding.setter
 		def encoding(self, encoding):
@@ -1873,7 +2207,7 @@ class CTFWriter:
 	Create an instance of a field.
 	"""
 	@staticmethod
-	def create_field(self, field_type):
+	def create_field(field_type):
 		if field_type is None or not isinstance(field_type, CTFWriter.FieldDeclaration):
 			raise TypeError("Invalid field_type. Type must be a FieldDeclaration-derived class.")
 
@@ -1930,6 +2264,13 @@ class CTFWriter:
 			field._f = native_field_instance
 			field.__class__ = type_dict[field_type]
 			return field
+
+		@property
+		def declaration(self):
+			native_field_type = _bt_ctf_field_get_type(self._f)
+			if native_field_type is None:
+				raise TypeError("Invalid field instance")
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(native_field_type)
 
 	class IntegerField(Field):
 		"""
@@ -2073,6 +2414,8 @@ class CTFWriter:
 		def length(self, length_field):
 			if not isinstance(length_field, CTFWriter.IntegerField):
 				raise TypeError("Invalid length field.")
+			if length_field.declaration.signed:
+				raise TypeError("Sequence field length must be unsigned")
 			ret = _bt_ctf_field_sequence_set_length(self._f, length_field._f)
 			if ret < 0:
 				raise ValueError("Could not set sequence length.")

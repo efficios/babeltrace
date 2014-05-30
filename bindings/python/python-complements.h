@@ -28,10 +28,6 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 
-/* File */
-FILE *_bt_file_open(char *file_path, char *mode);
-void _bt_file_close(FILE *fp);
-
 /* ctf-field-list */
 struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
@@ -68,6 +64,20 @@ struct bt_declaration *_bt_python_get_sequence_element_declaration(
 const char *_bt_python_get_array_string(struct bt_definition *field);
 const char *_bt_python_get_sequence_string(struct bt_definition *field);
 
-/* ctf writer */
+/* ctf ir */
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
+const char *_bt_python_ctf_field_type_enumeration_get_mapping(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		int64_t *range_start, int64_t *range_end);
+const char *_bt_python_ctf_field_type_enumeration_get_mapping_unsigned(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		uint64_t *range_start, uint64_t *range_end);
+const char *_bt_python_ctf_field_type_structure_get_field_name(
+		struct bt_ctf_field_type *structure, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_field_type_structure_get_field_type(
+		struct bt_ctf_field_type *structure, size_t index);
+const char *_bt_python_ctf_field_type_variant_get_field_name(
+		struct bt_ctf_field_type *variant, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
+		struct bt_ctf_field_type *variant, size_t index);

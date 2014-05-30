@@ -21,25 +21,7 @@
 #include "python-complements.h"
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-fields-internal.h>
-
-/* FILE functions
-   ----------------------------------------------------
-*/
-
-FILE *_bt_file_open(char *file_path, char *mode)
-{
-	FILE *fp = stdout;
-	if (file_path != NULL)
-		fp = fopen(file_path, mode);
-	return fp;
-}
-
-void _bt_file_close(FILE *fp)
-{
-	if (fp != NULL)
-		fclose(fp);
-}
-
+#include <babeltrace/ctf-ir/event-types.h>
 
 /* List-related functions
    ----------------------------------------------------
@@ -235,4 +217,95 @@ enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field)
 	type_id = field->type->declaration->id;
 end:
 	return type_id;
+}
+
+/*
+ * Swig doesn't handle returning pointers via output arguments properly...
+ * These functions only wrap the ctf-ir functions to provide them directly
+ * as regular return values.
+ */
+const char *_bt_python_ctf_field_type_enumeration_get_mapping(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		int64_t *range_start, int64_t *range_end)
+{
+	int ret;
+	const char *name;
+
+	ret = bt_ctf_field_type_enumeration_get_mapping(enumeration, index,
+		&name, range_start, range_end);
+	return !ret ? name : NULL;
+}
+
+const char *_bt_python_ctf_field_type_enumeration_get_mapping_unsigned(
+		struct bt_ctf_field_type *enumeration, size_t index,
+		uint64_t *range_start, uint64_t *range_end)
+{
+	int ret;
+	const char *name;
+
+	ret = bt_ctf_field_type_enumeration_get_mapping_unsigned(enumeration,
+		index, &name, range_start, range_end);
+	return !ret ? name : NULL;
+}
+
+const char *_bt_python_ctf_field_type_structure_get_field_name(
+		struct bt_ctf_field_type *structure, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_field_type_structure_get_field(structure, &name, &type,
+		index);
+	if (ret) {
+		name = NULL;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(type);
+end:
+	return name;
+}
+
+struct bt_ctf_field_type *_bt_python_ctf_field_type_structure_get_field_type(
+		struct bt_ctf_field_type *structure, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_field_type_structure_get_field(structure, &name, &type,
+		index);
+	return !ret ? type : NULL;
+}
+
+const char *_bt_python_ctf_field_type_variant_get_field_name(
+		struct bt_ctf_field_type *variant, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_field_type_variant_get_field(variant, &name, &type,
+		index);
+	if (ret) {
+		name = NULL;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(type);
+end:
+	return name;
+}
+
+struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
+		struct bt_ctf_field_type *variant, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_field_type_variant_get_field(variant, &name, &type,
+		index);
+	return !ret ? type : NULL;
 }
