@@ -19,8 +19,7 @@ _babeltrace_la_CFLAGS = $(GLIB_CFLAGS) $(AM_CFLAGS)
 
 _babeltrace_la_LIBS = $(GLIB_LIBS)
 
-_babeltrace_la_LIBADD = $(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
-	$(top_builddir)/formats/ctf-text/libbabeltrace-ctf-text.la
+_babeltrace_la_LIBADD = $(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 # SWIG 'warning md variable unused' fixed after SWIG build:
 babeltrace_wrap.c: babeltrace.i
