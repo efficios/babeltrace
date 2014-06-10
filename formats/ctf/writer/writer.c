@@ -234,6 +234,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		goto error;
 	}
 
+
 	for (i = 0; i < writer->stream_classes->len; i++) {
 		if (writer->stream_classes->pdata[i] == stream->stream_class) {
 			stream_class_found = 1;
@@ -241,11 +242,21 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 	}
 
 	if (!stream_class_found) {
-		if (bt_ctf_stream_class_set_id(stream->stream_class,
-			writer->next_stream_id++)) {
-			goto error;
+		int64_t stream_id = bt_ctf_stream_class_get_id(stream_class);
+		if (stream_id < 0) {
+			if (bt_ctf_stream_class_set_id(stream->stream_class,
+				writer->next_stream_id++)) {
+				goto error;
+			}
 		}
 
+		for (i = 0; i < writer->stream_classes->len; i++) {
+			if (stream_id == bt_ctf_stream_class_get_id(
+				    writer->stream_classes->pdata[i])) {
+				/* Duplicate stream id found */
+				goto error;
+			}
+		}
 		bt_ctf_stream_class_get(stream->stream_class);
 		g_ptr_array_add(writer->stream_classes, stream->stream_class);
 	}

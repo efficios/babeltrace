@@ -39,8 +39,7 @@ struct bt_ctf_event_class {
 	GQuark name;
 	int id_set;
 	uint32_t id;
-	int stream_id_set;
-	uint32_t stream_id;
+	struct bt_ctf_stream_class *stream_class;
 	/* Structure type containing the event's context */
 	struct bt_ctf_field_type *context;
 	/* Structure type containing the event's fields */
@@ -60,15 +59,8 @@ BT_HIDDEN
 void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class);
 
 BT_HIDDEN
-int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
-		uint32_t id);
-
-BT_HIDDEN
-uint32_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
-
-BT_HIDDEN
-int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
-		uint32_t id);
+int bt_ctf_event_class_set_stream_class(struct bt_ctf_event_class *event_class,
+		struct bt_ctf_stream_class *stream_class);
 
 BT_HIDDEN
 int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,

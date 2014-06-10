@@ -61,7 +61,7 @@ struct bt_ctf_writer {
 	GPtrArray *streams; /* Array of pointers to bt_ctf_stream */
 	struct bt_ctf_field_type *trace_packet_header_type;
 	struct bt_ctf_field *trace_packet_header;
-	uint32_t next_stream_id;
+	uint64_t next_stream_id;
 };
 
 struct environment_variable {

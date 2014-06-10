@@ -77,6 +77,21 @@ error:
 	return stream_class;
 }
 
+struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_clock *clock = NULL;
+
+	if (!stream_class || !stream_class->clock) {
+		goto end;
+	}
+
+	clock = stream_class->clock;
+	bt_ctf_clock_get(clock);
+end:
+	return clock;
+}
+
 int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_clock *clock)
 {
@@ -97,11 +112,42 @@ end:
 	return ret;
 }
 
+int64_t bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class)
+{
+	int64_t ret;
+
+	if (!stream_class || !stream_class->id_set) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = (int64_t) stream_class->id;
+end:
+	return ret;
+}
+
+int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
+		uint32_t id)
+{
+	int ret = 0;
+
+	if (!stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	stream_class->id = id;
+	stream_class->id_set = 1;
+end:
+	return ret;
+}
+
 int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class)
 {
 	int ret = 0;
+	int64_t event_id;
 
 	if (!stream_class || !event_class) {
 		ret = -1;
@@ -116,10 +162,18 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
-	if (bt_ctf_event_class_set_id(event_class,
-		stream_class->next_event_id++)) {
-		/* The event is already associated to a stream class */
-		ret = -1;
+	/* Only set an event id if none was explicitly set before */
+	event_id = bt_ctf_event_class_get_id(event_class);
+	if (event_id < 0) {
+		if (bt_ctf_event_class_set_id(event_class,
+			stream_class->next_event_id++)) {
+			ret = -1;
+			goto end;
+		}
+	}
+
+	ret = bt_ctf_event_class_set_stream_class(event_class, stream_class);
+	if (ret) {
 		goto end;
 	}
 
@@ -161,24 +215,6 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 }
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-	uint32_t id)
-{
-	int ret = 0;
-
-	if (!stream_class ||
-		(stream_class->id_set && (id != stream_class->id))) {
-		ret = -1;
-		goto end;
-	}
-
-	stream_class->id = id;
-	stream_class->id_set = 1;
-end:
-	return ret;
-}
-
-BT_HIDDEN
 int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 	enum bt_ctf_byte_order byte_order)
 {
@@ -201,7 +237,7 @@ BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context)
 {
-	int ret = 0;
+	int64_t ret = 0;
 	size_t i;
 
 	g_string_assign(context->field_name, "");
@@ -237,17 +273,10 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	}
 
 	g_string_append(context->string, ";\n};\n\n");
-
-	/* Assign this stream's ID to every event and serialize them */
-	g_ptr_array_foreach(stream_class->event_classes,
-		(GFunc) bt_ctf_event_class_set_stream_id,
-		GUINT_TO_POINTER(stream_class->id));
 	for (i = 0; i < stream_class->event_classes->len; i++) {
 		struct bt_ctf_event_class *event_class =
 			stream_class->event_classes->pdata[i];
 
-		ret = bt_ctf_event_class_set_stream_id(event_class,
-			stream_class->id);
 		if (ret) {
 			goto end;
 		}
@@ -275,6 +304,17 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 	bt_ctf_clock_put(stream_class->clock);
 
 	if (stream_class->event_classes) {
+		size_t i;
+
+		/* Unregister this stream class from the event classes */
+		for (i = 0; i < stream_class->event_classes->len; i++) {
+			struct bt_ctf_event_class *event_class =
+				g_ptr_array_index(stream_class->event_classes,
+				i);
+
+			bt_ctf_event_class_set_stream_class(event_class, NULL);
+		}
+
 		g_ptr_array_free(stream_class->event_classes, TRUE);
 	}
 

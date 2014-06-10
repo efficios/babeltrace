@@ -57,10 +57,6 @@ BT_HIDDEN
 void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class);
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-		uint32_t id);
-
-BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context);
 

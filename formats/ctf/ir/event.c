@@ -32,6 +32,7 @@
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
+#include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 
@@ -59,6 +60,73 @@ end:
 	return event_class;
 }
 
+const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
+{
+	const char *name = NULL;
+
+	if (!event_class) {
+		goto end;
+	}
+
+	name = g_quark_to_string(event_class->name);
+end:
+	return name;
+}
+
+int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
+{
+	int64_t ret;
+
+	if (!event_class || !event_class->id_set) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = (int64_t) event_class->id;
+end:
+	return ret;
+}
+
+int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
+		uint32_t id)
+{
+	int ret = 0;
+
+	if (!event_class) {
+		ret = -1;
+		goto end;
+	}
+
+	if (event_class->stream_class) {
+		/*
+		 * We don't allow changing the id if the event class has already
+		 * been added to a stream class.
+		 */
+		ret = -1;
+		goto end;
+	}
+
+	event_class->id = id;
+	event_class->id_set = 1;
+end:
+	return ret;
+}
+
+struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
+		struct bt_ctf_event_class *event_class)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	if (!event_class) {
+		goto end;
+	}
+
+	stream_class = event_class->stream_class;
+	bt_ctf_stream_class_get(stream_class);
+end:
+	return stream_class;
+}
+
 int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *type,
 		const char *name)
@@ -83,6 +151,63 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		type, name);
 end:
 	return ret;
+}
+
+int64_t bt_ctf_event_class_get_field_count(
+		struct bt_ctf_event_class *event_class)
+{
+	int64_t ret;
+
+	if (!event_class) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_structure_get_field_count(event_class->fields);
+end:
+	return ret;
+}
+
+int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
+		const char **field_name, struct bt_ctf_field_type **field_type,
+		size_t index)
+{
+	int ret;
+
+	if (!event_class) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_structure_get_field(event_class->fields,
+		field_name, field_type, index);
+end:
+	return ret;
+}
+
+struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+		struct bt_ctf_event_class *event_class, const char *name)
+{
+	GQuark name_quark;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!event_class || !name) {
+		goto end;
+	}
+
+	name_quark = g_quark_try_string(name);
+	if (!name_quark) {
+		goto end;
+	}
+
+	/*
+	 * No need to increment field_type's reference count since getting it
+	 * from the structure already does.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		event_class->fields, name);
+end:
+	return field_type;
 }
 
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class)
@@ -126,6 +251,53 @@ end:
 	return event;
 }
 
+struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
+{
+	struct bt_ctf_event_class *event_class = NULL;
+
+	if (!event) {
+		goto end;
+	}
+
+	event_class = event->event_class;
+	bt_ctf_event_class_get(event_class);
+end:
+	return event_class;
+}
+
+struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
+{
+	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_stream_class *stream_class;
+
+	if (!event) {
+		goto end;
+	}
+
+	event_class = bt_ctf_event_get_class(event);
+	if (!event_class) {
+		goto end;
+	}
+
+	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	if (!stream_class) {
+		goto error_put_event_class;
+	}
+
+	clock = bt_ctf_stream_class_get_clock(stream_class);
+	if (!clock) {
+		goto error_put_stream_class;
+	}
+
+error_put_stream_class:
+	bt_ctf_stream_class_put(stream_class);
+error_put_event_class:
+	bt_ctf_event_class_put(event_class);
+end:
+	return clock;
+}
+
 int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 		const char *name,
 		struct bt_ctf_field *value)
@@ -158,6 +330,21 @@ end:
 	return field;
 }
 
+struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
+		struct bt_ctf_event *event, size_t index)
+{
+	struct bt_ctf_field *field = NULL;
+
+	if (!event) {
+		goto end;
+	}
+
+	field = bt_ctf_field_structure_get_field_by_index(event->fields_payload,
+		index);
+end:
+	return field;
+}
+
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
 	if (!event) {
@@ -185,6 +372,10 @@ void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref)
 		return;
 	}
 
+	/*
+	 * Don't call put() on the stream class. See comment in
+	 * bt_ctf_event_class_set_stream_class for explanation.
+	 */
 	event_class = container_of(ref, struct bt_ctf_event_class, ref_count);
 	bt_ctf_field_type_put(event_class->context);
 	bt_ctf_field_type_put(event_class->fields);
@@ -218,43 +409,31 @@ void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class)
 }
 
 BT_HIDDEN
-int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
-		uint32_t id)
+int bt_ctf_event_class_set_stream_class(struct bt_ctf_event_class *event_class,
+		struct bt_ctf_stream_class *stream_class)
 {
 	int ret = 0;
 
-	if (event_class->id_set && id != event_class->id) {
+	if (!event_class) {
 		ret = -1;
 		goto end;
 	}
 
-	event_class->id = id;
-	event_class->id_set = 1;
-end:
-	return ret;
-}
-
-BT_HIDDEN
-uint32_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
-{
-	assert(event_class);
-	return event_class->id;
-}
-
-BT_HIDDEN
-int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
-		uint32_t id)
-{
-	int ret = 0;
-
-	assert(event_class);
-	if (event_class->stream_id_set && id != event_class->stream_id) {
+	/* Allow a NULL stream_class to unset the current stream_class */
+	if (stream_class && event_class->stream_class) {
 		ret = -1;
 		goto end;
 	}
 
-	event_class->stream_id = id;
-	event_class->stream_id_set = 1;
+	event_class->stream_class = stream_class;
+	/*
+	 * We don't get() the stream_class since doing so would introduce
+	 * a circular ownership between event classes and stream classes.
+	 *
+	 * A stream class will always unset itself from its events before
+	 * being destroyed. This ensures that a user won't get a pointer
+	 * to a stale stream class instance from an event class.
+	 */
 end:
 	return ret;
 }
@@ -264,15 +443,22 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context)
 {
 	int ret = 0;
+	int64_t stream_id;
 
 	assert(event_class);
 	assert(context);
+	stream_id = bt_ctf_stream_class_get_id(event_class->stream_class);
+	if (stream_id < 0) {
+		ret = -1;
+		goto end;
+	}
+
 	context->current_indentation_level = 1;
 	g_string_assign(context->field_name, "");
-	g_string_append_printf(context->string, "event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRIu32 ";\n",
+	g_string_append_printf(context->string, "event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRId64 ";\n",
 		g_quark_to_string(event_class->name),
 		event_class->id,
-		event_class->stream_id);
+		stream_id);
 
 	if (event_class->context) {
 		g_string_append(context->string, "\tcontext := ");

@@ -51,6 +51,16 @@ struct bt_ctf_clock;
 extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 
 /*
+ * bt_ctf_stream_class_get_clock: get the clock associated with a stream class.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns a clock instance, NULL on error.
+ */
+extern struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
  * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
  *
  * Assign a clock to a stream class. This clock will be sampled each time an
@@ -64,6 +74,31 @@ extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 extern int bt_ctf_stream_class_set_clock(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_stream_class_get_id: Get a stream class' id.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream class' id, a negative value on error.
+ */
+extern int64_t bt_ctf_stream_class_get_id(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_set_id: Set a stream class' id.
+ *
+ * Set a stream class' id. Must be unique trace-wise.
+ * Note that stream classes are assigned a unique id when a stream instance
+ * is created for the first time from a trace or writer.
+ *
+ * @param stream_class Stream class.
+ * @param id Stream class id.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_id(
+		struct bt_ctf_stream_class *stream_class, uint32_t id);
 
 /*
  * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
