@@ -285,6 +285,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	size_t ret_size_t;
 	int64_t ret_range_start_int64_t, ret_range_end_int64_t;
 	uint64_t ret_range_start_uint64_t, ret_range_end_uint64_t;
+	struct bt_ctf_clock *ret_clock;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -431,9 +432,15 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		simple_event_class);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
-
 	ok(simple_event,
 		"Instantiate an event containing a single integer field");
+
+	ok(bt_ctf_event_get_clock(NULL) == NULL,
+		"bt_ctf_event_get_clock handles NULL correctly");
+	ret_clock = bt_ctf_event_get_clock(simple_event);
+	ok(ret_clock == clock,
+		"bt_ctf_event_get_clock returns a correct clock");
+	bt_ctf_clock_put(clock);
 
 	integer_field = bt_ctf_field_create(uint_12_type);
 	bt_ctf_field_unsigned_integer_set_value(integer_field, 42);
@@ -508,6 +515,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
 	int i;
+	const char *complex_test_event_string = "Complex Test Event";
 	const char *test_string = "Test string";
 	struct bt_ctf_field_type *uint_35_type =
 		bt_ctf_field_type_integer_create(35);
@@ -539,6 +547,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	int64_t ret_signed_int;
 	const char *ret_string;
 	size_t ret_size_t;
+	struct bt_ctf_stream_class *ret_stream_class;
+	struct bt_ctf_event_class *ret_event_class;
 
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
@@ -667,7 +677,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(bt_ctf_event_class_create("clock") == NULL,
 		"Reject creation of an event class with an illegal name");
-	event_class = bt_ctf_event_class_create("Complex Test Event");
+	event_class = bt_ctf_event_class_create(complex_test_event_string);
 	ok(event_class, "Create an event class");
 	ok(bt_ctf_event_class_add_field(event_class, uint_35_type, ""),
 		"Reject addition of a field with an empty name to an event");
@@ -685,14 +695,81 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"complex_structure") == 0,
 		"Add composite structure to an event");
 
+	ok(bt_ctf_event_class_get_name(NULL) == NULL,
+		"bt_ctf_event_class_get_name handles NULL correctly");
+	ret_string = bt_ctf_event_class_get_name(event_class);
+	ok(!strcmp(ret_string, complex_test_event_string),
+		"bt_ctf_event_class_get_name returns a correct name");
+	ok(bt_ctf_event_class_get_id(event_class) < 0,
+		"bt_ctf_event_class_get_id returns a negative value when not set");
+	ok(bt_ctf_event_class_get_id(NULL) < 0,
+		"bt_ctf_event_class_get_id handles NULL correctly");
+	ok(bt_ctf_event_class_set_id(NULL, 42) < 0,
+		"bt_ctf_event_class_set_id handles NULL correctly");
+	ok(bt_ctf_event_class_set_id(event_class, 42) == 0,
+		"Set an event class' id");
+	ok(bt_ctf_event_class_get_id(event_class) == 42,
+		"bt_ctf_event_class_get_id returns the correct value");
+
 	/* Add event class to the stream class */
 	ok(bt_ctf_stream_class_add_event_class(stream_class, NULL),
 		"Reject addition of NULL event class to a stream class");
 	ok(bt_ctf_stream_class_add_event_class(stream_class,
 		event_class) == 0, "Add an event class to stream class");
 
+	ok(bt_ctf_event_class_get_stream_class(NULL) == NULL,
+		"bt_ctf_event_class_get_stream_class handles NULL correctly");
+	ret_stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	ok(ret_stream_class == stream_class,
+		"bt_ctf_event_class_get_stream_class returns the correct stream class");
+	bt_ctf_stream_class_put(ret_stream_class);
+
+	ok(bt_ctf_event_class_get_field_count(NULL) < 0,
+		"bt_ctf_event_class_get_field_count handles NULL correctly");
+	ok(bt_ctf_event_class_get_field_count(event_class) == 3,
+		"bt_ctf_event_class_get_field_count returns a correct value");
+
+	ok(bt_ctf_event_class_get_field(NULL, &ret_string,
+		&ret_field_type, 0) < 0,
+		"bt_ctf_event_class_get_field handles a NULL event class correctly");
+	ok(bt_ctf_event_class_get_field(event_class, NULL,
+		&ret_field_type, 0) < 0,
+		"bt_ctf_event_class_get_field handles a NULL field name correctly");
+	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+		NULL, 0) < 0,
+		"bt_ctf_event_class_get_field handles a NULL field type correctly");
+	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+		&ret_field_type, 42) < 0,
+		"bt_ctf_event_class_get_field handles an invalid index correctly");
+	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+		&ret_field_type, 0) == 0,
+		"bt_ctf_event_class_get_field returns a field");
+	ok(ret_field_type == uint_35_type,
+		"bt_ctf_event_class_get_field returns a correct field type");
+	bt_ctf_field_type_put(ret_field_type);
+	ok(!strcmp(ret_string, "uint_35"),
+		"bt_ctf_event_class_get_field returns a correct field name");
+	ok(bt_ctf_event_class_get_field_by_name(NULL, "") == NULL,
+		"bt_ctf_event_class_get_field_by_name handles a NULL event class correctly");
+	ok(bt_ctf_event_class_get_field_by_name(event_class, NULL) == NULL,
+		"bt_ctf_event_class_get_field_by_name handles a NULL field name correctly");
+	ok(bt_ctf_event_class_get_field_by_name(event_class, "truie") == NULL,
+		"bt_ctf_event_class_get_field_by_name handles an invalid field name correctly");
+	ret_field_type = bt_ctf_event_class_get_field_by_name(event_class,
+		"complex_structure");
+	ok(ret_field_type == complex_structure_type,
+		"bt_ctf_event_class_get_field_by_name returns a correct field type");
+	bt_ctf_field_type_put(ret_field_type);
+
 	event = bt_ctf_event_create(event_class);
 	ok(event, "Instanciate a complex event");
+
+	ok(bt_ctf_event_get_class(NULL) == NULL,
+		"bt_ctf_event_get_class handles NULL correctly");
+	ret_event_class = bt_ctf_event_get_class(event);
+	ok(ret_event_class == event_class,
+		"bt_ctf_event_get_class returns the correct event class");
+	bt_ctf_event_class_put(ret_event_class);
 
 	uint_35_field = bt_ctf_event_get_payload(event, "uint_35");
 	if (!uint_35_field) {
@@ -1156,6 +1233,9 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_integer_create(17);
 	struct bt_ctf_field_type *string_type =
 		bt_ctf_field_type_string_create();
+	struct bt_ctf_event *event;
+	struct bt_ctf_field *ret_field;
+	struct bt_ctf_field_type *ret_field_type;
 
 	ret |= bt_ctf_event_class_add_field(event_class, integer_type,
 		"field_1");
@@ -1167,8 +1247,22 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
+	event = bt_ctf_event_create(event_class);
+	ret_field = bt_ctf_event_get_payload_by_index(event, 0);
+	ret_field_type = bt_ctf_field_get_type(ret_field);
+	ok(ret_field_type == integer_type,
+		"bt_ctf_event_get_payload_by_index returns a correct field");
+	bt_ctf_field_type_put(ret_field_type);
+	bt_ctf_field_put(ret_field);
+
+	ok(bt_ctf_event_get_payload_by_index(NULL, 0) == NULL,
+		"bt_ctf_event_get_payload_by_index handles NULL correctly");
+	ok(bt_ctf_event_get_payload_by_index(event, 4) == NULL,
+		"bt_ctf_event_get_payload_by_index handles an invalid index correctly");
+	bt_ctf_event_put(event);
+
 	for (i = 0; i < PACKET_RESIZE_TEST_LENGTH; i++) {
-		struct bt_ctf_event *event = bt_ctf_event_create(event_class);
+		event = bt_ctf_event_create(event_class);
 		struct bt_ctf_field *integer =
 			bt_ctf_field_create(integer_type);
 		struct bt_ctf_field *string =
@@ -1216,7 +1310,7 @@ int main(int argc, char **argv)
 	struct bt_ctf_writer *writer;
 	struct utsname name;
 	char hostname[HOST_NAME_MAX];
-	struct bt_ctf_clock *clock;
+	struct bt_ctf_clock *clock, *ret_clock;
 	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_stream *stream1;
 
@@ -1376,12 +1470,32 @@ int main(int argc, char **argv)
 
 	/* Define a stream class */
 	stream_class = bt_ctf_stream_class_create("test_stream");
+	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,
+		"bt_ctf_stream_class_get_clock returns NULL when a clock was not set");
+	ok(bt_ctf_stream_class_get_clock(NULL) == NULL,
+		"bt_ctf_stream_class_get_clock handles NULL correctly");
+
 	ok(stream_class, "Create stream class");
 	ok(bt_ctf_stream_class_set_clock(stream_class, clock) == 0,
 		"Set a stream class' clock");
+	ret_clock = bt_ctf_stream_class_get_clock(stream_class);
+	ok(ret_clock == clock,
+		"bt_ctf_stream_class_get_clock returns a correct clock");
+	bt_ctf_clock_put(ret_clock);
 
 	/* Test the event fields and event types APIs */
 	type_field_tests();
+
+	ok(bt_ctf_stream_class_get_id(stream_class) < 0,
+		"bt_ctf_stream_class_get_id returns an error when no id is set");
+	ok(bt_ctf_stream_class_get_id(NULL) < 0,
+		"bt_ctf_stream_class_get_id handles NULL correctly");
+	ok(bt_ctf_stream_class_set_id(NULL, 123) < 0,
+		"bt_ctf_stream_class_set_id handles NULL correctly");
+	ok(bt_ctf_stream_class_set_id(stream_class, 123) == 0,
+		"Set an stream class' id");
+	ok(bt_ctf_stream_class_get_id(stream_class) == 123,
+		"bt_ctf_stream_class_get_id returns the correct value");
 
 	/* Instantiate a stream and append events */
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
