@@ -33,6 +33,7 @@ trace to it."
 
 %module(docstring=DOCSTRING) babeltrace
 
+%include "stdint.i"
 %include "typemaps.i"
 %{
 #define SWIG_FILE_WITH_INIT
@@ -57,8 +58,6 @@ trace to it."
 #include <babeltrace/ctf-writer/writer.h>
 %}
 
-typedef unsigned long long uint64_t;
-typedef long long int64_t;
 typedef int bt_intern_str;
 typedef int64_t ssize_t;
 
@@ -111,6 +110,10 @@ const char *_bt_python_ctf_field_type_variant_get_field_name(
 		struct bt_ctf_field_type *variant, size_t index);
 struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
 		struct bt_ctf_field_type *variant, size_t index);
+const char *_bt_python_ctf_event_class_get_field_name(
+		struct bt_ctf_event_class *event_class, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_event_class_get_field_type(
+		struct bt_ctf_event_class *event_class, size_t index);
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
@@ -1455,22 +1458,42 @@ void bt_ctf_field_put(struct bt_ctf_field *field);
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 %rename("_bt_ctf_event_class_create") bt_ctf_event_class_create(const char *name);
+%rename("_bt_ctf_event_class_get_name") bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_class_get_id") bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_class_set_id") bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class, uint32_t id);
+%rename("_bt_ctf_event_class_get_stream_class") bt_ctf_event_class_get_stream_class(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_add_field") bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
+%rename("_bt_ctf_event_class_get_field_count") bt_ctf_event_class_get_field_count(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_class_get_field") bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+%rename("_bt_ctf_event_class_get_field_by_name") bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 %rename("_bt_ctf_event_class_get") bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_put") bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_create") bt_ctf_event_create(struct bt_ctf_event_class *event_class);
-%rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+%rename("_bt_ctf_event_get_class") bt_ctf_event_get_class(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_get_clock") bt_ctf_event_get_clock(struct bt_ctf_event *event);
 %rename("_bt_ctf_event_get_payload") bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
+%rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+%rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
 %rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
 %rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
 
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
+const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class);
+int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
+int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class, uint32_t id);
+struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(struct bt_ctf_event_class *event_class);
 int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
+int64_t bt_ctf_event_class_get_field_count(struct bt_ctf_event_class *event_class);
+int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class);
-int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event);
+struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event);
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
+int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+struct bt_ctf_field *bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
 void bt_ctf_event_get(struct bt_ctf_event *event);
 void bt_ctf_event_put(struct bt_ctf_event *event);
 
@@ -2466,6 +2489,78 @@ class CTFWriter:
 			if ret < 0:
 				raise ValueError("Could not add field to event class.")
 
+		"""
+		Get the event class' name.
+		"""
+		@property
+		def name(self):
+			name = _bt_ctf_event_class_get_name(self._ec)
+			if name is None:
+				raise TypeError("Could not get EventClass name")
+			return name
+
+		"""
+		Get the event class' id. Returns a negative value if unset.
+		"""
+		@property
+		def id(self):
+			id = _bt_ctf_event_class_get_id(self._ec)
+			if id < 0:
+				raise TypeError("Could not get EventClass name")
+			return id
+
+		"""
+		Set the event class' id. Throws a TypeError if the event class
+		is already registered to a stream class.
+		"""
+		@id.setter
+		def id(self, id):
+			ret = _bt_ctf_event_class_set_id(self._ec, id)
+			if ret < 0:
+				raise TypeError("Can't change an Event Class's id after it has been assigned to a stream class")
+
+		"""
+		Get the event class' stream class. Returns None if unset.
+		"""
+		@property
+		def stream_class(self):
+			stream_class_native = _bt_ctf_event_class_get_stream_class(self._ec)
+			if stream_class_native is None:
+				return None
+			stream_class = CTFWriter.StreamClass.__new__(CTFWriter.StreamClass)
+			stream_class._sc = stream_class_native
+			return stream_class
+
+		"""
+		Generator returning the event class' fields as tuples of (field name, field declaration).
+		"""
+		@property
+		def fields(self):
+			count = _bt_ctf_event_class_get_field_count(self._ec)
+			if count < 0:
+				raise TypeError("Could not get EventClass' field count")
+
+			for i in range(count):
+				field_name = _bt_python_ctf_event_class_get_field_name(self._ec, i)
+				if field_name is None:
+					raise TypeError("Could not get EventClass' field name at index {}".format(i))
+
+				field_type_native = _bt_python_ctf_event_class_get_field_type(self._ec, i)
+				if field_type_native is None:
+					raise TypeError("Could not get EventClass' field type at index {}".format(i))
+
+				field_type = CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+				yield (field_name, field_type)
+
+		"""
+		Get a field declaration by name (FieldDeclaration).
+		"""
+		def get_field_by_name(self, name):
+			field_type_native = _bt_ctf_event_class_get_field_by_name(self._ec, name)
+			if field_type_native is None:
+				raise TypeError("Could not find EventClass field with name {}".format(name))
+			return CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+
 	class Event:
 		"""
 		Create a new event of the given event class.
@@ -2482,14 +2577,28 @@ class CTFWriter:
 			_bt_ctf_event_put(self._e)
 
 		"""
-		Set a manually created field as an event's payload.
+		Get the event's class.
 		"""
-		def set_payload(self, field_name, value_field):
-			if not isinstance(value, CTFWriter.Field):
-				raise TypeError("Invalid value type.")
-			ret = _bt_ctf_event_set_payload(self._e, str(field_name), value_field._f)
-			if ret < 0:
-				raise ValueError("Could not set event field payload.")
+		@property
+		def event_class(self):
+			event_class_native = _bt_ctf_event_get_class(self._e)
+			if event_class_native is None:
+				return None
+			event_class = CTFWriter.EventClass.__new__(CTFWriter.EventClass)
+			event_class._ec = event_class_native
+			return event_class
+
+		"""
+		Get a clock from event. Returns None if the event's class
+		is not registered to a stream class.
+		"""
+		def clock(self):
+			clock_instance = _bt_ctf_event_get_clock(self._e)
+			if clock_instance is None:
+				return None
+			clock = CTFWriter.Clock.__new__(CTFWriter.Clock)
+			clock._c = clock_instance
+			return clock
 
 		"""
 		Get a field from event.
@@ -2499,6 +2608,16 @@ class CTFWriter:
 			if native_instance is None:
 				raise ValueError("Could not get event payload.")
 			return CTFWriter.Field._create_field_from_native_instance(native_instance)
+
+		"""
+		Set a manually created field as an event's payload.
+		"""
+		def set_payload(self, field_name, value_field):
+			if not isinstance(value, CTFWriter.Field):
+				raise TypeError("Invalid value type.")
+			ret = _bt_ctf_event_set_payload(self._e, str(field_name), value_field._f)
+			if ret < 0:
+				raise ValueError("Could not set event field payload.")
 
 	class StreamClass:
 		"""

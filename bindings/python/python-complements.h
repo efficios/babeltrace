@@ -81,3 +81,7 @@ const char *_bt_python_ctf_field_type_variant_get_field_name(
 		struct bt_ctf_field_type *variant, size_t index);
 struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
 		struct bt_ctf_field_type *variant, size_t index);
+const char *_bt_python_ctf_event_class_get_field_name(
+		struct bt_ctf_event_class *event_class, size_t index);
+struct bt_ctf_field_type *_bt_python_ctf_event_class_get_field_type(
+		struct bt_ctf_event_class *event_class, size_t index);

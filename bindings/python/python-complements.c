@@ -22,6 +22,7 @@
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/event.h>
 
 /* List-related functions
    ----------------------------------------------------
@@ -309,3 +310,35 @@ struct bt_ctf_field_type *_bt_python_ctf_field_type_variant_get_field_type(
 		index);
 	return !ret ? type : NULL;
 }
+
+const char *_bt_python_ctf_event_class_get_field_name(
+		struct bt_ctf_event_class *event_class, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_event_class_get_field(event_class, &name, &type,
+		index);
+	if (ret) {
+		name = NULL;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(type);
+end:
+	return name;
+}
+
+struct bt_ctf_field_type *_bt_python_ctf_event_class_get_field_type(
+		struct bt_ctf_event_class *event_class, size_t index)
+{
+	int ret;
+	const char *name;
+	struct bt_ctf_field_type *type;
+
+	ret = bt_ctf_event_class_get_field(event_class, &name, &type,
+		index);
+	return !ret ? type : NULL;
+}
+
