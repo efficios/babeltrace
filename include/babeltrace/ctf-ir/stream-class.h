@@ -51,6 +51,16 @@ struct bt_ctf_clock;
 extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 
 /*
+ * bt_ctf_stream_class_get_name: Get a stream class' name.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream class' name, NULL on error.
+ */
+extern const char *bt_ctf_stream_class_get_name(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
  * bt_ctf_stream_class_get_clock: get the clock associated with a stream class.
  *
  * @param stream_class Stream class.
@@ -117,6 +127,40 @@ extern int bt_ctf_stream_class_set_id(
 extern int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class);
+
+/*
+ * bt_ctf_stream_class_get_event_class_count: Get a stream class' event class
+ * count.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream class' event count, a negative value on error.
+ */
+extern int64_t bt_ctf_stream_class_get_event_class_count(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_get_event_class: Get stream class event class by index.
+ *
+ * @param stream_class Stream class.
+ * @param index Index of field.
+ *
+ * Returns event class, NULL on error.
+ */
+extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
+		struct bt_ctf_stream_class *stream_class, size_t index);
+
+/*
+ * bt_ctf_stream_class_get_event_class_by_name: Get stream class event class by
+ * name.
+ *
+ * @param stream_class Stream class.
+ * @param name Event name.
+ *
+ * Returns event class, NULL on error.
+ */
+extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
+		struct bt_ctf_stream_class *stream_class, const char *name);
 
 /*
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and

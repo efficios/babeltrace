@@ -77,6 +77,20 @@ error:
 	return stream_class;
 }
 
+const char *bt_ctf_stream_class_get_name(
+		struct bt_ctf_stream_class *stream_class)
+{
+	const char *name = NULL;
+
+	if (!stream_class) {
+		goto end;
+	}
+
+	name = stream_class->name->str;
+end:
+	return name;
+}
+
 struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -181,6 +195,66 @@ int bt_ctf_stream_class_add_event_class(
 	g_ptr_array_add(stream_class->event_classes, event_class);
 end:
 	return ret;
+}
+
+int64_t bt_ctf_stream_class_get_event_class_count(
+		struct bt_ctf_stream_class *stream_class)
+{
+	int64_t ret;
+
+	if (!stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = (int64_t) stream_class->event_classes->len;
+end:
+	return ret;
+}
+
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
+		struct bt_ctf_stream_class *stream_class, size_t index)
+{
+	struct bt_ctf_event_class *event_class = NULL;
+
+	if (!stream_class || index >= stream_class->event_classes->len) {
+		goto end;
+	}
+
+	event_class = g_ptr_array_index(stream_class->event_classes, index);
+	bt_ctf_event_class_get(event_class);
+end:
+	return event_class;
+}
+
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
+		struct bt_ctf_stream_class *stream_class, const char *name)
+{
+	size_t i;
+	GQuark name_quark;
+	struct bt_ctf_event_class *event_class = NULL;
+
+	if (!stream_class || !name) {
+		goto end;
+	}
+
+	name_quark = g_quark_try_string(name);
+	if (!name_quark) {
+		goto end;
+	}
+
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		struct bt_ctf_event_class *current_event_class =
+			g_ptr_array_index(stream_class->event_classes, i);
+
+		if (name_quark == current_event_class->name) {
+			event_class = current_event_class;
+			bt_ctf_event_class_get(event_class);
+			goto end;
+		}
+	}
+end:
+	return event_class;
 }
 
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
