@@ -93,7 +93,10 @@ struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field);
 struct bt_declaration *_bt_python_get_array_element_declaration(
 		struct bt_declaration *field);
+struct bt_declaration *_bt_python_get_sequence_element_declaration(
+		struct bt_declaration *field);
 const char *_bt_python_get_array_string(struct bt_definition *field);
+const char *_bt_python_get_sequence_string(struct bt_definition *field);
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 
@@ -952,6 +955,14 @@ class SequenceFieldDeclaration(FieldDeclaration):
 	def __init__(self):
 		raise NotImplementedError("SequenceFieldDeclaration cannot be instantiated")
 
+	@property
+	def element_declaration(self):
+		"""
+		Return element declaration.
+		"""
+		field_decl_ptr = _bt_python_get_sequence_element_declaration(self._fd)
+		return _create_field_declaration(field_decl_ptr, "", self.scope)
+
 class FloatFieldDeclaration(FieldDeclaration):
 	"""Do not instantiate."""
 	def __init__(self):
@@ -1179,11 +1190,17 @@ class _Definition(object):
 		elif id == CTFTypeId.ENUM:
 			value = self._get_enum_str()
 		elif id == CTFTypeId.SEQUENCE:
-			seq_len = self._get_sequence_len()
-			value = []
-			for i in range(seq_len):
-				evDef = self._get_sequence_element_at(i)
-				value.append(evDef.value)
+			element_decl = self.declaration.element_declaration
+			if ((element_decl.type == CTFTypeId.INTEGER
+				and element_decl.length == 8)
+				and (element_decl.encoding == CTFStringEncoding.ASCII or element_decl.encoding == CTFStringEncoding.UTF8)):
+				value = _bt_python_get_sequence_string(self._d)
+			else:
+				seq_len = self._get_sequence_len()
+				value = []
+				for i in range(seq_len):
+					evDef = self._get_sequence_element_at(i)
+					value.append(evDef.value)
 		elif id == CTFTypeId.FLOAT:
 			value = self._get_float()
 		elif id == CTFTypeId.VARIANT:
