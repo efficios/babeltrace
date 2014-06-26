@@ -286,6 +286,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	int64_t ret_range_start_int64_t, ret_range_end_int64_t;
 	uint64_t ret_range_start_uint64_t, ret_range_end_uint64_t;
 	struct bt_ctf_clock *ret_clock;
+	struct bt_ctf_event_class *ret_event_class;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -430,6 +431,30 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"float_field");
 	bt_ctf_stream_class_add_event_class(stream_class,
 		simple_event_class);
+
+	ok(bt_ctf_stream_class_get_event_class_count(NULL) < 0,
+		"bt_ctf_stream_class_get_event_class_count handles NULL correctly");
+	ok(bt_ctf_stream_class_get_event_class_count(stream_class) == 1,
+		"bt_ctf_stream_class_get_event_class_count returns a correct number of event classes");
+	ok(bt_ctf_stream_class_get_event_class(NULL, 0) == NULL,
+		"bt_ctf_stream_class_get_event_class handles NULL correctly");
+	ok(bt_ctf_stream_class_get_event_class(stream_class, 8724) == NULL,
+		"bt_ctf_stream_class_get_event_class handles invalid indexes correctly");
+	ret_event_class = bt_ctf_stream_class_get_event_class(stream_class, 0);
+	ok(ret_event_class == simple_event_class,
+		"bt_ctf_stream_class_get_event_class returns the correct event class");
+	bt_ctf_event_class_put(ret_event_class);
+
+	ok(bt_ctf_stream_class_get_event_class_by_name(NULL, "some event name") == NULL,
+		"bt_ctf_stream_class_get_event_class_by_name handles a NULL stream class correctly");
+	ok(bt_ctf_stream_class_get_event_class_by_name(stream_class, NULL) == NULL,
+		"bt_ctf_stream_class_get_event_class_by_name handles a NULL event class name correctly");
+	ok(bt_ctf_stream_class_get_event_class_by_name(stream_class, "some event name") == NULL,
+		"bt_ctf_stream_class_get_event_class_by_name handles non-existing event class names correctly");
+        ret_event_class = bt_ctf_stream_class_get_event_class_by_name(stream_class, "Simple Event");
+	ok(ret_event_class == simple_event_class,
+		"bt_ctf_stream_class_get_event_class_by_name returns a correct event class");
+	bt_ctf_event_class_put(ret_event_class);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
 	ok(simple_event,
@@ -1313,6 +1338,7 @@ int main(int argc, char **argv)
 	struct bt_ctf_clock *clock, *ret_clock;
 	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_stream *stream1;
+	const char *ret_string;
 
 	if (argc < 3) {
 		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
@@ -1470,6 +1496,13 @@ int main(int argc, char **argv)
 
 	/* Define a stream class */
 	stream_class = bt_ctf_stream_class_create("test_stream");
+
+	ok(bt_ctf_stream_class_get_name(NULL) == NULL,
+		"bt_ctf_stream_class_get_name handles NULL correctly");
+	ret_string = bt_ctf_stream_class_get_name(stream_class);
+	ok(!strcmp(ret_string, "test_stream"),
+                "bt_ctf_stream_class_get_name returns a correct stream class name");
+
 	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,
 		"bt_ctf_stream_class_get_clock returns NULL when a clock was not set");
 	ok(bt_ctf_stream_class_get_clock(NULL) == NULL,
