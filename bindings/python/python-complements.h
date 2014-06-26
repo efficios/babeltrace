@@ -63,7 +63,10 @@ struct definition_sequence *_bt_python_get_sequence_from_def(
 		struct bt_definition *field);
 struct bt_declaration *_bt_python_get_array_element_declaration(
 		struct bt_declaration *field);
+struct bt_declaration *_bt_python_get_sequence_element_declaration(
+		struct bt_declaration *field);
 const char *_bt_python_get_array_string(struct bt_definition *field);
+const char *_bt_python_get_sequence_string(struct bt_definition *field);
 
 /* ctf writer */
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
