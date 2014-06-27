@@ -1,6 +1,3 @@
-#ifndef BABELTRACE_CTF_WRITER_STREAM_H
-#define BABELTRACE_CTF_WRITER_STREAM_H
-
 /*
  * BabelTrace - CTF Writer: Stream
  *
@@ -30,75 +27,4 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-writer/stream-class.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct bt_ctf_event;
-struct bt_ctf_stream;
-
-/*
- * bt_ctf_stream_append_discarded_events: increment discarded events count.
- *
- * Increase the current packet's discarded event count.
- *
- * @param stream Stream instance.
- * @param event_count Number of discarded events to add to the stream's current
- *	packet.
- */
-extern void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
-		uint64_t event_count);
-
-/*
- * bt_ctf_stream_append_event: append an event to the stream.
- *
- * Append "event" to the stream's current packet. The stream's associated clock
- * will be sampled during this call. The event shall not be modified after
- * being appended to a stream. The stream will share the event's ownership by
- * incrementing its reference count. The current packet is not flushed to disk
- * until the next call to bt_ctf_stream_flush.
- *
- * @param stream Stream instance.
- * @param event Event instance to append to the stream's current packet.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
-		struct bt_ctf_event *event);
-
-/*
- * bt_ctf_stream_flush: flush a stream.
- *
- * The stream's current packet's events will be flushed to disk. Events
- * subsequently appended to the stream will be added to a new packet.
- *
- * @param stream Stream instance.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
-
-/*
- * bt_ctf_stream_get and bt_ctf_stream_put: increment and decrement the
- * stream's reference count.
- *
- * These functions ensure that the stream won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy a stream.
- *
- * When the stream's reference count is decremented to 0 by a
- * bt_ctf_stream_put, the stream is freed.
- *
- * @param stream Stream instance.
- */
-extern void bt_ctf_stream_get(struct bt_ctf_stream *stream);
-extern void bt_ctf_stream_put(struct bt_ctf_stream *stream);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_CTF_WRITER_STREAM_H */
+#include <babeltrace/ctf-ir/stream.h>

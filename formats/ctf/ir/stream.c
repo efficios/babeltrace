@@ -26,14 +26,14 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-ir/clock.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-fields-internal.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-writer/stream-internal.h>
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler.h>

@@ -4,7 +4,6 @@ noinst_LTLIBRARIES = libctf-writer.la
 
 libctf_writer_la_SOURCES = \
 	writer.c \
-	stream.c \
 	functor.c
 
 libctf_writer_la_LIBADD = \

@@ -1,5 +1,5 @@
 /*
- * stream.c
+ * stream-class.c
  *
  * Babeltrace CTF Writer
  *
