@@ -1261,6 +1261,7 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_event *event;
 	struct bt_ctf_field *ret_field;
 	struct bt_ctf_field_type *ret_field_type;
+	uint64_t ret_uint64;
 
 	ret |= bt_ctf_event_class_add_field(event_class, integer_type,
 		"field_1");
@@ -1309,10 +1310,26 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 			break;
 		}
 	}
+	
+	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) == -1,
+		"bt_ctf_stream_get_discarded_events_count handles a NULL stream correctly");
+	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) == -1,
+		"bt_ctf_stream_get_discarded_events_count handles a NULL return pointer correctly");
+	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
+	ok(ret == 0 && ret_uint64 == 0,
+		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events when none were discarded");
+	bt_ctf_stream_append_discarded_events(stream, 1000);
+	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
+	ok(ret == 0 && ret_uint64 == 1000,
+		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events when some were discarded");
+
 end:
 	ok(ret == 0, "Append 100 000 events to a stream");
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush a stream that forces a packet resize");
+	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
+	ok(ret == 0 && ret_uint64 == 1000,
+		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events after a flush");
 	bt_ctf_field_type_put(integer_type);
 	bt_ctf_field_type_put(string_type);
 	bt_ctf_event_class_put(event_class);
