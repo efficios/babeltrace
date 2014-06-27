@@ -1502,8 +1502,15 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 %rename("_bt_ctf_stream_class_create") bt_ctf_stream_class_create(const char *name);
+%rename("_bt_ctf_stream_class_get_name") bt_ctf_stream_class_get_name(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_get_clock") bt_ctf_stream_class_get_clock(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_set_clock") bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class, struct bt_ctf_clock *clock);
+%rename("_bt_ctf_stream_class_get_id") bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_set_id") bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class, uint32_t id);
 %rename("_bt_ctf_stream_class_add_event_class") bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_stream_class_get_event_class_count") bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_get_event_class") bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
+%rename("_bt_ctf_stream_class_get_event_class_by_name") bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 %rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
@@ -1513,8 +1520,15 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_put") bt_ctf_stream_put(struct bt_ctf_stream *stream);
 
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
+const char *bt_ctf_stream_class_get_name(struct bt_ctf_stream_class *stream_class);
+struct bt_ctf_clock *bt_ctf_stream_class_get_clock(struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class, struct bt_ctf_clock *clock);
+int64_t bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class);
+int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class, uint32_t id);
 int bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
+int64_t bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
@@ -2506,7 +2520,7 @@ class CTFWriter:
 		def id(self):
 			id = _bt_ctf_event_class_get_id(self._ec)
 			if id < 0:
-				raise TypeError("Could not get EventClass name")
+				raise TypeError("Could not get EventClass id")
 			return id
 
 		"""
@@ -2632,11 +2646,26 @@ class CTFWriter:
 			_bt_ctf_stream_class_put(self._sc)
 
 		"""
+		Get a stream class' name.
+		"""
+		@property
+		def name(self):
+			name = _bt_ctf_stream_class_get_name(self._sc)
+			if name is None:
+				raise TypeError("Could not get StreamClass name")
+			return name
+
+		"""
 		Get a stream class' clock.
 		"""
 		@property
 		def clock(self):
-			raise NotImplementedError("Getter not implemented.")
+			clock_instance = _bt_ctf_stream_class_get_clock(self._sc)
+			if clock_instance is None:
+				return None
+			clock = CTFWriter.Clock.__new__(CTFWriter.Clock)
+			clock._c = clock_instance
+			return clock
 
 		"""
 		Assign a clock to a stream class.
@@ -2649,6 +2678,43 @@ class CTFWriter:
 			ret = _bt_ctf_stream_class_set_clock(self._sc, clock._c)
 			if ret < 0:
 				raise ValueError("Could not set stream class clock.")
+
+		"""
+		Get a stream class' id.
+		"""
+		@property
+		def id(self):
+			ret = _bt_ctf_stream_class_get_id(self._sc)
+			if ret < 0:
+				raise TypeError("Could not get StreamClass id")
+			return ret
+
+		"""
+		Assign an id to a stream class.
+		"""
+		@id.setter
+		def id(self, id):
+			ret = _bt_ctf_stream_class_set_id(self._sc, id)
+			if ret < 0:
+				raise TypeError("Could not set stream class id.")
+
+		"""
+		Generator returning the stream class' event classes.
+		"""
+		@property
+		def event_classes(self):
+			count = _bt_ctf_stream_class_get_event_class_count(self._sc)
+			if count < 0:
+				raise TypeError("Could not get StreamClass' event class count")
+
+			for i in range(count):
+				event_class_native = _bt_ctf_stream_class_get_event_class(self._sc, i)
+				if event_class_native is None:
+					raise TypeError("Could not get StreamClass' event class at index {}".format(i))
+
+				event_class = CTFWriter.EventClass.__new__(CTFWriter.EventClass)
+				event_class._ec = event_class_native
+				yield event_class
 
 		"""
 		Add an event class to a stream class. New events can be added even after a
