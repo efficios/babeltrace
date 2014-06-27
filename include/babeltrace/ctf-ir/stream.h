@@ -40,6 +40,17 @@ struct bt_ctf_event;
 struct bt_ctf_stream;
 
 /*
+ * bt_ctf_stream_get_discarded_events_count: get the number of discarded
+ * events associated with this stream.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns the number of discarded events, a negative value on error.
+ */
+extern int bt_ctf_stream_get_discarded_events_count(
+		struct bt_ctf_stream *stream, uint64_t *count);
+
+/*
  * bt_ctf_stream_append_discarded_events: increment discarded events count.
  *
  * Increase the current packet's discarded event count.

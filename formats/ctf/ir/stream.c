@@ -103,6 +103,21 @@ end:
 	return ret;
 }
 
+int bt_ctf_stream_get_discarded_events_count(
+		struct bt_ctf_stream *stream, uint64_t *count)
+{
+	int64_t ret = 0;
+
+	if (!stream || !count) {
+		ret = -1;
+		goto end;
+	}
+
+	*count = stream->events_discarded;
+end:
+	return ret;
+}
+
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		uint64_t event_count)
 {
