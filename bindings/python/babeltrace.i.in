@@ -1513,6 +1513,7 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_class_get_event_class_by_name") bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 %rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_get_discarded_events_count") bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *count);
 %rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
 %rename("_bt_ctf_stream_append_event") bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_flush") bt_ctf_stream_flush(struct bt_ctf_stream *stream);
@@ -1531,6 +1532,7 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_str
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+int bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *OUTPUT);
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
 int bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
@@ -2743,6 +2745,16 @@ class CTFWriter:
 
 		def __del__(self):
 			_bt_ctf_stream_put(self._s)
+
+		"""
+		Get a stream's discarded event count.
+		"""
+		@property
+		def discarded_events(self):
+			ret, count = _bt_ctf_stream_get_discarded_events_count(self._s)
+			if ret < 0:
+				raise ValueError("Could not get the stream's discarded events count")
+			return count
 
 		"""
 		Increase the current packet's discarded event count.
