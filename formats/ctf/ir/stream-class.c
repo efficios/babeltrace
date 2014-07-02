@@ -351,10 +351,6 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class =
 			stream_class->event_classes->pdata[i];
 
-		if (ret) {
-			goto end;
-		}
-
 		ret = bt_ctf_event_class_serialize(event_class, context);
 		if (ret) {
 			goto end;
