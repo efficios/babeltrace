@@ -2245,13 +2245,17 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 
 static
 int prepare_mmap_stream_definition(struct ctf_trace *td,
-		struct ctf_file_stream *file_stream)
+		struct ctf_file_stream *file_stream,
+		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+			int whence))
 {
 	struct ctf_stream_declaration *stream;
-	uint64_t stream_id = 0;
+	uint64_t stream_id;
 	int ret;
 
-	file_stream->parent.stream_id = stream_id;
+	/* Ask for the first packet to get the stream_id. */
+	packet_seek(&file_stream->pos.parent, 0, SEEK_SET);
+	stream_id = file_stream->parent.stream_id;
 	if (stream_id >= td->streams->len) {
 		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared "
 				"in metadata.\n", stream_id);
@@ -2281,6 +2285,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	struct ctf_file_stream *file_stream;
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
+	file_stream->parent.stream_id = -1ULL;
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
 	ctf_init_mmap_pos(&file_stream->pos, mmap_info);
 
@@ -2291,7 +2296,7 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		goto error_def;
 	}
 
-	ret = prepare_mmap_stream_definition(td, file_stream);
+	ret = prepare_mmap_stream_definition(td, file_stream, packet_seek);
 	if (ret)
 		goto error_index;
 

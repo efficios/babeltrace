@@ -25,6 +25,7 @@
  */
 
 #include <stdint.h>
+#include "lttng-viewer-abi.h"
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
 
@@ -48,12 +49,14 @@ struct lttng_live_ctx {
 struct lttng_live_viewer_stream {
 	uint64_t id;
 	uint64_t mmap_size;
+	uint64_t ctf_stream_id;
 	FILE *metadata_fp_write;
 	ssize_t metadata_len;
 	int metadata_flag;
-	int first_read;
+	int data_pending;
 	struct lttng_live_session *session;
 	struct lttng_live_ctf_trace *ctf_trace;
+	struct lttng_viewer_index current_index;
 	char path[PATH_MAX];
 };
 
