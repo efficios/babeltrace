@@ -531,18 +531,22 @@ error:
 	return -1;
 }
 
+/*
+ * Ask the relay for new streams.
+ *
+ * Returns the number of new streams received or a negative value on error.
+ */
 static
 int ask_new_streams(struct lttng_live_ctx *ctx)
 {
-	int i, ret = 0;
+	int i, ret = 0, nb_streams = 0;
 	uint64_t id;
 
 restart:
 	for (i = 0; i < ctx->session_ids->len; i++) {
 		id = g_array_index(ctx->session_ids, uint64_t, i);
 		ret = lttng_live_get_new_streams(ctx, id);
-		printf_verbose("Asking for new streams returns %d\n",
-				ret);
+		printf_verbose("Asking for new streams returns %d\n", ret);
 		if (ret < 0) {
 			if (lttng_live_should_quit()) {
 				goto end;
@@ -565,8 +569,11 @@ restart:
 				ret = -1;
 				goto end;
 			}
+		} else {
+			nb_streams += ret;
 		}
 	}
+	ret = nb_streams;
 
 end:
 	return ret;
@@ -691,8 +698,9 @@ retry:
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto error;
-			g_hash_table_foreach(ctx->session->ctf_traces,
-					add_traces, ctx->bt_ctx);
+			else if (ret > 0)
+				g_hash_table_foreach(ctx->session->ctf_traces,
+						add_traces, ctx->bt_ctx);
 		}
 		if (rp.flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
@@ -874,7 +882,7 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 {
 	int ret = 0;
 	struct lttng_live_viewer_stream *metadata_stream;
-	size_t size, len_read = 0;;
+	size_t size, len_read = 0;
 
 	metadata_stream = viewer_stream->ctf_trace->metadata_stream;
 	if (!metadata_stream) {
@@ -988,11 +996,13 @@ retry:
 				goto error;
 		}
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
+			printf_verbose("get_next_index: need new streams\n");
 			ret = ask_new_streams(ctx);
 			if (ret < 0)
 				goto error;
-			g_hash_table_foreach(ctx->session->ctf_traces,
-					add_traces, ctx->bt_ctx);
+			else if (ret > 0)
+				g_hash_table_foreach(ctx->session->ctf_traces,
+						add_traces, ctx->bt_ctx);
 		}
 		break;
 	case LTTNG_VIEWER_INDEX_RETRY:
@@ -1315,13 +1325,17 @@ end:
 	return;
 }
 
+/*
+ * Request new streams for a session.
+ * Returns the number of streams received or a negative value on error.
+ */
 int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 {
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_new_streams_request rq;
 	struct lttng_viewer_new_streams_response rp;
 	struct lttng_viewer_stream stream;
-	int ret, i;
+	int ret, i, nb_streams = 0;
 	ssize_t ret_len;
 	uint32_t stream_count;
 
@@ -1426,9 +1440,10 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		if (ret < 0) {
 			goto error;
 		}
+		nb_streams++;
 
 	}
-	ret = 0;
+	ret = nb_streams;
 end:
 	return ret;
 
