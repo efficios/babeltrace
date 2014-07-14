@@ -37,6 +37,9 @@ struct lttng_live_ctx {
 	char relay_hostname[NAME_MAX];
 	int control_sock;
 	int port;
+	/* Protocol version to use for this connection. */
+	uint32_t major;
+	uint32_t minor;
 	struct lttng_live_session *session;
 	struct bt_context *bt_ctx;
 	GArray *session_ids;
