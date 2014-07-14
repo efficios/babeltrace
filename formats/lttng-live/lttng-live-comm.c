@@ -201,6 +201,18 @@ int lttng_live_establish_connection(struct lttng_live_ctx *ctx)
 			be64toh(connect.viewer_session_id));
 	printf_verbose("Relayd version : %u.%u\n", be32toh(connect.major),
 			be32toh(connect.minor));
+
+	if (LTTNG_LIVE_MAJOR != be32toh(connect.major)) {
+		fprintf(stderr, "[error] Incompatible lttng-relayd protocol\n");
+		goto error;
+	}
+	/* Use the smallest protocol version implemented. */
+	if (LTTNG_LIVE_MINOR > be32toh(connect.minor)) {
+		ctx->minor =  be32toh(connect.minor);
+	} else {
+		ctx->minor =  LTTNG_LIVE_MINOR;
+	}
+	ctx->major = LTTNG_LIVE_MAJOR;
 	ret = 0;
 end:
 	return ret;
