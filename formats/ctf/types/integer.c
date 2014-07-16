@@ -62,7 +62,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			uint8_t v;
 
-			v = *(const uint8_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._unsigned = v;
 			break;
 		}
@@ -70,7 +70,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			uint16_t v;
 
-			v = *(const uint16_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._unsigned =
 				rbo ? GUINT16_SWAP_LE_BE(v) : v;
 			break;
@@ -79,7 +79,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			uint32_t v;
 
-			v = *(const uint32_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._unsigned =
 				rbo ? GUINT32_SWAP_LE_BE(v) : v;
 			break;
@@ -88,7 +88,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			uint64_t v;
 
-			v = *(const uint64_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._unsigned =
 				rbo ? GUINT64_SWAP_LE_BE(v) : v;
 			break;
@@ -102,7 +102,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			int8_t v;
 
-			v = *(const int8_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._signed = v;
 			break;
 		}
@@ -110,7 +110,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			int16_t v;
 
-			v = *(const int16_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._signed =
 				rbo ? (int16_t) GUINT16_SWAP_LE_BE(v) : v;
 			break;
@@ -119,7 +119,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			int32_t v;
 
-			v = *(const int32_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._signed =
 				rbo ? (int32_t) GUINT32_SWAP_LE_BE(v) : v;
 			break;
@@ -128,7 +128,7 @@ int _aligned_integer_read(struct bt_stream_pos *ppos,
 		{
 			int64_t v;
 
-			v = *(const int64_t *) ctf_get_pos_addr(pos);
+			memcpy(&v, ctf_get_pos_addr(pos), sizeof(v));
 			integer_definition->value._signed =
 				rbo ? (int64_t) GUINT64_SWAP_LE_BE(v) : v;
 			break;
@@ -163,48 +163,80 @@ int _aligned_integer_write(struct bt_stream_pos *ppos,
 	if (pos->dummy)
 		goto end;
 	if (!integer_declaration->signedness) {
-		uint64_t v = integer_definition->value._unsigned;
-
 		switch (integer_declaration->len) {
-		case 8:	*(uint8_t *) ctf_get_pos_addr(pos) = (uint8_t) v;
+		case 8:
+		{
+			uint8_t v = integer_definition->value._unsigned;
+
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 16:
-			*(uint16_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT16_SWAP_LE_BE((uint16_t) v) :
-						 (uint16_t) v;
+		{
+			uint16_t v = integer_definition->value._unsigned;
+
+			if (rbo)
+				v = GUINT16_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 32:
-			*(uint32_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT32_SWAP_LE_BE((uint32_t) v) :
-						 (uint32_t) v;
+		{
+			uint32_t v = integer_definition->value._unsigned;
+
+			if (rbo)
+				v = GUINT32_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 64:
-			*(uint64_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT64_SWAP_LE_BE(v) : v;
+		{
+			uint64_t v = integer_definition->value._unsigned;
+
+			if (rbo)
+				v = GUINT64_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		default:
 			assert(0);
 		}
 	} else {
-		int64_t v = integer_definition->value._signed;
-
 		switch (integer_declaration->len) {
-		case 8:	*(int8_t *) ctf_get_pos_addr(pos) = (int8_t) v;
+		case 8:
+		{
+			uint8_t v = integer_definition->value._signed;
+
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 16:
-			*(int16_t *) ctf_get_pos_addr(pos) = rbo ?
-						 (int16_t) GUINT16_SWAP_LE_BE((int16_t) v) :
-						 (int16_t) v;
+		{
+			int16_t v = integer_definition->value._signed;
+
+			if (rbo)
+				v = GUINT16_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 32:
-			*(int32_t *) ctf_get_pos_addr(pos) = rbo ?
-						 (int32_t) GUINT32_SWAP_LE_BE((int32_t) v) :
-						 (int32_t) v;
+		{
+			int32_t v = integer_definition->value._signed;
+
+			if (rbo)
+				v = GUINT32_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		case 64:
-			*(int64_t *) ctf_get_pos_addr(pos) = rbo ?
-						 GUINT64_SWAP_LE_BE(v) : v;
+		{
+			int64_t v = integer_definition->value._signed;
+
+			if (rbo)
+				v = GUINT64_SWAP_LE_BE(v);
+			memcpy(ctf_get_pos_addr(pos), &v, sizeof(v));
 			break;
+		}
 		default:
 			assert(0);
 		}
@@ -237,23 +269,23 @@ int ctf_integer_read(struct bt_stream_pos *ppos, struct bt_definition *definitio
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
 			bt_bitfield_read_le(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._unsigned);
 		else
 			bt_bitfield_read_be(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._unsigned);
 	} else {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
 			bt_bitfield_read_le(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._signed);
 		else
 			bt_bitfield_read_be(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				&integer_definition->value._signed);
 	}
@@ -286,23 +318,23 @@ int ctf_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definiti
 	if (!integer_declaration->signedness) {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
 			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._unsigned);
 		else
 			bt_bitfield_write_be(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._unsigned);
 	} else {
 		if (integer_declaration->byte_order == LITTLE_ENDIAN)
 			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._signed);
 		else
 			bt_bitfield_write_be(mmap_align_addr(pos->base_mma) +
-					pos->mmap_base_offset, unsigned long,
+					pos->mmap_base_offset, unsigned char,
 				pos->offset, integer_declaration->len,
 				integer_definition->value._signed);
 	}
