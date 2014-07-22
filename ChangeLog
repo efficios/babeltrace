@@ -1,3 +1,18 @@
+2014-07-22 Babeltrace 1.2.2
+	* Fix: Support out of tree builds in babeltrace
+	* Fix: mmap trace read the stream_id from the first packet
+	* Fix: check the lttng-relayd protocol version
+	* Fix: don't update the trace collection if no new streams were received
+	* Fix (Python bindings): Return a string if a sequence's element are chars
+	* Fix: don't use a return code in _bt_ctf_stream_append_discarded_events
+	* Fix: Report the sequence's length field's value as length
+	* Fix: Variable name typo in SequenceField and Event classes
+	* Fix python: remove weird char at the end of line
+	* Fix: add missing files to gitignore
+	* Fix: ctf-text: add missing double-quotes around enum tag
+	* Fix: Add missing lttng_live_should_quit checks
+	* Fix: Report errors occuring in lttng_live_read
+
 2014-03-08 Babeltrace 1.2.1
 	* Fix: Accept an input port in the live URL when no session is provided
 
