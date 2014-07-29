@@ -550,6 +550,7 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 		validate_identifier(field_name) ||
 		(type->declaration->id != CTF_TYPE_STRUCT) ||
 		bt_ctf_field_type_validate(field_type)) {
+		ret = -1;
 		goto end;
 	}
 

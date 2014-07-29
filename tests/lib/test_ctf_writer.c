@@ -621,7 +621,7 @@ void type_field_tests()
 	ok(!enumeration_array_type,
 		"Check enumeration types are validated when creating an array");
 	ok(bt_ctf_field_type_structure_add_field(composite_structure_type,
-		enumeration_type, "enumeration") == 0,
+		enumeration_type, "enumeration"),
 		"Check enumeration types are validated when adding them as structure members");
 	enumeration = bt_ctf_field_create(enumeration_type);
 	ok(!enumeration,
