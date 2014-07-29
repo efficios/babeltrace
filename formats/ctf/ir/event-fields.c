@@ -851,10 +851,11 @@ int bt_ctf_field_string_set_value(struct bt_ctf_field *field,
 
 	string = container_of(field, struct bt_ctf_field_string, parent);
 	if (string->payload) {
-		g_string_free(string->payload, TRUE);
+		g_string_assign(string->payload, value);
+	} else {
+		string->payload = g_string_new(value);
 	}
 
-	string->payload = g_string_new(value);
 	string->parent.payload_set = 1;
 end:
 	return ret;
