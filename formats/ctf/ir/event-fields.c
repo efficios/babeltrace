@@ -89,6 +89,21 @@ static
 int bt_ctf_field_sequence_validate(struct bt_ctf_field *field);
 
 static
+int bt_ctf_field_generic_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_structure_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_variant_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_enumeration_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_array_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_sequence_reset(struct bt_ctf_field *field);
+static
+int bt_ctf_field_string_reset(struct bt_ctf_field *field);
+
+static
 int bt_ctf_field_integer_serialize(struct bt_ctf_field *,
 		struct ctf_stream_pos *);
 static
@@ -153,6 +168,18 @@ int (*field_validate_funcs[])(struct bt_ctf_field *) = {
 	[CTF_TYPE_ARRAY] = bt_ctf_field_array_validate,
 	[CTF_TYPE_SEQUENCE] = bt_ctf_field_sequence_validate,
 	[CTF_TYPE_STRING] = bt_ctf_field_generic_validate,
+};
+
+static
+int (*field_reset_funcs[])(struct bt_ctf_field *) = {
+	[CTF_TYPE_INTEGER] = bt_ctf_field_generic_reset,
+	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_reset,
+	[CTF_TYPE_FLOAT] = bt_ctf_field_generic_reset,
+	[CTF_TYPE_STRUCT] = bt_ctf_field_structure_reset,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_variant_reset,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_array_reset,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_sequence_reset,
+	[CTF_TYPE_STRING] = bt_ctf_field_string_reset,
 };
 
 static
@@ -884,6 +911,28 @@ end:
 }
 
 BT_HIDDEN
+int bt_ctf_field_reset(struct bt_ctf_field *field)
+{
+	int ret = 0;
+	enum ctf_type_id type_id;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	type_id = bt_ctf_field_type_get_type_id(field->type);
+	if (type_id <= CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = field_reset_funcs[type_id](field);
+end:
+	return ret;
+}
+
+BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct ctf_stream_pos *pos)
 {
@@ -1292,6 +1341,185 @@ int bt_ctf_field_sequence_validate(struct bt_ctf_field *field)
 		if (ret) {
 			goto end;
 		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_generic_reset(struct bt_ctf_field *field)
+{
+	int ret = 0;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	field->payload_set = 0;
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_enumeration_reset(struct bt_ctf_field *field)
+{
+	int ret = 0;
+	struct bt_ctf_field_enumeration *enumeration;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	enumeration = container_of(field, struct bt_ctf_field_enumeration,
+		parent);
+	if (!enumeration->payload) {
+		goto end;
+	}
+
+	ret = bt_ctf_field_reset(enumeration->payload);
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_structure_reset(struct bt_ctf_field *field)
+{
+	size_t i;
+	int ret = 0;
+	struct bt_ctf_field_structure *structure;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	structure = container_of(field, struct bt_ctf_field_structure, parent);
+	for (i = 0; i < structure->fields->len; i++) {
+		struct bt_ctf_field *member = structure->fields->pdata[i];
+
+		if (!member) {
+			/*
+			 * Structure members are lazily initialized; skip if
+			 * this member has not been allocated yet.
+			 */
+			continue;
+		}
+
+		ret = bt_ctf_field_reset(member);
+		if (ret) {
+			goto end;
+		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_variant_reset(struct bt_ctf_field *field)
+{
+	int ret = 0;
+	struct bt_ctf_field_variant *variant;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	variant = container_of(field, struct bt_ctf_field_variant, parent);
+	if (variant->payload) {
+		ret = bt_ctf_field_reset(variant->payload);
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_array_reset(struct bt_ctf_field *field)
+{
+	size_t i;
+	int ret = 0;
+	struct bt_ctf_field_array *array;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	array = container_of(field, struct bt_ctf_field_array, parent);
+	for (i = 0; i < array->elements->len; i++) {
+		struct bt_ctf_field *member = array->elements->pdata[i];
+
+		if (!member) {
+			/*
+			 * Array elements are lazily initialized; skip if
+			 * this member has not been allocated yet.
+			 */
+			continue;
+		}
+
+		ret = bt_ctf_field_reset(member);
+		if (ret) {
+			goto end;
+		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_sequence_reset(struct bt_ctf_field *field)
+{
+	size_t i;
+	int ret = 0;
+	struct bt_ctf_field_sequence *sequence;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
+	for (i = 0; i < sequence->elements->len; i++) {
+		struct bt_ctf_field *member = sequence->elements->pdata[i];
+
+		if (!member) {
+			/*
+			 * Sequence elements are lazily initialized; skip if
+			 * this member has not been allocated yet.
+			 */
+			continue;
+		}
+
+		ret = bt_ctf_field_reset(member);
+		if (ret) {
+			goto end;
+		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_string_reset(struct bt_ctf_field *field)
+{
+	int ret = 0;
+	struct bt_ctf_field_string *string;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_generic_reset(field);
+	if (ret) {
+		goto end;
+	}
+
+	string = container_of(field, struct bt_ctf_field_string, parent);
+	if (string->payload) {
+		g_string_truncate(string->payload, 0);
 	}
 end:
 	return ret;

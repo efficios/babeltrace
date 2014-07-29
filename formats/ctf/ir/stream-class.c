@@ -49,6 +49,7 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class,
 
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 {
+	int ret;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
 	if (!name || !strlen(name)) {
@@ -64,6 +65,11 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	stream_class->event_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)bt_ctf_event_class_put);
 	if (!stream_class->event_classes) {
+		goto error_destroy;
+	}
+
+	ret = init_packet_context(stream_class, BT_CTF_BYTE_ORDER_NATIVE);
+	if (ret) {
 		goto error_destroy;
 	}
 
@@ -257,6 +263,48 @@ end:
 	return event_class;
 }
 
+struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_field_type *ret = NULL;
+
+	if (!stream_class) {
+		goto end;
+	}
+
+	assert(stream_class->packet_context_type);
+	bt_ctf_field_type_get(stream_class->packet_context_type);
+	ret = stream_class->packet_context_type;
+end:
+	return ret;
+}
+
+int bt_ctf_stream_class_set_packet_context_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *packet_context_type)
+{
+	int ret = 0;
+
+	if (!stream_class || !packet_context_type) {
+		ret = -1;
+		goto end;
+	}
+
+	assert(stream_class->packet_context_type);
+	if (bt_ctf_field_type_get_type_id(stream_class->packet_context_type) !=
+		CTF_TYPE_STRUCT) {
+		/* A packet context must be a structure */
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(stream_class->packet_context_type);
+	bt_ctf_field_type_get(packet_context_type);
+	stream_class->packet_context_type = packet_context_type;
+end:
+	return ret;
+}
+
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
 {
 	if (!stream_class) {
@@ -283,6 +331,7 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	}
 
 	stream_class->frozen = 1;
+	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
 	g_ptr_array_foreach(stream_class->event_classes,
 		(GFunc)bt_ctf_event_class_freeze, NULL);
@@ -293,11 +342,6 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 	enum bt_ctf_byte_order byte_order)
 {
 	int ret = 0;
-
-	ret = init_packet_context(stream_class, byte_order);
-	if (ret) {
-		goto end;
-	}
 
 	ret = init_event_header(stream_class, byte_order);
 	if (ret) {
@@ -395,7 +439,6 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 	bt_ctf_field_type_put(stream_class->event_header_type);
 	bt_ctf_field_put(stream_class->event_header);
 	bt_ctf_field_type_put(stream_class->packet_context_type);
-	bt_ctf_field_put(stream_class->packet_context);
 	bt_ctf_field_type_put(stream_class->event_context_type);
 	bt_ctf_field_put(stream_class->event_context);
 	g_free(stream_class);
@@ -511,10 +554,6 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class,
 	}
 
 	stream_class->packet_context_type = packet_context_type;
-	stream_class->packet_context = bt_ctf_field_create(packet_context_type);
-	if (!stream_class->packet_context) {
-		ret = -1;
-	}
 end:
 	if (ret) {
 		bt_ctf_field_type_put(packet_context_type);

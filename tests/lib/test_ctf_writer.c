@@ -287,6 +287,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	uint64_t ret_range_start_uint64_t, ret_range_end_uint64_t;
 	struct bt_ctf_clock *ret_clock;
 	struct bt_ctf_event_class *ret_event_class;
+	struct bt_ctf_field *packet_context;
+	struct bt_ctf_field *packet_context_field;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -517,6 +519,29 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
 
+	ok(bt_ctf_stream_get_packet_context(NULL) == NULL,
+		"bt_ctf_stream_get_packet_context handles NULL correctly");
+	packet_context = bt_ctf_stream_get_packet_context(stream);
+	ok(packet_context,
+		"bt_ctf_stream_get_packet_context returns a packet context");
+
+	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
+		"packet_size");
+	ok(packet_context_field,
+		"Packet context contains the default packet_size field.");
+	bt_ctf_field_put(packet_context_field);
+	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
+		"custom_field");
+	ok(bt_ctf_field_unsigned_integer_set_value(packet_context_field, 8) == 0,
+		"Custom packet context field value successfully set.");
+
+	ok(bt_ctf_stream_set_packet_context(NULL, packet_context_field) < 0,
+		"bt_ctf_stream_set_packet_context handles a NULL stream correctly");
+	ok(bt_ctf_stream_set_packet_context(stream, NULL) < 0,
+		"bt_ctf_stream_set_packet_context handles a NULL packet context correctly");
+	ok(bt_ctf_stream_set_packet_context(stream, packet_context) == 0,
+		"Successfully set a stream's packet context");
+
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush trace stream with one event");
 
@@ -534,6 +559,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(enum_field_unsigned);
 	bt_ctf_field_put(enum_container_field);
 	bt_ctf_field_put(enum_container_field_unsigned);
+	bt_ctf_field_put(packet_context);
+	bt_ctf_field_put(packet_context_field);
 }
 
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
@@ -574,6 +601,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	size_t ret_size_t;
 	struct bt_ctf_stream_class *ret_stream_class;
 	struct bt_ctf_event_class *ret_event_class;
+	struct bt_ctf_field *packet_context, *packet_context_field;
 
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
@@ -921,6 +949,16 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_clock_set_time(clock, ++current_time);
 	ok(bt_ctf_stream_append_event(stream, event) == 0,
 		"Append a complex event to a stream");
+
+	/*
+	 * Populate the custom packet context field with a dummy value
+	 * otherwise flush will fail.
+	 */
+	packet_context = bt_ctf_stream_get_packet_context(stream);
+	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
+		"custom_field");
+	bt_ctf_field_unsigned_integer_set_value(packet_context_field, 1);
+
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush a stream containing a complex event");
 
@@ -934,6 +972,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(enum_container_field);
 	bt_ctf_field_put(variant_field);
 	bt_ctf_field_put(ret_field);
+	bt_ctf_field_put(packet_context_field);
+	bt_ctf_field_put(packet_context);
 	bt_ctf_field_type_put(uint_35_type);
 	bt_ctf_field_type_put(int_16_type);
 	bt_ctf_field_type_put(string_type);
@@ -1262,6 +1302,8 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *ret_field;
 	struct bt_ctf_field_type *ret_field_type;
 	uint64_t ret_uint64;
+	int events_appended = 0;
+	struct bt_ctf_field *packet_context, *packet_context_field;
 
 	ret |= bt_ctf_event_class_add_field(event_class, integer_type,
 		"field_1");
@@ -1310,7 +1352,8 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 			break;
 		}
 	}
-	
+
+	events_appended = 1;
 	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) == -1,
 		"bt_ctf_stream_get_discarded_events_count handles a NULL stream correctly");
 	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) == -1,
@@ -1324,7 +1367,17 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events when some were discarded");
 
 end:
-	ok(ret == 0, "Append 100 000 events to a stream");
+	ok(events_appended, "Append 100 000 events to a stream");
+
+	/*
+	 * Populate the custom packet context field with a dummy value
+	 * otherwise flush will fail.
+	 */
+	packet_context = bt_ctf_stream_get_packet_context(stream);
+	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
+		"custom_field");
+	bt_ctf_field_unsigned_integer_set_value(packet_context_field, 2);
+
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush a stream that forces a packet resize");
 	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
@@ -1332,6 +1385,8 @@ end:
 		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events after a flush");
 	bt_ctf_field_type_put(integer_type);
 	bt_ctf_field_type_put(string_type);
+	bt_ctf_field_put(packet_context);
+	bt_ctf_field_put(packet_context_field);
 	bt_ctf_event_class_put(event_class);
 }
 
@@ -1356,6 +1411,8 @@ int main(int argc, char **argv)
 	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_stream *stream1;
 	const char *ret_string;
+	struct bt_ctf_field_type *packet_context_type, *packet_context_field_type;
+	int ret;
 
 	if (argc < 3) {
 		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
@@ -1518,7 +1575,7 @@ int main(int argc, char **argv)
 		"bt_ctf_stream_class_get_name handles NULL correctly");
 	ret_string = bt_ctf_stream_class_get_name(stream_class);
 	ok(!strcmp(ret_string, "test_stream"),
-                "bt_ctf_stream_class_get_name returns a correct stream class name");
+		"bt_ctf_stream_class_get_name returns a correct stream class name");
 
 	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,
 		"bt_ctf_stream_class_get_clock returns NULL when a clock was not set");
@@ -1547,9 +1604,40 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_get_id(stream_class) == 123,
 		"bt_ctf_stream_class_get_id returns the correct value");
 
+	/* Create a "uint5_t" equivalent custom packet context field */
+	packet_context_field_type = bt_ctf_field_type_integer_create(5);
+
+	ok(bt_ctf_stream_class_get_packet_context_type(NULL) == NULL,
+		"bt_ctf_stream_class_get_packet_context_type handles NULL correctly");
+
+	/* Add a custom field to the stream class' packet context */
+	packet_context_type = bt_ctf_stream_class_get_packet_context_type(stream_class);
+	ok(packet_context_type,
+		"bt_ctf_stream_class_get_packet_context_type returns a packet context type.");
+	ok(bt_ctf_field_type_get_type_id(packet_context_type) == CTF_TYPE_STRUCT,
+		"Packet context is a structure");
+
+	ok(bt_ctf_stream_class_set_packet_context_type(NULL, packet_context_type),
+		"bt_ctf_stream_class_set_packet_context_type handles a NULL stream class correctly");
+	ok(bt_ctf_stream_class_set_packet_context_type(stream_class, NULL),
+		"bt_ctf_stream_class_set_packet_context_type handles a NULL packet context type correctly");
+	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+		packet_context_field_type, "custom_field");
+	ok(ret == 0, "Packet context field added successfully");
+
+
 	/* Instantiate a stream and append events */
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
 	ok(stream1, "Instanciate a stream class from writer");
+
+	/*
+	 * Try to modify the packet context type after a stream has been
+	 * created.
+	 */
+	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+		packet_context_field_type, "should_fail");
+	ok(ret < 0,
+		"Packet context type can't be modified once a stream class has been instanciated");
 
 	/* Should fail after instanciating a stream (locked)*/
 	ok(bt_ctf_stream_class_set_clock(stream_class, clock),
@@ -1572,6 +1660,8 @@ int main(int argc, char **argv)
 	bt_ctf_stream_class_put(stream_class);
 	bt_ctf_writer_put(writer);
 	bt_ctf_stream_put(stream1);
+	bt_ctf_field_type_put(packet_context_type);
+	bt_ctf_field_type_put(packet_context_field_type);
 	free(metadata_string);
 
 	/* Remove all trace files and delete temporary trace directory */

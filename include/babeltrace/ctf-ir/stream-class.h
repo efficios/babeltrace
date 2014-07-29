@@ -44,6 +44,14 @@ struct bt_ctf_clock;
  * Allocate a new stream class of the given name. The creation of an event class
  * sets its reference count to 1.
  *
+ * A stream class' packet context is a structure initialized with the following
+ * fields:
+ *	- uint64_t timestamp_begin
+ *	- uint64_t timestamp_end
+ *	- uint64_t content_size
+ *	- uint64_t packet_size
+ *	- uint64_t events_discarded
+ *
  * @param name Stream name.
  *
  * Returns an allocated stream class on success, NULL on error.
@@ -161,6 +169,29 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
  */
 extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 		struct bt_ctf_stream_class *stream_class, const char *name);
+
+/*
+ * bt_ctf_stream_class_get_packet_context_type: get the stream class' packet
+ * context type.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the packet context's type, NULL on error.
+ */
+extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_set_packet_context_type: set the stream class' packet
+ * context type.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_packet_context_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *packet_context_type);
 
 /*
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and

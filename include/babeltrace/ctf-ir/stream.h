@@ -43,6 +43,10 @@ struct bt_ctf_stream;
  * bt_ctf_stream_get_discarded_events_count: get the number of discarded
  * events associated with this stream.
  *
+ * Note that discarded events are not stored if the stream's packet
+ * context has no "events_discarded" field. An error will be returned
+ * in that case.
+ *
  * @param stream Stream instance.
  *
  * Returns the number of discarded events, a negative value on error.
@@ -53,7 +57,8 @@ extern int bt_ctf_stream_get_discarded_events_count(
 /*
  * bt_ctf_stream_append_discarded_events: increment discarded events count.
  *
- * Increase the current packet's discarded event count.
+ * Increase the current packet's discarded event count. Has no effect if the
+ * stream class' packet context has no "events_discarded" field.
  *
  * @param stream Stream instance.
  * @param event_count Number of discarded events to add to the stream's current
@@ -80,10 +85,40 @@ extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_stream_get_packet_context: get a stream's packet context.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_context(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_packet_context: set a stream's packet context.
+ *
+ * The packet context's type must match the stream class' packet
+ * context type.
+ *
+ * @param stream Stream instance.
+ * @param packet_context Packet context field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_packet_context(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_context);
+
+/*
  * bt_ctf_stream_flush: flush a stream.
  *
- * The stream's current packet's events will be flushed to disk. Events
- * subsequently appended to the stream will be added to a new packet.
+ * The stream's current packet's events will be flushed, thus closing the
+ * current packet. Events subsequently appended to the stream will be
+ * added to a new packet.
+ *
+ * Flushing will also set the packet context's default attributes if
+ * they remained unset while populating the current packet. These default
+ * attributes, along with their expected types, are detailed in stream-class.h.
  *
  * @param stream Stream instance.
  *

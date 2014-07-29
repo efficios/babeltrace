@@ -215,6 +215,13 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		goto error;
 	}
 
+	ret = bt_ctf_stream_class_set_byte_order(stream_class,
+		writer->byte_order == LITTLE_ENDIAN ?
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
+	if (ret) {
+		goto error;
+	}
+
 	stream = bt_ctf_stream_create(stream_class);
 	if (!stream) {
 		goto error;
@@ -227,13 +234,6 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 
 	bt_ctf_stream_set_flush_callback(stream, (flush_func)stream_flush_cb,
 		writer);
-	ret = bt_ctf_stream_class_set_byte_order(stream->stream_class,
-		writer->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
-	if (ret) {
-		goto error;
-	}
-
 
 	for (i = 0; i < writer->stream_classes->len; i++) {
 		if (writer->stream_classes->pdata[i] == stream->stream_class) {

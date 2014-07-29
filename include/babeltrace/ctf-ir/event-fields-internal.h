@@ -90,8 +90,13 @@ BT_HIDDEN
 int bt_ctf_field_structure_set_field(struct bt_ctf_field *structure,
 		const char *name, struct bt_ctf_field *value);
 
+/* Validate that the field's payload is set. */
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field);
+
+/* Mark field payload as unset. */
+BT_HIDDEN
+int bt_ctf_field_reset(struct bt_ctf_field *field);
 
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,

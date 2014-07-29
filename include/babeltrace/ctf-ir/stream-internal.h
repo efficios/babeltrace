@@ -51,7 +51,7 @@ struct bt_ctf_stream {
 	GPtrArray *events;
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
-	uint64_t events_discarded;
+	struct bt_ctf_field *packet_context;
 };
 
 BT_HIDDEN
