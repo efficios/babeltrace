@@ -1416,7 +1416,7 @@ int main(int argc, char **argv)
 
 	if (argc < 3) {
 		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
-		exit(-1);
+		return -1;
 	}
 
 	plan_no_plan();
