@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/utsname.h>
-#include <limits.h>
+#include <babeltrace/compat/limits.h>
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
@@ -1406,7 +1406,7 @@ int main(int argc, char **argv)
 	char *metadata_string;
 	struct bt_ctf_writer *writer;
 	struct utsname name;
-	char hostname[HOST_NAME_MAX];
+	char hostname[BABELTRACE_HOST_NAME_MAX];
 	struct bt_ctf_clock *clock, *ret_clock;
 	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_stream *stream1;
@@ -1432,7 +1432,10 @@ int main(int argc, char **argv)
 	ok(writer, "bt_ctf_create succeeds in creating trace with path");
 
 	/* Add environment context to the trace */
-	gethostname(hostname, HOST_NAME_MAX);
+	ret = gethostname(hostname, sizeof(hostname));
+	if (ret < 0) {
+		return ret;
+	}
 	ok(bt_ctf_writer_add_environment_field(writer, "host", hostname) == 0,
 		"Add host (%s) environment field to writer instance",
 		hostname);
