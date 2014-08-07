@@ -52,5 +52,6 @@ noinst_HEADERS = \
 	babeltrace/compat/memstream.h \
 	babeltrace/compat/string.h \
 	babeltrace/compat/utc.h \
+	babeltrace/compat/limits.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h
