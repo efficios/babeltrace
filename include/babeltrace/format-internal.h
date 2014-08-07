@@ -29,7 +29,7 @@
  * SOFTWARE.
  */
 
-#include <limits.h>
+#include <babeltrace/compat/limits.h>
 #include <babeltrace/context-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 

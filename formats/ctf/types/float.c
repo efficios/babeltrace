@@ -31,7 +31,7 @@
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 #include <float.h>	/* C99 floating point definitions */
-#include <limits.h>	/* C99 limits */
+#include <babeltrace/compat/limits.h>	/* C99 limits */
 #include <babeltrace/endian.h>
 #include <pthread.h>
 

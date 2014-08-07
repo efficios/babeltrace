@@ -28,7 +28,7 @@
 
 #include <babeltrace/ctf-text/types.h>
 #include <stdio.h>
-#include <limits.h>		/* C99 limits */
+#include <babeltrace/compat/limits.h>		/* C99 limits */
 #include <string.h>
 
 int ctf_text_string_write(struct bt_stream_pos *ppos,

@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <limits.h>
+#include <babeltrace/compat/limits.h>
 
 #include <tap/tap.h>
 #include "common.h"

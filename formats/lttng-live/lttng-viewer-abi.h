@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <limits.h>
+#include <babeltrace/compat/limits.h>
 
 #define LTTNG_VIEWER_PATH_MAX		4096
 #define LTTNG_VIEWER_NAME_MAX		255

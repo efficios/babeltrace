@@ -28,7 +28,7 @@
  */
 
 #include <stdint.h>	/* C99 5.2.4.2 Numerical limits */
-#include <limits.h>	/* C99 5.2.4.2 Numerical limits */
+#include <babeltrace/compat/limits.h>	/* C99 5.2.4.2 Numerical limits */
 #include <assert.h>
 #include <babeltrace/endian.h>	/* Non-standard BIG_ENDIAN, LITTLE_ENDIAN, BYTE_ORDER */
 

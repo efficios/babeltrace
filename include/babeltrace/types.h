@@ -34,7 +34,7 @@
 #include <babeltrace/ctf/events.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <limits.h>
+#include <babeltrace/compat/limits.h>
 #include <string.h>
 #include <glib.h>
 #include <assert.h>
