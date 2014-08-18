@@ -211,6 +211,17 @@ class TraceCollection:
 		"""
 		Generator function to iterate over the events of open in the current
 		TraceCollection.
+
+		Due to limitations of the native Babeltrace API, only one event
+		may be "alive" at a time (i.e. a user should never store a copy
+		of the events returned by this function for ulterior use). Users
+		shall make sure to copy the information they need from an event
+		before accessing the next one.
+
+		Furthermore, event objects become invalid when the generator goes
+		out of scope as the underlying iterator will be reclaimed. Using an
+		event after the the generator has gone out of scope may result in a
+		crash or data corruption.
 		"""
 		begin_pos_ptr = _bt_iter_pos()
 		end_pos_ptr = _bt_iter_pos()
