@@ -1066,7 +1066,8 @@ void read_packet_header(struct ctf_stream_pos *pos,
 	int ret;
 
 	/* update trace_packet_header and stream_packet_context */
-	if (pos->prot != PROT_WRITE && file_stream->parent.trace_packet_header) {
+	if (!(pos->prot & PROT_WRITE) &&
+		file_stream->parent.trace_packet_header) {
 		/* Read packet header */
 		ret = generic_rw(&pos->parent,
 				&file_stream->parent.trace_packet_header->p);
@@ -1077,7 +1078,8 @@ void read_packet_header(struct ctf_stream_pos *pos,
 			goto end;
 		}
 	}
-	if (pos->prot != PROT_WRITE && file_stream->parent.stream_packet_context) {
+	if (!(pos->prot & PROT_WRITE) &&
+		file_stream->parent.stream_packet_context) {
 		/* Read packet context */
 		ret = generic_rw(&pos->parent,
 				&file_stream->parent.stream_packet_context->p);

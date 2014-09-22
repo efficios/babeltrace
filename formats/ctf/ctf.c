@@ -763,7 +763,7 @@ int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 		pos->parent.trace = trace;
 		break;
 	case O_RDWR:
-		pos->prot = PROT_WRITE;	/* Write has priority */
+		pos->prot = PROT_READ | PROT_WRITE;
 		pos->flags = MAP_SHARED;
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
@@ -779,7 +779,7 @@ int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 
 int ctf_fini_pos(struct ctf_stream_pos *pos)
 {
-	if (pos->prot == PROT_WRITE && pos->content_size_loc)
+	if ((pos->prot & PROT_WRITE) && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 	if (pos->base_mma) {
 		int ret;
@@ -873,7 +873,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		assert(0);
 	}
 
-	if (pos->prot == PROT_WRITE && pos->content_size_loc)
+	if ((pos->prot & PROT_WRITE) && pos->content_size_loc)
 		*pos->content_size_loc = pos->offset;
 
 	if (pos->base_mma) {
@@ -891,7 +891,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	 * The caller should never ask for ctf_move_pos across packets,
 	 * except to get exactly at the beginning of the next packet.
 	 */
-	if (pos->prot == PROT_WRITE) {
+	if (pos->prot & PROT_WRITE) {
 		switch (whence) {
 		case SEEK_CUR:
 			/* The writer will add padding */
@@ -1001,12 +1001,14 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	}
 
 	/* update trace_packet_header and stream_packet_context */
-	if (pos->prot != PROT_WRITE && file_stream->parent.trace_packet_header) {
+	if (!(pos->prot & PROT_WRITE) &&
+		file_stream->parent.trace_packet_header) {
 		/* Read packet header */
 		ret = generic_rw(&pos->parent, &file_stream->parent.trace_packet_header->p);
 		assert(!ret);
 	}
-	if (pos->prot != PROT_WRITE && file_stream->parent.stream_packet_context) {
+	if (!(pos->prot & PROT_WRITE) &&
+		file_stream->parent.stream_packet_context) {
 		/* Read packet context */
 		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
 		assert(!ret);
