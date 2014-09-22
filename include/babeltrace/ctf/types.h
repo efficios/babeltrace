@@ -132,6 +132,28 @@ int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 		int fd, int open_flags);
 int ctf_fini_pos(struct ctf_stream_pos *pos);
 
+static inline
+int ctf_pos_access_ok(struct ctf_stream_pos *pos, uint64_t bit_len)
+{
+	uint64_t max_len;
+
+	if (unlikely(pos->offset == EOF))
+		return 0;
+	if (pos->prot == PROT_READ) {
+		/*
+		 * Reads may only reach up to the "content_size",
+		 * regardless of the packet_size.
+		 */
+		max_len = pos->content_size;
+	} else {
+		/* Writes may take place up to the end of the packet. */
+		max_len = pos->packet_size;
+	}
+	if (unlikely(pos->offset + bit_len > max_len))
+		return 0;
+	return 1;
+}
+
 /*
  * move_pos - move position of a relative bit offset
  *
@@ -142,21 +164,17 @@ int ctf_fini_pos(struct ctf_stream_pos *pos);
 static inline
 int ctf_move_pos(struct ctf_stream_pos *pos, uint64_t bit_offset)
 {
-	uint64_t max_len;
+	int ret = 0;
 
 	printf_debug("ctf_move_pos test EOF: %" PRId64 "\n", pos->offset);
-	if (unlikely(pos->offset == EOF))
-		return 0;
-	if (pos->prot == PROT_READ)
-		max_len = pos->content_size;
-	else
-		max_len = pos->packet_size;
-	if (unlikely(pos->offset + bit_offset > max_len))
-		return 0;
-
+	ret = ctf_pos_access_ok(pos, bit_offset);
+	if (!ret) {
+		goto end;
+	}
 	pos->offset += bit_offset;
 	printf_debug("ctf_move_pos after increment: %" PRId64 "\n", pos->offset);
-	return 1;
+end:
+	return ret;
 }
 
 /*
@@ -205,22 +223,6 @@ static inline
 void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 {
 	ctf_packet_seek(&pos->parent, 0, SEEK_CUR);
-}
-
-static inline
-int ctf_pos_access_ok(struct ctf_stream_pos *pos, uint64_t bit_len)
-{
-	uint64_t max_len;
-
-	if (unlikely(pos->offset == EOF))
-		return 0;
-	if (pos->prot == PROT_READ)
-		max_len = pos->content_size;
-	else
-		max_len = pos->packet_size;
-	if (unlikely(pos->offset + bit_len > max_len))
-		return 0;
-	return 1;
 }
 
 /*
