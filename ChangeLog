@@ -1,3 +1,14 @@
+2014-09-23 Babeltrace 1.2.3
+	* Fix: incorrect compiler warning
+	* Fix: Don't assume that PROT_WRITE grants read permissions
+	* Fix: align objstack on 8 bytes
+	* Fix Python: Add a comment warning about an API limitation
+	* Use BABELTRACE_HOST_NAME_MAX in test_ctf_writer.c
+	* Add limits compatibility header
+	* Fix: don't perform unaligned integer read/writes
+	* Fix: Align buffers from objstack_alloc on sizeof(void *)
+	* Fix: bt_ctf_field_type_structure_add_field argument validation
+
 2014-07-22 Babeltrace 1.2.2
 	* Fix: Support out of tree builds in babeltrace
 	* Fix: mmap trace read the stream_id from the first packet
