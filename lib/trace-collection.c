@@ -72,19 +72,6 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 	}
 }
 
-/*
- * Note: if using a frequency different from 1GHz for clock->offset, it
- * is recommended to express the seconds in offset_s, otherwise there
- * will be a loss of precision caused by the limited size of the double
- * mantissa.
- */
-static
-uint64_t clock_offset_ns(struct ctf_clock *clock)
-{
-	return clock->offset_s * 1000000000ULL
-			+ clock_cycles_to_ns(clock, clock->offset);
-}
-
 static void clock_add(gpointer key, gpointer value, gpointer user_data)
 {
 	struct clock_match *clock_match = user_data;
