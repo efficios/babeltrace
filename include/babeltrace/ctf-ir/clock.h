@@ -209,6 +209,31 @@ extern int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock,
 		int is_absolute);
 
 /*
+ * bt_ctf_clock_get_uuid: get a clock's UUID.
+ *
+ * Get the clock's UUID.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns a pointer to the clock's UUID (16 byte array) on success,
+ * NULL on error.
+ */
+extern const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_uuid: set a clock's UUID.
+ *
+ * Set a clock's UUID.
+ *
+ * @param clock Clock instance.
+ * @param uuid A 16-byte array containing a UUID.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock,
+		 const unsigned char *uuid);
+
+/*
  * bt_ctf_clock_get_time: get a clock's current time value.
  *
  * Get the current time in nanoseconds since the clock's origin (offset and
