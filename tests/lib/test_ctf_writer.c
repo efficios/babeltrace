@@ -852,9 +852,9 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(uint_35_field, "Use bt_ctf_event_get_payload to get a field instance ");
 	bt_ctf_field_unsigned_integer_set_value(uint_35_field, 0x0DDF00D);
-	ok(bt_ctf_field_unsigned_integer_get_value(NULL, &ret_unsigned_int) == -1,
+	ok(bt_ctf_field_unsigned_integer_get_value(NULL, &ret_unsigned_int) < 0,
 		"bt_ctf_field_unsigned_integer_get_value properly properly handles a NULL field.");
-	ok(bt_ctf_field_unsigned_integer_get_value(uint_35_field, NULL) == -1,
+	ok(bt_ctf_field_unsigned_integer_get_value(uint_35_field, NULL) < 0,
 		"bt_ctf_field_unsigned_integer_get_value properly handles a NULL return value");
 	ok(bt_ctf_field_unsigned_integer_get_value(uint_35_field,
 		&ret_unsigned_int) == 0,
@@ -862,15 +862,15 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(ret_unsigned_int == 0x0DDF00D,
 		"bt_ctf_field_unsigned_integer_get_value returns the correct value");
 	ok(bt_ctf_field_signed_integer_get_value(uint_35_field,
-		&ret_signed_int) == -1,
+		&ret_signed_int) < 0,
 		"bt_ctf_field_signed_integer_get_value fails on an unsigned field");
 	bt_ctf_field_put(uint_35_field);
 
 	int_16_field = bt_ctf_event_get_payload(event, "int_16");
 	bt_ctf_field_signed_integer_set_value(int_16_field, -12345);
-	ok(bt_ctf_field_signed_integer_get_value(NULL, &ret_signed_int) == -1,
+	ok(bt_ctf_field_signed_integer_get_value(NULL, &ret_signed_int) < 0,
 		"bt_ctf_field_signed_integer_get_value properly handles a NULL field");
-	ok(bt_ctf_field_signed_integer_get_value(int_16_field, NULL) == -1,
+	ok(bt_ctf_field_signed_integer_get_value(int_16_field, NULL) < 0,
 		"bt_ctf_field_signed_integer_get_value properly handles a NULL return value");
 	ok(bt_ctf_field_signed_integer_get_value(int_16_field,
 		&ret_signed_int) == 0,
@@ -878,7 +878,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(ret_signed_int == -12345,
 		"bt_ctf_field_signed_integer_get_value returns the correct value");
 	ok(bt_ctf_field_unsigned_integer_get_value(int_16_field,
-		&ret_unsigned_int) == -1,
+		&ret_unsigned_int) < 0,
 		"bt_ctf_field_unsigned_integer_get_value fails on a signed field");
 	bt_ctf_field_put(int_16_field);
 
@@ -1375,9 +1375,9 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	}
 
 	events_appended = 1;
-	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) == -1,
+	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) < 0,
 		"bt_ctf_stream_get_discarded_events_count handles a NULL stream correctly");
-	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) == -1,
+	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) < 0,
 		"bt_ctf_stream_get_discarded_events_count handles a NULL return pointer correctly");
 	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
 	ok(ret == 0 && ret_uint64 == 0,
@@ -1575,24 +1575,24 @@ int main(int argc, char **argv)
 		"bt_ctf_clock_get_offset_s correctly handles NULL");
 	ok(bt_ctf_clock_get_offset(NULL) == -1ULL,
 		"bt_ctf_clock_get_offset correctly handles NULL");
-	ok(bt_ctf_clock_get_is_absolute(NULL) == -1,
+	ok(bt_ctf_clock_get_is_absolute(NULL) < 0,
 		"bt_ctf_clock_get_is_absolute correctly handles NULL");
 	ok(bt_ctf_clock_get_time(NULL) == -1ULL,
 		"bt_ctf_clock_get_time correctly handles NULL");
 
-	ok(bt_ctf_clock_set_description(NULL, NULL) == -1,
+	ok(bt_ctf_clock_set_description(NULL, NULL) < 0,
 		"bt_ctf_clock_set_description correctly handles NULL clock");
-	ok(bt_ctf_clock_set_frequency(NULL, frequency) == -1,
+	ok(bt_ctf_clock_set_frequency(NULL, frequency) < 0,
 		"bt_ctf_clock_set_frequency correctly handles NULL clock");
-	ok(bt_ctf_clock_set_precision(NULL, precision) == -1,
+	ok(bt_ctf_clock_set_precision(NULL, precision) < 0,
 		"bt_ctf_clock_get_precision correctly handles NULL clock");
-	ok(bt_ctf_clock_set_offset_s(NULL, offset_s) == -1,
+	ok(bt_ctf_clock_set_offset_s(NULL, offset_s) < 0,
 		"bt_ctf_clock_set_offset_s correctly handles NULL clock");
-	ok(bt_ctf_clock_set_offset(NULL, offset) == -1,
+	ok(bt_ctf_clock_set_offset(NULL, offset) < 0,
 		"bt_ctf_clock_set_offset correctly handles NULL clock");
-	ok(bt_ctf_clock_set_is_absolute(NULL, is_absolute) == -1,
+	ok(bt_ctf_clock_set_is_absolute(NULL, is_absolute) < 0,
 		"bt_ctf_clock_set_is_absolute correctly handles NULL clock");
-	ok(bt_ctf_clock_set_time(NULL, current_time) == -1,
+	ok(bt_ctf_clock_set_time(NULL, current_time) < 0,
 		"bt_ctf_clock_set_time correctly handles NULL clock");
 	ok(bt_ctf_clock_get_uuid(NULL) == NULL,
 		"bt_ctf_clock_get_uuid correctly handles NULL clock");
