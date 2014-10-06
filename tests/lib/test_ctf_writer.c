@@ -56,6 +56,27 @@
 
 static uint64_t current_time = 42;
 
+/* Return 1 if uuids match, zero if different. */
+int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
+{
+	int ret = 0;
+	int i;
+
+	if (!uuid_a || !uuid_b) {
+		goto end;
+	}
+
+	for (i = 0;  i < 16; i++) {
+		if (uuid_a[i] != uuid_b[i]) {
+			goto end;
+		}
+	}
+
+	ret = 1;
+end:
+	return ret;
+}
+
 void validate_metadata(char *parser_path, char *metadata_path)
 {
 	int ret = 0;
@@ -1411,6 +1432,8 @@ int main(int argc, char **argv)
 	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_stream *stream1;
 	const char *ret_string;
+	const unsigned char *ret_uuid;
+	unsigned char tmp_uuid[16] = { 0 };
 	struct bt_ctf_field_type *packet_context_type, *packet_context_field_type;
 	int ret;
 
@@ -1571,6 +1594,28 @@ int main(int argc, char **argv)
 		"bt_ctf_clock_set_is_absolute correctly handles NULL clock");
 	ok(bt_ctf_clock_set_time(NULL, current_time) == -1,
 		"bt_ctf_clock_set_time correctly handles NULL clock");
+	ok(bt_ctf_clock_get_uuid(NULL) == NULL,
+		"bt_ctf_clock_get_uuid correctly handles NULL clock");
+	ret_uuid = bt_ctf_clock_get_uuid(clock);
+	ok(ret_uuid,
+		"bt_ctf_clock_get_uuid returns a UUID");
+	if (ret_uuid) {
+		memcpy(tmp_uuid, ret_uuid, sizeof(tmp_uuid));
+		/* Slightly modify UUID */
+		tmp_uuid[sizeof(tmp_uuid) - 1]++;
+	}
+
+	ok(bt_ctf_clock_set_uuid(NULL, tmp_uuid) < 0,
+		"bt_ctf_clock_set_uuid correctly handles a NULL clock");
+	ok(bt_ctf_clock_set_uuid(clock, NULL) < 0,
+		"bt_ctf_clock_set_uuid correctly handles a NULL UUID");
+	ok(bt_ctf_clock_set_uuid(clock, tmp_uuid) == 0,
+		"bt_ctf_clock_set_uuid sets a new uuid succesfully");
+	ret_uuid = bt_ctf_clock_get_uuid(clock);
+	ok(ret_uuid,
+		"bt_ctf_clock_get_uuid returns a UUID after setting a new one");
+	ok(uuid_match(ret_uuid, tmp_uuid),
+		"bt_ctf_clock_get_uuid returns the correct UUID after setting a new one");
 
 	/* Define a stream class */
 	stream_class = bt_ctf_stream_class_create("test_stream");
