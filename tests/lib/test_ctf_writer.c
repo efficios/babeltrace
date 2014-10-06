@@ -906,7 +906,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_string_get_value correctly handles NULL");
 	ret_string = bt_ctf_field_string_get_value(a_string_field);
 	ok(ret_string, "bt_ctf_field_string_get_value returns a string");
-	ok(!strcmp(ret_string, test_string),
+	ok(ret_string ? !strcmp(ret_string, test_string) : 0,
 		"bt_ctf_field_string_get_value returns a correct value");
 	bt_ctf_field_unsigned_integer_set_value(uint_35_field,
 		SEQUENCE_TEST_LENGTH);
@@ -1479,7 +1479,7 @@ int main(int argc, char **argv)
 	ok(clock, "Clock created sucessfully");
 	returned_clock_name = bt_ctf_clock_get_name(clock);
 	ok(returned_clock_name, "bt_ctf_clock_get_name returns a clock name");
-	ok(strcmp(returned_clock_name, clock_name) == 0,
+	ok(returned_clock_name ? !strcmp(returned_clock_name, clock_name) : 0,
 		"Returned clock name is valid");
 
 	returned_clock_description = bt_ctf_clock_get_description(clock);
@@ -1490,7 +1490,8 @@ int main(int argc, char **argv)
 	returned_clock_description = bt_ctf_clock_get_description(clock);
 	ok(returned_clock_description,
 		"bt_ctf_clock_get_description returns a description.");
-	ok(strcmp(returned_clock_description, clock_description) == 0,
+	ok(returned_clock_description ?
+		!strcmp(returned_clock_description, clock_description) : 0,
 		"Returned clock description is valid");
 
 	ok(bt_ctf_clock_get_frequency(clock) == DEFAULT_CLOCK_FREQ,
