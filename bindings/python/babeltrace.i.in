@@ -653,6 +653,7 @@ _scopes = [CTFScope.EVENT_FIELDS, CTFScope.EVENT_CONTEXT, CTFScope.STREAM_EVENT_
 	CTFScope.STREAM_EVENT_HEADER, CTFScope.STREAM_PACKET_CONTEXT, CTFScope.TRACE_PACKET_HEADER]
 
 import collections
+from datetime import datetime
 class Event(collections.Mapping):
 	"""
 	This class represents an event from the trace.
@@ -682,6 +683,15 @@ class Event(collections.Mapping):
 		system clock source or -1ULL on error.
 		"""
 		return _bt_ctf_get_timestamp(self._e)
+
+	@property
+	def datetime(self):
+		"""
+		Return a datetime object based on the event's
+		timestamp. Note that the datetime class' precision
+		is limited to microseconds.
+		"""
+		return datetime.fromtimestamp(self.timestamp / 1E9)
 
 	def field_with_scope(self, field_name, scope):
 		"""
