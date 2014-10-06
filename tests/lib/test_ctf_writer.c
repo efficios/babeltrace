@@ -66,7 +66,7 @@ int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
 		goto end;
 	}
 
-	for (i = 0;  i < 16; i++) {
+	for (i = 0; i < 16; i++) {
 		if (uuid_a[i] != uuid_b[i]) {
 			goto end;
 		}
