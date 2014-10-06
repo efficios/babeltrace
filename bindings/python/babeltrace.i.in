@@ -820,7 +820,7 @@ class Event(collections.Mapping):
 	def _field_list_with_scope(self, scope):
 		fields = []
 		scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
-		
+
 		# Returns a list [list_ptr, count]. If list_ptr is NULL, SWIG will only
 		# provide the "count" return value
 		count = 0
