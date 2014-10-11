@@ -54,6 +54,14 @@ int32_type.signed = True
 uint16_type = CTFWriter.IntegerFieldDeclaration(16)
 uint16_type.signed = False
 
+# Add a custom uint16_t field in the stream's packet context
+packet_context_type = stream_class.packet_context_type
+print("\nFields in default packet context:")
+for field in packet_context_type.fields:
+		print(str(type(field[1])) + " " + field[0])
+packet_context_type.add_field(uint16_type, "a_custom_packet_context_field")
+stream_class.packet_context_type = packet_context_type
+
 # Create a string type
 string_type = CTFWriter.StringFieldDeclaration()
 
@@ -119,5 +127,10 @@ for i in range(100):
 	enumeration_field.value = i % 10
 
 	stream.append_event(event)
+
+# Populate custom packet context field before flushing
+packet_context = stream.packet_context
+field = packet_context.field("a_custom_packet_context_field")
+field.value = 42
 
 stream.flush()

@@ -1536,11 +1536,15 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_class_get_event_class_count") bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_get_event_class") bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
 %rename("_bt_ctf_stream_class_get_event_class_by_name") bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
+%rename("_bt_ctf_stream_class_get_packet_context_type") bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_set_packet_context_type") bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
 %rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_get_discarded_events_count") bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *count);
 %rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
 %rename("_bt_ctf_stream_append_event") bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
+%rename("_bt_ctf_stream_get_packet_context") bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_set_packet_context") bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream, struct bt_ctf_field *packet_context);
 %rename("_bt_ctf_stream_flush") bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 %rename("_bt_ctf_stream_get") bt_ctf_stream_get(struct bt_ctf_stream *stream);
 %rename("_bt_ctf_stream_put") bt_ctf_stream_put(struct bt_ctf_stream *stream);
@@ -1555,11 +1559,15 @@ int bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class
 int64_t bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
+struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
+int bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *OUTPUT);
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
 int bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
+struct bt_ctf_field *bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stream);
+int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream, struct bt_ctf_field *packet_context);
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 void bt_ctf_stream_get(struct bt_ctf_stream *stream);
 void bt_ctf_stream_put(struct bt_ctf_stream *stream);
@@ -2783,6 +2791,29 @@ class CTFWriter:
 			if ret < 0:
 				raise ValueError("Could not add event class.")
 
+		"""
+		Get the StreamClass' packet context type (StructureFieldDeclaration)
+		"""
+		@property
+		def packet_context_type(self):
+			field_type_native = _bt_ctf_stream_class_get_packet_context_type(self._sc)
+			if field_type_native is None:
+				raise ValueError("Invalid StreamClass")
+			field_type = CTFWriter.FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+			return field_type
+
+		"""
+		Set a StreamClass' packet context type. Must be of type
+		StructureFieldDeclaration.
+		"""
+		@packet_context_type.setter
+		def packet_context_type(self, field_type):
+			if not isinstance(field_type, CTFWriter.StructureFieldDeclaration):
+				raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
+			ret = _bt_ctf_stream_class_set_packet_context_type(self._sc, field_type._ft)
+			if ret < 0:
+				raise ValueError("Failed to set packet context type.")
+
 	class Stream:
 		"""
 		Create a stream of the given class.
@@ -2823,6 +2854,27 @@ class CTFWriter:
 			ret = _bt_ctf_stream_append_event(self._s, event._e)
 			if ret < 0:
 				raise ValueError("Could not append event to stream.")
+
+		"""
+		Get a Stream's packet context field (a StructureField).
+		"""
+		@property
+		def packet_context(self):
+			native_field = _bt_ctf_stream_get_packet_context(self._s)
+			if native_field is None:
+				raise ValueError("Invalid Stream.")
+			return CTFWriter.Field._create_field_from_native_instance(native_field)
+
+		"""
+		Set a Stream's packet context field (must be a StructureField).
+		"""
+		@packet_context.setter
+		def packet_context(self, field):
+			if not isinstance(field, CTFWriter.StructureField):
+				raise TypeError("Argument field must be of type StructureField")
+			ret = _bt_ctf_stream_set_packet_context(self._s, field._f)
+			if ret < 0:
+				raise ValueError("Invalid packet context field.")
 
 		"""
 		The stream's current packet's events will be flushed to disk. Events
