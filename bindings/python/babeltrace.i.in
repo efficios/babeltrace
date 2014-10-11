@@ -2781,7 +2781,8 @@ class CTFWriter:
 		"""
 		Add an event class to a stream class. New events can be added even after a
 		stream has been instantiated and events have been appended. However, a stream
-		will not accept events of a class that has not been registered beforehand.
+		will not accept events of a class that has not been added to the stream
+		class beforehand.
 		"""
 		def add_event_class(self, event_class):
 			if not isinstance(event_class, CTFWriter.EventClass):
