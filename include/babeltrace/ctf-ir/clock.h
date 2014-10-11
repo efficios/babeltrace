@@ -231,7 +231,7 @@ extern const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock);
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock,
-		 const unsigned char *uuid);
+		const unsigned char *uuid);
 
 /*
  * bt_ctf_clock_get_time: get a clock's current time value.
