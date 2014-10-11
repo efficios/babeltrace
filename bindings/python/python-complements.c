@@ -23,6 +23,7 @@
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-ir/event-types.h>
 #include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/ctf-ir/clock-internal.h>
 
 /* List-related functions
    ----------------------------------------------------
@@ -342,3 +343,39 @@ struct bt_ctf_field_type *_bt_python_ctf_event_class_get_field_type(
 	return !ret ? type : NULL;
 }
 
+int _bt_python_ctf_clock_get_uuid_index(struct bt_ctf_clock *clock,
+		size_t index, unsigned char *value)
+{
+	int ret = 0;
+	const unsigned char *uuid;
+
+	if (index >= 16) {
+		ret = -1;
+		goto end;
+	}
+
+	uuid = bt_ctf_clock_get_uuid(clock);
+	if (!uuid) {
+		ret = -1;
+		goto end;
+	}
+
+	*value = uuid[index];
+end:
+	return ret;
+}
+
+int _bt_python_ctf_clock_set_uuid_index(struct bt_ctf_clock *clock,
+		size_t index, unsigned char value)
+{
+	int ret = 0;
+
+	if (index >= 16) {
+		ret = -1;
+		goto end;
+	}
+
+	clock->uuid[index] = value;
+end:
+	return ret;
+}

@@ -36,6 +36,7 @@ print("Clock offset_seconds is {}".format(clock.offset_seconds))
 print("Clock offset is {}".format(clock.offset))
 print("Clock is absolute: {}".format(clock.absolute))
 print("Clock time is {}".format(clock.time))
+print("Clock UUID is {}".format(clock.uuid))
 
 writer.add_clock(clock)
 writer.add_environment_field("Python_version", str(sys.version_info))

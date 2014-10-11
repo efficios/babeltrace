@@ -27,6 +27,7 @@
 #include <babeltrace/iterator-internal.h>
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-writer/clock.h>
 
 /* ctf-field-list */
 struct bt_definition **_bt_python_field_listcaller(
@@ -85,3 +86,7 @@ const char *_bt_python_ctf_event_class_get_field_name(
 		struct bt_ctf_event_class *event_class, size_t index);
 struct bt_ctf_field_type *_bt_python_ctf_event_class_get_field_type(
 		struct bt_ctf_event_class *event_class, size_t index);
+int _bt_python_ctf_clock_get_uuid_index(struct bt_ctf_clock *clock,
+		size_t index, unsigned char *value);
+int _bt_python_ctf_clock_set_uuid_index(struct bt_ctf_clock *clock,
+		size_t index, unsigned char value);
