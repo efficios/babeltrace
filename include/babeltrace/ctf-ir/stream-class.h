@@ -176,7 +176,7 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
  *
  * @param stream_class Stream class.
  *
- * Returns the packet context's type, NULL on error.
+ * Returns the packet context's type (a structure), NULL on error.
  */
 extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class);
@@ -186,6 +186,7 @@ extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
  * context type.
  *
  * @param stream_class Stream class.
+ * @param packet_context_type Packet context type (must be a structure).
  *
  * Returns 0 on success, a negative value on error.
  */
