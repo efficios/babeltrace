@@ -8,4 +8,4 @@ for single-line if/else statements. Please refer to:
 - Linux kernel scripts/checkpatch.pl for a script which verify the patch
   coding style.
 
-Mathieu Desnoyers, May 30, 2012
+All Python code shall adhere to the PEP8 style guide.
