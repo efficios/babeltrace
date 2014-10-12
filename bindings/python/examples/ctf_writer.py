@@ -58,7 +58,7 @@ uint16_type.signed = False
 packet_context_type = stream_class.packet_context_type
 print("\nFields in default packet context:")
 for field in packet_context_type.fields:
-		print(str(type(field[1])) + " " + field[0])
+    print(str(type(field[1])) + " " + field[0])
 packet_context_type.add_field(uint16_type, "a_custom_packet_context_field")
 stream_class.packet_context_type = packet_context_type
 
@@ -98,35 +98,35 @@ stream_class.add_event_class(event_class)
 stream = writer.create_stream(stream_class)
 
 for i in range(100):
-	event = CTFWriter.Event(event_class)
+    event = CTFWriter.Event(event_class)
 
-	clock.time = i * 1000
-	structure_field = event.payload("structure_field")
-	integer_field = structure_field.field("an_integer")
-	integer_field.value = i
+    clock.time = i * 1000
+    structure_field = event.payload("structure_field")
+    integer_field = structure_field.field("an_integer")
+    integer_field.value = i
 
-	string_field = structure_field.field("a_string_field")
-	string_field.value = "Test string."
+    string_field = structure_field.field("a_string_field")
+    string_field.value = "Test string."
 
-	float_field = event.payload("float_field")
-	float_field.value = float(i) + (float(i) / 100.0)
+    float_field = event.payload("float_field")
+    float_field.value = float(i) + (float(i) / 100.0)
 
-	array_field = event.payload("array_field")
-	for j in range(5):
-		element = array_field.field(j)
-		element.value = i + j
+    array_field = event.payload("array_field")
+    for j in range(5):
+        element = array_field.field(j)
+        element.value = i + j
 
-	event.payload("sequence_len").value = i % 10
-	sequence_field = event.payload("sequence_field")
-	sequence_field.length = event.payload("sequence_len")
-	for j in range(event.payload("sequence_len").value):
-		sequence_field.field(j).value = i + j
+    event.payload("sequence_len").value = i % 10
+    sequence_field = event.payload("sequence_field")
+    sequence_field.length = event.payload("sequence_len")
+    for j in range(event.payload("sequence_len").value):
+        sequence_field.field(j).value = i + j
 
-	enumeration_field = event.payload("enum_field")
-	integer_field = enumeration_field.container
-	enumeration_field.value = i % 10
+    enumeration_field = event.payload("enum_field")
+    integer_field = enumeration_field.container
+    enumeration_field.value = i % 10
 
-	stream.append_event(event)
+    stream.append_event(event)
 
 # Populate custom packet context field before flushing
 packet_context = stream.packet_context

@@ -29,41 +29,41 @@ import sys
 from babeltrace import *
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
-	raise TypeError("Usage: python sched_switch.py [pid] path/to/trace")
+    raise TypeError("Usage: python sched_switch.py [pid] path/to/trace")
 elif len(sys.argv) == 3:
-	filterPID = True
+    filterPID = True
 else:
-	filterPID = False
+    filterPID = False
 
 traces = TraceCollection()
-ret = traces.add_trace(sys.argv[len(sys.argv)-1], "ctf")
+ret = traces.add_trace(sys.argv[len(sys.argv) - 1], "ctf")
 if ret is None:
-	raise IOError("Error adding trace")
+    raise IOError("Error adding trace")
 
 for event in traces.events:
-	if event.name != "sched_switch":
-		continue
+    if event.name != "sched_switch":
+        continue
 
-	# Getting PID
-	pid = event.field_with_scope("pid", CTFScope.STREAM_EVENT_CONTEXT)
-	if pid is None:
-		print("ERROR: Missing PID info for sched_switch")
-		continue # Next event
+    # Getting PID
+    pid = event.field_with_scope("pid", CTFScope.STREAM_EVENT_CONTEXT)
+    if pid is None:
+        print("ERROR: Missing PID info for sched_switch")
+        continue  # Next event
 
-	if filterPID and (pid != long(sys.argv[1])):
-		continue # Next event
+    if filterPID and (pid != long(sys.argv[1])):
+        continue  # Next event
 
-	prev_comm = event["prev_comm"]
-	prev_tid = event["prev_tid"]
-	prev_prio = event["prev_prio"]
-	prev_state = event["prev_state"]
-	next_comm = event["next_comm"]
-	next_tid = event["next_tid"]
-	next_prio = event["next_prio"]
+    prev_comm = event["prev_comm"]
+    prev_tid = event["prev_tid"]
+    prev_prio = event["prev_prio"]
+    prev_state = event["prev_state"]
+    next_comm = event["next_comm"]
+    next_tid = event["next_tid"]
+    next_prio = event["next_prio"]
 
-	# Output
-	print("sched_switch, pid = {}, TS = {}, prev_comm = {},\n\t"
-		"prev_tid = {}, prev_prio = {}, prev_state = {},\n\t"
-		"next_comm = {}, next_tid = {}, next_prio = {}".format(
-		pid, event.timestamp, prev_comm, prev_tid,
-		prev_prio, prev_state, next_comm, next_tid, next_prio))
+    # Output
+    print("sched_switch, pid = {}, TS = {}, prev_comm = {},\n\t"
+          "prev_tid = {}, prev_prio = {}, prev_state = {},\n\t"
+          "next_comm = {}, next_tid = {}, next_prio = {}".format(
+              pid, event.timestamp, prev_comm, prev_tid,
+              prev_prio, prev_state, next_comm, next_tid, next_prio))

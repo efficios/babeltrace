@@ -27,32 +27,32 @@ from babeltrace import *
 
 # Check for path arg:
 if len(sys.argv) < 2:
-	raise TypeError("Usage: sequence_test.py path/to/file")
+    raise TypeError("Usage: sequence_test.py path/to/file")
 
 # Create TraceCollection and add trace:
 traces = TraceCollection()
 trace_handle = traces.add_trace(sys.argv[1], "ctf")
 if trace_handle is None:
-	raise IOError("Error adding trace")
+    raise IOError("Error adding trace")
 
 # Listing events
 print("--- Event list ---")
 for event_declaration in trace_handle.events:
-	print("event : {}".format(event_declaration.name))
+    print("event : {}".format(event_declaration.name))
 print("--- Done ---")
 
 for event in traces.events:
-	print("TS: {}, {} : {}".format(event.timestamp,
-		event.cycles, event.name))
+    print("TS: {}, {} : {}".format(event.timestamp,
+                                   event.cycles, event.name))
 
-	try:
-		sequence = event["seq_int_field"]
-		print("int sequence values: {}". format(sequence))
-	except KeyError:
-		pass
+    try:
+        sequence = event["seq_int_field"]
+        print("int sequence values: {}". format(sequence))
+    except KeyError:
+        pass
 
-	try:
-		sequence = event["seq_long_field"]
-		print("long sequence values: {}". format(sequence))
-	except KeyError:
-		pass
+    try:
+        sequence = event["seq_long_field"]
+        print("long sequence values: {}". format(sequence))
+    except KeyError:
+        pass
