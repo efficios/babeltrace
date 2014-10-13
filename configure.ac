@@ -121,7 +121,7 @@ AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
 
 if test "x${enable_python:-yes}" = xyes; then
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
-  AM_PATH_PYTHON
+  AM_PATH_PYTHON([3.0], , [AC_MSG_ERROR(Python3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
 
   AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
   AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
