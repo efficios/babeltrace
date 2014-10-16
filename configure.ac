@@ -122,6 +122,11 @@ if test "x${enable_python:-yes}" = xyes; then
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
   AM_PATH_PYTHON
 
+  AM_PATH_PYTHON_MODULES([PYTHON])
+  # pythondir is the path where extra modules are to be installed
+  pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
+  # pyexecdir is the path that contains shared objects used by the extra modules
+  pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
   AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
   AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
   AS_IF([test -z "$PYTHON_INCLUDE"], [
