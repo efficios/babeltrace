@@ -1,7 +1,7 @@
 /*
  * event.c
  *
- * Babeltrace CTF Writer
+ * Babeltrace CTF IR - Event
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
