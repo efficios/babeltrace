@@ -31,7 +31,7 @@
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/writer.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/events.h>

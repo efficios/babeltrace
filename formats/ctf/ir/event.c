@@ -33,7 +33,7 @@
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/compiler.h>
 
 static

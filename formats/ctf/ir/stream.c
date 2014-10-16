@@ -326,7 +326,11 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	struct bt_ctf_field *integer = NULL;
 	struct ctf_stream_pos packet_context_pos;
 
-	if (!stream) {
+	if (!stream || stream->pos.fd < 0) {
+		/*
+		 * Stream does not have an associated fd. It is,
+		 * therefore, not a stream being used to write events.
+		 */
 		ret = -1;
 		goto end;
 	}

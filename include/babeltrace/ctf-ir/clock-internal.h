@@ -29,7 +29,7 @@
 
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 #include <uuid/uuid.h>
