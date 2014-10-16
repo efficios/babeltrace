@@ -67,7 +67,7 @@ extern struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
  * @param writer Writer instance.
  * @param stream_class Stream class to instantiate.
  *
- * Returns an allocated writer on success, NULL on error.
+ * Returns an allocated stream on success, NULL on error.
  */
 extern struct bt_ctf_stream *bt_ctf_writer_create_stream(
 		struct bt_ctf_writer *writer,
