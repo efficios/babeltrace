@@ -1362,10 +1362,7 @@ class _Definition(object):
 //				CTF Writer
 // =================================================================
 
-/* =================================================================
-			CLOCK.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* clock.h */
 %rename("_bt_ctf_clock_create") bt_ctf_clock_create(const char *name);
 %rename("_bt_ctf_clock_get_name") bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_get_description") bt_ctf_clock_get_description(struct bt_ctf_clock *clock);
@@ -1404,10 +1401,7 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
 void bt_ctf_clock_get(struct bt_ctf_clock *clock);
 void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 
-/* =================================================================
-			EVENT-TYPES.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* event-types.h */
 %rename("_bt_ctf_field_type_integer_create") bt_ctf_field_type_integer_create(unsigned int size);
 %rename("_bt_ctf_field_type_integer_get_size") bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *integer);
 %rename("_bt_ctf_field_type_integer_get_signed") bt_ctf_field_type_integer_get_signed(struct bt_ctf_field_type *integer);
@@ -1514,10 +1508,7 @@ enum ctf_type_id bt_ctf_field_type_get_type_id(struct bt_ctf_field_type *type);
 void bt_ctf_field_type_get(struct bt_ctf_field_type *type);
 void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 
-/* =================================================================
-			EVENT-FIELDS.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* event-fields.h */
 %rename("_bt_ctf_field_create") bt_ctf_field_create(struct bt_ctf_field_type *type);
 %rename("_bt_ctf_field_structure_get_field") bt_ctf_field_structure_get_field(struct bt_ctf_field *structure, const char *name);
 %rename("_bt_ctf_field_array_get_field") bt_ctf_field_array_get_field(struct bt_ctf_field *array, uint64_t index);
@@ -1560,10 +1551,7 @@ struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field);
 void bt_ctf_field_get(struct bt_ctf_field *field);
 void bt_ctf_field_put(struct bt_ctf_field *field);
 
-/* =================================================================
-			EVENT.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* event-class.h */
 %rename("_bt_ctf_event_class_create") bt_ctf_event_class_create(const char *name);
 %rename("_bt_ctf_event_class_get_name") bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_get_id") bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
@@ -1575,14 +1563,6 @@ void bt_ctf_field_put(struct bt_ctf_field *field);
 %rename("_bt_ctf_event_class_get_field_by_name") bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 %rename("_bt_ctf_event_class_get") bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_put") bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
-%rename("_bt_ctf_event_create") bt_ctf_event_create(struct bt_ctf_event_class *event_class);
-%rename("_bt_ctf_event_get_class") bt_ctf_event_get_class(struct bt_ctf_event *event);
-%rename("_bt_ctf_event_get_clock") bt_ctf_event_get_clock(struct bt_ctf_event *event);
-%rename("_bt_ctf_event_get_payload") bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
-%rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
-%rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
-%rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
-%rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
 
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
 const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class);
@@ -1595,6 +1575,17 @@ int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const c
 struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
+
+/* event.h */
+%rename("_bt_ctf_event_create") bt_ctf_event_create(struct bt_ctf_event_class *event_class);
+%rename("_bt_ctf_event_get_class") bt_ctf_event_get_class(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_get_clock") bt_ctf_event_get_clock(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_get_payload") bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
+%rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
+%rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
+%rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
+
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class);
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event);
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event);
@@ -1604,10 +1595,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload_by_index(struct bt_ctf_event *even
 void bt_ctf_event_get(struct bt_ctf_event *event);
 void bt_ctf_event_put(struct bt_ctf_event *event);
 
-/* =================================================================
-			STREAM.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* stream-class.h */
 %rename("_bt_ctf_stream_class_create") bt_ctf_stream_class_create(const char *name);
 %rename("_bt_ctf_stream_class_get_name") bt_ctf_stream_class_get_name(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_get_clock") bt_ctf_stream_class_get_clock(struct bt_ctf_stream_class *stream_class);
@@ -1622,14 +1610,6 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_class_set_packet_context_type") bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
 %rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
-%rename("_bt_ctf_stream_get_discarded_events_count") bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *count);
-%rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
-%rename("_bt_ctf_stream_append_event") bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
-%rename("_bt_ctf_stream_get_packet_context") bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stream);
-%rename("_bt_ctf_stream_set_packet_context") bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream, struct bt_ctf_field *packet_context);
-%rename("_bt_ctf_stream_flush") bt_ctf_stream_flush(struct bt_ctf_stream *stream);
-%rename("_bt_ctf_stream_get") bt_ctf_stream_get(struct bt_ctf_stream *stream);
-%rename("_bt_ctf_stream_put") bt_ctf_stream_put(struct bt_ctf_stream *stream);
 
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 const char *bt_ctf_stream_class_get_name(struct bt_ctf_stream_class *stream_class);
@@ -1645,6 +1625,17 @@ struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(struct bt_
 int bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+
+/* stream.h */
+%rename("_bt_ctf_stream_get_discarded_events_count") bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *count);
+%rename("_bt_ctf_stream_append_discarded_events") bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
+%rename("_bt_ctf_stream_append_event") bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
+%rename("_bt_ctf_stream_get_packet_context") bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_set_packet_context") bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream, struct bt_ctf_field *packet_context);
+%rename("_bt_ctf_stream_flush") bt_ctf_stream_flush(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_get") bt_ctf_stream_get(struct bt_ctf_stream *stream);
+%rename("_bt_ctf_stream_put") bt_ctf_stream_put(struct bt_ctf_stream *stream);
+
 int bt_ctf_stream_get_discarded_events_count(struct bt_ctf_stream *stream, uint64_t *OUTPUT);
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream, uint64_t event_count);
 int bt_ctf_stream_append_event(struct bt_ctf_stream *stream, struct bt_ctf_event *event);
@@ -1654,10 +1645,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 void bt_ctf_stream_get(struct bt_ctf_stream *stream);
 void bt_ctf_stream_put(struct bt_ctf_stream *stream);
 
-/* =================================================================
-			WRITER.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
+/* writer.h */
 %rename("_bt_ctf_writer_create") bt_ctf_writer_create(const char *path);
 %rename("_bt_ctf_writer_create_stream") bt_ctf_writer_create_stream(struct bt_ctf_writer *writer, struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_writer_add_environment_field") bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer, const char *name, const char *value);
