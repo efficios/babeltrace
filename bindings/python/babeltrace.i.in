@@ -61,11 +61,7 @@ trace to it."
 typedef int bt_intern_str;
 typedef int64_t ssize_t;
 
-/* =================================================================
-		PYTHON-COMPLEMENTS.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
+/* python-complements.h */
 struct bt_definition **_bt_python_field_listcaller(
 		const struct bt_ctf_event *ctf_event,
 		const struct bt_definition *scope,
@@ -119,11 +115,7 @@ int _bt_python_ctf_clock_get_uuid_index(struct bt_ctf_clock *clock,
 int _bt_python_ctf_clock_set_uuid_index(struct bt_ctf_clock *clock,
 		size_t index, unsigned char value);
 
-/* =================================================================
-		CONTEXT.H, CONTEXT-INTERNAL.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
+/* context.h, context-internal.h */
 %rename("_bt_context_create") bt_context_create(void);
 %rename("_bt_context_add_trace") bt_context_add_trace(
 		struct bt_context *ctx, const char *path, const char *format,
@@ -145,7 +137,7 @@ void bt_context_get(struct bt_context *ctx);
 void bt_context_put(struct bt_context *ctx);
 struct bt_context *bt_ctf_event_get_context(const struct bt_ctf_event *event);
 
-// class TraceCollection to prevent direct access to struct bt_context
+/* class TraceCollection to prevent direct access to struct bt_context */
 %pythoncode%{
 
 class TraceCollection:
@@ -321,11 +313,7 @@ class TraceCollection:
 
 
 
-/* =================================================================
-		FORMAT.H, REGISTRY
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
+/* format.h */
 %rename("lookup_format") bt_lookup_format(bt_intern_str qname);
 %rename("_bt_print_format_list") bt_fprintf_format_list(FILE *fp);
 %rename("register_format") bt_register_format(struct format *format);
@@ -353,12 +341,7 @@ def print_format_list(babeltrace_file):
 
 %}
 
-
-/* =================================================================
-		ITERATOR.H, ITERATOR-INTERNAL.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
+/* iterator.h, iterator-internal.h */
 %rename("_bt_iter_create") bt_iter_create(struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos, const struct bt_iter_pos *end_pos);
 %rename("_bt_iter_destroy") bt_iter_destroy(struct bt_iter *iter);
@@ -386,8 +369,10 @@ struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter, uint64_t times
 %rename("SEEK_BEGIN") BT_SEEK_BEGIN;
 %rename("SEEK_LAST") BT_SEEK_LAST;
 
-// This struct is taken from iterator.h
-// All changes to the struct must also be made here
+/*
+ * This struct is taken from iterator.h
+ * All changes to the struct must also be made here.
+ */
 struct bt_iter_pos {
 	enum {
 		BT_SEEK_TIME,		/* uses u.seek_time */
@@ -402,11 +387,7 @@ struct bt_iter_pos {
 	} u;
 };
 
-/* =================================================================
-		TRACE-HANDLE.H, TRACE-HANDLE-INTERNAL.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
+/* trace-handle.h, trace-handle-internal.h */
 %rename("_bt_trace_handle_create") bt_trace_handle_create(struct bt_context *ctx);
 %rename("_bt_trace_handle_destroy") bt_trace_handle_destroy(struct bt_trace_handle *bt);
 struct bt_trace_handle *bt_trace_handle_create(struct bt_context *ctx);
@@ -493,17 +474,7 @@ class TraceHandle(object):
 
 %}
 
-
-// =================================================================
-//				CTF
-// =================================================================
-
-/* =================================================================
-		ITERATOR.H, EVENTS.H
-		¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-*/
-
-//Iterator
+/* iterator.h, events.h */
 %rename("_bt_ctf_iter_create") bt_ctf_iter_create(struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos,
 		const struct bt_iter_pos *end_pos);
@@ -519,7 +490,7 @@ void bt_ctf_iter_destroy(struct bt_ctf_iter *iter);
 struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
 
-//Events
+/* events.h */
 %rename("_bt_ctf_get_top_level_scope") bt_ctf_get_top_level_scope(const struct
 		bt_ctf_event *event, enum bt_ctf_scope scope);
 %rename("_bt_ctf_event_name") bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
@@ -1357,10 +1328,7 @@ class _Definition(object):
 
 %}
 
-
-// =================================================================
-//				CTF Writer
-// =================================================================
+/* CTF Writer */
 
 /* clock.h */
 %rename("_bt_ctf_clock_create") bt_ctf_clock_create(const char *name);
