@@ -50,6 +50,8 @@ struct range_overlap_query {
 };
 
 static
+void bt_ctf_field_type_destroy(struct bt_ctf_ref *);
+static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *);
 static
 void bt_ctf_field_type_enumeration_destroy(struct bt_ctf_ref *);
@@ -276,6 +278,29 @@ int add_structure_field(GPtrArray *fields,
 	bt_ctf_field_type_freeze(field_type);
 end:
 	return ret;
+}
+
+static
+void bt_ctf_field_type_destroy(struct bt_ctf_ref *ref)
+{
+	struct bt_ctf_field_type *type;
+	enum ctf_type_id type_id;
+
+	if (!ref) {
+		return;
+	}
+
+	type = container_of(ref, struct bt_ctf_field_type, ref_count);
+	type_id = type->declaration->id;
+	if (type_id <= CTF_TYPE_UNKNOWN ||
+		type_id >= NR_CTF_TYPES) {
+		return;
+	}
+
+	if (type->alias_name) {
+		g_string_free(type->alias_name, TRUE);
+	}
+	type_destroy_funcs[type_id](ref);
 }
 
 BT_HIDDEN
@@ -1620,6 +1645,20 @@ enum ctf_type_id bt_ctf_field_type_get_type_id(
 	return type->declaration->id;
 }
 
+const char *bt_ctf_field_type_get_alias_name(
+		struct bt_ctf_field_type *type)
+{
+	const char *name = NULL;
+
+	if (!type || !type->alias_name) {
+		goto end;
+	}
+
+	name = type->alias_name->str;
+end:
+	return name;
+}
+
 void bt_ctf_field_type_get(struct bt_ctf_field_type *type)
 {
 	if (!type) {
@@ -1631,15 +1670,11 @@ void bt_ctf_field_type_get(struct bt_ctf_field_type *type)
 
 void bt_ctf_field_type_put(struct bt_ctf_field_type *type)
 {
-	enum ctf_type_id type_id;
-
 	if (!type) {
 		return;
 	}
 
-	type_id = type->declaration->id;
-	assert(type_id > CTF_TYPE_UNKNOWN && type_id < NR_CTF_TYPES);
-	bt_ctf_ref_put(&type->ref_count, type_destroy_funcs[type_id]);
+	bt_ctf_ref_put(&type->ref_count, bt_ctf_field_type_destroy);
 }
 
 BT_HIDDEN
