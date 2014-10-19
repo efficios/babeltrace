@@ -52,6 +52,24 @@ struct bt_ctf_clock {
 	int frozen;
 };
 
+/*
+ * This is not part of the public API to prevent users from creating clocks
+ * in an invalid state (being nameless, in this case).
+ *
+ * The only legitimate use-case for this function is to allocate a clock
+ * while the TSDL metadata is being parsed.
+ */
+BT_HIDDEN
+struct bt_ctf_clock *_bt_ctf_clock_create(void);
+
+/*
+ * Not exposed as part of the public API since the only usecase
+ * for this is when we are creating clocks from the TSDL metadata.
+ */
+BT_HIDDEN
+int bt_ctf_clock_set_name(struct bt_ctf_clock *clock,
+		const char *name);
+
 BT_HIDDEN
 void bt_ctf_clock_freeze(struct bt_ctf_clock *clock);
 

@@ -35,28 +35,63 @@
 static
 void bt_ctf_clock_destroy(struct bt_ctf_ref *ref);
 
-struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
+BT_HIDDEN
+struct bt_ctf_clock *_bt_ctf_clock_create(void)
 {
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock *clock = g_new0(
+		struct bt_ctf_clock, 1);
 
-	if (validate_identifier(name)) {
-		goto error;
-	}
-
-	clock = g_new0(struct bt_ctf_clock, 1);
 	if (!clock) {
-		goto error;
-	}
-
-	clock->name = g_string_new(name);
-	if (!clock->name) {
-		goto error_destroy;
+		goto end;
 	}
 
 	clock->precision = 1;
 	clock->frequency = 1000000000;
 	uuid_generate(clock->uuid);
 	bt_ctf_ref_init(&clock->ref_count);
+end:
+	return clock;
+}
+
+BT_HIDDEN
+int bt_ctf_clock_set_name(struct bt_ctf_clock *clock,
+		const char *name)
+{
+	int ret = 0;
+
+	if (validate_identifier(name)) {
+		ret = -1;
+		goto end;
+	}
+
+	if (clock->name) {
+		g_string_free(clock->name, TRUE);
+	}
+
+	clock->name = g_string_new(name);
+	if (!clock->name) {
+		ret = -1;
+		goto end;
+	}
+end:
+	return ret;
+}
+
+struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
+{
+	int ret;
+	struct bt_ctf_clock *clock = NULL;
+
+	clock = _bt_ctf_clock_create();
+	if (!clock) {
+		goto error;
+	}
+
+	ret = bt_ctf_clock_set_name(clock, name);
+	if (ret) {
+		goto error_destroy;
+	}
+
 	return clock;
 error_destroy:
 	bt_ctf_clock_destroy(&clock->ref_count);
