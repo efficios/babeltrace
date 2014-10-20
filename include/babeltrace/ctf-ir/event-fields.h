@@ -82,7 +82,7 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
  * Returns a field instance on success, NULL on error.
  */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
-		struct bt_ctf_field *structure, size_t index);
+		struct bt_ctf_field *structure, int index);
 
 /*
  * bt_ctf_field_array_get_field: get an array's field at position "index".

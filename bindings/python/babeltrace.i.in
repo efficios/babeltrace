@@ -1383,11 +1383,11 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_field_type_enumeration_add_mapping") bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *name, int64_t range_start, int64_t range_end);
 %rename("_bt_ctf_field_type_enumeration_add_mapping_unsigned") bt_ctf_field_type_enumeration_add_mapping_unsigned(struct bt_ctf_field_type *enumeration, const char *name, uint64_t range_start, uint64_t range_end);
 %rename("_bt_ctf_field_type_enumeration_get_mapping_count") bt_ctf_field_type_enumeration_get_mapping_count(struct bt_ctf_field_type *enumeration);
-%rename("_bt_ctf_field_type_enumeration_get_mapping") bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, size_t index, const char **name, int64_t *range_start, int64_t *range_end);
-%rename("_bt_ctf_field_type_enumeration_get_mapping_unsigned") bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, size_t index, const char **name, uint64_t *range_start, uint64_t *range_end);
-%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_name") bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name, size_t *index);
-%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_value") bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value, size_t *index);
-%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value") bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value, size_t *index);
+%rename("_bt_ctf_field_type_enumeration_get_mapping") bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, int index, const char **name, int64_t *range_start, int64_t *range_end);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_unsigned") bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, int index, const char **name, uint64_t *range_start, uint64_t *range_end);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_name") bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_value") bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value);
+%rename("_bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value") bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value);
 %rename("_bt_ctf_field_type_floating_point_create") bt_ctf_field_type_floating_point_create(void);
 %rename("_bt_ctf_field_type_floating_point_get_exponent_digits") bt_ctf_field_type_floating_point_get_exponent_digits(struct bt_ctf_field_type *floating_point);
 %rename("_bt_ctf_field_type_floating_point_set_exponent_digits") bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
@@ -1396,7 +1396,7 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_field_type_structure_create") bt_ctf_field_type_structure_create(void);
 %rename("_bt_ctf_field_type_structure_add_field") bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
 %rename("_bt_ctf_field_type_structure_get_field_count") bt_ctf_field_type_structure_get_field_count(struct bt_ctf_field_type *structure);
-%rename("_bt_ctf_field_type_structure_get_field") bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+%rename("_bt_ctf_field_type_structure_get_field") bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **field_name, struct bt_ctf_field_type **field_type, int index);
 %rename("_bt_ctf_field_type_structure_get_field_type_by_name") bt_ctf_field_type_structure_get_field_type_by_name(struct bt_ctf_field_type *structure, const char *field_name);
 %rename("_bt_ctf_field_type_variant_create") bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
 %rename("_bt_ctf_field_type_variant_get_tag_type") bt_ctf_field_type_variant_get_tag_type(struct bt_ctf_field_type *variant);
@@ -1405,7 +1405,7 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_field_type_variant_get_field_type_by_name") bt_ctf_field_type_variant_get_field_type_by_name(struct bt_ctf_field_type *variant, const char *field_name);
 %rename("_bt_ctf_field_type_variant_get_field_type_from_tag") bt_ctf_field_type_variant_get_field_type_from_tag(struct bt_ctf_field_type *variant, struct bt_ctf_field *tag);
 %rename("_bt_ctf_field_type_variant_get_field_count") bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *variant);
-%rename("_bt_ctf_field_type_variant_get_field") bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+%rename("_bt_ctf_field_type_variant_get_field") bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **field_name, struct bt_ctf_field_type **field_type, int index);
 %rename("_bt_ctf_field_type_array_create") bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
 %rename("_bt_ctf_field_type_array_get_element_type") bt_ctf_field_type_array_get_element_type(struct bt_ctf_field_type *array);
 %rename("_bt_ctf_field_type_array_get_length") bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *array);
@@ -1435,12 +1435,12 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(struct bt_ctf_fie
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(struct bt_ctf_field_type *enumeration);
 int bt_ctf_field_type_enumeration_add_mapping(struct bt_ctf_field_type *enumeration, const char *name, int64_t range_start, int64_t range_end);
 int bt_ctf_field_type_enumeration_add_mapping_unsigned(struct bt_ctf_field_type *enumeration, const char *name, uint64_t range_start, uint64_t range_end);
-int64_t bt_ctf_field_type_enumeration_get_mapping_count(struct bt_ctf_field_type *enumeration);
-int bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, size_t index, const char **OUTPUT, int64_t *OUTPUT, int64_t *OUTPUT);
-int bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, size_t index, const char **OUTPUT, uint64_t *OUTPUT, uint64_t *OUTPUT);
-int bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name, size_t *OUTPUT);
-int bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value, size_t *OUTPUT);
-int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value, size_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_count(struct bt_ctf_field_type *enumeration);
+int bt_ctf_field_type_enumeration_get_mapping(struct bt_ctf_field_type *enumeration, int index, const char **OUTPUT, int64_t *OUTPUT, int64_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_unsigned(struct bt_ctf_field_type *enumeration, int index, const char **OUTPUT, uint64_t *OUTPUT, uint64_t *OUTPUT);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_name(struct bt_ctf_field_type *enumeration, const char *name);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_value(struct bt_ctf_field_type *enumeration, int64_t value);
+int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(struct bt_ctf_field_type *enumeration, uint64_t value);
 struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
 int bt_ctf_field_type_floating_point_get_exponent_digits(struct bt_ctf_field_type *floating_point);
 int bt_ctf_field_type_floating_point_set_exponent_digits(struct bt_ctf_field_type *floating_point, unsigned int exponent_digits);
@@ -1448,8 +1448,8 @@ int bt_ctf_field_type_floating_point_get_mantissa_digits(struct bt_ctf_field_typ
 int bt_ctf_field_type_floating_point_set_mantissa_digits(struct bt_ctf_field_type *floating_point, unsigned int mantissa_digits);
 struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
 int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *structure, struct bt_ctf_field_type *field_type, const char *field_name);
-int64_t bt_ctf_field_type_structure_get_field_count(struct bt_ctf_field_type *structure);
-int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, size_t index);
+int bt_ctf_field_type_structure_get_field_count(struct bt_ctf_field_type *structure);
+int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *structure, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, int index);
 struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(struct bt_ctf_field_type *structure, const char *field_name);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_create(struct bt_ctf_field_type *enum_tag, const char *tag_name);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(struct bt_ctf_field_type *variant);
@@ -1457,8 +1457,8 @@ const char *bt_ctf_field_type_variant_get_tag_name(struct bt_ctf_field_type *var
 int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *variant, struct bt_ctf_field_type *field_type, const char *field_name);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(struct bt_ctf_field_type *variant, const char *field_name);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(struct bt_ctf_field_type *variant, struct bt_ctf_field *tag);
-int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *variant);
-int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, size_t index);
+int bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *variant);
+int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *variant, const char **OUTPUT, struct bt_ctf_field_type **OUTPUT, int index);
 struct bt_ctf_field_type *bt_ctf_field_type_array_create(struct bt_ctf_field_type *element_type, unsigned int length);
 struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(struct bt_ctf_field_type *array);
 int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *array);
@@ -1527,7 +1527,7 @@ void bt_ctf_field_put(struct bt_ctf_field *field);
 %rename("_bt_ctf_event_class_get_stream_class") bt_ctf_event_class_get_stream_class(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_add_field") bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
 %rename("_bt_ctf_event_class_get_field_count") bt_ctf_event_class_get_field_count(struct bt_ctf_event_class *event_class);
-%rename("_bt_ctf_event_class_get_field") bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+%rename("_bt_ctf_event_class_get_field") bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, int index);
 %rename("_bt_ctf_event_class_get_field_by_name") bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 %rename("_bt_ctf_event_class_get") bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_class_put") bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
@@ -1538,8 +1538,8 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class);
 int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class, uint32_t id);
 struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(struct bt_ctf_event_class *event_class);
 int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class, struct bt_ctf_field_type *type, const char *name);
-int64_t bt_ctf_event_class_get_field_count(struct bt_ctf_event_class *event_class);
-int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, size_t index);
+int bt_ctf_event_class_get_field_count(struct bt_ctf_event_class *event_class);
+int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class, const char **field_name, struct bt_ctf_field_type **field_type, int index);
 struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(struct bt_ctf_event_class *event_class, const char *name);
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
@@ -1550,7 +1550,7 @@ void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_get_clock") bt_ctf_event_get_clock(struct bt_ctf_event *event);
 %rename("_bt_ctf_event_get_payload") bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
 %rename("_bt_ctf_event_set_payload") bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
-%rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
+%rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, int index);
 %rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
 %rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
 
@@ -1559,7 +1559,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event);
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event);
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event, const char *name);
 int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struct bt_ctf_field *value);
-struct bt_ctf_field *bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, size_t index);
+struct bt_ctf_field *bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, int index);
 void bt_ctf_event_get(struct bt_ctf_event *event);
 void bt_ctf_event_put(struct bt_ctf_event *event);
 
@@ -1572,7 +1572,7 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_class_set_id") bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class, uint32_t id);
 %rename("_bt_ctf_stream_class_add_event_class") bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_stream_class_get_event_class_count") bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
-%rename("_bt_ctf_stream_class_get_event_class") bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
+%rename("_bt_ctf_stream_class_get_event_class") bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, int index);
 %rename("_bt_ctf_stream_class_get_event_class_by_name") bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 %rename("_bt_ctf_stream_class_get_packet_context_type") bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_set_packet_context_type") bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
@@ -1586,8 +1586,8 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class, stru
 int64_t bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class, uint32_t id);
 int bt_ctf_stream_class_add_event_class(struct bt_ctf_stream_class *stream_class, struct bt_ctf_event_class *event_class);
-int64_t bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
-struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, size_t index);
+int bt_ctf_stream_class_get_event_class_count(struct bt_ctf_stream_class *stream_class);
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_stream_class *stream_class, int index);
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
@@ -2076,9 +2076,9 @@ class CTFWriter:
 		"""
 
         def get_mapping_by_name(self, name):
-            ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_name(
+            index = _bt_ctf_field_type_enumeration_get_mapping_index_by_name(
                 self._ft, name)
-            if ret < 0:
+            if index < 0:
                 return None
 
             if self.container.signed:
@@ -2102,13 +2102,13 @@ class CTFWriter:
 
         def get_mapping_by_value(self, value):
             if value < 0:
-                ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_value(
+                index = _bt_ctf_field_type_enumeration_get_mapping_index_by_value(
                     self._ft, value)
             else:
-                ret, index = _bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
+                index = _bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
                     self._ft, value)
 
-            if ret < 0:
+            if index < 0:
                 return None
 
             if self.container.signed:

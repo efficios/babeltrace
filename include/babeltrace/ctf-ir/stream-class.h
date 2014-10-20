@@ -144,7 +144,7 @@ extern int bt_ctf_stream_class_add_event_class(
  *
  * Returns the stream class' event count, a negative value on error.
  */
-extern int64_t bt_ctf_stream_class_get_event_class_count(
+extern int bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class);
 
 /*
@@ -156,7 +156,7 @@ extern int64_t bt_ctf_stream_class_get_event_class_count(
  * Returns event class, NULL on error.
  */
 extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
-		struct bt_ctf_stream_class *stream_class, size_t index);
+		struct bt_ctf_stream_class *stream_class, int index);
 
 /*
  * bt_ctf_stream_class_get_event_class_by_name: Get stream class event class by

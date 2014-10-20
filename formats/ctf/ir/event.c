@@ -153,10 +153,10 @@ end:
 	return ret;
 }
 
-int64_t bt_ctf_event_class_get_field_count(
+int bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class)
 {
-	int64_t ret;
+	int ret;
 
 	if (!event_class) {
 		ret = -1;
@@ -170,11 +170,11 @@ end:
 
 int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		size_t index)
+		int index)
 {
 	int ret;
 
-	if (!event_class) {
+	if (!event_class || index < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -331,11 +331,11 @@ end:
 }
 
 struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
-		struct bt_ctf_event *event, size_t index)
+		struct bt_ctf_event *event, int index)
 {
 	struct bt_ctf_field *field = NULL;
 
-	if (!event) {
+	if (!event || index < 0) {
 		goto end;
 	}
 

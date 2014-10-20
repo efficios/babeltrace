@@ -229,7 +229,7 @@ extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
  *
  * Returns the mapping count on success, a negative value on error.
  */
-extern int64_t bt_ctf_field_type_enumeration_get_mapping_count(
+extern int bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enumeration);
 
 /*
@@ -247,7 +247,7 @@ extern int64_t bt_ctf_field_type_enumeration_get_mapping_count(
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_enumeration_get_mapping(
-		struct bt_ctf_field_type *enumeration, size_t index,
+		struct bt_ctf_field_type *enumeration, int index,
 		const char **name, int64_t *range_start, int64_t *range_end);
 
 /*
@@ -265,7 +265,7 @@ extern int bt_ctf_field_type_enumeration_get_mapping(
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
-		struct bt_ctf_field_type *enumeration, size_t index,
+		struct bt_ctf_field_type *enumeration, int index,
 		const char **name, uint64_t *range_start,
 		uint64_t *range_end);
 
@@ -275,13 +275,11 @@ extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
  *
  * @param enumeration Enumeration type.
  * @param name Mapping name.
- * @param index Pointer where the enumeration's mapping index will be returned.
  *
- * Returns 0 on success, a negative value on error.
+ * Returns mapping index on success, a negative value on error.
  */
 extern int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
-		struct bt_ctf_field_type *enumeration, const char *name,
-		size_t *index);
+		struct bt_ctf_field_type *enumeration, const char *name);
 
 /*
  * bt_ctf_field_type_enumeration_get_mapping_index_by_value: get an
@@ -289,13 +287,11 @@ extern int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
  *
  * @param enumeration Enumeration type.
  * @param value Value.
- * @param index Pointer where the enumeration's mapping index will be returned.
  *
- * Returns 0 on success, a negative value on error.
+ * Returns mapping index on success, a negative value on error.
  */
 extern int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
-		struct bt_ctf_field_type *enumeration, int64_t value,
-		size_t *index);
+		struct bt_ctf_field_type *enumeration, int64_t value);
 
 /*
  * bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value: get an
@@ -303,13 +299,11 @@ extern int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
  *
  * @param enumeration Enumeration type.
  * @param value Value.
- * @param index Pointer where the enumeration's mapping index will be returned.
  *
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
-		struct bt_ctf_field_type *enumeration, uint64_t value,
-		size_t *index);
+		struct bt_ctf_field_type *enumeration, uint64_t value);
 
 /*
  * bt_ctf_field_type_floating_point_create: create a floating point field type.
@@ -412,7 +406,7 @@ extern int bt_ctf_field_type_structure_add_field(
  *
  * Returns the field count on success, a negative value on error.
  */
-extern int64_t bt_ctf_field_type_structure_get_field_count(
+extern int bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *structure);
 
 /*
@@ -430,7 +424,7 @@ extern int64_t bt_ctf_field_type_structure_get_field_count(
 extern int bt_ctf_field_type_structure_get_field(
 		struct bt_ctf_field_type *structure,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		size_t index);
+		int index);
 
 /*
  * bt_ctf_field_type_structure_get_field_type_by_name: get a structure field's
@@ -531,7 +525,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
  *
  * Returns the field count on success, a negative value on error.
  */
-extern int64_t bt_ctf_field_type_variant_get_field_count(
+extern int bt_ctf_field_type_variant_get_field_count(
 		struct bt_ctf_field_type *variant);
 
 /*
@@ -548,7 +542,7 @@ extern int64_t bt_ctf_field_type_variant_get_field_count(
  */
 extern int bt_ctf_field_type_variant_get_field(
 		struct bt_ctf_field_type *variant, const char **field_name,
-		struct bt_ctf_field_type **field_type, size_t index);
+		struct bt_ctf_field_type **field_type, int index);
 
 /*
  * bt_ctf_field_type_array_create: create an array field type.

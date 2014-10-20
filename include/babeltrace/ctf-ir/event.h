@@ -126,7 +126,7 @@ extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
  *
  * Returns the event class' field count, a negative value on error.
  */
-extern int64_t bt_ctf_event_class_get_field_count(
+extern int bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class);
 
 /*
@@ -143,7 +143,7 @@ extern int64_t bt_ctf_event_class_get_field_count(
  */
 extern int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		size_t index);
+		int index);
 
 /*
  * bt_ctf_event_class_get_field_type_by_name: Get an event class's field by name
@@ -251,7 +251,7 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
  * Returns the event's field, NULL on error.
  */
 extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
-		struct bt_ctf_event *event, size_t index);
+		struct bt_ctf_event *event, int index);
 
 /*
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement

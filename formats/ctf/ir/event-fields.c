@@ -372,7 +372,7 @@ error:
 }
 
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
-		struct bt_ctf_field *field, size_t index)
+		struct bt_ctf_field *field, int index)
 {
 	int ret;
 	const char *field_name;

@@ -203,27 +203,28 @@ end:
 	return ret;
 }
 
-int64_t bt_ctf_stream_class_get_event_class_count(
+int bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class)
 {
-	int64_t ret;
+	int ret;
 
 	if (!stream_class) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = (int64_t) stream_class->event_classes->len;
+	ret = (int) stream_class->event_classes->len;
 end:
 	return ret;
 }
 
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
-		struct bt_ctf_stream_class *stream_class, size_t index)
+		struct bt_ctf_stream_class *stream_class, int index)
 {
 	struct bt_ctf_event_class *event_class = NULL;
 
-	if (!stream_class || index >= stream_class->event_classes->len) {
+	if (!stream_class || index < 0 ||
+		index >= stream_class->event_classes->len) {
 		goto end;
 	}
 

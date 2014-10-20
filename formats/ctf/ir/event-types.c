@@ -703,10 +703,10 @@ end:
 	return name;
 }
 
-int64_t bt_ctf_field_type_enumeration_get_mapping_count(
+int bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *type)
 {
-	int64_t ret = 0;
+	int ret = 0;
 	struct bt_ctf_field_type_enumeration *enumeration;
 
 	if (!type || (type->declaration->id != CTF_TYPE_ENUM)) {
@@ -716,14 +716,14 @@ int64_t bt_ctf_field_type_enumeration_get_mapping_count(
 
 	enumeration = container_of(type, struct bt_ctf_field_type_enumeration,
 		parent);
-	ret = enumeration->entries->len;
+	ret = (int) enumeration->entries->len;
 end:
 	return ret;
 }
 
 static inline
 struct enumeration_mapping *get_enumeration_mapping(
-	struct bt_ctf_field_type *type, size_t index)
+	struct bt_ctf_field_type *type, int index)
 {
 	struct enumeration_mapping *mapping = NULL;
 	struct bt_ctf_field_type_enumeration *enumeration;
@@ -740,13 +740,13 @@ end:
 }
 
 int bt_ctf_field_type_enumeration_get_mapping(
-		struct bt_ctf_field_type *type, size_t index,
+		struct bt_ctf_field_type *type, int index,
 		const char **string, int64_t *range_start, int64_t *range_end)
 {
 	struct enumeration_mapping *mapping;
 	int ret = 0;
 
-	if (!type || !string || !range_start || !range_end ||
+	if (!type || index < 0 || !string || !range_start || !range_end ||
 		(type->declaration->id != CTF_TYPE_ENUM)) {
 		ret = -1;
 		goto end;
@@ -766,13 +766,13 @@ end:
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_unsigned(
-		struct bt_ctf_field_type *type, size_t index,
+		struct bt_ctf_field_type *type, int index,
 		const char **string, uint64_t *range_start, uint64_t *range_end)
 {
 	struct enumeration_mapping *mapping;
 	int ret = 0;
 
-	if (!type || !string || !range_start || !range_end ||
+	if (!type || index < 0 || !string || !range_start || !range_end ||
 		(type->declaration->id != CTF_TYPE_ENUM)) {
 		ret = -1;
 		goto end;
@@ -792,15 +792,13 @@ end:
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
-		struct bt_ctf_field_type *type, const char *name,
-		size_t *index)
+		struct bt_ctf_field_type *type, const char *name)
 {
-	size_t i;
 	GQuark name_quark;
 	struct bt_ctf_field_type_enumeration *enumeration;
-	int ret = 0;
+	int i, ret = 0;
 
-	if (!type || !name || !index ||
+	if (!type || !name ||
 		(type->declaration->id != CTF_TYPE_ENUM)) {
 		ret = -1;
 		goto end;
@@ -819,7 +817,7 @@ int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
 			get_enumeration_mapping(type, i);
 
 		if (mapping->string == name_quark) {
-			*index = i;
+			ret = i;
 			goto end;
 		}
 	}
@@ -830,14 +828,12 @@ end:
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
-		struct bt_ctf_field_type *type, int64_t value,
-		size_t *index)
+		struct bt_ctf_field_type *type, int64_t value)
 {
 	struct bt_ctf_field_type_enumeration *enumeration;
-	size_t i;
-	int ret = 0;
+	int i, ret = 0;
 
-	if (!type || !index || (type->declaration->id != CTF_TYPE_ENUM)) {
+	if (!type || (type->declaration->id != CTF_TYPE_ENUM)) {
 		ret = -1;
 		goto end;
 	}
@@ -850,7 +846,7 @@ int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
 
 		if (value >= mapping->range_start._signed &&
 			value <= mapping->range_end._signed) {
-			*index = i;
+			ret = i;
 			goto end;
 		}
 	}
@@ -861,14 +857,12 @@ end:
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
-		struct bt_ctf_field_type *type, uint64_t value,
-		size_t *index)
+		struct bt_ctf_field_type *type, uint64_t value)
 {
 	struct bt_ctf_field_type_enumeration *enumeration;
-	size_t i;
-	int ret = 0;
+	int i, ret = 0;
 
-	if (!type || !index || (type->declaration->id != CTF_TYPE_ENUM)) {
+	if (!type || (type->declaration->id != CTF_TYPE_ENUM)) {
 		ret = -1;
 		goto end;
 	}
@@ -881,7 +875,7 @@ int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
 
 		if (value >= mapping->range_start._unsigned &&
 			value <= mapping->range_end._unsigned) {
-			*index = i;
+			ret = i;
 			goto end;
 		}
 	}
@@ -1061,10 +1055,10 @@ end:
 	return ret;
 }
 
-int64_t bt_ctf_field_type_structure_get_field_count(
+int bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *type)
 {
-	int64_t ret = 0;
+	int ret = 0;
 	struct bt_ctf_field_type_structure *structure;
 
 	if (!type || (type->declaration->id != CTF_TYPE_STRUCT)) {
@@ -1074,20 +1068,20 @@ int64_t bt_ctf_field_type_structure_get_field_count(
 
 	structure = container_of(type, struct bt_ctf_field_type_structure,
 		parent);
-	ret = structure->fields->len;
+	ret = (int) structure->fields->len;
 end:
 	return ret;
 }
 
 int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		size_t index)
+		int index)
 {
 	struct bt_ctf_field_type_structure *structure;
 	struct structure_field *field;
 	int ret = 0;
 
-	if (!type || !field_name || !field_type ||
+	if (!type || index < 0 || !field_name || !field_type ||
 		(type->declaration->id != CTF_TYPE_STRUCT)) {
 		ret = -1;
 		goto end;
@@ -1298,9 +1292,9 @@ end:
 	return field_type;
 }
 
-int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type)
+int bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type)
 {
-	int64_t ret = 0;
+	int ret = 0;
 	struct bt_ctf_field_type_variant *variant;
 
 	if (!type || (type->declaration->id != CTF_TYPE_VARIANT)) {
@@ -1310,7 +1304,7 @@ int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type
 
 	variant = container_of(type, struct bt_ctf_field_type_variant,
 		parent);
-	ret = variant->fields->len;
+	ret = (int) variant->fields->len;
 end:
 	return ret;
 
@@ -1318,13 +1312,13 @@ end:
 
 int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		size_t index)
+		int index)
 {
 	struct bt_ctf_field_type_variant *variant;
 	struct structure_field *field;
 	int ret = 0;
 
-	if (!type || !field_name || !field_type ||
+	if (!type || index < 0 || !field_name || !field_type ||
 		(type->declaration->id != CTF_TYPE_VARIANT)) {
 		ret = -1;
 		goto end;

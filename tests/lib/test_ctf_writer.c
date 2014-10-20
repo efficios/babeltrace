@@ -303,7 +303,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	const char *mapping_name_negative_test = "negative_value";
 	const char *ret_char;
 	double ret_double;
-	size_t ret_size_t;
 	int64_t ret_range_start_int64_t, ret_range_end_int64_t;
 	uint64_t ret_range_start_uint64_t, ret_range_end_uint64_t;
 	struct bt_ctf_clock *ret_clock;
@@ -365,15 +364,11 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		-54, -55), "bt_ctf_field_type_enumeration_add_mapping rejects mapping where end < start");
 	bt_ctf_field_type_enumeration_add_mapping(enum_type, "another entry", -42000, -13000);
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(NULL, -42, &ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(NULL, -42) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, -42, NULL) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles a NULL index correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, 1000000, &ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, 1000000) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles invalid values correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, -55, &ret_size_t) == 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles invalid values correctly");
-	ok(ret_size_t == 1,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, -55) == 1,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_value returns the correct index");
 
 	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type,
@@ -619,7 +614,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	uint64_t ret_unsigned_int;
 	int64_t ret_signed_int;
 	const char *ret_string;
-	size_t ret_size_t;
 	struct bt_ctf_stream_class *ret_stream_class;
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context, *packet_context_field;
@@ -660,30 +654,21 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_enumeration_add_mapping(enum_variant_type,
 		"UINT35_TYPE", 2, 7);
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(NULL, "INT16_TYPE",
-		&ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(NULL,
+		"INT16_TYPE") < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_name handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(enum_variant_type, NULL,
-		&ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(
+		enum_variant_type, NULL) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_name handles a NULL name correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(enum_variant_type, "INT16_TYPE",
-		NULL) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_name handles a NULL index correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(enum_variant_type, "INT16_TYPE",
-		&ret_size_t) == 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_name returns a value");
-	ok(ret_size_t == 1,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(
+		enum_variant_type, "INT16_TYPE") == 1,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_name returns the correct index");
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(NULL, 1, &ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(NULL, 1) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, 1, NULL) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles a NULL index correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, -42, &ret_size_t) < 0,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, -42) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles invalid values correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, 5, &ret_size_t) == 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles invalid values correctly");
-	ok(ret_size_t == 2,
+	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, 5) == 2,
 		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value returns the correct index");
 
 	ok(bt_ctf_field_type_variant_add_field(variant_type, uint_3_type,
