@@ -282,6 +282,34 @@ end:
 	return ret;
 }
 
+int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace)
+{
+	int ret = -1;
+
+	if (!trace) {
+		goto end;
+	}
+
+	ret = trace->clocks->len;
+end:
+	return ret;
+}
+
+struct bt_ctf_clock *bt_ctf_trace_get_clock(struct bt_ctf_trace *trace,
+		int index)
+{
+	struct bt_ctf_clock *clock = NULL;
+
+	if (!trace || index < 0 || index >= trace->clocks->len) {
+		goto end;
+	}
+
+	clock = g_ptr_array_index(trace->clocks, index);
+	bt_ctf_clock_get(clock);
+end:
+	return clock;
+}
+
 BT_HIDDEN
 const char *get_byte_order_string(int byte_order)
 {

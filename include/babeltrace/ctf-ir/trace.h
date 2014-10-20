@@ -96,6 +96,27 @@ extern int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock *clock);
 
 /*
+ * bt_ctf_trace_get_clock_count: get the number of clocks
+ *	associated to the trace.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the clock count on success, a negative value on error.
+ */
+extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace);
+
+/*
+ * bt_ctf_trace_get_clock: get a trace's clock at index.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the clock in the given trace.
+ *
+ * Return a clock instance on success, NULL on error.
+ */
+extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
+		struct bt_ctf_trace *trace, int index);
+
+/*
  * bt_ctf_trace_get_metadata_string: get metadata string.
  *
  * Get the trace's TSDL metadata. The caller assumes the ownership of the
