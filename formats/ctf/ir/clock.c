@@ -26,7 +26,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
@@ -47,7 +46,6 @@ struct bt_ctf_clock *_bt_ctf_clock_create(void)
 
 	clock->precision = 1;
 	clock->frequency = 1000000000;
-	uuid_generate(clock->uuid);
 	bt_ctf_ref_init(&clock->ref_count);
 end:
 	return clock;
@@ -92,6 +90,12 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 		goto error_destroy;
 	}
 
+	ret = babeltrace_uuid_generate(clock->uuid);
+	if (ret) {
+		goto error_destroy;
+	}
+
+	clock->uuid_set = 1;
 	return clock;
 error_destroy:
 	bt_ctf_clock_destroy(&clock->ref_count);
@@ -284,7 +288,7 @@ const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock)
 {
 	const unsigned char *ret;
 
-	if (!clock) {
+	if (!clock || !clock->uuid_set) {
 		ret = NULL;
 		goto end;
 	}
@@ -298,12 +302,13 @@ int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock, const unsigned char *uuid)
 {
 	int ret = 0;
 
-	if (!clock || !uuid) {
+	if (!clock || !uuid || clock->frozen) {
 		ret = -1;
 		goto end;
 	}
 
 	memcpy(clock->uuid, uuid, sizeof(uuid_t));
+	clock->uuid_set = 1;
 end:
 	return ret;
 }

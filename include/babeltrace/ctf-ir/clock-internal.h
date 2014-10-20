@@ -32,7 +32,7 @@
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
-#include <uuid/uuid.h>
+#include <babeltrace/compat/uuid.h>
 
 struct bt_ctf_clock {
 	struct bt_ctf_ref ref_count;
@@ -44,6 +44,7 @@ struct bt_ctf_clock {
 	uint64_t offset;	/* Offset in ticks */
 	uint64_t time;		/* Current clock value */
 	uuid_t uuid;
+	int uuid_set;
 	int absolute;
 	/*
 	 * A clock's properties can't be modified once it is added to a stream
