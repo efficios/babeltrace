@@ -63,14 +63,15 @@ int bt_ctf_clock_set_name(struct bt_ctf_clock *clock,
 	}
 
 	if (clock->name) {
-		g_string_free(clock->name, TRUE);
+		g_string_assign(clock->name, name);
+	} else {
+		clock->name = g_string_new(name);
+		if (!clock->name) {
+			ret = -1;
+			goto end;
+		}
 	}
 
-	clock->name = g_string_new(name);
-	if (!clock->name) {
-		ret = -1;
-		goto end;
-	}
 end:
 	return ret;
 }
