@@ -1713,7 +1713,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_signed(
 		goto end;
 	}
 
-	field_entry = g_ptr_array_index(variant->fields, (size_t)index);
+	field_entry = g_ptr_array_index(variant->fields, (size_t) index);
 	type = field_entry->type;
 end:
 	return type;
