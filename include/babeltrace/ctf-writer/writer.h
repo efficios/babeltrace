@@ -31,6 +31,7 @@
  */
 
 #include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/trace.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +53,16 @@ struct bt_ctf_clock;
  * Returns an allocated writer on success, NULL on error.
  */
 extern struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
+
+/*
+ * bt_ctf_writer_get_trace: Get a writer's associated trace.
+ *
+ * @param writer Writer instance.
+ *
+ * Return the writer's associated instance, NULL on error.
+ */
+extern struct bt_ctf_trace *bt_ctf_writer_get_trace(
+		struct bt_ctf_writer *writer);
 
 /*
  * bt_ctf_writer_create_stream: create a stream instance.

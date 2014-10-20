@@ -131,6 +131,20 @@ void bt_ctf_writer_destroy(struct bt_ctf_ref *ref)
 	g_free(writer);
 }
 
+struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
+{
+	struct bt_ctf_trace *trace = NULL;
+
+	if (!writer) {
+		goto end;
+	}
+
+	trace = writer->trace;
+	bt_ctf_trace_get(trace);
+end:
+	return trace;
+}
+
 struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream_class *stream_class)
 {
