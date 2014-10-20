@@ -1435,6 +1435,7 @@ int main(int argc, char **argv)
 	const unsigned char *ret_uuid;
 	unsigned char tmp_uuid[16] = { 0 };
 	struct bt_ctf_field_type *packet_context_type, *packet_context_field_type;
+	struct bt_ctf_trace *trace;
 	int ret;
 
 	if (argc < 3) {
@@ -1562,6 +1563,26 @@ int main(int argc, char **argv)
 		"Add clock to writer instance");
 	ok(bt_ctf_writer_add_clock(writer, clock),
 		"Verify a clock can't be added twice to a writer instance");
+
+	ok(!bt_ctf_writer_get_trace(NULL),
+		"bt_ctf_writer_get_trace correctly handles NULL");
+	trace = bt_ctf_writer_get_trace(writer);
+	ok(trace,
+		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
+	ok(bt_ctf_trace_get_clock_count(NULL) < 0,
+		"bt_ctf_trace_get_clock_count correctly handles NULL");
+	ok(bt_ctf_trace_get_clock_count(trace) == 1,
+		"bt_ctf_trace_get_clock_count returns the correct number of clocks");
+	ok(!bt_ctf_trace_get_clock(NULL, 0),
+		"bt_ctf_trace_get_clock correctly handles NULL");
+	ok(!bt_ctf_trace_get_clock(trace, -1),
+		"bt_ctf_trace_get_clock correctly handles negative indexes");
+	ok(!bt_ctf_trace_get_clock(trace, 1),
+		"bt_ctf_trace_get_clock correctly handles out of bound accesses");
+	ret_clock = bt_ctf_trace_get_clock(trace, 0);
+	ok(ret_clock == clock,
+		"bt_ctf_trace_get_clock returns the right clock instance");
+	bt_ctf_clock_put(ret_clock);
 
 	ok(!bt_ctf_clock_get_name(NULL),
 		"bt_ctf_clock_get_name correctly handles NULL");
@@ -1711,6 +1732,7 @@ int main(int argc, char **argv)
 	bt_ctf_stream_put(stream1);
 	bt_ctf_field_type_put(packet_context_type);
 	bt_ctf_field_type_put(packet_context_field_type);
+	bt_ctf_trace_put(trace);
 	free(metadata_string);
 
 	/* Remove all trace files and delete temporary trace directory */
