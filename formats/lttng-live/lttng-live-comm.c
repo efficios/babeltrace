@@ -909,6 +909,10 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 	}
 
 	do {
+		if (lttng_live_should_quit()) {
+			ret = -1;
+			goto error;
+		}
 		/*
 		 * get_one_metadata_packet returns the number of bytes
 		 * received, 0 when we have received everything, a
