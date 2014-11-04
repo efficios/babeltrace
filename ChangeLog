@@ -1,3 +1,8 @@
+2014-11-04 Babeltrace 1.2.4
+	* Fix: make sure we can exit the get_new_metadata loop
+	* Docs fix: Change bt_ctf_writer_create_stream return description
+	* Fix: offset_s and CTF clocks with frequency != 1GHz
+
 2014-09-23 Babeltrace 1.2.3
 	* Fix: incorrect compiler warning
 	* Fix: Don't assume that PROT_WRITE grants read permissions
