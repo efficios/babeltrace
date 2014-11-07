@@ -34,7 +34,6 @@
 #include <babeltrace/compat/limits.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <dirent.h>
