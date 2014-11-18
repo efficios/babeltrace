@@ -69,7 +69,7 @@
 
 static void ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
 		size_t index, int whence);
-static void add_traces(gpointer key, gpointer value, gpointer user_data);
+static int add_traces(struct lttng_live_ctx *ctx);
 static int del_traces(gpointer key, gpointer value, gpointer user_data);
 static int get_new_metadata(struct lttng_live_ctx *ctx,
 		struct lttng_live_viewer_stream *viewer_stream,
@@ -708,11 +708,14 @@ retry:
 		if (rp.flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			printf_verbose("get_data_packet: new streams needed\n");
 			ret = ask_new_streams(ctx);
-			if (ret < 0)
+			if (ret < 0) {
 				goto error;
-			else if (ret > 0)
-				g_hash_table_foreach(ctx->session->ctf_traces,
-						add_traces, ctx->bt_ctx);
+			} else if (ret > 0) {
+				ret = add_traces(ctx);
+				if (ret < 0) {
+					goto error;
+				}
+			}
 		}
 		if (rp.flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
@@ -1030,11 +1033,14 @@ retry:
 		if (rp->flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			printf_verbose("get_next_index: need new streams\n");
 			ret = ask_new_streams(ctx);
-			if (ret < 0)
+			if (ret < 0) {
 				goto error;
-			else if (ret > 0)
-				g_hash_table_foreach(ctx->session->ctf_traces,
-						add_traces, ctx->bt_ctx);
+			} else if (ret > 0) {
+				ret = add_traces(ctx);
+				if (ret < 0) {
+					goto error;
+				}
+			}
 		}
 		break;
 	case LTTNG_VIEWER_INDEX_RETRY:
@@ -1359,15 +1365,14 @@ int del_traces(gpointer key, gpointer value, gpointer user_data)
 }
 
 static
-void add_traces(gpointer key, gpointer value, gpointer user_data)
+int add_one_trace(struct lttng_live_ctx *ctx,
+		struct lttng_live_ctf_trace *trace)
 {
 	int i, ret;
-	struct bt_context *bt_ctx = user_data;
-	struct lttng_live_ctf_trace *trace = value;
+	struct bt_context *bt_ctx = ctx->bt_ctx;
 	struct lttng_live_viewer_stream *stream;
 	struct bt_mmap_stream *new_mmap_stream;
 	struct bt_mmap_stream_list mmap_list;
-	struct lttng_live_ctx *ctx = NULL;
 	struct bt_trace_descriptor *td;
 	struct bt_trace_handle *handle;
 
@@ -1380,14 +1385,15 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 	 * times the same traces.
 	 * If a trace is already in the context, we just skip this function.
 	 */
-	if (trace->in_use)
-		return;
+	if (trace->in_use) {
+		ret = 0;
+		goto end;
+	}
 
 	BT_INIT_LIST_HEAD(&mmap_list.head);
 
 	for (i = 0; i < trace->streams->len; i++) {
 		stream = g_ptr_array_index(trace->streams, i);
-		ctx = stream->session->ctx;
 
 		if (!stream->metadata_flag) {
 			new_mmap_stream = zmalloc(sizeof(struct bt_mmap_stream));
@@ -1423,6 +1429,7 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 
 	if (!trace->metadata_fp) {
 		fprintf(stderr, "[error] No metadata stream opened\n");
+		ret = -1;
 		goto end_free;
 	}
 
@@ -1430,6 +1437,7 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 			ctf_live_packet_seek, &mmap_list, trace->metadata_fp);
 	if (ret < 0) {
 		fprintf(stderr, "[error] Error adding trace\n");
+		ret = -1;
 		goto end_free;
 	}
 	trace->metadata_stream->metadata_len = 0;
@@ -1451,7 +1459,31 @@ void add_traces(gpointer key, gpointer value, gpointer user_data)
 end_free:
 	bt_context_put(bt_ctx);
 end:
-	return;
+	return ret;
+}
+
+static
+int add_traces(struct lttng_live_ctx *ctx)
+{
+	int ret;
+	struct lttng_live_ctf_trace *trace;
+	GHashTableIter it;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&it, ctx->session->ctf_traces);
+	while (g_hash_table_iter_next(&it, &key, &value)) {
+		trace = (struct lttng_live_ctf_trace *) value;
+		ret = add_one_trace(ctx, trace);
+		if (ret < 0) {
+			goto end;
+		}
+	}
+
+	ret = 0;
+
+end:
+	return ret;
 }
 
 /*
@@ -1660,8 +1692,10 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 			}
 		}
 
-		g_hash_table_foreach(ctx->session->ctf_traces, add_traces,
-				ctx->bt_ctx);
+		ret = add_traces(ctx);
+		if (ret < 0) {
+			goto end_free;
+		}
 
 		begin_pos.type = BT_SEEK_BEGIN;
 		iter = bt_ctf_iter_create(ctx->bt_ctx, &begin_pos, NULL);
