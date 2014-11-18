@@ -720,7 +720,7 @@ int bt_iter_init(struct bt_iter *iter,
 	int i;
 	int ret = 0;
 
-	if (!iter || !ctx)
+	if (!iter || !ctx || !ctx->tc || !ctx->tc->array)
 		return -EINVAL;
 
 	if (ctx->current_iterator) {
