@@ -65,6 +65,7 @@ struct lttng_live_session {
 	uint64_t stream_count;
 	struct lttng_live_ctx *ctx;
 	struct lttng_live_viewer_stream *streams;
+	/* HashTable mapping trace_ids to ptrs to struct lttng_live_ctf_trace */
 	GHashTable *ctf_traces;
 };
 
