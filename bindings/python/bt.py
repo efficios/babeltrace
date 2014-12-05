@@ -194,7 +194,7 @@ class ClockType:
     CLOCK_REAL = 1
 
 
-class TraceHandle(object):
+class TraceHandle:
 
     """
     The TraceHandle allows the user to manipulate a trace file directly.
@@ -516,7 +516,7 @@ class FieldError(Exception):
         return repr(self.value)
 
 
-class EventDeclaration(object):
+class EventDeclaration:
 
     """Event declaration class.  Do not instantiate."""
     MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
@@ -577,7 +577,7 @@ class EventDeclaration(object):
                 yield field_declaration
 
 
-class FieldDeclaration(object):
+class FieldDeclaration:
 
     """Field declaration class. Do not instantiate."""
 
@@ -795,7 +795,7 @@ def _create_field_declaration(declaration_ptr, name, scope):
     return declaration
 
 
-class _Definition(object):
+class _Definition:
 
     def __init__(self, definition_ptr, scope):
         self._d = definition_ptr
