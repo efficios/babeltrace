@@ -177,9 +177,6 @@ class TraceCollection:
         ev_ptr = nbt._bt_ctf_iter_read_event(ctf_it_ptr)
         nbt._bt_ctf_iter_destroy(ctf_it_ptr)
 
-        if ev_ptr is None:
-            return None
-
     def _events(self, begin_pos_ptr, end_pos_ptr):
         ctf_it_ptr = nbt._bt_ctf_iter_create(self._tc, begin_pos_ptr, end_pos_ptr)
 
@@ -431,8 +428,6 @@ class Event(collections.Mapping):
         if field is not None:
             return field.value
 
-        return None
-
     def field_list_with_scope(self, scope):
         """Return a list of field names in scope."""
 
@@ -474,9 +469,7 @@ class Event(collections.Mapping):
         trace_collection = TraceCollection()
         trace_collection._tc = nbt._bt_ctf_event_get_context(self._e)
 
-        if trace_collection._tc is None:
-            return None
-        else:
+        if trace_collection._tc is not None:
             return trace_collection
 
     def __getitem__(self, field_name):
@@ -959,8 +952,6 @@ class _Definition:
 
             if definition_ptr is not None:
                 return _Definition(definition_ptr, self.scope)
-
-        return None
 
     def _get_uint64(self):
         """
