@@ -241,9 +241,9 @@ class _ClockType:
 
 class TraceHandle:
     """
-    The TraceHandle allows the user to manipulate a trace file directly.
-    It is a unique identifier representing a trace file.
-    Do not instantiate.
+    A :class:`TraceHandle` is a handle allowing the user to manipulate
+    a specific trace directly. It is a unique identifier representing a
+    trace, and is not meant to be instantiated by the user.
     """
 
     def __init__(self):
@@ -254,20 +254,27 @@ class TraceHandle:
 
     @property
     def id(self):
-        """Return the TraceHandle id."""
+        """
+        Trace handle's numeric ID.
+        """
 
         return self._id
 
     @property
     def path(self):
-        """Return the path of a TraceHandle."""
+        """
+        Path of the underlying trace.
+        """
 
         return nbt._bt_trace_handle_get_path(self._trace_collection._tc,
                                              self._id)
 
     @property
     def timestamp_begin(self):
-        """Return the creation time of the buffers of a trace."""
+        """
+        Buffers creation timestamp (nanoseconds since Epoch) of the
+        underlying trace.
+        """
 
         return nbt._bt_trace_handle_get_timestamp_begin(self._trace_collection._tc,
                                                         self._id,
@@ -275,7 +282,10 @@ class TraceHandle:
 
     @property
     def timestamp_end(self):
-        """Return the destruction timestamp of the buffers of a trace."""
+        """
+        Buffers destruction timestamp (nanoseconds since Epoch) of the
+        underlying trace.
+        """
 
         return nbt._bt_trace_handle_get_timestamp_end(self._trace_collection._tc,
                                                       self._id,
@@ -284,7 +294,11 @@ class TraceHandle:
     @property
     def events(self):
         """
-        Generator returning all events (EventDeclaration) in a trace.
+        Generates all the :class:`EventDeclaration` objects of the
+        underlying trace.
+
+        Note that this doesn't generate actual trace *events*, but
+        rather their declarations, i.e. their layouts and metadata.
         """
 
         ret = nbt._bt_python_event_decl_listcaller(self.id,
