@@ -869,7 +869,11 @@ class EventDeclaration:
 
 
 class FieldDeclaration:
-    """Field declaration class. Do not instantiate."""
+    """
+    Base class for concrete field declarations.
+
+    This class is not meant to be instantiated by the user.
+    """
 
     def __init__(self):
         raise NotImplementedError("FieldDeclaration cannot be instantiated")
@@ -881,15 +885,16 @@ class FieldDeclaration:
 
     @property
     def name(self):
-        """Return the name of a FieldDeclaration or None on error."""
+        """
+        Field's name, or ``None`` on error.
+        """
 
         return self._name
 
     @property
     def type(self):
         """
-        Return the FieldDeclaration's type. One of the entries in class
-        CTFTypeId.
+        Field's type (one of :class:`CTFTypeId` constants).
         """
 
         return nbt._bt_ctf_field_type(self._fd)
@@ -897,7 +902,7 @@ class FieldDeclaration:
     @property
     def scope(self):
         """
-        Return the FieldDeclaration's scope.
+        Field's scope (one of :class:`CTFScope` constants).
         """
 
         return self._s
