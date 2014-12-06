@@ -920,7 +920,9 @@ class FieldDeclaration:
 
 
 class IntegerFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Integer field declaration.
+    """
 
     def __init__(self):
         raise NotImplementedError("IntegerFieldDeclaration cannot be instantiated")
@@ -928,22 +930,23 @@ class IntegerFieldDeclaration(FieldDeclaration):
     @property
     def signedness(self):
         """
-        Return the signedness of an integer:
-        0 if unsigned; 1 if signed; -1 on error.
+        0 if this integer is unsigned, 1 if signed, or -1 on error.
         """
 
         return nbt._bt_ctf_get_int_signedness(self._fd)
 
     @property
     def base(self):
-        """Return the base of an int or a negative value on error."""
+        """
+        Integer's base (``int``), or a negative value on error.
+        """
 
         return nbt._bt_ctf_get_int_base(self._fd)
 
     @property
     def byte_order(self):
         """
-        Return the byte order. One of class ByteOrder's entries.
+        Integer's byte order (one of :class:`ByteOrder` constants).
         """
 
         ret = nbt._bt_ctf_get_int_byte_order(self._fd)
@@ -958,8 +961,7 @@ class IntegerFieldDeclaration(FieldDeclaration):
     @property
     def length(self):
         """
-        Return the size, in bits, of an int or a negative
-        value on error.
+        Integer's length in bits, or a negative value on error.
         """
 
         return nbt._bt_ctf_get_int_len(self._fd)
@@ -967,8 +969,8 @@ class IntegerFieldDeclaration(FieldDeclaration):
     @property
     def encoding(self):
         """
-        Return the encoding. One of class CTFStringEncoding's entries.
-        Return a negative value on error.
+        Integer's encoding (one of :class:`CTFStringEncoding`
+        constants).
         """
 
         return nbt._bt_ctf_get_encoding(self._fd)
