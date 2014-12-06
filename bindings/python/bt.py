@@ -754,6 +754,10 @@ class Event(collections.Mapping):
 
 
 class FieldError(Exception):
+    """
+    Field error, raised when a field's value cannot be accessed.
+    """
+
     def __init__(self, value):
         self.value = value
 
