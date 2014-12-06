@@ -55,6 +55,8 @@ To compile Babeltrace, you will need:
 	  (Debian/Ubuntu : swig2.0)
 	python >= 3.0 (optional)
 	  (Debian/Ubuntu : python3)
+	sphinx >= 1.2 (optional)
+	  (Debian/Ubuntu : python3-sphinx)
 
   If you want Python bindings, run ./configure --enable-python-bindings.
   Please note that some distributions will need the following
