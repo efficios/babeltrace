@@ -38,5 +38,6 @@ stamp-h1
 bindings/python/__init__.py
 bindings/python/nativebt.py
 bindings/python/nativebt_wrap.c
+bindings/python/__pycache__
 babeltrace.pc
 babeltrace-ctf.pc
