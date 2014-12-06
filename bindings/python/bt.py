@@ -219,9 +219,11 @@ class TraceCollection:
 
 def print_format_list(babeltrace_file):
     """
-    Print a list of available formats to file.
+    Writes the list of available trace formats to file
+    *babeltrace_file*.
 
-    babeltrace_file must be a File instance opened in write mode.
+    *babeltrace_file* must be a :class:`file` object opened in write
+    mode.
     """
 
     try:
