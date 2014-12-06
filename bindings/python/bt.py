@@ -777,7 +777,14 @@ class FieldError(Exception):
 
 
 class EventDeclaration:
-    """Event declaration class.  Do not instantiate."""
+    """
+    An event declaration contains the properties of a class of events,
+    that is, the common properties and fields layout of all the actual
+    recorded events associated with this declaration.
+
+    This class is not meant to be instantiated by the user. It is
+    returned by :attr:`TraceHandle.events`.
+    """
 
     MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
 
@@ -786,13 +793,17 @@ class EventDeclaration:
 
     @property
     def name(self):
-        """Return the name of the event or None on error"""
+        """
+        Event's name, or ``None`` on error.
+        """
 
         return nbt._bt_ctf_get_decl_event_name(self._ed)
 
     @property
     def id(self):
-        """Return the event-ID of the event or -1 on error"""
+        """
+        Event's numeric ID, or -1 on error.
+        """
 
         id = nbt._bt_ctf_get_decl_event_id(self._ed)
 
@@ -804,14 +815,27 @@ class EventDeclaration:
     @property
     def fields(self):
         """
-        Generator returning all FieldDeclarations of an event, going through
+        Generates all the event's field declarations, going through
         each scope in the following order:
-        1) EVENT_FIELDS
-        2) EVENT_CONTEXT
-        3) STREAM_EVENT_CONTEXT
-        4) STREAM_EVENT_HEADER
-        5) STREAM_PACKET_CONTEXT
-        6) TRACE_PACKET_HEADER
+
+        1. Event fields (:attr:`CTFScope.EVENT_FIELDS`)
+        2. Event context (:attr:`CTFScope.EVENT_CONTEXT`)
+        3. Stream event context (:attr:`CTFScope.STREAM_EVENT_CONTEXT`)
+        4. Event header (:attr:`CTFScope.STREAM_EVENT_HEADER`)
+        5. Packet context (:attr:`CTFScope.STREAM_PACKET_CONTEXT`)
+        6. Packet header (:attr:`CTFScope.TRACE_PACKET_HEADER`)
+
+        All the generated field declarations inherit
+        :class:`FieldDeclaration`, and are among:
+
+        * :class:`IntegerFieldDeclaration`
+        * :class:`FloatFieldDeclaration`
+        * :class:`EnumerationFieldDeclaration`
+        * :class:`StringFieldDeclaration`
+        * :class:`ArrayFieldDeclaration`
+        * :class:`SequenceFieldDeclaration`
+        * :class:`StructureFieldDeclaration`
+        * :class:`VariantFieldDeclaration`
         """
 
         for scope in _scopes:
@@ -820,7 +844,22 @@ class EventDeclaration:
 
     def fields_scope(self, scope):
         """
-        Generator returning FieldDeclarations of the current event in scope.
+        Generates all the field declarations of the event's scope
+        *scope*.
+
+        *scope* must be one of :class:`CTFScope` constants.
+
+        All the generated field declarations inherit
+        :class:`FieldDeclaration`, and are among:
+
+        * :class:`IntegerFieldDeclaration`
+        * :class:`FloatFieldDeclaration`
+        * :class:`EnumerationFieldDeclaration`
+        * :class:`StringFieldDeclaration`
+        * :class:`ArrayFieldDeclaration`
+        * :class:`SequenceFieldDeclaration`
+        * :class:`StructureFieldDeclaration`
+        * :class:`VariantFieldDeclaration`
         """
         ret = nbt._by_python_field_decl_listcaller(self._ed, scope)
 
