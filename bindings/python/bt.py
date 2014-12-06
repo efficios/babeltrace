@@ -193,7 +193,7 @@ def print_format_list(babeltrace_file):
 
 
 # Based on enum bt_clock_type in clock-type.h
-class ClockType:
+class _ClockType:
     CLOCK_CYCLES = 0
     CLOCK_REAL = 1
 
@@ -230,7 +230,7 @@ class TraceHandle:
 
         return nbt._bt_trace_handle_get_timestamp_begin(self._trace_collection._tc,
                                                         self._id,
-                                                        ClockType.CLOCK_REAL)
+                                                        _ClockType.CLOCK_REAL)
 
     @property
     def timestamp_end(self):
@@ -238,7 +238,7 @@ class TraceHandle:
 
         return nbt._bt_trace_handle_get_timestamp_end(self._trace_collection._tc,
                                                       self._id,
-                                                      ClockType.CLOCK_REAL)
+                                                      _ClockType.CLOCK_REAL)
 
     @property
     def events(self):
