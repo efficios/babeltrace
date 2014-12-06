@@ -482,9 +482,61 @@ _scopes = [
 
 class Event(collections.Mapping):
     """
-    This class represents an event from the trace.
-    It is obtained using the TraceCollection generator functions.
-    Do not instantiate.
+    An :class:`Event` object represents a trace event. :class:`Event`
+    objects are returned by :attr:`TraceCollection.events` and are
+    not meant to be instantiated by the user.
+
+    :class:`Event` has a :class:`dict`-like interface for accessing
+    an event's field value by field name:
+
+    .. code-block:: python
+
+       event['my_field']
+
+    If a field name exists in multiple scopes, the value of the first
+    field found is returned. The scopes are searched in the following
+    order:
+
+    1. Event fields (:attr:`CTFScope.EVENT_FIELDS`)
+    2. Event context (:attr:`CTFScope.EVENT_CONTEXT`)
+    3. Stream event context (:attr:`CTFScope.STREAM_EVENT_CONTEXT`)
+    4. Event header (:attr:`CTFScope.STREAM_EVENT_HEADER`)
+    5. Packet context (:attr:`CTFScope.STREAM_PACKET_CONTEXT`)
+    6. Packet header (:attr:`CTFScope.TRACE_PACKET_HEADER`)
+
+    It is still possible to obtain a field's value from a specific
+    scope using :meth:`field_with_scope`.
+
+    Field values are returned as native Python types, that is:
+
+    +-----------------------+----------------------------------+
+    | Field type            | Python type                      |
+    +=======================+==================================+
+    | Integer               | :class:`int`                     |
+    +-----------------------+----------------------------------+
+    | Floating point number | :class:`float`                   |
+    +-----------------------+----------------------------------+
+    | Enumeration           | :class:`str` (enumeration label) |
+    +-----------------------+----------------------------------+
+    | String                | :class:`str`                     |
+    +-----------------------+----------------------------------+
+    | Array                 | :class:`list` of native Python   |
+    |                       | objects                          |
+    +-----------------------+----------------------------------+
+    | Sequence              | :class:`list` of native Python   |
+    |                       | objects                          |
+    +-----------------------+----------------------------------+
+    | Structure             | :class:`dict` mapping field      |
+    |                       | names to native Python objects   |
+    +-----------------------+----------------------------------+
+
+    For example, printing the third element of a sequence named ``seq``
+    in a structure named ``my_struct`` of the ``event``'s field named
+    ``my_field`` is done this way:
+
+    .. code-block:: python
+
+       print(event['my_field']['my_struct']['seq'][2])
     """
 
     def __init__(self):
@@ -492,15 +544,16 @@ class Event(collections.Mapping):
 
     @property
     def name(self):
-        """Return the name of the event or None on error."""
+        """
+        Event's name or ``None`` on error.
+        """
 
         return nbt._bt_ctf_event_name(self._e)
 
     @property
     def cycles(self):
         """
-        Return the timestamp of the event as written in
-        the packet (in cycles) or -1ULL on error.
+        Event's timestamp in cycles or -1 on error.
         """
 
         return nbt._bt_ctf_get_cycles(self._e)
@@ -508,8 +561,7 @@ class Event(collections.Mapping):
     @property
     def timestamp(self):
         """
-        Return the timestamp of the event offset with the
-        system clock source or -1ULL on error.
+        Event's timestamp (nanoseconds since Epoch) or -1 on error.
         """
 
         return nbt._bt_ctf_get_timestamp(self._e)
@@ -517,17 +569,22 @@ class Event(collections.Mapping):
     @property
     def datetime(self):
         """
-        Return a datetime object based on the event's
-        timestamp. Note that the datetime class' precision
-        is limited to microseconds.
+        Event's timestamp as a standard :class:`datetime.datetime`
+        object.
+
+        Note that the :class:`datetime.datetime` class' precision
+        is limited to microseconds, whereas :attr:`timestamp` provides
+        the event's timestamp with a nanosecond resolution.
         """
 
         return datetime.fromtimestamp(self.timestamp / 1E9)
 
     def field_with_scope(self, field_name, scope):
         """
-        Get field_name's value in scope.
-        None is returned if no field matches field_name.
+        Returns the value of a field named *field_name* within the
+        scope *scope*, or ``None`` if the field cannot be found.
+
+        *scope* must be one of :class:`CTFScope` constants.
         """
 
         if scope not in _scopes:
@@ -539,7 +596,9 @@ class Event(collections.Mapping):
             return field.value
 
     def field_list_with_scope(self, scope):
-        """Return a list of field names in scope."""
+        """
+        Returns a list of field names in the scope *scope*.
+        """
 
         if scope not in _scopes:
             raise ValueError("Invalid scope provided")
@@ -554,8 +613,8 @@ class Event(collections.Mapping):
     @property
     def handle(self):
         """
-        Get the TraceHandle associated with this event
-        Return None on error
+        :class:`TraceHandle` object containing this event, or ``None``
+        on error.
         """
 
         ret = nbt._bt_ctf_event_get_handle_id(self._e)
@@ -572,8 +631,8 @@ class Event(collections.Mapping):
     @property
     def trace_collection(self):
         """
-        Get the TraceCollection associated with this event.
-        Return None on error.
+        :class:`TraceCollection` object containing this event, or
+        ``None`` on error.
         """
 
         trace_collection = TraceCollection()
@@ -583,22 +642,6 @@ class Event(collections.Mapping):
             return trace_collection
 
     def __getitem__(self, field_name):
-        """
-        Get field_name's value. If the field_name exists in multiple
-        scopes, the first field found is returned. The scopes are searched
-        in the following order:
-        1) EVENT_FIELDS
-        2) EVENT_CONTEXT
-        3) STREAM_EVENT_CONTEXT
-        4) STREAM_EVENT_HEADER
-        5) STREAM_PACKET_CONTEXT
-        6) TRACE_PACKET_HEADER
-        None is returned if no field matches field_name.
-
-        Use field_with_scope() to explicitly access fields in a given
-        scope.
-        """
-
         field = self._field(field_name)
 
         if field is not None:
@@ -626,7 +669,14 @@ class Event(collections.Mapping):
         return self._field(field_name) is not None
 
     def keys(self):
-        """Return a list of field names."""
+        """
+        Returns the list of field names.
+
+        Note: field names are unique within the returned list, although
+        a field name could exist in multiple scopes. Use
+        :meth:`field_list_with_scope` to obtain the list of field names
+        of a given scope.
+        """
 
         field_names = set()
 
@@ -637,6 +687,15 @@ class Event(collections.Mapping):
         return list(field_names)
 
     def get(self, field_name, default=None):
+        """
+        Returns the value of the field named *field_name*, or *default*
+        when not found.
+
+        See :class:`Event` note about how fields are retrieved by
+        name when multiple fields share the same name in different
+        scopes.
+        """
+
         field = self._field(field_name)
 
         if field is None:
@@ -645,6 +704,14 @@ class Event(collections.Mapping):
         return field.value
 
     def items(self):
+        """
+        Generates pairs of (field name, field value).
+
+        This method iterates :meth:`keys` to find field names, which
+        means some fields could be unavailable if other fields share
+        their names in scopes with higher priorities.
+        """
+
         for field in self.keys():
             yield (field, self[field])
 
