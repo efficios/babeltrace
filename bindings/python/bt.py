@@ -1039,7 +1039,13 @@ class SequenceFieldDeclaration(FieldDeclaration):
 
 
 class FloatFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Floating point number field declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("FloatFieldDeclaration cannot be instantiated")
