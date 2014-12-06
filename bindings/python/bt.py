@@ -1066,7 +1066,13 @@ class StructureFieldDeclaration(FieldDeclaration):
 
 
 class StringFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    String (NULL-terminated array of bytes) field declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("StringFieldDeclaration cannot be instantiated")
