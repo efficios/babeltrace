@@ -966,7 +966,13 @@ class IntegerFieldDeclaration(FieldDeclaration):
 
 
 class EnumerationFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Enumeration field declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("EnumerationFieldDeclaration cannot be instantiated")
