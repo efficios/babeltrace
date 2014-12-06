@@ -335,10 +335,23 @@ class CTFStringEncoding:
 
 # Based on the enum in ctf-writer/writer.h
 class ByteOrder:
+    """
+    Byte orders.
+    """
+
+    #: Native byte order
     BYTE_ORDER_NATIVE = 0
+
+    #: Little-endian
     BYTE_ORDER_LITTLE_ENDIAN = 1
+
+    #: Big-endian
     BYTE_ORDER_BIG_ENDIAN = 2
+
+    #: Network byte order (big-endian)
     BYTE_ORDER_NETWORK = 3
+
+    #: Unknown byte order
     BYTE_ORDER_UNKNOWN = 4  # Python-specific entry
 
 
