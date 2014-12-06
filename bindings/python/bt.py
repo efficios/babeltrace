@@ -370,19 +370,47 @@ class ByteOrder:
 # These are taken directly from ctf/events.h
 # All changes to enums must also be made here
 class CTFTypeId:
+    """
+    CTF numeric type identifiers.
+    """
+
+    #: Unknown type
     UNKNOWN = 0
+
+    #: Integer
     INTEGER = 1
+
+    #: Floating point number
     FLOAT = 2
+
+    #: Enumeration
     ENUM = 3
+
+    #: String
     STRING = 4
+
+    #: Structure
     STRUCT = 5
+
+    #: Untagged variant
     UNTAGGED_VARIANT = 6
+
+    #: Variant
     VARIANT = 7
+
+    #: Array
     ARRAY = 8
+
+    #: Sequence
     SEQUENCE = 9
+
     NR_CTF_TYPES = 10
 
     def type_name(id):
+        """
+        Returns the name of the CTF numeric type identifier *id*.
+        """
+
         name = "UNKNOWN_TYPE"
         constants = [
             attr for attr in dir(CTFTypeId) if not callable(
