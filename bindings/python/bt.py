@@ -416,14 +416,33 @@ class CTFTypeId:
 
 
 class CTFScope:
+    """
+    CTF scopes.
+    """
+
+    #: Packet header
     TRACE_PACKET_HEADER = 0
+
+    #: Packet context
     STREAM_PACKET_CONTEXT = 1
+
+    #: Event header
     STREAM_EVENT_HEADER = 2
+
+    #: Stream event context
     STREAM_EVENT_CONTEXT = 3
+
+    #: Event context
     EVENT_CONTEXT = 4
+
+    #: Event fields
     EVENT_FIELDS = 5
 
     def scope_name(scope):
+        """
+        Returns the name of the CTF scope *scope*.
+        """
+
         name = "UNKNOWN_SCOPE"
         constants = [
             attr for attr in dir(CTFScope) if not callable(
