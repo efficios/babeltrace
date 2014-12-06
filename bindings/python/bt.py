@@ -1052,7 +1052,14 @@ class FloatFieldDeclaration(FieldDeclaration):
 
 
 class StructureFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Structure (ordered map of field names to field declarations) field
+    declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("StructureFieldDeclaration cannot be instantiated")
