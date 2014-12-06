@@ -988,7 +988,9 @@ class EnumerationFieldDeclaration(FieldDeclaration):
 
 
 class ArrayFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Static array field declaration.
+    """
 
     def __init__(self):
         raise NotImplementedError("ArrayFieldDeclaration cannot be instantiated")
@@ -996,8 +998,8 @@ class ArrayFieldDeclaration(FieldDeclaration):
     @property
     def length(self):
         """
-        Return the length of an array or a negative
-        value on error.
+        Static array's fixed length (number of contained elements), or
+        a negative value on error.
         """
 
         return nbt._bt_ctf_get_array_len(self._fd)
@@ -1005,7 +1007,7 @@ class ArrayFieldDeclaration(FieldDeclaration):
     @property
     def element_declaration(self):
         """
-        Return element declaration.
+        Underlying element's field declaration.
         """
 
         field_decl_ptr = nbt._bt_python_get_array_element_declaration(self._fd)
