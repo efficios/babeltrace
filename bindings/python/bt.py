@@ -1070,7 +1070,13 @@ class StringFieldDeclaration(FieldDeclaration):
 
 
 class VariantFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Variant (dynamic selection between different types) field declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("VariantFieldDeclaration cannot be instantiated")
