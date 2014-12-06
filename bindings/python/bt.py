@@ -34,10 +34,24 @@ from uuid import UUID
 
 class TraceCollection:
     """
-    The TraceCollection is the object that contains all currently opened traces.
+    A :class:`TraceCollection` is a collection of opened traces.
+
+    In general, once a trace collection is created, you add one to many
+    independent traces to it using :meth:`add_trace` or
+    :meth:`add_traces_recursive`, and then iterate the ordered events
+    of all traces merged together using :attr:`events`.
+
+    You may use :meth:`remove_trace` to close and remove a specific
+    trace from a trace collection, although all the traces of a given
+    trace collection will be automatically removed when it is garbage
+    collected.
     """
 
     def __init__(self):
+        """
+        Creates an empty trace collection.
+        """
+
         self._tc = nbt._bt_context_create()
 
     def __del__(self):
@@ -45,18 +59,22 @@ class TraceCollection:
 
     def add_trace(self, path, format_str):
         """
-        Add a trace by path to the TraceCollection.
+        Adds a trace to the trace collection.
 
-        Open a trace.
+        The trace is located at the file system path *path*. This
+        function **does not** recurse directories to find the trace:
+        *path* must point to the exact trace location (see
+        :meth:`add_traces_recursive` for a recursive version of this
+        function).
 
-        path is the path to the trace, it is not recursive.
-        If "path" is None, stream_list is used instead as a list
-        of mmap streams to open for the trace.
+        *format_str* is a string indicating the Babeltrace type of the
+        trace to add. ``ctf`` is the only currently supported trace
+        format.
 
-        format is a string containing the format name in which the trace was
-        produced.
+        Once added, the trace is opened.
 
-        Return: the corresponding TraceHandle on success or None on error.
+        Returns the corresponding :class:`TraceHandle` instance for
+        this opened trace on success, or ``None`` on error.
         """
 
         ret = nbt._bt_context_add_trace(self._tc, path, format_str,
@@ -73,13 +91,17 @@ class TraceCollection:
 
     def add_traces_recursive(self, path, format_str):
         """
-        Open a trace recursively.
+        Adds traces to this trace collection by recursively searching
+        in the *path* directory.
 
-        Find each trace present in the subdirectory starting from the given
-        path, and add them to the TraceCollection.
+        *format_str* is a string indicating the Babeltrace type of the
+        traces to find and add. ``ctf`` is the only currently supported
+        trace format.
 
-        Return a dict of TraceHandle instances (the full path is the key).
-        Return None on error.
+        See also :meth:`add_trace`.
+
+        Returns a :class:`dict` object mapping full paths to trace
+        handles for each trace found, or ``None`` on error.
         """
 
         trace_handles = {}
@@ -104,8 +126,13 @@ class TraceCollection:
 
     def remove_trace(self, trace_handle):
         """
-        Remove a trace from the TraceCollection.
-        Effectively closing the trace.
+        Removes a trace from the trace collection using its trace
+        handle *trace_handle*.
+
+        :class:`TraceHandle` objects are returned by :meth:`add_trace`
+        and :meth:`add_traces_recursive`.
+
+        The trace is closed before being removed.
         """
 
         try:
@@ -116,19 +143,20 @@ class TraceCollection:
     @property
     def events(self):
         """
-        Generator function to iterate over the events of open in the current
-        TraceCollection.
+        Generates the ordered :class:`Event` objects of all the opened
+        traces contained in this trace collection. Iterate this function
+        to iterate actual events.
 
         Due to limitations of the native Babeltrace API, only one event
-        may be "alive" at a time (i.e. a user should never store a copy
-        of the events returned by this function for ulterior use). Users
-        shall make sure to copy the information they need from an event
-        before accessing the next one.
+        may be "alive" at a given time, i.e. a user **should never**
+        store a copy of the events returned by this function for
+        ulterior use. Users shall make sure to copy the information
+        they need *from* an event before accessing the next one.
 
-        Furthermore, event objects become invalid when the generator goes
-        out of scope as the underlying iterator will be reclaimed. Using an
-        event after the the generator has gone out of scope may result in a
-        crash or data corruption.
+        Furthermore, :class:`Event` objects become invalid when the
+        generator goes out of scope as the underlying iterator will be
+        reclaimed. Using an event after the the generator has gone out
+        of scope may result in a crash or data corruption.
         """
 
         begin_pos_ptr = nbt._bt_iter_pos()
@@ -141,8 +169,11 @@ class TraceCollection:
 
     def events_timestamps(self, timestamp_begin, timestamp_end):
         """
-        Generator function to iterate over the events of open in the current
-        TraceCollection from timestamp_begin to timestamp_end.
+        Generates the ordered :class:`Event` objects of all the opened
+        traces contained in this trace collection from *timestamp_begin*
+        to *timestamp_end*.
+
+        See :attr:`events` for notes and limitations.
         """
 
         begin_pos_ptr = nbt._bt_iter_pos()
@@ -156,6 +187,10 @@ class TraceCollection:
 
     @property
     def timestamp_begin(self):
+        """
+        Trace collection's begin timestamp.
+        """
+
         pos_ptr = nbt._bt_iter_pos()
         pos_ptr.type = nbt.SEEK_BEGIN
 
@@ -163,6 +198,10 @@ class TraceCollection:
 
     @property
     def timestamp_end(self):
+        """
+        Trace collection's end timestamp.
+        """
+
         pos_ptr = nbt._bt_iter_pos()
         pos_ptr.type = nbt.SEEK_LAST
 
