@@ -316,9 +316,20 @@ class TraceHandle:
 
 
 class CTFStringEncoding:
+    """
+    CTF string encodings.
+    """
+
+    #: None
     NONE = 0
+
+    #: UTF-8
     UTF8 = 1
+
+    #: ASCII
     ASCII = 2
+
+    #: Unknown
     UNKNOWN = 3
 
 
