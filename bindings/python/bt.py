@@ -1007,7 +1007,13 @@ class ArrayFieldDeclaration(FieldDeclaration):
 
 
 class SequenceFieldDeclaration(FieldDeclaration):
-    """Do not instantiate."""
+    """
+    Sequence (dynamic array) field declaration.
+
+    .. note::
+
+       As of this version, this class is missing some properties.
+    """
 
     def __init__(self):
         raise NotImplementedError("SequenceFieldDeclaration cannot be instantiated")
@@ -1015,7 +1021,7 @@ class SequenceFieldDeclaration(FieldDeclaration):
     @property
     def element_declaration(self):
         """
-        Return element declaration.
+        Underlying element's field declaration.
         """
 
         field_decl_ptr = nbt._bt_python_get_sequence_element_declaration(self._fd)
