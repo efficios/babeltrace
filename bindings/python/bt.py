@@ -1990,7 +1990,7 @@ class CTFWriter:
         elif isinstance(field_type, CTFWriter.EnumerationFieldDeclaration):
             return CTFWriter.EnumerationField(field_type)
         elif isinstance(field_type, CTFWriter.FloatFieldDeclaration):
-            return CTFWriter.FloatFieldingPoint(field_type)
+            return CTFWriter.FloatingPointField(field_type)
         elif isinstance(field_type, CTFWriter.StructureFieldDeclaration):
             return CTFWriter.StructureField(field_type)
         elif isinstance(field_type, CTFWriter.VariantFieldDeclaration):
@@ -2023,7 +2023,7 @@ class CTFWriter:
         def _create_field_from_native_instance(native_field_instance):
             type_dict = {
                 CTFTypeId.INTEGER: CTFWriter.IntegerField,
-                CTFTypeId.FLOAT: CTFWriter.FloatFieldingPoint,
+                CTFTypeId.FLOAT: CTFWriter.FloatingPointField,
                 CTFTypeId.ENUM: CTFWriter.EnumerationField,
                 CTFTypeId.STRING: CTFWriter.StringField,
                 CTFTypeId.STRUCT: CTFWriter.StructureField,
@@ -2135,7 +2135,7 @@ class CTFWriter:
 
             self.container.value = value
 
-    class FloatFieldingPoint(Field):
+    class FloatingPointField(Field):
         @property
         def value(self):
             """
@@ -2162,6 +2162,11 @@ class CTFWriter:
 
             if ret < 0:
                 raise ValueError("Could not set floating point field value.")
+
+    # oops!! This class is provided to ensure backward-compatibility since
+    # a stable release publicly exposed this abomination.
+    class FloatFieldingPoint(FloatingPointField):
+        pass
 
     class StructureField(Field):
         def field(self, field_name):
