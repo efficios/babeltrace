@@ -2592,18 +2592,8 @@ class CTFWriter:
                 raise ValueError("Failed to set packet context type.")
 
     class Stream:
-        def __init__(self, stream_class):
-            """
-            Create a stream of the given class.
-            """
-
-            if not isinstance(stream_class, CTFWriter.StreamClass):
-                raise TypeError("Invalid stream_class argument must be of type StreamClass.")
-
-            self._s = nbt._bt_ctf_stream_create(stream_class._sc)
-
-            if self._s is None:
-                raise ValueError("Stream creation failed.")
+        def __init__(self):
+            raise NotImplementedError("Stream cannot be instantiated; use Writer.create_stream()")
 
         def __del__(self):
             nbt._bt_ctf_stream_put(self._s)
