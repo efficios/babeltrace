@@ -5,8 +5,8 @@ __init__.py: __init__.py.in
 
 AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
 
-EXTRA_DIST = __init__.py.in nativebt.i bt.py
-nodist_btpackage_PYTHON = __init__.py nativebt.py bt.py
+EXTRA_DIST = __init__.py.in nativebt.i common.py reader.py writer.py
+nodist_btpackage_PYTHON = __init__.py nativebt.py common.py reader.py writer.py
 nativebtlib_LTLIBRARIES = _nativebt.la
 
 btpackagedir = $(pythondir)/babeltrace
