@@ -45,7 +45,7 @@ out_file = "babeltrace-lttng-trace-text-output.txt"
 
 import time
 try:
-    import babeltrace
+    import babeltrace.reader
     import lttng
 except ImportError:
     raise ImportError(	"both babeltrace and lttng-tools "
@@ -109,7 +109,7 @@ if ret < 0:
 # BABELTRACE
 
 # Create TraceCollecion and add trace:
-traces = babeltrace.TraceCollection()
+traces = babeltrace.reader.TraceCollection()
 ret = traces.add_trace(trace_path + "/kernel", "ctf")
 if ret is None:
     raise BabeltraceError("Error adding trace")
