@@ -1709,6 +1709,9 @@ class CTFWriter:
             if ret < 0:
                 raise ValueError("Could not set mantissa digit count.")
 
+    class FloatingPointFieldDeclaration(FloatFieldDeclaration):
+        pass
+
     class StructureFieldDeclaration(FieldDeclaration):
         def __init__(self):
             """
