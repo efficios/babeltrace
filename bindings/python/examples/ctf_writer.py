@@ -27,14 +27,15 @@
 
 import sys
 import tempfile
-from babeltrace import *
+import babeltrace.writer as btw
+
 
 trace_path = tempfile.mkdtemp()
 
 print("Writing trace at {}".format(trace_path))
-writer = CTFWriter.Writer(trace_path)
+writer = btw.Writer(trace_path)
 
-clock = CTFWriter.Clock("A_clock")
+clock = btw.Clock("A_clock")
 print("Clock name is \"{}\"".format(clock.name))
 clock.description = "Simple clock"
 print("Clock description is \"{}\"".format(clock.description))
@@ -49,17 +50,17 @@ print("Clock UUID is {}".format(clock.uuid))
 writer.add_clock(clock)
 writer.add_environment_field("Python_version", str(sys.version_info))
 
-stream_class = CTFWriter.StreamClass("test_stream")
+stream_class = btw.StreamClass("test_stream")
 stream_class.clock = clock
 
-event_class = CTFWriter.EventClass("SimpleEvent")
+event_class = btw.EventClass("SimpleEvent")
 
 # Create a int32_t equivalent type
-int32_type = CTFWriter.IntegerFieldDeclaration(32)
+int32_type = btw.IntegerFieldDeclaration(32)
 int32_type.signed = True
 
 # Create a uint16_t equivalent type
-uint16_type = CTFWriter.IntegerFieldDeclaration(16)
+uint16_type = btw.IntegerFieldDeclaration(16)
 uint16_type.signed = False
 
 # Add a custom uint16_t field in the stream's packet context
@@ -71,34 +72,34 @@ packet_context_type.add_field(uint16_type, "a_custom_packet_context_field")
 stream_class.packet_context_type = packet_context_type
 
 # Create a string type
-string_type = CTFWriter.StringFieldDeclaration()
+string_type = btw.StringFieldDeclaration()
 
 # Create a structure type containing both an integer and a string
-structure_type = CTFWriter.StructureFieldDeclaration()
+structure_type = btw.StructureFieldDeclaration()
 structure_type.add_field(int32_type, "an_integer")
 structure_type.add_field(string_type, "a_string_field")
 event_class.add_field(structure_type, "structure_field")
 
 # Create a floating point type
-floating_point_type = CTFWriter.FloatFieldDeclaration()
-floating_point_type.exponent_digits = CTFWriter.FloatFieldDeclaration.FLT_EXP_DIG
-floating_point_type.mantissa_digits = CTFWriter.FloatFieldDeclaration.FLT_MANT_DIG
+floating_point_type = btw.FloatFieldDeclaration()
+floating_point_type.exponent_digits = btw.FloatFieldDeclaration.FLT_EXP_DIG
+floating_point_type.mantissa_digits = btw.FloatFieldDeclaration.FLT_MANT_DIG
 event_class.add_field(floating_point_type, "float_field")
 
 # Create an enumeration type
-int10_type = CTFWriter.IntegerFieldDeclaration(10)
-enumeration_type = CTFWriter.EnumerationFieldDeclaration(int10_type)
+int10_type = btw.IntegerFieldDeclaration(10)
+enumeration_type = btw.EnumerationFieldDeclaration(int10_type)
 enumeration_type.add_mapping("FIRST_ENTRY", 0, 4)
 enumeration_type.add_mapping("SECOND_ENTRY", 5, 5)
 enumeration_type.add_mapping("THIRD_ENTRY", 6, 10)
 event_class.add_field(enumeration_type, "enum_field")
 
 # Create an array type
-array_type = CTFWriter.ArrayFieldDeclaration(int10_type, 5)
+array_type = btw.ArrayFieldDeclaration(int10_type, 5)
 event_class.add_field(array_type, "array_field")
 
 # Create a sequence type
-sequence_type = CTFWriter.SequenceFieldDeclaration(int32_type, "sequence_len")
+sequence_type = btw.SequenceFieldDeclaration(int32_type, "sequence_len")
 event_class.add_field(uint16_type, "sequence_len")
 event_class.add_field(sequence_type, "sequence_field")
 
@@ -106,7 +107,7 @@ stream_class.add_event_class(event_class)
 stream = writer.create_stream(stream_class)
 
 for i in range(100):
-    event = CTFWriter.Event(event_class)
+    event = btw.Event(event_class)
 
     clock.time = i * 1000
     structure_field = event.payload("structure_field")
