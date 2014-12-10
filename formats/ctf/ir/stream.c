@@ -94,7 +94,17 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	bt_ctf_stream_class_get(stream_class);
 	bt_ctf_stream_class_freeze(stream_class);
 	stream->events = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)bt_ctf_event_put);
+		(GDestroyNotify) bt_ctf_event_put);
+	if (!stream->events) {
+		goto error_destroy;
+	}
+	if (stream_class->event_context_type) {
+		stream->event_contexts = g_ptr_array_new_with_free_func(
+			(GDestroyNotify) bt_ctf_field_put);
+		if (!stream->event_contexts) {
+			goto error_destroy;
+		}
+	}
 end:
 	return stream;
 error_destroy:
@@ -278,6 +288,21 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	/* Sample the current stream event context by copying it */
+	if (stream->event_context) {
+		/* Make sure the event context's payload is set */
+		ret = bt_ctf_field_validate(stream->event_context);
+		if (ret) {
+			goto end;
+		}
+
+		event_context_copy = bt_ctf_field_copy(stream->event_context);
+		if (!event_context_copy) {
+			ret = -1;
+			goto end;
+		}
+	}
+
 	timestamp = bt_ctf_clock_get_time(stream->stream_class->clock);
 	ret = bt_ctf_event_set_timestamp(event, timestamp);
 	if (ret) {
@@ -285,7 +310,11 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	}
 
 	bt_ctf_event_get(event);
+	/* Save the new event along with its associated stream event context */
 	g_ptr_array_add(stream->events, event);
+	if (event_context_copy) {
+		g_ptr_array_add(stream->event_contexts, event_context_copy);
+	}
 end:
 	return ret;
 }
@@ -329,6 +358,50 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	bt_ctf_field_put(stream->packet_context);
 	stream->packet_context = field;
 end:
+	return ret;
+}
+
+struct bt_ctf_field *bt_ctf_stream_get_event_context(
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_field *event_context = NULL;
+
+	if (!stream) {
+		goto end;
+	}
+
+	event_context = stream->event_context;
+	if (event_context) {
+		bt_ctf_field_get(event_context);
+	}
+end:
+	return event_context;
+}
+
+int bt_ctf_stream_set_event_context(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *field)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!stream || !field) {
+		ret = -1;
+		goto end;
+	}
+
+	field_type = bt_ctf_field_get_type(field);
+	if (field_type != stream->stream_class->event_context_type) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_get(field);
+	bt_ctf_field_put(stream->event_context);
+	stream->event_context = field;
+end:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
 	return ret;
 }
 
@@ -447,6 +520,16 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			goto end;
 		}
 
+		/* Write stream event context */
+		if (stream->event_contexts) {
+			ret = bt_ctf_field_serialize(
+				g_ptr_array_index(stream->event_contexts, i),
+				&stream->pos);
+			if (ret) {
+				goto end;
+			}
+		}
+
 		/* Write event content */
 		ret = bt_ctf_event_serialize(event, &stream->pos);
 		if (ret) {
@@ -480,6 +563,9 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	g_ptr_array_set_size(stream->events, 0);
+	if (stream->event_contexts) {
+		g_ptr_array_set_size(stream->event_contexts, 0);
+	}
 	stream->flushed_packet_count++;
 end:
 	bt_ctf_field_put(integer);
@@ -525,8 +611,14 @@ void bt_ctf_stream_destroy(struct bt_ctf_ref *ref)
 	if (stream->events) {
 		g_ptr_array_free(stream->events, TRUE);
 	}
+	if (stream->event_contexts) {
+		g_ptr_array_free(stream->event_contexts, TRUE);
+	}
 	if (stream->packet_context) {
 		bt_ctf_field_put(stream->packet_context);
+	}
+	if (stream->event_context) {
+		bt_ctf_field_put(stream->event_context);
 	}
 	g_free(stream);
 }

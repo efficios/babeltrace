@@ -50,6 +50,8 @@ struct bt_ctf_stream {
 	struct flush_callback flush;
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
+	/* Array of pointers to bt_ctf_field associated with each event*/
+	GPtrArray *event_contexts;
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
 	struct bt_ctf_field *packet_context;

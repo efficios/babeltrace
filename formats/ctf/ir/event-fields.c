@@ -1006,8 +1006,6 @@ struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 		goto end;
 	}
 
-	bt_ctf_field_type_get(field->type);
-	copy->type = field->type;
 	ret = field_copy_funcs[type_id](field, copy);
 	if (ret) {
 		bt_ctf_field_put(copy);
@@ -1770,7 +1768,7 @@ int bt_ctf_field_integer_copy(struct bt_ctf_field *src,
 	struct bt_ctf_field_integer *integer_src, *integer_dst;
 
 	integer_src = container_of(src, struct bt_ctf_field_integer, parent);
-	integer_dst = container_of(src, struct bt_ctf_field_integer, parent);
+	integer_dst = container_of(dst, struct bt_ctf_field_integer, parent);
 
 	memcpy(&integer_dst->definition, &integer_src->definition,
 		sizeof(struct definition_integer));
@@ -1824,18 +1822,15 @@ static
 int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *dst)
 {
-	int ret, i;
+	int ret = 0, i;
 	struct bt_ctf_field_structure *struct_src, *struct_dst;
 
 	struct_src = container_of(src, struct bt_ctf_field_structure, parent);
 	struct_dst = container_of(dst, struct bt_ctf_field_structure, parent);
 
+	/* This field_name_to_index HT is owned by the structure field type */
 	struct_dst->field_name_to_index = struct_src->field_name_to_index;
-	struct_dst->fields = g_ptr_array_sized_new(struct_src->fields->len);
-	if (!struct_dst->fields) {
-		ret = -1;
-		goto end;
-	}
+	g_ptr_array_set_size(struct_dst->fields, struct_src->fields->len);
 
 	for (i = 0; i < struct_src->fields->len; i++) {
 		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
@@ -1845,7 +1840,7 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 			ret = -1;
 			goto end;
 		}
-		g_ptr_array_add(struct_dst->fields, field_copy);
+		g_ptr_array_index(struct_dst->fields, i) = field_copy;
 	}
 end:
 	return ret;
@@ -1889,7 +1884,7 @@ int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 	array_src = container_of(src, struct bt_ctf_field_array, parent);
 	array_dst = container_of(dst, struct bt_ctf_field_array, parent);
 
-	array_dst->elements = g_ptr_array_sized_new(array_src->elements->len);
+	g_ptr_array_set_size(array_dst->elements, array_src->elements->len);
 	for (i = 0; i < array_src->elements->len; i++) {
 		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
 			g_ptr_array_index(array_src->elements, i));
@@ -1898,7 +1893,7 @@ int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 			ret = -1;
 			goto end;
 		}
-		g_ptr_array_add(array_dst->elements, field_copy);
+		g_ptr_array_index(array_dst->elements, i) = field_copy;
 	}
 end:
 	return ret;
@@ -1914,7 +1909,7 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 	sequence_src = container_of(src, struct bt_ctf_field_sequence, parent);
 	sequence_dst = container_of(dst, struct bt_ctf_field_sequence, parent);
 
-	sequence_dst->elements = g_ptr_array_sized_new(
+	g_ptr_array_set_size(sequence_dst->elements,
 		sequence_src->elements->len);
 	for (i = 0; i < sequence_src->elements->len; i++) {
 		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
@@ -1924,7 +1919,7 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 			ret = -1;
 			goto end;
 		}
-		g_ptr_array_add(sequence_dst->elements, field_copy);
+		g_ptr_array_index(sequence_dst->elements, i) = field_copy;
 	}
 end:
 	return ret;
