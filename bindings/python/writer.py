@@ -1390,10 +1390,20 @@ class ArrayField(Field):
 
 
 class SequenceField(Field):
+    """
+    Sequence (dynamic array) field, based on a
+    :class:`SequenceFieldDeclaration` object.
+    """
+
     @property
     def length(self):
         """
-        Get the sequence's length field (IntegerField).
+        Sequence length (:class:`IntegerField`).
+
+        Set this attribute to change the sequence length's integer
+        field (integer must be unsigned).
+
+        :exc:`ValueError` or :exc:`TypeError` are raised on error.
         """
 
         native_instance = nbt._bt_ctf_field_sequence_get_length(self._f)
@@ -1405,10 +1415,6 @@ class SequenceField(Field):
 
     @length.setter
     def length(self, length_field):
-        """
-        Set the sequence's length field (IntegerField).
-        """
-
         if not isinstance(length_field, IntegerField):
             raise TypeError("Invalid length field.")
 
@@ -1422,7 +1428,9 @@ class SequenceField(Field):
 
     def field(self, index):
         """
-        Return the sequence's field at position "index".
+        Returns the :class:`Field` at index *index* in this sequence.
+
+        :exc:`ValueError` is raised on error.
         """
 
         native_instance = nbt._bt_ctf_field_sequence_get_field(self._f, index)
