@@ -9,10 +9,18 @@ _MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
 
 class EnumerationMapping:
     """
-    Enumeration mapping class. start and end values are inclusive.
+    Mapping from an enumeration label to a range of integers.
     """
 
     def __init__(self, name, start, end):
+        """
+        Creates an enumeration mapping, where label *name* is mapped to
+        the [*start*, *end*] range of integers (*end* is included).
+
+        Set *start* and *end* to the same value to create an enumeration
+        mapping to a single value.
+        """
+
         self.name = name
         self.start = start
         self.end = end
