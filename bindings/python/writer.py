@@ -1283,10 +1283,20 @@ class EnumerationField(Field):
 
 
 class FloatingPointField(Field):
+    """
+    Floating point number field, based on a
+    :class:`FloatingPointFieldDeclaration` object.
+    """
+
     @property
     def value(self):
         """
-        Get a floating point field's value.
+        Floating point number value (:class:`float`).
+
+        Set this attribute to change the floating point number field's
+        value.
+
+        :exc:`ValueError` or :exc:`TypeError` are raised on error.
         """
 
         ret, value = nbt._bt_ctf_field_floating_point_get_value(self._f)
@@ -1298,10 +1308,6 @@ class FloatingPointField(Field):
 
     @value.setter
     def value(self, value):
-        """
-        Set a floating point field's value.
-        """
-
         if not isinstance(value, int) and not isinstance(value, float):
             raise TypeError("Value must be either a float or an int")
 
