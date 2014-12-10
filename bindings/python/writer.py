@@ -1324,9 +1324,16 @@ class FloatFieldingPoint(FloatingPointField):
 
 
 class StructureField(Field):
+    """
+    Structure field, based on a
+    :class:`StructureFieldDeclaration` object.
+    """
+
     def field(self, field_name):
         """
-        Get the structure's field corresponding to the provided field name.
+        Returns the structure :class:`Field` named *field_name*.
+
+        :exc:`ValueError` is raised on error.
         """
 
         native_instance = nbt._bt_ctf_field_structure_get_field(self._f,
