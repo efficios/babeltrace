@@ -269,6 +269,27 @@ class Clock:
             raise ValueError("Invalid time value.")
 
 
+class IntegerBase:
+    """
+    Display base of an integer.
+    """
+
+    #: Unknown
+    INTEGER_BASE_UNKNOWN = -1
+
+    #: Binary
+    INTEGER_BASE_BINARY = 2
+
+    #: Octal
+    INTEGER_BASE_OCTAL = 8
+
+    #: Decimal
+    INTEGER_BASE_DECIMAL = 10
+
+    #: Hexadecimal
+    INTEGER_BASE_HEXADECIMAL = 16
+
+
 class FieldDeclaration:
     """
     Base class of all field declarations. This class is not meant to
@@ -276,14 +297,8 @@ class FieldDeclaration:
     declaration subclasses instead.
     """
 
-    class IntegerBase:
-        # These values are based on the bt_ctf_integer_base enum
-        # declared in event-types.h.
-        INTEGER_BASE_UNKNOWN = -1
-        INTEGER_BASE_BINARY = 2
-        INTEGER_BASE_OCTAL = 8
-        INTEGER_BASE_DECIMAL = 10
-        INTEGER_BASE_HEXADECIMAL = 16
+    class IntegerBase(IntegerBase):
+        pass
 
     def __init__(self):
         if self._ft is None:
