@@ -1418,7 +1418,9 @@ int main(int argc, char **argv)
 	const char *ret_string;
 	const unsigned char *ret_uuid;
 	unsigned char tmp_uuid[16] = { 0 };
-	struct bt_ctf_field_type *packet_context_type, *packet_context_field_type;
+	struct bt_ctf_field_type *packet_context_type,
+		*packet_context_field_type,
+		*integer_type;
 	struct bt_ctf_trace *trace;
 	int ret;
 
@@ -1675,6 +1677,11 @@ int main(int argc, char **argv)
 		"bt_ctf_stream_class_set_packet_context_type handles a NULL stream class correctly");
 	ok(bt_ctf_stream_class_set_packet_context_type(stream_class, NULL),
 		"bt_ctf_stream_class_set_packet_context_type handles a NULL packet context type correctly");
+
+	integer_type = bt_ctf_field_type_integer_create(32);
+	ok(bt_ctf_stream_class_set_packet_context_type(stream_class,
+		integer_type) < 0,
+		"bt_ctf_stream_class_set_packet_context_type rejects a packet context that is not a structure");
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
 		packet_context_field_type, "custom_field");
 	ok(ret == 0, "Packet context field added successfully");
@@ -1716,6 +1723,7 @@ int main(int argc, char **argv)
 	bt_ctf_stream_put(stream1);
 	bt_ctf_field_type_put(packet_context_type);
 	bt_ctf_field_type_put(packet_context_field_type);
+	bt_ctf_field_type_put(integer_type);
 	bt_ctf_trace_put(trace);
 	free(metadata_string);
 

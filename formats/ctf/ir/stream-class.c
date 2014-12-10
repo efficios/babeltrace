@@ -292,7 +292,7 @@ int bt_ctf_stream_class_set_packet_context_type(
 	}
 
 	assert(stream_class->packet_context_type);
-	if (bt_ctf_field_type_get_type_id(stream_class->packet_context_type) !=
+	if (bt_ctf_field_type_get_type_id(packet_context_type) !=
 		CTF_TYPE_STRUCT) {
 		/* A packet context must be a structure */
 		ret = -1;
