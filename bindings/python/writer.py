@@ -1187,10 +1187,18 @@ class Field:
 
 
 class IntegerField(Field):
+    """
+    Integer field, based on an :class:`IntegerFieldDeclaration` object.
+    """
+
     @property
     def value(self):
         """
-        Get an integer field's value.
+        Integer value (:class:`int`).
+
+        Set this attribute to change the integer field's value.
+
+        :exc:`ValueError` or :exc:`TypeError` are raised on error.
         """
 
         signedness = nbt._bt_python_field_integer_get_signedness(self._f)
@@ -1210,10 +1218,6 @@ class IntegerField(Field):
 
     @value.setter
     def value(self, value):
-        """
-        Set an integer field's value.
-        """
-
         if not isinstance(value, int):
             raise TypeError("IntegerField's value must be an int")
 
