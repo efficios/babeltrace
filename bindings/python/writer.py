@@ -275,18 +275,25 @@ class IntegerBase:
     """
 
     #: Unknown
-    INTEGER_BASE_UNKNOWN = -1
+    UNKNOWN = -1
 
     #: Binary
-    INTEGER_BASE_BINARY = 2
+    BIN = 2
 
     #: Octal
-    INTEGER_BASE_OCTAL = 8
+    OCT = 8
 
     #: Decimal
-    INTEGER_BASE_DECIMAL = 10
+    DEC = 10
 
     #: Hexadecimal
+    HEX = 16
+
+    # keep this for backward compatibility
+    INTEGER_BASE_UNKNOWN = -1
+    INTEGER_BASE_BINARY = 2
+    INTEGER_BASE_OCTAL = 8
+    INTEGER_BASE_DECIMAL = 10
     INTEGER_BASE_HEXADECIMAL = 16
 
 
