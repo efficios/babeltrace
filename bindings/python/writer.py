@@ -1038,9 +1038,15 @@ class SequenceFieldDeclaration(FieldDeclaration):
 
 
 class StringFieldDeclaration(FieldDeclaration):
+    """
+    String (NULL-terminated array of bytes) field declaration.
+    """
+
     def __init__(self):
         """
-        Create a new string field declaration.
+        Creates a string field declaration.
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ft = nbt._bt_ctf_field_type_string_create()
@@ -1049,17 +1055,18 @@ class StringFieldDeclaration(FieldDeclaration):
     @property
     def encoding(self):
         """
-        Get a string declaration's encoding (a constant from the CTFStringEncoding class).
+        String encoding (one of
+        :class:`babeltrace.common.CTFStringEncoding` constants).
+
+        Set this attribute to change this string's encoding.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_field_type_string_get_encoding(self._ft)
 
     @encoding.setter
     def encoding(self, encoding):
-        """
-        Set a string declaration's encoding. Must be a constant from the CTFStringEncoding class.
-        """
-
         ret = nbt._bt_ctf_field_type_string_set_encoding(self._ft, encoding)
         if ret < 0:
             raise ValueError("Could not set string encoding.")
