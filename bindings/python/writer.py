@@ -1915,6 +1915,24 @@ class StreamClass:
 
 
 class Stream:
+    """
+    Streams are specific instances of stream classes, which means they
+    may contain actual, concrete events.
+
+    :class:`Stream` objects are returned by
+    :meth:`Writer.create_stream`; they are not meant to be
+    instantiated by the user.
+
+    Concrete :class:`Event` objects are appended to
+    :class:`Stream` objects using :meth:`append_event`.
+
+    When :meth:`flush` is called, a CTF packet is created, containing
+    all the appended events since the last flush. Although the stream
+    is flushed on object destruction, it is **strongly recommended**
+    that the user call :meth:`flush` manually before exiting the
+    script, as :meth:`__del__` is not always reliable.
+    """
+
     def __init__(self):
         raise NotImplementedError("Stream cannot be instantiated; use Writer.create_stream()")
 
@@ -1924,28 +1942,34 @@ class Stream:
     @property
     def discarded_events(self):
         """
-        Get a stream's discarded event count.
+        Number of discarded (lost) events in this stream so far.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret, count = nbt._bt_ctf_stream_get_discarded_events_count(self._s)
 
         if ret < 0:
-            raise ValueError("Could not get the stream's discarded events count")
+            raise ValueError("Could not get the stream discarded events count")
 
         return count
 
     def append_discarded_events(self, event_count):
         """
-        Increase the current packet's discarded event count.
+        Appends *event_count* discarded events to this stream.
         """
 
         nbt._bt_ctf_stream_append_discarded_events(self._s, event_count)
 
     def append_event(self, event):
         """
-        Append "event" to the stream's current packet. The stream's associated clock
-        will be sampled during this call. The event shall not be modified after
-        being appended to a stream.
+        Appends event *event* (:class:`Event` object) to this stream.
+
+        The stream's associated clock will be sampled during this call.
+        *event* **shall not** be modified after being appended to this
+        stream.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_stream_append_event(self._s, event._e)
@@ -1956,7 +1980,13 @@ class Stream:
     @property
     def packet_context(self):
         """
-        Get a Stream's packet context field (a StructureField).
+        Stream packet context field (instance of
+        :class:`StructureField`).
+
+        Set this attribute to assign a stream packet context field
+        to this stream.
+
+        :exc:`ValueError` is raised on error.
         """
 
         native_field = nbt._bt_ctf_stream_get_packet_context(self._s)
@@ -1968,10 +1998,6 @@ class Stream:
 
     @packet_context.setter
     def packet_context(self, field):
-        """
-        Set a Stream's packet context field (must be a StructureField).
-        """
-
         if not isinstance(field, StructureField):
             raise TypeError("Argument field must be of type StructureField")
 
@@ -1982,8 +2008,11 @@ class Stream:
 
     def flush(self):
         """
-        The stream's current packet's events will be flushed to disk. Events
-        subsequently appended to the stream will be added to a new packet.
+        Flushes the current packet of this stream to disk. Events
+        subsequently appended to the stream will be added to a new
+        packet.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_stream_flush(self._s)
