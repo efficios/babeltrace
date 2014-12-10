@@ -286,7 +286,7 @@ int bt_ctf_stream_class_set_packet_context_type(
 {
 	int ret = 0;
 
-	if (!stream_class || !packet_context_type) {
+	if (!stream_class || !packet_context_type || stream_class->frozen) {
 		ret = -1;
 		goto end;
 	}
