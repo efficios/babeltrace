@@ -1995,9 +1995,20 @@ class Stream:
 
 
 class Writer:
+    """
+    This object is the CTF writer API context. It oversees its streams
+    and clocks, and is responsible for writing one CTF trace.
+    """
+
     def __init__(self, path):
         """
-        Create a new writer that will produce a trace in the given path.
+        Creates a CTF writer, initializing a new CTF trace at path
+        *path*.
+
+        *path* must be an existing directory, since a CTF trace is
+        made of multiple files.
+
+        :exc:`ValueError` is raised if the creation fails.
         """
 
         self._w = nbt._bt_ctf_writer_create(path)
@@ -2010,7 +2021,13 @@ class Writer:
 
     def create_stream(self, stream_class):
         """
-        Create a new stream instance and register it to the writer.
+        Creates and registers a new stream based on stream class
+        *stream_class*.
+
+        This is the standard way of creating a :class:`Stream` object:
+        the user is not allowed to instantiate this class.
+
+        Returns a new :class:`Stream` object.
         """
 
         if not isinstance(stream_class, StreamClass):
@@ -2023,7 +2040,10 @@ class Writer:
 
     def add_environment_field(self, name, value):
         """
-        Add an environment field to the trace.
+        Sets the CTF environment variable named *name* to value *value*
+        (converted to a string).
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_writer_add_environment_field(self._w, str(name),
@@ -2034,8 +2054,12 @@ class Writer:
 
     def add_clock(self, clock):
         """
-        Add a clock to the trace. Clocks assigned to stream classes must be
-        registered to the writer.
+        Registers :class:`Clock` object *clock* to the writer.
+
+        You *must* register CTF clocks assigned to stream classes
+        to the writer.
+
+        :exc:`ValueError` is raised if the creation fails.
         """
 
         ret = nbt._bt_ctf_writer_add_clock(self._w, clock._c)
@@ -2046,14 +2070,14 @@ class Writer:
     @property
     def metadata(self):
         """
-        Get the trace's TSDL meta-data.
+        Current metadata of this trace (:class:`str`).
         """
 
         return nbt._bt_ctf_writer_get_metadata_string(self._w)
 
     def flush_metadata(self):
         """
-        Flush the trace's metadata to the metadata file.
+        Flushes the trace's metadata to the metadata file.
         """
 
         nbt._bt_ctf_writer_flush_metadata(self._w)
@@ -2061,20 +2085,26 @@ class Writer:
     @property
     def byte_order(self):
         """
-        Get the trace's byte order. Must be a constant from the ByteOrder
-        class.
+        Native byte order of this trace (one of
+        :class:`babeltrace.common.ByteOrder` constants).
+
+        This is the actual byte order that is used when a field
+        declaration has the
+        :attr:`babeltrace.common.ByteOrder.BYTE_ORDER_NATIVE`
+        value.
+
+        Set this attribute to change the trace's native byte order.
+
+        Defaults to the host machine's endianness.
+
+        :exc:`ValueError` is raised on error.
         """
 
         raise NotImplementedError("Getter not implemented.")
 
     @byte_order.setter
     def byte_order(self, byte_order):
-        """
-        Set the trace's byte order. Must be a constant from the ByteOrder
-        class. Defaults to the host machine's endianness
-        """
-
         ret = nbt._bt_ctf_writer_set_byte_order(self._w, byte_order)
 
         if ret < 0:
-            raise ValueError("Could not set trace's byte order.")
+            raise ValueError("Could not set trace byte order.")
