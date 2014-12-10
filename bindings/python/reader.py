@@ -799,12 +799,15 @@ class IntegerFieldDeclaration(FieldDeclaration):
             return common.ByteOrder.BYTE_ORDER_UNKNOWN
 
     @property
-    def length(self):
+    def size(self):
         """
         Integer size in bits, or a negative value on error.
         """
-
         return nbt._bt_ctf_get_int_len(self._fd)
+
+    @property
+    def length(self):
+        return self.size
 
     @property
     def encoding(self):
