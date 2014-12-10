@@ -1415,20 +1415,24 @@ class SequenceField(Field):
 
 
 class StringField(Field):
+    """
+    String (NULL-terminated array of bytes) field.
+    """
+
     @property
     def value(self):
         """
-        Get a string field's value.
+        String value (:class:`str`).
+
+        Set this attribute to change the string's value.
+
+        :exc:`ValueError` or :exc:`TypeError` are raised on error.
         """
 
         return nbt._bt_ctf_field_string_get_value(self._f)
 
     @value.setter
     def value(self, value):
-        """
-        Set a string field's value.
-        """
-
         ret = nbt._bt_ctf_field_string_set_value(self._f, str(value))
 
         if ret < 0:
