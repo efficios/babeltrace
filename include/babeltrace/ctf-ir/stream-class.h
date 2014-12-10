@@ -195,6 +195,31 @@ extern int bt_ctf_stream_class_set_packet_context_type(
 		struct bt_ctf_field_type *packet_context_type);
 
 /*
+ * bt_ctf_stream_class_get_event_context_type: get the stream class'
+ * event context type.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream event context's type (a structure), NULL on error.
+ */
+extern struct bt_ctf_field_type *
+bt_ctf_stream_class_get_event_context_type(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_set_event_context_type: set the stream class'
+ * event context type.
+ *
+ * @param stream_class Stream class.
+ * @param event_context_type Event context type (must be a structure).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_event_context_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *event_context_type);
+
+/*
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
  * decrement the stream class' reference count.
  *

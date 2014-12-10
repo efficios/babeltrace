@@ -67,7 +67,20 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto error_destroy;
 	}
 
-	/* Initialize events_discarded*/
+	/*
+	 * A stream class may not have a stream event context defined
+	 * in which case this stream will never have a stream_event_context
+	 * member since, after a stream's creation, the parent stream class
+	 * is "frozen" (immutable).
+	 */
+	if (stream_class->event_context_type) {
+		stream->event_context = bt_ctf_field_create(
+			stream_class->event_context_type);
+		if (!stream->packet_context) {
+			goto error_destroy;
+		}
+	}
+
 	ret = set_structure_field_integer(stream->packet_context,
 		"events_discarded", 0);
 	if (ret) {
@@ -252,6 +265,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 {
 	int ret = 0;
 	uint64_t timestamp;
+	struct bt_ctf_field *event_context_copy = NULL;
 
 	if (!stream || !event) {
 		ret = -1;

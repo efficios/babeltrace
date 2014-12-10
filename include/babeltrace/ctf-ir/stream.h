@@ -110,6 +110,31 @@ extern int bt_ctf_stream_set_packet_context(
 		struct bt_ctf_field *packet_context);
 
 /*
+ * bt_ctf_stream_get_event_context: get a stream's event context.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_event_context(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_event_context: set a stream's event context.
+ *
+ * The event context's type must match the stream class' event
+ * context type.
+ *
+ * @param stream Stream instance.
+ * @param event_context Event context field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_event_context(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *event_context);
+
+/*
  * bt_ctf_stream_flush: flush a stream.
  *
  * The stream's current packet's events will be flushed, thus closing the

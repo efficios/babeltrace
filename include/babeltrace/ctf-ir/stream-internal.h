@@ -53,6 +53,7 @@ struct bt_ctf_stream {
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
 	struct bt_ctf_field *packet_context;
+	struct bt_ctf_field *event_context;
 };
 
 BT_HIDDEN

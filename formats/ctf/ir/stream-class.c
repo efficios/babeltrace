@@ -306,6 +306,47 @@ end:
 	return ret;
 }
 
+struct bt_ctf_field_type *bt_ctf_stream_class_get_event_context_type(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_field_type *ret = NULL;
+
+	if (!stream_class || !stream_class->event_context_type) {
+		goto end;
+	}
+
+	assert(stream_class->event_context_type);
+	bt_ctf_field_type_get(stream_class->event_context_type);
+	ret = stream_class->event_context_type;
+end:
+	return ret;
+}
+
+int bt_ctf_stream_class_set_event_context_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *event_context_type)
+{
+	int ret = 0;
+
+	if (!stream_class || !event_context_type || stream_class->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(event_context_type) !=
+		CTF_TYPE_STRUCT) {
+		/* A packet context must be a structure */
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(stream_class->event_context_type);
+	bt_ctf_field_type_get(event_context_type);
+	stream_class->event_context_type = event_context_type;
+end:
+	return ret;
+}
+
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
 {
 	if (!stream_class) {
@@ -333,6 +374,7 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 
 	stream_class->frozen = 1;
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
+	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
 	g_ptr_array_foreach(stream_class->event_classes,
 		(GFunc)bt_ctf_event_class_freeze, NULL);
@@ -440,8 +482,9 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 	bt_ctf_field_type_put(stream_class->event_header_type);
 	bt_ctf_field_put(stream_class->event_header);
 	bt_ctf_field_type_put(stream_class->packet_context_type);
-	bt_ctf_field_type_put(stream_class->event_context_type);
-	bt_ctf_field_put(stream_class->event_context);
+	if (stream_class->event_context_type) {
+		bt_ctf_field_type_put(stream_class->event_context_type);
+	}
 	g_free(stream_class);
 }
 
