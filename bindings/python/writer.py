@@ -27,7 +27,22 @@ class EnumerationMapping:
 
 
 class Clock:
+    """
+    A CTF clock allows to describe the clock topology of the system, as
+    well as to detail each clock parameter.
+
+    :class:`Clock` objects must be registered to a :class:`Writer`
+    object (see :meth:`Writer.add_clock`), as well as be registered to
+    a :class:`StreamClass` object (see :attr:`StreamClass.clock`).
+    """
+
     def __init__(self, name):
+        """
+        Creates a default CTF clock named *name*.
+
+        :exc:`ValueError` is raised on error.
+        """
+
         self._c = nbt._bt_ctf_clock_create(name)
 
         if self._c is None:
@@ -39,7 +54,11 @@ class Clock:
     @property
     def name(self):
         """
-        Get the clock's name.
+        Clock name.
+
+        Set this attribute to change the clock's name.
+
+        :exc:`ValueError` is raised on error.
         """
 
         name = nbt._bt_ctf_clock_get_name(self._c)
@@ -52,18 +71,17 @@ class Clock:
     @property
     def description(self):
         """
-        Get the clock's description. None if unset.
+        Clock description (string).
+
+        Set this attribute to change the clock's description.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_clock_get_description(self._c)
 
     @description.setter
     def description(self, desc):
-        """
-        Set the clock's description. The description appears in the clock's TSDL
-        meta-data.
-        """
-
         ret = nbt._bt_ctf_clock_set_description(self._c, str(desc))
 
         if ret < 0:
@@ -72,7 +90,11 @@ class Clock:
     @property
     def frequency(self):
         """
-        Get the clock's frequency (Hz).
+        Clock frequency in Hz (integer).
+
+        Set this attribute to change the clock's frequency.
+
+        :exc:`ValueError` is raised on error.
         """
 
         freq = nbt._bt_ctf_clock_get_frequency(self._c)
@@ -84,10 +106,6 @@ class Clock:
 
     @frequency.setter
     def frequency(self, freq):
-        """
-        Set the clock's frequency (Hz).
-        """
-
         ret = nbt._bt_ctf_clock_set_frequency(self._c, freq)
 
         if ret < 0:
@@ -96,7 +114,11 @@ class Clock:
     @property
     def precision(self):
         """
-        Get the clock's precision (in clock ticks).
+        Clock precision in clock ticks (integer).
+
+        Set this attribute to change the clock's precision.
+
+        :exc:`ValueError` is raised on error.
         """
 
         precision = nbt._bt_ctf_clock_get_precision(self._c)
@@ -108,16 +130,16 @@ class Clock:
 
     @precision.setter
     def precision(self, precision):
-        """
-        Set the clock's precision (in clock ticks).
-        """
-
         ret = nbt._bt_ctf_clock_set_precision(self._c, precision)
 
     @property
     def offset_seconds(self):
         """
-        Get the clock's offset in seconds from POSIX.1 Epoch.
+        Clock offset in seconds since POSIX.1 Epoch (integer).
+
+        Set this attribute to change the clock's offset in seconds.
+
+        :exc:`ValueError` is raised on error.
         """
 
         offset_s = nbt._bt_ctf_clock_get_offset_s(self._c)
@@ -129,10 +151,6 @@ class Clock:
 
     @offset_seconds.setter
     def offset_seconds(self, offset_s):
-        """
-        Set the clock's offset in seconds from POSIX.1 Epoch.
-        """
-
         ret = nbt._bt_ctf_clock_set_offset_s(self._c, offset_s)
 
         if ret < 0:
@@ -141,7 +159,12 @@ class Clock:
     @property
     def offset(self):
         """
-        Get the clock's offset in ticks from POSIX.1 Epoch + offset in seconds.
+        Clock offset in ticks since (POSIX.1 Epoch +
+        :attr:`offset_seconds`).
+
+        Set this attribute to change the clock's offset.
+
+        :exc:`ValueError` is raised on error.
         """
 
         offset = nbt._bt_ctf_clock_get_offset(self._c)
@@ -153,10 +176,6 @@ class Clock:
 
     @offset.setter
     def offset(self, offset):
-        """
-        Set the clock's offset in ticks from POSIX.1 Epoch + offset in seconds.
-        """
-
         ret = nbt._bt_ctf_clock_set_offset(self._c, offset)
 
         if ret < 0:
@@ -165,8 +184,13 @@ class Clock:
     @property
     def absolute(self):
         """
-        Get a clock's absolute attribute. A clock is absolute if the clock
-        is a global reference across the trace's other clocks.
+        ``True`` if this clock is absolute, i.e. if the clock is a
+        global reference across the other clocks of the trace.
+
+        Set this attribute to change the clock's absolute state
+        (boolean).
+
+        :exc:`ValueError` is raised on error.
         """
 
         is_absolute = nbt._bt_ctf_clock_get_is_absolute(self._c)
@@ -178,20 +202,19 @@ class Clock:
 
     @absolute.setter
     def absolute(self, is_absolute):
-        """
-        Set a clock's absolute attribute. A clock is absolute if the clock
-        is a global reference across the trace's other clocks.
-        """
-
         ret = nbt._bt_ctf_clock_set_is_absolute(self._c, int(is_absolute))
 
         if ret < 0:
-            raise ValueError("Could not set the clock's absolute attribute.")
+            raise ValueError("Could not set the clock absolute attribute.")
 
     @property
     def uuid(self):
         """
-        Get a clock's UUID (an object of type UUID).
+        Clock UUID (an :class:`uuid.UUID` object).
+
+        Set this attribute to change the clock's UUID.
+
+        :exc:`ValueError` is raised on error.
         """
 
         uuid_list = []
@@ -208,10 +231,6 @@ class Clock:
 
     @uuid.setter
     def uuid(self, uuid):
-        """
-        Set a clock's UUID (an object of type UUID).
-        """
-
         uuid_bytes = uuid.bytes
 
         if len(uuid_bytes) != 16:
@@ -227,8 +246,12 @@ class Clock:
     @property
     def time(self):
         """
-        Get the current time in nanoseconds since the clock's origin (offset and
-        offset_s attributes).
+        Clock current time; nanoseconds (integer) since clock origin
+        (POSIX.1 Epoch + :attr:`offset_seconds` + :attr:`offset`).
+
+        Set this attribute to change the clock's current time.
+
+        :exc:`ValueError` is raised on error.
         """
 
         time = nbt._bt_ctf_clock_get_time(self._c)
@@ -240,12 +263,6 @@ class Clock:
 
     @time.setter
     def time(self, time):
-        """
-        Set the current time in nanoseconds since the clock's origin (offset and
-        offset_s attributes). The clock's value will be sampled as events are
-        appended to a stream.
-        """
-
         ret = nbt._bt_ctf_clock_set_time(self._c, time)
 
         if ret < 0:
