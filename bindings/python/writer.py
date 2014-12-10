@@ -962,9 +962,16 @@ class VariantFieldDeclaration(FieldDeclaration):
 
 
 class ArrayFieldDeclaration(FieldDeclaration):
+    """
+    Static array field declaration.
+    """
+
     def __init__(self, element_type, length):
         """
-        Create a new array field declaration.
+        Creates a static array field declaration of *length*
+        elements of type *element_type* (:class:`FieldDeclaration`).
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ft = nbt._bt_ctf_field_type_array_create(element_type._ft,
@@ -974,7 +981,10 @@ class ArrayFieldDeclaration(FieldDeclaration):
     @property
     def element_type(self):
         """
-        Get the array's element type.
+        Type of the elements of this this static array (subclass of
+        :class:`FieldDeclaration`).
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_array_get_element_type(self._ft)
@@ -987,7 +997,9 @@ class ArrayFieldDeclaration(FieldDeclaration):
     @property
     def length(self):
         """
-        Get the array's length.
+        Length of this static array (integer).
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_array_get_length(self._ft)
