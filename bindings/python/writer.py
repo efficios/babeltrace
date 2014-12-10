@@ -1346,9 +1346,17 @@ class StructureField(Field):
 
 
 class VariantField(Field):
+    """
+    Variant field, based on a
+    :class:`VariantFieldDeclaration` object.
+    """
+
     def field(self, tag):
         """
-        Return the variant's selected field. The "tag" field is the selector enum field.
+        Returns the :class:`Field` selected by the current label of
+        *tag* (:class:`EnumerationField`).
+
+        :exc:`ValueError` is raised on error.
         """
 
         native_instance = nbt._bt_ctf_field_variant_get_field(self._f, tag._f)
