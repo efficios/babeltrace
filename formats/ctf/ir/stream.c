@@ -81,6 +81,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		}
 	}
 
+	/* Initialize events_discarded */
 	ret = set_structure_field_integer(stream->packet_context,
 		"events_discarded", 0);
 	if (ret) {
