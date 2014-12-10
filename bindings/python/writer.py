@@ -1622,9 +1622,18 @@ class EventClass:
 
 
 class Event:
+    """
+    Events are specific instances of event classes
+    (:class:`EventClass`), which means they may contain actual,
+    concrete field values.
+    """
+
     def __init__(self, event_class):
         """
-        Create a new event of the given event class.
+        Creates an event linked with the :class:`EventClass`
+        *event_class*.
+
+        :exc:`ValueError` is raised on error.
         """
 
         if not isinstance(event_class, EventClass):
@@ -1641,7 +1650,7 @@ class Event:
     @property
     def event_class(self):
         """
-        Get the event's class.
+        :class:`EventClass` object to which this event is linked.
         """
 
         event_class_native = nbt._bt_ctf_event_get_class(self._e)
@@ -1656,8 +1665,8 @@ class Event:
 
     def clock(self):
         """
-        Get a clock from event. Returns None if the event's class
-        is not registered to a stream class.
+        :class:`Clock` object used by this object, or ``None`` if
+        the event class is not registered to a stream class.
         """
 
         clock_instance = nbt._bt_ctf_event_get_clock(self._e)
@@ -1672,7 +1681,24 @@ class Event:
 
     def payload(self, field_name):
         """
-        Get a field from event.
+        Returns the :class:`Field` object named *field_name* in this
+        event.
+
+        The returned field object is created using the event class'
+        field declaration named *field_name*.
+
+        The return type is one of:
+
+        * :class:`IntegerField`
+        * :class:`FloatingPointField`
+        * :class:`EnumerationField`
+        * :class:`StringField`
+        * :class:`ArrayField`
+        * :class:`SequenceField`
+        * :class:`StructureField`
+        * :class:`VariantField`
+
+        :exc:`TypeError` is raised on error.
         """
 
         native_instance = nbt._bt_ctf_event_get_payload(self._e,
@@ -1685,7 +1711,21 @@ class Event:
 
     def set_payload(self, field_name, value_field):
         """
-        Set a manually created field as an event's payload.
+        Set the event's field named *field_name* to the manually
+        created :class:`Field` object *value_field*.
+
+        *value_field*'s type must be one of:
+
+        * :class:`IntegerField`
+        * :class:`FloatingPointField`
+        * :class:`EnumerationField`
+        * :class:`StringField`
+        * :class:`ArrayField`
+        * :class:`SequenceField`
+        * :class:`StructureField`
+        * :class:`VariantField`
+
+        :exc:`ValueError` is raised on error.
         """
 
         if not isinstance(value, Field):
