@@ -641,15 +641,44 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         return EnumerationMapping(name, range_start, range_end)
 
 
-class FloatFieldDeclaration(FieldDeclaration):
+class FloatingPointFieldDeclaration(FieldDeclaration):
+    """
+    Floating point number field declaration.
+
+    A CTF floating point number is a made of three sections: the sign
+    bit, the exponent bits, and the mantissa bits. The most significant
+    bit of the resulting binary word is the sign bit, and is included
+    in the number of mantissa bits.
+
+    For example, the
+    `IEEE 754 <http://en.wikipedia.org/wiki/IEEE_floating_point>`_
+    single precision floating point number is represented on a 32-bit
+    word using an 8-bit exponent (``e``) and a 24-bit mantissa (``m``),
+    the latter count including the sign bit (``s``)::
+
+        s eeeeeeee mmmmmmmmmmmmmmmmmmmmmmm
+
+    The IEEE 754 double precision floating point number uses an
+    11-bit exponent and a 53-bit mantissa.
+    """
+
+    #: IEEE 754 single precision floating point number exponent size
     FLT_EXP_DIG = 8
+
+    #: IEEE 754 double precision floating point number exponent size
     DBL_EXP_DIG = 11
+
+    #: IEEE 754 single precision floating point number mantissa size
     FLT_MANT_DIG = 24
+
+    #: IEEE 754 double precision floating point number mantissa size
     DBL_MANT_DIG = 53
 
     def __init__(self):
         """
-        Create a new floating point field declaration.
+        Creates a floating point number field declaration.
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ft = nbt._bt_ctf_field_type_floating_point_create()
@@ -658,7 +687,13 @@ class FloatFieldDeclaration(FieldDeclaration):
     @property
     def exponent_digits(self):
         """
-        Get the number of exponent digits used to store the floating point field.
+        Floating point number exponent section size in bits (integer).
+
+        Set this attribute to change the floating point number's
+        exponent section's size. You may use :attr:`FLT_EXP_DIG` or
+        :attr:`DBL_EXP_DIG` for IEEE 754 floating point numbers.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_floating_point_get_exponent_digits(self._ft)
@@ -671,12 +706,6 @@ class FloatFieldDeclaration(FieldDeclaration):
 
     @exponent_digits.setter
     def exponent_digits(self, exponent_digits):
-        """
-        Set the number of exponent digits to use to store the floating point field.
-        The only values currently supported are FLT_EXP_DIG and DBL_EXP_DIG which
-        are defined as constants of this class.
-        """
-
         ret = nbt._bt_ctf_field_type_floating_point_set_exponent_digits(self._ft,
                                                                         exponent_digits)
 
@@ -686,7 +715,13 @@ class FloatFieldDeclaration(FieldDeclaration):
     @property
     def mantissa_digits(self):
         """
-        Get the number of mantissa digits used to store the floating point field.
+        Floating point number mantissa section size in bits (integer).
+
+        Set this attribute to change the floating point number's
+        mantissa section's size. You may use :attr:`FLT_MANT_DIG` or
+        :attr:`DBL_MANT_DIG` for IEEE 754 floating point numbers.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_floating_point_get_mantissa_digits(self._ft)
@@ -698,12 +733,6 @@ class FloatFieldDeclaration(FieldDeclaration):
 
     @mantissa_digits.setter
     def mantissa_digits(self, mantissa_digits):
-        """
-        Set the number of mantissa digits to use to store the floating point field.
-        The only values currently supported are FLT_MANT_DIG and DBL_MANT_DIG which
-        are defined as constants of this class.
-        """
-
         ret = nbt._bt_ctf_field_type_floating_point_set_mantissa_digits(self._ft,
                                                                         mantissa_digits)
 
@@ -711,7 +740,7 @@ class FloatFieldDeclaration(FieldDeclaration):
             raise ValueError("Could not set mantissa digit count.")
 
 
-class FloatingPointFieldDeclaration(FloatFieldDeclaration):
+class FloatFieldDeclaration(FloatingPointFieldDeclaration):
     pass
 
 
