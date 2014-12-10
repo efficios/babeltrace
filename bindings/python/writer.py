@@ -719,9 +719,16 @@ class FloatFieldDeclaration(FloatingPointFieldDeclaration):
 
 
 class StructureFieldDeclaration(FieldDeclaration):
+    """
+    Structure field declaration, i.e. an ordered mapping from field
+    names to field declarations.
+    """
+
     def __init__(self):
         """
-        Create a new structure field declaration.
+        Creates an empty structure field declaration.
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ft = nbt._bt_ctf_field_type_structure_create()
@@ -729,7 +736,10 @@ class StructureFieldDeclaration(FieldDeclaration):
 
     def add_field(self, field_type, field_name):
         """
-        Add a field of type "field_type" to the structure.
+        Appends one :class:`FieldDeclaration` *field_type* named
+        *field_name* to the structure's ordered map.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_structure_add_field(self._ft,
@@ -742,7 +752,10 @@ class StructureFieldDeclaration(FieldDeclaration):
     @property
     def fields(self):
         """
-        Generator returning the structure's field as tuples of (field name, field declaration).
+        Generates the (field name, :class:`FieldDeclaration`) pairs
+        of this structure.
+
+        :exc:`TypeError` is raised on error.
         """
 
         count = nbt._bt_ctf_field_type_structure_get_field_count(self._ft)
@@ -768,7 +781,10 @@ class StructureFieldDeclaration(FieldDeclaration):
 
     def get_field_by_name(self, name):
         """
-        Get a field declaration by name (FieldDeclaration).
+        Returns the :class:`FieldDeclaration` mapped to the field name
+        *name* in this structure.
+
+        :exc:`TypeError` is raised on error.
         """
 
         field_type_native = nbt._bt_ctf_field_type_structure_get_field_type_by_name(self._ft, name)
