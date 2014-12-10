@@ -390,7 +390,7 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 		uuid[4], uuid[5], uuid[6], uuid[7],
 		uuid[8], uuid[9], uuid[10], uuid[11],
 		uuid[12], uuid[13], uuid[14], uuid[15]);
-	if (clock->description->len) {
+	if (clock->description) {
 		g_string_append_printf(context->string, "\tdescription = \"%s\";\n",
 			clock->description->str);
 	}
