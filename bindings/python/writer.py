@@ -1341,9 +1341,17 @@ class VariantField(Field):
 
 
 class ArrayField(Field):
+    """
+    Static array field, based on an
+    :class:`ArrayFieldDeclaration` object.
+    """
+
     def field(self, index):
         """
-        Return the array's field at position "index".
+        Returns the :class:`Field` at index *index* in this static
+        array.
+
+        :exc:`IndexError` is raised on error.
         """
 
         native_instance = nbt._bt_ctf_field_array_get_field(self._f, index)
