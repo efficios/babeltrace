@@ -797,9 +797,23 @@ class StructureFieldDeclaration(FieldDeclaration):
 
 
 class VariantFieldDeclaration(FieldDeclaration):
+    """
+    Variant field declaration.
+
+    A CTF variant is a dynamic selection between different fields.
+    The value of a *tag* (a CTF enumeration) determines what is the
+    current selected field. All the possible fields must be added to
+    its field declaration before using an actual variant field.
+    """
+
     def __init__(self, enum_tag, tag_name):
         """
-        Create a new variant field declaration.
+        Creates an empty variant field declaration with tag field
+        declaration *enum_tag* (instance of
+        :class:`EnumerationFieldDeclaration`) named *tag_name*
+        (string).
+
+        :exc:`ValueError` is raised on error.
         """
 
         isinst = isinstance(enum_tag, EnumerationFieldDeclaration)
@@ -813,7 +827,9 @@ class VariantFieldDeclaration(FieldDeclaration):
     @property
     def tag_name(self):
         """
-        Get the variant's tag name.
+        Variant field declaration tag name.
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_variant_get_tag_name(self._ft)
@@ -826,7 +842,10 @@ class VariantFieldDeclaration(FieldDeclaration):
     @property
     def tag_type(self):
         """
-        Get the variant's tag type.
+        Variant field declaration tag field declaration
+        (:class:`EnumerationFieldDeclaration` object).
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_variant_get_tag_type(self._ft)
@@ -838,7 +857,11 @@ class VariantFieldDeclaration(FieldDeclaration):
 
     def add_field(self, field_type, field_name):
         """
-        Add a field of type "field_type" to the variant.
+        Registers the :class:`FieldDeclaration` object *field_type*
+        as the variant's selected type when the variant's tag's current
+        label is *field_name*.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_variant_add_field(self._ft,
@@ -851,7 +874,10 @@ class VariantFieldDeclaration(FieldDeclaration):
     @property
     def fields(self):
         """
-        Generator returning the variant's field as tuples of (field name, field declaration).
+        Generates the (field name, :class:`FieldDeclaration`) pairs
+        of this variant field declaration.
+
+        :exc:`TypeError` is raised on error.
         """
 
         count = nbt._bt_ctf_field_type_variant_get_field_count(self._ft)
@@ -877,7 +903,10 @@ class VariantFieldDeclaration(FieldDeclaration):
 
     def get_field_by_name(self, name):
         """
-        Get a field declaration by name (FieldDeclaration).
+        Returns the :class:`FieldDeclaration` selected when the
+        variant's tag's current label is *name*.
+
+        :exc:`TypeError` is raised on error.
         """
 
         field_type_native = nbt._bt_ctf_field_type_variant_get_field_type_by_name(self._ft,
@@ -891,7 +920,10 @@ class VariantFieldDeclaration(FieldDeclaration):
 
     def get_field_from_tag(self, tag):
         """
-        Get a field declaration from tag (EnumerationField).
+        Returns the :class:`FieldDeclaration` selected by the current
+        label of the :class:`EnumerationField` *tag*.
+
+        :exc:`TypeError` is raised on error.
         """
 
         field_type_native = nbt._bt_ctf_field_type_variant_get_field_type_from_tag(self._ft, tag._f)
