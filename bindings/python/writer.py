@@ -1102,7 +1102,10 @@ def create_field(field_type):
 
 class Field:
     """
-    Base class, do not instantiate.
+    Base class of all fields. This class is not meant to be
+    instantiated by the user, and neither are its subclasses. Use
+    :meth:`Event.payload` to access specific, concrete fields of
+    an event.
     """
 
     def __init__(self, field_type):
@@ -1143,6 +1146,12 @@ class Field:
 
     @property
     def declaration(self):
+        """
+        Field declaration (subclass of :class:`FieldDeclaration`).
+
+        :exc:`TypeError` is raised on error.
+        """
+
         native_field_type = nbt._bt_ctf_field_get_type(self._f)
 
         if native_field_type is None:
