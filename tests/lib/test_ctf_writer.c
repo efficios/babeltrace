@@ -308,6 +308,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context;
 	struct bt_ctf_field *packet_context_field;
+	struct bt_ctf_field *event_context;
+	struct bt_ctf_field *event_context_field;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -531,6 +533,12 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
+	/* Populate stream event context */
+	event_context = bt_ctf_stream_get_event_context(stream);
+	event_context_field = bt_ctf_field_structure_get_field(
+		event_context, "common_event_context");
+	bt_ctf_field_unsigned_integer_set_value(event_context_field, 42);
+
 	ok(bt_ctf_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
 
@@ -576,6 +584,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(enum_container_field_unsigned);
 	bt_ctf_field_put(packet_context);
 	bt_ctf_field_put(packet_context_field);
+	bt_ctf_field_put(event_context);
+	bt_ctf_field_put(event_context_field);
 }
 
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
@@ -1335,6 +1345,22 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_get_payload_by_index handles an invalid index correctly");
 	bt_ctf_event_put(event);
 
+	ok(bt_ctf_stream_get_event_context(NULL) == NULL,
+		"bt_ctf_stream_get_event_context handles NULL correctly");
+	event_context = bt_ctf_stream_get_event_context(stream);
+	ok(event_context,
+		"bt_ctf_stream_get_event_context returns a stream event context");
+	ok(bt_ctf_stream_set_event_context(NULL, event_context) < 0,
+		"bt_ctf_stream_set_event_context handles a NULL stream correctly");
+	ok(bt_ctf_stream_set_event_context(stream, NULL) < 0,
+		"bt_ctf_stream_set_event_context handles a NULL stream event context correctly");
+	ok(!bt_ctf_stream_set_event_context(stream, event_context),
+		"bt_ctf_stream_set_event_context correctly set a stream event context");
+	ret_field = bt_ctf_field_create(integer_type);
+	ok(bt_ctf_stream_set_event_context(stream, ret_field) < 0,
+		"bt_ctf_stream_set_event_context rejects an event context of incorrect type");
+	bt_ctf_field_put(ret_field);
+
 	for (i = 0; i < PACKET_RESIZE_TEST_LENGTH; i++) {
 		event = bt_ctf_event_create(event_class);
 		struct bt_ctf_field *integer =
@@ -1351,6 +1377,14 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		ret |= bt_ctf_event_set_payload(event, "a_string",
 			string);
 		bt_ctf_field_put(string);
+
+		/* Populate stream event context */
+		integer = bt_ctf_field_structure_get_field(event_context,
+			"common_event_context");
+		ret |= bt_ctf_field_unsigned_integer_set_value(integer,
+			i % 42);
+		bt_ctf_field_put(integer);
+
 		ret |= bt_ctf_stream_append_event(stream, event);
 		bt_ctf_event_put(event);
 
@@ -1359,7 +1393,7 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		}
 	}
 
-	events_appended = 1;
+	events_appended = !!(i == PACKET_RESIZE_TEST_LENGTH);
 	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) < 0,
 		"bt_ctf_stream_get_discarded_events_count handles a NULL stream correctly");
 	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) < 0,
@@ -1393,6 +1427,7 @@ end:
 	bt_ctf_field_type_put(string_type);
 	bt_ctf_field_put(packet_context);
 	bt_ctf_field_put(packet_context_field);
+	bt_ctf_field_put(event_context);
 	bt_ctf_event_class_put(event_class);
 }
 
