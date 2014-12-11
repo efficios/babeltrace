@@ -546,7 +546,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Packet context contains the default packet_size field.");
 	bt_ctf_field_put(packet_context_field);
 	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
-		"custom_field");
+		"custom_packet_context_field");
 	ok(bt_ctf_field_unsigned_integer_set_value(packet_context_field, 8) == 0,
 		"Custom packet context field value successfully set.");
 
@@ -961,7 +961,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	 */
 	packet_context = bt_ctf_stream_get_packet_context(stream);
 	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
-		"custom_field");
+		"custom_packet_context_field");
 	bt_ctf_field_unsigned_integer_set_value(packet_context_field, 1);
 
 	ok(bt_ctf_stream_flush(stream) == 0,
@@ -1303,12 +1303,13 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_integer_create(17);
 	struct bt_ctf_field_type *string_type =
 		bt_ctf_field_type_string_create();
-	struct bt_ctf_event *event;
-	struct bt_ctf_field *ret_field;
-	struct bt_ctf_field_type *ret_field_type;
+	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_field *ret_field = NULL;
+	struct bt_ctf_field_type *ret_field_type = NULL;
 	uint64_t ret_uint64;
 	int events_appended = 0;
-	struct bt_ctf_field *packet_context, *packet_context_field;
+	struct bt_ctf_field *packet_context = NULL,
+		*packet_context_field = NULL, *event_context = NULL;
 
 	ret |= bt_ctf_event_class_add_field(event_class, integer_type,
 		"field_1");
@@ -1380,7 +1381,7 @@ end:
 	 */
 	packet_context = bt_ctf_stream_get_packet_context(stream);
 	packet_context_field = bt_ctf_field_structure_get_field(packet_context,
-		"custom_field");
+		"custom_packet_context_field");
 	bt_ctf_field_unsigned_integer_set_value(packet_context_field, 2);
 
 	ok(bt_ctf_stream_flush(stream) == 0,
@@ -1420,7 +1421,9 @@ int main(int argc, char **argv)
 	unsigned char tmp_uuid[16] = { 0 };
 	struct bt_ctf_field_type *packet_context_type,
 		*packet_context_field_type,
-		*integer_type;
+		*integer_type,
+		*stream_event_context_type,
+		*ret_field_type;
 	struct bt_ctf_trace *trace;
 	int ret;
 
@@ -1683,9 +1686,36 @@ int main(int argc, char **argv)
 		integer_type) < 0,
 		"bt_ctf_stream_class_set_packet_context_type rejects a packet context that is not a structure");
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
-		packet_context_field_type, "custom_field");
+		packet_context_field_type, "custom_packet_context_field");
 	ok(ret == 0, "Packet context field added successfully");
 
+	/* Define a stream event context containing a my_integer field. */
+	ok(bt_ctf_stream_class_get_event_context_type(NULL) == NULL,
+		"bt_ctf_stream_class_get_event_context_type handles NULL correctly");
+	ok(bt_ctf_stream_class_get_event_context_type(
+		stream_class) == NULL,
+		"bt_ctf_stream_class_get_event_context_type returns NULL when no stream event context type was set.");
+	stream_event_context_type = bt_ctf_field_type_structure_create();
+	bt_ctf_field_type_structure_add_field(stream_event_context_type,
+		integer_type, "common_event_context");
+
+	ok(bt_ctf_stream_class_set_event_context_type(NULL,
+		stream_event_context_type) < 0,
+		"bt_ctf_stream_class_set_event_context_type handles a NULL stream_class correctly");
+	ok(bt_ctf_stream_class_set_event_context_type(stream_class,
+		NULL) < 0,
+		"bt_ctf_stream_class_set_event_context_type handles a NULL event_context correctly");
+	ok(bt_ctf_stream_class_set_event_context_type(stream_class,
+		integer_type) < 0,
+		"bt_ctf_stream_class_set_event_context_type validates that the event context os a structure");
+
+	ok(bt_ctf_stream_class_set_event_context_type(
+		stream_class, stream_event_context_type) == 0,
+		"Set a new stream event context type");
+	ret_field_type = bt_ctf_stream_class_get_event_context_type(
+		stream_class);
+	ok(ret_field_type == stream_event_context_type,
+		"bt_ctf_stream_class_get_event_context_type returns the correct field type.");
 
 	/* Instantiate a stream and append events */
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
@@ -1700,7 +1730,16 @@ int main(int argc, char **argv)
 	ok(ret < 0,
 		"Packet context type can't be modified once a stream class has been instanciated");
 
-	/* Should fail after instanciating a stream (locked)*/
+	/*
+	 * Try to modify the stream event context type after a stream has been
+	 * created.
+	 */
+	ret = bt_ctf_field_type_structure_add_field(stream_event_context_type,
+		integer_type, "should_fail");
+	ok(ret < 0,
+		"Stream event context type can't be modified once a stream class has been instanciated");
+
+	/* Should fail after instanciating a stream (frozen) */
 	ok(bt_ctf_stream_class_set_clock(stream_class, clock),
 		"Changes to a stream class that was already instantiated fail");
 
@@ -1724,6 +1763,8 @@ int main(int argc, char **argv)
 	bt_ctf_field_type_put(packet_context_type);
 	bt_ctf_field_type_put(packet_context_field_type);
 	bt_ctf_field_type_put(integer_type);
+	bt_ctf_field_type_put(stream_event_context_type);
+	bt_ctf_field_type_put(ret_field_type);
 	bt_ctf_trace_put(trace);
 	free(metadata_string);
 
