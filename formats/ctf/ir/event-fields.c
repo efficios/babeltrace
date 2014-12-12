@@ -565,7 +565,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	tag_enum_integer = container_of(tag_enum, struct bt_ctf_field_integer,
 		parent);
 
-	if (!bt_ctf_field_validate(variant->tag)) {
+	if (bt_ctf_field_validate(tag_field) < 0) {
 		goto end;
 	}
 
