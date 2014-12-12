@@ -76,32 +76,32 @@ static
 void bt_ctf_field_string_destroy(struct bt_ctf_field *);
 
 static
-int bt_ctf_field_generic_validate(struct bt_ctf_field *field);
+int bt_ctf_field_generic_validate(struct bt_ctf_field *);
 static
-int bt_ctf_field_structure_validate(struct bt_ctf_field *field);
+int bt_ctf_field_structure_validate(struct bt_ctf_field *);
 static
-int bt_ctf_field_variant_validate(struct bt_ctf_field *field);
+int bt_ctf_field_variant_validate(struct bt_ctf_field *);
 static
-int bt_ctf_field_enumeration_validate(struct bt_ctf_field *field);
+int bt_ctf_field_enumeration_validate(struct bt_ctf_field *);
 static
-int bt_ctf_field_array_validate(struct bt_ctf_field *field);
+int bt_ctf_field_array_validate(struct bt_ctf_field *);
 static
-int bt_ctf_field_sequence_validate(struct bt_ctf_field *field);
+int bt_ctf_field_sequence_validate(struct bt_ctf_field *);
 
 static
-int bt_ctf_field_generic_reset(struct bt_ctf_field *field);
+int bt_ctf_field_generic_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_structure_reset(struct bt_ctf_field *field);
+int bt_ctf_field_structure_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_variant_reset(struct bt_ctf_field *field);
+int bt_ctf_field_variant_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_enumeration_reset(struct bt_ctf_field *field);
+int bt_ctf_field_enumeration_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_array_reset(struct bt_ctf_field *field);
+int bt_ctf_field_array_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_sequence_reset(struct bt_ctf_field *field);
+int bt_ctf_field_sequence_reset(struct bt_ctf_field *);
 static
-int bt_ctf_field_string_reset(struct bt_ctf_field *field);
+int bt_ctf_field_string_reset(struct bt_ctf_field *);
 
 static
 int bt_ctf_field_integer_serialize(struct bt_ctf_field *,
