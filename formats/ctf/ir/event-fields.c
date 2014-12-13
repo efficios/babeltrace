@@ -129,6 +129,24 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *,
 		struct ctf_stream_pos *);
 
 static
+int bt_ctf_field_integer_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_enumeration_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_floating_point_copy(struct bt_ctf_field *,
+		struct bt_ctf_field *);
+static
+int bt_ctf_field_structure_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_variant_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_array_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_sequence_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+static
+int bt_ctf_field_string_copy(struct bt_ctf_field *, struct bt_ctf_field *);
+
+static
 int increase_packet_size(struct ctf_stream_pos *pos);
 
 static
@@ -194,6 +212,18 @@ int (*field_serialize_funcs[])(struct bt_ctf_field *,
 	[CTF_TYPE_ARRAY] = bt_ctf_field_array_serialize,
 	[CTF_TYPE_SEQUENCE] = bt_ctf_field_sequence_serialize,
 	[CTF_TYPE_STRING] = bt_ctf_field_string_serialize,
+};
+
+static
+int (*field_copy_funcs[])(struct bt_ctf_field *, struct bt_ctf_field *) = {
+	[CTF_TYPE_INTEGER] = bt_ctf_field_integer_copy,
+	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_copy,
+	[CTF_TYPE_FLOAT] = bt_ctf_field_floating_point_copy,
+	[CTF_TYPE_STRUCT] = bt_ctf_field_structure_copy,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_variant_copy,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_array_copy,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_sequence_copy,
+	[CTF_TYPE_STRING] = bt_ctf_field_string_copy,
 };
 
 struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
@@ -955,6 +985,40 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
+struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
+{
+	int ret;
+	struct bt_ctf_field *copy = NULL;
+	enum ctf_type_id type_id;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	type_id = bt_ctf_field_type_get_type_id(field->type);
+	if (type_id <= CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES) {
+		ret = -1;
+		goto end;
+	}
+
+	copy = bt_ctf_field_create(field->type);
+	if (!copy) {
+		goto end;
+	}
+
+	bt_ctf_field_type_get(field->type);
+	copy->type = field->type;
+	ret = field_copy_funcs[type_id](field, copy);
+	if (ret) {
+		bt_ctf_field_put(copy);
+		copy = NULL;
+	}
+end:
+	return copy;
+}
+
 static
 struct bt_ctf_field *bt_ctf_field_integer_create(struct bt_ctf_field_type *type)
 {
@@ -1698,6 +1762,194 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *field,
 end:
 	bt_ctf_field_put(character);
 	bt_ctf_field_type_put(character_type);
+	return ret;
+}
+
+static
+int bt_ctf_field_integer_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	struct bt_ctf_field_integer *integer_src, *integer_dst;
+
+	integer_src = container_of(src, struct bt_ctf_field_integer, parent);
+	integer_dst = container_of(src, struct bt_ctf_field_integer, parent);
+
+	memcpy(&integer_dst->definition, &integer_src->definition,
+		sizeof(struct definition_integer));
+	return 0;
+}
+
+static
+int bt_ctf_field_enumeration_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret = 0;
+	struct bt_ctf_field_enumeration *enum_src, *enum_dst;
+
+	enum_src = container_of(src, struct bt_ctf_field_enumeration, parent);
+	enum_dst = container_of(dst, struct bt_ctf_field_enumeration, parent);
+
+	if (enum_src->payload) {
+		enum_dst->payload = bt_ctf_field_copy(enum_src->payload);
+		if (!enum_dst->payload) {
+			ret = -1;
+			goto end;
+		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_floating_point_copy(
+		struct bt_ctf_field *src, struct bt_ctf_field *dst)
+{
+	struct bt_ctf_field_floating_point *float_src, *float_dst;
+
+	float_src = container_of(src, struct bt_ctf_field_floating_point,
+		parent);
+	float_dst = container_of(dst, struct bt_ctf_field_floating_point,
+		parent);
+
+	memcpy(&float_dst->definition, &float_src->definition,
+		sizeof(struct definition_float));
+	memcpy(&float_dst->sign, &float_src->sign,
+		sizeof(struct definition_integer));
+	memcpy(&float_dst->mantissa, &float_src->mantissa,
+		sizeof(struct definition_integer));
+	memcpy(&float_dst->exp, &float_src->exp,
+		sizeof(struct definition_integer));
+	return 0;
+}
+
+static
+int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret, i;
+	struct bt_ctf_field_structure *struct_src, *struct_dst;
+
+	struct_src = container_of(src, struct bt_ctf_field_structure, parent);
+	struct_dst = container_of(dst, struct bt_ctf_field_structure, parent);
+
+	struct_dst->field_name_to_index = struct_src->field_name_to_index;
+	struct_dst->fields = g_ptr_array_sized_new(struct_src->fields->len);
+	if (!struct_dst->fields) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < struct_src->fields->len; i++) {
+		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
+			g_ptr_array_index(struct_src->fields, i));
+
+		if (!field_copy) {
+			ret = -1;
+			goto end;
+		}
+		g_ptr_array_add(struct_dst->fields, field_copy);
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_variant_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret = 0;
+	struct bt_ctf_field_variant *variant_src, *variant_dst;
+
+	variant_src = container_of(src, struct bt_ctf_field_variant, parent);
+	variant_dst = container_of(dst, struct bt_ctf_field_variant, parent);
+
+	if (variant_src->tag) {
+		variant_dst->tag = bt_ctf_field_copy(variant_src->tag);
+		if (!variant_dst->tag) {
+			ret = -1;
+			goto end;
+		}
+	}
+	if (variant_src->payload) {
+		variant_dst->payload = bt_ctf_field_copy(variant_src->payload);
+		if (!variant_dst->payload) {
+			ret = -1;
+			goto end;
+		}
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_array_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret = 0, i;
+	struct bt_ctf_field_array *array_src, *array_dst;
+
+	array_src = container_of(src, struct bt_ctf_field_array, parent);
+	array_dst = container_of(dst, struct bt_ctf_field_array, parent);
+
+	array_dst->elements = g_ptr_array_sized_new(array_src->elements->len);
+	for (i = 0; i < array_src->elements->len; i++) {
+		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
+			g_ptr_array_index(array_src->elements, i));
+
+		if (!field_copy) {
+			ret = -1;
+			goto end;
+		}
+		g_ptr_array_add(array_dst->elements, field_copy);
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret = 0, i;
+	struct bt_ctf_field_sequence *sequence_src, *sequence_dst;
+
+	sequence_src = container_of(src, struct bt_ctf_field_sequence, parent);
+	sequence_dst = container_of(dst, struct bt_ctf_field_sequence, parent);
+
+	sequence_dst->elements = g_ptr_array_sized_new(
+		sequence_src->elements->len);
+	for (i = 0; i < sequence_src->elements->len; i++) {
+		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
+			g_ptr_array_index(sequence_src->elements, i));
+
+		if (!field_copy) {
+			ret = -1;
+			goto end;
+		}
+		g_ptr_array_add(sequence_dst->elements, field_copy);
+	}
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_string_copy(struct bt_ctf_field *src,
+		struct bt_ctf_field *dst)
+{
+	int ret = 0;
+	struct bt_ctf_field_string *string_src, *string_dst;
+
+	string_src = container_of(src, struct bt_ctf_field_string, parent);
+	string_dst = container_of(dst, struct bt_ctf_field_string, parent);
+
+	if (string_src->payload) {
+		string_dst->payload = g_string_new(string_src->payload->str);
+		if (!string_dst->payload) {
+			ret = -1;
+			goto end;
+		}
+	}
+end:
 	return ret;
 }
 
