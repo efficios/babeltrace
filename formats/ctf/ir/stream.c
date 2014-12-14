@@ -329,10 +329,10 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_context(
 	}
 
 	packet_context = stream->packet_context;
-end:
 	if (packet_context) {
 		bt_ctf_field_get(packet_context);
 	}
+end:
 	return packet_context;
 }
 
