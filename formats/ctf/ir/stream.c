@@ -283,6 +283,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	/* Make sure the event's payload is set */
 	ret = bt_ctf_event_validate(event);
 	if (ret) {
 		goto end;
