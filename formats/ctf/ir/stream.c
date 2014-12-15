@@ -629,6 +629,7 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		uint64_t value)
 {
 	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field *integer =
 		bt_ctf_field_structure_get_field(structure, name);
 
@@ -648,8 +649,31 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		goto end;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_set_value(integer, value);
+	field_type = bt_ctf_field_get_type(integer);
+	/* Something is serioulsly wrong */
+	assert(field_type);
+	if (bt_ctf_field_type_get_type_id(field_type) != CTF_TYPE_INTEGER) {
+		/*
+		 * The user most likely meant for us to populate this field
+		 * automatically. However, we can only do this if the field
+		 * is an integer. Return an error.
+		 */
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_integer_get_signed(field_type)) {
+		ret = bt_ctf_field_signed_integer_set_value(integer,
+			(int64_t) value);
+	} else {
+		ret = bt_ctf_field_unsigned_integer_set_value(integer, value);
+	}
 end:
-	bt_ctf_field_put(integer);
+	if (integer) {
+		bt_ctf_field_put(integer);
+	}
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
 	return ret;
 }
