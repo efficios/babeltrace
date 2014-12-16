@@ -1011,9 +1011,19 @@ class ArrayFieldDeclaration(FieldDeclaration):
 
 
 class SequenceFieldDeclaration(FieldDeclaration):
+    """
+    Sequence (dynamic array) field declaration.
+    """
+
     def __init__(self, element_type, length_field_name):
         """
-        Create a new sequence field declaration.
+        Creates a sequence field declaration of
+        elements of type *element_type* (:class:`FieldDeclaration`).
+        The length of a sequence field based on this sequence field
+        declaration is obtained by retrieving the dynamic integer
+        value of the field named *length_field_name*.
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ft = nbt._bt_ctf_field_type_sequence_create(element_type._ft,
@@ -1023,7 +1033,10 @@ class SequenceFieldDeclaration(FieldDeclaration):
     @property
     def element_type(self):
         """
-        Get the sequence's element type.
+        Type of the elements of this sequence (subclass of
+        :class:`FieldDeclaration`).
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_sequence_get_element_type(self._ft)
@@ -1036,7 +1049,10 @@ class SequenceFieldDeclaration(FieldDeclaration):
     @property
     def length_field_name(self):
         """
-        Get the sequence's length field name.
+        Name of the integer field defining the dynamic length of
+        sequence fields based on this sequence field declaration.
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_sequence_get_length_field_name(self._ft)
