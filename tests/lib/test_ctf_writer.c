@@ -289,6 +289,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field_type *enum_type;
 	struct bt_ctf_field_type *enum_type_unsigned =
 		bt_ctf_field_type_enumeration_create(uint_12_type);
+	struct bt_ctf_field_type *event_context_type =
+		bt_ctf_field_type_structure_create();
 	struct bt_ctf_field_type *returned_type;
 	struct bt_ctf_event *simple_event;
 	struct bt_ctf_field *integer_field;
@@ -308,6 +310,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context;
 	struct bt_ctf_field *packet_context_field;
+	struct bt_ctf_field *stream_event_context;
+	struct bt_ctf_field *stream_event_context_field;
 	struct bt_ctf_field *event_context;
 	struct bt_ctf_field *event_context_field;
 
@@ -322,6 +326,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(!bt_ctf_field_type_enumeration_get_container_type(NULL), "bt_ctf_field_type_enumeration_get_container_type handles NULL correctly");
 	ok(!bt_ctf_field_type_enumeration_create(enum_type),
 		"bt_ctf_field_enumeration_type_create rejects non-integer container field types");
+	bt_ctf_field_type_put(returned_type);
 
 	bt_ctf_field_type_set_alignment(float_type, 32);
 	ok(bt_ctf_field_type_get_alignment(NULL) < 0,
@@ -470,10 +475,28 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_stream_class_get_event_class_by_name handles a NULL event class name correctly");
 	ok(bt_ctf_stream_class_get_event_class_by_name(stream_class, "some event name") == NULL,
 		"bt_ctf_stream_class_get_event_class_by_name handles non-existing event class names correctly");
-        ret_event_class = bt_ctf_stream_class_get_event_class_by_name(stream_class, "Simple Event");
+	ret_event_class = bt_ctf_stream_class_get_event_class_by_name(stream_class, "Simple Event");
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class_by_name returns a correct event class");
 	bt_ctf_event_class_put(ret_event_class);
+
+	/* Set an event context type which will contain a single integer*/
+	bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
+		"event_specific_context");
+	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
+		"bt_ctf_event_class_get_context_type handles NULL correctly");
+	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
+		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
+	ok(bt_ctf_event_class_set_context_type(simple_event_class, NULL) < 0,
+		"bt_ctf_event_class_set_context_type handles a NULL context type correctly");
+	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
+		"bt_ctf_event_class_set_context_type handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_set_context_type(simple_event_class, event_context_type),
+		"Set an event class' context type successfully");
+	returned_type = bt_ctf_event_class_get_context_type(simple_event_class);
+	ok(returned_type == event_context_type,
+		"bt_ctf_event_class_get_context_type returns the appropriate type");
+	bt_ctf_field_type_put(returned_type);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
 	ok(simple_event,
@@ -534,10 +557,32 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
 	/* Populate stream event context */
-	event_context = bt_ctf_stream_get_event_context(stream);
-	event_context_field = bt_ctf_field_structure_get_field(
-		event_context, "common_event_context");
-	bt_ctf_field_unsigned_integer_set_value(event_context_field, 42);
+	stream_event_context = bt_ctf_stream_get_event_context(stream);
+	stream_event_context_field = bt_ctf_field_structure_get_field(
+		stream_event_context, "common_event_context");
+	bt_ctf_field_unsigned_integer_set_value(stream_event_context_field, 42);
+
+	/* Populate the event's context */
+	ok(bt_ctf_event_get_event_context(NULL) == NULL,
+		"bt_ctf_event_get_event_context handles NULL correctly");
+	event_context = bt_ctf_event_get_event_context(simple_event);
+	ok(event_context,
+		"bt_ctf_event_get_event_context returns a field");
+	returned_type = bt_ctf_field_get_type(event_context);
+	ok(returned_type == event_context_type,
+		"bt_ctf_event_get_event_context returns a field of the appropriate type");
+	event_context_field = bt_ctf_field_structure_get_field(event_context,
+		"event_specific_context");
+	ok(!bt_ctf_field_unsigned_integer_set_value(event_context_field, 1234),
+		"Successfully set an event context's value");
+	ok(bt_ctf_event_set_event_context(NULL, event_context) < 0,
+		"bt_ctf_event_set_event_context handles a NULL event correctly");
+	ok(bt_ctf_event_set_event_context(simple_event, NULL) < 0,
+		"bt_ctf_event_set_event_context handles a NULL event context correctly");
+	ok(bt_ctf_event_set_event_context(simple_event, event_context_field) < 0,
+		"bt_ctf_event_set_event_context rejects a context of the wrong type");
+	ok(!bt_ctf_event_set_event_context(simple_event, event_context),
+		"Set an event context successfully");
 
 	ok(bt_ctf_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
@@ -576,6 +621,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_put(enum_type);
 	bt_ctf_field_type_put(enum_type_unsigned);
 	bt_ctf_field_type_put(returned_type);
+	bt_ctf_field_type_put(event_context_type);
 	bt_ctf_field_put(integer_field);
 	bt_ctf_field_put(float_field);
 	bt_ctf_field_put(enum_field);
@@ -584,6 +630,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_put(enum_container_field_unsigned);
 	bt_ctf_field_put(packet_context);
 	bt_ctf_field_put(packet_context_field);
+	bt_ctf_field_put(stream_event_context);
+	bt_ctf_field_put(stream_event_context_field);
 	bt_ctf_field_put(event_context);
 	bt_ctf_field_put(event_context_field);
 }
