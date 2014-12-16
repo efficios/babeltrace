@@ -76,6 +76,9 @@ extern void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
  * incrementing its reference count. The current packet is not flushed to disk
  * until the next call to bt_ctf_stream_flush.
  *
+ * The stream event context will be sampled for every appended event if
+ * a stream event context was defined.
+ *
  * @param stream Stream instance.
  * @param event Event instance to append to the stream's current packet.
  *
