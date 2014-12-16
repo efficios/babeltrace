@@ -399,36 +399,52 @@ class FieldDeclaration:
 
 
 class IntegerFieldDeclaration(FieldDeclaration):
+    """
+    Integer field declaration.
+    """
+
     def __init__(self, size):
         """
-        Create a new integer field declaration of the given size.
+        Creates an integer field declaration of size *size* bits.
+
+        :exc:`ValueError` is raised on error.
         """
+
         self._ft = nbt._bt_ctf_field_type_integer_create(size)
         super().__init__()
 
     @property
     def size(self):
         """
-        Get an integer's size.
+        Integer size in bits (integer).
+
+        Set this attribute to change this integer's size.
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_integer_get_size(self._ft)
 
         if ret < 0:
-            raise ValueError("Could not get Integer's size attribute.")
+            raise ValueError("Could not get Integer size attribute.")
         else:
             return ret
 
     @property
     def signed(self):
         """
-        Get an integer's signedness attribute.
+        ``True`` if this integer is signed.
+
+        Set this attribute to change this integer's signedness
+        (boolean).
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_integer_get_signed(self._ft)
 
         if ret < 0:
-            raise ValueError("Could not get Integer's signed attribute.")
+            raise ValueError("Could not get Integer signed attribute.")
         elif ret > 0:
             return True
         else:
@@ -436,57 +452,49 @@ class IntegerFieldDeclaration(FieldDeclaration):
 
     @signed.setter
     def signed(self, signed):
-        """
-        Set an integer's signedness attribute.
-        """
-
         ret = nbt._bt_ctf_field_type_integer_set_signed(self._ft, signed)
 
         if ret < 0:
-            raise ValueError("Could not set Integer's signed attribute.")
+            raise ValueError("Could not set Integer signed attribute.")
 
     @property
     def base(self):
         """
-        Get the integer's base used to pretty-print the resulting trace.
-        Returns a constant from the FieldDeclaration.IntegerBase class.
+        Integer display base (one of :class:`IntegerBase` constants).
+
+        Set this attribute to change this integer's display base.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_field_type_integer_get_base(self._ft)
 
     @base.setter
     def base(self, base):
-        """
-        Set the integer's base used to pretty-print the resulting trace.
-        The base must be a constant of the FieldDeclarationIntegerBase class.
-        """
-
         ret = nbt._bt_ctf_field_type_integer_set_base(self._ft, base)
 
         if ret < 0:
-            raise ValueError("Could not set Integer's base.")
+            raise ValueError("Could not set Integer base.")
 
     @property
     def encoding(self):
         """
-        Get the integer's encoding (one of the constants of the
-        CTFStringEncoding class).
-        Returns a constant from the CTFStringEncoding class.
+        Integer encoding (one of
+        :class:`babeltrace.common.CTFStringEncoding` constants).
+
+        Set this attribute to change this integer's encoding.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_field_type_integer_get_encoding(self._ft)
 
     @encoding.setter
     def encoding(self, encoding):
-        """
-        An integer encoding may be set to signal that the integer must be printed
-        as a text character. Must be a constant from the CTFStringEncoding class.
-        """
-
         ret = nbt._bt_ctf_field_type_integer_set_encoding(self._ft, encoding)
 
         if ret < 0:
-            raise ValueError("Could not set Integer's encoding.")
+            raise ValueError("Could not set Integer encoding.")
 
 
 class EnumerationFieldDeclaration(FieldDeclaration):
