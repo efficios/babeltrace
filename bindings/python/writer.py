@@ -1467,9 +1467,22 @@ class StringField(Field):
 
 
 class EventClass:
+    """
+    An event class contains the properties of specific
+    events (:class:`Event`). Any concrete event must be linked with an
+    :class:`EventClass`.
+
+    Some attributes are automatically set when creating an event class.
+    For example, if no numeric ID is explicitly set using the
+    :attr:`id` attribute, a default, unique ID within the stream class
+    containing this event class will be created when needed.
+    """
+
     def __init__(self, name):
         """
-        Create a new event class of the given name.
+        Creates an event class named *name*.
+
+        :exc:`ValueError` is raised on error.
         """
 
         self._ec = nbt._bt_ctf_event_class_create(name)
@@ -1482,7 +1495,21 @@ class EventClass:
 
     def add_field(self, field_type, field_name):
         """
-        Add a field of type "field_type" to the event class.
+        Adds a field declaration *field_type* named *field_name* to
+        this event class.
+
+        *field_type* must be one of:
+
+        * :class:`IntegerFieldDeclaration`
+        * :class:`FloatingPointFieldDeclaration`
+        * :class:`EnumerationFieldDeclaration`
+        * :class:`StringFieldDeclaration`
+        * :class:`ArrayFieldDeclaration`
+        * :class:`SequenceFieldDeclaration`
+        * :class:`StructureFieldDeclaration`
+        * :class:`VariantFieldDeclaration`
+
+        :exc:`ValueError` is raised on error.
         """
 
         ret = nbt._bt_ctf_event_class_add_field(self._ec, field_type._ft,
@@ -1494,7 +1521,7 @@ class EventClass:
     @property
     def name(self):
         """
-        Get the event class' name.
+        Event class' name.
         """
 
         name = nbt._bt_ctf_event_class_get_name(self._ec)
@@ -1507,7 +1534,13 @@ class EventClass:
     @property
     def id(self):
         """
-        Get the event class' id. Returns a negative value if unset.
+        Event class' numeric ID.
+
+        Set this attribute to assign a numeric ID to this event class.
+        This ID must be unique amongst all the event class IDs of a
+        given stream class.
+
+        :exc:`TypeError` is raised on error.
         """
 
         id = nbt._bt_ctf_event_class_get_id(self._ec)
@@ -1519,21 +1552,18 @@ class EventClass:
 
     @id.setter
     def id(self, id):
-        """
-        Set the event class' id. Throws a TypeError if the event class
-        is already registered to a stream class.
-        """
-
         ret = nbt._bt_ctf_event_class_set_id(self._ec, id)
 
         if ret < 0:
-            raise TypeError("Can't change an Event Class's id after it has been assigned to a stream class")
+            raise TypeError("Can't change an Event Class id after it has been assigned to a stream class")
 
     @property
     def stream_class(self):
         """
-        Get the event class' stream class. Returns None if unset.
+        :class:`StreamClass` object containing this event class,
+        or ``None`` if not set.
         """
+
         stream_class_native = nbt._bt_ctf_event_class_get_stream_class(self._ec)
 
         if stream_class_native is None:
@@ -1547,7 +1577,10 @@ class EventClass:
     @property
     def fields(self):
         """
-        Generator returning the event class' fields as tuples of (field name, field declaration).
+        Generates the (field name, :class:`FieldDeclaration`) pairs of
+        this event class.
+
+        :exc:`TypeError` is raised on error.
         """
 
         count = nbt._bt_ctf_event_class_get_field_count(self._ec)
@@ -1573,7 +1606,10 @@ class EventClass:
 
     def get_field_by_name(self, name):
         """
-        Get a field declaration by name (FieldDeclaration).
+        Returns the :class:`FieldDeclaration` object named *name* in
+        this event class.
+
+        :exc:`TypeError` is raised on error.
         """
 
         field_type_native = nbt._bt_ctf_event_class_get_field_by_name(self._ec, name)
