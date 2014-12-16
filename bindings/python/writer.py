@@ -297,8 +297,9 @@ class Clock:
 
 class FieldDeclaration:
     """
-    FieldDeclaration should not be instantiated directly. Instantiate
-    one of the concrete FieldDeclaration classes.
+    Base class of all field declarations. This class is not meant to
+    be instantiated by the user; use one of the concrete field
+    declaration subclasses instead.
     """
 
     class IntegerBase:
@@ -345,19 +346,17 @@ class FieldDeclaration:
     @property
     def alignment(self):
         """
-        Get the field declaration's alignment. Returns -1 on error.
+        Field alignment in bits (integer).
+
+        Set this attribute to change this field's alignment.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_field_type_get_alignment(self._ft)
 
     @alignment.setter
     def alignment(self, alignment):
-        """
-        Set the field declaration's alignment. Defaults to 1 (bit-aligned). However,
-        some types, such as structures and string, may impose other alignment
-        constraints.
-        """
-
         ret = nbt._bt_ctf_field_type_set_alignment(self._ft, alignment)
 
         if ret < 0:
@@ -366,18 +365,18 @@ class FieldDeclaration:
     @property
     def byte_order(self):
         """
-        Get the field declaration's byte order. One of the ByteOrder's constant.
+        Field byte order (one of :class:`babeltrace.common.ByteOrder`
+        constants).
+
+        Set this attribute to change this field's byte order.
+
+        :exc:`ValueError` is raised on error.
         """
 
         return nbt._bt_ctf_field_type_get_byte_order(self._ft)
 
     @byte_order.setter
     def byte_order(self, byte_order):
-        """
-        Set the field declaration's byte order. Use constants defined in the ByteOrder
-        class.
-        """
-
         ret = nbt._bt_ctf_field_type_set_byte_order(self._ft, byte_order)
 
         if ret < 0:
