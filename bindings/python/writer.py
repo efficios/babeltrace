@@ -498,10 +498,20 @@ class IntegerFieldDeclaration(FieldDeclaration):
 
 
 class EnumerationFieldDeclaration(FieldDeclaration):
+    """
+    Enumeration field declaration. A CTF enumeration maps labels to
+    ranges of integers.
+    """
+
     def __init__(self, integer_type):
         """
-        Create a new enumeration field declaration with the given underlying container type.
+        Creates an enumeration field declaration, with *integer_type*
+        being the underlying :class:`IntegerFieldDeclaration` for storing
+        the integer.
+
+        :exc:`ValueError` is raised on error.
         """
+
         isinst = isinstance(integer_type, IntegerFieldDeclaration)
 
         if integer_type is None or not isinst:
@@ -513,7 +523,9 @@ class EnumerationFieldDeclaration(FieldDeclaration):
     @property
     def container(self):
         """
-        Get the enumeration's underlying container type.
+        Underlying container (:class:`IntegerFieldDeclaration`).
+
+        :exc:`TypeError` is raised on error.
         """
 
         ret = nbt._bt_ctf_field_type_enumeration_get_container_type(self._ft)
@@ -525,7 +537,12 @@ class EnumerationFieldDeclaration(FieldDeclaration):
 
     def add_mapping(self, name, range_start, range_end):
         """
-        Add a mapping to the enumeration. The range's values are inclusive.
+        Adds a mapping to the enumeration field declaration, from the
+        label named *name* to range [*range_start*, *range_end*], where
+        *range_start* and *range_end* are integers included in the
+        range.
+
+        :exc:`ValueError` is raised on error.
         """
 
         if range_start < 0 or range_end < 0:
@@ -545,7 +562,10 @@ class EnumerationFieldDeclaration(FieldDeclaration):
     @property
     def mappings(self):
         """
-        Generator returning instances of EnumerationMapping.
+        Generates the mappings of this enumeration field declaration
+        (:class:`EnumerationMapping` objects).
+
+        :exc:`TypeError` is raised on error.
         """
 
         signed = self.container.signed
@@ -567,7 +587,10 @@ class EnumerationFieldDeclaration(FieldDeclaration):
 
     def get_mapping_by_name(self, name):
         """
-        Get a mapping by name (EnumerationMapping).
+        Returns the :class:`EnumerationMapping` object for the label
+        named *name*.
+
+        :exc:`TypeError` is raised on error.
         """
 
         index = nbt._bt_ctf_field_type_enumeration_get_mapping_index_by_name(self._ft, name)
@@ -590,7 +613,10 @@ class EnumerationFieldDeclaration(FieldDeclaration):
 
     def get_mapping_by_value(self, value):
         """
-        Get a mapping by value (EnumerationMapping).
+        Returns the :class:`EnumerationMapping` object for the value
+        *value* (integer).
+
+        :exc:`TypeError` is raised on error.
         """
 
         if value < 0:
