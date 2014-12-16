@@ -157,7 +157,7 @@ extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
 
 /*
- * bt_ctf_event_class__get and bt_ctf_event_class_put: increment and decrement
+ * bt_ctf_event_class_get and bt_ctf_event_class_put: increment and decrement
  * the event class' reference count.
  *
  * These functions ensure that the event class won't be destroyed while it
