@@ -157,6 +157,28 @@ extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
 
 /*
+ * bt_ctf_event_class_get_context_type: Get an event class's context type
+ *
+ * @param event_class Event class.
+ *
+ * Returns a field type (a structure) on success, NULL on error.
+ */
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
+		struct bt_ctf_event_class *event_class);
+
+/*
+ * bt_ctf_event_class_set_context_type: Set an event class's context type
+ *
+ * @param event_class Event class.
+ * @param context Event context field type (must be a structure).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_class_set_context_type(
+		struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *context);
+
+/*
  * bt_ctf_event_class_get and bt_ctf_event_class_put: increment and decrement
  * the event class' reference count.
  *
@@ -252,6 +274,32 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
  */
 extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 		struct bt_ctf_event *event, int index);
+
+/*
+ * bt_ctf_event_get_event_context: Get an event's context
+ *
+ * @param event_class Event class.
+ *
+ * Returns a field on success (a structure), NULL on error.
+ *
+ * Note: This function is named this way instead of the expected
+ * "bt_ctf_event_get_context" in order to work around a name clash with
+ * an unrelated function bearing this name in context.h.
+ */
+extern struct bt_ctf_field *bt_ctf_event_get_event_context(
+		struct bt_ctf_event *event);
+
+/*
+ * bt_ctf_event_set_event_context: Set an event's context
+ *
+ * @param event Event.
+ * @param context Event context field (must match the event class'
+ * 	context type).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
+		struct bt_ctf_field *context);
 
 /*
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement
