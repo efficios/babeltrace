@@ -90,7 +90,7 @@ void validate_metadata(char *parser_path, char *metadata_path)
 	parser_output_fd = mkstemp(parser_output_path);
 	metadata_fd = open(metadata_path, O_RDONLY);
 
-	unlink(parser_output_path);
+	//unlink(parser_output_path);
 
 	if (parser_output_fd == -1 || metadata_fd == -1) {
 		diag("Failed create temporary files for metadata parsing.");
@@ -204,7 +204,7 @@ void validate_trace(char *parser_path, char *trace_path)
 	}
 
 	babeltrace_output_fd = mkstemp(babeltrace_output_path);
-	unlink(babeltrace_output_path);
+	//unlink(babeltrace_output_path);
 
 	if (babeltrace_output_fd == -1) {
 		diag("Failed to create a temporary file for trace parsing.");
@@ -481,8 +481,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_class_put(ret_event_class);
 
 	/* Set an event context type which will contain a single integer*/
-	bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
-		"event_specific_context");
+	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
+		"event_specific_context"),
+		"Add event specific context field");
 	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
 		"bt_ctf_event_class_get_context_type handles NULL correctly");
 	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
@@ -1861,7 +1862,7 @@ int main(int argc, char **argv)
 	struct dirent *entry;
 	while ((entry = readdir(trace_dir))) {
 		if (entry->d_type == DT_REG) {
-			unlinkat(dirfd(trace_dir), entry->d_name, 0);
+			//unlinkat(dirfd(trace_dir), entry->d_name, 0);
 		}
 	}
 
