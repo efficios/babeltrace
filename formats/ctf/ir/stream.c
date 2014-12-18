@@ -38,20 +38,223 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
+#include <babeltrace/ctf/ctf-index.h>
 
 static
 void bt_ctf_stream_destroy(struct bt_ctf_ref *ref);
 static
 int set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
 
+static
+int set_packet_header_magic(struct bt_ctf_stream *stream)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *magic_field_type = NULL;
+	struct bt_ctf_field *magic_field = bt_ctf_field_structure_get_field(
+		stream->packet_header, "magic");
+
+	if (!magic_field) {
+		/* No magic field found. Not an error, skip. */
+		goto end;
+	}
+
+	if (!bt_ctf_field_validate(magic_field)) {
+		/* Value already set. Not an error, skip. */
+		goto end;
+	}
+
+	magic_field_type = bt_ctf_field_get_type(magic_field);
+	assert(magic_field_type);
+
+	if (bt_ctf_field_type_get_type_id(magic_field_type) !=
+		CTF_TYPE_INTEGER) {
+		/* Magic field is not an integer. Not an error, skip. */
+		goto end;
+	}
+
+	if (bt_ctf_field_type_integer_get_size(magic_field_type) != 32) {
+		/*
+		 * Magic field is not of the expected size.
+		 * Not an error, skip.
+		 */
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_integer_get_signed(magic_field_type);
+	assert(ret >= 0);
+	if (ret) {
+		ret = bt_ctf_field_signed_integer_set_value(magic_field,
+			(int64_t) 0xC1FC1FC1);
+	} else {
+		ret = bt_ctf_field_unsigned_integer_set_value(magic_field,
+			(uint64_t) 0xC1FC1FC1);
+	}
+end:
+	if (magic_field) {
+		bt_ctf_field_put(magic_field);
+	}
+	if (magic_field_type) {
+		bt_ctf_field_type_put(magic_field_type);
+	}
+	return ret;
+}
+
+static
+int set_packet_header_uuid(struct bt_ctf_stream *stream)
+{
+	int i, ret = 0;
+	struct bt_ctf_field_type *uuid_field_type = NULL;
+	struct bt_ctf_field_type *element_field_type = NULL;
+	struct bt_ctf_field *uuid_field = bt_ctf_field_structure_get_field(
+		stream->packet_header, "uuid");
+
+	if (!uuid_field) {
+		/* No uuid field found. Not an error, skip. */
+		goto end;
+	}
+
+	if (!bt_ctf_field_validate(uuid_field)) {
+		/* Value already set. Not an error, skip. */
+		goto end;
+	}
+
+	uuid_field_type = bt_ctf_field_get_type(uuid_field);
+	assert(uuid_field_type);
+	if (bt_ctf_field_type_get_type_id(uuid_field_type) !=
+		CTF_TYPE_ARRAY) {
+		/* UUID field is not an array. Not an error, skip. */
+		goto end;
+	}
+
+	if (bt_ctf_field_type_array_get_length(uuid_field_type) != 16) {
+		/*
+		 * UUID field is not of the expected size.
+		 * Not an error, skip.
+		 */
+		goto end;
+	}
+
+	element_field_type = bt_ctf_field_type_array_get_element_type(
+		uuid_field_type);
+	assert(element_field_type);
+	if (bt_ctf_field_type_get_type_id(element_field_type) !=
+		CTF_TYPE_INTEGER) {
+		/* UUID array elements are not integers. Not an error, skip */
+		goto end;
+	}
+
+	for (i = 0; i < 16; i++) {
+		struct bt_ctf_field *uuid_element =
+			bt_ctf_field_array_get_field(uuid_field, i);
+
+		ret = bt_ctf_field_type_integer_get_signed(element_field_type);
+		assert(ret >= 0);
+
+		if (ret) {
+			ret = bt_ctf_field_signed_integer_set_value(
+				uuid_element, (int64_t) stream->trace->uuid[i]);
+		} else {
+			ret = bt_ctf_field_unsigned_integer_set_value(
+				uuid_element,
+				(uint64_t) stream->trace->uuid[i]);
+		}
+		bt_ctf_field_put(uuid_element);
+		if (ret) {
+			goto end;
+		}
+	}
+
+end:
+	if (uuid_field) {
+		bt_ctf_field_put(uuid_field);
+	}
+	if (uuid_field_type) {
+		bt_ctf_field_type_put(uuid_field_type);
+	}
+	if (element_field_type) {
+		bt_ctf_field_type_put(element_field_type);
+	}
+	return ret;
+}
+static
+int set_packet_header_stream_id(struct bt_ctf_stream *stream)
+{
+	int ret = 0;
+	uint32_t stream_id;
+	struct bt_ctf_field_type *stream_id_field_type = NULL;
+	struct bt_ctf_field *stream_id_field = bt_ctf_field_structure_get_field(
+		stream->packet_header, "stream_id");
+
+	if (!stream_id_field) {
+		/* No stream_id field found. Not an error, skip. */
+		goto end;
+	}
+
+	if (!bt_ctf_field_validate(stream_id_field)) {
+		/* Value already set. Not an error, skip. */
+		goto end;
+	}
+
+	stream_id_field_type = bt_ctf_field_get_type(stream_id_field);
+	assert(stream_id_field_type);
+	if (bt_ctf_field_type_get_type_id(stream_id_field_type) !=
+		CTF_TYPE_INTEGER) {
+		/* stream_id field is not an integer. Not an error, skip. */
+		goto end;
+	}
+
+	stream_id = stream->stream_class->id;
+	ret = bt_ctf_field_type_integer_get_signed(stream_id_field_type);
+	assert(ret >= 0);
+	if (ret) {
+		ret = bt_ctf_field_signed_integer_set_value(stream_id_field,
+			(int64_t) stream_id);
+	} else {
+		ret = bt_ctf_field_unsigned_integer_set_value(stream_id_field,
+			(uint64_t) stream_id);
+	}
+end:
+	if (stream_id_field) {
+		bt_ctf_field_put(stream_id_field);
+	}
+	if (stream_id_field_type) {
+		bt_ctf_field_type_put(stream_id_field_type);
+	}
+	return ret;
+}
+
+static
+int set_packet_header(struct bt_ctf_stream *stream)
+{
+	int ret;
+
+	ret = set_packet_header_magic(stream);
+	if (ret) {
+		goto end;
+	}
+
+	ret = set_packet_header_uuid(stream);
+	if (ret) {
+		goto end;
+	}
+
+	ret = set_packet_header_stream_id(stream);
+	if (ret) {
+		goto end;
+	}
+end:
+	return ret;
+}
+
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class)
+	struct bt_ctf_stream_class *stream_class,
+	struct bt_ctf_trace *trace)
 {
 	int ret;
 	struct bt_ctf_stream *stream = NULL;
 
-	if (!stream_class) {
+	if (!stream_class || !trace) {
 		goto end;
 	}
 
@@ -60,6 +263,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto end;
 	}
 
+	stream->trace = trace;
 	bt_ctf_ref_init(&stream->ref_count);
 	stream->packet_context = bt_ctf_field_create(
 		stream_class->packet_context_type);
@@ -105,27 +309,27 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 			goto error_destroy;
 		}
 	}
+
+	/* A trace is not allowed to have a NULL packet header */
+	assert(trace->packet_header_type);
+	stream->packet_header = bt_ctf_field_create(trace->packet_header_type);
+	/*
+	 * Attempt to populate the default trace packet header fields
+	 * (magic, uuid and stream_id). This will _not_ fail shall the
+	 * fields not be found or be of an incompatible type; they will
+	 * simply not be populated automatically. The user will have to
+	 * make sure to set the trace packet header fields himself before
+	 * flushing.
+	 */
+	ret = set_packet_header(stream);
+	if (ret) {
+		goto error_destroy;
+	}
 end:
 	return stream;
 error_destroy:
 	bt_ctf_stream_destroy(&stream->ref_count);
 	return NULL;
-}
-
-BT_HIDDEN
-int bt_ctf_stream_set_flush_callback(struct bt_ctf_stream *stream,
-	flush_func callback, void *data)
-{
-	int ret = stream ? 0 : -1;
-
-	if (!stream) {
-		goto end;
-	}
-
-	stream->flush.func = callback;
-	stream->flush.data = data;
-end:
-	return ret;
 }
 
 BT_HIDDEN
@@ -142,6 +346,13 @@ int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd)
 	stream->pos.fd = fd;
 end:
 	return ret;
+}
+
+BT_HIDDEN
+void bt_ctf_stream_set_trace(struct bt_ctf_stream *stream,
+		struct bt_ctf_trace *trace)
+{
+	stream->trace = trace;
 }
 
 int bt_ctf_stream_get_discarded_events_count(
@@ -428,8 +639,19 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (stream->flush.func) {
-		stream->flush.func(stream, stream->flush.data);
+	ret = bt_ctf_field_validate(stream->packet_header);
+	if (ret) {
+		goto end;
+	}
+
+	if (stream->flushed_packet_count) {
+		/* ctf_init_pos has already initialized the first packet */
+		ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
+	}
+
+	ret = bt_ctf_field_serialize(stream->packet_header, &stream->pos);
+	if (ret) {
+		goto end;
 	}
 
 	stream_class = stream->stream_class;
@@ -614,6 +836,9 @@ void bt_ctf_stream_destroy(struct bt_ctf_ref *ref)
 	}
 	if (stream->event_contexts) {
 		g_ptr_array_free(stream->event_contexts, TRUE);
+	}
+	if (stream->packet_header) {
+		bt_ctf_field_put(stream->packet_header);
 	}
 	if (stream->packet_context) {
 		bt_ctf_field_put(stream->packet_context);

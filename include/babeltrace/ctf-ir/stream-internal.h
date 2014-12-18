@@ -36,35 +36,27 @@
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
-typedef void(*flush_func)(struct bt_ctf_stream *, void *);
-
-struct flush_callback {
-	flush_func func;
-	void *data;
-};
-
 struct bt_ctf_stream {
 	struct bt_ctf_ref ref_count;
+	/* Trace owning this stream. A stream does not own a trace. */
+	struct bt_ctf_trace *trace;
 	uint32_t id;
 	struct bt_ctf_stream_class *stream_class;
-	struct flush_callback flush;
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
 	/* Array of pointers to bt_ctf_field associated with each event*/
 	GPtrArray *event_contexts;
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
+	struct bt_ctf_field *packet_header;
 	struct bt_ctf_field *packet_context;
 	struct bt_ctf_field *event_context;
 };
 
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class);
-
-BT_HIDDEN
-int bt_ctf_stream_set_flush_callback(struct bt_ctf_stream *stream,
-		flush_func callback, void *data);
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_trace *trace);
 
 BT_HIDDEN
 int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);

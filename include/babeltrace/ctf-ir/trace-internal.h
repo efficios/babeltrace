@@ -55,8 +55,7 @@ struct bt_ctf_trace {
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
-	struct bt_ctf_field_type *trace_packet_header_type;
-	struct bt_ctf_field *trace_packet_header;
+	struct bt_ctf_field_type *packet_header_type;
 	uint64_t next_stream_id;
 };
 

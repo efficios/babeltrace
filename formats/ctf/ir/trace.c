@@ -137,8 +137,7 @@ void bt_ctf_trace_destroy(struct bt_ctf_ref *ref)
 		g_ptr_array_free(trace->stream_classes, TRUE);
 	}
 
-	bt_ctf_field_type_put(trace->trace_packet_header_type);
-	bt_ctf_field_put(trace->trace_packet_header);
+	bt_ctf_field_type_put(trace->packet_header_type);
 	g_free(trace);
 }
 
@@ -161,7 +160,7 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
-	stream = bt_ctf_stream_create(stream_class);
+	stream = bt_ctf_stream_create(stream_class, trace);
 	if (!stream) {
 		goto error;
 	}
@@ -354,7 +353,7 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	g_string_append(context->string, "\tpacket.header := ");
 	context->current_indentation_level++;
 	g_string_assign(context->field_name, "");
-	ret = bt_ctf_field_type_serialize(trace->trace_packet_header_type,
+	ret = bt_ctf_field_type_serialize(trace->packet_header_type,
 		context);
 	if (ret) {
 		goto end;
@@ -460,10 +459,48 @@ int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 	}
 
 	trace->byte_order = internal_byte_order;
-	if (trace->trace_packet_header_type ||
-		trace->trace_packet_header) {
+	if (trace->packet_header_type) {
 		init_trace_packet_header(trace);
 	}
+end:
+	return ret;
+}
+
+struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
+		struct bt_ctf_trace *trace)
+{
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!trace) {
+		goto end;
+	}
+
+	bt_ctf_field_type_get(trace->packet_header_type);
+	field_type = trace->packet_header_type;
+end:
+	return field_type;
+}
+
+int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
+		struct bt_ctf_field_type *packet_header_type)
+{
+	int ret = 0;
+
+	if (!trace || !packet_header_type || trace->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	/* packet_header_type must be a structure */
+	if (bt_ctf_field_type_get_type_id(packet_header_type) !=
+		CTF_TYPE_STRUCT) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_get(packet_header_type);
+	bt_ctf_field_type_put(trace->packet_header_type);
+	trace->packet_header_type = packet_header_type;
 end:
 	return ret;
 }
@@ -540,10 +577,8 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace)
 {
-	size_t i;
 	int ret = 0;
-	struct bt_ctf_field *trace_packet_header = NULL,
-		*magic = NULL, *uuid_array = NULL;
+	struct bt_ctf_field *magic = NULL, *uuid_array = NULL;
 	struct bt_ctf_field_type *_uint32_t =
 		get_field_type(FIELD_TYPE_ALIAS_UINT32_T);
 	struct bt_ctf_field_type *_uint8_t =
@@ -584,35 +619,8 @@ int init_trace_packet_header(struct bt_ctf_trace *trace)
 		goto end;
 	}
 
-	trace_packet_header = bt_ctf_field_create(trace_packet_header_type);
-	if (!trace_packet_header) {
-		ret = -1;
-		goto end;
-	}
-
-	magic = bt_ctf_field_structure_get_field(trace_packet_header, "magic");
-	ret = bt_ctf_field_unsigned_integer_set_value(magic, 0xC1FC1FC1);
-	if (ret) {
-		goto end;
-	}
-
-	uuid_array = bt_ctf_field_structure_get_field(trace_packet_header,
-		"uuid");
-	for (i = 0; i < 16; i++) {
-		struct bt_ctf_field *uuid_element =
-			bt_ctf_field_array_get_field(uuid_array, i);
-		ret = bt_ctf_field_unsigned_integer_set_value(uuid_element,
-			trace->uuid[i]);
-		bt_ctf_field_put(uuid_element);
-		if (ret) {
-			goto end;
-		}
-	}
-
-	bt_ctf_field_type_put(trace->trace_packet_header_type);
-	bt_ctf_field_put(trace->trace_packet_header);
-	trace->trace_packet_header_type = trace_packet_header_type;
-	trace->trace_packet_header = trace_packet_header;
+	bt_ctf_field_type_put(trace->packet_header_type);
+	trace->packet_header_type = trace_packet_header_type;
 end:
 	bt_ctf_field_type_put(uuid_array_type);
 	bt_ctf_field_type_put(_uint32_t);
@@ -621,7 +629,6 @@ end:
 	bt_ctf_field_put(uuid_array);
 	if (ret) {
 		bt_ctf_field_type_put(trace_packet_header_type);
-		bt_ctf_field_put(trace_packet_header);
 	}
 
 	return ret;

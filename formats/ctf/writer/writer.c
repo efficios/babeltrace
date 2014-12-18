@@ -47,9 +47,6 @@ void bt_ctf_writer_destroy(struct bt_ctf_ref *ref);
 static
 int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream);
-static
-void stream_flush_cb(struct bt_ctf_stream *stream,
-		struct bt_ctf_writer *writer);
 
 struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
@@ -165,8 +162,6 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		goto error;
 	}
 
-	bt_ctf_stream_set_flush_callback(stream, (flush_func)stream_flush_cb,
-		writer);
 	writer->frozen = 1;
 	return stream;
 
@@ -301,24 +296,4 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 	g_string_free(filename, TRUE);
 	return fd;
-}
-
-static
-void stream_flush_cb(struct bt_ctf_stream *stream, struct bt_ctf_writer *writer)
-{
-	struct bt_ctf_field *stream_id;
-
-	/* Start a new packet in the stream */
-	if (stream->flushed_packet_count) {
-		/* ctf_init_pos has already initialized the first packet */
-		ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
-	}
-
-	stream_id = bt_ctf_field_structure_get_field(
-		writer->trace->trace_packet_header, "stream_id");
-	bt_ctf_field_unsigned_integer_set_value(stream_id, stream->stream_class->id);
-	bt_ctf_field_put(stream_id);
-
-	/* Write the trace_packet_header */
-	bt_ctf_field_serialize(writer->trace->trace_packet_header, &stream->pos);
 }

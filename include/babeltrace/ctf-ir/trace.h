@@ -44,7 +44,13 @@ struct bt_ctf_clock;
 /*
  * bt_ctf_trace_create: create a trace instance.
  *
- * Allocate a new trace
+ * Allocate a new trace.
+ *
+ * A trace's default packet header is a structure initialized with the following
+ * fields:
+ *	- uint32_t magic
+ *	- uint8_t  uuid[16]
+ *	- uint32_t stream_id
  *
  * Returns a new trace on success, NULL on error.
  */
@@ -141,6 +147,32 @@ extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
  */
 extern int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order);
+
+/*
+ * bt_ctf_trace_get_packet_header_type: get a trace's packet header type.
+ *
+ * Get the trace's packet header type.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the trace's packet header type (a structure) on success, NULL on
+ * 	error.
+ */
+extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
+		struct bt_ctf_trace *trace);
+
+/*
+ * bt_ctf_trace_set_packet_header_type: set a trace's packet header type.
+ *
+ * Set the trace's packet header type.
+ *
+ * @param trace Trace instance.
+ * @param packet_header_type Packet header field type (must be a structure).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
+		struct bt_ctf_field_type *packet_header_type);
 
 /*
  * bt_ctf_trace_get and bt_ctf_trace_put: increment and decrement the
