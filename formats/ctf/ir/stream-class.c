@@ -151,7 +151,7 @@ int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 {
 	int ret = 0;
 
-	if (!stream_class) {
+	if (!stream_class || stream_class->frozen) {
 		ret = -1;
 		goto end;
 	}
