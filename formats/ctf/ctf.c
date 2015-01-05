@@ -1964,6 +1964,11 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 		ret = 0;
 		goto fd_is_dir_ok;
 	}
+	if (!statbuf.st_size) {
+		/** Skip empty files. */
+		ret = 0;
+		goto fd_is_empty_file;
+	}
 
 	file_stream = g_new0(struct ctf_file_stream, 1);
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
@@ -1998,6 +2003,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	index_name = malloc((strlen(path) + sizeof(INDEX_PATH)) * sizeof(char));
 	if (!index_name) {
 		fprintf(stderr, "[error] Cannot allocate index filename\n");
+		ret = -ENOMEM;
 		goto error_def;
 	}
 	snprintf(index_name, strlen(path) + sizeof(INDEX_PATH),
@@ -2056,6 +2062,7 @@ error_def:
 		fprintf(stderr, "Error on ctf_fini_pos\n");
 	}
 	g_free(file_stream);
+fd_is_empty_file:
 fd_is_dir_ok:
 fstat_error:
 	closeret = close(fd);
