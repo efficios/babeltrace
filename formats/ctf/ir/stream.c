@@ -355,6 +355,21 @@ void bt_ctf_stream_set_trace(struct bt_ctf_stream *stream,
 	stream->trace = trace;
 }
 
+struct bt_ctf_stream_class *bt_ctf_stream_get_class(
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	if (!stream) {
+		goto end;
+	}
+
+	stream_class = stream->stream_class;
+	bt_ctf_stream_class_get(stream_class);
+end:
+	return stream_class;
+}
+
 int bt_ctf_stream_get_discarded_events_count(
 		struct bt_ctf_stream *stream, uint64_t *count)
 {

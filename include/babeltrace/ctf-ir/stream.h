@@ -40,6 +40,16 @@ struct bt_ctf_event;
 struct bt_ctf_stream;
 
 /*
+ * bt_ctf_stream_get_stream_class: get a stream's class.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns the stream's class, NULL on error.
+ */
+extern struct bt_ctf_stream_class *bt_ctf_stream_get_class(
+		struct bt_ctf_stream *stream);
+
+/*
  * bt_ctf_stream_get_discarded_events_count: get the number of discarded
  * events associated with this stream.
  *
