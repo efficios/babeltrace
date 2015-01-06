@@ -1498,7 +1498,7 @@ int main(int argc, char **argv)
 	struct utsname name;
 	char hostname[BABELTRACE_HOST_NAME_MAX];
 	struct bt_ctf_clock *clock, *ret_clock;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_stream_class *stream_class, *ret_stream_class;
 	struct bt_ctf_stream *stream1;
 	const char *ret_string;
 	const unsigned char *ret_uuid;
@@ -1842,6 +1842,14 @@ int main(int argc, char **argv)
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
 	ok(stream1, "Instanciate a stream class from writer");
 
+	ok(bt_ctf_stream_get_class(NULL) == NULL,
+		"bt_ctf_stream_get_class correctly handles NULL");
+	ret_stream_class = bt_ctf_stream_get_class(stream1);
+	ok(ret_stream_class,
+		"bt_ctf_stream_get_class returns a stream class");
+	ok(ret_stream_class == stream_class,
+		"Returned stream class is of the correct type");
+
 	/*
 	 * Try to modify the packet context type after a stream has been
 	 * created.
@@ -1916,6 +1924,7 @@ int main(int argc, char **argv)
 
 	bt_ctf_clock_put(clock);
 	bt_ctf_stream_class_put(stream_class);
+	bt_ctf_stream_class_put(ret_stream_class);
 	bt_ctf_writer_put(writer);
 	bt_ctf_stream_put(stream1);
 	bt_ctf_field_type_put(packet_context_type);
