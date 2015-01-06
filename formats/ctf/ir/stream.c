@@ -617,6 +617,50 @@ end:
 	return ret;
 }
 
+struct bt_ctf_field *bt_ctf_stream_get_packet_header(
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_field *packet_header = NULL;
+
+	if (!stream) {
+		goto end;
+	}
+
+	packet_header = stream->packet_header;
+	if (packet_header) {
+		bt_ctf_field_get(packet_header);
+	}
+end:
+	return packet_header;
+}
+
+int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *field)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!stream || !field) {
+		ret = -1;
+		goto end;
+	}
+
+	field_type = bt_ctf_field_get_type(field);
+	if (field_type != stream->trace->packet_header_type) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_get(field);
+	bt_ctf_field_put(stream->packet_header);
+	stream->packet_header = field;
+end:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
+	return ret;
+}
+
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 {
 	int ret = 0;
