@@ -62,7 +62,7 @@ enum bt_ctf_byte_order {
  * bt_ctf_field_type_integer_create: create an integer field type.
  *
  * Allocate a new integer field type of the given size. The creation of a field
- * type sets its reference countto 1.
+ * type sets its reference count to 1.
  *
  * @param size Integer field type size/length in bits.
  *
