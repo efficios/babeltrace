@@ -1505,9 +1505,12 @@ int main(int argc, char **argv)
 	unsigned char tmp_uuid[16] = { 0 };
 	struct bt_ctf_field_type *packet_context_type,
 		*packet_context_field_type,
+		*packet_header_type,
+		*packet_header_field_type,
 		*integer_type,
 		*stream_event_context_type,
 		*ret_field_type;
+	struct bt_ctf_field *packet_header, *packet_header_field;
 	struct bt_ctf_trace *trace;
 	int ret;
 
@@ -1747,6 +1750,39 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_get_id(stream_class) == 123,
 		"bt_ctf_stream_class_get_id returns the correct value");
 
+	/* Add a custom trace packet header field */
+	ok(bt_ctf_trace_get_packet_header_type(NULL) == NULL,
+		"bt_ctf_trace_get_packet_header_type handles NULL correctly");
+	packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
+	ok(packet_header_type,
+		"bt_ctf_trace_get_packet_header_type returns a packet header");
+	ok(bt_ctf_field_type_get_type_id(packet_header_type) == CTF_TYPE_STRUCT,
+		"bt_ctf_trace_get_packet_header_type returns a packet header of type struct");
+	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "magic");
+	ok(ret_field_type, "Default packet header type contains a \"magic\" field");
+	bt_ctf_field_type_put(ret_field_type);
+	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "uuid");
+	ok(ret_field_type, "Default packet header type contains a \"uuid\" field");
+	bt_ctf_field_type_put(ret_field_type);
+	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "stream_id");
+	ok(ret_field_type, "Default packet header type contains a \"stream_id\" field");
+	bt_ctf_field_type_put(ret_field_type);
+
+	packet_header_field_type = bt_ctf_field_type_integer_create(22);
+	ok(!bt_ctf_field_type_structure_add_field(packet_header_type,
+		packet_header_field_type, "custom_trace_packet_header_field"),
+		"Added a custom trace packet header field successfully");
+
+	ok(bt_ctf_trace_set_packet_header_type(NULL, packet_header_type) < 0,
+		"bt_ctf_trace_set_packet_header_type handles a NULL trace correctly");
+	ok(bt_ctf_trace_set_packet_header_type(trace, NULL) < 0,
+		"bt_ctf_trace_set_packet_header_type handles a NULL packet_header_type correctly");
+	ok(!bt_ctf_trace_set_packet_header_type(trace, packet_header_type),
+		"Set a trace packet_header_type successfully");
+
 	/* Create a "uint5_t" equivalent custom packet context field */
 	packet_context_field_type = bt_ctf_field_type_integer_create(5);
 
@@ -1800,6 +1836,7 @@ int main(int argc, char **argv)
 		stream_class);
 	ok(ret_field_type == stream_event_context_type,
 		"bt_ctf_stream_class_get_event_context_type returns the correct field type.");
+	bt_ctf_field_type_put(ret_field_type);
 
 	/* Instantiate a stream and append events */
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
@@ -1809,10 +1846,19 @@ int main(int argc, char **argv)
 	 * Try to modify the packet context type after a stream has been
 	 * created.
 	 */
+	ret = bt_ctf_field_type_structure_add_field(packet_header_type,
+		packet_header_field_type, "should_fail");
+	ok(ret < 0,
+		"Trace packet header type can't be modified once a stream has been instanciated");
+
+	/*
+	 * Try to modify the packet context type after a stream has been
+	 * created.
+	 */
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
 		packet_context_field_type, "should_fail");
 	ok(ret < 0,
-		"Packet context type can't be modified once a stream class has been instanciated");
+		"Packet context type can't be modified once a stream has been instanciated");
 
 	/*
 	 * Try to modify the stream event context type after a stream has been
@@ -1821,11 +1867,39 @@ int main(int argc, char **argv)
 	ret = bt_ctf_field_type_structure_add_field(stream_event_context_type,
 		integer_type, "should_fail");
 	ok(ret < 0,
-		"Stream event context type can't be modified once a stream class has been instanciated");
+		"Stream event context type can't be modified once a stream has been instanciated");
 
 	/* Should fail after instanciating a stream (frozen) */
 	ok(bt_ctf_stream_class_set_clock(stream_class, clock),
 		"Changes to a stream class that was already instantiated fail");
+
+	/* Populate the custom packet header field only once for all tests */
+	ok(bt_ctf_stream_get_packet_header(NULL) == NULL,
+		"bt_ctf_stream_get_packet_header handles NULL correctly");
+	packet_header = bt_ctf_stream_get_packet_header(stream1);
+	ok(packet_header,
+		"bt_ctf_stream_get_packet_header returns a packet header");
+	ret_field_type = bt_ctf_field_get_type(packet_header);
+	ok(ret_field_type == packet_header_type,
+		"Stream returns a packet header of the appropriate type");
+	bt_ctf_field_type_put(ret_field_type);
+	packet_header_field = bt_ctf_field_structure_get_field(packet_header,
+		"custom_trace_packet_header_field");
+	ok(packet_header_field,
+		"Packet header structure contains a custom field with the appropriate name");
+	ret_field_type = bt_ctf_field_get_type(packet_header_field);
+	ok(ret_field_type == packet_header_field_type,
+		"Custom packet header field is of the expected type");
+	ok(!bt_ctf_field_unsigned_integer_set_value(packet_header_field,
+		54321), "Set custom packet header value successfully");
+	ok(bt_ctf_stream_set_packet_header(stream1, NULL) < 0,
+		"bt_ctf_stream_set_packet_header handles a NULL packet header correctly");
+	ok(bt_ctf_stream_set_packet_header(NULL, packet_header) < 0,
+		"bt_ctf_stream_set_packet_header handles a NULL stream correctly");
+	ok(bt_ctf_stream_set_packet_header(stream1, packet_header_field) < 0,
+		"bt_ctf_stream_set_packet_header rejects a packet header of the wrong type");
+	ok(!bt_ctf_stream_set_packet_header(stream1, packet_header),
+		"Successfully set a stream's packet header");
 
 	append_simple_event(stream_class, stream1, clock);
 
@@ -1849,6 +1923,10 @@ int main(int argc, char **argv)
 	bt_ctf_field_type_put(integer_type);
 	bt_ctf_field_type_put(stream_event_context_type);
 	bt_ctf_field_type_put(ret_field_type);
+	bt_ctf_field_type_put(packet_header_type);
+	bt_ctf_field_type_put(packet_header_field_type);
+	bt_ctf_field_put(packet_header);
+	bt_ctf_field_put(packet_header_field);
 	bt_ctf_trace_put(trace);
 	free(metadata_string);
 
