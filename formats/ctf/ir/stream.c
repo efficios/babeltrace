@@ -509,6 +509,11 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	ret = bt_ctf_event_populate_event_header(event);
+	if (ret) {
+		goto end;
+	}
+
 	/* Make sure the event's payload is set */
 	ret = bt_ctf_event_validate(event);
 	if (ret) {
@@ -681,7 +686,6 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	int ret = 0;
 	size_t i;
 	uint64_t timestamp_begin, timestamp_end, events_discarded;
-	struct bt_ctf_stream_class *stream_class;
 	struct bt_ctf_field *integer = NULL;
 	struct ctf_stream_pos packet_context_pos;
 
@@ -713,7 +717,6 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	stream_class = stream->stream_class;
 	timestamp_begin = ((struct bt_ctf_event *) g_ptr_array_index(
 		stream->events, 0))->timestamp;
 	timestamp_end = ((struct bt_ctf_event *) g_ptr_array_index(
@@ -779,24 +782,24 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			event->event_class);
 		uint64_t timestamp = bt_ctf_event_get_timestamp(event);
 
-		ret = bt_ctf_field_reset(stream_class->event_header);
+		ret = bt_ctf_field_reset(event->event_header);
 		if (ret) {
 			goto end;
 		}
 
-		ret = set_structure_field_integer(stream_class->event_header,
+		ret = set_structure_field_integer(event->event_header,
 			"id", event_id);
 		if (ret) {
 			goto end;
 		}
-		ret = set_structure_field_integer(stream_class->event_header,
+		ret = set_structure_field_integer(event->event_header,
 			"timestamp", timestamp);
 		if (ret) {
 			goto end;
 		}
 
 		/* Write event header */
-		ret = bt_ctf_field_serialize(stream_class->event_header,
+		ret = bt_ctf_field_serialize(event->event_header,
 			&stream->pos);
 		if (ret) {
 			goto end;

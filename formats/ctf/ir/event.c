@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/compiler.h>
 
@@ -40,6 +41,8 @@ static
 void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref);
 static
 void bt_ctf_event_destroy(struct bt_ctf_ref *ref);
+static
+int set_integer_field_value(struct bt_ctf_field *field, uint64_t value);
 
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 {
@@ -284,13 +287,36 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	bt_ctf_event_class_get(event_class);
 	bt_ctf_event_class_freeze(event_class);
 	event->event_class = event_class;
+
+	assert(event_class->stream_class);
+	assert(event_class->stream_class->event_header_type);
+
+	event->event_header = bt_ctf_field_create(
+		event_class->stream_class->event_header_type);
+	if (!event->event_header) {
+		goto error_destroy;
+	}
 	if (event_class->context) {
 		event->context_payload = bt_ctf_field_create(
 			event_class->context);
+		if (!event->context_payload) {
+			goto error_destroy;
+		}
 	}
 	event->fields_payload = bt_ctf_field_create(event_class->fields);
+	if (!event->fields_payload) {
+		goto error_destroy;
+	}
 end:
+	/*
+	 * Freeze the stream class since the event header must not be changed
+	 * anymore.
+	 */
+	bt_ctf_stream_class_freeze(event_class->stream_class);
 	return event;
+error_destroy:
+	bt_ctf_event_destroy(&event->ref_count);
+	return NULL;
 }
 
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
@@ -385,6 +411,58 @@ struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 		index);
 end:
 	return field;
+}
+
+struct bt_ctf_field *bt_ctf_event_get_event_header(
+		struct bt_ctf_event *event)
+{
+	struct bt_ctf_field *header = NULL;
+
+	if (!event || !event->event_header) {
+		goto end;
+	}
+
+	header = event->event_header;
+	bt_ctf_field_get(header);
+end:
+	return header;
+}
+
+int bt_ctf_event_set_event_header(struct bt_ctf_event *event,
+		struct bt_ctf_field *header)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!event || !header) {
+		ret = -1;
+		goto end;
+	}
+
+	/* Could be NULL since an event class doesn't own a stream class */
+	if (!event->event_class->stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Ensure the provided header's type matches the one registered to the
+	 * stream class.
+	 */
+	field_type = bt_ctf_field_get_type(header);
+	if (field_type != event->event_class->stream_class->event_header_type) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_get(header);
+	bt_ctf_field_put(event->event_header);
+	event->event_header = header;
+end:
+	if (field_type) {
+		bt_ctf_field_type_put(field_type);
+	}
+	return ret;
 }
 
 struct bt_ctf_field *bt_ctf_event_get_event_context(
@@ -484,6 +562,9 @@ void bt_ctf_event_destroy(struct bt_ctf_ref *ref)
 	if (event->event_class) {
 		bt_ctf_event_class_put(event->event_class);
 	}
+	if (event->event_header) {
+		bt_ctf_field_put(event->event_header);
+	}
 	if (event->context_payload) {
 		bt_ctf_field_put(event->context_payload);
 	}
@@ -491,6 +572,49 @@ void bt_ctf_event_destroy(struct bt_ctf_ref *ref)
 		bt_ctf_field_put(event->fields_payload);
 	}
 	g_free(event);
+}
+
+static
+int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!bt_ctf_field_validate(field)) {
+		/* Payload already set, skip! (not an error) */
+		goto end;
+	}
+
+	field_type = bt_ctf_field_get_type(field);
+	assert(field_type);
+
+	if (bt_ctf_field_type_get_type_id(field_type) != CTF_TYPE_INTEGER) {
+		/* Not an integer and the value is unset, error. */
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_integer_get_signed(field_type)) {
+		ret = bt_ctf_field_signed_integer_set_value(field, (int64_t) value);
+		if (ret) {
+			/* Value is out of range, error. */
+			goto end;
+		}
+	} else {
+		ret = bt_ctf_field_unsigned_integer_set_value(field, value);
+		if (ret) {
+			/* Value is out of range, error. */
+			goto end;
+		}
+	}
+end:
+	bt_ctf_field_type_put(field_type);
+	return ret;
 }
 
 BT_HIDDEN
@@ -549,7 +673,8 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 	context->current_indentation_level = 1;
 	g_string_assign(context->field_name, "");
-	g_string_append_printf(context->string, "event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRId64 ";\n",
+	g_string_append_printf(context->string,
+		"event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRId64 ";\n",
 		g_quark_to_string(event_class->name),
 		event_class->id,
 		stream_id);
@@ -586,6 +711,11 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 	int ret;
 
 	assert(event);
+	ret = bt_ctf_field_validate(event->event_header);
+	if (ret) {
+		goto end;
+	}
+
 	ret = bt_ctf_field_validate(event->fields_payload);
 	if (ret) {
 		goto end;
@@ -645,4 +775,43 @@ uint64_t bt_ctf_event_get_timestamp(struct bt_ctf_event *event)
 {
 	assert(event);
 	return event->timestamp;
+}
+
+BT_HIDDEN
+int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
+{
+	int ret = 0;
+	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
+
+	if (!event) {
+		ret = -1;
+		goto end;
+	}
+
+	id_field = bt_ctf_field_structure_get_field(event->event_header, "id");
+	if (id_field) {
+		ret = set_integer_field_value(id_field,
+			(uint64_t) event->event_class->id);
+		if (ret) {
+			goto end;
+		}
+	}
+
+	timestamp_field = bt_ctf_field_structure_get_field(event->event_header,
+		"timestamp");
+	if (timestamp_field) {
+		ret = set_integer_field_value(timestamp_field,
+			(uint64_t) event->timestamp);
+		if (ret) {
+			goto end;
+		}
+	}
+end:
+	if (id_field) {
+		bt_ctf_field_put(id_field);
+	}
+	if (timestamp_field) {
+		bt_ctf_field_put(timestamp_field);
+	}
+	return ret;
 }

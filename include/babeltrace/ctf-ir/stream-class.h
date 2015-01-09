@@ -52,6 +52,11 @@ struct bt_ctf_clock;
  *	- uint64_t packet_size
  *	- uint64_t events_discarded
  *
+ * A stream class's event header is a structure initialized the following
+ * fields:
+ *  - uint32_t id
+ *  - uint64_t timestamp
+ *
  * @param name Stream name.
  *
  * Returns an allocated stream class on success, NULL on error.
@@ -127,6 +132,8 @@ extern int bt_ctf_stream_class_set_id(
  * The stream class will share the ownership of "event_class" by incrementing
  * its reference count.
  *
+ * Note that an event class may only be added to one stream class.
+ *
  * @param stream_class Stream class.
  * @param event_class Event class to add to the provided stream class.
  *
@@ -193,6 +200,31 @@ extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 extern int bt_ctf_stream_class_set_packet_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *packet_context_type);
+
+/*
+ * bt_ctf_stream_class_get_event_header_type: get the stream class'
+ * event header type.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream event header's type (a structure), NULL on error.
+ */
+extern struct bt_ctf_field_type *
+bt_ctf_stream_class_get_event_header_type(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_set_event_header_type: set the stream class'
+ * event header type.
+ *
+ * @param stream_class Stream class.
+ * @param event_header_type Event header type (must be a structure).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_event_header_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *event_header_type);
 
 /*
  * bt_ctf_stream_class_get_event_context_type: get the stream class'

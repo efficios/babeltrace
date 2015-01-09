@@ -98,6 +98,31 @@ extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_stream_get_packet_header: get a stream's packet header.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_header(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_packet_header: set a stream's packet header.
+ *
+ * The packet header's type must match the trace's packet header
+ * type.
+ *
+ * @param stream Stream instance.
+ * @param packet_header Packet header instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_packet_header(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_header);
+
+/*
  * bt_ctf_stream_get_packet_context: get a stream's packet context.
  *
  * @param stream Stream instance.
@@ -123,6 +148,31 @@ extern int bt_ctf_stream_set_packet_context(
 		struct bt_ctf_field *packet_context);
 
 /*
+ * bt_ctf_stream_get_event_header: get a stream's event header.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_event_header(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_event_header: set a stream's event header.
+ *
+ * The event header's type must match the stream class' event
+ * header type.
+ *
+ * @param stream Stream instance.
+ * @param event_header Event header field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_event_context(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *event_context);
+
+/*
  * bt_ctf_stream_get_event_context: get a stream's event context.
  *
  * @param stream Stream instance.
@@ -146,31 +196,6 @@ extern struct bt_ctf_field *bt_ctf_stream_get_event_context(
 extern int bt_ctf_stream_set_event_context(
 		struct bt_ctf_stream *stream,
 		struct bt_ctf_field *event_context);
-
-/*
- * bt_ctf_stream_get_packet_header: get a stream's packet header.
- *
- * @param stream Stream instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern struct bt_ctf_field *bt_ctf_stream_get_packet_header(
-		struct bt_ctf_stream *stream);
-
-/*
- * bt_ctf_stream_set_packet_header: set a stream's packet header.
- *
- * The packet header's type must match the trace's packet header
- * type.
- *
- * @param stream Stream instance.
- * @param packet_header Packet header instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern int bt_ctf_stream_set_packet_header(
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *packet_header);
 
 /*
  * bt_ctf_stream_flush: flush a stream.
