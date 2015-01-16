@@ -143,9 +143,9 @@ extern struct bt_ctf_field *bt_ctf_stream_get_event_context(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern int bt_ctf_stream_set_event_context(
+extern int bt_ctf_stream_set_event_header(
 		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *event_context);
+		struct bt_ctf_field *event_header);
 
 /*
  * bt_ctf_stream_get_packet_header: get a stream's packet header.
