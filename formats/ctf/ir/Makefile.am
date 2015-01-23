@@ -9,7 +9,8 @@ libctf_ir_la_SOURCES = \
 	event-types.c \
 	stream.c \
 	stream-class.c \
-	trace.c
+	trace.c \
+	utils.c
 
 libctf_ir_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la

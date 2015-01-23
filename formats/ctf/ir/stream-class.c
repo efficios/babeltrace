@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
+#include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
 
@@ -52,7 +53,7 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	int ret;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!name || !strlen(name)) {
+	if (!name || !strlen(name) || bt_ctf_validate_identifier(name)) {
 		goto error;
 	}
 

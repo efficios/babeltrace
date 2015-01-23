@@ -28,7 +28,8 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/stream-class.h \
-	babeltrace/ctf-ir/trace.h
+	babeltrace/ctf-ir/trace.h \
+	babeltrace/ctf-ir/utils.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \

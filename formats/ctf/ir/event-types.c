@@ -28,6 +28,7 @@
 
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/endian.h>
@@ -1032,7 +1033,7 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 	struct bt_ctf_field_type_structure *structure;
 
 	if (!type || !field_type || type->frozen ||
-		validate_identifier(field_name) ||
+		bt_ctf_validate_identifier(field_name) ||
 		(type->declaration->id != CTF_TYPE_STRUCT) ||
 		bt_ctf_field_type_validate(field_type)) {
 		ret = -1;
@@ -1140,7 +1141,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 {
 	struct bt_ctf_field_type_variant *variant = NULL;
 
-	if (!enum_tag || validate_identifier(tag_name) ||
+	if (!enum_tag || bt_ctf_validate_identifier(tag_name) ||
 		(enum_tag->declaration->id != CTF_TYPE_ENUM)) {
 		goto error;
 	}
@@ -1209,7 +1210,7 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 	GQuark field_name_quark = g_quark_from_string(field_name);
 
 	if (!type || !field_type || type->frozen ||
-		validate_identifier(field_name) ||
+		bt_ctf_validate_identifier(field_name) ||
 		(type->declaration->id != CTF_TYPE_VARIANT) ||
 		bt_ctf_field_type_validate(field_type)) {
 		ret = -1;
@@ -1407,7 +1408,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 {
 	struct bt_ctf_field_type_sequence *sequence = NULL;
 
-	if (!element_type || validate_identifier(length_field_name) ||
+	if (!element_type || bt_ctf_validate_identifier(length_field_name) ||
 		bt_ctf_field_type_validate(element_type)) {
 		goto error;
 	}

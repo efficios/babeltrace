@@ -69,10 +69,6 @@ struct metadata_context {
 	unsigned int current_indentation_level;
 };
 
-/* Checks that the string does not contain a reserved keyword */
-BT_HIDDEN
-int validate_identifier(const char *string);
-
 BT_HIDDEN
 const char *get_byte_order_string(int byte_order);
 

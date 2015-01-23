@@ -32,6 +32,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
@@ -43,13 +44,6 @@ static
 void bt_ctf_trace_destroy(struct bt_ctf_ref *ref);
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace);
-
-static
-const char * const reserved_keywords_str[] = {"align", "callsite",
-	"const", "char", "clock", "double", "enum", "env", "event",
-	"floating_point", "float", "integer", "int", "long", "short", "signed",
-	"stream", "string", "struct", "trace", "typealias", "typedef",
-	"unsigned", "variant", "void" "_Bool", "_Complex", "_Imaginary"};
 
 static
 const unsigned int field_type_aliases_alignments[] = {
@@ -68,10 +62,6 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT32_T] = 32,
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
-
-static GHashTable *reserved_keywords_set;
-static int init_done;
-static int global_data_refcount;
 
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
@@ -211,7 +201,7 @@ int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
 	char *escaped_value = NULL;
 	int ret = 0;
 
-	if (!trace || !name || !value || validate_identifier(name)) {
+	if (!trace || !name || !value || bt_ctf_validate_identifier(name)) {
 		ret = -1;
 		goto error;
 	}
@@ -524,40 +514,6 @@ void bt_ctf_trace_put(struct bt_ctf_trace *trace)
 }
 
 BT_HIDDEN
-int validate_identifier(const char *input_string)
-{
-	int ret = 0;
-	char *string = NULL;
-	char *save_ptr, *token;
-
-	if (!input_string || input_string[0] == '\0') {
-		ret = -1;
-		goto end;
-	}
-
-	string = strdup(input_string);
-	if (!string) {
-		ret = -1;
-		goto end;
-	}
-
-	token = strtok_r(string, " ", &save_ptr);
-	while (token) {
-		if (g_hash_table_lookup_extended(reserved_keywords_set,
-			GINT_TO_POINTER(g_quark_from_string(token)),
-			NULL, NULL)) {
-			ret = -1;
-			goto end;
-		}
-
-		token = strtok_r(NULL, " ", &save_ptr);
-	}
-end:
-	free(string);
-	return ret;
-}
-
-BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 {
 	unsigned int alignment, size;
@@ -640,35 +596,4 @@ void environment_variable_destroy(struct environment_variable *var)
 	g_string_free(var->name, TRUE);
 	g_string_free(var->value, TRUE);
 	g_free(var);
-}
-
-static __attribute__((constructor))
-void trace_init(void)
-{
-	size_t i;
-	const size_t reserved_keywords_count =
-		sizeof(reserved_keywords_str) / sizeof(char *);
-
-	global_data_refcount++;
-	if (init_done) {
-		return;
-	}
-
-	reserved_keywords_set = g_hash_table_new(g_direct_hash, g_direct_equal);
-	for (i = 0; i < reserved_keywords_count; i++) {
-		gpointer quark = GINT_TO_POINTER(g_quark_from_string(
-			reserved_keywords_str[i]));
-
-		g_hash_table_insert(reserved_keywords_set, quark, quark);
-	}
-
-	init_done = 1;
-}
-
-static __attribute__((destructor))
-void trace_finalize(void)
-{
-	if (--global_data_refcount == 0) {
-		g_hash_table_destroy(reserved_keywords_set);
-	}
 }

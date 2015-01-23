@@ -34,6 +34,7 @@
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
 
 static
@@ -45,7 +46,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 {
 	struct bt_ctf_event_class *event_class = NULL;
 
-	if (validate_identifier(name)) {
+	if (bt_ctf_validate_identifier(name)) {
 		goto end;
 	}
 
@@ -133,7 +134,7 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 {
 	int ret = 0;
 
-	if (!event_class || !type || validate_identifier(name) ||
+	if (!event_class || !type || bt_ctf_validate_identifier(name) ||
 		event_class->frozen) {
 		ret = -1;
 		goto end;
@@ -346,7 +347,7 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 {
 	int ret = 0;
 
-	if (!event || !value || validate_identifier(name)) {
+	if (!event || !value || bt_ctf_validate_identifier(name)) {
 		ret = -1;
 		goto end;
 	}

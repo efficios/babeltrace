@@ -27,6 +27,7 @@
  */
 
 #include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 #include <inttypes.h>
@@ -57,7 +58,7 @@ int bt_ctf_clock_set_name(struct bt_ctf_clock *clock,
 {
 	int ret = 0;
 
-	if (validate_identifier(name)) {
+	if (bt_ctf_validate_identifier(name)) {
 		ret = -1;
 		goto end;
 	}
