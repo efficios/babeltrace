@@ -44,8 +44,9 @@ struct bt_ctf_stream_class {
 	uint32_t id;
 	uint32_t next_event_id;
 	uint32_t next_stream_id;
-	struct bt_ctf_field_type *packet_context_type;
 	struct bt_ctf_field_type *event_header_type;
+	struct bt_ctf_field *event_header;
+	struct bt_ctf_field_type *packet_context_type;
 	struct bt_ctf_field_type *event_context_type;
 	int frozen;
 };

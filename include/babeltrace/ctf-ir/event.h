@@ -276,31 +276,6 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 		struct bt_ctf_event *event, int index);
 
 /*
- * bt_ctf_event_get_header: get an event's header.
- *
- * @param event Event instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern struct bt_ctf_field *bt_ctf_event_get_header(
-		struct bt_ctf_event *event);
-
-/*
- * bt_ctf_event_set_header: set an event's header.
- *
- * The event header's type must match the stream class' event
- * header type.
- *
- * @param event Event instance.
- * @param header Event header field instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern int bt_ctf_event_set_header(
-		struct bt_ctf_event *event,
-		struct bt_ctf_field *header);
-
-/*
  * bt_ctf_event_get_event_context: Get an event's context
  *
  * @param event_class Event class.

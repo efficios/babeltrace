@@ -306,47 +306,6 @@ end:
 	return ret;
 }
 
-struct bt_ctf_field_type *bt_ctf_stream_class_get_event_header_type(
-		struct bt_ctf_stream_class *stream_class)
-{
-	struct bt_ctf_field_type *ret = NULL;
-
-	if (!stream_class || !stream_class->event_header_type) {
-		goto end;
-	}
-
-	assert(stream_class->event_header_type);
-	bt_ctf_field_type_get(stream_class->event_header_type);
-	ret = stream_class->event_header_type;
-end:
-	return ret;
-}
-
-int bt_ctf_stream_class_set_event_header_type(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_field_type *event_header_type)
-{
-	int ret = 0;
-
-	if (!stream_class || !event_header_type || stream_class->frozen) {
-		ret = -1;
-		goto end;
-	}
-
-	if (bt_ctf_field_type_get_type_id(event_header_type) !=
-		CTF_TYPE_STRUCT) {
-		/* An event header must be a structure */
-		ret = -1;
-		goto end;
-	}
-
-	bt_ctf_field_type_put(stream_class->event_header_type);
-	bt_ctf_field_type_get(event_header_type);
-	stream_class->event_header_type = event_header_type;
-end:
-	return ret;
-}
-
 struct bt_ctf_field_type *bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -521,6 +480,7 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 	}
 
 	bt_ctf_field_type_put(stream_class->event_header_type);
+	bt_ctf_field_put(stream_class->event_header);
 	bt_ctf_field_type_put(stream_class->packet_context_type);
 	if (stream_class->event_context_type) {
 		bt_ctf_field_type_put(stream_class->event_context_type);
@@ -568,6 +528,11 @@ int init_event_header(struct bt_ctf_stream_class *stream_class,
 	}
 
 	stream_class->event_header_type = event_header_type;
+	stream_class->event_header = bt_ctf_field_create(
+		stream_class->event_header_type);
+	if (!stream_class->event_header) {
+		ret = -1;
+	}
 end:
 	if (ret) {
 		bt_ctf_field_type_put(event_header_type);
