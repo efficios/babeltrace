@@ -187,6 +187,30 @@ end:
 	return ret;
 }
 
+static
+guint g_uint64p_hash(gconstpointer key)
+{
+	uint64_t v = *(uint64_t *) key;
+
+	if (sizeof(gconstpointer) == sizeof(uint64_t)) {
+		return g_direct_hash((gconstpointer) (unsigned long) v);
+	} else {
+		return g_direct_hash((gconstpointer) (unsigned long) (v >> 32))
+			^ g_direct_hash((gconstpointer) (unsigned long) v);
+	}
+}
+
+static
+gboolean g_uint64p_equal(gconstpointer a, gconstpointer b)
+{
+	uint64_t va = *(uint64_t *) a;
+	uint64_t vb = *(uint64_t *) b;
+
+	if (va != vb)
+		return FALSE;
+	return TRUE;
+}
+
 static int lttng_live_open_trace_read(const char *path)
 {
 	int ret = 0;
@@ -199,8 +223,8 @@ static int lttng_live_open_trace_read(const char *path)
 	ctx->session->ctx = ctx;
 
 	/* HT to store the CTF traces. */
-	ctx->session->ctf_traces = g_hash_table_new(g_direct_hash,
-			g_direct_equal);
+	ctx->session->ctf_traces = g_hash_table_new(g_uint64p_hash,
+			g_uint64p_equal);
 	ctx->port = -1;
 	ctx->session_ids = g_array_new(FALSE, TRUE, sizeof(uint64_t));
 

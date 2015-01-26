@@ -381,13 +381,13 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	int ret = 0;
 
 	trace = g_hash_table_lookup(stream->session->ctf_traces,
-			(gpointer) ctf_trace_id);
+			&ctf_trace_id);
 	if (!trace) {
 		trace = g_new0(struct lttng_live_ctf_trace, 1);
 		trace->ctf_trace_id = ctf_trace_id;
 		trace->streams = g_ptr_array_new();
 		g_hash_table_insert(stream->session->ctf_traces,
-				(gpointer) ctf_trace_id,
+				&trace->ctf_trace_id,
 				trace);
 	}
 	if (stream->metadata_flag)
