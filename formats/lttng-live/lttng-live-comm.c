@@ -681,8 +681,8 @@ retry:
 		goto error;
 	}
 	if (ret_len != sizeof(rp)) {
-		fprintf(stderr, "[error] get_data_packet: expected %" PRId64
-				", received %" PRId64 "\n", sizeof(rp),
+		fprintf(stderr, "[error] get_data_packet: expected %zu"
+				", received %zd\n", sizeof(rp),
 				ret_len);
 		goto error;
 	}
@@ -1656,7 +1656,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 
 	for (i = 0; i < ctx->session_ids->len; i++) {
 		id = g_array_index(ctx->session_ids, uint64_t, i);
-		printf_verbose("Attaching to session %lu\n", id);
+		printf_verbose("Attaching to session %" PRIu64 "\n", id);
 		ret = lttng_live_attach_session(ctx, id);
 		printf_verbose("Attaching session returns %d\n", ret);
 		if (ret < 0) {
