@@ -702,10 +702,8 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (stream->flushed_packet_count) {
-		/* ctf_init_pos has already initialized the first packet */
-		ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
-	}
+	/* mmap the next packet */
+	ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
 
 	ret = bt_ctf_field_serialize(stream->packet_header, &stream->pos);
 	if (ret) {
