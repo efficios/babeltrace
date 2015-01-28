@@ -53,6 +53,7 @@ struct bt_ctf_stream {
 	struct bt_ctf_field *event_context;
 };
 
+/* Stream class should be locked by the caller after creating a stream */
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(
 		struct bt_ctf_stream_class *stream_class,

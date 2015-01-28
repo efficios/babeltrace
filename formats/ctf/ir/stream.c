@@ -296,7 +296,6 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
 	bt_ctf_stream_class_get(stream_class);
-	bt_ctf_stream_class_freeze(stream_class);
 	stream->events = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_ctf_event_put);
 	if (!stream->events) {

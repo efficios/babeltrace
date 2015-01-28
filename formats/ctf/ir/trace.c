@@ -185,6 +185,7 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 
 	bt_ctf_stream_get(stream);
 	g_ptr_array_add(trace->streams, stream);
+	bt_ctf_stream_class_freeze(stream_class);
 	trace->frozen = 1;
 	return stream;
 
