@@ -1480,6 +1480,43 @@ end:
 	bt_ctf_event_class_put(event_class);
 }
 
+void test_empty_stream(struct bt_ctf_writer *writer)
+{
+	int ret = 0;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_stream *stream = NULL;
+
+	trace = bt_ctf_writer_get_trace(writer);
+	if (!trace) {
+		diag("Failed to get trace from writer");
+		ret = -1;
+		goto end;
+	}
+
+	stream_class = bt_ctf_stream_class_create("empty_stream");
+	if (!stream_class) {
+		diag("Failed to create stream class");
+		ret = -1;
+		goto end;
+	}
+
+	stream = bt_ctf_writer_create_stream(writer, stream_class);
+	if (!stream) {
+		diag("Failed to create writer stream");
+		ret = -1;
+		goto end;
+	}
+end:
+	ok(ret == 0,
+		"Created a stream class with default attributes and an empty stream");
+	bt_ctf_trace_put(trace);
+	bt_ctf_clock_put(clock);
+	bt_ctf_stream_put(stream);
+	bt_ctf_stream_class_put(stream_class);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -1914,6 +1951,8 @@ int main(int argc, char **argv)
 	packet_resize_test(stream_class, stream1, clock);
 
 	append_complex_event(stream_class, stream1, clock);
+
+	test_empty_stream(writer);
 
 	metadata_string = bt_ctf_writer_get_metadata_string(writer);
 	ok(metadata_string, "Get metadata string");
