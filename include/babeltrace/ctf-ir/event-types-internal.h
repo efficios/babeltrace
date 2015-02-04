@@ -155,4 +155,8 @@ const char *bt_ctf_field_type_enumeration_get_mapping_name_signed(
 		struct bt_ctf_field_type_enumeration *enumeration_type,
 		int64_t value);
 
+/* Override field type's byte order only if it is set to "native" */
+BT_HIDDEN
+void bt_ctf_field_type_set_native_byte_order(
+		struct bt_ctf_field_type *type, int byte_order);
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

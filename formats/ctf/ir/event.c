@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
@@ -578,6 +579,20 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 end:
 	context->current_indentation_level = 0;
 	return ret;
+}
+
+void bt_ctf_event_class_set_native_byte_order(
+		struct bt_ctf_event_class *event_class,
+		int byte_order)
+{
+	if (!event_class) {
+		return;
+	}
+
+	bt_ctf_field_type_set_native_byte_order(event_class->context,
+		byte_order);
+	bt_ctf_field_type_set_native_byte_order(event_class->fields,
+		byte_order);
 }
 
 BT_HIDDEN

@@ -49,6 +49,7 @@ struct bt_ctf_stream_class {
 	struct bt_ctf_field_type *packet_context_type;
 	struct bt_ctf_field_type *event_context_type;
 	int frozen;
+	int byte_order;
 };
 
 BT_HIDDEN

@@ -369,6 +369,8 @@ void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 BT_HIDDEN
 void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 {
+	size_t i;
+
 	if (!stream_class) {
 		return;
 	}
@@ -377,8 +379,20 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
-	g_ptr_array_foreach(stream_class->event_classes,
-		(GFunc)bt_ctf_event_class_freeze, NULL);
+
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->event_header_type, stream_class->byte_order);
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->packet_context_type, stream_class->byte_order);
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->event_context_type, stream_class->byte_order);
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		bt_ctf_event_class_set_native_byte_order(
+			g_ptr_array_index(stream_class->event_classes, i),
+			stream_class->byte_order);
+		bt_ctf_event_class_freeze(
+			g_ptr_array_index(stream_class->event_classes, i));
+	}
 }
 
 BT_HIDDEN
@@ -386,11 +400,30 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 	enum bt_ctf_byte_order byte_order)
 {
 	int ret = 0;
+	int internal_byte_order;
 
-	ret = init_event_header(stream_class, byte_order);
-	if (ret) {
+	/* Note that "NATIVE" means the trace's endianness, not the host's. */
+	if (!stream_class || byte_order <= BT_CTF_BYTE_ORDER_UNKNOWN ||
+		byte_order > BT_CTF_BYTE_ORDER_NETWORK ||
+		stream_class->frozen) {
+		ret = -1;
 		goto end;
 	}
+
+	switch (byte_order) {
+	case BT_CTF_BYTE_ORDER_NETWORK:
+	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
+		internal_byte_order = BIG_ENDIAN;
+		break;
+	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+		internal_byte_order = LITTLE_ENDIAN;
+		break;
+	default:
+		ret = -1;
+		goto end;
+	}
+
+	stream_class->byte_order = internal_byte_order;
 end:
 	return ret;
 }
@@ -506,16 +539,6 @@ int init_event_header(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	ret = bt_ctf_field_type_set_byte_order(_uint32_t, byte_order);
-	if (ret) {
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_set_byte_order(_uint64_t, byte_order);
-	if (ret) {
-		goto end;
-	}
-
 	ret = bt_ctf_field_type_structure_add_field(event_header_type,
 		_uint32_t, "id");
 	if (ret) {
@@ -563,11 +586,6 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class,
 	 * We create a stream packet context as proposed in the CTF
 	 * specification.
 	 */
-	ret = bt_ctf_field_type_set_byte_order(_uint64_t, byte_order);
-	if (ret) {
-		goto end;
-	}
-
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
 		_uint64_t, "timestamp_begin");
 	if (ret) {

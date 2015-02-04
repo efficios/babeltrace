@@ -50,7 +50,7 @@ struct bt_ctf_trace {
 	struct bt_ctf_ref ref_count;
 	int frozen;
 	uuid_t uuid;
-	int byte_order;
+	int byte_order; /* A value defined in Babeltrace's "endian.h" */
 	GPtrArray *environment; /* Array of pointers to environment_variable */
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */

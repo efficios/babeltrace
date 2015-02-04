@@ -141,7 +141,7 @@ int generic_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 struct declaration_integer {
 	struct bt_declaration p;
 	size_t len;		/* length, in bits. */
-	int byte_order;		/* byte order */
+	int byte_order;		/* LITTLE_ENDIAN/BIG_ENDIAN, 0 == "Native" */
 	int signedness;
 	int base;		/* Base for pretty-printing: 2, 8, 10, 16 */
 	enum ctf_string_encoding encoding;
@@ -163,7 +163,7 @@ struct declaration_float {
 	struct declaration_integer *sign;
 	struct declaration_integer *mantissa;
 	struct declaration_integer *exp;
-	int byte_order;
+	int byte_order;		/* LITTLE_ENDIAN/BIG_ENDIAN, 0 == "Native" */
 	/* TODO: we might want to express more info about NaN, +inf and -inf */
 };
 

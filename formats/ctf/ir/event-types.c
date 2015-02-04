@@ -150,19 +150,41 @@ type_serialize_func const type_serialize_funcs[] = {
 
 static
 void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *,
-		int byte_order);
+		int byte_order, int set_native);
+static
+void bt_ctf_field_type_enumeration_set_byte_order(struct bt_ctf_field_type *,
+		int byte_order, int set_native);
 static
 void bt_ctf_field_type_floating_point_set_byte_order(
-		struct bt_ctf_field_type *, int byte_order);
+		struct bt_ctf_field_type *, int byte_order, int set_native);
+static
+void bt_ctf_field_type_structure_set_byte_order(struct bt_ctf_field_type *,
+		int byte_order, int set_native);
+static
+void bt_ctf_field_type_variant_set_byte_order(struct bt_ctf_field_type *,
+		int byte_order, int set_native);
+static
+void bt_ctf_field_type_array_set_byte_order(struct bt_ctf_field_type *,
+		int byte_order, int set_native);
+static
+void bt_ctf_field_type_sequence_set_byte_order(struct bt_ctf_field_type *,
+		int byte_order, int set_native);
 
+/* The set_native flag only set the byte order if it is set to native */
 static
 void (* const set_byte_order_funcs[])(struct bt_ctf_field_type *,
-	int) = {
-	[CTF_TYPE_INTEGER] =
-		bt_ctf_field_type_integer_set_byte_order,
+		int byte_order, int set_native) = {
+	[CTF_TYPE_INTEGER] = bt_ctf_field_type_integer_set_byte_order,
+	[CTF_TYPE_ENUM] =
+		bt_ctf_field_type_enumeration_set_byte_order,
 	[CTF_TYPE_FLOAT] =
 		bt_ctf_field_type_floating_point_set_byte_order,
-	[CTF_TYPE_ENUM ... CTF_TYPE_SEQUENCE] = NULL,
+	[CTF_TYPE_STRUCT] =
+		bt_ctf_field_type_structure_set_byte_order,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_type_variant_set_byte_order,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_type_array_set_byte_order,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_type_sequence_set_byte_order,
+	[CTF_TYPE_STRING] = NULL,
 };
 
 static
@@ -1016,10 +1038,10 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void)
 
 	structure->parent.declaration = &structure->declaration.p;
 	structure->parent.declaration->id = CTF_TYPE_STRUCT;
-	bt_ctf_field_type_init(&structure->parent);
 	structure->fields = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)destroy_structure_field);
 	structure->field_name_to_index = g_hash_table_new(NULL, NULL);
+	bt_ctf_field_type_init(&structure->parent);
 	return &structure->parent;
 error:
 	return NULL;
@@ -1154,13 +1176,13 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 	variant->parent.declaration = &variant->declaration.p;
 	variant->parent.declaration->id = CTF_TYPE_VARIANT;
 	variant->tag_name = g_string_new(tag_name);
-	bt_ctf_field_type_init(&variant->parent);
 	variant->field_name_to_index = g_hash_table_new(NULL, NULL);
 	variant->fields = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)destroy_structure_field);
 	bt_ctf_field_type_get(enum_tag);
 	variant->tag = container_of(enum_tag,
 		struct bt_ctf_field_type_enumeration, parent);
+	bt_ctf_field_type_init(&variant->parent);
 	return &variant->parent;
 error:
 	return NULL;
@@ -1358,10 +1380,11 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 
 	array->parent.declaration = &array->declaration.p;
 	array->parent.declaration->id = CTF_TYPE_ARRAY;
-	bt_ctf_field_type_init(&array->parent);
+
 	bt_ctf_field_type_get(element_type);
 	array->element_type = element_type;
 	array->length = length;
+	bt_ctf_field_type_init(&array->parent);
 	array->parent.declaration->alignment =
 		element_type->declaration->alignment;
 	return &array->parent;
@@ -1420,10 +1443,10 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 
 	sequence->parent.declaration = &sequence->declaration.p;
 	sequence->parent.declaration->id = CTF_TYPE_SEQUENCE;
-	bt_ctf_field_type_init(&sequence->parent);
 	bt_ctf_field_type_get(element_type);
 	sequence->element_type = element_type;
 	sequence->length_field_name = g_string_new(length_field_name);
+	bt_ctf_field_type_init(&sequence->parent);
 	sequence->parent.declaration->alignment =
 		element_type->declaration->alignment;
 	return &sequence->parent;
@@ -1560,6 +1583,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		struct bt_ctf_field_type *type)
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
+	int internal_byte_order = -1;
 
 	if (!type) {
 		goto end;
@@ -1570,9 +1594,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 	{
 		struct bt_ctf_field_type_integer *integer = container_of(
 			type, struct bt_ctf_field_type_integer, parent);
-		ret = integer->declaration.byte_order == LITTLE_ENDIAN ?
-			BT_CTF_BYTE_ORDER_LITTLE_ENDIAN :
-			BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		internal_byte_order = integer->declaration.byte_order;
 		break;
 	}
 	case CTF_TYPE_FLOAT:
@@ -1581,13 +1603,25 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 			container_of(type,
 				struct bt_ctf_field_type_floating_point,
 				parent);
-		ret = floating_point->declaration.byte_order == LITTLE_ENDIAN ?
-			BT_CTF_BYTE_ORDER_LITTLE_ENDIAN :
-			BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		internal_byte_order = floating_point->declaration.byte_order;
 		break;
 	}
 	default:
+		goto end;
+	}
+
+	switch (internal_byte_order) {
+	case LITTLE_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
 		break;
+	case BIG_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		break;
+	case 0:
+		ret = BT_CTF_BYTE_ORDER_NATIVE;
+		break;
+	default:
+		ret = BT_CTF_BYTE_ORDER_UNKNOWN;
 	}
 end:
 	return ret;
@@ -1608,8 +1642,8 @@ int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 	type_id = type->declaration->id;
 	switch (byte_order) {
 	case BT_CTF_BYTE_ORDER_NATIVE:
-		internal_byte_order = (G_BYTE_ORDER == G_LITTLE_ENDIAN ?
-			LITTLE_ENDIAN : BIG_ENDIAN);
+		/* Leave unset. Will be initialized by parent. */
+		internal_byte_order = 0;
 		break;
 	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
 		internal_byte_order = LITTLE_ENDIAN;
@@ -1624,7 +1658,7 @@ int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 	}
 
 	if (set_byte_order_funcs[type_id]) {
-		set_byte_order_funcs[type_id](type, internal_byte_order);
+		set_byte_order_funcs[type_id](type, internal_byte_order, 0);
 	}
 end:
 	return ret;
@@ -1761,6 +1795,21 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 	ret = type->serialize(type, context);
 end:
 	return ret;
+}
+
+BT_HIDDEN
+void bt_ctf_field_type_set_native_byte_order(struct bt_ctf_field_type *type,
+		int byte_order)
+{
+	if (!type) {
+		return;
+	}
+
+	assert(byte_order == LITTLE_ENDIAN || byte_order == BIG_ENDIAN);
+	if (set_byte_order_funcs[type->declaration->id]) {
+		set_byte_order_funcs[type->declaration->id](type,
+			byte_order, 1);
+	}
 }
 
 static
@@ -2296,24 +2345,130 @@ int bt_ctf_field_type_string_serialize(struct bt_ctf_field_type *type,
 
 static
 void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *type,
-		int byte_order)
+		int byte_order, int set_native)
 {
 	struct bt_ctf_field_type_integer *integer_type = container_of(type,
 		struct bt_ctf_field_type_integer, parent);
 
-	integer_type->declaration.byte_order = byte_order;
+	if (set_native) {
+		integer_type->declaration.byte_order =
+			integer_type->declaration.byte_order == 0 ?
+			byte_order : integer_type->declaration.byte_order;
+	} else {
+		integer_type->declaration.byte_order = byte_order;
+	}
+}
+
+static
+void bt_ctf_field_type_enumeration_set_byte_order(
+		struct bt_ctf_field_type *type, int byte_order, int set_native)
+{
+	struct bt_ctf_field_type_enumeration *enum_type = container_of(type,
+		struct bt_ctf_field_type_enumeration, parent);
+
+	/* Safe to assume that container is an integer */
+	bt_ctf_field_type_integer_set_byte_order(enum_type->container,
+		byte_order, set_native);
 }
 
 static
 void bt_ctf_field_type_floating_point_set_byte_order(
-		struct bt_ctf_field_type *type, int byte_order)
+		struct bt_ctf_field_type *type, int byte_order, int set_native)
 {
 	struct bt_ctf_field_type_floating_point *floating_point_type =
 		container_of(type, struct bt_ctf_field_type_floating_point,
 		parent);
 
-	floating_point_type->declaration.byte_order = byte_order;
-	floating_point_type->sign.byte_order = byte_order;
-	floating_point_type->mantissa.byte_order = byte_order;
-	floating_point_type->exp.byte_order = byte_order;
+	if (set_native) {
+		floating_point_type->declaration.byte_order =
+			floating_point_type->declaration.byte_order == 0 ?
+			byte_order :
+			floating_point_type->declaration.byte_order;
+		floating_point_type->sign.byte_order =
+			floating_point_type->sign.byte_order == 0 ?
+			byte_order : floating_point_type->sign.byte_order;
+		floating_point_type->mantissa.byte_order =
+			floating_point_type->mantissa.byte_order == 0 ?
+			byte_order : floating_point_type->mantissa.byte_order;
+		floating_point_type->exp.byte_order =
+			floating_point_type->exp.byte_order == 0 ?
+			byte_order : floating_point_type->exp.byte_order;
+	} else {
+		floating_point_type->declaration.byte_order = byte_order;
+		floating_point_type->sign.byte_order = byte_order;
+		floating_point_type->mantissa.byte_order = byte_order;
+		floating_point_type->exp.byte_order = byte_order;
+	}
+}
+
+static
+void bt_ctf_field_type_structure_set_byte_order(struct bt_ctf_field_type *type,
+		int byte_order, int set_native)
+{
+	int i;
+	struct bt_ctf_field_type_structure *structure_type =
+		container_of(type, struct bt_ctf_field_type_structure,
+		parent);
+
+	for (i = 0; i < structure_type->fields->len; i++) {
+		struct structure_field *field = g_ptr_array_index(
+			structure_type->fields, i);
+		struct bt_ctf_field_type *field_type = field->type;
+
+		if (set_byte_order_funcs[field_type->declaration->id]) {
+			set_byte_order_funcs[field_type->declaration->id](
+				field_type, byte_order, set_native);
+		}
+	}
+}
+
+static
+void bt_ctf_field_type_variant_set_byte_order(struct bt_ctf_field_type *type,
+		int byte_order, int set_native)
+{
+	int i;
+	struct bt_ctf_field_type_variant *variant_type =
+		container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+
+	for (i = 0; i < variant_type->fields->len; i++) {
+		struct structure_field *field = g_ptr_array_index(
+			variant_type->fields, i);
+		struct bt_ctf_field_type *field_type = field->type;
+
+		if (set_byte_order_funcs[field_type->declaration->id]) {
+			set_byte_order_funcs[field_type->declaration->id](
+				field_type, byte_order, set_native);
+		}
+	}
+}
+
+static
+void bt_ctf_field_type_array_set_byte_order(struct bt_ctf_field_type *type,
+		int byte_order, int set_native)
+{
+	struct bt_ctf_field_type_array *array_type =
+		container_of(type, struct bt_ctf_field_type_array,
+		parent);
+
+	if (set_byte_order_funcs[array_type->element_type->declaration->id]) {
+		set_byte_order_funcs[array_type->element_type->declaration->id](
+			array_type->element_type, byte_order, set_native);
+	}
+}
+
+static
+void bt_ctf_field_type_sequence_set_byte_order(struct bt_ctf_field_type *type,
+		int byte_order, int set_native)
+{
+	struct bt_ctf_field_type_sequence *sequence_type =
+		container_of(type, struct bt_ctf_field_type_sequence,
+		parent);
+
+	if (set_byte_order_funcs[
+		sequence_type->element_type->declaration->id]) {
+		set_byte_order_funcs[
+			sequence_type->element_type->declaration->id](
+			sequence_type->element_type, byte_order, set_native);
+	}
 }

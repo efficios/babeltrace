@@ -52,6 +52,11 @@ enum bt_ctf_integer_base {
 
 enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_UNKNOWN = -1,
+	/*
+	 * Note that native, in the context of the CTF specification, is defined as
+	 * "the byte order described in the trace" and does not mean that the host's
+	 * endianness will be used.
+	 */
 	BT_CTF_BYTE_ORDER_NATIVE = 0,
 	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
 	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
@@ -695,7 +700,7 @@ extern enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
  *
  * @param type Field type.
  * @param byte_order Field type's byte order. Defaults to
- * BT_CTF_BYTE_ORDER_NATIVE, the host machine's endianness.
+ * BT_CTF_BYTE_ORDER_NATIVE; the trace's endianness.
  *
  * Returns 0 on success, a negative value on error.
  */

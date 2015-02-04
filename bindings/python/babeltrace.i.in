@@ -3190,7 +3190,7 @@ class CTFWriter:
 
         """
 		Set the trace's byte order. Must be a constant from the ByteOrder
-		class. Defaults to BYTE_ORDER_NATIVE, the host machine's endianness.
+		class. Defaults to the host machine's endianness.
 		"""
         @byte_order.setter
         def byte_order(self, byte_order):

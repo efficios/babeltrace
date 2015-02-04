@@ -143,13 +143,6 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
-	ret = bt_ctf_stream_class_set_byte_order(stream_class,
-		trace->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
-	if (ret) {
-		goto error;
-	}
-
 	stream = bt_ctf_stream_create(stream_class, trace);
 	if (!stream) {
 		goto error;
@@ -185,10 +178,25 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 
 	bt_ctf_stream_get(stream);
 	g_ptr_array_add(trace->streams, stream);
+
+	/*
+	 * Freeze the trace and its packet header.
+	 *
+	 * All field type byte orders set as "native" byte ordering can now be
+	 * safely set to trace's own endianness, including the stream class'.
+	 */
+	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
+		trace->byte_order);
+	ret = bt_ctf_stream_class_set_byte_order(stream_class,
+		trace->byte_order == LITTLE_ENDIAN ?
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
+	if (ret) {
+		goto error;
+	}
+
 	bt_ctf_stream_class_freeze(stream_class);
 	trace->frozen = 1;
 	return stream;
-
 error:
 	bt_ctf_stream_put(stream);
 	return NULL;
@@ -434,7 +442,16 @@ int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 
 	switch (byte_order) {
 	case BT_CTF_BYTE_ORDER_NATIVE:
-		internal_byte_order =  (G_BYTE_ORDER == G_LITTLE_ENDIAN) ?
+		/*
+		 * This doesn't make sense since the CTF specification defines
+		 * the "native" byte order as "the byte order described in the
+		 * trace description". However, this behavior had been
+		 * implemented as part of v1.2 and is kept to maintain
+		 * compatibility.
+		 *
+		 * This may be changed on a major version bump only.
+		 */
+		internal_byte_order = (G_BYTE_ORDER == G_LITTLE_ENDIAN) ?
 			LITTLE_ENDIAN : BIG_ENDIAN;
 		break;
 	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
@@ -547,14 +564,6 @@ int init_trace_packet_header(struct bt_ctf_trace *trace)
 
 	if (!trace_packet_header_type || !uuid_array_type) {
 		ret = -1;
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_set_byte_order(_uint32_t,
-		(trace->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN :
-		BT_CTF_BYTE_ORDER_BIG_ENDIAN));
-	if (ret) {
 		goto end;
 	}
 

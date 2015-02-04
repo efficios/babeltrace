@@ -135,13 +135,16 @@ extern void bt_ctf_writer_flush_metadata(struct bt_ctf_writer *writer);
 /*
  * bt_ctf_writer_set_byte_order: set a field type's byte order.
  *
- * Set the trace's byte order. Defaults to BT_CTF_BYTE_ORDER_NATIVE,
- * the host machine's endianness.
+ * Set the trace's byte order. Defaults to the host machine's endianness.
  *
  * @param writer Writer instance.
  * @param byte_order Trace's byte order.
  *
  * Returns 0 on success, a negative value on error.
+ *
+ * Note: byte_order must not be BT_CTF_BYTE_ORDER_NATIVE since, according
+ * to the CTF specification, is defined as "the byte order described in the
+ * trace description".
  */
 extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 		enum bt_ctf_byte_order byte_order);

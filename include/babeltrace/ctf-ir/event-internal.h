@@ -67,6 +67,11 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
+void bt_ctf_event_class_set_native_byte_order(
+		struct bt_ctf_event_class *event_class,
+		int byte_order);
+
+BT_HIDDEN
 int bt_ctf_event_validate(struct bt_ctf_event *event);
 
 BT_HIDDEN

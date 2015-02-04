@@ -137,13 +137,16 @@ extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
 /*
  * bt_ctf_trace_set_byte_order: set a field type's byte order.
  *
- * Set the trace's byte order. Defaults to BT_CTF_BYTE_ORDER_NATIVE,
- * the host machine's endianness.
+ * Set the trace's byte order. Defaults to the current host's endianness.
  *
  * @param trace Trace instance.
  * @param byte_order Trace's byte order.
  *
  * Returns 0 on success, a negative value on error.
+ *
+ * Note: byte_order must not be BT_CTF_BYTE_ORDER_NATIVE since, according
+ * to the CTF specification, is defined as "the byte order described in the
+ * trace description".
  */
 extern int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order);
