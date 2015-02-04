@@ -683,7 +683,8 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 	context->current_indentation_level = 1;
 	g_string_assign(context->field_name, "");
-	g_string_append_printf(context->string, "event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRId64 ";\n",
+	g_string_append_printf(context->string,
+		"event {\n\tname = \"%s\";\n\tid = %u;\n\tstream_id = %" PRId64 ";\n",
 		g_quark_to_string(event_class->name),
 		event_class->id,
 		stream_id);
