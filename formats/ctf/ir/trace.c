@@ -467,9 +467,6 @@ int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 	}
 
 	trace->byte_order = internal_byte_order;
-	if (trace->packet_header_type) {
-		init_trace_packet_header(trace);
-	}
 end:
 	return ret;
 }
@@ -585,17 +582,18 @@ int init_trace_packet_header(struct bt_ctf_trace *trace)
 		goto end;
 	}
 
-	bt_ctf_field_type_put(trace->packet_header_type);
-	trace->packet_header_type = trace_packet_header_type;
+	ret = bt_ctf_trace_set_packet_header_type(trace,
+		trace_packet_header_type);
+	if (ret) {
+		goto end;
+	}
 end:
 	bt_ctf_field_type_put(uuid_array_type);
 	bt_ctf_field_type_put(_uint32_t);
 	bt_ctf_field_type_put(_uint8_t);
 	bt_ctf_field_put(magic);
 	bt_ctf_field_put(uuid_array);
-	if (ret) {
-		bt_ctf_field_type_put(trace_packet_header_type);
-	}
+	bt_ctf_field_type_put(trace_packet_header_type);
 
 	return ret;
 }

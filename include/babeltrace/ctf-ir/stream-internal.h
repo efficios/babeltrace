@@ -44,12 +44,14 @@ struct bt_ctf_stream {
 	struct bt_ctf_stream_class *stream_class;
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
-	/* Array of pointers to bt_ctf_field associated with each event*/
+	/* Array of pointers to bt_ctf_field associated with each event */
+	GPtrArray *event_headers;
 	GPtrArray *event_contexts;
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
 	struct bt_ctf_field *packet_header;
 	struct bt_ctf_field *packet_context;
+	struct bt_ctf_field *event_header;
 	struct bt_ctf_field *event_context;
 };
 

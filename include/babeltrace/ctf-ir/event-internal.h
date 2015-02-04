@@ -39,6 +39,7 @@ struct bt_ctf_event_class {
 	GQuark name;
 	int id_set;
 	uint32_t id;
+	/* An event class does not have ownership of a stream class */
 	struct bt_ctf_stream_class *stream_class;
 	/* Structure type containing the event's context */
 	struct bt_ctf_field_type *context;
@@ -51,6 +52,7 @@ struct bt_ctf_event {
 	struct bt_ctf_ref ref_count;
 	uint64_t timestamp;
 	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_field *event_header;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
 };
@@ -83,5 +85,17 @@ int bt_ctf_event_set_timestamp(struct bt_ctf_event *event, uint64_t timestamp);
 
 BT_HIDDEN
 uint64_t bt_ctf_event_get_timestamp(struct bt_ctf_event *event);
+
+/*
+ * Attempt to populate the "id" and "timestamp" fields of the event header if
+ * they are present, unset and their types are integers.
+ *
+ * Not finding these fields or encountering unexpected types is not an error
+ * since the user may have defined a different event header layout. In this
+ * case, it is expected that the fields be manually populated before appending
+ * an event to a stream.
+ */
+BT_HIDDEN
+int bt_ctf_event_populate_event_header(struct bt_ctf_event *event);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */

@@ -42,11 +42,9 @@
 static
 void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref);
 static
-int init_event_header(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order);
+int init_event_header(struct bt_ctf_stream_class *stream_class);
 static
-int init_packet_context(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order);
+int init_packet_context(struct bt_ctf_stream_class *stream_class);
 
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 {
@@ -69,7 +67,12 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 		goto error_destroy;
 	}
 
-	ret = init_packet_context(stream_class, BT_CTF_BYTE_ORDER_NATIVE);
+	ret = init_event_header(stream_class);
+	if (ret) {
+		goto error_destroy;
+	}
+
+	ret = init_packet_context(stream_class);
 	if (ret) {
 		goto error_destroy;
 	}
@@ -293,6 +296,9 @@ int bt_ctf_stream_class_set_packet_context_type(
 	}
 
 	assert(stream_class->packet_context_type);
+	if (stream_class->packet_context_type == packet_context_type) {
+		goto end;
+	}
 	if (bt_ctf_field_type_get_type_id(packet_context_type) !=
 		CTF_TYPE_STRUCT) {
 		/* A packet context must be a structure */
@@ -303,6 +309,51 @@ int bt_ctf_stream_class_set_packet_context_type(
 	bt_ctf_field_type_put(stream_class->packet_context_type);
 	bt_ctf_field_type_get(packet_context_type);
 	stream_class->packet_context_type = packet_context_type;
+end:
+	return ret;
+}
+
+struct bt_ctf_field_type *bt_ctf_stream_class_get_event_header_type(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_field_type *ret = NULL;
+
+	if (!stream_class || !stream_class->event_header_type) {
+		goto end;
+	}
+
+	assert(stream_class->event_header_type);
+	bt_ctf_field_type_get(stream_class->event_header_type);
+	ret = stream_class->event_header_type;
+end:
+	return ret;
+}
+
+int bt_ctf_stream_class_set_event_header_type(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *event_header_type)
+{
+	int ret = 0;
+
+	if (!stream_class || !event_header_type || stream_class->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	assert(stream_class->event_header_type);
+	if (stream_class->event_header_type == event_header_type) {
+		goto end;
+	}
+	if (bt_ctf_field_type_get_type_id(event_header_type) !=
+		CTF_TYPE_STRUCT) {
+		/* An event header must be a structure */
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_put(stream_class->event_header_type);
+	bt_ctf_field_type_get(event_header_type);
+	stream_class->event_header_type = event_header_type;
 end:
 	return ret;
 }
@@ -376,6 +427,7 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	}
 
 	stream_class->frozen = 1;
+	bt_ctf_field_type_freeze(stream_class->event_header_type);
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
@@ -514,7 +566,6 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 	}
 
 	bt_ctf_field_type_put(stream_class->event_header_type);
-	bt_ctf_field_put(stream_class->event_header);
 	bt_ctf_field_type_put(stream_class->packet_context_type);
 	if (stream_class->event_context_type) {
 		bt_ctf_field_type_put(stream_class->event_context_type);
@@ -523,8 +574,7 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 }
 
 static
-int init_event_header(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order)
+int init_event_header(struct bt_ctf_stream_class *stream_class)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *event_header_type =
@@ -551,12 +601,10 @@ int init_event_header(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	stream_class->event_header_type = event_header_type;
-	stream_class->event_header = bt_ctf_field_create(
-		stream_class->event_header_type);
-	if (!stream_class->event_header) {
-		ret = -1;
+	if (stream_class->event_header_type) {
+		bt_ctf_field_type_put(stream_class->event_header_type);
 	}
+	stream_class->event_header_type = event_header_type;
 end:
 	if (ret) {
 		bt_ctf_field_type_put(event_header_type);
@@ -568,8 +616,7 @@ end:
 }
 
 static
-int init_packet_context(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order)
+int init_packet_context(struct bt_ctf_stream_class *stream_class)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *packet_context_type =
@@ -616,6 +663,9 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
+	if (stream_class->packet_context_type) {
+		bt_ctf_field_type_put(stream_class->packet_context_type);
+	}
 	stream_class->packet_context_type = packet_context_type;
 end:
 	if (ret) {
