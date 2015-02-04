@@ -3,7 +3,7 @@
  *
  * CTF Writer test
  *
- * Copyright 2013 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2013 - 2015 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf/events.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -1546,7 +1547,8 @@ int main(int argc, char **argv)
 		*packet_header_field_type,
 		*integer_type,
 		*stream_event_context_type,
-		*ret_field_type;
+		*ret_field_type,
+		*event_header_field_type;
 	struct bt_ctf_field *packet_header, *packet_header_field;
 	struct bt_ctf_trace *trace;
 	int ret;
@@ -1757,7 +1759,7 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_get_name(NULL) == NULL,
 		"bt_ctf_stream_class_get_name handles NULL correctly");
 	ret_string = bt_ctf_stream_class_get_name(stream_class);
-	ok(!strcmp(ret_string, "test_stream"),
+	ok(ret_string && !strcmp(ret_string, "test_stream"),
 		"bt_ctf_stream_class_get_name returns a correct stream class name");
 
 	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,
@@ -1786,6 +1788,35 @@ int main(int argc, char **argv)
 		"Set an stream class' id");
 	ok(bt_ctf_stream_class_get_id(stream_class) == 123,
 		"bt_ctf_stream_class_get_id returns the correct value");
+
+	/* Add a custom event header field */
+	ok(bt_ctf_stream_class_get_event_header_type(NULL) == NULL,
+		"bt_ctf_stream_class_get_event_header_type handles NULL correctly");
+	ret_field_type = bt_ctf_stream_class_get_event_header_type(
+		stream_class);
+	ok(ret_field_type,
+		"bt_ctf_stream_class_get_event_header_type returns an event header type");
+	ok(bt_ctf_field_type_get_type_id(ret_field_type) == CTF_TYPE_STRUCT,
+		"Default event header type is a structure");
+	event_header_field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(
+		ret_field_type, "id");
+	ok(event_header_field_type,
+		"Default event header type contains an \"id\" field");
+	ok(bt_ctf_field_type_get_type_id(
+		event_header_field_type) == CTF_TYPE_INTEGER,
+		"Default event header \"id\" field is an integer");
+	bt_ctf_field_type_put(event_header_field_type);
+	event_header_field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(
+		ret_field_type, "timestamp");
+	ok(event_header_field_type,
+		"Default event header type contains a \"timestamp\" field");
+	ok(bt_ctf_field_type_get_type_id(
+		event_header_field_type) == CTF_TYPE_INTEGER,
+		"Default event header \"timestamp\" field is an integer");
+	bt_ctf_field_type_put(event_header_field_type);
+	bt_ctf_field_type_put(ret_field_type);
 
 	/* Add a custom trace packet header field */
 	ok(bt_ctf_trace_get_packet_header_type(NULL) == NULL,
@@ -1820,9 +1851,6 @@ int main(int argc, char **argv)
 	ok(!bt_ctf_trace_set_packet_header_type(trace, packet_header_type),
 		"Set a trace packet_header_type successfully");
 
-	/* Create a "uint5_t" equivalent custom packet context field */
-	packet_context_field_type = bt_ctf_field_type_integer_create(5);
-
 	ok(bt_ctf_stream_class_get_packet_context_type(NULL) == NULL,
 		"bt_ctf_stream_class_get_packet_context_type handles NULL correctly");
 
@@ -1842,6 +1870,9 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_set_packet_context_type(stream_class,
 		integer_type) < 0,
 		"bt_ctf_stream_class_set_packet_context_type rejects a packet context that is not a structure");
+	/* Create a "uint5_t" equivalent custom packet context field */
+	packet_context_field_type = bt_ctf_field_type_integer_create(5);
+
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
 		packet_context_field_type, "custom_packet_context_field");
 	ok(ret == 0, "Packet context field added successfully");
@@ -1979,6 +2010,7 @@ int main(int argc, char **argv)
 	free(metadata_string);
 
 	/* Remove all trace files and delete temporary trace directory */
+	/*
 	DIR *trace_dir = opendir(trace_path);
 	if (!trace_dir) {
 		perror("# opendir");
@@ -1994,6 +2026,6 @@ int main(int argc, char **argv)
 
 	rmdir(trace_path);
 	closedir(trace_dir);
-
+	*/
 	return 0;
 }
