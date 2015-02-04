@@ -158,12 +158,12 @@ result:
 
 		/* Output the metadata and parser output as diagnostic */
 		while (getline(&line, &len, metadata_fp) > 0) {
-			diag("%s", line);
+			fprintf(stderr, "# %s", line);
 		}
 
 		rewind(parser_output_fp);
 		while (getline(&line, &len, parser_output_fp) > 0) {
-			diag("%s", line);
+			fprintf(stderr, "# %s", line);
 		}
 
 		free(line);
