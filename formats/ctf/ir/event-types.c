@@ -336,12 +336,19 @@ int bt_ctf_field_type_validate(struct bt_ctf_field_type *type)
 		goto end;
 	}
 
-	if (type->declaration->id == CTF_TYPE_ENUM) {
+	switch (type->declaration->id) {
+	case CTF_TYPE_ENUM:
+	{
 		struct bt_ctf_field_type_enumeration *enumeration =
 			container_of(type, struct bt_ctf_field_type_enumeration,
 			parent);
 
+		/* Ensure enum has entries */
 		ret = enumeration->entries->len ? 0 : -1;
+		break;
+	}
+	default:
+		break;
 	}
 end:
 	return ret;
