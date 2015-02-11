@@ -417,11 +417,6 @@ int bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *type,
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
-	if (is_signed && integer->declaration.len <= 1) {
-		ret = -1;
-		goto end;
-	}
-
 	integer->declaration.signedness = !!is_signed;
 end:
 	return ret;
