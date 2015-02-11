@@ -359,7 +359,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	struct bt_ctf_field_type_integer *integer =
 		g_new0(struct bt_ctf_field_type_integer, 1);
 
-	if (!integer || size > 64) {
+	if (!integer || size == 0 || size > 64) {
 		return NULL;
 	}
 
