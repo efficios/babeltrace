@@ -57,6 +57,7 @@ struct bt_ctf_field_type {
 struct bt_ctf_field_type_integer {
 	struct bt_ctf_field_type parent;
 	struct declaration_integer declaration;
+	struct bt_ctf_clock *mapped_clock;
 };
 
 struct enumeration_mapping {

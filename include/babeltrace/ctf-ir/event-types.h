@@ -164,6 +164,28 @@ extern int bt_ctf_field_type_integer_set_encoding(
 		struct bt_ctf_field_type *integer,
 		enum ctf_string_encoding encoding);
 
+/**
+ * bt_ctf_field_type_integer_get_mapped_clock: get an integer type's mapped clock.
+ *
+ * @param integer Integer type.
+ *
+ * Returns the integer's mapped clock (if any), NULL on error.
+ */
+extern struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
+		struct bt_ctf_field_type *integer);
+
+/**
+ * bt_ctf_field_type_integer_set_mapped_clock: set an integer type's mapped clock.
+ *
+ * @param integer Integer type.
+ * @param clock Clock to map.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_type_integer_set_mapped_clock(
+		struct bt_ctf_field_type *integer,
+		struct bt_ctf_clock *clock);
+
 /*
  * bt_ctf_field_type_enumeration_create: create an enumeration field type.
  *

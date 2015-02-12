@@ -29,6 +29,7 @@
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/clock.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/endian.h>
@@ -499,6 +500,51 @@ int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *type,
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
 	integer->declaration.encoding = encoding;
+end:
+	return ret;
+}
+
+struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type_integer *integer;
+	struct bt_ctf_clock *clock = NULL;
+
+	if (!type) {
+		goto end;
+	}
+
+	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
+	clock = integer->mapped_clock;
+	if (clock) {
+		bt_ctf_clock_get(clock);
+	}
+end:
+	return clock;
+}
+
+int bt_ctf_field_type_integer_set_mapped_clock(
+		struct bt_ctf_field_type *type,
+		struct bt_ctf_clock *clock)
+{
+	struct bt_ctf_field_type_integer *integer;
+	int ret = 0;
+
+	if (!type || type->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
+	if (integer->mapped_clock) {
+		bt_ctf_clock_put(integer->mapped_clock);
+	}
+
+	if (clock) {
+		bt_ctf_clock_get(clock);
+	}
+
+	integer->mapped_clock = clock;
 end:
 	return ret;
 }
@@ -1826,6 +1872,7 @@ void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 	integer = container_of(
 		container_of(ref, struct bt_ctf_field_type, ref_count),
 		struct bt_ctf_field_type_integer, parent);
+	bt_ctf_clock_put(integer->mapped_clock);
 	g_free(integer);
 }
 
@@ -2064,15 +2111,31 @@ int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type *type,
 {
 	struct bt_ctf_field_type_integer *integer = container_of(type,
 		struct bt_ctf_field_type_integer, parent);
+	int ret = 0;
 
 	g_string_append_printf(context->string,
-		"integer { size = %zu; align = %zu; signed = %s; encoding = %s; base = %s; byte_order = %s; }",
+		"integer { size = %zu; align = %zu; signed = %s; encoding = %s; base = %s; byte_order = %s",
 		integer->declaration.len, type->declaration->alignment,
 		(integer->declaration.signedness ? "true" : "false"),
 		get_encoding_string(integer->declaration.encoding),
 		get_integer_base_string(integer->declaration.base),
 		get_byte_order_string(integer->declaration.byte_order));
-	return 0;
+	if (integer->mapped_clock) {
+		const char *clock_name = bt_ctf_clock_get_name(
+			integer->mapped_clock);
+
+		if (!clock_name) {
+			ret = -1;
+			goto end;
+		}
+
+		g_string_append_printf(context->string,
+			", map = clock.%s.value", clock_name);
+	}
+
+	g_string_append(context->string, "; }");
+end:
+	return ret;
 }
 
 static
