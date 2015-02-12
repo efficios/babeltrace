@@ -1789,7 +1789,7 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_get_id(stream_class) == 123,
 		"bt_ctf_stream_class_get_id returns the correct value");
 
-	/* Add a custom event header field */
+	/* Validate default event header fields */
 	ok(bt_ctf_stream_class_get_event_header_type(NULL) == NULL,
 		"bt_ctf_stream_class_get_event_header_type handles NULL correctly");
 	ret_field_type = bt_ctf_stream_class_get_event_header_type(
