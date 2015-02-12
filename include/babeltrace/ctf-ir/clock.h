@@ -159,7 +159,7 @@ extern int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock,
 		uint64_t offset_s);
 
 /*
- * bt_ctf_clock_get_offset_s: get a clock's offset in ticks.
+ * bt_ctf_clock_get_offset: get a clock's offset in ticks.
  *
  * Get the clock's offset in ticks from Epoch + offset_t.
  *
