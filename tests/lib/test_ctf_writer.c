@@ -2010,7 +2010,6 @@ int main(int argc, char **argv)
 	free(metadata_string);
 
 	/* Remove all trace files and delete temporary trace directory */
-	/*
 	DIR *trace_dir = opendir(trace_path);
 	if (!trace_dir) {
 		perror("# opendir");
@@ -2026,6 +2025,5 @@ int main(int argc, char **argv)
 
 	rmdir(trace_path);
 	closedir(trace_dir);
-	*/
 	return 0;
 }
