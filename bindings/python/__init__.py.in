@@ -1,0 +1,23 @@
+from .bt import \
+    TraceCollection, \
+    TraceHandle, \
+    CTFStringEncoding, \
+    ByteOrder, \
+    CTFTypeId, \
+    CTFScope, \
+    Event, \
+    FieldError, \
+    EventDeclaration, \
+    FieldDeclaration, \
+    IntegerFieldDeclaration, \
+    EnumerationFieldDeclaration, \
+    ArrayFieldDeclaration, \
+    SequenceFieldDeclaration, \
+    FloatFieldDeclaration, \
+    StructureFieldDeclaration, \
+    StringFieldDeclaration, \
+    VariantFieldDeclaration, \
+    CTFWriter
+
+
+__version__ = 'BABELTRACE_VERSION_STR'
