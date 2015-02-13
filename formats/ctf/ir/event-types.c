@@ -299,7 +299,6 @@ int add_structure_field(GPtrArray *fields,
 		(gpointer) (unsigned long) name_quark,
 		(gpointer) (unsigned long) fields->len);
 	g_ptr_array_add(fields, field);
-	bt_ctf_field_type_freeze(field_type);
 end:
 	return ret;
 }
