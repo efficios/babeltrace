@@ -2129,7 +2129,7 @@ int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type *type,
 		}
 
 		g_string_append_printf(context->string,
-			", map = clock.%s.value", clock_name);
+			"; map = clock.%s.value", clock_name);
 	}
 
 	g_string_append(context->string, "; }");
