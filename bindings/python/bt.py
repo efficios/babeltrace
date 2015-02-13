@@ -244,20 +244,6 @@ class TraceCollection:
         nbt._bt_ctf_iter_destroy(ctf_it_ptr)
 
 
-def print_format_list(babeltrace_file):
-    """
-    Print a list of available formats to file.
-
-    babeltrace_file must be a File instance opened in write mode.
-    """
-
-    try:
-        if babeltrace_file._file is not None:
-            nbt._bt_print_format_list(babeltrace_file._file)
-    except AttributeError:
-        raise TypeError("in print_format_list, argument 1 must be a File instance")
-
-
 # Based on enum bt_clock_type in clock-type.h
 class _ClockType:
     CLOCK_CYCLES = 0
