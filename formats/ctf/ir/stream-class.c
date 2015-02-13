@@ -120,10 +120,35 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_clock *clock)
 {
 	int ret = 0;
+	struct bt_ctf_field_type *timestamp_field = NULL;
 
 	if (!stream_class || !clock || stream_class->frozen) {
 		ret = -1;
 		goto end;
+	}
+
+	/*
+	 * Look for a "timestamp" field in the stream class' event header type
+	 * and map the stream's clock to that field if no current mapping is
+	 * currently set.
+	 */
+	timestamp_field = bt_ctf_field_type_structure_get_field_type_by_name(
+		stream_class->event_header_type, "timestamp");
+	if (timestamp_field) {
+		struct bt_ctf_clock *mapped_clock;
+
+		mapped_clock = bt_ctf_field_type_integer_get_mapped_clock(
+			timestamp_field);
+		if (mapped_clock) {
+			bt_ctf_clock_put(mapped_clock);
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_integer_set_mapped_clock(
+			timestamp_field, clock);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	if (stream_class->clock) {
@@ -133,6 +158,9 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 	stream_class->clock = clock;
 	bt_ctf_clock_get(clock);
 end:
+	if (timestamp_field) {
+		bt_ctf_field_type_put(timestamp_field);
+	}
 	return ret;
 }
 

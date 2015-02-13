@@ -1871,7 +1871,9 @@ void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 	integer = container_of(
 		container_of(ref, struct bt_ctf_field_type, ref_count),
 		struct bt_ctf_field_type_integer, parent);
-	bt_ctf_clock_put(integer->mapped_clock);
+	if (integer->mapped_clock) {
+		bt_ctf_clock_put(integer->mapped_clock);
+	}
 	g_free(integer);
 }
 
