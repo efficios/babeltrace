@@ -31,14 +31,15 @@
 # to partially test the sequence API
 
 import sys
-from babeltrace import *
+import babeltrace.reader
+
 
 # Check for path arg:
 if len(sys.argv) < 2:
     raise TypeError("Usage: sequence_test.py path/to/file")
 
 # Create TraceCollection and add trace:
-traces = TraceCollection()
+traces = babeltrace.reader.TraceCollection()
 trace_handle = traces.add_trace(sys.argv[1], "ctf")
 if trace_handle is None:
     raise IOError("Error adding trace")

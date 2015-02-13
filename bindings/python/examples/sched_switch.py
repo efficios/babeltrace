@@ -34,7 +34,9 @@
 # The trace needs PID context (lttng add-context -k -t pid)
 
 import sys
-from babeltrace import *
+import babeltrace.reader
+import babeltrace.common
+
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
     raise TypeError("Usage: python sched_switch.py [pid] path/to/trace")
@@ -43,7 +45,7 @@ elif len(sys.argv) == 3:
 else:
     filterPID = False
 
-traces = TraceCollection()
+traces = babeltrace.reader.TraceCollection()
 ret = traces.add_trace(sys.argv[len(sys.argv) - 1], "ctf")
 if ret is None:
     raise IOError("Error adding trace")
@@ -53,7 +55,7 @@ for event in traces.events:
         continue
 
     # Getting PID
-    pid = event.field_with_scope("pid", CTFScope.STREAM_EVENT_CONTEXT)
+    pid = event.field_with_scope("pid", babeltrace.common.CTFScope.STREAM_EVENT_CONTEXT)
     if pid is None:
         print("ERROR: Missing PID info for sched_switch")
         continue  # Next event

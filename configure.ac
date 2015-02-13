@@ -17,6 +17,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_MKDIR_P
+AC_PROG_LN_S
 
 AC_CONFIG_HEADERS([config.h])
 
@@ -119,6 +120,17 @@ AC_ARG_ENABLE([python-bindings],
 
 AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
 
+AC_ARG_ENABLE([python-bindings-doc],
+              [AC_HELP_STRING([--enable-python-bindings-doc],
+                              [generate Python bindings documentation])],
+              [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
+
+if test "x${enable_python:-no}" = xno && test "x${enable_python_bindings_doc:-yes}" = xyes; then
+  AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
+fi
+
+AM_CONDITIONAL([BUILD_PYTHON_BINDINGS_DOC], [test "x${enable_python_bindings_doc:-yes}" = xyes])
+
 if test "x${enable_python:-yes}" = xyes; then
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
   AM_PATH_PYTHON([3.0], , [AC_MSG_ERROR(Python3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
@@ -142,11 +154,17 @@ if test "x${enable_python:-yes}" = xyes; then
     PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
     AC_MSG_RESULT([$PYTHON_INCLUDE])
   ])
-
 else
     AC_MSG_NOTICE([You may configure with --enable-python-bindings ]dnl
 [if you want Python bindings.])
 
+fi
+
+if test "x${enable_python_bindings_doc:-yes}" = xyes; then
+    AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3 sphinx-build2], [no])
+    AS_IF([test "x$SPHINXBUILD" = xno],
+      AC_MSG_ERROR([sphinx-build is required to build Python bindings documentation])
+    )
 fi
 
 pkg_modules="gmodule-2.0 >= 2.0.0"
@@ -186,6 +204,8 @@ AC_CONFIG_FILES([
 	formats/ctf/ir/Makefile
 	converter/Makefile
 	doc/Makefile
+	doc/bindings/Makefile
+	doc/bindings/python/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
 	include/Makefile

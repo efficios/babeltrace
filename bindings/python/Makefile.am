@@ -1,29 +1,31 @@
-babeltrace.i: babeltrace.i.in
-	sed "s/BABELTRACE_VERSION_STR/Babeltrace $(PACKAGE_VERSION)/g" < \
-		$(top_srcdir)/bindings/python/babeltrace.i.in > \
-		$(top_builddir)/bindings/python/babeltrace.i
+all-local: __init__.py
+
+__init__.py: __init__.py.in
+	sed "s/BABELTRACE_VERSION_STR/$(PACKAGE_VERSION)/g" < $< > $@
 
 AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
 
-EXTRA_DIST = babeltrace.i.in
-nodist_python_PYTHON = babeltrace.py
-pyexec_LTLIBRARIES = _babeltrace.la
+EXTRA_DIST = __init__.py.in nativebt.i common.py reader.py writer.py
+nodist_btpackage_PYTHON = __init__.py nativebt.py common.py reader.py writer.py
+nativebtlib_LTLIBRARIES = _nativebt.la
 
-MAINTAINERCLEANFILES = babeltrace_wrap.c babeltrace.py
+btpackagedir = $(pythondir)/babeltrace
+nativebtlibdir = $(btpackagedir)
 
-nodist__babeltrace_la_SOURCES = babeltrace_wrap.c
-_babeltrace_la_SOURCES = python-complements.h python-complements.c
-_babeltrace_la_LDFLAGS = -module
+MAINTAINERCLEANFILES = nativebt_wrap.c nativebt.py
 
-_babeltrace_la_CFLAGS = $(GLIB_CFLAGS) $(AM_CFLAGS)
+nodist__nativebt_la_SOURCES = nativebt_wrap.c
+_nativebt_la_SOURCES = python-complements.h python-complements.c
+_nativebt_la_LDFLAGS = -module
 
-_babeltrace_la_LIBS = $(GLIB_LIBS)
+_nativebt_la_CFLAGS = $(GLIB_CFLAGS) $(AM_CFLAGS)
 
-_babeltrace_la_LIBADD = $(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+_nativebt_la_LIBS = $(GLIB_LIBS)
+
+_nativebt_la_LIBADD = $(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 # SWIG 'warning md variable unused' fixed after SWIG build:
-babeltrace_wrap.c: babeltrace.i
-	$(SWIG) -python -Wall -I. -I$(top_srcdir)/include \
-		$(top_builddir)/bindings/python/babeltrace.i
+nativebt_wrap.c: nativebt.i
+	$(SWIG) -python -Wall -I. -I$(top_srcdir)/include $<
 
-CLEANFILES = babeltrace.i babeltrace.py babeltrace_wrap.c
+CLEANFILES = nativebt.py nativebt_wrap.c __init__.py

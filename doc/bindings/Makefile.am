@@ -1,0 +1,3 @@
+if BUILD_PYTHON_BINDINGS_DOC
+SUBDIRS = python
+endif
