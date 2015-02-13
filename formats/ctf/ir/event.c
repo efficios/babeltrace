@@ -778,30 +778,6 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_event_set_timestamp(struct bt_ctf_event *event,
-		uint64_t timestamp)
-{
-	int ret = 0;
-
-	assert(event);
-	if (event->timestamp) {
-		ret = -1;
-		goto end;
-	}
-
-	event->timestamp = timestamp;
-end:
-	return ret;
-}
-
-BT_HIDDEN
-uint64_t bt_ctf_event_get_timestamp(struct bt_ctf_event *event)
-{
-	assert(event);
-	return event->timestamp;
-}
-
-BT_HIDDEN
 int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 {
 	int ret = 0;
@@ -824,10 +800,28 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 	timestamp_field = bt_ctf_field_structure_get_field(event->event_header,
 		"timestamp");
 	if (timestamp_field) {
-		ret = set_integer_field_value(timestamp_field,
-			(uint64_t) event->timestamp);
-		if (ret) {
-			goto end;
+		struct bt_ctf_field_type *timestamp_field_type =
+			bt_ctf_field_get_type(timestamp_field);
+		struct bt_ctf_clock *mapped_clock;
+
+		assert(timestamp_field_type);
+		mapped_clock = bt_ctf_field_type_integer_get_mapped_clock(
+			timestamp_field_type);
+		bt_ctf_field_type_put(timestamp_field_type);
+		if (mapped_clock) {
+			uint64_t timestamp = bt_ctf_clock_get_time(
+				mapped_clock);
+
+			bt_ctf_clock_put(mapped_clock);
+			if (timestamp == (uint64_t) -1ULL) {
+				goto end;
+			}
+
+			ret = set_integer_field_value(timestamp_field,
+				timestamp);
+			if (ret) {
+				goto end;
+			}
 		}
 	}
 end:

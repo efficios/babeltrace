@@ -500,7 +500,6 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event)
 {
 	int ret = 0;
-	uint64_t timestamp;
 	struct bt_ctf_field *event_context_copy = NULL;
 
 	if (!stream || !event) {
@@ -532,12 +531,6 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 			ret = -1;
 			goto end;
 		}
-	}
-
-	timestamp = bt_ctf_clock_get_time(stream->stream_class->clock);
-	ret = bt_ctf_event_set_timestamp(event, timestamp);
-	if (ret) {
-		goto end;
 	}
 
 	bt_ctf_event_get(event);
@@ -680,6 +673,50 @@ end:
 	return ret;
 }
 
+static
+int get_event_header_timestamp(struct bt_ctf_field *event_header, uint64_t *timestamp)
+{
+	int ret = 0;
+	struct bt_ctf_field *timestamp_field = NULL;
+	struct bt_ctf_field_type *timestamp_field_type = NULL;
+
+	timestamp_field = bt_ctf_field_structure_get_field(event_header,
+		"timestamp");
+	if (!timestamp_field) {
+		ret = -1;
+		goto end;
+	}
+
+	timestamp_field_type = bt_ctf_field_get_type(timestamp_field);
+	assert(timestamp_field_type);
+	if (bt_ctf_field_type_get_type_id(timestamp_field_type) !=
+		CTF_TYPE_INTEGER) {
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_integer_get_signed(timestamp_field_type)) {
+		int64_t val;
+
+		ret = bt_ctf_field_signed_integer_get_value(timestamp_field,
+			&val);
+		if (ret) {
+			goto end;
+		}
+		*timestamp = (uint64_t) val;
+	} else {
+		ret = bt_ctf_field_unsigned_integer_get_value(timestamp_field,
+			timestamp);
+		if (ret) {
+			goto end;
+		}
+	}
+end:
+	bt_ctf_field_put(timestamp_field);
+	bt_ctf_field_type_put(timestamp_field_type);
+	return ret;
+}
+
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 {
 	int ret = 0;
@@ -714,24 +751,28 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	timestamp_begin = ((struct bt_ctf_event *) g_ptr_array_index(
-		stream->events, 0))->timestamp;
-	timestamp_end = ((struct bt_ctf_event *) g_ptr_array_index(
-		stream->events, stream->events->len - 1))->timestamp;
-
 	/* Set the default context attributes if present and unset. */
-	ret = set_structure_field_integer(stream->packet_context,
-		"timestamp_begin", timestamp_begin);
-	if (ret) {
-		goto end;
+	if (!get_event_header_timestamp(
+		((struct bt_ctf_event *) g_ptr_array_index(
+		stream->events, 0))->event_header, &timestamp_begin)) {
+		ret = set_structure_field_integer(stream->packet_context,
+			"timestamp_begin", timestamp_begin);
+		if (ret) {
+			goto end;
+		}
 	}
 
-	ret = set_structure_field_integer(stream->packet_context,
-		"timestamp_end", timestamp_end);
-	if (ret) {
-		goto end;
-	}
+	if (!get_event_header_timestamp(
+		((struct bt_ctf_event *) g_ptr_array_index(
+		stream->events, stream->events->len - 1))->event_header,
+		&timestamp_end)) {
 
+		ret = set_structure_field_integer(stream->packet_context,
+			"timestamp_end", timestamp_end);
+		if (ret) {
+			goto end;
+		}
+	}
 	ret = set_structure_field_integer(stream->packet_context,
 		"content_size", UINT64_MAX);
 	if (ret) {
@@ -775,22 +816,8 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	for (i = 0; i < stream->events->len; i++) {
 		struct bt_ctf_event *event = g_ptr_array_index(
 			stream->events, i);
-		uint32_t event_id = bt_ctf_event_class_get_id(
-			event->event_class);
-		uint64_t timestamp = bt_ctf_event_get_timestamp(event);
 
 		ret = bt_ctf_field_reset(event->event_header);
-		if (ret) {
-			goto end;
-		}
-
-		ret = set_structure_field_integer(event->event_header,
-			"id", event_id);
-		if (ret) {
-			goto end;
-		}
-		ret = set_structure_field_integer(event->event_header,
-			"timestamp", timestamp);
 		if (ret) {
 			goto end;
 		}

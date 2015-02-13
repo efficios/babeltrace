@@ -50,7 +50,6 @@ struct bt_ctf_event_class {
 
 struct bt_ctf_event {
 	struct bt_ctf_ref ref_count;
-	uint64_t timestamp;
 	struct bt_ctf_event_class *event_class;
 	struct bt_ctf_field *event_header;
 	struct bt_ctf_field *context_payload;
@@ -79,12 +78,6 @@ int bt_ctf_event_validate(struct bt_ctf_event *event);
 BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		struct ctf_stream_pos *pos);
-
-BT_HIDDEN
-int bt_ctf_event_set_timestamp(struct bt_ctf_event *event, uint64_t timestamp);
-
-BT_HIDDEN
-uint64_t bt_ctf_event_get_timestamp(struct bt_ctf_event *event);
 
 /*
  * Attempt to populate the "id" and "timestamp" fields of the event header if
