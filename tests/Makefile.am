@@ -21,4 +21,4 @@ clean-local:
 	fi
 
 check-am:
-	./run.sh tests
+	./run.sh $(srcdir)/tests
