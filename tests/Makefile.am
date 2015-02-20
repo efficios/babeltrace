@@ -1,6 +1,6 @@
 SUBDIRS = utils bin lib
 
-EXTRA_DIST = ctf-traces/** tests
+EXTRA_DIST = $(srcdir)/ctf-traces/** tests
 
 SCRIPT_LIST = run.sh
 
