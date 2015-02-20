@@ -1,32 +1,40 @@
-EXTRA_DIST = source
+SPHINX_SOURCE_DIR = $(srcdir)/source
+SPHINX_BUILD_DIR = build
+SPHINX_BUILD_HTML_DIR = $(SPHINX_BUILD_DIR)/html
+SPHINX_BUILD_DIRHTML_DIR = $(SPHINX_BUILD_DIR)/dirhtml
 
-SPHINX_HTML_TARGET = build/html/index.html
-SPHINX_DIRHTML_TARGET = build/dirhtml/index.html
+SPHINX_HTML_TARGET = $(SPHINX_BUILD_HTML_DIR)/index.html
+SPHINX_DIRHTML_TARGET = $(SPHINX_BUILD_DIRHTML_DIR)/index.html
+
+EXTRA_DIST = $(srcdir)/source
 
 all-local: $(SPHINX_HTML_TARGET) $(SPHINX_DIRHTML_TARGET)
 
-PP = $(top_srcdir)/doc/bindings/python:$(top_srcdir)/doc/bindings/python/swig-libs
+PP = .:swig-libs
 LLP = $(top_builddir)/formats/ctf/.libs:$(top_builddir)/lib/.libs
 
-LOCAL_SPHINXBUILD = PYTHONPATH="$(PP)" LD_LIBRARY_PATH="$(LLP)" $(SPHINXBUILD)
+LOCAL_SPHINXBUILD = PYTHONPATH="$(PP)" LD_LIBRARY_PATH="$(LLP)" $(PYTHON) $(srcdir)/sphinx-build.py
 
-SPHINX_SRC = $(wildcard source/*.rst)
+SPHINX_SRC = $(wildcard $(SPHINX_SOURCE_DIR)/*.rst)
 
-$(SPHINX_HTML_TARGET): $(SPHINX_SRC) babeltrace-python-deps
-	$(LOCAL_SPHINXBUILD) -b dirhtml -E source build/dirhtml
+BABELTRACE_PYTHON_DEPS = babeltrace swig-libs
 
-$(SPHINX_DIRHTML_TARGET): $(SPHINX_SRC) babeltrace-python-deps
-	$(LOCAL_SPHINXBUILD) -b html -E source build/html
+$(SPHINX_HTML_TARGET): $(SPHINX_SRC) $(BABELTRACE_PYTHON_DEPS)
+	$(LOCAL_SPHINXBUILD) -b html -E $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_HTML_DIR)
 
-.PHONY: babeltrace-python-deps
-
-babeltrace-python-deps: babeltrace swig-libs
+$(SPHINX_DIRHTML_TARGET): $(SPHINX_SRC) $(BABELTRACE_PYTHON_DEPS)
+	$(LOCAL_SPHINXBUILD) -b dirhtml -E $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIRHTML_DIR)
 
 swig-libs:
-	$(LN_S) $(top_builddir)/bindings/python/.libs $@
+	$(LN_S) $(abs_top_builddir)/bindings/python/.libs $@
 
 babeltrace:
-	$(LN_S) $(top_srcdir)/bindings/python $@
+	$(mkdir_p) $@
+	$(LN_S) $(abs_top_builddir)/bindings/python/__init__.py $@/__init__.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/common.py $@/common.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/reader.py $@/reader.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/writer.py $@/writer.py
+	$(LN_S) $(abs_top_builddir)/bindings/python/nativebt.py $@/nativebt.py
 
 clean-local:
-	rm -rf build swig-libs babeltrace
+	rm -rf $(SPHINX_BUILD_DIR) swig-libs babeltrace
