@@ -1,31 +1,34 @@
-all-local: __init__.py
+NATIVEBT_PY = nativebt.py
+NATIVEBT_WRAP_C = nativebt_wrap.c
+INIT_PY = __init__.py
+INIT_PY_IN = $(srcdir)/$(INIT_PY).in
+NATIVEBT_I = $(srcdir)/nativebt.i
 
-__init__.py: __init__.py.in
+all-local: $(INIT_PY)
+
+$(INIT_PY): $(INIT_PY_IN)
 	sed "s/BABELTRACE_VERSION_STR/$(PACKAGE_VERSION)/g" < $< > $@
 
 AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
 
-EXTRA_DIST = __init__.py.in nativebt.i common.py reader.py writer.py
-nodist_btpackage_PYTHON = __init__.py nativebt.py common.py reader.py writer.py
+EXTRA_DIST = common.py reader.py writer.py $(INIT_PY_IN) $(NATIVEBT_I)
+nodist_btpackage_PYTHON = $(INIT_PY) $(NATIVEBT_PY) common.py reader.py writer.py
 nativebtlib_LTLIBRARIES = _nativebt.la
 
 btpackagedir = $(pythondir)/babeltrace
 nativebtlibdir = $(btpackagedir)
 
-MAINTAINERCLEANFILES = nativebt_wrap.c nativebt.py
+MAINTAINERCLEANFILES = $(NATIVEBT_PY) $(NATIVEBT_WRAP_C)
 
-nodist__nativebt_la_SOURCES = nativebt_wrap.c
+nodist__nativebt_la_SOURCES = $(NATIVEBT_WRAP_C)
 _nativebt_la_SOURCES = python-complements.h python-complements.c
 _nativebt_la_LDFLAGS = -module
-
 _nativebt_la_CFLAGS = $(GLIB_CFLAGS) $(AM_CFLAGS)
-
 _nativebt_la_LIBS = $(GLIB_LIBS)
-
 _nativebt_la_LIBADD = $(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 # SWIG 'warning md variable unused' fixed after SWIG build:
-nativebt_wrap.c: nativebt.i
-	$(SWIG) -python -Wall -I. -I$(top_srcdir)/include $<
+$(NATIVEBT_WRAP_C): $(NATIVEBT_I)
+	$(SWIG) -python -Wall -I$(srcdir) -I$(top_srcdir)/include -outcurrentdir $<
 
-CLEANFILES = nativebt.py nativebt_wrap.c __init__.py
+CLEANFILES = $(NATIVEBT_PY) $(NATIVEBT_WRAP_C) $(INIT_PY)

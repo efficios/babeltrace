@@ -161,9 +161,9 @@ else
 fi
 
 if test "x${enable_python_bindings_doc:-yes}" = xyes; then
-    AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3 sphinx-build2], [no])
-    AS_IF([test "x$SPHINXBUILD" = xno],
-      AC_MSG_ERROR([sphinx-build is required to build Python bindings documentation])
+    AM_CHECK_PYTHON_SPHINX([PYTHON])
+    AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno],
+      AC_MSG_ERROR([The Sphinx package for Python 3 is required to build Python bindings documentation])
     )
 fi
 
