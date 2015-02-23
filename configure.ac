@@ -64,7 +64,11 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_MMAP
-AC_CHECK_FUNCS([bzero gettimeofday munmap strtoul])
+AC_CHECK_FUNCS([ \
+	bzero gettimeofday munmap strtoul ftruncate gethostbyname \
+	localtime_r memset mkdir rmdir setenv socket \
+	strchr strdup strerror strndup strrchr strtoull tzset \
+])
 
 # Check for MinGW32.
 MINGW32=no
