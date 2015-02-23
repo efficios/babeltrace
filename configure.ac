@@ -22,6 +22,8 @@ AC_PROG_LN_S
 
 AC_CONFIG_HEADERS([config.h])
 
+AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stddef.h sys/socket.h])
+
 AC_SYS_LARGEFILE
 
 # Checks for programs.
