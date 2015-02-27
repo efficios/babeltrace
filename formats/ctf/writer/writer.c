@@ -290,10 +290,23 @@ int create_stream_file(struct bt_ctf_writer *writer,
 	int fd;
 	GString *filename = g_string_new(stream->stream_class->name->str);
 
+	if (stream->stream_class->name->len == 0) {
+		int64_t ret;
+
+		ret = bt_ctf_stream_class_get_id(stream->stream_class);
+		if (ret < 0) {
+			fd = -1;
+			goto error;
+		}
+
+		g_string_printf(filename, "stream_%" PRId64, ret);
+	}
+
 	g_string_append_printf(filename, "_%" PRIu32, stream->id);
 	fd = openat(writer->trace_dir_fd, filename->str,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+error:
 	g_string_free(filename, TRUE);
 	return fd;
 }

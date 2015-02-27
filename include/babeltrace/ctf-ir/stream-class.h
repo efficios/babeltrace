@@ -57,7 +57,7 @@ struct bt_ctf_clock;
  *  - uint32_t id
  *  - uint64_t timestamp
  *
- * @param name Stream name.
+ * @param name Stream name, NULL to create an unnamed stream class.
  *
  * Returns an allocated stream class on success, NULL on error.
  */
@@ -72,6 +72,16 @@ extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
  */
 extern const char *bt_ctf_stream_class_get_name(
 		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_stream_class_set_name: Set a stream class' name.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_name(
+		struct bt_ctf_stream_class *stream_class, const char *name);
 
 /*
  * bt_ctf_stream_class_get_clock: get the clock associated with a stream class.

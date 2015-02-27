@@ -51,7 +51,7 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	int ret;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!name || !strlen(name) || bt_ctf_validate_identifier(name)) {
+	if (name && bt_ctf_validate_identifier(name)) {
 		goto error;
 	}
 
@@ -99,6 +99,21 @@ const char *bt_ctf_stream_class_get_name(
 	name = stream_class->name->str;
 end:
 	return name;
+}
+
+int bt_ctf_stream_class_set_name(struct bt_ctf_stream_class *stream_class,
+		const char *name)
+{
+	int ret = 0;
+
+	if (!stream_class || stream_class->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	g_string_assign(stream_class->name, name);
+end:
+	return ret;
 }
 
 struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
