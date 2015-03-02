@@ -36,6 +36,13 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/trace.h \
 	babeltrace/ctf-ir/utils.h
 
+babeltraceplugininclude_HEADERS = \
+	babeltrace/plugin/plugin.h \
+	babeltrace/plugin/source.h \
+	babeltrace/plugin/sink.h \
+	babeltrace/plugin/notification/notification.h \
+	babeltrace/plugin/notification/event.h
+
 noinst_HEADERS = \
 	babeltrace/align.h \
 	babeltrace/babeltrace-internal.h \
@@ -92,4 +99,5 @@ noinst_HEADERS = \
 	babeltrace/compat/stdio.h \
 	babeltrace/compat/mman.h \
 	babeltrace/endian.h \
-	babeltrace/mmap-align.h
+	babeltrace/mmap-align.h \
+	babeltrace/plugin/plugin-internal.h
