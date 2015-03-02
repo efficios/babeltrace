@@ -1552,6 +1552,7 @@ int main(int argc, char **argv)
 	struct bt_ctf_field *packet_header, *packet_header_field;
 	struct bt_ctf_trace *trace;
 	int ret;
+	int64_t ret_int64_t;
 
 	if (argc < 3) {
 		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
@@ -1570,6 +1571,12 @@ int main(int argc, char **argv)
 	writer = bt_ctf_writer_create(trace_path);
 	ok(writer, "bt_ctf_create succeeds in creating trace with path");
 
+	ok(!bt_ctf_writer_get_trace(NULL),
+		"bt_ctf_writer_get_trace correctly handles NULL");
+	trace = bt_ctf_writer_get_trace(writer);
+	ok(trace,
+		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
+
 	/* Add environment context to the trace */
 	ret = gethostname(hostname, sizeof(hostname));
 	if (ret < 0) {
@@ -1587,6 +1594,64 @@ int main(int argc, char **argv)
 	ok(bt_ctf_writer_add_environment_field(writer, "test_field",
 		NULL),
 		"bt_ctf_writer_add_environment_field error with NULL field value");
+	ok(bt_ctf_trace_add_environment_field_integer(NULL, "test_env", 0),
+		"bt_ctf_trace_add_environment_field_integer handles a NULL trace correctly");
+	ok(bt_ctf_trace_add_environment_field_integer(trace, NULL, 0),
+		"bt_ctf_trace_add_environment_field_integer handles a NULL environment field name");
+	ok(!bt_ctf_trace_add_environment_field_integer(trace, "test_env",
+		123456),
+		"Add an integer environment field to a trace instance");
+
+	/* Test bt_ctf_trace_get_environment_field_count */
+	ok(bt_ctf_trace_get_environment_field_count(NULL) < 0,
+		"bt_ctf_trace_get_environment_field_count handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_count(trace) == 2,
+		"bt_ctf_trace_get_environment_field_count returns a correct number of environment fields");
+
+	/* Test bt_ctf_trace_get_environment_field_type */
+	ok(bt_ctf_trace_get_environment_field_type(trace, 2) ==
+		BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN,
+		"bt_ctf_trace_get_environment_field_type handles an invalid index correctly");
+	ok(bt_ctf_trace_get_environment_field_type(NULL, 0) ==
+		BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN,
+		"bt_ctf_trace_get_environment_field_type handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_type(trace, 1) ==
+		BT_ENVIRONMENT_FIELD_TYPE_INTEGER,
+		"bt_ctf_trace_get_environment_field_type the correct type of environment field");
+
+	/* Test bt_ctf_trace_get_environment_field_name */
+	ok(bt_ctf_trace_get_environment_field_name(NULL, 0) == NULL,
+		"bt_ctf_trace_get_environment_field_name handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_name(trace, -1) == NULL,
+		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly");
+	ret_string = bt_ctf_trace_get_environment_field_name(trace, 0);
+	ok(ret_string && !strcmp(ret_string, "host"),
+		"bt_ctf_trace_get_environment_field_name returns a correct field name");
+
+	/* Test bt_ctf_trace_get_environment_field_value_string */
+	ok(bt_ctf_trace_get_environment_field_value_string(NULL, 0) == NULL,
+		"bt_ctf_trace_get_environment_field_value_string handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_value_string(trace, -1) == NULL,
+		"bt_ctf_trace_get_environment_field_value_string handles an invalid index correctly");
+	ok(bt_ctf_trace_get_environment_field_value_string(trace, 1) == NULL,
+		"bt_ctf_trace_get_environment_field_value_string validates environment field type");
+	ret_string = bt_ctf_trace_get_environment_field_value_string(trace, 0);
+	ok(ret_string && !strcmp(ret_string, hostname),
+		"bt_ctf_trace_get_environment_field_value_string returns a correct value");
+
+	/* Test bt_ctf_trace_get_environment_field_value_integer */
+	ok(bt_ctf_trace_get_environment_field_value_integer(NULL, 0, &ret_int64_t) < 0,
+		"bt_ctf_trace_get_environment_field_value_integer handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 42, &ret_int64_t) < 0,
+		"bt_ctf_trace_get_environment_field_value_integer handles an invalid index correctly");
+	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 1, NULL) < 0,
+		"bt_ctf_trace_get_environment_field_value_integer handles a NULL value argument correctly");
+	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 0, &ret_int64_t) < 0,
+		"bt_ctf_trace_get_environment_field_value_integer validates environment field type");
+	ok(!bt_ctf_trace_get_environment_field_value_integer(trace, 1, &ret_int64_t),
+		"bt_ctf_trace_get_environment_field_value_integer returns a value");
+	ok(ret_int64_t == 123456,
+		"bt_ctf_trace_get_environment_field_value_integer returned a correct value");
 
 	if (uname(&name)) {
 		perror("uname");
@@ -1679,11 +1744,6 @@ int main(int argc, char **argv)
 	ok(bt_ctf_writer_add_clock(writer, clock),
 		"Verify a clock can't be added twice to a writer instance");
 
-	ok(!bt_ctf_writer_get_trace(NULL),
-		"bt_ctf_writer_get_trace correctly handles NULL");
-	trace = bt_ctf_writer_get_trace(writer);
-	ok(trace,
-		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
 	ok(bt_ctf_trace_get_clock_count(NULL) < 0,
 		"bt_ctf_trace_get_clock_count correctly handles NULL");
 	ok(bt_ctf_trace_get_clock_count(trace) == 1,
