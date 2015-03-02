@@ -259,7 +259,7 @@ error:
 
 int bt_ctf_trace_add_environment_field_integer(struct bt_ctf_trace *trace,
 		const char *name,
-	        int64_t value)
+		int64_t value)
 {
 	struct environment_variable *var = NULL;
 	int ret = 0;
@@ -292,6 +292,95 @@ error:
 	}
 
 	g_free(var);
+	return ret;
+}
+
+int bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (!trace) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = trace->environment->len;
+end:
+	return ret;
+}
+
+enum bt_environment_field_type
+bt_ctf_trace_get_environment_field_type(struct bt_ctf_trace *trace, int index)
+{
+	struct environment_variable *var;
+	enum bt_environment_field_type type = BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN;
+
+	if (!trace || index < 0 || index >= trace->environment->len) {
+		goto end;
+	}
+
+	var = g_ptr_array_index(trace->environment, index);
+	type = var->type;
+end:
+	return type;
+}
+
+const char *
+bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
+		int index)
+{
+	struct environment_variable *var;
+	const char *ret = NULL;
+
+	if (!trace || index < 0 || index >= trace->environment->len) {
+		goto end;
+	}
+
+	var = g_ptr_array_index(trace->environment, index);
+	ret = var->name->str;
+end:
+	return ret;
+}
+
+const char *
+bt_ctf_trace_get_environment_field_value_string(struct bt_ctf_trace *trace,
+		int index)
+{
+	struct environment_variable *var;
+	const char *ret = NULL;
+
+	if (!trace || index < 0 || index >= trace->environment->len) {
+		goto end;
+	}
+
+	var = g_ptr_array_index(trace->environment, index);
+	if (var->type != BT_ENVIRONMENT_FIELD_TYPE_STRING) {
+		goto end;
+	}
+	ret = var->value.string->str;
+end:
+	return ret;
+}
+
+int
+bt_ctf_trace_get_environment_field_value_integer(struct bt_ctf_trace *trace,
+		int index, int64_t *value)
+{
+	struct environment_variable *var;
+	int ret = 0;
+
+	if (!trace || !value || index < 0 || index >= trace->environment->len) {
+		ret = -1;
+		goto end;
+	}
+
+	var = g_ptr_array_index(trace->environment, index);
+	if (var->type != BT_ENVIRONMENT_FIELD_TYPE_INTEGER) {
+		ret = -1;
+		goto end;
+	}
+	*value = var->value.integer;
+end:
 	return ret;
 }
 

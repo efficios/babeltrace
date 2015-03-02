@@ -112,6 +112,78 @@ extern int bt_ctf_trace_add_environment_field_integer(
 		int64_t value);
 
 /*
+ * bt_ctf_trace_get_environment_field_count: get environment field count.
+ *
+ * Get the trace's environment field count.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the environment field count, a negative value on error.
+ */
+extern int bt_ctf_trace_get_environment_field_count(
+		struct bt_ctf_trace *trace);
+
+/*
+ * bt_ctf_trace_get_environment_field_type: get environment field type.
+ *
+ * Get an environment field's type.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the environment field.
+ *
+ * Returns the environment field count, a negative value on error.
+ */
+extern enum bt_environment_field_type
+bt_ctf_trace_get_environment_field_type(struct bt_ctf_trace *trace,
+		int index);
+
+/*
+ * bt_ctf_trace_get_environment_field_name: get environment field name.
+ *
+ * Get an environment field's name. The string's ownership is not
+ * transferred to the caller.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the environment field.
+ *
+ * Returns the environment field's name, NULL on error.
+ */
+extern const char *
+bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
+		int index);
+
+/*
+ * bt_ctf_trace_get_environment_field_value_string: get environment field
+ *	string value.
+ *
+ * Get an environment field's string value. The string's ownership is not
+ * transferred to the caller.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the environment field.
+ *
+ * Returns the environment field's string value, NULL on error.
+ */
+extern const char *
+bt_ctf_trace_get_environment_field_value_string(struct bt_ctf_trace *trace,
+		int index);
+
+/*
+ * bt_ctf_trace_get_environment_field_value_integer: get environment field
+ *      integer value.
+ *
+ * Get an environment field's integer value.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the environment field.
+ *
+ * Returns the environment field's integer value, a negative value on error.
+ */
+extern int
+bt_ctf_trace_get_environment_field_value_integer(struct bt_ctf_trace *trace,
+		int index, int64_t *value);
+
+/*
  * bt_ctf_trace_add_clock: add a clock to the trace.
  *
  * Add a clock to the trace. Clocks assigned to stream classes must be
