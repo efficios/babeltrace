@@ -41,6 +41,12 @@ struct bt_ctf_stream;
 struct bt_ctf_stream_class;
 struct bt_ctf_clock;
 
+enum bt_environment_field_type {
+	BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN = -1,
+	BT_ENVIRONMENT_FIELD_TYPE_STRING = 0,
+	BT_ENVIRONMENT_FIELD_TYPE_INTEGER = 1,
+};
+
 /*
  * bt_ctf_trace_create: create a trace instance.
  *
@@ -72,10 +78,11 @@ extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
 		struct bt_ctf_stream_class *stream_class);
 
 /*
- * bt_ctf_trace_add_environment_field: add an environment field to the trace.
+ * bt_ctf_trace_add_environment_field: add a string environment field to the
+ *	trace.
  *
- * Add an environment field to the trace. The name and value parameters are
- * copied.
+ * Add a string environment field to the trace. The name and value parameters
+ * are copied.
  *
  * @param trace Trace instance.
  * @param name Name of the environment field (will be copied).
@@ -86,6 +93,23 @@ extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
 extern int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
 		const char *name,
 		const char *value);
+
+/*
+ * bt_ctf_trace_add_environment_field_integer: add an integer environment
+ *	field to the trace.
+ *
+ * Add an integer environment field to the trace. The name parameter is
+ * copied.
+ *
+ * @param trace Trace instance.
+ * @param name Name of the environment field (will be copied).
+ * @param value Value of the environment field.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_add_environment_field_integer(
+		struct bt_ctf_trace *trace, const char *name,
+		int64_t value);
 
 /*
  * bt_ctf_trace_add_clock: add a clock to the trace.

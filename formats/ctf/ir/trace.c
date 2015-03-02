@@ -226,6 +226,7 @@ int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
+	var->type = BT_ENVIRONMENT_FIELD_TYPE_STRING;
 	escaped_value = g_strescape(value, NULL);
 	if (!escaped_value) {
 		ret = -1;
@@ -233,9 +234,9 @@ int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
 	}
 
 	var->name = g_string_new(name);
-	var->value = g_string_new(escaped_value);
+	var->value.string = g_string_new(escaped_value);
 	g_free(escaped_value);
-	if (!var->name || !var->value) {
+	if (!var->name || !var->value.string) {
 		ret = -1;
 		goto error;
 	}
@@ -248,8 +249,46 @@ error:
 		g_string_free(var->name, TRUE);
 	}
 
-	if (var && var->value) {
-		g_string_free(var->value, TRUE);
+	if (var && var->value.string) {
+		g_string_free(var->value.string, TRUE);
+	}
+
+	g_free(var);
+	return ret;
+}
+
+int bt_ctf_trace_add_environment_field_integer(struct bt_ctf_trace *trace,
+		const char *name,
+	        int64_t value)
+{
+	struct environment_variable *var = NULL;
+	int ret = 0;
+
+	if (!trace || !name) {
+		ret = -1;
+		goto error;
+	}
+
+	var = g_new0(struct environment_variable, 1);
+	if (!var) {
+		ret = -1;
+		goto error;
+	}
+
+	var->type = BT_ENVIRONMENT_FIELD_TYPE_INTEGER;
+	var->name = g_string_new(name);
+	var->value.integer = value;
+	if (!var->name) {
+		ret = -1;
+		goto error;
+	}
+
+	g_ptr_array_add(trace->environment, var);
+	return ret;
+
+error:
+	if (var && var->name) {
+		g_string_free(var->name, TRUE);
 	}
 
 	g_free(var);
@@ -368,8 +407,18 @@ static
 void append_env_field_metadata(struct environment_variable *var,
 		struct metadata_context *context)
 {
-	g_string_append_printf(context->string, "\t%s = \"%s\";\n",
-		var->name->str, var->value->str);
+	switch (var->type) {
+	case BT_ENVIRONMENT_FIELD_TYPE_STRING:
+		g_string_append_printf(context->string, "\t%s = \"%s\";\n",
+			var->name->str, var->value.string->str);
+		break;
+	case BT_ENVIRONMENT_FIELD_TYPE_INTEGER:
+		g_string_append_printf(context->string, "\t%s = %" PRId64 ";\n",
+			var->name->str, var->value.integer);
+		break;
+	default:
+		assert(0);
+	}
 }
 
 static
@@ -602,6 +651,8 @@ static
 void environment_variable_destroy(struct environment_variable *var)
 {
 	g_string_free(var->name, TRUE);
-	g_string_free(var->value, TRUE);
+	if (var->type == BT_ENVIRONMENT_FIELD_TYPE_STRING) {
+		g_string_free(var->value.string, TRUE);
+	}
 	g_free(var);
 }

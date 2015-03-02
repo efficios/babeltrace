@@ -60,7 +60,12 @@ struct bt_ctf_trace {
 };
 
 struct environment_variable {
-	GString *name, *value;
+	GString *name;
+	enum bt_environment_field_type type;
+	union {
+		GString *string;
+		int64_t integer;
+	} value;
 };
 
 struct metadata_context {
