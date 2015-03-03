@@ -369,6 +369,7 @@ AC_CONFIG_FILES([
 	tests/utils/tap/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
+	plugins/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
