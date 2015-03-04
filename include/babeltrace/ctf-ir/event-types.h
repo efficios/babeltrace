@@ -486,7 +486,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
  *
  * @param variant Variant type.
  *
- * Returns a field type instance on success, NULL on error.
+ * Returns a field type instance on success, NULL if unset.
  */
 extern struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
 		struct bt_ctf_field_type *variant);
@@ -496,7 +496,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
  *
  * @param variant Variant type.
  *
- * Returns the tag field's name, NULL on error.
+ * Returns the tag field's name, NULL if unset.
  */
 extern const char *bt_ctf_field_type_variant_get_tag_name(
 		struct bt_ctf_field_type *variant);

@@ -1210,8 +1210,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 {
 	struct bt_ctf_field_type_variant *variant = NULL;
 
-	if (!enum_tag || bt_ctf_validate_identifier(tag_name) ||
-		(enum_tag->declaration->id != CTF_TYPE_ENUM)) {
+	if (tag_name && bt_ctf_validate_identifier(tag_name)) {
 		goto error;
 	}
 
@@ -1226,9 +1225,12 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 	variant->field_name_to_index = g_hash_table_new(NULL, NULL);
 	variant->fields = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)destroy_structure_field);
-	bt_ctf_field_type_get(enum_tag);
-	variant->tag = container_of(enum_tag,
-		struct bt_ctf_field_type_enumeration, parent);
+	if (enum_tag) {
+		bt_ctf_field_type_get(enum_tag);
+		variant->tag = container_of(enum_tag,
+			struct bt_ctf_field_type_enumeration, parent);
+	}
+
 	bt_ctf_field_type_init(&variant->parent);
 	return &variant->parent;
 error:
@@ -1246,6 +1248,10 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
 	}
 
 	variant = container_of(type, struct bt_ctf_field_type_variant, parent);
+	if (!variant->tag) {
+		goto end;
+	}
+
 	tag_type = &variant->tag->parent;
 	bt_ctf_field_type_get(tag_type);
 end:
@@ -1263,6 +1269,10 @@ const char *bt_ctf_field_type_variant_get_tag_name(
 	}
 
 	variant = container_of(type, struct bt_ctf_field_type_variant, parent);
+	if (variant->tag_name->len == 0) {
+		goto end;
+	}
+
 	tag_name = variant->tag_name->str;
 end:
 	return tag_name;
@@ -1274,7 +1284,6 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 {
 	size_t i;
 	int ret = 0;
-	int name_found = 0;
 	struct bt_ctf_field_type_variant *variant;
 	GQuark field_name_quark = g_quark_from_string(field_name);
 
@@ -1287,19 +1296,31 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 	}
 
 	variant = container_of(type, struct bt_ctf_field_type_variant, parent);
-	/* Make sure this name is present in the enum tag */
-	for (i = 0; i < variant->tag->entries->len; i++) {
-		struct enumeration_mapping *mapping =
-			g_ptr_array_index(variant->tag->entries, i);
 
-		if (mapping->string == field_name_quark) {
-			name_found = 1;
-			break;
+	/* The user has explicitly provided a tag; validate against it. */
+	if (variant->tag) {
+		int name_found = 0;
+
+		/* Make sure this name is present in the enum tag */
+		for (i = 0; i < variant->tag->entries->len; i++) {
+			struct enumeration_mapping *mapping =
+				g_ptr_array_index(variant->tag->entries, i);
+
+			if (mapping->string == field_name_quark) {
+				name_found = 1;
+				break;
+			}
+		}
+
+		if (!name_found) {
+			/* Validation failed */
+			ret = -1;
+			goto end;
 		}
 	}
 
-	if (!name_found || add_structure_field(variant->fields,
-		variant->field_name_to_index, field_type, field_name)) {
+	if (add_structure_field(variant->fields, variant->field_name_to_index,
+		field_type, field_name)) {
 		ret = -1;
 		goto end;
 	}
@@ -2305,8 +2326,13 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 	GString *variant_field_name = context->field_name;
 
 	context->field_name = g_string_new("");
-	g_string_append_printf(context->string,
-		"variant <%s> {\n", variant->tag_name->str);
+	if (variant->tag_name->len > 0) {
+		g_string_append_printf(context->string,
+			"variant <%s> {\n", variant->tag_name->str);
+	} else {
+		g_string_append(context->string, "variant {\n");
+	}
+
 	context->current_indentation_level++;
 	for (i = 0; i < variant->fields->len; i++) {
 		struct structure_field *field = variant->fields->pdata[i];
