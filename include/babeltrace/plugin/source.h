@@ -35,15 +35,16 @@ extern "C" {
 
 struct bt_plugin;
 struct bt_notification_iterator;
-typedef struct bt_iterator *(*bt_plugin_source_iterator_create_func)(struct bt_plugin *);
+typedef struct bt_notification_iterator *(
+		*bt_plugin_source_iterator_create_func)(struct bt_plugin *);
 
 struct bt_notification_iterator *bt_plugin_source_get_iterator(
 		struct bt_plugin *plugin);
 
 /* Plug-in initialization functions */
-struct bt_plugin *bt_plugin_source_create(void *data);
-int bt_plugin_source_set_iterator_create_function(struct bt_plugin *plugin,
-		bt_plugin_source_iterator_create_func func);
+struct bt_plugin *bt_plugin_source_create(const char *name, void *user_data,
+		bt_plugin_destroy_func destroy_func,
+		bt_plugin_source_iterator_create_func iterator_create_func);
 
 #ifdef __cplusplus
 }

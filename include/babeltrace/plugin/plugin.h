@@ -46,6 +46,8 @@ enum bt_plugin_type {
 	BT_PLUGIN_TYPE_FILTER = 2,
 };
 
+typedef void (*bt_plugin_destroy_func)(struct bt_plugin *);
+
 /**
  * Plug-in discovery functions.
  *
@@ -56,13 +58,16 @@ enum bt_plugin_type {
  * The functions marked as mandatory MUST be exported by the shared object
  * to be considered a valid plug-in.
  */
-enum bt_plugin_type bt_plugin_get_type(void);
-const char *bt_plugin_get_name(void);
+/* Plug-in discovery functions... find a better name */
+enum bt_plugin_type bt_plugin_lib_get_type(void);
+const char *bt_plugin_lib_get_format_name(void);
 
 /* TODO: document mandatory fields and their expected types */
-int bt_plugin_set_parameters(struct bt_plugin *plugin,
-		struct bt_ctf_field *field);
+struct bt_plugin *bt_plugin_create(struct bt_ctf_field *params);
+void *bt_plugin_get_user_data(struct bt_plugin *plugin);
+int bt_plugin_set_error_stream(struct bt_plugin *plugin, FILE *error_stream);
 
+/* Refcounting */
 void bt_plugin_get(struct bt_plugin *plugin);
 void bt_plugin_put(struct bt_plugin *plugin);
 
