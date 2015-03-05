@@ -97,7 +97,7 @@ struct bt_ctf_field_type_structure {
 	struct bt_ctf_field_type parent;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
-	struct declaration_enum declaration;
+	struct declaration_struct declaration;
 };
 
 struct bt_ctf_field_type_variant {
@@ -160,4 +160,10 @@ const char *bt_ctf_field_type_enumeration_get_mapping_name_signed(
 BT_HIDDEN
 void bt_ctf_field_type_set_native_byte_order(
 		struct bt_ctf_field_type *type, int byte_order);
+
+/* Deep copy a field type */
+BT_HIDDEN
+struct bt_ctf_field_type *bt_ctf_field_type_copy(
+		struct bt_ctf_field_type *type);
+
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

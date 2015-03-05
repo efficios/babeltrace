@@ -189,6 +189,44 @@ void (* const set_byte_order_funcs[])(struct bt_ctf_field_type *,
 };
 
 static
+struct bt_ctf_field_type *bt_ctf_field_type_integer_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_enumeration_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_floating_point_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_structure_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_variant_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_array_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy(
+		struct bt_ctf_field_type *);
+static
+struct bt_ctf_field_type *bt_ctf_field_type_string_copy(
+		struct bt_ctf_field_type *);
+
+static
+struct bt_ctf_field_type *(* const type_copy_funcs[])(
+		struct bt_ctf_field_type *) = {
+	[CTF_TYPE_INTEGER] = bt_ctf_field_type_integer_copy,
+	[CTF_TYPE_ENUM] = bt_ctf_field_type_enumeration_copy,
+	[CTF_TYPE_FLOAT] = bt_ctf_field_type_floating_point_copy,
+	[CTF_TYPE_STRUCT] = bt_ctf_field_type_structure_copy,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_type_variant_copy,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_type_array_copy,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_type_sequence_copy,
+	[CTF_TYPE_STRING] = bt_ctf_field_type_string_copy,
+};
+
+static
 void destroy_enumeration_mapping(struct enumeration_mapping *mapping)
 {
 	g_free(mapping);
@@ -1880,6 +1918,20 @@ void bt_ctf_field_type_set_native_byte_order(struct bt_ctf_field_type *type,
 	}
 }
 
+BT_HIDDEN
+struct bt_ctf_field_type *bt_ctf_field_type_copy(struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy = NULL;
+
+	if (!type) {
+		goto end;
+	}
+
+	copy = type_copy_funcs[type->declaration->id](type);
+end:
+	return copy;
+}
+
 static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 {
@@ -2563,4 +2615,316 @@ void bt_ctf_field_type_sequence_set_byte_order(struct bt_ctf_field_type *type,
 			sequence_type->element_type->declaration->id](
 			sequence_type->element_type, byte_order, set_native);
 	}
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_integer_copy(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy;
+	struct bt_ctf_field_type_integer *integer, *copy_integer;
+
+	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
+	copy = bt_ctf_field_type_integer_create(integer->declaration.len);
+	if (!copy) {
+		goto end;
+	}
+
+	copy_integer = container_of(copy, struct bt_ctf_field_type_integer,
+		parent);
+	copy_integer->declaration = integer->declaration;
+	if (integer->mapped_clock) {
+		bt_ctf_clock_get(integer->mapped_clock);
+		copy_integer->mapped_clock = integer->mapped_clock;
+	}
+end:
+	return copy;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_enumeration_copy(
+		struct bt_ctf_field_type *type)
+{
+	size_t i;
+	struct bt_ctf_field_type *copy = NULL, *copy_container;
+	struct bt_ctf_field_type_enumeration *enumeration, *copy_enumeration;
+
+	enumeration = container_of(type, struct bt_ctf_field_type_enumeration,
+		parent);
+
+	/* Copy the source enumeration's container */
+	copy_container = bt_ctf_field_type_copy(enumeration->container);
+	if (!copy_container) {
+		goto end;
+	}
+
+	copy = bt_ctf_field_type_enumeration_create(copy_container);
+	if (!copy) {
+		goto end;
+	}
+	copy_enumeration = container_of(copy,
+		struct bt_ctf_field_type_enumeration, parent);
+
+	/* Copy all enumaration entries */
+	for (i = 0; i < enumeration->entries->len; i++) {
+		struct enumeration_mapping *mapping = g_ptr_array_index(
+			enumeration->entries, i);
+		struct enumeration_mapping* copy_mapping = g_new0(
+			struct enumeration_mapping, 1);
+
+		if (!copy_mapping) {
+			goto error;
+		}
+
+		*copy_mapping = *mapping;
+		g_ptr_array_add(copy_enumeration->entries, copy_mapping);
+	}
+
+	copy_enumeration->declaration = enumeration->declaration;
+end:
+	if (copy_container) {
+		bt_ctf_field_type_put(copy_container);
+	}
+	return copy;
+error:
+	if (copy_container) {
+		bt_ctf_field_type_put(copy_container);
+	}
+	bt_ctf_field_type_put(copy);
+	return NULL;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_floating_point_copy(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy;
+	struct bt_ctf_field_type_floating_point *floating_point, *copy_float;
+
+	floating_point = container_of(type,
+		struct bt_ctf_field_type_floating_point, parent);
+	copy = bt_ctf_field_type_floating_point_create();
+	if (!copy) {
+		goto end;
+	}
+
+	copy_float = container_of(copy,
+		struct bt_ctf_field_type_floating_point, parent);
+	copy_float->declaration = floating_point->declaration;
+	copy_float->sign = floating_point->sign;
+	copy_float->mantissa = floating_point->mantissa;
+	copy_float->exp = floating_point->exp;
+end:
+	return copy;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_structure_copy(
+		struct bt_ctf_field_type *type)
+{
+	int i;
+	GHashTableIter iter;
+	gpointer key, value;
+	struct bt_ctf_field_type *copy;
+	struct bt_ctf_field_type_structure *structure, *copy_structure;
+
+	structure = container_of(type, struct bt_ctf_field_type_structure,
+		parent);
+	copy = bt_ctf_field_type_structure_create();
+	if (!copy) {
+		goto end;
+	}
+
+	copy_structure = container_of(copy,
+		struct bt_ctf_field_type_structure, parent);
+
+	/* Copy field_name_to_index */
+	g_hash_table_iter_init(&iter, structure->field_name_to_index);
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		g_hash_table_insert(copy_structure->field_name_to_index,
+			key, value);
+	}
+
+	for (i = 0; i < structure->fields->len; i++) {
+		struct structure_field *entry, *copy_entry;
+		struct bt_ctf_field_type *copy_field;
+
+		copy_entry = g_new0(struct structure_field, 1);
+		if (!copy_entry) {
+			goto error;
+		}
+
+		entry = g_ptr_array_index(structure->fields, i);
+		copy_field = bt_ctf_field_type_copy(entry->type);
+		if (!copy_field) {
+			g_free(copy_entry);
+			goto error;
+		}
+
+		copy_entry->name = entry->name;
+		copy_entry->type = copy_field;
+		g_ptr_array_add(copy_structure->fields, copy_entry);
+	}
+
+	copy_structure->declaration = structure->declaration;
+end:
+	return copy;
+error:
+	bt_ctf_field_type_put(copy);
+	return NULL;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_variant_copy(
+		struct bt_ctf_field_type *type)
+{
+	int i;
+	GHashTableIter iter;
+	gpointer key, value;
+	struct bt_ctf_field_type *copy = NULL, *copy_tag = NULL;
+	struct bt_ctf_field_type_variant *variant, *copy_variant;
+
+	variant = container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+	if (variant->tag) {
+		copy_tag = bt_ctf_field_type_copy(&variant->tag->parent);
+		if (!copy_tag) {
+			goto end;
+		}
+	}
+
+	copy = bt_ctf_field_type_variant_create(copy_tag,
+		variant->tag_name->len ? variant->tag_name->str : NULL);
+	if (!copy) {
+		goto end;
+	}
+
+	copy_variant = container_of(copy, struct bt_ctf_field_type_variant,
+		parent);
+
+	/* Copy field_name_to_index */
+	g_hash_table_iter_init(&iter, variant->field_name_to_index);
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		g_hash_table_insert(copy_variant->field_name_to_index,
+			key, value);
+	}
+
+	for (i = 0; i < variant->fields->len; i++) {
+		struct structure_field *entry, *copy_entry;
+		struct bt_ctf_field_type *copy_field;
+
+		copy_entry = g_new0(struct structure_field, 1);
+		if (!copy_entry) {
+			goto error;
+		}
+
+		entry = g_ptr_array_index(variant->fields, i);
+		copy_field = bt_ctf_field_type_copy(entry->type);
+		if (!copy_field) {
+			g_free(copy_entry);
+			goto error;
+		}
+
+		copy_entry->name = entry->name;
+		copy_entry->type = copy_field;
+		g_ptr_array_add(copy_variant->fields, copy_entry);
+	}
+
+	copy_variant->declaration = variant->declaration;
+end:
+	if (copy_tag) {
+		bt_ctf_field_type_put(copy_tag);
+	}
+
+	return copy;
+error:
+	if (copy_tag) {
+		bt_ctf_field_type_put(copy_tag);
+	}
+
+	bt_ctf_field_type_put(copy);
+	return NULL;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_array_copy(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy = NULL, *copy_element;
+	struct bt_ctf_field_type_array *array, *copy_array;
+
+	array = container_of(type, struct bt_ctf_field_type_array,
+		parent);
+	copy_element = bt_ctf_field_type_copy(array->element_type);
+	if (!copy_element) {
+		goto end;
+	}
+
+	copy = bt_ctf_field_type_array_create(copy_element, array->length);
+	if (!copy) {
+		goto end;
+	}
+
+	copy_array = container_of(copy, struct bt_ctf_field_type_array,
+		parent);
+	copy_array->declaration = array->declaration;
+end:
+	if (copy_element) {
+		bt_ctf_field_type_put(copy_element);
+	}
+
+	return copy;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy = NULL, *copy_element;
+	struct bt_ctf_field_type_sequence *sequence, *copy_sequence;
+
+	sequence = container_of(type, struct bt_ctf_field_type_sequence,
+		parent);
+	copy_element = bt_ctf_field_type_copy(sequence->element_type);
+	if (!copy_element) {
+		goto end;
+	}
+
+	copy = bt_ctf_field_type_sequence_create(copy_element,
+		sequence->length_field_name->len ?
+			sequence->length_field_name->str : NULL);
+	if (!copy) {
+		goto end;
+	}
+
+	copy_sequence = container_of(copy, struct bt_ctf_field_type_sequence,
+		parent);
+	copy_sequence->declaration = sequence->declaration;
+end:
+	if (copy_element) {
+		bt_ctf_field_type_put(copy_element);
+	}
+
+	return copy;
+}
+
+static
+struct bt_ctf_field_type *bt_ctf_field_type_string_copy(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type *copy;
+	struct bt_ctf_field_type_string *string, *copy_string;
+
+	copy = bt_ctf_field_type_string_create();
+	if (!copy) {
+		goto end;
+	}
+
+	string = container_of(type, struct bt_ctf_field_type_string,
+		parent);
+	copy_string = container_of(type, struct bt_ctf_field_type_string,
+		parent);
+	copy_string->declaration = string->declaration;
+end:
+	return copy;
 }
