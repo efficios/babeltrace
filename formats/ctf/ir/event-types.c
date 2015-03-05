@@ -1763,7 +1763,6 @@ int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
-	type_id = type->declaration->id;
 	switch (byte_order) {
 	case BT_CTF_BYTE_ORDER_NATIVE:
 		/* Leave unset. Will be initialized by parent. */
@@ -1781,6 +1780,7 @@ int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
+	type_id = type->declaration->id;
 	if (set_byte_order_funcs[type_id]) {
 		set_byte_order_funcs[type_id](type, internal_byte_order, 0);
 	}
