@@ -740,21 +740,6 @@ extern enum ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *type);
 
 /*
- * bt_ctf_field_type_get_alias_nameL get a field type's alias name
- *
- * A type's alias name is set if it was resolved from a typedef or
- * typealias. Note that types that are resolved from a ypealias or
- * typedef are distinct from the underlying type and can't be compared
- * pointer-wise.
- *
- * @param type Field type.
- *
- * Returns a field type's alias name, NULL on error.
- */
-extern const char *bt_ctf_field_type_get_alias_name(
-		struct bt_ctf_field_type *type);
-
-/*
  * bt_ctf_field_type_get and bt_ctf_field_type_put: increment and decrement
  * the field type's reference count.
  *

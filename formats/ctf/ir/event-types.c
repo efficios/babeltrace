@@ -358,9 +358,6 @@ void bt_ctf_field_type_destroy(struct bt_ctf_ref *ref)
 		return;
 	}
 
-	if (type->alias_name) {
-		g_string_free(type->alias_name, TRUE);
-	}
 	type_destroy_funcs[type_id](ref);
 }
 
@@ -1778,20 +1775,6 @@ enum ctf_type_id bt_ctf_field_type_get_type_id(
 	}
 
 	return type->declaration->id;
-}
-
-const char *bt_ctf_field_type_get_alias_name(
-		struct bt_ctf_field_type *type)
-{
-	const char *name = NULL;
-
-	if (!type || !type->alias_name) {
-		goto end;
-	}
-
-	name = type->alias_name->str;
-end:
-	return name;
 }
 
 void bt_ctf_field_type_get(struct bt_ctf_field_type *type)

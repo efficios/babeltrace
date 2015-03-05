@@ -44,7 +44,6 @@ typedef int(*type_serialize_func)(struct bt_ctf_field_type *,
 struct bt_ctf_field_type {
 	struct bt_ctf_ref ref_count;
 	struct bt_declaration *declaration;
-	GString *alias_name;
 	type_freeze_func freeze;
 	type_serialize_func serialize;
 	/*
