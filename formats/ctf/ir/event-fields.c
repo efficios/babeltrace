@@ -150,7 +150,7 @@ static
 int increase_packet_size(struct ctf_stream_pos *pos);
 
 static
-struct bt_ctf_field *(*field_create_funcs[])(
+struct bt_ctf_field *(* const field_create_funcs[])(
 		struct bt_ctf_field_type *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_integer_create,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_create,
@@ -164,7 +164,7 @@ struct bt_ctf_field *(*field_create_funcs[])(
 };
 
 static
-void (*field_destroy_funcs[])(struct bt_ctf_field *) = {
+void (* const field_destroy_funcs[])(struct bt_ctf_field *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_integer_destroy,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_destroy,
 	[CTF_TYPE_FLOAT] =
@@ -177,7 +177,7 @@ void (*field_destroy_funcs[])(struct bt_ctf_field *) = {
 };
 
 static
-int (*field_validate_funcs[])(struct bt_ctf_field *) = {
+int (* const field_validate_funcs[])(struct bt_ctf_field *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_generic_validate,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_validate,
 	[CTF_TYPE_FLOAT] = bt_ctf_field_generic_validate,
@@ -189,7 +189,7 @@ int (*field_validate_funcs[])(struct bt_ctf_field *) = {
 };
 
 static
-int (*field_reset_funcs[])(struct bt_ctf_field *) = {
+int (* const field_reset_funcs[])(struct bt_ctf_field *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_generic_reset,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_reset,
 	[CTF_TYPE_FLOAT] = bt_ctf_field_generic_reset,
@@ -201,7 +201,7 @@ int (*field_reset_funcs[])(struct bt_ctf_field *) = {
 };
 
 static
-int (*field_serialize_funcs[])(struct bt_ctf_field *,
+int (* const field_serialize_funcs[])(struct bt_ctf_field *,
 		struct ctf_stream_pos *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_integer_serialize,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_serialize,
@@ -215,7 +215,8 @@ int (*field_serialize_funcs[])(struct bt_ctf_field *,
 };
 
 static
-int (*field_copy_funcs[])(struct bt_ctf_field *, struct bt_ctf_field *) = {
+int (* const field_copy_funcs[])(struct bt_ctf_field *,
+		struct bt_ctf_field *) = {
 	[CTF_TYPE_INTEGER] = bt_ctf_field_integer_copy,
 	[CTF_TYPE_ENUM] = bt_ctf_field_enumeration_copy,
 	[CTF_TYPE_FLOAT] = bt_ctf_field_floating_point_copy,
