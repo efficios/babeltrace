@@ -382,6 +382,27 @@ int bt_ctf_field_type_validate(struct bt_ctf_field_type *type)
 		ret = enumeration->entries->len ? 0 : -1;
 		break;
 	}
+	case CTF_TYPE_SEQUENCE:
+	{
+		struct bt_ctf_field_type_sequence *sequence =
+			container_of(type, struct bt_ctf_field_type_sequence,
+			parent);
+
+		/* length field name should be set at this point */
+		ret = sequence->length_field_name->len ? 0 : -1;
+		break;
+	}
+	case CTF_TYPE_VARIANT:
+	{
+		struct bt_ctf_field_type_variant *variant =
+			container_of(type, struct bt_ctf_field_type_variant,
+				parent);
+
+		if (variant->tag_name->len == 0 || !variant->tag) {
+			ret = -1;
+		}
+		break;
+	}
 	default:
 		break;
 	}
