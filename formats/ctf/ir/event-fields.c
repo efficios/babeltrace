@@ -1288,7 +1288,9 @@ void bt_ctf_field_string_destroy(struct bt_ctf_field *field)
 	}
 
 	string = container_of(field, struct bt_ctf_field_string, parent);
-	g_string_free(string->payload, TRUE);
+	if (string->payload) {
+		g_string_free(string->payload, TRUE);
+	}
 	g_free(string);
 }
 
