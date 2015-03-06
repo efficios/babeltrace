@@ -38,6 +38,7 @@ struct bt_notification;
 enum bt_plugin_notification_type {
 	BT_PLUGIN_NOTIFICATION_TYPE_UNKNOWN = -1,
 	BT_PLUGIN_NOTIFICATION_TYPE_EVENT = 0, /* see notification/event.h */
+	BT_PLUGIN_NOTIFICATION_TYPE_EVENTS_DISCARDED = 0, /* see notification/events-discarded.h */
 };
 
 enum bt_plugin_notification_type bt_plugin_notification_get_type(
