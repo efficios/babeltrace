@@ -103,6 +103,32 @@ extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class);
 
 /*
+ * bt_ctf_event_class_get_payload_type: get an event class' payload.
+ *
+ * Get an event class' payload type.
+ *
+ * @param event_class Event class.
+ *
+ * Returns the event class' payload, NULL on error.
+ */
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
+		struct bt_ctf_event_class *event_class);
+
+/*
+ * bt_ctf_event_class_set_payload_type: set an event class' payload.
+ *
+ * Set an event class' payload type.
+ *
+ * @param event_class Event class.
+ * @param payload The payload's type.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_class_set_payload_type(
+		struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *payload);
+
+/*
  * bt_ctf_event_class_add_field: add a field to an event class.
  *
  * Add a field of type "type" to the event class. The event class will share
@@ -114,6 +140,8 @@ extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
  * @param name Name of the new field.
  *
  * Returns 0 on success, a negative value on error.
+ *
+ * Note: Returns an error if the payload is not a structure.
  */
 extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *type,
@@ -125,6 +153,8 @@ extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
  * @param event_class Event class.
  *
  * Returns the event class' field count, a negative value on error.
+ *
+ * Note: Returns an error if the payload is not a structure.
  */
 extern int bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class);
@@ -140,6 +170,8 @@ extern int bt_ctf_event_class_get_field_count(
  * @param index Index of field.
  *
  * Returns 0 on success, a negative error on value.
+ *
+ * Note: Returns an error if the payload is not a structure.
  */
 extern int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
@@ -152,6 +184,8 @@ extern int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
  * @param name Name of the field.
  *
  * Returns a field type on success, NULL on error.
+ *
+ * Note: Returns an error if the payload is not a structure.
  */
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
@@ -239,9 +273,13 @@ extern struct bt_ctf_clock *bt_ctf_event_get_clock(
  * returned value.
  *
  * @param event Event instance.
- * @param name Event field name.
+ * @param name Event field name, see notes.
  *
  * Returns a field instance on success, NULL on error.
+ *
+ * Note: Passing a name will cause the function to perform a look-up by
+ *	name assuming the event's payload is a structure. This will return
+ *	the raw payload instance if name is NULL.
  */
 extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 		const char *name);
@@ -254,10 +292,14 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
  * bt_ctf_field_put() must be called on the returned value.
  *
  * @param event Event instance.
- * @param name Event field name.
+ * @param name Event field name, see notes.
  * @param value Instance of a field whose type corresponds to the event's field.
  *
  * Returns 0 on success, a negative value on error.
+ *
+ * Note: The function will return an error if a name is provided and the payload
+ *	type is not a structure. If name is NULL, the payload field will be set
+ *	directly and must match the event class' payload's type.
  */
 extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 		const char *name,
@@ -274,6 +316,8 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
  * @param index Index of field.
  *
  * Returns the event's field, NULL on error.
+ *
+ * Note: Will return an error if the payload's type is not a structure.
  */
 extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 		struct bt_ctf_event *event, int index);
