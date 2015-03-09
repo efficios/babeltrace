@@ -502,6 +502,17 @@ extern const char *bt_ctf_field_type_variant_get_tag_name(
 		struct bt_ctf_field_type *variant);
 
 /*
+ * bt_ctf_field_type_variant_set_tag_name: set a variant's tag name.
+ *
+ * @param variant Variant type.
+ * @param name Tag field name.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_type_variant_set_tag_name(
+		struct bt_ctf_field_type *variant, const char *name);
+
+/*
  * bt_ctf_field_type_variant_add_field: add a field to a variant.
  *
  * Add a field of type "field_type" to the variant. The variant will share

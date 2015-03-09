@@ -1334,6 +1334,25 @@ end:
 	return tag_name;
 }
 
+int bt_ctf_field_type_variant_set_tag_name(
+		struct bt_ctf_field_type *type, const char *name)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_variant *variant;
+
+	if (!type || type->frozen ||
+		(type->declaration->id != CTF_TYPE_VARIANT) ||
+		bt_ctf_validate_identifier(name)) {
+		ret = -1;
+		goto end;
+	}
+
+	variant = container_of(type, struct bt_ctf_field_type_variant, parent);
+	g_string_assign(variant->tag_name, name);
+end:
+	return ret;
+}
+
 int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type *field_type,
 		const char *field_name)
