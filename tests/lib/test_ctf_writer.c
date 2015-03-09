@@ -1680,6 +1680,10 @@ int main(int argc, char **argv)
 	trace = bt_ctf_writer_get_trace(writer);
 	ok(trace,
 		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
+	ok(bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,
+		"Set a trace's byte order to big endian");
+	ok(bt_ctf_trace_get_byte_order(trace) == BT_CTF_BYTE_ORDER_BIG_ENDIAN,
+		"bt_ctf_trace_get_byte_order returns a correct endianness");
 
 	/* Add environment context to the trace */
 	ret = gethostname(hostname, sizeof(hostname));
