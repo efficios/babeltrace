@@ -120,7 +120,7 @@ extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
  * Set an event class' payload type.
  *
  * @param event_class Event class.
- * @param payload The payload's type.
+ * @param payload The payload's type (must be a structure).
  *
  * Returns 0 on success, a negative value on error.
  */

@@ -158,7 +158,8 @@ int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 {
 	int ret = 0;
 
-	if (!event_class || !payload) {
+	if (!event_class || !payload ||
+		bt_ctf_field_type_get_type_id(payload) != CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
