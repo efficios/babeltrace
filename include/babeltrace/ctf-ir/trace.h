@@ -232,7 +232,19 @@ extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
 extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
 
 /*
- * bt_ctf_trace_set_byte_order: set a field type's byte order.
+ * bt_ctf_trace_get_byte_order: get a trace's byte order.
+ *
+ * Get the trace's byte order.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the trace's endianness, BT_CTF_BYTE_ORDER_UNKNOWN on error.
+ */
+extern enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
+		struct bt_ctf_trace *trace);
+
+/*
+ * bt_ctf_trace_set_byte_order: set a trace's byte order.
  *
  * Set the trace's byte order. Defaults to the current host's endianness.
  *

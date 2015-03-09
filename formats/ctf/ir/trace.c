@@ -567,6 +567,28 @@ end:
 	return metadata;
 }
 
+enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(struct bt_ctf_trace *trace)
+{
+	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
+
+	if (!trace) {
+		goto end;
+	}
+
+	switch (trace->byte_order) {
+	case BIG_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		break;
+	case LITTLE_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
+		break;
+	default:
+		break;
+	}
+end:
+	return ret;
+}
+
 int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order)
 {
