@@ -30,6 +30,8 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
