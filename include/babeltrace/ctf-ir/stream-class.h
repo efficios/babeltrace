@@ -144,7 +144,8 @@ extern int bt_ctf_stream_class_set_id(
  * The stream class will share the ownership of "event_class" by incrementing
  * its reference count.
  *
- * Note that an event class may only be added to one stream class.
+ * Note that an event class may only be added to one stream class. It
+ * also becomes immutable.
  *
  * @param stream_class Stream class.
  * @param event_class Event class to add to the provided stream class.

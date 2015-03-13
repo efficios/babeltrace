@@ -454,8 +454,28 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"integer_field");
 	bt_ctf_event_class_add_field(simple_event_class, float_type,
 		"float_field");
-	bt_ctf_stream_class_add_event_class(stream_class,
-		simple_event_class);
+
+	/* Set an event context type which will contain a single integer*/
+	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
+		"event_specific_context"),
+		"Add event specific context field");
+	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
+		"bt_ctf_event_class_get_context_type handles NULL correctly");
+	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
+		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
+
+	ok(bt_ctf_event_class_set_context_type(simple_event_class, NULL) < 0,
+		"bt_ctf_event_class_set_context_type handles a NULL context type correctly");
+	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
+		"bt_ctf_event_class_set_context_type handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_set_context_type(simple_event_class, event_context_type),
+		"Set an event class' context type successfully");
+	returned_type = bt_ctf_event_class_get_context_type(simple_event_class);
+	ok(returned_type == event_context_type,
+		"bt_ctf_event_class_get_context_type returns the appropriate type");
+	bt_ctf_field_type_put(returned_type);
+
+	bt_ctf_stream_class_add_event_class(stream_class, simple_event_class);
 
 	ok(bt_ctf_stream_class_get_event_class_count(NULL) < 0,
 		"bt_ctf_stream_class_get_event_class_count handles NULL correctly");
@@ -480,25 +500,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class_by_name returns a correct event class");
 	bt_ctf_event_class_put(ret_event_class);
-
-	/* Set an event context type which will contain a single integer*/
-	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
-		"event_specific_context"),
-		"Add event specific context field");
-	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
-		"bt_ctf_event_class_get_context_type handles NULL correctly");
-	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
-		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
-	ok(bt_ctf_event_class_set_context_type(simple_event_class, NULL) < 0,
-		"bt_ctf_event_class_set_context_type handles a NULL context type correctly");
-	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
-		"bt_ctf_event_class_set_context_type handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_set_context_type(simple_event_class, event_context_type),
-		"Set an event class' context type successfully");
-	returned_type = bt_ctf_event_class_get_context_type(simple_event_class);
-	ok(returned_type == event_context_type,
-		"bt_ctf_event_class_get_context_type returns the appropriate type");
-	bt_ctf_field_type_put(returned_type);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
 	ok(simple_event,

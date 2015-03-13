@@ -246,6 +246,7 @@ int bt_ctf_stream_class_add_event_class(
 
 	bt_ctf_event_class_get(event_class);
 	g_ptr_array_add(stream_class->event_classes, event_class);
+	bt_ctf_event_class_freeze(event_class);
 end:
 	return ret;
 }
