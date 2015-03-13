@@ -1485,7 +1485,6 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 {
 	int ret = 0;
 	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_clock *clock = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream *stream = NULL;
 
@@ -1513,9 +1512,113 @@ end:
 	ok(ret == 0,
 		"Created a stream class with default attributes and an empty stream");
 	bt_ctf_trace_put(trace);
-	bt_ctf_clock_put(clock);
 	bt_ctf_stream_put(stream);
 	bt_ctf_stream_class_put(stream_class);
+}
+
+void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
+{
+	int ret = 0;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_event_class *event_class = NULL;
+	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_field_type *integer_type = NULL;
+	struct bt_ctf_field *integer = NULL;
+
+	trace = bt_ctf_writer_get_trace(writer);
+	if (!trace) {
+		diag("Failed to get trace from writer");
+		ret = -1;
+		goto end;
+	}
+
+	clock = bt_ctf_trace_get_clock(trace, 0);
+	if (!clock) {
+		diag("Failed to get clock from trace");
+		ret = -1;
+		goto end;
+	}
+
+	stream_class = bt_ctf_stream_class_create("event_before_stream_test");
+	if (!stream_class) {
+		diag("Failed to create stream class");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_stream_class_set_clock(stream_class, clock);
+	if (ret) {
+		diag("Failed to set stream class clock");
+		goto end;
+	}
+
+	event_class = bt_ctf_event_class_create("some_event_class_name");
+	integer_type = bt_ctf_field_type_integer_create(32);
+	if (!integer_type) {
+		diag("Failed to create integer field type");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_event_class_add_field(event_class, integer_type,
+		"integer_field");
+	if (ret) {
+		diag("Failed to add field to event class");
+		goto end;
+	}
+
+	ret = bt_ctf_stream_class_add_event_class(stream_class,
+		event_class);
+	if (ret) {
+		diag("Failed to add event class to stream class");
+	}
+
+	event = bt_ctf_event_create(event_class);
+	if (!event) {
+		diag("Failed to create event");
+		ret = -1;
+		goto end;
+	}
+
+	integer = bt_ctf_event_get_payload_by_index(event, 0);
+	if (!integer) {
+		diag("Failed to get integer field payload from event");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_unsigned_integer_set_value(integer, 1234);
+	if (ret) {
+		diag("Failed to set integer field value");
+		goto end;
+	}
+
+	stream = bt_ctf_writer_create_stream(writer, stream_class);
+	if (!stream) {
+		diag("Failed to create writer stream");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_stream_append_event(stream, event);
+	if (ret) {
+		diag("Failed to append event to stream");
+		goto end;
+	}
+end:
+	ok(ret == 0,
+		"Create an event before instanciating its associated stream");
+	bt_ctf_trace_put(trace);
+	bt_ctf_stream_put(stream);
+	bt_ctf_stream_class_put(stream_class);
+	bt_ctf_event_class_put(event_class);
+	bt_ctf_event_put(event);
+	bt_ctf_field_type_put(integer_type);
+	bt_ctf_field_put(integer);
+	bt_ctf_clock_put(clock);
 }
 
 int main(int argc, char **argv)
@@ -2036,6 +2139,8 @@ int main(int argc, char **argv)
 		"bt_ctf_stream_set_packet_header rejects a packet header of the wrong type");
 	ok(!bt_ctf_stream_set_packet_header(stream1, packet_header),
 		"Successfully set a stream's packet header");
+
+	test_instanciate_event_before_stream(writer);
 
 	append_simple_event(stream_class, stream1, clock);
 
