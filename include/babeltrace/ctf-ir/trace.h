@@ -31,6 +31,7 @@
  */
 
 #include <babeltrace/ctf-ir/event-types.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
