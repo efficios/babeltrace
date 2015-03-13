@@ -202,6 +202,9 @@ extern void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
  * sets its reference count to 1. Each instance shares the ownership of the
  * event class using its reference count.
  *
+ * An event class must be associated with a stream class before events
+ * may be instanciated.
+ *
  * @param event_class Event class.
  *
  * Returns an allocated field type on success, NULL on error.
