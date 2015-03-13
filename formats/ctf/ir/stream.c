@@ -312,6 +312,9 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	/* A trace is not allowed to have a NULL packet header */
 	assert(trace->packet_header_type);
 	stream->packet_header = bt_ctf_field_create(trace->packet_header_type);
+	if (!stream->packet_header) {
+		goto error_destroy;
+	}
 	/*
 	 * Attempt to populate the default trace packet header fields
 	 * (magic, uuid and stream_id). This will _not_ fail shall the
