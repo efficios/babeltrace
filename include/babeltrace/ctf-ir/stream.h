@@ -31,6 +31,7 @@
  */
 
 #include <babeltrace/ctf-ir/stream-class.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
