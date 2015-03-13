@@ -913,7 +913,7 @@ void bt_ctf_stream_destroy(struct bt_ctf_ref *ref)
 
 	stream = container_of(ref, struct bt_ctf_stream, ref_count);
 	ctf_fini_pos(&stream->pos);
-	if (close(stream->pos.fd)) {
+	if (stream->pos.fd >= 0 && close(stream->pos.fd)) {
 		perror("close");
 	}
 
