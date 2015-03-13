@@ -159,7 +159,7 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 
 		if (stream_id < 0) {
 			/* Try to assign a new stream id */
-			if (bt_ctf_stream_class_set_id(stream->stream_class,
+			if (_bt_ctf_stream_class_set_id(stream->stream_class,
 				trace->next_stream_id++)) {
 				goto error;
 			}

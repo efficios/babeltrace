@@ -193,6 +193,15 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
+int _bt_ctf_stream_class_set_id(
+		struct bt_ctf_stream_class *stream_class, uint32_t id)
+{
+	stream_class->id = id;
+	stream_class->id_set = 1;
+	return 0;
+}
+
 int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		uint32_t id)
 {
@@ -203,8 +212,10 @@ int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	stream_class->id = id;
-	stream_class->id_set = 1;
+	ret = _bt_ctf_stream_class_set_id(stream_class, id);
+	if (ret) {
+		goto end;
+	}
 end:
 	return ret;
 }
@@ -247,6 +258,18 @@ int bt_ctf_stream_class_add_event_class(
 	bt_ctf_event_class_get(event_class);
 	g_ptr_array_add(stream_class->event_classes, event_class);
 	bt_ctf_event_class_freeze(event_class);
+
+	if (stream_class->byte_order) {
+		/*
+		 * Only set native byte order if it has been initialized
+		 * when the stream class was added to a trace.
+		 *
+		 * If not set here, this will be set when the stream
+		 * classe will be added to a trace.
+		 */
+		bt_ctf_event_class_set_native_byte_order(event_class,
+			stream_class->byte_order);
+	}
 end:
 	return ret;
 }
@@ -464,8 +487,6 @@ void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 BT_HIDDEN
 void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 {
-	size_t i;
-
 	if (!stream_class) {
 		return;
 	}
@@ -475,33 +496,18 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
-
-	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_header_type, stream_class->byte_order);
-	bt_ctf_field_type_set_native_byte_order(
-		stream_class->packet_context_type, stream_class->byte_order);
-	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_context_type, stream_class->byte_order);
-	for (i = 0; i < stream_class->event_classes->len; i++) {
-		bt_ctf_event_class_set_native_byte_order(
-			g_ptr_array_index(stream_class->event_classes, i),
-			stream_class->byte_order);
-		bt_ctf_event_class_freeze(
-			g_ptr_array_index(stream_class->event_classes, i));
-	}
 }
 
 BT_HIDDEN
 int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 	enum bt_ctf_byte_order byte_order)
 {
-	int ret = 0;
+	int i, ret = 0;
 	int internal_byte_order;
 
 	/* Note that "NATIVE" means the trace's endianness, not the host's. */
 	if (!stream_class || byte_order <= BT_CTF_BYTE_ORDER_UNKNOWN ||
-		byte_order > BT_CTF_BYTE_ORDER_NETWORK ||
-		stream_class->frozen) {
+		byte_order > BT_CTF_BYTE_ORDER_NETWORK) {
 		ret = -1;
 		goto end;
 	}
@@ -520,6 +526,23 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 	}
 
 	stream_class->byte_order = internal_byte_order;
+
+	/* Set native byte order to little or big endian */
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->event_header_type, stream_class->byte_order);
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->packet_context_type, stream_class->byte_order);
+	bt_ctf_field_type_set_native_byte_order(
+		stream_class->event_context_type, stream_class->byte_order);
+
+	/* Set all events' native byte order */
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		bt_ctf_event_class_set_native_byte_order(
+			g_ptr_array_index(stream_class->event_classes, i),
+			stream_class->byte_order);
+		bt_ctf_event_class_freeze(
+			g_ptr_array_index(stream_class->event_classes, i));
+	}
 end:
 	return ret;
 }
