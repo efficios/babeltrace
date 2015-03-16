@@ -155,47 +155,15 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 	}
 
 	if (!stream_class_found) {
-		int64_t stream_id = bt_ctf_stream_class_get_id(stream_class);
-
-		if (stream_id < 0) {
-			/* Try to assign a new stream id */
-			if (_bt_ctf_stream_class_set_id(stream->stream_class,
-				trace->next_stream_id++)) {
-				goto error;
-			}
+		ret = bt_ctf_trace_add_stream_class(trace, stream_class);
+		if (ret) {
+			goto error;
 		}
-
-		for (i = 0; i < trace->stream_classes->len; i++) {
-			if (stream_id == bt_ctf_stream_class_get_id(
-				    trace->stream_classes->pdata[i])) {
-				/* Duplicate stream id found */
-				goto error;
-			}
-		}
-		bt_ctf_stream_class_get(stream->stream_class);
-		g_ptr_array_add(trace->stream_classes, stream->stream_class);
 	}
 
 	bt_ctf_stream_get(stream);
 	g_ptr_array_add(trace->streams, stream);
 
-	/*
-	 * Freeze the trace and its packet header.
-	 *
-	 * All field type byte orders set as "native" byte ordering can now be
-	 * safely set to trace's own endianness, including the stream class'.
-	 */
-	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
-		trace->byte_order);
-	ret = bt_ctf_stream_class_set_byte_order(stream_class,
-		trace->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
-	if (ret) {
-		goto error;
-	}
-
-	bt_ctf_stream_class_freeze(stream_class);
-	trace->frozen = 1;
 	return stream;
 error:
 	bt_ctf_stream_put(stream);
@@ -434,6 +402,99 @@ struct bt_ctf_clock *bt_ctf_trace_get_clock(struct bt_ctf_trace *trace,
 	bt_ctf_clock_get(clock);
 end:
 	return clock;
+}
+
+int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
+		struct bt_ctf_stream_class *stream_class)
+{
+	int ret, i;
+	int64_t stream_id;
+
+	if (!trace || !stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < trace->stream_classes->len; i++) {
+		if (trace->stream_classes->pdata[i] == stream_class) {
+			ret = -1;
+			goto end;
+		}
+	}
+
+	stream_id = bt_ctf_stream_class_get_id(stream_class);
+	if (stream_id < 0) {
+		stream_id = trace->next_stream_id++;
+
+		/* Try to assign a new stream id */
+		for (i = 0; i < trace->stream_classes->len; i++) {
+			if (stream_id == bt_ctf_stream_class_get_id(
+				trace->stream_classes->pdata[i])) {
+				/* Duplicate stream id found */
+				ret = -1;
+				goto end;
+			}
+		}
+
+		if (_bt_ctf_stream_class_set_id(stream_class,
+			trace->next_stream_id++)) {
+			/* TODO Should retry with a different stream id */
+			ret = -1;
+			goto end;
+		}
+	}
+
+	bt_ctf_stream_class_get(stream_class);
+	g_ptr_array_add(trace->stream_classes, stream_class);
+
+	/*
+	 * Freeze the trace and its packet header.
+	 *
+	 * All field type byte orders set as "native" byte ordering can now be
+	 * safely set to trace's own endianness, including the stream class'.
+	 */
+	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
+		trace->byte_order);
+	ret = bt_ctf_stream_class_set_byte_order(stream_class,
+		trace->byte_order == LITTLE_ENDIAN ?
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
+	if (ret) {
+		goto end;
+	}
+	bt_ctf_stream_class_freeze(stream_class);
+	trace->frozen = 1;
+
+end:
+	return ret;
+}
+
+int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
+{
+	int ret;
+
+	if (!trace) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = trace->stream_classes->len;
+end:
+	return ret;
+}
+
+struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
+		struct bt_ctf_trace *trace, int index)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	if (!trace || index < 0 || index >= trace->stream_classes->len) {
+		goto end;
+	}
+
+	stream_class = g_ptr_array_index(trace->stream_classes, index);
+	bt_ctf_stream_class_get(stream_class);
+end:
+	return stream_class;
 }
 
 BT_HIDDEN

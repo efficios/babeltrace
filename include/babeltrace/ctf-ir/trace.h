@@ -200,7 +200,7 @@ extern int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 
 /*
  * bt_ctf_trace_get_clock_count: get the number of clocks
- *	associated to the trace.
+ *	associated with the trace.
  *
  * @param trace Trace instance.
  *
@@ -217,6 +217,40 @@ extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace);
  * Return a clock instance on success, NULL on error.
  */
 extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
+		struct bt_ctf_trace *trace, int index);
+
+/*
+ * bt_ctf_trace_add_stream_class: add a stream_class to the trace.
+ *
+ * Add a stream class to the trace.
+ *
+ * @param trace Trace instance.
+ * @param stream_class Stream class to add to the trace.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
+		struct bt_ctf_stream_class *stream_class);
+
+/*
+ * bt_ctf_trace_get_stream_class_count: get the number of stream classes
+ *	associated with the trace.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the stream class count on success, a negative value on error.
+ */
+extern int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace);
+
+/*
+ * bt_ctf_trace_get_stream_class: get a trace's stream class at index.
+ *
+ * @param trace Trace instance.
+ * @param index Index of the stream class in the given trace.
+ *
+ * Return a stream class on success, NULL on error.
+ */
+extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 		struct bt_ctf_trace *trace, int index);
 
 /*
