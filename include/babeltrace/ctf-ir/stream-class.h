@@ -191,6 +191,18 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 		struct bt_ctf_stream_class *stream_class, const char *name);
 
 /*
+ * bt_ctf_stream_class_get_event_class_by_name: Get stream class event class by
+ * ID.
+ *
+ * @param stream_class Stream class.
+ * @param id Event class ID.
+ *
+ * Returns event class, NULL on error.
+ */
+extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
+		struct bt_ctf_stream_class *stream_class, uint32_t id);
+
+/*
  * bt_ctf_stream_class_get_packet_context_type: get the stream class' packet
  * context type.
  *

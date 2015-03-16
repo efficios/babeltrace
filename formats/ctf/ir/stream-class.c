@@ -335,6 +335,30 @@ end:
 	return event_class;
 }
 
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
+		struct bt_ctf_stream_class *stream_class, uint32_t id)
+{
+	size_t i;
+	struct bt_ctf_event_class *event_class = NULL;
+
+	if (!stream_class) {
+		goto end;
+	}
+
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		struct bt_ctf_event_class *current_event_class =
+			g_ptr_array_index(stream_class->event_classes, i);
+
+		if (bt_ctf_event_class_get_id(current_event_class) == id) {
+			event_class = current_event_class;
+			bt_ctf_event_class_get(event_class);
+			goto end;
+		}
+	}
+end:
+	return event_class;
+}
+
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
