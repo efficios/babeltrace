@@ -437,7 +437,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 
 		if (_bt_ctf_stream_class_set_id(stream_class,
-			trace->next_stream_id++)) {
+			stream_id)) {
 			/* TODO Should retry with a different stream id */
 			ret = -1;
 			goto end;
