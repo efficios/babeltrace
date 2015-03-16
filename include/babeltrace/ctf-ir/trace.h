@@ -254,6 +254,17 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 		struct bt_ctf_trace *trace, int index);
 
 /*
+ * bt_ctf_trace_get_clock_by_name: get a trace's clock by name
+ *
+ * @param trace	Trace instance.
+ * @param name	Name of the clock in the given trace.
+ *
+ * Return a clock instance on success, NULL on error.
+ */
+extern struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
+        struct bt_ctf_trace *trace, const char *name);
+
+/*
  * bt_ctf_trace_get_metadata_string: get metadata string.
  *
  * Get the trace's TSDL metadata. The caller assumes the ownership of the
