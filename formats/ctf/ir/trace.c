@@ -497,6 +497,36 @@ end:
 	return stream_class;
 }
 
+struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
+		struct bt_ctf_trace *trace, const char *name)
+{
+	size_t i;
+	struct bt_ctf_clock *clock = NULL;
+
+	if (!trace || !name) {
+		goto end;
+	}
+
+	for (i = 0; i < trace->clocks->len; ++i) {
+		struct bt_ctf_clock *cur_clk =
+			g_ptr_array_index(trace->clocks, i);
+		const char *cur_clk_name = bt_ctf_clock_get_name(cur_clk);
+
+		if (!cur_clk_name) {
+			goto end;
+		}
+
+		if (!strcmp(cur_clk_name, name)) {
+			clock = cur_clk;
+			bt_ctf_clock_get(clock);
+			goto end;
+		}
+	}
+
+end:
+	return clock;
+}
+
 BT_HIDDEN
 const char *get_byte_order_string(int byte_order)
 {
