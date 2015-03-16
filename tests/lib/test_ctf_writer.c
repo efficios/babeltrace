@@ -1866,6 +1866,18 @@ int main(int argc, char **argv)
 	ok(ret_clock == clock,
 		"bt_ctf_trace_get_clock returns the right clock instance");
 	bt_ctf_clock_put(ret_clock);
+	ok(!bt_ctf_trace_get_clock_by_name(trace, NULL),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (trace)");
+	ok(!bt_ctf_trace_get_clock_by_name(NULL, clock_name),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (clock name)");
+	ok(!bt_ctf_trace_get_clock_by_name(NULL, NULL),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (both)");
+	ret_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
+	ok(ret_clock == clock,
+		"bt_ctf_trace_get_clock_by_name returns the right clock instance");
+	bt_ctf_clock_put(ret_clock);
+	ok(!bt_ctf_trace_get_clock_by_name(trace, "random"),
+		"bt_ctf_trace_get_clock_by_name fails when the requested clock doesn't exist");
 
 	ok(!bt_ctf_clock_get_name(NULL),
 		"bt_ctf_clock_get_name correctly handles NULL");
