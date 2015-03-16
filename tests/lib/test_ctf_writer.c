@@ -455,6 +455,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_class_add_field(simple_event_class, float_type,
 		"float_field");
 
+	assert(!bt_ctf_event_class_set_id(simple_event_class, 13));
+
 	/* Set an event context type which will contain a single integer*/
 	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
 		"event_specific_context"),
@@ -488,6 +490,15 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret_event_class = bt_ctf_stream_class_get_event_class(stream_class, 0);
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class returns the correct event class");
+	bt_ctf_event_class_put(ret_event_class);
+	ok(!bt_ctf_stream_class_get_event_class_by_id(NULL, 0),
+		"bt_ctf_stream_class_get_event_class_by_id handles NULL correctly");
+	ok(!bt_ctf_stream_class_get_event_class_by_id(stream_class, 2),
+		"bt_ctf_stream_class_get_event_class_by_id returns NULL when the requested ID doesn't exist");
+	ret_event_class =
+		bt_ctf_stream_class_get_event_class_by_id(stream_class, 13);
+	ok(ret_event_class == simple_event_class,
+		"bt_ctf_stream_class_get_event_class_by_id returns a correct event class");
 	bt_ctf_event_class_put(ret_event_class);
 
 	ok(bt_ctf_stream_class_get_event_class_by_name(NULL, "some event name") == NULL,
