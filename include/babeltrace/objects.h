@@ -272,7 +272,7 @@ extern enum bt_object_type bt_object_get_type(const struct bt_object *object);
  * @param object	Object to check
  * @returns		\c true if \p object is a null object
  */
-bool bt_object_is_null(const struct bt_object *object)
+static bool bt_object_is_null(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_NULL;
 }
@@ -283,7 +283,7 @@ bool bt_object_is_null(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is a boolean object
  */
-bool bt_object_is_bool(const struct bt_object *object)
+static bool bt_object_is_bool(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_BOOL;
 }
@@ -294,7 +294,7 @@ bool bt_object_is_bool(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is an integer object
  */
-bool bt_object_is_integer(const struct bt_object *object)
+static bool bt_object_is_integer(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_INTEGER;
 }
@@ -305,7 +305,7 @@ bool bt_object_is_integer(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is a floating point number object
  */
-bool bt_object_is_float(const struct bt_object *object)
+static bool bt_object_is_float(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_FLOAT;
 }
@@ -316,7 +316,7 @@ bool bt_object_is_float(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is a string object
  */
-bool bt_object_is_string(const struct bt_object *object)
+static bool bt_object_is_string(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_STRING;
 }
@@ -327,7 +327,7 @@ bool bt_object_is_string(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is an array object
  */
-bool bt_object_is_array(const struct bt_object *object)
+static bool bt_object_is_array(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_ARRAY;
 }
@@ -338,7 +338,7 @@ bool bt_object_is_array(const struct bt_object *object)
  * @param object	Object to check
  * @returns		\c true if \p object is a map object
  */
-bool bt_object_is_map(const struct bt_object *object)
+static bool bt_object_is_map(const struct bt_object *object)
 {
 	return bt_object_get_type(object) == BT_OBJECT_TYPE_MAP;
 }
