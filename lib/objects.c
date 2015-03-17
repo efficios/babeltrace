@@ -76,7 +76,7 @@ struct bt_object_string {
 
 struct bt_object_array {
 	struct bt_object base;
-	GArray *garray;
+	GPtrArray *garray;
 };
 
 struct bt_object_map {
@@ -99,14 +99,10 @@ void bt_object_array_destroy(struct bt_object *object)
 	struct bt_object_array *array_obj = BT_OBJECT_TO_ARRAY(object);
 
 	for (x = 0; x < array_obj->garray->len; ++x) {
-		struct bt_object *el_obj;
-
-		el_obj = g_array_index(array_obj->garray,
-			struct bt_object *, x);
-		bt_object_put(el_obj);
+		bt_object_put(g_ptr_array_index(array_obj->garray, x));
 	}
 
-	g_array_free(array_obj->garray, TRUE);
+	g_ptr_array_free(array_obj->garray, TRUE);
 }
 
 static
@@ -564,8 +560,7 @@ struct bt_object *bt_object_array_create(void)
 	}
 
 	array_obj->base = bt_object_create_base(BT_OBJECT_TYPE_ARRAY);
-	array_obj->garray = g_array_new(FALSE, FALSE,
-		sizeof(struct bt_object *));
+	array_obj->garray = g_ptr_array_new();
 
 	if (!array_obj->garray) {
 		g_free(array_obj);
@@ -770,8 +765,7 @@ struct bt_object *bt_object_array_get(const struct bt_object *array_obj,
 		goto end;
 	}
 
-	ret = g_array_index(typed_array_obj->garray,
-		struct bt_object *, index);
+	ret = g_ptr_array_index(typed_array_obj->garray, index);
 	bt_object_get(ret);
 
 end:
@@ -790,7 +784,7 @@ int bt_object_array_append(struct bt_object *array_obj,
 		goto end;
 	}
 
-	g_array_append_val(typed_array_obj->garray, element_obj);
+	g_ptr_array_add(typed_array_obj->garray, element_obj);
 	bt_object_get(element_obj);
 
 end:
