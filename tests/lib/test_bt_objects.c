@@ -668,17 +668,20 @@ void test_map(void)
 		"map object has key \"map2\"");
 
 	ret = bt_object_map_foreach(NULL, test_map_foreach_cb_count, &count);
-	ok(ret, "bt_object_map_foreach() fails with a map object set to NULL");
+	ok(ret == BT_OBJECT_STATUS_ERROR,
+		"bt_object_map_foreach() fails with a map object set to NULL");
 	ret = bt_object_map_foreach(map_obj, NULL, &count);
-	ok(ret, "bt_object_map_foreach() fails with a user function set to NULL");
+	ok(ret == BT_OBJECT_STATUS_ERROR,
+		"bt_object_map_foreach() fails with a user function set to NULL");
 	ret = bt_object_map_foreach(map_obj, test_map_foreach_cb_count, &count);
-	ok(!ret && count == 3,
+	ok(ret == BT_OBJECT_STATUS_CANCELLED && count == 3,
 		"bt_object_map_foreach() breaks the loop when the user function returns false");
 
 	memset(&checklist, 0, sizeof(checklist));
 	ret = bt_object_map_foreach(map_obj, test_map_foreach_cb_check,
 		&checklist);
-	ok(!ret, "bt_object_map_foreach() succeeds with test_map_foreach_cb_check()");
+	ok(ret == BT_OBJECT_STATUS_OK,
+		"bt_object_map_foreach() succeeds with test_map_foreach_cb_check()");
 	ok(checklist.bool1 && checklist.int1 && checklist.float1 &&
 		checklist.null1 && checklist.bool2 && checklist.int2 &&
 		checklist.float2 && checklist.string2 &&
