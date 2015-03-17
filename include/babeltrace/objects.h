@@ -198,7 +198,7 @@ extern struct bt_object *bt_object_null;
 /**
  * User function type for bt_object_map_foreach().
  *
- * \p object is a \i weak reference; you must pass it to
+ * \p object is a \em weak reference; you must pass it to
  * bt_object_get() to get your own reference.
  *
  * Return \c true to continue the loop, or \c false to break it.
@@ -236,7 +236,7 @@ typedef bool (* bt_object_map_foreach_cb)(const char *key,
  *
  * The object's reference count is <b>not changed</b>. Resetting
  * \p _src_object to \c NULL ensures the object will not be put
- * twice later; its ownership is indeed \i moved from the source
+ * twice later; its ownership is indeed \em moved from the source
  * variable to the destination variable.
  *
  * @param _src_object	Source object variable
