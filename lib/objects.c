@@ -95,14 +95,11 @@ void bt_object_string_destroy(struct bt_object *object)
 static
 void bt_object_array_destroy(struct bt_object *object)
 {
-	int x;
-	struct bt_object_array *array_obj = BT_OBJECT_TO_ARRAY(object);
-
-	for (x = 0; x < array_obj->garray->len; ++x) {
-		bt_object_put(g_ptr_array_index(array_obj->garray, x));
-	}
-
-	g_ptr_array_free(array_obj->garray, TRUE);
+	/*
+	 * Pointer array's registered value destructor will take care
+	 * of putting each contained object.
+	 */
+	g_ptr_array_free(BT_OBJECT_TO_ARRAY(object)->garray, TRUE);
 }
 
 static
@@ -560,7 +557,8 @@ struct bt_object *bt_object_array_create(void)
 	}
 
 	array_obj->base = bt_object_create_base(BT_OBJECT_TYPE_ARRAY);
-	array_obj->garray = g_ptr_array_new();
+	array_obj->garray = g_ptr_array_new_full(0,
+		(GDestroyNotify) bt_object_put);
 
 	if (!array_obj->garray) {
 		g_free(array_obj);
