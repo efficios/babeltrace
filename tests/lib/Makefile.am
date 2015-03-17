@@ -32,8 +32,7 @@ test_bt_objects_SOURCES = test_bt_objects.c
 
 SCRIPT_LIST = test_seek_big_trace \
 	test_seek_empty_packet \
-	test_ctf_writer_complete \
-	test_bt_objects
+	test_ctf_writer_complete
 
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
