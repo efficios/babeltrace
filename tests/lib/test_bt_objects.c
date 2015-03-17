@@ -276,6 +276,26 @@ void test_array(void)
 	ok(obj == bt_object_null,
 		"bt_object_array_get() returns an object with the appropriate type (null)");
 
+	ok(bt_object_array_set(NULL, 0, bt_object_null),
+		"bt_object_array_set() fails with an array object set to NULL");
+	ok(bt_object_array_set(array_obj, 0, NULL),
+		"bt_object_array_set() fails with an element object set to NULL");
+	ok(bt_object_array_set(array_obj, 4, bt_object_null),
+		"bt_object_array_set() fails with an invalid index");
+	obj = bt_object_integer_create_init(1001);
+	assert(obj);
+	ok(!bt_object_array_set(array_obj, 2, obj),
+		"bt_object_array_set() succeeds");
+	BT_OBJECT_PUT(obj);
+	obj = bt_object_array_get(array_obj, 2);
+	ok(obj && bt_object_is_integer(obj),
+		"bt_object_array_set() inserts an object with the appropriate type");
+	ret = bt_object_integer_get(obj, &int_value);
+	assert(!ret);
+	ok(int_value == 1001,
+		"bt_object_array_set() inserts an object with the appropriate value");
+	BT_OBJECT_PUT(obj);
+
 	ret = bt_object_array_append_bool(array_obj, false);
 	ok(!ret, "bt_object_array_append_bool() succeeds");
 	ret = bt_object_array_append_bool(NULL, true);

@@ -857,6 +857,27 @@ int bt_object_array_append_map(struct bt_object *array_obj)
 	return ret;
 }
 
+int bt_object_array_set(struct bt_object *array_obj, size_t index,
+	struct bt_object *element_obj)
+{
+	int ret = 0;
+	struct bt_object_array *typed_array_obj =
+		BT_OBJECT_TO_ARRAY(array_obj);
+
+	if (!array_obj || !bt_object_is_array(array_obj) || !element_obj ||
+			index >= typed_array_obj->garray->len) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_object_put(g_ptr_array_index(typed_array_obj->garray, index));
+	g_ptr_array_index(typed_array_obj->garray, index) = element_obj;
+	bt_object_get(element_obj);
+
+end:
+	return ret;
+}
+
 int bt_object_map_size(const struct bt_object *map_obj)
 {
 	int ret;
