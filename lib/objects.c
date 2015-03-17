@@ -87,9 +87,7 @@ struct bt_object_map {
 static
 void bt_object_string_destroy(struct bt_object *object)
 {
-	struct bt_object_string *string_obj = BT_OBJECT_TO_STRING(object);
-
-	g_string_free(string_obj->gstr, TRUE);
+	g_string_free(BT_OBJECT_TO_STRING(object)->gstr, TRUE);
 }
 
 static
@@ -105,14 +103,12 @@ void bt_object_array_destroy(struct bt_object *object)
 static
 void bt_object_map_destroy(struct bt_object *object)
 {
-	struct bt_object_map *map = BT_OBJECT_TO_MAP(object);
-
 	/*
 	 * Hash table's registered value destructor will take care of
 	 * putting each contained object. Keys are GQuarks and cannot
 	 * be destroyed anyway.
 	 */
-	g_hash_table_destroy(map->ght);
+	g_hash_table_destroy(BT_OBJECT_TO_MAP(object)->ght);
 }
 
 static
