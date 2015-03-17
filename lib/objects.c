@@ -1043,13 +1043,13 @@ int bt_object_map_insert_map(struct bt_object *map_obj,
 int bt_object_map_foreach(const struct bt_object *map_obj,
 	bt_object_map_foreach_cb cb, void *data)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	gpointer key, element_obj;
 	GHashTableIter iter;
 	struct bt_object_map *typed_map_obj = BT_OBJECT_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_object_is_map(map_obj) || !cb) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1059,6 +1059,7 @@ int bt_object_map_foreach(const struct bt_object *map_obj,
 		const char *key_str = g_quark_to_string((unsigned long) key);
 
 		if (!cb(key_str, element_obj, data)) {
+			ret = BT_OBJECT_STATUS_CANCELLED;
 			break;
 		}
 	}

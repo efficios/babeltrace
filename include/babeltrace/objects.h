@@ -162,6 +162,20 @@ enum bt_object_type {
 };
 
 /**
+ * Status (return value of some functions).
+ */
+enum bt_object_status {
+	/** Operation cancelled. */
+	BT_OBJECT_STATUS_CANCELLED =	-2,
+
+	/** Error. */
+	BT_OBJECT_STATUS_ERROR =	-1,
+
+	/** Okay, no error. */
+	BT_OBJECT_STATUS_OK =		0,
+};
+
+/**
  * Object.
  */
 struct bt_object;
@@ -716,12 +730,21 @@ extern struct bt_object *bt_object_map_get(const struct bt_object *map_obj,
  * @param map_obj	Map object
  * @param cb		User function to call back
  * @param data		User data passed to the user function
- * @returns		0 on success, or a negative value on error
- *			(the user function breaking the loop is \b not
- *			considered an error here)
+ * @returns		\link bt_object_status::BT_OBJECT_STATUS_OK
+ *			<code>BT_OBJECT_STATUS_OK</code>\endlink if
+ *			there's no error and the traversal was not
+ *			cancelled by the user function,
+ *			\link bt_object_status::BT_OBJECT_STATUS_CANCELLED
+ *			<code>BT_OBJECT_STATUS_CANCELLED</code>\endlink
+ *			if the function was cancelled by the user
+ *			function, or
+ *			\link bt_object_status::BT_OBJECT_STATUS_ERROR
+ *			<code>BT_OBJECT_STATUS_ERROR</code>\endlink on
+ *			any other error
  */
-extern int bt_object_map_foreach(const struct bt_object *map_obj,
-	bt_object_map_foreach_cb cb, void *data);
+extern enum bt_object_status bt_object_map_foreach(
+	const struct bt_object *map_obj, bt_object_map_foreach_cb cb,
+	void *data);
 
 /**
  * Returns whether or not the map object \p map_obj contains the
