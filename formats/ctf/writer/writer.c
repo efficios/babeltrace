@@ -180,7 +180,7 @@ int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_ctf_trace_add_environment_field(writer->trace,
+	ret = bt_ctf_trace_set_environment_field_string(writer->trace,
 		name, value);
 end:
 	return ret;

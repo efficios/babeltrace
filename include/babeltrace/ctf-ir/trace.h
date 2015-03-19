@@ -31,6 +31,7 @@
  */
 
 #include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/objects.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -79,28 +80,18 @@ extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
 		struct bt_ctf_stream_class *stream_class);
 
 /*
- * bt_ctf_trace_add_environment_field: add a string environment field to the
+ * bt_ctf_trace_set_environment_field: sets an environment field to the
  *	trace.
  *
- * Add a string environment field to the trace. The name and value parameters
- * are copied.
+ * Sets an environment field to the trace. The name parameter is
+ * copied, whereas the value parameter's reference count is incremented
+ * (if the function succeeds).
  *
- * @param trace Trace instance.
- * @param name Name of the environment field (will be copied).
- * @param value Value of the environment field (will be copied).
+ * If a value exists in the environment for the specified name, it is
+ * replaced by the new value.
  *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
-		const char *name,
-		const char *value);
-
-/*
- * bt_ctf_trace_add_environment_field_integer: add an integer environment
- *	field to the trace.
- *
- * Add an integer environment field to the trace. The name parameter is
- * copied.
+ * The value parameter _must_ be either an integer object or a
+ * string object. Other object types are not supported.
  *
  * @param trace Trace instance.
  * @param name Name of the environment field (will be copied).
@@ -108,7 +99,43 @@ extern int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_add_environment_field_integer(
+extern int bt_ctf_trace_set_environment_field(
+		struct bt_ctf_trace *trace, const char *name,
+		struct bt_object *value);
+
+/*
+ * bt_ctf_trace_set_environment_field_string: sets a string environment
+ *	field to the trace.
+ *
+ * Sets a string environment field to the trace. This is a helper
+ * function which corresponds to calling
+ * bt_ctf_trace_set_environment_field() with a string object.
+ *
+ * @param trace Trace instance.
+ * @param name Name of the environment field (will be copied).
+ * @param value Value of the environment field (will be copied).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_set_environment_field_string(
+		struct bt_ctf_trace *trace, const char *name,
+		const char *value);
+
+/*
+ * bt_ctf_trace_set_environment_field_integer: sets an integer environment
+ *	field to the trace.
+ *
+ * Sets an integer environment field to the trace. This is a helper
+ * function which corresponds to calling
+ * bt_ctf_trace_set_environment_field() with an integer object.
+ *
+ * @param trace Trace instance.
+ * @param name Name of the environment field (will be copied).
+ * @param value Value of the environment field.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_set_environment_field_integer(
 		struct bt_ctf_trace *trace, const char *name,
 		int64_t value);
 
@@ -125,24 +152,11 @@ extern int bt_ctf_trace_get_environment_field_count(
 		struct bt_ctf_trace *trace);
 
 /*
- * bt_ctf_trace_get_environment_field_type: get environment field type.
- *
- * Get an environment field's type.
- *
- * @param trace Trace instance.
- * @param index Index of the environment field.
- *
- * Returns the environment field count, a negative value on error.
- */
-extern enum bt_environment_field_type
-bt_ctf_trace_get_environment_field_type(struct bt_ctf_trace *trace,
-		int index);
-
-/*
  * bt_ctf_trace_get_environment_field_name: get environment field name.
  *
  * Get an environment field's name. The string's ownership is not
- * transferred to the caller.
+ * transferred to the caller. The string data is valid as long as
+ * this trace's environment is not modified.
  *
  * @param trace Trace instance.
  * @param index Index of the environment field.
@@ -154,35 +168,38 @@ bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
 		int index);
 
 /*
- * bt_ctf_trace_get_environment_field_value_string: get environment field
- *	string value.
+ * bt_ctf_trace_get_environment_field_value: get environment
+ *	field value (an object).
  *
- * Get an environment field's string value. The string's ownership is not
- * transferred to the caller.
+ * Get an environment field's value (an object). The returned object's
+ * reference count is incremented. When done with the object, the caller
+ * must call bt_object_put() on it.
  *
  * @param trace Trace instance.
  * @param index Index of the environment field.
  *
- * Returns the environment field's string value, NULL on error.
+ * Returns the environment field's object value, NULL on error.
  */
-extern const char *
-bt_ctf_trace_get_environment_field_value_string(struct bt_ctf_trace *trace,
+extern struct bt_object *
+bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace,
 		int index);
 
 /*
- * bt_ctf_trace_get_environment_field_value_integer: get environment field
- *      integer value.
+ * bt_ctf_trace_get_environment_field_value_by_name: get environment
+ *	field value (an object) by name.
  *
- * Get an environment field's integer value.
+ * Get an environment field's value (an object) by its field name. The
+ * returned object's reference count is incremented. When done with the
+ * object, the caller must call bt_object_put() on it.
  *
  * @param trace Trace instance.
- * @param index Index of the environment field.
+ * @param name Environment field's name
  *
- * Returns the environment field's integer value, a negative value on error.
+ * Returns the environment field's object value, NULL on error.
  */
-extern int
-bt_ctf_trace_get_environment_field_value_integer(struct bt_ctf_trace *trace,
-		int index, int64_t *value);
+extern struct bt_object *
+bt_ctf_trace_get_environment_field_value_by_name(struct bt_ctf_trace *trace,
+		const char *name);
 
 /*
  * bt_ctf_trace_add_clock: add a clock to the trace.
