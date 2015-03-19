@@ -309,24 +309,20 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 		struct bt_ctf_stream_class *stream_class, const char *name)
 {
 	size_t i;
-	GQuark name_quark;
 	struct bt_ctf_event_class *event_class = NULL;
 
 	if (!stream_class || !name) {
 		goto end;
 	}
 
-	name_quark = g_quark_try_string(name);
-	if (!name_quark) {
-		goto end;
-	}
-
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		struct bt_ctf_event_class *current_event_class =
+		struct bt_ctf_event_class *cur_event_class =
 			g_ptr_array_index(stream_class->event_classes, i);
+		const char *cur_event_class_name =
+			bt_ctf_event_class_get_name(cur_event_class);
 
-		if (name_quark == current_event_class->name) {
-			event_class = current_event_class;
+		if (!strcmp(name, cur_event_class_name)) {
+			event_class = cur_event_class;
 			bt_ctf_event_class_get(event_class);
 			goto end;
 		}

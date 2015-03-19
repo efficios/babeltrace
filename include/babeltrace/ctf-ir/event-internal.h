@@ -31,14 +31,16 @@
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/objects.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
+#define BT_CTF_EVENT_CLASS_ATTR_ID_INDEX	0
+#define BT_CTF_EVENT_CLASS_ATTR_NAME_INDEX	1
+
 struct bt_ctf_event_class {
 	struct bt_ctf_ref ref_count;
-	GQuark name;
-	int id_set;
-	uint32_t id;
+	struct bt_object *attributes;
 	/* An event class does not have ownership of a stream class */
 	struct bt_ctf_stream_class *stream_class;
 	/* Structure type containing the event's context */

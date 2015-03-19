@@ -32,6 +32,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <babeltrace/objects.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,6 +91,96 @@ extern int64_t bt_ctf_event_class_get_id(
  */
 extern int bt_ctf_event_class_set_id(
 		struct bt_ctf_event_class *event_class, uint32_t id);
+
+/*
+ * bt_ctf_event_class_set_attribute: sets an attribute to the event
+ *	class.
+ *
+ * Sets an attribute to the event class. The name parameter is copied,
+ * whereas the value parameter's reference count is incremented
+ * (if the function succeeds).
+ *
+ * If an attribute exists in the event class for the specified name, it
+ * is replaced by the new value.
+ *
+ * Valid attributes and object types are:
+ *
+ *   - "id":            integer object with a value >= 0
+ *   - "name":          string object
+ *   - "loglevel":      integer object with a value >= 0
+ *   - "model.emf.uri": string object
+ *
+ * @param event_class Event class.
+ * @param name Name of the attribute (will be copied).
+ * @param value Value of the attribute.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_class_set_attribute(
+		struct bt_ctf_event_class *event_class, const char *name,
+		struct bt_object *value);
+
+/*
+ * bt_ctf_event_class_get_attribute_count: get the number of attributes
+ *	in this event class.
+ *
+ * Get the event class' attribute count.
+ *
+ * @param event_class Event class.
+ *
+ * Returns the attribute count, a negative value on error.
+ */
+extern int bt_ctf_event_class_get_attribute_count(
+		struct bt_ctf_event_class *event_class);
+
+/*
+ * bt_ctf_event_class_get_attribute_name: get attribute name.
+ *
+ * Get an attribute's name. The string's ownership is not
+ * transferred to the caller. The string data is valid as long as
+ * this event class' attributes are not modified.
+ *
+ * @param event_class Event class.
+ * @param index Index of the attribute.
+ *
+ * Returns the attribute's name, NULL on error.
+ */
+extern const char *
+bt_ctf_event_class_get_attribute_name(
+		struct bt_ctf_event_class *event_class, int index);
+
+/*
+ * bt_ctf_event_class_get_attribute_value: get attribute value (an object).
+ *
+ * Get an attribute's value (an object). The returned object's
+ * reference count is incremented. When done with the object, the caller
+ * must call bt_object_put() on it.
+ *
+ * @param event_class Event class.
+ * @param index Index of the attribute.
+ *
+ * Returns the attribute's object value, NULL on error.
+ */
+extern struct bt_object *
+bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
+		int index);
+
+/*
+ * bt_ctf_event_class_get_attribute_value_by_name: get attribute
+ *	value (an object) by name.
+ *
+ * Get an attribute's value (an object) by its name. The returned object's
+ * reference count is incremented. When done with the object, the caller
+ * must call bt_object_put() on it.
+ *
+ * @param event_class Event class.
+ * @param name Attribute's name
+ *
+ * Returns the attribute's object value, NULL on error.
+ */
+extern struct bt_object *
+bt_ctf_event_class_get_attribute_value_by_name(
+		struct bt_ctf_event_class *event_class, const char *name);
 
 /*
  * bt_ctf_event_class_get_stream_class: Get an event class' stream class.
