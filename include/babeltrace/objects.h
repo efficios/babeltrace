@@ -155,7 +155,7 @@ enum bt_object_type {
 	/** Boolean object (holds \c true or \c false). */
 	BT_OBJECT_TYPE_BOOL =		1,
 
-	/** Integer (holds a signed 64-bit integer value). */
+	/** Integer object (holds a signed 64-bit integer value). */
 	BT_OBJECT_TYPE_INTEGER =	2,
 
 	/**
