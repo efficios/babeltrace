@@ -202,10 +202,14 @@ struct bt_object;
 /**
  * The null object singleton.
  *
- * Use this everytime you need a null object. The null object singleton
- * has no reference count; there's only one. You may directly compare
- * any object to the null singleton to find out if it's a null object,
- * or otherwise use bt_object_is_null().
+ * Use this everytime you need a null object.
+ *
+ * The null object singleton has no reference count; there's only one.
+ * You may directly compare any object to the null object singleton to
+ * find out if it's a null object, or otherwise use bt_object_is_null().
+ *
+ * The null object singleton is always frozen (see bt_object_freeze()
+ * and bt_object_is_frozen()).
  *
  * Functions of this API return this when the object is actually a
  * null object (of type #BT_OBJECT_TYPE_NULL), whereas \c NULL means an
