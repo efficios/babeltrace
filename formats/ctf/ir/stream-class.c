@@ -220,6 +220,50 @@ end:
 	return ret;
 }
 
+static
+void event_class_exists(gpointer element, gpointer query)
+{
+	struct bt_ctf_event_class *event_class_a = element;
+	struct search_query *search_query = query;
+	struct bt_ctf_event_class *event_class_b = search_query->value;
+	int64_t id_a, id_b;
+
+	if (search_query->value == element) {
+		search_query->found = 1;
+		goto end;
+	}
+
+	/*
+	 * Two event classes cannot share the same name in a given
+	 * stream class.
+	 */
+	if (!strcmp(bt_ctf_event_class_get_name(event_class_a),
+			bt_ctf_event_class_get_name(event_class_b))) {
+		search_query->found = 1;
+		goto end;
+	}
+
+	/*
+	 * Two event classes cannot share the same ID in a given
+	 * stream class.
+	 */
+	id_a = bt_ctf_event_class_get_id(event_class_a);
+	id_b = bt_ctf_event_class_get_id(event_class_b);
+
+	if (id_a < 0 || id_b < 0) {
+		/* at least one ID is not set: will be automatically set later */
+		goto end;
+	}
+
+	if (id_a == id_b) {
+		search_query->found = 1;
+		goto end;
+	}
+
+end:
+	return;
+}
+
 int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class)
@@ -234,7 +278,8 @@ int bt_ctf_stream_class_add_event_class(
 
 	/* Check for duplicate event classes */
 	struct search_query query = { .value = event_class, .found = 0 };
-	g_ptr_array_foreach(stream_class->event_classes, value_exists, &query);
+	g_ptr_array_foreach(stream_class->event_classes, event_class_exists,
+		&query);
 	if (query.found) {
 		ret = -1;
 		goto end;
