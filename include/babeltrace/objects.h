@@ -274,6 +274,8 @@ typedef bool (* bt_object_map_foreach_cb)(const char *key,
  * Increments the reference count of \p object.
  *
  * @param object	Object of which to increment the reference count
+ *
+ * @see bt_object_put()
  */
 extern void bt_object_get(struct bt_object *object);
 
@@ -285,6 +287,7 @@ extern void bt_object_get(struct bt_object *object);
  *
  * @see BT_OBJECT_PUT() (puts an object and resets the variable to
  *			\c NULL)
+ * @see bt_object_get()
  */
 extern void bt_object_put(struct bt_object *object);
 
@@ -300,6 +303,8 @@ extern void bt_object_put(struct bt_object *object);
  *			is already frozen, though, #BT_OBJECT_STATUS_OK
  *			is returned anyway (i.e. this function never
  *			returns #BT_OBJECT_STATUS_FROZEN)
+ *
+ * @see bt_object_is_frozen()
  */
 extern enum bt_object_status bt_object_freeze(struct bt_object *object);
 
@@ -308,6 +313,8 @@ extern enum bt_object_status bt_object_freeze(struct bt_object *object);
  *
  * @param object	Object to check
  * @returns		\c true if \p object is frozen
+ *
+ * @see bt_object_freeze()
  */
 extern bool bt_object_is_frozen(const struct bt_object *object);
 
@@ -319,6 +326,13 @@ extern bool bt_object_is_frozen(const struct bt_object *object);
  *			on error
  *
  * @see #bt_object_type (object types)
+ * @see bt_object_is_null()
+ * @see bt_object_is_bool()
+ * @see bt_object_is_integer()
+ * @see bt_object_is_float()
+ * @see bt_object_is_string()
+ * @see bt_object_is_array()
+ * @see bt_object_is_map()
  */
 extern enum bt_object_type bt_object_get_type(const struct bt_object *object);
 
@@ -328,6 +342,8 @@ extern enum bt_object_type bt_object_get_type(const struct bt_object *object);
  *
  * @param object	Object to check
  * @returns		\c true if \p object is a null object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_null(const struct bt_object *object)
@@ -340,6 +356,8 @@ bool bt_object_is_null(const struct bt_object *object)
  *
  * @param object	Object to check
  * @returns		\c true if \p object is a boolean object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_bool(const struct bt_object *object)
@@ -352,6 +370,8 @@ bool bt_object_is_bool(const struct bt_object *object)
  *
  * @param object	Object to check
  * @returns		\c true if \p object is an integer object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_integer(const struct bt_object *object)
@@ -363,7 +383,10 @@ bool bt_object_is_integer(const struct bt_object *object)
  * Checks whether \p object is a floating point number object.
  *
  * @param object	Object to check
- * @returns		\c true if \p object is a floating point number object
+ * @returns		\c true if \p object is a floating point
+ *			number object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_float(const struct bt_object *object)
@@ -376,6 +399,8 @@ bool bt_object_is_float(const struct bt_object *object)
  *
  * @param object	Object to check
  * @returns		\c true if \p object is a string object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_string(const struct bt_object *object)
@@ -388,6 +413,8 @@ bool bt_object_is_string(const struct bt_object *object)
  *
  * @param object	Object to check
  * @returns		\c true if \p object is an array object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_array(const struct bt_object *object)
@@ -400,6 +427,8 @@ bool bt_object_is_array(const struct bt_object *object)
  *
  * @param object	Object to check
  * @returns		\c true if \p object is a map object
+ *
+ * @see bt_object_get_type()
  */
 static inline
 bool bt_object_is_map(const struct bt_object *object)
@@ -414,6 +443,9 @@ bool bt_object_is_map(const struct bt_object *object)
  * The created object's reference count is set to 1.
  *
  * @returns	Created object on success, or \c NULL on error
+ *
+ * @see bt_object_bool_create_init() (creates an initialized
+ *				     boolean object)
  */
 extern struct bt_object *bt_object_bool_create(void);
 
@@ -434,6 +466,9 @@ extern struct bt_object *bt_object_bool_create_init(bool val);
  * The created object's reference count is set to 1.
  *
  * @returns	Created object on success, or \c NULL on error
+ *
+ * @see bt_object_integer_create_init() (creates an initialized
+ *					integer object)
  */
 extern struct bt_object *bt_object_integer_create(void);
 
@@ -454,6 +489,9 @@ extern struct bt_object *bt_object_integer_create_init(int64_t val);
  * The created object's reference count is set to 1.
  *
  * @returns	Created object on success, or \c NULL on error
+ *
+ * @see bt_object_float_create_init() (creates an initialized floating
+ *				      point number object)
  */
 extern struct bt_object *bt_object_float_create(void);
 
@@ -474,6 +512,9 @@ extern struct bt_object *bt_object_float_create_init(double val);
  * The created object's reference count is set to 1.
  *
  * @returns	Created object on success, or \c NULL on error
+ *
+ * @see bt_object_string_create_init() (creates an initialized
+ *				       string object)
  */
 extern struct bt_object *bt_object_string_create(void);
 
@@ -513,6 +554,8 @@ extern struct bt_object *bt_object_map_create(void);
  * @param bool_obj	Boolean object
  * @param val		Returned boolean value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_bool_set()
  */
 extern enum bt_object_status bt_object_bool_get(
 	const struct bt_object *bool_obj, bool *val);
@@ -523,6 +566,8 @@ extern enum bt_object_status bt_object_bool_get(
  * @param bool_obj	Boolean object
  * @param val		New boolean value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_bool_get()
  */
 extern enum bt_object_status bt_object_bool_set(struct bt_object *bool_obj,
 	bool val);
@@ -533,6 +578,8 @@ extern enum bt_object_status bt_object_bool_set(struct bt_object *bool_obj,
  * @param integer_obj	Integer object
  * @param val		Returned integer value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_integer_set()
  */
 extern enum bt_object_status bt_object_integer_get(
 	const struct bt_object *integer_obj, int64_t *val);
@@ -544,6 +591,8 @@ extern enum bt_object_status bt_object_integer_get(
  * @param integer_obj	Integer object
  * @param val		New integer value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_integer_get()
  */
 extern enum bt_object_status bt_object_integer_set(
 	struct bt_object *integer_obj, int64_t val);
@@ -555,6 +604,8 @@ extern enum bt_object_status bt_object_integer_set(
  * @param float_obj	Floating point number object
  * @param val		Returned floating point number value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_float_set()
  */
 extern enum bt_object_status bt_object_float_get(
 	const struct bt_object *float_obj, double *val);
@@ -566,6 +617,8 @@ extern enum bt_object_status bt_object_float_get(
  * @param float_obj	Floating point number object
  * @param val		New floating point number value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_float_get()
  */
 extern enum bt_object_status bt_object_float_set(
 	struct bt_object *float_obj, double val);
@@ -579,6 +632,8 @@ extern enum bt_object_status bt_object_float_set(
  * @param string_obj	String object
  * @param val		Returned string value
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_string_set()
  */
 extern enum bt_object_status bt_object_string_get(
 	const struct bt_object *string_obj, const char **val);
@@ -592,6 +647,8 @@ extern enum bt_object_status bt_object_string_get(
  * @param string_obj	String object
  * @param val		New string value (copied)
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_string_get()
  */
 extern enum bt_object_status bt_object_string_set(struct bt_object *string_obj,
 	const char *val);
@@ -604,6 +661,8 @@ extern enum bt_object_status bt_object_string_set(struct bt_object *string_obj,
  * @returns		Array size if the return value is 0 (empty) or a
  *			positive value, or one of
  *			#bt_object_status negative values otherwise
+ *
+ * @see bt_object_array_is_empty()
  */
 extern int bt_object_array_size(const struct bt_object *array_obj);
 
@@ -612,6 +671,8 @@ extern int bt_object_array_size(const struct bt_object *array_obj);
  *
  * @param array_obj	Array object
  * @returns		\c true if \p array_obj is empty
+ *
+ * @see bt_object_array_size()
  */
 extern bool bt_object_array_is_empty(const struct bt_object *array_obj);
 
@@ -640,6 +701,13 @@ extern struct bt_object *bt_object_array_get(const struct bt_object *array_obj,
  * @param array_obj	Array object
  * @param element_obj	Element object to append
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append_bool()
+ * @see bt_object_array_append_integer()
+ * @see bt_object_array_append_float()
+ * @see bt_object_array_append_string()
+ * @see bt_object_array_append_array()
+ * @see bt_object_array_append_map()
  */
 extern enum bt_object_status bt_object_array_append(struct bt_object *array_obj,
 	struct bt_object *element_obj);
@@ -654,6 +722,8 @@ extern enum bt_object_status bt_object_array_append(struct bt_object *array_obj,
  * @param array_obj	Array object
  * @param val		Boolean value to append
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_bool(
 	struct bt_object *array_obj, bool val);
@@ -668,6 +738,8 @@ extern enum bt_object_status bt_object_array_append_bool(
  * @param array_obj	Array object
  * @param val		Integer value to append
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_integer(
 	struct bt_object *array_obj, int64_t val);
@@ -683,6 +755,8 @@ extern enum bt_object_status bt_object_array_append_integer(
  * @param array_obj	Array object
  * @param val		Floating point number value to append
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_float(
 	struct bt_object *array_obj, double val);
@@ -699,6 +773,8 @@ extern enum bt_object_status bt_object_array_append_float(
  * @param array_obj	Array object
  * @param val		String value to append (copied)
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_string(
 	struct bt_object *array_obj, const char *val);
@@ -712,6 +788,8 @@ extern enum bt_object_status bt_object_array_append_string(
  *
  * @param array_obj	Array object
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_array(
 	struct bt_object *array_obj);
@@ -725,6 +803,8 @@ extern enum bt_object_status bt_object_array_append_array(
  *
  * @param array_obj	Array object
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_array_append()
  */
 extern enum bt_object_status bt_object_array_append_map(
 	struct bt_object *array_obj);
@@ -754,6 +834,8 @@ extern enum bt_object_status bt_object_array_set(struct bt_object *array_obj,
  * @returns		Map size if the return value is 0 (empty) or a
  *			positive value, or one of
  *			#bt_object_status negative values otherwise
+ *
+ * @see bt_object_map_is_empty()
  */
 extern int bt_object_map_size(const struct bt_object *map_obj);
 
@@ -762,6 +844,8 @@ extern int bt_object_map_size(const struct bt_object *map_obj);
  *
  * @param map_obj	Map object
  * @returns		\c true if \p map_obj is empty
+ *
+ * @see bt_object_map_size()
  */
 extern bool bt_object_map_is_empty(const struct bt_object *map_obj);
 
@@ -834,6 +918,13 @@ extern bool bt_object_map_has_key(const struct bt_object *map_obj,
  * @param element_obj	Element object to insert, associated with the
  *			key \p key
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert_bool()
+ * @see bt_object_map_insert_integer()
+ * @see bt_object_map_insert_float()
+ * @see bt_object_map_insert_string()
+ * @see bt_object_map_insert_array()
+ * @see bt_object_map_insert_map()
  */
 extern enum bt_object_status bt_object_map_insert(
 	struct bt_object *map_obj, const char *key,
@@ -853,6 +944,8 @@ extern enum bt_object_status bt_object_map_insert(
  * @param val		Boolean value to insert, associated with the
  *			key \p key
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_bool(
 	struct bt_object *map_obj, const char *key, bool val);
@@ -871,6 +964,8 @@ extern enum bt_object_status bt_object_map_insert_bool(
  * @param val		Integer value to insert, associated with the
  *			key \p key
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_integer(
 	struct bt_object *map_obj, const char *key, int64_t val);
@@ -892,6 +987,8 @@ extern enum bt_object_status bt_object_map_insert_integer(
  * @param val		Floating point number value to insert,
  *			associated with the key \p key
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_float(
 	struct bt_object *map_obj, const char *key, double val);
@@ -910,6 +1007,8 @@ extern enum bt_object_status bt_object_map_insert_float(
  * @param val		String value to insert, associated with the
  *			key \p key
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_string(
 	struct bt_object *map_obj, const char *key, const char *val);
@@ -926,6 +1025,8 @@ extern enum bt_object_status bt_object_map_insert_string(
  * @param map_obj	Map object
  * @param key		Key (copied) of empty array to insert
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_array(
 	struct bt_object *map_obj, const char *key);
@@ -942,6 +1043,8 @@ extern enum bt_object_status bt_object_map_insert_array(
  * @param map_obj	Map object
  * @param key		Key (copied) of empty map to insert
  * @returns		One of #bt_object_status values
+ *
+ * @see bt_object_map_insert()
  */
 extern enum bt_object_status bt_object_map_insert_map(
 	struct bt_object *map_obj, const char *key);
@@ -963,7 +1066,7 @@ extern struct bt_object *bt_object_copy(const struct bt_object *object);
  * if they have the same content.
  *
  * @param object_a	Object A
- * @param object_B	Object B
+ * @param object_b	Object B
  * @returns		\c true if \p object_a and \p object_b have the
  *			same content, or \c false if they differ or on
  *			error
