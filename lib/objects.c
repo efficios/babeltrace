@@ -45,11 +45,13 @@
 struct bt_object {
 	enum bt_object_type type;
 	struct bt_ctf_ref ref_count;
+	bool is_frozen;
 };
 
 static
 struct bt_object bt_object_null_instance = {
 	.type = BT_OBJECT_TYPE_NULL,
+	.is_frozen = true,
 };
 
 struct bt_object *bt_object_null = &bt_object_null_instance;
@@ -381,6 +383,57 @@ bool (* const compare_funcs[])(const struct bt_object *,
 	[BT_OBJECT_TYPE_MAP] =		bt_object_map_compare,
 };
 
+void bt_object_null_freeze(struct bt_object *object)
+{
+}
+
+void bt_object_generic_freeze(struct bt_object *object)
+{
+	object->is_frozen = true;
+}
+
+void bt_object_array_freeze(struct bt_object *object)
+{
+	int x;
+	struct bt_object_array *typed_array_obj =
+		BT_OBJECT_TO_ARRAY(object);
+
+	for (x = 0; x < typed_array_obj->garray->len; ++x) {
+		struct bt_object *element_obj =
+			g_ptr_array_index(typed_array_obj->garray, x);
+
+		bt_object_freeze(element_obj);
+	}
+
+	bt_object_generic_freeze(object);
+}
+
+void bt_object_map_freeze(struct bt_object *object)
+{
+	GHashTableIter iter;
+	gpointer key, element_obj;
+	const struct bt_object_map *map_obj = BT_OBJECT_TO_MAP(object);
+
+	g_hash_table_iter_init(&iter, map_obj->ght);
+
+	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
+		bt_object_freeze(element_obj);
+	}
+
+	bt_object_generic_freeze(object);
+}
+
+static
+void (* const freeze_funcs[])(struct bt_object *) = {
+	[BT_OBJECT_TYPE_NULL] =		bt_object_null_freeze,
+	[BT_OBJECT_TYPE_BOOL] =		bt_object_generic_freeze,
+	[BT_OBJECT_TYPE_INTEGER] =	bt_object_generic_freeze,
+	[BT_OBJECT_TYPE_FLOAT] =	bt_object_generic_freeze,
+	[BT_OBJECT_TYPE_STRING] =	bt_object_generic_freeze,
+	[BT_OBJECT_TYPE_ARRAY] =	bt_object_array_freeze,
+	[BT_OBJECT_TYPE_MAP] =		bt_object_map_freeze,
+};
+
 static
 void bt_object_destroy(struct bt_ctf_ref *ref_count)
 {
@@ -424,6 +477,26 @@ skip:
 	return;
 }
 
+enum bt_object_status bt_object_freeze(struct bt_object *object)
+{
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
+
+	if (!object) {
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	freeze_funcs[object->type](object);
+
+end:
+	return ret;
+}
+
+bool bt_object_is_frozen(const struct bt_object *object)
+{
+	return object && object->is_frozen;
+}
+
 enum bt_object_type bt_object_get_type(const struct bt_object *object)
 {
 	if (!object) {
@@ -439,6 +512,7 @@ struct bt_object bt_object_create_base(enum bt_object_type type)
 	struct bt_object base;
 
 	base.type = type;
+	base.is_frozen = false;
 	bt_ctf_ref_init(&base.ref_count);
 
 	return base;
@@ -590,13 +664,14 @@ end:
 	return BT_OBJECT_FROM_CONCRETE(map_obj);
 }
 
-int bt_object_bool_get(const struct bt_object *bool_obj, bool *val)
+enum bt_object_status bt_object_bool_get(const struct bt_object *bool_obj,
+	bool *val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_bool *typed_bool_obj = BT_OBJECT_TO_BOOL(bool_obj);
 
-	if (!bool_obj || !bt_object_is_bool(bool_obj)) {
-		ret = -1;
+	if (!bool_obj || !bt_object_is_bool(bool_obj) || !val) {
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
@@ -606,13 +681,18 @@ end:
 	return ret;
 }
 
-int bt_object_bool_set(struct bt_object *bool_obj, bool val)
+enum bt_object_status bt_object_bool_set(struct bt_object *bool_obj, bool val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_bool *typed_bool_obj = BT_OBJECT_TO_BOOL(bool_obj);
 
 	if (!bool_obj || !bt_object_is_bool(bool_obj)) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (bool_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -622,14 +702,15 @@ end:
 	return ret;
 }
 
-int bt_object_integer_get(const struct bt_object *integer_obj, int64_t *val)
+enum bt_object_status bt_object_integer_get(const struct bt_object *integer_obj,
+	int64_t *val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_integer *typed_integer_obj =
 		BT_OBJECT_TO_INTEGER(integer_obj);
 
-	if (!integer_obj || !bt_object_is_integer(integer_obj)) {
-		ret = -1;
+	if (!integer_obj || !bt_object_is_integer(integer_obj) || !val) {
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
@@ -639,14 +720,20 @@ end:
 	return ret;
 }
 
-int bt_object_integer_set(struct bt_object *integer_obj, int64_t val)
+enum bt_object_status bt_object_integer_set(struct bt_object *integer_obj,
+	int64_t val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_integer *typed_integer_obj =
 		BT_OBJECT_TO_INTEGER(integer_obj);
 
 	if (!integer_obj || !bt_object_is_integer(integer_obj)) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (integer_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -656,14 +743,15 @@ end:
 	return ret;
 }
 
-int bt_object_float_get(const struct bt_object *float_obj, double *val)
+enum bt_object_status bt_object_float_get(const struct bt_object *float_obj,
+	double *val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_float *typed_float_obj =
 		BT_OBJECT_TO_FLOAT(float_obj);
 
-	if (!float_obj || !bt_object_is_float(float_obj)) {
-		ret = -1;
+	if (!float_obj || !bt_object_is_float(float_obj) || !val) {
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
@@ -673,14 +761,20 @@ end:
 	return ret;
 }
 
-int bt_object_float_set(struct bt_object *float_obj, double val)
+enum bt_object_status bt_object_float_set(struct bt_object *float_obj,
+	double val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_float *typed_float_obj =
 		BT_OBJECT_TO_FLOAT(float_obj);
 
 	if (!float_obj || !bt_object_is_float(float_obj)) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (float_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -690,31 +784,38 @@ end:
 	return ret;
 }
 
-const char *bt_object_string_get(const struct bt_object *string_obj)
+enum bt_object_status bt_object_string_get(const struct bt_object *string_obj,
+	const char **val)
 {
-	const char *ret;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_string *typed_string_obj =
 		BT_OBJECT_TO_STRING(string_obj);
 
-	if (!string_obj || !bt_object_is_string(string_obj)) {
-		ret = NULL;
+	if (!string_obj || !bt_object_is_string(string_obj) || !val) {
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
-	ret = typed_string_obj->gstr->str;
+	*val = typed_string_obj->gstr->str;
 
 end:
 	return ret;
 }
 
-int bt_object_string_set(struct bt_object *string_obj, const char *val)
+enum bt_object_status bt_object_string_set(struct bt_object *string_obj,
+	const char *val)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_string *typed_string_obj =
 		BT_OBJECT_TO_STRING(string_obj);
 
 	if (!string_obj || !bt_object_is_string(string_obj) || !val) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (string_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -726,12 +827,12 @@ end:
 
 int bt_object_array_size(const struct bt_object *array_obj)
 {
-	int ret = 0;
+	int ret;
 	struct bt_object_array *typed_array_obj =
 		BT_OBJECT_TO_ARRAY(array_obj);
 
 	if (!array_obj || !bt_object_is_array(array_obj)) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
@@ -766,15 +867,20 @@ end:
 	return ret;
 }
 
-int bt_object_array_append(struct bt_object *array_obj,
+enum bt_object_status bt_object_array_append(struct bt_object *array_obj,
 	struct bt_object *element_obj)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_array *typed_array_obj =
 		BT_OBJECT_TO_ARRAY(array_obj);
 
 	if (!array_obj || !bt_object_is_array(array_obj) || !element_obj) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (array_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -785,9 +891,10 @@ end:
 	return ret;
 }
 
-int bt_object_array_append_bool(struct bt_object *array_obj, bool val)
+enum bt_object_status bt_object_array_append_bool(struct bt_object *array_obj,
+	bool val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *bool_obj = NULL;
 
 	bool_obj = bt_object_bool_create_init(val);
@@ -797,9 +904,10 @@ int bt_object_array_append_bool(struct bt_object *array_obj, bool val)
 	return ret;
 }
 
-int bt_object_array_append_integer(struct bt_object *array_obj, int64_t val)
+enum bt_object_status bt_object_array_append_integer(
+	struct bt_object *array_obj, int64_t val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *integer_obj = NULL;
 
 	integer_obj = bt_object_integer_create_init(val);
@@ -809,9 +917,10 @@ int bt_object_array_append_integer(struct bt_object *array_obj, int64_t val)
 	return ret;
 }
 
-int bt_object_array_append_float(struct bt_object *array_obj, double val)
+enum bt_object_status bt_object_array_append_float(struct bt_object *array_obj,
+	double val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *float_obj = NULL;
 
 	float_obj = bt_object_float_create_init(val);
@@ -821,9 +930,10 @@ int bt_object_array_append_float(struct bt_object *array_obj, double val)
 	return ret;
 }
 
-int bt_object_array_append_string(struct bt_object *array_obj, const char *val)
+enum bt_object_status bt_object_array_append_string(struct bt_object *array_obj,
+	const char *val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *string_obj = NULL;
 
 	string_obj = bt_object_string_create_init(val);
@@ -833,9 +943,9 @@ int bt_object_array_append_string(struct bt_object *array_obj, const char *val)
 	return ret;
 }
 
-int bt_object_array_append_array(struct bt_object *array_obj)
+enum bt_object_status bt_object_array_append_array(struct bt_object *array_obj)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *empty_array_obj = NULL;
 
 	empty_array_obj = bt_object_array_create();
@@ -845,9 +955,9 @@ int bt_object_array_append_array(struct bt_object *array_obj)
 	return ret;
 }
 
-int bt_object_array_append_map(struct bt_object *array_obj)
+enum bt_object_status bt_object_array_append_map(struct bt_object *array_obj)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *map_obj = NULL;
 
 	map_obj = bt_object_map_create();
@@ -857,16 +967,21 @@ int bt_object_array_append_map(struct bt_object *array_obj)
 	return ret;
 }
 
-int bt_object_array_set(struct bt_object *array_obj, size_t index,
-	struct bt_object *element_obj)
+enum bt_object_status bt_object_array_set(struct bt_object *array_obj,
+	size_t index, struct bt_object *element_obj)
 {
-	int ret = 0;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_array *typed_array_obj =
 		BT_OBJECT_TO_ARRAY(array_obj);
 
 	if (!array_obj || !bt_object_is_array(array_obj) || !element_obj ||
 			index >= typed_array_obj->garray->len) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (array_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -884,7 +999,7 @@ int bt_object_map_size(const struct bt_object *map_obj)
 	struct bt_object_map *typed_map_obj = BT_OBJECT_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_object_is_map(map_obj)) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
@@ -941,15 +1056,20 @@ end:
 	return ret;
 }
 
-int bt_object_map_insert(struct bt_object *map_obj, const char *key,
-	struct bt_object *element_obj)
+enum bt_object_status bt_object_map_insert(struct bt_object *map_obj,
+	const char *key, struct bt_object *element_obj)
 {
-	int ret = 0;
 	GQuark quark;
+	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
 	struct bt_object_map *typed_map_obj = BT_OBJECT_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_object_is_map(map_obj) || !key || !element_obj) {
-		ret = -1;
+		ret = BT_OBJECT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (map_obj->is_frozen) {
+		ret = BT_OBJECT_STATUS_FROZEN;
 		goto end;
 	}
 
@@ -962,10 +1082,10 @@ end:
 	return ret;
 }
 
-int bt_object_map_insert_bool(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_bool(struct bt_object *map_obj,
 	const char *key, bool val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *bool_obj = NULL;
 
 	bool_obj = bt_object_bool_create_init(val);
@@ -975,10 +1095,10 @@ int bt_object_map_insert_bool(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_insert_integer(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_integer(struct bt_object *map_obj,
 	const char *key, int64_t val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *integer_obj = NULL;
 
 	integer_obj = bt_object_integer_create_init(val);
@@ -988,10 +1108,10 @@ int bt_object_map_insert_integer(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_insert_float(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_float(struct bt_object *map_obj,
 	const char *key, double val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *float_obj = NULL;
 
 	float_obj = bt_object_float_create_init(val);
@@ -1001,10 +1121,10 @@ int bt_object_map_insert_float(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_insert_string(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_string(struct bt_object *map_obj,
 	const char *key, const char *val)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *string_obj = NULL;
 
 	string_obj = bt_object_string_create_init(val);
@@ -1014,10 +1134,10 @@ int bt_object_map_insert_string(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_insert_array(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_array(struct bt_object *map_obj,
 	const char *key)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *array_obj = NULL;
 
 	array_obj = bt_object_array_create();
@@ -1027,10 +1147,10 @@ int bt_object_map_insert_array(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_insert_map(struct bt_object *map_obj,
+enum bt_object_status bt_object_map_insert_map(struct bt_object *map_obj,
 	const char *key)
 {
-	int ret;
+	enum bt_object_status ret;
 	struct bt_object *empty_map_obj = NULL;
 
 	empty_map_obj = bt_object_map_create();
@@ -1040,7 +1160,7 @@ int bt_object_map_insert_map(struct bt_object *map_obj,
 	return ret;
 }
 
-int bt_object_map_foreach(const struct bt_object *map_obj,
+enum bt_object_status bt_object_map_foreach(const struct bt_object *map_obj,
 	bt_object_map_foreach_cb cb, void *data)
 {
 	enum bt_object_status ret = BT_OBJECT_STATUS_OK;
@@ -1049,7 +1169,7 @@ int bt_object_map_foreach(const struct bt_object *map_obj,
 	struct bt_object_map *typed_map_obj = BT_OBJECT_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_object_is_map(map_obj) || !cb) {
-		ret = BT_OBJECT_STATUS_ERROR;
+		ret = BT_OBJECT_STATUS_INVAL;
 		goto end;
 	}
 
