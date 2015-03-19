@@ -28,6 +28,7 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf/events.h>
+#include <babeltrace/objects.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -653,7 +654,18 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
+	struct event_class_attrs_counts {
+		int id;
+		int name;
+		int loglevel;
+		int modelemfuri;
+		int unknown;
+	} attrs_count;
+
 	int i;
+	int ret;
+	int64_t int64_value;
+	struct event_class_attrs_counts ;
 	const char *complex_test_event_string = "Complex Test Event";
 	const char *test_string = "Test string";
 	struct bt_ctf_field_type *uint_35_type =
@@ -688,6 +700,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_stream_class *ret_stream_class;
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context, *packet_context_field;
+	struct bt_object *obj;
 
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
@@ -840,6 +853,112 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"Set an event class' id");
 	ok(bt_ctf_event_class_get_id(event_class) == 42,
 		"bt_ctf_event_class_get_id returns the correct value");
+
+	/* Test event class attributes */
+	assert(obj = bt_object_integer_create_init(15));
+	ok(bt_ctf_event_class_set_attribute(NULL, "id", obj),
+		"bt_ctf_event_class_set_attribute handles a NULL event class correctly");
+	ok(bt_ctf_event_class_set_attribute(event_class, NULL, obj),
+		"bt_ctf_event_class_set_attribute handles a NULL name correctly");
+	ok(bt_ctf_event_class_set_attribute(event_class, "id", NULL),
+		"bt_ctf_event_class_set_attribute handles a NULL value correctly");
+	assert(!bt_object_integer_set(obj, -3));
+	ok(bt_ctf_event_class_set_attribute(event_class, "id", obj),
+		"bt_ctf_event_class_set_attribute fails with a negative \"id\" attribute");
+	assert(!bt_object_integer_set(obj, 11));
+	ret = bt_ctf_event_class_set_attribute(event_class, "id", obj);
+	ok(!ret && bt_ctf_event_class_get_id(event_class) == 11,
+		"bt_ctf_event_class_set_attribute succeeds in replacing the existing \"id\" attribute");
+	ret = bt_ctf_event_class_set_attribute(event_class, "name", obj);
+	ret &= bt_ctf_event_class_set_attribute(event_class, "model.emf.uri", obj);
+	ok(ret,
+		"bt_ctf_event_class_set_attribute cannot set \"name\" or \"model.emf.uri\" to an integer value");
+	BT_OBJECT_PUT(obj);
+
+	assert(obj = bt_object_integer_create_init(5));
+	ok(!bt_ctf_event_class_set_attribute(event_class, "loglevel", obj),
+		"bt_ctf_event_class_set_attribute succeeds in setting the \"loglevel\" attribute");
+	BT_OBJECT_PUT(obj);
+	ok(!bt_ctf_event_class_get_attribute_value_by_name(NULL, "loglevel"),
+		"bt_ctf_event_class_get_attribute_value_by_name handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_get_attribute_value_by_name(event_class, NULL),
+		"bt_ctf_event_class_get_attribute_value_by_name handles a NULL name correctly");
+	ok(!bt_ctf_event_class_get_attribute_value_by_name(event_class, "meow"),
+		"bt_ctf_event_class_get_attribute_value_by_name fails with a non-existing attribute name");
+	obj = bt_ctf_event_class_get_attribute_value_by_name(event_class,
+		"loglevel");
+	int64_value = 0;
+	ret = bt_object_integer_get(obj, &int64_value);
+	ok(obj && !ret && int64_value == 5,
+		"bt_ctf_event_class_get_attribute_value_by_name returns the correct value");
+	BT_OBJECT_PUT(obj);
+
+	assert(obj = bt_object_string_create_init("nu name"));
+	assert(!bt_ctf_event_class_set_attribute(event_class, "name", obj));
+	ret_string = bt_ctf_event_class_get_name(event_class);
+	ok(!strcmp(ret_string, "nu name"),
+		"bt_ctf_event_class_set_attribute succeeds in replacing the existing \"name\" attribute");
+	ret = bt_ctf_event_class_set_attribute(event_class, "id", obj);
+	ret &= bt_ctf_event_class_set_attribute(event_class, "loglevel", obj);
+	ok(ret,
+		"bt_ctf_event_class_set_attribute cannot set \"id\" or \"loglevel\" to a string value");
+	BT_OBJECT_PUT(obj);
+	assert(obj = bt_object_string_create_init("http://kernel.org/"));
+	assert(!bt_ctf_event_class_set_attribute(event_class, "model.emf.uri", obj));
+	BT_OBJECT_PUT(obj);
+
+	ok(bt_ctf_event_class_get_attribute_count(NULL),
+		"bt_ctf_event_class_get_attribute_count handles a NULL event class");
+	ok(bt_ctf_event_class_get_attribute_count(event_class) == 4,
+		"bt_ctf_event_class_get_attribute_count returns the correct count");
+	ok(!bt_ctf_event_class_get_attribute_name(NULL, 0),
+		"bt_ctf_event_class_get_attribute_name handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_get_attribute_name(event_class, 4),
+		"bt_ctf_event_class_get_attribute_name handles a too large index correctly");
+	ok(!bt_ctf_event_class_get_attribute_value(NULL, 0),
+		"bt_ctf_event_class_get_attribute_value handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_get_attribute_value(event_class, 4),
+		"bt_ctf_event_class_get_attribute_value handles a too large index correctly");
+
+	memset(&attrs_count, 0, sizeof(attrs_count));
+
+	for (i = 0; i < 4; ++i) {
+		ret_string = bt_ctf_event_class_get_attribute_name(event_class,
+			i);
+		obj = bt_ctf_event_class_get_attribute_value(event_class, i);
+		assert(ret_string && obj);
+
+		if (!strcmp(ret_string, "id")) {
+			attrs_count.id++;
+			ok(bt_object_is_integer(obj),
+				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
+				ret_string);
+		} else if (!strcmp(ret_string, "name")) {
+			attrs_count.name++;
+			ok(bt_object_is_string(obj),
+				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
+				ret_string);
+		} else if (!strcmp(ret_string, "loglevel")) {
+			attrs_count.loglevel++;
+			ok(bt_object_is_integer(obj),
+				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
+				ret_string);
+		} else if (!strcmp(ret_string, "model.emf.uri")) {
+			attrs_count.modelemfuri++;
+			ok(bt_object_is_string(obj),
+				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
+				ret_string);
+		} else {
+			attrs_count.unknown++;
+		}
+
+		BT_OBJECT_PUT(obj);
+	}
+
+	ok(attrs_count.unknown == 0, "event class has no unknown attributes");
+	ok(attrs_count.id == 1 && attrs_count.name == 1 &&
+		attrs_count.loglevel == 1 && attrs_count.modelemfuri == 1,
+		"event class has one instance of each known attribute");
 
 	/* Add event class to the stream class */
 	ok(bt_ctf_stream_class_add_event_class(stream_class, NULL),
@@ -1633,6 +1752,22 @@ end:
 	bt_ctf_clock_put(clock);
 }
 
+void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_event_class *event_class;
+
+	assert(event_class = bt_ctf_event_class_create("Simple Event"));
+	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
+		"two event classes with the same name cannot cohabit within the same stream class");
+	bt_ctf_event_class_put(event_class);
+
+	assert(event_class = bt_ctf_event_class_create("different name, ok"));
+	assert(!bt_ctf_event_class_set_id(event_class, 11));
+	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
+		"two event classes with the same ID cannot cohabit within the same stream class");
+	bt_ctf_event_class_put(event_class);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -1668,6 +1803,7 @@ int main(int argc, char **argv)
 	struct bt_ctf_trace *trace;
 	int ret;
 	int64_t ret_int64_t;
+	struct bt_object *obj;
 
 	if (argc < 3) {
 		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
@@ -1713,64 +1849,123 @@ int main(int argc, char **argv)
 	ok(bt_ctf_writer_add_environment_field(writer, "test_field",
 		NULL),
 		"bt_ctf_writer_add_environment_field error with NULL field value");
-	ok(bt_ctf_trace_add_environment_field_integer(NULL, "test_env", 0),
-		"bt_ctf_trace_add_environment_field_integer handles a NULL trace correctly");
-	ok(bt_ctf_trace_add_environment_field_integer(trace, NULL, 0),
-		"bt_ctf_trace_add_environment_field_integer handles a NULL environment field name");
-	ok(!bt_ctf_trace_add_environment_field_integer(trace, "test_env",
-		123456),
-		"Add an integer environment field to a trace instance");
+
+	/* Test bt_ctf_trace_set_environment_field with an integer object */
+	obj = bt_object_integer_create_init(23);
+	assert(obj);
+	ok(bt_ctf_trace_set_environment_field(NULL, "test_env_int_obj", obj),
+		"bt_ctf_trace_set_environment_field handles a NULL trace correctly");
+	ok(bt_ctf_trace_set_environment_field(trace, NULL, obj),
+		"bt_ctf_trace_set_environment_field handles a NULL name correctly");
+	ok(bt_ctf_trace_set_environment_field(trace, "test_env_int_obj", NULL),
+		"bt_ctf_trace_set_environment_field handles a NULL value correctly");
+	ok(!bt_ctf_trace_set_environment_field(trace, "test_env_int_obj", obj),
+		"bt_ctf_trace_set_environment_field succeeds in adding an integer object");
+	BT_OBJECT_PUT(obj);
+
+	/* Test bt_ctf_trace_set_environment_field with a string object */
+	obj = bt_object_string_create_init("the value");
+	assert(obj);
+	ok(!bt_ctf_trace_set_environment_field(trace, "test_env_str_obj", obj),
+		"bt_ctf_trace_set_environment_field succeeds in adding a string object");
+	BT_OBJECT_PUT(obj);
+
+	/* Test bt_ctf_trace_set_environment_field_integer */
+	ok(bt_ctf_trace_set_environment_field_integer(NULL, "test_env_int",
+		-194875),
+		"bt_ctf_trace_set_environment_field_integer handles a NULL trace correctly");
+	ok(bt_ctf_trace_set_environment_field_integer(trace, NULL, -194875),
+		"bt_ctf_trace_set_environment_field_integer handles a NULL name correctly");
+	ok(!bt_ctf_trace_set_environment_field_integer(trace, "test_env_int",
+		-164973),
+		"bt_ctf_trace_set_environment_field_integer succeeds");
+
+	/* Test bt_ctf_trace_set_environment_field_string */
+	ok(bt_ctf_trace_set_environment_field_string(NULL, "test_env_str",
+		"yeah"),
+		"bt_ctf_trace_set_environment_field_string handles a NULL trace correctly");
+	ok(bt_ctf_trace_set_environment_field_string(trace, NULL, "yeah"),
+		"bt_ctf_trace_set_environment_field_string handles a NULL name correctly");
+	ok(bt_ctf_trace_set_environment_field_string(trace, "test_env_str",
+		NULL),
+		"bt_ctf_trace_set_environment_field_string handles a NULL value correctly");
+	ok(!bt_ctf_trace_set_environment_field_string(trace, "test_env_str",
+		"oh yeah"),
+		"bt_ctf_trace_set_environment_field_string succeeds");
 
 	/* Test bt_ctf_trace_get_environment_field_count */
 	ok(bt_ctf_trace_get_environment_field_count(NULL) < 0,
 		"bt_ctf_trace_get_environment_field_count handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_count(trace) == 2,
+	ok(bt_ctf_trace_get_environment_field_count(trace) == 5,
 		"bt_ctf_trace_get_environment_field_count returns a correct number of environment fields");
-
-	/* Test bt_ctf_trace_get_environment_field_type */
-	ok(bt_ctf_trace_get_environment_field_type(trace, 2) ==
-		BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN,
-		"bt_ctf_trace_get_environment_field_type handles an invalid index correctly");
-	ok(bt_ctf_trace_get_environment_field_type(NULL, 0) ==
-		BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN,
-		"bt_ctf_trace_get_environment_field_type handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_type(trace, 1) ==
-		BT_ENVIRONMENT_FIELD_TYPE_INTEGER,
-		"bt_ctf_trace_get_environment_field_type the correct type of environment field");
 
 	/* Test bt_ctf_trace_get_environment_field_name */
 	ok(bt_ctf_trace_get_environment_field_name(NULL, 0) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles a NULL trace correctly");
 	ok(bt_ctf_trace_get_environment_field_name(trace, -1) == NULL,
-		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly");
+		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (negative)");
+	ok(bt_ctf_trace_get_environment_field_name(trace, 5) == NULL,
+		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (too large)");
 	ret_string = bt_ctf_trace_get_environment_field_name(trace, 0);
 	ok(ret_string && !strcmp(ret_string, "host"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
+	ret_string = bt_ctf_trace_get_environment_field_name(trace, 1);
+	ok(ret_string && !strcmp(ret_string, "test_env_int_obj"),
+		"bt_ctf_trace_get_environment_field_name returns a correct field name");
+	ret_string = bt_ctf_trace_get_environment_field_name(trace, 2);
+	ok(ret_string && !strcmp(ret_string, "test_env_str_obj"),
+		"bt_ctf_trace_get_environment_field_name returns a correct field name");
+	ret_string = bt_ctf_trace_get_environment_field_name(trace, 3);
+	ok(ret_string && !strcmp(ret_string, "test_env_int"),
+		"bt_ctf_trace_get_environment_field_name returns a correct field name");
+	ret_string = bt_ctf_trace_get_environment_field_name(trace, 4);
+	ok(ret_string && !strcmp(ret_string, "test_env_str"),
+		"bt_ctf_trace_get_environment_field_name returns a correct field name");
 
-	/* Test bt_ctf_trace_get_environment_field_value_string */
-	ok(bt_ctf_trace_get_environment_field_value_string(NULL, 0) == NULL,
-		"bt_ctf_trace_get_environment_field_value_string handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_value_string(trace, -1) == NULL,
-		"bt_ctf_trace_get_environment_field_value_string handles an invalid index correctly");
-	ok(bt_ctf_trace_get_environment_field_value_string(trace, 1) == NULL,
-		"bt_ctf_trace_get_environment_field_value_string validates environment field type");
-	ret_string = bt_ctf_trace_get_environment_field_value_string(trace, 0);
-	ok(ret_string && !strcmp(ret_string, hostname),
-		"bt_ctf_trace_get_environment_field_value_string returns a correct value");
+	/* Test bt_ctf_trace_get_environment_field_value */
+	ok(bt_ctf_trace_get_environment_field_value(NULL, 0) == NULL,
+		"bt_ctf_trace_get_environment_field_value handles a NULL trace correctly");
+	ok(bt_ctf_trace_get_environment_field_value(trace, -1) == NULL,
+		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (negative)");
+	ok(bt_ctf_trace_get_environment_field_value(trace, 5) == NULL,
+		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (too large)");
+	obj = bt_ctf_trace_get_environment_field_value(trace, 1);
+	ret = bt_object_integer_get(obj, &ret_int64_t);
+	ok(!ret && ret_int64_t == 23,
+		"bt_ctf_trace_get_environment_field_value succeeds in getting an integer value");
+	BT_OBJECT_PUT(obj);
+	obj = bt_ctf_trace_get_environment_field_value(trace, 2);
+	ret = bt_object_string_get(obj, &ret_string);
+	ok(!ret && ret_string && !strcmp(ret_string, "the value"),
+		"bt_ctf_trace_get_environment_field_value succeeds in getting a string value");
+	BT_OBJECT_PUT(obj);
 
-	/* Test bt_ctf_trace_get_environment_field_value_integer */
-	ok(bt_ctf_trace_get_environment_field_value_integer(NULL, 0, &ret_int64_t) < 0,
-		"bt_ctf_trace_get_environment_field_value_integer handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 42, &ret_int64_t) < 0,
-		"bt_ctf_trace_get_environment_field_value_integer handles an invalid index correctly");
-	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 1, NULL) < 0,
-		"bt_ctf_trace_get_environment_field_value_integer handles a NULL value argument correctly");
-	ok(bt_ctf_trace_get_environment_field_value_integer(trace, 0, &ret_int64_t) < 0,
-		"bt_ctf_trace_get_environment_field_value_integer validates environment field type");
-	ok(!bt_ctf_trace_get_environment_field_value_integer(trace, 1, &ret_int64_t),
-		"bt_ctf_trace_get_environment_field_value_integer returns a value");
-	ok(ret_int64_t == 123456,
-		"bt_ctf_trace_get_environment_field_value_integer returned a correct value");
+	/* Test bt_ctf_trace_get_environment_field_value_by_name */
+	ok(!bt_ctf_trace_get_environment_field_value_by_name(NULL,
+		"test_env_str"),
+		"bt_ctf_trace_get_environment_field_value_by_name handles a NULL trace correctly");
+	ok(!bt_ctf_trace_get_environment_field_value_by_name(trace, NULL),
+		"bt_ctf_trace_get_environment_field_value_by_name handles a NULL name correctly");
+	ok(!bt_ctf_trace_get_environment_field_value_by_name(trace, "oh oh"),
+		"bt_ctf_trace_get_environment_field_value_by_name returns NULL or an unknown field name");
+	obj = bt_ctf_trace_get_environment_field_value_by_name(trace,
+		"test_env_str");
+	ret = bt_object_string_get(obj, &ret_string);
+	ok(!ret && ret_string && !strcmp(ret_string, "oh yeah"),
+		"bt_ctf_trace_get_environment_field_value_by_name succeeds in getting an existing field");
+	BT_OBJECT_PUT(obj);
+
+	/* Test environment field replacement */
+	ok(!bt_ctf_trace_set_environment_field_integer(trace, "test_env_int",
+		654321),
+		"bt_ctf_trace_set_environment_field_integer succeeds with an existing name");
+	ok(bt_ctf_trace_get_environment_field_count(trace) == 5,
+		"bt_ctf_trace_set_environment_field_integer with an existing key does not increase the environment size");
+	obj = bt_ctf_trace_get_environment_field_value(trace, 3);
+	ret = bt_object_integer_get(obj, &ret_int64_t);
+	ok(!ret && ret_int64_t == 654321,
+		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");
+	BT_OBJECT_PUT(obj);
 
 	if (uname(&name)) {
 		perror("uname");
@@ -2175,6 +2370,8 @@ int main(int argc, char **argv)
 	packet_resize_test(stream_class, stream1, clock);
 
 	append_complex_event(stream_class, stream1, clock);
+
+	append_existing_event_class(stream_class);
 
 	test_empty_stream(writer);
 

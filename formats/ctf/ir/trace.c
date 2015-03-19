@@ -34,12 +34,11 @@
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/objects.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
 
-static
-void environment_variable_destroy(struct environment_variable *var);
 static
 void bt_ctf_trace_destroy(struct bt_ctf_ref *ref);
 static
@@ -74,22 +73,25 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 
 	bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE);
 	bt_ctf_ref_init(&trace->ref_count);
-	trace->environment = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)environment_variable_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)bt_ctf_clock_put);
 	trace->streams = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)bt_ctf_stream_put);
 	trace->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)bt_ctf_stream_class_put);
-	if (!trace->environment || !trace->clocks ||
-		!trace->stream_classes || !trace->streams) {
+	if (!trace->clocks || !trace->stream_classes || !trace->streams) {
 		goto error_destroy;
 	}
 
 	/* Generate a trace UUID */
 	uuid_generate(trace->uuid);
 	if (init_trace_packet_header(trace)) {
+		goto error_destroy;
+	}
+
+	/* Create the environment array object */
+	trace->environment = bt_ctf_attributes_create();
+	if (!trace->environment) {
 		goto error_destroy;
 	}
 
@@ -112,7 +114,7 @@ void bt_ctf_trace_destroy(struct bt_ctf_ref *ref)
 
 	trace = container_of(ref, struct bt_ctf_trace, ref_count);
 	if (trace->environment) {
-		g_ptr_array_free(trace->environment, TRUE);
+		bt_ctf_attributes_destroy(trace->environment);
 	}
 
 	if (trace->clocks) {
@@ -170,96 +172,80 @@ error:
 	return NULL;
 }
 
-int bt_ctf_trace_add_environment_field(struct bt_ctf_trace *trace,
-		const char *name,
-		const char *value)
+int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
+		const char *name, struct bt_object *value)
 {
-	struct environment_variable *var = NULL;
-	char *escaped_value = NULL;
 	int ret = 0;
 
-	if (!trace || !name || !value || bt_ctf_validate_identifier(name)) {
+	if (!trace || trace->frozen || !name || !value ||
+		bt_ctf_validate_identifier(name) ||
+		!(bt_object_is_integer(value) || bt_object_is_string(value))) {
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
 	if (strchr(name, ' ')) {
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
-	var = g_new0(struct environment_variable, 1);
-	if (!var) {
-		ret = -1;
-		goto error;
-	}
+	ret = bt_ctf_attributes_set_field_value(trace->environment, name,
+		value);
 
-	var->type = BT_ENVIRONMENT_FIELD_TYPE_STRING;
-	escaped_value = g_strescape(value, NULL);
-	if (!escaped_value) {
-		ret = -1;
-		goto error;
-	}
-
-	var->name = g_string_new(name);
-	var->value.string = g_string_new(escaped_value);
-	g_free(escaped_value);
-	if (!var->name || !var->value.string) {
-		ret = -1;
-		goto error;
-	}
-
-	g_ptr_array_add(trace->environment, var);
-	return ret;
-
-error:
-	if (var && var->name) {
-		g_string_free(var->name, TRUE);
-	}
-
-	if (var && var->value.string) {
-		g_string_free(var->value.string, TRUE);
-	}
-
-	g_free(var);
+end:
 	return ret;
 }
 
-int bt_ctf_trace_add_environment_field_integer(struct bt_ctf_trace *trace,
-		const char *name,
-		int64_t value)
+int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
+		const char *name, const char *value)
 {
-	struct environment_variable *var = NULL;
 	int ret = 0;
+	struct bt_object *env_value_string_obj = NULL;
+
+	if (!trace || !name || !value) {
+		ret = -1;
+		goto end;
+	}
+
+	env_value_string_obj = bt_object_string_create_init(value);
+
+	if (!env_value_string_obj) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_trace_set_environment_field(trace, name,
+		env_value_string_obj);
+
+end:
+	BT_OBJECT_PUT(env_value_string_obj);
+
+	return ret;
+}
+
+int bt_ctf_trace_set_environment_field_integer(struct bt_ctf_trace *trace,
+		const char *name, int64_t value)
+{
+	int ret = 0;
+	struct bt_object *env_value_integer_obj = NULL;
 
 	if (!trace || !name) {
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
-	var = g_new0(struct environment_variable, 1);
-	if (!var) {
+	env_value_integer_obj = bt_object_integer_create_init(value);
+	if (!env_value_integer_obj) {
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
-	var->type = BT_ENVIRONMENT_FIELD_TYPE_INTEGER;
-	var->name = g_string_new(name);
-	var->value.integer = value;
-	if (!var->name) {
-		ret = -1;
-		goto error;
-	}
+	ret = bt_ctf_trace_set_environment_field(trace, name,
+		env_value_integer_obj);
 
-	g_ptr_array_add(trace->environment, var);
-	return ret;
+end:
+	BT_OBJECT_PUT(env_value_integer_obj);
 
-error:
-	if (var && var->name) {
-		g_string_free(var->name, TRUE);
-	}
-
-	g_free(var);
 	return ret;
 }
 
@@ -272,82 +258,55 @@ int bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
 		goto end;
 	}
 
-	ret = trace->environment->len;
+	ret = bt_ctf_attributes_get_count(trace->environment);
+
 end:
 	return ret;
-}
-
-enum bt_environment_field_type
-bt_ctf_trace_get_environment_field_type(struct bt_ctf_trace *trace, int index)
-{
-	struct environment_variable *var;
-	enum bt_environment_field_type type = BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN;
-
-	if (!trace || index < 0 || index >= trace->environment->len) {
-		goto end;
-	}
-
-	var = g_ptr_array_index(trace->environment, index);
-	type = var->type;
-end:
-	return type;
 }
 
 const char *
 bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
 		int index)
 {
-	struct environment_variable *var;
 	const char *ret = NULL;
 
-	if (!trace || index < 0 || index >= trace->environment->len) {
+	if (!trace) {
 		goto end;
 	}
 
-	var = g_ptr_array_index(trace->environment, index);
-	ret = var->name->str;
+	ret = bt_ctf_attributes_get_field_name(trace->environment, index);
+
 end:
 	return ret;
 }
 
-const char *
-bt_ctf_trace_get_environment_field_value_string(struct bt_ctf_trace *trace,
-		int index)
+struct bt_object *bt_ctf_trace_get_environment_field_value(
+		struct bt_ctf_trace *trace, int index)
 {
-	struct environment_variable *var;
-	const char *ret = NULL;
+	struct bt_object *ret = NULL;
 
-	if (!trace || index < 0 || index >= trace->environment->len) {
+	if (!trace) {
 		goto end;
 	}
 
-	var = g_ptr_array_index(trace->environment, index);
-	if (var->type != BT_ENVIRONMENT_FIELD_TYPE_STRING) {
-		goto end;
-	}
-	ret = var->value.string->str;
+	ret = bt_ctf_attributes_get_field_value(trace->environment, index);
+
 end:
 	return ret;
 }
 
-int
-bt_ctf_trace_get_environment_field_value_integer(struct bt_ctf_trace *trace,
-		int index, int64_t *value)
+struct bt_object *bt_ctf_trace_get_environment_field_value_by_name(
+		struct bt_ctf_trace *trace, const char *name)
 {
-	struct environment_variable *var;
-	int ret = 0;
+	struct bt_object *ret = NULL;
 
-	if (!trace || !value || index < 0 || index >= trace->environment->len) {
-		ret = -1;
+	if (!trace || !name) {
 		goto end;
 	}
 
-	var = g_ptr_array_index(trace->environment, index);
-	if (var->type != BT_ENVIRONMENT_FIELD_TYPE_INTEGER) {
-		ret = -1;
-		goto end;
-	}
-	*value = var->value.integer;
+	ret = bt_ctf_attributes_get_field_value_by_name(trace->environment,
+		name);
+
 end:
 	return ret;
 }
@@ -463,6 +422,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	}
 	bt_ctf_stream_class_freeze(stream_class);
 	trace->frozen = 1;
+	bt_ctf_attributes_freeze(trace->environment);
 
 end:
 	return ret;
@@ -584,34 +544,82 @@ end:
 }
 
 static
-void append_env_field_metadata(struct environment_variable *var,
-		struct metadata_context *context)
-{
-	switch (var->type) {
-	case BT_ENVIRONMENT_FIELD_TYPE_STRING:
-		g_string_append_printf(context->string, "\t%s = \"%s\";\n",
-			var->name->str, var->value.string->str);
-		break;
-	case BT_ENVIRONMENT_FIELD_TYPE_INTEGER:
-		g_string_append_printf(context->string, "\t%s = %" PRId64 ";\n",
-			var->name->str, var->value.integer);
-		break;
-	default:
-		assert(0);
-	}
-}
-
-static
 void append_env_metadata(struct bt_ctf_trace *trace,
 		struct metadata_context *context)
 {
-	if (trace->environment->len == 0) {
+	int i;
+	int env_size;
+
+	env_size = bt_ctf_attributes_get_count(trace->environment);
+
+	if (env_size <= 0) {
 		return;
 	}
 
 	g_string_append(context->string, "env {\n");
-	g_ptr_array_foreach(trace->environment,
-		(GFunc)append_env_field_metadata, context);
+
+	for (i = 0; i < env_size; ++i) {
+		struct bt_object *env_field_value_obj = NULL;
+		const char *entry_name;
+		int64_t int_value;
+		int ret;
+
+		entry_name = bt_ctf_attributes_get_field_name(
+			trace->environment, i);
+		env_field_value_obj = bt_ctf_attributes_get_field_value(
+			trace->environment, i);
+
+		if (!entry_name || !env_field_value_obj) {
+			goto loop_next;
+		}
+
+		switch (bt_object_get_type(env_field_value_obj)) {
+		case BT_OBJECT_TYPE_INTEGER:
+			ret = bt_object_integer_get(env_field_value_obj,
+				&int_value);
+
+			if (ret) {
+				goto loop_next;
+			}
+
+			g_string_append_printf(context->string,
+				"\t%s = %" PRId64 ";\n", entry_name,
+				int_value);
+			break;
+
+		case BT_OBJECT_TYPE_STRING:
+		{
+			int ret;
+			const char *str_value;
+			char *escaped_str = NULL;
+
+			ret = bt_object_string_get(env_field_value_obj,
+				&str_value);
+
+			if (ret) {
+				goto loop_next;
+			}
+
+			escaped_str = g_strescape(str_value, NULL);
+
+			if (!escaped_str) {
+				goto loop_next;
+			}
+
+			g_string_append_printf(context->string,
+				"\t%s = \"%s\";\n", entry_name, escaped_str);
+			free(escaped_str);
+			break;
+		}
+
+		default:
+			goto loop_next;
+		}
+
+loop_next:
+		BT_OBJECT_PUT(env_field_value_obj);
+	}
+
 	g_string_append(context->string, "};\n\n");
 }
 
@@ -847,14 +855,4 @@ end:
 	bt_ctf_field_type_put(trace_packet_header_type);
 
 	return ret;
-}
-
-static
-void environment_variable_destroy(struct environment_variable *var)
-{
-	g_string_free(var->name, TRUE);
-	if (var->type == BT_ENVIRONMENT_FIELD_TYPE_STRING) {
-		g_string_free(var->value.string, TRUE);
-	}
-	g_free(var);
 }
