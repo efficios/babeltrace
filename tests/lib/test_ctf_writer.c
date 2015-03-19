@@ -1752,6 +1752,22 @@ end:
 	bt_ctf_clock_put(clock);
 }
 
+void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_event_class *event_class;
+
+	assert(event_class = bt_ctf_event_class_create("Simple Event"));
+	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
+		"two event classes with the same name cannot cohabit within the same stream class");
+	bt_ctf_event_class_put(event_class);
+
+	assert(event_class = bt_ctf_event_class_create("different name, ok"));
+	assert(!bt_ctf_event_class_set_id(event_class, 11));
+	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
+		"two event classes with the same ID cannot cohabit within the same stream class");
+	bt_ctf_event_class_put(event_class);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -2354,6 +2370,8 @@ int main(int argc, char **argv)
 	packet_resize_test(stream_class, stream1, clock);
 
 	append_complex_event(stream_class, stream1, clock);
+
+	append_existing_event_class(stream_class);
 
 	test_empty_stream(writer);
 
