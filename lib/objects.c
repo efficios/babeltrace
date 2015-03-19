@@ -160,7 +160,7 @@ struct bt_object *bt_object_string_copy(const struct bt_object *string_obj)
 static
 struct bt_object *bt_object_array_copy(const struct bt_object *array_obj)
 {
-	int x;
+	int i;
 	int ret;
 	struct bt_object *copy_obj;
 	struct bt_object_array *typed_array_obj;
@@ -172,10 +172,10 @@ struct bt_object *bt_object_array_copy(const struct bt_object *array_obj)
 		goto end;
 	}
 
-	for (x = 0; x < typed_array_obj->garray->len; ++x) {
+	for (i = 0; i < typed_array_obj->garray->len; ++i) {
 		struct bt_object *element_obj_copy;
 		struct bt_object *element_obj =
-			bt_object_array_get(array_obj, x);
+			bt_object_array_get(array_obj, i);
 
 		if (!element_obj) {
 			BT_OBJECT_PUT(copy_obj);
@@ -304,7 +304,7 @@ static
 bool bt_object_array_compare(const struct bt_object *object_a,
 		const struct bt_object *object_b)
 {
-	int x;
+	int i;
 	bool ret = true;
 	const struct bt_object_array *array_obj_a =
 		BT_OBJECT_TO_ARRAY(object_a);
@@ -314,12 +314,12 @@ bool bt_object_array_compare(const struct bt_object *object_a,
 		goto end;
 	}
 
-	for (x = 0; x < array_obj_a->garray->len; ++x) {
+	for (i = 0; i < array_obj_a->garray->len; ++i) {
 		struct bt_object *element_obj_a;
 		struct bt_object *element_obj_b;
 
-		element_obj_a = bt_object_array_get(object_a, x);
-		element_obj_b = bt_object_array_get(object_b, x);
+		element_obj_a = bt_object_array_get(object_a, i);
+		element_obj_b = bt_object_array_get(object_b, i);
 
 		if (!bt_object_compare(element_obj_a, element_obj_b)) {
 			BT_OBJECT_PUT(element_obj_a);
@@ -394,13 +394,13 @@ void bt_object_generic_freeze(struct bt_object *object)
 
 void bt_object_array_freeze(struct bt_object *object)
 {
-	int x;
+	int i;
 	struct bt_object_array *typed_array_obj =
 		BT_OBJECT_TO_ARRAY(object);
 
-	for (x = 0; x < typed_array_obj->garray->len; ++x) {
+	for (i = 0; i < typed_array_obj->garray->len; ++i) {
 		struct bt_object *element_obj =
-			g_ptr_array_index(typed_array_obj->garray, x);
+			g_ptr_array_index(typed_array_obj->garray, i);
 
 		bt_object_freeze(element_obj);
 	}
