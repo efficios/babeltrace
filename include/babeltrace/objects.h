@@ -652,6 +652,23 @@ extern int bt_object_array_append_array(struct bt_object *array_obj);
 extern int bt_object_array_append_map(struct bt_object *array_obj);
 
 /**
+ * Replaces the element object at index \p index of the array object
+ * \p array_obj by \p element_obj.
+ *
+ * The replaced object's reference count is decremented, unless it's
+ * a null object. The reference count of \p element_obj is incremented,
+ * unless it's a null object.
+ *
+ * @param array_obj	Array object
+ * @param index		Index of element object to replace
+ * @param element_obj	New element object at position \p index of
+ *			\p array_obj
+ * @returns		0 on success, or a negative value on error
+ */
+extern int bt_object_array_set(struct bt_object *array_obj, size_t index,
+	struct bt_object *element_obj);
+
+/**
  * Gets the size of a map object, that is, the number of elements
  * contained in a map object.
  *
