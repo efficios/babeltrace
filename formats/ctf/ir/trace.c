@@ -561,8 +561,6 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 	for (i = 0; i < env_size; ++i) {
 		struct bt_object *env_field_value_obj = NULL;
 		const char *entry_name;
-		int64_t int_value;
-		int ret;
 
 		entry_name = bt_ctf_attributes_get_field_name(
 			trace->environment, i);
@@ -575,6 +573,10 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 
 		switch (bt_object_get_type(env_field_value_obj)) {
 		case BT_OBJECT_TYPE_INTEGER:
+		{
+			int ret;
+			int64_t int_value;
+
 			ret = bt_object_integer_get(env_field_value_obj,
 				&int_value);
 
@@ -586,7 +588,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 				"\t%s = %" PRId64 ";\n", entry_name,
 				int_value);
 			break;
-
+		}
 		case BT_OBJECT_TYPE_STRING:
 		{
 			int ret;
