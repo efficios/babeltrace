@@ -666,6 +666,28 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
+int bt_ctf_stream_class_set_trace(struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (!stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	if (stream_class->trace && trace) {
+		/* Already attached to a trace */
+		ret = -1;
+		goto end;
+	}
+
+	stream_class->trace = trace;
+end:
+	return ret;
+}
+
 static
 void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
 {

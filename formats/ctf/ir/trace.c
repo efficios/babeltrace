@@ -62,6 +62,13 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
 
+static
+void put_stream_class(struct bt_ctf_stream_class *stream_class)
+{
+	(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
+	bt_ctf_stream_class_put(stream_class);
+}
+
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
 	struct bt_ctf_trace *trace = NULL;
@@ -74,11 +81,11 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE);
 	bt_ctf_ref_init(&trace->ref_count);
 	trace->clocks = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)bt_ctf_clock_put);
+		(GDestroyNotify) bt_ctf_clock_put);
 	trace->streams = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)bt_ctf_stream_put);
+		(GDestroyNotify) bt_ctf_stream_put);
 	trace->stream_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)bt_ctf_stream_class_put);
+		(GDestroyNotify) put_stream_class);
 	if (!trace->clocks || !trace->stream_classes || !trace->streams) {
 		goto error_destroy;
 	}
@@ -403,6 +410,13 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 	}
 
+	/* Set weak reference to trace in stream class */
+	ret = bt_ctf_stream_class_set_trace(stream_class, trace);
+	if (ret) {
+		/* Stream class already part of another trace */
+		goto end;
+	}
+
 	bt_ctf_stream_class_get(stream_class);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
@@ -425,6 +439,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	bt_ctf_attributes_freeze(trace->environment);
 
 end:
+	if (ret) {
+		(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
+	}
 	return ret;
 }
 

@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
@@ -44,6 +45,8 @@ struct bt_ctf_stream_class {
 	uint32_t id;
 	uint32_t next_event_id;
 	uint32_t next_stream_id;
+	/* Weak reference; a stream class does not have ownership of a trace */
+	struct bt_ctf_trace *trace;
 	struct bt_ctf_field_type *packet_context_type;
 	struct bt_ctf_field_type *event_header_type;
 	struct bt_ctf_field_type *event_context_type;
@@ -66,5 +69,9 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 BT_HIDDEN
 int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		uint32_t id);
+
+BT_HIDDEN
+int bt_ctf_stream_class_set_trace(struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_trace *trace);
 
 #endif /* BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H */
