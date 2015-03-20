@@ -1055,6 +1055,8 @@ extern enum bt_object_status bt_object_map_insert_map(
  * The created object's reference count is set to 1, unless
  * \p object is a null object.
  *
+ * Copying a frozen object is allowed: the resulting copy is not frozen.
+ *
  * @param object	Object to copy
  * @returns		Deep copy of \p object on success, or \c NULL
  *			on error
