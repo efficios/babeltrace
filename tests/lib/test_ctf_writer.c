@@ -875,7 +875,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_set_attribute cannot set \"name\" or \"model.emf.uri\" to an integer value");
 	BT_OBJECT_PUT(obj);
 
-	assert(obj = bt_object_integer_create_init(5));
+	obj = bt_object_integer_create_init(5);
+	assert(obj);
 	ok(!bt_ctf_event_class_set_attribute(event_class, "loglevel", obj),
 		"bt_ctf_event_class_set_attribute succeeds in setting the \"loglevel\" attribute");
 	BT_OBJECT_PUT(obj);
@@ -903,7 +904,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(ret,
 		"bt_ctf_event_class_set_attribute cannot set \"id\" or \"loglevel\" to a string value");
 	BT_OBJECT_PUT(obj);
-	assert(obj = bt_object_string_create_init("http://kernel.org/"));
+	obj = bt_object_string_create_init("http://kernel.org/");
+	assert(obj);
 	assert(!bt_ctf_event_class_set_attribute(event_class, "model.emf.uri", obj));
 	BT_OBJECT_PUT(obj);
 
@@ -1782,7 +1784,8 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 		"two event classes with the same name cannot cohabit within the same stream class");
 	bt_ctf_event_class_put(event_class);
 
-	assert(event_class = bt_ctf_event_class_create("different name, ok"));
+	event_class = bt_ctf_event_class_create("different name, ok");
+	assert(event_class);
 	assert(!bt_ctf_event_class_set_id(event_class, 11));
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");

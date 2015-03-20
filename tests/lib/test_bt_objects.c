@@ -457,7 +457,8 @@ void test_array(void)
 	ok(bt_object_array_size(array_obj) == 10,
 		"appending to a frozen array object does not change its size");
 
-	assert(obj = bt_object_array_get(array_obj, 1));
+	obj = bt_object_array_get(array_obj, 1);
+	assert(obj);
 	ok(bt_object_float_set(obj, 14.52) == BT_OBJECT_STATUS_FROZEN,
 		"freezing an array object also freezes its elements");
 	BT_OBJECT_PUT(obj);
@@ -1139,7 +1140,8 @@ void test_freeze(void)
 	ok(!bt_object_is_frozen(NULL), "NULL is not frozen");
 	ok(bt_object_is_frozen(bt_object_null),
 		"the null singleton is frozen");
-	assert(obj = bt_object_integer_create());
+	obj = bt_object_integer_create();
+	assert(obj);
 	ok(!bt_object_is_frozen(obj),
 		"bt_object_is_frozen() returns false with a fresh object");
 	assert(!bt_object_freeze(obj));
