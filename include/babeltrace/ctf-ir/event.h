@@ -348,6 +348,16 @@ extern struct bt_ctf_event_class *bt_ctf_event_get_class(
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_event_get_stream: get an event's associated stream.
+ *
+ * @param event Event.
+ *
+ * Returns the event's associated stream, NULL on error.
+ */
+extern struct bt_ctf_stream *bt_ctf_event_get_stream(
+		struct bt_ctf_event *event);
+
+/*
  * bt_ctf_event_get_clock: get an event's associated clock.
  *
  * @param event Event.

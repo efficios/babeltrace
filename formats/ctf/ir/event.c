@@ -616,6 +616,22 @@ end:
 	return event_class;
 }
 
+struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
+{
+	struct bt_ctf_stream *stream = NULL;
+
+	if (!event) {
+		goto end;
+	}
+
+	stream = event->stream;
+	if (stream) {
+		bt_ctf_stream_get(stream);
+	}
+end:
+	return stream;
+}
+
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
 {
 	struct bt_ctf_clock *clock = NULL;
