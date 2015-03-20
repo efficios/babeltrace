@@ -566,7 +566,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field_unsigned);
-	ok(!strcmp(ret_char, mapping_name_test),
+	ok(ret_char && !strcmp(ret_char, mapping_name_test),
 		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an unsigned container");
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
