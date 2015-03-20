@@ -87,6 +87,23 @@ error:
 	return stream_class;
 }
 
+struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_trace *trace = NULL;
+
+	if (!stream_class) {
+		goto end;
+	}
+
+	trace = stream_class->trace;
+	if (trace) {
+		bt_ctf_trace_get(trace);
+	}
+end:
+	return trace;
+}
+
 const char *bt_ctf_stream_class_get_name(
 		struct bt_ctf_stream_class *stream_class)
 {

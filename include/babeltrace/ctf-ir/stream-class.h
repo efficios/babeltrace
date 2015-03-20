@@ -66,6 +66,16 @@ struct bt_ctf_clock;
 extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 
 /*
+ * bt_ctf_stream_class_get_trace: Get a stream class' associated trace.
+ *
+ * @param stream_class Stream class.
+ *
+ * Returns the stream class' associated trace, NULL on error.
+ */
+extern struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
+		struct bt_ctf_stream_class *stream_class);
+
+/*
  * bt_ctf_stream_class_get_name: Get a stream class' name.
  *
  * @param stream_class Stream class.
