@@ -1663,7 +1663,8 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_clock *clock = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_stream *stream = NULL,
+		*ret_stream = NULL;
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_event *event = NULL;
 	struct bt_ctf_field_type *integer_type = NULL;
@@ -1744,16 +1745,26 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 		goto end;
 	}
 
+	ok(bt_ctf_event_get_stream(NULL) == NULL,
+		"bt_ctf_event_get_stream handles NULL correctly");
+	ok(bt_ctf_event_get_stream(event) == NULL,
+		"bt_ctf_event_get_stream returns NULL on event which has not yet been appended to a stream");
+
 	ret = bt_ctf_stream_append_event(stream, event);
 	if (ret) {
 		diag("Failed to append event to stream");
 		goto end;
 	}
+
+	ret_stream = bt_ctf_event_get_stream(event);
+	ok(ret_stream == stream,
+		"bt_ctf_event_get_stream returns an event's stream after it has been appended");
 end:
 	ok(ret == 0,
 		"Create an event before instanciating its associated stream");
 	bt_ctf_trace_put(trace);
 	bt_ctf_stream_put(stream);
+	bt_ctf_stream_put(ret_stream);
 	bt_ctf_stream_class_put(stream_class);
 	bt_ctf_event_class_put(event_class);
 	bt_ctf_event_put(event);
