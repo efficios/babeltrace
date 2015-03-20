@@ -1185,3 +1185,25 @@ end:
 	}
 	return ret;
 }
+
+BT_HIDDEN
+int bt_ctf_event_set_stream(struct bt_ctf_event *event,
+		struct bt_ctf_stream *stream)
+{
+	int ret = 0;
+
+	if (!event) {
+		ret = -1;
+		goto end;
+	}
+
+	if (event->stream && stream) {
+		/* Already attached to a stream */
+		ret = -1;
+		goto end;
+	}
+
+	event->stream = stream;
+end:
+	return ret;
+}

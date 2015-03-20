@@ -246,6 +246,13 @@ end:
 	return ret;
 }
 
+static
+void put_event(struct bt_ctf_event *event)
+{
+	bt_ctf_event_set_stream(event, NULL);
+	bt_ctf_event_put(event);
+}
+
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(
 	struct bt_ctf_stream_class *stream_class,
@@ -297,7 +304,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	stream->stream_class = stream_class;
 	bt_ctf_stream_class_get(stream_class);
 	stream->events = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_ctf_event_put);
+		(GDestroyNotify) put_event);
 	if (!stream->events) {
 		goto error_destroy;
 	}
@@ -510,6 +517,13 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	ret = bt_ctf_event_set_stream(event, stream);
+	if (ret) {
+		/* Event was already associated to a stream */
+		ret = -1;
+		goto end;
+	}
+
 	ret = bt_ctf_event_populate_event_header(event);
 	if (ret) {
 		goto end;
@@ -543,6 +557,9 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		g_ptr_array_add(stream->event_contexts, event_context_copy);
 	}
 end:
+	if (ret) {
+		(void) bt_ctf_event_set_stream(event, NULL);
+	}
 	return ret;
 }
 
