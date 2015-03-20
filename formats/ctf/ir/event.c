@@ -137,7 +137,7 @@ end:
 int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 {
 	struct bt_object *obj = NULL;
-	int64_t ret;
+	int64_t ret = 0;
 
 	if (!event_class) {
 		ret = -1;
