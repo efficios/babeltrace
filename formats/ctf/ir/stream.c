@@ -357,13 +357,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
-void bt_ctf_stream_set_trace(struct bt_ctf_stream *stream,
-		struct bt_ctf_trace *trace)
-{
-	stream->trace = trace;
-}
-
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
 		struct bt_ctf_stream *stream)
 {
