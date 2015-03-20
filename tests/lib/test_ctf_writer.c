@@ -1615,7 +1615,7 @@ end:
 void test_empty_stream(struct bt_ctf_writer *writer)
 {
 	int ret = 0;
-	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_trace *trace = NULL, *ret_trace = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream *stream = NULL;
 
@@ -1633,16 +1633,26 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 		goto end;
 	}
 
+	ok(bt_ctf_stream_class_get_trace(NULL) == NULL,
+		"bt_ctf_stream_class_get_trace handles NULL correctly");
+	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
+		"bt_ctf_stream_class_get_trace returns NULL when stream class is orphaned");
+
 	stream = bt_ctf_writer_create_stream(writer, stream_class);
 	if (!stream) {
 		diag("Failed to create writer stream");
 		ret = -1;
 		goto end;
 	}
+
+	ret_trace = bt_ctf_stream_class_get_trace(stream_class);
+	ok(ret_trace == trace,
+		"bt_ctf_stream_class_get_trace returns the correct trace after a stream has been created");
 end:
 	ok(ret == 0,
 		"Created a stream class with default attributes and an empty stream");
 	bt_ctf_trace_put(trace);
+	bt_ctf_trace_put(ret_trace);
 	bt_ctf_stream_put(stream);
 	bt_ctf_stream_class_put(stream_class);
 }
@@ -2383,7 +2393,6 @@ int main(int argc, char **argv)
 	validate_trace(argv[2], trace_path);
 
 	bt_ctf_clock_put(clock);
-	bt_ctf_stream_class_put(stream_class);
 	bt_ctf_stream_class_put(ret_stream_class);
 	bt_ctf_writer_put(writer);
 	bt_ctf_stream_put(stream1);
@@ -2398,6 +2407,10 @@ int main(int argc, char **argv)
 	bt_ctf_field_put(packet_header_field);
 	bt_ctf_trace_put(trace);
 	free(metadata_string);
+
+	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
+		"bt_ctf_stream_class_get_trace returns NULL after its trace has been reclaimed");
+	bt_ctf_stream_class_put(stream_class);
 
 	/* Remove all trace files and delete temporary trace directory */
 	DIR *trace_dir = opendir(trace_path);
