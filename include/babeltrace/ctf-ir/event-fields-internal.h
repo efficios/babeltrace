@@ -102,7 +102,4 @@ BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct ctf_stream_pos *pos);
 
-BT_HIDDEN
-struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field);
-
 #endif /* BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H */

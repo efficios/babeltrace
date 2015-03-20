@@ -1015,7 +1015,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 {
 	int ret;
