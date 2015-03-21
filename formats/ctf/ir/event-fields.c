@@ -1073,6 +1073,7 @@ struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 		goto end;
 	}
 
+	copy->payload_set = field->payload_set;
 	ret = field_copy_funcs[type_id](field, copy);
 	if (ret) {
 		bt_ctf_field_put(copy);
