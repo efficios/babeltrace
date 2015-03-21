@@ -1975,12 +1975,38 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 {
 	int ret = 0, i;
 	struct bt_ctf_field_sequence *sequence_src, *sequence_dst;
+	struct bt_ctf_field *src_length;
+	struct bt_ctf_field *dst_length;
 
 	sequence_src = container_of(src, struct bt_ctf_field_sequence, parent);
 	sequence_dst = container_of(dst, struct bt_ctf_field_sequence, parent);
 
-	g_ptr_array_set_size(sequence_dst->elements,
-		sequence_src->elements->len);
+	src_length = bt_ctf_field_sequence_get_length(src);
+
+	if (!src_length) {
+		/* no length set yet: keep destination sequence empty */
+		goto end;
+	}
+
+	/* copy source length */
+	dst_length = bt_ctf_field_copy(src_length);
+	bt_ctf_field_put(src_length);
+
+	if (!dst_length) {
+		ret = -1;
+		goto end;
+	}
+
+	/* this will initialize the destination sequence's internal array */
+	ret = bt_ctf_field_sequence_set_length(dst, dst_length);
+	bt_ctf_field_put(dst_length);
+
+	if (ret) {
+		goto end;
+	}
+
+	assert(sequence_dst->elements->len == sequence_src->elements->len);
+
 	for (i = 0; i < sequence_src->elements->len; i++) {
 		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
 			g_ptr_array_index(sequence_src->elements, i));
@@ -1989,6 +2015,7 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 			ret = -1;
 			goto end;
 		}
+
 		g_ptr_array_index(sequence_dst->elements, i) = field_copy;
 	}
 end:
