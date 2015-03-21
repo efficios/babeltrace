@@ -1981,9 +1981,6 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 
 	assert(sequence_dst->elements->len == sequence_src->elements->len);
 
-	printf("sequence_dst->length=%p\n", sequence_dst->length);
-	printf("dst=%p\n", dst);
-
 	for (i = 0; i < sequence_src->elements->len; i++) {
 		struct bt_ctf_field *field =
 			g_ptr_array_index(sequence_src->elements, i);
