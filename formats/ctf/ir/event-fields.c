@@ -601,6 +601,31 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	}
 
 	tag_enum_value = tag_enum_integer->definition.value._signed;
+
+	/*
+	 * If the variant currently has a tag and a payload, and if the
+	 * requested tag value is the same as the current one, return
+	 * the current payload instead of creating a fresh one.
+	 */
+	if (variant->tag && variant->payload) {
+		struct bt_ctf_field *cur_tag_container = NULL;
+		struct bt_ctf_field_integer *cur_tag_enum_integer;
+		int64_t cur_tag_value;
+
+		cur_tag_container =
+			bt_ctf_field_enumeration_get_container(variant->tag);
+		cur_tag_enum_integer = container_of(cur_tag_container,
+			struct bt_ctf_field_integer, parent);
+		bt_ctf_field_put(cur_tag_container);
+		cur_tag_value = cur_tag_enum_integer->definition.value._signed;
+
+		if (cur_tag_value == tag_enum_value) {
+			new_field = variant->payload;
+			bt_ctf_field_get(new_field);
+			goto end;
+		}
+	}
+
 	field_type = bt_ctf_field_type_variant_get_field_type_signed(
 		variant_type, tag_enum_value);
 	if (!field_type) {
