@@ -524,11 +524,13 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 	}
 
 	new_field = bt_ctf_field_create(field_type);
-	bt_ctf_field_get(new_field);
 	array->elements->pdata[(size_t)index] = new_field;
 end:
 	if (field_type) {
 		bt_ctf_field_type_put(field_type);
+	}
+	if (new_field) {
+		bt_ctf_field_get(new_field);
 	}
 	return new_field;
 }
@@ -557,11 +559,13 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	}
 
 	new_field = bt_ctf_field_create(field_type);
-	bt_ctf_field_get(new_field);
 	sequence->elements->pdata[(size_t)index] = new_field;
 end:
 	if (field_type) {
 		bt_ctf_field_type_put(field_type);
+	}
+	if (new_field) {
+		bt_ctf_field_get(new_field);
 	}
 	return new_field;
 }
