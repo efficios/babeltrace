@@ -368,6 +368,16 @@ extern struct bt_ctf_clock *bt_ctf_event_get_clock(
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_event_get_payload_field: get an event's payload.
+ *
+ * @param event Event instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
+		struct bt_ctf_event *event);
+
+/*
  * bt_ctf_event_get_payload: get an event's field.
  *
  * Returns the field matching "name". bt_ctf_field_put() must be called on the

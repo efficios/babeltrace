@@ -697,6 +697,19 @@ end:
 	return ret;
 }
 
+struct bt_ctf_field *bt_ctf_event_get_payload_field(struct bt_ctf_event *event)
+{
+	struct bt_ctf_field *payload = NULL;
+
+	if (!event || !event->fields_payload) {
+		goto end;
+	}
+
+	payload = event->fields_payload;
+	bt_ctf_field_get(payload);
+end:
+	return payload;
+}
 
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 		const char *name)
