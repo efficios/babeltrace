@@ -788,7 +788,7 @@ end:
 	return field;
 }
 
-struct bt_ctf_field *bt_ctf_event_get_event_header(
+struct bt_ctf_field *bt_ctf_event_get_header(
 		struct bt_ctf_event *event)
 {
 	struct bt_ctf_field *header = NULL;
@@ -803,7 +803,7 @@ end:
 	return header;
 }
 
-int bt_ctf_event_set_event_header(struct bt_ctf_event *event,
+int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		struct bt_ctf_field *header)
 {
 	int ret = 0;
