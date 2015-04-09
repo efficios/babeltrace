@@ -43,12 +43,6 @@ struct bt_ctf_stream;
 struct bt_ctf_stream_class;
 struct bt_ctf_clock;
 
-enum bt_environment_field_type {
-	BT_ENVIRONMENT_FIELD_TYPE_UNKNOWN = -1,
-	BT_ENVIRONMENT_FIELD_TYPE_STRING = 0,
-	BT_ENVIRONMENT_FIELD_TYPE_INTEGER = 1,
-};
-
 /*
  * bt_ctf_trace_create: create a trace instance.
  *

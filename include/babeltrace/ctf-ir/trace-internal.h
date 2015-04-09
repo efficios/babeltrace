@@ -60,15 +60,6 @@ struct bt_ctf_trace {
 	uint64_t next_stream_id;
 };
 
-struct environment_variable {
-	GString *name;
-	enum bt_environment_field_type type;
-	union {
-		GString *string;
-		int64_t integer;
-	} value;
-};
-
 struct metadata_context {
 	GString *string;
 	GString *field_name;
