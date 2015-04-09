@@ -2387,6 +2387,9 @@ int main(int argc, char **argv)
 	ok(!bt_ctf_stream_set_packet_header(stream1, packet_header),
 		"Successfully set a stream's packet header");
 
+	ok(bt_ctf_writer_add_environment_field(writer, "new_field", "test") == 0,
+		"Add environment field to writer after stream creation");
+
 	test_instanciate_event_before_stream(writer);
 
 	append_simple_event(stream_class, stream1, clock);
