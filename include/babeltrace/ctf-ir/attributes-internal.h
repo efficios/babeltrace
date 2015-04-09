@@ -1,12 +1,13 @@
-#ifndef BABELTRACE_CTF_IR_UTILS_H
-#define BABELTRACE_CTF_IR_UTILS_H
+#ifndef BABELTRACE_CTF_IR_ATTRIBUTES_H
+#define BABELTRACE_CTF_IR_ATTRIBUTES_H
 
 /*
- * BabelTrace - CTF IR: Utilities
+ * attributes.c
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Babeltrace - CTF IR: Attributes internal
  *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,34 +26,45 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
- * The Common Trace Format (CTF) Specification is available at
- * http://www.efficios.com/ctf
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/objects.h>
 
-/*
- * bt_ctf_validate_identifier: validate an identifier against the CTF spec.
- *
- * Validate that an identifier meets the CTF specification's restrictions on
- * identifiers. An identifier will be rejected if it is a keyword defined
- * in the CTF specification or if it does not meet any other requirement imposed
- * on identifiers.
- *
- * Note that this will not check whether or not the identifier clashes with
- * identifiers used in a given trace.
- *
- * Returns 0 if the identifier is valid, a negative value on error.
- */
-extern int bt_ctf_validate_identifier(const char *identifier);
+BT_HIDDEN
+struct bt_object *bt_ctf_attributes_create(void);
+
+BT_HIDDEN
+void bt_ctf_attributes_destroy(struct bt_object *attr_obj);
+
+BT_HIDDEN
+int bt_ctf_attributes_get_count(struct bt_object *attr_obj);
+
+BT_HIDDEN
+const char *bt_ctf_attributes_get_field_name(struct bt_object *attr_obj,
+		int index);
+
+BT_HIDDEN
+struct bt_object *bt_ctf_attributes_get_field_value(struct bt_object *attr_obj,
+		int index);
+
+BT_HIDDEN
+int bt_ctf_attributes_set_field_value(struct bt_object *attr_obj,
+		const char *name, struct bt_object *value_obj);
+
+BT_HIDDEN
+struct bt_object *bt_ctf_attributes_get_field_value_by_name(
+		struct bt_object *attr_obj, const char *name);
+
+BT_HIDDEN
+int bt_ctf_attributes_freeze(struct bt_object *attr_obj);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_CTF_IR_UTILS_H */
+#endif /* BABELTRACE_CTF_IR_ATTRIBUTES_H */

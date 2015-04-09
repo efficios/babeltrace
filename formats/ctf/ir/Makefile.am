@@ -3,6 +3,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libctf-ir.la
 
 libctf_ir_la_SOURCES = \
+	attributes.c \
 	clock.c \
 	event.c \
 	event-fields.c \

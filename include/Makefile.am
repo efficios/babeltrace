@@ -53,6 +53,7 @@ noinst_HEADERS = \
 	babeltrace/ctf/ctf-index.h \
 	babeltrace/ctf-writer/ref-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
+	babeltrace/ctf-ir/attributes-internal.h \
 	babeltrace/ctf-ir/event-types-internal.h \
 	babeltrace/ctf-ir/event-fields-internal.h \
 	babeltrace/ctf-ir/event-internal.h \

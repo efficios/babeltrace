@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler.h>
 
 static
