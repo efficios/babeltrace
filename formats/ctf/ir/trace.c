@@ -187,7 +187,7 @@ int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || trace->frozen || !name || !value ||
+	if (!trace || !name || !value ||
 		bt_ctf_validate_identifier(name) ||
 		!(bt_object_is_integer(value) || bt_object_is_string(value))) {
 		ret = -1;
@@ -197,6 +197,26 @@ int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 	if (strchr(name, ' ')) {
 		ret = -1;
 		goto end;
+	}
+
+	if (trace->frozen) {
+		/*
+		 * New environment fields may be added to a frozen trace,
+		 * but existing fields may not be changed.
+		 *
+		 * The object passed is frozen like all other attributes.
+		 */
+		struct bt_object *attribute =
+			bt_ctf_attributes_get_field_value_by_name(
+				trace->environment, name);
+
+		if (attribute) {
+			BT_OBJECT_PUT(attribute);
+			ret = -1;
+			goto end;
+		}
+
+		bt_object_freeze(value);
 	}
 
 	ret = bt_ctf_attributes_set_field_value(trace->environment, name,
@@ -217,6 +237,22 @@ int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
+	if (trace->frozen) {
+		/*
+		 * New environment fields may be added to a frozen trace,
+		 * but existing fields may not be changed.
+		 */
+		struct bt_object *attribute =
+			bt_ctf_attributes_get_field_value_by_name(
+				trace->environment, name);
+
+		if (attribute) {
+			BT_OBJECT_PUT(attribute);
+			ret = -1;
+			goto end;
+		}
+	}
+
 	env_value_string_obj = bt_object_string_create_init(value);
 
 	if (!env_value_string_obj) {
@@ -224,6 +260,9 @@ int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
+	if (trace->frozen) {
+		bt_object_freeze(env_value_string_obj);
+	}
 	ret = bt_ctf_trace_set_environment_field(trace, name,
 		env_value_string_obj);
 
@@ -244,6 +283,22 @@ int bt_ctf_trace_set_environment_field_integer(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
+	if (trace->frozen) {
+		/*
+		 * New environment fields may be added to a frozen trace,
+		 * but existing fields may not be changed.
+		 */
+		struct bt_object *attribute =
+			bt_ctf_attributes_get_field_value_by_name(
+				trace->environment, name);
+
+		if (attribute) {
+			BT_OBJECT_PUT(attribute);
+			ret = -1;
+			goto end;
+		}
+	}
+
 	env_value_integer_obj = bt_object_integer_create_init(value);
 	if (!env_value_integer_obj) {
 		ret = -1;
@@ -252,7 +307,9 @@ int bt_ctf_trace_set_environment_field_integer(struct bt_ctf_trace *trace,
 
 	ret = bt_ctf_trace_set_environment_field(trace, name,
 		env_value_integer_obj);
-
+	if (trace->frozen) {
+		bt_object_freeze(env_value_integer_obj);
+	}
 end:
 	BT_OBJECT_PUT(env_value_integer_obj);
 
