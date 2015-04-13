@@ -219,6 +219,49 @@ int _bt_ctf_stream_class_set_id(
 	return 0;
 }
 
+struct event_class_set_stream_id_data {
+	uint32_t stream_id;
+	int ret;
+};
+
+static
+void event_class_set_stream_id(gpointer event_class, gpointer data)
+{
+	struct event_class_set_stream_id_data *typed_data = data;
+
+	typed_data->ret |= bt_ctf_event_class_set_stream_id(event_class,
+		typed_data->stream_id);
+}
+
+BT_HIDDEN
+int bt_ctf_stream_class_set_id_no_check(
+		struct bt_ctf_stream_class *stream_class, uint32_t id)
+{
+	struct event_class_set_stream_id_data data;
+	int ret = 0;
+
+	/*
+	 * Make sure all event classes have their "stream_id" attribute
+	 * set to this value.
+	 */
+	data.stream_id = id;
+	data.ret = 0;
+	g_ptr_array_foreach(stream_class->event_classes,
+		event_class_set_stream_id, &data);
+	ret = data.ret;
+
+	if (ret) {
+		goto end;
+	}
+
+	ret = _bt_ctf_stream_class_set_id(stream_class, id);
+	if (ret) {
+		goto end;
+	}
+end:
+	return ret;
+}
+
 int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		uint32_t id)
 {
@@ -229,10 +272,8 @@ int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	ret = _bt_ctf_stream_class_set_id(stream_class, id);
-	if (ret) {
-		goto end;
-	}
+	ret = bt_ctf_stream_class_set_id_no_check(stream_class, id);
+
 end:
 	return ret;
 }
@@ -313,6 +354,11 @@ int bt_ctf_stream_class_add_event_class(
 	}
 
 	ret = bt_ctf_event_class_set_stream_class(event_class, stream_class);
+	if (ret) {
+		goto end;
+	}
+
+	ret = bt_ctf_event_class_set_stream_id(event_class, stream_class->id);
 	if (ret) {
 		goto end;
 	}
