@@ -526,10 +526,31 @@ void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 	bt_ctf_ref_put(&event_class->ref_count, bt_ctf_event_class_destroy);
 }
 
+BT_HIDDEN
+int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
+		uint32_t stream_id)
+{
+	int ret = 0;
+	struct bt_object *obj;
+
+	obj = bt_object_integer_create_init(stream_id);
+
+	if (!obj) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_attributes_set_field_value(event_class->attributes,
+		"stream_id", obj);
+
+end:
+	BT_OBJECT_PUT(obj);
+
+	return ret;
+}
+
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 {
-	int ret;
-	struct bt_object *obj = NULL;
 	struct bt_ctf_event *event = NULL;
 
 	if (!event_class) {
@@ -546,21 +567,6 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 	assert(event_class->stream_class->event_header_type);
-
-	/* set "stream_id" attribute now that we know its value */
-	obj = bt_object_integer_create_init(event_class->stream_class->id);
-	if (!obj) {
-		goto end;
-	}
-
-	ret = bt_ctf_attributes_set_field_value(event_class->attributes,
-		"stream_id", obj);
-	BT_OBJECT_PUT(obj);
-
-	if (ret) {
-		goto end;
-	}
-
 	event = g_new0(struct bt_ctf_event, 1);
 	if (!event) {
 		goto end;

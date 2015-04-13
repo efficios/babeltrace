@@ -71,6 +71,10 @@ int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		uint32_t id);
 
 BT_HIDDEN
+int bt_ctf_stream_class_set_id_no_check(
+		struct bt_ctf_stream_class *stream_class, uint32_t id);
+
+BT_HIDDEN
 int bt_ctf_stream_class_set_trace(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_trace *trace);
 
