@@ -462,8 +462,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			}
 		}
 
-		if (_bt_ctf_stream_class_set_id(stream_class,
-			stream_id)) {
+		if (bt_ctf_stream_class_set_id_no_check(stream_class, stream_id)) {
 			/* TODO Should retry with a different stream id */
 			ret = -1;
 			goto end;
