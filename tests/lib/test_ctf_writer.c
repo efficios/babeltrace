@@ -668,8 +668,10 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct event_class_attrs_counts ;
 	const char *complex_test_event_string = "Complex Test Event";
 	const char *test_string_1 = "Test ";
-	const char *test_string_2 = "string";
-	const char *test_string_cat = "Test string";
+	const char *test_string_2 = "string ";
+	const char *test_string_3 = "abcdefghi";
+	const char *test_string_4 = "abcd\0efg\0hi";
+	const char *test_string_cat = "Test string abcdeabcd";
 	struct bt_ctf_field_type *uint_35_type =
 		bt_ctf_field_type_integer_create(35);
 	struct bt_ctf_field_type *int_16_type =
@@ -1110,6 +1112,19 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_string_append correctly handles a NULL string value");
 	ok(!bt_ctf_field_string_append(a_string_field, test_string_2),
 		"bt_ctf_field_string_append succeeds");
+	ok(bt_ctf_field_string_append_len(NULL, "oh noes", 3),
+		"bt_ctf_field_string_append_len correctly handles a NULL string field");
+	ok(bt_ctf_field_string_append_len(a_string_field, NULL, 3),
+		"bt_ctf_field_string_append_len correctly handles a NULL string value");
+	ok(!bt_ctf_field_string_append_len(a_string_field, test_string_3, 5),
+		"bt_ctf_field_string_append_len succeeds (append 5 characters)");
+	ok(!bt_ctf_field_string_append_len(a_string_field, test_string_4, 10),
+		"bt_ctf_field_string_append_len succeeds (append 4 characters)");
+	ok(!bt_ctf_field_string_append_len(a_string_field, &test_string_4[4], 3),
+		"bt_ctf_field_string_append_len succeeds (append 0 characters)");
+	ok(!bt_ctf_field_string_append_len(a_string_field, test_string_3, 0),
+		"bt_ctf_field_string_append_len succeeds (append 0 characters)");
+
 	ret_string = bt_ctf_field_string_get_value(a_string_field);
 	ok(ret_string, "bt_ctf_field_string_get_value returns a string");
 	ok(ret_string ? !strcmp(ret_string, test_string_cat) : 0,
