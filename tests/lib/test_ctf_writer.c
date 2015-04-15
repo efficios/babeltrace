@@ -667,7 +667,9 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	int64_t int64_value;
 	struct event_class_attrs_counts ;
 	const char *complex_test_event_string = "Complex Test Event";
-	const char *test_string = "Test string";
+	const char *test_string_1 = "Test ";
+	const char *test_string_2 = "string";
+	const char *test_string_cat = "Test string";
 	struct bt_ctf_field_type *uint_35_type =
 		bt_ctf_field_type_integer_create(35);
 	struct bt_ctf_field_type *int_16_type =
@@ -1099,12 +1101,18 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(!bt_ctf_field_string_get_value(a_string_field),
 		"bt_ctf_field_string_get_value returns NULL on an unset field");
 	bt_ctf_field_string_set_value(a_string_field,
-		test_string);
+		test_string_1);
 	ok(!bt_ctf_field_string_get_value(NULL),
 		"bt_ctf_field_string_get_value correctly handles NULL");
+	ok(bt_ctf_field_string_append(NULL, "yeah"),
+		"bt_ctf_field_string_append correctly handles a NULL string field");
+	ok(bt_ctf_field_string_append(a_string_field, NULL),
+		"bt_ctf_field_string_append correctly handles a NULL string value");
+	ok(!bt_ctf_field_string_append(a_string_field, test_string_2),
+		"bt_ctf_field_string_append succeeds");
 	ret_string = bt_ctf_field_string_get_value(a_string_field);
 	ok(ret_string, "bt_ctf_field_string_get_value returns a string");
-	ok(ret_string ? !strcmp(ret_string, test_string) : 0,
+	ok(ret_string ? !strcmp(ret_string, test_string_cat) : 0,
 		"bt_ctf_field_string_get_value returns a correct value");
 	bt_ctf_field_unsigned_integer_set_value(uint_35_field,
 		SEQUENCE_TEST_LENGTH);
