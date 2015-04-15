@@ -946,6 +946,45 @@ end:
 	return ret;
 }
 
+int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
+		const char *value, unsigned int length)
+{
+	int i;
+	int ret = 0;
+	unsigned int effective_length = length;
+	struct bt_ctf_field_string *string_field;
+
+	if (!field || !value ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_STRING) {
+		ret = -1;
+		goto end;
+	}
+
+	string_field = container_of(field, struct bt_ctf_field_string, parent);
+
+	/* make sure no null bytes are appended */
+	for (i = 0; i < length; ++i) {
+		if (value[i] == '\0') {
+			effective_length = i;
+			break;
+		}
+	}
+
+	if (string_field->payload) {
+		g_string_insert_len(string_field->payload, -1, value,
+			effective_length);
+	} else {
+		string_field->payload = g_string_new_len(value,
+			effective_length);
+	}
+
+	string_field->parent.payload_set = 1;
+
+end:
+	return ret;
+}
+
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field)
 {
