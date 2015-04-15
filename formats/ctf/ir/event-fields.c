@@ -919,6 +919,33 @@ end:
 	return ret;
 }
 
+int bt_ctf_field_string_append(struct bt_ctf_field *field,
+		const char *value)
+{
+	int ret = 0;
+	struct bt_ctf_field_string *string_field;
+
+	if (!field || !value ||
+		bt_ctf_field_type_get_type_id(field->type) !=
+			CTF_TYPE_STRING) {
+		ret = -1;
+		goto end;
+	}
+
+	string_field = container_of(field, struct bt_ctf_field_string, parent);
+
+	if (string_field->payload) {
+		g_string_append(string_field->payload, value);
+	} else {
+		string_field->payload = g_string_new(value);
+	}
+
+	string_field->parent.payload_set = 1;
+
+end:
+	return ret;
+}
+
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field)
 {

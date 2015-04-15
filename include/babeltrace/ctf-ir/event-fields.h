@@ -289,6 +289,22 @@ extern int bt_ctf_field_string_set_value(struct bt_ctf_field *string_field,
 		const char *value);
 
 /*
+ * bt_ctf_field_string_append: append a string to a string field's
+ * current value.
+ *
+ * Append a string to the current value of a string field. If the string
+ * field was never set using bt_ctf_field_string_set_value(), it is
+ * first set to an empty string, and then the concatenation happens.
+ *
+ * @param string_field String field instance.
+ * @param value String to append to the current string field's value.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_string_append(struct bt_ctf_field *string_field,
+		const char *value);
+
+/*
  * bt_ctf_field_get_type: get a field's type
  *
  * @param field Field intance.
