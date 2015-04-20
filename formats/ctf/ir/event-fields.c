@@ -972,7 +972,7 @@ int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 	}
 
 	if (string_field->payload) {
-		g_string_insert_len(string_field->payload, -1, value,
+		g_string_append_len(string_field->payload, value,
 			effective_length);
 	} else {
 		string_field->payload = g_string_new_len(value,
