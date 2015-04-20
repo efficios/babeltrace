@@ -368,6 +368,16 @@ extern struct bt_ctf_clock *bt_ctf_event_get_clock(
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_event_get_payload_field: get an event's payload.
+ *
+ * @param event Event instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
+		struct bt_ctf_event *event);
+
+/*
  * bt_ctf_event_get_payload: get an event's field.
  *
  * Returns the field matching "name". bt_ctf_field_put() must be called on the
@@ -473,6 +483,19 @@ extern struct bt_ctf_field *bt_ctf_event_get_event_context(
  */
 extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
+
+/*
+ * bt_ctf_event_copy: Deep-copy an event.
+ *
+ * Get an event's deep copy.
+ *
+ * On success, the returned copy has its reference count set to 1.
+ *
+ * @param event Event to copy.
+ *
+ * Returns the deep-copied event on success, NULL on error.
+ */
+extern struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event);
 
 /*
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement

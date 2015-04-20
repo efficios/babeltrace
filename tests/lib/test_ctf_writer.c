@@ -276,6 +276,89 @@ close_fp:
 	}
 }
 
+void event_copy_tests(struct bt_ctf_event *event)
+{
+	struct bt_ctf_event *copy;
+	struct bt_ctf_event_class *orig_event_class;
+	struct bt_ctf_event_class *copy_event_class;
+	struct bt_ctf_stream *orig_stream;
+	struct bt_ctf_stream *copy_stream;
+	struct bt_ctf_field *orig_field;
+	struct bt_ctf_field *copy_field;
+
+	/* copy */
+	ok(!bt_ctf_event_copy(NULL),
+		"bt_ctf_event_copy handles NULL correctly");
+	copy = bt_ctf_event_copy(event);
+	ok(copy, "bt_ctf_event_copy returns a valid pointer");
+
+	/* validate event class */
+	orig_event_class = bt_ctf_event_get_class(event);
+	assert(orig_event_class);
+	copy_event_class = bt_ctf_event_get_class(copy);
+	ok(orig_event_class == copy_event_class,
+		"original and copied events share the same event class pointer");
+	bt_ctf_event_class_put(orig_event_class);
+	bt_ctf_event_class_put(copy_event_class);
+
+	/* validate stream */
+	orig_stream = bt_ctf_event_get_stream(event);
+	copy_stream = bt_ctf_event_get_stream(copy);
+
+	if (!orig_stream) {
+		ok(!copy_stream, "original and copied events have no stream");
+	} else {
+		ok(orig_stream == copy_stream,
+			"original and copied events share the same stream pointer");
+	}
+	bt_ctf_stream_put(orig_stream);
+	bt_ctf_stream_put(copy_stream);
+
+	/* header */
+	orig_field = bt_ctf_event_get_header(event);
+	copy_field = bt_ctf_event_get_header(copy);
+
+	if (!orig_field) {
+		ok(!copy_field, "original and copied events have no header");
+	} else {
+		ok(orig_field != copy_field,
+			"original and copied events headers are different pointers");
+	}
+
+	bt_ctf_field_put(orig_field);
+	bt_ctf_field_put(copy_field);
+
+	/* context */
+	orig_field = bt_ctf_event_get_event_context(event);
+	copy_field = bt_ctf_event_get_event_context(copy);
+
+	if (!orig_field) {
+		ok(!copy_field, "original and copied events have no context");
+	} else {
+		ok(orig_field != copy_field,
+			"original and copied events contexts are different pointers");
+	}
+
+	bt_ctf_field_put(orig_field);
+	bt_ctf_field_put(copy_field);
+
+	/* payload */
+	orig_field = bt_ctf_event_get_payload_field(event);
+	copy_field = bt_ctf_event_get_payload_field(copy);
+
+	if (!orig_field) {
+		ok(!copy_field, "original and copied events have no payload");
+	} else {
+		ok(orig_field != copy_field,
+			"original and copied events payloads are different pointers");
+	}
+
+	bt_ctf_field_put(orig_field);
+	bt_ctf_field_put(copy_field);
+
+	bt_ctf_event_put(copy);
+}
+
 void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
@@ -599,8 +682,10 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(!bt_ctf_event_set_event_context(simple_event, event_context),
 		"Set an event context successfully");
 
+	event_copy_tests(simple_event);
 	ok(bt_ctf_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
+	event_copy_tests(simple_event);
 
 	ok(bt_ctf_stream_get_packet_context(NULL) == NULL,
 		"bt_ctf_stream_get_packet_context handles NULL correctly");
@@ -1208,6 +1293,526 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_put(ret_field_type);
 	bt_ctf_event_class_put(event_class);
 	bt_ctf_event_put(event);
+}
+
+static void field_copy_tests_validate_same_type(struct bt_ctf_field *field,
+	struct bt_ctf_field_type *expected_type, const char *name)
+{
+	struct bt_ctf_field_type *copy_type;
+
+	copy_type = bt_ctf_field_get_type(field);
+	ok(copy_type == expected_type,
+		"bt_ctf_field_copy does not copy the type (%s)", name);
+	bt_ctf_field_type_put(copy_type);
+}
+
+static void field_copy_tests_validate_diff_ptrs(struct bt_ctf_field *field_a,
+	struct bt_ctf_field *field_b, const char *name)
+{
+	ok(field_a != field_b,
+		"bt_ctf_field_copy creates different pointers (%s)", name);
+}
+
+void field_copy_tests()
+{
+	struct bt_ctf_field_type *len_type = NULL;
+	struct bt_ctf_field_type *fp_type = NULL;
+	struct bt_ctf_field_type *s_type = NULL;
+	struct bt_ctf_field_type *e_int_type = NULL;
+	struct bt_ctf_field_type *e_type = NULL;
+	struct bt_ctf_field_type *v_type = NULL;
+	struct bt_ctf_field_type *v_label1_type = NULL;
+	struct bt_ctf_field_type *v_label1_array_type = NULL;
+	struct bt_ctf_field_type *v_label2_type = NULL;
+	struct bt_ctf_field_type *v_label2_seq_type = NULL;
+	struct bt_ctf_field_type *strct_type = NULL;
+	struct bt_ctf_field *len = NULL;
+	struct bt_ctf_field *fp = NULL;
+	struct bt_ctf_field *s = NULL;
+	struct bt_ctf_field *e_int = NULL;
+	struct bt_ctf_field *e = NULL;
+	struct bt_ctf_field *v = NULL;
+	struct bt_ctf_field *v_selected = NULL;
+	struct bt_ctf_field *v_selected_0 = NULL;
+	struct bt_ctf_field *v_selected_1 = NULL;
+	struct bt_ctf_field *v_selected_2 = NULL;
+	struct bt_ctf_field *v_selected_3 = NULL;
+	struct bt_ctf_field *v_selected_4 = NULL;
+	struct bt_ctf_field *v_selected_5 = NULL;
+	struct bt_ctf_field *v_selected_6 = NULL;
+	struct bt_ctf_field *a = NULL;
+	struct bt_ctf_field *a_0 = NULL;
+	struct bt_ctf_field *a_1 = NULL;
+	struct bt_ctf_field *a_2 = NULL;
+	struct bt_ctf_field *a_3 = NULL;
+	struct bt_ctf_field *a_4 = NULL;
+	struct bt_ctf_field *strct = NULL;
+	struct bt_ctf_field *len_copy = NULL;
+	struct bt_ctf_field *fp_copy = NULL;
+	struct bt_ctf_field *s_copy = NULL;
+	struct bt_ctf_field *e_int_copy = NULL;
+	struct bt_ctf_field *e_copy = NULL;
+	struct bt_ctf_field *v_copy = NULL;
+	struct bt_ctf_field *v_selected_copy = NULL;
+	struct bt_ctf_field *v_selected_copy_len = NULL;
+	struct bt_ctf_field *v_selected_0_copy = NULL;
+	struct bt_ctf_field *v_selected_1_copy = NULL;
+	struct bt_ctf_field *v_selected_2_copy = NULL;
+	struct bt_ctf_field *v_selected_3_copy = NULL;
+	struct bt_ctf_field *v_selected_4_copy = NULL;
+	struct bt_ctf_field *v_selected_5_copy = NULL;
+	struct bt_ctf_field *v_selected_6_copy = NULL;
+	struct bt_ctf_field *a_copy = NULL;
+	struct bt_ctf_field *a_0_copy = NULL;
+	struct bt_ctf_field *a_1_copy = NULL;
+	struct bt_ctf_field *a_2_copy = NULL;
+	struct bt_ctf_field *a_3_copy = NULL;
+	struct bt_ctf_field *a_4_copy = NULL;
+	struct bt_ctf_field *strct_copy = NULL;
+	uint64_t uint64_t_val;
+	const char *str_val;
+	double double_val;
+	int ret;
+
+	/* create len type */
+	len_type = bt_ctf_field_type_integer_create(32);
+	assert(len_type);
+
+	/* create fp type */
+	fp_type = bt_ctf_field_type_floating_point_create();
+	assert(fp_type);
+
+	/* create s type */
+	s_type = bt_ctf_field_type_string_create();
+	assert(s_type);
+
+	/* create e_int type */
+	e_int_type = bt_ctf_field_type_integer_create(8);
+	assert(e_int_type);
+
+	/* create e type */
+	e_type = bt_ctf_field_type_enumeration_create(e_int_type);
+	assert(e_type);
+	ret = bt_ctf_field_type_enumeration_add_mapping(e_type, "LABEL1",
+		10, 15);
+	assert(!ret);
+	ret = bt_ctf_field_type_enumeration_add_mapping(e_type, "LABEL2",
+		23, 23);
+	assert(!ret);
+
+	/* create v_label1 type */
+	v_label1_type = bt_ctf_field_type_string_create();
+	assert(v_label1_type);
+
+	/* create v_label1_array type */
+	v_label1_array_type = bt_ctf_field_type_array_create(v_label1_type, 5);
+	assert(v_label1_array_type);
+
+	/* create v_label2 type */
+	v_label2_type = bt_ctf_field_type_integer_create(16);
+	assert(v_label2_type);
+
+	/* create v_label2_seq type */
+	v_label2_seq_type = bt_ctf_field_type_sequence_create(v_label2_type,
+		"len");
+	assert(v_label2_seq_type);
+
+	/* create v type */
+	v_type = bt_ctf_field_type_variant_create(e_type, "e");
+	assert(v_type);
+	ret = bt_ctf_field_type_variant_add_field(v_type, v_label1_array_type,
+		"LABEL1");
+	assert(!ret);
+	ret = bt_ctf_field_type_variant_add_field(v_type, v_label2_seq_type,
+		"LABEL2");
+	assert(!ret);
+
+	/* create strct type */
+	strct_type = bt_ctf_field_type_structure_create();
+	assert(strct_type);
+	ret = bt_ctf_field_type_structure_add_field(strct_type, len_type,
+		"len");
+	assert(!ret);
+	ret = bt_ctf_field_type_structure_add_field(strct_type, fp_type, "fp");
+	assert(!ret);
+	ret = bt_ctf_field_type_structure_add_field(strct_type, s_type, "s");
+	assert(!ret);
+	ret = bt_ctf_field_type_structure_add_field(strct_type, e_type, "e");
+	assert(!ret);
+	ret = bt_ctf_field_type_structure_add_field(strct_type, v_type, "v");
+	assert(!ret);
+	ret = bt_ctf_field_type_structure_add_field(strct_type,
+		v_label1_array_type, "a");
+	assert(!ret);
+
+	/* create strct */
+	strct = bt_ctf_field_create(strct_type);
+	assert(strct);
+
+	/* get len field */
+	len = bt_ctf_field_structure_get_field(strct, "len");
+	assert(len);
+
+	/* get fp field */
+	fp = bt_ctf_field_structure_get_field(strct, "fp");
+	assert(fp);
+
+	/* get s field */
+	s = bt_ctf_field_structure_get_field(strct, "s");
+	assert(s);
+
+	/* get e field */
+	e = bt_ctf_field_structure_get_field(strct, "e");
+	assert(e);
+
+	/* get e_int (underlying integer) */
+	e_int = bt_ctf_field_enumeration_get_container(e);
+	assert(e_int);
+
+	/* get v field */
+	v = bt_ctf_field_structure_get_field(strct, "v");
+	assert(v);
+
+	/* get a field */
+	a = bt_ctf_field_structure_get_field(strct, "a");
+	assert(a);
+
+	/* set len field */
+	ret = bt_ctf_field_unsigned_integer_set_value(len, 7);
+	assert(!ret);
+
+	/* set fp field */
+	ret = bt_ctf_field_floating_point_set_value(fp, 3.14);
+	assert(!ret);
+
+	/* set s field */
+	ret = bt_ctf_field_string_set_value(s, "btbt");
+	assert(!ret);
+
+	/* set e field (LABEL2) */
+	ret = bt_ctf_field_unsigned_integer_set_value(e_int, 23);
+	assert(!ret);
+
+	/* set v field */
+	v_selected = bt_ctf_field_variant_get_field(v, e);
+	assert(v_selected);
+
+	/* set selected v field */
+	ret = bt_ctf_field_sequence_set_length(v_selected, len);
+	assert(!ret);
+	v_selected_0 = bt_ctf_field_sequence_get_field(v_selected, 0);
+	assert(v_selected_0);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_0, 7);
+	assert(!ret);
+	v_selected_1 = bt_ctf_field_sequence_get_field(v_selected, 1);
+	assert(v_selected_1);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_1, 6);
+	assert(!ret);
+	v_selected_2 = bt_ctf_field_sequence_get_field(v_selected, 2);
+	assert(v_selected_2);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_2, 5);
+	assert(!ret);
+	v_selected_3 = bt_ctf_field_sequence_get_field(v_selected, 3);
+	assert(v_selected_3);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_3, 4);
+	assert(!ret);
+	v_selected_4 = bt_ctf_field_sequence_get_field(v_selected, 4);
+	assert(v_selected_4);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_4, 3);
+	assert(!ret);
+	v_selected_5 = bt_ctf_field_sequence_get_field(v_selected, 5);
+	assert(v_selected_5);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_5, 2);
+	assert(!ret);
+	v_selected_6 = bt_ctf_field_sequence_get_field(v_selected, 6);
+	assert(v_selected_6);
+	ret = bt_ctf_field_unsigned_integer_set_value(v_selected_6, 1);
+	assert(!ret);
+
+	/* set a field */
+	a_0 = bt_ctf_field_array_get_field(a, 0);
+	assert(a_0);
+	ret = bt_ctf_field_string_set_value(a_0, "a_0");
+	assert(!ret);
+	a_1 = bt_ctf_field_array_get_field(a, 1);
+	assert(a_1);
+	ret = bt_ctf_field_string_set_value(a_1, "a_1");
+	assert(!ret);
+	a_2 = bt_ctf_field_array_get_field(a, 2);
+	assert(a_2);
+	ret = bt_ctf_field_string_set_value(a_2, "a_2");
+	assert(!ret);
+	a_3 = bt_ctf_field_array_get_field(a, 3);
+	assert(a_3);
+	ret = bt_ctf_field_string_set_value(a_3, "a_3");
+	assert(!ret);
+	a_4 = bt_ctf_field_array_get_field(a, 4);
+	assert(a_4);
+	ret = bt_ctf_field_string_set_value(a_4, "a_4");
+	assert(!ret);
+
+	/* create copy of strct */
+	ok(!bt_ctf_field_copy(NULL),
+		"bt_ctf_field_copy handles NULL correctly");
+	strct_copy = bt_ctf_field_copy(strct);
+	ok(strct_copy,
+		"bt_ctf_field_copy returns a valid pointer");
+
+	/* get all copied fields */
+	len_copy = bt_ctf_field_structure_get_field(strct_copy, "len");
+	assert(len_copy);
+	fp_copy = bt_ctf_field_structure_get_field(strct_copy, "fp");
+	assert(fp_copy);
+	s_copy = bt_ctf_field_structure_get_field(strct_copy, "s");
+	assert(s_copy);
+	e_copy = bt_ctf_field_structure_get_field(strct_copy, "e");
+	assert(e_copy);
+	e_int_copy = bt_ctf_field_enumeration_get_container(e_copy);
+	assert(e_int_copy);
+	v_copy = bt_ctf_field_structure_get_field(strct_copy, "v");
+	assert(v_copy);
+	v_selected_copy = bt_ctf_field_variant_get_field(v_copy, e_copy);
+	assert(v_selected_copy);
+	v_selected_0_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 0);
+	assert(v_selected_0_copy);
+	v_selected_1_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 1);
+	assert(v_selected_1_copy);
+	v_selected_2_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 2);
+	assert(v_selected_2_copy);
+	v_selected_3_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 3);
+	assert(v_selected_3_copy);
+	v_selected_4_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 4);
+	assert(v_selected_4_copy);
+	v_selected_5_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 5);
+	assert(v_selected_5_copy);
+	v_selected_6_copy = bt_ctf_field_sequence_get_field(v_selected_copy, 6);
+	assert(v_selected_6_copy);
+	ok(!bt_ctf_field_sequence_get_field(v_selected_copy, 7),
+		"sequence field copy is not too large");
+	a_copy = bt_ctf_field_structure_get_field(strct_copy, "a");
+	assert(a_copy);
+	a_0_copy = bt_ctf_field_array_get_field(a_copy, 0);
+	assert(a_0_copy);
+	a_1_copy = bt_ctf_field_array_get_field(a_copy, 1);
+	assert(a_1_copy);
+	a_2_copy = bt_ctf_field_array_get_field(a_copy, 2);
+	assert(a_2_copy);
+	a_3_copy = bt_ctf_field_array_get_field(a_copy, 3);
+	assert(a_3_copy);
+	a_4_copy = bt_ctf_field_array_get_field(a_copy, 4);
+	assert(a_4_copy);
+	ok(!bt_ctf_field_array_get_field(v_selected_copy, 5),
+		"array field copy is not too large");
+
+	/* make sure copied fields are different pointers */
+	field_copy_tests_validate_diff_ptrs(strct_copy, strct, "strct");
+	field_copy_tests_validate_diff_ptrs(len_copy, len, "len");
+	field_copy_tests_validate_diff_ptrs(fp_copy, fp, "fp");
+	field_copy_tests_validate_diff_ptrs(s_copy, s, "s");
+	field_copy_tests_validate_diff_ptrs(e_int_copy, e_int, "e_int");
+	field_copy_tests_validate_diff_ptrs(e_copy, e, "e");
+	field_copy_tests_validate_diff_ptrs(v_copy, v, "v");
+	field_copy_tests_validate_diff_ptrs(v_selected_copy, v_selected,
+		"v_selected");
+	field_copy_tests_validate_diff_ptrs(v_selected_0_copy, v_selected_0,
+		"v_selected_0");
+	field_copy_tests_validate_diff_ptrs(v_selected_1_copy, v_selected_1,
+		"v_selected_1");
+	field_copy_tests_validate_diff_ptrs(v_selected_2_copy, v_selected_2,
+		"v_selected_2");
+	field_copy_tests_validate_diff_ptrs(v_selected_3_copy, v_selected_3,
+		"v_selected_3");
+	field_copy_tests_validate_diff_ptrs(v_selected_4_copy, v_selected_4,
+		"v_selected_4");
+	field_copy_tests_validate_diff_ptrs(v_selected_5_copy, v_selected_5,
+		"v_selected_5");
+	field_copy_tests_validate_diff_ptrs(v_selected_6_copy, v_selected_6,
+		"v_selected_6");
+	field_copy_tests_validate_diff_ptrs(a_copy, a, "a");
+	field_copy_tests_validate_diff_ptrs(a_0_copy, a_0, "a_0");
+	field_copy_tests_validate_diff_ptrs(a_1_copy, a_1, "a_1");
+	field_copy_tests_validate_diff_ptrs(a_2_copy, a_2, "a_2");
+	field_copy_tests_validate_diff_ptrs(a_3_copy, a_3, "a_3");
+	field_copy_tests_validate_diff_ptrs(a_4_copy, a_4, "a_4");
+
+	/* make sure copied fields share the same types */
+	field_copy_tests_validate_same_type(strct_copy, strct_type, "strct");
+	field_copy_tests_validate_same_type(len_copy, len_type, "len");
+	field_copy_tests_validate_same_type(fp_copy, fp_type, "fp");
+	field_copy_tests_validate_same_type(e_int_copy, e_int_type, "e_int");
+	field_copy_tests_validate_same_type(e_copy, e_type, "e");
+	field_copy_tests_validate_same_type(v_copy, v_type, "v");
+	field_copy_tests_validate_same_type(v_selected_copy, v_label2_seq_type,
+		"v_selected");
+	field_copy_tests_validate_same_type(v_selected_0_copy, v_label2_type,
+		"v_selected_0");
+	field_copy_tests_validate_same_type(v_selected_1_copy, v_label2_type,
+		"v_selected_1");
+	field_copy_tests_validate_same_type(v_selected_2_copy, v_label2_type,
+		"v_selected_2");
+	field_copy_tests_validate_same_type(v_selected_3_copy, v_label2_type,
+		"v_selected_3");
+	field_copy_tests_validate_same_type(v_selected_4_copy, v_label2_type,
+		"v_selected_4");
+	field_copy_tests_validate_same_type(v_selected_5_copy, v_label2_type,
+		"v_selected_5");
+	field_copy_tests_validate_same_type(v_selected_6_copy, v_label2_type,
+		"v_selected_6");
+	field_copy_tests_validate_same_type(a_copy, v_label1_array_type, "a");
+	field_copy_tests_validate_same_type(a_0_copy, v_label1_type, "a_0");
+	field_copy_tests_validate_same_type(a_1_copy, v_label1_type, "a_1");
+	field_copy_tests_validate_same_type(a_2_copy, v_label1_type, "a_2");
+	field_copy_tests_validate_same_type(a_3_copy, v_label1_type, "a_3");
+	field_copy_tests_validate_same_type(a_4_copy, v_label1_type, "a_4");
+
+	/* validate len copy */
+	ret = bt_ctf_field_unsigned_integer_get_value(len_copy, &uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 7,
+		"bt_ctf_field_copy creates a valid integer field copy");
+
+	/* validate fp copy */
+	ret = bt_ctf_field_floating_point_get_value(fp_copy, &double_val);
+	assert(!ret);
+	ok(double_val == 3.14,
+		"bt_ctf_field_copy creates a valid floating point number field copy");
+
+	/* validate s copy */
+	str_val = bt_ctf_field_string_get_value(s_copy);
+	ok(str_val && !strcmp(str_val, "btbt"),
+		"bt_ctf_field_copy creates a valid string field copy");
+
+	/* validate e_int copy */
+	ret = bt_ctf_field_unsigned_integer_get_value(e_int_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 23,
+		"bt_ctf_field_copy creates a valid enum's integer field copy");
+
+	/* validate e copy */
+	str_val = bt_ctf_field_enumeration_get_mapping_name(e_copy);
+	ok(str_val && !strcmp(str_val, "LABEL2"),
+		"bt_ctf_field_copy creates a valid enum field copy");
+
+	/* validate v_selected copy */
+	v_selected_copy_len = bt_ctf_field_sequence_get_length(v_selected);
+	assert(v_selected_copy_len);
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_copy_len,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 7,
+		"bt_ctf_field_copy creates a sequence field copy with the proper length");
+	bt_ctf_field_put(v_selected_copy_len);
+	v_selected_copy_len = NULL;
+
+	/* validate v_selected copy fields */
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_0_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 7,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_0)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_1_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 6,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_1)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_2_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 5,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_2)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_3_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 4,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_3)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_4_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 3,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_4)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_5_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 2,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_5)");
+	ret = bt_ctf_field_unsigned_integer_get_value(v_selected_6_copy,
+		&uint64_t_val);
+	assert(!ret);
+	ok(uint64_t_val == 1,
+		"bt_ctf_field_copy creates a valid sequence field element copy (v_selected_6)");
+
+	/* validate a copy fields */
+	str_val = bt_ctf_field_string_get_value(a_0_copy);
+	ok(str_val && !strcmp(str_val, "a_0"),
+		"bt_ctf_field_copy creates a valid array field element copy (a_0)");
+	str_val = bt_ctf_field_string_get_value(a_1_copy);
+	ok(str_val && !strcmp(str_val, "a_1"),
+		"bt_ctf_field_copy creates a valid array field element copy (a_1)");
+	str_val = bt_ctf_field_string_get_value(a_2_copy);
+	ok(str_val && !strcmp(str_val, "a_2"),
+		"bt_ctf_field_copy creates a valid array field element copy (a_2)");
+	str_val = bt_ctf_field_string_get_value(a_3_copy);
+	ok(str_val && !strcmp(str_val, "a_3"),
+		"bt_ctf_field_copy creates a valid array field element copy (a_3)");
+	str_val = bt_ctf_field_string_get_value(a_4_copy);
+	ok(str_val && !strcmp(str_val, "a_4"),
+		"bt_ctf_field_copy creates a valid array field element copy (a_4)");
+
+	/* put everything */
+	bt_ctf_field_type_put(len_type);
+	bt_ctf_field_type_put(fp_type);
+	bt_ctf_field_type_put(s_type);
+	bt_ctf_field_type_put(e_int_type);
+	bt_ctf_field_type_put(e_type);
+	bt_ctf_field_type_put(v_type);
+	bt_ctf_field_type_put(v_label1_type);
+	bt_ctf_field_type_put(v_label1_array_type);
+	bt_ctf_field_type_put(v_label2_type);
+	bt_ctf_field_type_put(v_label2_seq_type);
+	bt_ctf_field_type_put(strct_type);
+	bt_ctf_field_put(len);
+	bt_ctf_field_put(fp);
+	bt_ctf_field_put(s);
+	bt_ctf_field_put(e_int);
+	bt_ctf_field_put(e);
+	bt_ctf_field_put(v);
+	bt_ctf_field_put(v_selected);
+	bt_ctf_field_put(v_selected_0);
+	bt_ctf_field_put(v_selected_1);
+	bt_ctf_field_put(v_selected_2);
+	bt_ctf_field_put(v_selected_3);
+	bt_ctf_field_put(v_selected_4);
+	bt_ctf_field_put(v_selected_5);
+	bt_ctf_field_put(v_selected_6);
+	bt_ctf_field_put(a);
+	bt_ctf_field_put(a_0);
+	bt_ctf_field_put(a_1);
+	bt_ctf_field_put(a_2);
+	bt_ctf_field_put(a_3);
+	bt_ctf_field_put(a_4);
+	bt_ctf_field_put(strct);
+	bt_ctf_field_put(len_copy);
+	bt_ctf_field_put(fp_copy);
+	bt_ctf_field_put(s_copy);
+	bt_ctf_field_put(e_int_copy);
+	bt_ctf_field_put(e_copy);
+	bt_ctf_field_put(v_copy);
+	bt_ctf_field_put(v_selected_copy);
+	bt_ctf_field_put(v_selected_0_copy);
+	bt_ctf_field_put(v_selected_1_copy);
+	bt_ctf_field_put(v_selected_2_copy);
+	bt_ctf_field_put(v_selected_3_copy);
+	bt_ctf_field_put(v_selected_4_copy);
+	bt_ctf_field_put(v_selected_5_copy);
+	bt_ctf_field_put(v_selected_6_copy);
+	bt_ctf_field_put(a_copy);
+	bt_ctf_field_put(a_0_copy);
+	bt_ctf_field_put(a_1_copy);
+	bt_ctf_field_put(a_2_copy);
+	bt_ctf_field_put(a_3_copy);
+	bt_ctf_field_put(a_4_copy);
+	bt_ctf_field_put(strct_copy);
 }
 
 void type_field_tests()
@@ -2210,6 +2815,9 @@ int main(int argc, char **argv)
 
 	/* Test the event fields and event types APIs */
 	type_field_tests();
+
+	/* Test fields copying */
+	field_copy_tests();
 
 	ok(bt_ctf_stream_class_get_id(stream_class) < 0,
 		"bt_ctf_stream_class_get_id returns an error when no id is set");

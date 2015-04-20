@@ -704,6 +704,19 @@ end:
 	return ret;
 }
 
+struct bt_ctf_field *bt_ctf_event_get_payload_field(struct bt_ctf_event *event)
+{
+	struct bt_ctf_field *payload = NULL;
+
+	if (!event || !event->fields_payload) {
+		goto end;
+	}
+
+	payload = event->fields_payload;
+	bt_ctf_field_get(payload);
+end:
+	return payload;
+}
 
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 		const char *name)
@@ -740,7 +753,7 @@ end:
 	return field;
 }
 
-struct bt_ctf_field *bt_ctf_event_get_event_header(
+struct bt_ctf_field *bt_ctf_event_get_header(
 		struct bt_ctf_event *event)
 {
 	struct bt_ctf_field *header = NULL;
@@ -755,7 +768,7 @@ end:
 	return header;
 }
 
-int bt_ctf_event_set_event_header(struct bt_ctf_event *event,
+int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		struct bt_ctf_field *header)
 {
 	int ret = 0;
@@ -1229,4 +1242,73 @@ int bt_ctf_event_set_stream(struct bt_ctf_event *event,
 	event->stream = stream;
 end:
 	return ret;
+}
+
+struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
+{
+	struct bt_ctf_event *copy = NULL;
+
+	if (!event) {
+		goto error;
+	}
+
+	copy = g_new0(struct bt_ctf_event, 1);
+
+	if (!copy) {
+		goto error;
+	}
+
+	bt_ctf_ref_init(&copy->ref_count);
+	copy->event_class = event->event_class;
+	bt_ctf_event_class_get(copy->event_class);
+	copy->stream = event->stream;
+
+	if (event->event_header) {
+		copy->event_header = bt_ctf_field_copy(event->event_header);
+
+		if (!copy->event_header) {
+			goto error;
+		}
+	}
+
+	if (event->context_payload) {
+		copy->context_payload = bt_ctf_field_copy(event->context_payload);
+
+		if (!copy->context_payload) {
+			goto error;
+		}
+	}
+
+	if (event->fields_payload) {
+		copy->fields_payload = bt_ctf_field_copy(event->fields_payload);
+
+		if (!copy->fields_payload) {
+			goto error;
+		}
+	}
+
+	return copy;
+
+error:
+	if (copy) {
+		if (copy->event_class) {
+			bt_ctf_event_class_put(copy->event_class);
+		}
+
+		if (copy->event_header) {
+			bt_ctf_field_put(copy->event_header);
+		}
+
+		if (copy->context_payload) {
+			bt_ctf_field_put(copy->context_payload);
+		}
+
+		if (copy->fields_payload) {
+			bt_ctf_field_put(copy->fields_payload);
+		}
+	}
+
+	g_free(copy);
+
+	return NULL;
 }

@@ -337,6 +337,20 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 		struct bt_ctf_field *field);
 
 /*
+ * bt_ctf_field_copy: get a field's deep copy.
+ *
+ * Get a field's deep copy. The created field copy shares the source's
+ * associated field types.
+ *
+ * On success, the returned copy has its reference count set to 1.
+ *
+ * @param field Field instance.
+ *
+ * Returns the field copy on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field);
+
+/*
  * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
  * field's reference count.
  *

@@ -524,11 +524,13 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 	}
 
 	new_field = bt_ctf_field_create(field_type);
-	bt_ctf_field_get(new_field);
 	array->elements->pdata[(size_t)index] = new_field;
 end:
 	if (field_type) {
 		bt_ctf_field_type_put(field_type);
+	}
+	if (new_field) {
+		bt_ctf_field_get(new_field);
 	}
 	return new_field;
 }
@@ -557,11 +559,13 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	}
 
 	new_field = bt_ctf_field_create(field_type);
-	bt_ctf_field_get(new_field);
 	sequence->elements->pdata[(size_t)index] = new_field;
 end:
 	if (field_type) {
 		bt_ctf_field_type_put(field_type);
+	}
+	if (new_field) {
+		bt_ctf_field_get(new_field);
 	}
 	return new_field;
 }
@@ -601,6 +605,31 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	}
 
 	tag_enum_value = tag_enum_integer->definition.value._signed;
+
+	/*
+	 * If the variant currently has a tag and a payload, and if the
+	 * requested tag value is the same as the current one, return
+	 * the current payload instead of creating a fresh one.
+	 */
+	if (variant->tag && variant->payload) {
+		struct bt_ctf_field *cur_tag_container = NULL;
+		struct bt_ctf_field_integer *cur_tag_enum_integer;
+		int64_t cur_tag_value;
+
+		cur_tag_container =
+			bt_ctf_field_enumeration_get_container(variant->tag);
+		cur_tag_enum_integer = container_of(cur_tag_container,
+			struct bt_ctf_field_integer, parent);
+		bt_ctf_field_put(cur_tag_container);
+		cur_tag_value = cur_tag_enum_integer->definition.value._signed;
+
+		if (cur_tag_value == tag_enum_value) {
+			new_field = variant->payload;
+			bt_ctf_field_get(new_field);
+			goto end;
+		}
+	}
+
 	field_type = bt_ctf_field_type_variant_get_field_type_signed(
 		variant_type, tag_enum_value);
 	if (!field_type) {
@@ -1052,7 +1081,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 {
 	int ret;
@@ -1073,6 +1101,7 @@ struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 		goto end;
 	}
 
+	copy->payload_set = field->payload_set;
 	ret = field_copy_funcs[type_id](field, copy);
 	if (ret) {
 		bt_ctf_field_put(copy);
@@ -1902,13 +1931,19 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 	g_ptr_array_set_size(struct_dst->fields, struct_src->fields->len);
 
 	for (i = 0; i < struct_src->fields->len; i++) {
-		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
-			g_ptr_array_index(struct_src->fields, i));
+		struct bt_ctf_field *field =
+			g_ptr_array_index(struct_src->fields, i);
+		struct bt_ctf_field *field_copy = NULL;
 
-		if (!field_copy) {
-			ret = -1;
-			goto end;
+		if (field) {
+			field_copy = bt_ctf_field_copy(field);
+
+			if (!field_copy) {
+				ret = -1;
+				goto end;
+			}
 		}
+
 		g_ptr_array_index(struct_dst->fields, i) = field_copy;
 	}
 end:
@@ -1955,13 +1990,19 @@ int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 
 	g_ptr_array_set_size(array_dst->elements, array_src->elements->len);
 	for (i = 0; i < array_src->elements->len; i++) {
-		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
-			g_ptr_array_index(array_src->elements, i));
+		struct bt_ctf_field *field =
+			g_ptr_array_index(array_src->elements, i);
+		struct bt_ctf_field *field_copy = NULL;
 
-		if (!field_copy) {
-			ret = -1;
-			goto end;
+		if (field) {
+			field_copy = bt_ctf_field_copy(field);
+
+			if (!field_copy) {
+				ret = -1;
+				goto end;
+			}
 		}
+
 		g_ptr_array_index(array_dst->elements, i) = field_copy;
 	}
 end:
@@ -1974,20 +2015,52 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 {
 	int ret = 0, i;
 	struct bt_ctf_field_sequence *sequence_src, *sequence_dst;
+	struct bt_ctf_field *src_length;
+	struct bt_ctf_field *dst_length;
 
 	sequence_src = container_of(src, struct bt_ctf_field_sequence, parent);
 	sequence_dst = container_of(dst, struct bt_ctf_field_sequence, parent);
 
-	g_ptr_array_set_size(sequence_dst->elements,
-		sequence_src->elements->len);
-	for (i = 0; i < sequence_src->elements->len; i++) {
-		struct bt_ctf_field *field_copy = bt_ctf_field_copy(
-			g_ptr_array_index(sequence_src->elements, i));
+	src_length = bt_ctf_field_sequence_get_length(src);
 
-		if (!field_copy) {
-			ret = -1;
-			goto end;
+	if (!src_length) {
+		/* no length set yet: keep destination sequence empty */
+		goto end;
+	}
+
+	/* copy source length */
+	dst_length = bt_ctf_field_copy(src_length);
+	bt_ctf_field_put(src_length);
+
+	if (!dst_length) {
+		ret = -1;
+		goto end;
+	}
+
+	/* this will initialize the destination sequence's internal array */
+	ret = bt_ctf_field_sequence_set_length(dst, dst_length);
+	bt_ctf_field_put(dst_length);
+
+	if (ret) {
+		goto end;
+	}
+
+	assert(sequence_dst->elements->len == sequence_src->elements->len);
+
+	for (i = 0; i < sequence_src->elements->len; i++) {
+		struct bt_ctf_field *field =
+			g_ptr_array_index(sequence_src->elements, i);
+		struct bt_ctf_field *field_copy = NULL;
+
+		if (field) {
+			field_copy = bt_ctf_field_copy(field);
+
+			if (!field_copy) {
+				ret = -1;
+				goto end;
+			}
 		}
+
 		g_ptr_array_index(sequence_dst->elements, i) = field_copy;
 	}
 end:
