@@ -718,6 +718,41 @@ end:
 	return payload;
 }
 
+int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+		struct bt_ctf_field *payload)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *payload_type = NULL;
+
+	if (!event || !payload) {
+		ret = -1;
+		goto end;
+	}
+
+	payload_type = bt_ctf_field_get_type(payload);
+	if (!payload_type) {
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(payload_type) != CTF_TYPE_STRUCT) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_get(payload);
+	if (event->fields_payload) {
+		bt_ctf_field_put(event->fields_payload);
+	}
+	event->fields_payload = payload;
+
+end:
+	if (payload_type) {
+		bt_ctf_field_type_put(payload_type);
+	}
+	return ret;
+}
+
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 		const char *name)
 {

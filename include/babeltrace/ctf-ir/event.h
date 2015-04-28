@@ -378,6 +378,17 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_event_set_payload_field: set an event's payload.
+ *
+ * @param event Event instance.
+ * @param payload Field instance (must be a structure).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+		struct bt_ctf_field *payload);
+
+/*
  * bt_ctf_event_get_payload: get an event's field.
  *
  * Returns the field matching "name". bt_ctf_field_put() must be called on the
