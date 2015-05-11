@@ -11,7 +11,8 @@ libctf_ir_la_SOURCES = \
 	stream.c \
 	stream-class.c \
 	trace.c \
-	utils.c
+	utils.c \
+	visitor.c
 
 libctf_ir_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
