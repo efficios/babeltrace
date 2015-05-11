@@ -34,6 +34,7 @@
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
@@ -338,6 +339,20 @@ int bt_ctf_stream_class_add_event_class(
 	if (query.found) {
 		ret = -1;
 		goto end;
+	}
+
+	/*
+	 * Resolve the event's sequence length and variant tags if the
+	 * stream is already associated with a trace. Otherwise, this
+	 * validation will be performed once the stream is registered
+	 * to a trace.
+	 */
+	if (stream_class->trace) {
+		ret = bt_ctf_event_class_resolve_types(event_class,
+			stream_class->trace, stream_class);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	/* Only set an event id if none was explicitly set before */
