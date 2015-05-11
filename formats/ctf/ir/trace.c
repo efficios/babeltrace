@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
+#include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/objects.h>
@@ -447,6 +448,11 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			ret = -1;
 			goto end;
 		}
+	}
+
+	ret = bt_ctf_stream_class_resolve_types(stream_class, trace);
+	if (ret) {
+		goto end;
 	}
 
 	stream_id = bt_ctf_stream_class_get_id(stream_class);
@@ -888,6 +894,7 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 static
 void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
+	bt_ctf_trace_resolve_types(trace);
 	bt_ctf_attributes_freeze(trace->environment);
 	trace->frozen = 1;
 }
