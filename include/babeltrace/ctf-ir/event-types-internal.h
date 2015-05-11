@@ -169,4 +169,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_copy(
 BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(
 		struct bt_ctf_field_type *structure, const char *name);
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_get_field_name_index(
+		struct bt_ctf_field_type *variant, const char *name);
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

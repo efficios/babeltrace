@@ -1988,6 +1988,39 @@ int bt_ctf_field_type_structure_get_field_name_index(
 end:
 	return ret;
 }
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_get_field_name_index(
+		struct bt_ctf_field_type *type, const char *name)
+{
+	int ret;
+	size_t index;
+	GQuark name_quark;
+	struct bt_ctf_field_type_variant *variant;
+
+	if (!type || !name ||
+		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_VARIANT) {
+		ret = -1;
+		goto end;
+	}
+
+	name_quark = g_quark_try_string(name);
+	if (!name_quark) {
+		ret = -1;
+		goto end;
+	}
+
+	variant = container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+	if (!g_hash_table_lookup_extended(variant->field_name_to_index,
+		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+		ret = -1;
+		goto end;
+	}
+	ret = (int) index;
+end:
+	return ret;
+}
 static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 {
