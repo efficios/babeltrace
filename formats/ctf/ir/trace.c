@@ -443,6 +443,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
 		if (trace->stream_classes->pdata[i] == stream_class) {
+			/* Stream already registered to the trace */
 			ret = -1;
 			goto end;
 		}
