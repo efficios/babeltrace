@@ -123,6 +123,7 @@ struct bt_ctf_field_type_variant {
 	struct bt_ctf_field_type parent;
 	GString *tag_name;
 	struct bt_ctf_field_type_enumeration *tag;
+	struct bt_ctf_field_path *tag_path;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
 	struct declaration_variant declaration;
@@ -207,5 +208,9 @@ int bt_ctf_field_type_variant_get_field_name_index(
 BT_HIDDEN
 int bt_ctf_field_type_sequence_set_length_field_path(
 		struct bt_ctf_field_type *type,
+		struct bt_ctf_field_path *path);
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_path *path);
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */
