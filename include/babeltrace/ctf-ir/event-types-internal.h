@@ -213,4 +213,9 @@ int bt_ctf_field_type_sequence_set_length_field_path(
 BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_path *path);
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *tag);
+
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

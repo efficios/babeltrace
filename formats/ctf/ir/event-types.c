@@ -2116,6 +2116,32 @@ int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 end:
 	return ret;
 }
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *tag)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_variant *variant;
+
+	if (!type || !tag || type->frozen ||
+		bt_ctf_field_type_get_type_id(tag) != CTF_TYPE_ENUM) {
+		ret = -1;
+		goto end;
+	}
+
+	variant = container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+	bt_ctf_field_type_get(tag);
+	if (variant->tag) {
+		bt_ctf_field_type_put(&variant->tag->parent);
+	}
+	variant->tag = container_of(tag, struct bt_ctf_field_type_enumeration,
+		parent);
+end:
+	return ret;
+}
+
 static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 {
