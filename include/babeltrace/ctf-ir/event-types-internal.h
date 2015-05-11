@@ -139,6 +139,7 @@ struct bt_ctf_field_type_sequence {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_field_type *element_type;
 	GString *length_field_name;
+	struct bt_ctf_field_path *length_field_path;
 	struct declaration_sequence declaration;
 };
 
@@ -202,4 +203,9 @@ int bt_ctf_field_type_structure_get_field_name_index(
 BT_HIDDEN
 int bt_ctf_field_type_variant_get_field_name_index(
 		struct bt_ctf_field_type *variant, const char *name);
+
+BT_HIDDEN
+int bt_ctf_field_type_sequence_set_length_field_path(
+		struct bt_ctf_field_type *type,
+		struct bt_ctf_field_path *path);
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

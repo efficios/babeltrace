@@ -2071,6 +2071,29 @@ int bt_ctf_field_type_variant_get_field_name_index(
 end:
 	return ret;
 }
+
+BT_HIDDEN
+int bt_ctf_field_type_sequence_set_length_field_path(
+		struct bt_ctf_field_type *type,
+		struct bt_ctf_field_path *path)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_sequence *sequence;
+
+	if (!type || bt_ctf_field_type_get_type_id(type) != CTF_TYPE_SEQUENCE) {
+		ret = -1;
+		goto end;
+	}
+
+	sequence = container_of(type, struct bt_ctf_field_type_sequence,
+		parent);
+	if (sequence->length_field_path) {
+		bt_ctf_field_path_destroy(sequence->length_field_path);
+	}
+	sequence->length_field_path = path;
+end:
+	return ret;
+}
 static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 {
@@ -2187,6 +2210,7 @@ void bt_ctf_field_type_sequence_destroy(struct bt_ctf_ref *ref)
 		struct bt_ctf_field_type_sequence, parent);
 	bt_ctf_field_type_put(sequence->element_type);
 	g_string_free(sequence->length_field_name, TRUE);
+	bt_ctf_field_path_destroy(sequence->length_field_path);
 	g_free(sequence);
 }
 
@@ -3039,12 +3063,25 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy(
 	copy_sequence = container_of(copy, struct bt_ctf_field_type_sequence,
 		parent);
 	copy_sequence->declaration = sequence->declaration;
+	if (sequence->length_field_path) {
+		copy_sequence->length_field_path = bt_ctf_field_path_copy(
+			sequence->length_field_path);
+		if (!copy_sequence->length_field_path) {
+			goto error;
+		}
+	}
 end:
 	if (copy_element) {
 		bt_ctf_field_type_put(copy_element);
 	}
 
 	return copy;
+error:
+	if (copy) {
+		bt_ctf_field_type_put(copy);
+		copy = NULL;
+	}
+	goto end;
 }
 
 static
