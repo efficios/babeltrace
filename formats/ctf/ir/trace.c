@@ -497,7 +497,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	}
 
 	bt_ctf_stream_class_freeze(stream_class);
-	bt_ctf_trace_freeze(trace);
+	if (!trace->frozen) {
+		bt_ctf_trace_freeze(trace);
+	}
 end:
 	if (ret) {
 		(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
