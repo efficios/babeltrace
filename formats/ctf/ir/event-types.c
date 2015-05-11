@@ -1955,6 +1955,39 @@ end:
 	return copy;
 }
 
+
+BT_HIDDEN
+int bt_ctf_field_type_structure_get_field_name_index(
+		struct bt_ctf_field_type *type, const char *name)
+{
+	int ret;
+	size_t index;
+	GQuark name_quark;
+	struct bt_ctf_field_type_structure *structure;
+
+	if (!type || !name ||
+		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_STRUCT) {
+		ret = -1;
+		goto end;
+	}
+
+	name_quark = g_quark_try_string(name);
+	if (!name_quark) {
+		ret = -1;
+		goto end;
+	}
+
+	structure = container_of(type, struct bt_ctf_field_type_structure,
+		parent);
+	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
+		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+		ret = -1;
+		goto end;
+	}
+	ret = (int) index;
+end:
+	return ret;
+}
 static
 void bt_ctf_field_type_integer_destroy(struct bt_ctf_ref *ref)
 {
