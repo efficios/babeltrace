@@ -1955,6 +1955,56 @@ end:
 	return copy;
 }
 
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_path_create(void)
+{
+	struct bt_ctf_field_path *field_path = NULL;
+
+	field_path = g_new0(struct bt_ctf_field_path, 1);
+	if (!field_path) {
+		goto end;
+	}
+
+	field_path->root = CTF_NODE_UNKNOWN;
+	field_path->path_indexes = g_array_new(TRUE, FALSE, sizeof(int));
+	if (!field_path->path_indexes) {
+		bt_ctf_field_path_destroy(field_path);
+		field_path = NULL;
+	}
+end:
+	return field_path;
+}
+
+
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_path_copy(
+		struct bt_ctf_field_path *path)
+{
+	struct bt_ctf_field_path *new_path = bt_ctf_field_path_create();
+
+	if (!new_path) {
+		goto end;
+	}
+
+	new_path->root = path->root;
+	g_array_insert_vals(new_path->path_indexes, 0,
+		path->path_indexes->data, path->path_indexes->len);
+end:
+	return new_path;
+}
+
+BT_HIDDEN
+void bt_ctf_field_path_destroy(struct bt_ctf_field_path *path)
+{
+	if (!path) {
+		return;
+	}
+
+	if (path->path_indexes) {
+		g_array_free(path->path_indexes, TRUE);
+	}
+	g_free(path);
+}
 
 BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(

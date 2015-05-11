@@ -41,6 +41,26 @@ typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
 typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
 		struct metadata_context *);
 
+enum bt_ctf_node {
+	CTF_NODE_UNKNOWN = -1,
+	CTF_NODE_ENV = 0,
+	CTF_NODE_TRACE_PACKET_HEADER = 1,
+	CTF_NODE_STREAM_PACKET_CONTEXT = 2,
+	CTF_NODE_STREAM_EVENT_HEADER = 3,
+	CTF_NODE_STREAM_EVENT_CONTEXT = 4,
+	CTF_NODE_EVENT_CONTEXT = 5,
+	CTF_NODE_EVENT_FIELDS = 6,
+};
+
+struct bt_ctf_field_path {
+	enum bt_ctf_node root;
+	/*
+	 * Array of integers (int) indicating the index in either
+	 * structures or variants that make-up the path to a field.
+	 */
+	GArray *path_indexes;
+};
+
 struct bt_ctf_field_type {
 	struct bt_ctf_ref ref_count;
 	struct bt_declaration *declaration;
@@ -165,6 +185,15 @@ BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_copy(
 		struct bt_ctf_field_type *type);
 
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_path_create(void);
+
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_path_copy(
+		struct bt_ctf_field_path *path);
+
+BT_HIDDEN
+void bt_ctf_field_path_destroy(struct bt_ctf_field_path *path);
 
 BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(
