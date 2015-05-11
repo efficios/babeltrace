@@ -37,8 +37,8 @@
 #include <babeltrace/ctf/events.h>
 #include <glib.h>
 
-typedef void(*type_freeze_func)(struct bt_ctf_field_type *);
-typedef int(*type_serialize_func)(struct bt_ctf_field_type *,
+typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
+typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
 		struct metadata_context *);
 
 struct bt_ctf_field_type {
