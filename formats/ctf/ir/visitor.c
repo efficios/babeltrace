@@ -646,6 +646,11 @@ int get_field_path(struct ctf_type_visitor_context *context,
 		token = strtok_r(NULL, ".", &save_ptr);
 	}
 
+	if (!path_tokens) {
+		ret = -1;
+		goto error;
+	}
+
 	*field_path = bt_ctf_field_path_create();
 	if (!*field_path) {
 		ret = -1;
