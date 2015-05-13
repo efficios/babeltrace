@@ -1172,11 +1172,6 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 		ret = -1;
 		goto end;
 	}
-
-	if (type->declaration->alignment < field_type->declaration->alignment) {
-		type->declaration->alignment =
-			field_type->declaration->alignment;
-	}
 end:
 	return ret;
 }
@@ -1534,8 +1529,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 	array->element_type = element_type;
 	array->length = length;
 	bt_ctf_field_type_init(&array->parent);
-	array->parent.declaration->alignment =
-		element_type->declaration->alignment;
 	return &array->parent;
 error:
 	return NULL;
@@ -1596,8 +1589,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 	sequence->element_type = element_type;
 	sequence->length_field_name = g_string_new(length_field_name);
 	bt_ctf_field_type_init(&sequence->parent);
-	sequence->parent.declaration->alignment =
-		element_type->declaration->alignment;
 	return &sequence->parent;
 error:
 	return NULL;
@@ -1694,13 +1685,91 @@ end:
 int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type)
 {
 	int ret;
+	enum ctf_type_id type_id;
 
 	if (!type) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = (int) type->declaration->alignment;
+	if (type->frozen) {
+		ret = (int) type->declaration->alignment;
+		goto end;
+	}
+
+	type_id = bt_ctf_field_type_get_type_id(type);
+	switch (type_id) {
+	case CTF_TYPE_SEQUENCE:
+	{
+		struct bt_ctf_field_type *element =
+			bt_ctf_field_type_sequence_get_element_type(type);
+
+		if (!element) {
+			ret = -1;
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_get_alignment(element);
+		bt_ctf_field_type_put(element);
+		break;
+	}
+	case CTF_TYPE_ARRAY:
+	{
+		struct bt_ctf_field_type *element =
+			bt_ctf_field_type_array_get_element_type(type);
+
+		if (!element) {
+			ret = -1;
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_get_alignment(element);
+		bt_ctf_field_type_put(element);
+		break;
+	}
+	case CTF_TYPE_STRUCT:
+	{
+		int i, element_count;
+
+		element_count = bt_ctf_field_type_structure_get_field_count(
+			type);
+		if (element_count < 0) {
+			ret = element_count;
+			goto end;
+		}
+
+		for (i = 0; i < element_count; i++) {
+			struct bt_ctf_field_type *field;
+			int field_alignment;
+
+			ret = bt_ctf_field_type_structure_get_field(type, NULL,
+				&field, i);
+			if (ret) {
+				goto end;
+			}
+
+			assert(field);
+			field_alignment = bt_ctf_field_type_get_alignment(
+				field);
+			bt_ctf_field_type_put(field);
+			if (field_alignment < 0) {
+				ret = field_alignment;
+				goto end;
+			}
+
+			type->declaration->alignment = MAX(field_alignment,
+				type->declaration->alignment);
+		}
+		ret = (int) type->declaration->alignment;
+		break;
+	}
+	case CTF_TYPE_UNKNOWN:
+		ret = -1;
+		break;
+	default:
+		ret = (int) type->declaration->alignment;
+		break;
+	}
 end:
 	return ret;
 }
@@ -2312,9 +2381,11 @@ void bt_ctf_field_type_structure_freeze(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_structure *structure_type = container_of(
 		type, struct bt_ctf_field_type_structure, parent);
 
+	/* Cache the alignment */
+	type->declaration->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
-	g_ptr_array_foreach(structure_type->fields, (GFunc)freeze_structure_field,
-		NULL);
+	g_ptr_array_foreach(structure_type->fields,
+		(GFunc) freeze_structure_field, NULL);
 }
 
 static
@@ -2323,9 +2394,11 @@ void bt_ctf_field_type_variant_freeze(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_variant *variant_type = container_of(
 		type, struct bt_ctf_field_type_variant, parent);
 
+	/* Cache the alignment */
+	type->declaration->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
-	g_ptr_array_foreach(variant_type->fields, (GFunc)freeze_structure_field,
-		NULL);
+	g_ptr_array_foreach(variant_type->fields,
+		(GFunc) freeze_structure_field, NULL);
 }
 
 static
@@ -2334,6 +2407,8 @@ void bt_ctf_field_type_array_freeze(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_array *array_type = container_of(
 		type, struct bt_ctf_field_type_array, parent);
 
+	/* Cache the alignment */
+	type->declaration->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
 	bt_ctf_field_type_freeze(array_type->element_type);
 }
@@ -2344,6 +2419,8 @@ void bt_ctf_field_type_sequence_freeze(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_sequence *sequence_type = container_of(
 		type, struct bt_ctf_field_type_sequence, parent);
 
+	/* Cache the alignment */
+	type->declaration->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
 	bt_ctf_field_type_freeze(sequence_type->element_type);
 }
