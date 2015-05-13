@@ -862,7 +862,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_variant_get_tag_name(NULL) == NULL,
 		"bt_ctf_field_type_variant_get_tag_name handles NULL correctly");
 	ret_string = bt_ctf_field_type_variant_get_tag_name(variant_type);
-	ok(!strcmp(ret_string, "variant_selector"),
+	ok(ret_string ? !strcmp(ret_string, "variant_selector") : 0,
 		"bt_ctf_field_type_variant_get_tag_name returns the correct variant tag name");
 	ok(bt_ctf_field_type_variant_get_field_type_by_name(NULL,
 		"INT16_TYPE") == NULL,
