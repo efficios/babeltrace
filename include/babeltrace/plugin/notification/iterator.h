@@ -45,9 +45,6 @@ extern struct bt_notification *bt_notification_iterator_get_notification(
 extern void bt_notification_iterator_get(struct bt_notification_iterator *iterator);
 extern void bt_notification_iterator_put(struct bt_notification_iterator *iterator);
 
-/* API for plug-in authors */
-struct bt_notification_iterator *bt_notification_iterator_create(
-	struct bt_plugin *plugin);
 
 
 #ifdef __cplusplus

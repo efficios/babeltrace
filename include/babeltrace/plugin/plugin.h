@@ -72,7 +72,7 @@ enum bt_plugin_status {
 }
 
 /**
- * Get plug-in instance name
+ * Get plug-in instance name.
  *
  * @param plugin	Plug-in instance of which to get the name
  * @returns		Returns a pointer to the plug-in's name
@@ -80,7 +80,7 @@ enum bt_plugin_status {
 extern const char *bt_plugin_get_name(struct bt_plugin *plugin);
 
 /**
- * Set plug-in instance name
+ * Set plug-in instance name.
  *
  * @param plugin	Plug-in instance of which to set the name
  * @param name		New plug-in name (will be copied)
@@ -90,7 +90,7 @@ extern enum bt_plugin_status bt_plugin_set_name(
 		struct bt_plugin *plugin, const char *name);
 
 /**
- * Get plug-in instance type
+ * Get plug-in instance type.
  *
  * @param plugin	Plug-in instance of which to get the type
  * @returns		One of #bt_plugin_type values
@@ -98,7 +98,7 @@ extern enum bt_plugin_status bt_plugin_set_name(
 extern enum bt_plugin_type bt_plugin_get_type(struct bt_plugin *plugin);
 
 /**
- * Set a plug-in instance's error stream
+ * Set a plug-in instance's error stream.
  *
  * @param plugin	Plug-in instance
  * @param error_stream	Error stream
