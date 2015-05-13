@@ -883,9 +883,10 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(bt_ctf_field_type_variant_get_field(NULL, &ret_string, &ret_field_type, 0) < 0,
 		"bt_ctf_field_type_variant_get_field handles a NULL type correctly");
-	ok(bt_ctf_field_type_variant_get_field(variant_type, NULL, &ret_field_type, 0) < 0,
+	ok(bt_ctf_field_type_variant_get_field(variant_type, NULL, &ret_field_type, 0) == 0,
 		"bt_ctf_field_type_variant_get_field handles a NULL field name correctly");
-	ok(bt_ctf_field_type_variant_get_field(variant_type, &ret_string, NULL, 0) < 0,
+	bt_ctf_field_type_put(ret_field_type);
+	ok(bt_ctf_field_type_variant_get_field(variant_type, &ret_string, NULL, 0) == 0,
 		"bt_ctf_field_type_variant_get_field handles a NULL field type correctly");
 	ok(bt_ctf_field_type_variant_get_field(variant_type, &ret_string, &ret_field_type, 200) < 0,
 		"bt_ctf_field_type_variant_get_field handles an invalid index correctly");
