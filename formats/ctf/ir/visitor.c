@@ -722,10 +722,16 @@ void print_path(const char *field_name,
 		struct bt_ctf_field_path *field_path)
 {
 	int i;
+	enum ctf_type_id type_id = bt_ctf_field_type_get_type_id(
+		resolved_type);
+
+	if (type_id < CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES) {
+		type_id = CTF_TYPE_UNKNOWN;
+	}
 
 	printf_verbose("Resolved field \"%s\" as type \"%s\", ",
 		field_name,
-		type_names[bt_ctf_field_type_get_type_id(resolved_type)]);
+		type_names[type_id]);
 	printf_verbose("path: %s",
 		absolute_path_prefixes[field_path->root]);
 
