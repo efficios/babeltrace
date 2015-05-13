@@ -40,7 +40,7 @@ struct bt_plugin {
 	GString *name;
 	enum bt_plugin_type type;
 
-	/* Plug-in specific callbacks */
+	/* Plug-in implementation callbacks */
 	bt_plugin_destroy_cb destroy;
 	bt_plugin_set_error_stream_cb set_error_stream;
 };

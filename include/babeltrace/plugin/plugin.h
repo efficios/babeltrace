@@ -39,13 +39,13 @@ extern "C" {
 enum bt_plugin_type {
 	BT_PLUGIN_TYPE_UNKNOWN =	-1,
 
-	/* A source plug-in is a notification generator. */
+	/** A source plug-in is a notification generator. */
 	BT_PLUGIN_TYPE_SOURCE =		0,
 
-	/* A sink plug-in handles incoming notifications. */
+	/** A sink plug-in handles incoming notifications. */
 	BT_PLUGIN_TYPE_SINK =		1,
 
-	/* A filter plug-in implements both Source and Sink interfaces. */
+	/** A filter plug-in implements both Source and Sink interfaces. */
 	BT_PLUGIN_TYPE_FILTER =		2,
 };
 
@@ -53,21 +53,21 @@ enum bt_plugin_type {
  * Status code. Errors are always negative.
  */
 enum bt_plugin_status {
-	/** Memory allocation failure. **/
+	/** Memory allocation failure. */
 	/* -12 for compatibility with -ENOMEM */
 	BT_PLUGIN_STATUS_NOMEM =	-12,
 
-	/** Invalid arguments. **/
+	/** Invalid arguments. */
 	/* -22 for compatibility with -EINVAL */
 	BT_PLUGIN_STATUS_INVAL =	-22,
 
-	/** Unsupported plug-in feature. **/
+	/** Unsupported plug-in feature. */
 	BT_PLUGIN_STATUS_UNSUPPORTED =	-2,
 
-	/** General error. **/
+	/** General error. */
 	BT_PLUGIN_STATUS_ERROR =	-1,
 
-	/** No error, okay. **/
+	/** No error, okay. */
 	BT_PLUGIN_STATUS_OK =		0,
 }
 
