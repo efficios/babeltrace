@@ -53,16 +53,21 @@ enum bt_plugin_type {
  * Status code. Errors are always negative.
  */
 enum bt_plugin_status {
+	/** Memory allocation failure. **/
 	/* -12 for compatibility with -ENOMEM */
 	BT_PLUGIN_STATUS_NOMEM =	-12,
 
+	/** Invalid arguments. **/
 	/* -22 for compatibility with -EINVAL */
 	BT_PLUGIN_STATUS_INVAL =	-22,
 
+	/** Unsupported plug-in feature. **/
 	BT_PLUGIN_STATUS_UNSUPPORTED =	-2,
 
+	/** General error. **/
 	BT_PLUGIN_STATUS_ERROR =	-1,
 
+	/** No error, okay. **/
 	BT_PLUGIN_STATUS_OK =		0,
 }
 
