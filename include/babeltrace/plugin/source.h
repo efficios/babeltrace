@@ -41,11 +41,6 @@ typedef struct bt_notification_iterator *(
 struct bt_notification_iterator *bt_plugin_source_get_iterator(
 		struct bt_plugin *plugin);
 
-/* Plug-in initialization functions */
-struct bt_plugin *bt_plugin_source_create(const char *name, void *user_data,
-		bt_plugin_destroy_func destroy_func,
-		bt_plugin_source_iterator_create_func iterator_create_func);
-
 #ifdef __cplusplus
 }
 #endif

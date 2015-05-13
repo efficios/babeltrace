@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_H
-#define BABELTRACE_PLUGIN_H
+#ifndef BABELTRACE_PLUGIN_LIB_H
+#define BABELTRACE_PLUGIN_LIB_H
 
 /*
- * BabelTrace - Babeltrace Plug-in Interface
+ * BabelTrace - Base interface of a Babeltrace Plug-in Library
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,19 +27,49 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/objects.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_plugin;
+struct bt_notification;
 
-int bt_plugin_set_error_stream(struct bt_plugin *plugin, FILE *error_stream);
+enum bt_plugin_type {
+	BT_PLUGIN_TYPE_UNKNOWN = -1,
+	/* A source plug-in is a notification generator. */
+	BT_PLUGIN_TYPE_SOURCE = 0,
+	/* A sink plug-in handles incoming notifications. */
+	BT_PLUGIN_TYPE_SINK = 1,
+	/* A filter plug-in implements both SOURCE and SINK interfaces. */
+	BT_PLUGIN_TYPE_FILTER = 2,
+};
 
-/* Refcounting */
-void bt_plugin_get(struct bt_plugin *plugin);
-void bt_plugin_put(struct bt_plugin *plugin);
+/**
+ * Plug-in discovery functions.
+ *
+ * The Babeltrace plug-in architecture mandates that a given plug-in shared
+ * object only define one plug-in. These functions are used to query a plug-in
+ * shared object about its attributes.
+ *
+ * The functions marked as mandatory MUST be exported by the shared object
+ * to be considered a valid plug-in.
+ */
+enum bt_plugin_type bt_plugin_lib_get_type(void);
+const char *bt_plugin_lib_get_format_name(void);
+
+/**
+ * Create a plug-in instance configured with the provided parameters.
+ *
+ * @param params	Map object of configuration parameters
+ * @returns		An instance of the plug-in
+ */
+struct bt_plugin *bt_plugin_lib_create(struct bt_object *params);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_SYSTEM_H */
+#endif /* BABELTRACE_PLUGIN_H */

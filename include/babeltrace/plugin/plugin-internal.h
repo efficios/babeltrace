@@ -38,6 +38,10 @@ struct bt_notification;
 struct bt_plugin {
 	const char * name;
 	enum bt_plugin_type type;
+
+	/* Plug-in specific callbacks */
+	bt_plugin_destroy_cb destroy;
+	bt_plugin_set_error_stream_cb set_error_stream;
 };
 
 #ifdef __cplusplus
