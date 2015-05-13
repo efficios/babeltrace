@@ -27,7 +27,8 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +37,7 @@ extern "C" {
 struct bt_notification;
 
 struct bt_plugin {
-	const char * name;
+	GString *name;
 	enum bt_plugin_type type;
 
 	/* Plug-in specific callbacks */

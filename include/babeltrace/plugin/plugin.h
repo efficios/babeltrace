@@ -27,19 +27,102 @@
  * SOFTWARE.
  */
 
+#include <errno.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * Plug-in type.
+ */
+enum bt_plugin_type {
+	BT_PLUGIN_TYPE_UNKNOWN =	-1,
 
-int bt_plugin_set_error_stream(struct bt_plugin *plugin, FILE *error_stream);
+	/* A source plug-in is a notification generator. */
+	BT_PLUGIN_TYPE_SOURCE =		0,
 
-/* Refcounting */
-void bt_plugin_get(struct bt_plugin *plugin);
-void bt_plugin_put(struct bt_plugin *plugin);
+	/* A sink plug-in handles incoming notifications. */
+	BT_PLUGIN_TYPE_SINK =		1,
+
+	/* A filter plug-in implements both Source and Sink interfaces. */
+	BT_PLUGIN_TYPE_FILTER =		2,
+};
+
+/**
+ * Status code. Errors are always negative.
+ */
+enum bt_plugin_status {
+	/* -12 for compatibility with -ENOMEM */
+	BT_PLUGIN_STATUS_NOMEM =	-12,
+
+	/* -22 for compatibility with -EINVAL */
+	BT_PLUGIN_STATUS_INVAL =	-22,
+
+	BT_PLUGIN_STATUS_UNSUPPORTED =	-2,
+
+	BT_PLUGIN_STATUS_ERROR =	-1,
+
+	BT_PLUGIN_STATUS_OK =		0,
+}
+
+/**
+ * Get plug-in instance name
+ *
+ * @param plugin	Plug-in instance of which to get the name
+ * @returns		Returns a pointer to the plug-in's name
+ */
+extern const char *bt_plugin_get_name(struct bt_plugin *plugin);
+
+/**
+ * Set plug-in instance name
+ *
+ * @param plugin	Plug-in instance of which to set the name
+ * @param name		New plug-in name (will be copied)
+ * @returns		One of #bt_plugin_status values
+ */
+extern enum bt_plugin_status bt_plugin_set_name(
+		struct bt_plugin *plugin, const char *name);
+
+/**
+ * Get plug-in instance type
+ *
+ * @param plugin	Plug-in instance of which to get the type
+ * @returns		One of #bt_plugin_type values
+ */
+extern enum bt_plugin_type bt_plugin_get_type(struct bt_plugin *plugin);
+
+/**
+ * Set a plug-in instance's error stream
+ *
+ * @param plugin	Plug-in instance
+ * @param error_stream	Error stream
+ * @returns		One of #bt_plugin_status values
+ */
+extern enum bt_plugin_status bt_plugin_set_error_stream(
+		struct bt_plugin *plugin, FILE *error_stream);
+
+/**
+ * Increments the reference count of \p plugin.
+ *
+ * @param plugin	Plug-in of which to increment the reference count
+ *
+ * @see bt_plugin_put()
+ */
+extern void bt_plugin_get(struct bt_plugin *plugin);
+
+/**
+ * Decrements the reference count of \p plugin, destroying it when this
+ * count reaches 0.
+ *
+ * @param plugin	Plug-in of which to decrement the reference count
+ *
+ * @see bt_plugin_get()
+ */
+extern void bt_plugin_put(struct bt_plugin *plugin);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_SYSTEM_H */
+#endif /* BABELTRACE_PLUGIN_H */

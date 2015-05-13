@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/objects.h>
+#include <babeltrace/plugin.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -36,16 +37,6 @@ extern "C" {
 
 struct bt_plugin;
 struct bt_notification;
-
-enum bt_plugin_type {
-	BT_PLUGIN_TYPE_UNKNOWN = -1,
-	/* A source plug-in is a notification generator. */
-	BT_PLUGIN_TYPE_SOURCE = 0,
-	/* A sink plug-in handles incoming notifications. */
-	BT_PLUGIN_TYPE_SINK = 1,
-	/* A filter plug-in implements both SOURCE and SINK interfaces. */
-	BT_PLUGIN_TYPE_FILTER = 2,
-};
 
 /**
  * Plug-in discovery functions.
@@ -57,8 +48,8 @@ enum bt_plugin_type {
  * The functions marked as mandatory MUST be exported by the shared object
  * to be considered a valid plug-in.
  */
-enum bt_plugin_type bt_plugin_lib_get_type(void);
-const char *bt_plugin_lib_get_format_name(void);
+extern enum bt_plugin_type bt_plugin_lib_get_type(void);
+extern const char *bt_plugin_lib_get_format_name(void);
 
 /**
  * Create a plug-in instance configured with the provided parameters.
@@ -66,7 +57,7 @@ const char *bt_plugin_lib_get_format_name(void);
  * @param params	Map object of configuration parameters
  * @returns		An instance of the plug-in
  */
-struct bt_plugin *bt_plugin_lib_create(struct bt_object *params);
+extern struct bt_plugin *bt_plugin_lib_create(struct bt_object *params);
 
 #ifdef __cplusplus
 }

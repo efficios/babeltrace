@@ -36,13 +36,14 @@ extern "C" {
 struct bt_notification;
 struct bt_notification_iterator;
 
-int bt_notification_iterator_next(struct bt_notification_iterator *iterator);
+extern enum bt_notification_iterator_status
+bt_notification_iterator_next(struct bt_notification_iterator *iterator);
 
-struct bt_notification *bt_notification_iterator_get_notification(
+extern struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator);
 
-void bt_notification_iterator_get(struct bt_notification_iterator *iterator);
-void bt_notification_iterator_put(struct bt_notification_iterator *iterator);
+extern void bt_notification_iterator_get(struct bt_notification_iterator *iterator);
+extern void bt_notification_iterator_put(struct bt_notification_iterator *iterator);
 
 /* API for plug-in authors */
 struct bt_notification_iterator *bt_notification_iterator_create(

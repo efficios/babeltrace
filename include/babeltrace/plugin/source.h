@@ -2,7 +2,7 @@
 #define BABELTRACE_PLUGIN_SOURCE_H
 
 /*
- * BabelTrace - Source Plug-in
+ * BabelTrace - Source Plug-in Interface
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
