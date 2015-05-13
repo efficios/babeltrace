@@ -48,13 +48,26 @@ struct bt_notification;
  * The functions marked as mandatory MUST be exported by the shared object
  * to be considered a valid plug-in.
  */
+
+/**
+ * Get the plug-in type implemented by the library.
+ *
+ * @returns		One of #bt_plugin_type values
+ */
 extern enum bt_plugin_type bt_plugin_lib_get_type(void);
+
+/**
+ * Get the name of the format implemented by the library.
+ *
+ * @returns		A string (ownership is not transfered)
+ */
 extern const char *bt_plugin_lib_get_format_name(void);
 
 /**
  * Create a plug-in instance configured with the provided parameters.
  *
  * @param params	Map object of configuration parameters
+ *			(see bt_object_map_create())
  * @returns		An instance of the plug-in
  */
 extern struct bt_plugin *bt_plugin_lib_create(struct bt_object *params);
