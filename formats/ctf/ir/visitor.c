@@ -730,8 +730,7 @@ void print_path(const char *field_name,
 	}
 
 	printf_verbose("Resolved field \"%s\" as type \"%s\", ",
-		field_name,
-		type_names[type_id]);
+		field_name, type_names[type_id]);
 	printf_verbose("path: %s",
 		absolute_path_prefixes[field_path->root]);
 
