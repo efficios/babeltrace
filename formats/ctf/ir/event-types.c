@@ -1778,6 +1778,7 @@ int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type,
 		unsigned int alignment)
 {
 	int ret = 0;
+	enum ctf_type_id type_id;
 
 	/* Alignment must be bit-aligned (1) or byte aligned */
 	if (!type || type->frozen || (alignment != 1 && (alignment & 0x7))) {
@@ -1785,8 +1786,21 @@ int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
+	type_id = bt_ctf_field_type_get_type_id(type);
+	if (type_id == CTF_TYPE_UNKNOWN) {
+		ret = -1;
+		goto end;
+	}
+
 	if (type->declaration->id == CTF_TYPE_STRING &&
 		alignment != CHAR_BIT) {
+		ret = -1;
+		goto end;
+	}
+
+	if (type_id == CTF_TYPE_STRUCT || type_id == CTF_TYPE_VARIANT ||
+		type_id == CTF_TYPE_SEQUENCE || type_id == CTF_TYPE_ARRAY) {
+		/* Setting an alignment on these types makes no sense */
 		ret = -1;
 		goto end;
 	}
