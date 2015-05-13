@@ -1072,10 +1072,11 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		&ret_field_type, 0) < 0,
 		"bt_ctf_event_class_get_field handles a NULL event class correctly");
 	ok(bt_ctf_event_class_get_field(event_class, NULL,
-		&ret_field_type, 0) < 0,
+		&ret_field_type, 0) == 0,
 		"bt_ctf_event_class_get_field handles a NULL field name correctly");
+	bt_ctf_field_type_put(ret_field_type);
 	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
-		NULL, 0) < 0,
+		NULL, 0) == 0,
 		"bt_ctf_event_class_get_field handles a NULL field type correctly");
 	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
 		&ret_field_type, 42) < 0,
@@ -1980,10 +1981,11 @@ void type_field_tests()
 		&ret_string, &returned_type, 1) < 0,
 		"bt_ctf_field_type_structure_get_field handles a NULL type correctly");
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
-		NULL, &returned_type, 1) < 0,
+		NULL, &returned_type, 1) == 0,
 		"bt_ctf_field_type_structure_get_field handles a NULL name correctly");
+	bt_ctf_field_type_put(returned_type);
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
-		&ret_string, NULL, 1) < 0,
+		&ret_string, NULL, 1) == 0,
 		"bt_ctf_field_type_structure_get_field handles a NULL return type correctly");
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
 		&ret_string, &returned_type, 10) < 0,

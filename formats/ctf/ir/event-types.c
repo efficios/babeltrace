@@ -1207,8 +1207,7 @@ int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *type,
 	struct structure_field *field;
 	int ret = 0;
 
-	if (!type || index < 0 || !field_name || !field_type ||
-		(type->declaration->id != CTF_TYPE_STRUCT)) {
+	if (!type || index < 0 || (type->declaration->id != CTF_TYPE_STRUCT)) {
 		ret = -1;
 		goto end;
 	}
@@ -1221,9 +1220,13 @@ int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *type,
 	}
 
 	field = g_ptr_array_index(structure->fields, index);
-	*field_type = field->type;
-	bt_ctf_field_type_get(field->type);
-	*field_name = g_quark_to_string(field->name);
+	if (field_type) {
+		*field_type = field->type;
+		bt_ctf_field_type_get(field->type);
+	}
+	if (field_name) {
+		*field_name = g_quark_to_string(field->name);
+	}
 end:
 	return ret;
 }
