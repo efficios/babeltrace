@@ -95,18 +95,35 @@ static inline
 struct bt_ctf_field_type *get_type_field(struct bt_ctf_field_type *type, int i)
 {
 	struct bt_ctf_field_type *field = NULL;
-	const char *unused_name;
 	enum ctf_type_id type_id = bt_ctf_field_type_get_type_id(type);
 
 	if (type_id == CTF_TYPE_STRUCT) {
-		bt_ctf_field_type_structure_get_field(type, &unused_name,
+		bt_ctf_field_type_structure_get_field(type, NULL,
 			&field, i);
 	} else if (type_id == CTF_TYPE_VARIANT) {
 		bt_ctf_field_type_variant_get_field(type,
-			&unused_name, &field, i);
+			NULL, &field, i);
 	}
 
 	return field;
+}
+
+static inline
+int set_type_field(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *field, int i)
+{
+	int ret = -1;
+	enum ctf_type_id type_id = bt_ctf_field_type_get_type_id(type);
+
+	if (type_id == CTF_TYPE_STRUCT) {
+		ret = bt_ctf_field_type_structure_set_field_index(
+			type, field, i);
+	} else if (type_id == CTF_TYPE_VARIANT) {
+		ret = bt_ctf_field_type_variant_set_field_index(
+			type, field, i);
+	}
+
+	return ret;
 }
 
 static inline
@@ -750,6 +767,8 @@ int type_resolve_func(struct bt_ctf_field_type *type,
 	const char *field_name = NULL;
 	struct bt_ctf_field_path *field_path = NULL;
 	struct bt_ctf_field_type *resolved_type = NULL;
+	struct bt_ctf_field_type *type_copy = NULL;
+	struct ctf_type_stack_frame *frame;
 
 	if (type_id != CTF_TYPE_SEQUENCE &&
 		type_id != CTF_TYPE_VARIANT) {
@@ -775,7 +794,18 @@ int type_resolve_func(struct bt_ctf_field_type *type,
 	/* Print path if in verbose mode */
 	print_path(field_name, resolved_type, field_path);
 
-	/* Set type's path */
+	/*
+	 * Set field type's path.
+	 *
+	 * The original field is copied since it may have been reused
+	 * in multiple structures which would cause a conflict.
+	 */
+	type_copy = bt_ctf_field_type_copy(type);
+	if (!type_copy) {
+		ret = -1;
+		goto end;
+	}
+
 	if (type_id == CTF_TYPE_VARIANT) {
 		if (bt_ctf_field_type_get_type_id(resolved_type) !=
 			CTF_TYPE_ENUM) {
@@ -783,12 +813,13 @@ int type_resolve_func(struct bt_ctf_field_type *type,
 			ret = -1;
 			goto end;
 		}
-		ret = bt_ctf_field_type_variant_set_tag(type, resolved_type);
+		ret = bt_ctf_field_type_variant_set_tag(
+			type_copy, resolved_type);
 		if (ret) {
 			goto end;
 		}
 
-		ret = bt_ctf_field_type_variant_set_tag_field_path(type,
+		ret = bt_ctf_field_type_variant_set_tag_field_path(type_copy,
 			field_path);
 		if (ret) {
 			goto end;
@@ -808,12 +839,17 @@ int type_resolve_func(struct bt_ctf_field_type *type,
 			goto end;
 		}
 
-		ret = bt_ctf_field_type_sequence_set_length_field_path(type,
-			field_path);
+		ret = bt_ctf_field_type_sequence_set_length_field_path(
+			type_copy, field_path);
 		if (ret) {
 			goto end;
 		}
 	}
+
+	/* Replace the original field */
+	frame = ctf_type_stack_peek(context->stack);
+	ret = set_type_field(frame->type, type_copy, frame->index);
+	bt_ctf_field_type_put(type_copy);
 end:
 	return ret;
 }

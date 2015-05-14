@@ -2129,6 +2129,35 @@ end:
 }
 
 BT_HIDDEN
+int bt_ctf_field_type_structure_set_field_index(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *field, int index)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_structure *structure;
+
+	if (!type || !field || type->frozen ||
+		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_STRUCT) {
+		ret = -1;
+		goto end;
+	}
+
+	structure = container_of(type, struct bt_ctf_field_type_structure,
+		parent);
+	if (index < 0 || index >= structure->fields->len) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_get(field);
+	bt_ctf_field_type_put(((struct structure_field *)
+		g_ptr_array_index(structure->fields, index))->type);
+	((struct structure_field *) structure->fields->pdata[index])->type =
+		field;
+end:
+	return ret;
+}
+
+BT_HIDDEN
 int bt_ctf_field_type_variant_get_field_name_index(
 		struct bt_ctf_field_type *type, const char *name)
 {
@@ -2227,6 +2256,35 @@ int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
 	}
 	variant->tag = container_of(tag, struct bt_ctf_field_type_enumeration,
 		parent);
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_ctf_field_type_variant_set_field_index(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *field, int index)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_variant *variant;
+
+	if (!type || !field || type->frozen ||
+		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_VARIANT) {
+		ret = -1;
+		goto end;
+	}
+
+	variant = container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+	if (index < 0 || index >= variant->fields->len) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_ctf_field_type_get(field);
+	bt_ctf_field_type_put(((struct structure_field *)
+		g_ptr_array_index(variant->fields, index))->type);
+	((struct structure_field *) variant->fields->pdata[index])->type =
+		field;
 end:
 	return ret;
 }

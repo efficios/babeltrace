@@ -201,6 +201,12 @@ BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(
 		struct bt_ctf_field_type *structure, const char *name);
 
+/* Replace an existing field's type in a structure */
+BT_HIDDEN
+int bt_ctf_field_type_structure_set_field_index(
+		struct bt_ctf_field_type *structure,
+		struct bt_ctf_field_type *field, int index);
+
 BT_HIDDEN
 int bt_ctf_field_type_variant_get_field_name_index(
 		struct bt_ctf_field_type *variant, const char *name);
@@ -217,5 +223,11 @@ int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type *tag);
+
+/* Replace an existing field's type in a variant */
+BT_HIDDEN
+int bt_ctf_field_type_variant_set_field_index(
+		struct bt_ctf_field_type *variant,
+		struct bt_ctf_field_type *field, int index);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */
