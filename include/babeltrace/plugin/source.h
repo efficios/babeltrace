@@ -35,10 +35,23 @@ extern "C" {
 
 struct bt_plugin;
 struct bt_notification_iterator;
-typedef struct bt_notification_iterator *(
-		*bt_plugin_source_iterator_create_func)(struct bt_plugin *);
 
-struct bt_notification_iterator *bt_plugin_source_get_iterator(
+/**
+ * Iterator creation function type.
+ *
+ * @param plugin	Plug-in instance
+ */
+typedef struct bt_notification_iterator *(
+		*bt_plugin_source_iterator_create_func)(
+		struct bt_plugin *plugin);
+
+/**
+ * Create an iterator on a plug-in instance.
+ *
+ * @param plugin	Plug-in instance
+ * @returns		Notification iterator instance
+ */
+struct bt_notification_iterator *bt_plugin_source_create_iterator(
 		struct bt_plugin *plugin);
 
 #ifdef __cplusplus
