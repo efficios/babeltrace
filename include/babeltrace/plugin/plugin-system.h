@@ -37,15 +37,21 @@ extern "C" {
 #endif
 
 /**
+ * Plug-in private data deallocation function type.
  *
+ * @param plugin	Plug-in instance
  */
-typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *);
+typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
 
 /**
+ * Plug-in error stream registration function type.
  *
+ * @param plugin	Plug-in instance
+ * @param error_stream	Error stream, ownership is not transferred
+ * @returns		One of #bt_plugin_status values
  */
-typedef void (*bt_plugin_set_error_stream_cb)(struct bt_plugin *,
-		FILE *error_stream);
+typedef enum bt_plugin_status (*bt_plugin_set_error_stream_cb)(
+		struct bt_plugin *plugin, FILE *error_stream);
 
 /**
  * Get a plug-in's private (implementation) data.
