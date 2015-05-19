@@ -97,6 +97,7 @@ extern struct bt_plugin *bt_plugin_sink_create(const char *name,
 		void *private_data, bt_plugin_destroy_func destroy_func,
 		bt_plugin_sink_handle_notification_cb notification_cb);
 
+/* Notification iterator functions */
 /**
  * Allocate an notification iterator.
  *
@@ -109,6 +110,16 @@ extern struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_plugin *plugin,
 		bt_notification_iterator_next_cb next_cb,
 		bt_notification_iterator_get_notification_cb notification_cb);
+
+/**
+ * Set an iterator's private data.
+ *
+ * @param plugin		Plug-in instance on which to iterate
+ * @param data			Iterator private data
+ * @returns			One of #bt_notification_iterator_status values
+ */
+extern enum bt_notification_iterator_status *bt_notification_iterator_create(
+		struct bt_plugin *plugin, void *data);
 
 #ifdef __cplusplus
 }

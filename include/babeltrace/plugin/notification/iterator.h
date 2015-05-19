@@ -57,15 +57,18 @@ enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,
 };
 
+/**
+ * Notification iterator seek reference.
+ */
 enum bt_notification_iterator_seek_type {
 	/** Seek at a time relative to the beginning of the trace. */
 	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_BEGIN = 0,
 
-	/** Seek at a time relative to the current position */
+	/** Seek at a time relative to the current position. */
 	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_CURRENT = 1,
 
-	/** Seek at a absolute time */
-	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_SET = 2,
+	/** Seek at a time relative to the end of the trace. */
+	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_END = 1,
 };
 
 /**
