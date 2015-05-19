@@ -35,16 +35,48 @@ extern "C" {
 
 struct bt_notification;
 
+/**
+ * Notification types. Unhandled notification types should be ignored.
+ */
 enum bt_plugin_notification_type {
 	BT_PLUGIN_NOTIFICATION_TYPE_UNKNOWN = -1,
-	BT_PLUGIN_NOTIFICATION_TYPE_EVENT = 0, /* see notification/event.h */
-	BT_PLUGIN_NOTIFICATION_TYPE_EVENTS_DISCARDED = 0, /* see notification/events-discarded.h */
+
+	/** Event delivery notification, see event.h */
+	BT_PLUGIN_NOTIFICATION_TYPE_EVENT = 0,
+
+	/** New stream packet notification, see packet.h */
+	BT_PLUGIN_NOTIFICATION_TYPE_NEW_PACKET = 1,
+
+	/** End of trace notification, see eot.h */
+	BT_PLUGIN_NOTIFICATION_TYPE_EOT = 2,
 };
 
+/**
+ * Get a notification's type.
+ *
+ * @param notification	Notification instance
+ * @returns		One of #bt_plugin_notification_type
+ */
 enum bt_plugin_notification_type bt_plugin_notification_get_type(
 		struct bt_plugin_notification *notification);
 
+/**
+ * Increments the reference count of \p notifiaction.
+ *
+ * @param notification	Notification of which to increment the reference count
+ *
+ * @see bt_plugin_notification_put()
+ */
 void bt_plugin_notification_get(struct bt_plugin_notification *notification);
+
+/**
+ * Decrements the reference count of \p notification, destroying it when this
+ * count reaches 0.
+ *
+ * @param notification	Notification of which to decrement the reference count
+ *
+ * @see bt_plugin_notification_get()
+ */
 void bt_plugin_notification_put(struct bt_plugin_notification *notification);
 
 #ifdef __cplusplus
