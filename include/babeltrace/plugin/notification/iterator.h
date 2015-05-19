@@ -77,7 +77,7 @@ enum bt_notification_iterator_seek_type {
  * This functions will <b>not</b> advance the cursor's position.
  * The returned notification's reference count is already incremented.
  *
- * @param Iterator	Iterator instance
+ * @param iterator	Iterator instance
  * @returns		Returns a bt_notification instance
  *
  * @see bt_notification_put()

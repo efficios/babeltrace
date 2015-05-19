@@ -27,8 +27,6 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,7 +55,7 @@ enum bt_plugin_notification_type {
  * @param notification	Notification instance
  * @returns		One of #bt_plugin_notification_type
  */
-enum bt_plugin_notification_type bt_plugin_notification_get_type(
+extern enum bt_plugin_notification_type bt_plugin_notification_get_type(
 		struct bt_plugin_notification *notification);
 
 /**
@@ -67,7 +65,8 @@ enum bt_plugin_notification_type bt_plugin_notification_get_type(
  *
  * @see bt_plugin_notification_put()
  */
-void bt_plugin_notification_get(struct bt_plugin_notification *notification);
+extern void bt_plugin_notification_get(
+		struct bt_plugin_notification *notification);
 
 /**
  * Decrements the reference count of \p notification, destroying it when this
@@ -77,7 +76,8 @@ void bt_plugin_notification_get(struct bt_plugin_notification *notification);
  *
  * @see bt_plugin_notification_get()
  */
-void bt_plugin_notification_put(struct bt_plugin_notification *notification);
+extern void bt_plugin_notification_put(
+		struct bt_plugin_notification *notification);
 
 #ifdef __cplusplus
 }

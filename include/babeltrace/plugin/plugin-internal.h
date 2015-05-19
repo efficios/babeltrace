@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf-writer/ref-internal.h>
 #include <glib.h>
 
 #ifdef __cplusplus
@@ -37,6 +38,7 @@ extern "C" {
 struct bt_notification;
 
 struct bt_plugin {
+	struct bt_ctf_ref ref_count;
 	GString *name;
 	enum bt_plugin_type type;
 
