@@ -41,10 +41,11 @@ struct bt_plugin {
 	struct bt_ctf_ref ref_count;
 	GString *name;
 	enum bt_plugin_type type;
+	/** No ownership taken */
+	FILE *error_stream;
 
 	/* Plug-in implementation callbacks */
 	bt_plugin_destroy_cb destroy;
-	bt_plugin_set_error_stream_cb set_error_stream;
 };
 
 #ifdef __cplusplus

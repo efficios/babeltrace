@@ -44,16 +44,6 @@ extern "C" {
 typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
 
 /**
- * Plug-in error stream registration function type.
- *
- * @param plugin	Plug-in instance
- * @param error_stream	Error stream, ownership is not transferred
- * @returns		One of #bt_plugin_status values
- */
-typedef enum bt_plugin_status (*bt_plugin_set_error_stream_cb)(
-		struct bt_plugin *plugin, FILE *error_stream);
-
-/**
  * Get a plug-in's private (implementation) data.
  *
  * @param plugin	Plug-in of which to get the private data
@@ -61,15 +51,7 @@ typedef enum bt_plugin_status (*bt_plugin_set_error_stream_cb)(
  */
 extern void *bt_plugin_get_private_data(struct bt_plugin *plugin);
 
-/**
- * Set a callback permiting the registration of an error stream.
- *
- * @param plugin	Plug-in to which the callback should be registered
- * @param cb		Error stream registration callback
- */
-extern int bt_plugin_set_error_stream_cb(struct bt_plugin *plugin,
-		bt_plugin_set_error_stream_cb cb);
-
+	
 /* Plug-in initialization functions */
 /**
  * Allocate a source plug-in.
@@ -96,6 +78,7 @@ extern struct bt_plugin *bt_plugin_source_create(const char *name,
 extern struct bt_plugin *bt_plugin_sink_create(const char *name,
 		void *private_data, bt_plugin_destroy_func destroy_func,
 		bt_plugin_sink_handle_notification_cb notification_cb);
+
 
 /* Notification iterator functions */
 /**

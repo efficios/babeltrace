@@ -1,3 +1,31 @@
+/*
+ * reader.c
+ *
+ * Babeltrace CTF Reader Plugin
+ *
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <babeltrace/plugin/plugin-lib.h>
 #include <babeltrace/plugin/plugin-system.h>
 #include <glib.h>
@@ -6,7 +34,7 @@
 const char *plugin_name = "ctf";
 
 struct ctf_reader {
-        FILE *err;
+	int a;
 };
 
 enum bt_plugin_type bt_plugin_lib_get_type(void)
@@ -43,29 +71,6 @@ struct bt_notification_iterator *ctf_reader_iterator_create(
 	return NULL;
 }
 
-/* Move this to bt_plugin */
-static
-enum bt_plugin_status ctf_reader_set_error_stream(
-		struct bt_plugin *plugin, FILE *stream)
-{
-	struct ctf_reader *reader;
-	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
-
-	if (!plugin) {
-		ret = BT_PLUGIN_STATUS_INVAL;
-		goto end;
-	}
-
-	reader = bt_plugin_get_private_data(plugin);
-	if (!reader) {
-		ret = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
-
-	reader->stream = stream;
-end:
-	return ret;
-}
 
 struct bt_plugin *bt_plugin_lib_create(struct bt_object *params)
 {
