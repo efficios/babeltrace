@@ -71,7 +71,6 @@ struct bt_notification_iterator *ctf_reader_iterator_create(
 	return NULL;
 }
 
-
 struct bt_plugin *bt_plugin_lib_create(struct bt_object *params)
 {
 	enum bt_plugin_status ret;
