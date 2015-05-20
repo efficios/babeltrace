@@ -97,5 +97,58 @@ void bt_plugin_put(struct bt_plugin *plugin)
 		return;
 	}
 
-	bt_ctf_ref_put(&plugin->ref_count);
+	bt_ctf_ref_put(&plugin->ref_count, bt_plugin_destroy);
+}
+
+BT_HIDDEN
+enum bt_plugin_status bt_plugin_init(struct bt_plugin *plugin, const char *name,
+		void *user_data, bt_plugin_destroy_func user_destroy_func,
+		enum bt_plugin_type plugin_type,
+		bt_plugin_destroy_func plugin_destroy)
+{
+	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
+
+	if (!plugin || !name || name[0] == '\0' ||
+		!destroy_func || !private_data) {
+		ret = BT_PLUGIN_STATUS_INVAL;
+		goto end;
+	}
+
+	bt_ctf_ref_init(&plugin->ref_count);
+	plugin->type = plugin_type;
+	plugin->user_data = user_data;
+	plugin->user_data_destroy = user_destroy_func;
+	plugin->destroy = plugin_destroy;
+
+	plugin->name = g_string_new(name);
+	if (!plugin->name) {
+		ret = BT_PLUGIN_STATUS_NOMEM;
+		goto end;
+	}
+end:
+	return ret;
+}
+
+static
+void bt_plugin_destroy(struct bt_ctf_ref *ref)
+{
+	struct bt_ctf_plugin *plugin = NULL;
+
+	if (!ref) {
+		return;
+	}
+
+	plugin = container_of(ref, struct bt_plugin, parent);
+
+	/**
+	 * Destroy user data, base and source/filter/sink last since
+	 * it will deallocate the plugin.
+	 */
+	assert(plugin->user_destroy_func);
+	plugin->user_destroy_func(plugin->user_data);
+
+	g_string_free(plugin->name, TRUE);
+
+	assert(plugin->destroy);
+	plugin->destroy(plugin);
 }

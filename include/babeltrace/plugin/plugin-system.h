@@ -52,7 +52,7 @@ typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
 extern void *bt_plugin_get_private_data(struct bt_plugin *plugin);
 
 	
-/* Plug-in initialization functions */
+/** Plug-in initialization functions */
 /**
  * Allocate a source plug-in.
  *
@@ -80,7 +80,7 @@ extern struct bt_plugin *bt_plugin_sink_create(const char *name,
 		bt_plugin_sink_handle_notification_cb notification_cb);
 
 
-/* Notification iterator functions */
+/** Notification iterator functions */
 /**
  * Allocate a notification iterator.
  *
