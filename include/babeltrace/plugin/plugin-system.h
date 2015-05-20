@@ -99,7 +99,7 @@ extern struct bt_plugin *bt_plugin_sink_create(const char *name,
 
 /* Notification iterator functions */
 /**
- * Allocate an notification iterator.
+ * Allocate a notification iterator.
  *
  * @param plugin		Plug-in instance
  * @param next_cb		Callback advancing to the next notification
