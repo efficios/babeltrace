@@ -60,12 +60,10 @@ typedef struct bt_notification_iterator *(
  *
  * @param plugin	Plug-in instance
  * @param notificattion	Notification to handle
+ * @returns		One of #bt_plugin_status values
  */
-typedef int (*bt_plugin_sink_handle_notification_cb)(struct bt_plugin *,
-		struct bt_notification *);
-
-typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
-		struct bt_notification_iterator *);
+typedef enum bt_plugin_status (*bt_plugin_sink_handle_notification_cb)(
+		struct bt_plugin *, struct bt_notification *);
 
 typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
 		struct bt_notification_iterator *);
