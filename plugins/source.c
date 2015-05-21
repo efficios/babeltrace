@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/compiler.h>
 #include <babeltrace/plugin/source-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 
@@ -43,7 +44,7 @@ void bt_plugin_source_destroy(struct bt_plugin *plugin)
 }
 
 struct bt_plugin *bt_plugin_source_create(const char *name,
-		void *private_data, bt_plugin_destroy_func destroy_func,
+		void *private_data, bt_plugin_destroy_cb destroy_func,
 		bt_plugin_source_iterator_create_cb iterator_create_cb)
 {
 	struct bt_plugin_source *source = NULL;

@@ -29,6 +29,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
+#include <babeltrace/plugin/plugin-system.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,7 +39,7 @@ struct bt_plugin_source {
 	struct bt_plugin parent;
 
 	/* Plug-in implementation callbacks */
-	bt_plugin_source_iterator_create_func create_iterator;
+	bt_plugin_source_iterator_create_cb create_iterator;
 };
 
 #ifdef __cplusplus
