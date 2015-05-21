@@ -31,10 +31,13 @@
  */
 
 #include <babeltrace/objects.h>
+#include <babeltrace/plugin/notification/iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_notification;
 
 /**
  * Plug-in private data deallocation function type.
@@ -44,6 +47,33 @@ extern "C" {
 typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
 
 /**
+ * Iterator creation function type.
+ *
+ * @param plugin	Plug-in instance
+ */
+typedef struct bt_notification_iterator *(
+		*bt_plugin_source_iterator_create_cb)(
+		struct bt_plugin *plugin);
+
+/**
+ * Notification handling function type.
+ *
+ * @param plugin	Plug-in instance
+ * @param notificattion	Notification to handle
+ */
+typedef int (*bt_plugin_sink_handle_notification_cb)(struct bt_plugin *,
+		struct bt_notification *);
+
+typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
+		struct bt_notification_iterator *);
+
+typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
+		struct bt_notification_iterator *);
+
+typedef enum bt_notification_iterator_status (bt_notification_iterator_next_cb)(
+		struct bt_notification_iterator *);
+
+/**
  * Get a plug-in's private (implementation) data.
  *
  * @param plugin	Plug-in of which to get the private data
@@ -51,7 +81,7 @@ typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
  */
 extern void *bt_plugin_get_private_data(struct bt_plugin *plugin);
 
-	
+
 /** Plug-in initialization functions */
 /**
  * Allocate a source plug-in.
@@ -63,7 +93,7 @@ extern void *bt_plugin_get_private_data(struct bt_plugin *plugin);
  * @returns			A source plug-in instance
  */
 extern struct bt_plugin *bt_plugin_source_create(const char *name,
-		void *private_data, bt_plugin_destroy_func destroy_func,
+		void *private_data, bt_plugin_destroy_cb destroy_func,
 		bt_plugin_source_iterator_create_cb iterator_create_cb);
 
 /**
@@ -76,7 +106,7 @@ extern struct bt_plugin *bt_plugin_source_create(const char *name,
  * @returns			A sink plug-in instance
  */
 extern struct bt_plugin *bt_plugin_sink_create(const char *name,
-		void *private_data, bt_plugin_destroy_func destroy_func,
+		void *private_data, bt_plugin_destroy_cb destroy_func,
 		bt_plugin_sink_handle_notification_cb notification_cb);
 
 
@@ -93,16 +123,6 @@ extern struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_plugin *plugin,
 		bt_notification_iterator_next_cb next_cb,
 		bt_notification_iterator_get_notification_cb notification_cb);
-
-/**
- * Set an iterator's private data.
- *
- * @param plugin		Plug-in instance on which to iterate
- * @param data			Iterator private data
- * @returns			One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status *bt_notification_iterator_create(
-		struct bt_plugin *plugin, void *data);
 
 #ifdef __cplusplus
 }

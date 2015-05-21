@@ -28,6 +28,8 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <glib.h>
 
@@ -51,9 +53,9 @@ struct bt_plugin {
 
 BT_HIDDEN
 enum bt_plugin_status bt_plugin_init(struct bt_plugin *plugin, const char *name,
-		void *user_data,bt_plugin_destroy_func destroy_func,
+		void *user_data,bt_plugin_destroy_cb destroy_func,
 		enum bt_plugin_type plugin_type,
-		bt_plugin_destroy_func plugin_destroy);
+		bt_plugin_destroy_cb plugin_destroy);
 
 #ifdef __cplusplus
 }

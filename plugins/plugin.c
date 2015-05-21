@@ -26,6 +26,12 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/plugin-internal.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/compiler.h>
+
+static void bt_plugin_destroy(struct bt_ctf_ref *ref);
+
 const char *bt_plugin_get_name(struct bt_plugin *plugin)
 {
 	const char *ret = NULL;
@@ -102,14 +108,14 @@ void bt_plugin_put(struct bt_plugin *plugin)
 
 BT_HIDDEN
 enum bt_plugin_status bt_plugin_init(struct bt_plugin *plugin, const char *name,
-		void *user_data, bt_plugin_destroy_func user_destroy_func,
+		void *user_data, bt_plugin_destroy_cb user_destroy_func,
 		enum bt_plugin_type plugin_type,
-		bt_plugin_destroy_func plugin_destroy)
+		bt_plugin_destroy_cb plugin_destroy)
 {
 	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
 
 	if (!plugin || !name || name[0] == '\0' ||
-		!destroy_func || !private_data) {
+		!user_destroy_func || !user_data || !plugin_destroy) {
 		ret = BT_PLUGIN_STATUS_INVAL;
 		goto end;
 	}
@@ -132,20 +138,20 @@ end:
 static
 void bt_plugin_destroy(struct bt_ctf_ref *ref)
 {
-	struct bt_ctf_plugin *plugin = NULL;
+	struct bt_plugin *plugin = NULL;
 
 	if (!ref) {
 		return;
 	}
 
-	plugin = container_of(ref, struct bt_plugin, parent);
+	plugin = container_of(ref, struct bt_plugin, ref_count);
 
 	/**
 	 * Destroy user data, base and source/filter/sink last since
 	 * it will deallocate the plugin.
 	 */
-	assert(plugin->user_destroy_func);
-	plugin->user_destroy_func(plugin->user_data);
+	assert(plugin->user_data_destroy);
+	plugin->user_data_destroy(plugin->user_data);
 
 	g_string_free(plugin->name, TRUE);
 

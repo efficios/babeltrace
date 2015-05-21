@@ -2,7 +2,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = include types compat lib formats converter bindings tests doc extras
+SUBDIRS = include types compat lib formats converter bindings tests doc extras plugins
 
 dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
 		std-ext-lib.txt README

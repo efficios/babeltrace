@@ -4,13 +4,15 @@ SUBDIRS = .
 
 lib_LTLIBRARIES = libbabeltrace-plugin.la
 
+# Plug-in system library
 libbabeltrace_plugin_la_SOURCES = \
 	plugin.c \
+	filter.c \
 	source.c \
 	sink.c \
 	iterator.c
 
-# Request that the linker keeps all static libraries objects.
+# Request that the linker keeps all static librarie objects.
 libbabeltrace_plugin_la_LDFLAGS = \
 	-Wl,--no-as-needed -version-info $(BABELTRACE_LIBRARY_VERSION)
 

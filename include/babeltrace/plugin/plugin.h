@@ -69,7 +69,9 @@ enum bt_plugin_status {
 
 	/** No error, okay. */
 	BT_PLUGIN_STATUS_OK =		0,
-}
+};
+
+struct bt_plugin;
 
 /**
  * Get plug-in instance name.
