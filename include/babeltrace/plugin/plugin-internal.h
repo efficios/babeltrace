@@ -32,6 +32,7 @@
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <glib.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {

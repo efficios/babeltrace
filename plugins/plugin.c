@@ -135,6 +135,19 @@ end:
 	return ret;
 }
 
+void *bt_plugin_get_private_data(struct bt_plugin *plugin)
+{
+        void *ret = NULL;
+
+	if (!plugin) {
+		goto end;
+	}
+
+	ret = plugin->user_data;
+end:
+	return ret;
+}
+
 static
 void bt_plugin_destroy(struct bt_ctf_ref *ref)
 {

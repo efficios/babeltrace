@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/objects.h>
-#include <babeltrace/plugin.h>
+#include <babeltrace/plugin/plugin.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

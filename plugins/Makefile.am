@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-SUBDIRS = .
+SUBDIRS = . ctf
 
 lib_LTLIBRARIES = libbabeltrace-plugin.la
 
@@ -17,4 +17,3 @@ libbabeltrace_plugin_la_LDFLAGS = \
 
 libbabeltrace_plugin_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
-	$(top_builddir)/ctf/ir/libctf-ir.la

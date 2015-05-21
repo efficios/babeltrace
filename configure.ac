@@ -370,6 +370,8 @@ AC_CONFIG_FILES([
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
+	plugins/ctf/Makefile
+	plugins/ctf/ctf-reader/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
