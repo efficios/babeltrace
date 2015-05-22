@@ -1286,6 +1286,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 	}
 
 	bt_ctf_field_type_init(&variant->parent);
+	/* A variant's alignment is undefined */
+	variant->parent.declaration->alignment = 0;
 	return &variant->parent;
 error:
 	return NULL;

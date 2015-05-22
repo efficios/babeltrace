@@ -697,7 +697,8 @@ extern int bt_ctf_field_type_string_set_encoding(
  *
  * @param type Field type.
  *
- * Returns the field type's alignment on success, a negative value on error.
+ * Returns the field type's alignment on success, a negative value on error and
+ * 0 if the alignment is undefined (as in the case of a variant).
  */
 extern int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type);
 
