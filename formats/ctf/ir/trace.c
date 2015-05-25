@@ -46,7 +46,7 @@ void bt_ctf_trace_destroy(struct bt_ctf_ref *ref);
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace);
 static
-void bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
+int bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
 
 static
 const unsigned int field_type_aliases_alignments[] = {
@@ -504,7 +504,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 
 	bt_ctf_stream_class_freeze(stream_class);
 	if (!trace->frozen) {
-		bt_ctf_trace_freeze(trace);
+		ret = bt_ctf_trace_freeze(trace);
+		goto end;
 	}
 end:
 	if (ret) {
@@ -892,11 +893,19 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 }
 
 static
-void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
+int bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
-	bt_ctf_trace_resolve_types(trace);
+	int ret = 0;
+
+	ret = bt_ctf_trace_resolve_types(trace);
+	if (ret) {
+		goto end;
+	}
+
 	bt_ctf_attributes_freeze(trace->environment);
 	trace->frozen = 1;
+end:
+	return ret;
 }
 
 static
