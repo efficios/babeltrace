@@ -155,6 +155,22 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_field(
 		struct bt_ctf_field *variant, struct bt_ctf_field *tag);
 
 /*
+ * bt_ctf_field_variant_get_current_field: get the current selected field of a
+ *	variant.
+ *
+ * Return the variant's current selected field. This function, unlike
+ * bt_ctf_field_variant_get_field(), does not create any field; it
+ * returns NULL if there's no current selected field yet.
+ *
+ * @param variant Variant field instance.
+ *
+ * Returns a field instance on success, NULL on error or when there's no
+ * current selected field.
+ */
+extern struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
+		struct bt_ctf_field *variant);
+
+/*
  * bt_ctf_field_enumeration_get_container: get an enumeration field's container.
  *
  * Return the enumeration's underlying container field (an integer).

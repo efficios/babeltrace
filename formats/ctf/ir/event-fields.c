@@ -652,6 +652,31 @@ end:
 	return new_field;
 }
 
+struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
+		struct bt_ctf_field *variant_field)
+{
+	struct bt_ctf_field *current_field = NULL;
+	struct bt_ctf_field_variant *variant;
+
+	if (!variant_field ||
+		bt_ctf_field_type_get_type_id(variant_field->type) !=
+			CTF_TYPE_VARIANT) {
+		goto end;
+	}
+
+	variant = container_of(variant_field, struct bt_ctf_field_variant,
+		parent);
+
+	if (variant->payload) {
+		current_field = variant->payload;
+		bt_ctf_field_get(current_field);
+		goto end;
+	}
+
+end:
+	return current_field;
+}
+
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	struct bt_ctf_field *field)
 {
