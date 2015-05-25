@@ -1334,6 +1334,7 @@ void field_copy_tests()
 	struct bt_ctf_field *e = NULL;
 	struct bt_ctf_field *v = NULL;
 	struct bt_ctf_field *v_selected = NULL;
+	struct bt_ctf_field *v_selected_cur = NULL;
 	struct bt_ctf_field *v_selected_0 = NULL;
 	struct bt_ctf_field *v_selected_1 = NULL;
 	struct bt_ctf_field *v_selected_2 = NULL;
@@ -1497,6 +1498,12 @@ void field_copy_tests()
 	/* set v field */
 	v_selected = bt_ctf_field_variant_get_field(v, e);
 	assert(v_selected);
+	ok(!bt_ctf_field_variant_get_current_field(NULL),
+		"bt_ctf_field_variant_get_current_field handles NULL correctly");
+	v_selected_cur = bt_ctf_field_variant_get_current_field(v);
+	ok(v_selected_cur == v_selected,
+		"bt_ctf_field_variant_get_current_field returns the current field");
+	bt_ctf_field_put(v_selected_cur);
 
 	/* set selected v field */
 	ret = bt_ctf_field_sequence_set_length(v_selected, len);
