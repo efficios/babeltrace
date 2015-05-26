@@ -35,8 +35,59 @@
 
 const char *plugin_name = "ctf-text";
 
+enum loglevel {
+        LOGLEVEL_EMERG                  = 0,
+        LOGLEVEL_ALERT                  = 1,
+        LOGLEVEL_CRIT                   = 2,
+        LOGLEVEL_ERR                    = 3,
+        LOGLEVEL_WARNING                = 4,
+        LOGLEVEL_NOTICE                 = 5,
+        LOGLEVEL_INFO                   = 6,
+        LOGLEVEL_DEBUG_SYSTEM           = 7,
+        LOGLEVEL_DEBUG_PROGRAM          = 8,
+        LOGLEVEL_DEBUG_PROCESS          = 9,
+        LOGLEVEL_DEBUG_MODULE           = 10,
+        LOGLEVEL_DEBUG_UNIT             = 11,
+        LOGLEVEL_DEBUG_FUNCTION         = 12,
+        LOGLEVEL_DEBUG_LINE             = 13,
+        LOGLEVEL_DEBUG                  = 14,
+};
+
+const char *loglevel_str [] = {
+	[LOGLEVEL_EMERG] = "TRACE_EMERG",
+	[LOGLEVEL_ALERT] = "TRACE_ALERT",
+	[LOGLEVEL_CRIT] = "TRACE_CRIT",
+	[LOGLEVEL_ERR] = "TRACE_ERR",
+	[LOGLEVEL_WARNING] = "TRACE_WARNING",
+	[LOGLEVEL_NOTICE] = "TRACE_NOTICE",
+	[LOGLEVEL_INFO] = "TRACE_INFO",
+	[LOGLEVEL_DEBUG_SYSTEM] = "TRACE_DEBUG_SYSTEM",
+	[LOGLEVEL_DEBUG_PROGRAM] = "TRACE_DEBUG_PROGRAM",
+	[LOGLEVEL_DEBUG_PROCESS] = "TRACE_DEBUG_PROCESS",
+	[LOGLEVEL_DEBUG_MODULE] = "TRACE_DEBUG_MODULE",
+	[LOGLEVEL_DEBUG_UNIT] = "TRACE_DEBUG_UNIT",
+	[LOGLEVEL_DEBUG_FUNCTION] = "TRACE_DEBUG_FUNCTION",
+	[LOGLEVEL_DEBUG_LINE] = "TRACE_DEBUG_LINE",
+	[LOGLEVEL_DEBUG] = "TRACE_DEBUG",
+};
+
 struct ctf_text {
-	int a;
+	int opt_print_all_field_names;
+	int opt_print_scope_field_names;
+	int opt_print_header_field_names;
+	int opt_print_context_field_names;
+	int opt_print_payload_field_names;
+	int opt_print_all_fields;
+	int opt_print_trace_field;
+	int opt_print_trace_domain_field;
+	int opt_print_trace_procname_field;
+	int opt_print_trace_vpid_field;
+	int opt_print_trace_hostname_field;
+	int opt_print_trace_default_fields;
+	int opt_print_loglevel_field;
+	int opt_print_emf_field;
+	int opt_print_callsite_field;
+	int opt_print_delta_field;
 };
 
 static
@@ -73,10 +124,33 @@ const char *bt_plugin_lib_get_format_name(void)
 	return plugin_name;
 }
 
+static
+int text_init(struct ctf_text *text, struct bt_object *params)
+{
+	int ret = 0;
+
+	if (!text || !params) {
+		ret = -1;
+		goto end;
+	}
+
+	text->opt_print_trace_default_fields = 1;
+	text->opt_print_delta_field = 1;
+end:
+	return ret;
+}
+
 struct bt_plugin *bt_plugin_lib_create(struct bt_object *params)
 {
+	int ret;
 	struct bt_plugin *plugin = NULL;
 	struct ctf_text *text = g_new0(struct ctf_text, 1);
+
+	/* Set default text output options */
+	ret = text_init(text, params);
+	if (ret) {
+		goto error;
+	}
 
 	plugin = bt_plugin_sink_create(plugin_name, text,
 	        ctf_text_destroy, ctf_text_handle_notification);
