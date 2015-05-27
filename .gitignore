@@ -2,6 +2,7 @@
 /tests/lib/test_bitfield
 /tests/lib/test_seek
 /tests/lib/test_ctf_writer
+/tests/lib/test_bt_objects
 *.o
 *.a
 *.la
