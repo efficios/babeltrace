@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_H
-#define BABELTRACE_PLUGIN_H
+#ifndef BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
+#define BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
 
 /*
- * BabelTrace - Babeltrace Plug-in Interface
+ * BabelTrace - Plug-in Notification internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,10 +27,22 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/component-class.h>
-#include <babeltrace/plugin/source.h>
-#include <babeltrace/plugin/sink.h>
-#include <babeltrace/plugin/filter.h>
+#include <babeltrace/ctf-writer/ref-internal.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/plugin/notification/notification.h>
+#include <glib.h>
 
-#endif /* BABELTRACE_PLUGIN_H */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct bt_plugin_notification {
+	struct bt_ctf_ref ref_count;
+	enum bt_plugin_notification_type type;
+};
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H */
