@@ -2137,7 +2137,7 @@ int bt_ctf_field_type_structure_set_field_index(struct bt_ctf_field_type *type,
 	int ret = 0;
 	struct bt_ctf_field_type_structure *structure;
 
-	if (!type || !field || type->frozen ||
+	if (!type || !field ||
 		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
@@ -2269,7 +2269,7 @@ int bt_ctf_field_type_variant_set_field_index(struct bt_ctf_field_type *type,
 	int ret = 0;
 	struct bt_ctf_field_type_variant *variant;
 
-	if (!type || !field || type->frozen ||
+	if (!type || !field ||
 		bt_ctf_field_type_get_type_id(type) != CTF_TYPE_VARIANT) {
 		ret = -1;
 		goto end;
