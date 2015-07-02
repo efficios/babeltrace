@@ -1,6 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+AC_PREREQ([2.50])
 AC_INIT([babeltrace],[1.3.0-pre],[jeremie dot galarneau at efficios dot com])
 
 # Following the numbering scheme proposed by libtool for the library version
