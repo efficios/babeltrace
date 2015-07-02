@@ -1251,6 +1251,15 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
+	|	postfix_expression DOT keywords
+		{
+			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
+			$$->u.unary_expression.type = UNARY_STRING;
+			$$->u.unary_expression.u.string = yylval.s;
+			$$->u.unary_expression.link = UNARY_DOTLINK;
+			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
+			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
+		}
 	|	postfix_expression RARROW IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
