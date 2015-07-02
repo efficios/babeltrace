@@ -2296,6 +2296,211 @@ end:
 	bt_ctf_stream_class_put(stream_class);
 }
 
+void test_custom_event_header_stream(struct bt_ctf_writer *writer)
+{
+	int i, ret;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_field_type *integer_type = NULL,
+		*sequence_type = NULL, *event_header_type = NULL;
+	struct bt_ctf_field *integer = NULL, *sequence = NULL,
+		*event_header = NULL, *packet_header = NULL;
+	struct bt_ctf_event_class *event_class = NULL;
+	struct bt_ctf_event *event = NULL;
+
+	trace = bt_ctf_writer_get_trace(writer);
+	if (!trace) {
+		fail("Failed to get trace from writer");
+		goto end;
+	}
+
+	clock = bt_ctf_trace_get_clock(trace, 0);
+	if (!clock) {
+		fail("Failed to get clock from trace");
+		goto end;
+	}
+
+	stream_class = bt_ctf_stream_class_create("custom_event_header_stream");
+	if (!stream_class) {
+		fail("Failed to create stream class");
+		goto end;
+	}
+
+	ret = bt_ctf_stream_class_set_clock(stream_class, clock);
+	if (ret) {
+		fail("Failed to set stream class clock");
+		goto end;
+	}
+
+	/*
+	 * Customize event header to add an "seq_len" integer member
+	 * which will be used as the length of a sequence in an event of this
+	 * stream.
+	 */
+	event_header_type = bt_ctf_stream_class_get_event_header_type(
+		stream_class);
+	if (!event_header_type) {
+		fail("Failed to get event header type");
+		goto end;
+	}
+
+	integer_type = bt_ctf_field_type_integer_create(13);
+	if (!integer_type) {
+		fail("Failed to create length integer type");
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_structure_add_field(event_header_type,
+		integer_type, "seq_len");
+	if (ret) {
+		fail("Failed to add a new field to stream event header");
+		goto end;
+	}
+
+	event_class = bt_ctf_event_class_create("sequence_event");
+	if (!event_class) {
+		fail("Failed to create event class");
+		goto end;
+	}
+
+	/*
+	 * This event's payload will contain a sequence which references
+	 * stream.event.header.seq_len as its length field.
+	 */
+	sequence_type = bt_ctf_field_type_sequence_create(integer_type,
+		"stream.event.header.seq_len");
+	if (!sequence_type) {
+		fail("Failed to create a sequence");
+		goto end;
+	}
+
+	ret = bt_ctf_event_class_add_field(event_class, sequence_type,
+		"some_sequence");
+	if (ret) {
+		fail("Failed to add a sequence to an event class");
+		goto end;
+	}
+
+	ret = bt_ctf_stream_class_add_event_class(stream_class, event_class);
+	if (ret) {
+		fail("Failed to add event class to stream class");
+		goto end;
+	}
+
+	stream = bt_ctf_writer_create_stream(writer, stream_class);
+	if (!stream) {
+		fail("Failed to create stream")
+		goto end;
+	}
+
+	/*
+	 * We have defined a custom packet header field. We have to populate it
+	 * explicitly.
+	 */
+	packet_header = bt_ctf_stream_get_packet_header(stream);
+	if (!packet_header) {
+		fail("Failed to get stream packet header");
+		goto end;
+	}
+
+	integer = bt_ctf_field_structure_get_field(packet_header,
+		"custom_trace_packet_header_field");
+	if (!integer) {
+		fail("Failed to retrieve custom_trace_packet_header_field");
+		goto end;
+	}
+
+	ret = bt_ctf_field_unsigned_integer_set_value(integer, 3487);
+	if (ret) {
+		fail("Failed to set custom_trace_packet_header_field value");
+		goto end;
+	}
+	bt_ctf_field_put(integer);
+
+	event = bt_ctf_event_create(event_class);
+	if (!event) {
+		fail("Failed to create event");
+		goto end;
+	}
+
+	event_header = bt_ctf_event_get_header(event);
+	if (!event_header) {
+		fail("Failed to get event header");
+		goto end;
+	}
+
+	integer = bt_ctf_field_structure_get_field(event_header,
+		"seq_len");
+	if (!integer) {
+		fail("Failed to get seq_len field from event header");
+		goto end;
+	}
+
+	ret = bt_ctf_field_unsigned_integer_set_value(integer, 2);
+	if (ret) {
+		fail("Failed to set seq_len value in event header");
+		goto end;
+	}
+
+	/* Populate both sequence integer fields */
+	sequence = bt_ctf_event_get_payload(event, "some_sequence");
+	if (!sequence) {
+		fail("Failed to retrieve sequence from event");
+		goto end;
+	}
+
+	ret = bt_ctf_field_sequence_set_length(sequence, integer);
+	if (ret) {
+		fail("Failed to set sequence length");
+		goto end;
+	}
+	bt_ctf_field_put(integer);
+
+	for (i = 0; i < 2; i++) {
+		integer = bt_ctf_field_sequence_get_field(sequence, i);
+		if (ret) {
+			fail("Failed to retrieve sequence element");
+			goto end;
+		}
+
+		ret = bt_ctf_field_unsigned_integer_set_value(integer, i);
+		if (ret) {
+			fail("Failed to set sequence element value");
+			goto end;
+		}
+
+		bt_ctf_field_put(integer);
+		integer = NULL;
+	}
+
+	ret = bt_ctf_stream_append_event(stream, event);
+	if (ret) {
+		fail("Failed to append event to stream");
+		goto end;
+	}
+
+	ret = bt_ctf_stream_flush(stream);
+	if (ret) {
+		fail("Failed to flush custom_event_header stream");
+	}
+end:
+	bt_ctf_clock_put(clock);
+	bt_ctf_trace_put(trace);
+	bt_ctf_stream_put(stream);
+	bt_ctf_stream_class_put(stream_class);
+	bt_ctf_event_class_put(event_class);
+	bt_ctf_event_put(event);
+	bt_ctf_field_put(integer);
+	bt_ctf_field_put(sequence);
+	bt_ctf_field_put(event_header);
+	bt_ctf_field_put(packet_header);
+	bt_ctf_field_type_put(sequence_type);
+	bt_ctf_field_type_put(integer_type);
+	bt_ctf_field_type_put(event_header_type);
+}
+
 void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 {
 	int ret = 0;
@@ -3041,6 +3246,8 @@ int main(int argc, char **argv)
 	append_existing_event_class(stream_class);
 
 	test_empty_stream(writer);
+
+	test_custom_event_header_stream(writer);
 
 	metadata_string = bt_ctf_writer_get_metadata_string(writer);
 	ok(metadata_string, "Get metadata string");
