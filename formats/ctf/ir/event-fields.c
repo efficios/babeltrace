@@ -1394,7 +1394,9 @@ void bt_ctf_field_sequence_destroy(struct bt_ctf_field *field)
 	}
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
-	g_ptr_array_free(sequence->elements, TRUE);
+	if (sequence->elements) {
+		g_ptr_array_free(sequence->elements, TRUE);
+	}
 	bt_ctf_field_put(sequence->length);
 	g_free(sequence);
 }
