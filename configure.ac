@@ -33,6 +33,10 @@ if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
                 AC_MSG_ERROR([[bison not found and is required when building from git.
                 Please install bison]])
         fi
+        AC_PATH_PROG([BISON],[bison])
+        AX_PROG_BISON_VERSION([2.4], [],[
+                AC_MSG_ERROR([[Bison >= 2.4 is required when building from git]])
+        ])
 fi
 
 if test ! -f "$srcdir/formats/ctf/metadata/ctf-lexer.c"; then
