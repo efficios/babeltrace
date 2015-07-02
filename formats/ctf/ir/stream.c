@@ -270,6 +270,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto end;
 	}
 
+	/* A stream has no ownership of its trace (weak ptr) */
 	stream->trace = trace;
 	bt_ctf_ref_init(&stream->ref_count);
 	stream->packet_context = bt_ctf_field_create(
