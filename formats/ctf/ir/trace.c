@@ -156,11 +156,6 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
-	stream = bt_ctf_stream_create(stream_class, trace);
-	if (!stream) {
-		goto error;
-	}
-
 	for (i = 0; i < trace->stream_classes->len; i++) {
 		if (trace->stream_classes->pdata[i] == stream_class) {
 			stream_class_found = 1;
@@ -172,6 +167,11 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 		if (ret) {
 			goto error;
 		}
+	}
+
+	stream = bt_ctf_stream_create(stream_class, trace);
+	if (!stream) {
+		goto error;
 	}
 
 	bt_ctf_stream_get(stream);
