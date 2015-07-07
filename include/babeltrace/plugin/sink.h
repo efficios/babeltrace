@@ -27,20 +27,23 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-system.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_component;
+struct bt_notification;
 
 /**
  * Hand-off a notification to a sink component.
  *
  * @param component	Component instance
+ * @param notification	Notification instance to handle
  * @returns		One of #bt_component_status values
  */
 enum bt_component_status bt_component_sink_handle_notification(
-		struct bt_component *component);
+		struct bt_component *component,
+		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
