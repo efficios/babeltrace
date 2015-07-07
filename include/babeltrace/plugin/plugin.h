@@ -5,6 +5,7 @@
  * BabelTrace - Babeltrace Plug-in Interface
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,10 +28,33 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/component-class.h>
-#include <babeltrace/plugin/source.h>
-#include <babeltrace/plugin/sink.h>
-#include <babeltrace/plugin/filter.h>
+#include <babeltrace/plugin/component-factory.h>
+
+#define BT_PLUGIN_NAME(_x)	const char *__bt_plugin_name = (_x)
+#define BT_PLUGIN_AUTHOR(_x)	const char *__bt_plugin_author = (_x)
+#define BT_PLUGIN_LICENSE(_x)	const char *__bt_plugin_license = (_x)
+#define BT_PLUGIN_INIT(_x)	void *__bt_plugin_init = (_x)
+#define BT_PLUGIN_EXIT(_x)	void *__bt_plugin_exit = (_x)
+
+#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN			\
+	enum bt_status __bt_plugin_register_component_classes(\
+		struct bt_component_factory *factory)\
+	{
+
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _it_cr) \
+	bt_component_factory_register_source_component_class(factory, \
+		_name, _init, _fini, _it_cr);
+
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _hd_notif) \
+	bt_component_factory_register_sink_component_class(factory, \
+		_name, _init, _fini, _hd_notif);
+
+#define BT_PLUGIN_COMPONENT_CLASSES_END\
+	\
+	return BT_STATUS_OK;\
+}\
+	\
+	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
+	BT_PLUGIN_EXIT(NULL);
 
 #endif /* BABELTRACE_PLUGIN_H */

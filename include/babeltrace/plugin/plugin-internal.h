@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_INTERNAL_H
-#define BABELTRACE_PLUGIN_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H
+#define BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H
 
 /*
- * BabelTrace - Plug-in internal
+ * BabelTrace - Component internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -29,6 +29,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <glib.h>
@@ -40,7 +41,7 @@ extern "C" {
 
 struct bt_notification;
 
-struct bt_plugin {
+struct bt_component {
 	struct bt_ctf_ref ref_count;
 	GString *name;
 	enum bt_plugin_type type;
@@ -53,13 +54,14 @@ struct bt_plugin {
 };
 
 BT_HIDDEN
-enum bt_plugin_status bt_plugin_init(struct bt_plugin *plugin, const char *name,
-		void *user_data,bt_plugin_destroy_cb destroy_func,
-		enum bt_plugin_type plugin_type,
-		bt_plugin_destroy_cb plugin_destroy);
+enum bt_component_status bt_component_init(struct bt_component *plugin,
+		const char *name, void *user_data,
+		bt_component_destroy_cb destroy_func,
+		enum bt_component_type component_type,
+		bt_component_destroy_cb component_destroy);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_INTERNAL_H */
+#endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_LIB_H
-#define BABELTRACE_PLUGIN_LIB_H
+#ifndef BABELTRACE_PLUGIN_COMPONENT_SINK_H
+#define BABELTRACE_PLUGIN_COMPONENT_SINK_H
 
 /*
- * BabelTrace - Base interface of a Babeltrace Plug-in Library
+ * BabelTrace - Sink Component Interface
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,53 +27,23 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/objects.h>
-#include <babeltrace/plugin/plugin.h>
-#include <stdint.h>
+#include <babeltrace/plugin/plugin-system.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_plugin;
-struct bt_notification;
-
 /**
- * Plug-in discovery functions.
+ * Hand-off a notification to a sink component.
  *
- * The Babeltrace plug-in architecture mandates that a given plug-in shared
- * object only define one plug-in. These functions are used to query a plug-in
- * shared object about its attributes.
- *
- * The functions marked as mandatory MUST be exported by the shared object
- * to be considered a valid plug-in.
+ * @param component	Component instance
+ * @returns		One of #bt_component_status values
  */
-
-/**
- * Get the plug-in type implemented by the library.
- *
- * @returns		One of #bt_plugin_type values
- */
-extern enum bt_plugin_type bt_plugin_lib_get_type(void);
-
-/**
- * Get the name of the format implemented by the library.
- *
- * @returns		A string (ownership is not transfered)
- */
-extern const char *bt_plugin_lib_get_format_name(void);
-
-/**
- * Create a plug-in instance configured with the provided parameters.
- *
- * @param params	Map object of configuration parameters
- *			(see bt_object_map_create())
- * @returns		An instance of the plug-in
- */
-extern struct bt_plugin *bt_plugin_lib_create(struct bt_object *params);
+enum bt_component_status bt_component_sink_handle_notification(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_H */
+#endif /* BABELTRACE_PLUGIN_COMPONENT_SINK_H */

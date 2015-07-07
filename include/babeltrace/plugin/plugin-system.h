@@ -40,30 +40,30 @@ extern "C" {
 struct bt_notification;
 
 /**
- * Plug-in private data deallocation function type.
+ * Component private data deallocation function type.
  *
- * @param plugin	Plug-in instance
+ * @param component	Component instance
  */
-typedef void (*bt_plugin_destroy_cb)(struct bt_plugin *plugin);
+typedef void (*bt_component_destroy_cb)(struct bt_component *component);
 
 /**
  * Iterator creation function type.
  *
- * @param plugin	Plug-in instance
+ * @param component	Component instance
  */
 typedef struct bt_notification_iterator *(
-		*bt_plugin_source_iterator_create_cb)(
-		struct bt_plugin *plugin);
+		*bt_component_source_iterator_create_cb)(
+		struct bt_component *component);
 
 /**
  * Notification handling function type.
  *
- * @param plugin	Plug-in instance
+ * @param component	Component instance
  * @param notificattion	Notification to handle
- * @returns		One of #bt_plugin_status values
+ * @returns		One of #bt_component_status values
  */
-typedef enum bt_plugin_status (*bt_plugin_sink_handle_notification_cb)(
-		struct bt_plugin *, struct bt_notification *);
+typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
+		struct bt_component *, struct bt_notification *);
 
 typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
 		struct bt_notification_iterator *);
@@ -72,53 +72,33 @@ typedef enum bt_notification_iterator_status (bt_notification_iterator_next_cb)(
 		struct bt_notification_iterator *);
 
 /**
- * Get a plug-in's private (implementation) data.
+ * Get a component's private (implementation) data.
  *
- * @param plugin	Plug-in of which to get the private data
- * @returns		Plug-in private data
+ * @param component	Component of which to get the private data
  */
-extern void *bt_plugin_get_private_data(struct bt_plugin *plugin);
-
-
-/** Plug-in initialization functions */
-/**
- * Allocate a source plug-in.
- *
- * @param name			Plug-in instance name (will be copied)
- * @param private_data		Private plug-in implementation data
- * @param destroy_cb		Plug-in private data clean-up callback
- * @param iterator_create_cb	Iterator creation callback
- * @returns			A source plug-in instance
- */
-extern struct bt_plugin *bt_plugin_source_create(const char *name,
-		void *private_data, bt_plugin_destroy_cb destroy_func,
-		bt_plugin_source_iterator_create_cb iterator_create_cb);
+extern void *bt_component_get_private_data(struct bt_component *component);
 
 /**
- * Allocate a sink plug-in.
+ * Set a component's private (implementation) data.
  *
- * @param name			Plug-in instance name (will be copied)
- * @param private_data		Private plug-in implementation data
- * @param destroy_cb		Plug-in private data clean-up callback
- * @param notification_cb	Notification handling callback
- * @returns			A sink plug-in instance
+ * @param component	Component of which to set the private data
+ * @param data	Component private data
  */
-extern struct bt_plugin *bt_plugin_sink_create(const char *name,
-		void *private_data, bt_plugin_destroy_cb destroy_func,
-		bt_plugin_sink_handle_notification_cb notification_cb);
+extern enum bt_component_status bt_component_set_private_data(struct bt_component *component,
+		void *data);
 
 
 /** Notification iterator functions */
 /**
  * Allocate a notification iterator.
  *
- * @param plugin		Plug-in instance
+ * @param component		Component instance
  * @param next_cb		Callback advancing to the next notification
  * @param notification_cb	Callback providing the current notification
  * @returns			A notification iterator instance
  */
 extern struct bt_notification_iterator *bt_notification_iterator_create(
-		struct bt_plugin *plugin,
+		struct bt_component *component,
 		bt_notification_iterator_next_cb next_cb,
 		bt_notification_iterator_get_notification_cb notification_cb);
 

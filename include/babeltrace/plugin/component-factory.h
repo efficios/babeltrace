@@ -1,11 +1,10 @@
-#ifndef BABELTRACE_PLUGIN_COMPONENT_CLASS_H
-#define BABELTRACE_PLUGIN_COMPONENT_CLASS_H
+#ifndef BABELTRACE_PLUGIN_COMPONENT_FACTORY_H
+#define BABELTRACE_PLUGIN_COMPONENT_FACTORY_H
 
 /*
- * Babeltrace - Plugin Component Class Interface.
+ * Babeltrace - Component Factory Class Interface.
  *
- * Copyright 2015 EfficiOS Inc.
- * Copyright 2015 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,42 +25,39 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-#include <babeltrace/plugin/factory.h>
+#include <babeltrace/plugin/component.h>
+#include <babeltrace/plugin/source.h>
+#include <babeltrace/plugin/sink.h>
+#include <babeltrace/plugin/filter.h>
 
 #ifdef __cplusplus
 extern "C" {
-	#endif
+#endif
 
-#define BT_PLUGIN_NAME(_x)	const char *__bt_plugin_name = (_x)
-#define BT_PLUGIN_AUTHOR(_x)	const char *__bt_plugin_author = (_x)
-#define BT_PLUGIN_LICENSE(_x)	const char *__bt_plugin_license = (_x)
-#define BT_PLUGIN_INIT(_x)	void *__bt_plugin_init = (_x)
-#define BT_PLUGIN_EXIT(_x)	void *__bt_plugin_exit = (_x)
+struct bt_component_factory;
 
-#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN\
-	enum bt_status __bt_plugin_register_component_classes(\
-		struct bt_component_factory *factory)\
-	{
+typedef struct bt_component *(*bt_component_init)(
+		struct bt_component *component);
 
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _it_cr) \
-	bt_component_factory_register_source_component_class(factory, \
-		_name, _init, _fini, _it_cr);
+typedef struct bt_component *(*bt_component_fini)(
+		struct bt_component *component);
 
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _hd_notif) \
-	bt_component_factory_register_sink_component_class(factory, \
-		_name, _init, _fini, _hd_notif);
+enum bt_component_status bt_component_factory_create(const char *path);
 
-#define BT_PLUGIN_COMPONENT_CLASSES_END\
-	\
-	return BT_STATUS_OK;\
-}\
-	\
-	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
-	BT_PLUGIN_EXIT(NULL);
+enum bt_component_status bt_component_factory_register_source_component_class(
+	struct bt_component_factory *factory, const char *name,
+	bt_component_init init, bt_component_fini fini,
+	bt_component_source_iterator_create_cb iterator_create_cb);
 
-	#ifdef __cplusplus
+enum bt_component_status bt_component_factory_register_sink_component_class(
+	struct bt_component_factory *factory, const char *name,
+	bt_component_init init, bt_component_fini fini,
+	bt_component_sink_handle_notification_cb handle_notification_cb);
+
+void bt_component_factory_destroy(struct bt_component_factory *factory);
+
+#ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_H */
+#endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_H */

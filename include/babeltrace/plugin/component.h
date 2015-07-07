@@ -2,7 +2,7 @@
 #define BABELTRACE_PLUGIN_COMPONENT_H
 
 /*
- * BabelTrace - Babeltrace Plug-in Component Interface
+ * BabelTrace - Babeltrace Component Interface
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -77,7 +77,7 @@ struct bt_component;
  * Get component's name.
  *
  * @param component	Component instance of which to get the name
- * @returns		Returns a pointer to the plug-in's name
+ * @returns		Returns a pointer to the component's name
  */
 extern const char *bt_component_get_name(struct bt_component *component);
 
@@ -85,7 +85,7 @@ extern const char *bt_component_get_name(struct bt_component *component);
  * Set component's name.
  *
  * @param component	Component instance of which to set the name
- * @param name		New plug-in name (will be copied)
+ * @param name		New component name (will be copied)
  * @returns		One of #bt_component_status values
  */
 extern enum bt_component_status bt_component_set_name(
