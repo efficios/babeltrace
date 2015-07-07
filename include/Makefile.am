@@ -39,17 +39,17 @@ babeltracectfirinclude_HEADERS = \
 babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/component.h \
-	babeltrace/plugin/component-class.h \
 	babeltrace/plugin/component-factory.h \
 	babeltrace/plugin/source.h \
 	babeltrace/plugin/sink.h \
 	babeltrace/plugin/filter.h \
 	babeltrace/plugin/plugin-lib.h \
 	babeltrace/plugin/plugin-system.h \
+	babeltrace/plugin/notification/eot.h \
 	babeltrace/plugin/notification/notification.h \
 	babeltrace/plugin/notification/event.h \
-	babeltrace/plugin/notification/eot.h \
 	babeltrace/plugin/notification/iterator.h \
+	babeltrace/plugin/notification/notification.h \
 	babeltrace/plugin/notification/packet.h
 
 noinst_HEADERS = \
@@ -109,12 +109,13 @@ noinst_HEADERS = \
 	babeltrace/compat/mman.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h \
-	babeltrace/plugin/sink-internal.h \
-	babeltrace/plugin/component-internal.h \
-	babeltrace/plugin/component-class-internal.h \
 	babeltrace/plugin/component-factory-internal.h \
-	babeltrace/plugin/source-internal.h \
+	babeltrace/plugin/component-internal.h \
 	babeltrace/plugin/filter-internal.h \
+	babeltrace/plugin/sink-internal.h \
+	babeltrace/plugin/source-internal.h \
+	babeltrace/plugin/notification/eot-internal.h \
 	babeltrace/plugin/notification/event-internal.h \
+	babeltrace/plugin/notification/iterator-internal.h \
 	babeltrace/plugin/notification/notification-internal.h \
-	babeltrace/plugin/notification/iterator-internal.h
+	babeltrace/plugin/notification/packet-internal.h

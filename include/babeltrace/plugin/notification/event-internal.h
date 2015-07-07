@@ -39,8 +39,8 @@
 extern "C" {
 #endif
 
-struct bt_plugin_notification_event {
-	struct bt_plugin_notification parent;
+struct bt_notification_event {
+	struct bt_notification parent;
 	struct bt_ctf_trace *trace;
 	struct bt_ctf_stream *stream;
 	struct bt_ctf_event *event;

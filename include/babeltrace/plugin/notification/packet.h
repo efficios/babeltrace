@@ -2,7 +2,7 @@
 #define BABELTRACE_PLUGIN_NOTIFICATION_PACKET_H
 
 /*
- * BabelTrace - Plug-in New Packet Notification
+ * BabelTrace - Plug-in Packet Notifications
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -35,4 +35,4 @@ extern "C" {
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_NOTIFICATION_NEW_PACKET_H */
+#endif /* BABELTRACE_PLUGIN_NOTIFICATION_PACKET_H */

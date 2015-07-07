@@ -30,15 +30,14 @@
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
-#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_plugin_notification {
+struct bt_notification {
 	struct bt_ctf_ref ref_count;
-	enum bt_plugin_notification_type type;
+	enum bt_notification_type type;
 };
 
 #ifdef __cplusplus

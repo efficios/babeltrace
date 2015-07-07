@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-struct bt_plugin_notification;
+struct bt_notification;
 struct bt_ctf_trace;
 struct bt_ctf_stream;
 struct bt_ctf_event;
@@ -44,9 +44,9 @@ struct bt_ctf_event;
  * @param event			The event
  * @returns			An event notification instance
  *
- * @see #bt_plugin_notification_type
+ * @see #bt_notification_type
  */
-extern struct bt_plugin_notification *bt_plugin_notification_event_create(
+extern struct bt_notification *bt_notification_event_create(
 		struct bt_ctf_trace *trace, struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
 
@@ -58,8 +58,8 @@ extern struct bt_plugin_notification *bt_plugin_notification_event_create(
  *
  * @see #bt_ctf_trace
  */
-extern struct bt_ctf_trace *bt_plugin_notification_event_get_trace(
-		struct bt_plugin_notification *notification);
+extern struct bt_ctf_trace *bt_notification_event_get_trace(
+		struct bt_notification *notification);
 
 /**
  * Get an event notification's associated stream.
@@ -69,8 +69,8 @@ extern struct bt_ctf_trace *bt_plugin_notification_event_get_trace(
  *
  * @see #bt_ctf_stream
  */
-extern struct bt_ctf_stream *bt_plugin_notification_event_get_stream(
-		struct bt_plugin_notification *notification);
+extern struct bt_ctf_stream *bt_notification_event_get_stream(
+		struct bt_notification *notification);
 
 /**
  * Get an event notification's event.
@@ -80,8 +80,8 @@ extern struct bt_ctf_stream *bt_plugin_notification_event_get_stream(
  *
  * @see #bt_ctf_event
  */
-extern struct bt_ctf_event *bt_plugin_notification_event_get_event(
-		struct bt_plugin_notification *notification);
+extern struct bt_ctf_event *bt_notification_event_get_event(
+		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
