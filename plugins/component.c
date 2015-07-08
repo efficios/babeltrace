@@ -107,8 +107,9 @@ void bt_component_put(struct bt_component *component)
 }
 
 BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *component, const char *name,
-		void *user_data, bt_component_destroy_cb user_destroy_func,
+enum bt_component_status bt_component_init(struct bt_component *component,
+		const char *name, void *user_data,
+		bt_component_destroy_cb user_destroy_func,
 		enum bt_component_type component_type,
 		bt_component_destroy_cb component_destroy)
 {
@@ -137,7 +138,7 @@ end:
 
 void *bt_component_get_private_data(struct bt_component *component)
 {
-        void *ret = NULL;
+	void *ret = NULL;
 
 	if (!component) {
 		goto end;

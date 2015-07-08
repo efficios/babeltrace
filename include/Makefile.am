@@ -43,7 +43,6 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/source.h \
 	babeltrace/plugin/sink.h \
 	babeltrace/plugin/filter.h \
-	babeltrace/plugin/plugin-lib.h \
 	babeltrace/plugin/plugin-system.h \
 	babeltrace/plugin/notification/eot.h \
 	babeltrace/plugin/notification/notification.h \

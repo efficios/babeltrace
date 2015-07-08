@@ -44,13 +44,13 @@ struct bt_notification;
 struct bt_component {
 	struct bt_ctf_ref ref_count;
 	GString *name;
-	enum bt_plugin_type type;
+	enum bt_component_type type;
 	/** No ownership taken */
 	FILE *error_stream;
 
 	void *user_data;
-	bt_plugin_destroy_cb user_data_destroy;
-	bt_plugin_destroy_cb destroy;
+	bt_component_destroy_cb user_data_destroy;
+	bt_component_destroy_cb destroy;
 };
 
 BT_HIDDEN

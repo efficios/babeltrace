@@ -29,6 +29,7 @@
 #include <babeltrace/plugin/source.h>
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/filter.h>
+#include <babeltrace/plugin/plugin-system.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,22 +37,22 @@ extern "C" {
 
 struct bt_component_factory;
 
-typedef struct bt_component *(*bt_component_init)(
+typedef struct bt_component *(*bt_component_init_cb)(
 		struct bt_component *component);
 
-typedef struct bt_component *(*bt_component_fini)(
+typedef struct bt_component *(*bt_component_fini_cb)(
 		struct bt_component *component);
 
 enum bt_component_status bt_component_factory_create(const char *path);
 
 enum bt_component_status bt_component_factory_register_source_component_class(
 	struct bt_component_factory *factory, const char *name,
-	bt_component_init init, bt_component_fini fini,
+	bt_component_init_cb init, bt_component_fini_cb fini,
 	bt_component_source_iterator_create_cb iterator_create_cb);
 
 enum bt_component_status bt_component_factory_register_sink_component_class(
 	struct bt_component_factory *factory, const char *name,
-	bt_component_init init, bt_component_fini fini,
+	bt_component_init_cb init, bt_component_fini_cb fini,
 	bt_component_sink_handle_notification_cb handle_notification_cb);
 
 void bt_component_factory_destroy(struct bt_component_factory *factory);

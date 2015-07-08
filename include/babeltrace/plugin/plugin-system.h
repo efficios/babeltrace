@@ -75,6 +75,7 @@ typedef enum bt_notification_iterator_status (bt_notification_iterator_next_cb)(
  * Get a component's private (implementation) data.
  *
  * @param component	Component of which to get the private data
+ * @returns		Component's private data
  */
 extern void *bt_component_get_private_data(struct bt_component *component);
 
@@ -82,10 +83,11 @@ extern void *bt_component_get_private_data(struct bt_component *component);
  * Set a component's private (implementation) data.
  *
  * @param component	Component of which to set the private data
- * @param data	Component private data
+ * @param data		Component private data
+ * @returns		One of #bt_component_status values
  */
-extern enum bt_component_status bt_component_set_private_data(struct bt_component *component,
-		void *data);
+extern enum bt_component_status bt_component_set_private_data(
+		struct bt_component *component, void *data);
 
 
 /** Notification iterator functions */

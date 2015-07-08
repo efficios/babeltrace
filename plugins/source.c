@@ -1,7 +1,7 @@
 /*
  * source.c
  *
- * Babeltrace Source Plugin
+ * Babeltrace Source Component
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,40 +28,41 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/plugin/source-internal.h>
-#include <babeltrace/plugin/plugin-internal.h>
+#include <babeltrace/plugin/component-internal.h>
 
 static
-void bt_plugin_source_destroy(struct bt_plugin *plugin)
+void bt_component_source_destroy(struct bt_component *component)
 {
-	struct bt_plugin_source *source;
+	struct bt_component_source *source;
 
-	if (!plugin) {
+	if (!component) {
 		return;
 	}
 
-	source = container_of(plugin, struct bt_plugin_source, parent);
+	source = container_of(component, struct bt_component_source, parent);
 	g_free(source);
 }
 
-struct bt_plugin *bt_plugin_source_create(const char *name,
-		void *private_data, bt_plugin_destroy_cb destroy_func,
-		bt_plugin_source_iterator_create_cb iterator_create_cb)
+struct bt_component *bt_component_source_create(const char *name,
+		void *private_data, bt_component_destroy_cb destroy_func,
+		bt_component_source_iterator_create_cb iterator_create_cb)
 {
-	struct bt_plugin_source *source = NULL;
-	enum bt_plugin_status ret;
+	struct bt_component_source *source = NULL;
+	enum bt_component_status ret;
 
 	if (!iterator_create_cb) {
 		goto end;
 	}
 
-	source = g_new0(struct bt_plugin_source, 1);
+	source = g_new0(struct bt_component_source, 1);
 	if (!source) {
 		goto end;
 	}
 
-	ret = bt_plugin_init(&source->parent, name, private_data,
-		destroy_func, BT_PLUGIN_TYPE_SOURCE, bt_plugin_source_destroy);
-	if (ret != BT_PLUGIN_STATUS_OK) {
+	ret = bt_component_init(&source->parent, name, private_data,
+		destroy_func, BT_COMPONENT_TYPE_SOURCE,
+		bt_component_source_destroy);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		g_free(source);
 		source = NULL;
 		goto end;

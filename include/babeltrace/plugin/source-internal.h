@@ -2,7 +2,7 @@
 #define BABELTRACE_PLUGIN_SOURCE_INTERNAL_H
 
 /*
- * BabelTrace - Source Plug-in internal
+ * BabelTrace - Source Component internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,18 +28,18 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/plugin-internal.h>
+#include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_plugin_source {
-	struct bt_plugin parent;
+struct bt_component_source {
+	struct bt_component parent;
 
-	/* Plug-in implementation callbacks */
-	bt_plugin_source_iterator_create_cb create_iterator;
+	/* Component implementation callbacks */
+	bt_component_source_iterator_create_cb create_iterator;
 };
 
 #ifdef __cplusplus
