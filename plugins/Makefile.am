@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libbabeltrace-plugin.la
 
 # Plug-in system library
 libbabeltrace_plugin_la_SOURCES = \
-	plugin.c \
+	component.c \
 	source.c \
 	sink.c \
 	iterator.c
