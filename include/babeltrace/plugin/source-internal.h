@@ -31,19 +31,11 @@
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct bt_component_source {
 	struct bt_component parent;
 
 	/* Component implementation callbacks */
 	bt_component_source_iterator_create_cb create_iterator;
 };
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BABELTRACE_PLUGIN_SOURCE_INTERNAL_H */
