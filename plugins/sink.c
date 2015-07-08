@@ -72,3 +72,27 @@ struct bt_component *bt_component_sink_create(const char *name,
 end:
 	return sink ? &sink->parent : NULL;
 }
+
+enum bt_component_status bt_component_sink_handle_notification(
+		struct bt_component *component,
+		struct bt_notification *notification)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_sink *sink = NULL;
+
+	if (!component || !notification) {
+		ret = BT_COMPONENT_STATUS_INVAL;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	sink = container_of(component, struct bt_component_sink, parent);
+	assert(sink->handle_notification);
+	ret = sink->handle_notification(component, notification);
+end:
+	return ret;
+}
