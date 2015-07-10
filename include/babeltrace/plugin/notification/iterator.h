@@ -42,7 +42,7 @@ struct bt_notification_iterator;
 enum bt_notification_iterator_status {
 	/** Invalid arguments. */
 	/* -22 for compatibility with -EINVAL */
-	BT_NOTIFICATION_ITERATOR_STATUS_EINVAL = -22,
+	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -22,
 
 	/** End of trace. */
 	BT_NOTIFICATION_ITERATOR_STATUS_EOT = -3,

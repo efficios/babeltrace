@@ -33,17 +33,17 @@
 extern "C" {
 #endif
 
-struct bt_plugin;
+struct bt_component;
 struct bt_notification_iterator;
 
 /**
- * Create an iterator on a plug-in instance.
+ * Create an iterator on a component instance.
  *
- * @param plugin	Plug-in instance
+ * @param component	Component instance
  * @returns		Notification iterator instance
  */
-struct bt_notification_iterator *bt_plugin_source_create_iterator(
-		struct bt_plugin *plugin);
+struct bt_notification_iterator *bt_component_source_create_iterator(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }

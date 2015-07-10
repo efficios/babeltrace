@@ -1,7 +1,7 @@
 /*
  * sink.c
  *
- * Babeltrace Source Component
+ * Babeltrace Sink Component
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *

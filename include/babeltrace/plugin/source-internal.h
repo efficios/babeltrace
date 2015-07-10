@@ -35,7 +35,7 @@ struct bt_component_source {
 	struct bt_component parent;
 
 	/* Component implementation callbacks */
-	bt_component_source_iterator_create_cb create_iterator;
+	bt_component_source_iterator_init_cb init_iterator;
 };
 
 #endif /* BABELTRACE_PLUGIN_SOURCE_INTERNAL_H */

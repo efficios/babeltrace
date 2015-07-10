@@ -28,18 +28,11 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/plugin.h>
-#include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/component.h>
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <glib.h>
 #include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct bt_notification;
 
 struct bt_component {
 	struct bt_ctf_ref ref_count;
@@ -54,14 +47,10 @@ struct bt_component {
 };
 
 BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *plugin,
+enum bt_component_status bt_component_init(struct bt_component *component,
 		const char *name, void *user_data,
 		bt_component_destroy_cb destroy_func,
 		enum bt_component_type component_type,
 		bt_component_destroy_cb component_destroy);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */

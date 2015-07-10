@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>

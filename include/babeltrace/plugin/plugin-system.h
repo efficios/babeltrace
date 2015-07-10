@@ -31,13 +31,15 @@
  */
 
 #include <babeltrace/objects.h>
-#include <babeltrace/plugin/notification/iterator.h>
+#include <babeltrace/objects.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_notification_iterator;
+struct bt_component;
 
 /**
  * Component private data deallocation function type.
@@ -51,8 +53,14 @@ typedef void (*bt_component_destroy_cb)(struct bt_component *component);
  *
  * @param component	Component instance
  */
-typedef struct bt_notification_iterator *(
-		*bt_component_source_iterator_create_cb)(
+typedef enum bt_component_status (*bt_component_source_iterator_init_cb)(
+		struct bt_component *component,
+		struct bt_notification_iterator *iterator);
+
+typedef struct bt_component *(*bt_component_init_cb)(
+		struct bt_component *component);
+
+typedef struct bt_component *(*bt_component_fini_cb)(
 		struct bt_component *component);
 
 /**
@@ -65,10 +73,10 @@ typedef struct bt_notification_iterator *(
 typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
 		struct bt_component *, struct bt_notification *);
 
-typedef struct bt_notification *(bt_notification_iterator_get_notification_cb)(
+typedef struct bt_notification *(*bt_notification_iterator_get_cb)(
 		struct bt_notification_iterator *);
 
-typedef enum bt_notification_iterator_status (bt_notification_iterator_next_cb)(
+typedef enum bt_notification_iterator_status (*bt_notification_iterator_next_cb)(
 		struct bt_notification_iterator *);
 
 /**
@@ -79,6 +87,21 @@ typedef enum bt_notification_iterator_status (bt_notification_iterator_next_cb)(
  */
 extern void *bt_component_get_private_data(struct bt_component *component);
 
+extern enum bt_notification_iterator_status
+bt_notification_iterator_set_get_cb(struct bt_notification_iterator *iterator,
+		bt_notification_iterator_get_cb get);
+
+extern enum bt_notification_iterator_status
+bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
+		bt_notification_iterator_next_cb next);
+
+extern enum bt_notification_iterator_status
+bt_notification_iterator_set_private_data(
+		struct bt_notification_iterator *iterator, void *data);
+
+extern void *bt_notification_iterator_get_private_data(
+		struct bt_notification_iterator *iterator);
+
 /**
  * Set a component's private (implementation) data.
  *
@@ -88,21 +111,6 @@ extern void *bt_component_get_private_data(struct bt_component *component);
  */
 extern enum bt_component_status bt_component_set_private_data(
 		struct bt_component *component, void *data);
-
-
-/** Notification iterator functions */
-/**
- * Allocate a notification iterator.
- *
- * @param component		Component instance
- * @param next_cb		Callback advancing to the next notification
- * @param notification_cb	Callback providing the current notification
- * @returns			A notification iterator instance
- */
-extern struct bt_notification_iterator *bt_notification_iterator_create(
-		struct bt_component *component,
-		bt_notification_iterator_next_cb next_cb,
-		bt_notification_iterator_get_notification_cb notification_cb);
 
 #ifdef __cplusplus
 }

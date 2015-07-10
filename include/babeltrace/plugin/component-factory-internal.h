@@ -38,13 +38,13 @@
  * @param name			Component instance name (will be copied)
  * @param private_data		Private component implementation data
  * @param destroy_cb		Component private data clean-up callback
- * @param iterator_create_cb	Iterator creation callback
+ * @param iterator_init_cb	Iterator initialization callback
  * @returns			A source component instance
  */
 BT_HIDDEN
 extern struct bt_component *bt_component_source_create(const char *name,
 		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_source_iterator_create_cb iterator_create_cb);
+		bt_component_source_iterator_init_cb iterator_init_cb);
 
 /**
  * Allocate a sink component.

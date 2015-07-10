@@ -29,6 +29,8 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/plugin/source-internal.h>
 #include <babeltrace/plugin/component-internal.h>
+#include <babeltrace/plugin/notification/iterator.h>
+#include <babeltrace/plugin/notification/iterator-internal.h>
 
 static
 void bt_component_source_destroy(struct bt_component *component)
@@ -45,12 +47,12 @@ void bt_component_source_destroy(struct bt_component *component)
 
 struct bt_component *bt_component_source_create(const char *name,
 		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_source_iterator_create_cb iterator_create_cb)
+		bt_component_source_iterator_init_cb iterator_init_cb)
 {
 	struct bt_component_source *source = NULL;
 	enum bt_component_status ret;
 
-	if (!iterator_create_cb) {
+	if (!iterator_init_cb) {
 		goto end;
 	}
 
@@ -68,7 +70,46 @@ struct bt_component *bt_component_source_create(const char *name,
 		goto end;
 	}
 
-	source->create_iterator = iterator_create_cb;
+	source->init_iterator = iterator_init_cb;
 end:
 	return source ? &source->parent : NULL;
+}
+
+struct bt_notification_iterator *bt_plugin_source_create_iterator(
+		struct bt_component *component)
+{
+	enum bt_component_status ret_component;
+	enum bt_notification_iterator_status ret_iterator;
+	struct bt_component_source *source;
+	struct bt_notification_iterator *iterator = NULL;
+
+	if (!component) {
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SOURCE) {
+		goto end;
+	}
+
+	iterator = bt_notification_iterator_create(component);
+	if (!iterator) {
+		goto end;
+	}
+
+	source = container_of(component, struct bt_component_source, parent);
+	assert(source->init_iterator);
+	ret_component = source->init_iterator(component, iterator);
+	if (ret_component != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret_iterator = bt_notification_iterator_validate(iterator);
+	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		goto error;
+	}
+end:
+	return iterator;
+error:
+	bt_notification_iterator_put(iterator);
+	return NULL;
 }

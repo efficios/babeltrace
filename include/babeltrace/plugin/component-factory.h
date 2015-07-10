@@ -37,12 +37,6 @@ extern "C" {
 
 struct bt_component_factory;
 
-typedef struct bt_component *(*bt_component_init_cb)(
-		struct bt_component *component);
-
-typedef struct bt_component *(*bt_component_fini_cb)(
-		struct bt_component *component);
-
 enum bt_component_status bt_component_factory_create(const char *path);
 
 enum bt_component_status bt_component_factory_register_source_component_class(
