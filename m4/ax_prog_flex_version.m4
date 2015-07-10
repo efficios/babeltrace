@@ -1,22 +1,27 @@
+# ===========================================================================
+#   http://www.gnu.org/software/autoconf-archive/ax_prog_flex_version.html
+# ===========================================================================
+#
 # SYNOPSIS
 #
 #   AX_PROG_FLEX_VERSION([VERSION],[ACTION-IF-TRUE],[ACTION-IF-FALSE])
 #
 # DESCRIPTION
 #
-#   Makes sure that flex version is greater or equal to the version indicated.
-#   If true the shell commands in ACTION-IF-TRUE are executed. If not the shell
-#   commands in commands in ACTION-IF-TRUE are executed. If not the shell
-#   commands in ACTION-IF-FALSE are run. Note if $FLEX is not set (for example
-#   by running AC_CHECK_PROG or AC_PATH_PROG) the macro will fail.
+#   Makes sure that flex version is greater or equal to the version
+#   indicated. If true the shell commands in ACTION-IF-TRUE are executed. If
+#   not the shell commands in commands in ACTION-IF-TRUE are executed. If
+#   not the shell commands in ACTION-IF-FALSE are run. Note if $FLEX is not
+#   set (for example by running AC_CHECK_PROG or AC_PATH_PROG) the macro
+#   will fail.
 #
 #   Example:
 #
 #     AC_PATH_PROG([FLEX],[flex])
 #     AX_PROG_FLEX_VERSION([2.5.39],[ ... ],[ ... ])
 #
-#   This will check to make sure that the flex you have is at least
-#   version 2.5.39 or greater.
+#   This will check to make sure that the flex you have is at least version
+#   2.5.39 or greater.
 #
 #   NOTE: This macro uses the $FLEX variable to perform the check.
 #
