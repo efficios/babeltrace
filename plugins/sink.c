@@ -43,32 +43,24 @@ void bt_component_sink_destroy(struct bt_component *component)
 	g_free(sink);
 }
 
-struct bt_component *bt_component_sink_create(const char *name,
-		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_sink_handle_notification_cb notification_cb)
+BT_HIDDEN
+struct bt_component *bt_component_sink_create(const char *name)
 {
 	struct bt_component_sink *sink = NULL;
 	enum bt_component_status ret;
-
-	if (!notification_cb) {
-		goto end;
-	}
 
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
 		goto end;
 	}
 
-	ret = bt_component_init(&sink->parent, name, private_data,
-				destroy_func, BT_COMPONENT_TYPE_SINK,
-				bt_component_sink_destroy);
+	ret = bt_component_init(&sink->parent, name, BT_COMPONENT_TYPE_SINK,
+		bt_component_sink_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		g_free(sink);
 		sink = NULL;
 		goto end;
 	}
-
-	sink->handle_notification = notification_cb;
 end:
 	return sink ? &sink->parent : NULL;
 }

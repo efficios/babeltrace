@@ -41,13 +41,13 @@
 		struct bt_component_factory *factory)\
 	{
 
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _it_cr) \
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init) \
 	bt_component_factory_register_source_component_class(factory, \
-		_name, _init, _fini, _it_cr);
+		_name, _init);
 
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init, _fini, _hd_notif) \
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init) \
 	bt_component_factory_register_sink_component_class(factory, \
-		_name, _init, _fini, _hd_notif);
+		_name, _init);
 
 #define BT_PLUGIN_COMPONENT_CLASSES_END\
 	\

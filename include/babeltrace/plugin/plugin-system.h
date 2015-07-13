@@ -49,20 +49,92 @@ struct bt_component;
 typedef void (*bt_component_destroy_cb)(struct bt_component *component);
 
 /**
- * Iterator creation function type.
+ * Source component initialization function type.
+ *
+ * A source component's iterator initialization callback, private data and
+ * deinitialization callback must be set by this function.
  *
  * @param component	Component instance
+ */
+typedef struct bt_component *(*bt_component_source_init_cb)(
+		struct bt_component *component);
+
+/**
+ * Sink component initialization function type.
+ *
+ * A sink component's notification handling callback, private data and
+ * deinitialization callback must be set by this function.
+ *
+ * @param component	Component instance
+ */
+typedef struct bt_component *(*bt_component_sink_init_cb)(
+		struct bt_component *component);
+
+/**
+ * Iterator initialization function type.
+ *
+ * @param component	Component instance
+ * @param iterator	Iterator instance
  */
 typedef enum bt_component_status (*bt_component_source_iterator_init_cb)(
 		struct bt_component *component,
 		struct bt_notification_iterator *iterator);
 
-typedef struct bt_component *(*bt_component_init_cb)(
-		struct bt_component *component);
+/**
+ * Get a component's private data.
+ *
+ * @param component	Component of which to get the private data
+ * @returns		Component's private data
+ */
+extern void *bt_component_get_private_data(struct bt_component *component);
 
-typedef struct bt_component *(*bt_component_fini_cb)(
-		struct bt_component *component);
+/**
+ * Set a component's private data.
+ *
+ * @param component	Component of which to set the private data
+ * @param data		Component private data
+ * @returns		One of #bt_component_status values
+ */
+extern enum bt_component_status bt_component_set_private_data(
+		struct bt_component *component, void *data);
 
+/**
+ * Set a component's private data cleanup function.
+ *
+ * @param component	Component of which to set the private data destruction
+ *			function
+ * @param data		Component private data clean-up function
+ * @returns		One of #bt_component_status values
+ */
+extern enum bt_component_status bt_component_set_destroy_cb(
+		struct bt_component *component,
+		bt_component_destroy_cb destroy);
+
+/** bt_component_souce */
+/**
+ * Iterator initialization function type.
+ *
+ * A notification iterator's private data, deinitialization, next, and get
+ * callbacks must be set by this function.
+ *
+ * @param component	Component instance
+ * @param iterator	Notification iterator instance
+ */
+typedef enum bt_component_status (*bt_component_source_init_iterator_cb)(
+		struct bt_component *component,
+		struct bt_notification_iterator *iterator);
+
+/**
+ * Set a source component's iterator initialization function.
+ *
+ * @param component	Component instance
+ * @param init_iterator	Notification iterator initialization callback
+ */
+extern enum bt_component_status
+bt_component_source_set_iterator_init_cb(struct bt_component *component,
+		bt_component_source_init_iterator_cb init_iterator);
+
+/** bt_component_sink */
 /**
  * Notification handling function type.
  *
@@ -73,19 +145,43 @@ typedef struct bt_component *(*bt_component_fini_cb)(
 typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
 		struct bt_component *, struct bt_notification *);
 
-typedef struct bt_notification *(*bt_notification_iterator_get_cb)(
-		struct bt_notification_iterator *);
+/**
+ * Set a sink component's notification handling callback.
+ *
+ * @param component		Component instance
+ * @param handle_notification	Notification handling callback
+ * @returns			One of #bt_component_status values
+ */
+extern enum bt_component_status
+bt_component_sink_set_handle_notification_cb(struct bt_component *component,
+		bt_component_sink_handle_notification_cb handle_notification);
 
-typedef enum bt_notification_iterator_status (*bt_notification_iterator_next_cb)(
-		struct bt_notification_iterator *);
+/** bt_component_notification_iterator */
+/**
+ * Function returning an iterator's current notification.
+ *
+ * @param iterator	Notification iterator instance
+ * @returns 		A notification instance
+ */
+typedef struct bt_notification *(*bt_notification_iterator_get_cb)(
+		struct bt_notification_iterator *iterator);
 
 /**
- * Get a component's private (implementation) data.
+ * Function advancing an iterator's position.
  *
- * @param component	Component of which to get the private data
- * @returns		Component's private data
+ * @param iterator	Notification iterator instance
+ * @returns 		One of #bt_notification_iterator_status values
  */
-extern void *bt_component_get_private_data(struct bt_component *component);
+typedef enum bt_notification_iterator_status (*bt_notification_iterator_next_cb)(
+		struct bt_notification_iterator *iterator);
+
+/**
+ * Function cleaning-up an iterator's private data on destruction.
+ *
+ * @param iterator	Notification iterator instance
+ */
+typedef void (*bt_notification_iterator_destroy_cb)(
+		struct bt_notification_iterator *iterator);
 
 extern enum bt_notification_iterator_status
 bt_notification_iterator_set_get_cb(struct bt_notification_iterator *iterator,
@@ -96,21 +192,16 @@ bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
 		bt_notification_iterator_next_cb next);
 
 extern enum bt_notification_iterator_status
+bt_notification_iterator_set_destroy_cb(
+		struct bt_notification_iterator *iterator,
+		bt_notification_iterator_destroy_cb destroy);
+
+extern enum bt_notification_iterator_status
 bt_notification_iterator_set_private_data(
 		struct bt_notification_iterator *iterator, void *data);
 
 extern void *bt_notification_iterator_get_private_data(
 		struct bt_notification_iterator *iterator);
-
-/**
- * Set a component's private (implementation) data.
- *
- * @param component	Component of which to set the private data
- * @param data		Component private data
- * @returns		One of #bt_component_status values
- */
-extern enum bt_component_status bt_component_set_private_data(
-		struct bt_component *component, void *data);
 
 #ifdef __cplusplus
 }

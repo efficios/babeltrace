@@ -35,7 +35,16 @@ struct bt_component_source {
 	struct bt_component parent;
 
 	/* Component implementation callbacks */
-	bt_component_source_iterator_init_cb init_iterator;
+	bt_component_source_init_iterator_cb init_iterator;
 };
+
+/**
+ * Allocate a source component.
+ *
+ * @param name			Component instance name (will be copied)
+ * @returns			A source component instance
+ */
+BT_HIDDEN
+extern struct bt_component *bt_component_source_create(const char *name);
 
 #endif /* BABELTRACE_PLUGIN_SOURCE_INTERNAL_H */

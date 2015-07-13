@@ -31,33 +31,8 @@
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 
-/** Component initialization functions */
-/**
- * Allocate a source component.
- *
- * @param name			Component instance name (will be copied)
- * @param private_data		Private component implementation data
- * @param destroy_cb		Component private data clean-up callback
- * @param iterator_init_cb	Iterator initialization callback
- * @returns			A source component instance
- */
-BT_HIDDEN
-extern struct bt_component *bt_component_source_create(const char *name,
-		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_source_iterator_init_cb iterator_init_cb);
-
-/**
- * Allocate a sink component.
- *
- * @param name			Component instance name (will be copied)
- * @param private_data		Private component implementation data
- * @param destroy_cb		Component private data clean-up callback
- * @param notification_cb	Notification handling callback
- * @returns			A sink component instance
- */
-BT_HIDDEN
-extern struct bt_component *bt_component_sink_create(const char *name,
-		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_sink_handle_notification_cb notification_cb);
+struct bt_component_factory {
+	int a;
+};
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */

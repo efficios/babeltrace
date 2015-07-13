@@ -41,13 +41,11 @@ enum bt_component_status bt_component_factory_create(const char *path);
 
 enum bt_component_status bt_component_factory_register_source_component_class(
 	struct bt_component_factory *factory, const char *name,
-	bt_component_init_cb init, bt_component_fini_cb fini,
-	bt_component_source_iterator_create_cb iterator_create_cb);
+	bt_component_source_init_cb init);
 
 enum bt_component_status bt_component_factory_register_sink_component_class(
 	struct bt_component_factory *factory, const char *name,
-	bt_component_init_cb init, bt_component_fini_cb fini,
-	bt_component_sink_handle_notification_cb handle_notification_cb);
+	bt_component_sink_init_cb init);
 
 void bt_component_factory_destroy(struct bt_component_factory *factory);
 

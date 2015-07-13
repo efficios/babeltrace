@@ -33,9 +33,19 @@
 #include <babeltrace/plugin/notification/iterator-internal.h>
 
 static
-void bt_notification_iterator_destroy(struct bt_notification_iterator *iterator)
+void bt_notification_iterator_destroy(struct bt_ctf_ref *ref)
 {
-	
+	struct bt_notification_iterator *iterator;
+
+	if (!ref) {
+		return;
+	}
+
+	iterator = container_of(ref, struct bt_notification_iterator,
+		ref_count);
+	assert(iterator->user_destroy || !iterator->user_data);
+	iterator->user_destroy(iterator);
+	g_free(iterator);
 }
 
 BT_HIDDEN
@@ -44,7 +54,8 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 {
 	struct bt_notification_iterator *iterator = NULL;
 
-	if (!component || bt_component_get_type(component) != BT_COMPONENT_TYPE_SOURCE) {
+	if (!component ||
+		bt_component_get_type(component) != BT_COMPONENT_TYPE_SOURCE) {
 		goto end;
 	}
 
@@ -62,7 +73,8 @@ BT_HIDDEN
 enum bt_notification_iterator_status bt_notification_iterator_validate(
 		struct bt_notification_iterator *iterator)
 {
-	enum bt_notification_iterator_status ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_notification_iterator_status ret =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!iterator || !iterator->get || !iterator->next) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
@@ -88,4 +100,20 @@ void bt_notification_iterator_put(struct bt_notification_iterator *iterator)
 	}
 
 	bt_ctf_ref_put(&iterator->ref_count, bt_notification_iterator_destroy);
+}
+
+enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(
+		struct bt_notification_iterator *iterator,
+		bt_notification_iterator_get_cb get)
+{
+	enum bt_notification_iterator_status ret;
+
+	if (!iterator || !get) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
+	
+end:
+	return ret;
 }

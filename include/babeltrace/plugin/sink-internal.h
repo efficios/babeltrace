@@ -38,4 +38,13 @@ struct bt_component_sink {
 	bt_component_sink_handle_notification_cb handle_notification;
 };
 
+/**
+ * Allocate a sink component.
+ *
+ * @param name			Component instance name (will be copied)
+ * @returns			A sink component instance
+ */
+BT_HIDDEN
+extern struct bt_component *bt_component_sink_create(const char *name);
+
 #endif /* BABELTRACE_PLUGIN_SINK_INTERNAL_H */

@@ -45,32 +45,23 @@ void bt_component_source_destroy(struct bt_component *component)
 	g_free(source);
 }
 
-struct bt_component *bt_component_source_create(const char *name,
-		void *private_data, bt_component_destroy_cb destroy_func,
-		bt_component_source_iterator_init_cb iterator_init_cb)
+BT_HIDDEN
+struct bt_component *bt_component_source_create(const char *name)
 {
 	struct bt_component_source *source = NULL;
 	enum bt_component_status ret;
-
-	if (!iterator_init_cb) {
-		goto end;
-	}
-
 	source = g_new0(struct bt_component_source, 1);
 	if (!source) {
 		goto end;
 	}
 
-	ret = bt_component_init(&source->parent, name, private_data,
-		destroy_func, BT_COMPONENT_TYPE_SOURCE,
-		bt_component_source_destroy);
+	ret = bt_component_init(&source->parent, name,
+		BT_COMPONENT_TYPE_SOURCE, bt_component_source_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		g_free(source);
 		source = NULL;
 		goto end;
 	}
-
-	source->init_iterator = iterator_init_cb;
 end:
 	return source ? &source->parent : NULL;
 }

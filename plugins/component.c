@@ -109,30 +109,24 @@ void bt_component_put(struct bt_component *component)
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		const char *name, void *user_data,
-		bt_component_destroy_cb user_destroy_func,
-		enum bt_component_type component_type,
-		bt_component_destroy_cb component_destroy)
+		const char *name, enum bt_component_type component_type,
+		bt_component_destroy_cb destroy)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component || !name || name[0] == '\0' ||
-		!user_destroy_func || !user_data || !component_destroy) {
+	if (!component || !name || name[0] == '\0' || destroy) {
 		ret = BT_COMPONENT_STATUS_INVAL;
 		goto end;
 	}
 
 	bt_ctf_ref_init(&component->ref_count);
 	component->type = component_type;
-	component->user_data = user_data;
-	component->user_data_destroy = user_destroy_func;
-	component->destroy = component_destroy;
-
 	component->name = g_string_new(name);
 	if (!component->name) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
+	component->destroy = destroy;
 end:
 	return ret;
 }
@@ -181,8 +175,8 @@ void bt_component_destroy(struct bt_ctf_ref *ref)
 	 * User data is destroyed first, followed by the concrete component
 	 * instance.
 	 */
-	assert(!component->user_data || component->user_data_destroy);
-	component->user_data_destroy(component->user_data);
+	assert(!component->user_data || component->user_destroy);
+	component->user_destroy(component->user_data);
 
 	g_string_free(component->name, TRUE);
 

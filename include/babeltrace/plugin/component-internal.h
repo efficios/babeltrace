@@ -40,17 +40,16 @@ struct bt_component {
 	enum bt_component_type type;
 	/** No ownership taken */
 	FILE *error_stream;
+	/** source, sink or filter destroy */
+	bt_component_destroy_cb destroy;
 
 	void *user_data;
-	bt_component_destroy_cb user_data_destroy;
-	bt_component_destroy_cb destroy;
+	bt_component_destroy_cb user_destroy;
 };
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		const char *name, void *user_data,
-		bt_component_destroy_cb destroy_func,
-		enum bt_component_type component_type,
-		bt_component_destroy_cb component_destroy);
+		const char *name, enum bt_component_type component_type,
+		bt_component_destroy_cb destroy);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */

@@ -36,6 +36,7 @@ struct bt_notification_iterator {
 	bt_notification_iterator_get_cb get;
 	bt_notification_iterator_next_cb next;
 	void *user_data;
+	bt_notification_iterator_destroy_cb user_destroy;
 };
 
 /**
@@ -56,15 +57,6 @@ struct bt_notification_iterator *bt_notification_iterator_create(
  */
 BT_HIDDEN
 enum bt_notification_iterator_status bt_notification_iterator_validate(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Destroy a notification iterator.
- *
- * @param iterator		Notification iterator instance
- */
-BT_HIDDEN
-void bt_notification_iterator_destroy(
 		struct bt_notification_iterator *iterator);
 
 #endif /* BABELTRACE_PLUGIN_ITERATOR_INTERNAL_H */

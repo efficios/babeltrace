@@ -116,8 +116,7 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator);
  * @see bt_notification_iterator_get_notification()
  */
 extern enum bt_notification_iterator_status *bt_notification_iterator_seek(
-		struct bt_notification_iterator *iterator,
-		int whence,
+		struct bt_notification_iterator *iterator, int whence,
 		int64_t time);
 
 /**
