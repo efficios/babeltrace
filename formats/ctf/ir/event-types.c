@@ -291,10 +291,9 @@ gint compare_enumeration_mappings_unsigned(struct enumeration_mapping **a,
 }
 
 static
-void bt_ctf_field_type_init(struct bt_ctf_field_type *type)
+void bt_ctf_field_type_init(struct bt_ctf_field_type *type, int init_bo)
 {
 	enum ctf_type_id type_id = type->declaration->id;
-	int ret;
 
 	assert(type && (type_id > CTF_TYPE_UNKNOWN) &&
 		(type_id < NR_CTF_TYPES));
@@ -302,8 +301,13 @@ void bt_ctf_field_type_init(struct bt_ctf_field_type *type)
 	bt_ctf_ref_init(&type->ref_count);
 	type->freeze = type_freeze_funcs[type_id];
 	type->serialize = type_serialize_funcs[type_id];
-	ret = bt_ctf_field_type_set_byte_order(type, BT_CTF_BYTE_ORDER_NATIVE);
-	assert(!ret);
+
+	if (init_bo) {
+		int ret = bt_ctf_field_type_set_byte_order(type,
+			BT_CTF_BYTE_ORDER_NATIVE);
+		assert(!ret);
+	}
+
 	type->declaration->alignment = 1;
 }
 
@@ -424,7 +428,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	integer->declaration.len = size;
 	integer->declaration.base = BT_CTF_INTEGER_BASE_DECIMAL;
 	integer->declaration.encoding = CTF_STRING_NONE;
-	bt_ctf_field_type_init(&integer->parent);
+	bt_ctf_field_type_init(&integer->parent, TRUE);
 	return &integer->parent;
 }
 
@@ -628,7 +632,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 	enumeration->container = integer_container_type;
 	enumeration->entries = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)destroy_enumeration_mapping);
-	bt_ctf_field_type_init(&enumeration->parent);
+	bt_ctf_field_type_init(&enumeration->parent, FALSE);
 	return &enumeration->parent;
 error:
 	g_free(enumeration);
@@ -1033,7 +1037,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void)
 	floating_point->mantissa.p.alignment = 1;
 	floating_point->exp.p.alignment = 1;
 
-	bt_ctf_field_type_init(&floating_point->parent);
+	bt_ctf_field_type_init(&floating_point->parent, TRUE);
 end:
 	return floating_point ? &floating_point->parent : NULL;
 }
@@ -1144,7 +1148,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void)
 	structure->fields = g_ptr_array_new_with_free_func(
 		(GDestroyNotify)destroy_structure_field);
 	structure->field_name_to_index = g_hash_table_new(NULL, NULL);
-	bt_ctf_field_type_init(&structure->parent);
+	bt_ctf_field_type_init(&structure->parent, TRUE);
 	return &structure->parent;
 error:
 	return NULL;
@@ -1285,7 +1289,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 			struct bt_ctf_field_type_enumeration, parent);
 	}
 
-	bt_ctf_field_type_init(&variant->parent);
+	bt_ctf_field_type_init(&variant->parent, TRUE);
 	/* A variant's alignment is undefined */
 	variant->parent.declaration->alignment = 0;
 	return &variant->parent;
@@ -1530,7 +1534,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 	bt_ctf_field_type_get(element_type);
 	array->element_type = element_type;
 	array->length = length;
-	bt_ctf_field_type_init(&array->parent);
+	bt_ctf_field_type_init(&array->parent, FALSE);
 	return &array->parent;
 error:
 	return NULL;
@@ -1590,7 +1594,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 	bt_ctf_field_type_get(element_type);
 	sequence->element_type = element_type;
 	sequence->length_field_name = g_string_new(length_field_name);
-	bt_ctf_field_type_init(&sequence->parent);
+	bt_ctf_field_type_init(&sequence->parent, FALSE);
 	return &sequence->parent;
 error:
 	return NULL;
@@ -1642,7 +1646,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_create(void)
 
 	string->parent.declaration = &string->declaration.p;
 	string->parent.declaration->id = CTF_TYPE_STRING;
-	bt_ctf_field_type_init(&string->parent);
+	bt_ctf_field_type_init(&string->parent, TRUE);
 	string->declaration.encoding = CTF_STRING_UTF8;
 	string->parent.declaration->alignment = CHAR_BIT;
 	return &string->parent;
