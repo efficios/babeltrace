@@ -790,6 +790,14 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *packet_context, *packet_context_field;
 	struct bt_object *obj;
 
+	ok(bt_ctf_field_type_set_alignment(int_16_type, 0),
+		"bt_ctf_field_type_set_alignment handles 0-alignment correctly");
+	ok(bt_ctf_field_type_set_alignment(int_16_type, 3),
+		"bt_ctf_field_type_set_alignment handles wrong alignment correctly (3)");
+	ok(bt_ctf_field_type_set_alignment(int_16_type, 24),
+		"bt_ctf_field_type_set_alignment handles wrong alignment correctly (24)");
+	ok(!bt_ctf_field_type_set_alignment(int_16_type, 4),
+		"bt_ctf_field_type_set_alignment handles correct alignment correctly (4)");
 	bt_ctf_field_type_set_alignment(int_16_type, 32);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
 	bt_ctf_field_type_integer_set_base(uint_35_type,
