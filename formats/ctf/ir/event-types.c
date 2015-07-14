@@ -1806,8 +1806,8 @@ int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
-	if (type_id == CTF_TYPE_STRUCT || type_id == CTF_TYPE_VARIANT ||
-		type_id == CTF_TYPE_SEQUENCE || type_id == CTF_TYPE_ARRAY) {
+	if (type_id == CTF_TYPE_VARIANT || type_id == CTF_TYPE_SEQUENCE ||
+		type_id == CTF_TYPE_ARRAY) {
 		/* Setting an alignment on these types makes no sense */
 		ret = -1;
 		goto end;
