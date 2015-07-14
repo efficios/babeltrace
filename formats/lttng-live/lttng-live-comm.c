@@ -53,21 +53,12 @@
 #include <babeltrace/compat/send.h>
 #include <babeltrace/compat/string.h>
 #include <babeltrace/compat/mman.h>
+#include <babeltrace/babeltrace-internal.h>
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
 
 #define ACTIVE_POLL_DELAY	100	/* ms */
-
-/*
- * Memory allocation zeroed
- */
-#define zmalloc(x) calloc(1, x)
-
-#ifndef max_t
-#define max_t(type, a, b)	\
-	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
-#endif
 
 static void ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
 		size_t index, int whence);

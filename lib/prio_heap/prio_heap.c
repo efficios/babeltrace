@@ -32,11 +32,6 @@
 #include <string.h>
 #include <assert.h>
 
-#ifndef max_t
-#define max_t(type, a, b)	\
-	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
-#endif
-
 #ifdef DEBUG_HEAP
 void check_heap(const struct ptr_heap *heap)
 {

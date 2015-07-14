@@ -28,11 +28,33 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component-internal.h>
+#include <babeltrace/plugin/component-factory.h>
+#include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin-system.h>
+#include <glib.h>
+#include <gmodule.h>
+
+struct component_entry {
+	enum bt_component_type type;
+	GString *name;
+};
+
+struct source_component_entry {
+	struct component_entry parent;
+	bt_component_source_init_cb init;
+	
+};
+
+struct sink_component_entry {
+	struct component_entry parent;
+	bt_component_sink_init_cb init;
+};
 
 struct bt_component_factory {
-	int a;
+	/** Array of GModule pointers */
+	GPtrArray *modules;
+	/** Array of pointers to struct component_entry */
+	GPtrArray *components;
 };
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */

@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <glib.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <babeltrace/compat/string.h>
 
 #define PERROR_BUFLEN	200
@@ -158,6 +160,16 @@ extern int babeltrace_verbose, babeltrace_debug;
 #ifndef max
 #define max(a, b)	(((a) > (b)) ? (a) : (b))
 #endif
+
+#ifndef max_t
+#define max_t(type, a, b)	\
+	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
+#endif
+
+/*
+ * Memory allocation zeroed
+ */
+#define zmalloc(x) calloc(1, x)
 
 /*
  * BT_HIDDEN: set the hidden attribute for internal functions

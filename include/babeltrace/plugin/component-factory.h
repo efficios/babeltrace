@@ -35,18 +35,73 @@
 extern "C" {
 #endif
 
+/**
+ * Status code. Errors are always negative.
+ */
+enum bt_component_factory_status {
+	/** General error. */
+	BT_COMPONENT_FACTORY_STATUS_ERROR =	-128,
+
+	/** Invalid arguments. */
+	/* -22 for compatibility with -EINVAL */
+	BT_COMPONENT_FACTORY_STATUS_INVAL =	-22,
+
+	/** Memory allocation failure. */
+	/* -12 for compatibility with -ENOMEM */
+	BT_COMPONENT_FACTORY_STATUS_NOMEM =	-12,
+
+	/** I/O error. */
+	/* -5 for compatibility with -EIO */
+	BT_COMPONENT_FACTORY_STATUS_IO =	-5,
+
+	/** No such file or directory. */
+	/* -2 for compatibility with -ENOENT */
+	BT_COMPONENT_FACTORY_STATUS_NOENT =	-2,
+
+	/** Operation not permitted. */
+	/* -1 for compatibility with -EPERM */
+	BT_COMPONENT_FACTORY_STATUS_PERM =	-1,
+
+	/** No error, okay. */
+	BT_COMPONENT_FACTORY_STATUS_OK =	0,
+};
+
 struct bt_component_factory;
 
-enum bt_component_status bt_component_factory_create(const char *path);
+/**
+ * Create a component factory.
+ *
+ * @returns	An instance of component factory
+ */
+extern
+struct bt_component_factory *bt_component_factory_create(void);
 
-enum bt_component_status bt_component_factory_register_source_component_class(
+/**
+ * Recursively load and register Babeltrace plugins under a given path.
+ *
+ * Path will be traversed recursively if it is a directory, otherwise only the
+ * provided file will be loaded.
+ *
+ * @param factory	A component factory instance
+ * @param path		A path to a file or directory
+ * @returns		One of #bt_component_factory_status values
+ */
+extern
+enum bt_component_factory_status bt_component_factory_load(
+		struct bt_component_factory *factory, const char *path);
+
+extern
+enum bt_component_factory_status
+bt_component_factory_register_source_component_class(
 	struct bt_component_factory *factory, const char *name,
 	bt_component_source_init_cb init);
 
-enum bt_component_status bt_component_factory_register_sink_component_class(
+extern
+enum bt_component_factory_status bt_component_factory_register_sink_component_class(
 	struct bt_component_factory *factory, const char *name,
 	bt_component_sink_init_cb init);
 
+extern
 void bt_component_factory_destroy(struct bt_component_factory *factory);
 
 #ifdef __cplusplus
