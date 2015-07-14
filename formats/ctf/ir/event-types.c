@@ -1776,14 +1776,20 @@ end:
 	return ret;
 }
 
+static inline
+int is_power_of_two(unsigned int value)
+{
+	return ((value & (value - 1)) == 0) && value > 0;
+}
+
 int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *type,
 		unsigned int alignment)
 {
 	int ret = 0;
 	enum ctf_type_id type_id;
 
-	/* Alignment must be bit-aligned (1) or byte aligned */
-	if (!type || type->frozen || (alignment != 1 && (alignment & 0x7))) {
+	/* Alignment must be a power of two */
+	if (!type || type->frozen || !is_power_of_two(alignment)) {
 		ret = -1;
 		goto end;
 	}
