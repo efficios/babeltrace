@@ -219,6 +219,8 @@ extern int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
  * bt_ctf_stream_get and bt_ctf_stream_put: increment and decrement the
  * stream's reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with stream objects.
+ *
  * These functions ensure that the stream won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

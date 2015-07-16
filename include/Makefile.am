@@ -27,6 +27,7 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/event-fields.h \
 	babeltrace/ctf-ir/event-types.h \
 	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/ref.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/trace.h \
@@ -43,6 +44,7 @@ noinst_HEADERS = \
 	babeltrace/iterator-internal.h \
 	babeltrace/trace-collection.h \
 	babeltrace/prio_heap.h \
+	babeltrace/ref-internal.h \
 	babeltrace/types.h \
 	babeltrace/ctf-ir/metadata.h \
 	babeltrace/ctf/events-internal.h \
@@ -51,9 +53,9 @@ noinst_HEADERS = \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
 	babeltrace/ctf/ctf-index.h \
-	babeltrace/ctf-writer/ref-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
+	babeltrace/ctf-ir/common-internal.h \
 	babeltrace/ctf-ir/event-types-internal.h \
 	babeltrace/ctf-ir/event-fields-internal.h \
 	babeltrace/ctf-ir/event-internal.h \

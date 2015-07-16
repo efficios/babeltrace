@@ -290,6 +290,8 @@ extern int bt_ctf_stream_class_set_event_context_type(
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
  * decrement the stream class' reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with stream class objects.
+ *
  * These functions ensure that the stream class won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

@@ -755,6 +755,8 @@ extern enum ctf_type_id bt_ctf_field_type_get_type_id(
  * bt_ctf_field_type_get and bt_ctf_field_type_put: increment and decrement
  * the field type's reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with field type objects.
+ *
  * These functions ensure that the field type won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

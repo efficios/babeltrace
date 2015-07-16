@@ -33,6 +33,8 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/compiler.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +45,7 @@
 #include <inttypes.h>
 
 static
-void bt_ctf_writer_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_writer_destroy(struct bt_ref *ref);
 static
 int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream);
@@ -61,7 +63,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error;
 	}
 
-	bt_ctf_ref_init(&writer->ref_count);
+	bt_ctf_base_init(writer, bt_ctf_writer_destroy);
 	writer->path = g_string_new(path);
 	if (!writer->path) {
 		goto error_destroy;
@@ -92,21 +94,23 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 error_destroy:
 	unlinkat(writer->trace_dir_fd, "metadata", 0);
-	bt_ctf_writer_destroy(&writer->ref_count);
+	bt_ctf_writer_destroy(&writer->base.ref_count);
 	writer = NULL;
 error:
 	return writer;
 }
 
-void bt_ctf_writer_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_writer_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_writer *writer;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	writer = container_of(ref, struct bt_ctf_writer, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	writer = container_of(base, struct bt_ctf_writer, base);
 	bt_ctf_writer_flush_metadata(writer);
 	if (writer->path) {
 		g_string_free(writer->path, TRUE);
@@ -267,20 +271,12 @@ end:
 
 void bt_ctf_writer_get(struct bt_ctf_writer *writer)
 {
-	if (!writer) {
-		return;
-	}
-
-	bt_ctf_ref_get(&writer->ref_count);
+	bt_ctf_get(writer);
 }
 
 void bt_ctf_writer_put(struct bt_ctf_writer *writer)
 {
-	if (!writer) {
-		return;
-	}
-
-	bt_ctf_ref_put(&writer->ref_count, bt_ctf_writer_destroy);
+	bt_ctf_put(writer);
 }
 
 static

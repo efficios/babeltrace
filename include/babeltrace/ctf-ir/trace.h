@@ -346,6 +346,8 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
  * bt_ctf_trace_get and bt_ctf_trace_put: increment and decrement the
  * trace's reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with trace objects.
+ *
  * These functions ensure that the trace won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

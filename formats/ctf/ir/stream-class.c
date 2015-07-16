@@ -37,11 +37,13 @@
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
 
 static
-void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_stream_class_destroy(struct bt_ref *ref);
 static
 int init_event_header(struct bt_ctf_stream_class *stream_class);
 static
@@ -78,11 +80,11 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 		goto error_destroy;
 	}
 
-	bt_ctf_ref_init(&stream_class->ref_count);
+	bt_ctf_base_init(stream_class, bt_ctf_stream_class_destroy);
 	return stream_class;
 
 error_destroy:
-	bt_ctf_stream_class_destroy(&stream_class->ref_count);
+	bt_ctf_stream_class_destroy(&stream_class->base.ref_count);
 	stream_class = NULL;
 error:
 	return stream_class;
@@ -608,20 +610,12 @@ end:
 
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
 {
-	if (!stream_class) {
-		return;
-	}
-
-	bt_ctf_ref_get(&stream_class->ref_count);
+	bt_ctf_get(stream_class);
 }
 
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 {
-	if (!stream_class) {
-		return;
-	}
-
-	bt_ctf_ref_put(&stream_class->ref_count, bt_ctf_stream_class_destroy);
+	bt_ctf_put(stream_class);
 }
 
 BT_HIDDEN
@@ -764,15 +758,17 @@ end:
 }
 
 static
-void bt_ctf_stream_class_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_stream_class_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	stream_class = container_of(ref, struct bt_ctf_stream_class, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	stream_class = container_of(base, struct bt_ctf_stream_class, base);
 	bt_ctf_clock_put(stream_class->clock);
 
 	if (stream_class->event_classes) {

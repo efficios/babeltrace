@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H
+#ifndef BABELTRACE_REF_INTERNAL_H
+#define BABELTRACE_REF_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Writer internal
+ * Babeltrace - reference counting
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,21 +27,41 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/writer.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <glib.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/common-internal.h>
+#include <assert.h>
 
-struct bt_ctf_writer {
-	struct bt_ctf_base base;
-	int frozen; /* Protects attributes that can't be changed mid-trace */
-	struct bt_ctf_trace *trace;
-	GString *path;
-	int trace_dir_fd;
-	int metadata_fd;
+struct bt_ref;
+
+typedef void (*bt_ref_release_func_t)(struct bt_ref *);
+
+struct bt_ref {
+	long refcount;
+	bt_ref_release_func_t release_func;
 };
 
-#endif /* BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H */
+static inline
+void bt_ref_init(struct bt_ref *ref,
+	bt_ref_release_func_t release_func)
+{
+	assert(ref);
+	ref->refcount = 1;
+	ref->release_func = release_func;
+}
+
+static inline
+void bt_ref_get(struct bt_ref *ref)
+{
+	assert(ref);
+	ref->refcount++;
+}
+
+static inline
+void bt_ref_put(struct bt_ref *ref)
+{
+	assert(ref);
+	assert(ref->release_func);
+	if ((--ref->refcount) == 0) {
+		ref->release_func(ref);
+	}
+}
+
+#endif /* BABELTRACE_REF_INTERNAL_H */

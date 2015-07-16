@@ -28,12 +28,14 @@
 
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/ctf-ir/ref.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/compiler.h>
 #include <inttypes.h>
 
 static
-void bt_ctf_clock_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_clock_destroy(struct bt_ref *ref);
 
 BT_HIDDEN
 struct bt_ctf_clock *_bt_ctf_clock_create(void)
@@ -47,7 +49,7 @@ struct bt_ctf_clock *_bt_ctf_clock_create(void)
 
 	clock->precision = 1;
 	clock->frequency = 1000000000;
-	bt_ctf_ref_init(&clock->ref_count);
+	bt_ctf_base_init(clock, bt_ctf_clock_destroy);
 end:
 	return clock;
 }
@@ -100,7 +102,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	clock->uuid_set = 1;
 	return clock;
 error_destroy:
-	bt_ctf_clock_destroy(&clock->ref_count);
+	bt_ctf_clock_destroy(&clock->base.ref_count);
 error:
 	return NULL;
 }
@@ -345,20 +347,12 @@ end:
 
 void bt_ctf_clock_get(struct bt_ctf_clock *clock)
 {
-	if (!clock) {
-		return;
-	}
-
-	bt_ctf_ref_get(&clock->ref_count);
+	bt_ctf_get(clock);
 }
 
 void bt_ctf_clock_put(struct bt_ctf_clock *clock)
 {
-	if (!clock) {
-		return;
-	}
-
-	bt_ctf_ref_put(&clock->ref_count, bt_ctf_clock_destroy);
+	bt_ctf_put(clock);
 }
 
 BT_HIDDEN
@@ -410,15 +404,17 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 }
 
 static
-void bt_ctf_clock_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_clock_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_clock *clock;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	clock = container_of(ref, struct bt_ctf_clock, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	clock = container_of(base, struct bt_ctf_clock, base);
 	if (clock->name) {
 		g_string_free(clock->name, TRUE);
 	}

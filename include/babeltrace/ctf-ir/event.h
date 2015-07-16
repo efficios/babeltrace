@@ -307,6 +307,8 @@ extern int bt_ctf_event_class_set_context_type(
  * bt_ctf_event_class_get and bt_ctf_event_class_put: increment and decrement
  * the event class' reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with event class objects.
+ *
  * These functions ensure that the event class won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to
@@ -511,6 +513,8 @@ extern struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event);
 /*
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement
  * the event's reference count.
+ *
+ * You may also use bt_ctf_get() and bt_ctf_put() with event objects.
  *
  * These functions ensure that the event won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to

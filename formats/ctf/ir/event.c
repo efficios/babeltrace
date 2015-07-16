@@ -36,13 +36,15 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/ctf-ir/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler.h>
 
 static
-void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_event_class_destroy(struct bt_ref *ref);
 static
-void bt_ctf_event_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_event_destroy(struct bt_ref *ref);
 static
 int set_integer_field_value(struct bt_ctf_field *field, uint64_t value);
 
@@ -61,7 +63,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	bt_ctf_ref_init(&event_class->ref_count);
+	bt_ctf_base_init(event_class, bt_ctf_event_class_destroy);
 	event_class->fields = bt_ctf_field_type_structure_create();
 	if (!event_class->fields) {
 		goto error;
@@ -510,20 +512,12 @@ end:
 
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class)
 {
-	if (!event_class) {
-		return;
-	}
-
-	bt_ctf_ref_get(&event_class->ref_count);
+	bt_ctf_get(event_class);
 }
 
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 {
-	if (!event_class) {
-		return;
-	}
-
-	bt_ctf_ref_put(&event_class->ref_count, bt_ctf_event_class_destroy);
+	bt_ctf_put(event_class);
 }
 
 BT_HIDDEN
@@ -572,7 +566,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 
-	bt_ctf_ref_init(&event->ref_count);
+	bt_ctf_base_init(event, bt_ctf_event_destroy);
 	bt_ctf_event_class_get(event_class);
 	bt_ctf_event_class_freeze(event_class);
 	event->event_class = event_class;
@@ -603,7 +597,7 @@ end:
 	return event;
 error_destroy:
 	if (event) {
-		bt_ctf_event_destroy(&event->ref_count);
+		bt_ctf_event_destroy(&event->base.ref_count);
 	}
 
 	return NULL;
@@ -884,26 +878,19 @@ end:
 
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
-	if (!event) {
-		return;
-	}
-
-	bt_ctf_ref_get(&event->ref_count);
+	bt_ctf_get(event);
 }
 
 void bt_ctf_event_put(struct bt_ctf_event *event)
 {
-	if (!event) {
-		return;
-	}
-
-	bt_ctf_ref_put(&event->ref_count, bt_ctf_event_destroy);
+	bt_ctf_put(event);
 }
 
 static
-void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_event_class_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
@@ -913,7 +900,8 @@ void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref)
 	 * Don't call put() on the stream class. See comment in
 	 * bt_ctf_event_class_set_stream_class for explanation.
 	 */
-	event_class = container_of(ref, struct bt_ctf_event_class, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	event_class = container_of(base, struct bt_ctf_event_class, base);
 	if (event_class->attributes) {
 		bt_ctf_attributes_destroy(event_class->attributes);
 	}
@@ -927,16 +915,17 @@ void bt_ctf_event_class_destroy(struct bt_ctf_ref *ref)
 }
 
 static
-void bt_ctf_event_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_event_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_event *event;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	event = container_of(ref, struct bt_ctf_event,
-		ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	event = container_of(base, struct bt_ctf_event, base);
 	if (event->event_class) {
 		bt_ctf_event_class_put(event->event_class);
 	}
@@ -1292,7 +1281,7 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 		goto error;
 	}
 
-	bt_ctf_ref_init(&copy->ref_count);
+	bt_ctf_base_init(copy, bt_ctf_event_destroy);
 	copy->event_class = event->event_class;
 	bt_ctf_event_class_get(copy->event_class);
 	copy->stream = event->stream;

@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-writer/ref-internal.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
@@ -37,7 +37,7 @@
 #include <glib.h>
 
 struct bt_ctf_stream {
-	struct bt_ctf_ref ref_count;
+	struct bt_ctf_base base;
 	/* Trace owning this stream. A stream does not own a trace. */
 	struct bt_ctf_trace *trace;
 	uint32_t id;
