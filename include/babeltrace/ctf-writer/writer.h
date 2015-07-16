@@ -153,6 +153,8 @@ extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
  * bt_ctf_writer_get and bt_ctf_writer_put: increment and decrement the
  * writer's reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with writer objects.
+ *
  * These functions ensure that the writer won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

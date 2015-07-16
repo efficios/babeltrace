@@ -35,13 +35,15 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
 #include <babeltrace/ctf/ctf-index.h>
 
 static
-void bt_ctf_stream_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_stream_destroy(struct bt_ref *ref);
 static
 int set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
 
@@ -272,7 +274,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 
 	/* A stream has no ownership of its trace (weak ptr) */
 	stream->trace = trace;
-	bt_ctf_ref_init(&stream->ref_count);
+	bt_ctf_base_init(stream, bt_ctf_stream_destroy);
 	stream->packet_context = bt_ctf_field_create(
 		stream_class->packet_context_type);
 	if (!stream->packet_context) {
@@ -338,7 +340,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 end:
 	return stream;
 error_destroy:
-	bt_ctf_stream_destroy(&stream->ref_count);
+	bt_ctf_stream_destroy(&stream->base.ref_count);
 	return NULL;
 }
 
@@ -897,32 +899,26 @@ end:
 
 void bt_ctf_stream_get(struct bt_ctf_stream *stream)
 {
-	if (!stream) {
-		return;
-	}
-
-	bt_ctf_ref_get(&stream->ref_count);
+	bt_ctf_get(stream);
 }
 
 void bt_ctf_stream_put(struct bt_ctf_stream *stream)
 {
-	if (!stream) {
-		return;
-	}
-
-	bt_ctf_ref_put(&stream->ref_count, bt_ctf_stream_destroy);
+	bt_ctf_put(stream);
 }
 
 static
-void bt_ctf_stream_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_stream_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_stream *stream;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	stream = container_of(ref, struct bt_ctf_stream, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	stream = container_of(base, struct bt_ctf_stream, base);
 	ctf_fini_pos(&stream->pos);
 	if (stream->pos.fd >= 0 && close(stream->pos.fd)) {
 		perror("close");

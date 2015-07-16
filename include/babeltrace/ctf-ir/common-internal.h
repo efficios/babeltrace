@@ -1,12 +1,11 @@
-#ifndef BABELTRACE_CTF_WRITER_REF_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_REF_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_COMMON_INTERNAL_H
+#define BABELTRACE_CTF_IR_COMMON_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Reference count
+ * Babeltrace - CTF IR: common data structures
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,35 +26,22 @@
  * SOFTWARE.
  */
 
-#include <assert.h>
+#include <babeltrace/ref-internal.h>
 
-struct bt_ctf_ref {
-	long refcount;
+/*
+ * bt_ctf_trace  must be the base class of _all_ CTF IR classes and is assumed
+ * to be the first member of all bt_ctf_* structures.
+ */
+struct bt_ctf_base {
+	struct bt_ref ref_count;
 };
 
 static inline
-void bt_ctf_ref_init(struct bt_ctf_ref *ref)
+void bt_ctf_base_init(void *obj, bt_ref_release_func_t release_func)
 {
-	assert(ref);
-	ref->refcount = 1;
+	struct bt_ctf_base *base = obj;
+
+	bt_ref_init(&base->ref_count, release_func);
 }
 
-static inline
-void bt_ctf_ref_get(struct bt_ctf_ref *ref)
-{
-	assert(ref);
-	ref->refcount++;
-}
-
-static inline
-void bt_ctf_ref_put(struct bt_ctf_ref *ref,
-		void (*release)(struct bt_ctf_ref *))
-{
-	assert(ref);
-	assert(release);
-	if ((--ref->refcount) == 0) {
-		release(ref);
-	}
-}
-
-#endif /* BABELTRACE_CTF_WRITER_REF_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_COMMON_INTERNAL_H */
