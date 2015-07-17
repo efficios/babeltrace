@@ -27,7 +27,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -35,13 +34,14 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <glib.h>
 
 #define BT_CTF_EVENT_CLASS_ATTR_ID_INDEX	0
 #define BT_CTF_EVENT_CLASS_ATTR_NAME_INDEX	1
 
 struct bt_ctf_event_class {
-	struct bt_ctf_ref ref_count;
+	struct bt_ctf_base base;
 	struct bt_object *attributes;
 	/*
 	 * Weak reference; an event class does not have ownership of a
@@ -56,7 +56,7 @@ struct bt_ctf_event_class {
 };
 
 struct bt_ctf_event {
-	struct bt_ctf_ref ref_count;
+	struct bt_ctf_base base;
 	struct bt_ctf_event_class *event_class;
 	/* Weak reference; an event does not have ownership of a stream */
 	struct bt_ctf_stream *stream;

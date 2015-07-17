@@ -370,6 +370,8 @@ extern struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field);
  * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
  * field's reference count.
  *
+ * You may also use bt_ctf_get() and bt_ctf_put() with field objects.
+ *
  * These functions ensure that the field won't be destroyed when it
  * is in use. The same number of get and put (plus one extra put to
  * release the initial reference done at creation) have to be done to

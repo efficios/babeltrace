@@ -27,14 +27,14 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
 struct bt_ctf_field {
-	struct bt_ctf_ref ref_count;
+	struct bt_ctf_base base;
 	struct bt_ctf_field_type *type;
 	int payload_set;
 };

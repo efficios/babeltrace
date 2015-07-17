@@ -35,6 +35,8 @@
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/objects.h>
 
@@ -42,7 +44,7 @@
 #define DEFAULT_METADATA_STRING_SIZE 4096
 
 static
-void bt_ctf_trace_destroy(struct bt_ctf_ref *ref);
+void bt_ctf_trace_destroy(struct bt_ref *ref);
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace);
 static
@@ -83,7 +85,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	}
 
 	bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE);
-	bt_ctf_ref_init(&trace->ref_count);
+	bt_ctf_base_init(trace, bt_ctf_trace_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_ctf_clock_put);
 	trace->streams = g_ptr_array_new_with_free_func(
@@ -109,21 +111,23 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	return trace;
 
 error_destroy:
-	bt_ctf_trace_destroy(&trace->ref_count);
+	bt_ctf_trace_destroy(&trace->base.ref_count);
 	trace = NULL;
 error:
 	return trace;
 }
 
-void bt_ctf_trace_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_trace_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_trace *trace;
+	struct bt_ctf_base *base;
 
 	if (!ref) {
 		return;
 	}
 
-	trace = container_of(ref, struct bt_ctf_trace, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	trace = container_of(base, struct bt_ctf_trace, base);
 	if (trace->environment) {
 		bt_ctf_attributes_destroy(trace->environment);
 	}
@@ -859,20 +863,13 @@ end:
 
 void bt_ctf_trace_get(struct bt_ctf_trace *trace)
 {
-	if (!trace) {
-		return;
-	}
-
-	bt_ctf_ref_get(&trace->ref_count);
+	bt_ctf_get(trace);
 }
 
 void bt_ctf_trace_put(struct bt_ctf_trace *trace)
 {
-	if (!trace) {
-		return;
-	}
+	bt_ctf_put(trace);
 
-	bt_ctf_ref_put(&trace->ref_count, bt_ctf_trace_destroy);
 }
 
 BT_HIDDEN

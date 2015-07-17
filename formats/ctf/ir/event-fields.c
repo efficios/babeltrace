@@ -29,6 +29,8 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/ctf-ir/ref.h>
 #include <babeltrace/compiler.h>
 
 #define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)
@@ -57,7 +59,7 @@ static
 struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *);
 
 static
-void bt_ctf_field_destroy(struct bt_ctf_ref *);
+void bt_ctf_field_destroy(struct bt_ref *);
 static
 void bt_ctf_field_integer_destroy(struct bt_ctf_field *);
 static
@@ -250,7 +252,7 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 	/* The type's declaration can't change after this point */
 	bt_ctf_field_type_freeze(type);
 	bt_ctf_field_type_get(type);
-	bt_ctf_ref_init(&field->ref_count);
+	bt_ctf_base_init(field, bt_ctf_field_destroy);
 	field->type = type;
 error:
 	return field;
@@ -258,16 +260,12 @@ error:
 
 void bt_ctf_field_get(struct bt_ctf_field *field)
 {
-	if (field) {
-		bt_ctf_ref_get(&field->ref_count);
-	}
+	bt_ctf_get(field);
 }
 
 void bt_ctf_field_put(struct bt_ctf_field *field)
 {
-	if (field) {
-		bt_ctf_ref_put(&field->ref_count, bt_ctf_field_destroy);
-	}
+	bt_ctf_put(field);
 }
 
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
@@ -1275,9 +1273,10 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 }
 
 static
-void bt_ctf_field_destroy(struct bt_ctf_ref *ref)
+void bt_ctf_field_destroy(struct bt_ref *ref)
 {
 	struct bt_ctf_field *field;
+	struct bt_ctf_base *base;
 	struct bt_ctf_field_type *type;
 	enum ctf_type_id type_id;
 
@@ -1285,7 +1284,8 @@ void bt_ctf_field_destroy(struct bt_ctf_ref *ref)
 		return;
 	}
 
-	field = container_of(ref, struct bt_ctf_field, ref_count);
+	base = container_of(ref, struct bt_ctf_base, ref_count);
+	field = container_of(base, struct bt_ctf_field, base);
 	type = field->type;
 	type_id = bt_ctf_field_type_get_type_id(type);
 	if (type_id <= CTF_TYPE_UNKNOWN ||

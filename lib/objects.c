@@ -29,10 +29,10 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include <babeltrace/ctf-writer/ref-internal.h>
+#include <babeltrace/ref-internal.h>
 #include <babeltrace/compiler.h>
-#include <glib.h>
 #include <babeltrace/objects.h>
+#include <glib.h>
 
 #define BT_OBJECT_FROM_CONCRETE(_concrete) ((struct bt_object *) (_concrete))
 #define BT_OBJECT_TO_BOOL(_base) ((struct bt_object_bool *) (_base))
@@ -44,7 +44,7 @@
 
 struct bt_object {
 	enum bt_object_type type;
-	struct bt_ctf_ref ref_count;
+	struct bt_ref ref_count;
 	bool is_frozen;
 };
 
@@ -85,6 +85,9 @@ struct bt_object_map {
 	struct bt_object base;
 	GHashTable *ght;
 };
+
+static
+void bt_object_destroy(struct bt_ref *ref_count);
 
 static
 void bt_object_string_destroy(struct bt_object *object)
@@ -435,7 +438,7 @@ void (* const freeze_funcs[])(struct bt_object *) = {
 };
 
 static
-void bt_object_destroy(struct bt_ctf_ref *ref_count)
+void bt_object_destroy(struct bt_ref *ref_count)
 {
 	struct bt_object *object;
 
@@ -455,26 +458,18 @@ void bt_object_destroy(struct bt_ctf_ref *ref_count)
 
 void bt_object_get(struct bt_object *object)
 {
-	if (!object) {
-		goto skip;
+	if (object && !bt_object_is_null(object)) {
+		bt_ref_get(&object->ref_count);
 	}
 
-	bt_ctf_ref_get(&object->ref_count);
-
-skip:
 	return;
 }
 
 void bt_object_put(struct bt_object *object)
 {
-	if (!object) {
-		goto skip;
+	if (object && !bt_object_is_null(object)) {
+		bt_ref_put(&object->ref_count);
 	}
-
-	bt_ctf_ref_put(&object->ref_count, bt_object_destroy);
-
-skip:
-	return;
 }
 
 enum bt_object_status bt_object_freeze(struct bt_object *object)
@@ -513,7 +508,7 @@ struct bt_object bt_object_create_base(enum bt_object_type type)
 
 	base.type = type;
 	base.is_frozen = false;
-	bt_ctf_ref_init(&base.ref_count);
+	bt_ref_init(&base.ref_count, bt_object_destroy);
 
 	return base;
 }

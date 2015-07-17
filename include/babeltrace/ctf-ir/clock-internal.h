@@ -27,15 +27,15 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 #include <babeltrace/compat/uuid.h>
 
 struct bt_ctf_clock {
-	struct bt_ctf_ref ref_count;
+	struct bt_ctf_base base;
 	GString *name;
 	GString *description;
 	uint64_t frequency;
