@@ -31,30 +31,40 @@
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/plugin.h>
 #include <glib.h>
 #include <gmodule.h>
 
-struct component_entry {
+struct component_class {
 	enum bt_component_type type;
 	GString *name;
 };
 
-struct source_component_entry {
-	struct component_entry parent;
+struct source_component_class {
+	struct component_class parent;
 	bt_component_source_init_cb init;
 	
 };
 
-struct sink_component_entry {
-	struct component_entry parent;
+struct sink_component_class {
+	struct component_class parent;
 	bt_component_sink_init_cb init;
 };
 
-struct bt_component_factory {
-	/** Array of GModule pointers */
-	GPtrArray *modules;
-	/** Array of pointers to struct component_entry */
+struct plugin {
+	const char *name;
+	const char *author;
+	const char *license;
+        bt_plugin_init_func init;
+	bt_plugin_init_func exit;
+	GModule *module;
+	/** Array of pointers to struct component_class */
 	GPtrArray *components;
+};
+
+struct bt_component_factory {
+	/** Array of pointers to struct plugin */
+	GPtrArray *plugins;
 };
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */

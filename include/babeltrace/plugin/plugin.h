@@ -29,15 +29,21 @@
  */
 
 #include <babeltrace/plugin/component-factory.h>
+#include <babeltrace/plugin/component.h>
 
+typedef enum bt_component_status (*bt_plugin_init_func)(
+		struct bt_component_factory *factory);
+typedef void (*bt_plugin_exit_func)(void);
+
+/* A plugin must define the __bt_plugin_init symbol */
 #define BT_PLUGIN_NAME(_x)	const char *__bt_plugin_name = (_x)
 #define BT_PLUGIN_AUTHOR(_x)	const char *__bt_plugin_author = (_x)
 #define BT_PLUGIN_LICENSE(_x)	const char *__bt_plugin_license = (_x)
-#define BT_PLUGIN_INIT(_x)	void *__bt_plugin_init = (_x)
-#define BT_PLUGIN_EXIT(_x)	void *__bt_plugin_exit = (_x)
+#define BT_PLUGIN_INIT(_x)      bt_plugin_init __bt_plugin_init = (_x)
+#define BT_PLUGIN_EXIT(_x)      bt_plugin_exit __bt_plugin_exit = (_x)
 
 #define BT_PLUGIN_COMPONENT_CLASSES_BEGIN			\
-	enum bt_status __bt_plugin_register_component_classes(\
+	enum bt_component_status __bt_plugin_register_component_classes(\
 		struct bt_component_factory *factory)\
 	{
 
@@ -51,7 +57,7 @@
 
 #define BT_PLUGIN_COMPONENT_CLASSES_END\
 	\
-	return BT_STATUS_OK;\
+	return BT_COMPONENT_STATUS_OK;\
 }\
 	\
 	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
