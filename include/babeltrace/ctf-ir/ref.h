@@ -51,6 +51,22 @@
 	} while (0)
 
 /*
+ * BT_CTF_MOVE: moves the ownership of a CTF object, setting the old
+ *	owner to NULL.
+ *
+ * This macro sets the variable _dst to the value of the variable _src,
+ * then sets _src to NULL, effectively moving the ownership of a CTF
+ * object from one variable to the other.
+ *
+ * @param obj CTF IR object.
+ */
+#define BT_CTF_MOVE(_dst, _src)		\
+	do {				\
+		(_dst) = (_src);	\
+		(_src) = NULL;		\
+	} while (0)
+
+/*
  * bt_ctf_get: increments the reference count of a CTF IR object.
  *
  * The same number of bt_ctf_get() and bt_ctf_put() (plus one extra
