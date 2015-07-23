@@ -34,8 +34,6 @@
 extern "C" {
 #endif
 
-#include <babeltrace/objects.h>
-
 /*
  * bt_ctf_validate_identifier: validate an identifier against the CTF spec.
  *

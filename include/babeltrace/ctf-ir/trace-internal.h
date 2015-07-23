@@ -32,7 +32,7 @@
 #include <babeltrace/ctf-ir/event-fields.h>
 #include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 #include <glib.h>
 #include <sys/types.h>
 #include <uuid/uuid.h>
@@ -52,7 +52,7 @@ struct bt_ctf_trace {
 	int frozen;
 	uuid_t uuid;
 	int byte_order; /* A value defined in Babeltrace's "endian.h" */
-	struct bt_object *environment;
+	struct bt_value *environment;
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
