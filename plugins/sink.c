@@ -44,7 +44,8 @@ void bt_component_sink_destroy(struct bt_component *component)
 }
 
 BT_HIDDEN
-struct bt_component *bt_component_sink_create(const char *name)
+struct bt_component *bt_component_sink_create(
+		struct bt_component_class *class, const char *name)
 {
 	struct bt_component_sink *sink = NULL;
 	enum bt_component_status ret;
@@ -54,7 +55,7 @@ struct bt_component *bt_component_sink_create(const char *name)
 		goto end;
 	}
 
-	ret = bt_component_init(&sink->parent, name, BT_COMPONENT_TYPE_SINK,
+	ret = bt_component_init(&sink->parent, class, name,
 		bt_component_sink_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		g_free(sink);

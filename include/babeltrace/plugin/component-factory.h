@@ -40,30 +40,28 @@ extern "C" {
  */
 enum bt_component_factory_status {
 	/** General error. */
-	BT_COMPONENT_FACTORY_STATUS_ERROR =	-128,
+	BT_COMPONENT_FACTORY_STATUS_ERROR =		-128,
+
+	/** Invalid plugin. */
+	BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN =	-6,
 
 	/** Invalid arguments. */
-	/* -22 for compatibility with -EINVAL */
-	BT_COMPONENT_FACTORY_STATUS_INVAL =	-22,
+	BT_COMPONENT_FACTORY_STATUS_INVAL =		-5,
 
 	/** Memory allocation failure. */
-	/* -12 for compatibility with -ENOMEM */
-	BT_COMPONENT_FACTORY_STATUS_NOMEM =	-12,
+	BT_COMPONENT_FACTORY_STATUS_NOMEM =		-4,
 
 	/** I/O error. */
-	/* -5 for compatibility with -EIO */
-	BT_COMPONENT_FACTORY_STATUS_IO =	-5,
+	BT_COMPONENT_FACTORY_STATUS_IO =		-3,
 
 	/** No such file or directory. */
-	/* -2 for compatibility with -ENOENT */
-	BT_COMPONENT_FACTORY_STATUS_NOENT =	-2,
+	BT_COMPONENT_FACTORY_STATUS_NOENT =		-2,
 
 	/** Operation not permitted. */
-	/* -1 for compatibility with -EPERM */
-	BT_COMPONENT_FACTORY_STATUS_PERM =	-1,
+	BT_COMPONENT_FACTORY_STATUS_PERM =		-1,
 
 	/** No error, okay. */
-	BT_COMPONENT_FACTORY_STATUS_OK =	0,
+	BT_COMPONENT_FACTORY_STATUS_OK =		0,
 };
 
 struct bt_component_factory;
@@ -75,6 +73,13 @@ struct bt_component_factory;
  */
 extern
 struct bt_component_factory *bt_component_factory_create(void);
+
+/**
+ * Get the list of components registered to this factory.
+ */
+extern
+struct bt_object *bt_component_factory_get_components(
+		struct bt_component_factory *factory);
 
 /**
  * Recursively load and register Babeltrace plugins under a given path.
@@ -93,13 +98,13 @@ enum bt_component_factory_status bt_component_factory_load(
 extern
 enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
-	struct bt_component_factory *factory, const char *name,
-	bt_component_source_init_cb init);
+		struct bt_component_factory *factory, const char *name,
+		bt_component_source_init_cb init);
 
 extern
 enum bt_component_factory_status bt_component_factory_register_sink_component_class(
-	struct bt_component_factory *factory, const char *name,
-	bt_component_sink_init_cb init);
+		struct bt_component_factory *factory, const char *name,
+		bt_component_sink_init_cb init);
 
 extern
 void bt_component_factory_destroy(struct bt_component_factory *factory);

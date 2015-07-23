@@ -29,10 +29,10 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
-#include <babeltrace/ctf-writer/ref-internal.h>
+#include <babeltrace/ref-internal.h>
 
 struct bt_notification_iterator {
-	struct bt_ctf_ref ref_count;
+	struct bt_ref ref;
 	bt_notification_iterator_get_cb get;
 	bt_notification_iterator_next_cb next;
 	void *user_data;

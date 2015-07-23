@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
-#define BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H
+#define BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H
 
 /*
- * BabelTrace - Plug-in Notification internal
+ * BabelTrace - Component Class Internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,21 +27,27 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/ref-internal.h>
+#include <babeltrace/plugin/component-factory-internal.h>
+#include <babeltrace/plugin/plugin-internal.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct bt_notification {
-	struct bt_ctf_ref ref;
-	enum bt_notification_type type;
+struct bt_component_class {
+	struct bt_ref ref;
+	enum bt_component_type type;
+	GString *name;
+	struct bt_plugin *plugin;
 };
 
-#ifdef __cplusplus
-}
-#endif
+BT_HIDDEN
+struct bt_component_class *bt_component_class_create(
+		enum bt_component_type type, const char *name,
+		struct bt_plugin *plugin);
 
-#endif /* BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H */
+BT_HIDDEN
+void bt_component_class_get(struct bt_component_class *class);
+
+BT_HIDDEN
+void bt_component_class_put(struct bt_component_class *class);
+
+#endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */

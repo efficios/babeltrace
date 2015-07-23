@@ -110,6 +110,8 @@ noinst_HEADERS = \
 	babeltrace/mmap-align.h \
 	babeltrace/plugin/component-factory-internal.h \
 	babeltrace/plugin/component-internal.h \
+	babeltrace/plugin/component-class-internal.h \
+	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/filter-internal.h \
 	babeltrace/plugin/sink-internal.h \
 	babeltrace/plugin/source-internal.h \

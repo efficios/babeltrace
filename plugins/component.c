@@ -31,7 +31,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 
-static void bt_component_destroy(struct bt_ctf_ref *ref);
+static void bt_component_destroy(struct bt_ref *ref);
 
 const char *bt_component_get_name(struct bt_component *component)
 {
@@ -69,7 +69,7 @@ enum bt_component_type bt_component_get_type(struct bt_component *component)
 		goto end;
 	}
 
-	type = component->type;
+	type = component->class->type;
 end:
 	return type;
 }
@@ -95,7 +95,7 @@ void bt_component_get(struct bt_component *component)
 		return;
 	}
 
-	bt_ctf_ref_get(&component->ref_count);
+	bt_ref_get(&component->ref);
 }
 
 void bt_component_put(struct bt_component *component)
@@ -104,23 +104,24 @@ void bt_component_put(struct bt_component *component)
 		return;
 	}
 
-	bt_ctf_ref_put(&component->ref_count, bt_component_destroy);
+	bt_ref_put(&component->ref);
 }
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		const char *name, enum bt_component_type component_type,
+		struct bt_component_class *class, const char *name,
 		bt_component_destroy_cb destroy)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component || !name || name[0] == '\0' || destroy) {
+	if (!component || !class || !name || name[0] == '\0' || destroy) {
 		ret = BT_COMPONENT_STATUS_INVAL;
 		goto end;
 	}
 
-	bt_ctf_ref_init(&component->ref_count);
-	component->type = component_type;
+	bt_ref_init(&component->ref, bt_component_destroy);
+	bt_component_class_get(class);
+	component->class = class;
 	component->name = g_string_new(name);
 	if (!component->name) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
@@ -161,7 +162,7 @@ end:
 }
 
 static
-void bt_component_destroy(struct bt_ctf_ref *ref)
+void bt_component_destroy(struct bt_ref *ref)
 {
 	struct bt_component *component = NULL;
 
@@ -169,7 +170,7 @@ void bt_component_destroy(struct bt_ctf_ref *ref)
 		return;
 	}
 
-	component = container_of(ref, struct bt_component, ref_count);
+	component = container_of(ref, struct bt_component, ref);
 
 	/**
 	 * User data is destroyed first, followed by the concrete component
@@ -182,4 +183,5 @@ void bt_component_destroy(struct bt_ctf_ref *ref)
 
 	assert(component->destroy);
 	component->destroy(component);
+	bt_component_class_put(component->class);
 }

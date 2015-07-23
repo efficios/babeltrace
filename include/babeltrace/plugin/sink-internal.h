@@ -29,7 +29,13 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/component-internal.h>
+#include <babeltrace/plugin/component-class-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
+
+struct bt_component_sink_class {
+	struct bt_component_class parent;
+	bt_component_sink_init_cb init;
+};
 
 struct bt_component_sink {
 	struct bt_component parent;
@@ -41,10 +47,12 @@ struct bt_component_sink {
 /**
  * Allocate a sink component.
  *
+ * @param class			Component class
  * @param name			Component instance name (will be copied)
  * @returns			A sink component instance
  */
 BT_HIDDEN
-extern struct bt_component *bt_component_sink_create(const char *name);
+extern struct bt_component *bt_component_sink_create(
+		struct bt_component_class *class, const char *name);
 
 #endif /* BABELTRACE_PLUGIN_SINK_INTERNAL_H */

@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H
-#define BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H
-
 /*
- * BabelTrace - Component Factory Internal
+ * component-class.c
  *
+ * Babeltrace Plugin Component Class
+ * 
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -27,20 +26,66 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ref-internal.h>
-#include <babeltrace/plugin/component-factory.h>
-#include <babeltrace/plugin/component.h>
+#include <babeltrace/compiler.h>
 #include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/plugin/plugin-system.h>
-#include <babeltrace/plugin/plugin.h>
 #include <glib.h>
 
-struct bt_component_factory {
-	/** Array of pointers to struct plugin */
-	GPtrArray *plugins;
-	/** Array of pointers to struct bt_component_class */
-	GPtrArray *components;
-};
+static
+void bt_component_class_destroy(struct bt_ref *ref)
+{
+	struct bt_component_class *class;
 
-#endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */
+	assert(ref);
+	class = container_of(ref, struct bt_component_class, ref);
+	if (class->name) {
+		g_string_free(class->name, TRUE);
+	}
+	bt_plugin_put(class->plugin);
+	g_free(class);
+}
+
+BT_HIDDEN
+struct bt_component_class *bt_component_class_create(
+		enum bt_component_type type, const char *name,
+		struct bt_plugin *plugin)
+{
+	struct bt_component_class *class;
+
+	class = g_new0(struct bt_component_class, 1);
+	if (!class) {
+		goto end;
+	}
+
+	bt_ref_init(&class->ref, bt_component_class_destroy);
+	class->type = type;
+	class->name = g_string_new(name);
+	if (!class->name) {
+		bt_component_class_put(class);
+		class = NULL;
+		goto end;
+	}
+	bt_plugin_get(plugin);
+	class->plugin = plugin;
+end:
+	return class;
+}
+
+BT_HIDDEN
+void bt_component_class_get(struct bt_component_class *class)
+{
+	if (!class) {
+		return;
+	}
+
+	bt_ref_get(&class->ref);
+}
+
+BT_HIDDEN
+void bt_component_class_put(struct bt_component_class *class)
+{
+	if (!class) {
+		return;
+	}
+
+	bt_ref_put(&class->ref);
+}

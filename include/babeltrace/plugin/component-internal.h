@@ -30,14 +30,15 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/plugin/component.h>
-#include <babeltrace/ctf-writer/ref-internal.h>
+#include <babeltrace/plugin/component-class-internal.h>
+#include <babeltrace/ref-internal.h>
 #include <glib.h>
 #include <stdio.h>
 
 struct bt_component {
-	struct bt_ctf_ref ref_count;
+	struct bt_ref ref;
+	struct bt_component_class *class;
 	GString *name;
-	enum bt_component_type type;
 	/** No ownership taken */
 	FILE *error_stream;
 	/** source, sink or filter destroy */
@@ -49,7 +50,7 @@ struct bt_component {
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		const char *name, enum bt_component_type component_type,
+		struct bt_component_class *class, const char *name,
 		bt_component_destroy_cb destroy);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */

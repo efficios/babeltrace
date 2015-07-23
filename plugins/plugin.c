@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
-#define BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
-
 /*
- * BabelTrace - Plug-in Notification internal
+ * plugin.c
  *
+ * Babeltrace Plugin
+ * 
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -27,21 +26,66 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/compiler.h>
+#include <babeltrace/plugin/plugin-internal.h>
+#include <glib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static
+void bt_plugin_destroy(struct bt_ref *ref)
+{
+	struct bt_plugin *plugin;
 
-struct bt_notification {
-	struct bt_ctf_ref ref;
-	enum bt_notification_type type;
-};
+	assert(ref);
+	plugin = container_of(ref, struct bt_plugin, ref);
+	if (plugin->module) {
+		if (!g_module_close(plugin->module)) {
+			printf_error("Module close error: %s",
+				g_module_error());
 
-#ifdef __cplusplus
+		}
+	}
+	g_free(plugin);
 }
-#endif
 
-#endif /* BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H */
+BT_HIDDEN
+struct bt_plugin *bt_plugin_create(GModule *module)
+{
+	struct bt_plugin *plugin;
+
+	plugin = g_new0(struct bt_plugin, 1);
+	if (!plugin) {
+		goto end;
+	}
+
+	bt_ref_init(&plugin->ref, bt_plugin_destroy);
+end:
+	return plugin;
+}
+
+BT_HIDDEN
+enum bt_component_status bt_plugin_register_component_classes(
+		struct bt_plugin *plugin, struct bt_component_factory *factory)
+{
+	assert(plugin && factory);
+	return plugin->init(factory);
+}
+
+BT_HIDDEN
+void bt_plugin_get(struct bt_plugin *plugin)
+{
+	if (!plugin) {
+		return;
+	}
+
+	bt_ref_get(&plugin->ref);
+}
+
+BT_HIDDEN
+void bt_plugin_put(struct bt_plugin *plugin)
+{
+	if (!plugin) {
+		return;
+	}
+
+	bt_ref_put(&plugin->ref);
+}

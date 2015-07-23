@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <gmodule.h>
 
 #define NATIVE_PLUGIN_SUFFIX ".so"
 #define NATIVE_PLUGIN_SUFFIX_LEN sizeof(NATIVE_PLUGIN_SUFFIX)
@@ -40,47 +41,6 @@
 #define LIBTOOL_PLUGIN_SUFFIX_LEN sizeof(LIBTOOL_PLUGIN_SUFFIX)
 #define PLUGIN_SUFFIX_LEN max_t(size_t, sizeof(NATIVE_PLUGIN_SUFFIX), \
 		sizeof(LIBTOOL_PLUGIN_SUFFIX))
-
-static
-void component_destroy(gpointer data)
-{
-        g_free(data);
-}
-
-static
-void plugin_destroy(gpointer data)
-{
-	struct plugin *plugin = data;
-
-	if (plugin->module && g_module_close(plugin->module)) {
-		printf_error("Failed to close plugin");
-	}
-
-	if (plugin->components) {
-		g_ptr_array_free(plugin->components, TRUE);
-	}
-
-	g_free(plugin);
-}
-
-static
-struct plugin *plugin_create(void)
-{
-	struct plugin *plugin = g_new0(struct plugin, 1);
-
-	if (!plugin) {
-		goto end;
-	}
-
-	plugin->components = g_ptr_array_new_with_free_func(component_destroy);
-	if (!plugin->components) {
-		g_free(plugin);
-		plugin = NULL;
-		goto end;
-	}
-end:
-	return plugin;
-}
 
 /* Allocate dirent as recommended by READDIR(3), NOTES on readdir_r */
 static
@@ -100,20 +60,15 @@ struct dirent *alloc_dirent(const char *path)
 }
 
 static
-struct plugin *load_plugin(GModule *module)
-{
-	return NULL;
-}
-
-static
 enum bt_component_factory_status
 bt_component_factory_load_file(struct bt_component_factory *factory,
 		const char *path)
 {
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
+	enum bt_component_status component_status;
 	size_t path_len;
 	GModule *module;
-	struct plugin *plugin;
+	struct bt_plugin *plugin;
 
 	if (!factory || !path) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
@@ -149,17 +104,33 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 		goto end;
 	}
 
-	/* Check if the module defines the appropriate entry points */
-	plugin = load_plugin(module);
+	/* Load plugin and make sure it defines the required entry points */
+	plugin = bt_plugin_create(module);
 	if (!plugin) {
-		/* Not a Babeltrace plugin */
-		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
+		ret = BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN;
 		if (!g_module_close(module)) {
 			printf_error("Module close error: %s",
-			        g_module_error());
+				g_module_error());
 		}
 		goto end;
 	}
+
+	component_status = bt_plugin_register_component_classes(plugin,
+		factory);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		switch (component_status) {
+		case BT_COMPONENT_STATUS_NOMEM:
+			ret = BT_COMPONENT_FACTORY_STATUS_NOMEM;
+			break;
+		default:
+			ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
+			break;
+		}
+		bt_plugin_put(plugin);
+		plugin = NULL;
+		goto end;
+	}
+	g_ptr_array_add(factory->plugins, plugin);
 end:
 	return ret;
 }
@@ -240,6 +211,12 @@ void bt_component_factory_destroy(struct bt_component_factory *factory)
 		return;
 	}
 
+	if (factory->plugins) {
+		g_ptr_array_free(factory->plugins, TRUE);
+	}
+	if (factory->components) {
+		g_ptr_array_free(factory->components, TRUE);
+	}
 	g_free(factory);
 }
 
@@ -253,8 +230,14 @@ bt_component_factory_create(void)
 		goto end;
 	}
 
-	factory->plugins = g_ptr_array_new_with_free_func(plugin_destroy);
+	factory->plugins = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_plugin_put);
 	if (!factory->plugins) {
+		goto error;
+	}
+	factory->components = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_component_put);
+	if (!factory->components) {
 		goto error;
 	}
 end:

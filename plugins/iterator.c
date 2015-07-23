@@ -33,7 +33,7 @@
 #include <babeltrace/plugin/notification/iterator-internal.h>
 
 static
-void bt_notification_iterator_destroy(struct bt_ctf_ref *ref)
+void bt_notification_iterator_destroy(struct bt_ref *ref)
 {
 	struct bt_notification_iterator *iterator;
 
@@ -42,7 +42,7 @@ void bt_notification_iterator_destroy(struct bt_ctf_ref *ref)
 	}
 
 	iterator = container_of(ref, struct bt_notification_iterator,
-		ref_count);
+		ref);
 	assert(iterator->user_destroy || !iterator->user_data);
 	iterator->user_destroy(iterator);
 	g_free(iterator);
@@ -64,7 +64,7 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		goto end;
 	}
 
-	bt_ctf_ref_init(&iterator->ref_count);
+	bt_ref_init(&iterator->ref, bt_notification_iterator_destroy);
 end:
 	return iterator;
 }
@@ -90,7 +90,7 @@ void bt_notification_iterator_get(struct bt_notification_iterator *iterator)
 		return;
 	}
 
-	bt_ctf_ref_get(&iterator->ref_count);
+	bt_ref_get(&iterator->ref);
 }
 
 void bt_notification_iterator_put(struct bt_notification_iterator *iterator)
@@ -99,7 +99,7 @@ void bt_notification_iterator_put(struct bt_notification_iterator *iterator)
 		return;
 	}
 
-	bt_ctf_ref_put(&iterator->ref_count, bt_notification_iterator_destroy);
+	bt_ref_put(&iterator->ref);
 }
 
 enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(

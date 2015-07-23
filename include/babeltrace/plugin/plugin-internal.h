@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H
-#define BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_INTERNAL_H
+#define BABELTRACE_PLUGIN__INTERNAL_H
 
 /*
- * BabelTrace - Component Factory Internal
+ * BabelTrace - Plug-in Internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -29,18 +29,41 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ref-internal.h>
-#include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/plugin/plugin.h>
-#include <glib.h>
+#include <gmodule.h>
 
-struct bt_component_factory {
-	/** Array of pointers to struct plugin */
-	GPtrArray *plugins;
-	/** Array of pointers to struct bt_component_class */
-	GPtrArray *components;
+/**
+ * Plug-ins are owned by bt_component_factory and the bt_component_class-es
+ * it provides. This means that its lifetime bound by either the component
+ * factory's, or the concrete components' lifetime which may be in use and which
+ * have hold a reference to their bt_component_class which, in turn, have a
+ * reference to their plugin.
+ *
+ * This ensures that a plugin's library is not closed while it is being used
+ * even if the bt_component_factory which created its components is destroyed.
+ */
+struct bt_plugin {
+	struct bt_ref ref;
+	const char *name;
+	const char *author;
+	const char *license;
+        bt_plugin_init_func init;
+	bt_plugin_exit_func exit;
+	GModule *module;
 };
 
-#endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */
+BT_HIDDEN
+struct bt_plugin *bt_plugin_create(GModule *module);
+
+BT_HIDDEN
+enum bt_component_status bt_plugin_register_component_classes(
+		struct bt_plugin *plugin, struct bt_component_factory *factory);
+
+BT_HIDDEN
+void bt_plugin_get(struct bt_plugin *plugin);
+
+BT_HIDDEN
+void bt_plugin_put(struct bt_plugin *plugin);
+
+#endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */

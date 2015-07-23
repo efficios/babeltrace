@@ -46,7 +46,8 @@ void bt_component_source_destroy(struct bt_component *component)
 }
 
 BT_HIDDEN
-struct bt_component *bt_component_source_create(const char *name)
+struct bt_component *bt_component_source_create(
+		struct bt_component_class *class, const char *name)
 {
 	struct bt_component_source *source = NULL;
 	enum bt_component_status ret;
@@ -55,8 +56,8 @@ struct bt_component *bt_component_source_create(const char *name)
 		goto end;
 	}
 
-	ret = bt_component_init(&source->parent, name,
-		BT_COMPONENT_TYPE_SOURCE, bt_component_source_destroy);
+	ret = bt_component_init(&source->parent, class, name,
+		bt_component_source_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		g_free(source);
 		source = NULL;
