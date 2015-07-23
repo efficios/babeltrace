@@ -30,6 +30,12 @@
 #include <babeltrace/plugin/plugin-internal.h>
 #include <glib.h>
 
+#define PLUGIN_SYMBOL_NAME	"__bt_plugin_name"
+#define PLUGIN_SYMBOL_AUTHOR	"__bt_plugin_author"
+#define PLUGIN_SYMBOL_LICENSE	"__bt_plugin_license"
+#define PLUGIN_SYMBOL_INIT	"__bt_plugin_init"
+#define PLUGIN_SYMBOL_EXIT	"__bt_plugin_exit"
+
 static
 void bt_plugin_destroy(struct bt_ref *ref)
 {
@@ -50,16 +56,49 @@ void bt_plugin_destroy(struct bt_ref *ref)
 BT_HIDDEN
 struct bt_plugin *bt_plugin_create(GModule *module)
 {
-	struct bt_plugin *plugin;
+	struct bt_plugin *plugin = NULL;
+
+	if (!module) {
+		goto error;
+	}
 
 	plugin = g_new0(struct bt_plugin, 1);
 	if (!plugin) {
-		goto end;
+		goto error;
 	}
 
 	bt_ref_init(&plugin->ref, bt_plugin_destroy);
-end:
+	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
+		(gpointer *) &plugin->name))
+	{
+		printf_error("Unable to resolve plugin symbol %s from %s",
+			PLUGIN_SYMBOL_NAME, g_module_name(module));
+		goto error;
+	}
+	if (!g_module_symbol(module, PLUGIN_SYMBOL_LICENSE,
+		(gpointer *) &plugin->license))
+	{
+		printf_error("Unable to resolve plugin symbol %s from %s",
+			PLUGIN_SYMBOL_LICENSE, g_module_name(module));
+		goto error;
+	}
+	if (!g_module_symbol(module, PLUGIN_SYMBOL_INIT,
+		(gpointer *) &plugin->init))
+	{
+		printf_error("Unable to resolve plugin symbol %s from %s",
+			PLUGIN_SYMBOL_INIT, g_module_name(module));
+		goto error;
+	}
+
+	/* Optional symbols */
+	g_module_symbol(module, PLUGIN_SYMBOL_EXIT, (gpointer *) &plugin->exit);
+	g_module_symbol(module, PLUGIN_SYMBOL_AUTHOR,
+		(gpointer *) &plugin->author);
+
 	return plugin;
+error:
+	bt_plugin_put(plugin);
+	return NULL;
 }
 
 BT_HIDDEN
