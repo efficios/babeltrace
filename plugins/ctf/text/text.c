@@ -26,14 +26,27 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-lib.h>
-#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/sink.h>
+#include <babeltrace/plugin/notification/notification.h>
 #include <glib.h>
 #include <stdio.h>
 
 const char *plugin_name = "ctf-text";
+
+static enum bt_component_status ctf_text_init(struct bt_component *);
+static void ctf_text_exit(void);
+
+BT_PLUGIN_NAME("ctf-text");
+BT_PLUGIN_AUTHOR("Jérémie Galarneau");
+BT_PLUGIN_LICENSE("MIT License");
+BT_PLUGIN_EXIT(ctf_text_exit);
+
+BT_PLUGIN_COMPONENT_CLASSES_BEGIN
+BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(plugin_name, ctf_text_init)
+BT_PLUGIN_COMPONENT_CLASSES_END
+
 
 enum loglevel {
         LOGLEVEL_EMERG                  = 0,
@@ -54,115 +67,50 @@ enum loglevel {
 };
 
 const char *loglevel_str [] = {
-	[LOGLEVEL_EMERG] = "TRACE_EMERG",
-	[LOGLEVEL_ALERT] = "TRACE_ALERT",
-	[LOGLEVEL_CRIT] = "TRACE_CRIT",
-	[LOGLEVEL_ERR] = "TRACE_ERR",
-	[LOGLEVEL_WARNING] = "TRACE_WARNING",
-	[LOGLEVEL_NOTICE] = "TRACE_NOTICE",
-	[LOGLEVEL_INFO] = "TRACE_INFO",
-	[LOGLEVEL_DEBUG_SYSTEM] = "TRACE_DEBUG_SYSTEM",
-	[LOGLEVEL_DEBUG_PROGRAM] = "TRACE_DEBUG_PROGRAM",
-	[LOGLEVEL_DEBUG_PROCESS] = "TRACE_DEBUG_PROCESS",
-	[LOGLEVEL_DEBUG_MODULE] = "TRACE_DEBUG_MODULE",
-	[LOGLEVEL_DEBUG_UNIT] = "TRACE_DEBUG_UNIT",
-	[LOGLEVEL_DEBUG_FUNCTION] = "TRACE_DEBUG_FUNCTION",
-	[LOGLEVEL_DEBUG_LINE] = "TRACE_DEBUG_LINE",
-	[LOGLEVEL_DEBUG] = "TRACE_DEBUG",
+	[LOGLEVEL_EMERG] =		"TRACE_EMERG",
+	[LOGLEVEL_ALERT] =		"TRACE_ALERT",
+	[LOGLEVEL_CRIT] =		"TRACE_CRIT",
+	[LOGLEVEL_ERR] =		"TRACE_ERR",
+	[LOGLEVEL_WARNING] =		"TRACE_WARNING",
+	[LOGLEVEL_NOTICE] =		"TRACE_NOTICE",
+	[LOGLEVEL_INFO] =		"TRACE_INFO",
+	[LOGLEVEL_DEBUG_SYSTEM] =	"TRACE_DEBUG_SYSTEM",
+	[LOGLEVEL_DEBUG_PROGRAM] =	"TRACE_DEBUG_PROGRAM",
+	[LOGLEVEL_DEBUG_PROCESS] =	"TRACE_DEBUG_PROCESS",
+	[LOGLEVEL_DEBUG_MODULE] =	"TRACE_DEBUG_MODULE",
+	[LOGLEVEL_DEBUG_UNIT] =		"TRACE_DEBUG_UNIT",
+	[LOGLEVEL_DEBUG_FUNCTION] =	"TRACE_DEBUG_FUNCTION",
+	[LOGLEVEL_DEBUG_LINE] =		"TRACE_DEBUG_LINE",
+	[LOGLEVEL_DEBUG] =		"TRACE_DEBUG",
 };
 
-struct ctf_text {
-	int opt_print_all_field_names;
-	int opt_print_scope_field_names;
-	int opt_print_header_field_names;
-	int opt_print_context_field_names;
-	int opt_print_payload_field_names;
-	int opt_print_all_fields;
-	int opt_print_trace_field;
-	int opt_print_trace_domain_field;
-	int opt_print_trace_procname_field;
-	int opt_print_trace_vpid_field;
-	int opt_print_trace_hostname_field;
-	int opt_print_trace_default_fields;
-	int opt_print_loglevel_field;
-	int opt_print_emf_field;
-	int opt_print_callsite_field;
-	int opt_print_delta_field;
+struct ctf_text_component {
+	bool opt_print_all_field_names : 1;
+	bool opt_print_scope_field_names : 1;
+	bool opt_print_header_field_names : 1;
+	bool opt_print_context_field_names : 1;
+	bool opt_print_payload_field_names : 1;
+	bool opt_print_all_fields : 1;
+	bool opt_print_trace_field : 1;
+	bool opt_print_trace_domain_field : 1;
+	bool opt_print_trace_procname_field : 1;
+	bool opt_print_trace_vpid_field : 1;
+	bool opt_print_trace_hostname_field : 1;
+	bool opt_print_trace_default_fields : 1;
+	bool opt_print_loglevel_field : 1;
+	bool opt_print_emf_field : 1;
+	bool opt_print_callsite_field : 1;
+	bool opt_print_delta_field : 1;
 };
 
 static
-void ctf_text_destroy(struct bt_plugin *plugin)
+enum bt_component_status ctf_text_init(struct bt_component *component)
 {
-	struct ctf_text *text;
-
-	if (!plugin) {
-		return;
-	}
-
-        text = bt_plugin_get_private_data(plugin);
-	if (!text) {
-		return;
-	}
-
-	g_free(text);
+	return BT_COMPONENT_STATUS_OK;
 }
 
 static
-int ctf_text_handle_notification(struct bt_plugin *plugin,
-		struct bt_notification *notification)
+void ctf_text_exit(void)
 {
-	return BT_PLUGIN_STATUS_OK;
-}
-
-enum bt_plugin_type bt_plugin_lib_get_type(void)
-{
-	return BT_PLUGIN_TYPE_SINK;
-}
-
-const char *bt_plugin_lib_get_format_name(void)
-{
-	return plugin_name;
-}
-
-static
-int text_init(struct ctf_text *text, struct bt_object *params)
-{
-	int ret = 0;
-
-	if (!text || !params) {
-		ret = -1;
-		goto end;
-	}
-
-	text->opt_print_trace_default_fields = 1;
-	text->opt_print_delta_field = 1;
-end:
-	return ret;
-}
-
-struct bt_plugin *bt_plugin_lib_create(struct bt_object *params)
-{
-	int ret;
-	struct bt_plugin *plugin = NULL;
-	struct ctf_text *text = g_new0(struct ctf_text, 1);
-
-	/* Set default text output options */
-	ret = text_init(text, params);
-	if (ret) {
-		goto error;
-	}
-
-	plugin = bt_plugin_sink_create(plugin_name, text,
-	        ctf_text_destroy, ctf_text_handle_notification);
-	if (!plugin) {
-		goto error;
-	}
-
-end:
-	return plugin;
-error:
-	if (text) {
-		g_free(text);
-	}
-	goto end;
+	printf("in ctf_text_exit\n");
 }

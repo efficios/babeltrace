@@ -55,8 +55,9 @@ typedef void (*bt_component_destroy_cb)(struct bt_component *component);
  * deinitialization callback must be set by this function.
  *
  * @param component	Component instance
+ * @returns		One of #bt_component_status values
  */
-typedef struct bt_component *(*bt_component_source_init_cb)(
+typedef enum bt_component_status (*bt_component_source_init_cb)(
 		struct bt_component *component);
 
 /**
@@ -66,8 +67,9 @@ typedef struct bt_component *(*bt_component_source_init_cb)(
  * deinitialization callback must be set by this function.
  *
  * @param component	Component instance
+ * @returns		One of #bt_component_status values
  */
-typedef struct bt_component *(*bt_component_sink_init_cb)(
+typedef enum bt_component_status (*bt_component_sink_init_cb)(
 		struct bt_component *component);
 
 /**
