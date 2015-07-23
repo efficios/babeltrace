@@ -26,18 +26,18 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX	1
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_create(void)
+struct bt_value *bt_ctf_attributes_create(void)
 {
 	/*
-	 * Attributes: array object of array objects, each one
-	 * containing two entries: a string object (attributes field
-	 * name), and an object (attributes field value).
+	 * Attributes: array value object of array value objects, each one
+	 * containing two entries: a string value object (attributes
+	 * field name), and a value object (attributes field value).
 	 *
 	 * Example (JSON representation):
 	 *
@@ -48,96 +48,96 @@ struct bt_object *bt_ctf_attributes_create(void)
 	 *         ["tracer_minor", 5]
 	 *     ]
 	 */
-	return bt_object_array_create();
+	return bt_value_array_create();
 }
 
 BT_HIDDEN
-void bt_ctf_attributes_destroy(struct bt_object *attr_obj)
+void bt_ctf_attributes_destroy(struct bt_value *attr_obj)
 {
-	bt_object_put(attr_obj);
+	bt_value_put(attr_obj);
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_get_count(struct bt_object *attr_obj)
+int bt_ctf_attributes_get_count(struct bt_value *attr_obj)
 {
-	return bt_object_array_size(attr_obj);
+	return bt_value_array_size(attr_obj);
 }
 
 BT_HIDDEN
-const char *bt_ctf_attributes_get_field_name(struct bt_object *attr_obj,
+const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
 		int index)
 {
 	int rc;
 	const char *ret = NULL;
-	struct bt_object *attr_field_obj = NULL;
-	struct bt_object *attr_field_name_obj = NULL;
+	struct bt_value *attr_field_obj = NULL;
+	struct bt_value *attr_field_name_obj = NULL;
 
 	if (!attr_obj || index < 0) {
 		goto end;
 	}
 
-	attr_field_obj = bt_object_array_get(attr_obj, index);
+	attr_field_obj = bt_value_array_get(attr_obj, index);
 
 	if (!attr_field_obj) {
 		goto end;
 	}
 
-	attr_field_name_obj = bt_object_array_get(attr_field_obj,
+	attr_field_name_obj = bt_value_array_get(attr_field_obj,
 		BT_CTF_ATTR_NAME_INDEX);
 
 	if (!attr_field_name_obj) {
 		goto end;
 	}
 
-	rc = bt_object_string_get(attr_field_name_obj, &ret);
+	rc = bt_value_string_get(attr_field_name_obj, &ret);
 
 	if (rc) {
 		ret = NULL;
 	}
 
 end:
-	BT_OBJECT_PUT(attr_field_name_obj);
-	BT_OBJECT_PUT(attr_field_obj);
+	BT_VALUE_PUT(attr_field_name_obj);
+	BT_VALUE_PUT(attr_field_obj);
 
 	return ret;
 }
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_get_field_value(struct bt_object *attr_obj,
+struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
 		int index)
 {
-	struct bt_object *value_obj = NULL;
-	struct bt_object *attr_field_obj = NULL;
+	struct bt_value *value_obj = NULL;
+	struct bt_value *attr_field_obj = NULL;
 
 	if (!attr_obj || index < 0) {
 		goto end;
 	}
 
-	attr_field_obj = bt_object_array_get(attr_obj, index);
+	attr_field_obj = bt_value_array_get(attr_obj, index);
 
 	if (!attr_field_obj) {
 		goto end;
 	}
 
-	value_obj = bt_object_array_get(attr_field_obj,
+	value_obj = bt_value_array_get(attr_field_obj,
 		BT_CTF_ATTR_VALUE_INDEX);
 
 end:
-	BT_OBJECT_PUT(attr_field_obj);
+	BT_VALUE_PUT(attr_field_obj);
 
 	return value_obj;
 }
 
 static
-struct bt_object *bt_ctf_attributes_get_field_by_name(
-		struct bt_object *attr_obj, const char *name)
+struct bt_value *bt_ctf_attributes_get_field_by_name(
+		struct bt_value *attr_obj, const char *name)
 {
 	int i;
 	int attr_size;
-	struct bt_object *value_obj = NULL;
-	struct bt_object *attr_field_name_obj = NULL;
+	struct bt_value *value_obj = NULL;
+	struct bt_value *attr_field_name_obj = NULL;
 
-	attr_size = bt_object_array_size(attr_obj);
+	attr_size = bt_value_array_size(attr_obj);
 
 	if (attr_size < 0) {
 		goto error;
@@ -147,47 +147,47 @@ struct bt_object *bt_ctf_attributes_get_field_by_name(
 		int ret;
 		const char *field_name;
 
-		value_obj = bt_object_array_get(attr_obj, i);
+		value_obj = bt_value_array_get(attr_obj, i);
 
 		if (!value_obj) {
 			goto error;
 		}
 
-		attr_field_name_obj = bt_object_array_get(value_obj, 0);
+		attr_field_name_obj = bt_value_array_get(value_obj, 0);
 
 		if (!attr_field_name_obj) {
 			goto error;
 		}
 
-		ret = bt_object_string_get(attr_field_name_obj, &field_name);
+		ret = bt_value_string_get(attr_field_name_obj, &field_name);
 		if (ret) {
 			goto error;
 		}
 
 		if (!strcmp(field_name, name)) {
-			BT_OBJECT_PUT(attr_field_name_obj);
+			BT_VALUE_PUT(attr_field_name_obj);
 			break;
 		}
 
-		BT_OBJECT_PUT(attr_field_name_obj);
-		BT_OBJECT_PUT(value_obj);
+		BT_VALUE_PUT(attr_field_name_obj);
+		BT_VALUE_PUT(value_obj);
 	}
 
 	return value_obj;
 
 error:
-	BT_OBJECT_PUT(attr_field_name_obj);
-	BT_OBJECT_PUT(value_obj);
+	BT_VALUE_PUT(attr_field_name_obj);
+	BT_VALUE_PUT(value_obj);
 
 	return value_obj;
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_set_field_value(struct bt_object *attr_obj,
-		const char *name, struct bt_object *value_obj)
+int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
+		const char *name, struct bt_value *value_obj)
 {
 	int ret = 0;
-	struct bt_object *attr_field_obj = NULL;
+	struct bt_value *attr_field_obj = NULL;
 
 	if (!attr_obj || !name || !value_obj) {
 		ret = -1;
@@ -197,39 +197,39 @@ int bt_ctf_attributes_set_field_value(struct bt_object *attr_obj,
 	attr_field_obj = bt_ctf_attributes_get_field_by_name(attr_obj, name);
 
 	if (attr_field_obj) {
-		ret = bt_object_array_set(attr_field_obj,
+		ret = bt_value_array_set(attr_field_obj,
 			BT_CTF_ATTR_VALUE_INDEX, value_obj);
 		goto end;
 	}
 
-	attr_field_obj = bt_object_array_create();
+	attr_field_obj = bt_value_array_create();
 
 	if (!attr_field_obj) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = bt_object_array_append_string(attr_field_obj, name);
-	ret |= bt_object_array_append(attr_field_obj, value_obj);
+	ret = bt_value_array_append_string(attr_field_obj, name);
+	ret |= bt_value_array_append(attr_field_obj, value_obj);
 
 	if (ret) {
 		goto end;
 	}
 
-	ret = bt_object_array_append(attr_obj, attr_field_obj);
+	ret = bt_value_array_append(attr_obj, attr_field_obj);
 
 end:
-	BT_OBJECT_PUT(attr_field_obj);
+	BT_VALUE_PUT(attr_field_obj);
 
 	return ret;
 }
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_get_field_value_by_name(
-		struct bt_object *attr_obj, const char *name)
+struct bt_value *bt_ctf_attributes_get_field_value_by_name(
+		struct bt_value *attr_obj, const char *name)
 {
-	struct bt_object *value_obj = NULL;
-	struct bt_object *attr_field_obj = NULL;
+	struct bt_value *value_obj = NULL;
+	struct bt_value *attr_field_obj = NULL;
 
 	if (!attr_obj || !name) {
 		goto end;
@@ -241,17 +241,17 @@ struct bt_object *bt_ctf_attributes_get_field_value_by_name(
 		goto end;
 	}
 
-	value_obj = bt_object_array_get(attr_field_obj,
+	value_obj = bt_value_array_get(attr_field_obj,
 		BT_CTF_ATTR_VALUE_INDEX);
 
 end:
-	BT_OBJECT_PUT(attr_field_obj);
+	BT_VALUE_PUT(attr_field_obj);
 
 	return value_obj;
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_freeze(struct bt_object *attr_obj)
+int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
 {
 	int i;
 	int count;
@@ -262,7 +262,7 @@ int bt_ctf_attributes_freeze(struct bt_object *attr_obj)
 		goto end;
 	}
 
-	count = bt_object_array_size(attr_obj);
+	count = bt_value_array_size(attr_obj);
 
 	if (count < 0) {
 		ret = -1;
@@ -270,12 +270,12 @@ int bt_ctf_attributes_freeze(struct bt_object *attr_obj)
 	}
 
 	/*
-	 * We do not freeze the array itself here, since internal
-	 * stuff could need to modify/add attributes. Each attribute
-	 * is frozen one by one.
+	 * We do not freeze the array value object itself here, since
+	 * internal stuff could need to modify/add attributes. Each
+	 * attribute is frozen one by one.
 	 */
 	for (i = 0; i < count; ++i) {
-		struct bt_object *obj = NULL;
+		struct bt_value *obj = NULL;
 
 		obj = bt_ctf_attributes_get_field_value(attr_obj, i);
 
@@ -284,8 +284,8 @@ int bt_ctf_attributes_freeze(struct bt_object *attr_obj)
 			goto end;
 		}
 
-		bt_object_freeze(obj);
-		BT_OBJECT_PUT(obj);
+		bt_value_freeze(obj);
+		BT_VALUE_PUT(obj);
 	}
 
 end:

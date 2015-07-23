@@ -31,7 +31,7 @@
  */
 
 #include <babeltrace/ctf-ir/event-types.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -84,8 +84,8 @@ extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
  * If a value exists in the environment for the specified name, it is
  * replaced by the new value.
  *
- * The value parameter _must_ be either an integer object or a
- * string object. Other object types are not supported.
+ * The value parameter _must_ be either an integer value object or a
+ * string value object. Other object types are not supported.
  *
  * @param trace Trace instance.
  * @param name Name of the environment field (will be copied).
@@ -95,7 +95,7 @@ extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
  */
 extern int bt_ctf_trace_set_environment_field(
 		struct bt_ctf_trace *trace, const char *name,
-		struct bt_object *value);
+		struct bt_value *value);
 
 /*
  * bt_ctf_trace_set_environment_field_string: sets a string environment
@@ -167,14 +167,14 @@ bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
  *
  * Get an environment field's value (an object). The returned object's
  * reference count is incremented. When done with the object, the caller
- * must call bt_object_put() on it.
+ * must call bt_value_put() on it.
  *
  * @param trace Trace instance.
  * @param index Index of the environment field.
  *
  * Returns the environment field's object value, NULL on error.
  */
-extern struct bt_object *
+extern struct bt_value *
 bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace,
 		int index);
 
@@ -184,14 +184,14 @@ bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace,
  *
  * Get an environment field's value (an object) by its field name. The
  * returned object's reference count is incremented. When done with the
- * object, the caller must call bt_object_put() on it.
+ * object, the caller must call bt_value_put() on it.
  *
  * @param trace Trace instance.
  * @param name Environment field's name
  *
  * Returns the environment field's object value, NULL on error.
  */
-extern struct bt_object *
+extern struct bt_value *
 bt_ctf_trace_get_environment_field_value_by_name(struct bt_ctf_trace *trace,
 		const char *name);
 

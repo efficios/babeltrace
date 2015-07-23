@@ -30,7 +30,7 @@
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
@@ -42,7 +42,7 @@
 
 struct bt_ctf_event_class {
 	struct bt_ctf_base base;
-	struct bt_object *attributes;
+	struct bt_value *attributes;
 	/*
 	 * Weak reference; an event class does not have ownership of a
 	 * stream class.

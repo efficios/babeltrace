@@ -51,7 +51,7 @@ int set_integer_field_value(struct bt_ctf_field *field, uint64_t value);
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 {
 	int ret;
-	struct bt_object *obj = NULL;
+	struct bt_value *obj = NULL;
 	struct bt_ctf_event_class *event_class = NULL;
 
 	if (bt_ctf_validate_identifier(name)) {
@@ -74,7 +74,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	obj = bt_object_integer_create_init(-1);
+	obj = bt_value_integer_create_init(-1);
 	if (!obj) {
 		goto error;
 	}
@@ -85,9 +85,9 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
-	obj = bt_object_string_create_init(name);
+	obj = bt_value_string_create_init(name);
 	if (!obj) {
 		goto error;
 	}
@@ -98,7 +98,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return event_class;
 
@@ -107,14 +107,14 @@ error:
 		bt_ctf_event_class_put(event_class);
 	}
 
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return NULL;
 }
 
 const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 {
-	struct bt_object *obj = NULL;
+	struct bt_value *obj = NULL;
 	const char *name = NULL;
 
 	if (!event_class) {
@@ -127,19 +127,19 @@ const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 
-	if (bt_object_string_get(obj, &name)) {
+	if (bt_value_string_get(obj, &name)) {
 		name = NULL;
 	}
 
 end:
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return name;
 }
 
 int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 {
-	struct bt_object *obj = NULL;
+	struct bt_value *obj = NULL;
 	int64_t ret = 0;
 
 	if (!event_class) {
@@ -153,7 +153,7 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 
-	if (bt_object_integer_get(obj, &ret)) {
+	if (bt_value_integer_get(obj, &ret)) {
 		ret = -1;
 	}
 
@@ -164,7 +164,7 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 	}
 
 end:
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return ret;
 }
@@ -173,7 +173,7 @@ int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 		uint32_t id)
 {
 	int ret = 0;
-	struct bt_object *obj = NULL;
+	struct bt_value *obj = NULL;
 
 	if (!event_class) {
 		ret = -1;
@@ -195,20 +195,20 @@ int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 		goto end;
 	}
 
-	if (bt_object_integer_set(obj, id)) {
+	if (bt_value_integer_set(obj, id)) {
 		ret = -1;
 		goto end;
 	}
 
 end:
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return ret;
 }
 
 int bt_ctf_event_class_set_attribute(
 		struct bt_ctf_event_class *event_class, const char *name,
-		struct bt_object *value)
+		struct bt_value *value)
 {
 	int ret = 0;
 
@@ -218,12 +218,12 @@ int bt_ctf_event_class_set_attribute(
 	}
 
 	if (!strcmp(name, "id") || !strcmp(name, "loglevel")) {
-		if (!bt_object_is_integer(value)) {
+		if (!bt_value_is_integer(value)) {
 			ret = -1;
 			goto end;
 		}
 	} else if (!strcmp(name, "name") || !strcmp(name, "model.emf.uri")) {
-		if (!bt_object_is_string(value)) {
+		if (!bt_value_is_string(value)) {
 			ret = -1;
 			goto end;
 		}
@@ -237,7 +237,7 @@ int bt_ctf_event_class_set_attribute(
 	if (!strcmp(name, "id")) {
 		int64_t val;
 
-		ret = bt_object_integer_get(value, &val);
+		ret = bt_value_integer_get(value, &val);
 
 		if (ret) {
 			goto end;
@@ -289,11 +289,11 @@ end:
 	return ret;
 }
 
-struct bt_object *
+struct bt_value *
 bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
 		int index)
 {
-	struct bt_object *ret;
+	struct bt_value *ret;
 
 	if (!event_class) {
 		ret = NULL;
@@ -306,11 +306,11 @@ end:
 	return ret;
 }
 
-struct bt_object *
+struct bt_value *
 bt_ctf_event_class_get_attribute_value_by_name(
 		struct bt_ctf_event_class *event_class, const char *name)
 {
-	struct bt_object *ret;
+	struct bt_value *ret;
 
 	if (!event_class || !name) {
 		ret = NULL;
@@ -525,9 +525,9 @@ int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
 		uint32_t stream_id)
 {
 	int ret = 0;
-	struct bt_object *obj;
+	struct bt_value *obj;
 
-	obj = bt_object_integer_create_init(stream_id);
+	obj = bt_value_integer_create_init(stream_id);
 
 	if (!obj) {
 		ret = -1;
@@ -538,7 +538,7 @@ int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
 		"stream_id", obj);
 
 end:
-	BT_OBJECT_PUT(obj);
+	BT_VALUE_PUT(obj);
 
 	return ret;
 }
@@ -1031,7 +1031,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	int i;
 	int count;
 	int ret = 0;
-	struct bt_object *attr_value = NULL;
+	struct bt_value *attr_value = NULL;
 
 	assert(event_class);
 	assert(context);
@@ -1059,12 +1059,12 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 			goto end;
 		}
 
-		switch (bt_object_get_type(attr_value)) {
-		case BT_OBJECT_TYPE_INTEGER:
+		switch (bt_value_get_type(attr_value)) {
+		case BT_VALUE_TYPE_INTEGER:
 		{
 			int64_t value;
 
-			ret = bt_object_integer_get(attr_value, &value);
+			ret = bt_value_integer_get(attr_value, &value);
 
 			if (ret) {
 				goto end;
@@ -1075,11 +1075,11 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 			break;
 		}
 
-		case BT_OBJECT_TYPE_STRING:
+		case BT_VALUE_TYPE_STRING:
 		{
 			const char *value;
 
-			ret = bt_object_string_get(attr_value, &value);
+			ret = bt_value_string_get(attr_value, &value);
 
 			if (ret) {
 				goto end;
@@ -1096,7 +1096,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 			break;
 		}
 
-		BT_OBJECT_PUT(attr_value);
+		BT_VALUE_PUT(attr_value);
 	}
 
 	if (event_class->context) {
@@ -1121,7 +1121,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	g_string_append(context->string, "};\n\n");
 end:
 	context->current_indentation_level = 0;
-	BT_OBJECT_PUT(attr_value);
+	BT_VALUE_PUT(attr_value);
 	return ret;
 }
 
