@@ -33,35 +33,35 @@ extern "C" {
 #endif
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_create(void);
+struct bt_value *bt_ctf_attributes_create(void);
 
 BT_HIDDEN
-void bt_ctf_attributes_destroy(struct bt_object *attr_obj);
+void bt_ctf_attributes_destroy(struct bt_value *attr_obj);
 
 BT_HIDDEN
-int bt_ctf_attributes_get_count(struct bt_object *attr_obj);
+int bt_ctf_attributes_get_count(struct bt_value *attr_obj);
 
 BT_HIDDEN
-const char *bt_ctf_attributes_get_field_name(struct bt_object *attr_obj,
+const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
 		int index);
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_get_field_value(struct bt_object *attr_obj,
+struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
 		int index);
 
 BT_HIDDEN
-int bt_ctf_attributes_set_field_value(struct bt_object *attr_obj,
-		const char *name, struct bt_object *value_obj);
+int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
+		const char *name, struct bt_value *value_obj);
 
 BT_HIDDEN
-struct bt_object *bt_ctf_attributes_get_field_value_by_name(
-		struct bt_object *attr_obj, const char *name);
+struct bt_value *bt_ctf_attributes_get_field_value_by_name(
+		struct bt_value *attr_obj, const char *name);
 
 BT_HIDDEN
-int bt_ctf_attributes_freeze(struct bt_object *attr_obj);
+int bt_ctf_attributes_freeze(struct bt_value *attr_obj);
 
 #ifdef __cplusplus
 }

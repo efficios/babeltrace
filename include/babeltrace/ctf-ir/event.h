@@ -32,7 +32,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/objects.h>
+#include <babeltrace/values.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,7 +118,7 @@ extern int bt_ctf_event_class_set_id(
  */
 extern int bt_ctf_event_class_set_attribute(
 		struct bt_ctf_event_class *event_class, const char *name,
-		struct bt_object *value);
+		struct bt_value *value);
 
 /*
  * bt_ctf_event_class_get_attribute_count: get the number of attributes
@@ -154,14 +154,14 @@ bt_ctf_event_class_get_attribute_name(
  *
  * Get an attribute's value (an object). The returned object's
  * reference count is incremented. When done with the object, the caller
- * must call bt_object_put() on it.
+ * must call bt_value_put() on it.
  *
  * @param event_class Event class.
  * @param index Index of the attribute.
  *
  * Returns the attribute's object value, NULL on error.
  */
-extern struct bt_object *
+extern struct bt_value *
 bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
 		int index);
 
@@ -171,14 +171,14 @@ bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
  *
  * Get an attribute's value (an object) by its name. The returned object's
  * reference count is incremented. When done with the object, the caller
- * must call bt_object_put() on it.
+ * must call bt_value_put() on it.
  *
  * @param event_class Event class.
  * @param name Attribute's name
  *
  * Returns the attribute's object value, NULL on error.
  */
-extern struct bt_object *
+extern struct bt_value *
 bt_ctf_event_class_get_attribute_value_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
 
