@@ -38,6 +38,7 @@ const char *plugin_name = "ctf-text";
 static enum bt_component_status ctf_text_init(struct bt_component *);
 static void ctf_text_exit(void);
 
+/* Initialize plug-in entry points. */
 BT_PLUGIN_NAME("ctf-text");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT License");
@@ -46,7 +47,6 @@ BT_PLUGIN_EXIT(ctf_text_exit);
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
 BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(plugin_name, ctf_text_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
-
 
 enum loglevel {
         LOGLEVEL_EMERG                  = 0,
