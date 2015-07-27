@@ -353,6 +353,20 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 		struct bt_ctf_field *field);
 
 /*
+ * bt_ctf_field_get_type_id: get a field's ctf_type_id.
+ *
+ * This is a helper function which avoids a call to
+ * bt_ctf_field_get_type(), followed by a call to
+ * bt_ctf_field_type_get_type_id(), followed by a call to
+ * bt_ctf_put().
+ *
+ * @param field Field instance.
+ *
+ * Returns the field's ctf_type_id, CTF_TYPE_UNKNOWN on error.
+ */
+extern enum ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+
+/*
  * bt_ctf_field_copy: get a field's deep copy.
  *
  * Get a field's deep copy. The created field copy shares the source's

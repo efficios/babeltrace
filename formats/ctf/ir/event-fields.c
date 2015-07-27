@@ -282,6 +282,19 @@ end:
 	return ret;
 }
 
+enum ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
+{
+	enum ctf_type_id ret = CTF_TYPE_UNKNOWN;
+
+	if (!field) {
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_get_type_id(field->type);
+end:
+	return ret;
+}
+
 struct bt_ctf_field *bt_ctf_field_sequence_get_length(
 		struct bt_ctf_field *field)
 {
