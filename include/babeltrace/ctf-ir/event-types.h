@@ -752,6 +752,86 @@ extern enum ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *type);
 
 /*
+ * bt_ctf_field_type_is_integer: returns whether or not a given field
+ *	type is an integer type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is an integer type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_floating_point: returns whether or not a given field
+ *	type is a floating point number type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is a floating point number type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_enumeration: returns whether or not a given field
+ *	type is an enumeration type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is an enumeration type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_string: returns whether or not a given field
+ *	type is a string type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is a string type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_string(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_structure: returns whether or not a given field
+ *	type is a structure type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is a structure type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_array: returns whether or not a given field
+ *	type is an array type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is an array type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_array(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_sequence: returns whether or not a given field
+ *	type is a sequence type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is a sequence type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_is_variant: returns whether or not a given field
+ *	type is a variant type.
+ *
+ * @param type Field type.
+ *
+ * Returns 1 if the field type is a variant type, 0 otherwise.
+ */
+extern int bt_ctf_field_type_is_variant(struct bt_ctf_field_type *type);
+
+/*
  * bt_ctf_field_type_get and bt_ctf_field_type_put: increment and decrement
  * the field type's reference count.
  *

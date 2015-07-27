@@ -1922,6 +1922,46 @@ enum ctf_type_id bt_ctf_field_type_get_type_id(
 	return type->declaration->id;
 }
 
+int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_INTEGER;
+}
+
+int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_FLOAT;
+}
+
+int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_ENUM;
+}
+
+int bt_ctf_field_type_is_string(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_STRING;
+}
+
+int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_STRUCT;
+}
+
+int bt_ctf_field_type_is_array(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_ARRAY;
+}
+
+int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_SEQUENCE;
+}
+
+int bt_ctf_field_type_is_variant(struct bt_ctf_field_type *type)
+{
+	return bt_ctf_field_type_get_type_id(type) == CTF_TYPE_VARIANT;
+}
+
 void bt_ctf_field_type_get(struct bt_ctf_field_type *type)
 {
 	bt_ctf_get(type);
