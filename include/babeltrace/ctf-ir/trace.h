@@ -265,6 +265,17 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 		struct bt_ctf_trace *trace, int index);
 
 /*
+ * bt_ctf_trace_get_stream_class_by_id: get a trace's stream class by ID.
+ *
+ * @param trace Trace instance.
+ * @param index ID of the stream class in the given trace.
+ *
+ * Return a stream class on success, NULL on error.
+ */
+extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
+		struct bt_ctf_trace *trace, uint32_t id);
+
+/*
  * bt_ctf_trace_get_clock_by_name: get a trace's clock by name
  *
  * @param trace Trace instance.

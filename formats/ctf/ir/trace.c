@@ -547,6 +547,34 @@ end:
 	return stream_class;
 }
 
+struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
+		struct bt_ctf_trace *trace, uint32_t id)
+{
+	int i;
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	if (!trace) {
+		goto end;
+	}
+
+	for (i = 0; i < trace->stream_classes->len; ++i) {
+		struct bt_ctf_stream_class *stream_class_candidate;
+
+		stream_class_candidate =
+			g_ptr_array_index(trace->stream_classes, i);
+
+		if (bt_ctf_stream_class_get_id(stream_class_candidate) ==
+				(int64_t) id) {
+			stream_class = stream_class_candidate;
+			bt_ctf_get(stream_class);
+			goto end;
+		}
+	}
+
+end:
+	return stream_class;
+}
+
 struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
