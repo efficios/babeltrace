@@ -367,6 +367,86 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 extern enum ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
 
 /*
+ * bt_ctf_field_is_integer: returns whether or not a given field
+ *	is an integer type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is an integer type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_integer(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_floating_point: returns whether or not a given field
+ *	is a floating point number type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is a floating point number type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_enumeration: returns whether or not a given field
+ *	is an enumeration type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is an enumeration type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_string: returns whether or not a given field
+ *	is a string type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is a string type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_string(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_structure: returns whether or not a given field
+ *	is a structure type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is a structure type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_structure(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_array: returns whether or not a given field
+ *	is an array type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is an array type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_array(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_sequence: returns whether or not a given field
+ *	is a sequence type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is a sequence type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_sequence(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_is_variant: returns whether or not a given field
+ *	is a variant type.
+ *
+ * @param field Field instance.
+ *
+ * Returns 1 if the field instance is a variant type, 0 otherwise.
+ */
+extern int bt_ctf_field_is_variant(struct bt_ctf_field *field);
+
+/*
  * bt_ctf_field_copy: get a field's deep copy.
  *
  * Get a field's deep copy. The created field copy shares the source's
