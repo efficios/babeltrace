@@ -217,8 +217,16 @@ int bt_ctf_field_type_sequence_set_length_field_path(
 		struct bt_ctf_field_path *path);
 
 BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
+		struct bt_ctf_field_type *type);
+
+BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_path *path);
+
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
+		struct bt_ctf_field_type *type);
 
 BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,

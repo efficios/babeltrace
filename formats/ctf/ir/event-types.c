@@ -2222,6 +2222,18 @@ end:
 }
 
 BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type_sequence *sequence;
+
+	sequence = container_of(type, struct bt_ctf_field_type_sequence,
+		parent);
+
+	return sequence->length_field_path;
+}
+
+BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_path *path)
 {
@@ -2241,6 +2253,18 @@ int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
 	variant->tag_path = path;
 end:
 	return ret;
+}
+
+BT_HIDDEN
+struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
+		struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type_variant *variant;
+
+	variant = container_of(type, struct bt_ctf_field_type_variant,
+		parent);
+
+	return variant->tag_path;
 }
 
 BT_HIDDEN
