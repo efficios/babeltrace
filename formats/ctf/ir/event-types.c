@@ -2504,8 +2504,6 @@ void bt_ctf_field_type_variant_freeze(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_variant *variant_type = container_of(
 		type, struct bt_ctf_field_type_variant, parent);
 
-	/* Cache the alignment */
-	type->declaration->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
 	g_ptr_array_foreach(variant_type->fields,
 		(GFunc) freeze_structure_field, NULL);
