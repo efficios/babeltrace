@@ -377,6 +377,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_enumeration_create(uint_12_type);
 	struct bt_ctf_field_type *event_context_type =
 		bt_ctf_field_type_structure_create();
+	struct bt_ctf_field_type *event_context_type_test;
 	struct bt_ctf_field_type *returned_type;
 	struct bt_ctf_event *simple_event;
 	struct bt_ctf_field *integer_field;
@@ -548,9 +549,10 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Add event specific context field");
 	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
 		"bt_ctf_event_class_get_context_type handles NULL correctly");
-	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
-		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
-
+	event_context_type_test = bt_ctf_event_class_get_context_type(simple_event_class);
+	ok(event_context_type_test,
+		"event context type is always set");
+	BT_PUT(event_context_type_test);
 	ok(bt_ctf_event_class_set_context_type(simple_event_class, NULL) < 0,
 		"bt_ctf_event_class_set_context_type handles a NULL context type correctly");
 	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
@@ -2673,7 +2675,8 @@ int main(int argc, char **argv)
 		*integer_type,
 		*stream_event_context_type,
 		*ret_field_type,
-		*event_header_field_type;
+		*event_header_field_type,
+		*stream_event_context_field_type;
 	struct bt_ctf_field *packet_header, *packet_header_field;
 	struct bt_ctf_trace *trace;
 	int ret;
@@ -3144,9 +3147,11 @@ int main(int argc, char **argv)
 	/* Define a stream event context containing a my_integer field. */
 	ok(bt_ctf_stream_class_get_event_context_type(NULL) == NULL,
 		"bt_ctf_stream_class_get_event_context_type handles NULL correctly");
-	ok(bt_ctf_stream_class_get_event_context_type(
-		stream_class) == NULL,
-		"bt_ctf_stream_class_get_event_context_type returns NULL when no stream event context type was set.");
+	stream_event_context_field_type =
+		bt_ctf_stream_class_get_event_context_type(stream_class);
+	ok(stream_event_context_field_type,
+		"stream event context type is always set");
+	BT_PUT(stream_event_context_field_type);
 	stream_event_context_type = bt_ctf_field_type_structure_create();
 	bt_ctf_field_type_structure_add_field(stream_event_context_type,
 		integer_type, "common_event_context");

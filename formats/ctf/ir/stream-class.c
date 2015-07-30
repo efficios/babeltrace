@@ -79,6 +79,12 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 		goto error;
 	}
 
+	/* Empty structure as default stream event context type */
+	stream_class->event_context_type = bt_ctf_field_type_structure_create();
+	if (!stream_class->event_context_type) {
+		goto error;
+	}
+
 	bt_object_init(stream_class, bt_ctf_stream_class_destroy);
 	return stream_class;
 
