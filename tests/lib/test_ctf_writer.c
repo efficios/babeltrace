@@ -953,7 +953,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_id returns the correct value");
 
 	/* Test event class attributes */
-	assert(obj = bt_value_integer_create_init(15));
+	obj = bt_value_integer_create_init(15);
+	assert(obj);
 	ok(bt_ctf_event_class_set_attribute(NULL, "id", obj),
 		"bt_ctf_event_class_set_attribute handles a NULL event class correctly");
 	ok(bt_ctf_event_class_set_attribute(event_class, NULL, obj),
@@ -992,7 +993,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_attribute_value_by_name returns the correct value");
 	BT_PUT(obj);
 
-	assert(obj = bt_value_string_create_init("nu name"));
+	obj = bt_value_string_create_init("nu name");
+	assert(obj);
 	assert(!bt_ctf_event_class_set_attribute(event_class, "name", obj));
 	ret_string = bt_ctf_event_class_get_name(event_class);
 	ok(!strcmp(ret_string, "nu name"),
@@ -2630,7 +2632,8 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 {
 	struct bt_ctf_event_class *event_class;
 
-	assert(event_class = bt_ctf_event_class_create("Simple Event"));
+	event_class = bt_ctf_event_class_create("Simple Event");
+	assert(event_class);
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same name cannot cohabit within the same stream class");
 	bt_put(event_class);
