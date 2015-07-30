@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_REF_INTERNAL_H
-#define BABELTRACE_REF_INTERNAL_H
+#ifndef BABELTRACE_OBJECT_INTERNAL_H
+#define BABELTRACE_OBJECT_INTERNAL_H
 
 /*
- * Babeltrace - Reference Counting
+ * Babeltrace - Base object
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,41 +27,22 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <assert.h>
+#include <babeltrace/ref-internal.h>
 
-struct bt_object;
-typedef void (*bt_object_release_func)(struct bt_object *);
-
-struct bt_ref {
-	long count;
-	bt_object_release_func release;
+/**
+ * All objects publicly exposed by Babeltrace APIs must contain this structure
+ * as their first member. This allows the unification of all ref counting
+ * mechanism and may be used to provide more base functionality to all
+ * objects.
+ */
+struct bt_object {
+	struct bt_ref ref_count;
 };
 
 static inline
-void bt_ref_init(struct bt_ref *ref, bt_object_release_func release)
+void bt_object_init(void *obj, bt_object_release_func release)
 {
-	assert(ref);
-	ref->count = 1;
-	ref->release = release;
+	bt_ref_init(&((struct bt_object *) obj)->ref_count, release);
 }
 
-static inline
-void bt_ref_get(struct bt_ref *ref)
-{
-	assert(ref);
-	ref->count++;
-}
-
-static inline
-void bt_ref_put(struct bt_ref *ref)
-{
-	assert(ref);
-	/* Only assert if the object has opted-in for reference counting. */
-	assert(!ref->release || ref->count > 0);
-	if ((--ref->count) == 0 && ref->release) {
-		ref->release((struct bt_object *) ref);
-	}
-}
-
-#endif /* BABELTRACE_REF_INTERNAL_H */
+#endif /* BABELTRACE_OBJECT_INTERNAL_H */

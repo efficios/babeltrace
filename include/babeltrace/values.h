@@ -52,9 +52,8 @@
  * \link bt_value_map_insert() inserting a value object into a map
  * value object\endlink, its reference count is incremented, as well as
  * when getting a value object back from those structures. The
- * bt_value_get() and bt_value_put() functions exist to deal with
- * reference counting. Once you are done with a value object, pass it to
- * bt_value_put().
+ * bt_get() and bt_put() functions are to be used to handle reference counting
+ * Once you are done with a value object, pass it to bt_put().
  *
  * Most functions of this API return a status code, one of the values in
  * #bt_value_status.
@@ -75,6 +74,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <babeltrace/ref.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -158,7 +158,7 @@ extern struct bt_value *bt_value_null;
  * User function type for bt_value_map_foreach().
  *
  * \p object is a \em weak reference; you must pass it to
- * bt_value_get() to get your own reference.
+ * bt_get() to get your own reference.
  *
  * Return \c true to continue the loop, or \c false to break it.
  *
@@ -171,67 +171,11 @@ typedef bool (* bt_value_map_foreach_cb)(const char *key,
 	struct bt_value *object, void *data);
 
 /**
- * Puts the value object \p _object (calls bt_value_put() on it), and
- * resets the variable to \c NULL.
- *
- * This is something that is often done when putting a value object;
- * resetting the variable to \c NULL makes sure it cannot be put a
- * second time later.
- *
- * @param _object	Value object to put
- *
- * @see BT_VALUE_MOVE() (moves a value object from one variable to the
- *			other without putting it)
- */
-#define BT_VALUE_PUT(_object)				\
-	do {						\
-		bt_value_put(_object);			\
-		(_object) = NULL;			\
-	} while (0)
-
-/**
- * Moves the value object referenced by the variable \p _src_object to
- * the \p _dst_object variable, then resets \p _src_object to \c NULL.
- *
- * The value object's reference count is <b>not changed</b>. Resetting
- * \p _src_object to \c NULL ensures the value object will not be put
- * twice later; its ownership is indeed \em moved from the source
- * variable to the destination variable.
- *
- * @param _src_object	Source value object variable
- * @param _dst_object	Destination value object variable
- */
-#define BT_VALUE_MOVE(_dst_object, _src_object)	\
-	do {						\
-		(_dst_object) = (_src_object);		\
-		(_src_object) = NULL;			\
-	} while (0)
-
-/**
- * Increments the reference count of \p object.
- *
- * @param object	Value object of which to increment the reference count
- *
- * @see bt_value_put()
- */
-extern void bt_value_get(struct bt_value *object);
-
-/**
- * Decrements the reference count of \p object, destroying it when this
- * count reaches 0.
- *
- * @param object	Value object of which to decrement the reference count
- *
- * @see bt_value_get()
- */
-extern void bt_value_put(struct bt_value *object);
-
-/**
  * Recursively freezes the value object \p object.
  *
  * A frozen value object cannot be modified; it is considered immutable.
  * Reference counting still works on a frozen value object though: you
- * may pass a frozen value object to bt_value_get() and bt_value_put().
+ * may pass a frozen value object to bt_get() and bt_put().
  *
  * @param object	Value object to freeze
  * @returns		One of #bt_value_status values; if \p object
@@ -810,8 +754,8 @@ extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
  * value object \p map_obj.
  *
  * The value object passed to the user function is a
- * <b>weak reference</b>: you must call bt_value_get() on it to obtain
- * your own reference.
+ * <b>weak reference</b>: you must call bt_get() on it to obtain your own
+ * reference.
  *
  * The key passed to the user function is only valid in the scope of
  * this user function call.

@@ -31,8 +31,8 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/writer.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
-#include <babeltrace/ctf-ir/common-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf/events.h>
 #include <glib.h>
@@ -62,7 +62,7 @@ struct bt_ctf_field_path {
 };
 
 struct bt_ctf_field_type {
-	struct bt_ctf_base base;
+	struct bt_object base;
 	struct bt_declaration *declaration;
 	type_freeze_func freeze;
 	type_serialize_func serialize;

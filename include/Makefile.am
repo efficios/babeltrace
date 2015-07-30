@@ -6,7 +6,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/trace-handle.h \
 	babeltrace/list.h \
 	babeltrace/clock-types.h \
-	babeltrace/values.h
+	babeltrace/values.h \
+	babeltrace/ref.h
 
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h \
@@ -27,7 +28,6 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/event-fields.h \
 	babeltrace/ctf-ir/event-types.h \
 	babeltrace/ctf-ir/event.h \
-	babeltrace/ctf-ir/ref.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/trace.h \
@@ -46,6 +46,7 @@ noinst_HEADERS = \
 	babeltrace/prio_heap.h \
 	babeltrace/ref-internal.h \
 	babeltrace/types.h \
+	babeltrace/object-internal.h \
 	babeltrace/ctf-ir/metadata.h \
 	babeltrace/ctf/events-internal.h \
 	babeltrace/ctf/metadata.h \
@@ -55,7 +56,6 @@ noinst_HEADERS = \
 	babeltrace/ctf/ctf-index.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
-	babeltrace/ctf-ir/common-internal.h \
 	babeltrace/ctf-ir/event-types-internal.h \
 	babeltrace/ctf-ir/event-fields-internal.h \
 	babeltrace/ctf-ir/event-internal.h \

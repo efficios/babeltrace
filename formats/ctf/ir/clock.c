@@ -28,14 +28,14 @@
 
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
-#include <babeltrace/ctf-ir/common-internal.h>
-#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 #include <inttypes.h>
 
 static
-void bt_ctf_clock_destroy(struct bt_ref *ref);
+void bt_ctf_clock_destroy(struct bt_object *obj);
 
 BT_HIDDEN
 struct bt_ctf_clock *_bt_ctf_clock_create(void)
@@ -49,7 +49,7 @@ struct bt_ctf_clock *_bt_ctf_clock_create(void)
 
 	clock->precision = 1;
 	clock->frequency = 1000000000;
-	bt_ctf_base_init(clock, bt_ctf_clock_destroy);
+	bt_object_init(clock, bt_ctf_clock_destroy);
 end:
 	return clock;
 }
@@ -91,20 +91,19 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 
 	ret = bt_ctf_clock_set_name(clock, name);
 	if (ret) {
-		goto error_destroy;
+		goto error;
 	}
 
 	ret = babeltrace_uuid_generate(clock->uuid);
 	if (ret) {
-		goto error_destroy;
+		goto error;
 	}
 
 	clock->uuid_set = 1;
 	return clock;
-error_destroy:
-	bt_ctf_clock_destroy(&clock->base.ref_count);
 error:
-	return NULL;
+	BT_PUT(clock);
+	return clock;
 }
 
 const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock)
@@ -347,12 +346,12 @@ end:
 
 void bt_ctf_clock_get(struct bt_ctf_clock *clock)
 {
-	bt_ctf_get(clock);
+	bt_get(clock);
 }
 
 void bt_ctf_clock_put(struct bt_ctf_clock *clock)
 {
-	bt_ctf_put(clock);
+	bt_put(clock);
 }
 
 BT_HIDDEN
@@ -404,17 +403,11 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 }
 
 static
-void bt_ctf_clock_destroy(struct bt_ref *ref)
+void bt_ctf_clock_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_clock *clock;
-	struct bt_ctf_base *base;
 
-	if (!ref) {
-		return;
-	}
-
-	base = container_of(ref, struct bt_ctf_base, ref_count);
-	clock = container_of(base, struct bt_ctf_clock, base);
+	clock = container_of(obj, struct bt_ctf_clock, base);
 	if (clock->name) {
 		g_string_free(clock->name, TRUE);
 	}

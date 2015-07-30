@@ -29,8 +29,8 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
-#include <babeltrace/ctf-ir/common-internal.h>
-#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
 
 #define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)
@@ -59,7 +59,7 @@ static
 struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *);
 
 static
-void bt_ctf_field_destroy(struct bt_ref *);
+void bt_ctf_field_destroy(struct bt_object *);
 static
 void bt_ctf_field_integer_destroy(struct bt_ctf_field *);
 static
@@ -251,8 +251,8 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 
 	/* The type's declaration can't change after this point */
 	bt_ctf_field_type_freeze(type);
-	bt_ctf_field_type_get(type);
-	bt_ctf_base_init(field, bt_ctf_field_destroy);
+	bt_get(type);
+	bt_object_init(field, bt_ctf_field_destroy);
 	field->type = type;
 error:
 	return field;
@@ -260,12 +260,12 @@ error:
 
 void bt_ctf_field_get(struct bt_ctf_field *field)
 {
-	bt_ctf_get(field);
+	bt_get(field);
 }
 
 void bt_ctf_field_put(struct bt_ctf_field *field)
 {
-	bt_ctf_put(field);
+	bt_put(field);
 }
 
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
@@ -277,7 +277,7 @@ struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 	}
 
 	ret = field->type;
-	bt_ctf_field_type_get(ret);
+	bt_get(ret);
 end:
 	return ret;
 }
@@ -299,7 +299,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_length(
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
 	ret = sequence->length;
-	bt_ctf_field_get(ret);
+	bt_get(ret);
 end:
 	return ret;
 }
@@ -337,7 +337,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
 	if (sequence->elements) {
 		g_ptr_array_free(sequence->elements, TRUE);
-		bt_ctf_field_put(sequence->length);
+		bt_put(sequence->length);
 	}
 
 	sequence->elements = g_ptr_array_sized_new((size_t)sequence_length);
@@ -347,9 +347,9 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	}
 
 	g_ptr_array_set_free_func(sequence->elements,
-		(GDestroyNotify)bt_ctf_field_put);
-	g_ptr_array_set_size(sequence->elements, (size_t)sequence_length);
-	bt_ctf_field_get(length_field);
+		(GDestroyNotify) bt_put);
+	g_ptr_array_set_size(sequence->elements, (size_t) sequence_length);
+	bt_get(length_field);
 	sequence->length = length_field;
 end:
 	return ret;
@@ -392,10 +392,10 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 
 	structure->fields->pdata[index] = new_field;
 end:
-	bt_ctf_field_get(new_field);
+	bt_get(new_field);
 error:
 	if (field_type) {
-		bt_ctf_field_type_put(field_type);
+		bt_put(field_type);
 	}
 	return new_field;
 }
@@ -433,7 +433,7 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 
 	ret = bt_ctf_field_type_structure_get_field(structure_type,
 		&field_name, &field_type, index);
-	bt_ctf_field_type_put(structure_type);
+	bt_put(structure_type);
 	if (ret) {
 		goto error;
 	}
@@ -445,11 +445,9 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 
 	structure->fields->pdata[index] = ret_field;
 end:
-	bt_ctf_field_get(ret_field);
+	bt_get(ret_field);
 error:
-	if (field_type) {
-		bt_ctf_field_type_put(field_type);
-	}
+	bt_put(field_type);
 	return ret_field;
 }
 
@@ -486,14 +484,14 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	}
 
 	if (structure->fields->pdata[index]) {
-		bt_ctf_field_put(structure->fields->pdata[index]);
+		bt_put(structure->fields->pdata[index]);
 	}
 
 	structure->fields->pdata[index] = value;
-	bt_ctf_field_get(value);
+	bt_get(value);
 end:
 	if (expected_field_type) {
-		bt_ctf_field_type_put(expected_field_type);
+		bt_put(expected_field_type);
 	}
 	return ret;
 }
@@ -525,10 +523,10 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 	array->elements->pdata[(size_t)index] = new_field;
 end:
 	if (field_type) {
-		bt_ctf_field_type_put(field_type);
+		bt_put(field_type);
 	}
 	if (new_field) {
-		bt_ctf_field_get(new_field);
+		bt_get(new_field);
 	}
 	return new_field;
 }
@@ -551,19 +549,19 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	}
 
 	field_type = bt_ctf_field_type_sequence_get_element_type(field->type);
-	if (sequence->elements->pdata[(size_t)index]) {
-		new_field = sequence->elements->pdata[(size_t)index];
+	if (sequence->elements->pdata[(size_t) index]) {
+		new_field = sequence->elements->pdata[(size_t) index];
 		goto end;
 	}
 
 	new_field = bt_ctf_field_create(field_type);
-	sequence->elements->pdata[(size_t)index] = new_field;
+	sequence->elements->pdata[(size_t) index] = new_field;
 end:
 	if (field_type) {
-		bt_ctf_field_type_put(field_type);
+		bt_put(field_type);
 	}
 	if (new_field) {
-		bt_ctf_field_get(new_field);
+		bt_get(new_field);
 	}
 	return new_field;
 }
@@ -618,12 +616,12 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 			bt_ctf_field_enumeration_get_container(variant->tag);
 		cur_tag_enum_integer = container_of(cur_tag_container,
 			struct bt_ctf_field_integer, parent);
-		bt_ctf_field_put(cur_tag_container);
+		bt_put(cur_tag_container);
 		cur_tag_value = cur_tag_enum_integer->definition.value._signed;
 
 		if (cur_tag_value == tag_enum_value) {
 			new_field = variant->payload;
-			bt_ctf_field_get(new_field);
+			bt_get(new_field);
 			goto end;
 		}
 	}
@@ -639,14 +637,14 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		goto end;
 	}
 
-	bt_ctf_field_put(variant->tag);
-	bt_ctf_field_put(variant->payload);
-	bt_ctf_field_get(new_field);
-	bt_ctf_field_get(tag_field);
+	bt_put(variant->tag);
+	bt_put(variant->payload);
+	bt_get(new_field);
+	bt_get(tag_field);
 	variant->tag = tag_field;
 	variant->payload = new_field;
 end:
-	bt_ctf_field_put(tag_enum);
+	bt_put(tag_enum);
 	return new_field;
 }
 
@@ -667,7 +665,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 
 	if (variant->payload) {
 		current_field = variant->payload;
-		bt_ctf_field_get(current_field);
+		bt_get(current_field);
 		goto end;
 	}
 
@@ -697,7 +695,7 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	}
 
 	container = enumeration->payload;
-	bt_ctf_field_get(container);
+	bt_get(container);
 end:
 	return container;
 }
@@ -750,9 +748,9 @@ const char *bt_ctf_field_enumeration_get_mapping_name(
 	}
 
 error_put_container_type:
-	bt_ctf_field_type_put(container_type);
+	bt_put(container_type);
 error_put_container:
-	bt_ctf_field_put(container);
+	bt_put(container);
 end:
 	return name;
 }
@@ -1127,7 +1125,7 @@ struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 	copy->payload_set = field->payload_set;
 	ret = field_copy_funcs[type_id](field, copy);
 	if (ret) {
-		bt_ctf_field_put(copy);
+		bt_put(copy);
 		copy = NULL;
 	}
 end:
@@ -1273,19 +1271,13 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 }
 
 static
-void bt_ctf_field_destroy(struct bt_ref *ref)
+void bt_ctf_field_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_field *field;
-	struct bt_ctf_base *base;
 	struct bt_ctf_field_type *type;
 	enum ctf_type_id type_id;
 
-	if (!ref) {
-		return;
-	}
-
-	base = container_of(ref, struct bt_ctf_base, ref_count);
-	field = container_of(base, struct bt_ctf_field, base);
+	field = container_of(obj, struct bt_ctf_field, base);
 	type = field->type;
 	type_id = bt_ctf_field_type_get_type_id(type);
 	if (type_id <= CTF_TYPE_UNKNOWN ||
@@ -1294,9 +1286,7 @@ void bt_ctf_field_destroy(struct bt_ref *ref)
 	}
 
 	field_destroy_funcs[type_id](field);
-	if (type) {
-		bt_ctf_field_type_put(type);
-	}
+	bt_put(type);
 }
 
 static
@@ -1323,7 +1313,7 @@ void bt_ctf_field_enumeration_destroy(struct bt_ctf_field *field)
 
 	enumeration = container_of(field, struct bt_ctf_field_enumeration,
 		parent);
-	bt_ctf_field_put(enumeration->payload);
+	bt_put(enumeration->payload);
 	g_free(enumeration);
 }
 
@@ -1365,8 +1355,8 @@ void bt_ctf_field_variant_destroy(struct bt_ctf_field *field)
 	}
 
 	variant = container_of(field, struct bt_ctf_field_variant, parent);
-	bt_ctf_field_put(variant->tag);
-	bt_ctf_field_put(variant->payload);
+	bt_put(variant->tag);
+	bt_put(variant->payload);
 	g_free(variant);
 }
 
@@ -1397,7 +1387,7 @@ void bt_ctf_field_sequence_destroy(struct bt_ctf_field *field)
 	if (sequence->elements) {
 		g_ptr_array_free(sequence->elements, TRUE);
 	}
-	bt_ctf_field_put(sequence->length);
+	bt_put(sequence->length);
 	g_free(sequence);
 }
 
@@ -1881,8 +1871,8 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *field,
 		}
 	}
 end:
-	bt_ctf_field_put(character);
-	bt_ctf_field_type_put(character_type);
+	bt_put(character);
+	bt_put(character_type);
 	return ret;
 }
 
@@ -2057,7 +2047,7 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 
 	/* copy source length */
 	dst_length = bt_ctf_field_copy(src_length);
-	bt_ctf_field_put(src_length);
+	bt_put(src_length);
 
 	if (!dst_length) {
 		ret = -1;
@@ -2066,7 +2056,7 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 
 	/* this will initialize the destination sequence's internal array */
 	ret = bt_ctf_field_sequence_set_length(dst, dst_length);
-	bt_ctf_field_put(dst_length);
+	bt_put(dst_length);
 
 	if (ret) {
 		goto end;

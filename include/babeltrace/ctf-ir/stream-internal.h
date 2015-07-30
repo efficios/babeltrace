@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
@@ -37,7 +37,7 @@
 #include <glib.h>
 
 struct bt_ctf_stream {
-	struct bt_ctf_base base;
+	struct bt_object base;
 	/* Trace owning this stream. A stream does not own a trace. */
 	struct bt_ctf_trace *trace;
 	uint32_t id;
@@ -55,7 +55,7 @@ struct bt_ctf_stream {
 	struct bt_ctf_field *event_context;
 };
 
-/* Stream class should be locked by the caller after creating a stream */
+/* Stream class should be frozen by the caller after creating a stream */
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create(
 		struct bt_ctf_stream_class *stream_class,

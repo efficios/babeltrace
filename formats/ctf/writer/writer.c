@@ -33,8 +33,7 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
-#include <babeltrace/ctf-ir/ref.h>
-#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +44,8 @@
 #include <inttypes.h>
 
 static
-void bt_ctf_writer_destroy(struct bt_ref *ref);
+void bt_ctf_writer_destroy(struct bt_object *obj);
+
 static
 int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream);
@@ -63,7 +63,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error;
 	}
 
-	bt_ctf_base_init(writer, bt_ctf_writer_destroy);
+	bt_object_init(writer, bt_ctf_writer_destroy);
 	writer->path = g_string_new(path);
 	if (!writer->path) {
 		goto error_destroy;
@@ -94,23 +94,16 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 error_destroy:
 	unlinkat(writer->trace_dir_fd, "metadata", 0);
-	bt_ctf_writer_destroy(&writer->base.ref_count);
-	writer = NULL;
+	BT_PUT(writer);
 error:
 	return writer;
 }
 
-void bt_ctf_writer_destroy(struct bt_ref *ref)
+void bt_ctf_writer_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_writer *writer;
-	struct bt_ctf_base *base;
 
-	if (!ref) {
-		return;
-	}
-
-	base = container_of(ref, struct bt_ctf_base, ref_count);
-	writer = container_of(base, struct bt_ctf_writer, base);
+	writer = container_of(obj, struct bt_ctf_writer, base);
 	bt_ctf_writer_flush_metadata(writer);
 	if (writer->path) {
 		g_string_free(writer->path, TRUE);
@@ -128,7 +121,7 @@ void bt_ctf_writer_destroy(struct bt_ref *ref)
 		}
 	}
 
-	bt_ctf_trace_put(writer->trace);
+	bt_put(writer->trace);
 	g_free(writer);
 }
 
@@ -141,7 +134,7 @@ struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 	}
 
 	trace = writer->trace;
-	bt_ctf_trace_get(trace);
+	bt_get(trace);
 end:
 	return trace;
 }
@@ -170,8 +163,8 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 	return stream;
 
 error:
-	bt_ctf_stream_put(stream);
-	return NULL;
+        BT_PUT(stream);
+	return stream;
 }
 
 int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
@@ -271,12 +264,12 @@ end:
 
 void bt_ctf_writer_get(struct bt_ctf_writer *writer)
 {
-	bt_ctf_get(writer);
+	bt_get(writer);
 }
 
 void bt_ctf_writer_put(struct bt_ctf_writer *writer)
 {
-	bt_ctf_put(writer);
+	bt_put(writer);
 }
 
 static

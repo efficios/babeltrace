@@ -30,7 +30,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/event-types.h>
 #include <babeltrace/ctf-ir/event-fields.h>
-#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
 #include <glib.h>
@@ -48,7 +48,7 @@ enum field_type_alias {
 };
 
 struct bt_ctf_trace {
-	struct bt_ctf_base base;
+	struct bt_object base;
 	int frozen;
 	uuid_t uuid;
 	int byte_order; /* A value defined in Babeltrace's "endian.h" */

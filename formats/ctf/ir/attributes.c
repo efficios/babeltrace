@@ -29,7 +29,7 @@
 #include <babeltrace/values.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
-#define BT_CTF_ATTR_VALUE_INDEX	1
+#define BT_CTF_ATTR_VALUE_INDEX		1
 
 BT_HIDDEN
 struct bt_value *bt_ctf_attributes_create(void)
@@ -54,7 +54,7 @@ struct bt_value *bt_ctf_attributes_create(void)
 BT_HIDDEN
 void bt_ctf_attributes_destroy(struct bt_value *attr_obj)
 {
-	bt_value_put(attr_obj);
+	bt_put(attr_obj);
 }
 
 BT_HIDDEN
@@ -96,9 +96,8 @@ const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
 	}
 
 end:
-	BT_VALUE_PUT(attr_field_name_obj);
-	BT_VALUE_PUT(attr_field_obj);
-
+	BT_PUT(attr_field_name_obj);
+	BT_PUT(attr_field_obj);
 	return ret;
 }
 
@@ -123,8 +122,7 @@ struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
 		BT_CTF_ATTR_VALUE_INDEX);
 
 end:
-	BT_VALUE_PUT(attr_field_obj);
-
+	BT_PUT(attr_field_obj);
 	return value_obj;
 }
 
@@ -165,19 +163,19 @@ struct bt_value *bt_ctf_attributes_get_field_by_name(
 		}
 
 		if (!strcmp(field_name, name)) {
-			BT_VALUE_PUT(attr_field_name_obj);
+			BT_PUT(attr_field_name_obj);
 			break;
 		}
 
-		BT_VALUE_PUT(attr_field_name_obj);
-		BT_VALUE_PUT(value_obj);
+		BT_PUT(attr_field_name_obj);
+		BT_PUT(value_obj);
 	}
 
 	return value_obj;
 
 error:
-	BT_VALUE_PUT(attr_field_name_obj);
-	BT_VALUE_PUT(value_obj);
+	BT_PUT(attr_field_name_obj);
+	BT_PUT(value_obj);
 
 	return value_obj;
 }
@@ -219,7 +217,7 @@ int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
 	ret = bt_value_array_append(attr_obj, attr_field_obj);
 
 end:
-	BT_VALUE_PUT(attr_field_obj);
+	BT_PUT(attr_field_obj);
 
 	return ret;
 }
@@ -245,7 +243,7 @@ struct bt_value *bt_ctf_attributes_get_field_value_by_name(
 		BT_CTF_ATTR_VALUE_INDEX);
 
 end:
-	BT_VALUE_PUT(attr_field_obj);
+	BT_PUT(attr_field_obj);
 
 	return value_obj;
 }
@@ -285,10 +283,9 @@ int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
 		}
 
 		bt_value_freeze(obj);
-		BT_VALUE_PUT(obj);
+		BT_PUT(obj);
 	}
 
 end:
-
 	return ret;
 }

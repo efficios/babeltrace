@@ -31,13 +31,13 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/common-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
 struct bt_ctf_stream_class {
-	struct bt_ctf_base base;
+	struct bt_object base;
 	GString *name;
 	struct bt_ctf_clock *clock;
 	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */

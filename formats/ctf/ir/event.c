@@ -36,15 +36,14 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
-#include <babeltrace/ctf-ir/common-internal.h>
-#include <babeltrace/ctf-ir/ref.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler.h>
 
 static
-void bt_ctf_event_class_destroy(struct bt_ref *ref);
+void bt_ctf_event_class_destroy(struct bt_object *obj);
 static
-void bt_ctf_event_destroy(struct bt_ref *ref);
+void bt_ctf_event_destroy(struct bt_object *obj);
 static
 int set_integer_field_value(struct bt_ctf_field *field, uint64_t value);
 
@@ -63,7 +62,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	bt_ctf_base_init(event_class, bt_ctf_event_class_destroy);
+	bt_object_init(event_class, bt_ctf_event_class_destroy);
 	event_class->fields = bt_ctf_field_type_structure_create();
 	if (!event_class->fields) {
 		goto error;
@@ -85,7 +84,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	BT_VALUE_PUT(obj);
+	BT_PUT(obj);
 
 	obj = bt_value_string_create_init(name);
 	if (!obj) {
@@ -98,18 +97,14 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	BT_VALUE_PUT(obj);
+	BT_PUT(obj);
 
 	return event_class;
 
 error:
-	if (event_class) {
-		bt_ctf_event_class_put(event_class);
-	}
-
-	BT_VALUE_PUT(obj);
-
-	return NULL;
+        BT_PUT(event_class);
+	BT_PUT(obj);
+	return event_class;
 }
 
 const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
@@ -132,8 +127,7 @@ const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 	}
 
 end:
-	BT_VALUE_PUT(obj);
-
+	BT_PUT(obj);
 	return name;
 }
 
@@ -164,8 +158,7 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 	}
 
 end:
-	BT_VALUE_PUT(obj);
-
+	BT_PUT(obj);
 	return ret;
 }
 
@@ -201,8 +194,7 @@ int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 	}
 
 end:
-	BT_VALUE_PUT(obj);
-
+	BT_PUT(obj);
 	return ret;
 }
 
@@ -335,7 +327,7 @@ struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 	}
 
 	stream_class = event_class->stream_class;
-	bt_ctf_stream_class_get(stream_class);
+	bt_get(stream_class);
 end:
 	return stream_class;
 }
@@ -349,7 +341,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
 		goto end;
 	}
 
-	bt_ctf_field_type_get(event_class->fields);
+	bt_get(event_class->fields);
 	payload = event_class->fields;
 end:
 	return payload;
@@ -366,8 +358,8 @@ int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 		goto end;
 	}
 
-	bt_ctf_field_type_get(payload);
-	bt_ctf_field_type_put(event_class->fields);
+	bt_get(payload);
+	bt_put(event_class->fields);
 	event_class->fields = payload;
 end:
 	return ret;
@@ -480,7 +472,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
 		goto end;
 	}
 
-	bt_ctf_field_type_get(event_class->context);
+	bt_get(event_class->context);
 	context_type = event_class->context;
 end:
 	return context_type;
@@ -502,8 +494,8 @@ int bt_ctf_event_class_set_context_type(
 		goto end;
 	}
 
-	bt_ctf_field_type_get(context);
-	bt_ctf_field_type_put(event_class->context);
+	bt_get(context);
+	bt_put(event_class->context);
 	event_class->context = context;
 end:
 	return ret;
@@ -512,12 +504,12 @@ end:
 
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class)
 {
-	bt_ctf_get(event_class);
+	bt_get(event_class);
 }
 
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 {
-	bt_ctf_put(event_class);
+	bt_put(event_class);
 }
 
 BT_HIDDEN
@@ -538,8 +530,7 @@ int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
 		"stream_id", obj);
 
 end:
-	BT_VALUE_PUT(obj);
-
+	BT_PUT(obj);
 	return ret;
 }
 
@@ -566,26 +557,26 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 
-	bt_ctf_base_init(event, bt_ctf_event_destroy);
-	bt_ctf_event_class_get(event_class);
+	bt_object_init(event, bt_ctf_event_destroy);
+	bt_get(event_class);
 	bt_ctf_event_class_freeze(event_class);
 	event->event_class = event_class;
 
 	event->event_header = bt_ctf_field_create(
 		event_class->stream_class->event_header_type);
 	if (!event->event_header) {
-		goto error_destroy;
+		goto error;
 	}
 	if (event_class->context) {
 		event->context_payload = bt_ctf_field_create(
 			event_class->context);
 		if (!event->context_payload) {
-			goto error_destroy;
+			goto error;
 		}
 	}
 	event->fields_payload = bt_ctf_field_create(event_class->fields);
 	if (!event->fields_payload) {
-		goto error_destroy;
+		goto error;
 	}
 
 	/*
@@ -595,12 +586,9 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	bt_ctf_stream_class_freeze(event_class->stream_class);
 end:
 	return event;
-error_destroy:
-	if (event) {
-		bt_ctf_event_destroy(&event->base.ref_count);
-	}
-
-	return NULL;
+error:
+	BT_PUT(event);
+	return event;
 }
 
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
@@ -612,7 +600,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 	}
 
 	event_class = event->event_class;
-	bt_ctf_event_class_get(event_class);
+	bt_get(event_class);
 end:
 	return event_class;
 }
@@ -626,9 +614,7 @@ struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 	}
 
 	stream = event->stream;
-	if (stream) {
-		bt_ctf_stream_get(stream);
-	}
+	bt_get(stream);
 end:
 	return stream;
 }
@@ -659,9 +645,9 @@ struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
 	}
 
 error_put_stream_class:
-	bt_ctf_stream_class_put(stream_class);
+	bt_put(stream_class);
 error_put_event_class:
-	bt_ctf_event_class_put(event_class);
+	bt_put(event_class);
 end:
 	return clock;
 }
@@ -685,14 +671,14 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 
 		payload_type = bt_ctf_field_get_type(payload);
 		if (payload_type == event->event_class->fields) {
-			bt_ctf_field_put(event->fields_payload);
-			bt_ctf_field_get(payload);
+			bt_put(event->fields_payload);
+			bt_get(payload);
 			event->fields_payload = payload;
 		} else {
 			ret = -1;
 		}
 
-		bt_ctf_field_type_put(payload_type);
+		bt_put(payload_type);
 	}
 end:
 	return ret;
@@ -707,7 +693,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload_field(struct bt_ctf_event *event)
 	}
 
 	payload = event->fields_payload;
-	bt_ctf_field_get(payload);
+	bt_get(payload);
 end:
 	return payload;
 }
@@ -734,16 +720,12 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_ctf_field_get(payload);
-	if (event->fields_payload) {
-		bt_ctf_field_put(event->fields_payload);
-	}
+	bt_get(payload);
+	bt_put(event->fields_payload);
 	event->fields_payload = payload;
 
 end:
-	if (payload_type) {
-		bt_ctf_field_type_put(payload_type);
-	}
+	bt_put(payload_type);
 	return ret;
 }
 
@@ -761,7 +743,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 			name);
 	} else {
 		field = event->fields_payload;
-		bt_ctf_field_get(field);
+		bt_get(field);
 	}
 end:
 	return field;
@@ -792,7 +774,7 @@ struct bt_ctf_field *bt_ctf_event_get_header(
 	}
 
 	header = event->event_header;
-	bt_ctf_field_get(header);
+	bt_get(header);
 end:
 	return header;
 }
@@ -824,13 +806,11 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_ctf_field_get(header);
-	bt_ctf_field_put(event->event_header);
+	bt_get(header);
+	bt_put(event->event_header);
 	event->event_header = header;
 end:
-	if (field_type) {
-		bt_ctf_field_type_put(field_type);
-	}
+	bt_put(field_type);
 	return ret;
 }
 
@@ -844,7 +824,7 @@ struct bt_ctf_field *bt_ctf_event_get_event_context(
 	}
 
 	context = event->context_payload;
-	bt_ctf_field_get(context);
+	bt_get(context);
 end:
 	return context;
 }
@@ -866,78 +846,50 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_ctf_field_get(context);
-	bt_ctf_field_put(event->context_payload);
+	bt_get(context);
+	bt_put(event->context_payload);
 	event->context_payload = context;
 end:
-	if (field_type) {
-		bt_ctf_field_type_put(field_type);
-	}
+	bt_put(field_type);
 	return ret;
 }
 
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
-	bt_ctf_get(event);
+	bt_get(event);
 }
 
 void bt_ctf_event_put(struct bt_ctf_event *event)
 {
-	bt_ctf_put(event);
+	bt_put(event);
 }
 
 static
-void bt_ctf_event_class_destroy(struct bt_ref *ref)
+void bt_ctf_event_class_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_base *base;
-
-	if (!ref) {
-		return;
-	}
 
 	/*
 	 * Don't call put() on the stream class. See comment in
 	 * bt_ctf_event_class_set_stream_class for explanation.
 	 */
-	base = container_of(ref, struct bt_ctf_base, ref_count);
-	event_class = container_of(base, struct bt_ctf_event_class, base);
-	if (event_class->attributes) {
-		bt_ctf_attributes_destroy(event_class->attributes);
-	}
-	if (event_class->context) {
-		bt_ctf_field_type_put(event_class->context);
-	}
-	if (event_class->fields) {
-		bt_ctf_field_type_put(event_class->fields);
-	}
+	event_class = container_of(obj, struct bt_ctf_event_class, base);
+	bt_ctf_attributes_destroy(event_class->attributes);
+	bt_put(event_class->context);
+	bt_put(event_class->fields);
 	g_free(event_class);
 }
 
 static
-void bt_ctf_event_destroy(struct bt_ref *ref)
+void bt_ctf_event_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_event *event;
-	struct bt_ctf_base *base;
 
-	if (!ref) {
-		return;
-	}
-
-	base = container_of(ref, struct bt_ctf_base, ref_count);
-	event = container_of(base, struct bt_ctf_event, base);
-	if (event->event_class) {
-		bt_ctf_event_class_put(event->event_class);
-	}
-	if (event->event_header) {
-		bt_ctf_field_put(event->event_header);
-	}
-	if (event->context_payload) {
-		bt_ctf_field_put(event->context_payload);
-	}
-	if (event->fields_payload) {
-		bt_ctf_field_put(event->fields_payload);
-	}
+	event = container_of(obj, struct bt_ctf_event, base);
+	bt_put(event->event_class);
+	bt_put(event->event_header);
+	bt_put(event->context_payload);
+	bt_put(event->fields_payload);
 	g_free(event);
 }
 
@@ -980,7 +932,7 @@ int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 		}
 	}
 end:
-	bt_ctf_field_type_put(field_type);
+	bt_put(field_type);
 	return ret;
 }
 
@@ -1096,7 +1048,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 			break;
 		}
 
-		BT_VALUE_PUT(attr_value);
+		BT_PUT(attr_value);
 	}
 
 	if (event_class->context) {
@@ -1121,7 +1073,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	g_string_append(context->string, "};\n\n");
 end:
 	context->current_indentation_level = 0;
-	BT_VALUE_PUT(attr_value);
+	BT_PUT(attr_value);
 	return ret;
 }
 
@@ -1219,12 +1171,12 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 		assert(timestamp_field_type);
 		mapped_clock = bt_ctf_field_type_integer_get_mapped_clock(
 			timestamp_field_type);
-		bt_ctf_field_type_put(timestamp_field_type);
+		bt_put(timestamp_field_type);
 		if (mapped_clock) {
 			uint64_t timestamp = bt_ctf_clock_get_time(
 				mapped_clock);
 
-			bt_ctf_clock_put(mapped_clock);
+			bt_put(mapped_clock);
 			if (timestamp == (uint64_t) -1ULL) {
 				goto end;
 			}
@@ -1237,12 +1189,8 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 		}
 	}
 end:
-	if (id_field) {
-		bt_ctf_field_put(id_field);
-	}
-	if (timestamp_field) {
-		bt_ctf_field_put(timestamp_field);
-	}
+	bt_put(id_field);
+	bt_put(timestamp_field);
 	return ret;
 }
 
@@ -1281,9 +1229,9 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 		goto error;
 	}
 
-	bt_ctf_base_init(copy, bt_ctf_event_destroy);
+	bt_object_init(copy, bt_ctf_event_destroy);
 	copy->event_class = event->event_class;
-	bt_ctf_event_class_get(copy->event_class);
+	bt_get(copy->event_class);
 	copy->stream = event->stream;
 
 	if (event->event_header) {
@@ -1314,24 +1262,6 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 	return copy;
 
 error:
-	if (copy) {
-		if (copy->event_class) {
-			bt_ctf_event_class_put(copy->event_class);
-		}
-
-		if (copy->event_header) {
-			bt_ctf_field_put(copy->event_header);
-		}
-
-		if (copy->context_payload) {
-			bt_ctf_field_put(copy->context_payload);
-		}
-
-		if (copy->fields_payload) {
-			bt_ctf_field_put(copy->fields_payload);
-		}
-	}
-
-	g_free(copy);
-	return NULL;
+	BT_PUT(copy);
+	return copy;
 }
