@@ -63,6 +63,14 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 	}
 
 	bt_object_init(event_class, bt_ctf_event_class_destroy);
+
+	/* Empty structure as default event context type */
+	event_class->context = bt_ctf_field_type_structure_create();
+	if (!event_class->context) {
+		goto error;
+	}
+
+	/* Empty structure as default event payload type */
 	event_class->fields = bt_ctf_field_type_structure_create();
 	if (!event_class->fields) {
 		goto error;
