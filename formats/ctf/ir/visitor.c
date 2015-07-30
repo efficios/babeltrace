@@ -273,10 +273,11 @@ int field_type_recursive_visit(struct bt_ctf_field_type *type,
 			ctf_type_stack_peek(context->stack);
 		int field_count = get_type_field_count(entry->type);
 
-		if (field_count <= 0) {
+		if (field_count <= 0 &&
+				!bt_ctf_field_type_is_structure(entry->type)) {
 			/*
 			 * Propagate error if one was given, else return
-			 * -1 since empty structures or variants are invalid
+			 * -1 since empty variants are invalid
 			 * at this point.
 			 */
 			ret = field_count < 0 ? field_count : -1;

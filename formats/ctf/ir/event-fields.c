@@ -1257,7 +1257,7 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 		struct bt_ctf_field_structure, 1);
 	struct bt_ctf_field *field = NULL;
 
-	if (!structure || !structure_type->fields->len) {
+	if (!structure) {
 		goto end;
 	}
 
