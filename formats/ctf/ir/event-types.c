@@ -1545,6 +1545,32 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
+int bt_ctf_field_type_array_set_element_type(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *element_type)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_array *array;
+
+	if (!type || !element_type ||
+			(type->declaration->id != CTF_TYPE_ARRAY)) {
+		ret = -1;
+		goto end;
+	}
+
+	array = container_of(type, struct bt_ctf_field_type_array, parent);
+
+	if (array->element_type) {
+		BT_PUT(array->element_type);
+	}
+
+	array->element_type = element_type;
+	bt_get(array->element_type);
+
+end:
+	return ret;
+}
+
 int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *type)
 {
 	int64_t ret;
@@ -1602,6 +1628,32 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
 		parent);
 	ret = sequence->element_type;
 	bt_get(ret);
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_ctf_field_type_sequence_set_element_type(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *element_type)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_sequence *sequence;
+
+	if (!type || !element_type ||
+			(type->declaration->id != CTF_TYPE_SEQUENCE)) {
+		ret = -1;
+		goto end;
+	}
+
+	sequence = container_of(type, struct bt_ctf_field_type_sequence, parent);
+
+	if (sequence->element_type) {
+		BT_PUT(sequence->element_type);
+	}
+
+	sequence->element_type = element_type;
+	bt_get(sequence->element_type);
+
 end:
 	return ret;
 }
