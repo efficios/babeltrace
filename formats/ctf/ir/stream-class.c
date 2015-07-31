@@ -668,11 +668,11 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 
 	/* Set all events' native byte order */
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		bt_ctf_event_class_set_native_byte_order(
-			g_ptr_array_index(stream_class->event_classes, i),
+		struct bt_ctf_event_class *event_class;
+
+		event_class = g_ptr_array_index(stream_class->event_classes, i);
+		bt_ctf_event_class_set_native_byte_order(event_class,
 			stream_class->byte_order);
-		bt_ctf_event_class_freeze(
-			g_ptr_array_index(stream_class->event_classes, i));
 	}
 end:
 	return ret;
