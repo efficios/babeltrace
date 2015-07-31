@@ -30,6 +30,7 @@
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
@@ -47,7 +48,7 @@ void bt_ctf_trace_destroy(struct bt_object *obj);
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace);
 static
-int bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
+void bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
 
 static
 const unsigned int field_type_aliases_alignments[] = {
@@ -424,6 +425,42 @@ end:
 	return clock;
 }
 
+int bt_ctf_trace_validate_types(struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (trace->valid) {
+		/* Already marked as valid */
+		ret = 0;
+		goto end;
+	}
+
+	/* Resolve sequence type lengths and variant type tags first */
+	ret = bt_ctf_trace_resolve_types(trace);
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Validate types now */
+	if (trace->packet_header_type) {
+		ret = bt_ctf_field_type_validate_recursive(
+			trace->packet_header_type);
+	}
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Trace is valid */
+	if (trace->frozen) {
+		trace->valid = 1;
+	}
+
+end:
+	return ret;
+}
+
 int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -443,9 +480,36 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 	}
 
-	ret = bt_ctf_stream_class_resolve_types(stream_class, trace);
+	/* Make sure the trace is valid */
+	ret = bt_ctf_trace_validate_types(trace);
+
 	if (ret) {
 		goto end;
+	}
+
+	/* Make sure the stream class is valid */
+	ret = bt_ctf_stream_class_validate_types(stream_class, trace);
+
+	if (ret) {
+		goto end;
+	}
+
+	/*
+	 * Make sure all the stream class's event classes are valid. All
+	 * event classes must be valid at this point because we have the
+	 * whole event class/stream class/trace stack.
+	 */
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		struct bt_ctf_event_class *event_class;
+
+		event_class = g_ptr_array_index(stream_class->event_classes, i);
+		assert(event_class->frozen);
+		ret = bt_ctf_event_class_validate(event_class, stream_class,
+			trace);
+
+		if (ret) {
+			goto end;
+		}
 	}
 
 	stream_id = bt_ctf_stream_class_get_id(stream_class);
@@ -470,7 +534,13 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 	}
 
-	/* Set weak reference to trace in stream class */
+	/*
+	 * Set weak reference to trace in stream class.
+	 *
+	 * bt_ctf_stream_class_set_trace() ensures that
+	 * this stream class is not already registered to another
+	 * trace.
+	 */
 	ret = bt_ctf_stream_class_set_trace(stream_class, trace);
 	if (ret) {
 		/* Stream class already part of another trace */
@@ -496,10 +566,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	}
 
 	bt_ctf_stream_class_freeze(stream_class);
-	if (!trace->frozen) {
-		ret = bt_ctf_trace_freeze(trace);
-		goto end;
-	}
+	bt_ctf_trace_freeze(trace);
+
 end:
 	if (ret) {
 		(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
@@ -908,19 +976,11 @@ end:
 }
 
 static
-int bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
+void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
-	int ret = 0;
-
-	ret = bt_ctf_trace_resolve_types(trace);
-	if (ret) {
-		goto end;
-	}
-
 	bt_ctf_attributes_freeze(trace->environment);
 	trace->frozen = 1;
-end:
-	return ret;
+	bt_ctf_trace_validate_types(trace);
 }
 
 static

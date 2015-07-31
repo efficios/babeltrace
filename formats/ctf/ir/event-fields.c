@@ -233,14 +233,22 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field *field = NULL;
 	enum ctf_type_id type_id;
+	int ret;
 
 	if (!type) {
 		goto error;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(type);
-	if (type_id <= CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES ||
-		bt_ctf_field_type_validate(type)) {
+	if (type_id <= CTF_TYPE_UNKNOWN || type_id >= NR_CTF_TYPES) {
+		goto error;
+	}
+
+	/* Field class MUST be valid */
+	ret = bt_ctf_field_type_validate_recursive(type);
+
+	if (ret) {
+		/* Invalid */
 		goto error;
 	}
 

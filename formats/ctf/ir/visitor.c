@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/babeltrace-internal.h>
 
 /* TSDL dynamic scope prefixes defined in CTF Section 7.3.2 */
@@ -420,7 +421,7 @@ int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_trace *trace,
 		ctf_type_visitor_func func)
 {
-	int i, ret = 0, event_count;
+	int ret = 0;
 	struct bt_ctf_field_type *type;
 	struct ctf_type_visitor_context context = { 0 };
 
@@ -473,23 +474,6 @@ int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 		}
 	}
 
-	/* Visit event classes */
-	event_count = bt_ctf_stream_class_get_event_class_count(stream_class);
-	if (event_count < 0) {
-		ret = event_count;
-		goto end;
-	}
-	for (i = 0; i < event_count; i++) {
-		struct bt_ctf_event_class *event_class =
-			bt_ctf_stream_class_get_event_class(stream_class, i);
-
-		ret = bt_ctf_event_class_visit(event_class, trace,
-			stream_class, func);
-		bt_ctf_event_class_put(event_class);
-		if (ret) {
-			goto end;
-		}
-	}
 end:
 	if (context.stack) {
 		ctf_type_stack_destroy(context.stack);
@@ -965,7 +949,7 @@ BT_HIDDEN
 int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 		ctf_type_visitor_func func)
 {
-	int i, stream_count, ret = 0;
+	int ret = 0;
 	struct bt_ctf_field_type *type = NULL;
 	struct ctf_type_visitor_context visitor_ctx = { 0 };
 
@@ -994,19 +978,6 @@ int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 		}
 	}
 
-	stream_count = bt_ctf_trace_get_stream_class_count(trace);
-	for (i = 0; i < stream_count; i++) {
-		struct bt_ctf_stream_class *stream_class =
-			bt_ctf_trace_get_stream_class(trace, i);
-
-		/* Visit streams */
-		ret = bt_ctf_stream_class_visit(stream_class, trace,
-			func);
-		bt_ctf_stream_class_put(stream_class);
-		if (ret) {
-			goto end;
-		}
-	}
 end:
 	if (visitor_ctx.stack) {
 		ctf_type_stack_destroy(visitor_ctx.stack);
