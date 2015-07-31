@@ -238,4 +238,12 @@ int bt_ctf_field_type_variant_set_field_index(
 		struct bt_ctf_field_type *variant,
 		struct bt_ctf_field_type *field, int index);
 
+BT_HIDDEN
+int bt_ctf_field_type_array_set_element_type(struct bt_ctf_field_type *array,
+		struct bt_ctf_field_type *element_type);
+
+BT_HIDDEN
+int bt_ctf_field_type_sequence_set_element_type(struct bt_ctf_field_type *array,
+		struct bt_ctf_field_type *element_type);
+
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */
