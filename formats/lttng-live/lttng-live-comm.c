@@ -607,6 +607,11 @@ int append_metadata(struct lttng_live_ctx *ctx,
 	struct lttng_live_viewer_stream *metadata;
 	char *metadata_buf = NULL;
 
+	if (!viewer_stream->ctf_trace->handle) {
+		printf_verbose("append_metadata: trace handle not ready yet.\n");
+		return 0;
+	}
+
 	printf_verbose("get_next_index: new metadata needed\n");
 	ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
 	if (ret < 0) {
