@@ -86,7 +86,8 @@ enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(
 		struct bt_notification_iterator *iterator,
 		bt_notification_iterator_get_cb get)
 {
-	enum bt_notification_iterator_status ret;
+	enum bt_notification_iterator_status ret =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!iterator || !get) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;

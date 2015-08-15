@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libbabeltrace-plugin-ctf-text.la
 libbabeltrace_plugin_ctf_text_la_SOURCES = \
 	text.c
 
-# Request that the linker keeps all static librarie objects.
+# Request that the linker keeps all static library objects.
 libbabeltrace_plugin_ctf_text_la_LDFLAGS = \
 	-Wl,--no-as-needed -version-info $(BABELTRACE_LIBRARY_VERSION)
 

@@ -1,5 +1,5 @@
 #ifndef BABELTRACE_PLUGIN_INTERNAL_H
-#define BABELTRACE_PLUGIN__INTERNAL_H
+#define BABELTRACE_PLUGIN_INTERNAL_H
 
 /*
  * BabelTrace - Plug-in Internal
@@ -61,4 +61,4 @@ BT_HIDDEN
 enum bt_component_status bt_plugin_register_component_classes(
 		struct bt_plugin *plugin, struct bt_component_factory *factory);
 
-#endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */
+#endif /* BABELTRACE_PLUGIN_INTERNAL_H */

@@ -170,11 +170,25 @@ bt_component_factory_load_dir_recursive(struct bt_component_factory *factory,
 		file_path[path_len++] = '/';
 	}
 
+	directory = opendir(file_path);
+	if (!directory) {
+		perror("Failed to open plug-in directory");
+		ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
+		goto end;
+	}
+
 	/* Recursively walk directory */
 	while (!readdir_r(directory, entry, &result) && result) {
 		struct stat st;
 		int stat_ret;
-		size_t file_name_len = strlen(result->d_name);
+		size_t file_name_len;
+
+		if (result->d_name[0] == '.') {
+			/* Skip hidden files, . and .. */
+			continue;
+		}
+
+		file_name_len = strlen(result->d_name);
 
 		if (path_len + file_name_len >= PATH_MAX) {
 			continue;
@@ -201,6 +215,15 @@ bt_component_factory_load_dir_recursive(struct bt_component_factory *factory,
 		}
 	}
 end:
+	if (directory) {
+		if (closedir(directory)) {
+			/*
+			 * We don't want to override the error since there is
+			 * nothing could do.
+			 */
+		        perror("Failed to close plug-in directory");
+		}
+	}
 	free(entry);
 	free(file_path);
 	return ret;

@@ -39,6 +39,7 @@
 #include <babeltrace/debug-info.h>
 
 #include <babeltrace/iterator.h>
+#include <babeltrace/plugin/component-factory.h>
 #include <popt.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -61,6 +62,7 @@
 #define NET4_URL_PREFIX	"net4://"
 #define NET6_URL_PREFIX	"net6://"
 
+static struct bt_component_factory *component_factory;
 static char *opt_input_format, *opt_output_format;
 
 /*
@@ -73,6 +75,7 @@ static char *opt_input_format, *opt_output_format;
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
 static int opt_stream_intersection;
+static char *opt_plugin_path;
 
 static struct bt_format *fmt_read;
 
@@ -98,6 +101,7 @@ enum {
 	OPT_OUTPUT_FORMAT,
 	OPT_HELP,
 	OPT_LIST,
+	OPT_PLUGIN_PATH,
 	OPT_VERBOSE,
 	OPT_DEBUG,
 	OPT_NAMES,
@@ -117,7 +121,7 @@ enum {
 };
 
 /*
- * We are _not_ using POPT_ARG_STRING ability to store directly into
+ * We are _not_ using POPT_ARG_STRING's ability to store directly into
  * variables, because we want to cast the return to non-const, which is
  * not possible without using poptGetOptArg explicitly. This helps us
  * controlling memory allocation correctly without making assumptions
@@ -131,6 +135,7 @@ static struct poptOption long_options[] = {
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
+	{ "plugin-path", 0, POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
@@ -172,6 +177,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "  -h, --help                     This help message\n");
 	fprintf(fp, "  -l, --list                     List available formats\n");
+	fprintf(fp, "      --plugin-path              Supplementary plug-in path\n");
 	fprintf(fp, "  -v, --verbose                  Verbose mode\n");
 	fprintf(fp, "                                 (or set BABELTRACE_VERBOSE environment variable)\n");
 	fprintf(fp, "  -d, --debug                    Debug mode\n");
@@ -339,6 +345,13 @@ static int parse_options(int argc, char **argv)
 			list_formats(stdout);
 			ret = 1;
 			goto end;
+		case OPT_PLUGIN_PATH:
+			opt_plugin_path = (char *) poptGetOptArg(pc);
+			if (!opt_plugin_path) {
+				ret = -EINVAL;
+				goto end;
+			}			;
+			break;
 		case OPT_VERBOSE:
 			babeltrace_verbose = 1;
 			break;
@@ -451,10 +464,6 @@ static int parse_options(int argc, char **argv)
 		if (ipath)
 			g_ptr_array_add(opt_input_paths, (gpointer) ipath);
 	} while (ipath);
-	if (opt_input_paths->len == 0) {
-		ret = -EINVAL;
-		goto end;
-	}
 
 end:
 	if (pc) {
@@ -742,6 +751,31 @@ int main(int argc, char **argv)
 	}
 	printf_verbose("Verbose mode active.\n");
 	printf_debug("Debug mode active.\n");
+
+	if (!opt_plugin_path) {
+		fprintf(stderr, "No plugin path specified, aborting...\n");
+		ret = -1;
+		goto end;
+	}
+	printf_verbose("Looking-up plugins at %s",
+			opt_plugin_path ? opt_plugin_path : "Invalid");
+	component_factory = bt_component_factory_create();
+	if (!component_factory) {
+		fprintf(stderr, "Failed to create component factory.\n");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_component_factory_load(component_factory, opt_plugin_path);
+	if (ret) {
+		fprintf(stderr, "Failed to load plugins.\n");
+		goto end;
+	}
+
+	if (opt_input_paths->len == 0) {
+		ret = -1;
+		goto end;
+	}
 
 	if (opt_input_format)
 		strlower(opt_input_format);
