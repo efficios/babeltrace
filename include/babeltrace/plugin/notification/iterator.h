@@ -119,27 +119,6 @@ extern enum bt_notification_iterator_status *bt_notification_iterator_seek(
 		struct bt_notification_iterator *iterator, int whence,
 		int64_t time);
 
-/**
- * Increments the reference count of \p iterator.
- *
- * @param iterator	Iterator of which to increment the reference count
- *
- * @see bt_notification_iterator_put()
- */
-extern void bt_notification_iterator_get(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Decrements the reference count of \p iterator, destroying it when this
- * count reaches 0.
- *
- * @param iterator	Iterator of which to decrement the reference count
- *
- * @see bt_notification_iterator_get()
- */
-extern void bt_notification_iterator_put(
-		struct bt_notification_iterator *iterator);
-
 #ifdef __cplusplus
 }
 #endif

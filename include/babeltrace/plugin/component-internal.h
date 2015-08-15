@@ -31,19 +31,20 @@
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/ref-internal.h>
+#include <babeltrace/object-internal.h>
 #include <glib.h>
 #include <stdio.h>
 
 struct bt_component {
-	struct bt_ref ref;
+	struct bt_object base;
 	struct bt_component_class *class;
 	GString *name;
-	/** No ownership taken */
+	/** No ownership of stream taken */
 	FILE *error_stream;
-	/** source, sink or filter destroy */
+	/** Source, Sink or Filter destroy */
 	bt_component_destroy_cb destroy;
 
+	/** User-defined data and its destruction callback */
 	void *user_data;
 	bt_component_destroy_cb user_destroy;
 };

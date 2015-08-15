@@ -29,6 +29,7 @@
 
 #include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
 
 #ifdef __cplusplus
@@ -36,7 +37,7 @@ extern "C" {
 #endif
 
 struct bt_notification {
-	struct bt_ctf_ref ref;
+	struct bt_object base;
 	enum bt_notification_type type;
 };
 

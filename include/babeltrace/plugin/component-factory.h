@@ -71,14 +71,12 @@ struct bt_component_factory;
  *
  * @returns	An instance of component factory
  */
-extern
-struct bt_component_factory *bt_component_factory_create(void);
+extern struct bt_component_factory *bt_component_factory_create(void);
 
 /**
  * Get the list of components registered to this factory.
  */
-extern
-struct bt_object *bt_component_factory_get_components(
+extern struct bt_object *bt_component_factory_get_components(
 		struct bt_component_factory *factory);
 
 /**
@@ -91,23 +89,18 @@ struct bt_object *bt_component_factory_get_components(
  * @param path		A path to a file or directory
  * @returns		One of #bt_component_factory_status values
  */
-extern
-enum bt_component_factory_status bt_component_factory_load(
+extern enum bt_component_factory_status bt_component_factory_load(
 		struct bt_component_factory *factory, const char *path);
 
-extern
-enum bt_component_factory_status
+extern enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
 		struct bt_component_factory *factory, const char *name,
 		bt_component_source_init_cb init);
 
-extern
-enum bt_component_factory_status bt_component_factory_register_sink_component_class(
+extern enum bt_component_factory_status
+bt_component_factory_register_sink_component_class(
 		struct bt_component_factory *factory, const char *name,
 		bt_component_sink_init_cb init);
-
-extern
-void bt_component_factory_destroy(struct bt_component_factory *factory);
 
 #ifdef __cplusplus
 }

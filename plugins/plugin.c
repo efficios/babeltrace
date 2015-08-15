@@ -27,6 +27,7 @@
  */
 
 #include <babeltrace/compiler.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <glib.h>
 
@@ -37,12 +38,13 @@
 #define PLUGIN_SYMBOL_EXIT	"__bt_plugin_exit"
 
 static
-void bt_plugin_destroy(struct bt_ref *ref)
+void bt_plugin_destroy(struct bt_object *obj)
 {
 	struct bt_plugin *plugin;
 
-	assert(ref);
-	plugin = container_of(ref, struct bt_plugin, ref);
+	assert(obj);
+	plugin = container_of(obj, struct bt_plugin, base);
+
 	if (plugin->module) {
 		if (!g_module_close(plugin->module)) {
 			printf_error("Module close error: %s",
@@ -67,7 +69,7 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 		goto error;
 	}
 
-	bt_ref_init(&plugin->ref, bt_plugin_destroy);
+	bt_object_init(plugin, bt_plugin_destroy);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
 		(gpointer *) &plugin->name))
 	{
@@ -97,8 +99,8 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 
 	return plugin;
 error:
-	bt_plugin_put(plugin);
-	return NULL;
+        BT_PUT(plugin);
+	return plugin;
 }
 
 BT_HIDDEN
@@ -107,24 +109,4 @@ enum bt_component_status bt_plugin_register_component_classes(
 {
 	assert(plugin && factory);
 	return plugin->init(factory);
-}
-
-BT_HIDDEN
-void bt_plugin_get(struct bt_plugin *plugin)
-{
-	if (!plugin) {
-		return;
-	}
-
-	bt_ref_get(&plugin->ref);
-}
-
-BT_HIDDEN
-void bt_plugin_put(struct bt_plugin *plugin)
-{
-	if (!plugin) {
-		return;
-	}
-
-	bt_ref_put(&plugin->ref);
 }

@@ -28,12 +28,12 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ref-internal.h>
 #include <babeltrace/plugin/component-factory-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
+#include <babeltrace/object-internal.h>
 
 struct bt_component_class {
-	struct bt_ref ref;
+	struct bt_object base;
 	enum bt_component_type type;
 	GString *name;
 	struct bt_plugin *plugin;
@@ -43,11 +43,5 @@ BT_HIDDEN
 struct bt_component_class *bt_component_class_create(
 		enum bt_component_type type, const char *name,
 		struct bt_plugin *plugin);
-
-BT_HIDDEN
-void bt_component_class_get(struct bt_component_class *class);
-
-BT_HIDDEN
-void bt_component_class_put(struct bt_component_class *class);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */

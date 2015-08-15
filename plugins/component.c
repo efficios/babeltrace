@@ -30,8 +30,63 @@
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/ref.h>
 
-static void bt_component_destroy(struct bt_ref *ref);
+static
+void bt_component_destroy(struct bt_object *obj)
+{
+	struct bt_component *component = NULL;
+	struct bt_component_class *component_class = NULL;
+
+	if (!obj) {
+		return;
+	}
+
+	component = container_of(obj, struct bt_component, base);
+
+	/**
+	 * User data is destroyed first, followed by the concrete component
+	 * instance.
+	 */
+	assert(!component->user_data || component->user_destroy);
+	component->user_destroy(component->user_data);
+
+	g_string_free(component->name, TRUE);
+
+	assert(component->destroy);
+	component_class = component->class;
+
+	/* Frees the component, which becomes invalid */
+	component->destroy(component);
+	component = NULL;
+
+	bt_put(component_class);
+}
+
+BT_HIDDEN
+enum bt_component_status bt_component_init(struct bt_component *component,
+		struct bt_component_class *class, const char *name,
+		bt_component_destroy_cb destroy)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component || !class || !name || name[0] == '\0' || !destroy) {
+		ret = BT_COMPONENT_STATUS_INVAL;
+		goto end;
+	}
+
+	bt_object_init(component, bt_component_destroy);
+	bt_get(class);
+	component->class = class;
+	component->name = g_string_new(name);
+	if (!component->name) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+	component->destroy = destroy;
+end:
+	return ret;
+}
 
 const char *bt_component_get_name(struct bt_component *component)
 {
@@ -89,49 +144,6 @@ end:
 	return ret;
 }
 
-void bt_component_get(struct bt_component *component)
-{
-	if (!component) {
-		return;
-	}
-
-	bt_ref_get(&component->ref);
-}
-
-void bt_component_put(struct bt_component *component)
-{
-	if (!component) {
-		return;
-	}
-
-	bt_ref_put(&component->ref);
-}
-
-BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *component,
-		struct bt_component_class *class, const char *name,
-		bt_component_destroy_cb destroy)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component || !class || !name || name[0] == '\0' || destroy) {
-		ret = BT_COMPONENT_STATUS_INVAL;
-		goto end;
-	}
-
-	bt_ref_init(&component->ref, bt_component_destroy);
-	bt_component_class_get(class);
-	component->class = class;
-	component->name = g_string_new(name);
-	if (!component->name) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
-		goto end;
-	}
-	component->destroy = destroy;
-end:
-	return ret;
-}
-
 void *bt_component_get_private_data(struct bt_component *component)
 {
 	void *ret = NULL;
@@ -159,29 +171,4 @@ bt_component_set_private_data(struct bt_component *component,
 	component->user_data = data;
 end:
 	return ret;
-}
-
-static
-void bt_component_destroy(struct bt_ref *ref)
-{
-	struct bt_component *component = NULL;
-
-	if (!ref) {
-		return;
-	}
-
-	component = container_of(ref, struct bt_component, ref);
-
-	/**
-	 * User data is destroyed first, followed by the concrete component
-	 * instance.
-	 */
-	assert(!component->user_data || component->user_destroy);
-	component->user_destroy(component->user_data);
-
-	g_string_free(component->name, TRUE);
-
-	assert(component->destroy);
-	component->destroy(component);
-	bt_component_class_put(component->class);
 }

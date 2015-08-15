@@ -32,7 +32,7 @@
 #include <babeltrace/ref-internal.h>
 
 struct bt_notification_iterator {
-	struct bt_ref ref;
+	struct bt_object base;
 	bt_notification_iterator_get_cb get;
 	bt_notification_iterator_next_cb next;
 	void *user_data;

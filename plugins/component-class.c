@@ -28,19 +28,21 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/plugin/component-class-internal.h>
+#include <babeltrace/ref.h>
 #include <glib.h>
 
 static
-void bt_component_class_destroy(struct bt_ref *ref)
+void bt_component_class_destroy(struct bt_object *obj)
 {
 	struct bt_component_class *class;
 
-	assert(ref);
-	class = container_of(ref, struct bt_component_class, ref);
+	assert(obj);
+	class = container_of(obj, struct bt_component_class, base);
 	if (class->name) {
 		g_string_free(class->name, TRUE);
 	}
-	bt_plugin_put(class->plugin);
+
+	bt_put(class->plugin);
 	g_free(class);
 }
 
@@ -56,36 +58,16 @@ struct bt_component_class *bt_component_class_create(
 		goto end;
 	}
 
-	bt_ref_init(&class->ref, bt_component_class_destroy);
+	bt_object_init(class, bt_component_class_destroy);
 	class->type = type;
 	class->name = g_string_new(name);
 	if (!class->name) {
-		bt_component_class_put(class);
-		class = NULL;
+	        BT_PUT(class);
 		goto end;
 	}
-	bt_plugin_get(plugin);
+
+	bt_get(plugin);
 	class->plugin = plugin;
 end:
 	return class;
-}
-
-BT_HIDDEN
-void bt_component_class_get(struct bt_component_class *class)
-{
-	if (!class) {
-		return;
-	}
-
-	bt_ref_get(&class->ref);
-}
-
-BT_HIDDEN
-void bt_component_class_put(struct bt_component_class *class)
-{
-	if (!class) {
-		return;
-	}
-
-	bt_ref_put(&class->ref);
 }

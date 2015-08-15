@@ -27,22 +27,20 @@
  */
 
 #include <babeltrace/compiler.h>
+#include <babeltrace/ref.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/source-internal.h>
 #include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/iterator-internal.h>
 
 static
-void bt_notification_iterator_destroy(struct bt_ref *ref)
+void bt_notification_iterator_destroy(struct bt_object *obj)
 {
 	struct bt_notification_iterator *iterator;
 
-	if (!ref) {
-		return;
-	}
-
-	iterator = container_of(ref, struct bt_notification_iterator,
-		ref);
+	assert(obj);
+	iterator = container_of(obj, struct bt_notification_iterator,
+			base);
 	assert(iterator->user_destroy || !iterator->user_data);
 	iterator->user_destroy(iterator);
 	g_free(iterator);
@@ -64,7 +62,7 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		goto end;
 	}
 
-	bt_ref_init(&iterator->ref, bt_notification_iterator_destroy);
+	bt_object_init(iterator, bt_notification_iterator_destroy);
 end:
 	return iterator;
 }
@@ -82,24 +80,6 @@ enum bt_notification_iterator_status bt_notification_iterator_validate(
 	}
 end:
 	return ret;
-}
-
-void bt_notification_iterator_get(struct bt_notification_iterator *iterator)
-{
-	if (!iterator) {
-		return;
-	}
-
-	bt_ref_get(&iterator->ref);
-}
-
-void bt_notification_iterator_put(struct bt_notification_iterator *iterator)
-{
-	if (!iterator) {
-		return;
-	}
-
-	bt_ref_put(&iterator->ref);
 }
 
 enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(

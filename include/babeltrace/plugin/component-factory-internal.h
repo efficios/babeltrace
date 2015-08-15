@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ref-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/component-class-internal.h>
@@ -37,7 +37,8 @@
 #include <glib.h>
 
 struct bt_component_factory {
-	/** Array of pointers to struct plugin */
+	struct bt_object base;
+	/** Array of pointers to struct bt_plugin */
 	GPtrArray *plugins;
 	/** Array of pointers to struct bt_component_class */
 	GPtrArray *components;

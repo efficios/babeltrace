@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/plugin/source-internal.h>
 #include <babeltrace/plugin/component-internal.h>
@@ -102,6 +103,6 @@ struct bt_notification_iterator *bt_plugin_source_create_iterator(
 end:
 	return iterator;
 error:
-	bt_notification_iterator_put(iterator);
-	return NULL;
+	BT_PUT(iterator);
+	return iterator;
 }

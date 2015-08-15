@@ -30,6 +30,7 @@
 #include <babeltrace/plugin/component-factory-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/ref.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -87,11 +88,11 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 	 * or .la on Linux).
 	 */
 	if (strncmp(NATIVE_PLUGIN_SUFFIX,
-		path + path_len - NATIVE_PLUGIN_SUFFIX_LEN,
-		NATIVE_PLUGIN_SUFFIX_LEN) &&
-		strncmp(LIBTOOL_PLUGIN_SUFFIX,
-		path + path_len - LIBTOOL_PLUGIN_SUFFIX_LEN,
-		LIBTOOL_PLUGIN_SUFFIX_LEN)) {
+			path + path_len - NATIVE_PLUGIN_SUFFIX_LEN,
+			NATIVE_PLUGIN_SUFFIX_LEN) &&
+			strncmp(LIBTOOL_PLUGIN_SUFFIX,
+			path + path_len - LIBTOOL_PLUGIN_SUFFIX_LEN,
+			LIBTOOL_PLUGIN_SUFFIX_LEN)) {
 		/* Name indicates that this is not a plugin file. */
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
 		goto end;
@@ -116,7 +117,7 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 	}
 
 	component_status = bt_plugin_register_component_classes(plugin,
-		factory);
+			factory);
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		switch (component_status) {
 		case BT_COMPONENT_STATUS_NOMEM:
@@ -126,8 +127,8 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 			ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
 			break;
 		}
-		bt_plugin_put(plugin);
-		plugin = NULL;
+
+		BT_PUT(plugin);
 		goto end;
 	}
 	g_ptr_array_add(factory->plugins, plugin);
@@ -191,7 +192,7 @@ bt_component_factory_load_dir_recursive(struct bt_component_factory *factory,
 
 		if (S_ISDIR(st.st_mode)) {
 			ret = bt_component_factory_load_dir_recursive(factory,
-				file_path);
+					file_path);
 			if (ret != BT_COMPONENT_FACTORY_STATUS_OK) {
 				goto end;
 			}
@@ -205,11 +206,13 @@ end:
 	return ret;
 }
 
-void bt_component_factory_destroy(struct bt_component_factory *factory)
+static
+void bt_component_factory_destroy(struct bt_object *obj)
 {
-	if (!factory) {
-		return;
-	}
+	struct bt_component_factory *factory = NULL;
+
+	assert(obj);
+	factory = container_of(obj, struct bt_component_factory, base);
 
 	if (factory->plugins) {
 		g_ptr_array_free(factory->plugins, TRUE);
@@ -220,8 +223,7 @@ void bt_component_factory_destroy(struct bt_component_factory *factory)
 	g_free(factory);
 }
 
-struct bt_component_factory *
-bt_component_factory_create(void)
+struct bt_component_factory *bt_component_factory_create(void)
 {
 	struct bt_component_factory *factory;
 
@@ -230,57 +232,48 @@ bt_component_factory_create(void)
 		goto end;
 	}
 
+	bt_object_init(factory, bt_component_factory_destroy);
 	factory->plugins = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_plugin_put);
+		(GDestroyNotify) bt_put);
 	if (!factory->plugins) {
 		goto error;
 	}
 	factory->components = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_component_put);
+		(GDestroyNotify) bt_put);
 	if (!factory->components) {
 		goto error;
 	}
 end:
 	return factory;
 error:
-	bt_component_factory_destroy(factory);
-	return NULL;
+        BT_PUT(factory);
+	return factory;
 }
 
 enum bt_component_factory_status bt_component_factory_load(
 		struct bt_component_factory *factory, const char *path)
 {
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
-	DIR *directory = NULL;
 
 	if (!factory || !path) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
 		goto end;
 	}
 
-	directory = opendir(path) ;
-	if (!directory) {
-		switch (errno) {
-		case ENOTDIR:
-			/* Try loading as a file. */
-			break;
-		case ENOENT:
-			ret = BT_COMPONENT_FACTORY_STATUS_NOENT;
-			goto end;
-		default:
-			ret = BT_COMPONENT_FACTORY_STATUS_IO;
-			goto end;
-		}
+	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+		ret = BT_COMPONENT_FACTORY_STATUS_NOENT;
+		goto end;
 	}
 
-	if (directory) {
+	if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
 		ret = bt_component_factory_load_dir_recursive(factory, path);
-	} else {
+	} else if (g_file_test(path, G_FILE_TEST_IS_REGULAR) ||
+			g_file_test(path, G_FILE_TEST_IS_SYMLINK)) {
 		ret = bt_component_factory_load_file(factory, path);
+	} else {
+		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
+		goto end;
 	}
 end:
-	if (directory) {
-		closedir(directory);
-	}
 	return ret;
 }

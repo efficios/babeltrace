@@ -31,6 +31,7 @@
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin.h>
+#include <babeltrace/object-internal.h>
 #include <gmodule.h>
 
 /**
@@ -41,10 +42,10 @@
  * reference to their plugin.
  *
  * This ensures that a plugin's library is not closed while it is being used
- * even if the bt_component_factory which created its components is destroyed.
+ * even if the bt_component_factory, which created its components, is destroyed.
  */
 struct bt_plugin {
-	struct bt_ref ref;
+	struct bt_object base;
 	const char *name;
 	const char *author;
 	const char *license;
@@ -59,11 +60,5 @@ struct bt_plugin *bt_plugin_create(GModule *module);
 BT_HIDDEN
 enum bt_component_status bt_plugin_register_component_classes(
 		struct bt_plugin *plugin, struct bt_component_factory *factory);
-
-BT_HIDDEN
-void bt_plugin_get(struct bt_plugin *plugin);
-
-BT_HIDDEN
-void bt_plugin_put(struct bt_plugin *plugin);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */
