@@ -1226,6 +1226,14 @@ retry:
 	}
 
 	/*
+	 * If we query the relayd for a stream that did not receive its
+	 * first index, it will return an inactive status with a -1ULL
+	 * stream id. We need to skip this packet for now.
+	 */
+	if (stream_id == -1ULL) {
+		return;
+	}
+	/*
 	 * On the first time we receive an index, the stream_id needs to
 	 * be set for the stream in order to use it, we don't want any
 	 * data at this stage.
