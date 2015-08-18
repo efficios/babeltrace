@@ -733,7 +733,10 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	/* mmap the next packet */
-	ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
+	ret = ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
+	if (ret) {
+		goto end;
+	}
 
 	ret = bt_ctf_field_serialize(stream->packet_header, &stream->pos);
 	if (ret) {

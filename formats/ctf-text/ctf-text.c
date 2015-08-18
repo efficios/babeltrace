@@ -88,7 +88,7 @@ enum bt_loglevel {
 
 static
 struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
 static
 int ctf_text_close_trace(struct bt_trace_descriptor *descriptor);
@@ -537,7 +537,7 @@ error:
 
 static
 struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;

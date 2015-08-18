@@ -271,7 +271,7 @@ end_free:
 
 static
 struct bt_trace_descriptor *lttng_live_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;

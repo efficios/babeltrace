@@ -82,7 +82,7 @@ struct bt_context *bt_context_create(void);
  */
 int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		const char *format,
-		void (*packet_seek)(struct bt_stream_pos *pos,
+		int (*packet_seek)(struct bt_stream_pos *pos,
 			size_t index, int whence),
 		struct bt_mmap_stream_list *stream_list,
 		FILE *metadata);

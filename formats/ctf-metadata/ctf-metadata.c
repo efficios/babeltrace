@@ -43,7 +43,7 @@
 
 static
 struct bt_trace_descriptor *ctf_metadata_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp);
 static
 int ctf_metadata_close_trace(struct bt_trace_descriptor *descriptor);
@@ -75,7 +75,7 @@ int ctf_metadata_trace_pre_handler(struct bt_stream_pos *ppos,
 
 static
 struct bt_trace_descriptor *ctf_metadata_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_text_stream_pos *pos;
