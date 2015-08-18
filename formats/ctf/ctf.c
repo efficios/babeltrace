@@ -1853,10 +1853,10 @@ int import_stream_packet_index(struct ctf_trace *td,
 		goto error;
 	}
 	if (be32toh(index_hdr.index_major) != CTF_INDEX_MAJOR) {
-		fprintf(stderr, "[error] Incompatible index file %" PRIu64
-				".%" PRIu64 ", supported %d.%d\n",
-				be64toh(index_hdr.index_major),
-				be64toh(index_hdr.index_minor), CTF_INDEX_MAJOR,
+		fprintf(stderr, "[error] Incompatible index file %" PRIu32
+				".%" PRIu32 ", supported %d.%d\n",
+				be32toh(index_hdr.index_major),
+				be32toh(index_hdr.index_minor), CTF_INDEX_MAJOR,
 				CTF_INDEX_MINOR);
 		ret = -1;
 		goto error;
