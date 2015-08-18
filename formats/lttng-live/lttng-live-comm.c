@@ -560,10 +560,11 @@ restart:
 		id = g_array_index(ctx->session_ids, uint64_t, i);
 		ret = lttng_live_get_new_streams(ctx, id);
 		printf_verbose("Asking for new streams returns %d\n", ret);
+		if (lttng_live_should_quit()) {
+			ret = -1;
+			goto end;
+		}
 		if (ret < 0) {
-			if (lttng_live_should_quit()) {
-				goto end;
-			}
 			if (ret == -LTTNG_VIEWER_NEW_STREAMS_HUP) {
 				printf_verbose("Session %" PRIu64 " closed\n",
 						id);
@@ -1699,6 +1700,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 			}
 			ret = ask_new_streams(ctx);
 			if (ret < 0) {
+				ret = 0;
 				goto end_free;
 			}
 			if (!ctx->session->stream_count) {
