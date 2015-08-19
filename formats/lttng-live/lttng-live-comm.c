@@ -949,6 +949,9 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		if (!len_read) {
 			(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
 		}
+		if (ret < 0) {
+			break;	/* Stop on error. */
+		}
 	} while (ret > 0 || !len_read);
 
 	if (babeltrace_close_memstream(metadata_buf, &size,
