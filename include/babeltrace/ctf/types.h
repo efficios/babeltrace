@@ -58,6 +58,9 @@ struct packet_index {
 	uint64_t events_discarded_len;	/* length of the field, in bits */
 	struct packet_index_time ts_cycles;	/* timestamp in cycles */
 	struct packet_index_time ts_real;	/* realtime timestamp */
+	/* CTF_INDEX 1.0 limit */
+	uint64_t stream_instance_id;	/* ID of the channel instance */
+	uint64_t packet_seq_num;	/* packet sequence number */
 };
 
 /*
