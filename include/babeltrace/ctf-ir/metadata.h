@@ -74,6 +74,8 @@ struct ctf_stream_definition {
 
 	/* Event discarded information */
 	uint64_t events_discarded;
+	/* Trace packets lost */
+	uint64_t packets_lost;
 	struct ctf_stream_packet_timestamp prev;
 	struct ctf_stream_packet_timestamp current;
 	char path[PATH_MAX];			/* Path to stream. '\0' for mmap traces */
