@@ -1549,6 +1549,8 @@ begin:
 	packet_index.ts_cycles.timestamp_end = 0;
 	packet_index.events_discarded = 0;
 	packet_index.events_discarded_len = 0;
+	packet_index.stream_instance_id = 0;
+	packet_index.packet_seq_num = 0;
 
 	/* read and check header, set stream id (and check) */
 	if (file_stream->parent.trace_packet_header) {
@@ -1835,7 +1837,7 @@ int import_stream_packet_index(struct ctf_trace *td,
 	struct ctf_packet_index *ctf_index = NULL;
 	struct ctf_packet_index_file_hdr index_hdr;
 	struct packet_index index;
-	uint32_t packet_index_len;
+	uint32_t packet_index_len, index_minor;
 	int ret = 0;
 	int first_packet = 1;
 	size_t len;
@@ -1863,6 +1865,8 @@ int import_stream_packet_index(struct ctf_trace *td,
 		ret = -1;
 		goto error;
 	}
+	index_minor = be32toh(index_hdr.index_minor);
+
 	packet_index_len = be32toh(index_hdr.packet_index_len);
 	if (packet_index_len == 0) {
 		fprintf(stderr, "[error] Packet index length cannot be 0.\n");
@@ -1889,6 +1893,10 @@ int import_stream_packet_index(struct ctf_trace *td,
 		index.events_discarded_len = 64;
 		index.data_offset = -1;
 		stream_id = be64toh(ctf_index->stream_id);
+		if (index_minor >= 1) {
+			index.stream_instance_id = be64toh(ctf_index->stream_instance_id);
+			index.packet_seq_num = be64toh(ctf_index->packet_seq_num);
+		}
 
 		if (!first_packet) {
 			/* add index to packet array */
