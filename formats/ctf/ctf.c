@@ -421,16 +421,26 @@ void print_uuid(FILE *fp, unsigned char *uuid)
  * Given we have discarded counters of those two types merged into the
  * events_discarded counter, we need to use the union of those ranges:
  *   [ prev_timestamp_end, timestamp_end ]
+ *
+ * Lost packets occur if the tracer overwrote some subbuffer(s) before the
+ * consumer had time to extract them. We keep track of those gaps with the
+ * packet sequence number in each packet.
  */
 static
-void ctf_print_discarded(FILE *fp, struct ctf_stream_definition *stream)
+void ctf_print_discarded_lost(FILE *fp, struct ctf_stream_definition *stream)
 {
-	if (!stream->events_discarded || !babeltrace_ctf_console_output) {
+	if ((!stream->events_discarded && !stream->packets_lost) ||
+			!babeltrace_ctf_console_output) {
 		return;
 	}
 	fflush(stdout);
-	fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events between [",
-		stream->events_discarded);
+	if (stream->events_discarded) {
+		fprintf(fp, "[warning] Tracer discarded %" PRIu64 " events between [",
+				stream->events_discarded);
+	} else if (stream->packets_lost) {
+		fprintf(fp, "[warning] Tracer lost %" PRIu64 " trace packets between [",
+				stream->packets_lost);
+	}
 	if (opt_clock_cycles) {
 		ctf_print_timestamp(fp, stream,
 				stream->prev.cycles.end);
@@ -801,6 +811,7 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 		struct packet_index *cur_index)
 {
 	uint64_t events_discarded_diff;
+	uint64_t packets_lost_diff = 0;
 
 	/* Update packet index time information */
 
@@ -828,6 +839,11 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 			prev_index->ts_real.timestamp_end;
 
 		events_discarded_diff -= prev_index->events_discarded;
+		/* packet_seq_num stays at 0 if not produced by the tracer */
+		if (cur_index->packet_seq_num) {
+			packets_lost_diff = cur_index->packet_seq_num -
+				prev_index->packet_seq_num - 1;
+		}
 		/*
 		 * Deal with 32-bit wrap-around if the tracer provided a
 		 * 32-bit field.
@@ -848,6 +864,7 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 				stream->current.real.begin;
 	}
 	stream->events_discarded = events_discarded_diff;
+	stream->packets_lost = packets_lost_diff;
 }
 
 /*
@@ -958,7 +975,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		 * timestamps.
 		 */
 		if ((&file_stream->parent)->stream_class->trace->parent.collection) {
-			ctf_print_discarded(stderr, &file_stream->parent);
+			ctf_print_discarded_lost(stderr, &file_stream->parent);
 		}
 
 		packet_index = &g_array_index(pos->packet_index,
@@ -1687,6 +1704,19 @@ begin:
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.stream_packet_context, len_index);
 			packet_index.events_discarded = bt_get_unsigned_int(field);
 			packet_index.events_discarded_len = bt_get_int_len(field);
+		}
+
+		/* read packet_seq_num from header */
+		len_index = bt_struct_declaration_lookup_field_index(
+				file_stream->parent.stream_packet_context->declaration,
+				g_quark_from_static_string("packet_seq_num"));
+		if (len_index >= 0) {
+			struct bt_definition *field;
+
+			field = bt_struct_definition_get_field_from_index(
+					file_stream->parent.stream_packet_context,
+					len_index);
+			packet_index.packet_seq_num = bt_get_unsigned_int(field);
 		}
 	} else {
 		/* Use file size for packet size */
