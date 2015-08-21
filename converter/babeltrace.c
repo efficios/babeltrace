@@ -496,7 +496,7 @@ static int traverse_trace_dir(const char *fpath, const struct stat *sb,
  */
 int bt_context_add_traces_recursive(struct bt_context *ctx, const char *path,
 		const char *format_str,
-		void (*packet_seek)(struct bt_stream_pos *pos,
+		int (*packet_seek)(struct bt_stream_pos *pos,
 			size_t offset, int whence))
 {
 	int ret = 0, trace_ids = 0;

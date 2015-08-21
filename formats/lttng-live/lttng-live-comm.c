@@ -68,7 +68,7 @@
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 #endif
 
-static void ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
+static int ctf_live_packet_seek(struct bt_stream_pos *stream_pos,
 		size_t index, int whence);
 static int add_traces(struct lttng_live_ctx *ctx);
 static int del_traces(gpointer key, gpointer value, gpointer user_data);
@@ -560,10 +560,11 @@ restart:
 		id = g_array_index(ctx->session_ids, uint64_t, i);
 		ret = lttng_live_get_new_streams(ctx, id);
 		printf_verbose("Asking for new streams returns %d\n", ret);
+		if (lttng_live_should_quit()) {
+			ret = -1;
+			goto end;
+		}
 		if (ret < 0) {
-			if (lttng_live_should_quit()) {
-				goto end;
-			}
 			if (ret == -LTTNG_VIEWER_NEW_STREAMS_HUP) {
 				printf_verbose("Session %" PRIu64 " closed\n",
 						id);
@@ -599,6 +600,11 @@ int append_metadata(struct lttng_live_ctx *ctx,
 	int ret;
 	struct lttng_live_viewer_stream *metadata;
 	char *metadata_buf = NULL;
+
+	if (!viewer_stream->ctf_trace->handle) {
+		printf_verbose("append_metadata: trace handle not ready yet.\n");
+		return 0;
+	}
 
 	printf_verbose("get_next_index: new metadata needed\n");
 	ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
@@ -929,6 +935,9 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		if (!len_read) {
 			(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
 		}
+		if (ret < 0) {
+			break;	/* Stop on error. */
+		}
 	} while (ret > 0 || !len_read);
 
 	if (fclose(metadata_stream->metadata_fp_write))
@@ -1148,7 +1157,7 @@ end:
 }
 
 static
-void ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
+int ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
 		int whence)
 {
 	struct ctf_stream_pos *pos;
@@ -1167,7 +1176,7 @@ void ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
 	ret = handle_seek_position(index, whence, viewer_stream, pos,
 			file_stream);
 	if (ret != 0) {
-		return;
+		return -1;
 	}
 
 retry:
@@ -1209,7 +1218,7 @@ retry:
 			if (!lttng_live_should_quit()) {
 				fprintf(stderr, "[error] get_next_index failed\n");
 			}
-			return;
+			return -1;
 		}
 		printf_verbose("Index received : packet_size : %" PRIu64
 				", offset %" PRIu64 ", content_size %" PRIu64
@@ -1220,6 +1229,14 @@ retry:
 
 	}
 
+	/*
+	 * If we query the relayd for a stream that did not receive its
+	 * first index, it will return an inactive status with a -1ULL
+	 * stream id. We need to skip this packet for now.
+	 */
+	if (stream_id == -1ULL) {
+		return 0;
+	}
 	/*
 	 * On the first time we receive an index, the stream_id needs to
 	 * be set for the stream in order to use it, we don't want any
@@ -1238,7 +1255,7 @@ retry:
 		file_stream->parent.stream_id = stream_id;
 		viewer_stream->ctf_stream_id = stream_id;
 
-		return;
+		return 0;
 	}
 
 	pos->packet_size = cur_index->packet_size;
@@ -1293,15 +1310,17 @@ retry:
 		pos->offset = EOF;
 		if (!lttng_live_should_quit()) {
 			fprintf(stderr, "[error] get_data_packet failed\n");
+			return -1;
+		} else {
+			return 0;
 		}
-		return;
 	}
 	viewer_stream->data_pending = 0;
 
 	read_packet_header(pos, file_stream);
 
 end:
-	return;
+	return 0;
 }
 
 int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
@@ -1686,6 +1705,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 			}
 			ret = ask_new_streams(ctx);
 			if (ret < 0) {
+				ret = 0;
 				goto end_free;
 			}
 			if (!ctx->session->stream_count) {

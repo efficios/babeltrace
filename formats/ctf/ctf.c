@@ -93,13 +93,13 @@ int babeltrace_ctf_console_output;
 
 static
 struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
 struct bt_trace_descriptor *ctf_open_mmap_trace(
 		struct bt_mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp);
 static
@@ -472,7 +472,8 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	if (unlikely(pos->offset == EOF))
 		return EOF;
 
-	ctf_pos_get_event(pos);
+	if (ctf_pos_get_event(pos))
+		return EOF;
 
 	/* save the current position as a restore point */
 	pos->last_offset = pos->offset;
@@ -853,7 +854,7 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
  * for SEEK_CUR: go to next packet.
  * for SEEK_SET: go to packet numer (index).
  */
-void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
+int ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 {
 	struct ctf_stream_pos *pos =
 		container_of(stream_pos, struct ctf_stream_pos, parent);
@@ -868,7 +869,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	case SEEK_SET:	/* Fall-through */
 		break;	/* OK */
 	default:
-		assert(0);
+		return -1;
 	}
 
 	if ((pos->prot & PROT_WRITE) && pos->content_size_loc)
@@ -880,7 +881,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
-			assert(0);
+			return -1;
 		}
 		pos->base_mma = NULL;
 	}
@@ -900,7 +901,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			pos->cur_index = 0;
 			break;
 		default:
-			assert(0);
+			return -1;
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
@@ -914,7 +915,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		case SEEK_CUR:
 		{
 			if (pos->offset == EOF) {
-				return;
+				return 0;
 			}
 			assert(pos->cur_index < pos->packet_index->len);
 			/* The reader will expect us to skip padding */
@@ -924,12 +925,12 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		case SEEK_SET:
 			if (index >= pos->packet_index->len) {
 				pos->offset = EOF;
-				return;
+				return 0;
 			}
 			pos->cur_index = index;
 			break;
 		default:
-			assert(0);
+			return -1;
 		}
 
 		packet_index = &g_array_index(pos->packet_index,
@@ -946,7 +947,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 
 		if (pos->cur_index >= pos->packet_index->len) {
 			pos->offset = EOF;
-			return;
+			return 0;
 		}
 
 		/*
@@ -970,7 +971,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (packet_index->data_offset == -1) {
 			ret = find_data_offset(pos, file_stream, packet_index);
 			if (ret < 0) {
-				return;
+				return -1;
 			}
 		}
 		pos->content_size = packet_index->content_size;
@@ -986,7 +987,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			goto read_next_packet;
 		} else {
 			pos->offset = EOF;
-			return;
+			return 0;
 		}
 	}
 	/* map new base. Need mapping length from header. */
@@ -1011,6 +1012,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
 		assert(!ret);
 	}
+	return 0;
 }
 
 static
@@ -1933,7 +1935,7 @@ error:
  */
 static
 int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret, fd, closeret;
@@ -2074,7 +2076,7 @@ error:
 static
 int ctf_open_trace_read(struct ctf_trace *td,
 		const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_scanner *scanner;
@@ -2190,7 +2192,7 @@ error:
  */
 static
 struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence), FILE *metadata_fp)
 {
 	struct ctf_trace *td;
@@ -2253,7 +2255,7 @@ void ctf_init_mmap_pos(struct ctf_stream_pos *pos,
 static
 int prepare_mmap_stream_definition(struct ctf_trace *td,
 		struct ctf_file_stream *file_stream,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	struct ctf_stream_declaration *stream;
@@ -2261,7 +2263,10 @@ int prepare_mmap_stream_definition(struct ctf_trace *td,
 	int ret;
 
 	/* Ask for the first packet to get the stream_id. */
-	packet_seek(&file_stream->pos.parent, 0, SEEK_SET);
+	ret = packet_seek(&file_stream->pos.parent, 0, SEEK_SET);
+	if (ret) {
+		goto end;
+	}
 	stream_id = file_stream->parent.stream_id;
 	if (stream_id >= td->streams->len) {
 		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared "
@@ -2285,7 +2290,7 @@ end:
 static
 int ctf_open_mmap_stream_read(struct ctf_trace *td,
 		struct bt_mmap_stream *mmap_info,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence))
 {
 	int ret;
@@ -2328,7 +2333,7 @@ error_def:
 static
 int ctf_open_mmap_trace_read(struct ctf_trace *td,
 		struct bt_mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {
@@ -2370,7 +2375,7 @@ error:
 static
 struct bt_trace_descriptor *ctf_open_mmap_trace(
 		struct bt_mmap_stream_list *mmap_list,
-		void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+		int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence),
 		FILE *metadata_fp)
 {

@@ -83,7 +83,7 @@ struct ctf_stream_pos {
 	int64_t data_offset;	/* offset of data in current packet */
 	uint64_t cur_index;	/* current index in packet index */
 	uint64_t last_events_discarded;	/* last known amount of event discarded */
-	void (*packet_seek)(struct bt_stream_pos *pos, size_t index,
+	int (*packet_seek)(struct bt_stream_pos *pos, size_t index,
 			int whence); /* function called to switch packet */
 
 	int dummy;		/* dummy position, for length calculation */
@@ -126,7 +126,7 @@ int ctf_sequence_read(struct bt_stream_pos *pos, struct bt_definition *definitio
 BT_HIDDEN
 int ctf_sequence_write(struct bt_stream_pos *pos, struct bt_definition *definition);
 
-void ctf_packet_seek(struct bt_stream_pos *pos, size_t index, int whence);
+int ctf_packet_seek(struct bt_stream_pos *pos, size_t index, int whence);
 
 int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 		int fd, int open_flags);
@@ -220,9 +220,9 @@ int ctf_pos_packet(struct ctf_stream_pos *dummy)
 }
 
 static inline
-void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
+int ctf_pos_pad_packet(struct ctf_stream_pos *pos)
 {
-	ctf_packet_seek(&pos->parent, 0, SEEK_CUR);
+	return ctf_packet_seek(&pos->parent, 0, SEEK_CUR);
 }
 
 /*
@@ -230,16 +230,19 @@ void ctf_pos_pad_packet(struct ctf_stream_pos *pos)
  * the next packet if we are located at the end of the current packet.
  */
 static inline
-void ctf_pos_get_event(struct ctf_stream_pos *pos)
+int ctf_pos_get_event(struct ctf_stream_pos *pos)
 {
+	int ret = 0;
+
 	assert(pos->offset <= pos->content_size);
 	if (pos->offset == pos->content_size) {
 		printf_debug("ctf_packet_seek (before call): %" PRId64 "\n",
 			     pos->offset);
-		pos->packet_seek(&pos->parent, 0, SEEK_CUR);
+		ret = pos->packet_seek(&pos->parent, 0, SEEK_CUR);
 		printf_debug("ctf_packet_seek (after call): %" PRId64 "\n",
 			     pos->offset);
 	}
+	return ret;
 }
 
 void ctf_print_timestamp(FILE *fp, struct ctf_stream_definition *stream,

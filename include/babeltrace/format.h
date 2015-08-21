@@ -60,12 +60,12 @@ struct bt_format {
 	bt_intern_str name;
 
 	struct bt_trace_descriptor *(*open_trace)(const char *path, int flags,
-			void (*packet_seek)(struct bt_stream_pos *pos,
+			int (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
 	struct bt_trace_descriptor *(*open_mmap_trace)(
 			struct bt_mmap_stream_list *mmap_list,
-			void (*packet_seek)(struct bt_stream_pos *pos,
+			int (*packet_seek)(struct bt_stream_pos *pos,
 				size_t index, int whence),
 			FILE *metadata_fp);
 	int (*close_trace)(struct bt_trace_descriptor *descriptor);
