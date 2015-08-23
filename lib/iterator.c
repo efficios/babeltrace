@@ -144,6 +144,10 @@ static int seek_file_stream_by_timestamp(struct ctf_file_stream *cfs,
 			continue;
 
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
+		ret = bt_packet_seek_get_error();
+		if (ret < 0) {
+			return EOF;
+		}
 		do {
 			ret = stream_read_event(cfs);
 		} while (cfs->parent.real_timestamp < timestamp && ret == 0);
@@ -243,6 +247,10 @@ static int find_max_timestamp_ctf_file_stream(struct ctf_file_stream *cfs,
 	 */
 	for (i = stream_pos->packet_index->len - 1; i >= 0; i--) {
 		stream_pos->packet_seek(&stream_pos->parent, i, SEEK_SET);
+		ret = bt_packet_seek_get_error();
+		if (ret < 0) {
+			return EOF;
+		}
 		count = 0;
 		/* read each event until we reach the end of the stream */
 		do {

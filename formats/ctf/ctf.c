@@ -36,6 +36,7 @@
 #include <babeltrace/context-internal.h>
 #include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
+#include <babeltrace/error.h>
 #include <babeltrace/trace-debug-info.h>
 #include <babeltrace/ctf/ctf-index.h>
 #include <inttypes.h>
@@ -490,7 +491,8 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	if (unlikely(pos->offset == EOF))
 		return EOF;
 
-	ctf_pos_get_event(pos);
+	if (ctf_pos_get_event(pos))
+		return EOF;
 
 	/* save the current position as a restore point */
 	pos->last_offset = pos->offset;
@@ -1057,7 +1059,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	case SEEK_SET:	/* Fall-through */
 		break;	/* OK */
 	default:
-		assert(0);
+		ret = -1;
+		goto end;
 	}
 
 	if ((pos->prot & PROT_WRITE) && pos->content_size_loc)
@@ -1069,7 +1072,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
-			assert(0);
+			ret = -1;
+			goto end;
 		}
 		pos->base_mma = NULL;
 	}
@@ -1089,7 +1093,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			pos->cur_index = 0;
 			break;
 		default:
-			assert(0);
+			ret = -1;
+			goto end;
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
@@ -1105,7 +1110,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		case SEEK_CUR:
 		{
 			if (pos->offset == EOF) {
-				return;
+				ret = 0;
+				goto end;
 			}
 			assert(pos->cur_index < pos->packet_index->len);
 			/* The reader will expect us to skip padding */
@@ -1115,17 +1121,20 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		case SEEK_SET:
 			if (index >= pos->packet_index->len) {
 				pos->offset = EOF;
-				return;
+				ret = 0;
+				goto end;
 			}
 			pos->cur_index = index;
 			break;
 		default:
-			assert(0);
+			ret = -1;
+			goto end;
 		}
 
 		if (pos->cur_index >= pos->packet_index->len) {
 			pos->offset = EOF;
-			return;
+			ret = 0;
+			goto end;
 		}
 
 		packet_index = &g_array_index(pos->packet_index,
@@ -1139,6 +1148,12 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		ctf_update_current_packet_index(&file_stream->parent,
 				prev_index, packet_index);
+
+		if (pos->cur_index >= pos->packet_index->len) {
+			pos->offset = EOF;
+			ret = 0;
+			goto end;
+		}
 
 		/*
 		 * We need to check if we are in trace read or called
@@ -1161,7 +1176,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (packet_index->data_offset == -1) {
 			ret = find_data_offset(pos, file_stream, packet_index);
 			if (ret < 0) {
-				return;
+				ret = -1;
+				goto end;
 			}
 		}
 		pos->content_size = packet_index->content_size;
@@ -1177,7 +1193,8 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			goto read_next_packet;
 		} else {
 			pos->offset = EOF;
-			return;
+			ret = 0;
+			goto end;
 		}
 	}
 	/* map new base. Need mapping length from header. */
@@ -1202,6 +1219,9 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		ret = generic_rw(&pos->parent, &file_stream->parent.stream_packet_context->p);
 		assert(!ret);
 	}
+	ret = 0;
+end:
+	bt_packet_seek_set_error(ret);
 }
 
 static
@@ -2477,6 +2497,10 @@ int prepare_mmap_stream_definition(struct ctf_trace *td,
 
 	/* Ask for the first packet to get the stream_id. */
 	packet_seek(&file_stream->pos.parent, 0, SEEK_SET);
+	ret = bt_packet_seek_get_error();
+	if (ret) {
+		goto end;
+	}
 	stream_id = file_stream->parent.stream_id;
 	if (stream_id >= td->streams->len) {
 		fprintf(stderr, "[error] Stream %" PRIu64 " is not declared "

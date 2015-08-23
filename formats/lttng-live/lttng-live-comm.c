@@ -1223,7 +1223,8 @@ void ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
 	ret = handle_seek_position(index, whence, viewer_stream, pos,
 			file_stream);
 	if (ret != 0) {
-		return;
+		ret = -1;
+		goto end;
 	}
 
 retry:
@@ -1265,7 +1266,8 @@ retry:
 			if (!lttng_live_should_quit()) {
 				fprintf(stderr, "[error] get_next_index failed\n");
 			}
-			return;
+			ret = -1;
+			goto end;
 		}
 		printf_verbose("Index received : packet_size : %" PRIu64
 				", offset %" PRIu64 ", content_size %" PRIu64
@@ -1294,7 +1296,8 @@ retry:
 		file_stream->parent.stream_id = stream_id;
 		viewer_stream->ctf_stream_id = stream_id;
 
-		return;
+		ret = 0;
+		goto end;
 	}
 
 	pos->packet_size = cur_index->packet_size;
@@ -1386,15 +1389,18 @@ retry:
 		pos->offset = EOF;
 		if (!lttng_live_should_quit()) {
 			fprintf(stderr, "[error] get_data_packet failed\n");
+			ret = -1;
+		} else {
+			ret = 0;
 		}
-		return;
+		goto end;
 	}
 	viewer_stream->data_pending = 0;
 
 	read_packet_header(pos, file_stream);
-
+	ret = 0;
 end:
-	return;
+	bt_packet_seek_set_error(ret);
 }
 
 int lttng_live_create_viewer_session(struct lttng_live_ctx *ctx)
