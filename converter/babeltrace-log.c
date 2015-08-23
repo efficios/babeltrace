@@ -282,7 +282,8 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 		if (!ctf_move_pos(&dummy, tlen * CHAR_BIT))
 			packet_filled = 1;
 		if (packet_filled || ctf_pos_packet(&dummy)) {
-			ctf_pos_pad_packet(pos);
+			if (ctf_pos_pad_packet(pos))
+				goto error;
 			write_packet_header(pos, s_uuid);
 			write_packet_context(pos);
 			if (attempt++ == 1) {
