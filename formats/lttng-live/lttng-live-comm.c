@@ -612,10 +612,11 @@ int append_metadata(struct lttng_live_ctx *ctx,
 
 	printf_verbose("get_next_index: new metadata needed\n");
 	ret = get_new_metadata(ctx, viewer_stream, &metadata_buf);
-	if (ret < 0) {
+	if (ret && ret != -LTTNG_VIEWER_METADATA_HUP) {
 		free(metadata_buf);
 		goto error;
 	}
+	ret = 0;	/* HUP is not an error. */
 
 	metadata = viewer_stream->ctf_trace->metadata_stream;
 	metadata->ctf_trace->metadata_fp =
