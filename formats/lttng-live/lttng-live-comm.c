@@ -851,7 +851,8 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 			printf_verbose("get_metadata : ERR\n");
 			goto error;
 		case LTTNG_VIEWER_METADATA_HUP:
-			goto error;
+			ret = -LTTNG_VIEWER_METADATA_HUP;
+			goto end;
 		default:
 			printf_verbose("get_metadata : UNKNOWN\n");
 			goto error;
@@ -901,7 +902,8 @@ error:
 }
 
 /*
- * Return 0 on success, a negative value on error.
+ * Return 0 on success, a negative value on error. Returns
+ * -LTTNG_VIEWER_METADATA_HUP if metadata has hung up.
  */
 static
 int get_new_metadata(struct lttng_live_ctx *ctx,
@@ -1423,10 +1425,11 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 
 			/* Get all possible metadata before starting */
 			ret = get_new_metadata(ctx, stream, &metadata_buf);
-			if (ret) {
+			if (ret && ret != -LTTNG_VIEWER_METADATA_HUP) {
 				free(metadata_buf);
 				goto end_free;
 			}
+			ret = 0;	/* HUP is not an error. */
 			if (!stream->metadata_len) {
 				fprintf(stderr, "[error] empty metadata\n");
 				ret = -1;
