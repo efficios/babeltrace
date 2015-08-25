@@ -1515,6 +1515,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	int ret, i, nb_streams = 0;
 	ssize_t ret_len;
 	uint32_t stream_count;
+	struct lttng_live_viewer_stream *new_streams;
 
 	if (lttng_live_should_quit()) {
 		ret = -1;
@@ -1582,11 +1583,17 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		ret = 0;
 		goto end;
 	}
-	printf_verbose("Waiting for %" PRIu64 " streams:\n",
-		ctx->session->stream_count);
-	ctx->session->streams = g_new0(struct lttng_live_viewer_stream,
+	printf_verbose("Waiting for %d streams:\n", stream_count);
+	new_streams = g_new0(struct lttng_live_viewer_stream,
 			ctx->session->stream_count);
-	for (i = 0; i < stream_count; i++) {
+	/* Copy previous streams. */
+	for (i = 0; i < ctx->session->stream_count - stream_count; i++) {
+		new_streams[i] = ctx->session->streams[i];
+	}
+	g_free(ctx->session->streams);
+	ctx->session->streams = new_streams;
+	for (i = ctx->session->stream_count - stream_count;
+			i < ctx->session->stream_count; i++) {
 		ret_len = lttng_live_recv(ctx->control_sock, &stream, sizeof(stream));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
