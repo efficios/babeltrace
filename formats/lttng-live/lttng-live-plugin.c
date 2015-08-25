@@ -228,8 +228,12 @@ static void free_session_streams(struct lttng_live_session *lsession)
 	struct lttng_live_viewer_stream *lvstream, *tmp;
 
 	bt_list_for_each_entry_safe(lvstream, tmp, &lsession->stream_list,
-			stream_node) {
-		bt_list_del(&lvstream->stream_node);
+			session_stream_node) {
+		/*
+		 * The stream should not be in trace anymore.
+		 */
+		assert(!lvstream->in_trace);
+		bt_list_del(&lvstream->session_stream_node);
 		g_free(lvstream);
 	}
 }

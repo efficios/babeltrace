@@ -66,7 +66,9 @@ struct lttng_live_viewer_stream {
 	struct lttng_live_session *session;
 	struct lttng_live_ctf_trace *ctf_trace;
 	struct lttng_viewer_index current_index;
-	struct bt_list_head stream_node;
+	struct bt_list_head session_stream_node;	/* Owns stream. */
+	struct bt_list_head trace_stream_node;
+	int in_trace;
 	char path[PATH_MAX];
 };
 
@@ -74,6 +76,7 @@ struct lttng_live_session {
 	uint64_t live_timer_interval;
 	uint64_t stream_count;
 	struct lttng_live_ctx *ctx;
+	/* The session stream list owns the lttng_live_viewer_stream object. */
 	struct bt_list_head stream_list;
 	GHashTable *ctf_traces;
 };
@@ -81,7 +84,8 @@ struct lttng_live_session {
 struct lttng_live_ctf_trace {
 	uint64_t ctf_trace_id;
 	struct lttng_live_viewer_stream *metadata_stream;
-	GPtrArray *streams;
+	/* The trace has a list of streams, but it has no ownership on them. */
+	struct bt_list_head stream_list;
 	FILE *metadata_fp;
 	struct bt_trace_handle *handle;
 	int trace_id;

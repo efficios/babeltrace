@@ -390,7 +390,7 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	if (!trace) {
 		trace = g_new0(struct lttng_live_ctf_trace, 1);
 		trace->ctf_trace_id = ctf_trace_id;
-		trace->streams = g_ptr_array_new();
+		BT_INIT_LIST_HEAD(&trace->stream_list);
 		g_hash_table_insert(stream->session->ctf_traces,
 				&trace->ctf_trace_id,
 				trace);
@@ -398,8 +398,10 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	if (stream->metadata_flag)
 		trace->metadata_stream = stream;
 
+	assert(!stream->in_trace);
+	stream->in_trace = 1;
 	stream->ctf_trace = trace;
-	g_ptr_array_add(trace->streams, stream);
+	bt_list_add(&stream->trace_stream_node, &trace->stream_list);
 
 	return ret;
 }
@@ -546,7 +548,7 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 			g_free(lvstream);
 			goto error;
 		}
-		bt_list_add(&lvstream->stream_node,
+		bt_list_add(&lvstream->session_stream_node,
 			&ctx->session->stream_list);
 	}
 	ret = 0;
@@ -1095,10 +1097,13 @@ retry:
 		goto retry;
 	case LTTNG_VIEWER_INDEX_HUP:
 		printf_verbose("get_next_index: stream hung up\n");
-		/* TODO: remove stream from session list and trace ptr array */
 		viewer_stream->id = -1ULL;
 		index->offset = EOF;
 		ctx->session->stream_count--;
+		viewer_stream->in_trace = 0;
+		bt_list_del(&viewer_stream->trace_stream_node);
+		bt_list_del(&viewer_stream->session_stream_node);
+		g_free(viewer_stream);
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
 		fprintf(stderr, "[error] get_next_index: error\n");
@@ -1439,10 +1444,22 @@ int del_traces(gpointer key, gpointer value, gpointer user_data)
 	struct bt_context *bt_ctx = user_data;
 	struct lttng_live_ctf_trace *trace = value;
 	int ret;
+	struct lttng_live_viewer_stream *lvstream, *tmp;
 
-	ret = bt_context_remove_trace(bt_ctx, trace->trace_id);
-	if (ret < 0)
-		fprintf(stderr, "[error] removing trace from context\n");
+	/*
+	 * We don't have ownership of the live viewer stream, just
+	 * remove them from our list.
+	 */
+	bt_list_for_each_entry_safe(lvstream, tmp, &trace->stream_list,
+			trace_stream_node) {
+		lvstream->in_trace = 0;
+		bt_list_del(&lvstream->trace_stream_node);
+	}
+	if (trace->in_use) {
+		ret = bt_context_remove_trace(bt_ctx, trace->trace_id);
+		if (ret < 0)
+			fprintf(stderr, "[error] removing trace from context\n");
+	}
 
 	/* remove the key/value pair from the HT. */
 	return 1;
@@ -1452,7 +1469,7 @@ static
 int add_one_trace(struct lttng_live_ctx *ctx,
 		struct lttng_live_ctf_trace *trace)
 {
-	int i, ret;
+	int ret;
 	struct bt_context *bt_ctx = ctx->bt_ctx;
 	struct lttng_live_viewer_stream *stream;
 	struct bt_mmap_stream *new_mmap_stream;
@@ -1476,9 +1493,7 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 
 	BT_INIT_LIST_HEAD(&mmap_list.head);
 
-	for (i = 0; i < trace->streams->len; i++) {
-		stream = g_ptr_array_index(trace->streams, i);
-
+	bt_list_for_each_entry(stream, &trace->stream_list, trace_stream_node) {
 		if (!stream->metadata_flag) {
 			new_mmap_stream = zmalloc(sizeof(struct bt_mmap_stream));
 			new_mmap_stream->priv = (void *) stream;
@@ -1694,7 +1709,7 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 			goto error;
 		}
 		nb_streams++;
-		bt_list_add(&lvstream->stream_node,
+		bt_list_add(&lvstream->session_stream_node,
 			&ctx->session->stream_list);
 	}
 	ret = nb_streams;
@@ -1726,7 +1741,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 	fmt_write = bt_lookup_format(g_quark_from_static_string("text"));
 	if (!fmt_write) {
 		fprintf(stderr, "[error] ctf-text error\n");
-		goto end;
+		goto end_free;
 	}
 
 	td_write = fmt_write->open_trace(NULL, O_RDWR, NULL, NULL);
@@ -1796,10 +1811,10 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 		if (!iter) {
 			if (lttng_live_should_quit()) {
 				ret = 0;
-				goto end;
+				goto end_free;
 			}
 			fprintf(stderr, "[error] Iterator creation error\n");
-			goto end;
+			goto end_free;
 		}
 		for (;;) {
 			if (lttng_live_should_quit()) {
@@ -1832,6 +1847,8 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 	}
 
 end_free:
+	g_hash_table_foreach_remove(ctx->session->ctf_traces,
+			del_traces, ctx->bt_ctx);
 	bt_context_put(ctx->bt_ctx);
 end:
 	if (lttng_live_should_quit()) {
