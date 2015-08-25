@@ -594,7 +594,12 @@ restart:
 			nb_streams += ret;
 		}
 	}
-	ret = nb_streams;
+	if (ctx->session_ids->len == 0) {
+		/* All sessions are closed. */
+		ret = -1;
+	} else {
+		ret = nb_streams;
+	}
 
 end:
 	return ret;
