@@ -850,6 +850,8 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 		case LTTNG_VIEWER_METADATA_ERR:
 			printf_verbose("get_metadata : ERR\n");
 			goto error;
+		case LTTNG_VIEWER_METADATA_HUP:
+			goto error;
 		default:
 			printf_verbose("get_metadata : UNKNOWN\n");
 			goto error;
