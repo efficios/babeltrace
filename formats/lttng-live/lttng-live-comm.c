@@ -499,18 +499,22 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		ret = 0;
 		goto end;
 	}
-	printf_verbose("Waiting for %" PRIu64 " streams:\n",
-		ctx->session->stream_count);
-	ctx->session->streams = g_new0(struct lttng_live_viewer_stream,
-			ctx->session->stream_count);
+	printf_verbose("Waiting for %d streams:\n",
+		be32toh(rp.streams_count));
 	for (i = 0; i < be32toh(rp.streams_count); i++) {
-		ret_len = lttng_live_recv(ctx->control_sock, &stream, sizeof(stream));
+		struct lttng_live_viewer_stream *lvstream;
+
+		lvstream = g_new0(struct lttng_live_viewer_stream, 1);
+		ret_len = lttng_live_recv(ctx->control_sock, &stream,
+				sizeof(stream));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
+			g_free(lvstream);
 			goto error;
 		}
 		if (ret_len < 0) {
 			perror("[error] Error receiving stream");
+			g_free(lvstream);
 			goto error;
 		}
 		assert(ret_len == sizeof(stream));
@@ -520,21 +524,23 @@ int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id)
 		printf_verbose("    stream %" PRIu64 " : %s/%s\n",
 				be64toh(stream.id), stream.path_name,
 				stream.channel_name);
-		ctx->session->streams[i].id = be64toh(stream.id);
-		ctx->session->streams[i].session = ctx->session;
+		lvstream->id = be64toh(stream.id);
+		lvstream->session = ctx->session;
 
-		ctx->session->streams[i].mmap_size = 0;
-		ctx->session->streams[i].ctf_stream_id = -1ULL;
+		lvstream->mmap_size = 0;
+		lvstream->ctf_stream_id = -1ULL;
 
 		if (be32toh(stream.metadata_flag)) {
-			ctx->session->streams[i].metadata_flag = 1;
+			lvstream->metadata_flag = 1;
 		}
-		ret = lttng_live_ctf_trace_assign(&ctx->session->streams[i],
+		ret = lttng_live_ctf_trace_assign(lvstream,
 				be64toh(stream.ctf_trace_id));
 		if (ret < 0) {
+			g_free(lvstream);
 			goto error;
 		}
-
+		bt_list_add(&lvstream->stream_node,
+			&ctx->session->stream_list);
 	}
 	ret = 0;
 end:
@@ -1068,6 +1074,7 @@ retry:
 		goto retry;
 	case LTTNG_VIEWER_INDEX_HUP:
 		printf_verbose("get_next_index: stream hung up\n");
+		/* TODO: remove stream from session list and trace ptr array */
 		viewer_stream->id = -1ULL;
 		index->offset = EOF;
 		ctx->session->stream_count--;
@@ -1521,7 +1528,6 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 	int ret, i, nb_streams = 0;
 	ssize_t ret_len;
 	uint32_t stream_count;
-	struct lttng_live_viewer_stream *new_streams;
 
 	if (lttng_live_should_quit()) {
 		ret = -1;
@@ -1590,23 +1596,21 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		goto end;
 	}
 	printf_verbose("Waiting for %d streams:\n", stream_count);
-	new_streams = g_new0(struct lttng_live_viewer_stream,
-			ctx->session->stream_count);
-	/* Copy previous streams. */
-	for (i = 0; i < ctx->session->stream_count - stream_count; i++) {
-		new_streams[i] = ctx->session->streams[i];
-	}
-	g_free(ctx->session->streams);
-	ctx->session->streams = new_streams;
-	for (i = ctx->session->stream_count - stream_count;
-			i < ctx->session->stream_count; i++) {
-		ret_len = lttng_live_recv(ctx->control_sock, &stream, sizeof(stream));
+
+	for (i = 0; i < stream_count; i++) {
+		struct lttng_live_viewer_stream *lvstream;
+
+		lvstream = g_new0(struct lttng_live_viewer_stream, 1);
+		ret_len = lttng_live_recv(ctx->control_sock, &stream,
+				sizeof(stream));
 		if (ret_len == 0) {
 			fprintf(stderr, "[error] Remote side has closed connection\n");
+			g_free(lvstream);
 			goto error;
 		}
 		if (ret_len < 0) {
 			perror("[error] Error receiving stream");
+			g_free(lvstream);
 			goto error;
 		}
 		assert(ret_len == sizeof(stream));
@@ -1616,22 +1620,24 @@ int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id)
 		printf_verbose("    stream %" PRIu64 " : %s/%s\n",
 				be64toh(stream.id), stream.path_name,
 				stream.channel_name);
-		ctx->session->streams[i].id = be64toh(stream.id);
-		ctx->session->streams[i].session = ctx->session;
+		lvstream->id = be64toh(stream.id);
+		lvstream->session = ctx->session;
 
-		ctx->session->streams[i].mmap_size = 0;
-		ctx->session->streams[i].ctf_stream_id = -1ULL;
+		lvstream->mmap_size = 0;
+		lvstream->ctf_stream_id = -1ULL;
 
 		if (be32toh(stream.metadata_flag)) {
-			ctx->session->streams[i].metadata_flag = 1;
+			lvstream->metadata_flag = 1;
 		}
-		ret = lttng_live_ctf_trace_assign(&ctx->session->streams[i],
+		ret = lttng_live_ctf_trace_assign(lvstream,
 				be64toh(stream.ctf_trace_id));
 		if (ret < 0) {
+			g_free(lvstream);
 			goto error;
 		}
 		nb_streams++;
-
+		bt_list_add(&lvstream->stream_node,
+			&ctx->session->stream_list);
 	}
 	ret = nb_streams;
 end:
