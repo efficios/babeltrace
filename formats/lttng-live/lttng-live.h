@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <sys/param.h>
+#include <babeltrace/list.h>
 #include "lttng-viewer-abi.h"
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
@@ -65,6 +66,7 @@ struct lttng_live_viewer_stream {
 	struct lttng_live_session *session;
 	struct lttng_live_ctf_trace *ctf_trace;
 	struct lttng_viewer_index current_index;
+	struct bt_list_head stream_node;
 	char path[PATH_MAX];
 };
 
@@ -72,7 +74,7 @@ struct lttng_live_session {
 	uint64_t live_timer_interval;
 	uint64_t stream_count;
 	struct lttng_live_ctx *ctx;
-	struct lttng_live_viewer_stream *streams;
+	struct bt_list_head stream_list;
 	GHashTable *ctf_traces;
 };
 

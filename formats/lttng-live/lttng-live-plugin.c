@@ -223,6 +223,17 @@ gboolean g_uint64p_equal(gconstpointer a, gconstpointer b)
 	return TRUE;
 }
 
+static void free_session_streams(struct lttng_live_session *lsession)
+{
+	struct lttng_live_viewer_stream *lvstream, *tmp;
+
+	bt_list_for_each_entry_safe(lvstream, tmp, &lsession->stream_list,
+			stream_node) {
+		bt_list_del(&lvstream->stream_node);
+		g_free(lvstream);
+	}
+}
+
 static int lttng_live_open_trace_read(const char *path)
 {
 	int ret = 0;
@@ -230,6 +241,8 @@ static int lttng_live_open_trace_read(const char *path)
 
 	ctx = g_new0(struct lttng_live_ctx, 1);
 	ctx->session = g_new0(struct lttng_live_session, 1);
+
+	BT_INIT_LIST_HEAD(&ctx->session->stream_list);
 
 	/* We need a pointer to the context from the packet_seek function. */
 	ctx->session->ctx = ctx;
@@ -271,8 +284,8 @@ static int lttng_live_open_trace_read(const char *path)
 
 end_free:
 	g_hash_table_destroy(ctx->session->ctf_traces);
+	free_session_streams(ctx->session);
 	g_free(ctx->session);
-	g_free(ctx->session->streams);
 	g_free(ctx);
 
 	if (lttng_live_should_quit()) {
