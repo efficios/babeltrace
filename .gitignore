@@ -1,4 +1,5 @@
 *~
+/tests/bin/test_trace_read
 /tests/lib/test_bitfield
 /tests/lib/test_seek
 /tests/lib/test_ctf_writer
