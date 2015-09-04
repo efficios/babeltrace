@@ -41,7 +41,7 @@ struct bt_component_factory {
 	/** Array of pointers to struct bt_plugin */
 	GPtrArray *plugins;
 	/** Array of pointers to struct bt_component_class */
-	GPtrArray *components;
+	GPtrArray *component_classes;
 };
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */

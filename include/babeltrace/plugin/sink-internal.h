@@ -55,4 +55,15 @@ BT_HIDDEN
 extern struct bt_component *bt_component_sink_create(
 		struct bt_component_class *class, const char *name);
 
+/**
+ * Allocate a sink component class.
+ *
+ * @param name			Component instance name (will be copied)
+ * @returns			A sink component class instance
+ */
+/* FIXME */
+BT_HIDDEN
+extern struct bt_component *bt_component_class_sink_create(
+		struct bt_component_class *class, const char *name);
+
 #endif /* BABELTRACE_PLUGIN_SINK_INTERNAL_H */

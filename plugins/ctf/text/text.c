@@ -99,7 +99,6 @@ struct ctf_text_component {
 	bool opt_print_trace_default_fields : 1;
 	bool opt_print_loglevel_field : 1;
 	bool opt_print_emf_field : 1;
-	bool opt_print_callsite_field : 1;
 	bool opt_print_delta_field : 1;
 };
 

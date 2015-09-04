@@ -28,6 +28,8 @@
 
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component-factory-internal.h>
+#include <babeltrace/plugin/source-internal.h>
+#include <babeltrace/plugin/sink-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
@@ -70,6 +72,7 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 	size_t path_len;
 	GModule *module;
 	struct bt_plugin *plugin;
+	bool is_libtool_wrapper = false, is_shared_object = false;
 
 	if (!factory || !path) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
@@ -87,12 +90,13 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 	 * Check if the file ends with a known plugin file type suffix (i.e. .so
 	 * or .la on Linux).
 	 */
-	if (strncmp(NATIVE_PLUGIN_SUFFIX,
-			path + path_len - NATIVE_PLUGIN_SUFFIX_LEN,
-			NATIVE_PLUGIN_SUFFIX_LEN) &&
-			strncmp(LIBTOOL_PLUGIN_SUFFIX,
+	is_libtool_wrapper = !strncmp(LIBTOOL_PLUGIN_SUFFIX,
 			path + path_len - LIBTOOL_PLUGIN_SUFFIX_LEN,
-			LIBTOOL_PLUGIN_SUFFIX_LEN)) {
+			LIBTOOL_PLUGIN_SUFFIX_LEN);
+	is_shared_object = !strncmp(NATIVE_PLUGIN_SUFFIX,
+			path + path_len - NATIVE_PLUGIN_SUFFIX_LEN,
+			NATIVE_PLUGIN_SUFFIX_LEN);
+	if (!is_shared_object && !is_libtool_wrapper) {
 		/* Name indicates that this is not a plugin file. */
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
 		goto end;
@@ -240,8 +244,8 @@ void bt_component_factory_destroy(struct bt_object *obj)
 	if (factory->plugins) {
 		g_ptr_array_free(factory->plugins, TRUE);
 	}
-	if (factory->components) {
-		g_ptr_array_free(factory->components, TRUE);
+	if (factory->component_classes) {
+		g_ptr_array_free(factory->component_classes, TRUE);
 	}
 	g_free(factory);
 }
@@ -261,9 +265,9 @@ struct bt_component_factory *bt_component_factory_create(void)
 	if (!factory->plugins) {
 		goto error;
 	}
-	factory->components = g_ptr_array_new_with_free_func(
+	factory->component_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
-	if (!factory->components) {
+	if (!factory->component_classes) {
 		goto error;
 	}
 end:
@@ -271,6 +275,13 @@ end:
 error:
         BT_PUT(factory);
 	return factory;
+}
+
+struct bt_object *bt_component_factory_get_components(
+		struct bt_component_factory *factory)
+{
+	assert(0);
+	return NULL;
 }
 
 enum bt_component_factory_status bt_component_factory_load(
@@ -297,6 +308,33 @@ enum bt_component_factory_status bt_component_factory_load(
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
 		goto end;
 	}
+end:
+	return ret;
+}
+
+enum bt_component_factory_status
+bt_component_factory_register_source_component_class(
+		struct bt_component_factory *factory, const char *name,
+		bt_component_source_init_cb init)
+{
+	assert(0);
+	return BT_COMPONENT_FACTORY_STATUS_ERROR;
+}
+
+enum bt_component_factory_status
+bt_component_factory_register_sink_component_class(
+		struct bt_component_factory *factory, const char *name,
+		bt_component_sink_init_cb init)
+{
+	struct bt_component_class *class;
+	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
+
+	if (!factory || !name || !init) {
+		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
+		goto end;
+	}
+
+	
 end:
 	return ret;
 }
