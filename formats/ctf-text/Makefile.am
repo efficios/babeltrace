@@ -14,3 +14,7 @@ libbabeltrace_ctf_text_la_LDFLAGS = \
 libbabeltrace_ctf_text_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+
+if ENABLE_DEBUGINFO
+libbabeltrace_ctf_text_la_LIBADD += $(top_builddir)/lib/libdebuginfo.la
+endif
