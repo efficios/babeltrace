@@ -56,7 +56,7 @@ struct declaration_integer *
 {
 	struct declaration_integer *integer_declaration;
 
-	integer_declaration = g_new(struct declaration_integer, 1);
+	integer_declaration = g_new0(struct declaration_integer, 1);
 	integer_declaration->p.id = CTF_TYPE_INTEGER;
 	integer_declaration->p.alignment = alignment;
 	integer_declaration->p.declaration_free = _integer_declaration_free;
@@ -84,7 +84,7 @@ struct bt_definition *
 	struct definition_integer *integer;
 	int ret;
 
-	integer = g_new(struct definition_integer, 1);
+	integer = g_new0(struct definition_integer, 1);
 	bt_declaration_ref(&integer_declaration->p);
 	integer->p.declaration = declaration;
 	integer->declaration = integer_declaration;

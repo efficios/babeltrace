@@ -187,6 +187,10 @@ struct ctf_tracer_env {
 	char tracer_name[TRACER_ENV_LEN];
 };
 
+#ifdef ENABLE_DEBUGINFO
+struct debug_info;
+#endif
+
 struct ctf_trace {
 	struct bt_trace_descriptor parent;
 
@@ -225,6 +229,11 @@ struct ctf_trace {
 	DIR *dir;
 	int dirfd;
 	int flags;		/* open flags */
+
+#ifdef ENABLE_DEBUGINFO
+	/* Debug information for this trace */
+	struct debug_info *debug_info;
+#endif
 };
 
 #define CTF_STREAM_SET_FIELD(ctf_stream, field)				\
