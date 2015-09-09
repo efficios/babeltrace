@@ -50,6 +50,11 @@ noinst_HEADERS = \
 	babeltrace/ref-internal.h \
 	babeltrace/types.h \
 	babeltrace/object-internal.h \
+	babeltrace/crc32.h \
+	babeltrace/debuginfo.h \
+	babeltrace/trace-debuginfo.h \
+	babeltrace/dwarf.h \
+	babeltrace/so-info.h \
 	babeltrace/ctf-ir/metadata.h \
 	babeltrace/ctf/events-internal.h \
 	babeltrace/ctf/metadata.h \

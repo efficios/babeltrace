@@ -36,6 +36,8 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf/iterator.h>
 #include <babeltrace/ctf-text/types.h>
+#include <babeltrace/debuginfo.h>
+
 #include <babeltrace/iterator.h>
 #include <popt.h>
 #include <errno.h>
@@ -70,7 +72,7 @@ static char *opt_input_format, *opt_output_format;
  */
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
-int opt_stream_intersection;
+static int opt_stream_intersection;
 
 static struct bt_format *fmt_read;
 
@@ -103,6 +105,7 @@ enum {
 	OPT_CLOCK_GMT,
 	OPT_CLOCK_FORCE_CORRELATE,
 	OPT_STREAM_INTERSECTION,
+	OPT_DEBUG_DIR,
 };
 
 /*
@@ -133,6 +136,9 @@ static struct poptOption long_options[] = {
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
 	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
 	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
+#ifdef ENABLE_DEBUGINFO
+	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_DIR, NULL, NULL },
+#endif
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -179,6 +185,10 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --clock-force-correlate    Assume that clocks are inherently correlated\n");
 	fprintf(fp, "                                 across traces.\n");
 	fprintf(fp, "      --stream-intersection      Only print events when all streams are active.\n");
+#ifdef ENABLE_DEBUGINFO
+	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
+	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
+#endif
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -401,7 +411,13 @@ static int parse_options(int argc, char **argv)
 		case OPT_STREAM_INTERSECTION:
 			opt_stream_intersection = 1;
 			break;
-
+		case OPT_DEBUG_DIR:
+			opt_debug_dir = (char *) poptGetOptArg(pc);
+			if (!opt_debug_dir) {
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
 		default:
 			ret = -EINVAL;
 			goto end;
@@ -857,6 +873,7 @@ end:
 	free(opt_input_format);
 	free(opt_output_format);
 	free(opt_output_path);
+	free(opt_debug_dir);
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
