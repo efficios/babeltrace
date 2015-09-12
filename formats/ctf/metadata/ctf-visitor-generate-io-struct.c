@@ -2792,6 +2792,22 @@ int ctf_env_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 			env->domain[TRACER_ENV_LEN - 1] = '\0';
 			printf_verbose("env.domain = \"%s\"\n", env->domain);
 			g_free(right);
+		} else if (!strcmp(left, "tracer_name")) {
+			char *right;
+
+			if (env->tracer_name[0]) {
+				fprintf(fd, "[warning] %s: duplicated env tracer_name\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			right = concatenate_unary_strings(&node->u.ctf_expression.right);
+			if (!right) {
+				fprintf(fd, "[warning] %s: unexpected unary expression for env tracer_name\n", __func__);
+				goto error;	/* ret is 0, so not an actual error, just warn. */
+			}
+			strncpy(env->tracer_name, right, TRACER_ENV_LEN);
+			env->tracer_name[TRACER_ENV_LEN - 1] = '\0';
+			printf_verbose("env.tracer_name = \"%s\"\n", env->tracer_name);
+			g_free(right);
 		} else if (!strcmp(left, "sysname")) {
 			char *right;
 
