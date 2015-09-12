@@ -188,6 +188,7 @@ struct ctf_tracer_env {
 	char sysname[TRACER_ENV_LEN];
 	char release[TRACER_ENV_LEN];
 	char version[TRACER_ENV_LEN];
+	char tracer_name[TRACER_ENV_LEN];
 };
 
 struct ctf_trace {
