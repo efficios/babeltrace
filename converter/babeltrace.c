@@ -70,6 +70,7 @@ static char *opt_input_format, *opt_output_format;
  */
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
+int opt_stream_intersection;
 
 static struct bt_format *fmt_read;
 
@@ -101,6 +102,7 @@ enum {
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_GMT,
 	OPT_CLOCK_FORCE_CORRELATE,
+	OPT_STREAM_INTERSECTION,
 };
 
 /*
@@ -130,6 +132,7 @@ static struct poptOption long_options[] = {
 	{ "clock-date", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
 	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
+	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -175,6 +178,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --clock-gmt                Print clock in GMT time zone (default: local time zone)\n");
 	fprintf(fp, "      --clock-force-correlate    Assume that clocks are inherently correlated\n");
 	fprintf(fp, "                                 across traces.\n");
+	fprintf(fp, "      --stream-intersection      Only print events when all streams are active.\n");
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -393,6 +397,9 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
 			opt_clock_force_correlate = 1;
+			break;
+		case OPT_STREAM_INTERSECTION:
+			opt_stream_intersection = 1;
 			break;
 
 		default:
@@ -616,23 +623,62 @@ end:
 }
 
 static
+struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
+		struct bt_iter_pos *inter_begin_pos,
+		struct bt_iter_pos *inter_end_pos)
+{
+	uint64_t begin = 0, end = ULLONG_MAX;
+	/* Useless but needed for bt_iter_create_time_pos. */
+	struct bt_iter bt_iter;
+	int ret;
+
+	ret = ctf_find_packets_intersection(ctx, &begin, &end);
+	if (ret == 1) {
+		fprintf(stderr, "[error] No intersection found between trace files.\n");
+		ret = -1;
+		goto error;
+	} else if (ret != 0) {
+		goto error;
+	}
+	inter_begin_pos = bt_iter_create_time_pos(&bt_iter, begin);
+	if (!inter_begin_pos) {
+		goto error;
+	}
+	inter_end_pos = bt_iter_create_time_pos(&bt_iter, end);
+	if (!inter_end_pos) {
+		goto error;
+	}
+
+	return bt_ctf_iter_create(ctx, inter_begin_pos,
+			inter_end_pos);
+error:
+	return NULL;
+}
+
+static
 int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
 	struct bt_ctf_iter *iter;
 	struct ctf_text_stream_pos *sout;
 	struct bt_iter_pos begin_pos;
+	struct bt_iter_pos *inter_begin_pos = NULL, *inter_end_pos = NULL;
 	struct bt_ctf_event *ctf_event;
 	int ret;
 
 	sout = container_of(td_write, struct ctf_text_stream_pos,
 			trace_descriptor);
 
-	if (!sout->parent.event_cb)
+	if (!sout->parent.event_cb) {
 		return 0;
+	}
 
-	begin_pos.type = BT_SEEK_BEGIN;
-	iter = bt_ctf_iter_create(ctx, &begin_pos, NULL);
+	if (opt_stream_intersection) {
+		iter = iter_create_intersect(ctx, inter_begin_pos, inter_end_pos);
+	} else {
+		begin_pos.type = BT_SEEK_BEGIN;
+		iter = bt_ctf_iter_create(ctx, &begin_pos, NULL);
+	}
 	if (!iter) {
 		ret = -1;
 		goto error_iter;
@@ -644,14 +690,21 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 			goto end;
 		}
 		ret = bt_iter_next(bt_ctf_get_iter(iter));
-		if (ret < 0)
+		if (ret < 0) {
 			goto end;
+		}
 	}
 	ret = 0;
 
 end:
 	bt_ctf_iter_destroy(iter);
 error_iter:
+	if (inter_begin_pos) {
+		bt_iter_free_pos(inter_begin_pos);
+	}
+	if (inter_end_pos) {
+		bt_iter_free_pos(inter_end_pos);
+	}
 	return ret;
 }
 

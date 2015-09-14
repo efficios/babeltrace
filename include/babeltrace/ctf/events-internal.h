@@ -80,10 +80,6 @@ struct bt_ctf_iter {
 	uint64_t events_lost;
 };
 
-void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
-		struct packet_index *prev_index,
-		struct packet_index *cur_index);
-
 struct bt_definition;
 struct bt_declaration;
 struct bt_ctf_event;
@@ -315,5 +311,11 @@ int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
  * bt_ctf_get_decl_field_name: return the name of a field decl or NULL on error
  */
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
+int ctf_find_packets_intersection(struct bt_context *ctx,
+		uint64_t *ts_begin, uint64_t *ts_end);
+
+void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
+		struct packet_index *prev_index,
+		struct packet_index *cur_index);
 
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

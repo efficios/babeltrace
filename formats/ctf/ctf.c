@@ -922,6 +922,104 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 }
 
 /*
+ * Find the timerange where all the streams in the trace are active
+ * simultaneously.
+ *
+ * Return 0 and update begin/end if necessary on success, return 1 for
+ * empty streams and return a negative value on error.
+ */
+static
+int ctf_intersect_trace(struct bt_trace_descriptor *td_read,
+		uint64_t *begin, uint64_t *end)
+{
+	struct ctf_trace *tin;
+	int stream_id, ret = 0;
+
+	tin = container_of(td_read, struct ctf_trace, parent);
+
+	for (stream_id = 0; stream_id < tin->streams->len;
+			stream_id++) {
+		int filenr;
+		struct ctf_stream_declaration *stream_class;
+
+		stream_class = g_ptr_array_index(tin->streams, stream_id);
+		if (!stream_class) {
+			continue;
+		}
+		for (filenr = 0; filenr < stream_class->streams->len; filenr++) {
+			struct ctf_file_stream *file_stream;
+			struct ctf_stream_pos *stream_pos;
+			struct packet_index *index;
+
+			file_stream = g_ptr_array_index(stream_class->streams,
+					filenr);
+			if (!file_stream) {
+				continue;
+			}
+			stream_pos = &file_stream->pos;
+			if (!stream_pos->packet_index ||
+					stream_pos->packet_index->len <= 0) {
+				ret = 1;
+				goto end;
+			}
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index, 0);
+			if (index->ts_real.timestamp_begin > *begin) {
+				*begin = index->ts_real.timestamp_begin;
+			}
+			index = &g_array_index(stream_pos->packet_index,
+					struct packet_index,
+					stream_pos->packet_index->len - 1);
+			if (index->ts_real.timestamp_end < *end) {
+				*end = index->ts_real.timestamp_end;
+			}
+		}
+	}
+
+end:
+	return ret;
+}
+
+/*
+ * Find the timerange where all streams in the trace collection are active
+ * simultaneously.
+ *
+ * Return 0 on success.
+ * Return 1 if no intersections are found.
+ * Return a negative value on error.
+ */
+int ctf_find_packets_intersection(struct bt_context *ctx,
+		uint64_t *ts_begin, uint64_t *ts_end)
+{
+	int ret, i;
+
+	if (!ctx || !ctx->tc || !ctx->tc->array) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	for (i = 0; i < ctx->tc->array->len; i++) {
+		struct bt_trace_descriptor *td_read;
+
+		td_read = g_ptr_array_index(ctx->tc->array, i);
+		if (!td_read) {
+			continue;
+		}
+		ret = ctf_intersect_trace(td_read, ts_begin, ts_end);
+		if (ret) {
+			goto end;
+		}
+	}
+	if (*ts_end < *ts_begin) {
+		ret = 1;
+	} else {
+		ret = 0;
+	}
+end:
+	return ret;
+}
+
+/*
  * for SEEK_CUR: go to next packet.
  * for SEEK_SET: go to packet numer (index).
  */
