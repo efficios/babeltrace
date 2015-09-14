@@ -79,6 +79,8 @@ struct bt_ctf_iter {
 	uint64_t events_lost;
 };
 
+int ctf_find_packets_intersection(struct bt_context *ctx,
+		uint64_t *ts_begin, uint64_t *ts_end);
 void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 		struct packet_index *prev_index,
 		struct packet_index *cur_index);
