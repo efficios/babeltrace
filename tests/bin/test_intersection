@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# Copyright (C) - 2015 Julien Desfossez <jdesfossez@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+CURDIR=$(dirname $0)
+TESTDIR=$CURDIR/..
+
+BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+
+source $TESTDIR/utils/tap/tap.sh
+
+NUM_TESTS=10
+
+plan_tests $NUM_TESTS
+
+test_intersect() {
+	trace=$1
+	totalevents=$2
+	intersect=$3
+
+	test $($BABELTRACE_BIN $trace | wc -l) = $totalevents
+	ok $? "$totalevents events in the whole trace"
+	test $($BABELTRACE_BIN --stream-intersection $trace 2>/dev/null| wc -l) = $intersect
+	ok $? "$intersect events in packets intersecting"
+}
+
+diag "Test the stream intersection feature"
+
+diag "2 streams offsetted with 3 packets intersecting"
+test_intersect $TESTDIR/ctf-traces/intersection/3eventsintersect 8 3
+
+diag "2 streams offsetted with 3 packets intersecting (exchanged file names)"
+test_intersect $TESTDIR/ctf-traces/intersection/3eventsintersectreverse 8 3
+
+diag "No intersection between 2 streams"
+test_intersect $TESTDIR/ctf-traces/intersection/nointersect 6 0
+
+diag "Only 1 stream"
+test_intersect $TESTDIR/ctf-traces/intersection/onestream 3 3
+
+diag "No stream at all"
+test_intersect $TESTDIR/ctf-traces/intersection/nostream 0 0
