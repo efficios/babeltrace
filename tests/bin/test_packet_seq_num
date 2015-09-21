@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# Copyright (C) - 2015 Julien Desfossez <jdesfossez@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+CURDIR=$(dirname $0)
+TESTDIR=$CURDIR/..
+
+BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+
+source $TESTDIR/utils/tap/tap.sh
+
+NUM_TESTS=10
+
+plan_tests $NUM_TESTS
+
+test_no_lost() {
+	trace=$1
+
+	$BABELTRACE_BIN $trace >/dev/null 2>&1
+	ok $? "Trace parses"
+	$BABELTRACE_BIN $trace 2>&1 >/dev/null | grep "\[warning\] Tracer lost"
+	if test $? = 0; then
+		fail 1 "Should not find any lost events"
+	else
+		ok 0 "No events lost"
+	fi
+}
+
+test_lost() {
+	trace=$1
+	expectedcountstr=$2
+
+	$BABELTRACE_BIN $trace >/dev/null 2>&1
+	ok $? "Trace parses"
+
+	# Convert warnings like:
+	# [warning] Tracer lost 2 trace packets between ....
+	# [warning] Tracer lost 3 trace packets between ....
+	# into "2,3" and make sure it matches the expected result
+	$BABELTRACE_BIN $trace 2>&1 >/dev/null | grep "\[warning\] Tracer lost" \
+		| cut -d" " -f4 | tr "\n" "," | sed "s/.$//" | \
+		grep "$expectedcountstr" >/dev/null
+	ok $? "Lost events string matches $expectedcountstr"
+
+}
+
+diag "Test the packet_seq_num validation"
+
+diag "No packet lost"
+test_no_lost $TESTDIR/ctf-traces/packet_seq_num/no_lost
+
+diag "No packet lost, packet_seq_num not starting at 0"
+test_no_lost $TESTDIR/ctf-traces/packet_seq_num/no_lost_not_starting_at_0
+
+diag "1 stream, 2 packets lost before the last packet"
+test_lost $TESTDIR/ctf-traces/packet_seq_num/2_lost_before_last "2"
+
+diag "2 streams, packets lost in one of them"
+test_lost $TESTDIR/ctf-traces/packet_seq_num/2_streams_lost_in_1 "2"
+
+diag "2 streams, packets lost in both"
+test_lost $TESTDIR/ctf-traces/packet_seq_num/2_streams_lost_in_2 "3,2,1"
