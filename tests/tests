@@ -1,4 +1,5 @@
 bin/test_trace_read
+bin/test_packet_seq_num
 lib/test_bitfield
 lib/test_seek_empty_packet
 lib/test_seek_big_trace
