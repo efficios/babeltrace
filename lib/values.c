@@ -33,7 +33,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
-#include <glib.h>
+#include <babeltrace/compat/glib.h>
 
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
@@ -606,7 +606,7 @@ struct bt_value *bt_value_array_create(void)
 	}
 
 	array_obj->base = bt_value_create_base(BT_VALUE_TYPE_ARRAY);
-	array_obj->garray = g_ptr_array_new_full(0,
+	array_obj->garray = babeltrace_g_ptr_array_new_full(0,
 		(GDestroyNotify) bt_put);
 
 	if (!array_obj->garray) {
@@ -1028,7 +1028,7 @@ bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)
 	}
 
 	quark = g_quark_from_string(key);
-	ret = g_hash_table_contains(typed_map_obj->ght,
+	ret = babeltrace_g_hash_table_contains(typed_map_obj->ght,
 		GUINT_TO_POINTER(quark));
 
 end:
