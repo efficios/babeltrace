@@ -77,7 +77,7 @@ AC_TYPE_UINT8_T
 AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([ \
-	bzero gettimeofday munmap strtoul ftruncate gethostbyname \
+	gettimeofday munmap strtoul ftruncate gethostbyname \
 	localtime_r memset mkdir rmdir setenv socket \
 	strchr strdup strerror strndup strrchr strtoull tzset \
 ])
