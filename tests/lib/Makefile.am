@@ -30,6 +30,17 @@ SCRIPT_LIST = test_seek_big_trace \
 	test_seek_empty_packet \
 	test_ctf_writer_complete
 
+if ENABLE_DEBUGINFO
+test_dwarf_LDFLAGS = -static
+test_dwarf_LDADD = $(LIBTAP) \
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/lib/libdebuginfo.la
+test_dwarf_SOURCES = test_dwarf.c
+
+noinst_PROGRAMS += test_dwarf
+SCRIPT_LIST += test_dwarf_complete
+endif
+
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
 all-local:
