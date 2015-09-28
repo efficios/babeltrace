@@ -2,7 +2,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libcompat.la
 
-libcompat_la_SOURCES =
+libcompat_la_SOURCES = dummy.c
 
 libcompat_la_LDFLAGS = \
 	-Wl,--no-as-needed
