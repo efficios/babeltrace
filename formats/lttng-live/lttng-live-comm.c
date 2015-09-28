@@ -263,9 +263,9 @@ void update_session_list(GPtrArray *session_list, char *hostname,
 
 	for (i = 0; i < session_list->len; i++) {
 		relay_session = g_ptr_array_index(session_list, i);
-		if ((strncmp(relay_session->hostname, hostname, NAME_MAX) == 0) &&
+		if ((strncmp(relay_session->hostname, hostname, MAXNAMLEN) == 0) &&
 				strncmp(relay_session->name,
-					session_name, NAME_MAX) == 0) {
+					session_name, MAXNAMLEN) == 0) {
 			relay_session->streams += streams;
 			if (relay_session->clients < clients)
 				relay_session->clients = clients;
@@ -277,8 +277,8 @@ void update_session_list(GPtrArray *session_list, char *hostname,
 		return;
 
 	relay_session = g_new0(struct lttng_live_relay_session, 1);
-	relay_session->hostname = strndup(hostname, NAME_MAX);
-	relay_session->name = strndup(session_name, NAME_MAX);
+	relay_session->hostname = strndup(hostname, MAXNAMLEN);
+	relay_session->name = strndup(session_name, MAXNAMLEN);
 	relay_session->clients = clients;
 	relay_session->streams = streams;
 	relay_session->timer = timer;
@@ -352,8 +352,8 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 					be32toh(lsession.live_timer));
 		} else {
 			if ((strncmp(lsession.session_name, ctx->session_name,
-				NAME_MAX) == 0) && (strncmp(lsession.hostname,
-					ctx->traced_hostname, NAME_MAX) == 0)) {
+				MAXNAMLEN) == 0) && (strncmp(lsession.hostname,
+					ctx->traced_hostname, MAXNAMLEN) == 0)) {
 				printf_verbose("Reading from session %" PRIu64 "\n",
 						session_id);
 				g_array_append_val(ctx->session_ids,

@@ -33,9 +33,9 @@
 #define LTTNG_LIVE_MINOR			4
 
 struct lttng_live_ctx {
-	char traced_hostname[NAME_MAX];
-	char session_name[NAME_MAX];
-	char relay_hostname[NAME_MAX];
+	char traced_hostname[MAXNAMLEN];
+	char session_name[MAXNAMLEN];
+	char relay_hostname[MAXNAMLEN];
 	int control_sock;
 	int port;
 	/* Protocol version to use for this connection. */
