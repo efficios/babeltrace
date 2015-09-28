@@ -91,6 +91,9 @@ esac
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
 
+# Check what libraries are required on this platform to link sockets programs.
+AX_LIB_SOCKET_NSL
+
 # Check for libuuid
 AC_CHECK_LIB([uuid], [uuid_generate],
 [
