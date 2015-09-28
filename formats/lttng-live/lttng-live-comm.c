@@ -134,7 +134,7 @@ int lttng_live_connect_viewer(struct lttng_live_ctx *ctx)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(ctx->port);
 	server_addr.sin_addr = *((struct in_addr *) host->h_addr);
-	bzero(&(server_addr.sin_zero), 8);
+	memset(&(server_addr.sin_zero), 0, 8);
 
 	if (connect(ctx->control_sock, (struct sockaddr *) &server_addr,
 				sizeof(struct sockaddr)) == -1) {
