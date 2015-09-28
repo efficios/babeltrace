@@ -41,6 +41,29 @@ int babeltrace_uuid_generate(unsigned char *uuid_out)
 	return 0;
 }
 
+/* Sun's libuuid lacks const qualifiers */
+#if defined(__sun__)
+static inline
+int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
+{
+	uuid_unparse((unsigned char *) uuid_in, str_out);
+	return 0;
+}
+
+static inline
+int babeltrace_uuid_parse(const char *str_in, unsigned char *uuid_out)
+{
+	return uuid_parse((char *) str_in, uuid_out);
+}
+
+static inline
+int babeltrace_uuid_compare(const unsigned char *uuid_a,
+		const unsigned char *uuid_b)
+{
+	return uuid_compare((unsigned char *) uuid_a,
+		(unsigned char *) uuid_b);
+}
+#else
 static inline
 int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 {
@@ -60,6 +83,7 @@ int babeltrace_uuid_compare(const unsigned char *uuid_a,
 {
 	return uuid_compare(uuid_a, uuid_b);
 }
+#endif
 
 #elif defined(BABELTRACE_HAVE_LIBC_UUID)
 #include <uuid.h>
