@@ -52,6 +52,7 @@
 #include <formats/ctf/events-private.h>
 
 #include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/send.h>
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
@@ -103,7 +104,7 @@ ssize_t lttng_live_send(int fd, const void *buf, size_t len)
 	ssize_t ret;
 
 	do {
-		ret = send(fd, buf, len, MSG_NOSIGNAL);
+		ret = bt_send_nosigpipe(fd, buf, len);
 	} while (ret < 0 && errno == EINTR);
 	return ret;
 }
