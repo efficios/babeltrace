@@ -9,6 +9,7 @@
 /tests/lib/test_bt_values
 /tests/lib/test_ctf_ir_ref
 /tests/lib/test_durin
+/tests/lib/test_so_info
 *.o
 *.a
 *.la
