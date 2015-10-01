@@ -33,6 +33,10 @@ LT_INIT
 AC_PROG_YACC
 AC_PROG_LEX
 
+# Check linker option
+AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
+AC_SUBST([LD_NO_AS_NEEDED])
+
 if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
         if test x"$YACC" != "xbison -y"; then
                 AC_MSG_ERROR([[bison not found and is required when building from git.
