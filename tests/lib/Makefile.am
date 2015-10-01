@@ -9,7 +9,7 @@ libtestcommon_a_SOURCES = common.c common.h
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-test_seek_LDFLAGS = -Wl,--no-as-needed
+test_seek_LDFLAGS = $(LD_NO_AS_NEEDED)
 test_seek_LDADD = $(LIBTAP) libtestcommon.a \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
