@@ -140,10 +140,16 @@ AC_CHECK_LIB([c], [posix_fallocate],
 ]
 )
 
+# Check for faccessat
+AC_CHECK_LIB([c], [faccessat],
+[
+	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_FACCESSAT], 1, [Has faccessat support.])
+]
+)
+
 AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]
 )
-
 
 # For Python
 # SWIG version needed or newer:

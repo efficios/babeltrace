@@ -2010,7 +2010,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	snprintf(index_name, strlen(path) + sizeof(INDEX_PATH),
 			INDEX_PATH, path);
 
-	if (faccessat(td->dirfd, index_name, O_RDONLY, flags) < 0) {
+	if (bt_faccessat(td->dirfd, td->parent.path, index_name, O_RDONLY, 0) < 0) {
 		ret = create_stream_packet_index(td, file_stream);
 		if (ret) {
 			fprintf(stderr, "[error] Stream index creation error.\n");
