@@ -9,7 +9,7 @@ babeltrace_SOURCES = \
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-babeltrace_LDFLAGS = -Wl,--no-as-needed
+babeltrace_LDFLAGS = $(LD_NO_AS_NEEDED)
 babeltrace_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
