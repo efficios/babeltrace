@@ -53,6 +53,7 @@
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
 #include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/fcntl.h>
 
 #define LOG2_CHAR_BIT	3
 
@@ -904,7 +905,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
-		off = posix_fallocate(pos->fd, pos->mmap_offset,
+		off = babeltrace_posix_fallocate_overwrite(pos->fd, pos->mmap_offset,
 				      pos->packet_size / CHAR_BIT);
 		assert(off >= 0);
 		pos->offset = 0;
