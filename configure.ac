@@ -147,6 +147,13 @@ AC_CHECK_LIB([c], [open_memstream],
 ]
 )
 
+# Check for posix_fallocate
+AC_CHECK_LIB([c], [posix_fallocate],
+[
+	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_POSIX_FALLOCATE], 1, [Has posix_fallocate support.])
+]
+)
+
 AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]
 )
