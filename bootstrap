@@ -1,9 +1,8 @@
-#! /bin/sh
+#!/bin/sh
 
 set -x
-if [ ! -e config ]; then
+if [ ! -d "config" ]; then
 	mkdir config
 fi
 
-libtoolize --force --copy
-autoreconf -i
+autoreconf -vif
