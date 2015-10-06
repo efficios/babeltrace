@@ -38,6 +38,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/endian.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096

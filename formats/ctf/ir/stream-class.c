@@ -40,6 +40,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/align.h>
+#include <babeltrace/endian.h>
 
 static
 void bt_ctf_stream_class_destroy(struct bt_object *obj);
