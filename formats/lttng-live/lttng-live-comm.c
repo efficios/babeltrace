@@ -38,6 +38,7 @@
 #include <babeltrace/ctf/ctf-index.h>
 
 #include <babeltrace/babeltrace.h>
+#include <babeltrace/endian.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/ctf/callbacks.h>
 #include <babeltrace/ctf/iterator.h>

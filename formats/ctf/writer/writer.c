@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/endian.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
