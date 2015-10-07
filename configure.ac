@@ -1,6 +1,3 @@
-#                                               -*- Autoconf -*-
-# Process this file with autoconf to produce a configure script.
-
 AC_PREREQ([2.50])
 AC_INIT([babeltrace],[1.3.0-pre],[jeremie dot galarneau at efficios dot com])
 
@@ -8,34 +5,38 @@ AC_INIT([babeltrace],[1.3.0-pre],[jeremie dot galarneau at efficios dot com])
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], [1:0:0])
 
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([config])
-AC_CANONICAL_TARGET
-AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip])
-AM_MAINTAINER_MODE([enable])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_PROG_MKDIR_P
-AC_PROG_LN_S
+AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
 
-AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip])
+AM_MAINTAINER_MODE([enable])
 
-AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stddef.h sys/socket.h])
+# Enable silent rules if available (Introduced in AM 1.11)
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+# Checks for C compiler
+AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
+AC_PROG_CC
+AC_PROG_CC_STDC
 
 # Checks for programs.
-AC_PROG_CC_STDC
 AC_PROG_MAKE_SET
 LT_INIT
 AC_PROG_YACC
 AC_PROG_LEX
+AC_PROG_MKDIR_P
+AC_PROG_LN_S
 
 # Check linker option
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
 AC_SUBST([LD_NO_AS_NEEDED])
+
+AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stddef.h sys/socket.h])
 
 if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
         if test x"$YACC" != "xbison -y"; then
