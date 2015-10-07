@@ -37,6 +37,11 @@ AS_IF([test "x$ax_cv___attribute__" = "xyes"],
 	[:],
 	[AC_MSG_ERROR([The compiler does not support __attribute__ extensions])])
 
+AX_PTHREAD(,[AC_MSG_ERROR([Could not configure pthreads support])])
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
+
 # Check linker option
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
 AC_SUBST([LD_NO_AS_NEEDED])
