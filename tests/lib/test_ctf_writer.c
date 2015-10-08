@@ -2845,7 +2845,8 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");
 	BT_PUT(obj);
 
-	if (uname(&name)) {
+	/* On Solaris, uname() can return any positive value on success */
+	if (uname(&name) < 0) {
 		perror("uname");
 		return -1;
 	}

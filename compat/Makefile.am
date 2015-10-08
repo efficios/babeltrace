@@ -2,10 +2,10 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libcompat.la
 
-libcompat_la_SOURCES =
+libcompat_la_SOURCES = dummy.c
 
 libcompat_la_LDFLAGS = \
-	-Wl,--no-as-needed
+	$(LD_NO_AS_NEEDED)
 
 if BABELTRACE_BUILD_WITH_MINGW
 libcompat_la_SOURCES += compat_uuid.c
