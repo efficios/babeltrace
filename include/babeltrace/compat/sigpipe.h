@@ -25,8 +25,6 @@
  * SOFTWARE.
  */
 
-#include <config.h>
-
 /* 
  * This wrapper is used on platforms that have no way of disabling SIGPIPE,
  * instead we set the signal action to ignore. This is OK in a single threaded
