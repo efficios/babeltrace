@@ -39,7 +39,7 @@
 #include <assert.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <dirent.h>
+#include <babeltrace/compat/dirent.h>
 #include "tap/tap.h"
 #include <math.h>
 #include <float.h>
@@ -3299,7 +3299,7 @@ int main(int argc, char **argv)
 	struct dirent *entry;
 	while ((entry = readdir(trace_dir))) {
 		if (entry->d_type == DT_REG) {
-			unlinkat(dirfd(trace_dir), entry->d_name, 0);
+			unlinkat(bt_dirfd(trace_dir), entry->d_name, 0);
 		}
 	}
 
