@@ -25,8 +25,6 @@
  * SOFTWARE.
  */
 
-#include <config.h>
-
 /* Includes final \0. */
 #define BABELTRACE_UUID_STR_LEN		37
 #define BABELTRACE_UUID_LEN		16

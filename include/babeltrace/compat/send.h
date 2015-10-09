@@ -25,8 +25,6 @@
  * SOFTWARE.
  */
 
-#include <config.h>
-
 /*
  * This wrapper is used on platforms that have no way of ignoring SIGPIPE
  * during a send(). Instead, we set the signal action to ignore. This is OK

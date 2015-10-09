@@ -197,8 +197,11 @@ PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
 AC_SUBST(PACKAGE_LIBS)
 
 LIBS="$LIBS $GMODULE_LIBS"
-PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat -include config.h"
+PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
 AC_SUBST(PACKAGE_CFLAGS)
+
+DEFAULT_INCLUDES="-I\$(top_srcdir) -I\$(top_builddir) -I\$(top_builddir)/include -include config.h"
+AC_SUBST(DEFAULT_INCLUDES)
 
 babeltraceincludedir="${includedir}/babeltrace"
 AC_SUBST(babeltraceincludedir)
