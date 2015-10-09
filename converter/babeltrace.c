@@ -26,8 +26,6 @@
  * SOFTWARE.
  */
 
-#define _GNU_SOURCE
-#include <config.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/format.h>
 #include <babeltrace/context.h>

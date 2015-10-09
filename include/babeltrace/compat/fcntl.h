@@ -27,8 +27,6 @@
  * SOFTWARE.
  */
 
-#include <config.h>
-
 #ifdef BABELTRACE_HAVE_POSIX_FALLOCATE
 
 #include <fcntl.h>
