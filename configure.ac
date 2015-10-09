@@ -95,6 +95,7 @@ AC_CHECK_FUNCS([ \
 	gettimeofday munmap strtoul ftruncate gethostbyname \
 	localtime_r memset mkdir rmdir setenv socket \
 	strchr strdup strerror strndup strrchr strtoull tzset \
+	strnlen \
 ])
 
 # Check for MinGW32.
