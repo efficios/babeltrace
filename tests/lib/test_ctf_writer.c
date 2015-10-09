@@ -31,7 +31,7 @@
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
 #include <unistd.h>
-#include <stdlib.h>
+#include <babeltrace/compat/stdlib.h>
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <babeltrace/compat/limits.h>

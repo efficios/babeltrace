@@ -73,5 +73,6 @@ noinst_HEADERS = \
 	babeltrace/compat/limits.h \
 	babeltrace/compat/glib.h \
 	babeltrace/compat/fcntl.h \
+	babeltrace/compat/stdlib.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h
