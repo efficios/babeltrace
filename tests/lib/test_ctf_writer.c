@@ -42,6 +42,7 @@
 #include "tap/tap.h"
 #include <math.h>
 #include <float.h>
+#include <sys/stat.h>
 
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
@@ -3297,7 +3298,18 @@ int main(int argc, char **argv)
 
 	struct dirent *entry;
 	while ((entry = readdir(trace_dir))) {
-		if (entry->d_type == DT_REG) {
+		struct stat st;
+		char filename[PATH_MAX];
+
+		if (snprintf(filename, sizeof(filename), "%s/%s", trace_path, entry->d_name) <= 0) {
+			continue;
+		}
+
+		if (stat(entry->d_name, &st)) {
+			continue;
+		}
+
+		if (S_ISREG(st.st_mode)) {
 			unlinkat(dirfd(trace_dir), entry->d_name, 0);
 		}
 	}
