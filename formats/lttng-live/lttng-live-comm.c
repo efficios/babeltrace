@@ -1118,7 +1118,7 @@ int handle_seek_position(size_t index, int whence,
 		struct ctf_stream_pos *pos,
 		struct ctf_file_stream *file_stream)
 {
-	int ret;
+	int ret = 0;
 
 	switch (whence) {
 	case SEEK_CUR:
