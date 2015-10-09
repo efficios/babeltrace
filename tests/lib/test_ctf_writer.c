@@ -28,7 +28,7 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf/events.h>
 #include <unistd.h>
-#include <stdlib.h>
+#include <babeltrace/compat/stdlib.h>
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <babeltrace/compat/limits.h>
@@ -728,7 +728,7 @@ int main(int argc, char **argv)
 
 	plan_no_plan();
 
-	if (!mkdtemp(trace_path)) {
+	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
 	}
 
