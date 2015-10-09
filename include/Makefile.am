@@ -56,5 +56,6 @@ noinst_HEADERS = \
 	babeltrace/compat/send.h \
 	babeltrace/compat/fcntl.h \
 	babeltrace/compat/stdlib.h \
+	babeltrace/compat/dirent.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h

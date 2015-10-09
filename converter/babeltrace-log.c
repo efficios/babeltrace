@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <dirent.h>
+#include <babeltrace/compat/dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -415,7 +415,7 @@ int main(int argc, char **argv)
 		perror("opendir");
 		goto error_rmdir;
 	}
-	dir_fd = dirfd(dir);
+	dir_fd = bt_dirfd(dir);
 	if (dir_fd < 0) {
 		perror("dirfd");
 		goto error_closedir;
