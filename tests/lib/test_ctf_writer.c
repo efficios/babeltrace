@@ -39,7 +39,7 @@
 #include <assert.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <dirent.h>
+#include <babeltrace/compat/dirent.h>
 #include "tap/tap.h"
 #include <math.h>
 #include <float.h>

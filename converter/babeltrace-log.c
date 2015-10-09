@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <dirent.h>
+#include <babeltrace/compat/dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
