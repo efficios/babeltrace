@@ -29,7 +29,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <limits.h>		/* C99 limits */
-#include <string.h>
+#include <babeltrace/compat/string.h>
 
 int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {
@@ -53,7 +53,7 @@ int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition
 	if (max_len_bits < 0)
 		return -EFAULT;
 	/* Add \0, counting in bytes. */
-	len = strnlen(srcaddr, (size_t) max_len_bits / CHAR_BIT) + 1;
+	len = bt_strnlen(srcaddr, (size_t) max_len_bits / CHAR_BIT) + 1;
 	/* Truncated string, unexpected. Trace probably corrupted. */
 	if (srcaddr[len - 1] != '\0')
 		return -EFAULT;

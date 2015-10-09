@@ -26,7 +26,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -53,6 +52,7 @@
 
 #include <babeltrace/compat/memstream.h>
 #include <babeltrace/compat/send.h>
+#include <babeltrace/compat/string.h>
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
@@ -278,8 +278,8 @@ void update_session_list(GPtrArray *session_list, char *hostname,
 		return;
 
 	relay_session = g_new0(struct lttng_live_relay_session, 1);
-	relay_session->hostname = strndup(hostname, MAXNAMLEN);
-	relay_session->name = strndup(session_name, MAXNAMLEN);
+	relay_session->hostname = bt_strndup(hostname, MAXNAMLEN);
+	relay_session->name = bt_strndup(session_name, MAXNAMLEN);
 	relay_session->clients = clients;
 	relay_session->streams = streams;
 	relay_session->timer = timer;
