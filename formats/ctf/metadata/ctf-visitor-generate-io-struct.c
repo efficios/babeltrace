@@ -255,7 +255,7 @@ int get_unary_uuid(struct bt_list_head *head, unsigned char *uuid)
 				|| i != 0)
 			return -EINVAL;
 		src_string = node->u.unary_expression.u.string;
-		ret = babeltrace_uuid_parse(src_string, uuid);
+		ret = bt_uuid_parse(src_string, uuid);
 	}
 	return ret;
 }
@@ -2178,7 +2178,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				goto error;
 			}
 			if (CTF_TRACE_FIELD_IS_SET(trace, uuid)
-				&& babeltrace_uuid_compare(uuid, trace->uuid)) {
+				&& bt_uuid_compare(uuid, trace->uuid)) {
 				fprintf(fd, "[error] %s: uuid mismatch\n", __func__);
 				ret = -EPERM;
 				goto error;

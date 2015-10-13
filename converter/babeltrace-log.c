@@ -108,7 +108,7 @@ void print_metadata(FILE *fp)
 	ret = sscanf(VERSION, "%u.%u", &major, &minor);
 	if (ret != 2)
 		fprintf(stderr, "[warning] Incorrect babeltrace version format\n.");
-	babeltrace_uuid_unparse(s_uuid, uuid_str);
+	bt_uuid_unparse(s_uuid, uuid_str);
 	fprintf(fp, metadata_fmt,
 		major,
 		minor,
@@ -440,7 +440,7 @@ int main(int argc, char **argv)
 		goto error_closemetadatafd;
 	}
 
-	babeltrace_uuid_generate(s_uuid);
+	bt_uuid_generate(s_uuid);
 	print_metadata(metadata_fp);
 	trace_text(stdin, fd);
 

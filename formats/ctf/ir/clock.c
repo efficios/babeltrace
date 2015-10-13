@@ -94,7 +94,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 		goto error;
 	}
 
-	ret = babeltrace_uuid_generate(clock->uuid);
+	ret = bt_uuid_generate(clock->uuid);
 	if (ret) {
 		goto error;
 	}
