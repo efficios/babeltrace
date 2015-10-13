@@ -908,7 +908,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		pos->packet_size = WRITE_PACKET_LEN;
 		off = posix_fallocate(pos->fd, pos->mmap_offset,
 				      pos->packet_size / CHAR_BIT);
-		assert(off >= 0);
+		assert(off == 0);
 		pos->offset = 0;
 	} else {
 	read_next_packet:
