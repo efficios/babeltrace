@@ -53,6 +53,7 @@
 #include "metadata/ctf-ast.h"
 #include "events-private.h"
 #include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/fcntl.h>
 
 #define LOG2_CHAR_BIT	3
 
@@ -904,9 +905,9 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
-		off = posix_fallocate(pos->fd, pos->mmap_offset,
+		off = bt_posix_fallocate(pos->fd, pos->mmap_offset,
 				      pos->packet_size / CHAR_BIT);
-		assert(off >= 0);
+		assert(off == 0);
 		pos->offset = 0;
 	} else {
 	read_next_packet:
@@ -2007,7 +2008,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	snprintf(index_name, strlen(path) + sizeof(INDEX_PATH),
 			INDEX_PATH, path);
 
-	if (faccessat(td->dirfd, index_name, O_RDONLY, flags) < 0) {
+	if (bt_faccessat(td->dirfd, td->parent.path, index_name, O_RDONLY, 0) < 0) {
 		ret = create_stream_packet_index(td, file_stream);
 		if (ret) {
 			fprintf(stderr, "[error] Stream index creation error.\n");

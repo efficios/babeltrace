@@ -29,7 +29,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/compat/limits.h>	/* C99 limits */
-#include <string.h>
+#include <babeltrace/compat/string.h>
 
 int ctf_string_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {

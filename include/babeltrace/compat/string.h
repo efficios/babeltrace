@@ -24,6 +24,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 
 #if !defined(__linux__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
 
@@ -49,6 +50,58 @@ int compat_strerror_r(int errnum, char *buf, size_t buflen)
 	return 0;
 }
 
+#endif
+
+#ifndef HAVE_STRNLEN
+static inline
+size_t strnlen(const char *str, size_t max)
+{
+	size_t ret;
+	const char *end;
+
+	end = memchr(str, 0, max);
+
+	if (end) {
+		ret = (size_t) (end - str);
+	} else {
+		ret = max;
+	}
+
+	return ret;
+}
+#endif /* HAVE_STRNLEN */
+
+#ifndef HAVE_STRNDUP
+static inline
+char *strndup(const char *s, size_t n)
+{
+	size_t navail;
+	char *ret;
+
+	/* Test null ptr */
+	if(!s) {
+		ret = NULL;
+		goto end;
+	}
+
+	/* min() */
+	navail = strlen(s) + 1;
+	if ( (n + 1) < navail) {
+		navail = n + 1;
+	}
+
+	ret = malloc(navail);
+	if (!ret) {
+		goto end;
+	}
+
+	memcpy(ret, s, navail);
+
+	/* Add terminating \0 */
+	ret[navail - 1] = 0;
+end:
+	return ret;
+}
 #endif
 
 #endif /* _BABELTRACE_COMPAT_STRING_H */

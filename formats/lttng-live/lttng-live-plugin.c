@@ -90,12 +90,12 @@ int setup_sighandler(void)
 }
 
 /*
- * hostname parameter needs to hold NAME_MAX chars.
+ * hostname parameter needs to hold MAXNAMLEN chars.
  */
 static
 int parse_url(const char *path, struct lttng_live_ctx *ctx)
 {
-	char remain[3][NAME_MAX];
+	char remain[3][MAXNAMLEN];
 	int ret = -1, proto, proto_offset = 0;
 	size_t path_len = strlen(path);	/* not accounting \0 */
 
@@ -104,7 +104,7 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 	 * against a size defined by a macro. Test it beforehand on the
 	 * input. We know the output is always <= than the input length.
 	 */
-	if (path_len >= NAME_MAX) {
+	if (path_len >= MAXNAMLEN) {
 		goto end;
 	}
 	ret = sscanf(path, "net%d://", &proto);

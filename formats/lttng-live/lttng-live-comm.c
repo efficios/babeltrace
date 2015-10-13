@@ -26,7 +26,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -52,6 +51,8 @@
 
 #include <babeltrace/endian.h>
 #include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/sigpipe.h>
+#include <babeltrace/compat/string.h>
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
@@ -103,7 +104,7 @@ ssize_t lttng_live_send(int fd, const void *buf, size_t len)
 	ssize_t ret;
 
 	do {
-		ret = send(fd, buf, len, MSG_NOSIGNAL);
+		ret = bt_nosigpipe_send(fd, buf, len);
 	} while (ret < 0 && errno == EINTR);
 	return ret;
 }
@@ -134,7 +135,7 @@ int lttng_live_connect_viewer(struct lttng_live_ctx *ctx)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(ctx->port);
 	server_addr.sin_addr = *((struct in_addr *) host->h_addr);
-	bzero(&(server_addr.sin_zero), 8);
+	memset(&(server_addr.sin_zero), 0, 8);
 
 	if (connect(ctx->control_sock, (struct sockaddr *) &server_addr,
 				sizeof(struct sockaddr)) == -1) {
@@ -263,9 +264,9 @@ void update_session_list(GPtrArray *session_list, char *hostname,
 
 	for (i = 0; i < session_list->len; i++) {
 		relay_session = g_ptr_array_index(session_list, i);
-		if ((strncmp(relay_session->hostname, hostname, NAME_MAX) == 0) &&
+		if ((strncmp(relay_session->hostname, hostname, MAXNAMLEN) == 0) &&
 				strncmp(relay_session->name,
-					session_name, NAME_MAX) == 0) {
+					session_name, MAXNAMLEN) == 0) {
 			relay_session->streams += streams;
 			if (relay_session->clients < clients)
 				relay_session->clients = clients;
@@ -277,8 +278,8 @@ void update_session_list(GPtrArray *session_list, char *hostname,
 		return;
 
 	relay_session = g_new0(struct lttng_live_relay_session, 1);
-	relay_session->hostname = strndup(hostname, NAME_MAX);
-	relay_session->name = strndup(session_name, NAME_MAX);
+	relay_session->hostname = strndup(hostname, MAXNAMLEN);
+	relay_session->name = strndup(session_name, MAXNAMLEN);
 	relay_session->clients = clients;
 	relay_session->streams = streams;
 	relay_session->timer = timer;
@@ -352,8 +353,8 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path)
 					be32toh(lsession.live_timer));
 		} else {
 			if ((strncmp(lsession.session_name, ctx->session_name,
-				NAME_MAX) == 0) && (strncmp(lsession.hostname,
-					ctx->traced_hostname, NAME_MAX) == 0)) {
+				MAXNAMLEN) == 0) && (strncmp(lsession.hostname,
+					ctx->traced_hostname, MAXNAMLEN) == 0)) {
 				printf_verbose("Reading from session %" PRIu64 "\n",
 						session_id);
 				g_array_append_val(ctx->session_ids,
@@ -1117,7 +1118,7 @@ int handle_seek_position(size_t index, int whence,
 		struct ctf_stream_pos *pos,
 		struct ctf_file_stream *file_stream)
 {
-	int ret;
+	int ret = 0;
 
 	switch (whence) {
 	case SEEK_CUR:

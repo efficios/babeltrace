@@ -19,7 +19,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define _GNU_SOURCE
 #include <babeltrace/ctf-writer/writer.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/stream.h>
@@ -31,18 +30,20 @@
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
 #include <unistd.h>
-#include <stdlib.h>
+#include <babeltrace/compat/stdlib.h>
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <babeltrace/compat/limits.h>
+#include <babeltrace/compat/stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <dirent.h>
+#include <babeltrace/compat/dirent.h>
 #include "tap/tap.h"
 #include <math.h>
 #include <float.h>
+#include <sys/stat.h>
 
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
@@ -160,12 +161,12 @@ result:
 		rewind(metadata_fp);
 
 		/* Output the metadata and parser output as diagnostic */
-		while (getline(&line, &len, metadata_fp) > 0) {
+		while (bt_getline(&line, &len, metadata_fp) > 0) {
 			fprintf(stderr, "# %s", line);
 		}
 
 		rewind(parser_output_fp);
-		while (getline(&line, &len, parser_output_fp) > 0) {
+		while (bt_getline(&line, &len, parser_output_fp) > 0) {
 			fprintf(stderr, "# %s", line);
 		}
 
@@ -257,7 +258,7 @@ result:
 			diag("malloc error");
 		}
 		rewind(babeltrace_output_fp);
-		while (getline(&line, &len, babeltrace_output_fp) > 0) {
+		while (bt_getline(&line, &len, babeltrace_output_fp) > 0) {
 			diag("%s", line);
 		}
 
@@ -2845,7 +2846,8 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");
 	BT_PUT(obj);
 
-	if (uname(&name)) {
+	/* On Solaris, uname() can return any positive value on success */
+	if (uname(&name) < 0) {
 		perror("uname");
 		return -1;
 	}
@@ -3297,7 +3299,18 @@ int main(int argc, char **argv)
 
 	struct dirent *entry;
 	while ((entry = readdir(trace_dir))) {
-		if (entry->d_type == DT_REG) {
+		struct stat st;
+		char filename[PATH_MAX];
+
+		if (snprintf(filename, sizeof(filename), "%s/%s", trace_path, entry->d_name) <= 0) {
+			continue;
+		}
+
+		if (stat(entry->d_name, &st)) {
+			continue;
+		}
+
+		if (S_ISREG(st.st_mode)) {
 			unlinkat(dirfd(trace_dir), entry->d_name, 0);
 		}
 	}
