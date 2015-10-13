@@ -24,8 +24,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
- * Depends on glibc 2.10 for getline().
  */
 
 #include <sys/types.h>
@@ -45,6 +43,7 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/compat/uuid.h>
 #include <babeltrace/compat/utc.h>
+#include <babeltrace/compat/stdio.h>
 #include <babeltrace/endian.h>
 
 #define NSEC_PER_USEC 1000UL
@@ -329,7 +328,7 @@ void trace_text(FILE *input, int output)
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
 	for (;;) {
-		len = getline(&line, &linesize, input);
+		len = bt_getline(&line, &linesize, input);
 		if (len < 0)
 			break;
 		nl = strrchr(line, '\n');
