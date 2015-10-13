@@ -316,7 +316,7 @@ void trace_text(FILE *input, int output)
 	struct ctf_stream_pos pos;
 	ssize_t len;
 	char *line = NULL, *nl;
-	size_t linesize;
+	size_t linesize = 0;
 	int ret;
 
 	memset(&pos, 0, sizeof(pos));
