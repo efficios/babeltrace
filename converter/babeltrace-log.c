@@ -276,13 +276,15 @@ void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
 	printf_debug("read: %s\n", line);
 
 	for (;;) {
+		int packet_filled = 0;
+
 		ctf_dummy_pos(pos, &dummy);
 		write_event_header(&dummy, line, &tline, len, &tlen, &ts);
 		if (!ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT))
-			goto error;
+			packet_filled = 1;
 		if (!ctf_move_pos(&dummy, tlen * CHAR_BIT))
-			goto error;
-		if (ctf_pos_packet(&dummy)) {
+			packet_filled = 1;
+		if (packet_filled || ctf_pos_packet(&dummy)) {
 			ctf_pos_pad_packet(pos);
 			write_packet_header(pos, s_uuid);
 			write_packet_context(pos);
@@ -325,6 +327,7 @@ void trace_text(FILE *input, int output)
 		fprintf(stderr, "Error in ctf_init_pos\n");
 		return;
 	}
+	ctf_packet_seek(&pos.parent, 0, SEEK_CUR);
 	write_packet_header(&pos, s_uuid);
 	write_packet_context(&pos);
 	for (;;) {
