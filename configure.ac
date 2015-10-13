@@ -46,7 +46,18 @@ CC="$PTHREAD_CC"
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
 AC_SUBST([LD_NO_AS_NEEDED])
 
-AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stddef.h sys/socket.h])
+AC_HEADER_STDBOOL
+AC_CHECK_HEADERS([ \
+	fcntl.h \
+	float.h \
+	libintl.h \
+	limits.h \
+	malloc.h \
+	netdb.h \
+	netinet/in.h \
+	stddef.h \
+	sys/socket.h \
+])
 
 if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
         if test x"$YACC" != "xbison -y"; then
@@ -79,9 +90,41 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
+AC_FUNC_ALLOCA
+AC_FUNC_FORK
 AC_FUNC_MALLOC
+AC_FUNC_MKTIME
 AC_FUNC_MMAP
-AC_CHECK_FUNCS([gettimeofday munmap strtoul strndup strnlen mkdtemp dirfd])
+AC_FUNC_REALLOC
+AC_FUNC_STRERROR_R
+AC_CHECK_FUNCS([ \
+	atexit \
+	dirfd \
+	dup2 \
+	ftruncate \
+	gethostbyname \
+	gethostname \
+	gettimeofday \
+	localtime_r \
+	memchr \
+	memset \
+	mkdir \
+	mkdtemp \
+	munmap \
+	rmdir \
+	setenv \
+	socket \
+	strchr \
+	strdup \
+	strerror \
+	strndup \
+	strnlen \
+	strrchr \
+	strtoul \
+	strtoull \
+	tzset \
+	uname \
+])
 
 # Check for MinGW32.
 MINGW32=no
