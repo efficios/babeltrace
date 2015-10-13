@@ -1109,7 +1109,7 @@ int ctf_trace_metadata_packet_read(struct ctf_trace *td, FILE *in,
 		memcpy(td->uuid, header.uuid, sizeof(header.uuid));
 		CTF_TRACE_SET_FIELD(td, uuid);
 	} else {
-		if (babeltrace_uuid_compare(header.uuid, td->uuid))
+		if (bt_uuid_compare(header.uuid, td->uuid))
 			return -EINVAL;
 	}
 
@@ -1595,7 +1595,7 @@ begin:
 				elem = bt_array_index(defarray, i);
 				uuidval[i] = bt_get_unsigned_int(elem);
 			}
-			ret = babeltrace_uuid_compare(td->uuid, uuidval);
+			ret = bt_uuid_compare(td->uuid, uuidval);
 			if (ret) {
 				fprintf(stderr, "[error] Unique Universal Identifiers do not match.\n");
 				return -EINVAL;

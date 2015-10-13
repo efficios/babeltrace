@@ -48,7 +48,7 @@ void fix_uuid_endian(unsigned char * ptr)
 	swap(ptr, 6, 7)
 }
 
-int babeltrace_uuid_generate(unsigned char *uuid_out)
+int bt_uuid_generate(unsigned char *uuid_out)
 {
 	RPC_STATUS status;
 
@@ -59,7 +59,7 @@ int babeltrace_uuid_generate(unsigned char *uuid_out)
 		return -1;
 }
 
-int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
+int bt_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 {
 	RPC_STATUS status;
 	unsigned char *alloc_str;
@@ -83,7 +83,7 @@ int babeltrace_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 	return ret;
 }
 
-int babeltrace_uuid_parse(const char *str_in, unsigned char *uuid_out)
+int bt_uuid_parse(const char *str_in, unsigned char *uuid_out)
 {
 	RPC_STATUS status;
 
@@ -97,7 +97,7 @@ int babeltrace_uuid_parse(const char *str_in, unsigned char *uuid_out)
 		return -1;
 }
 
-int babeltrace_uuid_compare(const unsigned char *uuid_a,
+int bt_uuid_compare(const unsigned char *uuid_a,
 		const unsigned char *uuid_b)
 {
 	RPC_STATUS status;
