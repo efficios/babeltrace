@@ -863,7 +863,6 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	struct ctf_file_stream *file_stream =
 		container_of(pos, struct ctf_file_stream, pos);
 	int ret;
-	off_t off;
 	struct packet_index *packet_index, *prev_index;
 
 	switch (whence) {
@@ -907,9 +906,11 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
 		pos->packet_size = WRITE_PACKET_LEN;
-		off = bt_posix_fallocate(pos->fd, pos->mmap_offset,
-				      pos->packet_size / CHAR_BIT);
-		assert(off == 0);
+		do {
+			ret = bt_posix_fallocate(pos->fd, pos->mmap_offset,
+					      pos->packet_size / CHAR_BIT);
+		} while (ret == EINTR);
+		assert(ret == 0);
 		pos->offset = 0;
 	} else {
 	read_next_packet:
