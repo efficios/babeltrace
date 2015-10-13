@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <babeltrace/compat/limits.h>
+#include <babeltrace/compat/stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <sys/wait.h>
@@ -160,12 +161,12 @@ result:
 		rewind(metadata_fp);
 
 		/* Output the metadata and parser output as diagnostic */
-		while (getline(&line, &len, metadata_fp) > 0) {
+		while (bt_getline(&line, &len, metadata_fp) > 0) {
 			fprintf(stderr, "# %s", line);
 		}
 
 		rewind(parser_output_fp);
-		while (getline(&line, &len, parser_output_fp) > 0) {
+		while (bt_getline(&line, &len, parser_output_fp) > 0) {
 			fprintf(stderr, "# %s", line);
 		}
 
@@ -257,7 +258,7 @@ result:
 			diag("malloc error");
 		}
 		rewind(babeltrace_output_fp);
-		while (getline(&line, &len, babeltrace_output_fp) > 0) {
+		while (bt_getline(&line, &len, babeltrace_output_fp) > 0) {
 			diag("%s", line);
 		}
 
