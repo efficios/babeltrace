@@ -932,8 +932,10 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		}
 	} while (ret > 0 || !len_read);
 
-	if (fclose(metadata_stream->metadata_fp_write))
-		perror("fclose");
+	if (babeltrace_close_memstream(metadata_buf, &size,
+			metadata_stream->metadata_fp_write)) {
+		perror("babeltrace_close_memstream");
+	}
 	metadata_stream->metadata_fp_write = NULL;
 
 error:
