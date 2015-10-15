@@ -84,9 +84,10 @@ ssize_t bt_getline(char **lineptr, size_t *n, FILE *stream)
 	}
 	for (;;) {
 		char c;
+		int ret;
 
-		c = fgetc(stream);
-		if (c == EOF) {
+		ret = fgetc(stream);
+		if (ret == EOF) {
 			if (ferror(stream)) {
 				/* ferror() is set, errno set by fgetc(). */
 				return -1;
@@ -95,6 +96,7 @@ ssize_t bt_getline(char **lineptr, size_t *n, FILE *stream)
 			found_eof = 1;
 			break;
 		}
+		c = (char) ret;
 		if (linelen == SSIZE_MAX) {
 			errno = EOVERFLOW;
 			return -1;
