@@ -109,7 +109,7 @@ ssize_t bt_send_nosigpipe(int fd, const void *buffer, size_t size)
 	}
 	/* Restore send() errno */
 	errno = saved_err;
-end:
+
 	return sent;
 }
 #endif
