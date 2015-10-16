@@ -1,3 +1,58 @@
+2015-10-16 babeltrace 1.3.0
+	* Fix: missing includes break the out-of-tree build
+	* Fix: Silence missing sentinel warnings on GCC 4
+	* Cleanup: remove unused label 'end'
+	* Fix: check for socket lib before function checks
+	* Fix: memstream compat layer requires use of babeltrace_close_memstream
+	* compat send no SIGPIPE: multithread-safe
+	* Fix: truncated value in fgetc() usage
+	* Fix: handle EINTR return value for bt_posix_fallocate
+	* Configure: Add missing checks
+	* Implement bt_getline
+	* Fix: initialize getline linesize argument to 0
+	* Fix: warning, may be used uninitialized
+	* Port: Replace dirent->d_type by stat S_ISREG
+	* Port: Include config.h globally trough DEFAULT_INCLUDES
+	* Port: Add compat for dirfd
+	* Port: Add compat for mkdtemp
+	* Port: Add compat for strnlen and strndup
+	* Port: Use bash to run tests
+	* Port: Implement faccessat wrapper
+	* Port: implement posix_fallocate wrapper
+	* Port: Set required compiler flags to use pthreads
+	* Port: Add configure check for __attribute__ support
+	* Port: cleanup and portability fix to configure.ac
+	* Port: Add support for linkers with no support for 'no-as-needed'
+	* Port: Add compat for platforms with no MSG_NOSIGNAL or SO_NOSIGPIPE
+	* Port: Add AX_LIB_SOCKET_NSL macro to configure.ac
+	* Port: Replace bzero() by memset()
+	* Port: Add dummy.c to libcompat
+	* Port: uname can return a positive value on success
+	* Port: Replace NAME_MAX by MAXNAMLEN
+	* Change UUID API prefix from babeltrace_ to bt_
+	* Port: Add Solaris libuuid compat
+	* Port: Add Solaris endian.h compat
+	* Port: make bootstrap script work on most shell
+	* Fix: posix_fallocate() returns int > 0 on errors
+	* Fix: babeltrace-log packet seek
+	* Fix: make check in OOT build with absolute path
+	* Fix: make check in out of tree build
+	* Fix: 32bit values index_major/minor used as 64bit
+	* Hide the packet_seq_num field
+	* Build: Update m4 for bison & flex version check to match autoconf-archive file
+	* Build: add version check on flex
+	* Build: add version check on autoconf
+	* Build: m4 macro for Bison version check
+	* Fix: Missing postfix_expression DOT keywords in CTF grammar
+	* Fix: handle 64-bit trace IDs on 32-bit systems
+	* Fix: print format type mismatch warnings on 32-bit
+	* Fix: missing parenthesis in offset_align_floor
+	* Fix: allow empty CTF files
+	* Fix: Incorrect variant tag validation
+	* Fix: sanity check in iterator creation
+	* Fix: iterate manually over each live trace to add to catch errors
+	* Detect Python packages directory on configure
+
 2014-11-04 Babeltrace 1.2.4
 	* Fix: make sure we can exit the get_new_metadata loop
 	* Docs fix: Change bt_ctf_writer_create_stream return description
