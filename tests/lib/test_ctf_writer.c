@@ -756,7 +756,8 @@ int main(int argc, char **argv)
 		NULL),
 		"bt_ctf_writer_add_environment_field error with NULL field value");
 
-	if (uname(&name)) {
+	/* On Solaris, uname() can return any positive value on success */
+	if (uname(&name) < 0) {
 		perror("uname");
 		return -1;
 	}
