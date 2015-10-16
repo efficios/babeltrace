@@ -1,4 +1,5 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
+AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
+		-I$(top_srcdir)/formats/ctf/metadata
 BUILT_SOURCES = ctf-parser.h
 AM_YFLAGS = -t -d -v
 
@@ -11,13 +12,13 @@ noinst_HEADERS = \
 	objstack.h
 
 libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y objstack.c
-libctf_parser_la_CFLAGS = $(AM_CFLAGS) -include ctf-scanner-symbols.h
+libctf_parser_la_CFLAGS = $(AM_CFLAGS)
 
+libctf_ast_la_CFLAGS = $(AM_CFLAGS) -I$(top_builddir)/formats/ctf/metadata
 libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 		ctf-visitor-parent-links.c \
 		ctf-visitor-semantic-validator.c \
 		ctf-visitor-generate-io-struct.c
-
 libctf_ast_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
 
@@ -33,7 +34,7 @@ endif
 
 noinst_PROGRAMS = ctf-parser-test
 ctf_parser_test_SOURCES = ctf-parser-test.c
-
+ctf_parser_test_CFLAGS = $(AM_CFLAGS) -I$(top_builddir)/formats/ctf/metadata
 ctf_parser_test_LDADD = \
 		libctf-parser.la \
 		libctf-ast.la
