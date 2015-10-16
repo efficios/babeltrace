@@ -3,7 +3,8 @@ babeltrace.i: babeltrace.i.in
 		$(top_srcdir)/bindings/python/babeltrace.i.in > \
 		$(top_builddir)/bindings/python/babeltrace.i
 
-AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/
+AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/ \
+		-I$(top_srcdir)/bindings/python
 
 EXTRA_DIST = babeltrace.i.in
 nodist_python_PYTHON = babeltrace.py

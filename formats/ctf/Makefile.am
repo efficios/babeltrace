@@ -1,4 +1,5 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
+AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
+		-I$(top_builddir)/formats/ctf
 
 SUBDIRS = types metadata writer .
 
