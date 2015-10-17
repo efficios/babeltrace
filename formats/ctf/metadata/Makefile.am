@@ -12,7 +12,10 @@ noinst_HEADERS = \
 	objstack.h
 
 libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y objstack.c
-libctf_parser_la_CFLAGS = $(AM_CFLAGS)
+# ctf-scanner-symbols.h is included to prefix generated yy_* symbols
+# with bt_.
+libctf_parser_la_CFLAGS = $(AM_CFLAGS) -I$(srcdir) \
+		-include $(srcdir)/ctf-scanner-symbols.h
 
 libctf_ast_la_CFLAGS = $(AM_CFLAGS) -I$(top_builddir)/formats/ctf/metadata
 libctf_ast_la_SOURCES = ctf-visitor-xml.c \
