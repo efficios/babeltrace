@@ -60,7 +60,7 @@ AC_CHECK_HEADERS([ \
 ])
 
 if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
-        if test x"$YACC" != "xbison -y"; then
+        if test x"$(basename "$YACC")" != "xbison -y"; then
                 AC_MSG_ERROR([[bison not found and is required when building from git.
                 Please install bison]])
         fi
