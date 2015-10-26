@@ -1510,6 +1510,7 @@ int create_stream_one_packet_index(struct ctf_stream_pos *pos,
 	int ret;
 
 begin:
+	memset(&packet_index, 0, sizeof(packet_index));
 	if (!pos->mmap_offset) {
 		first_packet = 1;
 	}
@@ -1541,16 +1542,6 @@ begin:
 	pos->offset = 0;	/* Position of the packet header */
 
 	packet_index.offset = pos->mmap_offset;
-	packet_index.content_size = 0;
-	packet_index.packet_size = 0;
-	packet_index.ts_real.timestamp_begin = 0;
-	packet_index.ts_real.timestamp_end = 0;
-	packet_index.ts_cycles.timestamp_begin = 0;
-	packet_index.ts_cycles.timestamp_end = 0;
-	packet_index.events_discarded = 0;
-	packet_index.events_discarded_len = 0;
-	packet_index.stream_instance_id = 0;
-	packet_index.packet_seq_num = 0;
 
 	/* read and check header, set stream id (and check) */
 	if (file_stream->parent.trace_packet_header) {
