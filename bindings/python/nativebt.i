@@ -112,7 +112,7 @@ int _bt_python_ctf_clock_get_uuid_index(struct bt_ctf_clock *clock,
 		size_t index, unsigned char *OUTPUT);
 int _bt_python_ctf_clock_set_uuid_index(struct bt_ctf_clock *clock,
 		size_t index, unsigned char value);
-
+struct bt_iter_pos *_bt_python_create_iter_pos(void);
 
 /* context.h, context-internal.h */
 %rename("_bt_context_create") bt_context_create(void);

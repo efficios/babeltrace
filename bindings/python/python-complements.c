@@ -31,6 +31,8 @@
 #include <babeltrace/ctf-ir/event-types.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/iterator.h>
+#include <glib.h>
 
 /* List-related functions
    ----------------------------------------------------
@@ -385,4 +387,15 @@ int _bt_python_ctf_clock_set_uuid_index(struct bt_ctf_clock *clock,
 	clock->uuid[index] = value;
 end:
 	return ret;
+}
+
+/*
+ * Python 3.5 changes the StopIteration exception clearing behaviour which
+ * erroneously marks swig clean-up function as having failed. This explicit
+ * allocation function is intended as a work-around so SWIG doesn't manage
+ * the lifetime of a "temporary" object by itself.
+ */
+struct bt_iter_pos *_bt_python_create_iter_pos(void)
+{
+	return g_new0(struct bt_iter_pos, 1);
 }

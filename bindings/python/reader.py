@@ -145,13 +145,16 @@ class TraceCollection:
         they need *from* an event before accessing the next one.
         """
 
-        begin_pos_ptr = nbt._bt_iter_pos()
-        end_pos_ptr = nbt._bt_iter_pos()
+        begin_pos_ptr = nbt._bt_python_create_iter_pos()
+        end_pos_ptr = nbt._bt_python_create_iter_pos()
         begin_pos_ptr.type = nbt.SEEK_BEGIN
         end_pos_ptr.type = nbt.SEEK_LAST
 
         for event in self._events(begin_pos_ptr, end_pos_ptr):
             yield event
+
+        nbt._bt_iter_free_pos(begin_pos_ptr);
+        nbt._bt_iter_free_pos(end_pos_ptr);
 
     def events_timestamps(self, timestamp_begin, timestamp_end):
         """
@@ -165,14 +168,17 @@ class TraceCollection:
         See :attr:`events` for notes and limitations.
         """
 
-        begin_pos_ptr = nbt._bt_iter_pos()
-        end_pos_ptr = nbt._bt_iter_pos()
+        begin_pos_ptr = nbt._bt_python_create_iter_pos()
+        end_pos_ptr = nbt._bt_python_create_iter_pos()
         begin_pos_ptr.type = end_pos_ptr.type = nbt.SEEK_TIME
         begin_pos_ptr.u.seek_time = timestamp_begin
         end_pos_ptr.u.seek_time = timestamp_end
 
         for event in self._events(begin_pos_ptr, end_pos_ptr):
             yield event
+
+        nbt._bt_iter_free_pos(begin_pos_ptr);
+        nbt._bt_iter_free_pos(end_pos_ptr);
 
     @property
     def timestamp_begin(self):
