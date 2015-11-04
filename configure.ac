@@ -1,5 +1,5 @@
 AC_PREREQ([2.50])
-AC_INIT([babeltrace],[1.3.0-pre],[jeremie dot galarneau at efficios dot com])
+AC_INIT([babeltrace],[2.0.0-pre],[jeremie dot galarneau at efficios dot com])
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
