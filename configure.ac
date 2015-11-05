@@ -148,29 +148,37 @@ AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
 # Check what libraries are required on this platform to link sockets programs.
 AX_LIB_SOCKET_NSL
 
-# Check for libuuid
-AC_CHECK_LIB([uuid], [uuid_generate],
+# Check for uuid in system libs
+AC_CHECK_FUNCS([uuid_generate],
 [
-	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
-	have_libuuid=yes
+  AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
+  link_with_libuuid=no
 ],
 [
-	# libuuid not found, check for uuid_create in libc.
-	AC_CHECK_LIB([c], [uuid_create],
-	[
-		AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBC_UUID], 1, [Has libc uuid support.])
-		have_libc_uuid=yes
-	],
-	[
-		# for MinGW32 we have our own internal implemenation of uuid using Windows functions.
-		if test "x$MINGW32" = xno; then
-			AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
-		fi
-	])
-]
-)
-AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBUUID], [test "x$have_libuuid" = "xyes"])
-AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBC_UUID], [test "x$have_libc_uuid" = "xyes"])
+  # Check for libuuid
+  AC_CHECK_LIB([uuid], [uuid_generate],
+  [
+    AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
+    link_with_libuuid=yes
+  ],
+  [
+    # libuuid not found, check for uuid_create in libc.
+    AC_CHECK_LIB([c], [uuid_create],
+    [
+      AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBC_UUID], 1, [Has libc uuid support.])
+      link_with_libc_uuid=yes
+    ],
+    [
+      # for MinGW32 we have our own internal implemenation of uuid using Windows functions.
+      if test "x$MINGW32" = xno; then
+        AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
+      fi
+    ])
+  ])
+])
+
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBUUID], [test "x$link_with_libuuid" = "xyes"])
+AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBC_UUID], [test "x$link_with_libc_uuid" = "xyes"])
 
 # Check for fmemopen
 AC_CHECK_LIB([c], [fmemopen],
