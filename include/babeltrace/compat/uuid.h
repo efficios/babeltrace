@@ -83,7 +83,7 @@ int bt_uuid_compare(const unsigned char *uuid_a,
 }
 #endif
 
-#elif defined(BT_HAVE_LIBC_UUID)
+#elif defined(BABELTRACE_HAVE_LIBC_UUID)
 #include <uuid.h>
 #include <stdint.h>
 #include <string.h>
