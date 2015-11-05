@@ -31,7 +31,6 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <poll.h>
 
 #include <babeltrace/ctf/ctf-index.h>
@@ -53,6 +52,7 @@
 #include <babeltrace/compat/memstream.h>
 #include <babeltrace/compat/send.h>
 #include <babeltrace/compat/string.h>
+#include <babeltrace/compat/mman.h>
 
 #include "lttng-live.h"
 #include "lttng-viewer-abi.h"
