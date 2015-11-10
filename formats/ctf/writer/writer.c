@@ -724,7 +724,8 @@ void stream_flush_cb(struct bt_ctf_stream *stream, struct bt_ctf_writer *writer)
 
 	stream_id = bt_ctf_field_structure_get_field(
 		writer->trace_packet_header, "stream_id");
-	bt_ctf_field_unsigned_integer_set_value(stream_id, stream->id);
+	bt_ctf_field_unsigned_integer_set_value(stream_id,
+		stream->stream_class->id);
 	bt_ctf_field_put(stream_id);
 
 	/* Write the trace_packet_header */
