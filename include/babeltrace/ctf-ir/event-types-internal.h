@@ -54,9 +54,12 @@ enum bt_ctf_node {
 
 struct bt_ctf_field_path {
 	enum bt_ctf_node root;
+
 	/*
 	 * Array of integers (int) indicating the index in either
-	 * structures or variants that make-up the path to a field.
+	 * structures, variants, arrays, or sequences that make up
+	 * the path to a field type. -1 means the "current element
+	 * of an array or sequence type".
 	 */
 	GArray *path_indexes;
 };

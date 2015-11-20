@@ -68,6 +68,25 @@ static const char * const type_names[] = {
 	[CTF_TYPE_SEQUENCE] = "sequence",
 };
 
+struct ctf_type_stack_frame {
+	struct bt_ctf_field_type *type;
+	int index;
+};
+
+typedef GPtrArray ctf_type_stack;
+
+struct ctf_type_visitor_context {
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_event_class *event_class;
+	/* Root node being visited */
+	enum bt_ctf_node root_node;
+	ctf_type_stack *stack;
+};
+
+typedef int (*ctf_type_visitor_func)(struct bt_ctf_field_type *,
+	struct ctf_type_visitor_context *);
+
 static
 int field_type_visit(struct bt_ctf_field_type *type,
 		struct ctf_type_visitor_context *context,
@@ -87,9 +106,12 @@ int get_type_field_count(struct bt_ctf_field_type *type)
 	if (type_id == CTF_TYPE_STRUCT) {
 		field_count = bt_ctf_field_type_structure_get_field_count(type);
 	} else if (type_id == CTF_TYPE_VARIANT) {
-		field_count = bt_ctf_field_type_variant_get_field_count(type);
+k		field_count = bt_ctf_field_type_variant_get_field_count(type);
 	} else if (type_id == CTF_TYPE_ARRAY || type_id == CTF_TYPE_SEQUENCE) {
-		/* Array and sequence types always contain a single type */
+		/*
+		 * Array and sequence types always contain a single member
+		 * (the element type).
+		 */
 		field_count = 1;
 	}
 	return field_count;
@@ -164,42 +186,56 @@ void stack_destroy_notify(gpointer data)
 	g_free(frame);
 }
 
-BT_HIDDEN
 ctf_type_stack *ctf_type_stack_create(void)
 {
 	return g_ptr_array_new_with_free_func(stack_destroy_notify);
 }
 
-BT_HIDDEN
-void ctf_type_stack_destroy(
-		ctf_type_stack *stack)
+static
+void ctf_type_stack_destroy(ctf_type_stack *stack)
 {
 	g_ptr_array_free(stack, TRUE);
 }
 
-BT_HIDDEN
+static
 int ctf_type_stack_push(ctf_type_stack *stack,
-		struct ctf_type_stack_frame *entry)
+		struct bt_ctf_field_type *type)
 {
 	int ret = 0;
+	struct ctf_type_stack_frame *frame = NULL;
 
-	if (!stack || !entry) {
+	if (!stack || !frame) {
 		ret = -1;
 		goto end;
 	}
 
+	frame = g_new0(struct ctf_type_stack_frame, 1);
+
+	if (!frame) {
+		ret = -1;
+		goto end;
+	}
+
+	frame->type = type;
 	bt_get(entry->type);
 	g_ptr_array_add(stack, entry);
+
 end:
 	return ret;
 }
 
-BT_HIDDEN
+static
+bool ctf_type_stack_empty(ctf_type_stack *stack)
+{
+	return stack->len == 0;
+}
+
+static
 struct ctf_type_stack_frame *ctf_type_stack_peek(ctf_type_stack *stack)
 {
 	struct ctf_type_stack_frame *entry = NULL;
 
-	if (!stack || stack->len == 0) {
+	if (!stack || ctf_type_stack_empty(stack)) {
 		goto end;
 	}
 
@@ -208,14 +244,26 @@ end:
 	return entry;
 }
 
-BT_HIDDEN
-void ctf_type_stack_pop(ctf_type_stack *stack)
+static
+struct ctf_type_stack_frame *ctf_type_stack_at(ctf_type_stack *stack,
+	size_t index)
 {
 	struct ctf_type_stack_frame *entry = NULL;
 
-	entry = ctf_type_stack_peek(stack);
+	if (!stack || index >= stack->len) {
+		goto end;
+	}
 
-	if (entry) {
+	entry = g_ptr_array_index(stack, index);
+
+end:
+	return entry;
+}
+
+static
+void ctf_type_stack_pop(ctf_type_stack *stack)
+{
+	if (!ctf_type_stack_empty(stack)) {
 		/*
 		 * This will call the frame's destructor and free it, as
 		 * well as put its contained field type.
@@ -243,9 +291,7 @@ int field_type_visit(struct bt_ctf_field_type *type,
 	 * Original type could have been copied and replaced by func(),
 	 * so get it again from the stack's top frame.
 	 */
-	frame = ctf_type_stack_peek(context->stack);
-
-	if (frame) {
+	if (!ctf_type_stack_empty(context->stack)) {
 		/*
 		 * There's at least one frame, so we're not visiting the
 		 * root field type frame here.
@@ -255,14 +301,8 @@ int field_type_visit(struct bt_ctf_field_type *type,
 		 * `top_type` is put at the end of this function.
 		 */
 		top_type = get_type_field(frame->type, frame->index);
-
-		if (!top_type) {
-			ret = -1;
-			goto end;
-		}
-
+		assert(top_type);
 		type = top_type;
-		frame = NULL;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(type);
@@ -275,14 +315,7 @@ int field_type_visit(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
-	frame = g_new0(struct ctf_type_stack_frame, 1);
-	if (!frame) {
-		ret = -1;
-		goto end;
-	}
-
-	frame->type = type;
-	ret = ctf_type_stack_push(context->stack, frame);
+	ret = ctf_type_stack_push(context->stack, type);
 	if (ret) {
 		g_free(frame);
 		goto end;
@@ -294,7 +327,7 @@ end:
 }
 
 static
-int field_type_recursive_visit(struct bt_ctf_field_type *type,
+int field_type_dynamic_scope_visit(struct bt_ctf_field_type *type,
 		struct ctf_type_visitor_context *context,
 		ctf_type_visitor_func func)
 {
@@ -304,7 +337,7 @@ int field_type_recursive_visit(struct bt_ctf_field_type *type,
 	assert(bt_ctf_field_type_is_structure(type));
 
 	/* Visit root field type */
-	ret = field_type_visit(type, context, func);
+	ret =  (type, context, func);
 
 	if (ret) {
 		goto end;
@@ -331,7 +364,7 @@ int field_type_recursive_visit(struct bt_ctf_field_type *type,
 			/* This level has been completely visited */
 			ctf_type_stack_pop(context->stack);
 
-			if (context->stack->len == 0) {
+			if (ctf_type_stack_empty(context->stack)) {
 				/* Completed visit */
 				break;
 			} else {
@@ -342,11 +375,15 @@ int field_type_recursive_visit(struct bt_ctf_field_type *type,
 		field = get_type_field(entry->type, entry->index);
 
 		/*
-		 * field_type_visit() may push a new frame onto
+		 * field_type_visit() will push a new frame onto
 		 * the stack if the visited type is a compound type.
 		 * In this case, the field type (`field` variable)
 		 * passed as a weak reference will be taken (new
-		 * reference) when pushed onto the stack.
+		 * reference) when pushed onto the stack, or a copy
+		 * will be made and pushed (in the case of a variant
+		 * or sequence type) because its tag/length type will
+		 * be modified as it is resolved. We want to leave the
+		 * original field type as is.
 		 */
 		ret = field_type_visit(field, context, func);
 		BT_PUT(field);
@@ -482,36 +519,86 @@ end:
 }
 
 static
-int set_field_path_relative(struct ctf_type_visitor_context *context,
-		struct bt_ctf_field_path *field_path,
-		GList **path_tokens, struct bt_ctf_field_type **resolved_field)
+void current_stack_to_absolute_path(struct ctf_type_visitor_context *context,
+		struct bt_ctf_field_path *field_path)
+{
+	size_t i;
+
+	/* Set field path's root node: our current root node */
+	field_path->root = context->root_node;
+
+	/* Make sure the path is empty */
+	g_array_set_size(field_path->path_indexes, 0);
+
+	/*
+	 * The context stack is an array of
+	 * (base type, index in this type) tuples. The position of the
+	 * requesting type in this stack is the field type at the
+	 * index in the base type of the top-most stack frame. If we
+	 * are here, this field type should be either a sequence type
+	 * or a variant type. What we want is the path leading to the
+	 * parent of the current field type; in other words, all the
+	 * indexes in the stack but the last one.
+	 *
+	 * Example:
+	 *
+	 *               4            0             2
+	 *     [struct] ---> [array] ---> [struct] ---> [variant]
+	 *         ^                          ^             ^
+	 *        root of             what we're           requesting
+	 *        dynamic scope      looking for           type
+	 *
+	 *     Stack length: 3 (number of arrows)
+	 *     Path indexes: [4, 0]
+	 */
+	assert(!ctf_type_stack_empty(context->stack));
+
+	for (i = 0; i < context->stack->len - 1; ++i) {
+		struct ctf_type_stack_frame *frame =
+			ctf_type_stack_peek(context->stack);
+
+		g_array_append_val(field_path->path_indexes, frame->index);
+	}
+}
+
+static
+int relative_tokens_to_absolute_path(struct ctf_type_visitor_context *context,
+	struct bt_ctf_field_path *field_path, GList **path_tokens)
 {
 	int ret = 0;
-	GArray *root_path;
-	struct bt_ctf_field_type *field = NULL;
-	struct ctf_type_stack_frame *frame =
+	struct bt_ctf_field_type *field_type = NULL;
+	struct ctf_type_stack_frame *top_frame =
 		ctf_type_stack_peek(context->stack);
-	size_t token_count = g_list_length(*path_tokens), i;
-	size_t significant_path_elem_count = 0;
 
-	if (!frame) {
+	if (!top_frame) {
 		ret = -1;
 		goto end;
 	}
 
-	field = frame->type;
-	bt_ctf_field_type_get(field);
+	field_type = top_frame->type;
+	bt_ctf_field_type_get(field_type);
+
+	/* Initialize field path from current context's stack */
+	current_stack_to_absolute_path(context, field_path);
+
 	for (i = 0; i < token_count; i++) {
-		struct bt_ctf_field_type *next_field = NULL;
-		enum ctf_type_id type_id = bt_ctf_field_type_get_type_id(field);
+		struct bt_ctf_field_type *next_field_type = NULL;
+		enum ctf_type_id type_id =
+			bt_ctf_field_type_get_type_id(field_type);
 		int field_index;
 
-		/* Skip arrays and sequences */
+		/*
+		 * We're only looking into the same level as the
+		 * requesting type's parent here. Therefore array and
+		 * sequence types are NOT permitted.
+		 */
 		if (type_id == CTF_TYPE_ARRAY || type_id == CTF_TYPE_SEQUENCE) {
-			continue;
+			ret = -1;
+			goto end;
 		}
 
-		field_index = get_type_field_index(field, (*path_tokens)->data);
+		field_index = get_type_field_index(field_type,
+			(*path_tokens)->data);
 
 		if (field_index < 0) {
 			/* Field name not found, abort */
@@ -521,20 +608,15 @@ int set_field_path_relative(struct ctf_type_visitor_context *context,
 			goto end;
 		}
 
-		if (field_index >= frame->index) {
-			printf_verbose("Invalid relative path refers to a member after the current one\n");
+		next_field_type = get_type_field(field_type, field_index);
+
+		if (!next_field_type) {
 			ret = -1;
 			goto end;
 		}
 
-		next_field = get_type_field(field, field_index);
-		if (!next_field) {
-			ret = -1;
-			goto end;
-		}
-
-		bt_ctf_field_type_put(field);
-		field = next_field;
+		BT_PUT(field_type);
+		BT_MOVE(field_type, next_field_type);
 		g_array_append_val(field_path->path_indexes, field_index);
 
 		/*
@@ -547,46 +629,222 @@ int set_field_path_relative(struct ctf_type_visitor_context *context,
 		*path_tokens = g_list_delete_link(*path_tokens, *path_tokens);
 	}
 
-	root_path = g_array_sized_new(FALSE, FALSE,
-		sizeof(int), context->stack->len - 1);
-	if (!root_path) {
+end:
+	BT_PUT(field_type);
+
+	return ret;
+}
+
+static
+int absolute_tokens_to_absolute_path(struct ctf_type_visitor_context *context,
+	struct bt_ctf_field_path *field_path, GList **path_tokens)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+	struct ctf_type_stack_frame *top_frame =
+		ctf_type_stack_peek(context->stack);
+
+	if (!top_frame) {
 		ret = -1;
 		goto end;
 	}
 
-	/* Set the current root node as the resolved type's root */
-	field_path->root = context->root_node;
-	/*
-	 * Prepend the current fields' path to the relative path that
-	 * was found by walking the stack.
-	 */
-	for (i = 0; i < context->stack->len - 1; i++) {
-		int index;
-		struct ctf_type_stack_frame *frame =
-			g_ptr_array_index(context->stack, i);
-		enum ctf_type_id type_id =
-			bt_ctf_field_type_get_type_id(frame->type);
+	field_type = top_frame->type;
+	bt_ctf_field_type_get(field_type);
 
-		/* Skip arrays and sequences */
+	/* Initialize field path from current context's stack */
+	current_stack_to_absolute_path(context, field_path);
+
+	for (i = 0; i < token_count; i++) {
+		struct bt_ctf_field_type *next_field_type = NULL;
+		enum ctf_type_id type_id =
+			bt_ctf_field_type_get_type_id(field_type);
+		int field_index;
+
+		/*
+		 * We're only looking into the same level as the
+		 * requesting type's parent here. Therefore array and
+		 * sequence types are NOT permitted.
+		 */
 		if (type_id == CTF_TYPE_ARRAY || type_id == CTF_TYPE_SEQUENCE) {
-			continue;
+			ret = -1;
+			goto end;
 		}
 
-		/* Decrement "index" since it points to the next field */
-		index = frame->index - 1;
-		g_array_append_val(root_path, index);
-		significant_path_elem_count++;
-	}
-	g_array_prepend_vals(field_path->path_indexes, root_path->data,
-		significant_path_elem_count);
-	g_array_free(root_path, TRUE);
-end:
-	if (field) {
-		bt_ctf_field_type_put(field);
-		*resolved_field = field;
+		field_index = get_type_field_index(field_type,
+			(*path_tokens)->data);
+
+		if (field_index < 0) {
+			/* Field name not found, abort */
+			printf_verbose("Could not resolve field \"%s\"\n",
+				(char *) (*path_tokens)->data);
+			ret = -1;
+			goto end;
+		}
+
+		next_field_type = get_type_field(field_type, field_index);
+
+		if (!next_field_type) {
+			ret = -1;
+			goto end;
+		}
+
+		BT_PUT(field_type);
+		BT_MOVE(field_type, next_field_type);
+		g_array_append_val(field_path->path_indexes, field_index);
+
+		/*
+		 * Free token and remove from list. This function does not
+		 * assume the ownership of path_tokens; it is therefore _not_
+		 * a leak to leave elements in this list. The caller should
+		 * clean-up what is left (in case of error).
+		 */
+		free((*path_tokens)->data);
+		*path_tokens = g_list_delete_link(*path_tokens, *path_tokens);
 	}
 
+end:
+	BT_PUT(field_type);
+
 	return ret;
+}
+
+static
+int get_lca_index(struct ctf_type_stack *context_stack,
+		struct ctf_type_stack *path_stack,
+		int *lca_index)
+{
+	int i;
+	int ret = 0;
+	struct ctf_type_stack_frame *frame = NULL;
+	struct bt_ctf_field_type *stack_field_type = NULL;
+	struct bt_ctf_field_type *path_field_type = NULL;
+
+	for (i = 0; i < path_stack->len; ++i) {
+		struct ctf_type_stack_frame *context_frame;
+		struct ctf_type_stack_frame *path_frame;
+
+		/*
+		 * If we're now at the end of one of the stacks,
+
+		context_frame = ctf_type_stack_at(context_stack, i);
+		path_frame = ctf_type_stack_at(path_stack, i);
+
+		/* Compare current types */
+		if (path_field_type != stack_field_type) {
+			/*
+			 * Those types are not the same; therefore the
+			 * LCA is their parent. lca_index will never be
+			 * set to -1 here because the root types should
+			 * always be the same when calling this
+			 * function.
+			 */
+			*lca_index = i - 1;
+			goto end;
+		}
+
+		/* Get current stack's field type */
+		if (i == context->stack->len) {
+			/*
+			 * We reached the end of the stack. Therefore
+			 * the lowest common ancestor is `i`.
+			 */
+			*lca_index = i;
+			goto end;
+		}
+
+		stack_field_type =
+
+		/* Get current path's field type */
+		path_field_type = get_type_field(field_type, index);
+		assert(path_field_type);
+		BT_PUT(field_type);
+		BT_MOVE(field_type, path_field_type);
+
+		continue;
+
+error:
+		BT_PUT(field_type);
+		BT_PUT(stack_field_type);
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+struct bt_ctf_field_type *root_field_type_from_node(
+		struct ctf_type_visitor_context *context,
+		enum bt_ctf_node node)
+{
+	struct bt_ctf_field_type *root_field_type = NULL;
+
+	switch (node) {
+	case CTF_NODE_TRACE_PACKET_HEADER:
+		if (!context->trace) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type =
+			bt_ctf_trace_get_packet_header_type(context->trace);
+		break;
+	case CTF_NODE_STREAM_PACKET_CONTEXT:
+		if (!context->stream_class) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type =
+			bt_ctf_stream_class_get_packet_context_type(
+				context->stream_class);
+		break;
+	case CTF_NODE_STREAM_EVENT_HEADER:
+		if (!context->stream_class) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type = bt_ctf_stream_class_get_event_header_type(
+			context->stream_class);
+		break;
+	case CTF_NODE_STREAM_EVENT_CONTEXT:
+		if (!context->stream_class) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type =
+			bt_ctf_stream_class_get_event_context_type(
+				context->stream_class);
+		break;
+	case CTF_NODE_EVENT_CONTEXT:
+		if (!context->event_class) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type = bt_ctf_event_class_get_context_type(
+			context->event_class);
+		break;
+	case CTF_NODE_EVENT_FIELDS:
+		if (!context->event_class) {
+			ret = -1;
+			goto end;
+		}
+
+		root_field_type = bt_ctf_event_class_get_payload_type(
+			context->event_class);
+		break;
+	default:
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return root_field_type;
 }
 
 static
@@ -595,8 +853,10 @@ int set_field_path_absolute(struct ctf_type_visitor_context *context,
 		GList **path_tokens, struct bt_ctf_field_type **resolved_field)
 {
 	int ret = 0;
-	struct bt_ctf_field_type *field = NULL;
+	struct bt_ctf_field_type *resolved_field_type = NULL;
+	struct bt_ctf_field_type *root_field_type = NULL;
 	size_t token_count = g_list_length(*path_tokens), i;
+	struct ctf_type_stack path_stack;
 
 	if (field_path->root > context->root_node) {
 		/*
@@ -610,85 +870,46 @@ int set_field_path_absolute(struct ctf_type_visitor_context *context,
 		goto end;
 	}
 
-	/* Set the appropriate root field */
-	switch (field_path->root) {
-	case CTF_NODE_TRACE_PACKET_HEADER:
-		if (!context->trace) {
-			ret = -1;
-			goto end;
-		}
+	/* Set the appropriate root field type */
+	root_field_type = root_field_type_from_node(context, field_path->root);
 
-		field = bt_ctf_trace_get_packet_header_type(context->trace);
-		break;
-	case CTF_NODE_STREAM_PACKET_CONTEXT:
-		if (!context->stream_class) {
-			ret = -1;
-			goto end;
-		}
-
-		field = bt_ctf_stream_class_get_packet_context_type(
-			context->stream_class);
-		break;
-	case CTF_NODE_STREAM_EVENT_HEADER:
-		if (!context->stream_class) {
-			ret = -1;
-			goto end;
-		}
-
-		field = bt_ctf_stream_class_get_event_header_type(
-			context->stream_class);
-		break;
-	case CTF_NODE_STREAM_EVENT_CONTEXT:
-		if (!context->stream_class) {
-			ret = -1;
-			goto end;
-		}
-
-		field = bt_ctf_stream_class_get_event_context_type(
-			context->stream_class);
-		break;
-	case CTF_NODE_EVENT_CONTEXT:
-		if (!context->event_class) {
-			ret = -1;
-			goto end;
-		}
-
-		field = bt_ctf_event_class_get_context_type(
-			context->event_class);
-		break;
-	case CTF_NODE_EVENT_FIELDS:
-		if (!context->event_class) {
-			ret = -1;
-			goto end;
-		}
-
-		field = bt_ctf_event_class_get_payload_type(
-			context->event_class);
-		break;
-	default:
+	if (!root_field_type) {
 		ret = -1;
 		goto end;
 	}
 
-	if (!field) {
+	/*
+	 * Create a temporary stack which will hold the field types
+	 * and indexes leading to the field type to lookup.
+	 */
+	path_stack = ctf_type_stack_create();
+
+	if (!path_stack) {
 		ret = -1;
+		goto end;
+	}
+
+	/* Push root field type */
+	ret = ctf_type_stack_push(path_stack, root_field_type);
+	BT_PUT(root_field_type);
+
+	if (ret) {
 		goto end;
 	}
 
 	for (i = 0; i < token_count; i++) {
 		int field_index;
-		struct bt_ctf_field_type *next_field = NULL;
-		enum ctf_type_id type_id =
-			bt_ctf_field_type_get_type_id(field);
+		enum ctf_type_id type_id;
+		struct bt_ctf_field_type *cur_field_type = NULL;
+		struct ctf_type_stack_frame *frame;
 
-		/* Skip arrays and sequences */
-		if (type_id == CTF_TYPE_ARRAY || type_id == CTF_TYPE_SEQUENCE) {
-			continue;
-		}
+		frame = ctf_type_stack_peek(path_stack);
+		assert(bt_ctf_field_type_is_structure(frame->type) ||
+			bt_ctf_field_type_is_variant(frame->type));
+		frame->index = get_type_field_index(frame->type,
+			(*path_tokens)->data);
 
-		field_index = get_type_field_index(field, (*path_tokens)->data);
-
-		if (field_index < 0) {
+		if (frame->index < 0) {
 			/* Field name not found, abort */
 			printf_verbose("Could not resolve field \"%s\"\n",
 				(char *) (*path_tokens)->data);
@@ -696,15 +917,66 @@ int set_field_path_absolute(struct ctf_type_visitor_context *context,
 			goto end;
 		}
 
-		next_field = get_type_field(field, field_index);
-		if (!next_field) {
+		cur_field_type = get_type_field(frame->type, frame->index);
+
+		if (!cur_field_type) {
 			ret = -1;
 			goto end;
 		}
 
-		bt_ctf_field_type_put(field);
-		field = next_field;
-		g_array_append_val(field_path->path_indexes, field_index);
+		/* Get current base's type ID */
+		type_id = bt_ctf_field_type_get_type_id(cur_field_type);
+
+		/*
+		 * Array and sequence types have no path tokens. Find
+		 * the next non-array, non-sequence field type.
+		 */
+		while (type_id == CTF_TYPE_ARRAY ||
+				type_id == CTF_TYPE_SEQUENCE) {
+			ret = ctf_type_stack_push(path_stack, cur_field_type);
+			BT_PUT(cur_field_type);
+
+			if (ret) {
+				goto end;
+			}
+
+			frame = ctf_type_stack_peek(path_stack);
+			cur_field_type = get_type_field(frame->type, 0);
+			type_id = bt_ctf_field_type_get_type_id(cur_field_type);
+		}
+
+		if (type_id == CTF_TYPE_STRUCT || type_id == CTF_TYPE_VARIANT) {
+			/*
+			 * The current field type is a compound type.
+			 * Therefore we must NOT be looking at the last
+			 * path token.
+			 */
+			if (i == (token_count - 1)) {
+				BT_PUT(cur_field_type);
+				ret = -1;
+				goto end;
+			}
+
+			ret = ctf_type_stack_push(path_stack, cur_field_type);
+			BT_PUT(cur_field_type);
+
+			if (ret) {
+				goto end;
+			}
+		} else {
+			/*
+			 * The current field type is a basic type.
+			 * Therefore we must be looking at the last
+			 * path token.
+			 */
+			if (i != (token_count - 1)) {
+				BT_PUT(cur_field_type);
+				ret = -1;
+				goto end;
+			}
+		}
+
+		BT_PUT(cur_field_type);
 
 		/*
 		 * Free token and remove from list. This function does not
@@ -715,11 +987,105 @@ int set_field_path_absolute(struct ctf_type_visitor_context *context,
 		free((*path_tokens)->data);
 		*path_tokens = g_list_delete_link(*path_tokens, *path_tokens);
 	}
-end:
-	if (field) {
-		bt_ctf_field_type_put(field);
-		*resolved_field = field;
+
+	assert(!ctf_type_stack_empty(context->stack));
+
+	if (g_ptr_array_index(context->stack, 0) == root_field_type) {
+		/*
+		 * The field type to lookup is in the dynamic scope
+		 * currently being visited. In this case, we have to
+		 * make sure that the looked up field type is not
+		 * located _after_ the field type requesting it
+		 * (sequence/variant type).
+		 *
+		 * Array and sequence types may be on the path in this
+		 * situation, as long as they are also on the path to
+		 * our stack's top frame's field type.
+		 *
+		 * Invalid example:
+		 *
+		 *     struct
+		 *       array
+		 *         struct
+		 *           int <-------.
+		 *           int         |
+		 *       struct          |
+		 *         array         |
+		 *           struct      |
+		 *             sequence -`
+		 *               float
+		 *
+		 * Valid example:
+		 *
+		 *     struct
+		 *       array
+		 *         struct
+		 *           int
+		 *           int
+		 *       struct
+		 *         array
+		 *           struct
+		 *             int <-----.
+		 *             string    |
+		 *             sequence -`
+		 *               float
+		 */
+		struct bt_ctf_field_type *field_type = root_field_type;
+		size_t stack_at = 0;
+
+		bt_get(field_type);
+
+		for (i = 0; i < field_path->path_indexes->len; ++i) {
+			struct bt_ctf_field_type *stack_field_type = NULL;
+			struct bt_ctf_field_type *path_field_type = NULL;
+			int index = g_array_index(field_path->path_indexes,
+				int, i);
+
+			/* Get current stack's field type */
+			if (stack_at == context->stack->len) {
+				/*
+				 *
+				ret = -1;
+				goto error;
+			}
+
+			/* Get current path's field type */
+			path_field_type = get_type_field(field_type, index);
+			assert(path_field_type);
+			BT_PUT(field_type);
+			BT_MOVE(field_type, path_field_type);
+
+			continue;
+
+error:
+			BT_PUT(field_type);
+			BT_PUT(stack_field_type);
+			ret = -1;
+			goto end;
+		}
+	} else {
+		/*
+		 * The field type to lookup is located _before_ the
+		 * dynamic scope currently being visited. In this case,
+		 * arrays and sequences _cannot_ be on the path.
+		 */
+		stack_at = -1;
 	}
+
+
+end:
+	if (path_stack) {
+		ctf_type_stack_destroy(path_stack);
+	}
+
+	BT_PUT(root_field_type);
+
+	if (ret == 0) {
+		*resolved_field = resolved_field_type;
+	}
+
+	BT_PUT(resolved_field_type);
+
 	return ret;
 }
 
@@ -945,7 +1311,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 		ctf_type_visitor_func func)
 {

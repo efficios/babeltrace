@@ -32,46 +32,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 
-struct ctf_type_stack_frame {
-	struct bt_ctf_field_type *type;
-	int index;
-};
-
-typedef GPtrArray ctf_type_stack;
-
-struct ctf_type_visitor_context {
-	struct bt_ctf_trace *trace;
-	struct bt_ctf_stream_class *stream_class;
-	struct bt_ctf_event_class *event_class;
-	/* Root node being visited */
-	enum bt_ctf_node root_node;
-	ctf_type_stack *stack;
-};
-
-typedef int (*ctf_type_visitor_func)(struct bt_ctf_field_type *,
-	struct ctf_type_visitor_context *);
-
-BT_HIDDEN
-ctf_type_stack *ctf_type_stack_create(void);
-
-BT_HIDDEN
-void ctf_type_stack_destroy(ctf_type_stack *stack);
-
-BT_HIDDEN
-int ctf_type_stack_push(ctf_type_stack *stack,
-		struct ctf_type_stack_frame *entry);
-
-BT_HIDDEN
-struct ctf_type_stack_frame *ctf_type_stack_peek(
-		ctf_type_stack *stack);
-
-BT_HIDDEN
-void ctf_type_stack_pop(ctf_type_stack *stack);
-
-BT_HIDDEN
-int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
-		ctf_type_visitor_func func);
-
 BT_HIDDEN
 int bt_ctf_trace_resolve_types(struct bt_ctf_trace *trace);
 
