@@ -304,6 +304,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
+	doc/images/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
 	include/Makefile
