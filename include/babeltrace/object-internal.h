@@ -102,7 +102,16 @@ void bt_object_init(void *ptr, bt_object_release_func release)
 	struct bt_object *obj = ptr;
 
 	obj->release = release;
+	obj->parent = NULL;
 	bt_ref_init(&obj->ref_count, generic_release);
+}
+
+static inline
+long bt_object_get_ref_count(const void *ptr)
+{
+	const struct bt_object *obj = ptr;
+
+	return obj->ref_count.count;
 }
 
 #endif /* BABELTRACE_OBJECT_INTERNAL_H */
