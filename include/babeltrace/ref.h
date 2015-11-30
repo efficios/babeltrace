@@ -71,8 +71,10 @@
  * It is safe to call this function with a NULL object.
  *
  * @param obj Babeltrace object.
+ *
+ * Returns obj.
  */
-void bt_get(void *obj);
+void *bt_get(void *obj);
 
 /*
  * bt_put: decrements the reference count of a Babeltrace object.
