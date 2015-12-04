@@ -2113,6 +2113,7 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	struct dirent *dirent;
 	struct dirent *diriter;
 	size_t dirent_len;
+	int pc_name_max;
 	char *ext;
 
 	td->flags = flags;
@@ -2162,8 +2163,15 @@ int ctf_open_trace_read(struct ctf_trace *td,
 	 * the stream array.
 	 */
 
-	dirent_len = offsetof(struct dirent, d_name) +
-			fpathconf(td->dirfd, _PC_NAME_MAX) + 1;
+	pc_name_max = fpathconf(td->dirfd, _PC_NAME_MAX);
+	if (pc_name_max < 0) {
+		perror("Error on fpathconf");
+		fprintf(stderr, "[error] Failed to get _PC_NAME_MAX for path \"%s\".\n", path);
+		ret = -1;
+		goto error_metadata;
+	}
+
+	dirent_len = offsetof(struct dirent, d_name) + pc_name_max + 1;
 
 	dirent = malloc(dirent_len);
 
