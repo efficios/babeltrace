@@ -724,7 +724,8 @@ end:
 		g_free(name_copy);
 	}
 	if (path_tokens) {
-		g_list_free_full(path_tokens, free);
+		g_list_foreach(path_tokens, (GFunc) free, NULL);
+		g_list_free(path_tokens);
 	}
 	return ret;
 error:
