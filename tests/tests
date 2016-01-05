@@ -4,3 +4,4 @@ lib/test_seek_empty_packet
 lib/test_seek_big_trace
 lib/test_ctf_writer_complete
 lib/test_bt_values
+lib/test_ctf_ir_ref
