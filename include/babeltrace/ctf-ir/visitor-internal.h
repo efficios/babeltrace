@@ -66,7 +66,7 @@ struct ctf_type_stack_frame *ctf_type_stack_peek(
 		ctf_type_stack *stack);
 
 BT_HIDDEN
-struct ctf_type_stack_frame *ctf_type_stack_pop(ctf_type_stack *stack);
+void ctf_type_stack_pop(ctf_type_stack *stack);
 
 BT_HIDDEN
 int bt_ctf_trace_visit(struct bt_ctf_trace *trace,

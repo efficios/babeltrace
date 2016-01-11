@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
@@ -536,6 +537,7 @@ end:
 
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 {
+	int ret;
 	struct bt_ctf_event *event = NULL;
 
 	if (!event_class) {
@@ -551,15 +553,36 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	if (!event_class->stream_class) {
 		goto end;
 	}
+
 	assert(event_class->stream_class->event_header_type);
+
+	/* Make sure the stream class is valid */
+	ret = bt_ctf_stream_class_validate_types(event_class->stream_class,
+		event_class->stream_class->trace);
+
+	if (ret) {
+		/* Invalid stream class */
+		goto end;
+	}
+
+	/* Make sure the event class is valid */
+	ret = bt_ctf_event_class_validate(event_class,
+		event_class->stream_class, event_class->stream_class->trace);
+
+	if (ret) {
+		/* Invalid event class */
+		goto end;
+	}
+
+	assert(event_class->frozen);
 	event = g_new0(struct bt_ctf_event, 1);
+
 	if (!event) {
 		goto end;
 	}
 
 	bt_object_init(event, bt_ctf_event_destroy);
 	bt_get(event_class);
-	bt_ctf_event_class_freeze(event_class);
 	event->event_class = event_class;
 
 	event->event_header = bt_ctf_field_create(
@@ -584,6 +607,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 * anymore.
 	 */
 	bt_ctf_stream_class_freeze(event_class->stream_class);
+
 end:
 	return event;
 error:
@@ -944,6 +968,51 @@ void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class)
 	bt_ctf_field_type_freeze(event_class->context);
 	bt_ctf_field_type_freeze(event_class->fields);
 	bt_ctf_attributes_freeze(event_class->attributes);
+}
+
+BT_HIDDEN
+int bt_ctf_event_class_validate(
+	struct bt_ctf_event_class *event_class,
+	struct bt_ctf_stream_class *stream_class,
+	struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (event_class->valid) {
+		/* Already marked as valid */
+		goto end;
+	}
+
+	/* Resolve sequence type lengths and variant type tags first */
+	ret = bt_ctf_event_class_resolve_types(event_class, trace,
+		stream_class);
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Validate types now */
+	if (event_class->context) {
+		ret = bt_ctf_field_type_validate_recursive(
+			event_class->context);
+	}
+
+	if (event_class->fields) {
+		ret |= bt_ctf_field_type_validate_recursive(
+			event_class->fields);
+	}
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Event class is valid */
+	if (event_class->frozen) {
+		event_class->valid = 1;
+	}
+
+end:
+	return ret;
 }
 
 BT_HIDDEN

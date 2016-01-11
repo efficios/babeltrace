@@ -1850,8 +1850,6 @@ void type_field_tests()
 	struct bt_ctf_field_type *uint_12_type =
 		bt_ctf_field_type_integer_create(12);
 	struct bt_ctf_field_type *enumeration_type;
-	struct bt_ctf_field_type *enumeration_sequence_type;
-	struct bt_ctf_field_type *enumeration_array_type;
 	struct bt_ctf_field_type *returned_type;
 	const char *ret_string;
 
@@ -2097,17 +2095,6 @@ void type_field_tests()
 	enumeration_type = bt_ctf_field_type_enumeration_create(uint_12_type);
 	ok(enumeration_type,
 		"Create an enumeration type with an unsigned 12-bit integer as container");
-	enumeration_sequence_type = bt_ctf_field_type_sequence_create(
-		enumeration_type, "count");
-	ok(!enumeration_sequence_type,
-		"Check enumeration types are validated when creating a sequence");
-	enumeration_array_type = bt_ctf_field_type_array_create(
-		enumeration_type, 10);
-	ok(!enumeration_array_type,
-		"Check enumeration types are validated when creating an array");
-	ok(bt_ctf_field_type_structure_add_field(composite_structure_type,
-		enumeration_type, "enumeration"),
-		"Check enumeration types are validated when adding them as structure members");
 	enumeration = bt_ctf_field_create(enumeration_type);
 	ok(!enumeration,
 		"Check enumeration types are validated before instantiation");
@@ -2124,8 +2111,6 @@ void type_field_tests()
 	bt_put(int_16_type);
 	bt_put(uint_12_type);
 	bt_put(enumeration_type);
-	bt_put(enumeration_sequence_type);
-	bt_put(enumeration_array_type);
 	bt_put(returned_type);
 }
 

@@ -342,15 +342,20 @@ int bt_ctf_stream_class_add_event_class(
 	}
 
 	/*
-	 * Resolve the event's sequence length and variant tags if the
-	 * stream is already associated with a trace. Otherwise, this
-	 * validation will be performed once the stream is registered
-	 * to a trace.
+	 * If the stream class is associated with a trace, then this
+	 * trace must be frozen, and this stream class too. Thus, we
+	 * have the whole event class/stream class/trace stack to
+	 * validate the event class.
+	 *
+	 * If we don't do this validation here, it would mean that
+	 * the trace could be stuck with an invalid event class.
 	 */
 	if (stream_class->trace) {
-		ret = bt_ctf_event_class_resolve_types(event_class,
-			stream_class->trace, stream_class);
+		ret = bt_ctf_event_class_validate(event_class, stream_class,
+			stream_class->trace);
+
 		if (ret) {
+			/* Invalid event class */
 			goto end;
 		}
 	}
@@ -365,6 +370,11 @@ int bt_ctf_stream_class_add_event_class(
 		}
 	}
 
+	/*
+	 * bt_ctf_event_class_set_stream_class() ensures that
+	 * this event class is not already registered to another
+	 * stream class.
+	 */
 	ret = bt_ctf_event_class_set_stream_class(event_class, stream_class);
 	if (ret) {
 		goto end;
@@ -628,6 +638,57 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
+	bt_ctf_stream_class_validate_types(stream_class,
+		stream_class->trace);
+}
+
+BT_HIDDEN
+int bt_ctf_stream_class_validate_types(
+	struct bt_ctf_stream_class *stream_class,
+	struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (stream_class->valid) {
+		/* Already marked as valid */
+		ret = 0;
+		goto end;
+	}
+
+	/* Resolve sequence type lengths and variant type tags first */
+	ret = bt_ctf_stream_class_resolve_types(stream_class, trace);
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Validate types now */
+	if (stream_class->event_header_type) {
+		ret = bt_ctf_field_type_validate_recursive(
+			stream_class->event_header_type);
+	}
+
+	if (stream_class->packet_context_type) {
+		ret |= bt_ctf_field_type_validate_recursive(
+			stream_class->packet_context_type);
+	}
+
+	if (stream_class->event_context_type) {
+		ret |= bt_ctf_field_type_validate_recursive(
+			stream_class->event_context_type);
+	}
+
+	if (ret) {
+		goto end;
+	}
+
+	/* Stream class is valid */
+	if (stream_class->frozen) {
+		stream_class->valid = 1;
+	}
+
+end:
+	return ret;
 }
 
 BT_HIDDEN
@@ -669,11 +730,11 @@ int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 
 	/* Set all events' native byte order */
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		bt_ctf_event_class_set_native_byte_order(
-			g_ptr_array_index(stream_class->event_classes, i),
+		struct bt_ctf_event_class *event_class;
+
+		event_class = g_ptr_array_index(stream_class->event_classes, i);
+		bt_ctf_event_class_set_native_byte_order(event_class,
 			stream_class->byte_order);
-		bt_ctf_event_class_freeze(
-			g_ptr_array_index(stream_class->event_classes, i));
 	}
 end:
 	return ret;
