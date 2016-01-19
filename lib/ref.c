@@ -27,13 +27,19 @@
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
-void *bt_get(void *obj)
+void *bt_get(void *ptr)
 {
-	if (obj) {
-		struct bt_object *base = obj;
+	struct bt_object *obj = ptr;
 
-		bt_ref_get(&base->ref_count);
+	if (!obj) {
+		goto end;
 	}
+
+	if (obj->parent && bt_object_get_ref_count(obj) == 0) {
+		bt_get(obj->parent);
+	}
+	bt_ref_get(&obj->ref_count);
+end:
 	return obj;
 }
 
