@@ -298,7 +298,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	}
 	if (stream_class->event_context_type) {
 		stream->event_contexts = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) bt_ctf_field_put);
+			(GDestroyNotify) bt_put);
 		if (!stream->event_contexts) {
 			goto error;
 		}
