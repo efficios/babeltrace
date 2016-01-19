@@ -43,11 +43,13 @@ end:
 	return obj;
 }
 
-void bt_put(void *obj)
+void bt_put(void *ptr)
 {
-	if (obj) {
-		struct bt_object *base = obj;
+	struct bt_object *obj = ptr;
 
-		bt_ref_put(&base->ref_count);
+	if (!obj) {
+		return;
 	}
+
+	bt_ref_put(&obj->ref_count);
 }
