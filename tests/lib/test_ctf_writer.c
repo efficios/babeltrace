@@ -3285,9 +3285,6 @@ int main(int argc, char **argv)
 	bt_put(packet_header_field);
 	bt_put(trace);
 	free(metadata_string);
-
-	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
-		"bt_ctf_stream_class_get_trace returns NULL after its trace has been reclaimed");
 	bt_put(stream_class);
 
 	/* Remove all trace files and delete temporary trace directory */

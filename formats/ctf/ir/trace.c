@@ -68,13 +68,6 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
 
-static
-void put_stream_class(struct bt_ctf_stream_class *stream_class)
-{
-	(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
-	bt_put(stream_class);
-}
-
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
 	struct bt_ctf_trace *trace = NULL;
@@ -89,9 +82,9 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	trace->streams = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_release);
 	trace->stream_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) put_stream_class);
+		(GDestroyNotify) bt_object_release);
 	if (!trace->clocks || !trace->stream_classes || !trace->streams) {
 		goto error;
 	}
@@ -170,9 +163,7 @@ struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
-	bt_get(stream);
 	g_ptr_array_add(trace->streams, stream);
-
 	return stream;
 error:
         BT_PUT(stream);
@@ -471,14 +462,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 	}
 
-	/* Set weak reference to trace in stream class */
-	ret = bt_ctf_stream_class_set_trace(stream_class, trace);
-	if (ret) {
-		/* Stream class already part of another trace */
-		goto end;
-	}
-
-	bt_get(stream_class);
+	bt_object_set_parent(stream_class, trace);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
 	/*
@@ -499,11 +483,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	bt_ctf_stream_class_freeze(stream_class);
 	if (!trace->frozen) {
 		ret = bt_ctf_trace_freeze(trace);
-		goto end;
 	}
 end:
 	if (ret) {
-		(void) bt_ctf_stream_class_set_trace(stream_class, NULL);
+		bt_object_set_parent(stream_class, NULL);
 	}
 	return ret;
 }

@@ -100,6 +100,7 @@ static
 int set_packet_header_uuid(struct bt_ctf_stream *stream)
 {
 	int i, ret = 0;
+	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_field_type *uuid_field_type = NULL;
 	struct bt_ctf_field_type *element_field_type = NULL;
 	struct bt_ctf_field *uuid_field = bt_ctf_field_structure_get_field(
@@ -140,6 +141,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
+	trace = (struct bt_ctf_trace *) bt_object_get_parent(stream);
 	for (i = 0; i < 16; i++) {
 		struct bt_ctf_field *uuid_element =
 			bt_ctf_field_array_get_field(uuid_field, i);
@@ -149,11 +151,11 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 
 		if (ret) {
 			ret = bt_ctf_field_signed_integer_set_value(
-				uuid_element, (int64_t) stream->trace->uuid[i]);
+				uuid_element, (int64_t) trace->uuid[i]);
 		} else {
 			ret = bt_ctf_field_unsigned_integer_set_value(
 				uuid_element,
-				(uint64_t) stream->trace->uuid[i]);
+				(uint64_t) trace->uuid[i]);
 		}
 		bt_put(uuid_element);
 		if (ret) {
@@ -165,6 +167,7 @@ end:
 	bt_put(uuid_field);
 	bt_put(uuid_field_type);
 	bt_put(element_field_type);
+	BT_PUT(trace);
 	return ret;
 }
 static
@@ -234,10 +237,19 @@ end:
 }
 
 static
-void put_event(struct bt_ctf_event *event)
+void release_event(struct bt_ctf_event *event)
 {
-	bt_ctf_event_set_stream(event, NULL);
-	bt_put(event);
+	if (bt_object_get_ref_count(event)) {
+		/*
+		 * The event is being orphaned, but it must guarantee the
+		 * existence of its event class for the duration of its
+		 * lifetime.
+		 */
+		bt_get(event->event_class);
+		BT_PUT(event->base.parent);
+	} else {
+		bt_object_release(event);
+	}
 }
 
 BT_HIDDEN
@@ -257,9 +269,12 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto end;
 	}
 
-	/* A stream has no ownership of its trace (weak ptr) */
-	stream->trace = trace;
 	bt_object_init(stream, bt_ctf_stream_destroy);
+	/*
+	 * Acquire reference to parent since stream will become publicly
+	 * reachable; it needs its parent to remain valid.
+	 */
+	bt_object_set_parent(stream, trace);
 	stream->packet_context = bt_ctf_field_create(
 		stream_class->packet_context_type);
 	if (!stream->packet_context) {
@@ -290,9 +305,8 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	stream->pos.fd = -1;
 	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
-	bt_get(stream_class);
 	stream->events = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) put_event);
+		(GDestroyNotify) release_event);
 	if (!stream->events) {
 		goto error;
 	}
@@ -326,6 +340,7 @@ end:
 	return stream;
 error:
 	BT_PUT(stream);
+	bt_put(trace);
 	return stream;
 }
 
@@ -490,13 +505,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	ret = bt_ctf_event_set_stream(event, stream);
-	if (ret) {
-		/* Event was already associated to a stream */
-		ret = -1;
-		goto end;
-	}
-
+	bt_object_set_parent(event, stream);
 	ret = bt_ctf_event_populate_event_header(event);
 	if (ret) {
 		goto end;
@@ -523,15 +532,25 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		}
 	}
 
-	bt_get(event);
 	/* Save the new event along with its associated stream event context */
 	g_ptr_array_add(stream->events, event);
 	if (event_context_copy) {
 		g_ptr_array_add(stream->event_contexts, event_context_copy);
 	}
+	/*
+	 * Event had to hold a reference to its event class as long as it wasn't
+	 * part of the same trace hierarchy. From now on, the event and its
+	 * class share the same lifetime guarantees and the reference is no
+	 * longer needed.
+	 */
+	bt_put(event->event_class);
 end:
 	if (ret) {
-		(void) bt_ctf_event_set_stream(event, NULL);
+		/*
+		 * Orphan the event; we were not succesful in associating it to
+		 * a stream.
+		 */
+		bt_object_set_parent(event, NULL);
 	}
 	return ret;
 }
@@ -641,6 +660,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *field)
 {
 	int ret = 0;
+	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_field_type *field_type = NULL;
 
 	if (!stream || !field) {
@@ -648,8 +668,9 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	trace = (struct bt_ctf_trace *) bt_object_get_parent(stream);
 	field_type = bt_ctf_field_get_type(field);
-	if (field_type != stream->trace->packet_header_type) {
+	if (field_type != trace->packet_header_type) {
 		ret = -1;
 		goto end;
 	}
@@ -658,6 +679,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 	bt_put(stream->packet_header);
 	stream->packet_header = field;
 end:
+	BT_PUT(trace);
 	bt_put(field_type);
 	return ret;
 }
@@ -891,7 +913,6 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 		perror("close");
 	}
 
-	bt_put(stream->stream_class);
 	if (stream->events) {
 		g_ptr_array_free(stream->events, TRUE);
 	}

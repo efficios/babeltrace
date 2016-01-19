@@ -38,8 +38,6 @@
 
 struct bt_ctf_stream {
 	struct bt_object base;
-	/* Trace owning this stream. A stream does not own a trace. */
-	struct bt_ctf_trace *trace;
 	uint32_t id;
 	struct bt_ctf_stream_class *stream_class;
 	/* Array of pointers to bt_ctf_event for the current packet */

@@ -167,13 +167,16 @@ int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 {
 	int ret = 0;
 	struct bt_value *obj = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+
 
 	if (!event_class) {
 		ret = -1;
 		goto end;
 	}
 
-	if (event_class->stream_class) {
+	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	if (stream_class) {
 		/*
 		 * We don't allow changing the id if the event class has already
 		 * been added to a stream class.
@@ -195,6 +198,7 @@ int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 
 end:
 	BT_PUT(obj);
+	BT_PUT(stream_class);
 	return ret;
 }
 
@@ -320,16 +324,7 @@ end:
 struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
-
-	if (!event_class) {
-		goto end;
-	}
-
-	stream_class = event_class->stream_class;
-	bt_get(stream_class);
-end:
-	return stream_class;
+	return (struct bt_ctf_stream_class *) bt_object_get_parent(event_class);
 }
 
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
@@ -537,33 +532,39 @@ end:
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 {
 	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
 
 	if (!event_class) {
-		goto end;
+		goto error;
 	}
 
+	stream_class = bt_ctf_event_class_get_stream_class(event_class);
 	/*
-	 * The event class does not keep ownership of the stream class to
-	 * which it as been added. Therefore, it can't assume it has been
-	 * set. However, we disallow the creation of an event if its
-	 * associated stream class has been reclaimed.
+	 * We disallow the creation of an event if its event class has not been
+	 * associated to a stream class.
 	 */
-	if (!event_class->stream_class) {
-		goto end;
+	if (!stream_class) {
+		goto error;
 	}
-	assert(event_class->stream_class->event_header_type);
+	assert(stream_class->event_header_type);
 	event = g_new0(struct bt_ctf_event, 1);
 	if (!event) {
-		goto end;
+		goto error;
 	}
 
 	bt_object_init(event, bt_ctf_event_destroy);
-	bt_get(event_class);
 	bt_ctf_event_class_freeze(event_class);
-	event->event_class = event_class;
+	/*
+	 * event does not share a common ancestor with the event class; it has
+	 * to guarantee its existence by holding a reference. This reference
+	 * shall be released once the event is associated to a stream since,
+	 * from that point, the event and its class will share the same
+	 * lifetime.
+	 */
+	event->event_class = bt_get(event_class);
 
 	event->event_header = bt_ctf_field_create(
-		event_class->stream_class->event_header_type);
+		stream_class->event_header_type);
 	if (!event->event_header) {
 		goto error;
 	}
@@ -583,11 +584,12 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 * Freeze the stream class since the event header must not be changed
 	 * anymore.
 	 */
-	bt_ctf_stream_class_freeze(event_class->stream_class);
-end:
+	bt_ctf_stream_class_freeze(stream_class);
+	BT_PUT(stream_class);
 	return event;
 error:
 	BT_PUT(event);
+	BT_PUT(stream_class);
 	return event;
 }
 
@@ -607,16 +609,7 @@ end:
 
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 {
-	struct bt_ctf_stream *stream = NULL;
-
-	if (!event) {
-		goto end;
-	}
-
-	stream = event->stream;
-	bt_get(stream);
-end:
-	return stream;
+	return (struct bt_ctf_stream *) bt_object_get_parent(event);
 }
 
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
@@ -784,24 +777,21 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 {
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
 
 	if (!event || !header) {
 		ret = -1;
 		goto end;
 	}
 
-	/* Could be NULL since an event class doesn't own a stream class */
-	if (!event->event_class->stream_class) {
-		ret = -1;
-		goto end;
-	}
-
+	stream_class = (struct bt_ctf_stream_class *) bt_object_get_parent(
+		event->event_class);
 	/*
 	 * Ensure the provided header's type matches the one registered to the
 	 * stream class.
 	 */
 	field_type = bt_ctf_field_get_type(header);
-	if (field_type != event->event_class->stream_class->event_header_type) {
+	if (field_type != stream_class->event_header_type) {
 		ret = -1;
 		goto end;
 	}
@@ -810,6 +800,7 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	bt_put(event->event_header);
 	event->event_header = header;
 end:
+	bt_put(stream_class);
 	bt_put(field_type);
 	return ret;
 }
@@ -886,7 +877,14 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 	struct bt_ctf_event *event;
 
 	event = container_of(obj, struct bt_ctf_event, base);
-	bt_put(event->event_class);
+	if (!event->base.parent) {
+		/*
+		 * Event was keeping a reference to its class since it shared no
+		 * common ancestor with it to guarantee they would both have the
+		 * same lifetime.
+		 */
+		bt_put(event->event_class);
+	}
 	bt_put(event->event_header);
 	bt_put(event->context_payload);
 	bt_put(event->fields_payload);
@@ -944,36 +942,6 @@ void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class)
 	bt_ctf_field_type_freeze(event_class->context);
 	bt_ctf_field_type_freeze(event_class->fields);
 	bt_ctf_attributes_freeze(event_class->attributes);
-}
-
-BT_HIDDEN
-int bt_ctf_event_class_set_stream_class(struct bt_ctf_event_class *event_class,
-		struct bt_ctf_stream_class *stream_class)
-{
-	int ret = 0;
-
-	if (!event_class) {
-		ret = -1;
-		goto end;
-	}
-
-	/* Allow a NULL stream_class to unset the current stream_class */
-	if (stream_class && event_class->stream_class) {
-		ret = -1;
-		goto end;
-	}
-
-	event_class->stream_class = stream_class;
-	/*
-	 * We don't get() the stream_class since doing so would introduce
-	 * a circular ownership between event classes and stream classes.
-	 *
-	 * A stream class will always unset itself from its events before
-	 * being destroyed. This ensures that a user won't get a pointer
-	 * to a stale stream class instance from an event class.
-	 */
-end:
-	return ret;
 }
 
 BT_HIDDEN
@@ -1194,28 +1162,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
-int bt_ctf_event_set_stream(struct bt_ctf_event *event,
-		struct bt_ctf_stream *stream)
-{
-	int ret = 0;
-
-	if (!event) {
-		ret = -1;
-		goto end;
-	}
-
-	if (event->stream && stream) {
-		/* Already attached to a stream */
-		ret = -1;
-		goto end;
-	}
-
-	event->stream = stream;
-end:
-	return ret;
-}
-
 struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 {
 	struct bt_ctf_event *copy = NULL;
@@ -1230,9 +1176,7 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 	}
 
 	bt_object_init(copy, bt_ctf_event_destroy);
-	copy->event_class = event->event_class;
-	bt_get(copy->event_class);
-	copy->stream = event->stream;
+	copy->event_class = bt_get(event->event_class);
 
 	if (event->event_header) {
 		copy->event_header = bt_ctf_field_copy(event->event_header);

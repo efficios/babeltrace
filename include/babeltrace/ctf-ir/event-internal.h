@@ -43,11 +43,6 @@
 struct bt_ctf_event_class {
 	struct bt_object base;
 	struct bt_value *attributes;
-	/*
-	 * Weak reference; an event class does not have ownership of a
-	 * stream class.
-	 */
-	struct bt_ctf_stream_class *stream_class;
 	/* Structure type containing the event's context */
 	struct bt_ctf_field_type *context;
 	/* Structure type containing the event's fields */
@@ -58,8 +53,6 @@ struct bt_ctf_event_class {
 struct bt_ctf_event {
 	struct bt_object base;
 	struct bt_ctf_event_class *event_class;
-	/* Weak reference; an event does not have ownership of a stream */
-	struct bt_ctf_stream *stream;
 	struct bt_ctf_field *event_header;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
@@ -67,10 +60,6 @@ struct bt_ctf_event {
 
 BT_HIDDEN
 void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class);
-
-BT_HIDDEN
-int bt_ctf_event_class_set_stream_class(struct bt_ctf_event_class *event_class,
-		struct bt_ctf_stream_class *stream_class);
 
 BT_HIDDEN
 int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
@@ -91,10 +80,6 @@ int bt_ctf_event_validate(struct bt_ctf_event *event);
 BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		struct ctf_stream_pos *pos);
-
-BT_HIDDEN
-int bt_ctf_event_set_stream(struct bt_ctf_event *event,
-		struct bt_ctf_stream *stream);
 
 /*
  * Attempt to populate the "id" and "timestamp" fields of the event header if

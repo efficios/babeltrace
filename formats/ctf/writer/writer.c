@@ -74,6 +74,8 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
+	bt_object_set_parent(writer->trace, writer);
+	bt_put(writer->trace);
 	/* Create trace directory if necessary and open a metadata file */
 	if (g_mkdir_with_parents(path, S_IRWXU | S_IRWXG)) {
 		perror("g_mkdir_with_parents");
@@ -121,7 +123,7 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 		}
 	}
 
-	bt_put(writer->trace);
+	bt_object_release(writer->trace);
 	g_free(writer);
 }
 

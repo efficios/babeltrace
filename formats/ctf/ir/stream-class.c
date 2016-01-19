@@ -65,7 +65,7 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 
 	stream_class->name = g_string_new(name);
 	stream_class->event_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_release);
 	if (!stream_class->event_classes) {
 		goto error;
 	}
@@ -91,18 +91,8 @@ error:
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class)
 {
-	struct bt_ctf_trace *trace = NULL;
-
-	if (!stream_class) {
-		goto end;
-	}
-
-	trace = stream_class->trace;
-	if (trace) {
-		bt_get(trace);
-	}
-end:
-	return trace;
+	return (struct bt_ctf_trace *) bt_object_get_parent(
+		stream_class);
 }
 
 const char *bt_ctf_stream_class_get_name(
@@ -326,6 +316,8 @@ int bt_ctf_stream_class_add_event_class(
 {
 	int ret = 0;
 	int64_t event_id;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_stream_class *old_stream_class = NULL;
 
 	if (!stream_class || !event_class) {
 		ret = -1;
@@ -341,15 +333,25 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
+	old_stream_class = (struct bt_ctf_stream_class *) bt_object_get_parent(
+		event_class);
+	if (old_stream_class) {
+		/* Event class is already associated to a stream class. */
+		ret = -1;
+		goto end;
+	}
+
 	/*
 	 * Resolve the event's sequence length and variant tags if the
 	 * stream is already associated with a trace. Otherwise, this
 	 * validation will be performed once the stream is registered
 	 * to a trace.
 	 */
-	if (stream_class->trace) {
+	trace = (struct bt_ctf_trace *) bt_object_get_parent(
+		stream_class);
+	if (trace) {
 		ret = bt_ctf_event_class_resolve_types(event_class,
-			stream_class->trace, stream_class);
+			trace, stream_class);
 		if (ret) {
 			goto end;
 		}
@@ -365,17 +367,12 @@ int bt_ctf_stream_class_add_event_class(
 		}
 	}
 
-	ret = bt_ctf_event_class_set_stream_class(event_class, stream_class);
-	if (ret) {
-		goto end;
-	}
-
 	ret = bt_ctf_event_class_set_stream_id(event_class, stream_class->id);
 	if (ret) {
 		goto end;
 	}
 
-	bt_get(event_class);
+	bt_object_set_parent(event_class, stream_class);
 	g_ptr_array_add(stream_class->event_classes, event_class);
 	bt_ctf_event_class_freeze(event_class);
 
@@ -391,6 +388,8 @@ int bt_ctf_stream_class_add_event_class(
 			stream_class->byte_order);
 	}
 end:
+	BT_PUT(trace);
+	BT_PUT(old_stream_class);
 	return ret;
 }
 
@@ -733,28 +732,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
-int bt_ctf_stream_class_set_trace(struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_trace *trace)
-{
-	int ret = 0;
-
-	if (!stream_class) {
-		ret = -1;
-		goto end;
-	}
-
-	if (stream_class->trace && trace) {
-		/* Already attached to a trace */
-		ret = -1;
-		goto end;
-	}
-
-	stream_class->trace = trace;
-end:
-	return ret;
-}
-
 static
 void bt_ctf_stream_class_destroy(struct bt_object *obj)
 {
@@ -764,17 +741,6 @@ void bt_ctf_stream_class_destroy(struct bt_object *obj)
 	bt_put(stream_class->clock);
 
 	if (stream_class->event_classes) {
-		size_t i;
-
-		/* Unregister this stream class from the event classes */
-		for (i = 0; i < stream_class->event_classes->len; i++) {
-			struct bt_ctf_event_class *event_class =
-				g_ptr_array_index(stream_class->event_classes,
-				i);
-
-			bt_ctf_event_class_set_stream_class(event_class, NULL);
-		}
-
 		g_ptr_array_free(stream_class->event_classes, TRUE);
 	}
 
