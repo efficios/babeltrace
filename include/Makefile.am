@@ -48,7 +48,6 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/notification/notification.h \
 	babeltrace/plugin/notification/event.h \
 	babeltrace/plugin/notification/iterator.h \
-	babeltrace/plugin/notification/notification.h \
 	babeltrace/plugin/notification/packet.h
 
 noinst_HEADERS = \

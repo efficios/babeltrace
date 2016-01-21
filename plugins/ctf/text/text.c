@@ -32,6 +32,7 @@
 #include <babeltrace/plugin/notification/notification.h>
 #include <glib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 static
 const char *plugin_name = "ctf-text";
@@ -111,6 +112,7 @@ static
 enum bt_component_status ctf_text_init(
 		struct bt_component *component)
 {
+	printf(__bt_plugin_name);
 	return BT_COMPONENT_STATUS_OK;
 }
 

@@ -30,9 +30,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/objects.h>
-#include <babeltrace/objects.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
