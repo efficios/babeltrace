@@ -77,6 +77,8 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 			PLUGIN_SYMBOL_NAME, g_module_name(module));
 		goto error;
 	}
+
+	printf("Loaded plugin with name %s\n", plugin->name);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_LICENSE,
 		(gpointer *) &plugin->license))
 	{

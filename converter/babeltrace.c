@@ -62,7 +62,6 @@
 #define NET4_URL_PREFIX	"net4://"
 #define NET6_URL_PREFIX	"net6://"
 
-static struct bt_component_factory *component_factory;
 static char *opt_input_format, *opt_output_format;
 
 /*
@@ -733,6 +732,7 @@ int main(int argc, char **argv)
 	struct bt_format *fmt_write;
 	struct bt_trace_descriptor *td_write;
 	struct bt_context *ctx;
+	struct bt_component_factory *component_factory;
 	int i;
 
 	call_plugins_hooks();

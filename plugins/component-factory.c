@@ -334,7 +334,6 @@ bt_component_factory_register_sink_component_class(
 		goto end;
 	}
 
-	
 end:
 	return ret;
 }

@@ -76,8 +76,7 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 	}
 
 	bt_object_init(component, bt_component_destroy);
-	bt_get(class);
-	component->class = class;
+	component->class = bt_get(class);
 	component->name = g_string_new(name);
 	if (!component->name) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
