@@ -5,6 +5,7 @@
 /tests/lib/test_ctf_writer
 /tests/lib/test_bt_objects
 /tests/lib/test_bt_values
+/tests/lib/test_ctf_ir_ref
 *.o
 *.a
 *.la

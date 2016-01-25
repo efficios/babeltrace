@@ -27,6 +27,8 @@
 #include <babeltrace/object-internal.h>
 #include <assert.h>
 
+#define NR_TESTS 41
+
 struct user {
 	struct bt_ctf_trace *tc;
 	struct bt_ctf_stream_class *sc;
@@ -358,6 +360,9 @@ int main(int argc, char **argv)
 			*weak_ec3 = NULL;
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
+	 /* Initialize tap harness before any tests */
+	plan_tests(NR_TESTS);
+
 	/* The only reference which exists at this point is on TC1. */
 	tc1 = create_tc1();
         ok(tc1, "Initialize trace");
@@ -367,7 +372,6 @@ int main(int argc, char **argv)
 
 	init_weak_refs(tc1, &weak_tc1, &weak_sc1, &weak_sc2, &weak_ec1,
 			&weak_ec2, &weak_ec3);
-	plan_no_plan();
 
 	ok(bt_object_get_ref_count(weak_sc1) == 0,
 			"Initial SC1 reference count is 0");

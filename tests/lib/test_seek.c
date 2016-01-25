@@ -44,21 +44,18 @@ void run_seek_begin(char *path, uint64_t expected_begin)
 	int ret;
 	uint64_t timestamp_begin;
 	uint64_t timestamp_seek_begin;
-	unsigned int nr_seek_begin_test;
-
-	nr_seek_begin_test = 5;
 
 	/* Open the trace */
 	ctx = create_context_with_path(path);
 	if (!ctx) {
-		skip(nr_seek_begin_test, "Cannot create valid context");
+		diag("Cannot create valid context");
 		return;
 	}
 
 	/* Create iterator with null begin and end */
 	iter = bt_ctf_iter_create(ctx, NULL, NULL);
 	if (!iter) {
-		skip(nr_seek_begin_test, "Cannot create valid iterator");
+		diag("Cannot create valid iterator");
 		return;
 	}
 
@@ -97,21 +94,18 @@ void run_seek_last(char *path, uint64_t expected_last)
 	struct bt_iter_pos newpos;
 	int ret;
 	uint64_t timestamp_last;
-	unsigned int nr_seek_last_tests;
-
-	nr_seek_last_tests = 6;
 
 	/* Open the trace */
 	ctx = create_context_with_path(path);
 	if (!ctx) {
-		skip(nr_seek_last_tests, "Cannot create valid context");
+		diag("Cannot create valid context");
 		return;
 	}
 
 	/* Create iterator with null last and end */
 	iter = bt_ctf_iter_create(ctx, NULL, NULL);
 	if (!iter) {
-		skip(nr_seek_last_tests, "Cannot create valid iterator");
+		diag("Cannot create valid iterator");
 		return;
 	}
 
@@ -153,23 +147,18 @@ void run_seek_time_at_last(char *path, uint64_t expected_last)
 	struct bt_iter_pos newpos;
 	int ret;
 	uint64_t timestamp_last;
-	unsigned int nr_seek_time_at_last_tests;
-
-	nr_seek_time_at_last_tests = 6;
 
 	/* Open the trace */
 	ctx = create_context_with_path(path);
 	if (!ctx) {
-		skip(nr_seek_time_at_last_tests,
-		     "Cannot create valid context");
+		diag("Cannot create valid context");
 		return;
 	}
 
 	/* Create iterator with null last and end */
 	iter = bt_ctf_iter_create(ctx, NULL, NULL);
 	if (!iter) {
-		skip(nr_seek_time_at_last_tests,
-		     "Cannot create valid iterator");
+		diag("Cannot create valid iterator");
 		return;
 	}
 
@@ -215,21 +204,17 @@ void run_seek_cycles(char *path,
 	int ret;
 	uint64_t timestamp;
 
-	unsigned int nr_seek_cycles_tests;
-
-	nr_seek_cycles_tests = 12;
-
 	/* Open the trace */
 	ctx = create_context_with_path(path);
 	if (!ctx) {
-		skip(nr_seek_cycles_tests, "Cannot create valid context");
+		diag("Cannot create valid context");
 		return;
 	}
 
 	/* Create iterator with null last and end */
 	iter = bt_ctf_iter_create(ctx, NULL, NULL);
 	if (!iter) {
-		skip(nr_seek_cycles_tests, "Cannot create valid iterator");
+		diag("Cannot create valid iterator");
 		return;
 	}
 
@@ -304,9 +289,11 @@ int main(int argc, char **argv)
 	babeltrace_debug = 0;	/* libbabeltrace.la */
 	opt_clock_offset = 0;	/* libbabeltrace-ctf.la */
 
-	if (argc < 4) {
-		plan_skip_all("Invalid arguments: need a trace path and the start and last timestamp");
+	plan_tests(NR_TESTS);
 
+	if (argc < 4) {
+		diag("Invalid arguments: need a trace path and the start and last timestamp");
+		exit(1);
 	}
 
 	/* Parse arguments (Trace, begin timestamp) */
@@ -314,15 +301,15 @@ int main(int argc, char **argv)
 
 	expected_begin = strtoull(argv[2], NULL, 0);
 	if (ULLONG_MAX == expected_begin && errno == ERANGE) {
-		plan_skip_all("Invalid value for begin timestamp");
+		diag("Invalid value for begin timestamp");
+		exit(1);
 	}
 
 	expected_last = strtoull(argv[3], NULL, 0);
 	if (ULLONG_MAX == expected_last && errno == ERANGE) {
-		plan_skip_all("Invalid value for last timestamp");
+		diag("Invalid value for last timestamp");
+		exit(1);
 	}
-
-	plan_tests(NR_TESTS);
 
 	run_seek_begin(path, expected_begin);
 	run_seek_time_at_last(path, expected_last);

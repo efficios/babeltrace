@@ -25,6 +25,8 @@
 #include <string.h>
 #include "tap/tap.h"
 
+#define NR_TESTS 238
+
 static
 void test_null(void)
 {
@@ -1154,7 +1156,7 @@ void test_freeze(void)
 
 int main(void)
 {
-	plan_no_plan();
+	plan_tests(NR_TESTS);
 
 	test_macros();
 	test_freeze();

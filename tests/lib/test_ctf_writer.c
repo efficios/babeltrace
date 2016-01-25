@@ -57,6 +57,8 @@
 #define DEFAULT_CLOCK_IS_ABSOLUTE 0
 #define DEFAULT_CLOCK_TIME 0
 
+#define NR_TESTS 588
+
 static uint64_t current_time = 42;
 
 /* Return 1 if uuids match, zero if different. */
@@ -2689,7 +2691,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	plan_no_plan();
+	plan_tests(NR_TESTS);
 
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
