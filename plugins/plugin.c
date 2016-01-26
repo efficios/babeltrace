@@ -71,8 +71,7 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 
 	bt_object_init(plugin, bt_plugin_destroy);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
-		(gpointer *) &plugin->name))
-	{
+		(gpointer *) &plugin->name)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
 			PLUGIN_SYMBOL_NAME, g_module_name(module));
 		goto error;
@@ -80,15 +79,13 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 
 	printf("Loaded plugin with name %s\n", plugin->name);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_LICENSE,
-		(gpointer *) &plugin->license))
-	{
+		(gpointer *) &plugin->license)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
 			PLUGIN_SYMBOL_LICENSE, g_module_name(module));
 		goto error;
 	}
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_INIT,
-		(gpointer *) &plugin->init))
-	{
+		(gpointer *) &plugin->init)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
 			PLUGIN_SYMBOL_INIT, g_module_name(module));
 		goto error;

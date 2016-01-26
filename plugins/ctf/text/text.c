@@ -35,9 +35,6 @@
 #include <stdbool.h>
 
 static
-const char *plugin_name = "ctf-text";
-
-static
 enum bt_component_status ctf_text_init(struct bt_component *);
 static
 void ctf_text_plugin_exit(void);
