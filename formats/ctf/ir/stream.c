@@ -290,7 +290,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	if (stream_class->event_context_type) {
 		stream->event_context = bt_ctf_field_create(
 			stream_class->event_context_type);
-		if (!stream->packet_context) {
+		if (!stream->event_context) {
 			goto error;
 		}
 	}
