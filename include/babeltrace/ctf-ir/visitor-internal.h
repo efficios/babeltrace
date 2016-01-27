@@ -2,11 +2,13 @@
 #define BABELTRACE_CTF_IR_VISITOR_INTERNAL_H
 
 /*
- * BabelTrace - CTF IR: Visitor internal
+ * Babeltrace - CTF IR: Visitor internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *	   Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,15 +35,23 @@
 #include <glib.h>
 
 BT_HIDDEN
-int bt_ctf_trace_resolve_types(struct bt_ctf_trace *trace);
+int bt_ctf_trace_resolve_types(
+		struct bt_ctf_field_type *packet_header_type);
 
 BT_HIDDEN
-int bt_ctf_stream_class_resolve_types(struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_trace *trace);
+int bt_ctf_stream_class_resolve_types(
+		struct bt_ctf_field_type *packet_header_type,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type,
+		struct bt_ctf_field_type *stream_event_ctx_type);
 
 BT_HIDDEN
-int bt_ctf_event_class_resolve_types(struct bt_ctf_event_class *event_class,
-		struct bt_ctf_trace *trace,
-		struct bt_ctf_stream_class *stream_class);
+int bt_ctf_event_class_resolve_types(
+		struct bt_ctf_field_type *packet_header_type,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type,
+		struct bt_ctf_field_type *stream_event_ctx_type,
+		struct bt_ctf_field_type *event_context_type,
+		struct bt_ctf_field_type *event_payload_type);
 
 #endif /* BABELTRACE_CTF_IR_VISITOR_INTERNAL_H */

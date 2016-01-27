@@ -426,6 +426,12 @@ end:
 	return ret;
 }
 
+/*
+ * This function validates a given field type without considering
+ * where this field type is located. It only validates the properties
+ * of the given field type and the properties of its children if
+ * applicable.
+ */
 BT_HIDDEN
 int bt_ctf_field_type_validate_recursive(struct bt_ctf_field_type *type)
 {
@@ -561,7 +567,7 @@ int bt_ctf_field_type_validate_recursive(struct bt_ctf_field_type *type)
 		break;
 	}
 
-	/* Validate type itself */
+	/* Validate the field type itself */
 	ret = bt_ctf_field_type_validate(type);
 
 end:

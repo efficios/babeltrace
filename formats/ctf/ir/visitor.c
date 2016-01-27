@@ -1350,6 +1350,7 @@ end:
 	return ret;
 }
 
+/*
 BT_HIDDEN
 int bt_ctf_trace_resolve_types(struct bt_ctf_trace *trace)
 {
@@ -1371,4 +1372,34 @@ int bt_ctf_event_class_resolve_types(struct bt_ctf_event_class *event_class,
 {
 	return bt_ctf_event_class_visit(event_class, trace, stream_class,
 		type_resolve_func);
+}
+*/
+
+BT_HIDDEN
+int bt_ctf_trace_resolve_types(
+		struct bt_ctf_field_type *packet_header_type)
+{
+	return 0;
+}
+
+BT_HIDDEN
+int bt_ctf_stream_class_resolve_types(
+		struct bt_ctf_field_type *packet_header_type,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type,
+		struct bt_ctf_field_type *stream_event_ctx_type)
+{
+	return 0;
+}
+
+BT_HIDDEN
+int bt_ctf_event_class_resolve_types(
+		struct bt_ctf_field_type *packet_header_type,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type,
+		struct bt_ctf_field_type *stream_event_ctx_type,
+		struct bt_ctf_field_type *event_context_type,
+		struct bt_ctf_field_type *event_payload_type)
+{
+	return 0;
 }

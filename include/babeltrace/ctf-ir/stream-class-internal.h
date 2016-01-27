@@ -71,11 +71,6 @@ BT_HIDDEN
 int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
-int bt_ctf_stream_class_validate_types(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_trace *trace);
-
 /* Set stream_class id without checking if the stream class is frozen */
 BT_HIDDEN
 int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,

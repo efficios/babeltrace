@@ -34,7 +34,7 @@
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
-#include <babeltrace/ctf-ir/visitor-internal.h>
+#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
@@ -325,6 +325,15 @@ int bt_ctf_stream_class_add_event_class(
 {
 	int ret = 0;
 	int64_t event_id;
+	struct bt_ctf_validation_output validation_output;
+	struct bt_ctf_field_type *packet_header_type = NULL;
+	struct bt_ctf_field_type *packet_context_type = NULL;
+	struct bt_ctf_field_type *event_header_type = NULL;
+	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
+	struct bt_ctf_field_type *event_context_type = NULL;
+	struct bt_ctf_field_type *event_payload_type = NULL;
+	const enum bt_ctf_validation_flag validation_flags =
+		BT_CTF_VALIDATION_FLAG_EVENT_CLASS;
 
 	if (!stream_class || !event_class) {
 		ret = -1;
@@ -340,26 +349,64 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
-	/*
-	 * If the stream class is associated with a trace, then this
-	 * trace must be frozen, and this stream class too. Thus, we
-	 * have the whole event class/stream class/trace stack to
-	 * validate the event class.
-	 *
-	 * If we don't do this validation here, it would mean that
-	 * the trace could be stuck with an invalid event class.
-	 */
 	if (stream_class->trace) {
-		ret = bt_ctf_event_class_validate(event_class, stream_class,
-			stream_class->trace);
+		/*
+		 * If the stream class is associated with a trace, then
+		 * both those objects are frozen. Also, this event class
+		 * is about to be frozen.
+		 *
+		 * Therefore the event class must be validated here.
+		 * The trace and stream class should be valid at this
+		 * point.
+		 */
+		assert(stream_class->trace->valid);
+		assert(stream_class->valid);
+		packet_header_type =
+			bt_ctf_trace_get_packet_header_type(
+				stream_class->trace);
+		packet_context_type =
+			bt_ctf_stream_class_get_packet_context_type(
+				stream_class);
+		event_header_type =
+			bt_ctf_stream_class_get_event_header_type(stream_class);
+		stream_event_ctx_type =
+			bt_ctf_stream_class_get_event_context_type(
+				stream_class);
+		event_context_type =
+			bt_ctf_event_class_get_context_type(event_class);
+		event_payload_type =
+			bt_ctf_event_class_get_payload_type(event_class);
+		ret = bt_ctf_validate(packet_header_type, packet_context_type,
+			event_header_type, stream_event_ctx_type,
+			event_context_type, event_payload_type,
+			stream_class->trace->valid, stream_class->valid,
+			event_class->valid, &validation_output,
+			validation_flags);
+		packet_header_type = NULL;
+		packet_context_type = NULL;
+		event_header_type = NULL;
+		stream_event_ctx_type = NULL;
+		event_context_type = NULL;
+		event_payload_type = NULL;
 
 		if (ret) {
+			/*
+			 * This means something went wrong during the
+			 * validation process, not that the objects are
+			 * invalid.
+			 */
+			goto end;
+		}
+
+		if ((validation_output.valid_flags & validation_flags) !=
+				validation_flags) {
 			/* Invalid event class */
+			ret = -1;
 			goto end;
 		}
 	}
 
-	/* Only set an event id if none was explicitly set before */
+	/* Only set an event ID if none was explicitly set before */
 	event_id = bt_ctf_event_class_get_id(event_class);
 	if (event_id < 0) {
 		if (bt_ctf_event_class_set_id(event_class,
@@ -384,8 +431,23 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
+	if (stream_class->trace) {
+		/*
+		 * At this point we know that the function will be
+		 * successful. Therefore we can replace the event
+		 * class's field types with what's in the validation
+		 * output structure and mark this event class as valid.
+		 */
+		bt_ctf_validation_replace_types(NULL, NULL, event_class,
+			&validation_output, validation_flags);
+		event_class->valid = 1;
+	}
+
+	/* Add to the event classes of the stream class */
 	bt_get(event_class);
 	g_ptr_array_add(stream_class->event_classes, event_class);
+
+	/* Freeze the event class */
 	bt_ctf_event_class_freeze(event_class);
 
 	if (stream_class->byte_order) {
@@ -394,12 +456,21 @@ int bt_ctf_stream_class_add_event_class(
 		 * when the stream class was added to a trace.
 		 *
 		 * If not set here, this will be set when the stream
-		 * classe will be added to a trace.
+		 * class will be added to a trace.
 		 */
 		bt_ctf_event_class_set_native_byte_order(event_class,
 			stream_class->byte_order);
 	}
+
 end:
+	bt_ctf_validation_output_put_types(&validation_output);
+	assert(!packet_header_type);
+	assert(!packet_context_type);
+	assert(!event_header_type);
+	assert(!stream_event_ctx_type);
+	assert(!event_context_type);
+	assert(!event_payload_type);
+
 	return ret;
 }
 
@@ -637,57 +708,6 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
 	bt_ctf_clock_freeze(stream_class->clock);
-	bt_ctf_stream_class_validate_types(stream_class,
-		stream_class->trace);
-}
-
-BT_HIDDEN
-int bt_ctf_stream_class_validate_types(
-	struct bt_ctf_stream_class *stream_class,
-	struct bt_ctf_trace *trace)
-{
-	int ret = 0;
-
-	if (stream_class->valid) {
-		/* Already marked as valid */
-		ret = 0;
-		goto end;
-	}
-
-	/* Resolve sequence type lengths and variant type tags first */
-	ret = bt_ctf_stream_class_resolve_types(stream_class, trace);
-
-	if (ret) {
-		goto end;
-	}
-
-	/* Validate types now */
-	if (stream_class->event_header_type) {
-		ret = bt_ctf_field_type_validate_recursive(
-			stream_class->event_header_type);
-	}
-
-	if (stream_class->packet_context_type) {
-		ret |= bt_ctf_field_type_validate_recursive(
-			stream_class->packet_context_type);
-	}
-
-	if (stream_class->event_context_type) {
-		ret |= bt_ctf_field_type_validate_recursive(
-			stream_class->event_context_type);
-	}
-
-	if (ret) {
-		goto end;
-	}
-
-	/* Stream class is valid */
-	if (stream_class->frozen) {
-		stream_class->valid = 1;
-	}
-
-end:
-	return ret;
 }
 
 BT_HIDDEN

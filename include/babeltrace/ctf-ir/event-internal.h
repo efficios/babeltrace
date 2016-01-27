@@ -77,11 +77,6 @@ BT_HIDDEN
 void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class);
 
 BT_HIDDEN
-int bt_ctf_event_class_validate(struct bt_ctf_event_class *event_class,
-	struct bt_ctf_stream_class *stream_class,
-	struct bt_ctf_trace *trace);
-
-BT_HIDDEN
 int bt_ctf_event_class_set_stream_class(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_stream_class *stream_class);
 
