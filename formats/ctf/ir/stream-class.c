@@ -333,7 +333,7 @@ int bt_ctf_stream_class_add_event_class(
 	struct bt_ctf_field_type *event_context_type = NULL;
 	struct bt_ctf_field_type *event_payload_type = NULL;
 	const enum bt_ctf_validation_flag validation_flags =
-		BT_CTF_VALIDATION_FLAG_EVENT_CLASS;
+		BT_CTF_VALIDATION_FLAG_EVENT;
 
 	if (!stream_class || !event_class) {
 		ret = -1;
@@ -376,12 +376,12 @@ int bt_ctf_stream_class_add_event_class(
 			bt_ctf_event_class_get_context_type(event_class);
 		event_payload_type =
 			bt_ctf_event_class_get_payload_type(event_class);
-		ret = bt_ctf_validate(packet_header_type, packet_context_type,
-			event_header_type, stream_event_ctx_type,
-			event_context_type, event_payload_type,
-			stream_class->trace->valid, stream_class->valid,
-			event_class->valid, &validation_output,
-			validation_flags);
+		ret = bt_ctf_validate_class_types(packet_header_type,
+			packet_context_type, event_header_type,
+			stream_event_ctx_type, event_context_type,
+			event_payload_type, stream_class->trace->valid,
+			stream_class->valid, event_class->valid,
+			&validation_output, validation_flags);
 		packet_header_type = NULL;
 		packet_context_type = NULL;
 		event_header_type = NULL;

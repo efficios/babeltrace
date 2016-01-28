@@ -434,9 +434,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	struct bt_ctf_validation_output *ec_validation_outputs = NULL;
 	const enum bt_ctf_validation_flag trace_sc_validation_flags =
 		BT_CTF_VALIDATION_FLAG_TRACE |
-		BT_CTF_VALIDATION_FLAG_STREAM_CLASS;
+		BT_CTF_VALIDATION_FLAG_STREAM;
 	const enum bt_ctf_validation_flag ec_validation_flags =
-		BT_CTF_VALIDATION_FLAG_EVENT_CLASS;
+		BT_CTF_VALIDATION_FLAG_EVENT;
 	struct bt_ctf_field_type *packet_header_type = NULL;
 	struct bt_ctf_field_type *packet_context_type = NULL;
 	struct bt_ctf_field_type *event_header_type = NULL;
@@ -479,9 +479,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		bt_ctf_stream_class_get_event_header_type(stream_class);
 	stream_event_ctx_type =
 		bt_ctf_stream_class_get_event_context_type(stream_class);
-	ret = bt_ctf_validate(packet_header_type, packet_context_type,
-		event_header_type, stream_event_ctx_type, NULL, NULL,
-		trace->valid, stream_class->valid, 1,
+	ret = bt_ctf_validate_class_types(packet_header_type,
+		packet_context_type, event_header_type, stream_event_ctx_type,
+		NULL, NULL, trace->valid, stream_class->valid, 1,
 		&trace_sc_validation_output, trace_sc_validation_flags);
 	packet_header_type = NULL;
 	packet_context_type = NULL;
@@ -530,14 +530,15 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		 * the previous trace and stream class validation here
 		 * because copies could have been made.
 		 *
-		 * New references are acquired because bt_ctf_validate()
-		 * takes ownership of its field type parameters.
+		 * New references are acquired because
+		 * bt_ctf_validate_classes() takes ownership of its
+		 * field type parameters.
 		 */
 		bt_get(trace_sc_validation_output.packet_header_type);
 		bt_get(trace_sc_validation_output.packet_context_type);
 		bt_get(trace_sc_validation_output.event_header_type);
 		bt_get(trace_sc_validation_output.stream_event_ctx_type);
-		ret = bt_ctf_validate(
+		ret = bt_ctf_validate_class_types(
 			trace_sc_validation_output.packet_header_type,
 			trace_sc_validation_output.packet_context_type,
 			trace_sc_validation_output.event_header_type,
@@ -645,6 +646,12 @@ end:
 
 		if (ec_validation_outputs) {
 			for (i = 0; i < event_class_count; ++i) {
+				/*
+				 * This is only called on error here
+				 * because bt_ctf_validation_replace_types()
+				 * does the same job on success,
+				 * about 2 inches above.
+				 */
 				bt_ctf_validation_output_put_types(
 					&ec_validation_outputs[i]);
 			}

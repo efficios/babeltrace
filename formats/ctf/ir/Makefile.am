@@ -12,7 +12,7 @@ libctf_ir_la_SOURCES = \
 	stream-class.c \
 	trace.c \
 	utils.c \
-	visitor.c \
+	resolve.c \
 	validation.c
 
 libctf_ir_la_LIBADD = \

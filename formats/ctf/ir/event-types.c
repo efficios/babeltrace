@@ -2507,14 +2507,14 @@ struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 }
 
 BT_HIDDEN
-int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
+int bt_ctf_field_type_variant_set_tag_field_type(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type *tag)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_variant *variant;
 
-	if (!type || !tag || type->frozen ||
-		bt_ctf_field_type_get_type_id(tag) != CTF_TYPE_ENUM) {
+	if (!type || !tag ||
+			bt_ctf_field_type_get_type_id(tag) != CTF_TYPE_ENUM) {
 		ret = -1;
 		goto end;
 	}
