@@ -403,6 +403,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *stream_event_context_field;
 	struct bt_ctf_field *event_context;
 	struct bt_ctf_field *event_context_field;
+	int ret;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -642,7 +643,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field);
 	ok(!strcmp(ret_char, mapping_name_negative_test),
 		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an signed container");
-	bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
+	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
+	assert(!ret);
 
 	enum_field_unsigned = bt_ctf_field_create(enum_type_unsigned);
 	enum_container_field_unsigned = bt_ctf_field_enumeration_get_container(
@@ -650,8 +652,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_unsigned_integer_set_value(
 		enum_container_field_unsigned, 42) == 0,
 		"Set unsigned enumeration container value");
-	bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
+	ret = bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
+	assert(!ret);
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field_unsigned);
 	ok(ret_char && !strcmp(ret_char, mapping_name_test),
 		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an unsigned container");
