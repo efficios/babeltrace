@@ -742,6 +742,23 @@ extern int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 		enum bt_ctf_byte_order byte_order);
 
 /*
+ * bt_ctf_field_type_compare: compare two field types recursively
+ *
+ * Compare two field types recursively.
+ *
+ * The registered tag field type of a variant field type is ignored:
+ * only the tag strings are compared.
+ *
+ * @param type_a Field type A.
+ * @param type_b Field type B.
+ *
+ * Returns 0 if both field types are semantically equivalent, or a
+ * negative value when they are not equivalent or on error.
+ */
+extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b);
+
+/*
  * bt_ctf_field_type_get_type_id: get a field type's ctf_type_id.
  *
  * @param type Field type.
