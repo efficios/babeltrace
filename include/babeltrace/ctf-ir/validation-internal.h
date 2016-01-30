@@ -62,6 +62,10 @@ struct bt_ctf_validation_output {
  *
  * This function does not replace any field types, nor does it mark
  * any object as valid.
+ *
+ * All the `*_type` parameters are owned by the caller (i.e. ownership
+ * is not moved to this function; this function acquires its own
+ * references if needed).
  */
 BT_HIDDEN
 int bt_ctf_validate_class_types(struct bt_ctf_field_type *packet_header_type,

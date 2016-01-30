@@ -230,6 +230,44 @@ struct bt_ctf_field_type *(* const type_copy_funcs[])(
 };
 
 static
+int bt_ctf_field_type_integer_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_floating_point_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_enumeration_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_string_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_structure_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_variant_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_array_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_sequence_compare(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *);
+
+static
+int (* const type_compare_funcs[])(struct bt_ctf_field_type *,
+		struct bt_ctf_field_type *) = {
+	[CTF_TYPE_INTEGER] = bt_ctf_field_type_integer_compare,
+	[CTF_TYPE_ENUM] = bt_ctf_field_type_enumeration_compare,
+	[CTF_TYPE_FLOAT] = bt_ctf_field_type_floating_point_compare,
+	[CTF_TYPE_STRUCT] = bt_ctf_field_type_structure_compare,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_type_variant_compare,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_type_array_compare,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_type_sequence_compare,
+	[CTF_TYPE_STRING] = bt_ctf_field_type_string_compare,
+};
+
+static
 void destroy_enumeration_mapping(struct enumeration_mapping *mapping)
 {
 	g_free(mapping);
@@ -2029,7 +2067,6 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		struct bt_ctf_field_type *type)
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
-	int internal_byte_order = -1;
 
 	if (!type) {
 		goto end;
@@ -2040,7 +2077,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 	{
 		struct bt_ctf_field_type_integer *integer = container_of(
 			type, struct bt_ctf_field_type_integer, parent);
-		internal_byte_order = integer->declaration.byte_order;
+		ret = integer->user_byte_order;
 		break;
 	}
 	case CTF_TYPE_FLOAT:
@@ -2049,26 +2086,18 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 			container_of(type,
 				struct bt_ctf_field_type_floating_point,
 				parent);
-		internal_byte_order = floating_point->declaration.byte_order;
+		ret = floating_point->user_byte_order;
 		break;
 	}
 	default:
 		goto end;
 	}
 
-	switch (internal_byte_order) {
-	case LITTLE_ENDIAN:
-		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
-		break;
-	case BIG_ENDIAN:
-		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
-		break;
-	case 0:
-		ret = BT_CTF_BYTE_ORDER_NATIVE;
-		break;
-	default:
-		ret = BT_CTF_BYTE_ORDER_UNKNOWN;
-	}
+	assert(ret == BT_CTF_BYTE_ORDER_NATIVE ||
+		ret == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
+		ret == BT_CTF_BYTE_ORDER_BIG_ENDIAN ||
+		ret == BT_CTF_BYTE_ORDER_NETWORK);
+
 end:
 	return ret;
 }
@@ -3108,6 +3137,39 @@ int bt_ctf_field_type_string_serialize(struct bt_ctf_field_type *type,
 }
 
 static
+enum bt_ctf_byte_order get_ctf_ir_byte_order(int byte_order) {
+	enum bt_ctf_byte_order ret;
+
+	assert(BT_CTF_BYTE_ORDER_NATIVE == 0);
+
+	switch (byte_order) {
+	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+	case LITTLE_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
+		break;
+
+	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
+	case BIG_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		break;
+
+	case BT_CTF_BYTE_ORDER_NETWORK:
+		ret = BT_CTF_BYTE_ORDER_NETWORK;
+		break;
+
+	case BT_CTF_BYTE_ORDER_NATIVE:
+		ret = BT_CTF_BYTE_ORDER_NATIVE;
+		break;
+
+	default:
+		ret = BT_CTF_BYTE_ORDER_UNKNOWN;
+		break;
+	}
+
+	return ret;
+}
+
+static
 void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *type,
 		int byte_order, int set_native)
 {
@@ -3115,10 +3177,17 @@ void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type_integer, parent);
 
 	if (set_native) {
-		integer_type->declaration.byte_order =
-			integer_type->declaration.byte_order == 0 ?
-			byte_order : integer_type->declaration.byte_order;
+		if (integer_type->user_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+			/*
+			 * User byte order is native, so we can set
+			 * the real byte order.
+			 */
+			integer_type->declaration.byte_order =
+				byte_order;
+		}
 	} else {
+		integer_type->user_byte_order =
+			get_ctf_ir_byte_order(byte_order);
 		integer_type->declaration.byte_order = byte_order;
 	}
 }
@@ -3144,20 +3213,24 @@ void bt_ctf_field_type_floating_point_set_byte_order(
 		parent);
 
 	if (set_native) {
-		floating_point_type->declaration.byte_order =
-			floating_point_type->declaration.byte_order == 0 ?
-			byte_order :
-			floating_point_type->declaration.byte_order;
-		floating_point_type->sign.byte_order =
-			floating_point_type->sign.byte_order == 0 ?
-			byte_order : floating_point_type->sign.byte_order;
-		floating_point_type->mantissa.byte_order =
-			floating_point_type->mantissa.byte_order == 0 ?
-			byte_order : floating_point_type->mantissa.byte_order;
-		floating_point_type->exp.byte_order =
-			floating_point_type->exp.byte_order == 0 ?
-			byte_order : floating_point_type->exp.byte_order;
+		if (floating_point_type->user_byte_order ==
+				BT_CTF_BYTE_ORDER_NATIVE) {
+			/*
+			 * User byte order is native, so we can set
+			 * the real byte order.
+			 */
+			floating_point_type->declaration.byte_order =
+				byte_order;
+			floating_point_type->sign.byte_order =
+				byte_order;
+			floating_point_type->mantissa.byte_order =
+				byte_order;
+			floating_point_type->exp.byte_order =
+				byte_order;
+		}
 	} else {
+		floating_point_type->user_byte_order =
+			get_ctf_ir_byte_order(byte_order);
 		floating_point_type->declaration.byte_order = byte_order;
 		floating_point_type->sign.byte_order = byte_order;
 		floating_point_type->mantissa.byte_order = byte_order;
@@ -3330,6 +3403,9 @@ struct bt_ctf_field_type *bt_ctf_field_type_floating_point_copy(
 	copy_float->sign = floating_point->sign;
 	copy_float->mantissa = floating_point->mantissa;
 	copy_float->exp = floating_point->exp;
+	copy_float->declaration.sign = &copy_float->sign;
+	copy_float->declaration.mantissa = &copy_float->mantissa;
+	copy_float->declaration.exp = &copy_float->exp;
 end:
 	return copy;
 }
@@ -3548,4 +3624,407 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_copy(
 	copy_string->declaration = string->declaration;
 end:
 	return copy;
+}
+
+static
+int bt_ctf_field_type_integer_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	struct bt_ctf_field_type_integer *integer_a;
+	struct bt_ctf_field_type_integer *integer_b;
+	struct declaration_integer *decl_a;
+	struct declaration_integer *decl_b;
+
+	integer_a = container_of(type_a, struct bt_ctf_field_type_integer,
+		parent);
+	integer_b = container_of(type_b, struct bt_ctf_field_type_integer,
+		parent);
+	decl_a = &integer_a->declaration;
+	decl_b = &integer_b->declaration;
+
+	/* Length */
+	if (decl_a->len != decl_b->len) {
+		goto end;
+	}
+
+	/*
+	 * Compare user byte orders only, not the cached,
+	 * real byte orders.
+	 */
+	if (integer_a->user_byte_order != integer_b->user_byte_order) {
+		goto end;
+	}
+
+	/* Signedness */
+	if (decl_a->signedness != decl_b->signedness) {
+		goto end;
+	}
+
+	/* Base */
+	if (decl_a->base != decl_b->base) {
+		goto end;
+	}
+
+	/* Encoding */
+	if (decl_a->encoding != decl_b->encoding) {
+		goto end;
+	}
+
+	/* Mapped clock */
+	if (integer_a->mapped_clock != integer_b->mapped_clock) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_floating_point_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	struct bt_ctf_field_type_floating_point *float_a;
+	struct bt_ctf_field_type_floating_point *float_b;
+
+	float_a = container_of(type_a,
+		struct bt_ctf_field_type_floating_point, parent);
+	float_b = container_of(type_b,
+		struct bt_ctf_field_type_floating_point, parent);
+
+	/* Sign length */
+	if (float_a->sign.len != float_b->sign.len) {
+		goto end;
+	}
+
+	/* Exponent length */
+	if (float_a->exp.len != float_b->exp.len) {
+		goto end;
+	}
+
+	/* Mantissa length */
+	if (float_a->mantissa.len != float_b->mantissa.len) {
+		goto end;
+	}
+
+	/*
+	 * Compare user byte orders only, not the cached,
+	 * real byte orders.
+	 */
+	if (float_a->user_byte_order != float_b->user_byte_order) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int compare_enumeration_mapping(struct enumeration_mapping *mapping_a,
+		struct enumeration_mapping *mapping_b)
+{
+	int ret = -1;
+	const char *label_a = g_quark_to_string(mapping_a->string);
+	const char *label_b = g_quark_to_string(mapping_b->string);
+
+	/* Label */
+	if (strcmp(label_a, label_b)) {
+		goto end;
+	}
+
+	/* Range start */
+	if (mapping_a->range_start._unsigned !=
+			mapping_b->range_start._unsigned) {
+		goto end;
+	}
+
+	/* Range end */
+	if (mapping_a->range_end._unsigned !=
+			mapping_b->range_end._unsigned) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_enumeration_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	int i;
+	struct bt_ctf_field_type_enumeration *enum_a;
+	struct bt_ctf_field_type_enumeration *enum_b;
+
+	enum_a = container_of(type_a,
+		struct bt_ctf_field_type_enumeration, parent);
+	enum_b = container_of(type_b,
+		struct bt_ctf_field_type_enumeration, parent);
+
+	/* Container field type */
+	if (bt_ctf_field_type_compare(enum_a->container, enum_b->container)) {
+		goto end;
+	}
+
+	/* Entries */
+	if (enum_a->entries->len != enum_b->entries->len) {
+		goto end;
+	}
+
+	for (i = 0; i < enum_a->entries->len; ++i) {
+		struct enumeration_mapping *mapping_a =
+			g_ptr_array_index(enum_a->entries, i);
+		struct enumeration_mapping *mapping_b =
+			g_ptr_array_index(enum_b->entries, i);
+
+		if (compare_enumeration_mapping(mapping_a, mapping_b)) {
+			goto end;
+		}
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_string_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	struct bt_ctf_field_type_string *string_a;
+	struct bt_ctf_field_type_string *string_b;
+
+	string_a = container_of(type_a,
+		struct bt_ctf_field_type_string, parent);
+	string_b = container_of(type_b,
+		struct bt_ctf_field_type_string, parent);
+
+	/* Encoding */
+	if (string_a->declaration.encoding != string_b->declaration.encoding) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int compare_structure_field(struct structure_field *field_a,
+		struct structure_field *field_b)
+{
+	int ret = -1;
+	const char *name_a = g_quark_to_string(field_a->name);
+	const char *name_b = g_quark_to_string(field_b->name);
+
+	/* Label */
+	if (strcmp(name_a, name_b)) {
+		goto end;
+	}
+
+	/* Type */
+	if (bt_ctf_field_type_compare(field_a->type, field_b->type)) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_structure_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	int i;
+	struct bt_ctf_field_type_structure *struct_a;
+	struct bt_ctf_field_type_structure *struct_b;
+
+	struct_a = container_of(type_a,
+		struct bt_ctf_field_type_structure, parent);
+	struct_b = container_of(type_b,
+		struct bt_ctf_field_type_structure, parent);
+
+	/* Alignment */
+	if (bt_ctf_field_type_get_alignment(type_a) !=
+			bt_ctf_field_type_get_alignment(type_b)) {
+		goto end;
+	}
+
+	/* Fields */
+	if (struct_a->fields->len != struct_b->fields->len) {
+		goto end;
+	}
+
+	for (i = 0; i < struct_a->fields->len; ++i) {
+		struct structure_field *field_a =
+			g_ptr_array_index(struct_a->fields, i);
+		struct structure_field *field_b =
+			g_ptr_array_index(struct_b->fields, i);
+
+		if (compare_structure_field(field_a, field_b)) {
+			goto end;
+		}
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_variant_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	int i;
+	struct bt_ctf_field_type_variant *variant_a;
+	struct bt_ctf_field_type_variant *variant_b;
+
+	variant_a = container_of(type_a,
+		struct bt_ctf_field_type_variant, parent);
+	variant_b = container_of(type_b,
+		struct bt_ctf_field_type_variant, parent);
+
+	/* Tag name */
+	if (strcmp(variant_a->tag_name->str, variant_b->tag_name->str)) {
+		goto end;
+	}
+
+	/* Fields */
+	if (variant_a->fields->len != variant_b->fields->len) {
+		goto end;
+	}
+
+	for (i = 0; i < variant_a->fields->len; ++i) {
+		struct structure_field *field_a =
+			g_ptr_array_index(variant_a->fields, i);
+		struct structure_field *field_b =
+			g_ptr_array_index(variant_b->fields, i);
+
+		if (compare_structure_field(field_a, field_b)) {
+			goto end;
+		}
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_array_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	struct bt_ctf_field_type_array *array_a;
+	struct bt_ctf_field_type_array *array_b;
+
+	array_a = container_of(type_a,
+		struct bt_ctf_field_type_array, parent);
+	array_b = container_of(type_b,
+		struct bt_ctf_field_type_array, parent);
+
+	/* Length */
+	if (array_a->length != array_b->length) {
+		goto end;
+	}
+
+	/* Element type */
+	if (bt_ctf_field_type_compare(array_a->element_type,
+			array_b->element_type)) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static
+int bt_ctf_field_type_sequence_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+	struct bt_ctf_field_type_sequence *sequence_a;
+	struct bt_ctf_field_type_sequence *sequence_b;
+
+	sequence_a = container_of(type_a,
+		struct bt_ctf_field_type_sequence, parent);
+	sequence_b = container_of(type_b,
+		struct bt_ctf_field_type_sequence, parent);
+
+	/* Length name */
+	if (strcmp(sequence_a->length_field_name->str,
+			sequence_b->length_field_name->str)) {
+		goto end;
+	}
+
+	/* Element type */
+	if (bt_ctf_field_type_compare(sequence_a->element_type,
+			sequence_b->element_type)) {
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}
+
+int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
+		struct bt_ctf_field_type *type_b)
+{
+	int ret = -1;
+
+	if (!type_a || !type_b) {
+		goto end;
+	}
+
+	if (type_a == type_b) {
+		/* Same reference: equal */
+		ret = 0;
+		goto end;
+	}
+
+	if (type_a->declaration->id != type_b->declaration->id) {
+		/* Different type IDs */
+		goto end;
+	}
+
+	if (type_a->declaration->id == CTF_TYPE_UNKNOWN) {
+		/* Both have unknown type IDs */
+		goto end;
+	}
+
+	ret = type_compare_funcs[type_a->declaration->id](type_a, type_b);
+
+end:
+	return ret;
 }

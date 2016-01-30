@@ -907,42 +907,6 @@ int resolve_root_type(enum ctf_type_id root_node, struct resolve_context *ctx)
 /*
  * All `*_type` parameters are owned by the caller.
  */
-static
-int init_resolve_context(struct bt_ctf_field_type *packet_header_type,
-		struct bt_ctf_field_type *packet_context_type,
-		struct bt_ctf_field_type *event_header_type,
-		struct bt_ctf_field_type *stream_event_ctx_type,
-		struct bt_ctf_field_type *event_context_type,
-		struct bt_ctf_field_type *event_payload_type,
-		struct resolve_context *ctx)
-{
-	int ret = 0;
-
-	ctx->packet_header_type = packet_header_type;
-	ctx->packet_context_type = packet_context_type;
-	ctx->event_header_type = event_header_type;
-	ctx->stream_event_ctx_type = stream_event_ctx_type;
-	ctx->event_context_type = event_context_type;
-	ctx->event_payload_type = event_payload_type;
-	ctx->root_node = CTF_NODE_UNKNOWN;
-	ctx->type_stack = type_stack_create();
-
-	if (!ctx->type_stack) {
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static
-void finalize_resolve_context(struct resolve_context *ctx)
-{
-	type_stack_destroy(ctx->type_stack);
-}
-
-/*
- * All `*_type` parameters are owned by the caller.
- */
 BT_HIDDEN
 int bt_ctf_resolve_types(
 		struct bt_ctf_field_type *packet_header_type,
@@ -956,12 +920,20 @@ int bt_ctf_resolve_types(
 	int ret = 0;
 	struct resolve_context ctx = {0};
 
-	/* Initialize resolving context */
-	ret = init_resolve_context(packet_header_type, packet_context_type,
-		event_header_type, stream_event_ctx_type, event_context_type,
-		event_payload_type, &ctx);
+	return 0;
 
-	if (ret) {
+	/* Initialize resolving context */
+	ctx.packet_header_type = packet_header_type;
+	ctx.packet_context_type = packet_context_type;
+	ctx.event_header_type = event_header_type;
+	ctx.stream_event_ctx_type = stream_event_ctx_type;
+	ctx.event_context_type = event_context_type;
+	ctx.event_payload_type = event_payload_type;
+	ctx.root_node = CTF_NODE_UNKNOWN;
+	ctx.type_stack = type_stack_create();
+
+	if (!ctx.type_stack) {
+		ret = -1;
 		goto end;
 	}
 
@@ -1020,7 +992,7 @@ int bt_ctf_resolve_types(
 	}
 
 end:
-	finalize_resolve_context(&ctx);
+	type_stack_destroy(ctx.type_stack);
 
 	return ret;
 }

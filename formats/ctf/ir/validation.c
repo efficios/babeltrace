@@ -167,6 +167,27 @@ int bt_ctf_validate_class_types(struct bt_ctf_field_type *packet_header_type,
 	/* Clean output values */
 	memset(output, 0, sizeof(*output));
 
+	/* Set initial valid flags according to valid parameters */
+	if (trace_valid) {
+		output->valid_flags |= BT_CTF_VALIDATION_FLAG_TRACE;
+	}
+
+	if (stream_class_valid) {
+		output->valid_flags |= BT_CTF_VALIDATION_FLAG_STREAM;
+	}
+
+	if (event_class_valid) {
+		output->valid_flags |= BT_CTF_VALIDATION_FLAG_EVENT;
+	}
+
+	/* Own the type parameters */
+	bt_get(packet_header_type);
+	bt_get(packet_context_type);
+	bt_get(event_header_type);
+	bt_get(stream_event_ctx_type);
+	bt_get(event_context_type);
+	bt_get(event_payload_type);
+
 	/* Validate trace */
 	if ((validate_flags & BT_CTF_VALIDATION_FLAG_TRACE) && !trace_valid) {
 		struct bt_ctf_field_type *packet_header_type_copy = NULL;

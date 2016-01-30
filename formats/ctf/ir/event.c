@@ -551,11 +551,11 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	struct bt_ctf_field *event_header = NULL;
 	struct bt_ctf_field *event_context = NULL;
 	struct bt_ctf_field *event_payload = NULL;
-	struct bt_ctf_validation_output validation_output;
+	struct bt_ctf_validation_output validation_output = {0};
 	int trace_valid = 0;
 
 	if (!event_class) {
-		goto end;
+		goto error;
 	}
 
 	/*
@@ -565,7 +565,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 * associated stream class has been reclaimed.
 	 */
 	if (!event_class->stream_class) {
-		goto end;
+		goto error;
 	}
 
 	/* A stream class should always have an existing event header type */
@@ -595,12 +595,12 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		event_context_type, event_payload_type, trace_valid,
 		event_class->stream_class->valid, event_class->valid,
 		&validation_output, validation_flags);
-	packet_header_type = NULL;
-	packet_context_type = NULL;
-	event_header_type = NULL;
-	stream_event_ctx_type = NULL;
-	event_context_type = NULL;
-	event_payload_type = NULL;
+	BT_PUT(packet_header_type);
+	BT_PUT(packet_context_type);
+	BT_PUT(event_header_type);
+	BT_PUT(stream_event_ctx_type);
+	BT_PUT(event_context_type);
+	BT_PUT(event_payload_type);
 
 	if (ret) {
 		/*
@@ -625,7 +625,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	event = g_new0(struct bt_ctf_event, 1);
 
 	if (!event) {
-		goto end;
+		goto error;
 	}
 
 	bt_object_init(event, bt_ctf_event_destroy);
@@ -639,7 +639,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		goto error;
 	}
 
-	if (event_context_type) {
+	if (validation_output.event_context_type) {
 		event_context = bt_ctf_field_create(
 			validation_output.event_context_type);
 
@@ -648,7 +648,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		}
 	}
 
-	if (event_payload_type) {
+	if (validation_output.event_payload_type) {
 		event_payload = bt_ctf_field_create(
 			validation_output.event_payload_type);
 
@@ -671,6 +671,11 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	BT_MOVE(event->fields_payload, event_payload);
 
 	/*
+	 * Put what was not moved in bt_ctf_validation_replace_types().
+	 */
+	bt_ctf_validation_output_put_types(&validation_output);
+
+	/*
 	 * Freeze the stream class since the event header must not be changed
 	 * anymore.
 	 */
@@ -687,7 +692,6 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	event_class->stream_class->valid = 1;
 	event_class->valid = 1;
 
-end:
 	return event;
 
 error:
@@ -1199,6 +1203,9 @@ void bt_ctf_event_class_set_native_byte_order(
 	if (!event_class) {
 		return;
 	}
+
+	assert(byte_order == 0 || byte_order == LITTLE_ENDIAN ||
+		byte_order == BIG_ENDIAN);
 
 	bt_ctf_field_type_set_native_byte_order(event_class->context,
 		byte_order);

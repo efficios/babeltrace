@@ -377,6 +377,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_enumeration_create(uint_12_type);
 	struct bt_ctf_field_type *event_context_type =
 		bt_ctf_field_type_structure_create();
+	struct bt_ctf_field_type *event_payload_type = NULL;
 	struct bt_ctf_field_type *returned_type;
 	struct bt_ctf_event *simple_event;
 	struct bt_ctf_field *integer_field;
@@ -400,6 +401,10 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field *stream_event_context_field;
 	struct bt_ctf_field *event_context;
 	struct bt_ctf_field *event_context_field;
+	struct bt_ctf_field_type *ep_integer_field_type = NULL;
+	struct bt_ctf_field_type *ep_enum_field_type = NULL;
+	struct bt_ctf_field_type *ep_enum_field_unsigned_type = NULL;
+	int ret;
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
@@ -564,6 +569,32 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	bt_ctf_stream_class_add_event_class(stream_class, simple_event_class);
 
+	/*
+	 * bt_ctf_stream_class_add_event_class() copies the field types
+	 * of simple_event_class, so we retrieve the new ones to create
+	 * the appropriate fields.
+	 */
+	BT_PUT(event_context_type);
+	BT_PUT(event_payload_type);
+	event_payload_type = bt_ctf_event_class_get_payload_type(
+		simple_event_class);
+	assert(event_payload_type);
+	event_context_type = bt_ctf_event_class_get_context_type(
+		simple_event_class);
+	assert(event_context_type);
+	ep_integer_field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(
+			event_payload_type, "integer_field");
+	assert(ep_integer_field_type);
+	ep_enum_field_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(
+			event_payload_type, "enum_field");
+	assert(ep_enum_field_type);
+	ep_enum_field_unsigned_type =
+		bt_ctf_field_type_structure_get_field_type_by_name(
+			event_payload_type, "enum_field_unsigned");
+	assert(ep_enum_field_unsigned_type);
+
 	ok(bt_ctf_stream_class_get_event_class_count(NULL) < 0,
 		"bt_ctf_stream_class_get_event_class_count handles NULL correctly");
 	ok(bt_ctf_stream_class_get_event_class_count(stream_class) == 1,
@@ -608,7 +639,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_get_clock returns a correct clock");
 	bt_put(clock);
 
-	integer_field = bt_ctf_field_create(uint_12_type);
+	integer_field = bt_ctf_field_create(ep_integer_field_type);
 	bt_ctf_field_unsigned_integer_set_value(integer_field, 42);
 	ok(bt_ctf_event_set_payload(simple_event, "integer_field",
 		integer_field) == 0, "Use bt_ctf_event_set_payload to set a manually allocated field");
@@ -626,7 +657,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(fabs(ret_double - double_test_value) <= DBL_EPSILON,
 		"bt_ctf_field_floating_point_get_value returns a correct value");
 
-	enum_field = bt_ctf_field_create(enum_type);
+	enum_field = bt_ctf_field_create(ep_enum_field_type);
+	assert(enum_field);
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(NULL);
 	ok(!ret_char, "bt_ctf_field_enumeration_get_mapping_name handles NULL correctly");
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field);
@@ -639,16 +671,19 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field);
 	ok(!strcmp(ret_char, mapping_name_negative_test),
 		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an signed container");
-	bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
+	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
+	assert(!ret);
 
-	enum_field_unsigned = bt_ctf_field_create(enum_type_unsigned);
+	enum_field_unsigned = bt_ctf_field_create(ep_enum_field_unsigned_type);
+	assert(enum_field_unsigned);
 	enum_container_field_unsigned = bt_ctf_field_enumeration_get_container(
 		enum_field_unsigned);
 	ok(bt_ctf_field_unsigned_integer_set_value(
 		enum_container_field_unsigned, 42) == 0,
 		"Set unsigned enumeration container value");
-	bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
+	ret = bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
+	assert(!ret);
 	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field_unsigned);
 	ok(ret_char && !strcmp(ret_char, mapping_name_test),
 		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an unsigned container");
@@ -734,6 +769,10 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_put(stream_event_context_field);
 	bt_put(event_context);
 	bt_put(event_context_field);
+	bt_put(event_payload_type);
+	bt_put(ep_integer_field_type);
+	bt_put(ep_enum_field_type);
+	bt_put(ep_enum_field_unsigned_type);
 }
 
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
@@ -1096,7 +1135,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
 		&ret_field_type, 0) == 0,
 		"bt_ctf_event_class_get_field returns a field");
-	ok(ret_field_type == uint_35_type,
+	ok(bt_ctf_field_type_compare(ret_field_type, uint_35_type) == 0,
 		"bt_ctf_event_class_get_field returns a correct field type");
 	bt_put(ret_field_type);
 	ok(!strcmp(ret_string, "uint_35"),
@@ -1109,7 +1148,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_field_by_name handles an invalid field name correctly");
 	ret_field_type = bt_ctf_event_class_get_field_by_name(event_class,
 		"complex_structure");
-	ok(ret_field_type == complex_structure_type,
+	ok(bt_ctf_field_type_compare(ret_field_type, complex_structure_type) == 0,
 		"bt_ctf_event_class_get_field_by_name returns a correct field type");
 	bt_put(ret_field_type);
 
@@ -1171,7 +1210,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		complex_structure_field, 3);
 	ret_field_type = bt_ctf_field_get_type(inner_structure_field);
 	bt_put(inner_structure_field);
-	ok(ret_field_type == inner_structure_type,
+	ok(bt_ctf_field_type_compare(ret_field_type, inner_structure_type) == 0,
 		"bt_ctf_field_structure_get_field_by_index returns a correct field");
 	bt_put(ret_field_type);
 
@@ -2136,6 +2175,9 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	int events_appended = 0;
 	struct bt_ctf_field *packet_context = NULL,
 		*packet_context_field = NULL, *event_context = NULL;
+	struct bt_ctf_field_type *ep_field_1_type = NULL;
+	struct bt_ctf_field_type *ep_a_string_type = NULL;
+	struct bt_ctf_field_type *ep_type = NULL;
 
 	ret |= bt_ctf_event_class_add_field(event_class, integer_type,
 		"field_1");
@@ -2147,10 +2189,24 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
+	/*
+	 * bt_ctf_stream_class_add_event_class() copies the field types
+	 * of event_class, so we retrieve the new ones to create the
+	 * appropriate fields.
+	 */
+	ep_type = bt_ctf_event_class_get_payload_type(event_class);
+	assert(ep_type);
+	ep_field_1_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		ep_type, "field_1");
+	assert(ep_field_1_type);
+	ep_a_string_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		ep_type, "a_string");
+	assert(ep_a_string_type);
+
 	event = bt_ctf_event_create(event_class);
 	ret_field = bt_ctf_event_get_payload_by_index(event, 0);
 	ret_field_type = bt_ctf_field_get_type(ret_field);
-	ok(ret_field_type == integer_type,
+	ok(bt_ctf_field_type_compare(ret_field_type, integer_type) == 0,
 		"bt_ctf_event_get_payload_by_index returns a correct field");
 	bt_put(ret_field_type);
 	bt_put(ret_field);
@@ -2172,7 +2228,7 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_stream_set_event_context handles a NULL stream event context correctly");
 	ok(!bt_ctf_stream_set_event_context(stream, event_context),
 		"bt_ctf_stream_set_event_context correctly set a stream event context");
-	ret_field = bt_ctf_field_create(integer_type);
+	ret_field = bt_ctf_field_create(ep_field_1_type);
 	ok(bt_ctf_stream_set_event_context(stream, ret_field) < 0,
 		"bt_ctf_stream_set_event_context rejects an event context of incorrect type");
 	bt_put(ret_field);
@@ -2180,9 +2236,9 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	for (i = 0; i < PACKET_RESIZE_TEST_LENGTH; i++) {
 		event = bt_ctf_event_create(event_class);
 		struct bt_ctf_field *integer =
-			bt_ctf_field_create(integer_type);
+			bt_ctf_field_create(ep_field_1_type);
 		struct bt_ctf_field *string =
-			bt_ctf_field_create(string_type);
+			bt_ctf_field_create(ep_a_string_type);
 
 		ret |= bt_ctf_clock_set_time(clock, ++current_time);
 		ret |= bt_ctf_field_unsigned_integer_set_value(integer, i);
@@ -2245,6 +2301,9 @@ end:
 	bt_put(packet_context_field);
 	bt_put(event_context);
 	bt_put(event_class);
+	bt_put(ep_field_1_type);
+	bt_put(ep_a_string_type);
+	bt_put(ep_type);
 }
 
 void test_empty_stream(struct bt_ctf_writer *writer)
@@ -3171,6 +3230,23 @@ int main(int argc, char **argv)
 		"Returned stream class is of the correct type");
 
 	/*
+	 * Packet header, packet context, event header, and stream
+	 * event context types were copied for the resolving
+	 * process
+	 */
+	BT_PUT(packet_header_type);
+	BT_PUT(packet_context_type);
+	BT_PUT(stream_event_context_type);
+	packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
+	assert(packet_header_type);
+	packet_context_type =
+		bt_ctf_stream_class_get_packet_context_type(stream_class);
+	assert(packet_context_type);
+	stream_event_context_type =
+		bt_ctf_stream_class_get_event_context_type(stream_class);
+	assert(stream_event_context_type);
+
+	/*
 	 * Try to modify the packet context type after a stream has been
 	 * created.
 	 */
@@ -3216,7 +3292,7 @@ int main(int argc, char **argv)
 	ok(packet_header_field,
 		"Packet header structure contains a custom field with the appropriate name");
 	ret_field_type = bt_ctf_field_get_type(packet_header_field);
-	ok(ret_field_type == packet_header_field_type,
+	ok(bt_ctf_field_type_compare(ret_field_type, packet_header_field_type) == 0,
 		"Custom packet header field is of the expected type");
 	ok(!bt_ctf_field_unsigned_integer_set_value(packet_header_field,
 		54321), "Set custom packet header value successfully");

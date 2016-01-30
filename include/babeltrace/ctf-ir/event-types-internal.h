@@ -87,6 +87,14 @@ struct bt_ctf_field_type_integer {
 	struct bt_ctf_field_type parent;
 	struct declaration_integer declaration;
 	struct bt_ctf_clock *mapped_clock;
+
+	/*
+	 * This is what the user sets and is never modified by internal
+	 * code.
+	 *
+	 * This field must contain a `BT_CTF_BYTE_ORDER_*` value.
+	 */
+	enum bt_ctf_byte_order user_byte_order;
 };
 
 struct enumeration_mapping {
@@ -105,16 +113,30 @@ struct enumeration_mapping {
 struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_field_type *container;
-	GPtrArray *entries; /* Array of pointers to struct enum_mapping */
+	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	struct declaration_enum declaration;
 };
 
 struct bt_ctf_field_type_floating_point {
 	struct bt_ctf_field_type parent;
 	struct declaration_float declaration;
+
+	/*
+	 * The `declaration` field above contains 3 pointers pointing
+	 * to the fields below. This avoids unnecessary dynamic
+	 * allocations.
+	 */
 	struct declaration_integer sign;
 	struct declaration_integer mantissa;
 	struct declaration_integer exp;
+
+	/*
+	 * This is what the user sets and is never modified by internal
+	 * code.
+	 *
+	 * This field must contain a `BT_CTF_BYTE_ORDER_*` value.
+	 */
+	enum bt_ctf_byte_order user_byte_order;
 };
 
 struct structure_field {

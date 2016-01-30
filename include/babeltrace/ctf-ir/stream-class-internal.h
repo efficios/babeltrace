@@ -68,8 +68,8 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order);
+void bt_ctf_stream_class_set_byte_order(
+		struct bt_ctf_stream_class *stream_class, int byte_order);
 
 /* Set stream_class id without checking if the stream class is frozen */
 BT_HIDDEN

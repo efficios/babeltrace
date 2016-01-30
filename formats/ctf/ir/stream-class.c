@@ -325,7 +325,7 @@ int bt_ctf_stream_class_add_event_class(
 {
 	int ret = 0;
 	int64_t event_id;
-	struct bt_ctf_validation_output validation_output;
+	struct bt_ctf_validation_output validation_output = {0};
 	struct bt_ctf_field_type *packet_header_type = NULL;
 	struct bt_ctf_field_type *packet_context_type = NULL;
 	struct bt_ctf_field_type *event_header_type = NULL;
@@ -382,12 +382,12 @@ int bt_ctf_stream_class_add_event_class(
 			event_payload_type, stream_class->trace->valid,
 			stream_class->valid, event_class->valid,
 			&validation_output, validation_flags);
-		packet_header_type = NULL;
-		packet_context_type = NULL;
-		event_header_type = NULL;
-		stream_event_ctx_type = NULL;
-		event_context_type = NULL;
-		event_payload_type = NULL;
+		BT_PUT(packet_header_type);
+		BT_PUT(packet_context_type);
+		BT_PUT(event_header_type);
+		BT_PUT(stream_event_ctx_type);
+		BT_PUT(event_context_type);
+		BT_PUT(event_payload_type);
 
 		if (ret) {
 			/*
@@ -441,6 +441,12 @@ int bt_ctf_stream_class_add_event_class(
 		bt_ctf_validation_replace_types(NULL, NULL, event_class,
 			&validation_output, validation_flags);
 		event_class->valid = 1;
+
+		/*
+		 * Put what was not moved in
+		 * bt_ctf_validation_replace_types().
+		 */
+		bt_ctf_validation_output_put_types(&validation_output);
 	}
 
 	/* Add to the event classes of the stream class */
@@ -456,7 +462,7 @@ int bt_ctf_stream_class_add_event_class(
 		 * when the stream class was added to a trace.
 		 *
 		 * If not set here, this will be set when the stream
-		 * class will be added to a trace.
+		 * class is added to a trace.
 		 */
 		bt_ctf_event_class_set_native_byte_order(event_class,
 			stream_class->byte_order);
@@ -711,52 +717,31 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 }
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
-	enum bt_ctf_byte_order byte_order)
+void bt_ctf_stream_class_set_byte_order(
+	struct bt_ctf_stream_class *stream_class, int byte_order)
 {
-	int i, ret = 0;
-	int internal_byte_order;
+	int i;
 
-	/* Note that "NATIVE" means the trace's endianness, not the host's. */
-	if (!stream_class || byte_order <= BT_CTF_BYTE_ORDER_UNKNOWN ||
-		byte_order > BT_CTF_BYTE_ORDER_NETWORK) {
-		ret = -1;
-		goto end;
-	}
-
-	switch (byte_order) {
-	case BT_CTF_BYTE_ORDER_NETWORK:
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-		internal_byte_order = BIG_ENDIAN;
-		break;
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
-		internal_byte_order = LITTLE_ENDIAN;
-		break;
-	default:
-		ret = -1;
-		goto end;
-	}
-
-	stream_class->byte_order = internal_byte_order;
+	assert(stream_class);
+	assert(byte_order == LITTLE_ENDIAN || byte_order == BIG_ENDIAN);
+	stream_class->byte_order = byte_order;
 
 	/* Set native byte order to little or big endian */
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_header_type, stream_class->byte_order);
+		stream_class->event_header_type, byte_order);
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->packet_context_type, stream_class->byte_order);
+		stream_class->packet_context_type, byte_order);
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_context_type, stream_class->byte_order);
+		stream_class->event_context_type, byte_order);
 
 	/* Set all events' native byte order */
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		struct bt_ctf_event_class *event_class;
+		struct bt_ctf_event_class *event_class =
+			g_ptr_array_index(stream_class->event_classes, i);
 
-		event_class = g_ptr_array_index(stream_class->event_classes, i);
 		bt_ctf_event_class_set_native_byte_order(event_class,
-			stream_class->byte_order);
+			byte_order);
 	}
-end:
-	return ret;
 }
 
 BT_HIDDEN

@@ -430,7 +430,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 {
 	int ret, i;
 	int64_t stream_id;
-	struct bt_ctf_validation_output trace_sc_validation_output;
+	struct bt_ctf_validation_output trace_sc_validation_output = {0};
 	struct bt_ctf_validation_output *ec_validation_outputs = NULL;
 	const enum bt_ctf_validation_flag trace_sc_validation_flags =
 		BT_CTF_VALIDATION_FLAG_TRACE |
@@ -472,7 +472,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	 * Validate trace and stream c
 	 */
 	packet_header_type =
-		bt_ctf_trace_get_packet_header_type(stream_class->trace);
+		bt_ctf_trace_get_packet_header_type(trace);
 	packet_context_type =
 		bt_ctf_stream_class_get_packet_context_type(stream_class);
 	event_header_type =
@@ -483,10 +483,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		packet_context_type, event_header_type, stream_event_ctx_type,
 		NULL, NULL, trace->valid, stream_class->valid, 1,
 		&trace_sc_validation_output, trace_sc_validation_flags);
-	packet_header_type = NULL;
-	packet_context_type = NULL;
-	event_header_type = NULL;
-	stream_event_ctx_type = NULL;
+	BT_PUT(packet_header_type);
+	BT_PUT(packet_context_type);
+	BT_PUT(event_header_type);
+	BT_PUT(stream_event_ctx_type);
 
 	if (ret) {
 		/*
@@ -504,12 +504,14 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
-	ec_validation_outputs = g_new0(struct bt_ctf_validation_output,
-		event_class_count);
+	if (event_class_count > 0) {
+		ec_validation_outputs = g_new0(struct bt_ctf_validation_output,
+			event_class_count);
 
-	if (!ec_validation_outputs) {
-		ret = -1;
-		goto end;
+		if (!ec_validation_outputs) {
+			ret = -1;
+			goto end;
+		}
 	}
 
 	/* Validate each event class individually */
@@ -523,21 +525,12 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			bt_ctf_event_class_get_context_type(event_class);
 		event_payload_type =
 			bt_ctf_event_class_get_payload_type(event_class);
-		BT_PUT(event_class);
 
 		/*
 		 * It is important to use the field types returned by
 		 * the previous trace and stream class validation here
 		 * because copies could have been made.
-		 *
-		 * New references are acquired because
-		 * bt_ctf_validate_classes() takes ownership of its
-		 * field type parameters.
 		 */
-		bt_get(trace_sc_validation_output.packet_header_type);
-		bt_get(trace_sc_validation_output.packet_context_type);
-		bt_get(trace_sc_validation_output.event_header_type);
-		bt_get(trace_sc_validation_output.stream_event_ctx_type);
 		ret = bt_ctf_validate_class_types(
 			trace_sc_validation_output.packet_header_type,
 			trace_sc_validation_output.packet_context_type,
@@ -546,8 +539,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			event_context_type, event_payload_type,
 			1, 1, event_class->valid, &ec_validation_outputs[i],
 			ec_validation_flags);
-		event_context_type = NULL;
-		event_payload_type = NULL;
+		BT_PUT(event_context_type);
+		BT_PUT(event_payload_type);
+		BT_PUT(event_class);
 
 		if (ret) {
 			goto end;
@@ -600,21 +594,6 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
 	/*
-	 * Freeze the trace and its packet header.
-	 *
-	 * All field type byte orders set as "native" byte ordering can now be
-	 * safely set to trace's own endianness, including the stream class'.
-	 */
-	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
-		trace->byte_order);
-	ret = bt_ctf_stream_class_set_byte_order(stream_class,
-		trace->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
-	if (ret) {
-		goto end;
-	}
-
-	/*
 	 * At this point we know that the function will be successful.
 	 * Therefore we can replace the trace and stream class field
 	 * types with what's in their validation output structure and
@@ -627,6 +606,11 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	trace->valid = 1;
 	stream_class->valid = 1;
 
+	/*
+	 * Put what was not moved in bt_ctf_validation_replace_types().
+	 */
+	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
+
 	for (i = 0; i < event_class_count; ++i) {
 		struct bt_ctf_event_class *event_class =
 			bt_ctf_stream_class_get_event_class(stream_class, i);
@@ -635,8 +619,25 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			&ec_validation_outputs[i], ec_validation_flags);
 		event_class->valid = 1;
 		BT_PUT(event_class);
+
+		/*
+		 * Put what was not moved in
+		 * bt_ctf_validation_replace_types().
+		 */
+		bt_ctf_validation_output_put_types(&ec_validation_outputs[i]);
 	}
 
+	/*
+	 * All field type byte orders set as "native" byte ordering can now be
+	 * safely set to trace's own endianness, including the stream class'.
+	 */
+	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
+		trace->byte_order);
+	bt_ctf_stream_class_set_byte_order(stream_class, trace->byte_order);
+
+	/*
+	 * Freeze the trace and the stream class.
+	 */
 	bt_ctf_stream_class_freeze(stream_class);
 	bt_ctf_trace_freeze(trace);
 
@@ -664,6 +665,7 @@ end:
 	assert(!packet_context_type);
 	assert(!event_header_type);
 	assert(!stream_event_ctx_type);
+
 	return ret;
 }
 
