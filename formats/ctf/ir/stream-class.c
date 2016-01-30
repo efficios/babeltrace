@@ -630,52 +630,31 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 }
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
-	enum bt_ctf_byte_order byte_order)
+void bt_ctf_stream_class_set_byte_order(
+	struct bt_ctf_stream_class *stream_class, int byte_order)
 {
-	int i, ret = 0;
-	int internal_byte_order;
+	int i;
 
-	/* Note that "NATIVE" means the trace's endianness, not the host's. */
-	if (!stream_class || byte_order <= BT_CTF_BYTE_ORDER_UNKNOWN ||
-		byte_order > BT_CTF_BYTE_ORDER_NETWORK) {
-		ret = -1;
-		goto end;
-	}
-
-	switch (byte_order) {
-	case BT_CTF_BYTE_ORDER_NETWORK:
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-		internal_byte_order = BIG_ENDIAN;
-		break;
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
-		internal_byte_order = LITTLE_ENDIAN;
-		break;
-	default:
-		ret = -1;
-		goto end;
-	}
-
-	stream_class->byte_order = internal_byte_order;
+	assert(stream_class);
+	assert(byte_order == LITTLE_ENDIAN || byte_order == BIG_ENDIAN);
+	stream_class->byte_order = byte_order;
 
 	/* Set native byte order to little or big endian */
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_header_type, stream_class->byte_order);
+		stream_class->event_header_type, byte_order);
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->packet_context_type, stream_class->byte_order);
+		stream_class->packet_context_type, byte_order);
 	bt_ctf_field_type_set_native_byte_order(
-		stream_class->event_context_type, stream_class->byte_order);
+		stream_class->event_context_type, byte_order);
 
 	/* Set all events' native byte order */
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		struct bt_ctf_event_class *event_class;
+		struct bt_ctf_event_class *event_class =
+			g_ptr_array_index(stream_class->event_classes, i);
 
-		event_class = g_ptr_array_index(stream_class->event_classes, i);
 		bt_ctf_event_class_set_native_byte_order(event_class,
-			stream_class->byte_order);
+			byte_order);
 	}
-end:
-	return ret;
 }
 
 BT_HIDDEN

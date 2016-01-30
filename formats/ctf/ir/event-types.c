@@ -1867,7 +1867,6 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		struct bt_ctf_field_type *type)
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
-	int internal_byte_order = -1;
 
 	if (!type) {
 		goto end;
@@ -1878,7 +1877,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 	{
 		struct bt_ctf_field_type_integer *integer = container_of(
 			type, struct bt_ctf_field_type_integer, parent);
-		internal_byte_order = integer->declaration.byte_order;
+		ret = integer->user_byte_order;
 		break;
 	}
 	case CTF_TYPE_FLOAT:
@@ -1887,26 +1886,18 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 			container_of(type,
 				struct bt_ctf_field_type_floating_point,
 				parent);
-		internal_byte_order = floating_point->declaration.byte_order;
+		ret = floating_point->user_byte_order;
 		break;
 	}
 	default:
 		goto end;
 	}
 
-	switch (internal_byte_order) {
-	case LITTLE_ENDIAN:
-		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
-		break;
-	case BIG_ENDIAN:
-		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
-		break;
-	case 0:
-		ret = BT_CTF_BYTE_ORDER_NATIVE;
-		break;
-	default:
-		ret = BT_CTF_BYTE_ORDER_UNKNOWN;
-	}
+	assert(ret == BT_CTF_BYTE_ORDER_NATIVE ||
+		ret == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
+		ret == BT_CTF_BYTE_ORDER_BIG_ENDIAN ||
+		ret == BT_CTF_BYTE_ORDER_NETWORK);
+
 end:
 	return ret;
 }
@@ -2943,6 +2934,33 @@ int bt_ctf_field_type_string_serialize(struct bt_ctf_field_type *type,
 }
 
 static
+enum bt_ctf_byte_order get_ctf_ir_byte_order(int byte_order) {
+	enum bt_ctf_byte_order ret;
+
+	switch (byte_order) {
+	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+	case LITTLE_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
+		break;
+	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
+	case BIG_ENDIAN:
+		ret = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		break;
+	case BT_CTF_BYTE_ORDER_NETWORK:
+		ret = BT_CTF_BYTE_ORDER_NETWORK;
+		break;
+	case BT_CTF_BYTE_ORDER_NATIVE:
+		ret = BT_CTF_BYTE_ORDER_NATIVE;
+		break;
+	default:
+		ret = BT_CTF_BYTE_ORDER_UNKNOWN;
+		break;
+	}
+
+	return ret;
+}
+
+static
 void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *type,
 		int byte_order, int set_native)
 {
@@ -2950,10 +2968,17 @@ void bt_ctf_field_type_integer_set_byte_order(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type_integer, parent);
 
 	if (set_native) {
-		integer_type->declaration.byte_order =
-			integer_type->declaration.byte_order == 0 ?
-			byte_order : integer_type->declaration.byte_order;
+		if (integer_type->user_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+			/*
+			 * User byte order is native, so we can set
+			 * the real byte order.
+			 */
+			integer_type->declaration.byte_order =
+				byte_order;
+		}
 	} else {
+		integer_type->user_byte_order =
+			get_ctf_ir_byte_order(byte_order);
 		integer_type->declaration.byte_order = byte_order;
 	}
 }
@@ -2979,20 +3004,24 @@ void bt_ctf_field_type_floating_point_set_byte_order(
 		parent);
 
 	if (set_native) {
-		floating_point_type->declaration.byte_order =
-			floating_point_type->declaration.byte_order == 0 ?
-			byte_order :
-			floating_point_type->declaration.byte_order;
-		floating_point_type->sign.byte_order =
-			floating_point_type->sign.byte_order == 0 ?
-			byte_order : floating_point_type->sign.byte_order;
-		floating_point_type->mantissa.byte_order =
-			floating_point_type->mantissa.byte_order == 0 ?
-			byte_order : floating_point_type->mantissa.byte_order;
-		floating_point_type->exp.byte_order =
-			floating_point_type->exp.byte_order == 0 ?
-			byte_order : floating_point_type->exp.byte_order;
+		if (floating_point_type->user_byte_order ==
+				BT_CTF_BYTE_ORDER_NATIVE) {
+			/*
+			 * User byte order is native, so we can set
+			 * the real byte order.
+			 */
+			floating_point_type->declaration.byte_order =
+				byte_order;
+			floating_point_type->sign.byte_order =
+				byte_order;
+			floating_point_type->mantissa.byte_order =
+				byte_order;
+			floating_point_type->exp.byte_order =
+				byte_order;
+		}
 	} else {
+		floating_point_type->user_byte_order =
+			get_ctf_ir_byte_order(byte_order);
 		floating_point_type->declaration.byte_order = byte_order;
 		floating_point_type->sign.byte_order = byte_order;
 		floating_point_type->mantissa.byte_order = byte_order;
@@ -3092,6 +3121,9 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_copy(
 		bt_get(integer->mapped_clock);
 		copy_integer->mapped_clock = integer->mapped_clock;
 	}
+
+	copy_integer->user_byte_order = integer->user_byte_order;
+
 end:
 	return copy;
 }
@@ -3165,6 +3197,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_floating_point_copy(
 	copy_float->sign = floating_point->sign;
 	copy_float->mantissa = floating_point->mantissa;
 	copy_float->exp = floating_point->exp;
+	copy_float->user_byte_order = floating_point->user_byte_order;
 end:
 	return copy;
 }

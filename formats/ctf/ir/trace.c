@@ -473,12 +473,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	 */
 	bt_ctf_field_type_set_native_byte_order(trace->packet_header_type,
 		trace->byte_order);
-	ret = bt_ctf_stream_class_set_byte_order(stream_class,
-		trace->byte_order == LITTLE_ENDIAN ?
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN : BT_CTF_BYTE_ORDER_BIG_ENDIAN);
-	if (ret) {
-		goto end;
-	}
+	bt_ctf_stream_class_set_byte_order(stream_class, trace->byte_order);
 
 	bt_ctf_stream_class_freeze(stream_class);
 	if (!trace->frozen) {

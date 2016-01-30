@@ -1049,6 +1049,9 @@ void bt_ctf_event_class_set_native_byte_order(
 		return;
 	}
 
+	assert(byte_order == 0 || byte_order == LITTLE_ENDIAN ||
+		byte_order == BIG_ENDIAN);
+
 	bt_ctf_field_type_set_native_byte_order(event_class->context,
 		byte_order);
 	bt_ctf_field_type_set_native_byte_order(event_class->fields,
