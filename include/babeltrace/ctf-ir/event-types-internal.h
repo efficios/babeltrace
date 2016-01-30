@@ -103,7 +103,7 @@ struct enumeration_mapping {
 struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_field_type *container;
-	GPtrArray *entries; /* Array of pointers to struct enum_mapping */
+	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	struct declaration_enum declaration;
 };
 
