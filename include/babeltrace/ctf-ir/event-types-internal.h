@@ -110,6 +110,12 @@ struct bt_ctf_field_type_enumeration {
 struct bt_ctf_field_type_floating_point {
 	struct bt_ctf_field_type parent;
 	struct declaration_float declaration;
+
+	/*
+	 * The `declaration` field above contains 3 pointers pointing
+	 * to the fields below. This avoids unnecessary dynamic
+	 * allocations.
+	 */
 	struct declaration_integer sign;
 	struct declaration_integer mantissa;
 	struct declaration_integer exp;

@@ -3236,6 +3236,9 @@ struct bt_ctf_field_type *bt_ctf_field_type_floating_point_copy(
 	copy_float->mantissa = floating_point->mantissa;
 	copy_float->exp = floating_point->exp;
 	copy_float->user_byte_order = floating_point->user_byte_order;
+	copy_float->declaration.sign = &copy_float->sign;
+	copy_float->declaration.mantissa = &copy_float->mantissa;
+	copy_float->declaration.exp = &copy_float->exp;
 end:
 	return copy;
 }
