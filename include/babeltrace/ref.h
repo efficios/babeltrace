@@ -53,10 +53,14 @@
  * then sets _src to NULL, effectively moving the ownership of an
  * object from one variable to the other.
  *
+ * Before assigning _src to _dst, it puts _dst. Therefore it is not safe to
+ * call this function with an uninitialized value of _dst.
+ *
  * @param obj Babeltrace object.
  */
 #define BT_MOVE(_dst, _src)	\
 	do {			\
+		bt_put(_dst);	\
 		(_dst) = (_src);\
 		(_src) = NULL;	\
 	} while (0)

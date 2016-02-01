@@ -1112,7 +1112,7 @@ void test_macros(void)
 {
 	struct bt_value *obj = bt_value_bool_create();
 	struct bt_value *src;
-	struct bt_value *dst;
+	struct bt_value *dst = NULL;
 
 	assert(obj);
 	BT_PUT(obj);
