@@ -36,9 +36,9 @@
  * to NULL after putting the object it points to. Since this is so
  * common, the BT_PUT() macro can be used to do just that.
  *
- * It is safe to call this function with a NULL object.
+ * It is safe to call this function with a variable containing NULL.
  *
- * @param obj Babeltrace object.
+ * @param obj Variable pointing to a Babeltrace object.
  */
 #define BT_PUT(_obj)		\
 	do {			\
@@ -56,7 +56,8 @@
  * Before assigning _src to _dst, it puts _dst. Therefore it is not safe to
  * call this function with an uninitialized value of _dst.
  *
- * @param obj Babeltrace object.
+ * @param _dst Destination variable pointing to a Babeltrace object.
+ * @param _src Source variable pointing to a Babeltrace object.
  */
 #define BT_MOVE(_dst, _src)	\
 	do {			\
@@ -87,7 +88,7 @@ void *bt_get(void *obj);
  * bt_put() to release the initial reference done at creation) have to be
  * performed to destroy a Babeltrace object.
  *
- * The object is feed when its reference count is decremented to 0 by a call to
+ * The object is freed when its reference count is decremented to 0 by a call to
  * bt_put().
  *
  * It is safe to call this function with a NULL object.
