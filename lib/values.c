@@ -644,7 +644,7 @@ end:
 }
 
 enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
-	bool *val)
+		bool *val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_bool *typed_bool_obj = BT_VALUE_TO_BOOL(bool_obj);
@@ -682,7 +682,7 @@ end:
 }
 
 enum bt_value_status bt_value_integer_get(const struct bt_value *integer_obj,
-	int64_t *val)
+		int64_t *val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_integer *typed_integer_obj =
@@ -700,7 +700,7 @@ end:
 }
 
 enum bt_value_status bt_value_integer_set(struct bt_value *integer_obj,
-	int64_t val)
+		int64_t val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_integer *typed_integer_obj =
@@ -723,7 +723,7 @@ end:
 }
 
 enum bt_value_status bt_value_float_get(const struct bt_value *float_obj,
-	double *val)
+		double *val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_float *typed_float_obj =
@@ -741,7 +741,7 @@ end:
 }
 
 enum bt_value_status bt_value_float_set(struct bt_value *float_obj,
-	double val)
+		double val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_float *typed_float_obj =
@@ -764,7 +764,7 @@ end:
 }
 
 enum bt_value_status bt_value_string_get(const struct bt_value *string_obj,
-	const char **val)
+		const char **val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_string *typed_string_obj =
@@ -782,7 +782,7 @@ end:
 }
 
 enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
-	const char *val)
+		const char *val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_string *typed_string_obj =
@@ -827,7 +827,7 @@ bool bt_value_array_is_empty(const struct bt_value *array_obj)
 }
 
 struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
-	size_t index)
+		size_t index)
 {
 	struct bt_value *ret;
 	struct bt_value_array *typed_array_obj =
@@ -847,7 +847,7 @@ end:
 }
 
 enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
-	struct bt_value *element_obj)
+		struct bt_value *element_obj)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_array *typed_array_obj =
@@ -871,7 +871,7 @@ end:
 }
 
 enum bt_value_status bt_value_array_append_bool(struct bt_value *array_obj,
-	bool val)
+		bool val)
 {
 	enum bt_value_status ret;
 	struct bt_value *bool_obj = NULL;
@@ -884,7 +884,7 @@ enum bt_value_status bt_value_array_append_bool(struct bt_value *array_obj,
 }
 
 enum bt_value_status bt_value_array_append_integer(
-	struct bt_value *array_obj, int64_t val)
+		struct bt_value *array_obj, int64_t val)
 {
 	enum bt_value_status ret;
 	struct bt_value *integer_obj = NULL;
@@ -897,7 +897,7 @@ enum bt_value_status bt_value_array_append_integer(
 }
 
 enum bt_value_status bt_value_array_append_float(struct bt_value *array_obj,
-	double val)
+		double val)
 {
 	enum bt_value_status ret;
 	struct bt_value *float_obj = NULL;
@@ -910,7 +910,7 @@ enum bt_value_status bt_value_array_append_float(struct bt_value *array_obj,
 }
 
 enum bt_value_status bt_value_array_append_string(struct bt_value *array_obj,
-	const char *val)
+		const char *val)
 {
 	enum bt_value_status ret;
 	struct bt_value *string_obj = NULL;
@@ -923,7 +923,7 @@ enum bt_value_status bt_value_array_append_string(struct bt_value *array_obj,
 }
 
 enum bt_value_status bt_value_array_append_empty_array(
-	struct bt_value *array_obj)
+		struct bt_value *array_obj)
 {
 	enum bt_value_status ret;
 	struct bt_value *empty_array_obj = NULL;
@@ -948,7 +948,7 @@ enum bt_value_status bt_value_array_append_empty_map(struct bt_value *array_obj)
 }
 
 enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
-	size_t index, struct bt_value *element_obj)
+		size_t index, struct bt_value *element_obj)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_array *typed_array_obj =
@@ -995,7 +995,7 @@ bool bt_value_map_is_empty(const struct bt_value *map_obj)
 }
 
 struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
-	const char *key)
+		const char *key)
 {
 	GQuark quark;
 	struct bt_value *ret;
@@ -1037,7 +1037,7 @@ end:
 }
 
 enum bt_value_status bt_value_map_insert(struct bt_value *map_obj,
-	const char *key, struct bt_value *element_obj)
+		const char *key, struct bt_value *element_obj)
 {
 	GQuark quark;
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
@@ -1063,7 +1063,7 @@ end:
 }
 
 enum bt_value_status bt_value_map_insert_bool(struct bt_value *map_obj,
-	const char *key, bool val)
+		const char *key, bool val)
 {
 	enum bt_value_status ret;
 	struct bt_value *bool_obj = NULL;
@@ -1076,7 +1076,7 @@ enum bt_value_status bt_value_map_insert_bool(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_insert_integer(struct bt_value *map_obj,
-	const char *key, int64_t val)
+		const char *key, int64_t val)
 {
 	enum bt_value_status ret;
 	struct bt_value *integer_obj = NULL;
@@ -1089,7 +1089,7 @@ enum bt_value_status bt_value_map_insert_integer(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_insert_float(struct bt_value *map_obj,
-	const char *key, double val)
+		const char *key, double val)
 {
 	enum bt_value_status ret;
 	struct bt_value *float_obj = NULL;
@@ -1102,7 +1102,7 @@ enum bt_value_status bt_value_map_insert_float(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_insert_string(struct bt_value *map_obj,
-	const char *key, const char *val)
+		const char *key, const char *val)
 {
 	enum bt_value_status ret;
 	struct bt_value *string_obj = NULL;
@@ -1115,7 +1115,7 @@ enum bt_value_status bt_value_map_insert_string(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_insert_empty_array(struct bt_value *map_obj,
-	const char *key)
+		const char *key)
 {
 	enum bt_value_status ret;
 	struct bt_value *array_obj = NULL;
@@ -1128,7 +1128,7 @@ enum bt_value_status bt_value_map_insert_empty_array(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_insert_empty_map(struct bt_value *map_obj,
-	const char *key)
+		const char *key)
 {
 	enum bt_value_status ret;
 	struct bt_value *empty_map_obj = NULL;
@@ -1141,7 +1141,7 @@ enum bt_value_status bt_value_map_insert_empty_map(struct bt_value *map_obj,
 }
 
 enum bt_value_status bt_value_map_foreach(const struct bt_value *map_obj,
-	bt_value_map_foreach_cb cb, void *data)
+		bt_value_map_foreach_cb cb, void *data)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	gpointer key, element_obj;
