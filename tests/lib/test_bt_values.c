@@ -375,14 +375,14 @@ void test_array(void)
 	ok(bt_value_array_append_string(NULL, "bt_obj") ==
 		BT_VALUE_STATUS_INVAL,
 		"bt_value_array_append_string() fails with an array value object set to NULL");
-	ret = bt_value_array_append_array(array_obj);
-	ok(!ret, "bt_value_array_append_array() succeeds");
-	ok(bt_value_array_append_array(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_array() fails with an array value object set to NULL");
-	ret = bt_value_array_append_map(array_obj);
-	ok(!ret, "bt_value_array_append_map() succeeds");
-	ok(bt_value_array_append_map(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_map() fails with an array value object set to NULL");
+	ret = bt_value_array_append_empty_array(array_obj);
+	ok(!ret, "bt_value_array_append_empty_array() succeeds");
+	ok(bt_value_array_append_empty_array(NULL) == BT_VALUE_STATUS_INVAL,
+		"bt_value_array_append_empty_array() fails with an array value object set to NULL");
+	ret = bt_value_array_append_empty_map(array_obj);
+	ok(!ret, "bt_value_array_append_empty_map() succeeds");
+	ok(bt_value_array_append_empty_map(NULL) == BT_VALUE_STATUS_INVAL,
+		"bt_value_array_append_empty_map() fails with an array value object set to NULL");
 
 	ok(bt_value_array_size(array_obj) == 10,
 		"the bt_value_array_append_*() functions increment the array value object's size");
@@ -419,15 +419,15 @@ void test_array(void)
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 8);
 	ok(obj && bt_value_is_array(obj),
-		"bt_value_array_append_array() appends an array value object");
+		"bt_value_array_append_empty_array() appends an array value object");
 	ok(bt_value_array_is_empty(obj),
-		"bt_value_array_append_array() an empty array value object");
+		"bt_value_array_append_empty_array() an empty array value object");
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 9);
 	ok(obj && bt_value_is_map(obj),
-		"bt_value_array_append_map() appends a map value object");
+		"bt_value_array_append_empty_map() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
-		"bt_value_array_append_map() an empty map value object");
+		"bt_value_array_append_empty_map() an empty map value object");
 	BT_PUT(obj);
 
 	assert(!bt_value_freeze(array_obj));
@@ -446,12 +446,12 @@ void test_array(void)
 	ok(bt_value_array_append_string(array_obj, "yayayayaya") ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_array_append_string() fails with a frozen array value object");
-	ok(bt_value_array_append_array(array_obj) ==
+	ok(bt_value_array_append_empty_array(array_obj) ==
 		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_array() fails with a frozen array value object");
-	ok(bt_value_array_append_map(array_obj) ==
+		"bt_value_array_append_empty_array() fails with a frozen array value object");
+	ok(bt_value_array_append_empty_map(array_obj) ==
 		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_map() fails with a frozen array value object");
+		"bt_value_array_append_empty_map() fails with a frozen array value object");
 	ok(bt_value_array_set(array_obj, 2, bt_value_null) ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_array_set() fails with a frozen array value object");
@@ -748,14 +748,14 @@ void test_map(void)
 	ok(bt_value_map_insert_string(NULL, "string2", "bt_obj") ==
 		BT_VALUE_STATUS_INVAL,
 		"bt_value_map_insert_string() fails with a map value object set to NULL");
-	ret = bt_value_map_insert_array(map_obj, "array2");
-	ok(!ret, "bt_value_map_insert_array() succeeds");
-	ok(bt_value_map_insert_array(NULL, "array2") == BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_array() fails with a map value object set to NULL");
-	ret = bt_value_map_insert_map(map_obj, "map2");
-	ok(!ret, "bt_value_map_insert_map() succeeds");
-	ok(bt_value_map_insert_map(NULL, "map2") == BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_map() fails with a map value object set to NULL");
+	ret = bt_value_map_insert_empty_array(map_obj, "array2");
+	ok(!ret, "bt_value_map_insert_empty_array() succeeds");
+	ok(bt_value_map_insert_empty_array(NULL, "array2") == BT_VALUE_STATUS_INVAL,
+		"bt_value_map_insert_empty_array() fails with a map value object set to NULL");
+	ret = bt_value_map_insert_empty_map(map_obj, "map2");
+	ok(!ret, "bt_value_map_insert_empty_map() succeeds");
+	ok(bt_value_map_insert_empty_map(NULL, "map2") == BT_VALUE_STATUS_INVAL,
+		"bt_value_map_insert_empty_map() fails with a map value object set to NULL");
 
 	ok(bt_value_map_size(map_obj) == 10,
 		"the bt_value_map_insert*() functions increment the map value object's size");
@@ -820,12 +820,12 @@ void test_map(void)
 	ok(bt_value_map_insert_string(map_obj, "duh", "yayayayaya") ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_map_insert_string() fails with a frozen array value object");
-	ok(bt_value_map_insert_array(map_obj, "duh") ==
+	ok(bt_value_map_insert_empty_array(map_obj, "duh") ==
 		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_array() fails with a frozen array value object");
-	ok(bt_value_map_insert_map(map_obj, "duh") ==
+		"bt_value_map_insert_empty_array() fails with a frozen array value object");
+	ok(bt_value_map_insert_empty_map(map_obj, "duh") ==
 		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_map() fails with a frozen array value object");
+		"bt_value_map_insert_empty_map() fails with a frozen array value object");
 	ok(bt_value_map_size(map_obj) == 10,
 		"appending to a frozen map value object does not change its size");
 

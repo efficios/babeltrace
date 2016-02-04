@@ -591,8 +591,8 @@ extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
  * @see bt_value_array_append_integer()
  * @see bt_value_array_append_float()
  * @see bt_value_array_append_string()
- * @see bt_value_array_append_array()
- * @see bt_value_array_append_map()
+ * @see bt_value_array_append_empty_array()
+ * @see bt_value_array_append_empty_map()
  */
 extern enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
 	struct bt_value *element_obj);
@@ -676,7 +676,7 @@ extern enum bt_value_status bt_value_array_append_string(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_array(
+extern enum bt_value_status bt_value_array_append_empty_array(
 	struct bt_value *array_obj);
 
 /**
@@ -691,7 +691,7 @@ extern enum bt_value_status bt_value_array_append_array(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_map(
+extern enum bt_value_status bt_value_array_append_empty_map(
 	struct bt_value *array_obj);
 
 /**
@@ -809,8 +809,8 @@ extern bool bt_value_map_has_key(const struct bt_value *map_obj,
  * @see bt_value_map_insert_integer()
  * @see bt_value_map_insert_float()
  * @see bt_value_map_insert_string()
- * @see bt_value_map_insert_array()
- * @see bt_value_map_insert_map()
+ * @see bt_value_map_insert_empty_array()
+ * @see bt_value_map_insert_empty_map()
  */
 extern enum bt_value_status bt_value_map_insert(
 	struct bt_value *map_obj, const char *key,
@@ -919,7 +919,7 @@ extern enum bt_value_status bt_value_map_insert_string(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_array(
+extern enum bt_value_status bt_value_map_insert_empty_array(
 	struct bt_value *map_obj, const char *key);
 
 /**
@@ -938,7 +938,7 @@ extern enum bt_value_status bt_value_map_insert_array(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_map(
+extern enum bt_value_status bt_value_map_insert_empty_map(
 	struct bt_value *map_obj, const char *key);
 
 /**

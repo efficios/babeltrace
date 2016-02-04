@@ -922,7 +922,8 @@ enum bt_value_status bt_value_array_append_string(struct bt_value *array_obj,
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_array(struct bt_value *array_obj)
+enum bt_value_status bt_value_array_append_empty_array(
+	struct bt_value *array_obj)
 {
 	enum bt_value_status ret;
 	struct bt_value *empty_array_obj = NULL;
@@ -934,7 +935,7 @@ enum bt_value_status bt_value_array_append_array(struct bt_value *array_obj)
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_map(struct bt_value *array_obj)
+enum bt_value_status bt_value_array_append_empty_map(struct bt_value *array_obj)
 {
 	enum bt_value_status ret;
 	struct bt_value *map_obj = NULL;
@@ -1113,7 +1114,7 @@ enum bt_value_status bt_value_map_insert_string(struct bt_value *map_obj,
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_array(struct bt_value *map_obj,
+enum bt_value_status bt_value_map_insert_empty_array(struct bt_value *map_obj,
 	const char *key)
 {
 	enum bt_value_status ret;
@@ -1126,7 +1127,7 @@ enum bt_value_status bt_value_map_insert_array(struct bt_value *map_obj,
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_map(struct bt_value *map_obj,
+enum bt_value_status bt_value_map_insert_empty_map(struct bt_value *map_obj,
 	const char *key)
 {
 	enum bt_value_status ret;
