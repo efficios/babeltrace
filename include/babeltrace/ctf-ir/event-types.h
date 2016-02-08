@@ -41,6 +41,7 @@ struct bt_ctf_event_class;
 struct bt_ctf_event;
 struct bt_ctf_field_type;
 struct bt_ctf_field;
+struct bt_ctf_field_path;
 
 enum bt_ctf_integer_base {
 	BT_CTF_INTEGER_BASE_UNKNOWN = -1,
@@ -61,6 +62,17 @@ enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
 	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
 	BT_CTF_BYTE_ORDER_NETWORK,
+};
+
+enum bt_ctf_node {
+	CTF_NODE_UNKNOWN = -1,
+	CTF_NODE_ENV = 0,
+	CTF_NODE_TRACE_PACKET_HEADER = 1,
+	CTF_NODE_STREAM_PACKET_CONTEXT = 2,
+	CTF_NODE_STREAM_EVENT_HEADER = 3,
+	CTF_NODE_STREAM_EVENT_CONTEXT = 4,
+	CTF_NODE_EVENT_CONTEXT = 5,
+	CTF_NODE_EVENT_FIELDS = 6,
 };
 
 /*
@@ -740,6 +752,32 @@ extern enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
  */
 extern int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 		enum bt_ctf_byte_order byte_order);
+
+/*
+ * bt_ctf_field_type_variant_get_tag_field_path: get a variant's tag's field
+ *	path.
+ *
+ * Get the variant's tag's field path.
+ *
+ * @param type Field type.
+ *
+ * Returns the field path on success, NULL on error or if no field path is set.
+ */
+extern struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
+		struct bt_ctf_field_type *type);
+
+/*
+ * bt_ctf_field_type_sequence_get_length_field_path: get a sequence's length's
+ *	field path.
+ *
+ * Get the sequence's length's field path.
+ *
+ * @param type Field type.
+ *
+ * Returns the field path on success, NULL on error or if no field path is set.
+ */
+extern struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
+		struct bt_ctf_field_type *type);
 
 /*
  * bt_ctf_field_type_compare: compare two field types recursively

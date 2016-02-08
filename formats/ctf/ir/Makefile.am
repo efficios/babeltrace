@@ -8,6 +8,7 @@ libctf_ir_la_SOURCES = \
 	event.c \
 	event-fields.c \
 	event-types.c \
+	field-path.c \
 	stream.c \
 	stream-class.c \
 	trace.c \

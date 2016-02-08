@@ -32,6 +32,8 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/resolve-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/field-path.h>
+#include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -423,7 +425,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		}
 
 		/* Create new field path entry */
-		g_array_append_val(field_path->path_indexes, child_index);
+		g_array_append_val(field_path->indexes, child_index);
 
 		/* Get child field type */
 		child_type = bt_ctf_field_type_get_field_at_index(type,
@@ -522,7 +524,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			/* Found: stitch tail field path to head field path */
 			int i = 0;
 			int tail_field_path_len =
-				tail_field_path->path_indexes->len;
+				tail_field_path->indexes->len;
 
 			while (true) {
 				struct bt_ctf_field_type *cur_type =
@@ -534,17 +536,17 @@ int relative_ptokens_to_field_path(GList *ptokens,
 					break;
 				}
 
-				g_array_append_val(field_path->path_indexes,
+				g_array_append_val(field_path->indexes,
 					index);
 				i++;
 			}
 
 			for (i = 0; i < tail_field_path_len; i++) {
 				int index = g_array_index(
-					tail_field_path->path_indexes,
+					tail_field_path->indexes,
 					int, i);
 
-				g_array_append_val(field_path->path_indexes,
+				g_array_append_val(field_path->indexes,
 					index);
 			}
 			break;
@@ -582,7 +584,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 	}
 
 end:
-	bt_ctf_field_path_destroy(tail_field_path);
+	BT_PUT(tail_field_path);
 	return ret;
 }
 
@@ -650,8 +652,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 
 end:
 	if (ret) {
-		bt_ctf_field_path_destroy(field_path);
-		field_path = NULL;
+		BT_PUT(field_path);
 	}
 
 	ptokens_destroy(ptokens);
@@ -684,10 +685,10 @@ struct bt_ctf_field_type *field_path_to_field_type(
 	}
 
 	/* Locate target */
-	for (i = 0; i < field_path->path_indexes->len; i++) {
+	for (i = 0; i < field_path->indexes->len; i++) {
 		struct bt_ctf_field_type *child_type;
 		int child_index =
-			g_array_index(field_path->path_indexes, int, i);
+			g_array_index(field_path->indexes, int, i);
 
 		/* Get child field type */
 		child_type = bt_ctf_field_type_get_field_at_index(type,
@@ -733,14 +734,14 @@ struct bt_ctf_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
 		struct type_stack_frame *frame;
 
 		frame = type_stack_at(ctx->type_stack, i);
-		g_array_append_val(field_path->path_indexes, frame->index);
+		g_array_append_val(field_path->indexes, frame->index);
 	}
 
 	return field_path;
 
 error:
-	bt_ctf_field_path_destroy(field_path);
-	return NULL;
+	BT_PUT(field_path);
+	return field_path;
 }
 
 /*
@@ -759,8 +760,8 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 	 * Start from both roots and find the first mismatch.
 	 */
 	assert(field_path1->root == field_path2->root);
-	field_path1_len = field_path1->path_indexes->len;
-	field_path2_len = field_path2->path_indexes->len;
+	field_path1_len = field_path1->indexes->len;
+	field_path2_len = field_path2->indexes->len;
 
 	while (true) {
 		int target_index, ctx_index;
@@ -777,9 +778,9 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 			break;
 		}
 
-		target_index = g_array_index(field_path1->path_indexes, int,
+		target_index = g_array_index(field_path1->indexes, int,
 			lca_index);
-		ctx_index = g_array_index(field_path2->path_indexes, int,
+		ctx_index = g_array_index(field_path2->indexes, int,
 			lca_index);
 
 		if (target_index != ctx_index) {
@@ -805,7 +806,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 {
 	int ret = 0;
 	struct bt_ctf_field_path *ctx_field_path;
-	int target_field_path_len = target_field_path->path_indexes->len;
+	int target_field_path_len = target_field_path->indexes->len;
 	int lca_index;
 	int ctx_cur_field_type_id;
 	int target_type_id;
@@ -856,9 +857,9 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 		 * Make sure the target field path is located before the
 		 * context field path.
 		 */
-		target_index = g_array_index(target_field_path->path_indexes,
+		target_index = g_array_index(target_field_path->indexes,
 			int, lca_index);
-		ctx_index = g_array_index(ctx_field_path->path_indexes,
+		ctx_index = g_array_index(ctx_field_path->indexes,
 			int, lca_index);
 
 		if (target_index >= ctx_index) {
@@ -895,7 +896,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	}
 
 end:
-	bt_ctf_field_path_destroy(ctx_field_path);
+	BT_PUT(ctx_field_path);
 	return ret;
 }
 
@@ -961,8 +962,6 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			_printf_error("Cannot set sequence field type's length field path\n");
 			goto end;
 		}
-
-		target_field_path = NULL;
 	} else if (type_id == CTF_TYPE_VARIANT) {
 		ret = bt_ctf_field_type_variant_set_tag_field_path(
 			type, target_field_path);
@@ -970,8 +969,6 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			_printf_error("Cannot set variant field type's tag field path\n");
 			goto end;
 		}
-
-		target_field_path = NULL;
 
 		ret = bt_ctf_field_type_variant_set_tag_field_type(
 			type, target_type);
@@ -984,7 +981,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 	}
 
 end:
-	bt_ctf_field_path_destroy(target_field_path);
+	BT_PUT(target_field_path);
 	BT_PUT(target_type);
 	return ret;
 }

@@ -28,6 +28,7 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/event-fields.h \
 	babeltrace/ctf-ir/event-types.h \
 	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/trace.h \
@@ -59,6 +60,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/event-types-internal.h \
 	babeltrace/ctf-ir/event-fields-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
+	babeltrace/ctf-ir/field-path-internal.h \
 	babeltrace/ctf-ir/clock-internal.h \
 	babeltrace/ctf-ir/resolve-internal.h \
 	babeltrace/ctf-ir/stream-class-internal.h \
