@@ -264,8 +264,8 @@ struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 		struct bt_ctf_field_type *type);
 
 BT_HIDDEN
-int bt_ctf_field_type_variant_set_tag(struct bt_ctf_field_type *type,
-		struct bt_ctf_field_type *tag);
+int bt_ctf_field_type_variant_set_tag_field_type(struct bt_ctf_field_type *type,
+		struct bt_ctf_field_type *tag_type);
 
 /* Replace an existing field's type in a variant */
 BT_HIDDEN

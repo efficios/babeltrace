@@ -973,7 +973,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 
 		target_field_path = NULL;
 
-		ret = bt_ctf_field_type_variant_set_tag(type, target_type);
+		ret = bt_ctf_field_type_variant_set_tag_field_type(
+			type, target_type);
 		if (ret) {
 			_printf_error("Cannot set variant field type's tag field type\n");
 			goto end;
