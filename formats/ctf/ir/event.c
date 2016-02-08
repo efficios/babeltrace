@@ -525,6 +525,10 @@ int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
 	ret = bt_ctf_attributes_set_field_value(event_class->attributes,
 		"stream_id", obj);
 
+	if (event_class->frozen) {
+		bt_ctf_attributes_freeze(event_class->attributes);
+	}
+
 end:
 	BT_PUT(obj);
 	return ret;
