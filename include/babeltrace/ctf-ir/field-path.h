@@ -37,7 +37,7 @@ extern "C" {
 struct bt_ctf_field_path;
 
 /*
- * bt_ctf_field_path_get_root: get the root node of a field path.
+ * bt_ctf_field_path_get_root_scope: get the root node of a field path.
  *
  * Get the field path's root node.
  *
@@ -45,7 +45,7 @@ struct bt_ctf_field_path;
  *
  * Returns the root node of a field path, or BT_CTF_SCOPE_UNKNOWN on error.
  */
-extern enum bt_ctf_scope bt_ctf_field_path_get_root(
+extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 		const struct bt_ctf_field_path *field_path);
 
 /*

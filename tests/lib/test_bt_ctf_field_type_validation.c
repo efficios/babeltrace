@@ -1662,7 +1662,7 @@ int validate_field_path(struct bt_ctf_field_type *field_type,
 		goto end;
 	}
 
-	if (bt_ctf_field_path_get_root(field_path) != root) {
+	if (bt_ctf_field_path_get_root_scope(field_path) != root) {
 		ret = -1;
 		goto end;
 	}

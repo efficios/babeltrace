@@ -96,7 +96,7 @@ end:
 	return new_path;
 }
 
-enum bt_ctf_scope bt_ctf_field_path_get_root(
+enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 		const struct bt_ctf_field_path *field_path)
 {
 	enum bt_ctf_scope scope = BT_CTF_SCOPE_UNKNOWN;
