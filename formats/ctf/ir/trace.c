@@ -30,10 +30,11 @@
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/event-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
-#include <babeltrace/ctf-ir/visitor-internal.h>
+#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
@@ -48,7 +49,7 @@ void bt_ctf_trace_destroy(struct bt_object *obj);
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace);
 static
-int bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
+void bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
 
 static
 const unsigned int field_type_aliases_alignments[] = {
@@ -421,23 +422,130 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 {
 	int ret, i;
 	int64_t stream_id;
+	struct bt_ctf_validation_output trace_sc_validation_output = { 0 };
+	struct bt_ctf_validation_output *ec_validation_outputs = NULL;
+	const enum bt_ctf_validation_flag trace_sc_validation_flags =
+		BT_CTF_VALIDATION_FLAG_TRACE |
+		BT_CTF_VALIDATION_FLAG_STREAM;
+	const enum bt_ctf_validation_flag ec_validation_flags =
+		BT_CTF_VALIDATION_FLAG_EVENT;
+	struct bt_ctf_field_type *packet_header_type = NULL;
+	struct bt_ctf_field_type *packet_context_type = NULL;
+	struct bt_ctf_field_type *event_header_type = NULL;
+	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
+	int event_class_count;
 
 	if (!trace || !stream_class) {
 		ret = -1;
 		goto end;
 	}
 
+	event_class_count =
+		bt_ctf_stream_class_get_event_class_count(stream_class);
+	assert(event_class_count >= 0);
+
+	/* Check for duplicate stream classes */
 	for (i = 0; i < trace->stream_classes->len; i++) {
 		if (trace->stream_classes->pdata[i] == stream_class) {
-			/* Stream already registered to the trace */
+			/* Stream class already registered to the trace */
 			ret = -1;
 			goto end;
 		}
 	}
 
-	ret = bt_ctf_stream_class_resolve_types(stream_class, trace);
+	/*
+	 * We're about to freeze both the trace and the stream class.
+	 * Also, each event class contained in this stream class are
+	 * already frozen.
+	 *
+	 * This trace, this stream class, and all its event classes
+	 * should be valid at this point.
+	 *
+	 * Validate trace and stream class first, then each event
+	 * class of this stream class can be validated individually.
+	 */
+	packet_header_type =
+		bt_ctf_trace_get_packet_header_type(trace);
+	packet_context_type =
+		bt_ctf_stream_class_get_packet_context_type(stream_class);
+	event_header_type =
+		bt_ctf_stream_class_get_event_header_type(stream_class);
+	stream_event_ctx_type =
+		bt_ctf_stream_class_get_event_context_type(stream_class);
+	ret = bt_ctf_validate_class_types(trace->environment,
+		packet_header_type, packet_context_type, event_header_type,
+		stream_event_ctx_type, NULL, NULL, trace->valid,
+		stream_class->valid, 1, &trace_sc_validation_output,
+		trace_sc_validation_flags);
+	BT_PUT(packet_header_type);
+	BT_PUT(packet_context_type);
+	BT_PUT(event_header_type);
+	BT_PUT(stream_event_ctx_type);
+
 	if (ret) {
+		/*
+		 * This means something went wrong during the validation
+		 * process, not that the objects are invalid.
+		 */
 		goto end;
+	}
+
+	if ((trace_sc_validation_output.valid_flags &
+			trace_sc_validation_flags) !=
+			trace_sc_validation_flags) {
+		/* Invalid trace/stream class */
+		ret = -1;
+		goto end;
+	}
+
+	if (event_class_count > 0) {
+		ec_validation_outputs = g_new0(struct bt_ctf_validation_output,
+			event_class_count);
+		if (!ec_validation_outputs) {
+			ret = -1;
+			goto end;
+		}
+	}
+
+	/* Validate each event class individually */
+	for (i = 0; i < event_class_count; ++i) {
+		struct bt_ctf_event_class *event_class =
+			bt_ctf_stream_class_get_event_class(stream_class, i);
+		struct bt_ctf_field_type *event_context_type = NULL;
+		struct bt_ctf_field_type *event_payload_type = NULL;
+
+		event_context_type =
+			bt_ctf_event_class_get_context_type(event_class);
+		event_payload_type =
+			bt_ctf_event_class_get_payload_type(event_class);
+
+		/*
+		 * It is important to use the field types returned by
+		 * the previous trace and stream class validation here
+		 * because copies could have been made.
+		 */
+		ret = bt_ctf_validate_class_types(trace->environment,
+			trace_sc_validation_output.packet_header_type,
+			trace_sc_validation_output.packet_context_type,
+			trace_sc_validation_output.event_header_type,
+			trace_sc_validation_output.stream_event_ctx_type,
+			event_context_type, event_payload_type,
+			1, 1, event_class->valid, &ec_validation_outputs[i],
+			ec_validation_flags);
+		BT_PUT(event_context_type);
+		BT_PUT(event_payload_type);
+		BT_PUT(event_class);
+
+		if (ret) {
+			goto end;
+		}
+
+		if ((ec_validation_outputs[i].valid_flags &
+				ec_validation_flags) != ec_validation_flags) {
+			/* Invalid event class */
+			ret = -1;
+			goto end;
+		}
 	}
 
 	stream_id = bt_ctf_stream_class_get_id(stream_class);
@@ -466,8 +574,40 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
 	/*
-	 * Freeze the trace and its packet header.
-	 *
+	 * At this point we know that the function will be successful.
+	 * Therefore we can replace the trace and stream class field
+	 * types with what's in their validation output structure and
+	 * mark them as valid. We can also replace the field types of
+	 * all the event classes of the stream class and mark them as
+	 * valid.
+	 */
+	bt_ctf_validation_replace_types(trace, stream_class, NULL,
+		&trace_sc_validation_output, trace_sc_validation_flags);
+	trace->valid = 1;
+	stream_class->valid = 1;
+
+	/*
+	 * Put what was not moved in bt_ctf_validation_replace_types().
+	 */
+	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
+
+	for (i = 0; i < event_class_count; ++i) {
+		struct bt_ctf_event_class *event_class =
+			bt_ctf_stream_class_get_event_class(stream_class, i);
+
+		bt_ctf_validation_replace_types(NULL, NULL, event_class,
+			&ec_validation_outputs[i], ec_validation_flags);
+		event_class->valid = 1;
+		BT_PUT(event_class);
+
+		/*
+		 * Put what was not moved in
+		 * bt_ctf_validation_replace_types().
+		 */
+		bt_ctf_validation_output_put_types(&ec_validation_outputs[i]);
+	}
+
+	/*
 	 * All field type byte orders set as "native" byte ordering can now be
 	 * safely set to trace's own endianness, including the stream class'.
 	 */
@@ -475,14 +615,31 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		trace->byte_order);
 	bt_ctf_stream_class_set_byte_order(stream_class, trace->byte_order);
 
+	/*
+	 * Freeze the trace and the stream class.
+	 */
 	bt_ctf_stream_class_freeze(stream_class);
-	if (!trace->frozen) {
-		ret = bt_ctf_trace_freeze(trace);
-	}
+	bt_ctf_trace_freeze(trace);
+
 end:
 	if (ret) {
 		bt_object_set_parent(stream_class, NULL);
+
+		if (ec_validation_outputs) {
+			for (i = 0; i < event_class_count; ++i) {
+				bt_ctf_validation_output_put_types(
+					&ec_validation_outputs[i]);
+			}
+		}
 	}
+
+	g_free(ec_validation_outputs);
+	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
+	assert(!packet_header_type);
+	assert(!packet_context_type);
+	assert(!event_header_type);
+	assert(!stream_event_ctx_type);
+
 	return ret;
 }
 
@@ -887,19 +1044,11 @@ end:
 }
 
 static
-int bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
+void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
-	int ret = 0;
-
-	ret = bt_ctf_trace_resolve_types(trace);
-	if (ret) {
-		goto end;
-	}
-
+	bt_ctf_field_type_freeze(trace->packet_header_type);
 	bt_ctf_attributes_freeze(trace->environment);
 	trace->frozen = 1;
-end:
-	return ret;
 }
 
 static

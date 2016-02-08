@@ -54,9 +54,12 @@ enum bt_ctf_node {
 
 struct bt_ctf_field_path {
 	enum bt_ctf_node root;
+
 	/*
 	 * Array of integers (int) indicating the index in either
-	 * structures or variants that make-up the path to a field.
+	 * structures, variants, arrays, or sequences that make up
+	 * the path to a field type. -1 means the "current element
+	 * of an array or sequence type".
 	 */
 	GArray *path_indexes;
 };
@@ -277,5 +280,16 @@ int bt_ctf_field_type_array_set_element_type(struct bt_ctf_field_type *array,
 BT_HIDDEN
 int bt_ctf_field_type_sequence_set_element_type(struct bt_ctf_field_type *array,
 		struct bt_ctf_field_type *element_type);
+
+BT_HIDDEN
+int bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *type);
+
+BT_HIDDEN
+struct bt_ctf_field_type *bt_ctf_field_type_get_field_at_index(
+		struct bt_ctf_field_type *type, int index);
+
+BT_HIDDEN
+int bt_ctf_field_type_get_field_index(struct bt_ctf_field_type *type,
+		const char *name);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_TYPES_INTERNAL_H */

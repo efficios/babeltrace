@@ -34,7 +34,7 @@
 #include <babeltrace/ctf-ir/event-fields-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
-#include <babeltrace/ctf-ir/visitor-internal.h>
+#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
@@ -318,6 +318,15 @@ int bt_ctf_stream_class_add_event_class(
 	int64_t event_id;
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_stream_class *old_stream_class = NULL;
+	struct bt_ctf_validation_output validation_output = { 0 };
+	struct bt_ctf_field_type *packet_header_type = NULL;
+	struct bt_ctf_field_type *packet_context_type = NULL;
+	struct bt_ctf_field_type *event_header_type = NULL;
+	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
+	struct bt_ctf_field_type *event_context_type = NULL;
+	struct bt_ctf_field_type *event_payload_type = NULL;
+	const enum bt_ctf_validation_flag validation_flags =
+		BT_CTF_VALIDATION_FLAG_EVENT;
 
 	if (!stream_class || !event_class) {
 		ret = -1;
@@ -333,31 +342,72 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
-	old_stream_class = (struct bt_ctf_stream_class *) bt_object_get_parent(
-		event_class);
+	old_stream_class = bt_ctf_event_class_get_stream_class(event_class);
 	if (old_stream_class) {
 		/* Event class is already associated to a stream class. */
 		ret = -1;
 		goto end;
 	}
 
-	/*
-	 * Resolve the event's sequence length and variant tags if the
-	 * stream is already associated with a trace. Otherwise, this
-	 * validation will be performed once the stream is registered
-	 * to a trace.
-	 */
-	trace = (struct bt_ctf_trace *) bt_object_get_parent(
-		stream_class);
+	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (trace) {
-		ret = bt_ctf_event_class_resolve_types(event_class,
-			trace, stream_class);
+		/*
+		 * If the stream class is associated with a trace, then
+		 * both those objects are frozen. Also, this event class
+		 * is about to be frozen.
+		 *
+		 * Therefore the event class must be validated here.
+		 * The trace and stream class should be valid at this
+		 * point.
+		 */
+		assert(trace->valid);
+		assert(stream_class->valid);
+		packet_header_type =
+			bt_ctf_trace_get_packet_header_type(trace);
+		packet_context_type =
+			bt_ctf_stream_class_get_packet_context_type(
+				stream_class);
+		event_header_type =
+			bt_ctf_stream_class_get_event_header_type(stream_class);
+		stream_event_ctx_type =
+			bt_ctf_stream_class_get_event_context_type(
+				stream_class);
+		event_context_type =
+			bt_ctf_event_class_get_context_type(event_class);
+		event_payload_type =
+			bt_ctf_event_class_get_payload_type(event_class);
+		ret = bt_ctf_validate_class_types(
+			trace->environment, packet_header_type,
+			packet_context_type, event_header_type,
+			stream_event_ctx_type, event_context_type,
+			event_payload_type, trace->valid,
+			stream_class->valid, event_class->valid,
+			&validation_output, validation_flags);
+		BT_PUT(packet_header_type);
+		BT_PUT(packet_context_type);
+		BT_PUT(event_header_type);
+		BT_PUT(stream_event_ctx_type);
+		BT_PUT(event_context_type);
+		BT_PUT(event_payload_type);
+
 		if (ret) {
+			/*
+			 * This means something went wrong during the
+			 * validation process, not that the objects are
+			 * invalid.
+			 */
+			goto end;
+		}
+
+		if ((validation_output.valid_flags & validation_flags) !=
+				validation_flags) {
+			/* Invalid event class */
+			ret = -1;
 			goto end;
 		}
 	}
 
-	/* Only set an event id if none was explicitly set before */
+	/* Only set an event ID if none was explicitly set before */
 	event_id = bt_ctf_event_class_get_id(event_class);
 	if (event_id < 0) {
 		if (bt_ctf_event_class_set_id(event_class,
@@ -373,7 +423,29 @@ int bt_ctf_stream_class_add_event_class(
 	}
 
 	bt_object_set_parent(event_class, stream_class);
+
+	if (trace) {
+		/*
+		 * At this point we know that the function will be
+		 * successful. Therefore we can replace the event
+		 * class's field types with what's in the validation
+		 * output structure and mark this event class as valid.
+		 */
+		bt_ctf_validation_replace_types(NULL, NULL, event_class,
+			&validation_output, validation_flags);
+		event_class->valid = 1;
+
+		/*
+		 * Put what was not moved in
+		 * bt_ctf_validation_replace_types().
+		 */
+		bt_ctf_validation_output_put_types(&validation_output);
+	}
+
+	/* Add to the event classes of the stream class */
 	g_ptr_array_add(stream_class->event_classes, event_class);
+
+	/* Freeze the event class */
 	bt_ctf_event_class_freeze(event_class);
 
 	if (stream_class->byte_order) {
@@ -382,14 +454,23 @@ int bt_ctf_stream_class_add_event_class(
 		 * when the stream class was added to a trace.
 		 *
 		 * If not set here, this will be set when the stream
-		 * classe will be added to a trace.
+		 * class is added to a trace.
 		 */
 		bt_ctf_event_class_set_native_byte_order(event_class,
 			stream_class->byte_order);
 	}
+
 end:
 	BT_PUT(trace);
 	BT_PUT(old_stream_class);
+	bt_ctf_validation_output_put_types(&validation_output);
+	assert(!packet_header_type);
+	assert(!packet_context_type);
+	assert(!event_header_type);
+	assert(!stream_event_ctx_type);
+	assert(!event_context_type);
+	assert(!event_payload_type);
+
 	return ret;
 }
 

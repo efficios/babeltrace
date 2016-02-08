@@ -584,7 +584,8 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	}
 
 	field_type = bt_ctf_field_get_type(field);
-	if (field_type != stream->stream_class->packet_context_type) {
+	if (bt_ctf_field_type_compare(field_type,
+			stream->stream_class->packet_context_type)) {
 		ret = -1;
 		goto end;
 	}
@@ -626,7 +627,8 @@ int bt_ctf_stream_set_event_context(struct bt_ctf_stream *stream,
 	}
 
 	field_type = bt_ctf_field_get_type(field);
-	if (field_type != stream->stream_class->event_context_type) {
+	if (bt_ctf_field_type_compare(field_type,
+			stream->stream_class->event_context_type)) {
 		ret = -1;
 		goto end;
 	}
@@ -670,7 +672,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 
 	trace = (struct bt_ctf_trace *) bt_object_get_parent(stream);
 	field_type = bt_ctf_field_get_type(field);
-	if (field_type != trace->packet_header_type) {
+	if (bt_ctf_field_type_compare(field_type, trace->packet_header_type)) {
 		ret = -1;
 		goto end;
 	}

@@ -48,6 +48,14 @@ struct bt_ctf_event_class {
 	/* Structure type containing the event's fields */
 	struct bt_ctf_field_type *fields;
 	int frozen;
+
+	/*
+	 * This flag indicates if the event class is valid. A valid
+	 * event class is _always_ frozen. However, an event class
+	 * may be frozen, but not valid yet. This is okay, as long as
+	 * no events are created out of this event class.
+	 */
+	int valid;
 };
 
 struct bt_ctf_event {

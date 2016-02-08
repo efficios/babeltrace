@@ -58,6 +58,12 @@ struct bt_ctf_trace {
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
 	struct bt_ctf_field_type *packet_header_type;
 	uint64_t next_stream_id;
+
+	/*
+	 * This flag indicates if the trace is valid. A valid
+	 * trace is _always_ frozen.
+	 */
+	int valid;
 };
 
 struct metadata_context {

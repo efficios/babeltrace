@@ -535,7 +535,8 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	expected_field_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(field->type,
 		name);
-	if (expected_field_type != value->type) {
+
+	if (bt_ctf_field_type_compare(expected_field_type, value->type)) {
 		ret = -1;
 		goto end;
 	}

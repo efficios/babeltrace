@@ -50,6 +50,12 @@ struct bt_ctf_stream_class {
 	struct bt_ctf_field_type *event_context_type;
 	int frozen;
 	int byte_order;
+
+	/*
+	 * This flag indicates if the stream class is valid. A valid
+	 * stream class is _always_ frozen.
+	 */
+	int valid;
 };
 
 BT_HIDDEN
