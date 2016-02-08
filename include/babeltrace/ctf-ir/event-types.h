@@ -54,9 +54,9 @@ enum bt_ctf_integer_base {
 enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_UNKNOWN = -1,
 	/*
-	 * Note that native, in the context of the CTF specification, is defined as
-	 * "the byte order described in the trace" and does not mean that the host's
-	 * endianness will be used.
+	 * Note that native, in the context of the CTF specification, is defined
+	 * as "the byte order described in the trace" and does not mean that the
+	 * host's endianness will be used.
 	 */
 	BT_CTF_BYTE_ORDER_NATIVE = 0,
 	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
@@ -64,15 +64,15 @@ enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_NETWORK,
 };
 
-enum bt_ctf_node {
-	CTF_NODE_UNKNOWN = -1,
-	CTF_NODE_ENV = 0,
-	CTF_NODE_TRACE_PACKET_HEADER = 1,
-	CTF_NODE_STREAM_PACKET_CONTEXT = 2,
-	CTF_NODE_STREAM_EVENT_HEADER = 3,
-	CTF_NODE_STREAM_EVENT_CONTEXT = 4,
-	CTF_NODE_EVENT_CONTEXT = 5,
-	CTF_NODE_EVENT_FIELDS = 6,
+enum bt_ctf_scope {
+	BT_CTF_SCOPE_UNKNOWN = -1,
+	BT_CTF_SCOPE_ENV = 0,
+	BT_CTF_SCOPE_TRACE_PACKET_HEADER = 1,
+	BT_CTF_SCOPE_STREAM_PACKET_CONTEXT = 2,
+	BT_CTF_SCOPE_STREAM_EVENT_HEADER = 3,
+	BT_CTF_SCOPE_STREAM_EVENT_CONTEXT = 4,
+	BT_CTF_SCOPE_EVENT_CONTEXT = 5,
+	BT_CTF_SCOPE_EVENT_FIELDS = 6,
 };
 
 /*

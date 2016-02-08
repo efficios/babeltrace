@@ -123,7 +123,7 @@ CTF event :
 					written in the packet (in cycles).
 
 The payload of an event is divided in various scopes depending on the type of
-information. There are six top-level scopes (defined in the bt_ctf_scope enum)
+information. There are six top-level scopes (defined in the ctf_scope enum)
 which can be accessed by the bt_ctf_get_top_level_scope() function :
 	BT_TRACE_PACKET_HEADER		= 0,
 	BT_STREAM_PACKET_CONTEXT        = 1,

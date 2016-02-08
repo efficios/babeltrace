@@ -48,7 +48,7 @@ struct bt_ctf_field_decl;
 /*
  * the top-level scopes in CTF
  */
-enum bt_ctf_scope {
+enum ctf_scope {
 	BT_TRACE_PACKET_HEADER          = 0,
 	BT_STREAM_PACKET_CONTEXT        = 1,
 	BT_STREAM_EVENT_HEADER          = 2,
@@ -87,7 +87,7 @@ enum ctf_string_encoding {
 /*
  * bt_ctf_get_top_level_scope: return a definition of the top-level scope
  *
- * Top-level scopes are defined in the bt_ctf_scope enum.
+ * Top-level scopes are defined in the ctf_scope enum.
  * In order to get a field or a field list, the user needs to pass a
  * scope as argument, this scope can be a top-level scope or a scope
  * relative to an arbitrary field. This function provides the mapping
@@ -95,7 +95,7 @@ enum ctf_string_encoding {
  * On error return NULL.
  */
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *event,
-		enum bt_ctf_scope scope);
+		enum ctf_scope scope);
 
 /*
  * bt_ctf_event_get_name: returns the name of the event or NULL on error
@@ -289,7 +289,7 @@ uint64_t bt_ctf_get_decl_event_id(const struct bt_ctf_event_decl *event);
  * valid as long as the trace is opened.
  */
 int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope,
+		enum ctf_scope scope,
 		struct bt_ctf_field_decl const * const **list,
 		unsigned int *count);
 

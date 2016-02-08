@@ -45,7 +45,7 @@ struct bt_ctf_field_path;
  *
  * Returns the root node of a field path, or BT_CTF_SCOPE_UNKNOWN on error.
  */
-extern enum bt_ctf_node bt_ctf_field_path_get_root(
+extern enum bt_ctf_scope bt_ctf_field_path_get_root(
 		const struct bt_ctf_field_path *field_path);
 
 /*

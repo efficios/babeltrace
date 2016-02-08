@@ -47,7 +47,7 @@
 __thread int bt_ctf_last_field_error = 0;
 
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
-		enum bt_ctf_scope scope)
+		enum ctf_scope scope)
 {
 	const struct bt_definition *tmp = NULL;
 	const struct ctf_event_definition *event;
@@ -479,7 +479,7 @@ const char *bt_ctf_get_enum_str(const struct bt_definition *field)
 		g_array_unref(array);
 		bt_ctf_field_set_error(-ENOENT);
 		return NULL;
-	}	
+	}
 	/* Return first string. Arbitrary choice. */
 	ret = g_quark_to_string(g_array_index(array, GQuark, 0));
 	g_array_unref(array);
@@ -722,7 +722,7 @@ uint64_t bt_ctf_get_decl_event_id(const struct bt_ctf_event_decl *event)
 }
 
 int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope,
+		enum ctf_scope scope,
 		struct bt_ctf_field_decl const * const **list,
 		unsigned int *count)
 {

@@ -89,7 +89,7 @@ struct bt_ctf_event_decl *_bt_python_decl_one_from_list(
 /* decl_fields */
 struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
 		struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope,
+		enum ctf_scope scope,
 		unsigned int *len)
 {
 	struct bt_ctf_field_decl **list;

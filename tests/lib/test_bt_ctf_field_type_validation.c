@@ -1638,7 +1638,7 @@ end:
 
 static
 int validate_field_path(struct bt_ctf_field_type *field_type,
-		enum bt_ctf_node root, ...)
+		enum bt_ctf_scope root, ...)
 {
 	int ret = 0;
 	int len;
@@ -1736,7 +1736,7 @@ void validate_test_pass(struct bt_ctf_trace *trace)
 
 	/* trace.packet.header.iron.fire.keen */
 	ft_src = get_ft(ph, "iron", "fire", "keen", NULL);
-	ok(!validate_field_path(ft_src, CTF_NODE_TRACE_PACKET_HEADER,
+	ok(!validate_field_path(ft_src, BT_CTF_SCOPE_TRACE_PACKET_HEADER,
 		3, 3, 0, FIELD_PATH_END),
 		"trace.packet.header.iron.fire.keen has the correct field path");
 	BT_PUT(ft_src);
@@ -1744,7 +1744,7 @@ void validate_test_pass(struct bt_ctf_trace *trace)
 	/* trace.packet.header.iron.fire.keen.[element] */
 	ft_src = get_ft(ph, "iron", "fire", "keen", "", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 2, FIELD_PATH_END),
 		"trace.packet.header.iron.fire.keen.[element] has the correct field path");
 	ft_target = get_ft(ph, "iron", "parallel", NULL);
 	ft_tag = bt_ctf_field_type_variant_get_tag_type(ft_src);
@@ -1757,35 +1757,35 @@ void validate_test_pass(struct bt_ctf_trace *trace)
 	/* trace.packet.header.iron.fire.keen.[element].BLUE */
 	ft_src = get_ft(ph, "iron", "fire", "keen", "", "BLUE", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 0, FIELD_PATH_END),
 		"trace.packet.header.iron.fire.keen.[element].BLUE has the correct field path");
 	BT_PUT(ft_src);
 
 	/* trace.packet.header.iron.report */
 	ft_src = get_ft(ph, "iron", "report", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
 		"trace.packet.header.iron.report has the correct field path");
 	BT_PUT(ft_src);
 
 	/* trace.packet.header.iron.group */
 	ft_src = get_ft(ph, "iron", "group", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 2, FIELD_PATH_END),
 		"trace.packet.header.iron.group has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.packet.context.naive.[element] */
 	ft_src = get_ft(pc, "naive", "", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
 		"stream.packet.context.naive.[element] has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.packet.context.clover.whole */
 	ft_src = get_ft(pc, "clover", "whole", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 2, FIELD_PATH_END),
 		"stream.packet.context.clover.whole has the correct field path");
 	ft_target = get_ft(ph, "iron", "parallel", NULL);
 	ft_tag = bt_ctf_field_type_variant_get_tag_type(ft_src);
@@ -1798,245 +1798,245 @@ void validate_test_pass(struct bt_ctf_trace *trace)
 	/* stream.packet.context.clover.whole.BLUE */
 	ft_src = get_ft(pc, "clover", "whole", "BLUE", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
 		"stream.packet.context.clover.whole.BLUE has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.packet.context.clover.egg */
 	ft_src = get_ft(pc, "clover", "egg", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
 		"stream.packet.context.clover.egg has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.packet.context.clover.useful */
 	ft_src = get_ft(pc, "clover", "useful", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
 		"stream.packet.context.clover.useful has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.header.action.lucky */
 	ft_src = get_ft(eh, "action", "lucky", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
 		"stream.event.header.action.lucky has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.header.stiff */
 	ft_src = get_ft(eh, "stiff", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 4, 1, 1, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 4, 1, 1, FIELD_PATH_END),
 		"stream.event.header.stiff has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.header.fruit.apple */
 	ft_src = get_ft(eh, "fruit", "apple", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
 		"stream.event.header.fruit.apple has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.face.branch */
 	ft_src = get_ft(sec, "face", "branch", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
 		"stream.event.context.face.branch has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.face.income */
 	ft_src = get_ft(sec, "face", "income", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 0, FIELD_PATH_END),
 		"stream.event.context.face.income has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.face.lucky */
 	ft_src = get_ft(sec, "face", "lucky", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"stream.event.context.face.lucky has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.dream */
 	ft_src = get_ft(sec, "dream", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 0, FIELD_PATH_END),
 		"stream.event.context.dream has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.dream.[element] */
 	ft_src = get_ft(sec, "dream", "", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
 		"stream.event.context.dream.[element] has the correct field path");
 	BT_PUT(ft_src);
 
 	/* stream.event.context.dream.[element].[element] */
 	ft_src = get_ft(sec, "dream", "", "", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"stream.event.context.dream.[element].[element] has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.berry.porter */
 	ft_src = get_ft(ectx, "berry", "porter", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"event.context.berry.porter has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.berry.porter */
 	ft_src = get_ft(ectx, "berry", "porter", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"event.context.berry.porter has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.berry.mice */
 	ft_src = get_ft(ectx, "berry", "mice", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
 		"event.context.berry.mice has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.berry.guard */
 	ft_src = get_ft(ectx, "berry", "guard", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
 		"event.context.berry.guard has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.berry.one */
 	ft_src = get_ft(ectx, "berry", "one", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
 		"event.context.berry.one has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.toys */
 	ft_src = get_ft(ectx, "loud", "toys", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 3, 0, FIELD_PATH_END),
 		"event.context.loud.toys has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.spoon */
 	ft_src = get_ft(ectx, "loud", "spoon", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 4, 0, FIELD_PATH_END),
 		"event.context.loud.spoon has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.turkey */
 	ft_src = get_ft(ectx, "loud", "turkey", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_HEADER, 2, 0, FIELD_PATH_END),
 		"event.context.loud.turkey has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.inform */
 	ft_src = get_ft(ectx, "loud", "inform", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"event.context.loud.inform has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.odd */
 	ft_src = get_ft(ectx, "loud", "odd", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
 		"event.context.loud.odd has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.context.loud.amuck */
 	ft_src = get_ft(ectx, "loud", "amuck", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_CONTEXT, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_CONTEXT, 0, FIELD_PATH_END),
 		"event.context.loud.amuck has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.equal */
 	ft_src = get_ft(ep, "relative", "equal", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_FIELDS, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_FIELDS, 0, FIELD_PATH_END),
 		"event.fields.relative.equal has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.amuck */
 	ft_src = get_ft(ep, "relative", "amuck", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_HEADER, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_HEADER, 0, FIELD_PATH_END),
 		"event.fields.relative.amuck has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.push */
 	ft_src = get_ft(ep, "relative", "push", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
 		"event.fields.relative.push has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.brick */
 	ft_src = get_ft(ep, "relative", "brick", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"event.fields.relative.brick has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.crush */
 	ft_src = get_ft(ep, "relative", "crush", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
 		"event.fields.relative.crush has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.relative.canvas */
 	ft_src = get_ft(ep, "relative", "canvas", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
 		"event.fields.relative.canvas has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.equal */
 	ft_src = get_ft(ep, "absolute", "equal", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_FIELDS, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_FIELDS, 0, FIELD_PATH_END),
 		"event.fields.absolute.equal has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.amuck */
 	ft_src = get_ft(ep, "absolute", "amuck", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_HEADER, 0, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_HEADER, 0, FIELD_PATH_END),
 		"event.fields.absolute.amuck has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.push */
 	ft_src = get_ft(ep, "absolute", "push", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
+		BT_CTF_SCOPE_EVENT_CONTEXT, 1, 3, FIELD_PATH_END),
 		"event.fields.absolute.push has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.brick */
 	ft_src = get_ft(ep, "absolute", "brick", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, 0, 2, FIELD_PATH_END),
 		"event.fields.absolute.brick has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.crush */
 	ft_src = get_ft(ep, "absolute", "crush", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
+		BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, 2, FIELD_PATH_END),
 		"event.fields.absolute.crush has the correct field path");
 	BT_PUT(ft_src);
 
 	/* event.fields.absolute.canvas */
 	ft_src = get_ft(ep, "absolute", "canvas", NULL);
 	ok(!validate_field_path(ft_src,
-		CTF_NODE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
+		BT_CTF_SCOPE_TRACE_PACKET_HEADER, 3, 1, FIELD_PATH_END),
 		"event.fields.absolute.canvas has the correct field path");
 	BT_PUT(ft_src);
 

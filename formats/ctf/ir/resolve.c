@@ -77,32 +77,32 @@ struct resolve_context {
 	struct bt_value *environment;
 	struct bt_ctf_field_type *scopes[6];
 
-	/* Root node being visited */
-	enum bt_ctf_node root_node;
+	/* Root scope being visited */
+	enum bt_ctf_scope root_scope;
 	type_stack *type_stack;
 	struct bt_ctf_field_type *cur_field_type;
 };
 
 /* TSDL dynamic scope prefixes as defined in CTF Section 7.3.2 */
 static const char * const absolute_path_prefixes[] = {
-	[CTF_NODE_ENV]				= "env.",
-	[CTF_NODE_TRACE_PACKET_HEADER]		= "trace.packet.header.",
-	[CTF_NODE_STREAM_PACKET_CONTEXT]	= "stream.packet.context.",
-	[CTF_NODE_STREAM_EVENT_HEADER]		= "stream.event.header.",
-	[CTF_NODE_STREAM_EVENT_CONTEXT]		= "stream.event.context.",
-	[CTF_NODE_EVENT_CONTEXT]		= "event.context.",
-	[CTF_NODE_EVENT_FIELDS]			= "event.fields.",
+	[BT_CTF_SCOPE_ENV]			= "env.",
+	[BT_CTF_SCOPE_TRACE_PACKET_HEADER]	= "trace.packet.header.",
+	[BT_CTF_SCOPE_STREAM_PACKET_CONTEXT]	= "stream.packet.context.",
+	[BT_CTF_SCOPE_STREAM_EVENT_HEADER]	= "stream.event.header.",
+	[BT_CTF_SCOPE_STREAM_EVENT_CONTEXT]	= "stream.event.context.",
+	[BT_CTF_SCOPE_EVENT_CONTEXT]		= "event.context.",
+	[BT_CTF_SCOPE_EVENT_FIELDS]		= "event.fields.",
 };
 
 /* Number of path tokens used for the absolute prefixes */
 static const int absolute_path_prefix_ptoken_counts[] = {
-	[CTF_NODE_ENV]				= 1,
-	[CTF_NODE_TRACE_PACKET_HEADER]		= 3,
-	[CTF_NODE_STREAM_PACKET_CONTEXT]	= 3,
-	[CTF_NODE_STREAM_EVENT_HEADER]		= 3,
-	[CTF_NODE_STREAM_EVENT_CONTEXT]		= 3,
-	[CTF_NODE_EVENT_CONTEXT]		= 2,
-	[CTF_NODE_EVENT_FIELDS]			= 2,
+	[BT_CTF_SCOPE_ENV]			= 1,
+	[BT_CTF_SCOPE_TRACE_PACKET_HEADER]	= 3,
+	[BT_CTF_SCOPE_STREAM_PACKET_CONTEXT]	= 3,
+	[BT_CTF_SCOPE_STREAM_EVENT_HEADER]	= 3,
+	[BT_CTF_SCOPE_STREAM_EVENT_CONTEXT]	= 3,
+	[BT_CTF_SCOPE_EVENT_CONTEXT]		= 2,
+	[BT_CTF_SCOPE_EVENT_FIELDS]		= 2,
 };
 
 /*
@@ -246,12 +246,12 @@ void type_stack_pop(type_stack *stack)
  */
 static
 struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
-		enum bt_ctf_node node)
+		enum bt_ctf_scope scope)
 {
-	assert(node >= CTF_NODE_TRACE_PACKET_HEADER &&
-		node <= CTF_NODE_EVENT_FIELDS);
+	assert(scope >= BT_CTF_SCOPE_TRACE_PACKET_HEADER &&
+		scope <= BT_CTF_SCOPE_EVENT_FIELDS);
 
-	return ctx->scopes[node - CTF_NODE_TRACE_PACKET_HEADER];
+	return ctx->scopes[scope - BT_CTF_SCOPE_TRACE_PACKET_HEADER];
 }
 
 /*
@@ -259,29 +259,29 @@ struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
  * CTF_NODE_UNKNOWN if the path is found to be relative.
  */
 static
-enum bt_ctf_node get_root_node_from_absolute_pathstr(const char *pathstr)
+enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 {
-	enum bt_ctf_node node;
-	enum bt_ctf_node ret = CTF_NODE_UNKNOWN;
+	enum bt_ctf_scope scope;
+	enum bt_ctf_scope ret = BT_CTF_SCOPE_UNKNOWN;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
-	for (node = CTF_NODE_ENV; node < CTF_NODE_ENV + prefixes_count;
-			node++) {
+	for (scope = BT_CTF_SCOPE_ENV; scope < BT_CTF_SCOPE_ENV +
+			prefixes_count; scope++) {
 		/*
 		 * Chech if path string starts with a known absolute
 		 * path prefix.
 		 *
 		 * Refer to CTF 7.3.2 STATIC AND DYNAMIC SCOPES.
 		 */
-		if (strncmp(pathstr, absolute_path_prefixes[node],
-				strlen(absolute_path_prefixes[node]))) {
+		if (strncmp(pathstr, absolute_path_prefixes[scope],
+				strlen(absolute_path_prefixes[scope]))) {
 			/* Prefix does not match: try the next one */
 			continue;
 		}
 
 		/* Found it! */
-		ret = node;
+		ret = scope;
 		goto end;
 	}
 
@@ -470,7 +470,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	type = get_type_from_ctx(ctx, field_path->root);
 	if (!type) {
 		/* Error: root type is not available */
-		_printf_error("Root type with node type %d is not available\n",
+		_printf_error("Root type with scope type %d is not available\n",
 			field_path->root);
 		ret = -1;
 		goto end;
@@ -559,7 +559,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 		/* Not found: look in previous scopes */
 		field_path->root--;
 
-		while (field_path->root >= CTF_NODE_TRACE_PACKET_HEADER) {
+		while (field_path->root >= BT_CTF_SCOPE_TRACE_PACKET_HEADER) {
 			struct bt_ctf_field_type *root_type;
 			bt_ctf_field_path_clear(field_path);
 
@@ -599,7 +599,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 		struct resolve_context *ctx)
 {
 	int ret;
-	enum bt_ctf_node root_node;
+	enum bt_ctf_scope root_scope;
 	GList *ptokens = NULL;
 	struct bt_ctf_field_path *field_path = NULL;
 
@@ -621,31 +621,31 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 	}
 
 	/* Absolute or relative path? */
-	root_node = get_root_node_from_absolute_pathstr(pathstr);
+	root_scope = get_root_scope_from_absolute_pathstr(pathstr);
 
-	if (root_node == CTF_NODE_UNKNOWN) {
-		/* Relative path: start with current root node */
-		field_path->root = ctx->root_node;
+	if (root_scope == BT_CTF_SCOPE_UNKNOWN) {
+		/* Relative path: start with current root scope */
+		field_path->root = ctx->root_scope;
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			_printf_error("Cannot get relative field path of path string \"%s\"\n",
 				pathstr);
-			_printf_error("  Starting at root node %d, finished at root node %d\n",
-				ctx->root_node, field_path->root);
+			_printf_error("  Starting at root scope %d, finished at root scope %d\n",
+				ctx->root_scope, field_path->root);
 			goto end;
 		}
-	} else if (root_node == CTF_NODE_ENV) {
+	} else if (root_scope == BT_CTF_SCOPE_ENV) {
 		_printf_error("Sequence field types referring the trace environment are not supported as of this version\n");
 		ret = -1;
 		goto end;
 	} else {
-		/* Absolute path: use found root node */
-		field_path->root = root_node;
+		/* Absolute path: use found root scope */
+		field_path->root = root_scope;
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			_printf_error("Cannot get absolute field path of path string \"%s\"\n",
 				pathstr);
-			_printf_error("  Looking in root node %d\n", root_node);
+			_printf_error("  Looking in root scope %d\n", root_scope);
 			goto end;
 		}
 	}
@@ -679,7 +679,7 @@ struct bt_ctf_field_type *field_path_to_field_type(
 	bt_get(type);
 	if (!type) {
 		/* Error: root type is not available */
-		_printf_error("Root type with node type %d is not available\n",
+		_printf_error("Root type with scope type %d is not available\n",
 			field_path->root);
 		goto error;
 	}
@@ -728,7 +728,7 @@ struct bt_ctf_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
 		goto error;
 	}
 
-	field_path->root = ctx->root_node;
+	field_path->root = ctx->root_scope;
 
 	for (i = 0; i < type_stack_size(ctx->type_stack); i++) {
 		struct type_stack_frame *frame;
@@ -1085,14 +1085,14 @@ end:
  * Resolves the root field type corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_type(enum ctf_type_id root_node, struct resolve_context *ctx)
+int resolve_root_type(enum ctf_type_id root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
 	assert(type_stack_size(ctx->type_stack) == 0);
-	ctx->root_node = root_node;
-	ret = resolve_type(get_type_from_ctx(ctx, root_node), ctx);
-	ctx->root_node = CTF_NODE_UNKNOWN;
+	ctx->root_scope = root_scope;
+	ret = resolve_type(get_type_from_ctx(ctx, root_scope), ctx);
+	ctx->root_scope = BT_CTF_SCOPE_UNKNOWN;
 
 	return ret;
 }
@@ -1119,7 +1119,7 @@ int bt_ctf_resolve_types(
 			event_context_type,
 			event_payload_type,
 		},
-		.root_node = CTF_NODE_UNKNOWN,
+		.root_scope = BT_CTF_SCOPE_UNKNOWN,
 	};
 
 	/* Initialize type stack */
@@ -1132,7 +1132,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve packet header type */
 	if (flags & BT_CTF_RESOLVE_FLAG_PACKET_HEADER) {
-		ret = resolve_root_type(CTF_NODE_TRACE_PACKET_HEADER, &ctx);
+		ret = resolve_root_type(BT_CTF_SCOPE_TRACE_PACKET_HEADER, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve trace packet header type\n");
 			goto end;
@@ -1141,7 +1141,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve packet context type */
 	if (flags & BT_CTF_RESOLVE_FLAG_PACKET_CONTEXT) {
-		ret = resolve_root_type(CTF_NODE_STREAM_PACKET_CONTEXT, &ctx);
+		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve stream packet context type\n");
 			goto end;
@@ -1150,8 +1150,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve event header type */
 	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_HEADER) {
-		ret = resolve_root_type(CTF_NODE_STREAM_EVENT_HEADER, &ctx);
-
+		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_EVENT_HEADER, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve stream event header type\n");
 			goto end;
@@ -1160,7 +1159,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve stream event context type */
 	if (flags & BT_CTF_RESOLVE_FLAG_STREAM_EVENT_CTX) {
-		ret = resolve_root_type(CTF_NODE_STREAM_EVENT_CONTEXT, &ctx);
+		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve stream event context type\n");
 			goto end;
@@ -1169,7 +1168,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve event context type */
 	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_CONTEXT) {
-		ret = resolve_root_type(CTF_NODE_EVENT_CONTEXT, &ctx);
+		ret = resolve_root_type(BT_CTF_SCOPE_EVENT_CONTEXT, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve event context type\n");
 			goto end;
@@ -1178,7 +1177,7 @@ int bt_ctf_resolve_types(
 
 	/* Resolve event payload type */
 	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_PAYLOAD) {
-		ret = resolve_root_type(CTF_NODE_EVENT_FIELDS, &ctx);
+		ret = resolve_root_type(BT_CTF_SCOPE_EVENT_FIELDS, &ctx);
 		if (ret) {
 			_printf_error("Cannot resolve event payload type\n");
 			goto end;

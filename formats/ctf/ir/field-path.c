@@ -57,7 +57,7 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 	}
 
 	bt_object_init(field_path, field_path_destroy);
-	field_path->root = CTF_NODE_UNKNOWN;
+	field_path->root = BT_CTF_SCOPE_UNKNOWN;
 	field_path->indexes = g_array_new(TRUE, FALSE, sizeof(int));
 	if (!field_path->indexes) {
 		goto error;
@@ -96,10 +96,10 @@ end:
 	return new_path;
 }
 
-enum bt_ctf_node bt_ctf_field_path_get_root(
+enum bt_ctf_scope bt_ctf_field_path_get_root(
 		const struct bt_ctf_field_path *field_path)
 {
-	enum bt_ctf_scope scope = CTF_NODE_UNKNOWN;
+	enum bt_ctf_scope scope = BT_CTF_SCOPE_UNKNOWN;
 
 	if (!field_path) {
 		goto end;

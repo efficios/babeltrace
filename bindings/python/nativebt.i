@@ -74,7 +74,7 @@ struct bt_ctf_event_decl *_bt_python_decl_one_from_list(
 		struct bt_ctf_event_decl **list, int index);
 struct bt_ctf_field_decl **_by_python_field_decl_listcaller(
 		struct bt_ctf_event_decl *event_decl,
-		enum bt_ctf_scope scope,
+		enum ctf_scope scope,
 		unsigned int *OUTPUT);
 struct bt_ctf_field_decl *_bt_python_field_decl_one_from_list(
 		struct bt_ctf_field_decl **list, int index);
@@ -240,7 +240,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 
 /* events.h */
 %rename("_bt_ctf_get_top_level_scope") bt_ctf_get_top_level_scope(const struct
-		bt_ctf_event *event, enum bt_ctf_scope scope);
+		bt_ctf_event *event, enum ctf_scope scope);
 %rename("_bt_ctf_event_name") bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
 %rename("_bt_ctf_get_timestamp") bt_ctf_get_timestamp(
 		const struct bt_ctf_event *ctf_event, int64_t *OUTPUT);
@@ -287,7 +287,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 %rename("_bt_ctf_get_struct_field_index") bt_ctf_get_struct_field_index(const struct bt_definition *structure, uint64_t i);
 
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
-		enum bt_ctf_scope scope);
+		enum ctf_scope scope);
 const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
 int bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event, int64_t *OUTPUT);
 uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *ctf_event);
