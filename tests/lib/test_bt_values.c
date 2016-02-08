@@ -1,7 +1,7 @@
 /*
  * test_bt_values.c
  *
- * Babeltrace value value objects tests
+ * Babeltrace value objects tests
  *
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
