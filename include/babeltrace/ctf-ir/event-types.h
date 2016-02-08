@@ -64,6 +64,13 @@ enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_NETWORK,
 };
 
+enum bt_ctf_string_encoding {
+	BT_CTF_STRING_ENCODING_NONE = CTF_STRING_NONE,
+	BT_CTF_STRING_ENCODING_UTF8 = CTF_STRING_UTF8,
+	BT_CTF_STRING_ENCODING_ASCII = CTF_STRING_ASCII,
+	BT_CTF_STRING_ENCODING_UNKNOWN = CTF_STRING_UNKNOWN,
+};
+
 enum bt_ctf_scope {
 	BT_CTF_SCOPE_UNKNOWN = -1,
 	BT_CTF_SCOPE_ENV = 0,
@@ -156,9 +163,10 @@ extern int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer,
  *
  * @param integer Integer type.
  *
- * Returns the string field's encoding on success, CTF_STRING_UNKNOWN on error.
+ * Returns the string field's encoding on success,
+ * BT_CTF_STRING_ENCODING_UNKNOWN on error.
  */
-extern enum ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
+extern enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 		struct bt_ctf_field_type *integer);
 
 /*
@@ -168,13 +176,14 @@ extern enum ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
  * a text character.
  *
  * @param integer Integer type.
- * @param encoding Integer output encoding, defaults to CTF_STRING_ENCODING_NONE
+ * @param encoding Integer output encoding, defaults to
+ *	BT_CTF_STRING_ENCODING_NONE
  *
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_integer_set_encoding(
 		struct bt_ctf_field_type *integer,
-		enum ctf_string_encoding encoding);
+		enum bt_ctf_string_encoding encoding);
 
 /**
  * bt_ctf_field_type_integer_get_mapped_clock: get an integer type's mapped clock.
@@ -682,9 +691,10 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
  *
  * @param string_type String type.
  *
- * Returns the string's encoding on success, a CTF_STRING_UNKNOWN on error.
+ * Returns the string's encoding on success, a BT_CTF_STRING_ENCODING_UNKNOWN
+ * on error.
  */
-extern enum ctf_string_encoding bt_ctf_field_type_string_get_encoding(
+extern enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 		struct bt_ctf_field_type *string_type);
 
 /*
@@ -693,14 +703,15 @@ extern enum ctf_string_encoding bt_ctf_field_type_string_get_encoding(
  * Set the string type's encoding.
  *
  * @param string_type String type.
- * @param encoding String field encoding, default CTF_STRING_ENCODING_ASCII.
- *	Valid values are CTF_STRING_ENCODING_ASCII and CTF_STRING_ENCODING_UTF8.
+ * @param encoding String field encoding, default BT_CTF_STRING_ENCODING_ASCII.
+ *	Valid values are BT_CTF_STRING_ENCODING_ASCII and
+ *	BT_CTF_STRING_ENCODING_UTF8.
  *
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_string_set_encoding(
 		struct bt_ctf_field_type *string_type,
-		enum ctf_string_encoding encoding);
+		enum bt_ctf_string_encoding encoding);
 
 /*
  * bt_ctf_field_type_get_alignment: get a field type's alignment.

@@ -1961,17 +1961,20 @@ void type_field_tests()
 		BT_CTF_INTEGER_BASE_HEXADECIMAL,
 		"bt_ctf_field_type_integer_get_base returns a correct value");
 
-	ok(bt_ctf_field_type_integer_set_encoding(NULL, CTF_STRING_ASCII) < 0,
+	ok(bt_ctf_field_type_integer_set_encoding(NULL,
+		BT_CTF_STRING_ENCODING_ASCII) < 0,
 		"bt_ctf_field_type_integer_set_encoding handles NULL correctly");
 	ok(bt_ctf_field_type_integer_set_encoding(uint_12_type,
-		(enum ctf_string_encoding) 123) < 0,
+		(enum bt_ctf_string_encoding) 123) < 0,
 		"bt_ctf_field_type_integer_set_encoding handles invalid encodings correctly");
 	ok(bt_ctf_field_type_integer_set_encoding(uint_12_type,
-		CTF_STRING_UTF8) == 0,
+		BT_CTF_STRING_ENCODING_UTF8) == 0,
 		"Set integer type encoding to UTF8");
-	ok(bt_ctf_field_type_integer_get_encoding(NULL) == CTF_STRING_UNKNOWN,
+	ok(bt_ctf_field_type_integer_get_encoding(NULL) ==
+		BT_CTF_STRING_ENCODING_UNKNOWN,
 		"bt_ctf_field_type_integer_get_encoding handles NULL correctly");
-	ok(bt_ctf_field_type_integer_get_encoding(uint_12_type) == CTF_STRING_UTF8,
+	ok(bt_ctf_field_type_integer_get_encoding(uint_12_type) ==
+		BT_CTF_STRING_ENCODING_UTF8,
 		"bt_ctf_field_type_integer_get_encoding returns a correct value");
 
 	int_16_type = bt_ctf_field_type_integer_create(16);
@@ -2003,20 +2006,20 @@ void type_field_tests()
 	string_type = bt_ctf_field_type_string_create();
 	ok(string_type, "Create a string type");
 	ok(bt_ctf_field_type_string_set_encoding(string_type,
-		CTF_STRING_NONE),
+		BT_CTF_STRING_ENCODING_NONE),
 		"Reject invalid \"None\" string encoding");
 	ok(bt_ctf_field_type_string_set_encoding(string_type,
 		42),
 		"Reject invalid string encoding");
 	ok(bt_ctf_field_type_string_set_encoding(string_type,
-		CTF_STRING_ASCII) == 0,
+		BT_CTF_STRING_ENCODING_ASCII) == 0,
 		"Set string encoding to ASCII");
 
 	ok(bt_ctf_field_type_string_get_encoding(NULL) ==
-		CTF_STRING_UNKNOWN,
+		BT_CTF_STRING_ENCODING_UNKNOWN,
 		"bt_ctf_field_type_string_get_encoding handles NULL correctly");
 	ok(bt_ctf_field_type_string_get_encoding(string_type) ==
-		CTF_STRING_ASCII,
+		BT_CTF_STRING_ENCODING_ASCII,
 		"bt_ctf_field_type_string_get_encoding returns the correct value");
 
 	structure_seq_type = bt_ctf_field_type_structure_create();

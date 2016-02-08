@@ -662,7 +662,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	integer->parent.declaration->id = CTF_TYPE_INTEGER;
 	integer->declaration.len = size;
 	integer->declaration.base = BT_CTF_INTEGER_BASE_DECIMAL;
-	integer->declaration.encoding = CTF_STRING_NONE;
+	integer->declaration.encoding = BT_CTF_STRING_ENCODING_NONE;
 	bt_ctf_field_type_init(&integer->parent, TRUE);
 	return &integer->parent;
 }
@@ -762,10 +762,10 @@ end:
 	return ret;
 }
 
-enum ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
+enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 		struct bt_ctf_field_type *type)
 {
-	enum ctf_string_encoding ret = CTF_STRING_UNKNOWN;
+	enum bt_ctf_string_encoding ret = BT_CTF_STRING_ENCODING_UNKNOWN;
 	struct bt_ctf_field_type_integer *integer;
 
 	if (!type || type->declaration->id != CTF_TYPE_INTEGER) {
@@ -779,15 +779,15 @@ end:
 }
 
 int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *type,
-		enum ctf_string_encoding encoding)
+		enum bt_ctf_string_encoding encoding)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_integer *integer;
 
 	if (!type || type->frozen ||
 		(type->declaration->id != CTF_TYPE_INTEGER) ||
-		(encoding < CTF_STRING_NONE) ||
-		(encoding >= CTF_STRING_UNKNOWN)) {
+		(encoding < BT_CTF_STRING_ENCODING_NONE) ||
+		(encoding >= BT_CTF_STRING_ENCODING_UNKNOWN)) {
 		ret = -1;
 		goto end;
 	}
@@ -1922,16 +1922,16 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_create(void)
 	string->parent.declaration = &string->declaration.p;
 	string->parent.declaration->id = CTF_TYPE_STRING;
 	bt_ctf_field_type_init(&string->parent, TRUE);
-	string->declaration.encoding = CTF_STRING_UTF8;
+	string->declaration.encoding = BT_CTF_STRING_ENCODING_UTF8;
 	string->parent.declaration->alignment = CHAR_BIT;
 	return &string->parent;
 }
 
-enum ctf_string_encoding bt_ctf_field_type_string_get_encoding(
+enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 		struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type_string *string;
-	enum ctf_string_encoding ret = CTF_STRING_UNKNOWN;
+	enum bt_ctf_string_encoding ret = BT_CTF_STRING_ENCODING_UNKNOWN;
 
 	if (!type || (type->declaration->id != CTF_TYPE_STRING)) {
 		goto end;
@@ -1945,14 +1945,14 @@ end:
 }
 
 int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *type,
-		enum ctf_string_encoding encoding)
+		enum bt_ctf_string_encoding encoding)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_string *string;
 
 	if (!type || type->declaration->id != CTF_TYPE_STRING ||
-		(encoding != CTF_STRING_UTF8 &&
-		encoding != CTF_STRING_ASCII)) {
+		(encoding != BT_CTF_STRING_ENCODING_UTF8 &&
+		encoding != BT_CTF_STRING_ENCODING_ASCII)) {
 		ret = -1;
 		goto end;
 	}
@@ -2740,18 +2740,18 @@ void bt_ctf_field_type_sequence_freeze(struct bt_ctf_field_type *type)
 }
 
 static
-const char *get_encoding_string(enum ctf_string_encoding encoding)
+const char *get_encoding_string(enum bt_ctf_string_encoding encoding)
 {
 	const char *encoding_string;
 
 	switch (encoding) {
-	case CTF_STRING_NONE:
+	case BT_CTF_STRING_ENCODING_NONE:
 		encoding_string = "none";
 		break;
-	case CTF_STRING_ASCII:
+	case BT_CTF_STRING_ENCODING_ASCII:
 		encoding_string = "ASCII";
 		break;
-	case CTF_STRING_UTF8:
+	case BT_CTF_STRING_ENCODING_UTF8:
 		encoding_string = "UTF8";
 		break;
 	default:
