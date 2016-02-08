@@ -30,7 +30,10 @@
  */
 
 #include <glib.h>
-#include <babeltrace/ctf/events.h>
+#include <babeltrace/babeltrace-internal.h>
+
+struct bt_ctf_iter;
+struct ctf_stream_definition;
 
 struct bt_callback {
 	int prio;		/* Callback order priority. Lower first. Dynamically assigned from dependency graph. */

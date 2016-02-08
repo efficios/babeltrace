@@ -116,7 +116,7 @@ struct declaration_sequence *
 	bt_declaration_ref(elem_declaration);
 	sequence_declaration->elem = elem_declaration;
 	sequence_declaration->scope = bt_new_declaration_scope(parent_scope);
-	declaration->id = CTF_TYPE_SEQUENCE;
+	declaration->id = BT_CTF_TYPE_ID_SEQUENCE;
 	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _sequence_declaration_free;
 	declaration->definition_new = _sequence_definition_new;
@@ -171,7 +171,7 @@ struct bt_definition *_sequence_definition_new(struct bt_declaration *declaratio
 	sequence->string = NULL;
 	sequence->elems = NULL;
 
-	if (sequence_declaration->elem->id == CTF_TYPE_INTEGER) {
+	if (sequence_declaration->elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(sequence_declaration->elem, struct declaration_integer, p);
 

@@ -79,7 +79,7 @@ struct definition_scope {
 };
 
 struct bt_declaration {
-	enum ctf_type_id id;
+	enum bt_ctf_type_id id;
 	size_t alignment;	/* type alignment, in bits */
 	int ref;		/* number of references to the type */
 	/*
@@ -125,7 +125,7 @@ struct bt_stream_pos {
 static inline
 int generic_rw(struct bt_stream_pos *pos, struct bt_definition *definition)
 {
-	enum ctf_type_id dispatch_id = definition->declaration->id;
+	enum bt_ctf_type_id dispatch_id = definition->declaration->id;
 	rw_dispatch call;
 
 	assert(pos->rw_table[dispatch_id] != NULL);

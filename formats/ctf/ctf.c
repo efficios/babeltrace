@@ -125,26 +125,26 @@ int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp);
 
 static
 rw_dispatch read_dispatch_table[] = {
-	[ CTF_TYPE_INTEGER ] = ctf_integer_read,
-	[ CTF_TYPE_FLOAT ] = ctf_float_read,
-	[ CTF_TYPE_ENUM ] = ctf_enum_read,
-	[ CTF_TYPE_STRING ] = ctf_string_read,
-	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
-	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
-	[ CTF_TYPE_ARRAY ] = ctf_array_read,
-	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_read,
+	[ BT_CTF_TYPE_ID_INTEGER ] = ctf_integer_read,
+	[ BT_CTF_TYPE_ID_FLOAT ] = ctf_float_read,
+	[ BT_CTF_TYPE_ID_ENUM ] = ctf_enum_read,
+	[ BT_CTF_TYPE_ID_STRING ] = ctf_string_read,
+	[ BT_CTF_TYPE_ID_STRUCT ] = ctf_struct_rw,
+	[ BT_CTF_TYPE_ID_VARIANT ] = ctf_variant_rw,
+	[ BT_CTF_TYPE_ID_ARRAY ] = ctf_array_read,
+	[ BT_CTF_TYPE_ID_SEQUENCE ] = ctf_sequence_read,
 };
 
 static
 rw_dispatch write_dispatch_table[] = {
-	[ CTF_TYPE_INTEGER ] = ctf_integer_write,
-	[ CTF_TYPE_FLOAT ] = ctf_float_write,
-	[ CTF_TYPE_ENUM ] = ctf_enum_write,
-	[ CTF_TYPE_STRING ] = ctf_string_write,
-	[ CTF_TYPE_STRUCT ] = ctf_struct_rw,
-	[ CTF_TYPE_VARIANT ] = ctf_variant_rw,
-	[ CTF_TYPE_ARRAY ] = ctf_array_write,
-	[ CTF_TYPE_SEQUENCE ] = ctf_sequence_write,
+	[ BT_CTF_TYPE_ID_INTEGER ] = ctf_integer_write,
+	[ BT_CTF_TYPE_ID_FLOAT ] = ctf_float_write,
+	[ BT_CTF_TYPE_ID_ENUM ] = ctf_enum_write,
+	[ BT_CTF_TYPE_ID_STRING ] = ctf_string_write,
+	[ BT_CTF_TYPE_ID_STRUCT ] = ctf_struct_rw,
+	[ BT_CTF_TYPE_ID_VARIANT ] = ctf_variant_rw,
+	[ BT_CTF_TYPE_ID_ARRAY ] = ctf_array_write,
+	[ BT_CTF_TYPE_ID_SEQUENCE ] = ctf_sequence_write,
 };
 
 static
@@ -1128,7 +1128,7 @@ int check_version(unsigned int major, unsigned int minor)
 		}
 	default:
 		goto warning;
-		
+
 	}
 
 	/* eventually return an error instead of warning */
@@ -1649,7 +1649,7 @@ begin:
 			uint8_t uuidval[BABELTRACE_UUID_LEN];
 
 			field = bt_struct_definition_get_field_from_index(file_stream->parent.trace_packet_header, len_index);
-			assert(field->declaration->id == CTF_TYPE_ARRAY);
+			assert(field->declaration->id == BT_CTF_TYPE_ID_ARRAY);
 			defarray = container_of(field, struct definition_array, p);
 			assert(bt_array_len(defarray) == BABELTRACE_UUID_LEN);
 
@@ -1892,7 +1892,7 @@ int create_trace_definitions(struct ctf_trace *td, struct ctf_stream_definition 
 			ret = -EINVAL;
 			goto error;
 		}
-		stream->trace_packet_header = 
+		stream->trace_packet_header =
 			container_of(definition, struct definition_struct, p);
 		stream->parent_def_scope = stream->trace_packet_header->p.scope;
 	}

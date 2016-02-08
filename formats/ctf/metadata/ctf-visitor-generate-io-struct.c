@@ -465,7 +465,7 @@ struct bt_declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 				fprintf(fd, "[error] %s: cannot find typealias \"%s\".\n", __func__, g_quark_to_string(alias_q));
 				return NULL;
 			}
-			if (nested_declaration->id == CTF_TYPE_INTEGER) {
+			if (nested_declaration->id == BT_CTF_TYPE_ID_INTEGER) {
 				struct declaration_integer *integer_declaration =
 					container_of(nested_declaration, struct declaration_integer, p);
 				/* For base to 16 for pointers (expected pretty-print) */
@@ -513,7 +513,7 @@ struct bt_declaration *ctf_type_declarator_visit(FILE *fd, int depth,
 			fprintf(fd, "[error] %s: expecting length field reference or value.\n", __func__);
 			return NULL;
 		}
-		first = _bt_list_first_entry(&node_type_declarator->u.type_declarator.u.nested.length, 
+		first = _bt_list_first_entry(&node_type_declarator->u.type_declarator.u.nested.length,
 				struct ctf_node, siblings);
 		if (first->type != NODE_UNARY_EXPRESSION) {
 			return NULL;
@@ -669,7 +669,7 @@ int ctf_typedef_visit(FILE *fd, int depth, struct declaration_scope *scope,
 		 * Don't allow typedef and typealias of untagged
 		 * variants.
 		 */
-		if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
+		if (type_declaration->id == BT_CTF_TYPE_ID_UNTAGGED_VARIANT) {
 			fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
 			bt_declaration_unref(type_declaration);
 			return -EPERM;
@@ -719,7 +719,7 @@ int ctf_typealias_visit(FILE *fd, int depth, struct declaration_scope *scope,
 	 * Don't allow typedef and typealias of untagged
 	 * variants.
 	 */
-	if (type_declaration->id == CTF_TYPE_UNTAGGED_VARIANT) {
+	if (type_declaration->id == BT_CTF_TYPE_ID_UNTAGGED_VARIANT) {
 		fprintf(fd, "[error] %s: typedef of untagged variant is not permitted.\n", __func__);
 		bt_declaration_unref(type_declaration);
 		return -EPERM;
@@ -1131,7 +1131,7 @@ struct bt_declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			fprintf(fd, "[error] %s: unable to create container type for enumeration\n", __func__);
 			return NULL;
 		}
-		if (declaration->id != CTF_TYPE_INTEGER) {
+		if (declaration->id != BT_CTF_TYPE_ID_INTEGER) {
 			fprintf(fd, "[error] %s: container type for enumeration is not integer\n", __func__);
 			return NULL;
 		}
@@ -1350,7 +1350,7 @@ struct bt_declaration *ctf_declaration_integer_visit(FILE *fd, int depth,
 			switch (right->u.unary_expression.type) {
 			case UNARY_UNSIGNED_CONSTANT:
 				switch (right->u.unary_expression.u.unsigned_constant) {
-				case 2: 
+				case 2:
 				case 8:
 				case 10:
 				case 16:
@@ -1769,7 +1769,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}
@@ -1790,7 +1790,7 @@ int ctf_event_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}
@@ -1922,7 +1922,7 @@ error:
 	return ret;
 }
 
- 
+
 static
 int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_stream_declaration *stream, struct ctf_trace *trace)
 {
@@ -1982,7 +1982,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}
@@ -2003,7 +2003,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}
@@ -2024,7 +2024,7 @@ int ctf_stream_declaration_visit(FILE *fd, int depth, struct ctf_node *node, str
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}
@@ -2232,7 +2232,7 @@ int ctf_trace_declaration_visit(FILE *fd, int depth, struct ctf_node *node, stru
 				ret = -EPERM;
 				goto error;
 			}
-			if (declaration->id != CTF_TYPE_STRUCT) {
+			if (declaration->id != BT_CTF_TYPE_ID_STRUCT) {
 				ret = -EPERM;
 				goto error;
 			}

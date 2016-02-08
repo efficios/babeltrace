@@ -52,7 +52,7 @@ int ctf_text_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *de
 				rem_(g_quark_to_string(definition->name)));
 	}
 
-	if (elem->id == CTF_TYPE_INTEGER) {
+	if (elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 

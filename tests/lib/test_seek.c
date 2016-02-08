@@ -22,7 +22,7 @@
 #include <babeltrace/context.h>
 #include <babeltrace/iterator.h>
 #include <babeltrace/ctf/iterator.h>
-#include <babeltrace/ctf/events.h>
+#include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/babeltrace-internal.h>	/* For symbol side-effects */
 
 #include <stdio.h>

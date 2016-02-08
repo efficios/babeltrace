@@ -349,7 +349,8 @@ int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 	int ret = 0;
 
 	if (!event_class || !payload ||
-		bt_ctf_field_type_get_type_id(payload) != CTF_TYPE_STRUCT) {
+		bt_ctf_field_type_get_type_id(payload) !=
+		BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -374,7 +375,7 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		CTF_TYPE_STRUCT) {
+		BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -396,7 +397,7 @@ int bt_ctf_event_class_get_field_count(
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		CTF_TYPE_STRUCT) {
+		BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -418,7 +419,7 @@ int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		CTF_TYPE_STRUCT) {
+		BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -440,7 +441,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		CTF_TYPE_STRUCT) {
+		BT_CTF_TYPE_ID_STRUCT) {
 		goto end;
 	}
 
@@ -485,7 +486,7 @@ int bt_ctf_event_class_set_context_type(
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(context) != CTF_TYPE_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(context) != BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -834,7 +835,8 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(payload_type) != CTF_TYPE_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(payload_type) !=
+			BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -1034,7 +1036,8 @@ int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 	field_type = bt_ctf_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != CTF_TYPE_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) !=
+			BT_CTF_TYPE_ID_INTEGER) {
 		/* Not an integer and the value is unset, error. */
 		ret = -1;
 		goto end;

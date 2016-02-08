@@ -30,7 +30,6 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf/events.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -42,6 +41,51 @@ struct bt_ctf_event;
 struct bt_ctf_field_type;
 struct bt_ctf_field;
 struct bt_ctf_field_path;
+
+/*
+ * Babeltrace 1.x enumerations that were also used in CTF writer's API.
+ * They are left here for backward compatibility reasons, but
+ * enum bt_ctf_type_id and enum bt_ctf_string_encoding should be used
+ * in new code. Both new enumerations are compatible with their legacy
+ * counterpart.
+ */
+enum ctf_type_id {
+	CTF_TYPE_UNKNOWN = 0,
+	CTF_TYPE_INTEGER,
+	CTF_TYPE_FLOAT,
+	CTF_TYPE_ENUM,
+	CTF_TYPE_STRING,
+	CTF_TYPE_STRUCT,
+	CTF_TYPE_UNTAGGED_VARIANT,
+	CTF_TYPE_VARIANT,
+	CTF_TYPE_ARRAY,
+	CTF_TYPE_SEQUENCE,
+	NR_CTF_TYPES,
+};
+
+/*
+ * Old enum.
+ */
+enum ctf_string_encoding {
+	CTF_STRING_NONE = 0,
+	CTF_STRING_UTF8,
+	CTF_STRING_ASCII,
+	CTF_STRING_UNKNOWN,
+};
+
+enum bt_ctf_type_id {
+	BT_CTF_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
+	BT_CTF_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
+	BT_CTF_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
+	BT_CTF_TYPE_ID_ENUM = CTF_TYPE_ENUM,
+	BT_CTF_TYPE_ID_STRING = CTF_TYPE_STRING,
+	BT_CTF_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
+	BT_CTF_TYPE_ID_UNTAGGED_VARIANT = CTF_TYPE_UNTAGGED_VARIANT,
+	BT_CTF_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
+	BT_CTF_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
+	BT_CTF_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
+	BT_CTF_NR_TYPE_IDS,
+};
 
 enum bt_ctf_integer_base {
 	BT_CTF_INTEGER_BASE_UNKNOWN = -1,
@@ -808,13 +852,13 @@ extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
 		struct bt_ctf_field_type *type_b);
 
 /*
- * bt_ctf_field_type_get_type_id: get a field type's ctf_type_id.
+ * bt_ctf_field_type_get_type_id: get a field type's bt_ctf_type_id.
  *
  * @param type Field type.
  *
- * Returns the field type's ctf_type_id, CTF_TYPE_UNKNOWN on error.
+ * Returns the field type's bt_ctf_type_id, CTF_TYPE_UNKNOWN on error.
  */
-extern enum ctf_type_id bt_ctf_field_type_get_type_id(
+extern enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *type);
 
 /*

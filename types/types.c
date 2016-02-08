@@ -634,7 +634,7 @@ struct definition_integer *bt_lookup_integer(const struct bt_definition *definit
 	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
-	if (lookup->declaration->id != CTF_TYPE_INTEGER)
+	if (lookup->declaration->id != BT_CTF_TYPE_ID_INTEGER)
 		return NULL;
 	lookup_integer = container_of(lookup, struct definition_integer, p);
 	if (lookup_integer->declaration->signedness != signedness)
@@ -652,7 +652,7 @@ struct definition_enum *bt_lookup_enum(const struct bt_definition *definition,
 	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
-	if (lookup->declaration->id != CTF_TYPE_ENUM)
+	if (lookup->declaration->id != BT_CTF_TYPE_ID_ENUM)
 		return NULL;
 	lookup_enum = container_of(lookup, struct definition_enum, p);
 	if (lookup_enum->integer->declaration->signedness != signedness)
@@ -669,7 +669,7 @@ struct bt_definition *bt_lookup_variant(const struct bt_definition *definition,
 	lookup = bt_lookup_definition(definition, field_name);
 	if (!lookup)
 		return NULL;
-	if (lookup->declaration->id != CTF_TYPE_VARIANT)
+	if (lookup->declaration->id != BT_CTF_TYPE_ID_VARIANT)
 		return NULL;
 	bt_lookup_variant = container_of(lookup, struct definition_variant, p);
 	lookup = bt_variant_get_current_field(bt_lookup_variant);

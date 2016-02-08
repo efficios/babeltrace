@@ -38,7 +38,7 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 
-	if (elem->id == CTF_TYPE_INTEGER) {
+	if (elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 
@@ -78,7 +78,7 @@ int ctf_array_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 	struct ctf_stream_pos *pos =
 		container_of(ppos, struct ctf_stream_pos, parent);
 
-	if (elem->id == CTF_TYPE_INTEGER) {
+	if (elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 

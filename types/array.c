@@ -83,7 +83,7 @@ struct declaration_array *
 	bt_declaration_ref(elem_declaration);
 	array_declaration->elem = elem_declaration;
 	array_declaration->scope = bt_new_declaration_scope(parent_scope);
-	declaration->id = CTF_TYPE_ARRAY;
+	declaration->id = BT_CTF_TYPE_ID_ARRAY;
 	declaration->alignment = elem_declaration->alignment;
 	declaration->declaration_free = _array_declaration_free;
 	declaration->definition_new = _array_definition_new;
@@ -123,7 +123,7 @@ struct bt_definition *
 	array->string = NULL;
 	array->elems = NULL;
 
-	if (array_declaration->elem->id == CTF_TYPE_INTEGER) {
+	if (array_declaration->elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(array_declaration->elem, struct declaration_integer, p);
 
@@ -229,7 +229,7 @@ GString *bt_get_char_array(const struct bt_definition *field)
 	array_definition = container_of(field, struct definition_array, p);
 	array_declaration = array_definition->declaration;
 	elem = array_declaration->elem;
-	if (elem->id == CTF_TYPE_INTEGER) {
+	if (elem->id == BT_CTF_TYPE_ID_INTEGER) {
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 

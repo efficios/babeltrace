@@ -364,7 +364,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
  *
  * Returns the field's ctf_type_id, CTF_TYPE_UNKNOWN on error.
  */
-extern enum ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+extern enum bt_ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
 
 /*
  * bt_ctf_field_is_integer: returns whether or not a given field
