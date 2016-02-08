@@ -2380,6 +2380,14 @@ end:
 	return field_path;
 }
 
+BT_HIDDEN
+void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path)
+{
+	if (field_path->path_indexes->len > 0) {
+		g_array_remove_range(field_path->path_indexes, 0,
+			field_path->path_indexes->len);
+	}
+}
 
 BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(

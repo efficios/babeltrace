@@ -220,6 +220,9 @@ BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_create(void);
 
 BT_HIDDEN
+void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path);
+
+BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path);
 
