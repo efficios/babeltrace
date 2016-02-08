@@ -71,6 +71,13 @@ struct bt_ctf_field_type {
 	 * a field has been instanciated from it.
 	 */
 	int frozen;
+
+	/*
+	 * This flag indicates if the field type is valid. A valid
+	 * field type is _always_ frozen. All the nested field types of
+	 * a valid field type are also valid (and thus frozen).
+	 */
+	int valid;
 };
 
 struct bt_ctf_field_type_integer {

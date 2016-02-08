@@ -268,6 +268,29 @@ int (* const type_compare_funcs[])(struct bt_ctf_field_type *,
 };
 
 static
+int bt_ctf_field_type_enumeration_validate(struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_structure_validate(struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_array_validate(struct bt_ctf_field_type *);
+static
+int bt_ctf_field_type_sequence_validate(struct bt_ctf_field_type *);
+
+static
+int (* const type_validate_funcs[])(struct bt_ctf_field_type *) = {
+	[CTF_TYPE_INTEGER] = NULL,
+	[CTF_TYPE_FLOAT] = NULL,
+	[CTF_TYPE_STRING] = NULL,
+	[CTF_TYPE_ENUM] = bt_ctf_field_type_enumeration_validate,
+	[CTF_TYPE_STRUCT] = bt_ctf_field_type_structure_validate,
+	[CTF_TYPE_VARIANT] = bt_ctf_field_type_variant_validate,
+	[CTF_TYPE_ARRAY] = bt_ctf_field_type_array_validate,
+	[CTF_TYPE_SEQUENCE] = bt_ctf_field_type_sequence_validate,
+};
+
+static
 void destroy_enumeration_mapping(struct enumeration_mapping *mapping)
 {
 	g_free(mapping);
@@ -399,51 +422,228 @@ void bt_ctf_field_type_destroy(struct bt_object *obj)
 	type_destroy_funcs[type_id](type);
 }
 
+static
+int bt_ctf_field_type_enumeration_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+
+	struct bt_ctf_field_type_enumeration *enumeration =
+		container_of(type, struct bt_ctf_field_type_enumeration,
+			parent);
+	struct bt_ctf_field_type *container_type =
+		bt_ctf_field_type_enumeration_get_container_type(type);
+
+	if (!container_type) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_validate(container_type);
+	if (ret) {
+		goto end;
+	}
+
+	/* Ensure enum has entries */
+	ret = enumeration->entries->len ? 0 : -1;
+
+end:
+	BT_PUT(container_type);
+	return ret;
+}
+
+static
+int bt_ctf_field_type_sequence_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *element_type = NULL;
+	struct bt_ctf_field_type_sequence *sequence =
+		container_of(type, struct bt_ctf_field_type_sequence,
+		parent);
+
+	/* Length field name should be set at this point */
+	if (sequence->length_field_name->len == 0) {
+		ret = -1;
+		goto end;
+	}
+
+	element_type = bt_ctf_field_type_sequence_get_element_type(type);
+	if (!element_type) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_validate(element_type);
+
+end:
+	BT_PUT(element_type);
+
+	return ret;
+}
+
+static
+int bt_ctf_field_type_array_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *element_type = NULL;
+
+	element_type = bt_ctf_field_type_array_get_element_type(type);
+	if (!element_type) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_validate(element_type);
+
+end:
+	BT_PUT(element_type);
+
+	return ret;
+}
+
+static
+int bt_ctf_field_type_structure_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *child_type = NULL;
+	int field_count = bt_ctf_field_type_structure_get_field_count(type);
+	int i;
+
+	if (field_count < 0) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < field_count; ++i) {
+		ret = bt_ctf_field_type_structure_get_field(type,
+			NULL, &child_type, i);
+		if (ret) {
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_validate(child_type);
+		if (ret) {
+			goto end;
+		}
+
+		BT_PUT(child_type);
+	}
+
+end:
+	BT_PUT(child_type);
+
+	return ret;
+}
+
+static
+int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+	int field_count;
+	struct bt_ctf_field_type *child_type = NULL;
+	struct bt_ctf_field_type_variant *variant =
+		container_of(type, struct bt_ctf_field_type_variant,
+			parent);
+	int i;
+	int tag_mappings_count;
+
+	if (variant->tag_name->len == 0 || !variant->tag) {
+		ret = -1;
+		goto end;
+	}
+
+	tag_mappings_count =
+		bt_ctf_field_type_enumeration_get_mapping_count(
+			(struct bt_ctf_field_type *) variant->tag);
+
+	if (tag_mappings_count != variant->fields->len) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < tag_mappings_count; ++i) {
+		const char *label;
+		int64_t range_start, range_end;
+		struct bt_ctf_field_type *ft;
+
+		ret = bt_ctf_field_type_enumeration_get_mapping(
+			(struct bt_ctf_field_type *) variant->tag,
+			i, &label, &range_start, &range_end);
+		if (ret) {
+			goto end;
+		}
+		if (!label) {
+			ret = -1;
+			goto end;
+		}
+
+		ft = bt_ctf_field_type_variant_get_field_type_by_name(
+			type, label);
+		if (!ft) {
+			ret = -1;
+			goto end;
+		}
+
+		BT_PUT(ft);
+	}
+
+	field_count = bt_ctf_field_type_variant_get_field_count(type);
+	if (field_count < 0) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < field_count; ++i) {
+		ret = bt_ctf_field_type_variant_get_field(type,
+			NULL, &child_type, i);
+		if (ret) {
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_validate(child_type);
+		if (ret) {
+			goto end;
+		}
+
+		BT_PUT(child_type);
+	}
+
+end:
+	BT_PUT(child_type);
+
+	return ret;
+}
+
+/*
+ * This function validates a given field type without considering
+ * where this field type is located. It only validates the properties
+ * of the given field type and the properties of its children if
+ * applicable.
+ */
 BT_HIDDEN
 int bt_ctf_field_type_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
+	enum ctf_type_id id = bt_ctf_field_type_get_type_id(type);
 
 	if (!type) {
 		ret = -1;
 		goto end;
 	}
 
-	switch (type->declaration->id) {
-	case CTF_TYPE_ENUM:
-	{
-		struct bt_ctf_field_type_enumeration *enumeration =
-			container_of(type, struct bt_ctf_field_type_enumeration,
-			parent);
+	if (type->valid) {
+		/* Already marked as valid */
+		goto end;
+	}
 
-		/* Ensure enum has entries */
-		ret = enumeration->entries->len ? 0 : -1;
-		break;
+	if (type_validate_funcs[id]) {
+		ret = type_validate_funcs[id](type);
 	}
-	case CTF_TYPE_SEQUENCE:
-	{
-		struct bt_ctf_field_type_sequence *sequence =
-			container_of(type, struct bt_ctf_field_type_sequence,
-			parent);
 
-		/* length field name should be set at this point */
-		ret = sequence->length_field_name->len ? 0 : -1;
-		break;
+	if (!ret && type->frozen) {
+		/* Field type is valid */
+		type->valid = 1;
 	}
-	case CTF_TYPE_VARIANT:
-	{
-		struct bt_ctf_field_type_variant *variant =
-			container_of(type, struct bt_ctf_field_type_variant,
-				parent);
 
-		if (variant->tag_name->len == 0 || !variant->tag) {
-			ret = -1;
-		}
-		break;
-	}
-	default:
-		break;
-	}
 end:
 	return ret;
 }
@@ -1189,8 +1389,7 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 
 	if (!type || !field_type || type->frozen ||
 		bt_ctf_validate_identifier(field_name) ||
-		(type->declaration->id != CTF_TYPE_STRUCT) ||
-		bt_ctf_field_type_validate(field_type)) {
+		(type->declaration->id != CTF_TYPE_STRUCT)) {
 		ret = -1;
 		goto end;
 	}
@@ -1394,8 +1593,7 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 
 	if (!type || !field_type || type->frozen ||
 		bt_ctf_validate_identifier(field_name) ||
-		(type->declaration->id != CTF_TYPE_VARIANT) ||
-		bt_ctf_field_type_validate(field_type)) {
+		(type->declaration->id != CTF_TYPE_VARIANT)) {
 		ret = -1;
 		goto end;
 	}
@@ -1544,8 +1742,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 {
 	struct bt_ctf_field_type_array *array = NULL;
 
-	if (!element_type || length == 0 ||
-		bt_ctf_field_type_validate(element_type)) {
+	if (!element_type || length == 0) {
 		goto error;
 	}
 
@@ -1631,8 +1828,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 {
 	struct bt_ctf_field_type_sequence *sequence = NULL;
 
-	if (!element_type || bt_ctf_validate_identifier(length_field_name) ||
-		bt_ctf_field_type_validate(element_type)) {
+	if (!element_type || bt_ctf_validate_identifier(length_field_name)) {
 		goto error;
 	}
 
@@ -2120,6 +2316,13 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 
 	if (!type || !context) {
 		ret = -1;
+		goto end;
+	}
+
+	/* Make sure field type is valid before serializing it */
+	ret = bt_ctf_field_type_validate(type);
+
+	if (ret) {
 		goto end;
 	}
 
@@ -2706,11 +2909,6 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type_enumeration, parent);
 	struct bt_ctf_field_type *container_type;
 	int container_signed;
-
-	ret = bt_ctf_field_type_validate(type);
-	if (ret) {
-		goto end;
-	}
 
 	container_type = bt_ctf_field_type_enumeration_get_container_type(type);
 	if (!container_type) {

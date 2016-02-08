@@ -752,8 +752,8 @@ extern int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
  * @param type_a Field type A.
  * @param type_b Field type B.
  *
- * Returns 0 if both field types are semantically equivalent, or a
- * negative value when they are not equivalent or on error.
+ * Returns 0 if both field types are semantically equivalent, a positive
+ * value if they are not equivalent, or a negative value on error.
  */
 extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
 		struct bt_ctf_field_type *type_b);
