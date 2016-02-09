@@ -936,6 +936,11 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			assert(0);
 		}
 
+		if (pos->cur_index >= pos->packet_index->len) {
+			pos->offset = EOF;
+			return;
+		}
+
 		packet_index = &g_array_index(pos->packet_index,
 				struct packet_index, pos->cur_index);
 		if (pos->cur_index > 0) {
@@ -947,11 +952,6 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		}
 		ctf_update_current_packet_index(&file_stream->parent,
 				prev_index, packet_index);
-
-		if (pos->cur_index >= pos->packet_index->len) {
-			pos->offset = EOF;
-			return;
-		}
 
 		/*
 		 * We need to check if we are in trace read or called
