@@ -278,7 +278,7 @@ error:
 	return factory;
 }
 
-struct bt_object *bt_component_factory_get_components(
+struct bt_value *bt_component_factory_get_components(
 		struct bt_component_factory *factory)
 {
 	assert(0);

@@ -3,7 +3,7 @@
  *
  * Babeltrace CTF Text Output Plugin
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -47,7 +47,7 @@ BT_PLUGIN_EXIT(ctf_text_plugin_exit);
 
 /* Defines BT_PLUGIN_INIT. */
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(plugin_name, ctf_text_init)
+BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(__bt_plugin_name, ctf_text_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
 
 enum loglevel {

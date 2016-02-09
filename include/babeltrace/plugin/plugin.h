@@ -36,9 +36,9 @@ typedef enum bt_component_status (*bt_plugin_init_func)(
 typedef void (*bt_plugin_exit_func)(void);
 
 /* A plugin must define the __bt_plugin_init symbol */
-#define BT_PLUGIN_NAME(_x)	const char *__bt_plugin_name = (_x)
-#define BT_PLUGIN_AUTHOR(_x)	const char *__bt_plugin_author = (_x)
-#define BT_PLUGIN_LICENSE(_x)	const char *__bt_plugin_license = (_x)
+#define BT_PLUGIN_NAME(_x)	const char __bt_plugin_name[] = (_x)
+#define BT_PLUGIN_AUTHOR(_x)	const char __bt_plugin_author[] = (_x)
+#define BT_PLUGIN_LICENSE(_x)	const char __bt_plugin_license[] = (_x)
 #define BT_PLUGIN_INIT(_x)      bt_plugin_init_func __bt_plugin_init = (_x)
 #define BT_PLUGIN_EXIT(_x)      bt_plugin_exit_func __bt_plugin_exit = (_x)
 

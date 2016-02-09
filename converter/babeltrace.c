@@ -40,6 +40,8 @@
 
 #include <babeltrace/iterator.h>
 #include <babeltrace/plugin/component-factory.h>
+#include <babeltrace/ref.h>
+#include <babeltrace/values.h>
 #include <popt.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -733,6 +735,7 @@ int main(int argc, char **argv)
 	struct bt_trace_descriptor *td_write;
 	struct bt_context *ctx;
 	struct bt_component_factory *component_factory;
+	struct bt_value *components = NULL;
 	int i;
 
 	call_plugins_hooks();
@@ -769,6 +772,13 @@ int main(int argc, char **argv)
 	ret = bt_component_factory_load(component_factory, opt_plugin_path);
 	if (ret) {
 		fprintf(stderr, "Failed to load plugins.\n");
+		goto end;
+	}
+
+	components = bt_component_factory_get_components(component_factory);
+	if (!components || bt_value_array_is_empty(components)) {
+		printf_error("No plugins found, exiting.");
+		ret = -1;
 		goto end;
 	}
 
@@ -907,6 +917,8 @@ end:
 	free(opt_debug_info_dir);
 	free(opt_debug_info_target_prefix);
 	g_ptr_array_free(opt_input_paths, TRUE);
+	BT_PUT(components);
+	BT_PUT(component_factory);
 	if (partial_error)
 		exit(EXIT_FAILURE);
 	else

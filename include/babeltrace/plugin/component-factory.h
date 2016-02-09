@@ -30,6 +30,7 @@
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/filter.h>
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/values.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,7 +77,7 @@ extern struct bt_component_factory *bt_component_factory_create(void);
 /**
  * Get the list of components registered to this factory.
  */
-extern struct bt_object *bt_component_factory_get_components(
+extern struct bt_value *bt_component_factory_get_components(
 		struct bt_component_factory *factory);
 
 /**

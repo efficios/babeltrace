@@ -47,8 +47,8 @@ void bt_plugin_destroy(struct bt_object *obj)
 
 	if (plugin->module) {
 		if (!g_module_close(plugin->module)) {
-			printf_error("Module close error: %s",
-				g_module_error());
+				printf_error("Module close error: %s",
+					g_module_error());
 
 		}
 	}
@@ -59,6 +59,7 @@ BT_HIDDEN
 struct bt_plugin *bt_plugin_create(GModule *module)
 {
 	struct bt_plugin *plugin = NULL;
+	gpointer symbol = NULL;
 
 	if (!module) {
 		goto error;
@@ -71,30 +72,38 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 
 	bt_object_init(plugin, bt_plugin_destroy);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
-		(gpointer *) &plugin->name)) {
+			(gpointer *) &plugin->name)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
-			PLUGIN_SYMBOL_NAME, g_module_name(module));
+				PLUGIN_SYMBOL_NAME, g_module_name(module));
 		goto error;
 	}
 
-	printf("Loaded plugin with name %s\n", plugin->name);
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_LICENSE,
-		(gpointer *) &plugin->license)) {
+			(gpointer *) &plugin->license)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
-			PLUGIN_SYMBOL_LICENSE, g_module_name(module));
+				PLUGIN_SYMBOL_LICENSE, g_module_name(module));
 		goto error;
 	}
-	if (!g_module_symbol(module, PLUGIN_SYMBOL_INIT,
-		(gpointer *) &plugin->init)) {
+	if (!g_module_symbol(module, PLUGIN_SYMBOL_INIT, &symbol)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
-			PLUGIN_SYMBOL_INIT, g_module_name(module));
+				PLUGIN_SYMBOL_INIT, g_module_name(module));
 		goto error;
+	} else {
+		plugin->init = *((bt_plugin_init_func *) symbol);
+		if (!plugin->init) {
+			printf_error("NULL %s symbol target",
+					PLUGIN_SYMBOL_INIT);
+			goto error;
+		}
 	}
 
-	/* Optional symbols */
-	g_module_symbol(module, PLUGIN_SYMBOL_EXIT, (gpointer *) &plugin->exit);
+	/* Optional */
+	if (g_module_symbol(module, PLUGIN_SYMBOL_EXIT,
+			(gpointer *) &symbol)) {
+		plugin->exit = *((bt_plugin_exit_func *) symbol);
+	}
 	g_module_symbol(module, PLUGIN_SYMBOL_AUTHOR,
-		(gpointer *) &plugin->author);
+			(gpointer *) &plugin->author);
 
 	return plugin;
 error:
