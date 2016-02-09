@@ -35,7 +35,7 @@
 #include <babeltrace/ctf/callbacks.h>
 #include <babeltrace/ctf/callbacks-internal.h>
 #include <babeltrace/ctf-ir/metadata.h>
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <glib.h>
 
 struct ctf_stream_definition;

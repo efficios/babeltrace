@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_FIELDS_INTERNAL_H
+#define BABELTRACE_CTF_IR_FIELDS_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Event Fields internal
+ * Babeltrace - CTF IR: Event Fields internal
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -102,4 +102,4 @@ BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct ctf_stream_pos *pos);
 
-#endif /* BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

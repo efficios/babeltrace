@@ -29,7 +29,7 @@
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
-#include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ref.h>

@@ -28,8 +28,8 @@
  */
 
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/event-types.h>
-#include <babeltrace/ctf-ir/event-fields.h>
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>

@@ -28,8 +28,8 @@
 
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/ctf-ir/event-types-internal.h>
-#include <babeltrace/ctf-ir/event-fields-internal.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
+#include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_EVENT_FIELDS_H
-#define BABELTRACE_CTF_IR_EVENT_FIELDS_H
+#ifndef BABELTRACE_CTF_IR_FIELDS_H
+#define BABELTRACE_CTF_IR_FIELDS_H
 
 /*
- * BabelTrace - CTF IR: Event Fields
+ * Babeltrace - CTF IR: Event Fields
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -483,4 +483,4 @@ extern void bt_ctf_field_put(struct bt_ctf_field *field);
 }
 #endif
 
-#endif /* BABELTRACE_CTF_IR_EVENT_FIELDS_H */
+#endif /* BABELTRACE_CTF_IR_FIELDS_H */

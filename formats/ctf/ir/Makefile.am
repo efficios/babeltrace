@@ -6,8 +6,8 @@ libctf_ir_la_SOURCES = \
 	attributes.c \
 	clock.c \
 	event.c \
-	event-fields.c \
-	event-types.c \
+	fields.c \
+	field-types.c \
 	field-path.c \
 	stream.c \
 	stream-class.c \

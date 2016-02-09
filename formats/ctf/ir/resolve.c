@@ -31,7 +31,7 @@
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/resolve-internal.h>
-#include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>

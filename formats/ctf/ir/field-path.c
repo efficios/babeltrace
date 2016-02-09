@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <limits.h>

@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/trace.h>

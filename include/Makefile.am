@@ -25,8 +25,8 @@ babeltracectfwriterinclude_HEADERS = \
 
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock.h \
-	babeltrace/ctf-ir/event-fields.h \
-	babeltrace/ctf-ir/event-types.h \
+	babeltrace/ctf-ir/fields.h \
+	babeltrace/ctf-ir/field-types.h \
 	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-ir/stream.h \
@@ -57,8 +57,8 @@ noinst_HEADERS = \
 	babeltrace/ctf/ctf-index.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
-	babeltrace/ctf-ir/event-types-internal.h \
-	babeltrace/ctf-ir/event-fields-internal.h \
+	babeltrace/ctf-ir/field-types-internal.h \
+	babeltrace/ctf-ir/fields-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
 	babeltrace/ctf-ir/field-path-internal.h \
 	babeltrace/ctf-ir/clock-internal.h \

@@ -30,7 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/trace.h>
 
 #ifdef __cplusplus

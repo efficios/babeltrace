@@ -27,4 +27,4 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>

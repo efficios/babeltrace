@@ -26,9 +26,9 @@
  */
 
 #include "python-complements.h"
-#include <babeltrace/ctf-ir/event-types-internal.h>
-#include <babeltrace/ctf-ir/event-fields-internal.h>
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
+#include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/iterator.h>

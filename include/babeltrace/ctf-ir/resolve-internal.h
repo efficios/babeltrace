@@ -29,8 +29,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/event-types.h>
-#include <babeltrace/ctf-ir/event-types-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_EVENT_TYPES_H
-#define BABELTRACE_CTF_IR_EVENT_TYPES_H
+#ifndef BABELTRACE_CTF_IR_FIELD_TYPES_H
+#define BABELTRACE_CTF_IR_FIELD_TYPES_H
 
 /*
- * BabelTrace - CTF IR: Event Types
+ * BabelTrace - CTF IR: Event field types
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -964,4 +964,4 @@ extern void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
 }
 #endif
 
-#endif /* BABELTRACE_CTF_IR_EVENT_TYPES_H */
+#endif /* BABELTRACE_CTF_IR_FIELD_TYPES_H */

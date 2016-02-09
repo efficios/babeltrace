@@ -34,12 +34,12 @@
 #include <stdint.h>
 #include <babeltrace/context.h>
 #include <babeltrace/clock-types.h>
-#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/field-types.h>
 
 /*
  * This header must exist in Babeltrace 2 because it contained
  * enumerations that were used in CTF writer's API. Those enumerations
- * are now located in ctf-ir/event-types.h.
+ * are now located in ctf-ir/field-types.h.
  */
 
 #endif /* _BABELTRACE_CTF_EVENTS_H */
