@@ -219,7 +219,6 @@ int get_unary_signed(struct bt_list_head *head, int64_t *value)
 
 	bt_list_for_each_entry(node, head, siblings) {
 		if (node->type != NODE_UNARY_EXPRESSION
-				|| node->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT
 				|| (node->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT && node->u.unary_expression.type != UNARY_SIGNED_CONSTANT)
 				|| node->u.unary_expression.link != UNARY_LINK_UNKNOWN
 				|| i != 0)
