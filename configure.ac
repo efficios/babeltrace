@@ -84,6 +84,9 @@ fi
 
 AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
 
+# Check what libraries are required on this platform to link sockets programs.
+AX_LIB_SOCKET_NSL
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 AC_TYPE_PID_T
@@ -144,9 +147,6 @@ case $host in
 esac
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
-
-# Check what libraries are required on this platform to link sockets programs.
-AX_LIB_SOCKET_NSL
 
 # Check for uuid in system libs
 AC_CHECK_FUNCS([uuid_generate],
