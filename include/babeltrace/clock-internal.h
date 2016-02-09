@@ -47,9 +47,10 @@ uint64_t clock_cycles_to_ns(struct ctf_clock *clock, uint64_t cycles)
  * is recommended to express the seconds in offset_s, otherwise there
  * will be a loss of precision caused by the limited size of the double
  * mantissa.
+ * This offset can be negative.
  */
 static inline
-uint64_t clock_offset_ns(struct ctf_clock *clock)
+int64_t clock_offset_ns(struct ctf_clock *clock)
 {
 	return clock->offset_s * 1000000000ULL
 			+ clock_cycles_to_ns(clock, clock->offset);

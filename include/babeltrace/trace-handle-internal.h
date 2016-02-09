@@ -46,10 +46,10 @@ struct bt_trace_handle {
 	struct bt_trace_descriptor *td;
 	struct bt_format *format;
 	char path[PATH_MAX];
-	uint64_t real_timestamp_begin;
-	uint64_t real_timestamp_end;
-	uint64_t cycles_timestamp_begin;
-	uint64_t cycles_timestamp_end;
+	int64_t real_timestamp_begin;
+	int64_t real_timestamp_end;
+	int64_t cycles_timestamp_begin;
+	int64_t cycles_timestamp_end;
 };
 
 /*

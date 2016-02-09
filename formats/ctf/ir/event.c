@@ -1141,11 +1141,11 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 			timestamp_field_type);
 		bt_put(timestamp_field_type);
 		if (mapped_clock) {
-			uint64_t timestamp = bt_ctf_clock_get_time(
-				mapped_clock);
+			int64_t timestamp;
 
+			ret = bt_ctf_clock_get_time(mapped_clock, &timestamp);
 			bt_put(mapped_clock);
-			if (timestamp == (uint64_t) -1ULL) {
+			if (ret) {
 				goto end;
 			}
 

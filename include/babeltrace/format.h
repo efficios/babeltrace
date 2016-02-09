@@ -73,10 +73,12 @@ struct bt_format {
 			struct bt_context *ctx);
 	void (*set_handle)(struct bt_trace_descriptor *descriptor,
 			struct bt_trace_handle *handle);
-	uint64_t (*timestamp_begin)(struct bt_trace_descriptor *descriptor,
-			struct bt_trace_handle *handle, enum bt_clock_type type);
-	uint64_t (*timestamp_end)(struct bt_trace_descriptor *descriptor,
-			struct bt_trace_handle *handle, enum bt_clock_type type);
+	int (*timestamp_begin)(struct bt_trace_descriptor *descriptor,
+			struct bt_trace_handle *handle, enum bt_clock_type type,
+			int64_t *timestamp);
+	int (*timestamp_end)(struct bt_trace_descriptor *descriptor,
+			struct bt_trace_handle *handle, enum bt_clock_type type,
+			int64_t *timestamp);
 	int (*convert_index_timestamp)(struct bt_trace_descriptor *descriptor);
 };
 

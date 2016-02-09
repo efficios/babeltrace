@@ -206,20 +206,21 @@ end:
 	return ret;
 }
 
-uint64_t bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock)
+int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s)
 {
-	uint64_t ret = -1ULL;
+	int ret = 0;
 
-	if (!clock) {
+	if (!clock || !offset_s) {
+		ret = -1;
 		goto end;
 	}
 
-	ret = clock->offset_s;
+	*offset_s = clock->offset_s;
 end:
 	return ret;
 }
 
-int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s)
+int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s)
 {
 	int ret = 0;
 
@@ -233,20 +234,21 @@ end:
 	return ret;
 }
 
-uint64_t bt_ctf_clock_get_offset(struct bt_ctf_clock *clock)
+int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset)
 {
-	uint64_t ret = -1ULL;
+	int ret = 0;
 
-	if (!clock) {
+	if (!clock || !offset) {
+		ret = -1;
 		goto end;
 	}
 
-	ret = clock->offset;
+	*offset = clock->offset;
 end:
 	return ret;
 }
 
-int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset)
+int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset)
 {
 	int ret = 0;
 
@@ -316,20 +318,21 @@ end:
 	return ret;
 }
 
-uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock)
+int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time)
 {
-	uint64_t ret = -1ULL;
+	int ret = 0;
 
-	if (!clock) {
+	if (!clock || !time) {
+		ret = -1;
 		goto end;
 	}
 
-	ret = clock->time;
+	*time = clock->time;
 end:
 	return ret;
 }
 
-int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time)
+int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 {
 	int ret = 0;
 

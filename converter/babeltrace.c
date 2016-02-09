@@ -349,7 +349,7 @@ static int parse_options(int argc, char **argv)
 				goto end;
 			}
 			errno = 0;
-			opt_clock_offset = strtoull(str, &endptr, 0);
+			opt_clock_offset = strtoll(str, &endptr, 0);
 			if (*endptr != '\0' || str == endptr || errno != 0) {
 				fprintf(stderr, "[error] Incorrect --clock-offset argument: %s\n", str);
 				ret = -EINVAL;
@@ -374,7 +374,7 @@ static int parse_options(int argc, char **argv)
 				goto end;
 			}
 			errno = 0;
-			opt_clock_offset_ns = strtoull(str, &endptr, 0);
+			opt_clock_offset_ns = strtoll(str, &endptr, 0);
 			if (*endptr != '\0' || str == endptr || errno != 0) {
 				fprintf(stderr, "[error] Incorrect --clock-offset-ns argument: %s\n", str);
 				ret = -EINVAL;

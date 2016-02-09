@@ -35,20 +35,20 @@
 #include <babeltrace/clock-internal.h>
 
 static inline
-uint64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
-			uint64_t timestamp)
+int64_t ctf_get_real_timestamp(struct ctf_stream_definition *stream,
+			uint64_t ts_cycles)
 {
-	uint64_t ts_nsec;
+	int64_t ts_nsec;
 	struct ctf_trace *trace = stream->stream_class->trace;
 	struct trace_collection *tc = trace->parent.collection;
-	uint64_t tc_offset;
+	int64_t tc_offset;
 
 	if (tc->clock_use_offset_avg)
 		tc_offset = tc->single_clock_offset_avg;
 	else
 		tc_offset = clock_offset_ns(trace->parent.single_clock);
 
-	ts_nsec = clock_cycles_to_ns(stream->current_clock, timestamp);
+	ts_nsec = clock_cycles_to_ns(stream->current_clock, ts_cycles);
 	ts_nsec += tc_offset;	/* Add offset */
 	return ts_nsec;
 }

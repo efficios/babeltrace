@@ -53,20 +53,25 @@ struct bt_ctf_event;
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
 
 /*
- * bt_trace_handle_get_timestamp_begin : returns the creation time (in
- * nanoseconds or cycles depending on type) of the buffers of a trace
- * or -1ULL on error.
+ * bt_trace_handle_get_timestamp_begin : get the creation time (in
+ * nanoseconds or cycles depending on type) of the buffers of a trace.
+ *
+ * Returns 0 on success, -1 on error.
  */
-uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
-		int handle_id, enum bt_clock_type type);
+int bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
+		int handle_id, enum bt_clock_type type,
+		int64_t *timestamp);
 
 /*
- * bt_trace_handle_get_timestamp_end : returns the destruction timestamp
- * (in nanoseconds or cycles depending on type) of the buffers of a trace
- * or -1ULL on error.
+ * bt_trace_handle_get_timestamp_end : get the destruction time
+ * (in nanoseconds or cycles depending on type) of the buffers of a
+ * trace.
+ *
+ * Returns 0 on success, -1 on error.
  */
-uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx,
-		int handle_id, enum bt_clock_type type);
+int bt_trace_handle_get_timestamp_end(struct bt_context *ctx,
+		int handle_id, enum bt_clock_type type,
+		int64_t *timestamp);
 
 /*
  * bt_ctf_event_get_handle_id : get the handle id associated with an event

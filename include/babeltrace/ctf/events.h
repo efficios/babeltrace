@@ -109,10 +109,12 @@ const char *bt_ctf_event_name(const struct bt_ctf_event *event);
 uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *event);
 
 /*
- * bt_ctf_get_timestamp: returns the timestamp of the event offsetted
- * with the system clock source (in ns) or -1ULL on error
+ * bt_ctf_get_timestamp: get the timestamp of the event offsetted
+ * with the system clock source (in ns) in *timestamp.
+ *
+ * Return 0 on success, or -1ULL on error.
  */
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *event);
+int bt_ctf_get_timestamp(const struct bt_ctf_event *event, int64_t *timestamp);
 
 /*
  * bt_ctf_get_field_list: obtain the list of fields for compound type

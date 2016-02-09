@@ -42,7 +42,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define NSEC_PER_SEC 1000000000ULL
+#define NSEC_PER_SEC 1000000000LL
 
 int opt_all_field_names,
 	opt_scope_field_names,

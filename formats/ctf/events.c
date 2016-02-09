@@ -315,18 +315,19 @@ int bt_ctf_event_get_handle_id(const struct bt_ctf_event *ctf_event)
 	return ret;
 }
 
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event)
+int bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event, int64_t *timestamp)
 {
 	const struct ctf_event_definition *event;
 
-	if (!ctf_event)
-		return -1ULL;
+	if (!ctf_event || !timestamp)
+		return -1;
 
 	event = ctf_event->parent;
 	if (event && event->stream->has_timestamp)
-		return event->stream->real_timestamp;
+		*timestamp = event->stream->real_timestamp;
 	else
-		return -1ULL;
+		return -1;
+	return 0;
 }
 
 uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *ctf_event)

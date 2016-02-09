@@ -206,14 +206,16 @@ void bt_trace_handle_destroy(struct bt_trace_handle *bt);
 %rename("_bt_trace_handle_get_path") bt_trace_handle_get_path(struct bt_context *ctx,
 		int handle_id);
 %rename("_bt_trace_handle_get_timestamp_begin") bt_trace_handle_get_timestamp_begin(
-		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
+		struct bt_context *ctx, int handle_id, enum bt_clock_type type,
+                int64_t *timestamp);
 %rename("_bt_trace_handle_get_timestamp_end") bt_trace_handle_get_timestamp_end(
-		struct bt_context *ctx, int handle_id, enum bt_clock_type type);
+		struct bt_context *ctx, int handle_id, enum bt_clock_type type,
+                int64_t *timestamp);
 const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id);
-uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id,
-		enum bt_clock_type type);
-uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id,
-		enum bt_clock_type type);
+int bt_trace_handle_get_timestamp_begin(struct bt_context *ctx, int handle_id,
+		enum bt_clock_type type, int64_t *timestamp);
+int bt_trace_handle_get_timestamp_end(struct bt_context *ctx, int handle_id,
+		enum bt_clock_type type, int64_t *timestamp);
 
 %rename("_bt_ctf_event_get_handle_id") bt_ctf_event_get_handle_id(
 		const struct bt_ctf_event *event);
@@ -241,7 +243,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 		bt_ctf_event *event, enum bt_ctf_scope scope);
 %rename("_bt_ctf_event_name") bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
 %rename("_bt_ctf_get_timestamp") bt_ctf_get_timestamp(
-		const struct bt_ctf_event *ctf_event);
+		const struct bt_ctf_event *ctf_event, int64_t *timestamp);
 %rename("_bt_ctf_get_cycles") bt_ctf_get_cycles(
 		const struct bt_ctf_event *ctf_event);
 
@@ -287,7 +289,7 @@ struct bt_ctf_event *bt_ctf_iter_read_event(struct bt_ctf_iter *iter);
 const struct bt_definition *bt_ctf_get_top_level_scope(const struct bt_ctf_event *ctf_event,
 		enum bt_ctf_scope scope);
 const char *bt_ctf_event_name(const struct bt_ctf_event *ctf_event);
-uint64_t bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event);
+int bt_ctf_get_timestamp(const struct bt_ctf_event *ctf_event, int64_t *timestamp);
 uint64_t bt_ctf_get_cycles(const struct bt_ctf_event *ctf_event);
 const struct bt_definition *bt_ctf_get_field(const struct bt_ctf_event *ctf_event,
 		const struct bt_definition *scope,
@@ -335,14 +337,14 @@ const struct bt_definition *bt_ctf_get_struct_field_index(const struct bt_defini
 %rename("_bt_ctf_clock_set_frequency") bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
 %rename("_bt_ctf_clock_get_precision") bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_precision") bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
-%rename("_bt_ctf_clock_get_offset_s") bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock);
-%rename("_bt_ctf_clock_set_offset_s") bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
-%rename("_bt_ctf_clock_get_offset") bt_ctf_clock_get_offset(struct bt_ctf_clock *clock);
-%rename("_bt_ctf_clock_set_offset") bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+%rename("_bt_ctf_clock_get_offset_s") bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s);
+%rename("_bt_ctf_clock_set_offset_s") bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s);
+%rename("_bt_ctf_clock_get_offset") bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset);
+%rename("_bt_ctf_clock_set_offset") bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset);
 %rename("_bt_ctf_clock_get_is_absolute") bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_set_is_absolute") bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
-%rename("_bt_ctf_clock_get_time") bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
-%rename("_bt_ctf_clock_set_time") bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
+%rename("_bt_ctf_clock_get_time") bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time);
+%rename("_bt_ctf_clock_set_time") bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time);
 %rename("_bt_ctf_clock_get") bt_ctf_clock_get(struct bt_ctf_clock *clock);
 %rename("_bt_ctf_clock_put") bt_ctf_clock_put(struct bt_ctf_clock *clock);
 
@@ -354,14 +356,14 @@ uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq);
 uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision);
-uint64_t bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock);
-int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, uint64_t offset_s);
-uint64_t bt_ctf_clock_get_offset(struct bt_ctf_clock *clock);
-int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, uint64_t offset);
+int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s);
+int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s);
+int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset);
+int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset);
 int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
 int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute);
-uint64_t bt_ctf_clock_get_time(struct bt_ctf_clock *clock);
-int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, uint64_t time);
+int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time);
+int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time);
 void bt_ctf_clock_get(struct bt_ctf_clock *clock);
 void bt_ctf_clock_put(struct bt_ctf_clock *clock);
 

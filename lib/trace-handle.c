@@ -66,54 +66,56 @@ const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id)
 	return handle->path;
 }
 
-uint64_t bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
-		int handle_id, enum bt_clock_type type)
+int bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
+		int handle_id, enum bt_clock_type type,
+		int64_t *timestamp)
 {
 	struct bt_trace_handle *handle;
-	uint64_t ret;
+	int ret = 0;
 
-	if (!ctx)
-		return -1ULL;
+	if (!ctx || !timestamp)
+		return -1;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
 			(gpointer) (unsigned long) handle_id);
 	if (!handle) {
-		ret = -1ULL;
+		ret = -1;
 		goto end;
 	}
 	if (type == BT_CLOCK_REAL) {
-		ret = handle->real_timestamp_begin;
+		*timestamp = handle->real_timestamp_begin;
 	} else if (type == BT_CLOCK_CYCLES) {
-		ret = handle->cycles_timestamp_begin;
+		*timestamp = handle->cycles_timestamp_begin;
 	} else {
-		ret = -1ULL;
+		ret = -1;
 	}
 
 end:
 	return ret;
 }
 
-uint64_t bt_trace_handle_get_timestamp_end(struct bt_context *ctx,
-		int handle_id, enum bt_clock_type type)
+int bt_trace_handle_get_timestamp_end(struct bt_context *ctx,
+		int handle_id, enum bt_clock_type type,
+		int64_t *timestamp)
 {
 	struct bt_trace_handle *handle;
-	uint64_t ret;
+	int ret = 0;
 
-	if (!ctx)
-		return -1ULL;
+	if (!ctx || !timestamp)
+		return -1;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
 			(gpointer) (unsigned long) handle_id);
 	if (!handle) {
-		ret = -1ULL;
+		ret = -1;
 		goto end;
 	}
 	if (type == BT_CLOCK_REAL) {
-		ret = handle->real_timestamp_end;
+		*timestamp = handle->real_timestamp_end;
 	} else if (type == BT_CLOCK_CYCLES) {
-		ret = handle->cycles_timestamp_end;
+		*timestamp = handle->cycles_timestamp_end;
 	} else {
-		ret = -1ULL;
+		ret = -1;
 	}
 
 end:

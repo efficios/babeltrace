@@ -164,8 +164,8 @@ struct trace_collection {
 	GPtrArray *array;	/* struct bt_trace_descriptor */
 	GHashTable *clocks;	/* struct ctf_clock */
 
-	uint64_t single_clock_offset_avg;
-	uint64_t offset_first;
+	int64_t single_clock_offset_avg;
+	int64_t offset_first;
 	int64_t delta_offset_first_sum;
 	int offset_nr;
 	int clock_use_offset_avg;
@@ -193,8 +193,8 @@ extern int opt_all_field_names,
 	opt_clock_gmt,
 	opt_clock_force_correlate;
 
-extern uint64_t opt_clock_offset;
-extern uint64_t opt_clock_offset_ns;
+extern int64_t opt_clock_offset;
+extern int64_t opt_clock_offset_ns;
 extern int babeltrace_ctf_console_output;
 
 #endif

@@ -111,10 +111,14 @@ struct ctf_clock {
 	/*
 	 * The offset from Epoch is: offset_s + (offset * (1/freq))
 	 * Coarse clock offset from Epoch (in seconds).
+	 * It can be negative.
 	 */
-	uint64_t offset_s;
-	/* Fine clock offset from Epoch, in (1/freq) units. */
-	uint64_t offset;
+	int64_t offset_s;
+	/*
+	 * Fine clock offset from Epoch, in (1/freq) units.
+	 * It can be negative.
+	 */
+	int64_t offset;
 	int absolute;
 
 	enum {					/* Fields populated mask */

@@ -45,8 +45,8 @@
 struct bt_stream_callbacks;
 
 struct packet_index_time {
-	uint64_t timestamp_begin;
-	uint64_t timestamp_end;
+	int64_t timestamp_begin;
+	int64_t timestamp_end;
 };
 
 struct packet_index {
@@ -246,7 +246,7 @@ void ctf_pos_get_event(struct ctf_stream_pos *pos)
 }
 
 void ctf_print_timestamp(FILE *fp, struct ctf_stream_definition *stream,
-			uint64_t timestamp);
+			int64_t timestamp);
 int ctf_append_trace_metadata(struct bt_trace_descriptor *tdp,
 			FILE *metadata_fp);
 

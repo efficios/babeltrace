@@ -71,7 +71,7 @@
 #define min(a, b)	(((a) < (b)) ? (a) : (b))
 #endif
 
-#define NSEC_PER_SEC 1000000000ULL
+#define NSEC_PER_SEC 1000000000LL
 
 #define INDEX_PATH "./index/%s.idx"
 
@@ -80,8 +80,8 @@ int opt_clock_cycles,
 	opt_clock_date,
 	opt_clock_gmt;
 
-uint64_t opt_clock_offset;
-uint64_t opt_clock_offset_ns;
+int64_t opt_clock_offset;
+int64_t opt_clock_offset_ns;
 
 extern int yydebug;
 
@@ -113,11 +113,13 @@ void ctf_set_handle(struct bt_trace_descriptor *descriptor,
 static
 int ctf_close_trace(struct bt_trace_descriptor *descriptor);
 static
-uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
-		struct bt_trace_handle *handle, enum bt_clock_type type);
+int ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
+		struct bt_trace_handle *handle, enum bt_clock_type type,
+		int64_t *timestamp);
 static
-uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
-		struct bt_trace_handle *handle, enum bt_clock_type type);
+int ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
+		struct bt_trace_handle *handle, enum bt_clock_type type,
+		int64_t *timestamp);
 static
 int ctf_convert_index_timestamp(struct bt_trace_descriptor *tdp);
 
@@ -158,17 +160,20 @@ struct bt_format ctf_format = {
 };
 
 static
-uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
-		struct bt_trace_handle *handle, enum bt_clock_type type)
+int ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
+		struct bt_trace_handle *handle, enum bt_clock_type type,
+		int64_t *timestamp)
 {
 	struct ctf_trace *tin;
-	uint64_t begin = ULLONG_MAX;
-	int i, j;
+	int64_t begin = LLONG_MAX;
+	int i, j, ret;
 
 	tin = container_of(descriptor, struct ctf_trace, parent);
 
-	if (!tin)
+	if (!tin || !timestamp) {
+		ret = -EINVAL;
 		goto error;
+	}
 
 	/* for each stream_class */
 	for (i = 0; i < tin->streams->len; i++) {
@@ -189,8 +194,10 @@ uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			if (!stream_pos->packet_index)
+			if (!stream_pos->packet_index) {
+				ret = -EINVAL;
 				goto error;
+			}
 
 			if (stream_pos->packet_index->len <= 0)
 				continue;
@@ -205,29 +212,37 @@ uint64_t ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 				if (index->ts_cycles.timestamp_begin < begin)
 					begin = index->ts_cycles.timestamp_begin;
 			} else {
+				ret = -EINVAL;
 				goto error;
 			}
 		}
 	}
-
-	return begin;
+	if (begin == LLONG_MAX) {
+		ret = -ENOENT;
+		goto error;
+	}
+	*timestamp = begin;
+	return 0;
 
 error:
-	return -1ULL;
+	return ret;
 }
 
 static
-uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
-		struct bt_trace_handle *handle, enum bt_clock_type type)
+int ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
+		struct bt_trace_handle *handle, enum bt_clock_type type,
+		int64_t *timestamp)
 {
 	struct ctf_trace *tin;
-	uint64_t end = 0;
-	int i, j;
+	int64_t end = LLONG_MIN;
+	int i, j, ret;
 
 	tin = container_of(descriptor, struct ctf_trace, parent);
 
-	if (!tin)
+	if (!tin || !timestamp) {
+		ret = -EINVAL;
 		goto error;
+	}
 
 	/* for each stream_class */
 	for (i = 0; i < tin->streams->len; i++) {
@@ -248,8 +263,10 @@ uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 					parent);
 			stream_pos = &cfs->pos;
 
-			if (!stream_pos->packet_index)
+			if (!stream_pos->packet_index) {
+				ret = -EINVAL;
 				goto error;
+			}
 
 			if (stream_pos->packet_index->len <= 0)
 				continue;
@@ -264,15 +281,20 @@ uint64_t ctf_timestamp_end(struct bt_trace_descriptor *descriptor,
 				if (index->ts_cycles.timestamp_end > end)
 					end = index->ts_cycles.timestamp_end;
 			} else {
+				ret = -EINVAL;
 				goto error;
 			}
 		}
 	}
-
-	return end;
+	if (end == LLONG_MIN) {
+		ret = -ENOENT;
+		goto error;
+	}
+	*timestamp = end;
+	return 0;
 
 error:
-	return -1ULL;
+	return ret;
 }
 
 /*
@@ -317,13 +339,15 @@ void ctf_update_timestamp(struct ctf_stream_definition *stream,
 static
 void ctf_print_timestamp_real(FILE *fp,
 			struct ctf_stream_definition *stream,
-			uint64_t timestamp)
+			int64_t timestamp)
 {
-	uint64_t ts_sec = 0, ts_nsec;
+	int64_t ts_sec = 0, ts_nsec;
+	uint64_t ts_sec_abs, ts_nsec_abs;
+	bool is_negative;
 
 	ts_nsec = timestamp;
 
-	/* Add command-line offset in ns*/
+	/* Add command-line offset in ns */
         ts_nsec += opt_clock_offset_ns;
 
 	/* Add command-line offset */
@@ -331,10 +355,40 @@ void ctf_print_timestamp_real(FILE *fp,
 
 	ts_sec += ts_nsec / NSEC_PER_SEC;
 	ts_nsec = ts_nsec % NSEC_PER_SEC;
+	if (ts_sec >= 0 && ts_nsec >= 0) {
+		is_negative = false;
+		ts_sec_abs = ts_sec;
+		ts_nsec_abs = ts_nsec;
+	} else if (ts_sec > 0 && ts_nsec < 0) {
+		is_negative = false;
+		ts_sec_abs = ts_sec - 1;
+		ts_nsec_abs = NSEC_PER_SEC + ts_nsec;
+	} else if (ts_sec == 0 && ts_nsec < 0) {
+		is_negative = true;
+		ts_sec_abs = ts_sec;
+		ts_nsec_abs = -ts_nsec;
+	} else if (ts_sec < 0 && ts_nsec > 0) {
+		is_negative = true;
+		ts_sec_abs = -(ts_sec + 1);
+		ts_nsec_abs = NSEC_PER_SEC - ts_nsec;
+	} else if (ts_sec < 0 && ts_nsec == 0) {
+		is_negative = true;
+		ts_sec_abs = -ts_sec;
+		ts_nsec_abs = ts_nsec;
+	} else {	/* (ts_sec < 0 && ts_nsec < 0) */
+		is_negative = true;
+		ts_sec_abs = -ts_sec;
+		ts_nsec_abs = -ts_nsec;
+	}
 
 	if (!opt_clock_seconds) {
 		struct tm tm;
-		time_t time_s = (time_t) ts_sec;
+		time_t time_s = (time_t) ts_sec_abs;
+
+		if (is_negative) {
+			fprintf(stderr, "[warning] Fallback to [sec.ns] for printing negative time value. Use --clock-seconds.\n");
+			goto seconds;
+		}
 
 		if (!opt_clock_gmt) {
 			struct tm *res;
@@ -368,12 +422,12 @@ void ctf_print_timestamp_real(FILE *fp,
 		}
 		/* Print time in HH:MM:SS.ns */
 		fprintf(fp, "%02d:%02d:%02d.%09" PRIu64,
-			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec);
+			tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec_abs);
 		goto end;
 	}
 seconds:
-	fprintf(fp, "%3" PRIu64 ".%09" PRIu64,
-		ts_sec, ts_nsec);
+	fprintf(fp, "%s%" PRId64 ".%09" PRIu64,
+		is_negative ? "-" : "", ts_sec_abs, ts_nsec_abs);
 
 end:
 	return;
@@ -392,7 +446,7 @@ void ctf_print_timestamp_cycles(FILE *fp,
 
 void ctf_print_timestamp(FILE *fp,
 		struct ctf_stream_definition *stream,
-		uint64_t timestamp)
+		int64_t timestamp)
 {
 	if (opt_clock_cycles) {
 		ctf_print_timestamp_cycles(fp, stream, timestamp);

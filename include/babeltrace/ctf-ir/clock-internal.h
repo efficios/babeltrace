@@ -40,9 +40,9 @@ struct bt_ctf_clock {
 	GString *description;
 	uint64_t frequency;
 	uint64_t precision;
-	uint64_t offset_s;	/* Offset in seconds */
-	uint64_t offset;	/* Offset in ticks */
-	uint64_t time;		/* Current clock value */
+	int64_t offset_s;	/* Offset in seconds */
+	int64_t offset;		/* Offset in ticks */
+	int64_t time;		/* Current clock value */
 	uuid_t uuid;
 	int uuid_set;
 	int absolute;
