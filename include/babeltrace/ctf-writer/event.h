@@ -27,4 +27,5 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>

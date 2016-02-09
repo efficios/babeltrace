@@ -29,6 +29,7 @@
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/event.h>
+#include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>

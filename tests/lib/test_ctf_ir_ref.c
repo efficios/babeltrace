@@ -24,6 +24,7 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/object-internal.h>
 #include <assert.h>
 
