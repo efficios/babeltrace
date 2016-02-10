@@ -39,6 +39,7 @@ test_ctf_ir_ref_SOURCES = test_ctf_ir_ref.c
 SCRIPT_LIST = test_seek_big_trace \
 	test_seek_empty_packet \
 	test_ctf_writer_complete
+EXTRA_DIST = test_seek_big_trace.in test_seek_empty_packet.in
 
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
