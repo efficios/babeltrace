@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (C) 2013 - Christian Babeux <christian.babeux@efficios.com>
+# Copyright (C) 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,6 +19,6 @@
 #
 CURDIR=$(dirname $0)/
 TESTDIR=$CURDIR/../
-CTF_TRACES=$TESTDIR/ctf-traces
+CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 
 $CURDIR/test_seek $CTF_TRACES/succeed/wk-heartbeat-u/ 1351532897586558519 1351532897591331194
