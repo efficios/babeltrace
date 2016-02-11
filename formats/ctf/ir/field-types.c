@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
@@ -90,6 +91,8 @@ void (* const type_destroy_funcs[])(struct bt_ctf_field_type *) = {
 static
 void generic_field_type_freeze(struct bt_ctf_field_type *);
 static
+void bt_ctf_field_type_integer_freeze(struct bt_ctf_field_type *);
+static
 void bt_ctf_field_type_enumeration_freeze(struct bt_ctf_field_type *);
 static
 void bt_ctf_field_type_structure_freeze(struct bt_ctf_field_type *);
@@ -102,7 +105,7 @@ void bt_ctf_field_type_sequence_freeze(struct bt_ctf_field_type *);
 
 static
 type_freeze_func const type_freeze_funcs[] = {
-	[BT_CTF_TYPE_ID_INTEGER] = generic_field_type_freeze,
+	[BT_CTF_TYPE_ID_INTEGER] = bt_ctf_field_type_integer_freeze,
 	[BT_CTF_TYPE_ID_ENUM] = bt_ctf_field_type_enumeration_freeze,
 	[BT_CTF_TYPE_ID_FLOAT] = generic_field_type_freeze,
 	[BT_CTF_TYPE_ID_STRUCT] = bt_ctf_field_type_structure_freeze,
@@ -2678,6 +2681,19 @@ static
 void generic_field_type_freeze(struct bt_ctf_field_type *type)
 {
 	type->frozen = 1;
+}
+
+static
+void bt_ctf_field_type_integer_freeze(struct bt_ctf_field_type *type)
+{
+	struct bt_ctf_field_type_integer *integer_type = container_of(
+		type, struct bt_ctf_field_type_integer, parent);
+
+	if (integer_type->mapped_clock) {
+		bt_ctf_clock_freeze(integer_type->mapped_clock);
+	}
+
+	generic_field_type_freeze(type);
 }
 
 static
