@@ -387,6 +387,10 @@ int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 
 	bt_get(clock);
 	g_ptr_array_add(trace->clocks, clock);
+
+	if (trace->frozen) {
+		bt_ctf_clock_freeze(clock);
+	}
 end:
 	return ret;
 }
@@ -510,7 +514,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	}
 
 	/* Validate each event class individually */
-	for (i = 0; i < event_class_count; ++i) {
+	for (i = 0; i < event_class_count; i++) {
 		struct bt_ctf_event_class *event_class =
 			bt_ctf_stream_class_get_event_class(stream_class, i);
 		struct bt_ctf_field_type *event_context_type = NULL;
@@ -593,7 +597,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	 */
 	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
 
-	for (i = 0; i < event_class_count; ++i) {
+	for (i = 0; i < event_class_count; i++) {
 		struct bt_ctf_event_class *event_class =
 			bt_ctf_stream_class_get_event_class(stream_class, i);
 
@@ -628,7 +632,7 @@ end:
 		bt_object_set_parent(stream_class, NULL);
 
 		if (ec_validation_outputs) {
-			for (i = 0; i < event_class_count; ++i) {
+			for (i = 0; i < event_class_count; i++) {
 				bt_ctf_validation_output_put_types(
 					&ec_validation_outputs[i]);
 			}
@@ -684,7 +688,7 @@ struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 		goto end;
 	}
 
-	for (i = 0; i < trace->stream_classes->len; ++i) {
+	for (i = 0; i < trace->stream_classes->len; i++) {
 		struct bt_ctf_stream_class *stream_class_candidate;
 
 		stream_class_candidate =
@@ -712,7 +716,7 @@ struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
 		goto end;
 	}
 
-	for (i = 0; i < trace->clocks->len; ++i) {
+	for (i = 0; i < trace->clocks->len; i++) {
 		struct bt_ctf_clock *cur_clk =
 			g_ptr_array_index(trace->clocks, i);
 		const char *cur_clk_name = bt_ctf_clock_get_name(cur_clk);
@@ -803,7 +807,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 
 	g_string_append(context->string, "env {\n");
 
-	for (i = 0; i < env_size; ++i) {
+	for (i = 0; i < env_size; i++) {
 		struct bt_value *env_field_value_obj = NULL;
 		const char *entry_name;
 
@@ -1048,8 +1052,18 @@ end:
 static
 void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
+	int i;
+
 	bt_ctf_field_type_freeze(trace->packet_header_type);
 	bt_ctf_attributes_freeze(trace->environment);
+
+	for (i = 0; i < trace->clocks->len; i++) {
+		struct bt_ctf_clock *clock =
+			g_ptr_array_index(trace->clocks, i);
+
+		bt_ctf_clock_freeze(clock);
+	}
+
 	trace->frozen = 1;
 }
 
