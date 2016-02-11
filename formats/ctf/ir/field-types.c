@@ -271,6 +271,8 @@ int (* const type_compare_funcs[])(struct bt_ctf_field_type *,
 };
 
 static
+int bt_ctf_field_type_integer_validate(struct bt_ctf_field_type *);
+static
 int bt_ctf_field_type_enumeration_validate(struct bt_ctf_field_type *);
 static
 int bt_ctf_field_type_structure_validate(struct bt_ctf_field_type *);
@@ -283,7 +285,7 @@ int bt_ctf_field_type_sequence_validate(struct bt_ctf_field_type *);
 
 static
 int (* const type_validate_funcs[])(struct bt_ctf_field_type *) = {
-	[BT_CTF_TYPE_ID_INTEGER] = NULL,
+	[BT_CTF_TYPE_ID_INTEGER] = bt_ctf_field_type_integer_validate,
 	[BT_CTF_TYPE_ID_FLOAT] = NULL,
 	[BT_CTF_TYPE_ID_STRING] = NULL,
 	[BT_CTF_TYPE_ID_ENUM] = bt_ctf_field_type_enumeration_validate,
@@ -423,6 +425,24 @@ void bt_ctf_field_type_destroy(struct bt_object *obj)
 	}
 
 	type_destroy_funcs[type_id](type);
+}
+
+static
+int bt_ctf_field_type_integer_validate(struct bt_ctf_field_type *type)
+{
+	int ret = 0;
+
+	struct bt_ctf_field_type_integer *integer =
+		container_of(type, struct bt_ctf_field_type_integer,
+			parent);
+
+	if (integer->mapped_clock && integer->declaration.signedness) {
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
 }
 
 static
