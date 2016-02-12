@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
+#include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
@@ -569,6 +570,7 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 	bt_put(event->stream_event_context);
 	bt_put(event->context_payload);
 	bt_put(event->fields_payload);
+	bt_put(event->packet);
 	g_free(event);
 }
 
@@ -785,4 +787,39 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 error:
 	BT_PUT(copy);
 	return copy;
+}
+
+int bt_ctf_event_set_packet(struct bt_ctf_event *event,
+		struct bt_ctf_packet *packet)
+{
+	struct bt_ctf_stream *stream = NULL;
+	int ret = 0;
+
+	if (!event || !packet) {
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Make sure the new packet was created by this event's
+	 * stream, if it is set.
+	 */
+	stream = bt_ctf_event_get_stream(event);
+	if (stream) {
+		if (packet->stream != stream) {
+			ret = -1;
+			goto end;
+		}
+	} else {
+		/* Set the event's parent to the packet's stream */
+		bt_object_set_parent(event, packet->stream);
+	}
+
+	bt_put(event->packet);
+	event->packet = bt_get(packet);
+
+end:
+	BT_PUT(stream);
+
+	return ret;
 }

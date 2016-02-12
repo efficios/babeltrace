@@ -43,6 +43,7 @@ struct bt_ctf_event;
 struct bt_ctf_field;
 struct bt_ctf_field_type;
 struct bt_ctf_stream_class;
+struct bt_ctf_packet;
 
 /*
  * bt_ctf_event_create: instanciate an event.
@@ -253,6 +254,9 @@ extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
  * Returns the deep-copied event on success, NULL on error.
  */
 extern struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event);
+
+extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
+		struct bt_ctf_packet *packet);
 
 /*
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement

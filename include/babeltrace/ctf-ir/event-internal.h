@@ -34,12 +34,14 @@
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 
 struct bt_ctf_event {
 	struct bt_object base;
 	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_packet *packet;
 	struct bt_ctf_field *event_header;
 	struct bt_ctf_field *stream_event_context;
 	struct bt_ctf_field *context_payload;

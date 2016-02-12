@@ -134,15 +134,10 @@ BT_HIDDEN
 void bt_ctf_packet_freeze(struct bt_ctf_packet *packet)
 {
 	if (!packet) {
-		goto end;
+		return;
 	}
 
-	bt_ctf_field_freeze(packet->header);
-	bt_ctf_field_freeze(packet->context);
 	packet->frozen = 1;
-
-end:
-	return;
 }
 
 static
@@ -157,7 +152,7 @@ void bt_ctf_packet_destroy(struct bt_object *obj)
 	g_free(packet);
 }
 
-extern struct bt_ctf_packet *bt_ctf_packet_create(
+struct bt_ctf_packet *bt_ctf_packet_create(
 		struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_packet *packet = NULL;
