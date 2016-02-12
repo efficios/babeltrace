@@ -41,6 +41,7 @@ struct bt_ctf_event {
 	struct bt_object base;
 	struct bt_ctf_event_class *event_class;
 	struct bt_ctf_field *event_header;
+	struct bt_ctf_field *stream_event_context;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
 };

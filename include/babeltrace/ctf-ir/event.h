@@ -220,6 +220,28 @@ extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
 
 /*
+ * bt_ctf_event_get_stream_event_context: Get an event's stream event context
+ *
+ * @param event_class Event class.
+ *
+ * Returns a field on success (a structure), NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
+		struct bt_ctf_event *event);
+
+/*
+ * bt_ctf_event_set_stream_event_context: Set an event's stream event context
+ *
+ * @param event Event.
+ * @param context Event stream context field (must match the stream class'
+ * 	stream event context type).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
+		struct bt_ctf_field *context);
+
+/*
  * bt_ctf_event_copy: Deep-copy an event.
  *
  * Get an event's deep copy.

@@ -61,6 +61,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	struct bt_ctf_field_type *event_context_type = NULL;
 	struct bt_ctf_field_type *event_payload_type = NULL;
 	struct bt_ctf_field *event_header = NULL;
+	struct bt_ctf_field *stream_event_context = NULL;
 	struct bt_ctf_field *event_context = NULL;
 	struct bt_ctf_field *event_payload = NULL;
 	struct bt_value *environment = NULL;
@@ -115,7 +116,6 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	BT_PUT(stream_event_ctx_type);
 	BT_PUT(event_context_type);
 	BT_PUT(event_payload_type);
-
 	if (ret) {
 		/*
 		 * This means something went wrong during the validation
@@ -153,9 +153,16 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	event->event_class = bt_get(event_class);
 	event_header =
 		bt_ctf_field_create(validation_output.event_header_type);
-
 	if (!event_header) {
 		goto error;
+	}
+
+	if (validation_output.stream_event_ctx_type) {
+		stream_event_context = bt_ctf_field_create(
+			validation_output.stream_event_ctx_type);
+		if (!stream_event_context) {
+			goto error;
+		}
 	}
 
 	if (validation_output.event_context_type) {
@@ -183,6 +190,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	bt_ctf_validation_replace_types(trace, stream_class,
 		event_class, &validation_output, validation_flags);
 	BT_MOVE(event->event_header, event_header);
+	BT_MOVE(event->stream_event_context, stream_event_context);
 	BT_MOVE(event->context_payload, event_context);
 	BT_MOVE(event->fields_payload, event_payload);
 
@@ -216,6 +224,7 @@ error:
 	BT_PUT(stream_class);
 	BT_PUT(trace);
 	BT_PUT(event_header);
+	BT_PUT(stream_event_context);
 	BT_PUT(event_context);
 	BT_PUT(event_payload);
 	assert(!packet_header_type);
@@ -485,6 +494,54 @@ end:
 	return ret;
 }
 
+struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
+		struct bt_ctf_event *event)
+{
+	struct bt_ctf_field *stream_event_context = NULL;
+
+	if (!event || !event->stream_event_context) {
+		goto end;
+	}
+
+	stream_event_context = event->stream_event_context;
+end:
+	return bt_get(stream_event_context);
+}
+
+int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
+		struct bt_ctf_field *stream_event_context)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	if (!event || !stream_event_context) {
+		ret = -1;
+		goto end;
+	}
+
+	stream_class = bt_ctf_event_class_get_stream_class(event->event_class);
+	/*
+	 * We should not have been able to create the event without associating
+	 * the event class to a stream class.
+	 */
+	assert(stream_class);
+
+	field_type = bt_ctf_field_get_type(stream_event_context);
+	if (bt_ctf_field_type_compare(field_type,
+			stream_class->event_context_type)) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_get(stream_event_context);
+	BT_MOVE(event->stream_event_context, stream_event_context);
+end:
+	BT_PUT(stream_class);
+	bt_put(field_type);
+	return ret;
+}
+
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
 	bt_get(event);
@@ -509,6 +566,7 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 		bt_put(event->event_class);
 	}
 	bt_put(event->event_header);
+	bt_put(event->stream_event_context);
 	bt_put(event->context_payload);
 	bt_put(event->fields_payload);
 	g_free(event);
@@ -563,11 +621,25 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 {
 	/* Make sure each field's payload has been set */
 	int ret;
+	struct bt_ctf_stream_class *stream_class = NULL;
 
 	assert(event);
 	ret = bt_ctf_field_validate(event->event_header);
 	if (ret) {
 		goto end;
+	}
+
+	stream_class = bt_ctf_event_class_get_stream_class(event->event_class);
+	/*
+	 * We should not have been able to create the event without associating
+	 * the event class to a stream class.
+	 */
+	assert(stream_class);
+	if (stream_class->event_context_type) {
+		ret = bt_ctf_field_validate(event->stream_event_context);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	ret = bt_ctf_field_validate(event->fields_payload);
@@ -579,6 +651,7 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 		ret = bt_ctf_field_validate(event->context_payload);
 	}
 end:
+	bt_put(stream_class);
 	return ret;
 }
 
@@ -679,8 +752,15 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 
 	if (event->event_header) {
 		copy->event_header = bt_ctf_field_copy(event->event_header);
-
 		if (!copy->event_header) {
+			goto error;
+		}
+	}
+
+	if (event->stream_event_context) {
+		copy->stream_event_context =
+			bt_ctf_field_copy(event->stream_event_context);
+		if (!copy->stream_event_context) {
 			goto error;
 		}
 	}
@@ -688,7 +768,6 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 	if (event->context_payload) {
 		copy->context_payload = bt_ctf_field_copy(
 			event->context_payload);
-
 		if (!copy->context_payload) {
 			goto error;
 		}
@@ -696,7 +775,6 @@ struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
 
 	if (event->fields_payload) {
 		copy->fields_payload = bt_ctf_field_copy(event->fields_payload);
-
 		if (!copy->fields_payload) {
 			goto error;
 		}

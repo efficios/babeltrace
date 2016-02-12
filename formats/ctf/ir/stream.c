@@ -281,20 +281,6 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto error;
 	}
 
-	/*
-	 * A stream class may not have a stream event context defined
-	 * in which case this stream will never have a stream_event_context
-	 * member since, after a stream's creation, the parent stream class
-	 * is "frozen" (immutable).
-	 */
-	if (stream_class->event_context_type) {
-		stream->event_context = bt_ctf_field_create(
-			stream_class->event_context_type);
-		if (!stream->event_context) {
-			goto error;
-		}
-	}
-
 	/* Initialize events_discarded */
 	ret = set_structure_field_integer(stream->packet_context,
 		"events_discarded", 0);
@@ -309,13 +295,6 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		(GDestroyNotify) release_event);
 	if (!stream->events) {
 		goto error;
-	}
-	if (stream_class->event_context_type) {
-		stream->event_contexts = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) bt_put);
-		if (!stream->event_contexts) {
-			goto error;
-		}
 	}
 
 	/* A trace is not allowed to have a NULL packet header */
@@ -498,7 +477,6 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event)
 {
 	int ret = 0;
-	struct bt_ctf_field *event_context_copy = NULL;
 
 	if (!stream || !event) {
 		ret = -1;
@@ -511,32 +489,15 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	/* Make sure the event's payload is set */
+	/* Make sure the various scopes of the event are set */
 	ret = bt_ctf_event_validate(event);
 	if (ret) {
 		goto end;
 	}
 
-	/* Sample the current stream event context by copying it */
-	if (stream->event_context) {
-		/* Make sure the event context's payload is set */
-		ret = bt_ctf_field_validate(stream->event_context);
-		if (ret) {
-			goto end;
-		}
-
-		event_context_copy = bt_ctf_field_copy(stream->event_context);
-		if (!event_context_copy) {
-			ret = -1;
-			goto end;
-		}
-	}
-
-	/* Save the new event along with its associated stream event context */
+	/* Save the new event */
 	g_ptr_array_add(stream->events, event);
-	if (event_context_copy) {
-		g_ptr_array_add(stream->event_contexts, event_context_copy);
-	}
+
 	/*
 	 * Event had to hold a reference to its event class as long as it wasn't
 	 * part of the same trace hierarchy. From now on, the event and its
@@ -595,49 +556,6 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	bt_put(stream->packet_context);
 	stream->packet_context = field;
 end:
-	return ret;
-}
-
-struct bt_ctf_field *bt_ctf_stream_get_event_context(
-		struct bt_ctf_stream *stream)
-{
-	struct bt_ctf_field *event_context = NULL;
-
-	if (!stream) {
-		goto end;
-	}
-
-	event_context = stream->event_context;
-	if (event_context) {
-		bt_get(event_context);
-	}
-end:
-	return event_context;
-}
-
-int bt_ctf_stream_set_event_context(struct bt_ctf_stream *stream,
-		struct bt_ctf_field *field)
-{
-	int ret = 0;
-	struct bt_ctf_field_type *field_type = NULL;
-
-	if (!stream || !field) {
-		ret = -1;
-		goto end;
-	}
-
-	field_type = bt_ctf_field_get_type(field);
-	if (bt_ctf_field_type_compare(field_type,
-			stream->stream_class->event_context_type)) {
-		ret = -1;
-		goto end;
-	}
-
-	bt_get(field);
-	bt_put(stream->event_context);
-	stream->event_context = field;
-end:
-	bt_put(field_type);
 	return ret;
 }
 
@@ -843,10 +761,9 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 
 		/* Write stream event context */
-		if (stream->event_contexts) {
+		if (event->stream_event_context) {
 			ret = bt_ctf_field_serialize(
-				g_ptr_array_index(stream->event_contexts, i),
-				&stream->pos);
+				event->stream_event_context, &stream->pos);
 			if (ret) {
 				goto end;
 			}
@@ -885,9 +802,6 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	g_ptr_array_set_size(stream->events, 0);
-	if (stream->event_contexts) {
-		g_ptr_array_set_size(stream->event_contexts, 0);
-	}
 	stream->flushed_packet_count++;
 end:
 	bt_put(integer);
@@ -917,9 +831,6 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 
 	if (stream->events) {
 		g_ptr_array_free(stream->events, TRUE);
-	}
-	if (stream->event_contexts) {
-		g_ptr_array_free(stream->event_contexts, TRUE);
 	}
 	bt_put(stream->packet_header);
 	bt_put(stream->packet_context);
