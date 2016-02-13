@@ -495,7 +495,8 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	/* Save the new event */
+	/* Save the new event and freeze it */
+	bt_ctf_event_freeze(event);
 	g_ptr_array_add(stream->events, event);
 
 	/*
