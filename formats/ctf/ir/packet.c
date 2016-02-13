@@ -137,6 +137,8 @@ void bt_ctf_packet_freeze(struct bt_ctf_packet *packet)
 		return;
 	}
 
+	bt_ctf_field_freeze(packet->header);
+	bt_ctf_field_freeze(packet->context);
 	packet->frozen = 1;
 }
 

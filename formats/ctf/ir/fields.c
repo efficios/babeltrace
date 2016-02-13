@@ -149,6 +149,19 @@ static
 int bt_ctf_field_string_copy(struct bt_ctf_field *, struct bt_ctf_field *);
 
 static
+void generic_field_freeze(struct bt_ctf_field *);
+static
+void bt_ctf_field_enumeration_freeze(struct bt_ctf_field *);
+static
+void bt_ctf_field_structure_freeze(struct bt_ctf_field *);
+static
+void bt_ctf_field_variant_freeze(struct bt_ctf_field *);
+static
+void bt_ctf_field_array_freeze(struct bt_ctf_field *);
+static
+void bt_ctf_field_sequence_freeze(struct bt_ctf_field *);
+
+static
 int increase_packet_size(struct ctf_stream_pos *pos);
 
 static
@@ -227,6 +240,18 @@ int (* const field_copy_funcs[])(struct bt_ctf_field *,
 	[BT_CTF_TYPE_ID_ARRAY] = bt_ctf_field_array_copy,
 	[BT_CTF_TYPE_ID_SEQUENCE] = bt_ctf_field_sequence_copy,
 	[BT_CTF_TYPE_ID_STRING] = bt_ctf_field_string_copy,
+};
+
+static
+void (* const field_freeze_funcs[])(struct bt_ctf_field *) = {
+	[BT_CTF_TYPE_ID_INTEGER] = generic_field_freeze,
+	[BT_CTF_TYPE_ID_FLOAT] = generic_field_freeze,
+	[BT_CTF_TYPE_ID_STRING] = generic_field_freeze,
+	[BT_CTF_TYPE_ID_ENUM] = bt_ctf_field_enumeration_freeze,
+	[BT_CTF_TYPE_ID_STRUCT] = bt_ctf_field_structure_freeze,
+	[BT_CTF_TYPE_ID_VARIANT] = bt_ctf_field_variant_freeze,
+	[BT_CTF_TYPE_ID_ARRAY] = bt_ctf_field_array_freeze,
+	[BT_CTF_TYPE_ID_SEQUENCE] = bt_ctf_field_sequence_freeze,
 };
 
 struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
@@ -375,7 +400,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	struct bt_ctf_field_sequence *sequence;
 	uint64_t sequence_length;
 
-	if (!field || !length_field) {
+	if (!field || !length_field || field->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -447,6 +472,11 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 		goto end;
 	}
 
+	/* We don't want to modify this field if it's frozen */
+	if (field->frozen) {
+		goto end;
+	}
+
 	new_field = bt_ctf_field_create(field_type);
 	if (!new_field) {
 		goto error;
@@ -488,6 +518,11 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		goto end;
 	}
 
+	/* We don't want to modify this field if it's frozen */
+	if (field->frozen) {
+		goto end;
+	}
+
 	/* Field has not been instanciated yet, create it */
 	structure_type = bt_ctf_field_get_type(field);
 	if (!structure_type) {
@@ -524,7 +559,7 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_type *expected_field_type = NULL;
 	size_t index;
 
-	if (!field || !name || !value ||
+	if (!field || !name || !value || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
@@ -583,6 +618,11 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 		goto end;
 	}
 
+	/* We don't want to modify this field if it's frozen */
+	if (field->frozen) {
+		goto end;
+	}
+
 	new_field = bt_ctf_field_create(field_type);
 	array->elements->pdata[(size_t)index] = new_field;
 end:
@@ -615,6 +655,11 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	field_type = bt_ctf_field_type_sequence_get_element_type(field->type);
 	if (sequence->elements->pdata[(size_t) index]) {
 		new_field = sequence->elements->pdata[(size_t) index];
+		goto end;
+	}
+
+	/* We don't want to modify this field if it's frozen */
+	if (field->frozen) {
 		goto end;
 	}
 
@@ -691,6 +736,11 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		}
 	}
 
+	/* We don't want to modify this field if it's frozen */
+	if (field->frozen) {
+		goto end;
+	}
+
 	field_type = bt_ctf_field_type_variant_get_field_type_signed(
 		variant_type, tag_enum_value);
 	if (!field_type) {
@@ -752,6 +802,11 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	enumeration = container_of(field, struct bt_ctf_field_enumeration,
 		parent);
 	if (!enumeration->payload) {
+		/* We don't want to modify this field if it's frozen */
+		if (field->frozen) {
+			goto end;
+		}
+
 		struct bt_ctf_field_type_enumeration *enumeration_type =
 			container_of(field->type,
 			struct bt_ctf_field_type_enumeration, parent);
@@ -857,7 +912,7 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	unsigned int size;
 	int64_t min_value, max_value;
 
-	if (!field ||
+	if (!field || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_INTEGER) {
 		ret = -1;
@@ -923,7 +978,7 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	unsigned int size;
 	uint64_t max_value;
 
-	if (!field ||
+	if (!field || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_INTEGER) {
 		ret = -1;
@@ -977,7 +1032,7 @@ int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_floating_point *floating_point;
 
-	if (!field ||
+	if (!field || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_FLOAT) {
 		ret = -1;
@@ -1015,7 +1070,7 @@ int bt_ctf_field_string_set_value(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_string *string;
 
-	if (!field || !value ||
+	if (!field || !value || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_STRING) {
 		ret = -1;
@@ -1040,7 +1095,7 @@ int bt_ctf_field_string_append(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_string *string_field;
 
-	if (!field || !value ||
+	if (!field || !value || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_STRING) {
 		ret = -1;
@@ -1069,7 +1124,7 @@ int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 	unsigned int effective_length = length;
 	struct bt_ctf_field_string *string_field;
 
-	if (!field || !value ||
+	if (!field || !value || field->frozen ||
 		bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_TYPE_ID_STRING) {
 		ret = -1;
@@ -2199,4 +2254,97 @@ int increase_packet_size(struct ctf_stream_pos *pos)
 	}
 end:
 	return ret;
+}
+
+static
+void generic_field_freeze(struct bt_ctf_field *field)
+{
+	field->frozen = 1;
+}
+
+static
+void bt_ctf_field_enumeration_freeze(struct bt_ctf_field *field)
+{
+	struct bt_ctf_field_enumeration *enum_field =
+		container_of(field, struct bt_ctf_field_enumeration, parent);
+
+	bt_ctf_field_freeze(enum_field->payload);
+	generic_field_freeze(field);
+}
+
+static
+void bt_ctf_field_structure_freeze(struct bt_ctf_field *field)
+{
+	int i;
+	struct bt_ctf_field_structure *structure_field =
+		container_of(field, struct bt_ctf_field_structure, parent);
+
+	for (i = 0; i < structure_field->fields->len; i++) {
+		struct bt_ctf_field *field =
+			g_ptr_array_index(structure_field->fields, i);
+
+		bt_ctf_field_freeze(field);
+	}
+
+	generic_field_freeze(field);
+}
+
+static
+void bt_ctf_field_variant_freeze(struct bt_ctf_field *field)
+{
+	struct bt_ctf_field_variant *variant_field =
+		container_of(field, struct bt_ctf_field_variant, parent);
+
+	bt_ctf_field_freeze(variant_field->tag);
+	bt_ctf_field_freeze(variant_field->payload);
+	generic_field_freeze(field);
+}
+
+static
+void bt_ctf_field_array_freeze(struct bt_ctf_field *field)
+{
+	int i;
+	struct bt_ctf_field_array *array_field =
+		container_of(field, struct bt_ctf_field_array, parent);
+
+	for (i = 0; i < array_field->elements->len; i++) {
+		struct bt_ctf_field *field =
+			g_ptr_array_index(array_field->elements, i);
+
+		bt_ctf_field_freeze(field);
+	}
+
+	generic_field_freeze(field);
+}
+
+static
+void bt_ctf_field_sequence_freeze(struct bt_ctf_field *field)
+{
+	int i;
+	struct bt_ctf_field_sequence *sequence_field =
+		container_of(field, struct bt_ctf_field_sequence, parent);
+
+	bt_ctf_field_freeze(sequence_field->length);
+
+	for (i = 0; i < sequence_field->elements->len; i++) {
+		struct bt_ctf_field *field =
+			g_ptr_array_index(sequence_field->elements, i);
+
+		bt_ctf_field_freeze(field);
+	}
+
+	generic_field_freeze(field);
+}
+
+BT_HIDDEN
+void bt_ctf_field_freeze(struct bt_ctf_field *field)
+{
+	if (!field) {
+		goto end;
+	}
+
+	field_freeze_funcs[bt_ctf_field_get_type_id(field)](field);
+
+end:
+	return;
 }

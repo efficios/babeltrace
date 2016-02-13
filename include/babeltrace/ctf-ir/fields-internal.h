@@ -37,6 +37,7 @@ struct bt_ctf_field {
 	struct bt_object base;
 	struct bt_ctf_field_type *type;
 	int payload_set;
+	int frozen;
 };
 
 struct bt_ctf_field_integer {
@@ -101,5 +102,8 @@ int bt_ctf_field_reset(struct bt_ctf_field *field);
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct ctf_stream_pos *pos);
+
+BT_HIDDEN
+void bt_ctf_field_freeze(struct bt_ctf_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */
