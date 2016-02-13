@@ -46,6 +46,7 @@ struct bt_ctf_event {
 	struct bt_ctf_field *stream_event_context;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
+	int frozen;
 };
 
 BT_HIDDEN
@@ -66,5 +67,8 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
  */
 BT_HIDDEN
 int bt_ctf_event_populate_event_header(struct bt_ctf_event *event);
+
+BT_HIDDEN
+void bt_ctf_event_freeze(struct bt_ctf_event *event);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */

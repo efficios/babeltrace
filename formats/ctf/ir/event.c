@@ -33,6 +33,8 @@
 #include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
@@ -296,7 +298,7 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 {
 	int ret = 0;
 
-	if (!event || !payload) {
+	if (!event || !payload || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -344,7 +346,7 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 	int ret = 0;
 	struct bt_ctf_field_type *payload_type = NULL;
 
-	if (!event || !payload) {
+	if (!event || !payload || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -427,7 +429,7 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || !header) {
+	if (!event || !header || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -475,7 +477,7 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
 
-	if (!event || !context) {
+	if (!event || !context || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -516,7 +518,7 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || !stream_event_context) {
+	if (!event || !stream_event_context || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -688,7 +690,7 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 	int ret = 0;
 	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
 
-	if (!event) {
+	if (!event || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -795,7 +797,7 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 	struct bt_ctf_stream *stream = NULL;
 	int ret = 0;
 
-	if (!event || !packet) {
+	if (!event || !packet || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -822,4 +824,16 @@ end:
 	BT_PUT(stream);
 
 	return ret;
+}
+
+BT_HIDDEN
+void bt_ctf_event_freeze(struct bt_ctf_event *event)
+{
+	assert(event);
+	bt_ctf_packet_freeze(event->packet);
+	bt_ctf_field_freeze(event->event_header);
+	bt_ctf_field_freeze(event->stream_event_context);
+	bt_ctf_field_freeze(event->context_payload);
+	bt_ctf_field_freeze(event->fields_payload);
+	event->frozen = 1;
 }
