@@ -1020,17 +1020,6 @@ end:
 	return ret;
 }
 
-void bt_ctf_trace_get(struct bt_ctf_trace *trace)
-{
-	bt_get(trace);
-}
-
-void bt_ctf_trace_put(struct bt_ctf_trace *trace)
-{
-	bt_put(trace);
-
-}
-
 BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 {
