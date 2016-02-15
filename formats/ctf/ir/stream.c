@@ -362,7 +362,8 @@ int bt_ctf_stream_get_discarded_events_count(
 	struct bt_ctf_field *events_discarded_field = NULL;
 	struct bt_ctf_field_type *events_discarded_field_type = NULL;
 
-	if (!stream || !count || !stream->packet_context) {
+	if (!stream || !count || !stream->packet_context ||
+			stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -425,7 +426,7 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 	struct bt_ctf_field *events_discarded_field = NULL;
 	struct bt_ctf_field_type *events_discarded_field_type = NULL;
 
-	if (!stream || !stream->packet_context) {
+	if (!stream || !stream->packet_context || stream->pos.fd < 0) {
 		goto end;
 	}
 
@@ -478,7 +479,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 {
 	int ret = 0;
 
-	if (!stream || !event) {
+	if (!stream || !event || stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -522,7 +523,7 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_context(
 {
 	struct bt_ctf_field *packet_context = NULL;
 
-	if (!stream) {
+	if (!stream || stream->pos.fd < 0) {
 		goto end;
 	}
 
@@ -540,7 +541,7 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	int ret = 0;
 	struct bt_ctf_field_type *field_type;
 
-	if (!stream || !field) {
+	if (!stream || !field || stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -565,7 +566,7 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_header(
 {
 	struct bt_ctf_field *packet_header = NULL;
 
-	if (!stream) {
+	if (!stream || stream->pos.fd < 0) {
 		goto end;
 	}
 
@@ -584,7 +585,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_field_type *field_type = NULL;
 
-	if (!stream || !field) {
+	if (!stream || !field || stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
