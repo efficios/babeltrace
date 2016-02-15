@@ -860,10 +860,6 @@ void bt_ctf_event_class_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_event_class *event_class;
 
-	/*
-	 * Don't call put() on the stream class. See comment in
-	 * bt_ctf_event_class_set_stream_class for explanation.
-	 */
 	event_class = container_of(obj, struct bt_ctf_event_class, base);
 	bt_ctf_attributes_destroy(event_class->attributes);
 	bt_put(event_class->context);
