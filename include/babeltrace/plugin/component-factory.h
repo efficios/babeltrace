@@ -76,8 +76,16 @@ extern struct bt_component_factory *bt_component_factory_create(void);
 
 /**
  * Get the list of components registered to this factory.
+ *
+ * @param factory	Component factory
  */
 extern struct bt_value *bt_component_factory_get_components(
+		struct bt_component_factory *factory);
+
+/**
+ * .
+ */
+extern struct bt_value *bt_component_factory_create_component(
 		struct bt_component_factory *factory);
 
 /**

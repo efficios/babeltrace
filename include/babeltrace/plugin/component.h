@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/component-class.h>
 #include <stdio.h>
 
 #ifdef __cplusplus
@@ -34,32 +35,14 @@ extern "C" {
 #endif
 
 /**
- * Component type.
- */
-enum bt_component_type {
-	BT_COMPONENT_TYPE_UNKNOWN =	-1,
-
-	/** A source component is a notification generator. */
-	BT_COMPONENT_TYPE_SOURCE =	0,
-
-	/** A sink component handles incoming notifications. */
-	BT_COMPONENT_TYPE_SINK =	1,
-
-	/** A filter component implements both Source and Sink interfaces. */
-	BT_COMPONENT_TYPE_FILTER =	2,
-};
-
-/**
  * Status code. Errors are always negative.
  */
 enum bt_component_status {
 	/** Memory allocation failure. */
-	/* -12 for compatibility with -ENOMEM */
-	BT_COMPONENT_STATUS_NOMEM =		-12,
+	BT_COMPONENT_STATUS_NOMEM =		-4,
 
 	/** Invalid arguments. */
-	/* -22 for compatibility with -EINVAL */
-	BT_COMPONENT_STATUS_INVAL =		-22,
+	BT_COMPONENT_STATUS_INVAL =		-3,
 
 	/** Unsupported component feature. */
 	BT_COMPONENT_STATUS_UNSUPPORTED =	-2,
@@ -92,16 +75,16 @@ extern enum bt_component_status bt_component_set_name(
 		struct bt_component *component, const char *name);
 
 /**
- * Get component instance type.
+ * Get component's class.
  *
- * @param component	Component instance of which to get the type
- * @returns		One of #bt_component_type values
+ * @param component	Component instance of which to get the class
+ * @returns		The component's class
  */
-extern enum bt_component_type bt_component_get_type(
+extern struct bt_component_class *bt_component_get_class(
 		struct bt_component *component);
 
 /**
- * Set a component instance's error stream.
+ * Set component instance's error stream.
  *
  * @param component	Component instance
  * @param error_stream	Error stream

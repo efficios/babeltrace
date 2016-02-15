@@ -39,6 +39,7 @@ babeltracectfirinclude_HEADERS = \
 babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/component.h \
+	babeltrace/plugin/component-class.h \
 	babeltrace/plugin/component-factory.h \
 	babeltrace/plugin/source.h \
 	babeltrace/plugin/sink.h \
