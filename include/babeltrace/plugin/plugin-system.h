@@ -228,7 +228,7 @@ bt_notification_iterator_set_private_data(
 		struct bt_notification_iterator *iterator, void *data);
 
 /**
- * Gett an iterator's private data.
+ * Get an iterator's private data.
  *
  * @param iterator	Notification iterator instance
  * @returns		Iterator instance private data

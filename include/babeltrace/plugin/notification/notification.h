@@ -61,26 +61,6 @@ enum bt_notification_type {
 extern enum bt_notification_type bt_notification_get_type(
 		struct bt_notification *notification);
 
-/**
- * Increments the reference count of \p notification.
- *
- * @param notification	Notification of which to increment the reference count
- *
- * @see bt_notification_put()
- */
-extern void bt_notification_get(struct bt_notification *notification);
-
-/**
- * Decrements the reference count of \p notification, destroying it when this
- * count reaches 0.
- *
- * @param notification	Notification of which to decrement the reference count
- *
- * @see bt_notification_get()
- */
-extern void bt_notification_put(
-		struct bt_notification *notification);
-
 #ifdef __cplusplus
 }
 #endif

@@ -110,25 +110,6 @@ extern enum bt_component_type bt_component_get_type(
 extern enum bt_component_status bt_component_set_error_stream(
 		struct bt_component *component, FILE *error_stream);
 
-/**
- * Increments the reference count of \p component.
- *
- * @param component	Component of which to increment the reference count
- *
- * @see bt_component_put()
- */
-extern void bt_component_get(struct bt_component *component);
-
-/**
- * Decrements the reference count of \p component, destroying it when this
- * count reaches 0.
- *
- * @param component	Component of which to decrement the reference count
- *
- * @see bt_component_get()
- */
-extern void bt_component_put(struct bt_component *component);
-
 #ifdef __cplusplus
 }
 #endif

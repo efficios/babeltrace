@@ -80,7 +80,7 @@ enum bt_notification_iterator_seek_type {
  * @param iterator	Iterator instance
  * @returns		Returns a bt_notification instance
  *
- * @see bt_notification_put()
+ * @see bt_put()
  */
 extern struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator);
