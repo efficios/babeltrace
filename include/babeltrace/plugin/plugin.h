@@ -4,8 +4,7 @@
 /*
  * BabelTrace - Babeltrace Plug-in Interface
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- * Copyright 2015 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,38 +27,38 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/component-factory.h>
-#include <babeltrace/plugin/component.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef enum bt_component_status (*bt_plugin_init_func)(
-		struct bt_component_factory *factory);
-typedef void (*bt_plugin_exit_func)(void);
+struct bt_plugin;
 
-/* A plugin must define the __bt_plugin_init symbol */
-#define BT_PLUGIN_NAME(_x)	const char __bt_plugin_name[] = (_x)
-#define BT_PLUGIN_AUTHOR(_x)	const char __bt_plugin_author[] = (_x)
-#define BT_PLUGIN_LICENSE(_x)	const char __bt_plugin_license[] = (_x)
-#define BT_PLUGIN_INIT(_x)      bt_plugin_init_func __bt_plugin_init = (_x)
-#define BT_PLUGIN_EXIT(_x)      bt_plugin_exit_func __bt_plugin_exit = (_x)
+/**
+ * Get the name of a plug-in.
+ *
+ * @param plugin	An instance of a plug-in
+ * @returns		Plug-in name or NULL on error
+ */
+extern const char *bt_plugin_get_name(struct bt_plugin *plugin);
 
-#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN			\
-	enum bt_component_status __bt_plugin_register_component_classes(\
-		struct bt_component_factory *factory)\
-	{
+/**
+ * Get the name of a plug-in's author.
+ *
+ * @param plugin	An instance of a plug-in
+ * @returns		Plug-in author or NULL on error
+ */
+extern const char *bt_plugin_get_author(struct bt_plugin *plugin);
 
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init) \
-	bt_component_factory_register_source_component_class(factory, \
-		_name, _init);
+/**
+ * Get the license of a plug-in.
+ *
+ * @param plugin	An instance of a plug-in
+ * @returns		Plug-in license or NULL on error
+ */
+extern const char *bt_plugin_get_license(struct bt_plugin *plugin);
 
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init) \
-	bt_component_factory_register_sink_component_class(factory, \
-		_name, _init);
-
-#define BT_PLUGIN_COMPONENT_CLASSES_END\
-	\
-	return BT_COMPONENT_STATUS_OK;\
-}\
-	\
-	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_PLUGIN_H */

@@ -52,6 +52,7 @@ struct bt_component *bt_component_source_create(
 {
 	struct bt_component_source *source = NULL;
 	enum bt_component_status ret;
+
 	source = g_new0(struct bt_component_source, 1);
 	if (!source) {
 		goto end;
@@ -60,15 +61,14 @@ struct bt_component *bt_component_source_create(
 	ret = bt_component_init(&source->parent, class, name,
 		bt_component_source_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
-		g_free(source);
-		source = NULL;
+		BT_PUT(source);
 		goto end;
 	}
 end:
 	return source ? &source->parent : NULL;
 }
 
-struct bt_notification_iterator *bt_plugin_source_create_iterator(
+struct bt_notification_iterator *bt_component_source_create_iterator(
 		struct bt_component *component)
 {
 	enum bt_component_status ret_component;

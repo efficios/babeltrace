@@ -38,10 +38,10 @@
 
 struct bt_component_factory {
 	struct bt_object base;
-	/** Array of pointers to struct bt_plugin */
-	GPtrArray *plugins;
 	/** Array of pointers to struct bt_component_class */
 	GPtrArray *component_classes;
+	/* Plug-in currently registering component classes. Weak ref. */
+	struct bt_plugin *current_plugin;
 };
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_FACTORY_INTERNAL_H */

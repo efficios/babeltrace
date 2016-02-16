@@ -58,8 +58,7 @@ struct bt_component *bt_component_sink_create(
 	ret = bt_component_init(&sink->parent, class, name,
 		bt_component_sink_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
-		g_free(sink);
-		sink = NULL;
+		BT_PUT(sink);
 		goto end;
 	}
 end:

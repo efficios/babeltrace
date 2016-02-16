@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-macros.h>
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/notification/notification.h>

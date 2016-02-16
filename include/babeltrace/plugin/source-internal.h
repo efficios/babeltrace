@@ -34,7 +34,6 @@
 
 struct bt_component_source_class {
 	struct bt_component_class parent;
-	bt_component_source_init_cb init;	
 };
 
 struct bt_component_source {

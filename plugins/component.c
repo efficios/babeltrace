@@ -28,6 +28,8 @@
 
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/component-internal.h>
+#include <babeltrace/plugin/source-internal.h>
+#include <babeltrace/plugin/sink-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
@@ -70,12 +72,12 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
+	bt_object_init(component, bt_component_destroy);
 	if (!component || !class || !name || name[0] == '\0' || !destroy) {
 		ret = BT_COMPONENT_STATUS_INVAL;
 		goto end;
 	}
 
-	bt_object_init(component, bt_component_destroy);
 	component->class = bt_get(class);
 	component->name = g_string_new(name);
 	if (!component->name) {
@@ -85,6 +87,36 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 	component->destroy = destroy;
 end:
 	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_type bt_component_get_type(struct bt_component *component)
+{
+	return component ? component->class->type : BT_COMPONENT_TYPE_UNKNOWN;
+}
+
+struct bt_component *bt_component_create(
+		struct bt_component_class *component_class, const char *name)
+{
+	struct bt_component *component = NULL;
+
+	if (!component_class) {
+		goto end;
+	}
+
+	switch (bt_component_class_get_type(component_class))
+	{
+	case BT_COMPONENT_TYPE_SOURCE:
+		component = bt_component_source_create(component_class, name);
+		break;
+	case BT_COMPONENT_TYPE_SINK:
+		component = bt_component_sink_create(component_class, name);
+		break;
+	default:
+		goto end;
+	}
+end:
+	return component;
 }
 
 const char *bt_component_get_name(struct bt_component *component)
@@ -115,17 +147,10 @@ end:
 	return ret;
 }
 
-enum bt_component_type bt_component_get_type(struct bt_component *component)
+struct bt_component_class *bt_component_get_class(
+		struct bt_component *component)
 {
-	enum bt_component_type type = BT_COMPONENT_TYPE_UNKNOWN;
-
-	if (!component) {
-		goto end;
-	}
-
-	type = component->class->type;
-end:
-	return type;
+	return component ? bt_get(component->class) : NULL;
 }
 
 enum bt_component_status bt_component_set_error_stream(
@@ -145,15 +170,7 @@ end:
 
 void *bt_component_get_private_data(struct bt_component *component)
 {
-	void *ret = NULL;
-
-	if (!component) {
-		goto end;
-	}
-
-	ret = component->user_data;
-end:
-	return ret;
+	return component ? component->user_data : NULL;
 }
 
 enum bt_component_status

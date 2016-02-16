@@ -45,12 +45,35 @@ enum bt_component_type {
 	BT_COMPONENT_TYPE_FILTER =	2,
 };
 
+struct bt_plugin;
 struct bt_component_class;
 
-const char *bt_component_class_get_name(
+
+/**
+ * Get a component class' name.
+ *
+ * @param component_class	Component class of which to get the name
+ * @returns			Name of the component class
+ */
+extern const char *bt_component_class_get_name(
 		struct bt_component_class *component_class);
 
-enum bt_component_type bt_component_class_get_type(
+/**
+ * Get a component class' type.
+ *
+ * @param component_class	Component class of which to get the type
+ * @returns			One of #bt_component_type
+ */
+extern enum bt_component_type bt_component_class_get_type(
+		struct bt_component_class *component_class);
+
+/**
+ * Get a component class' plug-in.
+ *
+ * @param component_class	Component class of which to get the plug-in
+ * @returns			The plug-in which registered the component class
+ */
+extern struct bt_plugin *bt_component_class_get_plugin(
 		struct bt_component_class *component_class);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_H */

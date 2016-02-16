@@ -37,6 +37,7 @@ struct bt_component_class {
 	enum bt_component_type type;
 	GString *name;
 	struct bt_plugin *plugin;
+	bt_component_init_cb init;
 };
 
 BT_HIDDEN
@@ -45,7 +46,8 @@ int bt_component_class_init(
 		const char *name);
 
 BT_HIDDEN
-int bt_component_class_set_plugin(struct bt_component_class *class,
+struct bt_component_class *bt_component_class_create(
+		enum bt_component_type type, const char *name,
 		struct bt_plugin *plugin);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */

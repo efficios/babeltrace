@@ -30,7 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/object-internal.h>
 #include <gmodule.h>
 

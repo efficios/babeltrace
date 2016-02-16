@@ -75,18 +75,39 @@ struct bt_component_factory;
 extern struct bt_component_factory *bt_component_factory_create(void);
 
 /**
- * Get the list of components registered to this factory.
+ * Get the number of component classes registered to the component factory.
  *
- * @param factory	Component factory
+ * @param factory	A component factory instance
+ * @returns		The number of component classes registered to the
+ *			component factory, or a negative value on error.
  */
-extern struct bt_value *bt_component_factory_get_components(
+extern int bt_component_factory_get_component_class_count(
 		struct bt_component_factory *factory);
 
 /**
- * .
+ * Get component class at index.
+ *
+ * @param factory	A component factory instance
+ * @param index		Index of the component class to return
+ * @returns		A component class instance, NULL on error.
  */
-extern struct bt_value *bt_component_factory_create_component(
-		struct bt_component_factory *factory);
+extern struct bt_component_class *bt_component_factory_get_component_class_index(
+		struct bt_component_factory *factory, int index);
+
+/**
+ * Look-up component class.
+ *
+ * @param factory		A component factory instance
+ * @param plugin_name		Name of the plug-in which registered the
+ *				component class
+ * @param type			Component type (@see #bt_component_type)
+ * @param component_name	Component name
+ * @returns			A component class instance, NULL on error.
+ */
+extern struct bt_component_class *bt_component_factory_get_component_class(
+		struct bt_component_factory *factory,
+		const char *plugin_name, enum bt_component_type type,
+		const char *component_name);
 
 /**
  * Recursively load and register Babeltrace plugins under a given path.
@@ -104,12 +125,12 @@ extern enum bt_component_factory_status bt_component_factory_load(
 extern enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_source_init_cb init);
+		bt_component_init_cb init);
 
 extern enum bt_component_factory_status
 bt_component_factory_register_sink_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_sink_init_cb init);
+		bt_component_init_cb init);
 
 #ifdef __cplusplus
 }

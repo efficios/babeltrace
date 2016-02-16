@@ -66,8 +66,27 @@ struct bt_component_class *bt_component_class_create(
 		goto end;
 	}
 
-	bt_get(plugin);
-	class->plugin = plugin;
+	class->plugin = bt_get(plugin);
 end:
 	return class;
+}
+
+const char *bt_component_class_get_name(
+		struct bt_component_class *component_class)
+{
+	return component_class ? component_class->name->str : NULL;
+}
+
+enum bt_component_type bt_component_class_get_type(
+		struct bt_component_class *component_class)
+{
+	return component_class ? component_class->type :
+			BT_COMPONENT_TYPE_UNKNOWN;
+}
+
+struct bt_plugin *bt_component_class_get_plugin(
+		struct bt_component_class *component_class)
+{
+	return component_class ? bt_get(component_class->plugin) :
+			NULL;
 }

@@ -1,10 +1,11 @@
-#ifndef BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H
-#define BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_H
+#define BABELTRACE_PLUGIN_H
 
 /*
- * BabelTrace - Component internal
+ * BabelTrace - Babeltrace Plug-in Helper Macros
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,34 +28,34 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/object-internal.h>
-#include <glib.h>
-#include <stdio.h>
 
-struct bt_component {
-	struct bt_object base;
-	struct bt_component_class *class;
-	GString *name;
-	/** No ownership of stream taken */
-	FILE *error_stream;
-	/** Source, Sink or Filter destroy */
-	bt_component_destroy_cb destroy;
+/* A plugin must define the __bt_plugin_init symbol */
+#define BT_PLUGIN_NAME(_x)	const char __bt_plugin_name[] = (_x)
+#define BT_PLUGIN_AUTHOR(_x)	const char __bt_plugin_author[] = (_x)
+#define BT_PLUGIN_LICENSE(_x)	const char __bt_plugin_license[] = (_x)
+#define BT_PLUGIN_INIT(_x)	bt_plugin_init_func __bt_plugin_init = (_x)
+#define BT_PLUGIN_EXIT(_x)	bt_plugin_exit_func __bt_plugin_exit = (_x)
 
-	/** User-defined data and its destruction callback */
-	void *user_data;
-	bt_component_destroy_cb user_destroy;
-};
+#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN			\
+	enum bt_component_status __bt_plugin_register_component_classes(\
+		struct bt_component_factory *factory)\
+	{
 
-BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *component,
-		struct bt_component_class *class, const char *name,
-		bt_component_destroy_cb destroy);
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, _init) \
+	bt_component_factory_register_source_component_class(factory, \
+		_name, _init);
 
-BT_HIDDEN
-enum bt_component_type bt_component_get_type(struct bt_component *component);
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(_name, _init) \
+	bt_component_factory_register_sink_component_class(factory, \
+		_name, _init);
 
-#endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */
+#define BT_PLUGIN_COMPONENT_CLASSES_END\
+	\
+	return BT_COMPONENT_STATUS_OK;\
+}\
+	\
+	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
+
+#endif /* BABELTRACE_PLUGIN_MACROS_H */

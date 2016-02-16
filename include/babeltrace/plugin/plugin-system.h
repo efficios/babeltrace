@@ -37,6 +37,11 @@ extern "C" {
 struct bt_notification;
 struct bt_notification_iterator;
 struct bt_component;
+struct bt_component_factory;
+
+typedef enum bt_component_status (*bt_plugin_init_func)(
+		struct bt_component_factory *factory);
+typedef void (*bt_plugin_exit_func)(void);
 
 /**
  * Component private data deallocation function type.
@@ -46,38 +51,16 @@ struct bt_component;
 typedef void (*bt_component_destroy_cb)(struct bt_component *component);
 
 /**
- * Source component initialization function type.
+ * Component initialization function type.
  *
- * A source component's iterator initialization callback, private data and
- * deinitialization callback must be set by this function.
- *
- * @param component	Component instance
- * @returns		One of #bt_component_status values
- */
-typedef enum bt_component_status (*bt_component_source_init_cb)(
-		struct bt_component *component);
-
-/**
- * Sink component initialization function type.
- *
- * A sink component's notification handling callback, private data and
- * deinitialization callback must be set by this function.
+ * A component's private data and required callbacks must be set by this
+ * function.
  *
  * @param component	Component instance
  * @returns		One of #bt_component_status values
  */
-typedef enum bt_component_status (*bt_component_sink_init_cb)(
+typedef enum bt_component_status (*bt_component_init_cb)(
 		struct bt_component *component);
-
-/**
- * Iterator initialization function type.
- *
- * @param component	Component instance
- * @param iterator	Iterator instance
- */
-typedef enum bt_component_status (*bt_component_source_iterator_init_cb)(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
 
 /**
  * Get a component's private data.

@@ -28,6 +28,7 @@
 
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component-factory-internal.h>
+#include <babeltrace/plugin/component-class-internal.h>
 #include <babeltrace/plugin/source-internal.h>
 #include <babeltrace/plugin/sink-internal.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -121,8 +122,10 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 		goto end;
 	}
 
+	factory->current_plugin = plugin;
 	component_status = bt_plugin_register_component_classes(plugin,
 			factory);
+	factory->current_plugin = NULL;
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		switch (component_status) {
 		case BT_COMPONENT_STATUS_NOMEM:
@@ -136,7 +139,6 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 		BT_PUT(plugin);
 		goto end;
 	}
-	g_ptr_array_add(factory->plugins, plugin);
 end:
 	return ret;
 }
@@ -242,9 +244,6 @@ void bt_component_factory_destroy(struct bt_object *obj)
 	assert(obj);
 	factory = container_of(obj, struct bt_component_factory, base);
 
-	if (factory->plugins) {
-		g_ptr_array_free(factory->plugins, TRUE);
-	}
 	if (factory->component_classes) {
 		g_ptr_array_free(factory->component_classes, TRUE);
 	}
@@ -261,11 +260,6 @@ struct bt_component_factory *bt_component_factory_create(void)
 	}
 
 	bt_object_init(factory, bt_component_factory_destroy);
-	factory->plugins = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
-	if (!factory->plugins) {
-		goto error;
-	}
 	factory->component_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	if (!factory->component_classes) {
@@ -278,11 +272,84 @@ error:
 	return factory;
 }
 
-struct bt_value *bt_component_factory_get_components(
+int bt_component_factory_get_component_class_count(
 		struct bt_component_factory *factory)
 {
-	assert(0);
+	return factory ? factory->component_classes->len : -1;
+}
+
+struct bt_component_class *bt_component_factory_get_component_class_index(
+		struct bt_component_factory *factory, int index)
+{
+	struct bt_component_class *component_class = NULL;
+
+	if (!factory || index < 0 || index >= factory->component_classes->len) {
+		goto end;
+	}
+
+	component_class = bt_get(g_ptr_array_index(
+			factory->component_classes, index));
+end:
+	return component_class;
+}
+
+struct bt_component_class *bt_component_factory_get_component_class(
+		struct bt_component_factory *factory,
+		const char *plugin_name, enum bt_component_type type,
+		const char *component_name)
+{
+	size_t i;
+	struct bt_component_class *component_class = NULL;
+
+	if (!factory || (!plugin_name && !component_name &&
+			type == BT_COMPONENT_TYPE_UNKNOWN)) {
+		/* At least one criterion must be provided. */
+		goto no_match;
+	}
+
+	for (i = 0; i < factory->component_classes->len; i++) {
+		struct bt_plugin *plugin = NULL;
+
+		component_class = g_ptr_array_index(factory->component_classes,
+				i);
+		plugin = bt_component_class_get_plugin(component_class);
+		assert(plugin);
+
+		if (type != BT_COMPONENT_TYPE_UNKNOWN) {
+			if (type != bt_component_class_get_type(
+					component_class)) {
+				continue;
+			}
+		}
+
+		if (plugin_name) {
+			const char *cur_plugin_name = bt_plugin_get_name(
+					plugin);
+
+			assert(cur_plugin_name);
+			if (strcmp(plugin_name, cur_plugin_name)) {
+				continue;
+			}
+		}
+
+		if (component_name) {
+			const char *cur_cc_name = bt_component_class_get_name(
+					component_class);
+
+			assert(cur_cc_name);
+			if (strcmp(component_name, cur_cc_name)) {
+				continue;
+			}
+		}
+
+		/* All criteria met. */
+		goto match;
+	}
+
+no_match:
 	return NULL;
+match:
+	return bt_get(component_class);
 }
 
 enum bt_component_factory_status bt_component_factory_load(
@@ -313,19 +380,10 @@ end:
 	return ret;
 }
 
+static
 enum bt_component_factory_status
-bt_component_factory_register_source_component_class(
-		struct bt_component_factory *factory, const char *name,
-		bt_component_source_init_cb init)
-{
-	assert(0);
-	return BT_COMPONENT_FACTORY_STATUS_ERROR;
-}
-
-enum bt_component_factory_status
-bt_component_factory_register_sink_component_class(
-		struct bt_component_factory *factory, const char *name,
-		bt_component_sink_init_cb init)
+add_component_class(struct bt_component_factory *factory, const char *name,
+		bt_component_init_cb init, enum bt_component_type type)
 {
 	struct bt_component_class *class;
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
@@ -335,6 +393,27 @@ bt_component_factory_register_sink_component_class(
 		goto end;
 	}
 
+	class = bt_component_class_create(type, name,
+			factory->current_plugin);
+	g_ptr_array_add(factory->component_classes, class);
 end:
 	return ret;
+}
+
+enum bt_component_factory_status
+bt_component_factory_register_source_component_class(
+		struct bt_component_factory *factory, const char *name,
+		bt_component_init_cb init)
+{
+	return add_component_class(factory, name, init,
+			BT_COMPONENT_TYPE_SOURCE);
+}
+
+enum bt_component_factory_status
+bt_component_factory_register_sink_component_class(
+		struct bt_component_factory *factory, const char *name,
+		bt_component_init_cb init)
+{
+	return add_component_class(factory, name, init,
+			BT_COMPONENT_TYPE_SINK);
 }

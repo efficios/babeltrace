@@ -34,7 +34,6 @@
 
 struct bt_component_sink_class {
 	struct bt_component_class parent;
-	bt_component_sink_init_cb init;
 };
 
 struct bt_component_sink {

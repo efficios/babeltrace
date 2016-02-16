@@ -56,6 +56,17 @@ enum bt_component_status {
 
 struct bt_component;
 
+
+/**
+ * Create an instance of a component from a component class.
+ *
+ * @param component_class	Component class of which to create an instance
+ * @param name			Name of the new component instance, optional
+ * @returns			Returns a pointer to a new component instance
+ */
+extern struct bt_component *bt_component_create(
+		struct bt_component_class *component_class, const char *name);
+
 /**
  * Get component's name.
  *

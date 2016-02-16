@@ -118,3 +118,18 @@ enum bt_component_status bt_plugin_register_component_classes(
 	assert(plugin && factory);
 	return plugin->init(factory);
 }
+
+const char *bt_plugin_get_name(struct bt_plugin *plugin)
+{
+	return plugin ? plugin->name : NULL;
+}
+
+const char *bt_plugin_get_author(struct bt_plugin *plugin)
+{
+	return plugin ? plugin->author : NULL;
+}
+
+const char *bt_plugin_get_license(struct bt_plugin *plugin)
+{
+	return plugin ? plugin->license : NULL;
+}

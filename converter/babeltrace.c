@@ -775,10 +775,8 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	components = bt_component_factory_get_components(component_factory);
-	if (!components || bt_value_array_is_empty(components)) {
-		printf_error("No plugins found, exiting.");
-		ret = -1;
+	ret = bt_component_factory_get_component_class_count(component_factory);
+	if (ret <= 0) {
 		goto end;
 	}
 
