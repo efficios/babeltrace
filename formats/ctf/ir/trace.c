@@ -440,6 +440,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	struct bt_ctf_field_type *event_header_type = NULL;
 	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
 	int event_class_count;
+	struct bt_ctf_clock *clock_to_add_to_trace = NULL;
 
 	if (!trace || !stream_class) {
 		ret = -1;
@@ -456,6 +457,32 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			/* Stream class already registered to the trace */
 			ret = -1;
 			goto end;
+		}
+	}
+
+	/*
+	 * If the stream class has a clock, register this clock to this
+	 * trace if not already done.
+	 */
+	if (stream_class->clock) {
+		const char *clock_name =
+			bt_ctf_clock_get_name(stream_class->clock);
+		struct bt_ctf_clock *trace_clock;
+
+		assert(clock_name);
+		trace_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
+		bt_put(trace_clock);
+		if (trace_clock) {
+			if (trace_clock != stream_class->clock) {
+				/*
+				 * Error: two different clocks in the
+				 * trace would share the same name.
+				 */
+				ret = -1;
+				goto end;
+			}
+		} else {
+			clock_to_add_to_trace = bt_get(stream_class->clock);
 		}
 	}
 
@@ -621,6 +648,13 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		trace->byte_order);
 	bt_ctf_stream_class_set_byte_order(stream_class, trace->byte_order);
 
+	/* Add stream class's clock if it exists */
+	if (clock_to_add_to_trace) {
+		int add_clock_ret =
+			bt_ctf_trace_add_clock(trace, clock_to_add_to_trace);
+		assert(add_clock_ret == 0);
+	}
+
 	/*
 	 * Freeze the trace and the stream class.
 	 */
@@ -641,6 +675,7 @@ end:
 
 	g_free(ec_validation_outputs);
 	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
+	BT_PUT(clock_to_add_to_trace);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
 	assert(!event_header_type);
