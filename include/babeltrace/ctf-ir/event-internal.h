@@ -46,8 +46,12 @@ struct bt_ctf_event {
 	struct bt_ctf_field *stream_event_context;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
+	GHashTable *clock_values; /* Maps clock addresses to (uint64_t *) */
 	int frozen;
 };
+
+BT_HIDDEN
+int bt_ctf_event_register_stream_clock_values(struct bt_ctf_event *event);
 
 BT_HIDDEN
 int bt_ctf_event_validate(struct bt_ctf_event *event);

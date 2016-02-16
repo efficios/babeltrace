@@ -245,6 +245,9 @@ extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet);
 
+extern uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
+		struct bt_ctf_clock *clock);
+
 #ifdef __cplusplus
 }
 #endif

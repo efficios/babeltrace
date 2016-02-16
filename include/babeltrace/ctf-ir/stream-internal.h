@@ -47,9 +47,14 @@ struct bt_ctf_stream {
 	GString *name;
 	struct bt_ctf_field *packet_header;
 	struct bt_ctf_field *packet_context;
+	GHashTable *clock_values; /* Maps clock addresses to (uint64_t *) */
 };
 
 BT_HIDDEN
 int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
+
+BT_HIDDEN
+void bt_ctf_stream_update_clock_value(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *value_field);
 
 #endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */
