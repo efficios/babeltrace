@@ -738,59 +738,6 @@ end:
 	return ret;
 }
 
-struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event)
-{
-	struct bt_ctf_event *copy = NULL;
-
-	if (!event) {
-		goto error;
-	}
-
-	copy = g_new0(struct bt_ctf_event, 1);
-	if (!copy) {
-		goto error;
-	}
-
-	bt_object_init(copy, bt_ctf_event_destroy);
-	copy->event_class = bt_get(event->event_class);
-
-	if (event->event_header) {
-		copy->event_header = bt_ctf_field_copy(event->event_header);
-		if (!copy->event_header) {
-			goto error;
-		}
-	}
-
-	if (event->stream_event_context) {
-		copy->stream_event_context =
-			bt_ctf_field_copy(event->stream_event_context);
-		if (!copy->stream_event_context) {
-			goto error;
-		}
-	}
-
-	if (event->context_payload) {
-		copy->context_payload = bt_ctf_field_copy(
-			event->context_payload);
-		if (!copy->context_payload) {
-			goto error;
-		}
-	}
-
-	if (event->fields_payload) {
-		copy->fields_payload = bt_ctf_field_copy(event->fields_payload);
-		if (!copy->fields_payload) {
-			goto error;
-		}
-	}
-
-	return copy;
-
-error:
-	BT_PUT(copy);
-	return copy;
-}
-
 int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet)
 {

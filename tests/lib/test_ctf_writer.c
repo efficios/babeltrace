@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 591
+#define NR_TESTS 584
 
 static int64_t current_time = 42;
 
@@ -279,89 +279,6 @@ close_fp:
 			diag("close error");
 		}
 	}
-}
-
-void event_copy_tests(struct bt_ctf_event *event)
-{
-	struct bt_ctf_event *copy;
-	struct bt_ctf_event_class *orig_event_class;
-	struct bt_ctf_event_class *copy_event_class;
-	struct bt_ctf_stream *orig_stream;
-	struct bt_ctf_stream *copy_stream;
-	struct bt_ctf_field *orig_field;
-	struct bt_ctf_field *copy_field;
-
-	/* copy */
-	ok(!bt_ctf_event_copy(NULL),
-		"bt_ctf_event_copy handles NULL correctly");
-	copy = bt_ctf_event_copy(event);
-	ok(copy, "bt_ctf_event_copy returns a valid pointer");
-
-	/* validate event class */
-	orig_event_class = bt_ctf_event_get_class(event);
-	assert(orig_event_class);
-	copy_event_class = bt_ctf_event_get_class(copy);
-	ok(orig_event_class == copy_event_class,
-		"original and copied events share the same event class pointer");
-	bt_put(orig_event_class);
-	bt_put(copy_event_class);
-
-	/* validate stream */
-	orig_stream = bt_ctf_event_get_stream(event);
-	copy_stream = bt_ctf_event_get_stream(copy);
-
-	if (!orig_stream) {
-		ok(!copy_stream, "original and copied events have no stream");
-	} else {
-		ok(orig_stream == copy_stream,
-			"original and copied events share the same stream pointer");
-	}
-	bt_put(orig_stream);
-	bt_put(copy_stream);
-
-	/* header */
-	orig_field = bt_ctf_event_get_header(event);
-	copy_field = bt_ctf_event_get_header(copy);
-
-	if (!orig_field) {
-		ok(!copy_field, "original and copied events have no header");
-	} else {
-		ok(orig_field != copy_field,
-			"original and copied events headers are different pointers");
-	}
-
-	bt_put(orig_field);
-	bt_put(copy_field);
-
-	/* context */
-	orig_field = bt_ctf_event_get_event_context(event);
-	copy_field = bt_ctf_event_get_event_context(copy);
-
-	if (!orig_field) {
-		ok(!copy_field, "original and copied events have no context");
-	} else {
-		ok(orig_field != copy_field,
-			"original and copied events contexts are different pointers");
-	}
-
-	bt_put(orig_field);
-	bt_put(copy_field);
-
-	/* payload */
-	orig_field = bt_ctf_event_get_payload_field(event);
-	copy_field = bt_ctf_event_get_payload_field(copy);
-
-	if (!orig_field) {
-		ok(!copy_field, "original and copied events have no payload");
-	} else {
-		ok(orig_field != copy_field,
-			"original and copied events payloads are different pointers");
-	}
-
-	bt_put(orig_field);
-	bt_put(copy_field);
-
-	bt_put(copy);
 }
 
 void append_simple_event(struct bt_ctf_stream_class *stream_class,
@@ -724,7 +641,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(!bt_ctf_event_set_event_context(simple_event, event_context),
 		"Set an event context successfully");
 
-	event_copy_tests(simple_event);
 	ok(bt_ctf_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
 
