@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_H
-#define BABELTRACE_PLUGIN_H
+#ifndef BABELTRACE_PLUGIN_MACROS_H
+#define BABELTRACE_PLUGIN_MACROS_H
 
 /*
  * BabelTrace - Babeltrace Plug-in Helper Macros
