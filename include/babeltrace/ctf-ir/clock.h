@@ -262,6 +262,11 @@ extern int bt_ctf_clock_get_time(struct bt_ctf_clock *clock,
 extern int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
 		int64_t time);
 
+extern uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock);
+
+extern int bt_ctf_clock_set_value(struct bt_ctf_clock *clock,
+		uint64_t value);
+
 /*
  * bt_ctf_clock_get and bt_ctf_clock_put: increment and decrement the
  * refcount of the clock
