@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 584
+#define NR_TESTS 586
 
 static int64_t current_time = 42;
 
@@ -2611,6 +2611,42 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	bt_put(event_class);
 }
 
+void test_trace_stream_class_clock(void)
+{
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_stream_class *sc1 = NULL;
+	struct bt_ctf_stream_class *sc2 = NULL;
+	struct bt_ctf_clock *sc1_clock = NULL;
+	struct bt_ctf_clock *sc2_clock = NULL;
+	const char *clock_name = "hello";
+
+	trace = bt_ctf_trace_create();
+	assert(trace);
+	sc1 = bt_ctf_stream_class_create(NULL);
+	assert(sc1);
+	sc2 = bt_ctf_stream_class_create(NULL);
+	assert(sc2);
+	sc1_clock = bt_ctf_clock_create(clock_name);
+	assert(sc1_clock);
+	sc2_clock = bt_ctf_clock_create(clock_name);
+	assert(sc2_clock);
+
+	ok(!bt_ctf_stream_class_set_clock(sc1, sc1_clock),
+		"bt_ctf_stream_class_set_clock() succeeds for sc1");
+	ok(!bt_ctf_stream_class_set_clock(sc2, sc2_clock),
+		"bt_ctf_stream_class_set_clock() succeeds for sc2");
+	ok(!bt_ctf_trace_add_stream_class(trace, sc1),
+		"bt_ctf_trace_add_stream_class() succeeds with sc1");
+	ok(bt_ctf_trace_add_stream_class(trace, sc2),
+		"bt_ctf_trace_add_stream_class() fails with sc2 (different clock, same name)");
+
+	BT_PUT(trace);
+	BT_PUT(sc1);
+	BT_PUT(sc2);
+	BT_PUT(sc1_clock);
+	BT_PUT(sc2_clock);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -2918,38 +2954,6 @@ int main(int argc, char **argv)
 	ok(get_time >= current_time - 1 && get_time <= current_time + 1,
 		"bt_ctf_clock_get_time returns the correct time once it is set");
 
-	ok(bt_ctf_writer_add_clock(writer, clock) == 0,
-		"Add clock to writer instance");
-	ok(bt_ctf_writer_add_clock(writer, clock),
-		"Verify a clock can't be added twice to a writer instance");
-
-	ok(bt_ctf_trace_get_clock_count(NULL) < 0,
-		"bt_ctf_trace_get_clock_count correctly handles NULL");
-	ok(bt_ctf_trace_get_clock_count(trace) == 1,
-		"bt_ctf_trace_get_clock_count returns the correct number of clocks");
-	ok(!bt_ctf_trace_get_clock(NULL, 0),
-		"bt_ctf_trace_get_clock correctly handles NULL");
-	ok(!bt_ctf_trace_get_clock(trace, -1),
-		"bt_ctf_trace_get_clock correctly handles negative indexes");
-	ok(!bt_ctf_trace_get_clock(trace, 1),
-		"bt_ctf_trace_get_clock correctly handles out of bound accesses");
-	ret_clock = bt_ctf_trace_get_clock(trace, 0);
-	ok(ret_clock == clock,
-		"bt_ctf_trace_get_clock returns the right clock instance");
-	bt_put(ret_clock);
-	ok(!bt_ctf_trace_get_clock_by_name(trace, NULL),
-		"bt_ctf_trace_get_clock_by_name correctly handles NULL (trace)");
-	ok(!bt_ctf_trace_get_clock_by_name(NULL, clock_name),
-		"bt_ctf_trace_get_clock_by_name correctly handles NULL (clock name)");
-	ok(!bt_ctf_trace_get_clock_by_name(NULL, NULL),
-		"bt_ctf_trace_get_clock_by_name correctly handles NULL (both)");
-	ret_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
-	ok(ret_clock == clock,
-		"bt_ctf_trace_get_clock_by_name returns the right clock instance");
-	bt_put(ret_clock);
-	ok(!bt_ctf_trace_get_clock_by_name(trace, "random"),
-		"bt_ctf_trace_get_clock_by_name fails when the requested clock doesn't exist");
-
 	ok(!bt_ctf_clock_get_name(NULL),
 		"bt_ctf_clock_get_name correctly handles NULL");
 	ok(!bt_ctf_clock_get_description(NULL),
@@ -3170,6 +3174,38 @@ int main(int argc, char **argv)
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
 	ok(stream1, "Instanciate a stream class from writer");
 
+	/*
+	 * Creating a stream through a writer adds the given stream
+	 * class to the writer's trace, thus registering the stream
+	 * class's clock to the trace.
+	 */
+	ok(bt_ctf_trace_get_clock_count(NULL) < 0,
+		"bt_ctf_trace_get_clock_count correctly handles NULL");
+	ok(bt_ctf_trace_get_clock_count(trace) == 1,
+		"bt_ctf_trace_get_clock_count returns the correct number of clocks");
+	ok(!bt_ctf_trace_get_clock(NULL, 0),
+		"bt_ctf_trace_get_clock correctly handles NULL");
+	ok(!bt_ctf_trace_get_clock(trace, -1),
+		"bt_ctf_trace_get_clock correctly handles negative indexes");
+	ok(!bt_ctf_trace_get_clock(trace, 1),
+		"bt_ctf_trace_get_clock correctly handles out of bound accesses");
+	ret_clock = bt_ctf_trace_get_clock(trace, 0);
+	ok(ret_clock == clock,
+		"bt_ctf_trace_get_clock returns the right clock instance");
+	bt_put(ret_clock);
+	ok(!bt_ctf_trace_get_clock_by_name(trace, NULL),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (trace)");
+	ok(!bt_ctf_trace_get_clock_by_name(NULL, clock_name),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (clock name)");
+	ok(!bt_ctf_trace_get_clock_by_name(NULL, NULL),
+		"bt_ctf_trace_get_clock_by_name correctly handles NULL (both)");
+	ret_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
+	ok(ret_clock == clock,
+		"bt_ctf_trace_get_clock_by_name returns the right clock instance");
+	bt_put(ret_clock);
+	ok(!bt_ctf_trace_get_clock_by_name(trace, "random"),
+		"bt_ctf_trace_get_clock_by_name fails when the requested clock doesn't exist");
+
 	ok(bt_ctf_stream_get_class(NULL) == NULL,
 		"bt_ctf_stream_get_class correctly handles NULL");
 	ret_stream_class = bt_ctf_stream_get_class(stream1);
@@ -3256,6 +3292,8 @@ int main(int argc, char **argv)
 
 	ok(bt_ctf_writer_add_environment_field(writer, "new_field", "test") == 0,
 		"Add environment field to writer after stream creation");
+
+	test_trace_stream_class_clock();
 
 	test_instanciate_event_before_stream(writer);
 
