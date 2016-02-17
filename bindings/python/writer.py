@@ -168,9 +168,9 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        offset_s = nbt._bt_ctf_clock_get_offset_s(self._c)
+        ret, offset_s = nbt._bt_ctf_clock_get_offset_s(self._c)
 
-        if offset_s == _MAX_UINT64:
+        if ret < 0:
             raise ValueError("Invalid clock instance")
 
         return offset_s
@@ -193,9 +193,9 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        offset = nbt._bt_ctf_clock_get_offset(self._c)
+        ret, offset = nbt._bt_ctf_clock_get_offset(self._c)
 
-        if offset == _MAX_UINT64:
+        if ret < 0:
             raise ValueError("Invalid clock instance")
 
         return offset
@@ -280,9 +280,9 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        time = nbt._bt_ctf_clock_get_time(self._c)
+        ret, time = nbt._bt_ctf_clock_get_time(self._c)
 
-        if time == _MAX_UINT64:
+        if ret < 0:
             raise ValueError("Invalid clock instance")
 
         return time

@@ -289,9 +289,11 @@ class TraceHandle:
         underlying trace.
         """
 
-        return nbt._bt_trace_handle_get_timestamp_begin(self._trace_collection._tc,
-                                                        self._id,
-                                                        _ClockType.CLOCK_REAL)
+        ret, value = nbt._bt_trace_handle_get_timestamp_begin(
+            self._trace_collection._tc, self._id, _ClockType.CLOCK_REAL)
+        if ret != 0:
+            raise ValueError("Invalid TraceHandle")
+        return value
 
     @property
     def timestamp_end(self):
@@ -300,9 +302,11 @@ class TraceHandle:
         underlying trace.
         """
 
-        return nbt._bt_trace_handle_get_timestamp_end(self._trace_collection._tc,
-                                                      self._id,
-                                                      _ClockType.CLOCK_REAL)
+        ret, value = nbt._bt_trace_handle_get_timestamp_end(
+            self._trace_collection._tc, self._id, _ClockType.CLOCK_REAL)
+        if ret != 0:
+            raise ValueError("Invalid TraceHandle")
+        return value
 
     @property
     def events(self):
@@ -419,10 +423,13 @@ class Event(collections.Mapping):
     @property
     def timestamp(self):
         """
-        Event timestamp (nanoseconds since Epoch) or -1 on error.
+        Event timestamp (nanoseconds since Epoch).
         """
 
-        return nbt._bt_ctf_get_timestamp(self._e)
+        ret, value = nbt._bt_ctf_get_timestamp(self._e)
+        if ret < 0:
+            raise RuntimeError("Failed to get event timestamp")
+        return value
 
     @property
     def datetime(self):
