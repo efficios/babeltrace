@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 586
+#define NR_TESTS 589
 
 static int64_t current_time = 42;
 
@@ -2647,6 +2647,115 @@ void test_trace_stream_class_clock(void)
 	BT_PUT(sc2_clock);
 }
 
+static
+struct bt_ctf_event_class *create_minimal_event_class(void)
+{
+	struct bt_ctf_event_class *ec = NULL;
+	struct bt_ctf_field_type *int_ft = NULL;
+	int ret;
+
+	int_ft = bt_ctf_field_type_integer_create(23);
+	assert(int_ft);
+	ec = bt_ctf_event_class_create("minimal");
+	assert(ec);
+	ret = bt_ctf_event_class_add_field(ec, int_ft, "field");
+	assert(!ret);
+	BT_PUT(int_ft);
+
+	return ec;
+}
+
+static
+void test_create_writer_stream_from_stream_class(void)
+{
+	int ret;
+	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
+	struct bt_ctf_writer *writer = NULL;
+	struct bt_ctf_trace *writer_trace = NULL;
+	struct bt_ctf_stream_class *writer_sc = NULL;
+	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_ctf_trace *non_writer_trace = NULL;
+	struct bt_ctf_stream_class *non_writer_sc = NULL;
+	struct bt_ctf_stream *non_writer_stream = NULL;
+	struct bt_ctf_event_class *ec = NULL;
+	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_field_type *empty_struct_ft = NULL;
+	struct bt_ctf_field *int_field = NULL;
+
+	if (!bt_mkdtemp(trace_path)) {
+		perror("# perror");
+	}
+
+	/* Create empty structure field type (event header) */
+	empty_struct_ft = bt_ctf_field_type_structure_create();
+	assert(empty_struct_ft);
+
+	/* Create writer, writer stream class, and writer stream */
+	writer = bt_ctf_writer_create(trace_path);
+	assert(writer);
+	writer_trace = bt_ctf_writer_get_trace(writer);
+	ok(writer_trace, "bt_ctf_writer_get_trace() returns a trace");
+	writer_sc = bt_ctf_stream_class_create("writer_sc");
+	assert(writer_sc);
+	ret = bt_ctf_stream_class_set_event_header_type(writer_sc,
+		empty_struct_ft);
+	assert(!ret);
+	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_sc);
+	assert(!ret);
+	writer_stream = bt_ctf_stream_create(writer_sc);
+	assert(writer_stream);
+
+	/* Create non-writer trace, stream class, and stream */
+	non_writer_trace = bt_ctf_trace_create();
+	assert(non_writer_trace);
+	non_writer_sc = bt_ctf_stream_class_create("nonwriter_sc");
+	assert(non_writer_sc);
+	ret = bt_ctf_stream_class_set_event_header_type(non_writer_sc,
+		empty_struct_ft);
+	assert(!ret);
+	ret = bt_ctf_trace_add_stream_class(non_writer_trace, non_writer_sc);
+	assert(!ret);
+	non_writer_stream = bt_ctf_stream_create(non_writer_sc);
+	assert(non_writer_stream);
+
+	/* Create event class and event */
+	ec = create_minimal_event_class();
+	assert(ec);
+	ret = bt_ctf_stream_class_add_event_class(writer_sc, ec);
+	assert(!ret);
+	event = bt_ctf_event_create(ec);
+	assert(event);
+	int_field = bt_ctf_event_get_payload_by_index(event, 0);
+	assert(int_field);
+	bt_ctf_field_unsigned_integer_set_value(int_field, 17);
+
+	/*
+	 * Verify non-writer stream: it should be impossible to append
+	 * an event to it.
+	 */
+	ok(bt_ctf_stream_append_event(non_writer_stream, event),
+		"bt_ctf_stream_append_event() fails with a non-writer stream");
+
+	/*
+	 * Verify writer stream: it should be possible to append an
+	 * event to it.
+	 */
+	ok(!bt_ctf_stream_append_event(writer_stream, event),
+		"bt_ctf_stream_append_event() succeeds with a writer stream");
+
+	BT_PUT(writer);
+	BT_PUT(writer_trace);
+	BT_PUT(writer_sc);
+	BT_PUT(writer_stream);
+	BT_PUT(non_writer_trace);
+	BT_PUT(non_writer_sc);
+	BT_PUT(non_writer_stream);
+	BT_PUT(ec);
+	BT_PUT(event);
+	BT_PUT(int_field);
+	BT_PUT(empty_struct_ft);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -3294,6 +3403,8 @@ int main(int argc, char **argv)
 		"Add environment field to writer after stream creation");
 
 	test_trace_stream_class_clock();
+
+	test_create_writer_stream_from_stream_class();
 
 	test_instanciate_event_before_stream(writer);
 
