@@ -57,6 +57,14 @@ extern const char *bt_plugin_get_author(struct bt_plugin *plugin);
  */
 extern const char *bt_plugin_get_license(struct bt_plugin *plugin);
 
+/**
+ * Get the path of a plug-in.
+ *
+ * @param plugin	An instance of a plug-in
+ * @returns		Plug-in path or NULL on error
+ */
+extern const char *bt_plugin_get_path(struct bt_plugin *plugin);
+
 #ifdef __cplusplus
 }
 #endif

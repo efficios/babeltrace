@@ -49,13 +49,15 @@ struct bt_plugin {
 	const char *name;
 	const char *author;
 	const char *license;
+	const char *description;
+	GString *path;
         bt_plugin_init_func init;
 	bt_plugin_exit_func exit;
 	GModule *module;
 };
 
 BT_HIDDEN
-struct bt_plugin *bt_plugin_create(GModule *module);
+struct bt_plugin *bt_plugin_create(GModule *module, const char *path);
 
 BT_HIDDEN
 enum bt_component_status bt_plugin_register_component_classes(

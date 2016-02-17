@@ -54,18 +54,21 @@ enum bt_component_status {
 	BT_COMPONENT_STATUS_OK =		0,
 };
 
-struct bt_component;
 
+struct bt_component;
+struct bt_value;
 
 /**
  * Create an instance of a component from a component class.
  *
  * @param component_class	Component class of which to create an instance
  * @param name			Name of the new component instance, optional
+ * @param params		A dictionary of component parameters
  * @returns			Returns a pointer to a new component instance
  */
 extern struct bt_component *bt_component_create(
-		struct bt_component_class *component_class, const char *name);
+		struct bt_component_class *component_class, const char *name,
+		struct bt_value *params);
 
 /**
  * Get component's name.

@@ -35,19 +35,17 @@
 #include <stdbool.h>
 
 static
-enum bt_component_status ctf_text_init(struct bt_component *);
-static
-void ctf_text_plugin_exit(void);
+enum bt_component_status ctf_text_init(struct bt_component *,
+		struct bt_value *params);
 
 /* Initialize plug-in entry points. */
 BT_PLUGIN_NAME("ctf-text");
+BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
-BT_PLUGIN_LICENSE("MIT License");
-BT_PLUGIN_EXIT(ctf_text_plugin_exit);
+BT_PLUGIN_LICENSE("MIT");
 
-/* Defines BT_PLUGIN_INIT. */
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(__bt_plugin_name, ctf_text_init)
+BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("text", "Formats CTF-IR to text. Formerly known as ctf-text.", ctf_text_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
 
 enum loglevel {
@@ -107,14 +105,8 @@ struct ctf_text_component {
 
 static
 enum bt_component_status ctf_text_init(
-		struct bt_component *component)
+		struct bt_component *component, struct bt_value *params)
 {
-	printf(__bt_plugin_name);
+	printf("ctf_text_init\n");
 	return BT_COMPONENT_STATUS_OK;
-}
-
-static
-void ctf_text_plugin_exit(void)
-{
-	printf("in ctf_text_exit\n");
 }

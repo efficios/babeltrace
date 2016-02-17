@@ -32,6 +32,8 @@
 #include <babeltrace/plugin/component-class-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 
+struct bt_value;
+
 struct bt_component_sink_class {
 	struct bt_component_class parent;
 };
@@ -47,22 +49,21 @@ struct bt_component_sink {
  * Allocate a sink component.
  *
  * @param class			Component class
- * @param name			Component instance name (will be copied)
+ * @param params		A dictionary of component parameters
  * @returns			A sink component instance
  */
 BT_HIDDEN
-extern struct bt_component *bt_component_sink_create(
-		struct bt_component_class *class, const char *name);
+struct bt_component *bt_component_sink_create(
+		struct bt_component_class *class, struct bt_value *params);
 
 /**
- * Allocate a sink component class.
+ * Validate a sink component.
  *
- * @param name			Component instance name (will be copied)
- * @returns			A sink component class instance
+ * @param component		Sink component instance to validate
+ * @returns			One of #bt_component_status
  */
-/* FIXME */
 BT_HIDDEN
-extern struct bt_component *bt_component_class_sink_create(
-		struct bt_component_class *class, const char *name);
+enum bt_component_status bt_component_sink_validate(
+		struct bt_component *component);
 
 #endif /* BABELTRACE_PLUGIN_SINK_INTERNAL_H */

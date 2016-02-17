@@ -36,19 +36,19 @@
 static
 void bt_component_source_destroy(struct bt_component *component)
 {
-	struct bt_component_source *source;
+	return;
+}
 
-	if (!component) {
-		return;
-	}
-
-	source = container_of(component, struct bt_component_source, parent);
-	g_free(source);
+BT_HIDDEN
+enum bt_component_status bt_component_source_validate(
+		struct bt_component *component)
+{
+	return BT_COMPONENT_STATUS_OK;
 }
 
 BT_HIDDEN
 struct bt_component *bt_component_source_create(
-		struct bt_component_class *class, const char *name)
+		struct bt_component_class *class, struct bt_value *params)
 {
 	struct bt_component_source *source = NULL;
 	enum bt_component_status ret;
@@ -58,8 +58,7 @@ struct bt_component *bt_component_source_create(
 		goto end;
 	}
 
-	ret = bt_component_init(&source->parent, class, name,
-		bt_component_source_destroy);
+	ret = bt_component_init(&source->parent, bt_component_source_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(source);
 		goto end;

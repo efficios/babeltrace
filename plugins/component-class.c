@@ -41,6 +41,9 @@ void bt_component_class_destroy(struct bt_object *obj)
 	if (class->name) {
 		g_string_free(class->name, TRUE);
 	}
+	if (class->description) {
+		g_string_free(class->description, TRUE);
+	}
 
 	bt_put(class->plugin);
 	g_free(class);
@@ -49,7 +52,7 @@ void bt_component_class_destroy(struct bt_object *obj)
 BT_HIDDEN
 struct bt_component_class *bt_component_class_create(
 		enum bt_component_type type, const char *name,
-		struct bt_plugin *plugin)
+		const char *description, struct bt_plugin *plugin)
 {
 	struct bt_component_class *class;
 
@@ -61,7 +64,8 @@ struct bt_component_class *bt_component_class_create(
 	bt_object_init(class, bt_component_class_destroy);
 	class->type = type;
 	class->name = g_string_new(name);
-	if (!class->name) {
+	class->description = g_string_new(description);
+	if (!class->name || !class->description) {
 	        BT_PUT(class);
 		goto end;
 	}
@@ -90,3 +94,10 @@ struct bt_plugin *bt_component_class_get_plugin(
 	return component_class ? bt_get(component_class->plugin) :
 			NULL;
 }
+
+const char *bt_component_class_get_description(
+		struct bt_component_class *component_class)
+{
+	return component_class ? component_class->description->str : NULL;
+}
+

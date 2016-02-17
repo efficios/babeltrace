@@ -112,7 +112,7 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 	}
 
 	/* Load plugin and make sure it defines the required entry points */
-	plugin = bt_plugin_create(module);
+	plugin = bt_plugin_create(module, path);
 	if (!plugin) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN;
 		if (!g_module_close(module)) {
@@ -383,7 +383,8 @@ end:
 static
 enum bt_component_factory_status
 add_component_class(struct bt_component_factory *factory, const char *name,
-		bt_component_init_cb init, enum bt_component_type type)
+		    const char *description, bt_component_init_cb init,
+		    enum bt_component_type type)
 {
 	struct bt_component_class *class;
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
@@ -393,7 +394,7 @@ add_component_class(struct bt_component_factory *factory, const char *name,
 		goto end;
 	}
 
-	class = bt_component_class_create(type, name,
+	class = bt_component_class_create(type, name, description,
 			factory->current_plugin);
 	g_ptr_array_add(factory->component_classes, class);
 end:
@@ -403,17 +404,17 @@ end:
 enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_init_cb init)
+		const char *description, bt_component_init_cb init)
 {
-	return add_component_class(factory, name, init,
+	return add_component_class(factory, name, description, init,
 			BT_COMPONENT_TYPE_SOURCE);
 }
 
 enum bt_component_factory_status
 bt_component_factory_register_sink_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_init_cb init)
+		const char *description, bt_component_init_cb init)
 {
-	return add_component_class(factory, name, init,
+	return add_component_class(factory, name, description, init,
 			BT_COMPONENT_TYPE_SINK);
 }

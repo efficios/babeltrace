@@ -38,6 +38,7 @@ struct bt_notification;
 struct bt_notification_iterator;
 struct bt_component;
 struct bt_component_factory;
+struct bt_value;
 
 typedef enum bt_component_status (*bt_plugin_init_func)(
 		struct bt_component_factory *factory);
@@ -57,10 +58,11 @@ typedef void (*bt_component_destroy_cb)(struct bt_component *component);
  * function.
  *
  * @param component	Component instance
+ * @param params	A dictionary of component parameters
  * @returns		One of #bt_component_status values
  */
 typedef enum bt_component_status (*bt_component_init_cb)(
-		struct bt_component *component);
+		struct bt_component *component, struct bt_value *params);
 
 /**
  * Get a component's private data.

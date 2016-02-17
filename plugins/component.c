@@ -35,6 +35,20 @@
 #include <babeltrace/ref.h>
 
 static
+struct bt_component * (* const component_create_funcs[])(
+		struct bt_component_class *, struct bt_value *) = {
+	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_create,
+	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_create,
+};
+
+static
+enum bt_component_status (* const component_validation_funcs[])(
+		struct bt_component *) = {
+	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_validate,
+	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_validate,
+};
+
+static
 void bt_component_destroy(struct bt_object *obj)
 {
 	struct bt_component *component = NULL;
@@ -46,44 +60,34 @@ void bt_component_destroy(struct bt_object *obj)
 
 	component = container_of(obj, struct bt_component, base);
 
-	/**
-	 * User data is destroyed first, followed by the concrete component
-	 * instance.
-	 */
-	assert(!component->user_data || component->user_destroy);
-	component->user_destroy(component->user_data);
-
-	g_string_free(component->name, TRUE);
-
 	assert(component->destroy);
 	component_class = component->class;
 
-	/* Frees the component, which becomes invalid */
-	component->destroy(component);
-	component = NULL;
+	/*
+	 * User data is destroyed first, followed by the concrete component
+	 * instance.
+	 */
+	if (component->user_destroy) {
+		component->user_destroy(component->user_data);
+	}
 
+	component->destroy(component);
+	g_string_free(component->name, TRUE);
 	bt_put(component_class);
+	g_free(component);
 }
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		struct bt_component_class *class, const char *name,
 		bt_component_destroy_cb destroy)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	bt_object_init(component, bt_component_destroy);
-	if (!component || !class || !name || name[0] == '\0' || !destroy) {
+	if (!component || !destroy) {
 		ret = BT_COMPONENT_STATUS_INVAL;
 		goto end;
 	}
 
-	component->class = bt_get(class);
-	component->name = g_string_new(name);
-	if (!component->name) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
-		goto end;
-	}
 	component->destroy = destroy;
 end:
 	return ret;
@@ -96,23 +100,41 @@ enum bt_component_type bt_component_get_type(struct bt_component *component)
 }
 
 struct bt_component *bt_component_create(
-		struct bt_component_class *component_class, const char *name)
+		struct bt_component_class *component_class, const char *name,
+		struct bt_value *params)
 {
+	int ret;
 	struct bt_component *component = NULL;
+	enum bt_component_type type;
 
 	if (!component_class) {
 		goto end;
 	}
 
-	switch (bt_component_class_get_type(component_class))
-	{
-	case BT_COMPONENT_TYPE_SOURCE:
-		component = bt_component_source_create(component_class, name);
-		break;
-	case BT_COMPONENT_TYPE_SINK:
-		component = bt_component_sink_create(component_class, name);
-		break;
-	default:
+	type = bt_component_class_get_type(component_class);
+	if (type <= BT_COMPONENT_TYPE_UNKNOWN ||
+			type >= BT_COMPONENT_TYPE_FILTER) {
+		/* Filter components are not supported yet. */
+		goto end;
+	}
+
+	component = component_create_funcs[type](component_class, params);
+	if (!component) {
+		goto end;
+	}
+
+	bt_object_init(component, bt_component_destroy);
+	component->class = bt_get(component_class);
+	component->name = g_string_new(name);
+	if (component->name) {
+		BT_PUT(component);
+		goto end;
+	}
+
+	component_class->init(component, params);
+	ret = component_validation_funcs[type](component);
+	if (ret) {
+		BT_PUT(component);
 		goto end;
 	}
 end:

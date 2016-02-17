@@ -32,6 +32,8 @@
 #include <babeltrace/plugin/component-class-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 
+struct bt_value;
+
 struct bt_component_source_class {
 	struct bt_component_class parent;
 };
@@ -47,11 +49,21 @@ struct bt_component_source {
  * Allocate a source component.
  *
  * @param class			Component class
- * @param name			Component instance name (will be copied)
+ * @param params		A dictionary of component parameters
  * @returns			A source component instance
  */
 BT_HIDDEN
-extern struct bt_component *bt_component_source_create(
-		struct bt_component_class *class, const char *name);
+struct bt_component *bt_component_source_create(
+		struct bt_component_class *class, struct bt_value *params);
+
+/**
+ * Validate a source component.
+ *
+ * @param component		Source component instance to validate
+ * @returns			One of #bt_component_status
+ */
+BT_HIDDEN
+enum bt_component_status bt_component_source_validate(
+		struct bt_component *component);
 
 #endif /* BABELTRACE_PLUGIN_SOURCE_INTERNAL_H */

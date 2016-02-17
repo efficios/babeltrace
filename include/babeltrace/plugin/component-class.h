@@ -59,6 +59,18 @@ extern const char *bt_component_class_get_name(
 		struct bt_component_class *component_class);
 
 /**
+ * Get a component class' description.
+ *
+ * Component classes may provide an optional description. It may, however,
+ * opt not to.
+ *
+ * @param component_class	Component class of which to get the description
+ * @returns			Description of the component class, or NULL.
+ */
+extern const char *bt_component_class_get_name(
+		struct bt_component_class *component_class);
+
+/**
  * Get a component class' type.
  *
  * @param component_class	Component class of which to get the type

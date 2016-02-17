@@ -31,11 +31,12 @@
 #include <babeltrace/plugin/plugin-internal.h>
 #include <glib.h>
 
-#define PLUGIN_SYMBOL_NAME	"__bt_plugin_name"
-#define PLUGIN_SYMBOL_AUTHOR	"__bt_plugin_author"
-#define PLUGIN_SYMBOL_LICENSE	"__bt_plugin_license"
-#define PLUGIN_SYMBOL_INIT	"__bt_plugin_init"
-#define PLUGIN_SYMBOL_EXIT	"__bt_plugin_exit"
+#define PLUGIN_SYMBOL_NAME		"__bt_plugin_name"
+#define PLUGIN_SYMBOL_AUTHOR		"__bt_plugin_author"
+#define PLUGIN_SYMBOL_LICENSE		"__bt_plugin_license"
+#define PLUGIN_SYMBOL_INIT		"__bt_plugin_init"
+#define PLUGIN_SYMBOL_EXIT		"__bt_plugin_exit"
+#define PLUGIN_SYMBOL_DESCRIPTION	"__bt_plugin_description"
 
 static
 void bt_plugin_destroy(struct bt_object *obj)
@@ -49,19 +50,23 @@ void bt_plugin_destroy(struct bt_object *obj)
 		if (!g_module_close(plugin->module)) {
 				printf_error("Module close error: %s",
 					g_module_error());
-
 		}
 	}
+
+	if (plugin->exit) {
+		plugin->exit();
+	}
+	g_string_free(plugin->path, TRUE);
 	g_free(plugin);
 }
 
 BT_HIDDEN
-struct bt_plugin *bt_plugin_create(GModule *module)
+struct bt_plugin *bt_plugin_create(GModule *module, const char *path)
 {
 	struct bt_plugin *plugin = NULL;
 	gpointer symbol = NULL;
 
-	if (!module) {
+	if (!module || !path) {
 		goto error;
 	}
 
@@ -71,6 +76,11 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 	}
 
 	bt_object_init(plugin, bt_plugin_destroy);
+	plugin->path = g_string_new(path);
+	if (!plugin->path) {
+		goto error;
+	}
+
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
 			(gpointer *) &plugin->name)) {
 		printf_error("Unable to resolve plugin symbol %s from %s",
@@ -104,6 +114,8 @@ struct bt_plugin *bt_plugin_create(GModule *module)
 	}
 	g_module_symbol(module, PLUGIN_SYMBOL_AUTHOR,
 			(gpointer *) &plugin->author);
+	g_module_symbol(module, PLUGIN_SYMBOL_DESCRIPTION,
+			(gpointer *) &plugin->description);
 
 	return plugin;
 error:
@@ -132,4 +144,14 @@ const char *bt_plugin_get_author(struct bt_plugin *plugin)
 const char *bt_plugin_get_license(struct bt_plugin *plugin)
 {
 	return plugin ? plugin->license : NULL;
+}
+
+const char *bt_plugin_get_path(struct bt_plugin *plugin)
+{
+	return plugin ? plugin->path->str : NULL;
+}
+
+const char *bt_plugin_get_description(struct bt_plugin *plugin)
+{
+	return plugin ? plugin->description : NULL;
 }

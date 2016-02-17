@@ -33,19 +33,19 @@
 static
 void bt_component_sink_destroy(struct bt_component *component)
 {
-	struct bt_component_sink *sink;
+	return;
+}
 
-	if (!component) {
-		return;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	g_free(sink);
+BT_HIDDEN
+enum bt_component_status bt_component_sink_validate(
+		struct bt_component *component)
+{
+	return BT_COMPONENT_STATUS_OK;
 }
 
 BT_HIDDEN
 struct bt_component *bt_component_sink_create(
-		struct bt_component_class *class, const char *name)
+		struct bt_component_class *class, struct bt_value *params)
 {
 	struct bt_component_sink *sink = NULL;
 	enum bt_component_status ret;
@@ -55,8 +55,7 @@ struct bt_component *bt_component_sink_create(
 		goto end;
 	}
 
-	ret = bt_component_init(&sink->parent, class, name,
-		bt_component_sink_destroy);
+	ret = bt_component_init(&sink->parent, bt_component_sink_destroy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(sink);
 		goto end;

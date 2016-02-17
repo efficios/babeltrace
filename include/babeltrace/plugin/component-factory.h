@@ -125,12 +125,12 @@ extern enum bt_component_factory_status bt_component_factory_load(
 extern enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_init_cb init);
+		const char *description, bt_component_init_cb init);
 
 extern enum bt_component_factory_status
 bt_component_factory_register_sink_component_class(
 		struct bt_component_factory *factory, const char *name,
-		bt_component_init_cb init);
+		const char *description, bt_component_init_cb init);
 
 #ifdef __cplusplus
 }
