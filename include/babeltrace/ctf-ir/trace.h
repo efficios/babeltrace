@@ -59,21 +59,6 @@ struct bt_ctf_clock;
 extern struct bt_ctf_trace *bt_ctf_trace_create(void);
 
 /*
- * bt_ctf_trace_create_stream: create a stream instance.
- *
- * Allocate a new stream instance and register it to the trace. The creation of
- * a stream sets its reference count to 1.
- *
- * @param trace Trace instance.
- * @param stream_class Stream class to instantiate.
- *
- * Returns a new stream on success, NULL on error.
- */
-extern struct bt_ctf_stream *bt_ctf_trace_create_stream(
-		struct bt_ctf_trace *trace,
-		struct bt_ctf_stream_class *stream_class);
-
-/*
  * bt_ctf_trace_set_environment_field: sets an environment field to the
  *	trace.
  *

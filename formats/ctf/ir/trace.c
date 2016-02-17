@@ -136,43 +136,6 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	g_free(trace);
 }
 
-struct bt_ctf_stream *bt_ctf_trace_create_stream(struct bt_ctf_trace *trace,
-		struct bt_ctf_stream_class *stream_class)
-{
-	int ret;
-	int stream_class_found = 0;
-	size_t i;
-	struct bt_ctf_stream *stream = NULL;
-
-	if (!trace || !stream_class) {
-		goto error;
-	}
-
-	for (i = 0; i < trace->stream_classes->len; i++) {
-		if (trace->stream_classes->pdata[i] == stream_class) {
-			stream_class_found = 1;
-		}
-	}
-
-	if (!stream_class_found) {
-		ret = bt_ctf_trace_add_stream_class(trace, stream_class);
-		if (ret) {
-			goto error;
-		}
-	}
-
-	stream = bt_ctf_stream_create(stream_class, trace);
-	if (!stream) {
-		goto error;
-	}
-
-	g_ptr_array_add(trace->streams, stream);
-	return stream;
-error:
-        BT_PUT(stream);
-	return stream;
-}
-
 int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 		const char *name, struct bt_value *value)
 {

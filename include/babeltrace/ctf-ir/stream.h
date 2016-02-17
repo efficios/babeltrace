@@ -40,6 +40,9 @@ extern "C" {
 struct bt_ctf_event;
 struct bt_ctf_stream;
 
+extern struct bt_ctf_stream *bt_ctf_stream_create(
+		struct bt_ctf_stream_class *stream_class);
+
 /*
  * bt_ctf_stream_get_stream_class: get a stream's class.
  *

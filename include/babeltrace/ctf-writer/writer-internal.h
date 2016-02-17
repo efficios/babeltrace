@@ -44,4 +44,7 @@ struct bt_ctf_writer {
 	int metadata_fd;
 };
 
+BT_HIDDEN
+void bt_ctf_writer_freeze(struct bt_ctf_writer *writer);
+
 #endif /* BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H */

@@ -50,12 +50,6 @@ struct bt_ctf_stream {
 	struct bt_ctf_field *event_context;
 };
 
-/* Stream class should be frozen by the caller after creating a stream */
-BT_HIDDEN
-struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_trace *trace);
-
 BT_HIDDEN
 int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
 

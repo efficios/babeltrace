@@ -35,6 +35,8 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler.h>
@@ -252,15 +254,64 @@ void release_event(struct bt_ctf_event *event)
 	}
 }
 
-BT_HIDDEN
+static
+int create_stream_file(struct bt_ctf_writer *writer,
+		struct bt_ctf_stream *stream)
+{
+	int fd;
+	GString *filename = g_string_new(stream->stream_class->name->str);
+
+	if (stream->stream_class->name->len == 0) {
+		int64_t ret;
+
+		ret = bt_ctf_stream_class_get_id(stream->stream_class);
+		if (ret < 0) {
+			fd = -1;
+			goto error;
+		}
+
+		g_string_printf(filename, "stream_%" PRId64, ret);
+	}
+
+	g_string_append_printf(filename, "_%" PRIu32, stream->id);
+	fd = openat(writer->trace_dir_fd, filename->str,
+		O_RDWR | O_CREAT | O_TRUNC,
+		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+error:
+	g_string_free(filename, TRUE);
+	return fd;
+}
+
+static
+int set_stream_fd(struct bt_ctf_stream *stream, int fd)
+{
+	int ret = 0;
+
+	if (stream->pos.fd != -1) {
+		ret = -1;
+		goto end;
+	}
+
+	ctf_init_pos(&stream->pos, NULL, fd, O_RDWR);
+	stream->pos.fd = fd;
+end:
+	return ret;
+}
+
 struct bt_ctf_stream *bt_ctf_stream_create(
-	struct bt_ctf_stream_class *stream_class,
-	struct bt_ctf_trace *trace)
+		struct bt_ctf_stream_class *stream_class)
 {
 	int ret;
 	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_writer *writer = NULL;
 
-	if (!stream_class || !trace) {
+	if (!stream_class) {
+		goto end;
+	}
+
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
 		goto end;
 	}
 
@@ -275,68 +326,89 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	 * reachable; it needs its parent to remain valid.
 	 */
 	bt_object_set_parent(stream, trace);
-	stream->packet_context = bt_ctf_field_create(
-		stream_class->packet_context_type);
-	if (!stream->packet_context) {
-		goto error;
-	}
-
-	/* Initialize events_discarded */
-	ret = set_structure_field_integer(stream->packet_context,
-		"events_discarded", 0);
-	if (ret) {
-		goto error;
-	}
-
-	stream->pos.fd = -1;
 	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
-	stream->events = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) release_event);
-	if (!stream->events) {
-		goto error;
+	stream->pos.fd = -1;
+
+	if (trace->is_created_by_writer) {
+		int fd;
+		writer = (struct bt_ctf_writer *)
+			bt_object_get_parent(trace);
+
+		assert(writer);
+		stream->packet_context = bt_ctf_field_create(
+			stream_class->packet_context_type);
+		if (!stream->packet_context) {
+			goto error;
+		}
+
+		/* Initialize events_discarded */
+		ret = set_structure_field_integer(stream->packet_context,
+			"events_discarded", 0);
+		if (ret) {
+			goto error;
+		}
+
+		stream->events = g_ptr_array_new_with_free_func(
+			(GDestroyNotify) release_event);
+		if (!stream->events) {
+			goto error;
+		}
+
+		/* A trace is not allowed to have a NULL packet header */
+		assert(trace->packet_header_type);
+		stream->packet_header =
+			bt_ctf_field_create(trace->packet_header_type);
+		if (!stream->packet_header) {
+			goto error;
+		}
+
+		/*
+		 * Attempt to populate the default trace packet header fields
+		 * (magic, uuid and stream_id). This will _not_ fail shall the
+		 * fields not be found or be of an incompatible type; they will
+		 * simply not be populated automatically. The user will have to
+		 * make sure to set the trace packet header fields himself
+		 * before flushing.
+		 */
+		ret = set_packet_header(stream);
+		if (ret) {
+			goto error;
+		}
+
+		/* Create file associated with this stream */
+		fd = create_stream_file(writer, stream);
+		if (fd < 0) {
+			goto error;
+		}
+
+		ret = set_stream_fd(stream, fd);
+		if (ret) {
+			goto error;
+		}
+
+		/* Freeze the writer */
+		bt_ctf_writer_freeze(writer);
+	} else {
+		/* Non-writer stream indicated by a negative FD */
+		ret = set_stream_fd(stream, -1);
+		if (ret) {
+			goto error;
+		}
 	}
 
-	/* A trace is not allowed to have a NULL packet header */
-	assert(trace->packet_header_type);
-	stream->packet_header = bt_ctf_field_create(trace->packet_header_type);
-	if (!stream->packet_header) {
-		goto error;
-	}
-	/*
-	 * Attempt to populate the default trace packet header fields
-	 * (magic, uuid and stream_id). This will _not_ fail shall the
-	 * fields not be found or be of an incompatible type; they will
-	 * simply not be populated automatically. The user will have to
-	 * make sure to set the trace packet header fields himself before
-	 * flushing.
-	 */
-	ret = set_packet_header(stream);
-	if (ret) {
-		goto error;
-	}
+	/* Add this stream to the trace's streams */
+	g_ptr_array_add(trace->streams, stream);
+
 end:
+	BT_PUT(trace);
+	BT_PUT(writer);
 	return stream;
 error:
 	BT_PUT(stream);
-	bt_put(trace);
+	BT_PUT(trace);
+	BT_PUT(writer);
 	return stream;
-}
-
-BT_HIDDEN
-int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd)
-{
-	int ret = 0;
-
-	if (stream->pos.fd != -1) {
-		ret = -1;
-		goto end;
-	}
-
-	ctf_init_pos(&stream->pos, NULL, fd, O_RDWR);
-	stream->pos.fd = fd;
-end:
-	return ret;
 }
 
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(

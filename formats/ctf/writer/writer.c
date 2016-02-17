@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
 #include <stdio.h>
@@ -45,10 +46,6 @@
 
 static
 void bt_ctf_writer_destroy(struct bt_object *obj);
-
-static
-int create_stream_file(struct bt_ctf_writer *writer,
-		struct bt_ctf_stream *stream);
 
 struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
@@ -74,6 +71,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
+	writer->trace->is_created_by_writer = 1;
 	bt_object_set_parent(writer->trace, writer);
 	bt_put(writer->trace);
 	/* Create trace directory if necessary and open a metadata file */
@@ -144,24 +142,50 @@ end:
 struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream_class *stream_class)
 {
-	int stream_fd;
 	struct bt_ctf_stream *stream = NULL;
+	int stream_class_count;
+	bool stream_class_found = false;
+	int i;
 
 	if (!writer || !stream_class) {
 		goto error;
 	}
 
-	stream = bt_ctf_trace_create_stream(writer->trace, stream_class);
+	/* Make sure the stream class is part of the writer's trace */
+	stream_class_count = bt_ctf_trace_get_stream_class_count(writer->trace);
+	if (stream_class_count < 0) {
+		goto error;
+	}
+
+	for (i = 0; i < stream_class_count; i++) {
+		struct bt_ctf_stream_class *existing_stream_class =
+			bt_ctf_trace_get_stream_class(writer->trace, i);
+
+		if (existing_stream_class == stream_class) {
+			stream_class_found = true;
+		}
+
+		BT_PUT(existing_stream_class);
+
+		if (stream_class_found) {
+			break;
+		}
+	}
+
+	if (!stream_class_found) {
+		int ret = bt_ctf_trace_add_stream_class(writer->trace,
+			stream_class);
+
+		if (ret) {
+			goto error;
+		}
+	}
+
+	stream = bt_ctf_stream_create(stream_class);
 	if (!stream) {
 		goto error;
 	}
 
-	stream_fd = create_stream_file(writer, stream);
-	if (stream_fd < 0 || bt_ctf_stream_set_fd(stream, stream_fd)) {
-		goto error;
-	}
-
-	writer->frozen = 1;
 	return stream;
 
 error:
@@ -274,30 +298,8 @@ void bt_ctf_writer_put(struct bt_ctf_writer *writer)
 	bt_put(writer);
 }
 
-static
-int create_stream_file(struct bt_ctf_writer *writer,
-		struct bt_ctf_stream *stream)
+BT_HIDDEN
+void bt_ctf_writer_freeze(struct bt_ctf_writer *writer)
 {
-	int fd;
-	GString *filename = g_string_new(stream->stream_class->name->str);
-
-	if (stream->stream_class->name->len == 0) {
-		int64_t ret;
-
-		ret = bt_ctf_stream_class_get_id(stream->stream_class);
-		if (ret < 0) {
-			fd = -1;
-			goto error;
-		}
-
-		g_string_printf(filename, "stream_%" PRId64, ret);
-	}
-
-	g_string_append_printf(filename, "_%" PRIu32, stream->id);
-	fd = openat(writer->trace_dir_fd, filename->str,
-		O_RDWR | O_CREAT | O_TRUNC,
-		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-error:
-	g_string_free(filename, TRUE);
-	return fd;
+	writer->frozen = 1;
 }
