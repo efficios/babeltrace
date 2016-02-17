@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 589
+#define NR_TESTS 590
 
 static int64_t current_time = 42;
 
@@ -2670,6 +2670,7 @@ void test_create_writer_stream_from_stream_class(void)
 {
 	int ret;
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
+	const char *writer_stream_name = "writer stream instance";
 	struct bt_ctf_writer *writer = NULL;
 	struct bt_ctf_trace *writer_trace = NULL;
 	struct bt_ctf_stream_class *writer_sc = NULL;
@@ -2702,8 +2703,10 @@ void test_create_writer_stream_from_stream_class(void)
 	assert(!ret);
 	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_sc);
 	assert(!ret);
-	writer_stream = bt_ctf_stream_create(writer_sc);
+	writer_stream = bt_ctf_stream_create(writer_sc, writer_stream_name);
 	assert(writer_stream);
+	ok(!strcmp(bt_ctf_stream_get_name(writer_stream), writer_stream_name),
+		"bt_ctf_stream_get_name() returns the stream's name");
 
 	/* Create non-writer trace, stream class, and stream */
 	non_writer_trace = bt_ctf_trace_create();
@@ -2715,7 +2718,7 @@ void test_create_writer_stream_from_stream_class(void)
 	assert(!ret);
 	ret = bt_ctf_trace_add_stream_class(non_writer_trace, non_writer_sc);
 	assert(!ret);
-	non_writer_stream = bt_ctf_stream_create(non_writer_sc);
+	non_writer_stream = bt_ctf_stream_create(non_writer_sc, NULL);
 	assert(non_writer_stream);
 
 	/* Create event class and event */

@@ -181,7 +181,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		}
 	}
 
-	stream = bt_ctf_stream_create(stream_class);
+	stream = bt_ctf_stream_create(stream_class, NULL);
 	if (!stream) {
 		goto error;
 	}

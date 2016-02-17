@@ -299,7 +299,8 @@ end:
 }
 
 struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_ctf_stream_class *stream_class,
+		const char *name)
 {
 	int ret;
 	struct bt_ctf_stream *stream = NULL;
@@ -307,17 +308,17 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	struct bt_ctf_writer *writer = NULL;
 
 	if (!stream_class) {
-		goto end;
+		goto error;
 	}
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (!trace) {
-		goto end;
+		goto error;
 	}
 
 	stream = g_new0(struct bt_ctf_stream, 1);
 	if (!stream) {
-		goto end;
+		goto error;
 	}
 
 	bt_object_init(stream, bt_ctf_stream_destroy);
@@ -329,6 +330,13 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
 	stream->pos.fd = -1;
+
+	if (name) {
+		stream->name = g_string_new(name);
+		if (!stream->name) {
+			goto error;
+		}
+	}
 
 	if (trace->is_created_by_writer) {
 		int fd;
@@ -400,7 +408,6 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	/* Add this stream to the trace's streams */
 	g_ptr_array_add(trace->streams, stream);
 
-end:
 	BT_PUT(trace);
 	BT_PUT(writer);
 	return stream;
@@ -906,6 +913,10 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 	if (stream->events) {
 		g_ptr_array_free(stream->events, TRUE);
 	}
+
+	if (stream->name) {
+		g_string_free(stream->name, TRUE);
+	}
 	bt_put(stream->packet_header);
 	bt_put(stream->packet_context);
 	bt_put(stream->event_context);
@@ -960,4 +971,18 @@ end:
 	bt_put(integer);
 	bt_put(field_type);
 	return ret;
+}
+
+const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
+{
+	const char *name = NULL;
+
+	if (!stream) {
+		goto end;
+	}
+
+	name = stream->name ? stream->name->str : NULL;
+
+end:
+	return name;
 }
