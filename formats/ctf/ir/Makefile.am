@@ -10,6 +10,7 @@ libctf_ir_la_SOURCES = \
 	fields.c \
 	field-types.c \
 	field-path.c \
+	packet.c \
 	stream.c \
 	stream-class.c \
 	trace.c \

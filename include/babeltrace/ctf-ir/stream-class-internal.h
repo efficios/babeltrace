@@ -34,6 +34,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <glib.h>
 
 struct bt_ctf_stream_class {
