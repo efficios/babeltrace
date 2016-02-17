@@ -158,6 +158,9 @@ class Clock:
     def precision(self, precision):
         ret = nbt._bt_ctf_clock_set_precision(self._c, precision)
 
+        if ret < 0:
+            raise ValueError("Invalid precision value.")
+
     @property
     def offset_seconds(self):
         """
