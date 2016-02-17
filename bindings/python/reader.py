@@ -153,8 +153,8 @@ class TraceCollection:
         for event in self._events(begin_pos_ptr, end_pos_ptr):
             yield event
 
-        nbt._bt_iter_free_pos(begin_pos_ptr);
-        nbt._bt_iter_free_pos(end_pos_ptr);
+        nbt._bt_iter_free_pos(begin_pos_ptr)
+        nbt._bt_iter_free_pos(end_pos_ptr)
 
     def events_timestamps(self, timestamp_begin, timestamp_end):
         """
@@ -177,8 +177,8 @@ class TraceCollection:
         for event in self._events(begin_pos_ptr, end_pos_ptr):
             yield event
 
-        nbt._bt_iter_free_pos(begin_pos_ptr);
-        nbt._bt_iter_free_pos(end_pos_ptr);
+        nbt._bt_iter_free_pos(begin_pos_ptr)
+        nbt._bt_iter_free_pos(end_pos_ptr)
 
     @property
     def timestamp_begin(self):
