@@ -47,8 +47,6 @@ struct bt_ctf_stream {
 	GString *name;
 	struct bt_ctf_field *packet_header;
 	struct bt_ctf_field *packet_context;
-	struct bt_ctf_field *event_header;
-	struct bt_ctf_field *event_context;
 };
 
 BT_HIDDEN
