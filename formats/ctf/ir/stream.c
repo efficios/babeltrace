@@ -563,6 +563,19 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
+	/*
+	 * The event is not supposed to have a parent stream at this
+	 * point. The only other way an event can have a parent stream
+	 * is if it was assigned when setting a packet to the event,
+	 * in which case the packet's stream is not a writer stream,
+	 * and thus the user is trying to append an event which belongs
+	 * to another stream.
+	 */
+	if (event->base.parent) {
+		ret = -1;
+		goto end;
+	}
+
 	bt_object_set_parent(event, stream);
 	ret = bt_ctf_event_populate_event_header(event);
 	if (ret) {
