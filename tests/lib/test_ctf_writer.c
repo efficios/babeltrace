@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 594
+#define NR_TESTS 596
 
 static int64_t current_time = 42;
 
@@ -2789,6 +2789,30 @@ void test_create_writer_stream_from_stream_class(void)
 	BT_PUT(non_writer_clock);
 }
 
+void test_clock_utils(void)
+{
+	int ret;
+	struct bt_ctf_clock *clock = NULL;
+
+	clock = bt_ctf_clock_create("water");
+	assert(clock);
+	ret = bt_ctf_clock_set_offset_s(clock, 1234);
+	assert(clock);
+	ret = bt_ctf_clock_set_offset(clock, 1000);
+	assert(!ret);
+	ret = bt_ctf_clock_set_frequency(clock, 1000000000);
+	assert(!ret);
+	ok(bt_ctf_clock_ns_from_value(clock, 4321) == 1234000005321ULL,
+		"bt_ctf_clock_ns_from_value() returns the correct value with a 1 GHz frequency");
+	ret = bt_ctf_clock_set_frequency(clock, 1534);
+	assert(!ret);
+	ok(bt_ctf_clock_ns_from_value(clock, 4321) ==
+		(uint64_t) 1237468709256.845,
+		"bt_ctf_clock_ns_from_value() returns the correct value with a non-1 GHz frequency");
+
+	BT_PUT(clock);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -3434,6 +3458,8 @@ int main(int argc, char **argv)
 
 	ok(bt_ctf_writer_add_environment_field(writer, "new_field", "test") == 0,
 		"Add environment field to writer after stream creation");
+
+	test_clock_utils();
 
 	test_trace_stream_class_clock();
 
