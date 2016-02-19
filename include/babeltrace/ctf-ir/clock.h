@@ -237,6 +237,9 @@ extern const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock);
 extern int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock,
 		const unsigned char *uuid);
 
+extern int64_t bt_ctf_clock_ns_from_value(struct bt_ctf_clock *clock,
+		uint64_t value);
+
 #ifdef __cplusplus
 }
 #endif
