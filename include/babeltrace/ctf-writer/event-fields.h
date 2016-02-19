@@ -1,3 +1,6 @@
+#ifndef BABELTRACE_CTF_WRITER_EVENT_FIELDS_H
+#define BABELTRACE_CTF_WRITER_EVENT_FIELDS_H
+
 /*
  * BabelTrace - CTF Writer: Event Fields
  *
@@ -28,3 +31,32 @@
  */
 
 #include <babeltrace/ctf-ir/fields.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
+ * field's reference count.
+ *
+ * You may also use bt_ctf_get() and bt_ctf_put() with field objects.
+ *
+ * These functions ensure that the field won't be destroyed when it
+ * is in use. The same number of get and put (plus one extra put to
+ * release the initial reference done at creation) have to be done to
+ * destroy a field.
+ *
+ * When the field's reference count is decremented to 0 by a bt_ctf_field_put,
+ * the field is freed.
+ *
+ * @param field Field instance.
+ */
+extern void bt_ctf_field_get(struct bt_ctf_field *field);
+extern void bt_ctf_field_put(struct bt_ctf_field *field);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_CTF_WRITER_EVENT_FIELDS_H */

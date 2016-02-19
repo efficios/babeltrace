@@ -258,25 +258,6 @@ extern struct bt_ctf_event *bt_ctf_event_copy(struct bt_ctf_event *event);
 extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet);
 
-/*
- * bt_ctf_event_get and bt_ctf_event_put: increment and decrement
- * the event's reference count.
- *
- * You may also use bt_ctf_get() and bt_ctf_put() with event objects.
- *
- * These functions ensure that the event won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy an event.
- *
- * When the event's reference count is decremented to 0 by a
- * bt_ctf_event_put, the event is freed.
- *
- * @param event Event instance.
- */
-extern void bt_ctf_event_get(struct bt_ctf_event *event);
-extern void bt_ctf_event_put(struct bt_ctf_event *event);
-
 #ifdef __cplusplus
 }
 #endif

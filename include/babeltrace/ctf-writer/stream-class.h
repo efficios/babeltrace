@@ -1,3 +1,6 @@
+#ifndef BABELTRACE_CTF_WRITER_STREAM_CLASS_H
+#define BABELTRACE_CTF_WRITER_STREAM_CLASS_H
+
 /*
  * BabelTrace - CTF Writer: Stream Class
  *
@@ -28,3 +31,32 @@
  */
 
 #include <babeltrace/ctf-ir/stream-class.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
+ * decrement the stream class' reference count.
+ *
+ * You may also use bt_ctf_get() and bt_ctf_put() with stream class objects.
+ *
+ * These functions ensure that the stream class won't be destroyed while it
+ * is in use. The same number of get and put (plus one extra put to
+ * release the initial reference done at creation) have to be done to
+ * destroy a stream class.
+ *
+ * When the stream class' reference count is decremented to 0 by a
+ * bt_ctf_stream_class_put, the stream class is freed.
+ *
+ * @param stream_class Stream class.
+ */
+extern void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
+extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_CTF_WRITER_STREAM_CLASS_H */
