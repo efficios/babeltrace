@@ -46,6 +46,16 @@ struct bt_ctf_clock {
 	uuid_t uuid;
 	int uuid_set;
 	int absolute;
+
+	/*
+	 * This field is set once a clock is added to a trace. If the
+	 * trace was created by a CTF writer, then the clock's value
+	 * can be set and returned. Otherwise both functions fail
+	 * because, in non-writer mode, clocks do not have global
+	 * values: values are per-stream.
+	 */
+	int has_value;
+
 	/*
 	 * A clock's properties can't be modified once it is added to a stream
 	 * class.

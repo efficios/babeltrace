@@ -351,6 +351,15 @@ int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 	bt_get(clock);
 	g_ptr_array_add(trace->clocks, clock);
 
+	if (!trace->is_created_by_writer) {
+		/*
+		 * Non-writer mode trace: disable clock value functions
+		 * because clock values are per-stream in that
+		 * situation.
+		 */
+		clock->has_value = 0;
+	}
+
 	if (trace->frozen) {
 		bt_ctf_clock_freeze(clock);
 	}

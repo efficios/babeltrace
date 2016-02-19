@@ -99,6 +99,13 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 		goto error;
 	}
 
+	/*
+	 * For backward compatibility reasons, a fresh clock can have
+	 * a value because it could be added to a trace created by a
+	 * CTF writer. As soon as this clock is added to a non-writer
+	 * trace, then its value/time functions will be disabled.
+	 */
+	clock->has_value = 1;
 	clock->uuid_set = 1;
 	return clock;
 error:
@@ -327,6 +334,15 @@ int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time)
 		goto end;
 	}
 
+
+	if (!clock->has_value) {
+		/*
+		 * Clock belongs to a non-writer mode trace and thus
+		 * this function is disabled.
+		 */
+		goto end;
+	}
+
 	/* Common case where cycles are actually nanoseconds */
 	if (clock->frequency == 1000000000) {
 		*time = (int64_t) clock->value;
@@ -345,6 +361,16 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 
 	/* Timestamps are strictly monotonic */
 	if (!clock) {
+		ret = -1;
+		goto end;
+	}
+
+
+	if (!clock->has_value) {
+		/*
+		 * Clock belongs to a non-writer mode trace and thus
+		 * this function is disabled.
+		 */
 		ret = -1;
 		goto end;
 	}
@@ -370,6 +396,14 @@ uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock)
 		goto end;
 	}
 
+	if (!clock->has_value) {
+		/*
+		 * Clock belongs to a non-writer mode trace and thus
+		 * this function is disabled.
+		 */
+		goto end;
+	}
+
 	ret = clock->value;
 end:
 	return ret;
@@ -379,8 +413,22 @@ int bt_ctf_clock_set_value(struct bt_ctf_clock *clock, uint64_t value)
 {
 	int ret = 0;
 
+	if (!clock) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!clock->has_value) {
+		/*
+		 * Clock belongs to a non-writer mode trace and thus
+		 * this function is disabled.
+		 */
+		ret = -1;
+		goto end;
+	}
+
 	/* Timestamps are strictly monotonic */
-	if (!clock || value < clock->value) {
+	if (value < clock->value) {
 		ret = -1;
 		goto end;
 	}
