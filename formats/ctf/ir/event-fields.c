@@ -677,6 +677,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 
 		cur_tag_container =
 			bt_ctf_field_enumeration_get_container(variant->tag);
+		assert(cur_tag_container);
 		cur_tag_enum_integer = container_of(cur_tag_container,
 			struct bt_ctf_field_integer, parent);
 		bt_put(cur_tag_container);
