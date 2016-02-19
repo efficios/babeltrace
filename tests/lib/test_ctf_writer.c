@@ -25,7 +25,7 @@
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>

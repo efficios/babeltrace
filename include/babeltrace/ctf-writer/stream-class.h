@@ -37,6 +37,21 @@ extern "C" {
 #endif
 
 /*
+ * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
+ *
+ * Assign a clock to a stream class. This clock will be sampled each time an
+ * event is appended to an instance of this stream class.
+ *
+ * @param stream_class Stream class.
+ * @param clock Clock to assign to the provided stream class.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_set_clock(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_clock *clock);
+
+/*
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
  * decrement the stream class' reference count.
  *
