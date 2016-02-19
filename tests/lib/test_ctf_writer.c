@@ -58,7 +58,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 590
+#define NR_TESTS 594
 
 static int64_t current_time = 42;
 
@@ -2682,6 +2682,8 @@ void test_create_writer_stream_from_stream_class(void)
 	struct bt_ctf_event *event = NULL;
 	struct bt_ctf_field_type *empty_struct_ft = NULL;
 	struct bt_ctf_field *int_field = NULL;
+	struct bt_ctf_clock *writer_clock = NULL;
+	struct bt_ctf_clock *non_writer_clock = NULL;
 
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
@@ -2691,7 +2693,7 @@ void test_create_writer_stream_from_stream_class(void)
 	empty_struct_ft = bt_ctf_field_type_structure_create();
 	assert(empty_struct_ft);
 
-	/* Create writer, writer stream class, and writer stream */
+	/* Create writer, writer stream class, stream, and clock */
 	writer = bt_ctf_writer_create(trace_path);
 	assert(writer);
 	writer_trace = bt_ctf_writer_get_trace(writer);
@@ -2707,8 +2709,12 @@ void test_create_writer_stream_from_stream_class(void)
 	assert(writer_stream);
 	ok(!strcmp(bt_ctf_stream_get_name(writer_stream), writer_stream_name),
 		"bt_ctf_stream_get_name() returns the stream's name");
+	writer_clock = bt_ctf_clock_create("writer_clock");
+	assert(writer_clock);
+	ret = bt_ctf_trace_add_clock(writer_trace, writer_clock);
+	assert(!ret);
 
-	/* Create non-writer trace, stream class, and stream */
+	/* Create non-writer trace, stream class, stream, and clock */
 	non_writer_trace = bt_ctf_trace_create();
 	assert(non_writer_trace);
 	non_writer_sc = bt_ctf_stream_class_create("nonwriter_sc");
@@ -2720,6 +2726,10 @@ void test_create_writer_stream_from_stream_class(void)
 	assert(!ret);
 	non_writer_stream = bt_ctf_stream_create(non_writer_sc, NULL);
 	assert(non_writer_stream);
+	non_writer_clock = bt_ctf_clock_create("non_writer_clock");
+	assert(non_writer_clock);
+	ret = bt_ctf_trace_add_clock(non_writer_trace, non_writer_clock);
+	assert(!ret);
 
 	/* Create event class and event */
 	ec = create_minimal_event_class();
@@ -2746,6 +2756,24 @@ void test_create_writer_stream_from_stream_class(void)
 	ok(!bt_ctf_stream_append_event(writer_stream, event),
 		"bt_ctf_stream_append_event() succeeds with a writer stream");
 
+	/*
+	 * Verify that it's possible to get and set the value of a
+	 * writer mode clock.
+	 */
+	ok (!bt_ctf_clock_set_value(writer_clock, 1000),
+		"bt_ctf_clock_set_value() succeeds with a writer mode clock");
+	ok (bt_ctf_clock_get_value(writer_clock) == 1000,
+		"bt_ctf_clock_get_value() succeeds with a writer mode clock");
+
+	/*
+	 * Verify that it's impossible to get and set the value of a
+	 * non-writer mode clock.
+	 */
+	ok (bt_ctf_clock_set_value(non_writer_clock, 1000),
+		"bt_ctf_clock_set_value() fails with a non-writer mode clock");
+	ok (bt_ctf_clock_get_value(non_writer_clock) == -1ULL,
+		"bt_ctf_clock_get_value() fails with a non-writer mode clock");
+
 	BT_PUT(writer);
 	BT_PUT(writer_trace);
 	BT_PUT(writer_sc);
@@ -2757,6 +2785,8 @@ void test_create_writer_stream_from_stream_class(void)
 	BT_PUT(event);
 	BT_PUT(int_field);
 	BT_PUT(empty_struct_ft);
+	BT_PUT(writer_clock);
+	BT_PUT(non_writer_clock);
 }
 
 int main(int argc, char **argv)
