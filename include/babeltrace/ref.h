@@ -27,6 +27,10 @@
  * SOFTWARE.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * BT_PUT: calls bt_put() with a variable, then sets this variable to NULL.
  *
@@ -96,5 +100,9 @@ void *bt_get(void *obj);
  * @param obj Babeltrace object.
  */
 void bt_put(void *obj);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_REF_H */
