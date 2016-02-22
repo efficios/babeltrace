@@ -365,6 +365,7 @@ end:
 int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 {
 	int ret = 0;
+	int64_t value;
 
 	/* Timestamps are strictly monotonic */
 	if (!clock) {
@@ -384,13 +385,13 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 
 	/* Common case where cycles are actually nanoseconds */
 	if (clock->frequency == 1000000000) {
-		clock->value = time;
-		goto end;
+		value = time;
+	} else {
+		value = (uint64_t) (((double) time *
+		        (double) clock->frequency) / 1e9);
 	}
 
-	ret = bt_ctf_clock_set_value(clock,
-		(uint64_t) (((double) time * (double) clock->frequency) / 1e9));
-
+	ret = bt_ctf_clock_set_value(clock, value);
 end:
 	return ret;
 }
