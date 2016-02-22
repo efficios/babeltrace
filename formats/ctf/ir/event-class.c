@@ -38,6 +38,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/endian.h>
 
 static
 void bt_ctf_event_class_destroy(struct bt_object *obj);
