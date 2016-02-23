@@ -127,7 +127,7 @@ static struct bt_ctf_event_class *create_simple_event(const char *name)
 	struct bt_ctf_event_class *event = NULL;
 	struct bt_ctf_field_type *payload = NULL;
 
-        assert(name);
+	assert(name);
 	event = bt_ctf_event_class_create(name);
 	if (!event) {
 		diag("Failed to create simple event");
@@ -169,27 +169,27 @@ static struct bt_ctf_event_class *create_complex_event(const char *name)
 	struct bt_ctf_event_class *event = NULL;
 	struct bt_ctf_field_type *inner = NULL, *outer = NULL;
 
-        assert(name);
+	assert(name);
 	event = bt_ctf_event_class_create(name);
 	if (!event) {
 		diag("Failed to create complex event");
 		goto error;
 	}
 
-        outer = create_integer_struct();
+	outer = create_integer_struct();
 	if (!outer) {
 		diag("Failed to initialize integer structure");
 		goto error;
 	}
 
-        inner = create_integer_struct();
+	inner = create_integer_struct();
 	if (!inner) {
 		diag("Failed to initialize integer structure");
 		goto error;
 	}
 
 	ret = bt_ctf_field_type_structure_add_field(outer, inner,
-		        "payload_struct");
+			"payload_struct");
 	if (ret) {
 		diag("Failed to add inner structure to outer structure");
 		goto error;
@@ -256,7 +256,7 @@ end:
 	return sc1;
 error:
 	BT_PUT(sc1);
-        goto end;
+	goto end;
 }
 
 static struct bt_ctf_stream_class *create_sc2(void)
@@ -290,7 +290,7 @@ end:
 	return sc2;
 error:
 	BT_PUT(sc2);
-        goto end;
+	goto end;
 }
 
 static struct bt_ctf_trace *create_tc1(void)
@@ -299,7 +299,7 @@ static struct bt_ctf_trace *create_tc1(void)
 	struct bt_ctf_trace *tc1 = NULL;
 	struct bt_ctf_stream_class *sc1 = NULL, *sc2 = NULL;
 
-        tc1 = bt_ctf_trace_create();
+	tc1 = bt_ctf_trace_create();
 	if (!tc1) {
 		diag("bt_ctf_trace_create returned NULL");
 		goto error;
@@ -332,7 +332,7 @@ end:
 	return tc1;
 error:
 	BT_PUT(tc1);
-        goto end;
+	goto end;
 }
 
 static void init_weak_refs(struct bt_ctf_trace *tc,
@@ -373,7 +373,7 @@ static void test_example_scenario(void)
 
 	/* The only reference which exists at this point is on TC1. */
 	tc1 = create_tc1();
-        ok(tc1, "Initialize trace");
+	ok(tc1, "Initialize trace");
 	if (!tc1) {
 		return;
 	}
@@ -431,7 +431,7 @@ static void test_example_scenario(void)
 
 	/* User A releases its reference to TC1. */
 	diag("User A releases TC1");
-        BT_PUT(user_a.tc);
+	BT_PUT(user_a.tc);
 	/*
 	 * We keep the pointer to TC1 around to validate its reference
 	 * count.
@@ -625,7 +625,7 @@ static void test_put_order(void)
  */
 int main(int argc, char **argv)
 {
-	 /* Initialize tap harness before any tests */
+	/* Initialize tap harness before any tests */
 	plan_tests(NR_TESTS);
 
 	test_example_scenario();
