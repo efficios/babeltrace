@@ -20,21 +20,40 @@
  */
 
 #include "tap/tap.h"
+#include <babeltrace/ctf-writer/writer.h>
+#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/compat/stdlib.h>
 #include <assert.h>
 
 #define NR_TESTS 41
 
 struct user {
+	struct bt_ctf_writer *writer;
 	struct bt_ctf_trace *tc;
 	struct bt_ctf_stream_class *sc;
 	struct bt_ctf_event_class *ec;
+	struct bt_ctf_stream *stream;
+	struct bt_ctf_event *event;
 };
+
+const char *user_names[] = {
+	"writer",
+	"trace",
+	"stream class",
+	"event class",
+	"stream",
+	"event",
+};
+
+static const size_t USER_NR_ELEMENTS = sizeof(struct user) / sizeof(void *);
 
 /**
  * Returns a structure containing the following fields:
@@ -337,16 +356,7 @@ static void init_weak_refs(struct bt_ctf_trace *tc,
 	bt_put(*ec3);
 }
 
-/**
- * The objective of this test is to implement and expand upon the scenario
- * described in the reference counting documentation and ensure that any node of
- * the Trace, Stream Class, Event Class, Stream and Event hiearchy keeps all
- * other "alive" and reachable.
- *
- * External tools (e.g. valgrind) should be used to confirm that this
- * known-good test does not leak memory.
- */
-int main(int argc, char **argv)
+static void test_example_scenario(void)
 {
 	/**
 	 * Weak pointers to CTF-IR objects are to be used very carefully.
@@ -361,14 +371,11 @@ int main(int argc, char **argv)
 			*weak_ec3 = NULL;
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
-	 /* Initialize tap harness before any tests */
-	plan_tests(NR_TESTS);
-
 	/* The only reference which exists at this point is on TC1. */
 	tc1 = create_tc1();
         ok(tc1, "Initialize trace");
 	if (!tc1) {
-		goto end;
+		return;
 	}
 
 	init_weak_refs(tc1, &weak_tc1, &weak_sc1, &weak_sc2, &weak_ec1,
@@ -487,6 +494,142 @@ int main(int argc, char **argv)
 
 	/* Reclaim last reference held by User C. */
 	BT_PUT(user_c.ec);
-end:
+}
+
+static void create_user_full(struct user *user)
+{
+	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
+	struct bt_ctf_field_type *ft;
+	struct bt_ctf_field *field;
+	struct bt_ctf_clock *clock;
+	int ret;
+
+	if (!bt_mkdtemp(trace_path)) {
+		perror("# perror");
+	}
+
+	user->writer = bt_ctf_writer_create(trace_path);
+	assert(user->writer);
+	user->tc = bt_ctf_writer_get_trace(user->writer);
+	assert(user->tc);
+	user->sc = bt_ctf_stream_class_create("sc");
+	assert(user->sc);
+	clock = bt_ctf_clock_create("the_clock");
+	assert(clock);
+	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
+	assert(!ret);
+	ret = bt_ctf_clock_set_value(clock, 23);
+	assert(!ret);
+	BT_PUT(clock);
+	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
+	assert(user->stream);
+	user->ec = bt_ctf_event_class_create("ec");
+	assert(user->ec);
+	ft = create_integer_struct();
+	assert(ft);
+	ret = bt_ctf_event_class_set_payload_type(user->ec, ft);
+	BT_PUT(ft);
+	assert(!ret);
+	ret = bt_ctf_stream_class_add_event_class(user->sc, user->ec);
+	assert(!ret);
+	user->event = bt_ctf_event_create(user->ec);
+	assert(user->event);
+	field = bt_ctf_event_get_payload(user->event, "payload_8");
+	assert(field);
+	ret = bt_ctf_field_unsigned_integer_set_value(field, 10);
+	assert(!ret);
+	BT_PUT(field);
+	field = bt_ctf_event_get_payload(user->event, "payload_16");
+	assert(field);
+	ret = bt_ctf_field_unsigned_integer_set_value(field, 20);
+	assert(!ret);
+	BT_PUT(field);
+	field = bt_ctf_event_get_payload(user->event, "payload_32");
+	assert(field);
+	ret = bt_ctf_field_unsigned_integer_set_value(field, 30);
+	assert(!ret);
+	BT_PUT(field);
+	ret = bt_ctf_stream_append_event(user->stream, user->event);
+	assert(!ret);
+}
+
+static void test_put_order_swap(size_t *array, size_t a, size_t b)
+{
+	size_t temp = array[a];
+
+	array[a] = array[b];
+	array[b] = temp;
+}
+
+static void test_put_order_put_objects(size_t *array, size_t size)
+{
+	size_t i;
+	struct user user = { 0 };
+	void** objects = (void *) &user;
+
+	create_user_full(&user);
+	printf("# ");
+
+	for (i = 0; i < size; ++i) {
+		void* obj = objects[array[i]];
+
+		printf("%s", user_names[array[i]]);
+		BT_PUT(obj);
+
+		if (i < size - 1) {
+			printf(" -> ");
+		}
+	}
+
+	puts("");
+}
+
+static void test_put_order_permute(size_t *array, int k, size_t size)
+{
+	if (k == 0) {
+		test_put_order_put_objects(array, size);
+	} else {
+		int i;
+
+		for (i = k - 1; i >= 0; i--) {
+			size_t next_k = k - 1;
+
+			test_put_order_swap(array, i, next_k);
+			test_put_order_permute(array, next_k, size);
+			test_put_order_swap(array, i, next_k);
+		}
+	}
+}
+
+static void test_put_order(void)
+{
+	size_t i;
+	size_t array[USER_NR_ELEMENTS];
+
+	/* Initialize array of indexes */
+	for (i = 0; i < USER_NR_ELEMENTS; ++i) {
+		array[i] = i;
+	}
+
+	test_put_order_permute(array, USER_NR_ELEMENTS, USER_NR_ELEMENTS);
+}
+
+/**
+ * The objective of this test is to implement and expand upon the scenario
+ * described in the reference counting documentation and ensure that any node of
+ * the Trace, Stream Class, Event Class, Stream and Event hiearchy keeps all
+ * other "alive" and reachable.
+ *
+ * External tools (e.g. valgrind) should be used to confirm that this
+ * known-good test does not leak memory.
+ */
+int main(int argc, char **argv)
+{
+	 /* Initialize tap harness before any tests */
+	plan_tests(NR_TESTS);
+
+	test_example_scenario();
+	test_put_order();
+
 	return exit_status();
 }
