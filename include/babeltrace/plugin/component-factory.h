@@ -110,6 +110,19 @@ extern struct bt_component_class *bt_component_factory_get_component_class(
 		const char *component_name);
 
 /**
+ * Load and register Babeltrace plugins under a given path.
+ *
+ * Path will be traversed if it is a directory, otherwise only the provided file
+ * will be loaded.
+ *
+ * @param factory	A component factory instance
+ * @param path		A path to a file or directory
+ * @returns		One of #bt_component_factory_status values
+ */
+extern enum bt_component_factory_status bt_component_factory_load(
+		struct bt_component_factory *factory, const char *path);
+
+/**
  * Recursively load and register Babeltrace plugins under a given path.
  *
  * Path will be traversed recursively if it is a directory, otherwise only the
@@ -119,7 +132,7 @@ extern struct bt_component_class *bt_component_factory_get_component_class(
  * @param path		A path to a file or directory
  * @returns		One of #bt_component_factory_status values
  */
-extern enum bt_component_factory_status bt_component_factory_load(
+extern enum bt_component_factory_status bt_component_factory_load_recursive(
 		struct bt_component_factory *factory, const char *path);
 
 extern enum bt_component_factory_status

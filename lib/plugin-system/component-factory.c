@@ -145,8 +145,8 @@ end:
 
 static
 enum bt_component_factory_status
-bt_component_factory_load_dir_recursive(struct bt_component_factory *factory,
-		const char *path)
+bt_component_factory_load_dir(struct bt_component_factory *factory,
+		const char *path, bool recurse)
 {
 	DIR *directory = NULL;
 	struct dirent *entry = NULL, *result = NULL;
@@ -211,9 +211,9 @@ bt_component_factory_load_dir_recursive(struct bt_component_factory *factory,
 			continue;
 		}
 
-		if (S_ISDIR(st.st_mode)) {
-			ret = bt_component_factory_load_dir_recursive(factory,
-					file_path);
+		if (S_ISDIR(st.st_mode) && recurse) {
+			ret = bt_component_factory_load_dir(factory,
+				file_path, true);
 			if (ret != BT_COMPONENT_FACTORY_STATUS_OK) {
 				goto end;
 			}
@@ -352,8 +352,10 @@ match:
 	return bt_get(component_class);
 }
 
-enum bt_component_factory_status bt_component_factory_load(
-		struct bt_component_factory *factory, const char *path)
+static
+enum bt_component_factory_status _bt_component_factory_load(
+		struct bt_component_factory *factory, const char *path,
+		bool recursive)
 {
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
 
@@ -368,7 +370,7 @@ enum bt_component_factory_status bt_component_factory_load(
 	}
 
 	if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
-		ret = bt_component_factory_load_dir_recursive(factory, path);
+		ret = bt_component_factory_load_dir(factory, path, recursive);
 	} else if (g_file_test(path, G_FILE_TEST_IS_REGULAR) ||
 			g_file_test(path, G_FILE_TEST_IS_SYMLINK)) {
 		ret = bt_component_factory_load_file(factory, path);
@@ -378,6 +380,18 @@ enum bt_component_factory_status bt_component_factory_load(
 	}
 end:
 	return ret;
+}
+
+enum bt_component_factory_status bt_component_factory_load_recursive(
+		struct bt_component_factory *factory, const char *path)
+{
+	return _bt_component_factory_load(factory, path, true);
+}
+
+enum bt_component_factory_status bt_component_factory_load(
+		struct bt_component_factory *factory, const char *path)
+{
+	return _bt_component_factory_load(factory, path, false);
 }
 
 static
