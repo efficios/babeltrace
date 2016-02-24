@@ -175,21 +175,6 @@ struct bt_component_class *bt_component_get_class(
 	return component ? bt_get(component->class) : NULL;
 }
 
-enum bt_component_status bt_component_set_error_stream(
-		struct bt_component *component, FILE *stream)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVAL;
-		goto end;
-	}
-
-	component->error_stream = stream;
-end:
-	return ret;
-}
-
 void *bt_component_get_private_data(struct bt_component *component)
 {
 	return component ? component->user_data : NULL;

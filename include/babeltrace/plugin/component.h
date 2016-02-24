@@ -98,16 +98,6 @@ extern enum bt_component_status bt_component_set_name(
 extern struct bt_component_class *bt_component_get_class(
 		struct bt_component *component);
 
-/**
- * Set component instance's error stream.
- *
- * @param component	Component instance
- * @param error_stream	Error stream
- * @returns		One of #bt_component_status values
- */
-extern enum bt_component_status bt_component_set_error_stream(
-		struct bt_component *component, FILE *error_stream);
-
 #ifdef __cplusplus
 }
 #endif

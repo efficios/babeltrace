@@ -39,8 +39,6 @@ struct bt_component {
 	struct bt_object base;
 	struct bt_component_class *class;
 	GString *name;
-	/** No ownership of stream taken */
-	FILE *error_stream;
 	/** Source, Sink or Filter destroy */
 	bt_component_destroy_cb destroy;
 
