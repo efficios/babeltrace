@@ -565,13 +565,13 @@ static void test_put_order_put_objects(size_t *array, size_t size)
 {
 	size_t i;
 	struct user user = { 0 };
-	void** objects = (void *) &user;
+	void **objects = (void *) &user;
 
 	create_user_full(&user);
 	printf("# ");
 
 	for (i = 0; i < size; ++i) {
-		void* obj = objects[array[i]];
+		void *obj = objects[array[i]];
 
 		printf("%s", user_names[array[i]]);
 		BT_PUT(obj);
