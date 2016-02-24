@@ -745,6 +745,8 @@ end:
 int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet)
 {
+	struct bt_ctf_stream_class *event_stream_class = NULL;
+	struct bt_ctf_stream_class *packet_stream_class = NULL;
 	struct bt_ctf_stream *stream = NULL;
 	int ret = 0;
 
@@ -764,7 +766,27 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 			goto end;
 		}
 	} else {
-		/* Set the event's parent to the packet's stream */
+		/*
+		 * This event is an orphan for the moment: it's not
+		 * associated to a stream. If this event's event
+		 * class's stream class is the same as the packet's
+		 * stream's stream class, then it's okay to make the
+		 * packet's stream the parent of this event. Otherwise
+		 * it's an error.
+		 */
+		event_stream_class =
+			bt_ctf_event_class_get_stream_class(event->event_class);
+		packet_stream_class =
+			bt_ctf_stream_get_class(packet->stream);
+
+		assert(event_stream_class);
+		assert(packet_stream_class);
+
+		if (event_stream_class != packet_stream_class) {
+			ret = -1;
+			goto end;
+		}
+
 		bt_object_set_parent(event, packet->stream);
 	}
 
@@ -773,6 +795,8 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 
 end:
 	BT_PUT(stream);
+	BT_PUT(event_stream_class);
+	BT_PUT(packet_stream_class);
 
 	return ret;
 }
