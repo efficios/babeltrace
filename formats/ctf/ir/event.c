@@ -259,7 +259,27 @@ end:
 
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 {
-	return (struct bt_ctf_stream *) bt_object_get_parent(event);
+	struct bt_ctf_stream *stream = NULL;
+
+	if (!event) {
+		goto end;
+	}
+
+	/*
+	 * If the event has a parent, then this is its (writer) stream.
+	 * If the event has no parent, then if it has a packet, this
+	 * is its (non-writer) stream.
+	 */
+	if (event->base.parent) {
+		stream = (struct bt_ctf_stream *) bt_object_get_parent(event);
+	} else {
+		if (event->packet) {
+			stream = bt_get(event->packet->stream);
+		}
+	}
+
+end:
+	return stream;
 }
 
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
@@ -766,14 +786,6 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 			goto end;
 		}
 	} else {
-		/*
-		 * This event is an orphan for the moment: it's not
-		 * associated to a stream. If this event's event
-		 * class's stream class is the same as the packet's
-		 * stream's stream class, then it's okay to make the
-		 * packet's stream the parent of this event. Otherwise
-		 * it's an error.
-		 */
 		event_stream_class =
 			bt_ctf_event_class_get_stream_class(event->event_class);
 		packet_stream_class =
@@ -786,12 +798,10 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 			ret = -1;
 			goto end;
 		}
-
-		bt_object_set_parent(event, packet->stream);
 	}
 
-	bt_put(event->packet);
-	event->packet = bt_get(packet);
+	bt_get(packet);
+	BT_MOVE(event->packet, packet);
 
 end:
 	BT_PUT(stream);
