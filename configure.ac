@@ -3,7 +3,7 @@ AC_INIT([babeltrace],[2.0.0-pre],[jeremie dot galarneau at efficios dot com])
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([BABELTRACE_LIBRARY_VERSION], [1:0:0])
+AC_SUBST([BABELTRACE_LIBRARY_VERSION], [2:0:0])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([config])
