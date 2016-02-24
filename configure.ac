@@ -357,6 +357,7 @@ AC_CONFIG_FILES([
 	doc/images/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
+	lib/plugin-system/Makefile
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile
