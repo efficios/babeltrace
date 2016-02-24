@@ -26,6 +26,7 @@
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/stream-class.h>
+#include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
@@ -58,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 596
+#define NR_TESTS 605
 
 static int64_t current_time = 42;
 
@@ -2666,7 +2667,7 @@ struct bt_ctf_event_class *create_minimal_event_class(void)
 }
 
 static
-void test_create_writer_stream_from_stream_class(void)
+void test_create_writer_vs_non_writer_mode(void)
 {
 	int ret;
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -2675,15 +2676,22 @@ void test_create_writer_stream_from_stream_class(void)
 	struct bt_ctf_trace *writer_trace = NULL;
 	struct bt_ctf_stream_class *writer_sc = NULL;
 	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_ctf_stream *writer_stream2 = NULL;
+	struct bt_ctf_stream *packet_stream = NULL;
 	struct bt_ctf_trace *non_writer_trace = NULL;
 	struct bt_ctf_stream_class *non_writer_sc = NULL;
 	struct bt_ctf_stream *non_writer_stream = NULL;
-	struct bt_ctf_event_class *ec = NULL;
+	struct bt_ctf_stream *non_writer_stream2 = NULL;
+	struct bt_ctf_event_class *writer_ec = NULL;
+	struct bt_ctf_event_class *non_writer_ec = NULL;
 	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_event *event2 = NULL;
 	struct bt_ctf_field_type *empty_struct_ft = NULL;
 	struct bt_ctf_field *int_field = NULL;
 	struct bt_ctf_clock *writer_clock = NULL;
 	struct bt_ctf_clock *non_writer_clock = NULL;
+	struct bt_ctf_packet *packet = NULL;
+	struct bt_ctf_packet *packet2 = NULL;
 
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
@@ -2732,11 +2740,11 @@ void test_create_writer_stream_from_stream_class(void)
 	assert(!ret);
 
 	/* Create event class and event */
-	ec = create_minimal_event_class();
-	assert(ec);
-	ret = bt_ctf_stream_class_add_event_class(writer_sc, ec);
+	writer_ec = create_minimal_event_class();
+	assert(writer_ec);
+	ret = bt_ctf_stream_class_add_event_class(writer_sc, writer_ec);
 	assert(!ret);
-	event = bt_ctf_event_create(ec);
+	event = bt_ctf_event_create(writer_ec);
 	assert(event);
 	int_field = bt_ctf_event_get_payload_by_index(event, 0);
 	assert(int_field);
@@ -2774,19 +2782,94 @@ void test_create_writer_stream_from_stream_class(void)
 	ok (bt_ctf_clock_get_value(non_writer_clock) == -1ULL,
 		"bt_ctf_clock_get_value() fails with a non-writer mode clock");
 
-	BT_PUT(writer);
-	BT_PUT(writer_trace);
-	BT_PUT(writer_sc);
-	BT_PUT(writer_stream);
-	BT_PUT(non_writer_trace);
-	BT_PUT(non_writer_sc);
-	BT_PUT(non_writer_stream);
-	BT_PUT(ec);
-	BT_PUT(event);
-	BT_PUT(int_field);
-	BT_PUT(empty_struct_ft);
-	BT_PUT(writer_clock);
-	BT_PUT(non_writer_clock);
+	/*
+	 * It should be possible to create a packet from a non-writer
+	 * stream, but not from a writer stream.
+	 */
+	packet = bt_ctf_packet_create(writer_stream);
+	ok(!packet, "bt_ctf_packet_create() fails with a writer stream");
+	packet = bt_ctf_packet_create(non_writer_stream);
+	ok(packet, "bt_ctf_packet_create() succeeds with a non-writer stream");
+	packet_stream = bt_ctf_packet_get_stream(packet);
+	ok(packet_stream == non_writer_stream,
+		"bt_ctf_packet_get_stream() returns the correct stream");
+
+	/*
+	 * It should not be possible to append an event associated to
+	 * a stream to a different stream.
+	 */
+	writer_stream2 = bt_ctf_stream_create(writer_sc, "zoo");
+	assert(writer_stream2);
+	ok(bt_ctf_stream_append_event(writer_stream2, event),
+		"bt_ctf_stream_append_event() fails with an event associated to another stream");
+
+	/*
+	 * It should not be possible to set the packet of an event
+	 * associated to a given stream to a packet associated with
+	 * a different stream.
+	 */
+	ok(bt_ctf_event_set_packet(event, packet),
+		"bt_ctf_event_set_packet() fails with a packet not sharing the event's stream");
+
+	/*
+	 * It should be possible to set the packet of a fresh event, as
+	 * long as the originating stream classes are the same.
+	 */
+	event2 = bt_ctf_event_create(writer_ec);
+	assert(event2);
+	ok(bt_ctf_event_set_packet(event2, packet),
+		"bt_ctf_event_set_packet() fails when the event's and the packet's stream class differ");
+	non_writer_ec = create_minimal_event_class();
+	assert(non_writer_ec);
+	ret = bt_ctf_stream_class_add_event_class(non_writer_sc, non_writer_ec);
+	assert(!ret);
+	BT_PUT(event2);
+	event2 = bt_ctf_event_create(non_writer_ec);
+	assert(event2);
+	ok(!bt_ctf_event_set_packet(event2, packet),
+		"bt_ctf_event_set_packet() succeeds when the event's and the packet's stream class are the same");
+
+	/*
+	 * It should be possible to set a packet created from the same
+	 * stream to an event with an existing packet.
+	 */
+	packet2 = bt_ctf_packet_create(non_writer_stream);
+	assert(packet2);
+	ok(!bt_ctf_event_set_packet(event2, packet2),
+		"bt_ctf_event_set_packet() succeeds when the event's current packet has the same stream");
+	BT_PUT(packet2);
+
+	/*
+	 * It should not be possible to set a packet created from a
+	 * different stream to an event with an existing packet.
+	 */
+	non_writer_stream2 = bt_ctf_stream_create(non_writer_sc, "rj45");
+	assert(non_writer_stream2);
+	packet2 = bt_ctf_packet_create(non_writer_stream);
+	assert(packet2);
+	ok(!bt_ctf_event_set_packet(event2, packet2),
+		"bt_ctf_event_set_packet() fails when the event's current packet does not have the same stream");
+
+	bt_put(writer);
+	bt_put(writer_trace);
+	bt_put(writer_sc);
+	bt_put(writer_stream);
+	bt_put(writer_stream2);
+	bt_put(non_writer_trace);
+	bt_put(non_writer_sc);
+	bt_put(non_writer_stream);
+	bt_put(non_writer_stream2);
+	bt_put(packet_stream);
+	bt_put(writer_ec);
+	bt_put(non_writer_ec);
+	bt_put(event);
+	bt_put(event2);
+	bt_put(int_field);
+	bt_put(empty_struct_ft);
+	bt_put(writer_clock);
+	bt_put(non_writer_clock);
+	bt_put(packet);
+	bt_put(packet2);
 }
 
 void test_clock_utils(void)
@@ -3463,7 +3546,7 @@ int main(int argc, char **argv)
 
 	test_trace_stream_class_clock();
 
-	test_create_writer_stream_from_stream_class();
+	test_create_writer_vs_non_writer_mode();
 
 	test_instanciate_event_before_stream(writer);
 
