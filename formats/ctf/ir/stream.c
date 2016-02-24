@@ -582,13 +582,13 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	bt_object_set_parent(event, stream);
 	ret = bt_ctf_event_populate_event_header(event);
 	if (ret) {
-		goto end;
+		goto error;
 	}
 
 	/* Make sure the various scopes of the event are set */
 	ret = bt_ctf_event_validate(event);
 	if (ret) {
-		goto end;
+		goto error;
 	}
 
 	/* Save the new event and freeze it */
@@ -602,14 +602,17 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	 * longer needed.
 	 */
 	bt_put(event->event_class);
+
 end:
-	if (ret) {
-		/*
-		 * Orphan the event; we were not succesful in associating it to
-		 * a stream.
-		 */
-		bt_object_set_parent(event, NULL);
-	}
+	return ret;
+
+error:
+	/*
+	 * Orphan the event; we were not succesful in associating it to
+	 * a stream.
+	 */
+	bt_object_set_parent(event, NULL);
+
 	return ret;
 }
 
