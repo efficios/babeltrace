@@ -4,13 +4,11 @@ SUBDIRS = reader lttng-live
 
 lib_LTLIBRARIES = libbabeltrace-plugin-ctf.la
 
-# Plug-in system library
+# ctf plugin
 libbabeltrace_plugin_ctf_la_SOURCES = symbols.c
 
-# Request that the linker keeps all static library objects.
 libbabeltrace_plugin_ctf_la_LDFLAGS = \
-	$(LD_NO_AS_NEEDED) -version-info $(BABELTRACE_LIBRARY_VERSION)
-#	-Wl,--whole-archive,reader/.libs/libbabeltrace-plugin-ctf-reader.a,--no-whole-archive
+	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_plugin_ctf_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \

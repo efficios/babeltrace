@@ -4,11 +4,10 @@ SUBDIRS = .
 
 lib_LTLIBRARIES = libbabeltrace-plugin-ctf-text.la
 
-# Plug-in system library
+# ctf-text plugin
 libbabeltrace_plugin_ctf_text_la_SOURCES = \
 	text.c
 
-# Request that the linker keeps all static library objects.
 libbabeltrace_plugin_ctf_text_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
