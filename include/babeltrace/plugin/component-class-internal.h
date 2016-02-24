@@ -49,6 +49,7 @@ int bt_component_class_init(
 BT_HIDDEN
 struct bt_component_class *bt_component_class_create(
 		enum bt_component_type type, const char *name,
-		const char *description, struct bt_plugin *plugin);
+		const char *description, bt_component_init_cb init,
+		struct bt_plugin *plugin);
 
 #endif /* BABELTRACE_PLUGIN_COMPONENT_CLASS_INTERNAL_H */

@@ -52,7 +52,8 @@ void bt_component_class_destroy(struct bt_object *obj)
 BT_HIDDEN
 struct bt_component_class *bt_component_class_create(
 		enum bt_component_type type, const char *name,
-		const char *description, struct bt_plugin *plugin)
+		const char *description, bt_component_init_cb init,
+		struct bt_plugin *plugin)
 {
 	struct bt_component_class *class;
 
@@ -63,6 +64,7 @@ struct bt_component_class *bt_component_class_create(
 
 	bt_object_init(class, bt_component_class_destroy);
 	class->type = type;
+	class->init = init;
 	class->name = g_string_new(name);
 	class->description = g_string_new(description);
 	if (!class->name || !class->description) {
