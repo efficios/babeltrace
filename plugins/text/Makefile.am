@@ -2,7 +2,8 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 SUBDIRS = .
 
-lib_LTLIBRARIES = libbabeltrace-plugin-ctf-text.la
+plugindir = "$(PLUGINSDIR)"
+plugin_LTLIBRARIES = libbabeltrace-plugin-ctf-text.la
 
 # ctf-text plugin
 libbabeltrace_plugin_ctf_text_la_SOURCES = \

@@ -231,6 +231,10 @@ AC_CHECK_LIB([popt], [poptGetContext], [],
         [AC_MSG_ERROR([Cannot find popt.])]
 )
 
+# Plugins
+AC_ARG_VAR([PLUGINSDIR], [built-in plugins install directory [LIBDIR/babeltrace/plugins]])
+AS_IF([test "x$PLUGINSDIR" = x], [PLUGINSDIR='$(libdir)/babeltrace/plugins'])
+
 # For Python
 # SWIG version needed or newer:
 swig_version=2.0.0
