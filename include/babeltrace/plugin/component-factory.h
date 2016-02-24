@@ -43,6 +43,9 @@ enum bt_component_factory_status {
 	/** General error. */
 	BT_COMPONENT_FACTORY_STATUS_ERROR =		-128,
 
+	/** Duplicate component class being registered. */
+	BT_COMPONENT_FACTORY_STATUS_DUPLICATE =		-7,
+
 	/** Invalid plugin. */
 	BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN =	-6,
 

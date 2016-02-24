@@ -400,17 +400,39 @@ add_component_class(struct bt_component_factory *factory, const char *name,
 		    const char *description, bt_component_init_cb init,
 		    enum bt_component_type type)
 {
-	struct bt_component_class *class;
+	struct bt_component_class *component_class;
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
 
 	if (!factory || !name || !init) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL;
 		goto end;
 	}
+	assert(factory->current_plugin);
 
-	class = bt_component_class_create(type, name, description,
-			factory->current_plugin);
-	g_ptr_array_add(factory->component_classes, class);
+	/*
+	 * Ensure this component class does not clash with a currently
+	 * registered class.
+	 */
+	component_class = bt_component_factory_get_component_class(factory,
+		bt_plugin_get_name(factory->current_plugin), type, name);
+	if (component_class) {
+		struct bt_plugin *plugin = bt_component_class_get_plugin(
+			component_class);
+
+		printf_warning("Duplicate component class registration attempted. Component class %s being registered by plugin %s (path: %s) conflicts with one already registered by plugin %s (path: %s)",
+			name, bt_plugin_get_name(factory->current_plugin),
+			bt_plugin_get_path(factory->current_plugin),
+			bt_plugin_get_name(plugin),
+			bt_plugin_get_path(plugin));
+		ret = BT_COMPONENT_FACTORY_STATUS_DUPLICATE;
+		BT_PUT(component_class);
+		bt_put(plugin);
+		goto end;
+	}
+
+	component_class = bt_component_class_create(type, name, description,
+		factory->current_plugin);
+	g_ptr_array_add(factory->component_classes, component_class);
 end:
 	return ret;
 }
