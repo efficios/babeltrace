@@ -1,8 +1,7 @@
-#ifndef BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H
-#define BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H
-
 /*
- * BabelTrace - CTF Reader Component
+ * symbols.c
+ *
+ * Babeltrace CTF Plug-in Registration Symbols
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,14 +26,20 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
+#include <babeltrace/plugin/plugin-macros.h>
+#include "reader/reader-internal.h"
+#include "lttng-live/lttng-live-internal.h"
 
-#define READER_COMPONENT_NAME "ctf"
-#define READER_COMPONENT_DESCRIPTION "Component used to read on-disk CTF traces."
+/* Initialize plug-in entry points. */
+BT_PLUGIN_NAME("ctf");
+BT_PLUGIN_DESCRIPTION("Babeltrace CTF plug-in.");
+BT_PLUGIN_AUTHOR("Jérémie Galarneau");
+BT_PLUGIN_LICENSE("MIT");
 
-BT_HIDDEN
-enum bt_component_status ctf_init(struct bt_component *source,
-		struct bt_value *params);
+BT_PLUGIN_COMPONENT_CLASSES_BEGIN
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(READER_COMPONENT_NAME,
+		READER_COMPONENT_DESCRIPTION, ctf_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(LTTNG_LIVE_COMPONENT_NAME,
+		LTTNG_LIVE_COMPONENT_DESCRIPTION, lttng_live_init);
+BT_PLUGIN_COMPONENT_CLASSES_END
 
-#endif /* BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H */

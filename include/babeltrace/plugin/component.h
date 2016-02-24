@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/plugin/component-class.h>
+#include <babeltrace/values.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

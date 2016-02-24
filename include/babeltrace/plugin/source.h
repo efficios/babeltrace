@@ -28,6 +28,7 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/plugin/component.h>
 
 #ifdef __cplusplus
 extern "C" {

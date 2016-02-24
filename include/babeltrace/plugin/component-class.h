@@ -67,7 +67,7 @@ extern const char *bt_component_class_get_name(
  * @param component_class	Component class of which to get the description
  * @returns			Description of the component class, or NULL.
  */
-extern const char *bt_component_class_get_name(
+extern const char *bt_component_class_get_description(
 		struct bt_component_class *component_class);
 
 /**

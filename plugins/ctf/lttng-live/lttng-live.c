@@ -1,8 +1,7 @@
-#ifndef BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H
-#define BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H
-
 /*
- * BabelTrace - CTF Reader Component
+ * lttng-live.c
+ *
+ * Babeltrace CTF LTTng-live Client Component
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,14 +26,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
-
-#define READER_COMPONENT_NAME "ctf"
-#define READER_COMPONENT_DESCRIPTION "Component used to read on-disk CTF traces."
+#include "lttng-live-internal.h"
+#include <babeltrace/plugin/source.h>
 
 BT_HIDDEN
-enum bt_component_status ctf_init(struct bt_component *source,
-		struct bt_value *params);
-
-#endif /* BABELTRACE_PLUGIN_CTF_READER_INTERNAL_H */
+enum bt_component_status lttng_live_init(struct bt_component *component,
+		struct bt_value *params)
+{
+	return BT_COMPONENT_STATUS_OK;
+}

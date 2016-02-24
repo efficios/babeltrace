@@ -1,9 +1,9 @@
 /*
  * reader.c
  *
- * Babeltrace CTF Reader Plugin
+ * Babeltrace CTF Reader Component
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -26,68 +26,14 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-lib.h>
-#include <babeltrace/plugin/plugin-system.h>
-#include <babeltrace/plugin/plugin.h>
-#include <glib.h>
-#include <stdio.h>
+#include "reader-internal.h"
+#include <babeltrace/plugin/source.h>
 
-const char *plugin_name = "ctf";
-
-struct ctf_reader {
-	int a;
-};
-
-enum bt_plugin_type bt_plugin_lib_get_type(void)
+BT_HIDDEN
+enum bt_component_status ctf_init(struct bt_component *component,
+		struct bt_value *params)
 {
-	return BT_PLUGIN_TYPE_SOURCE;
+	return BT_COMPONENT_STATUS_OK;
 }
 
-const char *bt_plugin_lib_get_format_name(void)
-{
-	return plugin_name;
-}
 
-static
-void ctf_reader_destroy(struct bt_plugin *plugin)
-{
-	struct ctf_reader *reader;
-
-	if (!plugin) {
-		return;
-	}
-
-	reader = bt_plugin_get_private_data(plugin);
-	if (!reader) {
-		return;
-	}
-
-	g_free(reader);
-}
-
-static
-struct bt_notification_iterator *ctf_reader_iterator_create(
-		struct bt_plugin *plugin)
-{
-	return NULL;
-}
-
-struct bt_plugin *bt_plugin_lib_create(struct bt_object *params)
-{
-	struct bt_plugin *plugin = NULL;
-	struct ctf_reader *reader = g_new0(struct ctf_reader, 1);
-
-	plugin = bt_plugin_source_create(plugin_name, reader,
-		ctf_reader_destroy, ctf_reader_iterator_create);
-	if (!plugin) {
-		goto error;
-	}
-
-end:
-	return plugin;
-error:
-	if (reader) {
-		g_free(reader);
-	}
-	goto end;
-}

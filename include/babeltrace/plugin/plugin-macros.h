@@ -39,9 +39,9 @@
 #define BT_PLUGIN_INIT(_x)		bt_plugin_init_func __bt_plugin_init = (_x)
 #define BT_PLUGIN_EXIT(_x)		bt_plugin_exit_func __bt_plugin_exit = (_x)
 
-#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN				\
-	enum bt_component_status __bt_plugin_register_component_classes(\
-		struct bt_component_factory *factory)			\
+#define BT_PLUGIN_COMPONENT_CLASSES_BEGIN					\
+	static enum bt_component_status __bt_plugin_register_component_classes(	\
+		struct bt_component_factory *factory)				\
 	{
 
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(_name, description, _init)	\
@@ -52,11 +52,10 @@
 	bt_component_factory_register_sink_component_class(factory,		\
 			_name, _description, _init);
 
-#define BT_PLUGIN_COMPONENT_CLASSES_END\
-	\
-	return BT_COMPONENT_STATUS_OK;\
-}\
-	\
-	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);\
+#define BT_PLUGIN_COMPONENT_CLASSES_END						\
+	return BT_COMPONENT_STATUS_OK;						\
+}										\
+										\
+	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);			\
 
 #endif /* BABELTRACE_PLUGIN_MACROS_H */

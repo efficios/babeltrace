@@ -30,7 +30,6 @@
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/notification/notification.h>
-#include <glib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
