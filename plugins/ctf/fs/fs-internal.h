@@ -1,7 +1,8 @@
+#ifndef BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
+#define BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
+
 /*
- * reader.c
- *
- * Babeltrace CTF Reader Component
+ * BabelTrace - CTF on File System Component
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -26,14 +27,15 @@
  * SOFTWARE.
  */
 
-#include "reader-internal.h"
-#include <babeltrace/plugin/source.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/plugin/component.h>
+
+#define FS_COMPONENT_NAME "ctf"
+#define FS_COMPONENT_DESCRIPTION \
+	"Component used to read a CTF trace located on a file system."
 
 BT_HIDDEN
-enum bt_component_status ctf_init(struct bt_component *component,
-		struct bt_value *params)
-{
-	return BT_COMPONENT_STATUS_OK;
-}
+enum bt_component_status fs_init(struct bt_component *source,
+		struct bt_value *params);
 
-
+#endif /* BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H */

@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/plugin/plugin-macros.h>
-#include "reader/reader-internal.h"
+#include "fs/fs-internal.h"
 #include "lttng-live/lttng-live-internal.h"
 
 /* Initialize plug-in entry points. */
@@ -37,8 +37,8 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(READER_COMPONENT_NAME,
-		READER_COMPONENT_DESCRIPTION, ctf_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(FS_COMPONENT_NAME,
+		FS_COMPONENT_DESCRIPTION, fs_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(LTTNG_LIVE_COMPONENT_NAME,
 		LTTNG_LIVE_COMPONENT_DESCRIPTION, lttng_live_init);
 BT_PLUGIN_COMPONENT_CLASSES_END
