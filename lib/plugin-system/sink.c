@@ -142,3 +142,26 @@ enum bt_component_status bt_component_sink_register_notification_type(
 end:
 	return ret;
 }
+
+enum bt_component_status bt_component_sink_set_handle_notification_cb(
+		struct bt_component *component,
+		bt_component_sink_handle_notification_cb handle_notification)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_sink *sink = NULL;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	sink = container_of(component, struct bt_component_sink, parent);
+	sink->handle_notification = handle_notification;
+end:
+	return ret;
+}
