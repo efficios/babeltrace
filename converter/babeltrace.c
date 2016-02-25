@@ -247,7 +247,6 @@ int main(int argc, char **argv)
 	}
 
 	test_sink_notifications(sink);
-	goto end;
 
 	/* teardown and exit */
 end:
