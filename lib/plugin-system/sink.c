@@ -35,7 +35,26 @@ BT_HIDDEN
 enum bt_component_status bt_component_sink_validate(
 		struct bt_component *component)
 {
-	return BT_COMPONENT_STATUS_OK;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_sink *sink;
+
+	sink = container_of(component, struct bt_component_sink, parent);
+	if (sink->registered_notifications_mask == 0) {
+		/*
+		 * A sink must be registered to at least one notification type.
+		 */
+		printf_error("Invalid sink component; not registered to any notification");
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!sink->handle_notification) {
+		printf_error("Invalid sink component; no notification handling callback defined.");
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+end:
+	return ret;
 }
 
 BT_HIDDEN
