@@ -30,6 +30,8 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/notification/notification.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,28 +103,27 @@ extern enum bt_component_status bt_component_set_destroy_cb(
  * A notification iterator's private data, deinitialization, next, and get
  * callbacks must be set by this function.
  *
- * @param component	Component instance
+ * @param source	Source component instance
  * @param iterator	Notification iterator instance
  */
 typedef enum bt_component_status (*bt_component_source_init_iterator_cb)(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
+		struct bt_component *, struct bt_notification_iterator *);
 
 /**
  * Set a source component's iterator initialization function.
  *
- * @param component	Component instance
+ * @param source	Source component instance
  * @param init_iterator	Notification iterator initialization callback
  */
 extern enum bt_component_status
-bt_component_source_set_iterator_init_cb(struct bt_component *component,
+bt_component_source_set_iterator_init_cb(struct bt_component *source,
 		bt_component_source_init_iterator_cb init_iterator);
 
 /** bt_component_sink */
 /**
  * Notification handling function type.
  *
- * @param component	Component instance
+ * @param sink		Sink component instance
  * @param notificattion	Notification to handle
  * @returns		One of #bt_component_status values
  */
@@ -132,13 +133,28 @@ typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
 /**
  * Set a sink component's notification handling callback.
  *
- * @param component		Component instance
+ * @param sink			Sink component instance
  * @param handle_notification	Notification handling callback
  * @returns			One of #bt_component_status values
  */
 extern enum bt_component_status
-bt_component_sink_set_handle_notification_cb(struct bt_component *component,
+bt_component_sink_set_handle_notification_cb(struct bt_component *sink,
 		bt_component_sink_handle_notification_cb handle_notification);
+
+/**
+ * Register a sink to a given notification type.
+ *
+ * A sink is always registered to notifications of type
+ * BT_NOTIFICATION_TYPE_EVENT. However, it may opt to receive any (or all)
+ * other notification type(s).
+ *
+ * @param sink		Sink component instance.
+ * @param type		One of #bt_notification_type
+ * @returns		One of #bt_component_status
+ */
+extern enum bt_component_status
+bt_component_sink_register_notification_type(struct bt_component *sink,
+		enum bt_notification_type type);
 
 /** bt_component_notification_iterator */
 /**

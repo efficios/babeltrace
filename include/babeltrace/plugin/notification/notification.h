@@ -39,17 +39,25 @@ struct bt_notification;
 enum bt_notification_type {
 	BT_NOTIFICATION_TYPE_UNKNOWN = -1,
 
+	/**
+	 * All types of notifications (used to register to notification
+	 * delivery).
+	 */
+	BT_NOTIFICATION_TYPE_ALL = 0,
+
 	/** Event delivery notification, see event.h */
-	BT_NOTIFICATION_TYPE_EVENT = 0,
+	BT_NOTIFICATION_TYPE_EVENT = 1,
 
 	/** New stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_NEW_PACKET = 1,
+	BT_NOTIFICATION_TYPE_NEW_PACKET = 2,
 
 	/** End of stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_END_PACKET = 1,
+	BT_NOTIFICATION_TYPE_END_PACKET = 3,
 
 	/** End of trace notification, see eot.h */
-	BT_NOTIFICATION_TYPE_END_OF_TRACE = 2,
+	BT_NOTIFICATION_TYPE_END_OF_TRACE = 4,
+
+	BT_NOTIFICATION_TYPE_NR,
 };
 
 /**

@@ -38,11 +38,13 @@ struct bt_component_sink_class {
 	struct bt_component_class parent;
 };
 
+typedef uint32_t notification_mask_t;
 struct bt_component_sink {
 	struct bt_component parent;
 
 	/* Component implementation callbacks */
 	bt_component_sink_handle_notification_cb handle_notification;
+	notification_mask_t registered_notifications_mask;
 };
 
 /**

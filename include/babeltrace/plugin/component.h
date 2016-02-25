@@ -43,7 +43,7 @@ enum bt_component_status {
 	BT_COMPONENT_STATUS_NOMEM =		-4,
 
 	/** Invalid arguments. */
-	BT_COMPONENT_STATUS_INVAL =		-3,
+	BT_COMPONENT_STATUS_INVALID =		-3,
 
 	/** Unsupported component feature. */
 	BT_COMPONENT_STATUS_UNSUPPORTED =	-2,

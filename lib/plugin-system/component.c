@@ -84,7 +84,7 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component || !destroy) {
-		ret = BT_COMPONENT_STATUS_INVAL;
+		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
@@ -160,7 +160,7 @@ enum bt_component_status bt_component_set_name(struct bt_component *component,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component || !name || name[0] == '\0') {
-		ret = BT_COMPONENT_STATUS_INVAL;
+		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
@@ -187,7 +187,7 @@ bt_component_set_private_data(struct bt_component *component,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVAL;
+		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 

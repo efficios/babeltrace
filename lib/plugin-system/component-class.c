@@ -102,4 +102,3 @@ const char *bt_component_class_get_description(
 {
 	return component_class ? component_class->description->str : NULL;
 }
-
