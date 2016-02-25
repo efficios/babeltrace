@@ -69,13 +69,22 @@ struct bt_component *bt_component_sink_create(
 		goto end;
 	}
 
-	ret = bt_component_init(&sink->parent, bt_component_sink_destroy);
+	sink->parent.class = bt_get(class);
+	ret = bt_component_init(&sink->parent, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
-		BT_PUT(sink);
-		goto end;
+		goto error;
+	}
+
+	ret = bt_component_sink_register_notification_type(&sink->parent,
+		BT_NOTIFICATION_TYPE_EVENT);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
 	}
 end:
 	return sink ? &sink->parent : NULL;
+error:
+	BT_PUT(sink);
+	return NULL;
 }
 
 enum bt_component_status bt_component_sink_handle_notification(
