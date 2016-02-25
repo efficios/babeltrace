@@ -133,7 +133,7 @@ struct bt_component *bt_component_create(
 
 	component_class->init(component, params);
 	ret = component_validation_funcs[type](component);
-	if (ret) {
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(component);
 		goto end;
 	}
