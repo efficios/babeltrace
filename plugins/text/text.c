@@ -32,20 +32,7 @@
 #include <babeltrace/plugin/notification/notification.h>
 #include <stdio.h>
 #include <stdbool.h>
-
-static
-enum bt_component_status ctf_text_init(struct bt_component *,
-		struct bt_value *params);
-
-/* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("ctf-text");
-BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
-BT_PLUGIN_AUTHOR("Jérémie Galarneau");
-BT_PLUGIN_LICENSE("MIT");
-
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("text", "Formats CTF-IR to text. Formerly known as ctf-text.", ctf_text_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+#include <glib.h>
 
 enum loglevel {
         LOGLEVEL_EMERG                  = 0,
@@ -84,7 +71,7 @@ const char *loglevel_str [] = {
 	[LOGLEVEL_DEBUG] =		"TRACE_DEBUG",
 };
 
-struct ctf_text_component {
+struct text_options {
 	bool opt_print_all_field_names : 1;
 	bool opt_print_scope_field_names : 1;
 	bool opt_print_header_field_names : 1;
@@ -102,10 +89,73 @@ struct ctf_text_component {
 	bool opt_print_delta_field : 1;
 };
 
+struct text_component {
+	struct text_options options;
+};
+
 static
-enum bt_component_status ctf_text_init(
-		struct bt_component *component, struct bt_value *params)
+struct text_component *create_text(void)
 {
-	printf("ctf_text_init\n");
+	return g_new0(struct text_component, 1);
+}
+
+static void destroy_text(struct text_component *text)
+{
+	if (!text) {
+		return;
+	}
+
+	g_free(text);
+}
+
+static
+enum bt_component_status handle_notification(struct bt_component *component,
+	struct bt_notification *notification)
+{
 	return BT_COMPONENT_STATUS_OK;
 }
+
+static
+enum bt_component_status text_component_init(
+	struct bt_component *component, struct bt_value *params)
+{
+	enum bt_component_status ret;
+	struct text_component *text = create_text();
+
+	if (!text) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	ret = bt_component_set_destroy_cb(component, destroy_text);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret = bt_component_set_private_data(component, text);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret = bt_component_sink_set_handle_notification_cb(component,
+		handle_notification);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+end:
+	return ret;
+error:
+	destroy_text(text);
+	return ret;
+}
+
+
+/* Initialize plug-in entry points. */
+BT_PLUGIN_NAME("ctf-text");
+BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
+BT_PLUGIN_AUTHOR("Jérémie Galarneau");
+BT_PLUGIN_LICENSE("MIT");
+
+BT_PLUGIN_COMPONENT_CLASSES_BEGIN
+BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("text", "Formats CTF-IR to text. Formerly known as ctf-text.", text_component_init)
+BT_PLUGIN_COMPONENT_CLASSES_END
