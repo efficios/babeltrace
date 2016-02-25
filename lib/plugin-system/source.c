@@ -52,7 +52,8 @@ struct bt_component *bt_component_source_create(
 		goto end;
 	}
 
-	ret = bt_component_init(&source->parent, bt_component_source_destroy);
+	source->parent.class = bt_get(class);
+	ret = bt_component_init(&source->parent, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(source);
 		goto end;
