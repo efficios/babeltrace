@@ -33,12 +33,6 @@
 #include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/iterator-internal.h>
 
-static
-void bt_component_source_destroy(struct bt_component *component)
-{
-	return;
-}
-
 BT_HIDDEN
 enum bt_component_status bt_component_source_validate(
 		struct bt_component *component)

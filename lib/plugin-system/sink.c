@@ -31,12 +31,6 @@
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
 
-static
-void bt_component_sink_destroy(struct bt_component *component)
-{
-	return;
-}
-
 BT_HIDDEN
 enum bt_component_status bt_component_sink_validate(
 		struct bt_component *component)

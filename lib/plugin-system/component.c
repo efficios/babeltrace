@@ -59,8 +59,6 @@ void bt_component_destroy(struct bt_object *obj)
 	}
 
 	component = container_of(obj, struct bt_component, base);
-
-	assert(component->destroy);
 	component_class = component->class;
 
 	/*
@@ -71,7 +69,10 @@ void bt_component_destroy(struct bt_object *obj)
 		component->user_destroy(component->user_data);
 	}
 
-	component->destroy(component);
+	if (component->destroy) {
+		component->destroy(component);
+	}
+
 	g_string_free(component->name, TRUE);
 	bt_put(component_class);
 	g_free(component);
@@ -83,7 +84,7 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component || !destroy) {
+	if (!component) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
