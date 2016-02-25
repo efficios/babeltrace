@@ -46,6 +46,10 @@ void bt_plugin_destroy(struct bt_object *obj)
 	assert(obj);
 	plugin = container_of(obj, struct bt_plugin, base);
 
+	if (plugin->exit) {
+		plugin->exit();
+	}
+
 	if (plugin->module) {
 		if (!g_module_close(plugin->module)) {
 				printf_error("Module close error: %s",
@@ -53,9 +57,6 @@ void bt_plugin_destroy(struct bt_object *obj)
 		}
 	}
 
-	if (plugin->exit) {
-		plugin->exit();
-	}
 	g_string_free(plugin->path, TRUE);
 	g_free(plugin);
 }
