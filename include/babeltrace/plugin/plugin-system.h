@@ -123,8 +123,11 @@ bt_component_source_set_iterator_init_cb(struct bt_component *source,
 /**
  * Notification handling function type.
  *
+ * A reference must be taken on the notification if the component wishes to
+ * keep ownership of the notification beyond the invocation of the callback.
+ *
  * @param sink		Sink component instance
- * @param notificattion	Notification to handle
+ * @param notification	Notification to handle
  * @returns		One of #bt_component_status values
  */
 typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
