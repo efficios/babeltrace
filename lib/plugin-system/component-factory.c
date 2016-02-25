@@ -122,10 +122,10 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 		goto end;
 	}
 
-	factory->current_plugin = plugin;
-	component_status = bt_plugin_register_component_classes(plugin,
-			factory);
-	factory->current_plugin = NULL;
+	BT_MOVE(factory->current_plugin, plugin);
+	component_status = bt_plugin_register_component_classes(
+			factory->current_plugin, factory);	
+	BT_PUT(factory->current_plugin);
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		switch (component_status) {
 		case BT_COMPONENT_STATUS_NOMEM:
@@ -136,7 +136,6 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 			break;
 		}
 
-		BT_PUT(plugin);
 		goto end;
 	}
 end:
@@ -318,6 +317,7 @@ struct bt_component_class *bt_component_factory_get_component_class(
 		if (type != BT_COMPONENT_TYPE_UNKNOWN) {
 			if (type != bt_component_class_get_type(
 					component_class)) {
+				bt_put(plugin);
 				continue;
 			}
 		}
@@ -328,6 +328,7 @@ struct bt_component_class *bt_component_factory_get_component_class(
 
 			assert(cur_plugin_name);
 			if (strcmp(plugin_name, cur_plugin_name)) {
+				bt_put(plugin);
 				continue;
 			}
 		}
@@ -338,10 +339,12 @@ struct bt_component_class *bt_component_factory_get_component_class(
 
 			assert(cur_cc_name);
 			if (strcmp(component_name, cur_cc_name)) {
+				bt_put(plugin);
 				continue;
 			}
 		}
 
+		bt_put(plugin);
 		/* All criteria met. */
 		goto match;
 	}

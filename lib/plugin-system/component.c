@@ -124,7 +124,6 @@ struct bt_component *bt_component_create(
 	}
 
 	bt_object_init(component, bt_component_destroy);
-	component->class = bt_get(component_class);
 	component->name = g_string_new(name);
 	if (!component->name) {
 		BT_PUT(component);

@@ -177,6 +177,9 @@ void print_detected_component_classes(struct bt_component_factory *factory)
 				plugin_description ? plugin_description : "None");
 		printf_verbose("\tcomponent description: %s\n",
 				component_description ? component_description : "None");
+
+		bt_put(plugin);
+		bt_put(component_class);
 	}
 }
 
