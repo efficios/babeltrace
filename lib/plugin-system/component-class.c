@@ -3,7 +3,7 @@
  *
  * Babeltrace Plugin Component Class
  * 
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
