@@ -195,3 +195,18 @@ bt_component_set_private_data(struct bt_component *component,
 end:
 	return ret;
 }
+
+enum bt_component_status bt_component_set_destroy_cb(
+		struct bt_component *component, bt_component_destroy_cb destroy)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	component->user_destroy = destroy;
+end:
+	return ret;
+}
