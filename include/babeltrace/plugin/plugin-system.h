@@ -49,9 +49,9 @@ typedef void (*bt_plugin_exit_func)(void);
 /**
  * Component private data deallocation function type.
  *
- * @param component	Component instance
+ * @param data		Component private data
  */
-typedef void (*bt_component_destroy_cb)(struct bt_component *component);
+typedef void (*bt_component_destroy_cb)(void *data);
 
 /**
  * Component initialization function type.
