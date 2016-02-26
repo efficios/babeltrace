@@ -1422,6 +1422,69 @@ On success, \p key is copied.
 extern enum bt_value_status bt_value_map_insert_empty_map(
 		struct bt_value *map_obj, const char *key);
 
+/**
+@brief  Creates a copy of the base map value object \p base_map_obj
+	superficially extended with the entries of the extension map
+	value object \p extension_map_obj.
+
+This function creates a superficial extension of \p base_map_obj with
+\p extension_map_obj by adding new entries to it and replacing the
+ones that share the keys in the extension object. The extension is
+\em superficial because it does not merge internal array and map
+value objects.
+
+For example, consider the following \p base_map_obj (JSON representation):
+
+@code{.unparsed}
+{
+  "hello": 23,
+  "code": -17,
+  "em": false,
+  "return": [5, 6, null]
+}
+@endcode
+
+and the following \p extension_map_obj (JSON representation):
+
+@code{.unparsed}
+{
+  "comma": ",",
+  "code": 22,
+  "return": 17.88
+}
+@endcode
+
+The extended object is (JSON representation):
+
+@code{.unparsed}
+{
+  "hello": 23,
+  "code": 22,
+  "em": false,
+  "return": 17.88,
+  "comma": ","
+}
+@endcode
+
+@param[in] base_map_obj		Base map value object with initial
+				entries.
+@param[in] extension_map_obj	Extension map value object containing
+				the entries to add to or replace in
+				\p base_map_obj.
+@returns			Created extended map value object, or
+				\c NULL on error.
+
+@prenotnull{base_map_obj}
+@prenotnull{extension_map_obj}
+@pre \p base_map_obj is a map value object.
+@pre \p extension_map_obj is a map value object.
+@postrefcountsame{base_map_obj}
+@postrefcountsame{extension_map_obj}
+@postsuccessrefcountret1
+*/
+extern struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
+		struct bt_value *extension_map_obj);
+
 /** @} */
 
 /** @} */
