@@ -1168,6 +1168,81 @@ end:
 	return ret;
 }
 
+struct extend_map_element_data {
+	struct bt_value *extended_obj;
+	bool got_error;
+};
+
+static
+bool extend_map_element(const char *key,
+		struct bt_value *extension_obj_elem, void *data)
+{
+	bool ret = true;
+
+	struct extend_map_element_data *extend_data = data;
+
+	/* Copy object which is to replace the current one */
+	struct bt_value *extension_obj_elem_copy =
+		bt_value_copy(extension_obj_elem);
+
+	/* Replace in extended object */
+	if (bt_value_map_insert(extend_data->extended_obj, key,
+			extension_obj_elem_copy)) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = false;
+	extend_data->got_error = true;
+
+end:
+	BT_PUT(extension_obj_elem_copy);
+
+	return ret;
+}
+
+struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
+		struct bt_value *extension_obj)
+{
+	struct bt_value *extended_obj = NULL;
+	struct extend_map_element_data extend_data = { 0 };
+
+	if (!bt_value_is_map(base_map_obj) || !bt_value_is_map(extension_obj)) {
+		goto error;
+	}
+
+	/* Create copy of base map object to start with */
+	extended_obj = bt_value_copy(base_map_obj);
+	if (!extended_obj) {
+		goto error;
+	}
+
+	/*
+	 * For each key in the extension map object, replace this key
+	 * in the copied map object.
+	 */
+	extend_data.extended_obj = extended_obj;
+
+	if (bt_value_map_foreach(extension_obj, extend_map_element,
+			&extend_data)) {
+		goto error;
+	}
+
+	if (extend_data.got_error) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(extended_obj);
+
+end:
+	return extended_obj;
+}
+
 struct bt_value *bt_value_copy(const struct bt_value *object)
 {
 	struct bt_value *copy_obj = NULL;

@@ -941,6 +941,10 @@ extern enum bt_value_status bt_value_map_insert_empty_array(
 extern enum bt_value_status bt_value_map_insert_empty_map(
 		struct bt_value *map_obj, const char *key);
 
+/* TODO: document */
+extern struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
+		struct bt_value *extension_map_obj);
+
 /**
  * Creates a deep copy of the value object \p object.
  *
