@@ -99,6 +99,7 @@ const char *_bt_python_get_array_string(struct bt_definition *field);
 const char *_bt_python_get_sequence_string(struct bt_definition *field);
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
+struct bt_iter_pos *_bt_python_create_iter_pos(void);
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
@@ -223,27 +224,33 @@ class TraceCollection:
 		event after the the generator has gone out of scope may result in a
 		crash or data corruption.
 		"""
-		begin_pos_ptr = _bt_iter_pos()
-		end_pos_ptr = _bt_iter_pos()
+		begin_pos_ptr = _bt_python_create_iter_pos()
+		end_pos_ptr = _bt_python_create_iter_pos()
 		begin_pos_ptr.type = SEEK_BEGIN
 		end_pos_ptr.type = SEEK_LAST
 
 		for event in self._events(begin_pos_ptr, end_pos_ptr):
 			yield event
 
+		_bt_iter_free_pos(begin_pos_ptr)
+		_bt_iter_free_pos(end_pos_ptr)
+
 	def events_timestamps(self, timestamp_begin, timestamp_end):
 		"""
 		Generator function to iterate over the events of open in the current
 		TraceCollection from timestamp_begin to timestamp_end.
 		"""
-		begin_pos_ptr = _bt_iter_pos()
-		end_pos_ptr = _bt_iter_pos()
+		begin_pos_ptr = _bt_python_create_iter_pos()
+		end_pos_ptr = _bt_python_create_iter_pos()
 		begin_pos_ptr.type = end_pos_ptr.type = SEEK_TIME
 		begin_pos_ptr.u.seek_time = timestamp_begin
 		end_pos_ptr.u.seek_time = timestamp_end
 
 		for event in self._events(begin_pos_ptr, end_pos_ptr):
 			yield event
+
+		_bt_iter_free_pos(begin_pos_ptr)
+		_bt_iter_free_pos(end_pos_ptr)
 
 	@property
 	def timestamp_begin(self):

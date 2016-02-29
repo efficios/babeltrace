@@ -21,6 +21,8 @@
 #include "python-complements.h"
 #include <babeltrace/ctf-writer/event-types-internal.h>
 #include <babeltrace/ctf-writer/event-fields-internal.h>
+#include <babeltrace/iterator.h>
+#include <glib.h>
 
 /* FILE functions
    ----------------------------------------------------
@@ -235,4 +237,15 @@ enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field)
 	type_id = field->type->declaration->id;
 end:
 	return type_id;
+}
+
+/*
+ * Python 3.5 changes the StopIteration exception clearing behaviour which
+ * erroneously marks swig clean-up function as having failed. This explicit
+ * allocation function is intended as a work-around so SWIG doesn't manage
+ * the lifetime of a "temporary" object by itself.
+ */
+struct bt_iter_pos *_bt_python_create_iter_pos(void)
+{
+	return g_new0(struct bt_iter_pos, 1);
 }

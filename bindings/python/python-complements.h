@@ -71,3 +71,6 @@ const char *_bt_python_get_sequence_string(struct bt_definition *field);
 /* ctf writer */
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
+
+/* iterator */
+struct bt_iter_pos *_bt_python_create_iter_pos(void);
