@@ -1,3 +1,9 @@
+2016-02-29 babeltrace 1.3.2
+	* Python bindings: work around Python 3.5 behaviour change
+	* Fix: out-of-bound memory access
+	* Fix: out-of-tree dist fails to find test traces
+	* Fix running tests out of tree
+
 2015-11-10 babeltrace 1.3.1
 	* Fix: Confusion between stream and stream class IDs
 	* Only compare "bison -y" to the basename of YACC variable
