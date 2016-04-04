@@ -386,7 +386,7 @@ void ctf_print_timestamp_real(FILE *fp,
 		time_t time_s = (time_t) ts_sec_abs;
 
 		if (is_negative) {
-			fprintf(stderr, "[warning] Fallback to [sec.ns] for printing negative time value. Use --clock-seconds.\n");
+			fprintf(stderr, "[warning] Fallback to [sec.ns] to print negative time value. Use --clock-seconds.\n");
 			goto seconds;
 		}
 
