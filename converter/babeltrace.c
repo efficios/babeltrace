@@ -628,8 +628,6 @@ struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
 		struct bt_iter_pos *inter_end_pos)
 {
 	uint64_t begin = 0, end = ULLONG_MAX;
-	/* Useless but needed for bt_iter_create_time_pos. */
-	struct bt_iter bt_iter;
 	int ret;
 
 	ret = ctf_find_packets_intersection(ctx, &begin, &end);
@@ -640,11 +638,11 @@ struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
 	} else if (ret != 0) {
 		goto error;
 	}
-	inter_begin_pos = bt_iter_create_time_pos(&bt_iter, begin);
+	inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
 	if (!inter_begin_pos) {
 		goto error;
 	}
-	inter_end_pos = bt_iter_create_time_pos(&bt_iter, end);
+	inter_end_pos = bt_iter_create_time_pos(NULL, end);
 	if (!inter_end_pos) {
 		goto error;
 	}

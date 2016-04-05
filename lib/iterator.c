@@ -615,13 +615,10 @@ error:
 	return NULL;
 }
 
-struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *iter,
+struct bt_iter_pos *bt_iter_create_time_pos(struct bt_iter *unused,
 		uint64_t timestamp)
 {
 	struct bt_iter_pos *pos;
-
-	if (!iter)
-		return NULL;
 
 	pos = g_new0(struct bt_iter_pos, 1);
 	pos->type = BT_SEEK_TIME;
