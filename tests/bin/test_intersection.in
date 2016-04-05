@@ -19,6 +19,7 @@ CURDIR=$(dirname $0)
 TESTDIR=$CURDIR/..
 
 BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+CTF_TRACES=@ABSTOPSRCDIR@/tests/ctf-traces
 
 source $TESTDIR/utils/tap/tap.sh
 
@@ -40,16 +41,16 @@ test_intersect() {
 diag "Test the stream intersection feature"
 
 diag "2 streams offsetted with 3 packets intersecting"
-test_intersect $TESTDIR/ctf-traces/intersection/3eventsintersect 8 3
+test_intersect ${CTF_TRACES}/intersection/3eventsintersect 8 3
 
 diag "2 streams offsetted with 3 packets intersecting (exchanged file names)"
-test_intersect $TESTDIR/ctf-traces/intersection/3eventsintersectreverse 8 3
+test_intersect ${CTF_TRACES}/intersection/3eventsintersectreverse 8 3
 
 diag "No intersection between 2 streams"
-test_intersect $TESTDIR/ctf-traces/intersection/nointersect 6 0
+test_intersect ${CTF_TRACES}/intersection/nointersect 6 0
 
 diag "Only 1 stream"
-test_intersect $TESTDIR/ctf-traces/intersection/onestream 3 3
+test_intersect ${CTF_TRACES}/intersection/onestream 3 3
 
 diag "No stream at all"
-test_intersect $TESTDIR/ctf-traces/intersection/nostream 0 0
+test_intersect ${CTF_TRACES}/intersection/nostream 0 0

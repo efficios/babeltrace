@@ -19,6 +19,7 @@ CURDIR=$(dirname $0)
 TESTDIR=$CURDIR/..
 
 BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+CTF_TRACES=@ABSTOPSRCDIR@/tests/ctf-traces
 
 source $TESTDIR/utils/tap/tap.sh
 
@@ -60,16 +61,16 @@ test_lost() {
 diag "Test the packet_seq_num validation"
 
 diag "No packet lost"
-test_no_lost $TESTDIR/ctf-traces/packet_seq_num/no_lost
+test_no_lost ${CTF_TRACES}/packet_seq_num/no_lost
 
 diag "No packet lost, packet_seq_num not starting at 0"
-test_no_lost $TESTDIR/ctf-traces/packet_seq_num/no_lost_not_starting_at_0
+test_no_lost ${CTF_TRACES}/packet_seq_num/no_lost_not_starting_at_0
 
 diag "1 stream, 2 packets lost before the last packet"
-test_lost $TESTDIR/ctf-traces/packet_seq_num/2_lost_before_last "2"
+test_lost ${CTF_TRACES}/packet_seq_num/2_lost_before_last "2"
 
 diag "2 streams, packets lost in one of them"
-test_lost $TESTDIR/ctf-traces/packet_seq_num/2_streams_lost_in_1 "2"
+test_lost ${CTF_TRACES}/packet_seq_num/2_streams_lost_in_1 "2"
 
 diag "2 streams, packets lost in both"
-test_lost $TESTDIR/ctf-traces/packet_seq_num/2_streams_lost_in_2 "3,2,1"
+test_lost ${CTF_TRACES}/packet_seq_num/2_streams_lost_in_2 "3,2,1"
