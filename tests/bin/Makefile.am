@@ -1,4 +1,4 @@
-noinst_SCRIPTS = test_trace_read
+noinst_SCRIPTS = test_trace_read test_intersection test_packet_seq_num
 CLEANFILES = $(noinst_SCRIPTS)
 EXTRA_DIST = test_trace_read.in
 
