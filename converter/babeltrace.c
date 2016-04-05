@@ -624,8 +624,8 @@ end:
 
 static
 struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
-		struct bt_iter_pos *inter_begin_pos,
-		struct bt_iter_pos *inter_end_pos)
+		struct bt_iter_pos **inter_begin_pos,
+		struct bt_iter_pos **inter_end_pos)
 {
 	uint64_t begin = 0, end = ULLONG_MAX;
 	int ret;
@@ -638,17 +638,22 @@ struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
 	} else if (ret != 0) {
 		goto error;
 	}
-	inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
+	*inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
 	if (!inter_begin_pos) {
 		goto error;
 	}
-	inter_end_pos = bt_iter_create_time_pos(NULL, end);
+	*inter_end_pos = bt_iter_create_time_pos(NULL, end);
 	if (!inter_end_pos) {
 		goto error;
 	}
 
-	return bt_ctf_iter_create(ctx, inter_begin_pos,
-			inter_end_pos);
+	/*
+	 * bt_ctf_iter does not take ownership of begin and end positions,
+	 * so we return them to the caller who must still assume their ownership
+	 * until the iterator is destroyed.
+	 */
+	return bt_ctf_iter_create(ctx, *inter_begin_pos,
+			*inter_end_pos);
 error:
 	return NULL;
 }
@@ -659,8 +664,7 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 {
 	struct bt_ctf_iter *iter;
 	struct ctf_text_stream_pos *sout;
-	struct bt_iter_pos begin_pos;
-	struct bt_iter_pos *inter_begin_pos = NULL, *inter_end_pos = NULL;
+	struct bt_iter_pos *begin_pos = NULL, *end_pos = NULL;
 	struct bt_ctf_event *ctf_event;
 	int ret;
 
@@ -672,10 +676,11 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 	}
 
 	if (opt_stream_intersection) {
-		iter = iter_create_intersect(ctx, inter_begin_pos, inter_end_pos);
+		iter = iter_create_intersect(ctx, &begin_pos, &end_pos);
 	} else {
-		begin_pos.type = BT_SEEK_BEGIN;
-		iter = bt_ctf_iter_create(ctx, &begin_pos, NULL);
+		begin_pos = bt_iter_create_time_pos(NULL, 0);
+		begin_pos->type = BT_SEEK_BEGIN;
+		iter = bt_ctf_iter_create(ctx, begin_pos, NULL);
 	}
 	if (!iter) {
 		ret = -1;
@@ -697,12 +702,8 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 end:
 	bt_ctf_iter_destroy(iter);
 error_iter:
-	if (inter_begin_pos) {
-		bt_iter_free_pos(inter_begin_pos);
-	}
-	if (inter_end_pos) {
-		bt_iter_free_pos(inter_end_pos);
-	}
+	bt_iter_free_pos(begin_pos);
+	bt_iter_free_pos(end_pos);
 	return ret;
 }
 
