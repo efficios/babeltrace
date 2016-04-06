@@ -45,12 +45,13 @@ class TraceCollection:
     trace from a trace collection.
     """
 
-    def __init__(self):
+    def __init__(self, intersect_mode=False):
         """
         Creates an empty trace collection.
         """
 
         self._tc = nbt._bt_context_create()
+        self.intersect_mode = intersect_mode
 
     def __del__(self):
         nbt._bt_context_put(self._tc)
@@ -147,8 +148,10 @@ class TraceCollection:
 
         begin_pos_ptr = nbt._bt_python_create_iter_pos()
         end_pos_ptr = nbt._bt_python_create_iter_pos()
-        begin_pos_ptr.type = nbt.SEEK_BEGIN
-        end_pos_ptr.type = nbt.SEEK_LAST
+
+        if not self.intersect_mode:
+            begin_pos_ptr.type = nbt.SEEK_BEGIN
+            end_pos_ptr.type = nbt.SEEK_LAST
 
         for event in self._events(begin_pos_ptr, end_pos_ptr):
             yield event
@@ -219,7 +222,19 @@ class TraceCollection:
         return ev.timestamp
 
     def _events(self, begin_pos_ptr, end_pos_ptr):
-        ctf_it_ptr = nbt._bt_ctf_iter_create(self._tc, begin_pos_ptr, end_pos_ptr)
+        if self.intersect_mode:
+            has_intersection = nbt._bt_python_has_intersection(self._tc)
+            if not has_intersection:
+                # There are no events to provide.
+                return
+
+            ctf_it_ptr = nbt._bt_python_ctf_iter_create_intersect(
+                self._tc, begin_pos_ptr, end_pos_ptr
+            )
+        else:
+            ctf_it_ptr = nbt._bt_ctf_iter_create(
+                self._tc, begin_pos_ptr, end_pos_ptr
+            )
 
         if ctf_it_ptr is None:
             raise NotImplementedError("Creation of multiple iterators is unsupported.")
