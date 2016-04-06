@@ -33,6 +33,8 @@
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/iterator.h>
+#include <babeltrace/ctf/iterator.h>
+#include <babeltrace/ctf/events-internal.h>
 #include <glib.h>
 
 /* List-related functions
@@ -399,4 +401,23 @@ end:
 struct bt_iter_pos *_bt_python_create_iter_pos(void)
 {
 	return g_new0(struct bt_iter_pos, 1);
+}
+
+struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
+		struct bt_context *ctx,
+		struct bt_iter_pos *inter_begin_pos,
+		struct bt_iter_pos *inter_end_pos)
+{
+	return bt_ctf_iter_create_intersect(ctx, &inter_begin_pos,
+			&inter_end_pos);
+}
+
+int _bt_python_has_intersection(struct bt_context *ctx)
+{
+	int ret;
+	uint64_t begin = 0, end = ULLONG_MAX;
+
+	ret = ctf_find_packets_intersection(ctx, &begin, &end);
+
+	return ret == 0 ? 1 : 0;
 }
