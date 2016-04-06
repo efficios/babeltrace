@@ -639,42 +639,6 @@ end:
 }
 
 static
-struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
-		struct bt_iter_pos **inter_begin_pos,
-		struct bt_iter_pos **inter_end_pos)
-{
-	uint64_t begin = 0, end = ULLONG_MAX;
-	int ret;
-
-	ret = ctf_find_packets_intersection(ctx, &begin, &end);
-	if (ret == 1) {
-		fprintf(stderr, "[error] No intersection found between trace files.\n");
-		ret = -1;
-		goto error;
-	} else if (ret != 0) {
-		goto error;
-	}
-	*inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
-	if (!(*inter_begin_pos)) {
-		goto error;
-	}
-	*inter_end_pos = bt_iter_create_time_pos(NULL, end);
-	if (!(*inter_end_pos)) {
-		goto error;
-	}
-
-	/*
-	 * bt_ctf_iter does not take ownership of begin and end positions,
-	 * so we return them to the caller who must still assume their ownership
-	 * until the iterator is destroyed.
-	 */
-	return bt_ctf_iter_create(ctx, *inter_begin_pos,
-			*inter_end_pos);
-error:
-	return NULL;
-}
-
-static
 int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
@@ -692,7 +656,7 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 	}
 
 	if (opt_stream_intersection) {
-		iter = iter_create_intersect(ctx, &begin_pos, &end_pos);
+		iter = bt_ctf_iter_create_intersect(ctx, &begin_pos, &end_pos);
 	} else {
 		begin_pos = bt_iter_create_time_pos(NULL, 0);
 		begin_pos->type = BT_SEEK_BEGIN;
