@@ -63,6 +63,22 @@ struct bt_ctf_iter *bt_ctf_iter_create(struct bt_context *ctx,
 		const struct bt_iter_pos *begin_pos,
 		const struct bt_iter_pos *end_pos);
 
+ /*
+ * bt_ctf_iter_create_intersect - Allocate a CTF trace collection
+ * iterator corresponding to the timerange when all streams are active
+ * simultaneously.
+ *
+ * On success, return a pointer to the newly allocated iterator. The
+ * out parameters inter_begin_pos and inter_end_pos are also set to
+ * correspond to the beginning and end of the intersection,
+ * respectively.
+ *
+ * On failure, return NULL.
+ */
+struct bt_ctf_iter *bt_ctf_iter_create_intersect(struct bt_context *ctx,
+		struct bt_iter_pos **inter_begin_pos,
+		struct bt_iter_pos **inter_end_pos);
+
 /*
  * bt_ctf_get_iter - get iterator from ctf iterator.
  */
