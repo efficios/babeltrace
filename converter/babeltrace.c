@@ -639,11 +639,11 @@ struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
 		goto error;
 	}
 	*inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
-	if (!inter_begin_pos) {
+	if (!(*inter_begin_pos)) {
 		goto error;
 	}
 	*inter_end_pos = bt_iter_create_time_pos(NULL, end);
-	if (!inter_end_pos) {
+	if (!(*inter_end_pos)) {
 		goto error;
 	}
 
