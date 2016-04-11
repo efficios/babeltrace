@@ -649,7 +649,6 @@ struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
 	ret = ctf_find_packets_intersection(ctx, &begin, &end);
 	if (ret == 1) {
 		fprintf(stderr, "[error] No intersection found between trace files.\n");
-		ret = -1;
 		goto error;
 	} else if (ret != 0) {
 		goto error;
