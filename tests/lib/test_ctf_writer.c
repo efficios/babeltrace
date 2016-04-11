@@ -2880,7 +2880,7 @@ void test_clock_utils(void)
 	clock = bt_ctf_clock_create("water");
 	assert(clock);
 	ret = bt_ctf_clock_set_offset_s(clock, 1234);
-	assert(clock);
+	assert(!ret);
 	ret = bt_ctf_clock_set_offset(clock, 1000);
 	assert(!ret);
 	ret = bt_ctf_clock_set_frequency(clock, 1000000000);
