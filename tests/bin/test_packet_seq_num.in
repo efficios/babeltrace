@@ -19,7 +19,7 @@ CURDIR=$(dirname $0)
 TESTDIR=$CURDIR/..
 
 BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
-CTF_TRACES=@ABSTOPSRCDIR@/tests/ctf-traces
+CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 
 source $TESTDIR/utils/tap/tap.sh
 
@@ -32,7 +32,7 @@ test_no_lost() {
 
 	$BABELTRACE_BIN $trace >/dev/null 2>&1
 	ok $? "Trace parses"
-	$BABELTRACE_BIN $trace 2>&1 >/dev/null | grep "\[warning\] Tracer lost"
+	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "\[warning\] Tracer lost"
 	if test $? = 0; then
 		fail 1 "Should not find any lost events"
 	else
@@ -51,9 +51,9 @@ test_lost() {
 	# [warning] Tracer lost 2 trace packets between ....
 	# [warning] Tracer lost 3 trace packets between ....
 	# into "2,3" and make sure it matches the expected result
-	$BABELTRACE_BIN $trace 2>&1 >/dev/null | grep "\[warning\] Tracer lost" \
-		| cut -d" " -f4 | tr "\n" "," | sed "s/.$//" | \
-		grep "$expectedcountstr" >/dev/null
+	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "\[warning\] Tracer lost" \
+		| cut -d" " -f4 | tr "\n" "," | @SED@ "s/.$//" | \
+		@GREP@ "$expectedcountstr" >/dev/null
 	ok $? "Lost events string matches $expectedcountstr"
 
 }
