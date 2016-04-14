@@ -33,22 +33,22 @@
 
 struct proc_debug_info_sources {
 	/*
-	 * Hash table: base address to so info; owned by
+	 * Hash table: base address (pointer to uint64_t) to so info; owned by
 	 * proc_debug_info_sources.
 	 */
 	GHashTable *baddr_to_so_info;
 
 	/*
-	 * Hash table: IP to (struct debug_info_source *); owned by
-	 * proc_debug_info_sources.
+	 * Hash table: IP (pointer to uint64_t) to (struct debug_info_source *);
+	 * owned by proc_debug_info_sources.
 	 */
 	GHashTable *ip_to_debug_info_src;
 };
 
 struct debug_info {
 	/*
-	 * Hash table of VPIDs (int64_t) to (struct ctf_proc_debug_infos*);
-	 * owned by debug_info.
+	 * Hash table of VPIDs (pointer to int64_t) to
+	 * (struct ctf_proc_debug_infos*); owned by debug_info.
 	 */
 	GHashTable *vpid_to_proc_dbg_info_src;
 	GQuark q_statedump_soinfo;
@@ -169,13 +169,14 @@ struct proc_debug_info_sources *proc_debug_info_sources_create(void)
 	}
 
 	proc_dbg_info_src->baddr_to_so_info = g_hash_table_new_full(
-			NULL, NULL, NULL, (GDestroyNotify) so_info_destroy);
+			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
+			(GDestroyNotify) so_info_destroy);
 	if (!proc_dbg_info_src->baddr_to_so_info) {
 		goto error;
 	}
 
 	proc_dbg_info_src->ip_to_debug_info_src = g_hash_table_new_full(
-			NULL, NULL, NULL,
+			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
 			(GDestroyNotify) debug_info_source_destroy);
 	if (!proc_dbg_info_src->ip_to_debug_info_src) {
 		goto error;
@@ -193,8 +194,14 @@ static
 struct proc_debug_info_sources *proc_debug_info_sources_ht_get_entry(
 		GHashTable *ht, int64_t vpid)
 {
-	gpointer key = (gpointer) vpid;
+	gpointer key = g_new0(int64_t, 1);
 	struct proc_debug_info_sources *proc_dbg_info_src = NULL;
+
+	if (!key) {
+		goto end;
+	}
+
+	*((int64_t *) key) = vpid;
 
 	/* Exists? Return it */
 	proc_dbg_info_src = g_hash_table_lookup(ht, key);
@@ -209,7 +216,10 @@ struct proc_debug_info_sources *proc_debug_info_sources_ht_get_entry(
 	}
 
 	g_hash_table_insert(ht, key, proc_dbg_info_src);
+	/* Ownership passed to ht */
+	key = NULL;
 end:
+	g_free(key);
 	return proc_dbg_info_src;
 }
 
@@ -218,14 +228,20 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 		struct proc_debug_info_sources *proc_dbg_info_src, uint64_t ip)
 {
 	struct debug_info_source *debug_info_src = NULL;
-	gint64 key = (gint64) ip;
+	gpointer key = g_new0(uint64_t, 1);
 	GHashTableIter iter;
 	gpointer baddr, value;
+
+	if (!key) {
+		goto end;
+	}
+
+	*((uint64_t *) key) = ip;
 
 	/* Look in IP to debug infos hash table first. */
 	debug_info_src = g_hash_table_lookup(
 			proc_dbg_info_src->ip_to_debug_info_src,
-			(gpointer) key);
+			key);
 	if (debug_info_src) {
 		goto end;
 	}
@@ -241,17 +257,26 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 			continue;
 		}
 
-		/* Found; add it to cache. */
+		/*
+		 * Found; add it to cache.
+		 *
+		 * FIXME: this should be bounded in size (and implement
+		 * a caching policy), and entries should be prunned when
+		 * libraries are unmapped.
+		 */
 		debug_info_src = debug_info_source_create_from_so(so, ip);
 		if (debug_info_src) {
 			g_hash_table_insert(
 					proc_dbg_info_src->ip_to_debug_info_src,
-					(gpointer) key, debug_info_src);
+					key, debug_info_src);
+			/* Ownership passed to ht. */
+			key = NULL;
 		}
 		break;
 	}
 
 end:
+	free(key);
 	return debug_info_src;
 }
 
@@ -289,8 +314,8 @@ struct debug_info *debug_info_create(void)
 		goto end;
 	}
 
-	debug_info->vpid_to_proc_dbg_info_src = g_hash_table_new_full(NULL,
-			NULL, NULL,
+	debug_info->vpid_to_proc_dbg_info_src = g_hash_table_new_full(
+			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
 			(GDestroyNotify) proc_debug_info_sources_destroy);
 	if (!debug_info->vpid_to_proc_dbg_info_src) {
 		goto error;
@@ -523,6 +548,7 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 	uint64_t baddr, memsz;
 	int64_t vpid;
 	const char *sopath;
+	gpointer key = NULL;
 
 	event_fields_def = (struct bt_definition *) event_def->event_fields;
 	sec_def = (struct bt_definition *)
@@ -588,8 +614,15 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 		goto end;
 	}
 
+	key = g_new0(uint64_t, 1);
+	if (!key) {
+		goto end;
+	}
+
+	*((uint64_t *) key) = baddr;
+
 	so = g_hash_table_lookup(proc_dbg_info_src->baddr_to_so_info,
-			(gpointer) baddr);
+			key);
 	if (so) {
 		goto end;
 	}
@@ -600,9 +633,12 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 	}
 
 	g_hash_table_insert(proc_dbg_info_src->baddr_to_so_info,
-			(gpointer) baddr, so);
+			key, so);
+	/* Ownership passed to ht. */
+	key = NULL;
 
 end:
+	g_free(key);
 	return;
 }
 
