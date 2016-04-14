@@ -7,6 +7,8 @@
 /tests/lib/test_ctf_writer
 /tests/lib/test_durin
 /tests/lib/test_so_info
+/tests/lib/test_seek_big_trace
+/tests/lib/test_seek_empty_packet
 *.o
 *.a
 *.la
