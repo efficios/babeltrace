@@ -63,6 +63,40 @@
 
 static int64_t current_time = 42;
 
+static
+void delete_trace(const char *trace_path)
+{
+	/* Remove all trace files and delete temporary trace directory */
+	struct dirent *entry;
+	DIR *trace_dir = opendir(trace_path);
+
+	if (!trace_dir) {
+		perror("# opendir");
+		return;
+	}
+
+	while ((entry = readdir(trace_dir))) {
+		struct stat st;
+		char filename[PATH_MAX];
+
+		if (snprintf(filename, sizeof(filename), "%s/%s",
+			     trace_path, entry->d_name) <= 0) {
+			continue;
+		}
+
+		if (stat(filename, &st)) {
+			continue;
+		}
+
+		if (S_ISREG(st.st_mode)) {
+			unlinkat(bt_dirfd(trace_dir), entry->d_name, 0);
+		}
+	}
+
+	rmdir(trace_path);
+	closedir(trace_dir);
+}
+
 /* Return 1 if uuids match, zero if different. */
 int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
 {
@@ -2870,6 +2904,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	bt_put(non_writer_clock);
 	bt_put(packet);
 	bt_put(packet2);
+	delete_trace(trace_path);
 }
 
 void test_clock_utils(void)
@@ -3586,33 +3621,6 @@ int main(int argc, char **argv)
 	free(metadata_string);
 	bt_put(stream_class);
 
-	/* Remove all trace files and delete temporary trace directory */
-	DIR *trace_dir = opendir(trace_path);
-	if (!trace_dir) {
-		perror("# opendir");
-		return -1;
-	}
-
-	struct dirent *entry;
-	while ((entry = readdir(trace_dir))) {
-		struct stat st;
-		char filename[PATH_MAX];
-
-		if (snprintf(filename, sizeof(filename), "%s/%s",
-					trace_path, entry->d_name) <= 0) {
-			continue;
-		}
-
-		if (stat(entry->d_name, &st)) {
-			continue;
-		}
-
-		if (S_ISREG(st.st_mode)) {
-			unlinkat(bt_dirfd(trace_dir), entry->d_name, 0);
-		}
-	}
-
-	rmdir(trace_path);
-	closedir(trace_dir);
+	delete_trace(trace_path);
 	return 0;
 }
