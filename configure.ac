@@ -341,6 +341,11 @@ AC_CONFIG_FILES([
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
+
 AC_CONFIG_FILES([tests/lib/test_seek_big_trace], [chmod +x tests/lib/test_seek_big_trace])
 AC_CONFIG_FILES([tests/lib/test_seek_empty_packet], [chmod +x tests/lib/test_seek_empty_packet])
+AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read])
+AC_CONFIG_FILES([tests/bin/test_intersection], [chmod +x tests/bin/test_intersection])
+AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
+
 AC_OUTPUT

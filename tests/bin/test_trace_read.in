@@ -20,7 +20,7 @@ TESTDIR=$CURDIR/..
 
 BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
 
-CTF_TRACES=@ABSTOPSRCDIR@/tests/ctf-traces
+CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 
 source $TESTDIR/utils/tap/tap.sh
 
