@@ -98,6 +98,7 @@ void delete_trace(const char *trace_path)
 }
 
 /* Return 1 if uuids match, zero if different. */
+static
 int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
 {
 	int ret = 0;
@@ -118,6 +119,7 @@ end:
 	return ret;
 }
 
+static
 void validate_metadata(char *parser_path, char *metadata_path)
 {
 	int ret = 0;
@@ -234,6 +236,7 @@ close_fp:
 	}
 }
 
+static
 void validate_trace(char *parser_path, char *trace_path)
 {
 	int ret = 0;
@@ -316,6 +319,7 @@ close_fp:
 	}
 }
 
+static
 void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
@@ -732,6 +736,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_put(ep_enum_field_unsigned_type);
 }
 
+static
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
@@ -1312,8 +1317,9 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_put(event);
 }
 
-static void field_copy_tests_validate_same_type(struct bt_ctf_field *field,
-	struct bt_ctf_field_type *expected_type, const char *name)
+static
+void field_copy_tests_validate_same_type(struct bt_ctf_field *field,
+		struct bt_ctf_field_type *expected_type, const char *name)
 {
 	struct bt_ctf_field_type *copy_type;
 
@@ -1323,13 +1329,15 @@ static void field_copy_tests_validate_same_type(struct bt_ctf_field *field,
 	bt_put(copy_type);
 }
 
-static void field_copy_tests_validate_diff_ptrs(struct bt_ctf_field *field_a,
-	struct bt_ctf_field *field_b, const char *name)
+static
+void field_copy_tests_validate_diff_ptrs(struct bt_ctf_field *field_a,
+		struct bt_ctf_field *field_b, const char *name)
 {
 	ok(field_a != field_b,
 		"bt_ctf_field_copy creates different pointers (%s)", name);
 }
 
+static
 void field_copy_tests()
 {
 	struct bt_ctf_field_type *len_type = NULL;
@@ -1839,6 +1847,7 @@ void field_copy_tests()
 	bt_put(strct_copy);
 }
 
+static
 void type_field_tests()
 {
 	struct bt_ctf_field *uint_12;
@@ -2121,6 +2130,7 @@ void type_field_tests()
 	bt_put(returned_type);
 }
 
+static
 void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
@@ -2262,6 +2272,7 @@ end:
 	bt_put(ep_type);
 }
 
+static
 void test_empty_stream(struct bt_ctf_writer *writer)
 {
 	int ret = 0;
@@ -2307,6 +2318,7 @@ end:
 	bt_put(stream_class);
 }
 
+static
 void test_custom_event_header_stream(struct bt_ctf_writer *writer)
 {
 	int i, ret;
@@ -2512,6 +2524,7 @@ end:
 	bt_put(event_header_type);
 }
 
+static
 void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 {
 	int ret = 0;
@@ -2628,6 +2641,7 @@ end:
 	bt_put(clock);
 }
 
+static
 void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 {
 	struct bt_ctf_event_class *event_class;
@@ -2646,6 +2660,7 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	bt_put(event_class);
 }
 
+static
 void test_trace_stream_class_clock(void)
 {
 	struct bt_ctf_trace *trace = NULL;
@@ -2907,6 +2922,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	delete_trace(trace_path);
 }
 
+static
 void test_clock_utils(void)
 {
 	int ret;
