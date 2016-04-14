@@ -23,8 +23,12 @@ clean-local:
 		done; \
 	fi
 
+TEMPLIST := $(shell mktemp -u)
 check-am:
-	./run.sh $(srcdir)/tests
+	@cat $(srcdir)/tests > $(TEMPLIST)
 if ENABLE_DEBUGINFO
-	./run.sh $(srcdir)/tests_debuginfo
+	@echo '' >> $(TEMPLIST)
+	@cat $(srcdir)/tests_debuginfo >> $(TEMPLIST)
 endif
+	./run.sh $(TEMPLIST)
+	rm $(TEMPLIST)
