@@ -548,12 +548,13 @@ end:
 }
 
 static
-void handle_statedump_soinfo_event(struct debug_info *debug_info,
-		struct ctf_event_definition *event_def)
+void handle_bin_info_event(struct debug_info *debug_info,
+		struct ctf_event_definition *event_def, bool has_pic_field)
 {
 	struct bt_definition *baddr_def = NULL;
 	struct bt_definition *memsz_def = NULL;
 	struct bt_definition *sopath_def = NULL;
+	struct bt_definition *is_pic_def = NULL;
 	struct bt_definition *vpid_def = NULL;
 	struct bt_definition *event_fields_def = NULL;
 	struct bt_definition *sec_def = NULL;
@@ -563,6 +564,7 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 	int64_t vpid;
 	const char *sopath;
 	gpointer key = NULL;
+	bool is_pic;
 
 	event_fields_def = (struct bt_definition *) event_def->event_fields;
 	sec_def = (struct bt_definition *)
@@ -585,6 +587,25 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 	sopath_def = bt_lookup_definition(event_fields_def, "_sopath");
 	if (!sopath_def) {
 		goto end;
+	}
+
+	if (has_pic_field) {
+		is_pic_def = bt_lookup_definition(event_fields_def, "_is_pic");
+		if (!is_pic_def) {
+			goto end;
+		}
+
+		if (is_pic_def->declaration->id != BT_CTF_TYPE_ID_INTEGER) {
+			goto end;
+		}
+
+		is_pic = (bt_get_unsigned_int(is_pic_def) == 1);
+	} else {
+		/*
+		 * dlopen has no is_pic field, because the shared
+		 * object is always PIC.
+		 */
+		is_pic = true;
 	}
 
 	vpid_def = bt_lookup_definition(sec_def, "_vpid");
@@ -641,7 +662,7 @@ void handle_statedump_soinfo_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	so = so_info_create(sopath, baddr, memsz);
+	so = so_info_create(sopath, baddr, memsz, is_pic);
 	if (!so) {
 		goto end;
 	}
@@ -655,6 +676,21 @@ end:
 	g_free(key);
 	return;
 }
+
+static inline
+void handle_soinfo_event(struct debug_info *debug_info,
+		struct ctf_event_definition *event_def)
+{
+	handle_bin_info_event(debug_info, event_def, true);
+}
+
+static inline
+void handle_dlopen_event(struct debug_info *debug_info,
+		struct ctf_event_definition *event_def)
+{
+	handle_bin_info_event(debug_info, event_def, false);
+}
+
 
 static
 void handle_statedump_start(struct debug_info *debug_info,
@@ -741,10 +777,11 @@ void debug_info_handle_event(struct debug_info *debug_info,
 	event_class = g_ptr_array_index(stream_class->events_by_id,
 			event->stream->event_id);
 
-	if (event_class->name == debug_info->q_statedump_soinfo ||
-			event_class->name == debug_info->q_dl_open) {
-		/* State dump/dlopen() */
-		handle_statedump_soinfo_event(debug_info, event);
+	if (event_class->name == debug_info->q_statedump_soinfo) {
+		/* State dump */
+		handle_soinfo_event(debug_info, event);
+	} else if (event_class->name == debug_info->q_dl_open) {
+		handle_dlopen_event(debug_info, event);
 	} else if (event_class->name == debug_info->q_statedump_start) {
 		/* Start state dump */
 		handle_statedump_start(debug_info, event);
