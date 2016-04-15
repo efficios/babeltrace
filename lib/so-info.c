@@ -65,7 +65,7 @@ int so_info_init(void)
 
 BT_HIDDEN
 struct so_info *so_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz)
+		uint64_t memsz, bool is_pic)
 {
 	struct so_info *so = NULL;
 	GElf_Ehdr *ehdr = NULL;
@@ -113,8 +113,7 @@ struct so_info *so_info_create(const char *path, uint64_t low_addr,
 		goto error;
 	}
 
-	/* Position independent code has an e_type value of ET_DYN. */
-	so->is_pic = ehdr->e_type == ET_DYN;
+	so->is_pic = is_pic;
 	so->memsz = memsz;
 	so->low_addr = low_addr;
 	so->high_addr = so->low_addr + so->memsz;

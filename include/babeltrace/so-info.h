@@ -87,12 +87,14 @@ int so_info_init(void);
  * @param path		Path to the ELF file
  * @param low_addr	Base address of the executable
  * @param memsz	In-memory size of the executable
+ * @param is_pic	Whether the executable is position independent
+ *			code (PIC)
  * @returns		Pointer to the new so_info on success,
  *			NULL on failure.
  */
 BT_HIDDEN
 struct so_info *so_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz);
+		uint64_t memsz, bool is_pic);
 
 /**
  * Destroy the given so_info instance
