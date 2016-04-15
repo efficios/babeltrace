@@ -105,7 +105,7 @@ enum {
 	OPT_CLOCK_GMT,
 	OPT_CLOCK_FORCE_CORRELATE,
 	OPT_STREAM_INTERSECTION,
-	OPT_DEBUG_DIR,
+	OPT_DEBUG_INFO_DIR,
 };
 
 /*
@@ -137,7 +137,7 @@ static struct poptOption long_options[] = {
 	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
 	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
 #ifdef ENABLE_DEBUGINFO
-	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_DIR, NULL, NULL },
+	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 #endif
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
@@ -411,9 +411,9 @@ static int parse_options(int argc, char **argv)
 		case OPT_STREAM_INTERSECTION:
 			opt_stream_intersection = 1;
 			break;
-		case OPT_DEBUG_DIR:
-			opt_debug_dir = (char *) poptGetOptArg(pc);
-			if (!opt_debug_dir) {
+		case OPT_DEBUG_INFO_DIR:
+			opt_debug_info_dir = (char *) poptGetOptArg(pc);
+			if (!opt_debug_info_dir) {
 				ret = -EINVAL;
 				goto end;
 			}
@@ -837,7 +837,7 @@ end:
 	free(opt_input_format);
 	free(opt_output_format);
 	free(opt_output_path);
-	free(opt_debug_dir);
+	free(opt_debug_info_dir);
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);

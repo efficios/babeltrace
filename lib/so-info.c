@@ -289,7 +289,7 @@ int so_info_set_dwarf_info_build_id(struct so_info *so)
 		goto error;
 	}
 
-	dbg_dir = opt_debug_dir ? : DEFAULT_DEBUG_DIR;
+	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
 	dbg_dir_trailing_slash = dbg_dir[strlen(dbg_dir) - 1] == '/';
 
@@ -404,7 +404,7 @@ int so_info_set_dwarf_info_debug_link(struct so_info *so)
 		goto error;
 	}
 
-	dbg_dir = opt_debug_dir ? : DEFAULT_DEBUG_DIR;
+	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
 	dir_name = dirname(so->elf_path);
 	if (!dir_name) {

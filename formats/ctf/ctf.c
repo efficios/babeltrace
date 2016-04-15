@@ -85,7 +85,7 @@ uint64_t opt_clock_offset;
 uint64_t opt_clock_offset_ns;
 
 extern int yydebug;
-char *opt_debug_dir;
+char *opt_debug_info_dir;
 
 /*
  * TODO: babeltrace_ctf_console_output ensures that we only print

@@ -45,7 +45,7 @@
 #define FUNC_FOO_NAME_ELF "foo+0x24"
 #define BUILD_ID_LEN 20
 
-char *opt_debug_dir;
+char *opt_debug_info_dir;
 
 static
 void test_so_info_build_id(const char *data_dir)
@@ -249,16 +249,16 @@ int main(int argc, char **argv)
 	if (argc != 2) {
 		return EXIT_FAILURE;
 	} else {
-		opt_debug_dir = argv[1];
+		opt_debug_info_dir = argv[1];
 	}
 
 	ret = so_info_init();
 	ok(ret == 0, "so_info_init succesful");
 
-	test_so_info(opt_debug_dir);
-	test_so_info_elf(opt_debug_dir);
-	test_so_info_build_id(opt_debug_dir);
-	test_so_info_debug_link(opt_debug_dir);
+	test_so_info(opt_debug_info_dir);
+	test_so_info_elf(opt_debug_info_dir);
+	test_so_info_build_id(opt_debug_info_dir);
+	test_so_info_debug_link(opt_debug_info_dir);
 
 	return EXIT_SUCCESS;
 }
