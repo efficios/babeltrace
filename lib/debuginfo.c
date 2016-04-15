@@ -141,14 +141,12 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 	}
 
 	/* Can't retrieve src_loc from ELF only, skip it */
-	if (so->is_elf_only) {
-		goto end;
-	}
-
-	/* Lookup source location */
-	ret = so_info_lookup_source_location(so, ip, &src_loc);
-	if (ret) {
-		goto error;
+	if (!so->is_elf_only) {
+		/* Lookup source location */
+		ret = so_info_lookup_source_location(so, ip, &src_loc);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	if (src_loc) {
