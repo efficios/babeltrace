@@ -106,6 +106,7 @@ enum {
 	OPT_CLOCK_FORCE_CORRELATE,
 	OPT_STREAM_INTERSECTION,
 	OPT_DEBUG_INFO_DIR,
+	OPT_DEBUG_INFO_FULL_PATH,
 };
 
 /*
@@ -138,6 +139,7 @@ static struct poptOption long_options[] = {
 	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
 #ifdef ENABLE_DEBUGINFO
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
+	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
 #endif
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
@@ -188,6 +190,7 @@ static void usage(FILE *fp)
 #ifdef ENABLE_DEBUGINFO
 	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
 	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
+	fprintf(fp, "      --debug-info-full-path     Show full debug info source and binary paths (if available)\n");
 #endif
 	list_formats(fp);
 	fprintf(fp, "\n");
@@ -417,6 +420,9 @@ static int parse_options(int argc, char **argv)
 				ret = -EINVAL;
 				goto end;
 			}
+			break;
+		case OPT_DEBUG_INFO_FULL_PATH:
+			opt_debug_info_full_path = 1;
 			break;
 		default:
 			ret = -EINVAL;
