@@ -67,7 +67,6 @@ struct so_info *so_info_create(const char *path, uint64_t low_addr,
 		uint64_t memsz, bool is_pic)
 {
 	struct so_info *so = NULL;
-	GElf_Ehdr *ehdr = NULL;
 
 	if (!path) {
 		goto error;
@@ -83,45 +82,14 @@ struct so_info *so_info_create(const char *path, uint64_t low_addr,
 		goto error;
 	}
 
-	so->elf_fd = open(path, O_RDONLY);
-	if (so->elf_fd < 0) {
-		fprintf(stderr, "Failed to open %s\n", path);
-		goto error;
-	}
-
-	so->elf_file = elf_begin(so->elf_fd, ELF_C_READ, NULL);
-	if (!so->elf_file) {
-		fprintf(stderr, "elf_begin failed: %s\n", elf_errmsg(-1));
-		goto error;
-	}
-
-	if (elf_kind(so->elf_file) != ELF_K_ELF) {
-		fprintf(stderr, "Error: %s is not an ELF object\n",
-				so->elf_path);
-		goto error;
-	}
-
-	ehdr = g_new0(GElf_Ehdr, 1);
-	if (!ehdr) {
-		goto error;
-	}
-
-	if (!gelf_getehdr(so->elf_file, ehdr)) {
-		fprintf(stderr, "Error: couldn't get ehdr for %s\n",
-				so->elf_path);
-		goto error;
-	}
-
 	so->is_pic = is_pic;
 	so->memsz = memsz;
 	so->low_addr = low_addr;
 	so->high_addr = so->low_addr + so->memsz;
 
-	g_free(ehdr);
 	return so;
 
 error:
-	g_free(ehdr);
 	so_info_destroy(so);
 	return NULL;
 }
@@ -147,6 +115,7 @@ void so_info_destroy(struct so_info *so)
 
 	g_free(so);
 }
+
 
 BT_HIDDEN
 int so_info_set_build_id(struct so_info *so, uint8_t *build_id,
@@ -511,6 +480,51 @@ end:
 	return ret;
 }
 
+/**
+ * Initialize the ELF file for a given executable.
+ *
+ * @param so	so_info instance
+ * @returns	0 on success, -1 on failure
+ */
+static
+int so_info_set_elf_file(struct so_info *so)
+{
+	int elf_fd;
+	Elf *elf_file;
+
+	if (!so) {
+		goto error;
+	}
+
+	elf_fd = open(so->elf_path, O_RDONLY);
+	if (elf_fd < 0) {
+		fprintf(stderr, "Failed to open %s\n", so->elf_path);
+		goto error;
+	}
+
+	elf_file = elf_begin(elf_fd, ELF_C_READ, NULL);
+	if (!elf_file) {
+		fprintf(stderr, "elf_begin failed: %s\n", elf_errmsg(-1));
+		goto error;
+	}
+
+	if (elf_kind(elf_file) != ELF_K_ELF) {
+		fprintf(stderr, "Error: %s is not an ELF object\n",
+				so->elf_path);
+		goto error;
+	}
+
+	so->elf_fd = elf_fd;
+	so->elf_file = elf_file;
+	return 0;
+
+error:
+	close(elf_fd);
+	elf_end(elf_file);
+	return -1;
+}
+
+
 BT_HIDDEN
 void source_location_destroy(struct source_location *src_loc)
 {
@@ -657,6 +671,15 @@ int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
 	char *sym_name = NULL;
 	char *_func_name = NULL;
 	char offset_str[ADDR_STR_LEN];
+
+	/* Set ELF file if it hasn't been accessed yet. */
+	if (!so->elf_file) {
+		ret = so_info_set_elf_file(so);
+		if (ret) {
+			/* Failed to set ELF file. */
+			goto error;
+		}
+	}
 
 	scn = elf_nextscn(so->elf_file, scn);
 	if (!scn) {
