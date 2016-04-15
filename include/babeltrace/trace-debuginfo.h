@@ -46,7 +46,8 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 
 	/* Print debug info if available */
 	if (debug_info_src) {
-		if (debug_info_src->func || debug_info_src->filename) {
+		if (debug_info_src->func || debug_info_src->src_path ||
+				debug_info_src->bin_path) {
 			bool add_comma = false;
 
 			fprintf(pos->fp, ", debug_info = { ");
@@ -57,7 +58,7 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 				add_comma = true;
 			}
 
-			if (debug_info_src->filename) {
+			if (debug_info_src->src_path) {
 				if (add_comma) {
 					fprintf(pos->fp, ", ");
 				}
@@ -65,9 +66,20 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 				fprintf(pos->fp, "src = \"%s:%" PRIu64
 						"\"",
 						opt_debug_info_full_path ?
-						debug_info_src->filename :
-						debug_info_src->short_filename,
+						debug_info_src->src_path :
+						debug_info_src->short_src_path,
 						debug_info_src->line_no);
+			}
+
+			if (debug_info_src->bin_path) {
+				if (add_comma) {
+					fprintf(pos->fp, ", ");
+				}
+
+				fprintf(pos->fp, "bin = \"%s\"",
+						opt_debug_info_full_path ?
+						debug_info_src->bin_path :
+						debug_info_src->short_bin_path);
 			}
 
 			fprintf(pos->fp, " }");

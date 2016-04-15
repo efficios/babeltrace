@@ -42,9 +42,12 @@ struct debug_info_source {
 	/* Strings are owned by debug_info_source. */
 	char *func;
 	uint64_t line_no;
-	char *filename;
-	/* short_filename points inside filename, no need to free. */
-	const char *short_filename;
+	char *src_path;
+	/* short_src_path points inside src_path, no need to free. */
+	const char *short_src_path;
+	char *bin_path;
+	/* short_bin_path points inside bin_path, no need to free. */
+	const char *short_bin_path;
 };
 
 BT_HIDDEN
