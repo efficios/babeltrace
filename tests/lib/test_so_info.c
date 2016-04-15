@@ -64,7 +64,7 @@ void test_so_info_build_id(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_BUILD_ID);
 
-	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ);
+	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
 	ok(so != NULL, "so_info_create succesful");
 
 	/* Test setting build_id */
@@ -105,7 +105,7 @@ void test_so_info_debug_link(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_DEBUG_LINK);
 
-	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ);
+	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
 	ok(so != NULL, "so_info_create succesful");
 
 	/* Test setting debug link */
@@ -146,7 +146,7 @@ void test_so_info_elf(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_ELF);
 
-	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ);
+	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
 	ok(so != NULL, "so_info_create succesful");
 
 	/* Test function name lookup (with ELF) */
@@ -183,7 +183,7 @@ void test_so_info(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME);
 
-	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ);
+	so = so_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
 	ok(so != NULL, "so_info_create succesful");
 
 	/* Test so_info_has_address */
