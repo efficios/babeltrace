@@ -84,7 +84,8 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 	}
 
 	free(debug_info_src->func);
-	free(debug_info_src->filename);
+	free(debug_info_src->src_path);
+	free(debug_info_src->bin_path);
 	g_free(debug_info_src);
 }
 
@@ -154,22 +155,27 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 		debug_info_src->line_no = src_loc->line_no;
 
 		if (src_loc->filename) {
-			debug_info_src->filename = strdup(src_loc->filename);
-			if (!debug_info_src->filename) {
+			debug_info_src->src_path = strdup(src_loc->filename);
+			if (!debug_info_src->src_path) {
 				goto error;
 			}
 
-			/*
-			 * The short version of the filename does not include
-			 * the full path, it will only point to the last element
-			 * of the path (anything after the last '/').
-			 */
-			debug_info_src->short_filename = get_filename_from_path(
+			debug_info_src->short_src_path = get_filename_from_path(
 					src_loc->filename);
 
 		}
 
 		source_location_destroy(src_loc);
+	}
+
+	if (so->elf_path) {
+		debug_info_src->bin_path = strdup(so->elf_path);
+		if (!debug_info_src->bin_path) {
+			goto error;
+		}
+
+		debug_info_src->short_bin_path = get_filename_from_path(
+				debug_info_src->bin_path);
 	}
 
 end:
