@@ -62,9 +62,11 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 					fprintf(pos->fp, ", ");
 				}
 
-				fprintf(pos->fp, "source_loc = \"%s:%" PRIu64
+				fprintf(pos->fp, "src = \"%s:%" PRIu64
 						"\"",
-						debug_info_src->filename,
+						opt_debug_info_full_path ?
+						debug_info_src->filename :
+						debug_info_src->short_filename,
 						debug_info_src->line_no);
 			}
 
