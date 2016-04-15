@@ -4,6 +4,7 @@
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  * Copyright (c) 2015 Antoine Busque <abusque@efficios.com>
+ * Copyright (c) 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +31,7 @@
 #include <babeltrace/ctf-ir/metadata.h>
 #include <babeltrace/debuginfo.h>
 #include <babeltrace/so-info.h>
+#include <babeltrace/babeltrace-internal.h>
 
 struct proc_debug_info_sources {
 	/*
@@ -86,6 +88,37 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 	g_free(debug_info_src);
 }
 
+/*
+ * Returns the location of a path's file (the last element of the path).
+ * Returns the original path on error.
+ */
+static
+const char *get_filename_from_path(const char *path)
+{
+	size_t i = strlen(path);
+
+	if (i == 0) {
+		goto end;
+	}
+
+	if (path[i - 1] == '/') {
+		/*
+		 * Path ends with a trailing slash, no filename to return.
+		 * Return the original path.
+		 */
+		goto end;
+	}
+
+	while (i-- > 0) {
+		if (path[i] == '/') {
+			path = &path[i + 1];
+			goto end;
+		}
+	}
+end:
+	return path;
+}
+
 static
 struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 		uint64_t ip)
@@ -122,10 +155,18 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 
 		if (src_loc->filename) {
 			debug_info_src->filename = strdup(src_loc->filename);
-
 			if (!debug_info_src->filename) {
 				goto error;
 			}
+
+			/*
+			 * The short version of the filename does not include
+			 * the full path, it will only point to the last element
+			 * of the path (anything after the last '/').
+			 */
+			debug_info_src->short_filename = get_filename_from_path(
+					src_loc->filename);
+
 		}
 
 		source_location_destroy(src_loc);

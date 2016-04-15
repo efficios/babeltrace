@@ -43,6 +43,8 @@ struct debug_info_source {
 	char *func;
 	uint64_t line_no;
 	char *filename;
+	/* short_filename points inside filename, no need to free. */
+	const char *short_filename;
 };
 
 BT_HIDDEN

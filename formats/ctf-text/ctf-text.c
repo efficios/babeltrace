@@ -60,7 +60,8 @@ int opt_all_field_names,
 	opt_loglevel_field,
 	opt_emf_field,
 	opt_callsite_field,
-	opt_delta_field = 1;
+	opt_delta_field = 1,
+	opt_debug_info_full_path;
 
 enum field_item {
 	ITEM_SCOPE,

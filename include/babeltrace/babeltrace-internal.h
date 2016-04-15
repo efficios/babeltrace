@@ -191,7 +191,8 @@ extern int opt_all_field_names,
 	opt_clock_seconds,
 	opt_clock_date,
 	opt_clock_gmt,
-	opt_clock_force_correlate;
+	opt_clock_force_correlate,
+	opt_debug_info_full_path;
 
 extern uint64_t opt_clock_offset;
 extern uint64_t opt_clock_offset_ns;
