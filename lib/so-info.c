@@ -40,6 +40,7 @@
 #include <babeltrace/so-info.h>
 #include <babeltrace/crc32.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/utils.h>
 
 /*
  * An address printed in hex is at most 20 bytes (16 for 64-bits +
@@ -848,11 +849,12 @@ error:
 }
 
 BT_HIDDEN
-int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
+int so_info_lookup_function_name(struct so_info *so, uint64_t ip,
 		char **func_name)
 {
 	int ret = 0;
 	char *_func_name = NULL;
+	uint64_t relative_addr;
 
 	if (!so || !func_name) {
 		goto error;
@@ -867,32 +869,46 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
 		}
 	}
 
-	if (!so_info_has_address(so, addr)) {
+	if (!so_info_has_address(so, ip)) {
 		goto error;
 	}
 
+	relative_addr = ip - so->low_addr;
 	/*
 	 * Addresses in ELF and DWARF are relative to base address for
 	 * PIC, so make the address argument relative too if needed.
 	 */
-	if (so->is_pic) {
-		addr -= so->low_addr;
-	}
-
 	if (so->is_elf_only) {
-		ret = so_info_lookup_elf_function_name(so, addr, &_func_name);
+		ret = so_info_lookup_elf_function_name(so,
+				so->is_pic ? relative_addr : ip,
+				&_func_name);
 	} else {
-		ret = so_info_lookup_dwarf_function_name(so, addr, &_func_name);
+		ret = so_info_lookup_dwarf_function_name(so,
+				so->is_pic ? relative_addr : ip,
+				&_func_name);
 	}
 
 	if (ret) {
 		goto error;
 	}
 
-	if (_func_name) {
-		*func_name = _func_name;
+	if (!_func_name) {
+		/*
+		 * Can't map to a function; fallback to a generic output of the
+		 * form binary+/@address.
+		 *
+		 * FIXME check position independence flag.
+		 */
+		const char *binary_name = get_filename_from_path(so->elf_path);
+
+		ret = asprintf(&_func_name, "%s+%#0" PRIx64, binary_name,
+				relative_addr);
+		if (!_func_name) {
+			goto error;
+		}
 	}
 
+	*func_name = _func_name;
 	return 0;
 
 error:

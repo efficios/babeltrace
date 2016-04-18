@@ -32,6 +32,7 @@
 #include <babeltrace/debuginfo.h>
 #include <babeltrace/so-info.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/utils.h>
 
 struct proc_debug_info_sources {
 	/*
@@ -87,37 +88,6 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 	free(debug_info_src->src_path);
 	free(debug_info_src->bin_path);
 	g_free(debug_info_src);
-}
-
-/*
- * Returns the location of a path's file (the last element of the path).
- * Returns the original path on error.
- */
-static
-const char *get_filename_from_path(const char *path)
-{
-	size_t i = strlen(path);
-
-	if (i == 0) {
-		goto end;
-	}
-
-	if (path[i - 1] == '/') {
-		/*
-		 * Path ends with a trailing slash, no filename to return.
-		 * Return the original path.
-		 */
-		goto end;
-	}
-
-	while (i-- > 0) {
-		if (path[i] == '/') {
-			path = &path[i + 1];
-			goto end;
-		}
-	}
-end:
-	return path;
 }
 
 static
