@@ -37,6 +37,7 @@ noinst_HEADERS = \
 	babeltrace/trace-debuginfo.h \
 	babeltrace/dwarf.h \
 	babeltrace/so-info.h \
+	babeltrace/utils.h \
 	babeltrace/ctf-ir/metadata.h \
 	babeltrace/ctf/events-internal.h \
 	babeltrace/ctf/metadata.h \
