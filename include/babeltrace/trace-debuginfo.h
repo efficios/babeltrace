@@ -52,10 +52,22 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 
 			fprintf(pos->fp, ", debug_info = { ");
 
+			if (debug_info_src->bin_path) {
+				fprintf(pos->fp, "bin = \"%s%s\"",
+						opt_debug_info_full_path ?
+						debug_info_src->bin_path :
+						debug_info_src->short_bin_path,
+						debug_info_src->bin_loc);
+				add_comma = true;
+			}
+
 			if (debug_info_src->func) {
+				if (add_comma) {
+					fprintf(pos->fp, ", ");
+				}
+
 				fprintf(pos->fp, "func = \"%s\"",
 						debug_info_src->func);
-				add_comma = true;
 			}
 
 			if (debug_info_src->src_path) {
@@ -69,18 +81,6 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 						debug_info_src->src_path :
 						debug_info_src->short_src_path,
 						debug_info_src->line_no);
-			}
-
-			if (debug_info_src->bin_path) {
-				if (add_comma) {
-					fprintf(pos->fp, ", ");
-				}
-
-				fprintf(pos->fp, "bin = \"%s%s\"",
-						opt_debug_info_full_path ?
-						debug_info_src->bin_path :
-						debug_info_src->short_bin_path,
-						debug_info_src->bin_loc);
 			}
 
 			fprintf(pos->fp, " }");
