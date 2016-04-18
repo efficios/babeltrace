@@ -849,12 +849,11 @@ error:
 }
 
 BT_HIDDEN
-int so_info_lookup_function_name(struct so_info *so, uint64_t ip,
+int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0;
 	char *_func_name = NULL;
-	uint64_t relative_addr;
 
 	if (!so || !func_name) {
 		goto error;
@@ -869,46 +868,57 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t ip,
 		}
 	}
 
-	if (!so_info_has_address(so, ip)) {
+	if (!so_info_has_address(so, addr)) {
 		goto error;
 	}
 
-	relative_addr = ip - so->low_addr;
 	/*
 	 * Addresses in ELF and DWARF are relative to base address for
 	 * PIC, so make the address argument relative too if needed.
 	 */
-	if (so->is_elf_only) {
-		ret = so_info_lookup_elf_function_name(so,
-				so->is_pic ? relative_addr : ip,
-				&_func_name);
-	} else {
-		ret = so_info_lookup_dwarf_function_name(so,
-				so->is_pic ? relative_addr : ip,
-				&_func_name);
+	if (so->is_pic) {
+		addr -= so->low_addr;
 	}
 
-	if (ret) {
+	if (so->is_elf_only) {
+		ret = so_info_lookup_elf_function_name(so, addr, &_func_name);
+	} else {
+		ret = so_info_lookup_dwarf_function_name(so, addr, &_func_name);
+	}
+
+	if (ret || !_func_name) {
 		goto error;
 	}
 
-	if (!_func_name) {
-		/*
-		 * Can't map to a function; fallback to a generic output of the
-		 * form binary+/@address.
-		 *
-		 * FIXME check position independence flag.
-		 */
-		const char *binary_name = get_filename_from_path(so->elf_path);
+	*func_name = _func_name;
+	return 0;
 
-		ret = asprintf(&_func_name, "%s+%#0" PRIx64, binary_name,
-				relative_addr);
-		if (!_func_name) {
-			goto error;
-		}
+error:
+	return -1;
+}
+
+BT_HIDDEN
+int so_info_get_bin_loc(struct so_info *so, uint64_t addr, char **bin_loc)
+{
+	int ret = 0;
+	char *_bin_loc = NULL;
+
+	if (!so || !bin_loc) {
+		goto error;
 	}
 
-	*func_name = _func_name;
+	if (so->is_pic) {
+		addr -= so->low_addr;
+		ret = asprintf(&_bin_loc, "+%#0" PRIx64, addr);
+	} else {
+		ret = asprintf(&_bin_loc, "@%#0" PRIx64, addr);
+	}
+
+	if (ret == -1 || !_bin_loc) {
+		goto error;
+	}
+
+	*bin_loc = _bin_loc;
 	return 0;
 
 error:
