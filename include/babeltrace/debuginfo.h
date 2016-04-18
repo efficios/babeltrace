@@ -48,6 +48,11 @@ struct debug_info_source {
 	char *bin_path;
 	/* short_bin_path points inside bin_path, no need to free. */
 	const char *short_bin_path;
+	/*
+	 * Location within the binary. Either absolute (@0x1234) or
+	 * relative (+0x4321).
+	 */
+	char *bin_loc;
 };
 
 BT_HIDDEN

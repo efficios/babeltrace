@@ -87,6 +87,7 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 	free(debug_info_src->func);
 	free(debug_info_src->src_path);
 	free(debug_info_src->bin_path);
+	free(debug_info_src->bin_loc);
 	g_free(debug_info_src);
 }
 
@@ -143,6 +144,11 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 
 		debug_info_src->short_bin_path = get_filename_from_path(
 				debug_info_src->bin_path);
+
+		ret = so_info_get_bin_loc(so, ip, &(debug_info_src->bin_loc));
+		if (ret) {
+			goto error;
+		}
 	}
 
 end:
