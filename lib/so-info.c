@@ -491,7 +491,7 @@ static
 int so_info_set_elf_file(struct so_info *so)
 {
 	int elf_fd;
-	Elf *elf_file;
+	Elf *elf_file = NULL;
 
 	if (!so) {
 		goto error;
