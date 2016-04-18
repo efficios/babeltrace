@@ -192,6 +192,25 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
 BT_HIDDEN
 int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
 		struct source_location **src_loc);
+/**
+ * Get a string representing the location within the binary of a given
+ * address.
+ *
+ * In the  case of a PIC binary, the location is relative (+0x1234).
+ * For a non-PIC binary, the location is absolute (@0x1234)
+ *
+ * On success, the out parameter `bin_loc` is set. The ownership is
+ * passed to the caller. On failure, `bin_loc` remains unchanged.
+ *
+ * @param so		so_info instance for the executable containing
+ *			the address
+ * @param addr		Virtual memory address for which to find the
+ *			binary location
+ * @param bin_loc	Out parameter, the binary location
+ * @returns		0 on success, -1 on failure
+ */
+BT_HIDDEN
+int so_info_get_bin_loc(struct so_info *so, uint64_t addr, char **bin_loc);
 
 /**
  * Destroy the given source_location instance

@@ -76,10 +76,11 @@ void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
 					fprintf(pos->fp, ", ");
 				}
 
-				fprintf(pos->fp, "bin = \"%s\"",
+				fprintf(pos->fp, "bin = \"%s%s\"",
 						opt_debug_info_full_path ?
 						debug_info_src->bin_path :
-						debug_info_src->short_bin_path);
+						debug_info_src->short_bin_path,
+						debug_info_src->bin_loc);
 			}
 
 			fprintf(pos->fp, " }");
