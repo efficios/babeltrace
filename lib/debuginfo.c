@@ -129,8 +129,7 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 			}
 
 			debug_info_src->short_src_path = get_filename_from_path(
-					src_loc->filename);
-
+					debug_info_src->src_path);
 		}
 
 		source_location_destroy(src_loc);
