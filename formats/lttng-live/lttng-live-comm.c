@@ -246,7 +246,7 @@ void print_session_list(GPtrArray *session_list, const char *path)
 
 	for (i = 0; i < session_list->len; i++) {
 		relay_session = g_ptr_array_index(session_list, i);
-		fprintf(stdout, "%s/host/%s/%s (timer = %u, "
+		fprintf(LTTNG_LIVE_OUTPUT_FP, "%s/host/%s/%s (timer = %u, "
 				"%u stream(s), %u client(s) connected)\n",
 				path, relay_session->hostname,
 				relay_session->name, relay_session->timer,
@@ -649,6 +649,18 @@ retry:
 		ret = -1;
 		goto end;
 	}
+
+	/*
+	 * Flush the output between attempts to grab a packet, thus
+	 * ensuring we flush at least at the periodical timer period.
+	 * This ensures the output remains reactive for interactive users and
+	 * that the output is flushed when redirected to a file by the shell.
+	 */
+	if (fflush(LTTNG_LIVE_OUTPUT_FP) < 0) {
+		perror("fflush");
+		goto error;
+	}
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_PACKET);
 	cmd.data_size = htobe64(sizeof(rq));
 	cmd.cmd_version = htobe32(0);
