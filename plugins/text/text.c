@@ -127,7 +127,8 @@ enum bt_component_status text_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_destroy_cb(component, destroy_text);
+	ret = bt_component_set_destroy_cb(component,
+			(bt_component_destroy_cb) destroy_text);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
