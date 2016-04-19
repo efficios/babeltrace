@@ -307,7 +307,7 @@ int lttng_live_close_trace(struct bt_trace_descriptor *td)
 	struct ctf_text_stream_pos *pos =
 		container_of(td, struct ctf_text_stream_pos,
 			trace_descriptor);
-	free(pos);
+	g_free(pos);
 	return 0;
 }
 
