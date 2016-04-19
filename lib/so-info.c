@@ -536,6 +536,56 @@ void source_location_destroy(struct source_location *src_loc)
 	free(src_loc->filename);
 	g_free(src_loc);
 }
+/**
+ * Append a string representation of an address offset to an existing
+ * string.
+ *
+ * On success, the out parameter `result` will contain the base string
+ * followed by the offset string of the form "+0x1234". On failure,
+ * `result` remains unchanged.
+ *
+ * @param base_str	The string to which to append an offset string
+ * @param low_addr	The lower virtual memory address, the base from
+ *			which the offset is computed
+ * @param high_addr	The higher virtual memory address
+ * @param result	Out parameter, the base string followed by the
+ * 			offset string
+ * @returns		0 on success, -1 on failure
+ */
+static
+int so_info_append_offset_str(const char *base_str, uint64_t low_addr,
+				uint64_t high_addr, char **result)
+{
+	int ret;
+	uint64_t offset;
+	char *_result = NULL;
+	char offset_str[ADDR_STR_LEN];
+
+	if (!base_str || !result) {
+		goto error;
+	}
+
+	offset = high_addr - low_addr;
+
+	_result = malloc(strlen(base_str) + ADDR_STR_LEN);
+	if (!_result) {
+		goto error;
+	}
+
+	ret = snprintf(offset_str, ADDR_STR_LEN, "+%#0" PRIx64, offset);
+	if (ret < 0) {
+		goto error;
+	}
+	strcpy(_result, base_str);
+	strcat(_result, offset_str);
+	*result = _result;
+
+	return 0;
+
+error:
+	free(_result);
+	return -1;
+}
 
 /**
  * Try to find the symbol closest to an address within a given ELF
@@ -670,8 +720,6 @@ int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
 	GElf_Sym *sym = NULL;
 	GElf_Shdr *shdr = NULL;
 	char *sym_name = NULL;
-	char *_func_name = NULL;
-	char offset_str[ADDR_STR_LEN];
 
 	/* Set ELF file if it hasn't been accessed yet. */
 	if (!so->elf_file) {
@@ -704,16 +752,11 @@ int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
 			goto error;
 		}
 
-		snprintf(offset_str, ADDR_STR_LEN, "+%#0" PRIx64,
-				addr - sym->st_value);
-		_func_name = malloc(strlen(sym_name) + ADDR_STR_LEN);
-		if (!_func_name) {
+		ret = so_info_append_offset_str(sym_name, sym->st_value, addr,
+						func_name);
+		if (ret) {
 			goto error;
 		}
-
-		strcpy(_func_name, sym_name);
-		strcat(_func_name, offset_str);
-		*func_name = _func_name;
 	}
 
 	g_free(shdr);
@@ -723,7 +766,6 @@ int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
 error:
 	g_free(shdr);
 	g_free(sym);
-	free(_func_name);
 	return -1;
 }
 
@@ -745,10 +787,6 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0, found = 0;
-	uint64_t low_addr = 0;
-	char *die_name = NULL;
-	char *_func_name = NULL;
-	char offset_str[ADDR_STR_LEN];
 	struct bt_dwarf_die *die = NULL;
 
 	if (!cu || !func_name) {
@@ -781,6 +819,9 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 	}
 
 	if (found) {
+		uint64_t low_addr = 0;
+		char *die_name = NULL;
+
 		ret = bt_dwarf_die_get_name(die, &die_name);
 		if (ret) {
 			goto error;
@@ -791,17 +832,11 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 			goto error;
 		}
 
-		snprintf(offset_str, ADDR_STR_LEN, "+%#0" PRIx64,
-				addr - low_addr);
-		_func_name = malloc(strlen(die_name) + ADDR_STR_LEN);
-		if (!_func_name) {
+		ret = so_info_append_offset_str(die_name, low_addr, addr,
+						func_name);
+		if (ret) {
 			goto error;
 		}
-
-		strcpy(_func_name, die_name);
-		strcat(_func_name, offset_str);
-
-		*func_name = _func_name;
 	}
 
 	bt_dwarf_die_destroy(die);
