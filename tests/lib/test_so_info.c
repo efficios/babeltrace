@@ -46,6 +46,7 @@
 #define BUILD_ID_LEN 20
 
 char *opt_debug_info_dir;
+char *opt_debug_info_target_prefix;
 
 static
 void test_so_info_build_id(const char *data_dir)
