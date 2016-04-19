@@ -745,7 +745,10 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0, found = 0;
+	uint64_t low_addr = 0;
+	char *die_name = NULL;
 	char *_func_name = NULL;
+	char offset_str[ADDR_STR_LEN];
 	struct bt_dwarf_die *die = NULL;
 
 	if (!cu || !func_name) {
@@ -778,10 +781,25 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 	}
 
 	if (found) {
-		ret = bt_dwarf_die_get_name(die, &_func_name);
+		ret = bt_dwarf_die_get_name(die, &die_name);
 		if (ret) {
 			goto error;
 		}
+
+		ret = dwarf_lowpc(die->dwarf_die, &low_addr);
+		if (ret) {
+			goto error;
+		}
+
+		snprintf(offset_str, ADDR_STR_LEN, "+%#0" PRIx64,
+				addr - low_addr);
+		_func_name = malloc(strlen(die_name) + ADDR_STR_LEN);
+		if (!_func_name) {
+			goto error;
+		}
+
+		strcpy(_func_name, die_name);
+		strcat(_func_name, offset_str);
 
 		*func_name = _func_name;
 	}
