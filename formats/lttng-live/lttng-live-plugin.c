@@ -292,6 +292,12 @@ struct bt_trace_descriptor *lttng_live_open_trace(const char *path, int flags,
 	pos->parent.rw_table = NULL;
 	pos->parent.event_cb = NULL;
 	pos->parent.trace = &pos->trace_descriptor;
+	/*
+	 * Since we do *everything* in this function, we are skipping
+	 * the output plugin handling that is part of Babeltrace 1.x.
+	 * Therefore, don't expect the --output cmd line option to work.
+	 * This limits the output of lttng-live to stderr and stdout.
+	 */
 	if (lttng_live_open_trace_read(path) < 0) {
 		goto error;
 	}

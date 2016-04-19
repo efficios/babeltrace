@@ -32,6 +32,13 @@
 #define LTTNG_LIVE_MAJOR			2
 #define LTTNG_LIVE_MINOR			4
 
+/*
+ * The lttng-live output file pointer is currently hardcoded to stdout,
+ * and is expected to be hardcoded to this by fflush() performed between
+ * each packet.
+ */
+#define LTTNG_LIVE_OUTPUT_FP			stdout
+
 struct lttng_live_ctx {
 	char traced_hostname[MAXNAMLEN];
 	char session_name[MAXNAMLEN];
