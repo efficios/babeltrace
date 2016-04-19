@@ -107,6 +107,7 @@ enum {
 	OPT_STREAM_INTERSECTION,
 	OPT_DEBUG_INFO_DIR,
 	OPT_DEBUG_INFO_FULL_PATH,
+	OPT_DEBUG_INFO_TARGET_PREFIX,
 };
 
 /*
@@ -140,6 +141,7 @@ static struct poptOption long_options[] = {
 #ifdef ENABLE_DEBUGINFO
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
+	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
 #endif
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
@@ -191,6 +193,8 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
 	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
 	fprintf(fp, "      --debug-info-full-path     Show full debug info source and binary paths (if available)\n");
+	fprintf(fp, "      --debug-info-target-prefix Directory to use as a prefix for executable lookup\n");
+	fprintf(fp, "                                 during debug info analysis.\n");
 #endif
 	list_formats(fp);
 	fprintf(fp, "\n");
@@ -423,6 +427,13 @@ static int parse_options(int argc, char **argv)
 			break;
 		case OPT_DEBUG_INFO_FULL_PATH:
 			opt_debug_info_full_path = 1;
+			break;
+		case OPT_DEBUG_INFO_TARGET_PREFIX:
+			opt_debug_info_target_prefix = (char *) poptGetOptArg(pc);
+			if (!opt_debug_info_target_prefix) {
+				ret = -EINVAL;
+				goto end;
+			}
 			break;
 		default:
 			ret = -EINVAL;
@@ -844,6 +855,7 @@ end:
 	free(opt_output_format);
 	free(opt_output_path);
 	free(opt_debug_info_dir);
+	free(opt_debug_info_target_prefix);
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);

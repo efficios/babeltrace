@@ -198,5 +198,6 @@ extern int64_t opt_clock_offset;
 extern int64_t opt_clock_offset_ns;
 extern int babeltrace_ctf_console_output;
 extern char *opt_debug_info_dir;
+extern char *opt_debug_info_target_prefix;
 
 #endif

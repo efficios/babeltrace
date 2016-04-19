@@ -78,7 +78,13 @@ struct so_info *so_info_create(const char *path, uint64_t low_addr,
 		goto error;
 	}
 
-	so->elf_path = strdup(path);
+	if (opt_debug_info_target_prefix) {
+		so->elf_path = g_build_path("/", opt_debug_info_target_prefix,
+						path, NULL);
+	} else {
+		so->elf_path = strdup(path);
+	}
+
 	if (!so->elf_path) {
 		goto error;
 	}
