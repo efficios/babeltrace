@@ -54,7 +54,7 @@ struct debug_info {
 	 * (struct ctf_proc_debug_infos*); owned by debug_info.
 	 */
 	GHashTable *vpid_to_proc_dbg_info_src;
-	GQuark q_statedump_soinfo;
+	GQuark q_statedump_bin_info;
 	GQuark q_statedump_debug_link;
 	GQuark q_statedump_build_id;
 	GQuark q_statedump_start;
@@ -64,8 +64,8 @@ struct debug_info {
 static
 int debug_info_init(struct debug_info *info)
 {
-	info->q_statedump_soinfo = g_quark_from_string(
-			"lttng_ust_statedump:soinfo");
+	info->q_statedump_bin_info = g_quark_from_string(
+			"lttng_ust_statedump:bin_info");
 	info->q_statedump_debug_link = g_quark_from_string(
 			"lttng_ust_statedump:debug_link)");
 	info->q_statedump_build_id = g_quark_from_string(
@@ -559,7 +559,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 {
 	struct bt_definition *baddr_def = NULL;
 	struct bt_definition *memsz_def = NULL;
-	struct bt_definition *sopath_def = NULL;
+	struct bt_definition *path_def = NULL;
 	struct bt_definition *is_pic_def = NULL;
 	struct bt_definition *vpid_def = NULL;
 	struct bt_definition *event_fields_def = NULL;
@@ -568,7 +568,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 	struct so_info *so;
 	uint64_t baddr, memsz;
 	int64_t vpid;
-	const char *sopath;
+	const char *path;
 	gpointer key = NULL;
 	bool is_pic;
 
@@ -590,8 +590,8 @@ void handle_bin_info_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	sopath_def = bt_lookup_definition(event_fields_def, "_sopath");
-	if (!sopath_def) {
+	path_def = bt_lookup_definition(event_fields_def, "_path");
+	if (!path_def) {
 		goto end;
 	}
 
@@ -627,7 +627,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	if (sopath_def->declaration->id != CTF_TYPE_STRING) {
+	if (path_def->declaration->id != CTF_TYPE_STRING) {
 		goto end;
 	}
 
@@ -637,10 +637,10 @@ void handle_bin_info_event(struct debug_info *debug_info,
 
 	baddr = bt_get_unsigned_int(baddr_def);
 	memsz = bt_get_unsigned_int(memsz_def);
-	sopath = bt_get_string(sopath_def);
+	path = bt_get_string(path_def);
 	vpid = bt_get_signed_int(vpid_def);
 
-	if (!sopath) {
+	if (!path) {
 		goto end;
 	}
 
@@ -668,7 +668,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	so = so_info_create(sopath, baddr, memsz, is_pic);
+	so = so_info_create(path, baddr, memsz, is_pic);
 	if (!so) {
 		goto end;
 	}
@@ -684,7 +684,7 @@ end:
 }
 
 static inline
-void handle_soinfo_event(struct debug_info *debug_info,
+void handle_statedump_bin_info_event(struct debug_info *debug_info,
 		struct ctf_event_definition *event_def)
 {
 	handle_bin_info_event(debug_info, event_def, true);
@@ -783,9 +783,9 @@ void debug_info_handle_event(struct debug_info *debug_info,
 	event_class = g_ptr_array_index(stream_class->events_by_id,
 			event->stream->event_id);
 
-	if (event_class->name == debug_info->q_statedump_soinfo) {
+	if (event_class->name == debug_info->q_statedump_bin_info) {
 		/* State dump */
-		handle_soinfo_event(debug_info, event);
+		handle_statedump_bin_info_event(debug_info, event);
 	} else if (event_class->name == debug_info->q_dl_open) {
 		handle_dlopen_event(debug_info, event);
 	} else if (event_class->name == debug_info->q_statedump_start) {
