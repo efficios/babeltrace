@@ -123,7 +123,7 @@ bt_component_source_set_iterator_init_cb(struct bt_component *source,
 /**
  * Notification handling function type.
  *
- * A reference must be taken on the notification if the component wishes to
+ * A reference must be taken on the notification if the component has to
  * keep ownership of the notification beyond the invocation of the callback.
  *
  * @param sink		Sink component instance
