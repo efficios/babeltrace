@@ -255,10 +255,10 @@ error:
 static
 int so_info_set_dwarf_info_build_id(struct so_info *so)
 {
-	int i = 0, ret = 0, dbg_dir_trailing_slash = 0;
+	int i = 0, ret = 0;
 	char *path = NULL, *build_id_file = NULL;
 	const char *dbg_dir = NULL;
-	size_t build_id_file_len, path_len;
+	size_t build_id_file_len;
 
 	if (!so || !so->build_id) {
 		goto error;
@@ -266,10 +266,10 @@ int so_info_set_dwarf_info_build_id(struct so_info *so)
 
 	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
-	dbg_dir_trailing_slash = dbg_dir[strlen(dbg_dir) - 1] == '/';
-
-	/* 2 characters per byte printed in hex, +2 for '/' and '\0' */
-	build_id_file_len = (2 * so->build_id_len) + 2;
+	/* 2 characters per byte printed in hex, +1 for '/' and +1 for
+	 * '\0' */
+	build_id_file_len = (2 * so->build_id_len) + 1 +
+			strlen(BUILD_ID_SUFFIX) + 1;
 	build_id_file = malloc(build_id_file_len);
 	if (!build_id_file) {
 		goto error;
@@ -281,25 +281,12 @@ int so_info_set_dwarf_info_build_id(struct so_info *so)
 
 		snprintf(&build_id_file[path_idx], 3, "%02x", so->build_id[i]);
 	}
+	strcat(build_id_file, BUILD_ID_SUFFIX);
 
-	path_len = strlen(dbg_dir) + strlen(BUILD_ID_SUBDIR) +
-			strlen(build_id_file) + strlen(BUILD_ID_SUFFIX) + 1;
-	if (!dbg_dir_trailing_slash) {
-		path_len += 1;
-	}
-
-	path = malloc(path_len);
+	path = g_build_path("/", dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
 	if (!path) {
 		goto error;
 	}
-
-	strcpy(path, dbg_dir);
-	if (!dbg_dir_trailing_slash) {
-		strcat(path, "/");
-	}
-	strcat(path, BUILD_ID_SUBDIR);
-	strcat(path, build_id_file);
-	strcat(path, BUILD_ID_SUFFIX);
 
 	ret = so_info_set_dwarf_info_from_path(so, path);
 	if (ret) {
