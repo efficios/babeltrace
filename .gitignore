@@ -8,6 +8,10 @@
 /tests/lib/test_bt_objects
 /tests/lib/test_bt_values
 /tests/lib/test_ctf_ir_ref
+/tests/lib/test_bt_ctf_field_type_validation
+/tests/lib/test_seek_big_trace
+/tests/lib/test_seek_empty_packet
+/tests/lib/test_ctf_writer_complete
 *.o
 *.a
 *.la
