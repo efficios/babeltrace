@@ -43,6 +43,18 @@ struct bt_ctf_stream;
 struct bt_ctf_stream_class;
 struct bt_ctf_clock;
 
+/**
+ * Notification handling function type.
+ *
+ * A reference must be taken on the notification if the handler has to
+ * keep ownership of the notification beyond the invocation of the callback.
+ *
+ * @param notification	Notification to handle
+ * @param data		Handler private data
+ */
+typedef void (*bt_ctf_notification_cb)(
+		struct bt_notification *notification, void *data);
+
 /*
  * bt_ctf_trace_create: create a trace instance.
  *
@@ -337,6 +349,25 @@ extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
  */
 extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 		struct bt_ctf_field_type *packet_header_type);
+
+/*
+ * bt_ctf_trace_add_notification_handler_cb: set a notification callback
+ * which will be invoked whenever a trace's schema is modified.
+ *
+ * Register a notification handler to a trace.
+ *
+ * @param trace Trace instance.
+ * @param handler Notification handler to invoke on trace xmodification.
+ * @param handler_data Private data passed to the notification handler.
+ *
+ * Returns 0 on success, a negative value on error.
+ *
+ * Note: the notification handler will be used to serialize the trace's current
+ * state on registration. It will then be invoked on any change occuring within
+ * the trace's hierarchy.
+ */
+extern int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
+		bt_ctf_notification_cb handler, void *handler_data);
 
 #ifdef __cplusplus
 }

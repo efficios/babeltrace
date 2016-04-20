@@ -46,6 +46,11 @@
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
 
+struct notification_handler {
+	bt_ctf_notification_cb func;
+	void *data;
+};
+
 static
 void bt_ctf_trace_destroy(struct bt_object *obj);
 static
@@ -1024,6 +1029,27 @@ int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 	bt_put(trace->packet_header_type);
 	trace->packet_header_type = packet_header_type;
 end:
+	return ret;
+}
+
+int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
+		bt_ctf_notification_cb handler, void *handler_data)
+{
+	int ret = 0;
+	struct notification_handler *handler_wrapper =
+			g_new0(struct notification_handler, 1);
+
+	if (!trace || !handler || !handler_wrapper) {
+		ret = -1;
+		goto error;
+	}
+
+	handler_wrapper->func = handler;
+	handler_wrapper->data = handler_data;
+	g_ptr_array_add(trace->notification_handlers, handler_wrapper);
+	return ret;
+error:
+	g_free(handler_wrapper);
 	return ret;
 }
 

@@ -65,6 +65,7 @@ struct bt_ctf_trace {
 	 * trace is _always_ frozen.
 	 */
 	int valid;
+	GPtrArray *notification_handlers; /* Array of notification_handler */
 };
 
 struct metadata_context {
