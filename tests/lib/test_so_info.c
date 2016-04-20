@@ -41,7 +41,7 @@
 #define FUNC_FOO_TP_FILENAME "/efficios/libhello.c"
 #define FUNC_FOO_ADDR_ELF 0x4013ef
 #define FUNC_FOO_ADDR_DBG_LINK 0x40148e
-#define FUNC_FOO_NAME "foo"
+#define FUNC_FOO_NAME "foo+0xc3"
 #define FUNC_FOO_NAME_ELF "foo+0x24"
 #define BUILD_ID_LEN 20
 
