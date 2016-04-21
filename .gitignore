@@ -8,8 +8,8 @@
 /tests/lib/test_bt_objects
 /tests/lib/test_bt_values
 /tests/lib/test_ctf_ir_ref
-/tests/lib/test_durin
-/tests/lib/test_so_info
+/tests/lib/test_dwarf
+/tests/lib/test_bin_info
 *.o
 *.a
 *.la

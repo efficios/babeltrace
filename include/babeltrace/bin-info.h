@@ -1,5 +1,5 @@
-#ifndef _BABELTRACE_SO_INFO_H
-#define _BABELTRACE_SO_INFO_H
+#ifndef _BABELTRACE_BIN_INFO_H
+#define _BABELTRACE_BIN_INFO_H
 
 /*
  * Babeltrace - Executable and Shared Object Debug Info Reader
@@ -38,7 +38,7 @@
 #define BUILD_ID_SUBDIR ".build-id/"
 #define BUILD_ID_SUFFIX ".debug"
 
-struct so_info {
+struct bin_info {
 	/* Base virtual memory address. */
 	uint64_t low_addr;
 	/* Upper bound of exec address space. */
@@ -62,7 +62,10 @@ struct so_info {
 	int dwarf_fd;
 	/* Denotes whether the executable is position independent code. */
 	bool is_pic:1;
-	/* Denotes whether the SO only has ELF symbols and no DWARF info. */
+	/*
+	 * Denotes whether the executable only has ELF symbols and no
+	 * DWARF info.
+	 */
 	bool is_elf_only:1;
 };
 
@@ -72,13 +75,13 @@ struct source_location {
 };
 
 /**
- * Initializes the so_info framework. Call this before calling
+ * Initializes the bin_info framework. Call this before calling
  * anything else.
  *
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_init(void);
+int bin_info_init(void);
 
 /**
  * Instantiate a structure representing an ELF executable, possibly
@@ -89,63 +92,63 @@ int so_info_init(void);
  * @param memsz	In-memory size of the executable
  * @param is_pic	Whether the executable is position independent
  *			code (PIC)
- * @returns		Pointer to the new so_info on success,
+ * @returns		Pointer to the new bin_info on success,
  *			NULL on failure.
  */
 BT_HIDDEN
-struct so_info *so_info_create(const char *path, uint64_t low_addr,
+struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 		uint64_t memsz, bool is_pic);
 
 /**
- * Destroy the given so_info instance
+ * Destroy the given bin_info instance
  *
- * @param so	so_info instance to destroy
+ * @param bin	bin_info instance to destroy
  */
 BT_HIDDEN
-void so_info_destroy(struct so_info *so);
+void bin_info_destroy(struct bin_info *bin);
 
 /**
- * Sets the build ID information for a given so_info instance.
+ * Sets the build ID information for a given bin_info instance.
  *
- * @param so		The so_info instance for which to set
+ * @param bin		The bin_info instance for which to set
  *			the build ID
  * @param build_id	Array of bytes containing the actual ID
  * @param build_id_len	Length in bytes of the build_id
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_set_build_id(struct so_info *so, uint8_t *build_id,
+int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		size_t build_id_len);
 
 /**
- * Sets the debug link information for a given so_info instance.
+ * Sets the debug link information for a given bin_info instance.
  *
- * @param so		The so_info instance for which to set
+ * @param bin		The bin_info instance for which to set
  *			the debug link
  * @param filename	Name of the separate debug info file
  * @param crc		Checksum for the debug info file
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_set_debug_link(struct so_info *so, char *filename, uint32_t crc);
+int bin_info_set_debug_link(struct bin_info *bin, char *filename, uint32_t crc);
 
 /**
- * Returns whether or not the given SO info \p so contains the address
- * \p addr.
+ * Returns whether or not the given bin info \p bin contains the
+ * address \p addr.
  *
- * @param so		so_info instance
+ * @param bin		bin_info instance
  * @param addr		Address to lookup
- * @returns		1 if \p so contains \p addr, 0 if it does not,
+ * @returns		1 if \p bin contains \p addr, 0 if it does not,
  *			-1 on failure
  */
 static inline
-int so_info_has_address(struct so_info *so, uint64_t addr)
+int bin_info_has_address(struct bin_info *bin, uint64_t addr)
 {
-	if (!so) {
+	if (!bin) {
 		return -1;
 	}
 
-	return addr >= so->low_addr && addr < so->high_addr;
+	return addr >= bin->low_addr && addr < bin->high_addr;
 }
 
 /**
@@ -160,7 +163,7 @@ int so_info_has_address(struct so_info *so, uint64_t addr)
  * of `func_name` is passed to the caller. On failure, `func_name` remains
  * unchanged.
  *
- * @param so		so_info instance for the executable containing
+ * @param bin		bin_info instance for the executable containing
  *			the address
  * @param addr		Virtual memory address for which to find the
  *			function name
@@ -168,7 +171,7 @@ int so_info_has_address(struct so_info *so, uint64_t addr)
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
+int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
 		char **func_name);
 
 /**
@@ -182,7 +185,7 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
  * of `src_loc` is passed to the caller. On failure, `src_loc` remains
  * unchanged.
  *
- * @param so		so_info instance for the executable containing
+ * @param bin		bin_info instance for the executable containing
  *			the address
  * @param addr		Virtual memory address for which to find the
  *			source location
@@ -190,7 +193,7 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
+int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
 		struct source_location **src_loc);
 /**
  * Get a string representing the location within the binary of a given
@@ -202,7 +205,7 @@ int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
  * On success, the out parameter `bin_loc` is set. The ownership is
  * passed to the caller. On failure, `bin_loc` remains unchanged.
  *
- * @param so		so_info instance for the executable containing
+ * @param bin		bin_info instance for the executable containing
  *			the address
  * @param addr		Virtual memory address for which to find the
  *			binary location
@@ -210,7 +213,7 @@ int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int so_info_get_bin_loc(struct so_info *so, uint64_t addr, char **bin_loc);
+int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc);
 
 /**
  * Destroy the given source_location instance
@@ -220,4 +223,4 @@ int so_info_get_bin_loc(struct so_info *so, uint64_t addr, char **bin_loc);
 BT_HIDDEN
 void source_location_destroy(struct source_location *src_loc);
 
-#endif	/* _BABELTRACE_SO_INFO_H */
+#endif	/* _BABELTRACE_BIN_INFO_H */

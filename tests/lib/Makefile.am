@@ -53,14 +53,14 @@ test_dwarf_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libdebuginfo.la
 test_dwarf_SOURCES = test_dwarf.c
 
-test_so_info_LDFLAGS = -static
-test_so_info_LDADD = $(LIBTAP) \
+test_bin_info_LDFLAGS = -static
+test_bin_info_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/lib/libdebuginfo.la
-test_so_info_SOURCES = test_so_info.c
+test_bin_info_SOURCES = test_bin_info.c
 
-noinst_PROGRAMS += test_dwarf test_so_info
-SCRIPT_LIST += test_dwarf_complete test_so_info_complete
+noinst_PROGRAMS += test_dwarf test_bin_info
+SCRIPT_LIST += test_dwarf_complete test_bin_info_complete
 endif
 
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
