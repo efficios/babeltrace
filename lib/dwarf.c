@@ -351,7 +351,7 @@ error:
 
 BT_HIDDEN
 int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
-		int *contains)
+		bool *contains)
 {
 	int ret;
 
@@ -360,7 +360,7 @@ int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
 		goto error;
 	}
 
-	*contains = ret;
+	*contains = (ret == 1);
 
 	return 0;
 

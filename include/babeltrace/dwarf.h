@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <dwarf.h>
@@ -214,12 +215,12 @@ int bt_dwarf_die_get_call_line(struct bt_dwarf_die *die,
  *
  * @param die		bt_dwarf_die instance
  * @param addr		The memory address to verify
- * @param contains	Out parameter, 1 if addr is contained,
- *			0 if not
+ * @param contains	Out parameter, true if addr is contained,
+ *			false if not
  * @returns		0 on succes, -1 on failure
  */
 BT_HIDDEN
 int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
-		int *contains);
+		bool *contains);
 
 #endif	/* _BABELTRACE_DWARF_H */
