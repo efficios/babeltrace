@@ -779,7 +779,8 @@ static
 int bin_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 		char **func_name)
 {
-	int ret = 0, found = 0;
+	int ret = 0;
+	bool found = false;
 	struct bt_dwarf_die *die = NULL;
 
 	if (!cu || !func_name) {
@@ -980,20 +981,27 @@ error:
  * subroutines are inlined within this function and would contain
  * `addr`.
  *
+ * On success, the out parameter `contains` is set with the boolean
+ * value indicating whether the DIE's range covers `addr`. On failure,
+ * it remains unchanged.
+ *
  * Do note that this function advances the position of `die`. If the
  * address is found within one of its children, `die` will be pointing
  * to that child upon returning from the function, allowing to extract
  * the information deemed necessary.
  *
- * @param die	The parent DIE in whose children the address will be
- *		looked for
- * @param addr	The address for which to look for in the DIEs
- * @returns	Returns 1 if the address was found, 0 if not
+ * @param die		The parent DIE in whose children the address will be
+ *			looked for
+ * @param addr		The address for which to look for in the DIEs
+ * @param contains	Out parameter, true if addr is contained,
+ *			false if not
+ * @returns		Returns 0 on success, -1 on failure
  */
 static
-int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr)
+int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr, bool *contains)
 {
-	int ret = 0, contains = 0;
+	int ret = 0;
+	bool _contains = false;
 
 	if (!die) {
 		goto error;
@@ -1013,24 +1021,23 @@ int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr)
 		}
 
 		if (tag == DW_TAG_inlined_subroutine) {
-			ret = bt_dwarf_die_contains_addr(die, addr, &contains);
+			ret = bt_dwarf_die_contains_addr(die, addr, &_contains);
 			if (ret) {
 				goto error;
 			}
 
 			if (contains) {
-				ret = 1;
 				goto end;
 			}
 		}
 	} while (bt_dwarf_die_next(die) == 0);
 
 end:
-	return ret;
+	*contains = _contains;
+	return 0;
 
 error:
-	ret = 0;
-	goto end;
+	return -1;
 }
 
 /**
@@ -1048,7 +1055,8 @@ static
 int bin_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		struct source_location **src_loc)
 {
-	int ret = 0, found = 0;
+	int ret = 0;
+	bool found = false;
 	struct bt_dwarf_die *die = NULL;
 	struct source_location *_src_loc = NULL;
 
@@ -1070,7 +1078,7 @@ int bin_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		}
 
 		if (tag == DW_TAG_subprogram) {
-			int contains = 0;
+			bool contains = false;
 
 			ret = bt_dwarf_die_contains_addr(die, addr, &contains);
 			if (ret) {
@@ -1082,8 +1090,12 @@ int bin_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 				 * Try to find an inlined subroutine
 				 * child of this DIE containing addr.
 				 */
-				found = bin_info_child_die_has_address(
-						die, addr);
+				ret = bin_info_child_die_has_address(die, addr,
+						&found);
+				if(ret) {
+					goto error;
+				}
+
 				goto end;
 			}
 		}
