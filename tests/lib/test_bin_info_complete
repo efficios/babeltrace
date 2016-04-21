@@ -19,4 +19,4 @@
 CURDIR=$(dirname $0)/
 ROOTDIR=$CURDIR../..
 
-$CURDIR/test_so_info $ROOTDIR/tests/debuginfo-data
+$CURDIR/test_bin_info $ROOTDIR/tests/debuginfo-data

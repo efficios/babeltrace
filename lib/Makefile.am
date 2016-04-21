@@ -19,7 +19,7 @@ if ENABLE_DEBUGINFO
 noinst_LTLIBRARIES = libdebuginfo.la
 
 libdebuginfo_la_SOURCES = debuginfo.c \
-			  so-info.c \
+			  bin-info.c \
 			  dwarf.c \
 			  crc32.c \
 			  utils.c

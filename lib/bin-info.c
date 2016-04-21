@@ -1,5 +1,5 @@
 /*
- * so-info.c
+ * bin-info.c
  *
  * Babeltrace - Executable and Shared Object Debug Info Reader
  *
@@ -37,7 +37,7 @@
 #include <dwarf.h>
 #include <glib.h>
 #include <babeltrace/dwarf.h>
-#include <babeltrace/so-info.h>
+#include <babeltrace/bin-info.h>
 #include <babeltrace/crc32.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/utils.h>
@@ -50,7 +50,7 @@
 #define ADDR_STR_LEN 20
 
 BT_HIDDEN
-int so_info_init(void)
+int bin_info_init(void)
 {
 	int ret = 0;
 
@@ -64,88 +64,88 @@ int so_info_init(void)
 }
 
 BT_HIDDEN
-struct so_info *so_info_create(const char *path, uint64_t low_addr,
+struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 		uint64_t memsz, bool is_pic)
 {
-	struct so_info *so = NULL;
+	struct bin_info *bin = NULL;
 
 	if (!path) {
 		goto error;
 	}
 
-	so = g_new0(struct so_info, 1);
-	if (!so) {
+	bin = g_new0(struct bin_info, 1);
+	if (!bin) {
 		goto error;
 	}
 
 	if (opt_debug_info_target_prefix) {
-		so->elf_path = g_build_path("/", opt_debug_info_target_prefix,
+		bin->elf_path = g_build_path("/", opt_debug_info_target_prefix,
 						path, NULL);
 	} else {
-		so->elf_path = strdup(path);
+		bin->elf_path = strdup(path);
 	}
 
-	if (!so->elf_path) {
+	if (!bin->elf_path) {
 		goto error;
 	}
 
-	so->is_pic = is_pic;
-	so->memsz = memsz;
-	so->low_addr = low_addr;
-	so->high_addr = so->low_addr + so->memsz;
+	bin->is_pic = is_pic;
+	bin->memsz = memsz;
+	bin->low_addr = low_addr;
+	bin->high_addr = bin->low_addr + bin->memsz;
 
-	return so;
+	return bin;
 
 error:
-	so_info_destroy(so);
+	bin_info_destroy(bin);
 	return NULL;
 }
 
 BT_HIDDEN
-void so_info_destroy(struct so_info *so)
+void bin_info_destroy(struct bin_info *bin)
 {
-	if (!so) {
+	if (!bin) {
 		return;
 	}
 
-	dwarf_end(so->dwarf_info);
+	dwarf_end(bin->dwarf_info);
 
-	free(so->elf_path);
-	free(so->dwarf_path);
-	free(so->build_id);
-	free(so->dbg_link_filename);
+	free(bin->elf_path);
+	free(bin->dwarf_path);
+	free(bin->build_id);
+	free(bin->dbg_link_filename);
 
-	elf_end(so->elf_file);
+	elf_end(bin->elf_file);
 
-	close(so->elf_fd);
-	close(so->dwarf_fd);
+	close(bin->elf_fd);
+	close(bin->dwarf_fd);
 
-	g_free(so);
+	g_free(bin);
 }
 
 
 BT_HIDDEN
-int so_info_set_build_id(struct so_info *so, uint8_t *build_id,
+int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		size_t build_id_len)
 {
-	if (!so || !build_id) {
+	if (!bin || !build_id) {
 		goto error;
 	}
 
-	so->build_id = malloc(build_id_len);
-	if (!so->build_id) {
+	bin->build_id = malloc(build_id_len);
+	if (!bin->build_id) {
 		goto error;
 	}
 
-	memcpy(so->build_id, build_id, build_id_len);
-	so->build_id_len = build_id_len;
+	memcpy(bin->build_id, build_id, build_id_len);
+	bin->build_id_len = build_id_len;
 
 	/*
 	 * Reset the is_elf_only flag in case it had been set
 	 * previously, because we might find separate debug info using
 	 * the new build id information.
 	 */
-	so->is_elf_only = false;
+	bin->is_elf_only = false;
 
 	return 0;
 
@@ -155,25 +155,25 @@ error:
 }
 
 BT_HIDDEN
-int so_info_set_debug_link(struct so_info *so, char *filename, uint32_t crc)
+int bin_info_set_debug_link(struct bin_info *bin, char *filename, uint32_t crc)
 {
-	if (!so || !filename) {
+	if (!bin || !filename) {
 		goto error;
 	}
 
-	so->dbg_link_filename = strdup(filename);
-	if (!so->dbg_link_filename) {
+	bin->dbg_link_filename = strdup(filename);
+	if (!bin->dbg_link_filename) {
 		goto error;
 	}
 
-	so->dbg_link_crc = crc;
+	bin->dbg_link_crc = crc;
 
 	/*
 	 * Reset the is_elf_only flag in case it had been set
 	 * previously, because we might find separate debug info using
 	 * the new build id information.
 	 */
-	so->is_elf_only = false;
+	bin->is_elf_only = false;
 
 	return 0;
 
@@ -184,20 +184,20 @@ error:
 
 /**
  * Tries to read DWARF info from the location given by path, and
- * attach it to the given so_info instance if it exists.
+ * attach it to the given bin_info instance if it exists.
  *
- * @param so	so_info instance for which to set DWARF info
+ * @param bin	bin_info instance for which to set DWARF info
  * @param path	Presumed location of the DWARF info
  * @returns	0 on success, -1 on failure
  */
 static
-int so_info_set_dwarf_info_from_path(struct so_info *so, char *path)
+int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 {
 	int fd = -1, ret = 0;
 	struct bt_dwarf_cu *cu = NULL;
 	Dwarf *dwarf_info = NULL;
 
-	if (!so || !path) {
+	if (!bin || !path) {
 		goto error;
 	}
 
@@ -212,8 +212,8 @@ int so_info_set_dwarf_info_from_path(struct so_info *so, char *path)
 	}
 
 	/*
-	 * Check if the dwarf info has any CU. If not, the SO's object
-	 * file contains no DWARF info.
+	 * Check if the dwarf info has any CU. If not, the
+	 * executable's object file contains no DWARF info.
 	 */
 	cu = bt_dwarf_cu_create(dwarf_info);
 	if (!cu) {
@@ -225,12 +225,12 @@ int so_info_set_dwarf_info_from_path(struct so_info *so, char *path)
 		goto error;
 	}
 
-	so->dwarf_fd = fd;
-	so->dwarf_path = strdup(path);
-	if (!so->dwarf_path) {
+	bin->dwarf_fd = fd;
+	bin->dwarf_path = strdup(path);
+	if (!bin->dwarf_path) {
 		goto error;
 	}
-	so->dwarf_info = dwarf_info;
+	bin->dwarf_info = dwarf_info;
 	free(cu);
 
 	return 0;
@@ -245,22 +245,22 @@ error:
 }
 
 /**
- * Try to set the dwarf_info for a given so_info instance via the
+ * Try to set the dwarf_info for a given bin_info instance via the
  * build ID method.
  *
- * @param so		so_info instance for which to retrieve the
+ * @param bin		bin_info instance for which to retrieve the
  *			DWARF info via build ID
  * @returns		0 on success (i.e. dwarf_info set), -1 on failure
  */
 static
-int so_info_set_dwarf_info_build_id(struct so_info *so)
+int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 {
 	int i = 0, ret = 0;
 	char *path = NULL, *build_id_file = NULL;
 	const char *dbg_dir = NULL;
 	size_t build_id_file_len;
 
-	if (!so || !so->build_id) {
+	if (!bin || !bin->build_id) {
 		goto error;
 	}
 
@@ -268,18 +268,18 @@ int so_info_set_dwarf_info_build_id(struct so_info *so)
 
 	/* 2 characters per byte printed in hex, +1 for '/' and +1 for
 	 * '\0' */
-	build_id_file_len = (2 * so->build_id_len) + 1 +
+	build_id_file_len = (2 * bin->build_id_len) + 1 +
 			strlen(BUILD_ID_SUFFIX) + 1;
 	build_id_file = malloc(build_id_file_len);
 	if (!build_id_file) {
 		goto error;
 	}
 
-	snprintf(build_id_file, 4, "%02x/", so->build_id[0]);
-	for (i = 1; i < so->build_id_len; ++i) {
+	snprintf(build_id_file, 4, "%02x/", bin->build_id[0]);
+	for (i = 1; i < bin->build_id_len; ++i) {
 		int path_idx = 3 + 2 * (i - 1);
 
-		snprintf(&build_id_file[path_idx], 3, "%02x", so->build_id[i]);
+		snprintf(&build_id_file[path_idx], 3, "%02x", bin->build_id[i]);
 	}
 	strcat(build_id_file, BUILD_ID_SUFFIX);
 
@@ -288,7 +288,7 @@ int so_info_set_dwarf_info_build_id(struct so_info *so)
 		goto error;
 	}
 
-	ret = so_info_set_dwarf_info_from_path(so, path);
+	ret = bin_info_set_dwarf_info_from_path(bin, path);
 	if (ret) {
 		goto error;
 	}
@@ -347,72 +347,72 @@ end:
 }
 
 /**
- * Try to set the dwarf_info for a given so_info instance via the
+ * Try to set the dwarf_info for a given bin_info instance via the
  * build ID method.
  *
- * @param so		so_info instance for which to retrieve the
+ * @param bin		bin_info instance for which to retrieve the
  *			DWARF info via debug link
  * @returns		0 on success (i.e. dwarf_info set), -1 on failure
  */
 static
-int so_info_set_dwarf_info_debug_link(struct so_info *so)
+int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 {
 	int ret = 0;
 	const char *dbg_dir = NULL;
-	char *dir_name = NULL, *so_dir = NULL, *path = NULL;
+	char *dir_name = NULL, *bin_dir = NULL, *path = NULL;
 	size_t max_path_len = 0;
 
-	if (!so || !so->dbg_link_filename) {
+	if (!bin || !bin->dbg_link_filename) {
 		goto error;
 	}
 
 	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
-	dir_name = dirname(so->elf_path);
+	dir_name = dirname(bin->elf_path);
 	if (!dir_name) {
 		goto error;
 	}
 
-	/* so_dir is just dir_name with a trailing slash */
-	so_dir = malloc(strlen(dir_name) + 2);
-	if (!so_dir) {
+	/* bin_dir is just dir_name with a trailing slash */
+	bin_dir = malloc(strlen(dir_name) + 2);
+	if (!bin_dir) {
 		goto error;
 	}
 
-	strcpy(so_dir, dir_name);
-	strcat(so_dir, "/");
+	strcpy(bin_dir, dir_name);
+	strcat(bin_dir, "/");
 
-	max_path_len = strlen(dbg_dir) + strlen(so_dir) +
-			strlen(DEBUG_SUBDIR) + strlen(so->dbg_link_filename)
+	max_path_len = strlen(dbg_dir) + strlen(bin_dir) +
+			strlen(DEBUG_SUBDIR) + strlen(bin->dbg_link_filename)
 			+ 1;
 	path = malloc(max_path_len);
 	if (!path) {
 		goto error;
 	}
 
-	/* First look in the SO's dir */
-	strcpy(path, so_dir);
-	strcat(path, so->dbg_link_filename);
+	/* First look in the executable's dir */
+	strcpy(path, bin_dir);
+	strcat(path, bin->dbg_link_filename);
 
-	if (is_valid_debug_file(path, so->dbg_link_crc)) {
+	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
 	/* If not found, look in .debug subdir */
-	strcpy(path, so_dir);
+	strcpy(path, bin_dir);
 	strcat(path, DEBUG_SUBDIR);
-	strcat(path, so->dbg_link_filename);
+	strcat(path, bin->dbg_link_filename);
 
-	if (is_valid_debug_file(path, so->dbg_link_crc)) {
+	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
 	/* Lastly, look under the global debug directory */
 	strcpy(path, dbg_dir);
-	strcat(path, so_dir);
-	strcat(path, so->dbg_link_filename);
+	strcat(path, bin_dir);
+	strcat(path, bin->dbg_link_filename);
 
-	if (is_valid_debug_file(path, so->dbg_link_crc)) {
+	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
@@ -420,12 +420,12 @@ error:
 	ret = -1;
 end:
 	free(path);
-	free(so_dir);
+	free(bin_dir);
 
 	return ret;
 
 found:
-	ret = so_info_set_dwarf_info_from_path(so, path);
+	ret = bin_info_set_dwarf_info_from_path(bin, path);
 	if (ret) {
 		goto error;
 	}
@@ -436,20 +436,20 @@ found:
 /**
  * Initialize the DWARF info for a given executable.
  *
- * @param so	so_info instance
+ * @param bin	bin_info instance
  * @returns	0 on success, -1 on failure
  */
 static
-int so_info_set_dwarf_info(struct so_info *so)
+int bin_info_set_dwarf_info(struct bin_info *bin)
 {
 	int ret = 0;
 
-	if (!so) {
+	if (!bin) {
 		goto error;
 	}
 
 	/* First try to set the DWARF info from the ELF file */
-	ret = so_info_set_dwarf_info_from_path(so, so->elf_path);
+	ret = bin_info_set_dwarf_info_from_path(bin, bin->elf_path);
 	if (!ret) {
 		goto end;
 	}
@@ -458,12 +458,12 @@ int so_info_set_dwarf_info(struct so_info *so)
 	 * If that fails, try to find separate debug info via build ID
 	 * and debug link.
 	 */
-	ret = so_info_set_dwarf_info_build_id(so);
+	ret = bin_info_set_dwarf_info_build_id(bin);
 	if (!ret) {
 		goto end;
 	}
 
-	ret = so_info_set_dwarf_info_debug_link(so);
+	ret = bin_info_set_dwarf_info_debug_link(bin);
 	if (!ret) {
 		goto end;
 	}
@@ -477,22 +477,22 @@ end:
 /**
  * Initialize the ELF file for a given executable.
  *
- * @param so	so_info instance
+ * @param bin	bin_info instance
  * @returns	0 on success, -1 on failure
  */
 static
-int so_info_set_elf_file(struct so_info *so)
+int bin_info_set_elf_file(struct bin_info *bin)
 {
 	int elf_fd;
 	Elf *elf_file = NULL;
 
-	if (!so) {
+	if (!bin) {
 		goto error;
 	}
 
-	elf_fd = open(so->elf_path, O_RDONLY);
+	elf_fd = open(bin->elf_path, O_RDONLY);
 	if (elf_fd < 0) {
-		printf_verbose("Failed to open %s\n", so->elf_path);
+		printf_verbose("Failed to open %s\n", bin->elf_path);
 		goto error;
 	}
 
@@ -504,12 +504,12 @@ int so_info_set_elf_file(struct so_info *so)
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
 		printf_verbose("Error: %s is not an ELF object\n",
-				so->elf_path);
+				bin->elf_path);
 		goto error;
 	}
 
-	so->elf_fd = elf_fd;
-	so->elf_file = elf_file;
+	bin->elf_fd = elf_fd;
+	bin->elf_file = elf_file;
 	return 0;
 
 error:
@@ -546,7 +546,7 @@ void source_location_destroy(struct source_location *src_loc)
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_append_offset_str(const char *base_str, uint64_t low_addr,
+int bin_info_append_offset_str(const char *base_str, uint64_t low_addr,
 				uint64_t high_addr, char **result)
 {
 	int ret;
@@ -599,7 +599,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_get_nearest_symbol_from_section(Elf_Scn *scn, uint64_t addr,
+int bin_info_get_nearest_symbol_from_section(Elf_Scn *scn, uint64_t addr,
 		GElf_Sym **sym, GElf_Shdr **shdr)
 {
 	int i;
@@ -691,7 +691,7 @@ error:
  * If found, the out parameter `func_name` is set on success. On failure,
  * it remains unchanged.
  *
- * @param so		so_info instance for the executable containing
+ * @param bin		bin_info instance for the executable containing
  *			the address
  * @param addr		Virtual memory address for which to find the
  *			function name
@@ -699,7 +699,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
+int bin_info_lookup_elf_function_name(struct bin_info *bin, uint64_t addr,
 		char **func_name)
 {
 	/*
@@ -715,37 +715,37 @@ int so_info_lookup_elf_function_name(struct so_info *so, uint64_t addr,
 	char *sym_name = NULL;
 
 	/* Set ELF file if it hasn't been accessed yet. */
-	if (!so->elf_file) {
-		ret = so_info_set_elf_file(so);
+	if (!bin->elf_file) {
+		ret = bin_info_set_elf_file(bin);
 		if (ret) {
 			/* Failed to set ELF file. */
 			goto error;
 		}
 	}
 
-	scn = elf_nextscn(so->elf_file, scn);
+	scn = elf_nextscn(bin->elf_file, scn);
 	if (!scn) {
 		goto error;
 	}
 
 	while (scn && !sym) {
-		ret = so_info_get_nearest_symbol_from_section(
+		ret = bin_info_get_nearest_symbol_from_section(
 				scn, addr, &sym, &shdr);
 		if (ret) {
 			goto error;
 		}
 
-		scn = elf_nextscn(so->elf_file, scn);
+		scn = elf_nextscn(bin->elf_file, scn);
 	}
 
 	if (sym) {
-		sym_name = elf_strptr(so->elf_file, shdr->sh_link,
+		sym_name = elf_strptr(bin->elf_file, shdr->sh_link,
 				sym->st_name);
 		if (!sym_name) {
 			goto error;
 		}
 
-		ret = so_info_append_offset_str(sym_name, sym->st_value, addr,
+		ret = bin_info_append_offset_str(sym_name, sym->st_value, addr,
 						func_name);
 		if (ret) {
 			goto error;
@@ -776,7 +776,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
+int bin_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0, found = 0;
@@ -825,7 +825,7 @@ int so_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 			goto error;
 		}
 
-		ret = so_info_append_offset_str(die_name, low_addr, addr,
+		ret = bin_info_append_offset_str(die_name, low_addr, addr,
 						func_name);
 		if (ret) {
 			goto error;
@@ -847,7 +847,7 @@ error:
  * If found, the out parameter `func_name` is set on success. On
  * failure, it remains unchanged.
  *
- * @param so		so_info instance for the executable containing
+ * @param bin		bin_info instance for the executable containing
  *			the address
  * @param addr		Virtual memory address for which to find the
  *			function name
@@ -855,24 +855,24 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_dwarf_function_name(struct so_info *so, uint64_t addr,
+int bin_info_lookup_dwarf_function_name(struct bin_info *bin, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0;
 	char *_func_name = NULL;
 	struct bt_dwarf_cu *cu = NULL;
 
-	if (!so || !func_name) {
+	if (!bin || !func_name) {
 		goto error;
 	}
 
-	cu = bt_dwarf_cu_create(so->dwarf_info);
+	cu = bt_dwarf_cu_create(bin->dwarf_info);
 	if (!cu) {
 		goto error;
 	}
 
 	while (bt_dwarf_cu_next(cu) == 0) {
-		ret = so_info_lookup_cu_function_name(cu, addr, &_func_name);
+		ret = bin_info_lookup_cu_function_name(cu, addr, &_func_name);
 		if (ret) {
 			goto error;
 		}
@@ -895,26 +895,26 @@ error:
 }
 
 BT_HIDDEN
-int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
+int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
 		char **func_name)
 {
 	int ret = 0;
 	char *_func_name = NULL;
 
-	if (!so || !func_name) {
+	if (!bin || !func_name) {
 		goto error;
 	}
 
 	/* Set DWARF info if it hasn't been accessed yet. */
-	if (!so->dwarf_info && !so->is_elf_only) {
-		ret = so_info_set_dwarf_info(so);
+	if (!bin->dwarf_info && !bin->is_elf_only) {
+		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
 			/* Failed to set DWARF info, fallback to ELF. */
-			so->is_elf_only = true;
+			bin->is_elf_only = true;
 		}
 	}
 
-	if (!so_info_has_address(so, addr)) {
+	if (!bin_info_has_address(bin, addr)) {
 		goto error;
 	}
 
@@ -922,14 +922,14 @@ int so_info_lookup_function_name(struct so_info *so, uint64_t addr,
 	 * Addresses in ELF and DWARF are relative to base address for
 	 * PIC, so make the address argument relative too if needed.
 	 */
-	if (so->is_pic) {
-		addr -= so->low_addr;
+	if (bin->is_pic) {
+		addr -= bin->low_addr;
 	}
 
-	if (so->is_elf_only) {
-		ret = so_info_lookup_elf_function_name(so, addr, &_func_name);
+	if (bin->is_elf_only) {
+		ret = bin_info_lookup_elf_function_name(bin, addr, &_func_name);
 	} else {
-		ret = so_info_lookup_dwarf_function_name(so, addr, &_func_name);
+		ret = bin_info_lookup_dwarf_function_name(bin, addr, &_func_name);
 	}
 
 	if (ret || !_func_name) {
@@ -944,17 +944,17 @@ error:
 }
 
 BT_HIDDEN
-int so_info_get_bin_loc(struct so_info *so, uint64_t addr, char **bin_loc)
+int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc)
 {
 	int ret = 0;
 	char *_bin_loc = NULL;
 
-	if (!so || !bin_loc) {
+	if (!bin || !bin_loc) {
 		goto error;
 	}
 
-	if (so->is_pic) {
-		addr -= so->low_addr;
+	if (bin->is_pic) {
+		addr -= bin->low_addr;
 		ret = asprintf(&_bin_loc, "+%#0" PRIx64, addr);
 	} else {
 		ret = asprintf(&_bin_loc, "@%#0" PRIx64, addr);
@@ -991,7 +991,7 @@ error:
  * @returns	Returns 1 if the address was found, 0 if not
  */
 static
-int so_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr)
+int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr)
 {
 	int ret = 0, contains = 0;
 
@@ -1045,7 +1045,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
+int bin_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		struct source_location **src_loc)
 {
 	int ret = 0, found = 0;
@@ -1082,7 +1082,7 @@ int so_info_lookup_cu_src_loc_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 				 * Try to find an inlined subroutine
 				 * child of this DIE containing addr.
 				 */
-				found = so_info_child_die_has_address(
+				found = bin_info_child_die_has_address(
 						die, addr);
 				goto end;
 			}
@@ -1139,7 +1139,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
+int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		struct source_location **src_loc)
 {
 	struct source_location *_src_loc = NULL;
@@ -1209,7 +1209,7 @@ error:
  * On success, the out parameter `src_loc` is set if found. On
  * failure, it remains unchanged.
  *
- * @param so		bt_dwarf_cu instance for the compile unit which
+ * @param cu		bt_dwarf_cu instance for the compile unit which
  *			may contain the address
  * @param addr		Virtual memory address for which to find the
  *			source location
@@ -1217,7 +1217,7 @@ error:
  * @returns		0 on success, -1 on failure
  */
 static
-int so_info_lookup_cu_src_loc(struct bt_dwarf_cu *cu, uint64_t addr,
+int bin_info_lookup_cu_src_loc(struct bt_dwarf_cu *cu, uint64_t addr,
 		struct source_location **src_loc)
 {
 	int ret = 0;
@@ -1227,7 +1227,7 @@ int so_info_lookup_cu_src_loc(struct bt_dwarf_cu *cu, uint64_t addr,
 		goto error;
 	}
 
-	ret = so_info_lookup_cu_src_loc_inl(cu, addr, &_src_loc);
+	ret = bin_info_lookup_cu_src_loc_inl(cu, addr, &_src_loc);
 	if (ret) {
 		goto error;
 	}
@@ -1236,7 +1236,7 @@ int so_info_lookup_cu_src_loc(struct bt_dwarf_cu *cu, uint64_t addr,
 		goto end;
 	}
 
-	ret = so_info_lookup_cu_src_loc_no_inl(cu, addr, &_src_loc);
+	ret = bin_info_lookup_cu_src_loc_no_inl(cu, addr, &_src_loc);
 	if (ret) {
 		goto error;
 	}
@@ -1258,30 +1258,30 @@ error:
 }
 
 BT_HIDDEN
-int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
+int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
 		struct source_location **src_loc)
 {
 	struct bt_dwarf_cu *cu = NULL;
 	struct source_location *_src_loc = NULL;
 
-	if (!so || !src_loc) {
+	if (!bin || !src_loc) {
 		goto error;
 	}
 
 	/* Set DWARF info if it hasn't been accessed yet. */
-	if (!so->dwarf_info && !so->is_elf_only) {
-		if (so_info_set_dwarf_info(so)) {
+	if (!bin->dwarf_info && !bin->is_elf_only) {
+		if (bin_info_set_dwarf_info(bin)) {
 			/* Failed to set DWARF info. */
-			so->is_elf_only = true;
+			bin->is_elf_only = true;
 		}
 	}
 
-	if (so->is_elf_only) {
+	if (bin->is_elf_only) {
 		/* We cannot lookup source location without DWARF info. */
 		goto error;
 	}
 
-	if (!so_info_has_address(so, addr)) {
+	if (!bin_info_has_address(bin, addr)) {
 		goto error;
 	}
 
@@ -1289,11 +1289,11 @@ int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
 	 * Addresses in ELF and DWARF are relative to base address for
 	 * PIC, so make the address argument relative too if needed.
 	 */
-	if (so->is_pic) {
-		addr -= so->low_addr;
+	if (bin->is_pic) {
+		addr -= bin->low_addr;
 	}
 
-	cu = bt_dwarf_cu_create(so->dwarf_info);
+	cu = bt_dwarf_cu_create(bin->dwarf_info);
 	if (!cu) {
 		goto error;
 	}
@@ -1301,7 +1301,7 @@ int so_info_lookup_source_location(struct so_info *so, uint64_t addr,
 	while (bt_dwarf_cu_next(cu) == 0) {
 		int ret;
 
-		ret = so_info_lookup_cu_src_loc(cu, addr, &_src_loc);
+		ret = bin_info_lookup_cu_src_loc(cu, addr, &_src_loc);
 		if (ret) {
 			goto error;
 		}
