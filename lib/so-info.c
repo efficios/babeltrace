@@ -55,8 +55,8 @@ int so_info_init(void)
 	int ret = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		fprintf(stderr, "ELF library initialization failed: %s\n",
-			elf_errmsg(-1));
+		printf_debug("ELF library initialization failed: %s\n",
+				elf_errmsg(-1));
 		ret = -1;
 	}
 
@@ -492,18 +492,18 @@ int so_info_set_elf_file(struct so_info *so)
 
 	elf_fd = open(so->elf_path, O_RDONLY);
 	if (elf_fd < 0) {
-		fprintf(stderr, "Failed to open %s\n", so->elf_path);
+		printf_verbose("Failed to open %s\n", so->elf_path);
 		goto error;
 	}
 
 	elf_file = elf_begin(elf_fd, ELF_C_READ, NULL);
 	if (!elf_file) {
-		fprintf(stderr, "elf_begin failed: %s\n", elf_errmsg(-1));
+		printf_debug("elf_begin failed: %s\n", elf_errmsg(-1));
 		goto error;
 	}
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
-		fprintf(stderr, "Error: %s is not an ELF object\n",
+		printf_verbose("Error: %s is not an ELF object\n",
 				so->elf_path);
 		goto error;
 	}

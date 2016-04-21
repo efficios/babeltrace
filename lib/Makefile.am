@@ -22,6 +22,7 @@ libdebuginfo_la_SOURCES = debuginfo.c \
 			  crc32.c \
 			  utils.c
 libdebuginfo_la_LDFLAGS = -lelf -ldw
+libdebuginfo_la_LIBADD = libbabeltrace.la
 endif
 
 libbabeltrace_la_LIBADD = \
