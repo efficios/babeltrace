@@ -30,16 +30,16 @@
 #include <babeltrace/types.h>
 #include <babeltrace/ctf-ir/metadata.h>
 #include <babeltrace/debuginfo.h>
-#include <babeltrace/so-info.h>
+#include <babeltrace/bin-info.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/utils.h>
 
 struct proc_debug_info_sources {
 	/*
-	 * Hash table: base address (pointer to uint64_t) to so info; owned by
+	 * Hash table: base address (pointer to uint64_t) to bin info; owned by
 	 * proc_debug_info_sources.
 	 */
-	GHashTable *baddr_to_so_info;
+	GHashTable *baddr_to_bin_info;
 
 	/*
 	 * Hash table: IP (pointer to uint64_t) to (struct debug_info_source *);
@@ -74,7 +74,7 @@ int debug_info_init(struct debug_info *info)
 			"lttng_ust_statedump:start");
 	info->q_dl_open = g_quark_from_string("lttng_ust_dl:dlopen");
 
-	return so_info_init();
+	return bin_info_init();
 }
 
 static
@@ -92,7 +92,7 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 }
 
 static
-struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
+struct debug_info_source *debug_info_source_create_from_bin(struct bin_info *bin,
 		uint64_t ip)
 {
 	int ret;
@@ -106,15 +106,15 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 	}
 
 	/* Lookup function name */
-	ret = so_info_lookup_function_name(so, ip, &debug_info_src->func);
+	ret = bin_info_lookup_function_name(bin, ip, &debug_info_src->func);
 	if (ret) {
 		goto error;
 	}
 
 	/* Can't retrieve src_loc from ELF only, skip it */
-	if (!so->is_elf_only) {
+	if (!bin->is_elf_only) {
 		/* Lookup source location */
-		ret = so_info_lookup_source_location(so, ip, &src_loc);
+		ret = bin_info_lookup_source_location(bin, ip, &src_loc);
 		if (ret) {
 			goto error;
 		}
@@ -136,8 +136,8 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 		source_location_destroy(src_loc);
 	}
 
-	if (so->elf_path) {
-		debug_info_src->bin_path = strdup(so->elf_path);
+	if (bin->elf_path) {
+		debug_info_src->bin_path = strdup(bin->elf_path);
 		if (!debug_info_src->bin_path) {
 			goto error;
 		}
@@ -145,7 +145,7 @@ struct debug_info_source *debug_info_source_create_from_so(struct so_info *so,
 		debug_info_src->short_bin_path = get_filename_from_path(
 				debug_info_src->bin_path);
 
-		ret = so_info_get_bin_loc(so, ip, &(debug_info_src->bin_loc));
+		ret = bin_info_get_bin_loc(bin, ip, &(debug_info_src->bin_loc));
 		if (ret) {
 			goto error;
 		}
@@ -167,8 +167,8 @@ void proc_debug_info_sources_destroy(
 		return;
 	}
 
-	if (proc_dbg_info_src->baddr_to_so_info) {
-		g_hash_table_destroy(proc_dbg_info_src->baddr_to_so_info);
+	if (proc_dbg_info_src->baddr_to_bin_info) {
+		g_hash_table_destroy(proc_dbg_info_src->baddr_to_bin_info);
 	}
 
 	if (proc_dbg_info_src->ip_to_debug_info_src) {
@@ -188,10 +188,10 @@ struct proc_debug_info_sources *proc_debug_info_sources_create(void)
 		goto end;
 	}
 
-	proc_dbg_info_src->baddr_to_so_info = g_hash_table_new_full(
+	proc_dbg_info_src->baddr_to_bin_info = g_hash_table_new_full(
 			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
-			(GDestroyNotify) so_info_destroy);
-	if (!proc_dbg_info_src->baddr_to_so_info) {
+			(GDestroyNotify) bin_info_destroy);
+	if (!proc_dbg_info_src->baddr_to_bin_info) {
 		goto error;
 	}
 
@@ -266,14 +266,14 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 		goto end;
 	}
 
-	/* Check in all so_infos. */
-	g_hash_table_iter_init(&iter, proc_dbg_info_src->baddr_to_so_info);
+	/* Check in all bin_infos. */
+	g_hash_table_iter_init(&iter, proc_dbg_info_src->baddr_to_bin_info);
 
 	while (g_hash_table_iter_next(&iter, &baddr, &value))
 	{
-		struct so_info *so = value;
+		struct bin_info *bin = value;
 
-		if (!so_info_has_address(value, ip)) {
+		if (!bin_info_has_address(value, ip)) {
 			continue;
 		}
 
@@ -284,7 +284,7 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 		 * a caching policy), and entries should be prunned when
 		 * libraries are unmapped.
 		 */
-		debug_info_src = debug_info_source_create_from_so(so, ip);
+		debug_info_src = debug_info_source_create_from_bin(bin, ip);
 		if (debug_info_src) {
 			g_hash_table_insert(
 					proc_dbg_info_src->ip_to_debug_info_src,
@@ -380,7 +380,7 @@ void handle_statedump_build_id_event(struct debug_info *debug_info,
 	struct bt_definition *vpid_def = NULL;
 	struct bt_definition *build_id_def = NULL;
 	struct definition_sequence *build_id_seq;
-	struct so_info *so = NULL;
+	struct bin_info *bin = NULL;
 	int i;
 	int64_t vpid;
 	uint64_t baddr;
@@ -447,17 +447,17 @@ void handle_statedump_build_id_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	so = g_hash_table_lookup(proc_dbg_info_src->baddr_to_so_info,
+	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
 			(gpointer) &baddr);
-	if (!so) {
+	if (!bin) {
 		/*
-		 * The build_id event comes after the so has been
+		 * The build_id event comes after the bin has been
 		 * created. If it isn't found, just ignore this event.
 		 */
 		goto end;
 	}
 
-	so_info_set_build_id(so, build_id, build_id_len);
+	bin_info_set_build_id(bin, build_id, build_id_len);
 
 end:
 	free(build_id);
@@ -475,7 +475,7 @@ void handle_statedump_debug_link_event(struct debug_info *debug_info,
 	struct bt_definition *vpid_def = NULL;
 	struct bt_definition *filename_def = NULL;
 	struct bt_definition *crc32_def = NULL;
-	struct so_info *so = NULL;
+	struct bin_info *bin = NULL;
 	int64_t vpid;
 	uint64_t baddr;
 	char *filename = NULL;
@@ -534,11 +534,11 @@ void handle_statedump_debug_link_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	so = g_hash_table_lookup(proc_dbg_info_src->baddr_to_so_info,
+	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
 			(gpointer) &baddr);
-	if (!so) {
+	if (!bin) {
 		/*
-		 * The debug_link event comes after the so has been
+		 * The debug_link event comes after the bin has been
 		 * created. If it isn't found, just ignore this event.
 		 */
 		goto end;
@@ -547,7 +547,7 @@ void handle_statedump_debug_link_event(struct debug_info *debug_info,
 	filename = bt_get_string(filename_def);
 	crc32 = bt_get_unsigned_int(crc32_def);
 
-	so_info_set_debug_link(so, filename, crc32);
+	bin_info_set_debug_link(bin, filename, crc32);
 
 end:
 	return;
@@ -565,7 +565,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 	struct bt_definition *event_fields_def = NULL;
 	struct bt_definition *sec_def = NULL;
 	struct proc_debug_info_sources *proc_dbg_info_src;
-	struct so_info *so;
+	struct bin_info *bin;
 	uint64_t baddr, memsz;
 	int64_t vpid;
 	const char *path;
@@ -662,19 +662,19 @@ void handle_bin_info_event(struct debug_info *debug_info,
 
 	*((uint64_t *) key) = baddr;
 
-	so = g_hash_table_lookup(proc_dbg_info_src->baddr_to_so_info,
+	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
 			key);
-	if (so) {
+	if (bin) {
 		goto end;
 	}
 
-	so = so_info_create(path, baddr, memsz, is_pic);
-	if (!so) {
+	bin = bin_info_create(path, baddr, memsz, is_pic);
+	if (!bin) {
 		goto end;
 	}
 
-	g_hash_table_insert(proc_dbg_info_src->baddr_to_so_info,
-			key, so);
+	g_hash_table_insert(proc_dbg_info_src->baddr_to_bin_info,
+			key, bin);
 	/* Ownership passed to ht. */
 	key = NULL;
 
@@ -726,7 +726,7 @@ void handle_statedump_start(struct debug_info *debug_info,
 		goto end;
 	}
 
-	g_hash_table_remove_all(proc_dbg_info_src->baddr_to_so_info);
+	g_hash_table_remove_all(proc_dbg_info_src->baddr_to_bin_info);
 	g_hash_table_remove_all(proc_dbg_info_src->ip_to_debug_info_src);
 
 end:
