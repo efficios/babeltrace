@@ -271,7 +271,10 @@ class TraceCollection:
 		ev_ptr = _bt_ctf_iter_read_event(ctf_it_ptr)
 		_bt_ctf_iter_destroy(ctf_it_ptr)
 		if ev_ptr is None:
-			return None;
+			return None
+		ev = Event.__new__(Event)
+		ev._e = ev_ptr
+		return ev.timestamp
 
 	def _events(self, begin_pos_ptr, end_pos_ptr):
 		ctf_it_ptr = _bt_ctf_iter_create(self._tc, begin_pos_ptr, end_pos_ptr)
