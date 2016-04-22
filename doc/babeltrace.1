@@ -75,8 +75,11 @@ Print clock in GMT time zone (default: local time zone)
 .BR "--stream-intersection"
 Only print events when all streams are active
 .TP
-.BR "--debug-info-full-dir"
-Directory in which to look for debugging information files. (default: /usr/lib/debug/)
+.BR "--debug-info-dir"
+Directory in which to look for debugging information files (default: /usr/lib/debug/)
+.TP
+.BR "--debug-info-target-prefix"
+Directory to use as a prefix for executable lookup
 .TP
 .BR "--debug-info-full-path"
 Show full debug info source and binary paths (if available)

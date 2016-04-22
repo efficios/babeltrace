@@ -192,9 +192,8 @@ static void usage(FILE *fp)
 #ifdef ENABLE_DEBUGINFO
 	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
 	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
-	fprintf(fp, "      --debug-info-full-path     Show full debug info source and binary paths (if available)\n");
 	fprintf(fp, "      --debug-info-target-prefix Directory to use as a prefix for executable lookup\n");
-	fprintf(fp, "                                 during debug info analysis.\n");
+	fprintf(fp, "      --debug-info-full-path     Show full debug info source and binary paths (if available)\n");
 #endif
 	list_formats(fp);
 	fprintf(fp, "\n");
