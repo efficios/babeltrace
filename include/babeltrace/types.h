@@ -148,6 +148,10 @@ struct declaration_integer {
 	struct ctf_clock *clock;
 };
 
+#ifdef ENABLE_DEBUGINFO
+struct debug_info_source;
+#endif
+
 struct definition_integer {
 	struct bt_definition p;
 	struct declaration_integer *declaration;
@@ -156,6 +160,17 @@ struct definition_integer {
 		uint64_t _unsigned;
 		int64_t _signed;
 	} value;
+
+#ifdef ENABLE_DEBUGINFO
+	/*
+	 * Debug infos (NULL if not set).
+	 *
+	 * This is extended debug informations set by the CTF input plugin
+	 * itself when available. If it's set, then this integer definition
+	 * is the "_ip" field of the stream event context.
+	 */
+	struct debug_info_source *debug_info_src;
+#endif
 };
 
 struct declaration_float {
@@ -527,6 +542,8 @@ void bt_append_scope_path(const char *path, GArray *q);
  */
 struct bt_definition *bt_lookup_definition(const struct bt_definition *definition,
 				     const char *field_name);
+struct bt_definition *bt_lookup_definition_by_quark(const struct bt_definition *definition,
+				     GQuark quark);
 struct definition_integer *bt_lookup_integer(const struct bt_definition *definition,
 					  const char *field_name,
 					  int signedness);

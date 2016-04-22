@@ -46,6 +46,23 @@ SCRIPT_LIST = test_seek_big_trace \
 	test_ctf_writer_complete
 EXTRA_DIST = test_seek_big_trace.in test_seek_empty_packet.in
 
+if ENABLE_DEBUGINFO
+test_dwarf_LDFLAGS = -static
+test_dwarf_LDADD = $(LIBTAP) \
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/lib/libdebuginfo.la
+test_dwarf_SOURCES = test_dwarf.c
+
+test_bin_info_LDFLAGS = -static
+test_bin_info_LDADD = $(LIBTAP) \
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/lib/libdebuginfo.la
+test_bin_info_SOURCES = test_bin_info.c
+
+noinst_PROGRAMS += test_dwarf test_bin_info
+SCRIPT_LIST += test_dwarf_complete test_bin_info_complete
+endif
+
 dist_noinst_SCRIPTS = $(SCRIPT_LIST)
 
 all-local:

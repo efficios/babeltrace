@@ -31,6 +31,7 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/events-internal.h>
+#include <babeltrace/trace-debuginfo.h>
 #include <inttypes.h>
 #include <sys/mman.h>
 #include <errno.h>
@@ -59,7 +60,8 @@ int opt_all_field_names,
 	opt_loglevel_field,
 	opt_emf_field,
 	opt_callsite_field,
-	opt_delta_field = 1;
+	opt_delta_field = 1,
+	opt_debug_info_full_path;
 
 enum field_item {
 	ITEM_SCOPE,
@@ -237,7 +239,6 @@ const char *print_loglevel(int value)
 
 static
 int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
-			 
 {
 	struct ctf_text_stream_pos *pos =
 		container_of(ppos, struct ctf_text_stream_pos, parent);
@@ -265,6 +266,8 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 		fprintf(stderr, "[error] Event class id %" PRIu64 " is unknown.\n", id);
 		return -EINVAL;
 	}
+
+	handle_debug_info_event(stream_class, event);
 
 	if (stream->has_timestamp) {
 		set_field_names_print(pos, ITEM_HEADER);

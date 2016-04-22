@@ -1,6 +1,9 @@
 SUBDIRS = utils bin lib
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** tests
+if ENABLE_DEBUGINFO
+EXTRA_DIST += $(srcdir)/debuginfo-data/** tests_debuginfo
+endif
 
 SCRIPT_LIST = run.sh
 
@@ -20,5 +23,12 @@ clean-local:
 		done; \
 	fi
 
+TEMPLIST := $(shell mktemp -u)
 check-am:
-	./run.sh $(srcdir)/tests
+	@cat $(srcdir)/tests > $(TEMPLIST)
+if ENABLE_DEBUGINFO
+	@echo '' >> $(TEMPLIST)
+	@cat $(srcdir)/tests_debuginfo >> $(TEMPLIST)
+endif
+	./run.sh $(TEMPLIST)
+	rm $(TEMPLIST)

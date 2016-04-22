@@ -36,6 +36,8 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf/iterator.h>
 #include <babeltrace/ctf-text/types.h>
+#include <babeltrace/debuginfo.h>
+
 #include <babeltrace/iterator.h>
 #include <popt.h>
 #include <errno.h>
@@ -70,7 +72,7 @@ static char *opt_input_format, *opt_output_format;
  */
 static GPtrArray *opt_input_paths;
 static char *opt_output_path;
-int opt_stream_intersection;
+static int opt_stream_intersection;
 
 static struct bt_format *fmt_read;
 
@@ -103,6 +105,9 @@ enum {
 	OPT_CLOCK_GMT,
 	OPT_CLOCK_FORCE_CORRELATE,
 	OPT_STREAM_INTERSECTION,
+	OPT_DEBUG_INFO_DIR,
+	OPT_DEBUG_INFO_FULL_PATH,
+	OPT_DEBUG_INFO_TARGET_PREFIX,
 };
 
 /*
@@ -133,6 +138,11 @@ static struct poptOption long_options[] = {
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
 	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
 	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
+#ifdef ENABLE_DEBUGINFO
+	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
+	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
+	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
+#endif
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -179,6 +189,13 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --clock-force-correlate    Assume that clocks are inherently correlated\n");
 	fprintf(fp, "                                 across traces.\n");
 	fprintf(fp, "      --stream-intersection      Only print events when all streams are active.\n");
+#ifdef ENABLE_DEBUGINFO
+	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
+	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
+	fprintf(fp, "      --debug-info-full-path     Show full debug info source and binary paths (if available)\n");
+	fprintf(fp, "      --debug-info-target-prefix Directory to use as a prefix for executable lookup\n");
+	fprintf(fp, "                                 during debug info analysis.\n");
+#endif
 	list_formats(fp);
 	fprintf(fp, "\n");
 }
@@ -401,7 +418,23 @@ static int parse_options(int argc, char **argv)
 		case OPT_STREAM_INTERSECTION:
 			opt_stream_intersection = 1;
 			break;
-
+		case OPT_DEBUG_INFO_DIR:
+			opt_debug_info_dir = (char *) poptGetOptArg(pc);
+			if (!opt_debug_info_dir) {
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
+		case OPT_DEBUG_INFO_FULL_PATH:
+			opt_debug_info_full_path = 1;
+			break;
+		case OPT_DEBUG_INFO_TARGET_PREFIX:
+			opt_debug_info_target_prefix = (char *) poptGetOptArg(pc);
+			if (!opt_debug_info_target_prefix) {
+				ret = -EINVAL;
+				goto end;
+			}
+			break;
 		default:
 			ret = -EINVAL;
 			goto end;
@@ -623,42 +656,6 @@ end:
 }
 
 static
-struct bt_ctf_iter *iter_create_intersect(struct bt_context *ctx,
-		struct bt_iter_pos **inter_begin_pos,
-		struct bt_iter_pos **inter_end_pos)
-{
-	uint64_t begin = 0, end = ULLONG_MAX;
-	int ret;
-
-	ret = ctf_find_packets_intersection(ctx, &begin, &end);
-	if (ret == 1) {
-		fprintf(stderr, "[error] No intersection found between trace files.\n");
-		ret = -1;
-		goto error;
-	} else if (ret != 0) {
-		goto error;
-	}
-	*inter_begin_pos = bt_iter_create_time_pos(NULL, begin);
-	if (!(*inter_begin_pos)) {
-		goto error;
-	}
-	*inter_end_pos = bt_iter_create_time_pos(NULL, end);
-	if (!(*inter_end_pos)) {
-		goto error;
-	}
-
-	/*
-	 * bt_ctf_iter does not take ownership of begin and end positions,
-	 * so we return them to the caller who must still assume their ownership
-	 * until the iterator is destroyed.
-	 */
-	return bt_ctf_iter_create(ctx, *inter_begin_pos,
-			*inter_end_pos);
-error:
-	return NULL;
-}
-
-static
 int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
@@ -676,7 +673,7 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 	}
 
 	if (opt_stream_intersection) {
-		iter = iter_create_intersect(ctx, &begin_pos, &end_pos);
+		iter = bt_ctf_iter_create_intersect(ctx, &begin_pos, &end_pos);
 	} else {
 		begin_pos = bt_iter_create_time_pos(NULL, 0);
 		begin_pos->type = BT_SEEK_BEGIN;
@@ -857,6 +854,8 @@ end:
 	free(opt_input_format);
 	free(opt_output_format);
 	free(opt_output_path);
+	free(opt_debug_info_dir);
+	free(opt_debug_info_target_prefix);
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
