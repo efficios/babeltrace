@@ -125,12 +125,18 @@ AC_CHECK_FUNCS([ \
 	uname \
 ])
 
-# Check for MinGW32.
 MINGW32=no
-case $host in
-  *-*-mingw*)
-	MINGW32=yes;;
-esac
+DEFAULT_ENABLE_DEBUGINFO=yes
+AS_CASE([$host_os],
+  [solaris*|darwin*],
+    [
+	DEFAULT_ENABLE_DEBUGINFO=no
+    ],
+  [mingw*],
+    [
+	MINGW32=yes
+    ]
+)
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
 
@@ -232,7 +238,10 @@ else
 fi
 
 # Optional debuginfo feature (enabled by default)
-AC_ARG_ENABLE([debuginfo], [AC_HELP_STRING([--disable-debuginfo], [disable the debuginfo feature])], [], [enable_debuginfo=yes])
+AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes],
+    [AC_ARG_ENABLE([debuginfo], [AC_HELP_STRING([--disable-debuginfo], [disable the debuginfo feature])], [], [enable_debuginfo=yes])],
+    [AC_ARG_ENABLE([debuginfo], [AC_HELP_STRING([--enable-debuginfo], [enable the debuginfo feature])], [], [enable_debuginfo=no])]
+)
 
 AM_CONDITIONAL([ENABLE_DEBUGINFO], [test "x$enable_debuginfo" = xyes])
 AS_IF([test "x$enable_debuginfo" = xyes], [
