@@ -358,3 +358,52 @@ AC_CONFIG_FILES([tests/bin/test_intersection], [chmod +x tests/bin/test_intersec
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
 
 AC_OUTPUT
+
+#
+# Mini-report on what will be built.
+#
+
+PPRINT_INIT
+PPRINT_SET_INDENT(1)
+PPRINT_SET_TS(38)
+
+AS_ECHO
+AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION$PPRINT_COLOR_RST")
+AS_ECHO
+
+PPRINT_SUBTITLE([Features])
+
+# Target architecture we're building for.
+target_arch=$host_cpu
+[
+for f in $CFLAGS; do
+	if test $f = "-m32"; then
+		target_arch="32-bit"
+	elif test $f = "-m64"; then
+		target_arch="64-bit"
+	fi
+done
+]
+PPRINT_PROP_STRING([Target architecture], $target_arch)
+
+# python bindings enabled/disabled
+test "x$enable_python" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python bindings], $value)
+
+# python bindings doc enabled/disabled
+test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python bindings doc], $value)
+
+# debuginfo enabled/disabled
+test "x$enable_debuginfo" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Debuginfo], $value)
+
+
+report_bindir="`eval eval echo $bindir`"
+report_libdir="`eval eval echo $libdir`"
+
+# Print the bindir and libdir this `make install' will install into.
+AS_ECHO
+PPRINT_SUBTITLE([Install directories])
+PPRINT_PROP_STRING([Binaries], [$report_bindir])
+PPRINT_PROP_STRING([Libraries], [$report_libdir])
