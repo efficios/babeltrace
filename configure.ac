@@ -239,8 +239,8 @@ fi
 
 # Optional debuginfo feature (enabled by default)
 AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes],
-    [AC_ARG_ENABLE([debuginfo], [AC_HELP_STRING([--disable-debuginfo], [disable the debug info feature (default on OS X and Solaris)])], [], [enable_debuginfo=yes])],
-    [AC_ARG_ENABLE([debuginfo], [AC_HELP_STRING([--enable-debuginfo], [enable the debug info feature (default on Linux)])], [], [enable_debuginfo=no])]
+    [AC_ARG_ENABLE([debug-info], [AC_HELP_STRING([--disable-debug-info], [disable the debug-info feature (default on OS X and Solaris)])], [], [enable_debuginfo=yes])],
+    [AC_ARG_ENABLE([debug-info], [AC_HELP_STRING([--enable-debug-info], [enable the debug-info feature (default on Linux)])], [], [enable_debuginfo=no])]
 )
 
 AM_CONDITIONAL([ENABLE_DEBUGINFO], [test "x$enable_debuginfo" = xyes])
@@ -248,9 +248,9 @@ AS_IF([test "x$enable_debuginfo" = xyes], [
             AC_CHECK_LIB([elf], [elf_version], [], [])
             AC_CHECK_LIB([dw], [dwarf_begin], [], [])
             AS_IF([test "x$ac_cv_lib_elf_elf_version" = xno || test "x$ac_cv_lib_dw_dwarf_begin" = xno],
-                        [AC_MSG_ERROR(Missing library from elfutils required for debuginfo. You can disable this feature with --disable-debuginfo.)]
+                        [AC_MSG_ERROR(Missing library from elfutils required for debug-info. You can disable this feature with --disable-debuginfo.)]
             )
-            AC_DEFINE([ENABLE_DEBUGINFO], [1], [Define to 1 if you enable the 'debuginfo' feature])
+            AC_DEFINE([ENABLE_DEBUGINFO], [1], [Define to 1 if you enable the 'debug-info' feature])
 ], [])
 
 pkg_modules="gmodule-2.0 >= 2.0.0"
