@@ -927,6 +927,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 		break;
 	default:
 		assert(false);
+		ret = -1;
+		goto end;
 	}
 
 	/* Get target field path out of path string */
