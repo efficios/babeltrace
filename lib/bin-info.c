@@ -885,6 +885,8 @@ int bin_info_lookup_dwarf_function_name(struct bin_info *bin, uint64_t addr,
 
 	if (_func_name) {
 		*func_name = _func_name;
+	} else {
+		goto error;
 	}
 
 	bt_dwarf_cu_destroy(cu);
