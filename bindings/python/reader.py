@@ -138,6 +138,10 @@ class TraceCollection:
         return self._intersect_mode
 
     @property
+    def has_intersection(self):
+        return nbt._bt_python_has_intersection(self._tc)
+
+    @property
     def events(self):
         """
         Generates the ordered :class:`Event` objects of all the opened
@@ -227,8 +231,7 @@ class TraceCollection:
 
     def _events(self, begin_pos_ptr, end_pos_ptr):
         if self.intersect_mode:
-            has_intersection = nbt._bt_python_has_intersection(self._tc)
-            if not has_intersection:
+            if not self.has_intersection:
                 # There are no events to provide.
                 return
 
