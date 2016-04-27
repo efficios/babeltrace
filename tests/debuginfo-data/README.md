@@ -2,7 +2,7 @@ debuginfo-data
 ==============
 
 This directory contains pre-generated ELF and DWARF files used to test
-the debuginfo analysis feature, including lookup of DWARF debugging
+the debug-info analysis feature, including lookup of DWARF debugging
 information via build ID and debug link methods, as well as the source
 files used to generate them.
 
