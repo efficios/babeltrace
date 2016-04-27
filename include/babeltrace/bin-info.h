@@ -179,7 +179,7 @@ int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
  * address within an executable.
  *
  * If no DWARF info is available, the source location cannot be found
- * and the function will return unsuccesfully.
+ * and the function will return unsuccessfully.
  *
  * On success, if found, the out parameter `src_loc` is set. The ownership
  * of `src_loc` is passed to the caller. On failure, `src_loc` remains

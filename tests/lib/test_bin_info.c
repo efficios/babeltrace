@@ -66,22 +66,22 @@ void test_bin_info_build_id(const char *data_dir)
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_BUILD_ID);
 
 	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
-	ok(bin != NULL, "bin_info_create succesful");
+	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test setting build_id */
 	ret = bin_info_set_build_id(bin, build_id, BUILD_ID_LEN);
-	ok(ret == 0, "bin_info_set_build_id succesful");
+	ok(ret == 0, "bin_info_set_build_id successful");
 
 	/* Test function name lookup (with DWARF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR, &func_name);
-	ok(ret == 0, "bin_info_lookup_function_name succesful");
+	ok(ret == 0, "bin_info_lookup_function_name successful");
 	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
 		"bin_info_lookup_function_name - correct func_name value");
 	free(func_name);
 
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR, &src_loc);
-	ok(ret == 0, "bin_info_lookup_source_location succesful");
+	ok(ret == 0, "bin_info_lookup_source_location successful");
 	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
 		"bin_info_lookup_source_location - correct line_no");
 	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
@@ -107,16 +107,16 @@ void test_bin_info_debug_link(const char *data_dir)
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_DEBUG_LINK);
 
 	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
-	ok(bin != NULL, "bin_info_create succesful");
+	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test setting debug link */
 	ret = bin_info_set_debug_link(bin, dbg_filename, crc);
-	ok(ret == 0, "bin_info_set_debug_link succesful");
+	ok(ret == 0, "bin_info_set_debug_link successful");
 
 	/* Test function name lookup (with DWARF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR_DBG_LINK,
 					&func_name);
-	ok(ret == 0, "bin_info_lookup_function_name succesful");
+	ok(ret == 0, "bin_info_lookup_function_name successful");
 	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
 		"bin_info_lookup_function_name - correct func_name value");
 	free(func_name);
@@ -124,7 +124,7 @@ void test_bin_info_debug_link(const char *data_dir)
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR_DBG_LINK,
 					&src_loc);
-	ok(ret == 0, "bin_info_lookup_source_location succesful");
+	ok(ret == 0, "bin_info_lookup_source_location successful");
 	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
 		"bin_info_lookup_source_location - correct line_no");
 	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
@@ -148,11 +148,11 @@ void test_bin_info_elf(const char *data_dir)
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_ELF);
 
 	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
-	ok(bin != NULL, "bin_info_create succesful");
+	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test function name lookup (with ELF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR_ELF, &func_name);
-	ok(ret == 0, "bin_info_lookup_function_name succesful");
+	ok(ret == 0, "bin_info_lookup_function_name successful");
 	ok(strcmp(func_name, FUNC_FOO_NAME_ELF) == 0,
 		"bin_info_lookup_function_name - correct func_name value");
 	free(func_name);
@@ -185,7 +185,7 @@ void test_bin_info(const char *data_dir)
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME);
 
 	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true);
-	ok(bin != NULL, "bin_info_create succesful");
+	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test bin_info_has_address */
 	ret = bin_info_has_address(bin, 0);
@@ -201,7 +201,7 @@ void test_bin_info(const char *data_dir)
 
 	/* Test function name lookup (with DWARF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR, &func_name);
-	ok(ret == 0, "bin_info_lookup_function_name succesful");
+	ok(ret == 0, "bin_info_lookup_function_name successful");
 	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
 		"bin_info_lookup_function_name - correct func_name value");
 	free(func_name);
@@ -214,7 +214,7 @@ void test_bin_info(const char *data_dir)
 
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR, &src_loc);
-	ok(ret == 0, "bin_info_lookup_source_location succesful");
+	ok(ret == 0, "bin_info_lookup_source_location successful");
 	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
 		"bin_info_lookup_source_location - correct line_no");
 	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
@@ -225,7 +225,7 @@ void test_bin_info(const char *data_dir)
 	/* Test source location lookup - inlined function */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_TP_ADDR, &src_loc);
 	ok(ret == 0,
-		"bin_info_lookup_source_location (inlined func) succesful");
+		"bin_info_lookup_source_location (inlined func) successful");
 	ok(src_loc->line_no == FUNC_FOO_TP_LINE_NO,
 		"bin_info_lookup_source_location (inlined func) - correct line_no");
 	ok(strcmp(src_loc->filename, FUNC_FOO_TP_FILENAME) == 0,
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 	}
 
 	ret = bin_info_init();
-	ok(ret == 0, "bin_info_init succesful");
+	ok(ret == 0, "bin_info_init successful");
 
 	test_bin_info(opt_debug_info_dir);
 	test_bin_info_elf(opt_debug_info_dir);

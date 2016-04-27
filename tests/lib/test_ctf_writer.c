@@ -3307,7 +3307,7 @@ int main(int argc, char **argv)
 	ok(bt_ctf_clock_set_uuid(clock, NULL) < 0,
 		"bt_ctf_clock_set_uuid correctly handles a NULL UUID");
 	ok(bt_ctf_clock_set_uuid(clock, tmp_uuid) == 0,
-		"bt_ctf_clock_set_uuid sets a new uuid succesfully");
+		"bt_ctf_clock_set_uuid sets a new uuid successfully");
 	ret_uuid = bt_ctf_clock_get_uuid(clock);
 	ok(ret_uuid,
 		"bt_ctf_clock_get_uuid returns a UUID after setting a new one");
