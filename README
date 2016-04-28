@@ -49,7 +49,7 @@ To compile Babeltrace, you will need:
 	libpopt >= 1.13 development libraries
 	  (Debian : libpopt-dev)
 	  (Fedora : popt)
-	elfutils development libraries (optional)
+	elfutils >= 0.154 development libraries (optional)
 	  (Debian : libelf-dev, libdw-dev)
 	  (Fedora : elfutils-devel, elfutils-libelf-devel)
 	python headers (optional)
