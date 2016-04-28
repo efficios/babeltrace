@@ -284,8 +284,10 @@ AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes],
 
 AM_CONDITIONAL([ENABLE_DEBUGINFO], [test "x$enable_debuginfo" = xyes])
 AS_IF([test "x$enable_debuginfo" = xyes], [
-            PKG_CHECK_MODULES(LIBDW, [libdw >= 0.154], [], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
-            PKG_CHECK_MODULES(LIBELF, [libelf >= 0.154], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
+	    # Check if libelf and libdw are present
+	    AC_CHECK_LIB([elf], [elf_version], [], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
+	    AC_CHECK_LIB([dw], [dwarf_begin], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
+	    AX_LIB_ELFUTILS([0], [154], [], [AC_MSG_ERROR(elfutils >= 0.154 is required to use the debug-info feature. You can disable this feature using --disable-debuginfo.)])
             AC_DEFINE([ENABLE_DEBUGINFO], [1], [Define to 1 if you enable the 'debug-info' feature])
 ], [])
 
