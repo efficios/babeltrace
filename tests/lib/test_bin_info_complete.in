@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-CURDIR=$(dirname $0)/
-ROOTDIR=$CURDIR../..
 
-$CURDIR/test_bin_info $ROOTDIR/tests/debuginfo-data
+DEBUGINFO_DATA=@abs_top_srcdir@/tests/debuginfo-data
+
+@abs_top_builddir@/tests/lib/test_bin_info $DEBUGINFO_DATA
