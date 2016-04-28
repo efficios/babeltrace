@@ -44,21 +44,5 @@ test_bin_info_LDADD = $(LIBTAP) \
 test_bin_info_SOURCES = test_bin_info.c
 
 noinst_PROGRAMS += test_dwarf test_bin_info
-SCRIPT_LIST += test_dwarf_complete test_bin_info_complete
+check_SCRIPTS += test_dwarf_complete test_bin_info_complete
 endif
-
-dist_noinst_SCRIPTS = $(SCRIPT_LIST)
-
-all-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
-		for script in $(SCRIPT_LIST); do \
-			cp -f $(srcdir)/$$script $(builddir); \
-		done; \
-	fi
-
-clean-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
-		for script in $(SCRIPT_LIST); do \
-			rm -f $(builddir)/$$script; \
-		done; \
-	fi
