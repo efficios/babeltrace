@@ -26,9 +26,9 @@ test_seek_SOURCES = test_seek.c
 test_bitfield_SOURCES = test_bitfield.c
 test_ctf_writer_SOURCES = test_ctf_writer.c
 
-SCRIPT_LIST = test_seek_big_trace \
-	test_seek_empty_packet \
-	test_ctf_writer_complete
+check_SCRIPTS = test_seek_big_trace \
+		test_seek_empty_packet
+SCRIPT_LIST = test_ctf_writer_complete
 EXTRA_DIST = test_seek_big_trace.in test_seek_empty_packet.in
 CLEANFILES= test_seek_big_trace test_seek_empty_packet
 
