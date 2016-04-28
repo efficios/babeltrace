@@ -245,16 +245,12 @@ AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes],
 
 AM_CONDITIONAL([ENABLE_DEBUGINFO], [test "x$enable_debuginfo" = xyes])
 AS_IF([test "x$enable_debuginfo" = xyes], [
-            AC_CHECK_LIB([elf], [elf_version], [], [])
-            AC_CHECK_LIB([dw], [dwarf_begin], [], [])
-            AS_IF([test "x$ac_cv_lib_elf_elf_version" = xno || test "x$ac_cv_lib_dw_dwarf_begin" = xno],
-                        [AC_MSG_ERROR(Missing library from elfutils required for debug-info. You can disable this feature with --disable-debuginfo.)]
-            )
+            PKG_CHECK_MODULES(LIBDW, [libdw >= 0.154], [], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
+            PKG_CHECK_MODULES(LIBELF, [libelf >= 0.154], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug-info. You can disable this feature using --disable-debuginfo.)])
             AC_DEFINE([ENABLE_DEBUGINFO], [1], [Define to 1 if you enable the 'debug-info' feature])
 ], [])
 
-pkg_modules="gmodule-2.0 >= 2.0.0"
-PKG_CHECK_MODULES(GMODULE, [$pkg_modules])
+PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= 2.0.0])
 AC_SUBST(PACKAGE_LIBS)
 
 LIBS="$LIBS $GMODULE_LIBS"
