@@ -17,6 +17,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-DEBUGINFO_DATA=@abs_top_srcdir@/tests/debuginfo-data
+DEBUGINFO_DATA="@abs_top_srcdir@/tests/debuginfo-data"
 
-@abs_top_builddir@/tests/lib/test_dwarf $DEBUGINFO_DATA
+"@abs_top_builddir@/tests/lib/test_dwarf" "$DEBUGINFO_DATA"
