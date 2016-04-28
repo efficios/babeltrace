@@ -42,8 +42,8 @@ test_ctf_ir_ref_SOURCES = test_ctf_ir_ref.c
 test_bt_ctf_field_type_validation_SOURCES = test_bt_ctf_field_type_validation.c
 
 check_SCRIPTS = test_seek_big_trace \
-		test_seek_empty_packet
-SCRIPT_LIST = test_ctf_writer_complete
+		test_seek_empty_packet \
+		test_ctf_writer_complete
 
 if ENABLE_DEBUGINFO
 test_dwarf_LDFLAGS = -static
