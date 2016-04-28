@@ -29,8 +29,6 @@ test_ctf_writer_SOURCES = test_ctf_writer.c
 check_SCRIPTS = test_seek_big_trace \
 		test_seek_empty_packet
 SCRIPT_LIST = test_ctf_writer_complete
-EXTRA_DIST = test_seek_big_trace.in test_seek_empty_packet.in
-CLEANFILES= test_seek_big_trace test_seek_empty_packet
 
 if ENABLE_DEBUGINFO
 test_dwarf_LDFLAGS = -static
