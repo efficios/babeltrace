@@ -1,34 +1,21 @@
 SUBDIRS = utils bin lib
 
-EXTRA_DIST = $(srcdir)/ctf-traces/** tests
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+	$(top_srcdir)/config/tap-driver.sh
+
+TESTS = bin/test_trace_read \
+	bin/test_trace_read \
+	bin/test_packet_seq_num \
+	bin/test_intersection \
+	lib/test_bitfield \
+	lib/test_seek_empty_packet \
+	lib/test_seek_big_trace \
+	lib/test_ctf_writer_complete
+
+EXTRA_DIST = $(srcdir)/ctf-traces/** \
+	     $(srcdir)/debuginfo-data/**
+
 if ENABLE_DEBUGINFO
-EXTRA_DIST += $(srcdir)/debuginfo-data/** tests_debuginfo
+TESTS += lib/test_dwarf_complete \
+	lib/test_bin_info_complete
 endif
-
-SCRIPT_LIST = run.sh
-
-dist_noinst_SCRIPTS = $(SCRIPT_LIST)
-
-all-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
-		for script in $(SCRIPT_LIST); do \
-			cp -f $(srcdir)/$$script $(builddir); \
-		done; \
-	fi
-
-clean-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
-		for script in $(SCRIPT_LIST); do \
-			rm -f $(builddir)/$$script; \
-		done; \
-	fi
-
-TEMPLIST := $(shell mktemp -u)
-check-am:
-	@cat $(srcdir)/tests > $(TEMPLIST)
-if ENABLE_DEBUGINFO
-	@echo '' >> $(TEMPLIST)
-	@cat $(srcdir)/tests_debuginfo >> $(TEMPLIST)
-endif
-	./run.sh $(TEMPLIST)
-	rm $(TEMPLIST)

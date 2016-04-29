@@ -17,6 +17,7 @@
 .libs
 .deps
 *.bkp
+*.trs
 ctf-lexer.c
 ctf-parser.c
 ctf-parser.h

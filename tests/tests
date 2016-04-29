@@ -1,7 +1,0 @@
-bin/test_trace_read
-bin/test_packet_seq_num
-bin/test_intersection
-lib/test_bitfield
-lib/test_seek_empty_packet
-lib/test_seek_big_trace
-lib/test_ctf_writer_complete
