@@ -13,7 +13,8 @@ TESTS = bin/test_trace_read \
 	lib/test_ctf_writer_complete
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** \
-	     $(srcdir)/debuginfo-data/**
+	     $(srcdir)/debuginfo-data/** \
+	     $(srcdir)/debuginfo-data/.build-id/cd/**
 
 if ENABLE_DEBUGINFO
 TESTS += lib/test_dwarf_complete \
