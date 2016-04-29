@@ -51,7 +51,7 @@ class TraceCollection:
         """
 
         self._tc = nbt._bt_context_create()
-        self.intersect_mode = intersect_mode
+        self._intersect_mode = intersect_mode
 
     def __del__(self):
         nbt._bt_context_put(self._tc)
@@ -132,6 +132,14 @@ class TraceCollection:
             nbt._bt_context_remove_trace(self._tc, trace_handle._id)
         except AttributeError:
             raise TypeError("in remove_trace, argument 2 must be a TraceHandle instance")
+
+    @property
+    def intersect_mode(self):
+        return self._intersect_mode
+
+    @property
+    def has_intersection(self):
+        return nbt._bt_python_has_intersection(self._tc)
 
     @property
     def events(self):
@@ -223,8 +231,7 @@ class TraceCollection:
 
     def _events(self, begin_pos_ptr, end_pos_ptr):
         if self.intersect_mode:
-            has_intersection = nbt._bt_python_has_intersection(self._tc)
-            if not has_intersection:
+            if not self.has_intersection:
                 # There are no events to provide.
                 return
 
