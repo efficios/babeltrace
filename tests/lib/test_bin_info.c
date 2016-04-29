@@ -75,18 +75,26 @@ void test_bin_info_build_id(const char *data_dir)
 	/* Test function name lookup (with DWARF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR, &func_name);
 	ok(ret == 0, "bin_info_lookup_function_name successful");
-	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
-		"bin_info_lookup_function_name - correct func_name value");
-	free(func_name);
+	if (func_name) {
+		ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
+			"bin_info_lookup_function_name - correct func_name value");
+		free(func_name);
+	} else {
+		skip(1, "bin_info_lookup_function_name - func_name is NULL");
+	}
 
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR, &src_loc);
 	ok(ret == 0, "bin_info_lookup_source_location successful");
-	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
-		"bin_info_lookup_source_location - correct line_no");
-	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
-		"bin_info_lookup_source_location - correct filename");
-	source_location_destroy(src_loc);
+	if (src_loc) {
+		ok(src_loc->line_no == FUNC_FOO_LINE_NO,
+			"bin_info_lookup_source_location - correct line_no");
+		ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
+			"bin_info_lookup_source_location - correct filename");
+		source_location_destroy(src_loc);
+	} else {
+		skip(2, "bin_info_lookup_source_location - src_loc is NULL");
+	}
 
 	bin_info_destroy(bin);
 }
@@ -117,19 +125,27 @@ void test_bin_info_debug_link(const char *data_dir)
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR_DBG_LINK,
 					&func_name);
 	ok(ret == 0, "bin_info_lookup_function_name successful");
-	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
-		"bin_info_lookup_function_name - correct func_name value");
-	free(func_name);
+	if (func_name) {
+		ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
+			"bin_info_lookup_function_name - correct func_name value");
+		free(func_name);
+	} else {
+		skip(1, "bin_info_lookup_function_name - func_name is NULL");
+	}
 
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR_DBG_LINK,
 					&src_loc);
 	ok(ret == 0, "bin_info_lookup_source_location successful");
-	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
-		"bin_info_lookup_source_location - correct line_no");
-	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
-		"bin_info_lookup_source_location - correct filename");
-	source_location_destroy(src_loc);
+	if (src_loc) {
+		ok(src_loc->line_no == FUNC_FOO_LINE_NO,
+			"bin_info_lookup_source_location - correct line_no");
+		ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
+			"bin_info_lookup_source_location - correct filename");
+		source_location_destroy(src_loc);
+	} else {
+		skip(2, "bin_info_lookup_source_location - src_loc is NULL");
+	}
 
 	bin_info_destroy(bin);
 }
@@ -153,10 +169,14 @@ void test_bin_info_elf(const char *data_dir)
 	/* Test function name lookup (with ELF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR_ELF, &func_name);
 	ok(ret == 0, "bin_info_lookup_function_name successful");
-	ok(strcmp(func_name, FUNC_FOO_NAME_ELF) == 0,
-		"bin_info_lookup_function_name - correct func_name value");
-	free(func_name);
-	func_name = NULL;
+	if (func_name) {
+		ok(strcmp(func_name, FUNC_FOO_NAME_ELF) == 0,
+			"bin_info_lookup_function_name - correct func_name value");
+		free(func_name);
+		func_name = NULL;
+	} else {
+		skip(1, "bin_info_lookup_function_name - func_name is NULL");
+	}
 
 	/* Test function name lookup - erroneous address */
 	ret = bin_info_lookup_function_name(bin, 0, &func_name);
@@ -202,10 +222,14 @@ void test_bin_info(const char *data_dir)
 	/* Test function name lookup (with DWARF) */
 	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR, &func_name);
 	ok(ret == 0, "bin_info_lookup_function_name successful");
-	ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
-		"bin_info_lookup_function_name - correct func_name value");
-	free(func_name);
-	func_name = NULL;
+	if (func_name) {
+		ok(strcmp(func_name, FUNC_FOO_NAME) == 0,
+			"bin_info_lookup_function_name - correct func_name value");
+		free(func_name);
+		func_name = NULL;
+	} else {
+		skip(1, "bin_info_lookup_function_name - func_name is NULL");
+	}
 
 	/* Test function name lookup - erroneous address */
 	ret = bin_info_lookup_function_name(bin, 0, &func_name);
@@ -215,23 +239,31 @@ void test_bin_info(const char *data_dir)
 	/* Test source location lookup */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR, &src_loc);
 	ok(ret == 0, "bin_info_lookup_source_location successful");
-	ok(src_loc->line_no == FUNC_FOO_LINE_NO,
-		"bin_info_lookup_source_location - correct line_no");
-	ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
-		"bin_info_lookup_source_location - correct filename");
-	source_location_destroy(src_loc);
-	src_loc = NULL;
+	if (src_loc) {
+		ok(src_loc->line_no == FUNC_FOO_LINE_NO,
+			"bin_info_lookup_source_location - correct line_no");
+		ok(strcmp(src_loc->filename, FUNC_FOO_FILENAME) == 0,
+			"bin_info_lookup_source_location - correct filename");
+		source_location_destroy(src_loc);
+		src_loc = NULL;
+	} else {
+		skip(2, "bin_info_lookup_source_location - src_loc is NULL");
+	}
 
 	/* Test source location lookup - inlined function */
 	ret = bin_info_lookup_source_location(bin, FUNC_FOO_TP_ADDR, &src_loc);
 	ok(ret == 0,
 		"bin_info_lookup_source_location (inlined func) successful");
-	ok(src_loc->line_no == FUNC_FOO_TP_LINE_NO,
-		"bin_info_lookup_source_location (inlined func) - correct line_no");
-	ok(strcmp(src_loc->filename, FUNC_FOO_TP_FILENAME) == 0,
-		"bin_info_lookup_source_location (inlined func) - correct filename");
-	source_location_destroy(src_loc);
-	src_loc = NULL;
+	if (src_loc) {
+		ok(src_loc->line_no == FUNC_FOO_TP_LINE_NO,
+			"bin_info_lookup_source_location (inlined func) - correct line_no");
+		ok(strcmp(src_loc->filename, FUNC_FOO_TP_FILENAME) == 0,
+			"bin_info_lookup_source_location (inlined func) - correct filename");
+		source_location_destroy(src_loc);
+		src_loc = NULL;
+	} else {
+		skip(2, "bin_info_lookup_source_location (inlined func) - src_loc is NULL");
+	}
 
 	/* Test source location lookup - erroneous address */
 	ret = bin_info_lookup_source_location(bin, 0, &src_loc);
