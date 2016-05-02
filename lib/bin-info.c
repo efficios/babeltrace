@@ -517,7 +517,6 @@ error:
 	return -1;
 }
 
-
 BT_HIDDEN
 void source_location_destroy(struct source_location *src_loc)
 {
