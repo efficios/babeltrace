@@ -266,8 +266,7 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 
 	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
-	/* 2 characters per byte printed in hex, +1 for '/' and +1 for
-	 * '\0' */
+	/* 2 characters per byte printed in hex, +1 for '/' and +1 for '\0' */
 	build_id_file_len = (2 * bin->build_id_len) + 1 +
 			strlen(BUILD_ID_SUFFIX) + 1;
 	build_id_file = malloc(build_id_file_len);
