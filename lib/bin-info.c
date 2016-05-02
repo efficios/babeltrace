@@ -527,6 +527,7 @@ void source_location_destroy(struct source_location *src_loc)
 	free(src_loc->filename);
 	g_free(src_loc);
 }
+
 /**
  * Append a string representation of an address offset to an existing
  * string.
