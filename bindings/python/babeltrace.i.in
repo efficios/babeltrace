@@ -101,9 +101,9 @@ int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 struct bt_iter_pos *_bt_python_create_iter_pos(void);
 struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
-        struct bt_context *ctx,
-        struct bt_iter_pos *inter_begin_pos,
-        struct bt_iter_pos *inter_end_pos);
+		struct bt_context *ctx,
+		struct bt_iter_pos *inter_begin_pos,
+		struct bt_iter_pos *inter_end_pos);
 int _bt_python_has_intersection(struct bt_context *ctx);
 
 /* =================================================================
@@ -141,7 +141,7 @@ class TraceCollection:
 
 	def __init__(self, intersect_mode=False):
 		self._tc = _bt_context_create()
-        self._intersect_mode = intersect_mode
+		self._intersect_mode = intersect_mode
 
 	def __del__(self):
 		_bt_context_put(self._tc)
@@ -213,13 +213,13 @@ class TraceCollection:
 			raise TypeError("in remove_trace, "
 				"argument 2 must be a TraceHandle instance")
 
-    @property
-    def intersect_mode(self):
-        return self._intersect_mode
+	@property
+	def intersect_mode(self):
+		return self._intersect_mode
 
-    @property
-    def has_intersection(self):
-        return _bt_python_has_intersection(self._tc)
+	@property
+	def has_intersection(self):
+		return _bt_python_has_intersection(self._tc)
 
 	@property
 	def events(self):
@@ -292,18 +292,18 @@ class TraceCollection:
 		return ev.timestamp
 
 	def _events(self, begin_pos_ptr, end_pos_ptr):
-        if self.intersect_mode:
-            if not self.has_intersection:
-                # There are no events to provide.
-                return
+		if self.intersect_mode:
+			if not self.has_intersection:
+				# There are no events to provide.
+				return
 
-            ctf_it_ptr = _bt_python_ctf_iter_create_intersect(
-                self._tc, begin_pos_ptr, end_pos_ptr
-            )
-        else:
-            ctf_it_ptr = _bt_ctf_iter_create(
-                self._tc, begin_pos_ptr, end_pos_ptr
-            )
+			ctf_it_ptr = _bt_python_ctf_iter_create_intersect(
+				self._tc, begin_pos_ptr, end_pos_ptr
+			)
+		else:
+			ctf_it_ptr = _bt_ctf_iter_create(
+				self._tc, begin_pos_ptr, end_pos_ptr
+			)
 
 		if ctf_it_ptr is None:
 			raise NotImplementedError(
