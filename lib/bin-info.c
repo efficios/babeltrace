@@ -482,7 +482,7 @@ end:
 static
 int bin_info_set_elf_file(struct bin_info *bin)
 {
-	int elf_fd;
+	int elf_fd = -1;
 	Elf *elf_file = NULL;
 
 	if (!bin) {
@@ -512,7 +512,9 @@ int bin_info_set_elf_file(struct bin_info *bin)
 	return 0;
 
 error:
-	close(elf_fd);
+	if (elf_fd >= 0) {
+		close(elf_fd);
+	}
 	elf_end(elf_file);
 	return -1;
 }
