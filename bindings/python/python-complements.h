@@ -74,3 +74,8 @@ enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 
 /* iterator */
 struct bt_iter_pos *_bt_python_create_iter_pos(void);
+struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
+		struct bt_context *ctx,
+		struct bt_iter_pos *inter_begin_pos,
+		struct bt_iter_pos *inter_end_pos);
+int _bt_python_has_intersection(struct bt_context *ctx);

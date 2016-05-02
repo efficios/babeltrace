@@ -100,6 +100,11 @@ const char *_bt_python_get_sequence_string(struct bt_definition *field);
 int _bt_python_field_integer_get_signedness(const struct bt_ctf_field *field);
 enum ctf_type_id _bt_python_get_field_type(const struct bt_ctf_field *field);
 struct bt_iter_pos *_bt_python_create_iter_pos(void);
+struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
+        struct bt_context *ctx,
+        struct bt_iter_pos *inter_begin_pos,
+        struct bt_iter_pos *inter_end_pos);
+int _bt_python_has_intersection(struct bt_context *ctx);
 
 /* =================================================================
 		CONTEXT.H, CONTEXT-INTERNAL.H
@@ -134,8 +139,9 @@ class TraceCollection:
 	The TraceCollection is the object that contains all currently opened traces.
 	"""
 
-	def __init__(self):
+	def __init__(self, intersect_mode=False):
 		self._tc = _bt_context_create()
+        self.intersect_mode = intersect_mode
 
 	def __del__(self):
 		_bt_context_put(self._tc)
@@ -226,8 +232,9 @@ class TraceCollection:
 		"""
 		begin_pos_ptr = _bt_python_create_iter_pos()
 		end_pos_ptr = _bt_python_create_iter_pos()
-		begin_pos_ptr.type = SEEK_BEGIN
-		end_pos_ptr.type = SEEK_LAST
+        if not self.intersection_mode:
+		    begin_pos_ptr.type = SEEK_BEGIN
+            end_pos_ptr.type = SEEK_LAST
 
 		for event in self._events(begin_pos_ptr, end_pos_ptr):
 			yield event
@@ -277,7 +284,20 @@ class TraceCollection:
 		return ev.timestamp
 
 	def _events(self, begin_pos_ptr, end_pos_ptr):
-		ctf_it_ptr = _bt_ctf_iter_create(self._tc, begin_pos_ptr, end_pos_ptr)
+        if self.intersect_mode:
+            has_intersection = _bt_python_has_intersection(self._tc)
+            if not has_intersection:
+                # There are no events to provide.
+                return
+
+            ctf_it_ptr = _bt_python_ctf_iter_create_intersect(
+                self._tc, begin_pos_ptr, end_pos_ptr
+            )
+        else:
+            ctf_it_ptr = _bt_ctf_iter_create(
+                self._tc, begin_pos_ptr, end_pos_ptr
+            )
+
 		if ctf_it_ptr is None:
 			raise NotImplementedError(
 				"Creation of multiple iterators is unsupported.")
@@ -803,7 +823,7 @@ class Event(collections.Mapping):
 	def _field_list_with_scope(self, scope):
 		fields = []
 		scope_ptr = _bt_ctf_get_top_level_scope(self._e, scope)
-		
+
 		# Returns a list [list_ptr, count]. If list_ptr is NULL, SWIG will only
 		# provide the "count" return value
 		count = 0
