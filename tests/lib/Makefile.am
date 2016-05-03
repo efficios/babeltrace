@@ -1,33 +1,30 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/tests/utils
 
-noinst_LIBRARIES = libtestcommon.a
-
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
-libtestcommon_a_SOURCES = common.c common.h
+libtestcommon_la_SOURCES = common.c common.h
+noinst_LTLIBRARIES = libtestcommon.la
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
 test_seek_LDFLAGS = $(LD_NO_AS_NEEDED)
-test_seek_LDADD = $(LIBTAP) libtestcommon.a \
+test_seek_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
-test_bitfield_LDADD = $(LIBTAP) libtestcommon.a
+test_bitfield_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
 
-test_ctf_writer_LDADD = $(LIBTAP) \
+test_ctf_writer_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la\
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
-	libtestcommon.a
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 test_bt_values_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la
 
-test_ctf_ir_ref_LDADD = $(LIBTAP) \
+test_ctf_ir_ref_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
-	libtestcommon.a
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 test_bt_ctf_field_type_validation_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
