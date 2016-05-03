@@ -524,8 +524,8 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	}
 
 	size = integer_type->declaration.len;
-	min_value = -((int64_t)1 << (size - 1));
-	max_value = ((int64_t)1 << (size - 1)) - 1;
+	min_value = -(1ULL << (size - 1));
+	max_value = (1ULL << (size - 1)) - 1;
 	if (value < min_value || value > max_value) {
 		ret = -1;
 		goto end;
