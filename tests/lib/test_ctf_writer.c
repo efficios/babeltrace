@@ -3603,6 +3603,6 @@ int main(int argc, char **argv)
 	free(metadata_string);
 	bt_put(stream_class);
 
-        recursive_rmdir(trace_path);
+	recursive_rmdir(trace_path);
 	return 0;
 }
