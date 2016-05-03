@@ -32,6 +32,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compat/stdlib.h>
 #include <assert.h>
+#include "common.h"
 
 #define NR_TESTS 41
 
@@ -551,6 +552,7 @@ static void create_user_full(struct user *user)
 	BT_PUT(field);
 	ret = bt_ctf_stream_append_event(user->stream, user->event);
 	assert(!ret);
+	recursive_rmdir(trace_path);
 }
 
 static void test_put_order_swap(size_t *array, size_t a, size_t b)

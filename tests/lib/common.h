@@ -4,6 +4,7 @@
  * Lib BabelTrace - Common function to all tests
  *
  * Copyright 2012 - Yannick Brosseau <yannick.brosseau@gmail.com>
+ * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@
 
 struct bt_context;
 
+void recursive_rmdir(const char *path);
 struct bt_context *create_context_with_path(const char *path);
 
 #endif /* _TESTS_COMMON_H */

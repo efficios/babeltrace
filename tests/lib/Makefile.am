@@ -18,14 +18,16 @@ test_bitfield_LDADD = $(LIBTAP) libtestcommon.a
 
 test_ctf_writer_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
+	libtestcommon.a
 
 test_bt_values_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la
 
 test_ctf_ir_ref_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
+	libtestcommon.a
 
 test_bt_ctf_field_type_validation_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \

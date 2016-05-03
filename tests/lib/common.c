@@ -21,6 +21,8 @@
 
 #include <babeltrace/context.h>
 #include <babeltrace/iterator.h>
+#include <babeltrace/compat/dirent.h>
+#include <sys/stat.h>
 
 struct bt_context *create_context_with_path(const char *path)
 {
@@ -38,4 +40,36 @@ struct bt_context *create_context_with_path(const char *path)
 		return NULL;
 	}
 	return ctx;
+}
+
+void recursive_rmdir(const char *path)
+{
+	struct dirent *entry;
+	DIR *dir = opendir(path);
+
+	if (!dir) {
+		perror("# opendir");
+		return;
+	}
+
+	while ((entry = readdir(dir))) {
+		struct stat st;
+		char filename[PATH_MAX];
+
+		if (snprintf(filename, sizeof(filename), "%s/%s",
+				path, entry->d_name) <= 0) {
+			continue;
+		}
+
+		if (stat(filename, &st)) {
+			continue;
+		}
+
+		if (S_ISREG(st.st_mode)) {
+			unlinkat(bt_dirfd(dir), entry->d_name, 0);
+		}
+	}
+
+	rmdir(path);
+	closedir(dir);
 }
