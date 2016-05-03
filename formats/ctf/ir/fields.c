@@ -994,7 +994,7 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	}
 
 	size = integer_type->declaration.len;
-	max_value = (size == 64) ? UINT64_MAX : ((uint64_t)1 << size) - 1;
+	max_value = (size == 64) ? UINT64_MAX : ((uint64_t) 1 << size) - 1;
 	if (value > max_value) {
 		ret = -1;
 		goto end;
