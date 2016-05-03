@@ -1087,7 +1087,7 @@ end:
  * Resolves the root field type corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_type(enum ctf_type_id root_scope, struct resolve_context *ctx)
+int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
