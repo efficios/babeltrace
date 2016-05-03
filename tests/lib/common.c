@@ -22,6 +22,7 @@
 #include <babeltrace/context.h>
 #include <babeltrace/iterator.h>
 #include <babeltrace/compat/dirent.h>
+#include <babeltrace/compat/limits.h>
 #include <sys/stat.h>
 
 struct bt_context *create_context_with_path(const char *path)
