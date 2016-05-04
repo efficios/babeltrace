@@ -40,7 +40,7 @@ void test_bt_dwarf(const char *data_dir)
 	struct bt_dwarf_die *die = NULL;
 	Dwarf *dwarf_info = NULL;
 
-	snprintf(path, PATH_MAX, "%s/libhello.so", data_dir);
+	snprintf(path, PATH_MAX, "%s/libhello_so", data_dir);
 
 	fd = open(path, O_RDONLY);
 	ok(fd >= 0, "Open DWARF file %s", path);
