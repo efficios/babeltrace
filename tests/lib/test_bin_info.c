@@ -27,10 +27,10 @@
 #include "tap/tap.h"
 
 #define NR_TESTS 36
-#define SO_NAME "libhello.so"
-#define SO_NAME_ELF "libhello_elf.so"
-#define SO_NAME_BUILD_ID "libhello_build_id.so"
-#define SO_NAME_DEBUG_LINK "libhello_debug_link.so"
+#define SO_NAME "libhello_so"
+#define SO_NAME_ELF "libhello_elf_so"
+#define SO_NAME_BUILD_ID "libhello_build_id_so"
+#define SO_NAME_DEBUG_LINK "libhello_debug_link_so"
 #define SO_LOW_ADDR 0x400000
 #define SO_MEMSZ 0x400000
 #define FUNC_FOO_ADDR 0x4014ee
@@ -107,7 +107,7 @@ void test_bin_info_debug_link(const char *data_dir)
 	char *func_name = NULL;
 	struct bin_info *bin = NULL;
 	struct source_location *src_loc = NULL;
-	char *dbg_filename = "libhello_debug_link.so.debug";
+	char *dbg_filename = "libhello_debug_link_so.debug";
 	uint32_t crc = 0xe55c2b98;
 
 	diag("bin-info tests - separate DWARF via debug link");
