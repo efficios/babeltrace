@@ -119,6 +119,10 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 	if (proto_offset > path_len) {
 		goto end;
 	}
+	if (proto == 6) {
+		fprintf(stderr, "[error] IPv6 is currently unsupported by lttng-live\n");
+		goto end;
+	}
 	/* TODO : parse for IPv6 as well */
 	/* Parse the hostname or IP */
 	ret = sscanf(&path[proto_offset], "%[a-zA-Z.0-9%-]%s",
