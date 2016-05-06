@@ -100,10 +100,19 @@ int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *def
 	{
 		uint64_t v;
 
-		if (!integer_declaration->signedness)
+		if (!integer_declaration->signedness) {
 			v = integer_definition->value._unsigned;
-		else
+		} else {
 			v = (uint64_t) integer_definition->value._signed;
+			if (integer_declaration->len < 64) {
+				/* Round length to the nearest 3-bit */
+				uint8_t rounded_len =
+					integer_declaration->len +
+					((integer_declaration->len + 2) % 3);
+
+				v &= ((uint64_t) 1 << rounded_len) - 1;
+			}
+		}
 
 		fprintf(pos->fp, "0%" PRIo64, v);
 		break;
@@ -115,11 +124,14 @@ int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *def
 		if (!integer_declaration->signedness) {
 			v = integer_definition->value._unsigned;
 		} else {
-			/* Round length to the nearest nibble */
-			uint8_t rounded_len = ((integer_declaration->len + 3) & ~0x3);
-
 			v = (uint64_t) integer_definition->value._signed;
-			v &= ((uint64_t) 1 << rounded_len) - 1;
+			if (integer_declaration->len < 64) {
+				/* Round length to the nearest nibble */
+				uint8_t rounded_len =
+					((integer_declaration->len + 3) & ~0x3);
+
+				v &= ((uint64_t) 1 << rounded_len) - 1;
+			}
 		}
 
 		fprintf(pos->fp, "0x%" PRIX64, v);
