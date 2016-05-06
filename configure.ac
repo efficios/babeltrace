@@ -278,11 +278,16 @@ if test "x${enable_python_bindings_doc:-yes}" = xyes; then
     )
 fi
 
-# Optional debuginfo feature (enabled by default)
-AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes],
-    [AC_ARG_ENABLE([debug-info], [AC_HELP_STRING([--disable-debug-info], [disable the debug-info feature (default on OS X and Solaris)])], [], [enable_debuginfo=yes])],
-    [AC_ARG_ENABLE([debug-info], [AC_HELP_STRING([--enable-debug-info], [enable the debug-info feature (default on Linux)])], [], [enable_debuginfo=no])]
-)
+# Set default enable state for debug info
+AS_IF([test "x$DEFAULT_ENABLE_DEBUGINFO" = xyes], [enable_debuginfo=yes], [enable_debuginfo=no])
+
+# Optional debuginfo feature
+# Do _not_ indent the help string below (appears in the configure --help
+# output).
+AC_ARG_ENABLE([debug-info],
+[AC_HELP_STRING([--enable-debug-info], [enable the debug-info feature (default on Linux)])]
+[AC_HELP_STRING([--disable-debug-info], [disable the debug-info feature (default on OS X and Solaris)])],
+	[AS_IF([test "x$enableval" = xyes], [enable_debuginfo=yes], [enable_debuginfo=no])], [])
 
 AM_CONDITIONAL([ENABLE_DEBUGINFO], [test "x$enable_debuginfo" = xyes])
 AS_IF([test "x$enable_debuginfo" = xyes], [
