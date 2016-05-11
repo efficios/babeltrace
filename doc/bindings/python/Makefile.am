@@ -26,15 +26,15 @@ $(SPHINX_DIRHTML_TARGET): $(SPHINX_SRC) $(BABELTRACE_PYTHON_DEPS)
 	$(LOCAL_SPHINXBUILD) -b dirhtml -E $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIRHTML_DIR)
 
 swig-libs:
-	$(LN_S) $(abs_top_builddir)/bindings/python/.libs $@
+	$(LN_S) $(abs_top_builddir)/bindings/python/babeltrace/.libs $@
 
 babeltrace:
 	$(mkdir_p) $@
-	$(LN_S) $(abs_top_builddir)/bindings/python/__init__.py $@/__init__.py
-	$(LN_S) $(abs_top_srcdir)/bindings/python/common.py $@/common.py
-	$(LN_S) $(abs_top_srcdir)/bindings/python/reader.py $@/reader.py
-	$(LN_S) $(abs_top_srcdir)/bindings/python/writer.py $@/writer.py
-	$(LN_S) $(abs_top_builddir)/bindings/python/nativebt.py $@/nativebt.py
+	$(LN_S) $(abs_top_builddir)/bindings/python/babeltrace/__init__.py $@/__init__.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/babeltrace/common.py $@/common.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/babeltrace/reader.py $@/reader.py
+	$(LN_S) $(abs_top_srcdir)/bindings/python/babeltrace/writer.py $@/writer.py
+	$(LN_S) $(abs_top_builddir)/bindings/python/babeltrace/nativebt.py $@/nativebt.py
 
 clean-local:
 	rm -rf $(SPHINX_BUILD_DIR) swig-libs babeltrace
