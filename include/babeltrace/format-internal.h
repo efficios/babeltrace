@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <babeltrace/context-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +46,19 @@ struct bt_trace_descriptor {
 	struct trace_collection *collection;	/* Container of this trace */
 	GHashTable *clocks;
 	struct ctf_clock *single_clock;		/* currently supports only one clock */
+	bool interval_set;
+	struct packet_index_time interval_real; /* Interval of events to consider */
 };
+
+static inline void init_trace_descriptor(struct bt_trace_descriptor *td) {
+	if (!td) {
+		return;
+	}
+
+	td->interval_real.timestamp_begin = INT64_MIN;
+	td->interval_real.timestamp_end = INT64_MAX;
+	td->interval_set = false;
+}
 
 #ifdef __cplusplus
 }

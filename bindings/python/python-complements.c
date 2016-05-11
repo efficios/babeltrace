@@ -261,12 +261,12 @@ struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
 			&inter_end_pos);
 }
 
-int _bt_python_has_intersection(struct bt_context *ctx)
+int _bt_python_trace_collection_has_intersection(struct bt_context *ctx)
 {
 	int ret;
-	uint64_t begin = 0, end = ULLONG_MAX;
+	int64_t begin, end;
 
-	ret = ctf_find_packets_intersection(ctx, &begin, &end);
+	ret = ctf_find_tc_stream_packet_intersection_union(ctx, &begin, &end);
 
 	return ret == 0 ? 1 : 0;
 }

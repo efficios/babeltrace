@@ -84,5 +84,8 @@ int ctf_find_packets_intersection(struct bt_context *ctx,
 void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 		struct packet_index *prev_index,
 		struct packet_index *cur_index);
+int ctf_find_tc_stream_packet_intersection_union(struct bt_context *ctx,
+		uint64_t *ts_begin, uint64_t *ts_end);
+int ctf_tc_set_stream_intersection_mode(struct bt_context *ctx);
 
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

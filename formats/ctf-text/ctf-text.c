@@ -547,6 +547,10 @@ struct bt_trace_descriptor *ctf_text_open_trace(const char *path, int flags,
 	FILE *fp;
 
 	pos = g_new0(struct ctf_text_stream_pos, 1);
+	if (!pos) {
+		goto error;
+	}
+	init_trace_descriptor(&pos->trace_descriptor);
 
 	pos->last_real_timestamp = -1ULL;
 	pos->last_cycles_timestamp = -1ULL;
