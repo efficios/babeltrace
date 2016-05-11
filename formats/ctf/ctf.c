@@ -27,6 +27,7 @@
  */
 
 #include <babeltrace/format.h>
+#include <babeltrace/format-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -67,10 +68,6 @@
  * Lenght of packet to write, in bits.
  */
 #define WRITE_PACKET_LEN	(getpagesize() * 8 * CHAR_BIT)
-
-#ifndef min
-#define min(a, b)	(((a) < (b)) ? (a) : (b))
-#endif
 
 #define NSEC_PER_SEC 1000000000LL
 
@@ -932,13 +929,25 @@ void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
  * empty streams and return a negative value on error.
  */
 static
-int ctf_intersect_trace(struct bt_trace_descriptor *td_read,
-		uint64_t *begin, uint64_t *end)
+int ctf_find_stream_intersection(struct bt_trace_descriptor *td_read,
+		struct packet_index_time *_real,
+		struct packet_index_time *_cycles)
 {
-	struct ctf_trace *tin;
 	int stream_id, ret = 0;
+	struct packet_index_time real = { INT64_MIN, INT64_MAX },
+			cycles = { INT64_MIN, INT64_MAX };
+	struct ctf_trace *tin = container_of(td_read, struct ctf_trace, parent);
 
-	tin = container_of(td_read, struct ctf_trace, parent);
+	/* At least one of the two return args must be provided. */
+	if (!_real && !_cycles) {
+		ret = -1;
+		goto end;
+	}
+
+	if (tin->streams->len == 0) {
+		ret = 1;
+		goto end;
+	}
 
 	for (stream_id = 0; stream_id < tin->streams->len;
 			stream_id++) {
@@ -967,34 +976,85 @@ int ctf_intersect_trace(struct bt_trace_descriptor *td_read,
 			}
 			index = &g_array_index(stream_pos->packet_index,
 					struct packet_index, 0);
-			if (index->ts_real.timestamp_begin > *begin) {
-				*begin = index->ts_real.timestamp_begin;
-			}
+			real.timestamp_begin = max(real.timestamp_begin,
+					index->ts_real.timestamp_begin);
+			cycles.timestamp_begin = max(cycles.timestamp_begin,
+					index->ts_cycles.timestamp_begin);
+
 			index = &g_array_index(stream_pos->packet_index,
 					struct packet_index,
 					stream_pos->packet_index->len - 1);
-			if (index->ts_real.timestamp_end < *end) {
-				*end = index->ts_real.timestamp_end;
-			}
+			real.timestamp_end = min(real.timestamp_end,
+					index->ts_real.timestamp_end);
+			cycles.timestamp_end = min(cycles.timestamp_end,
+					index->ts_cycles.timestamp_end);
 		}
 	}
-
 end:
+	if (ret == 0) {
+		if (_real) {
+			*_real = real;
+		}
+		if (_cycles) {
+			*_cycles = cycles;
+		}
+	}
 	return ret;
 }
 
 /*
- * Find the timerange where all streams in the trace collection are active
- * simultaneously.
+ * Find the union of all active regions in the trace collection's traces.
+ * Returns "real" timestamps.
  *
  * Return 0 on success.
  * Return 1 if no intersections are found.
  * Return a negative value on error.
  */
-int ctf_find_packets_intersection(struct bt_context *ctx,
-		uint64_t *ts_begin, uint64_t *ts_end)
+int ctf_find_tc_stream_packet_intersection_union(struct bt_context *ctx,
+		int64_t *_ts_begin, int64_t *_ts_end)
 {
-	int ret, i;
+	int ret = 0, i;
+	int64_t ts_begin = INT64_MAX, ts_end = INT64_MIN;
+
+	if (!ctx || !ctx->tc || !ctx->tc->array || !_ts_begin || !_ts_end) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	for (i = 0; i < ctx->tc->array->len; i++) {
+		struct bt_trace_descriptor *td_read;
+		struct packet_index_time intersection_real;
+
+		td_read = g_ptr_array_index(ctx->tc->array, i);
+		if (!td_read) {
+			continue;
+		}
+		ret = ctf_find_stream_intersection(td_read, &intersection_real,
+				NULL);
+		if (ret == 1) {
+			/* Empty trace or no stream intersection. */
+			continue;
+		} else if (ret < 0) {
+			goto end;
+		}
+
+		ts_begin = min(intersection_real.timestamp_begin, ts_begin);
+		ts_end = max(intersection_real.timestamp_end, ts_end);
+	}
+
+	if (ts_end < ts_begin) {
+		ret = 1;
+		goto end;
+	}
+	*_ts_begin = ts_begin;
+	*_ts_end = ts_end;
+end:
+	return ret;
+}
+
+int ctf_tc_set_stream_intersection_mode(struct bt_context *ctx)
+{
+	int ret = 0, i;
 
 	if (!ctx || !ctx->tc || !ctx->tc->array) {
 		ret = -EINVAL;
@@ -1003,20 +1063,24 @@ int ctf_find_packets_intersection(struct bt_context *ctx,
 
 	for (i = 0; i < ctx->tc->array->len; i++) {
 		struct bt_trace_descriptor *td_read;
+		struct packet_index_time intersection_real;
 
 		td_read = g_ptr_array_index(ctx->tc->array, i);
 		if (!td_read) {
 			continue;
 		}
-		ret = ctf_intersect_trace(td_read, ts_begin, ts_end);
-		if (ret) {
+
+		ret = ctf_find_stream_intersection(td_read, &intersection_real,
+				NULL);
+		if (ret == 1) {
+			/* Empty trace or no stream intersection. */
+			continue;
+		} else if (ret < 0) {
 			goto end;
 		}
-	}
-	if (*ts_end < *ts_begin) {
-		ret = 1;
-	} else {
-		ret = 0;
+
+		td_read->interval_real = intersection_real;
+		td_read->interval_set = true;
 	}
 end:
 	return ret;
@@ -2397,6 +2461,10 @@ struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 		packet_seek = ctf_packet_seek;
 
 	td = g_new0(struct ctf_trace, 1);
+	if (!td) {
+		goto error;
+	}
+	init_trace_descriptor(&td->parent);
 
 	switch (flags & O_ACCMODE) {
 	case O_RDONLY:

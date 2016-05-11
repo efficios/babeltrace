@@ -117,7 +117,7 @@ struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
 		struct bt_context *ctx,
 		struct bt_iter_pos *inter_begin_pos,
 		struct bt_iter_pos *inter_end_pos);
-int _bt_python_has_intersection(struct bt_context *ctx);
+int _bt_python_trace_collection_has_intersection(struct bt_context *ctx);
 
 /* context.h, context-internal.h */
 %rename("_bt_context_create") bt_context_create(void);

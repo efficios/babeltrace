@@ -151,6 +151,14 @@ extern int babeltrace_verbose, babeltrace_debug;
 # endif
 #endif
 
+#ifndef min
+#define min(a, b)	(((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a, b)	(((a) > (b)) ? (a) : (b))
+#endif
+
 /*
  * BT_HIDDEN: set the hidden attribute for internal functions
  */

@@ -139,7 +139,7 @@ class TraceCollection:
 
     @property
     def has_intersection(self):
-        return nbt._bt_python_has_intersection(self._tc)
+        return nbt._bt_python_trace_collection_has_intersection(self._tc)
 
     @property
     def events(self):

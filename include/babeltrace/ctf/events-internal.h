@@ -311,11 +311,13 @@ int bt_ctf_get_decl_fields(struct bt_ctf_event_decl *event_decl,
  * bt_ctf_get_decl_field_name: return the name of a field decl or NULL on error
  */
 const char *bt_ctf_get_decl_field_name(const struct bt_ctf_field_decl *field);
-int ctf_find_packets_intersection(struct bt_context *ctx,
-		uint64_t *ts_begin, uint64_t *ts_end);
+int ctf_find_tc_stream_packet_intersection_union(struct bt_context *ctx,
+		int64_t *ts_begin, int64_t *ts_end);
 
 void ctf_update_current_packet_index(struct ctf_stream_definition *stream,
 		struct packet_index *prev_index,
 		struct packet_index *cur_index);
+
+int ctf_tc_set_stream_intersection_mode(struct bt_context *ctx);
 
 #endif /*_BABELTRACE_CTF_EVENTS_INTERNAL_H */

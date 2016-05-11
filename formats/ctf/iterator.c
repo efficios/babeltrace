@@ -67,10 +67,18 @@ struct bt_ctf_iter *bt_ctf_iter_create_intersect(struct bt_context *ctx,
 		struct bt_iter_pos **inter_begin_pos,
 		struct bt_iter_pos **inter_end_pos)
 {
-	uint64_t begin = 0, end = ULLONG_MAX;
 	int ret;
+	int64_t begin, end;
 
-	ret = ctf_find_packets_intersection(ctx, &begin, &end);
+	/*
+	 * The iterator's range is the union of each trace's intersection of
+	 * streams. This means that we determine the "active" region of each
+	 * trace (that is the region where all of its streams are active), and
+	 * use the TraceCollection to merge all of these active regions.
+	 *
+	 * This results in a union of the traces' active regions.
+	 */
+	ret = ctf_find_tc_stream_packet_intersection_union(ctx, &begin, &end);
 	if (ret == 1) {
 		fprintf(stderr, "[error] No intersection found between trace files.\n");
 		goto error;
@@ -86,6 +94,11 @@ struct bt_ctf_iter *bt_ctf_iter_create_intersect(struct bt_context *ctx,
 		goto error;
 	}
 
+	ret = ctf_tc_set_stream_intersection_mode(ctx);
+	if (ret) {
+		goto error;
+	}
+
 	/*
 	 * bt_ctf_iter does not take ownership of begin and end positions,
 	 * so we return them to the caller who must still assume their ownership
@@ -96,7 +109,6 @@ struct bt_ctf_iter *bt_ctf_iter_create_intersect(struct bt_context *ctx,
 error:
 	return NULL;
 }
-
 
 void bt_ctf_iter_destroy(struct bt_ctf_iter *iter)
 {

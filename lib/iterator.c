@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <babeltrace/babeltrace.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/context.h>
 #include <babeltrace/context-internal.h>
 #include <babeltrace/iterator-internal.h>
@@ -72,6 +73,7 @@ static int stream_read_event(struct ctf_file_stream *sin)
 		fprintf(stderr, "[error] Reading event failed.\n");
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -170,6 +172,16 @@ static int seek_ctf_trace_by_timestamp(struct ctf_trace *tin,
 {
 	int i, j, ret;
 	int found = 0;
+	struct bt_trace_descriptor *td = &tin->parent;
+
+	if (td->interval_set) {
+		/*
+		 * If this trace has an interval selected, don't allow seeks
+		 * before the selected interval. We seek to the start of the
+		 * interval, thereby presenting a shorter "virtual" trace.
+		 */
+		timestamp = max(timestamp, td->interval_real.timestamp_begin);
+	}
 
 	/* for each stream_class */
 	for (i = 0; i < tin->streams->len; i++) {
@@ -748,6 +760,9 @@ int bt_iter_init(struct bt_iter *iter,
 	ctx->current_iterator = iter;
 	if (begin_pos && begin_pos->type != BT_SEEK_BEGIN) {
 		ret = bt_iter_set_pos(iter, begin_pos);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	return ret;
@@ -802,6 +817,7 @@ int bt_iter_next(struct bt_iter *iter)
 {
 	struct ctf_file_stream *file_stream, *removed;
 	int ret;
+	bool event_outside_interval = false;
 
 	if (!iter)
 		return -EINVAL;
@@ -814,7 +830,12 @@ int bt_iter_next(struct bt_iter *iter)
 	}
 
 	ret = stream_read_event(file_stream);
-	if (ret == EOF) {
+	if (file_stream->pos.parent.trace->interval_set) {
+		event_outside_interval =
+				file_stream->parent.real_timestamp >
+				file_stream->pos.parent.trace->interval_real.timestamp_end;
+	}
+	if (ret == EOF || event_outside_interval) {
 		removed = bt_heap_remove(iter->stream_heap);
 		assert(removed == file_stream);
 		ret = 0;
