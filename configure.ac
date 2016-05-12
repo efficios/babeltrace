@@ -310,6 +310,7 @@ AC_CONFIG_FILES([
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile
+	bindings/python/babeltrace/Makefile
 	tests/Makefile
 	tests/bin/Makefile
 	tests/lib/Makefile
