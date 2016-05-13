@@ -13,6 +13,7 @@ AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/ -I$(srcdir)
 
 EXTRA_DIST = common.py reader.py writer.py $(INIT_PY_IN) $(NATIVEBT_I)
 nodist_btpackage_PYTHON = $(INIT_PY) $(NATIVEBT_PY) common.py reader.py writer.py
+SCRIPT_LIST = common.py reader.py writer.py
 nativebtlib_LTLIBRARIES = _nativebt.la
 
 btpackagedir = $(pythondir)/babeltrace
@@ -32,3 +33,17 @@ $(NATIVEBT_WRAP_C): $(NATIVEBT_I)
 	$(SWIG) -python -Wall -I$(srcdir) -I$(top_srcdir)/include -outcurrentdir $<
 
 CLEANFILES = $(NATIVEBT_PY) $(NATIVEBT_WRAP_C) $(INIT_PY)
+
+all-local:
+	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
+		for script in $(SCRIPT_LIST); do \
+			cp -f $(srcdir)/$$script $(builddir); \
+		done; \
+	fi
+
+clean-local:
+	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
+		for script in $(SCRIPT_LIST); do \
+			rm -f $(builddir)/$$script; \
+		done; \
+	fi
