@@ -41,6 +41,7 @@
 #include <babeltrace/crc32.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/utils.h>
+#include <errno.h>
 
 /*
  * An address printed in hex is at most 20 bytes (16 for 64-bits +
@@ -188,7 +189,7 @@ error:
  *
  * @param bin	bin_info instance for which to set DWARF info
  * @param path	Presumed location of the DWARF info
- * @returns	0 on success, -1 on failure
+ * @returns	0 on success, negative value on failure
  */
 static
 int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
@@ -203,6 +204,7 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
+		fd = -errno;
 		goto error;
 	}
 
@@ -236,12 +238,15 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 	return 0;
 
 error:
-	close(fd);
+	if (fd >= 0) {
+		close(fd);
+		fd = -1;
+	}
 	dwarf_end(dwarf_info);
 	g_free(dwarf_info);
 	free(cu);
 
-	return -1;
+	return fd;
 }
 
 /**
@@ -436,7 +441,7 @@ found:
  * Initialize the DWARF info for a given executable.
  *
  * @param bin	bin_info instance
- * @returns	0 on success, -1 on failure
+ * @returns	0 on success, negative value on failure
  */
 static
 int bin_info_set_dwarf_info(struct bin_info *bin)
@@ -444,7 +449,8 @@ int bin_info_set_dwarf_info(struct bin_info *bin)
 	int ret = 0;
 
 	if (!bin) {
-		goto error;
+		ret = -1;
+		goto end;
 	}
 
 	/* First try to set the DWARF info from the ELF file */
@@ -467,8 +473,6 @@ int bin_info_set_dwarf_info(struct bin_info *bin)
 		goto end;
 	}
 
-error:
-	ret = -1;
 end:
 	return ret;
 }
@@ -477,7 +481,7 @@ end:
  * Initialize the ELF file for a given executable.
  *
  * @param bin	bin_info instance
- * @returns	0 on success, -1 on failure
+ * @returns	0 on success, negative value on error.
  */
 static
 int bin_info_set_elf_file(struct bin_info *bin)
@@ -491,6 +495,7 @@ int bin_info_set_elf_file(struct bin_info *bin)
 
 	elf_fd = open(bin->elf_path, O_RDONLY);
 	if (elf_fd < 0) {
+		elf_fd = -errno;
 		printf_verbose("Failed to open %s\n", bin->elf_path);
 		goto error;
 	}
@@ -514,9 +519,10 @@ int bin_info_set_elf_file(struct bin_info *bin)
 error:
 	if (elf_fd >= 0) {
 		close(elf_fd);
+		elf_fd = -1;
 	}
 	elf_end(elf_file);
-	return -1;
+	return elf_fd;
 }
 
 BT_HIDDEN
@@ -760,7 +766,7 @@ int bin_info_lookup_elf_function_name(struct bin_info *bin, uint64_t addr,
 error:
 	g_free(shdr);
 	g_free(sym);
-	return -1;
+	return ret;
 }
 
 /**
@@ -913,6 +919,7 @@ int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
+			printf_verbose("Failed to set bin dwarf info, falling back to ELF lookup.\n");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
 		}
@@ -932,12 +939,10 @@ int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
 
 	if (bin->is_elf_only) {
 		ret = bin_info_lookup_elf_function_name(bin, addr, &_func_name);
+		printf_verbose("Failed to lookup function name (elf), error %i\n", ret);
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr, &_func_name);
-	}
-
-	if (ret || !_func_name) {
-		goto error;
+		printf_verbose("Failed to lookup function name (dwarf), error %i\n", ret);
 	}
 
 	*func_name = _func_name;
