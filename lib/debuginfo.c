@@ -111,13 +111,11 @@ struct debug_info_source *debug_info_source_create_from_bin(struct bin_info *bin
 		goto error;
 	}
 
-	/* Can't retrieve src_loc from ELF only, skip it */
-	if (!bin->is_elf_only) {
+	/* Can't retrieve src_loc from ELF, or could not find binary, skip. */
+	if (!bin->is_elf_only || !debug_info_src->func) {
 		/* Lookup source location */
 		ret = bin_info_lookup_source_location(bin, ip, &src_loc);
-		if (ret) {
-			goto error;
-		}
+		printf_verbose("Failed to lookup source location (err: %i)\n", ret);
 	}
 
 	if (src_loc) {
