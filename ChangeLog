@@ -1,3 +1,107 @@
+2016-05-13 babeltrace 1.4.0-rc1
+	* Display binary location even if source and symbol lookups fail
+	* Tests: Multi-trace stream intersection test
+	* Move Python bindings to babeltrace subfolder
+	* bootstrap: Standardize on autoreconf -vi
+	* Change behaviour of stream-intersection with multiple traces
+	* Fix: ctf-text: signed base 8, 16 printout
+	* Fix: respect signed integers' length when printing in hex base
+	* Fix: debug-info feature enable/disable
+	* Port: Add OSX mman.h compat
+	* Port: Add OSX endian.h compat
+	* Port: Add OSX libuuid compat
+	* Fix: swapped libelf and libdw names in configure error message
+	* Don't use the .so extension on test assets
+	* Fix: warnings on Solaris10
+	* Add missing generated tests to gitignore
+	* Fix: report error when lttng-live is provided with an IPv6 address
+	* Fix: overflow of signed integer results in undefined behaviour
+	* Fix: potential close() of uninitialized elf_fd
+	* Fix: use of spaces instead of tabs in babeltrace.i.in
+	* Set version to 1.4.0-pre
+	* Clean-up: add missing new line after end of function
+	* Clean-up: remove extra newline in bin-info.c
+	* Clean-up: fix comment style in bin-info.c
+	* Add tap-driver.sh from automake
+	* Tests: skip certain bin-info tests on failure to prevent segfault
+	* Typo: succesful* -> successful*
+	* Tests: strip ELF symbols from debuginfo-data executables with separate DWARF
+	* Python bindings: add has_intersection property to TraceCollection
+	* Python bindings: make intersect_mode read-only property
+	* Tests: Add missing debuginfo files to dist
+	* Use tar-ustar format for dist
+	* Tests: Replace prove by autotools tap runner
+	* Cleanup test scripts
+	* Fix: Don't clean test scripts
+	* Fix: Make test_dwarf and test_bin_info tests work out-of-tree
+	* Handle test_ctf_writer_complete like the other tests scripts
+	* Fix: let automake handle CLEAN and DIST
+	* Fix: Remove test_seek_empty_packet and test_seek_big_trace from SCRIPT_LIST
+	* configure: introduce new macro AX_LIB_ELFUTILS
+	* Docs: fix typos in babeltrace-log(1) manpage
+	* Docs: update debuginfo doc
+	* Add configure report
+	* configure: check for elfutils (libelf and libdw) >= 0.154
+	* Set the minimal version of elfutils to 0.154
+	* Doc: Add elfutils to README
+	* Fix: return -1 on bin_info_lookup_dwarf_function_name failure
+	* Harmonize spelling of debug-info
+	* Indicate default debug-info build settings in configure help
+	* Disable debuginfo by default on Solaris and OSX
+	* Docs: Add --debug-info-target-prefix to man page
+	* Add source and information to regenerate debuginfo-data
+	* Use bool where possible in dwarf and bin-info
+	* Rename so-info to bin-info
+	* Use printf_debug/verbose in so-info
+	* Fix: update tests for new dwarf func name output
+	* Update debuginfo to match UST event rename
+	* Use g_build_path for DWARF build_id lookup
+	* Add --debug-info-target-prefix
+	* Refactor offset string printing out of ELF and DWARF lookups
+	* Print offset relative to function when using DWARF
+	* Print bin location first
+	* Add binary location information
+	* Fix: prevent uninitialized use of elf_file
+	* Only set so info ELF file when needed
+	* Use is_pic field instead of reading ELF header
+	* Fix: make short_src_path from src_path
+	* Tests: clean generated tests scripts
+	* Tests: Add missing test scripts to gitignore
+	* Tests: Use AC_CONFIG_FILES to generate test scripts
+	* Fix out-of-tree tests: seek tests can't find traces
+	* Docs: Add debug-info option to BABELTRACE(1)
+	* Print "binary+offset" when function name can't be resolved
+	* Fix: Don't skip binary path print-out in ELF-only case
+	* Show binary path as part of debug info
+	* Add --debug-info-full-path option and shorten source name
+	* Rename opt_debug_dir to opt_debug_info_dir
+	* Fix: cast of 64 bit addresses from trace to 32-bit pointer
+	* Tests: dynamically create test list based on enabled features
+	* Add intersect mode to python bindings
+	* Add bt_ctf_iter_create_intersect to CTF iterator API
+	* Docs: add high-level debug info doc
+	* Tests: add unit tests for so_info
+	* Tests: add unit tests for bt_dwarf
+	* Initial implementation of the debuginfo API
+	* Store "tracer_name" from the trace's environment
+	* Fix: Missing pointer dereference in NULL check
+	* Fix: leak of stream intersection positions
+	* Remove useless bt_iter when creating intersection
+	* Add new test artifacts to .gitignore
+	* Tests: use templates for stream intersection and packet_seq_num
+	* Tests: fix OOT build by adding test scripts to noinst_SCRIPTS
+	* Docs: Add --stream-intersection to the BABELTRACE(1) man page
+	* Test the stream intersection feature
+	* Option to only show streams' intersection
+	* Tests for packet_seq_num handling
+	* Output a warning if packets are lost
+	* Clean-up: Use memset() to initialize packet_index
+	* Support ctf index version 1.1
+	* Fix: return event timestamp in _timestamp_at_pos
+	* Fix: lttng-live flush when output to file
+	* Fix: lttng-live use g_free rather than free
+	* Fix: lttng-live data_size and version endianness
+
 2016-02-29 babeltrace 1.3.2
 	* Python bindings: work around Python 3.5 behaviour change
 	* Fix: out-of-bound memory access
