@@ -329,12 +329,12 @@ int is_valid_debug_file(char *path, uint32_t crc)
 	uint32_t _crc = 0;
 
 	if (!path) {
-		goto end;
+		goto end_noclose;
 	}
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
-		goto end;
+		goto end_noclose;
 	}
 
 	ret = crc32(fd, &_crc);
@@ -347,6 +347,7 @@ int is_valid_debug_file(char *path, uint32_t crc)
 
 end:
 	close(fd);
+end_noclose:
 	return ret;
 }
 
