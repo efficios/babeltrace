@@ -830,11 +830,13 @@ int bin_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 
 		ret = dwarf_lowpc(die->dwarf_die, &low_addr);
 		if (ret) {
+			free(die_name);
 			goto error;
 		}
 
 		ret = bin_info_append_offset_str(die_name, low_addr, addr,
 						func_name);
+		free(die_name);
 		if (ret) {
 			goto error;
 		}
