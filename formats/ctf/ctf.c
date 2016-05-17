@@ -2431,8 +2431,10 @@ struct bt_trace_descriptor *ctf_open_trace(const char *path, int flags,
 
 	return &td->parent;
 error:
-	trace_debug_info_destroy(td);
-	g_free(td);
+	if (td) {
+		trace_debug_info_destroy(td);
+		g_free(td);
+	}
 	return NULL;
 }
 
