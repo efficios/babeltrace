@@ -148,7 +148,7 @@ struct declaration_integer {
 	struct ctf_clock *clock;
 };
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 struct debug_info_source;
 #endif
 
@@ -161,7 +161,7 @@ struct definition_integer {
 		int64_t _signed;
 	} value;
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 	/*
 	 * Debug infos (NULL if not set).
 	 *

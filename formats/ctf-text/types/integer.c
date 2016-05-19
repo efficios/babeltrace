@@ -31,7 +31,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <babeltrace/bitfield.h>
-#include <babeltrace/trace-debuginfo.h>
+#include <babeltrace/trace-debug-info.h>
 
 int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *definition)
 {

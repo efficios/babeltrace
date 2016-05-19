@@ -1,5 +1,5 @@
-#ifndef _BABELTRACE_TRACE_DEBUGINFO_H
-#define _BABELTRACE_TRACE_DEBUGINFO_H
+#ifndef _BABELTRACE_TRACE_DEBUG_INFO_H
+#define _BABELTRACE_TRACE_DEBUG_INFO_H
 
 /*
  * Babeltrace - Debug information state tracker wrapper
@@ -28,9 +28,9 @@
 
 #include <babeltrace/ctf-ir/metadata.h>
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 
-#include <babeltrace/debuginfo.h>
+#include <babeltrace/debug-info.h>
 #include <babeltrace/ctf-text/types.h>
 #include <stdbool.h>
 
@@ -124,7 +124,7 @@ void handle_debug_info_event(struct ctf_stream_declaration *stream_class,
 	debug_info_handle_event(stream_class->trace->debug_info, event);
 }
 
-#else  /* #ifdef ENABLE_DEBUGINFO */
+#else  /* #ifdef ENABLE_DEBUG_INFO */
 
 static inline
 void ctf_text_integer_write_debug_info(struct bt_stream_pos *ppos,
@@ -152,6 +152,6 @@ void handle_debug_info_event(struct ctf_stream_declaration *stream_class,
 	/* Do nothing. */
 }
 
-#endif	/* #else #ifdef ENABLE_DEBUGINFO */
+#endif	/* #else #ifdef ENABLE_DEBUG_INFO */
 
-#endif /* _BABELTRACE_TRACE_DEBUGINFO_H */
+#endif /* _BABELTRACE_TRACE_DEBUG_INFO_H */

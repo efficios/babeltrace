@@ -31,7 +31,7 @@
 #include <babeltrace/ctf/metadata.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/events-internal.h>
-#include <babeltrace/trace-debuginfo.h>
+#include <babeltrace/trace-debug-info.h>
 #include <inttypes.h>
 #include <sys/mman.h>
 #include <errno.h>
