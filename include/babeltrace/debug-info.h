@@ -1,5 +1,5 @@
-#ifndef _BABELTRACE_DEBUGINFO_H
-#define _BABELTRACE_DEBUGINFO_H
+#ifndef _BABELTRACE_DEBUG_INFO_H
+#define _BABELTRACE_DEBUG_INFO_H
 
 /*
  * Babeltrace - Debug information state tracker
@@ -31,7 +31,7 @@
 struct debug_info;
 struct ctf_event_definition;
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -65,7 +65,7 @@ BT_HIDDEN
 void debug_info_handle_event(struct debug_info *debug_info,
 		struct ctf_event_definition *event);
 
-#else /* ifdef ENABLE_DEBUGINFO */
+#else /* ifdef ENABLE_DEBUG_INFO */
 
 static inline
 struct debug_info *debug_info_create(void) { return malloc(1); }
@@ -77,6 +77,6 @@ static inline
 void debug_info_handle_event(struct debug_info *debug_info,
 		struct ctf_event_definition *event) { }
 
-#endif /* ENABLE_DEBUGINFO */
+#endif /* ENABLE_DEBUG_INFO */
 
-#endif /* _BABELTRACE_DEBUGINFO_H */
+#endif /* _BABELTRACE_DEBUG_INFO_H */

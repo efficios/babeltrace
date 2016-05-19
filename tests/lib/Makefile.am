@@ -44,17 +44,17 @@ check_SCRIPTS = test_seek_big_trace \
 		test_seek_empty_packet \
 		test_ctf_writer_complete
 
-if ENABLE_DEBUGINFO
+if ENABLE_DEBUG_INFO
 test_dwarf_LDFLAGS = -static
 test_dwarf_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/lib/libdebuginfo.la
+	$(top_builddir)/lib/libdebug-info.la
 test_dwarf_SOURCES = test_dwarf.c
 
 test_bin_info_LDFLAGS = -static
 test_bin_info_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/lib/libdebuginfo.la
+	$(top_builddir)/lib/libdebug-info.la
 test_bin_info_SOURCES = test_bin_info.c
 
 noinst_PROGRAMS += test_dwarf test_bin_info

@@ -15,16 +15,16 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 
 libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 
-if ENABLE_DEBUGINFO
-noinst_LTLIBRARIES = libdebuginfo.la
+if ENABLE_DEBUG_INFO
+noinst_LTLIBRARIES = libdebug-info.la
 
-libdebuginfo_la_SOURCES = debuginfo.c \
+libdebug_info_la_SOURCES = debug-info.c \
 			  bin-info.c \
 			  dwarf.c \
 			  crc32.c \
 			  utils.c
-libdebuginfo_la_LDFLAGS = -lelf -ldw
-libdebuginfo_la_LIBADD = libbabeltrace.la
+libdebug_info_la_LDFLAGS = -lelf -ldw
+libdebug_info_la_LIBADD = libbabeltrace.la
 endif
 
 libbabeltrace_la_LIBADD = \
