@@ -115,7 +115,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		fprintf(stderr, "[error] [Context] Creating trace handle %s .\n\n",
 				path);
 		ret = -1;
-		goto error;
+		goto error_close;
 	}
 	handle->format = fmt;
 	handle->td = td;
@@ -124,23 +124,19 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		handle->path[PATH_MAX - 1] = '\0';
 	}
 
+	ret = bt_trace_collection_add(ctx->tc, td);
+	if (ret != 0)
+		goto error_destroy_handle;
+
 	if (fmt->set_handle)
 		fmt->set_handle(td, handle);
 	if (fmt->set_context)
 		fmt->set_context(td, ctx);
 
-	/* Add new handle to container */
-	g_hash_table_insert(ctx->trace_handles,
-		(gpointer) (unsigned long) handle->id,
-		handle);
-	ret = bt_trace_collection_add(ctx->tc, td);
-	if (ret != 0)
-		goto error;
-
 	if (fmt->convert_index_timestamp) {
 		ret = fmt->convert_index_timestamp(td);
 		if (ret < 0)
-			goto error;
+			goto error_collection_del;
 	}
 
 	if (fmt->timestamp_begin)
@@ -156,9 +152,19 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 		handle->cycles_timestamp_end = fmt->timestamp_end(td, handle,
 				BT_CLOCK_CYCLES);
 
+	/* Add new handle to container */
+	g_hash_table_insert(ctx->trace_handles,
+		(gpointer) (unsigned long) handle->id,
+		handle);
+
 	return handle->id;
 
-error:
+error_collection_del:
+	/* Remove from containers */
+	bt_trace_collection_remove(handle->td->ctx->tc, handle->td);
+error_destroy_handle:
+	bt_trace_handle_destroy(handle);
+error_close:
 	closeret = fmt->close_trace(td);
 	if (closeret) {
 		fprintf(stderr, "Error in close_trace callback\n");
