@@ -36,7 +36,7 @@
 #include <babeltrace/context-internal.h>
 #include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
-#include <babeltrace/trace-debuginfo.h>
+#include <babeltrace/trace-debug-info.h>
 #include <babeltrace/ctf/ctf-index.h>
 #include <inttypes.h>
 #include <stdio.h>

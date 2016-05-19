@@ -33,8 +33,8 @@ noinst_HEADERS = \
 	babeltrace/prio_heap.h \
 	babeltrace/types.h \
 	babeltrace/crc32.h \
-	babeltrace/debuginfo.h \
-	babeltrace/trace-debuginfo.h \
+	babeltrace/debug-info.h \
+	babeltrace/trace-debug-info.h \
 	babeltrace/dwarf.h \
 	babeltrace/bin-info.h \
 	babeltrace/utils.h \

@@ -36,7 +36,7 @@
 #include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf/iterator.h>
 #include <babeltrace/ctf-text/types.h>
-#include <babeltrace/debuginfo.h>
+#include <babeltrace/debug-info.h>
 
 #include <babeltrace/iterator.h>
 #include <popt.h>
@@ -138,7 +138,7 @@ static struct poptOption long_options[] = {
 	{ "clock-gmt", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
 	{ "clock-force-correlate", 0, POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
 	{ "stream-intersection", 0, POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
 	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
@@ -189,7 +189,7 @@ static void usage(FILE *fp)
 	fprintf(fp, "      --clock-force-correlate    Assume that clocks are inherently correlated\n");
 	fprintf(fp, "                                 across traces.\n");
 	fprintf(fp, "      --stream-intersection      Only print events when all streams are active.\n");
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 	fprintf(fp, "      --debug-info-dir           Directory in which to look for debugging information\n");
 	fprintf(fp, "                                 files. (default: /usr/lib/debug/)\n");
 	fprintf(fp, "      --debug-info-target-prefix Directory to use as a prefix for executable lookup\n");

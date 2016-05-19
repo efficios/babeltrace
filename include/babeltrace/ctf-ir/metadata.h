@@ -187,7 +187,7 @@ struct ctf_tracer_env {
 	char tracer_name[TRACER_ENV_LEN];
 };
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 struct debug_info;
 #endif
 
@@ -230,7 +230,7 @@ struct ctf_trace {
 	int dirfd;
 	int flags;		/* open flags */
 
-#ifdef ENABLE_DEBUGINFO
+#ifdef ENABLE_DEBUG_INFO
 	/* Debug information for this trace */
 	struct debug_info *debug_info;
 #endif

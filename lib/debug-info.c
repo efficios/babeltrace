@@ -29,7 +29,7 @@
 #include <glib.h>
 #include <babeltrace/types.h>
 #include <babeltrace/ctf-ir/metadata.h>
-#include <babeltrace/debuginfo.h>
+#include <babeltrace/debug-info.h>
 #include <babeltrace/bin-info.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/utils.h>
