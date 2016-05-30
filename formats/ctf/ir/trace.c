@@ -1030,6 +1030,7 @@ end:
 BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 {
+	int ret;
 	unsigned int alignment, size;
 	struct bt_ctf_field_type *field_type = NULL;
 
@@ -1040,7 +1041,10 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 	alignment = field_type_aliases_alignments[alias];
 	size = field_type_aliases_sizes[alias];
 	field_type = bt_ctf_field_type_integer_create(size);
-	bt_ctf_field_type_set_alignment(field_type, alignment);
+	ret = bt_ctf_field_type_set_alignment(field_type, alignment);
+	if (ret) {
+		BT_PUT(field_type);
+	}
 end:
 	return field_type;
 }
