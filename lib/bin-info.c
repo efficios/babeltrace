@@ -1037,7 +1037,7 @@ int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr, bool
 				goto error;
 			}
 
-			if (contains) {
+			if (_contains) {
 				goto end;
 			}
 		}
