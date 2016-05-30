@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 605
+#define NR_TESTS 606
 
 static int64_t current_time = 42;
 
@@ -493,7 +493,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_context_type returns the appropriate type");
 	bt_put(returned_type);
 
-	bt_ctf_stream_class_add_event_class(stream_class, simple_event_class);
+	ok(!bt_ctf_stream_class_add_event_class(stream_class, simple_event_class),
+		"Adding simple event class to stream class");
 
 	/*
 	 * bt_ctf_stream_class_add_event_class() copies the field types
