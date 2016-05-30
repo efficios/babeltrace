@@ -25,6 +25,7 @@
  */
 
 #include <stdint.h>
+#include <sys/param.h>
 #include "lttng-viewer-abi.h"
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
