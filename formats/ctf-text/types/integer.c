@@ -106,11 +106,12 @@ int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *def
 		} else {
 			v = (uint64_t) integer_definition->value._signed;
 			if (integer_declaration->len < 64) {
-				/* Round length to the nearest 3-bit */
-				uint8_t rounded_len =
-					integer_declaration->len +
-					((integer_declaration->len + 2) % 3);
+				size_t len = integer_declaration->len;
+			        size_t rounded_len;
 
+				assert(len != 0);
+				/* Round length to the nearest 3-bit */
+				rounded_len = (((len - 1) / 3) + 1) * 3;
 				v &= ((uint64_t) 1 << rounded_len) - 1;
 			}
 		}
