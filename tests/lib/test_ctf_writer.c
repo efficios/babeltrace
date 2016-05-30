@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 606
+#define NR_TESTS 609
 
 static int64_t current_time = 42;
 
@@ -768,10 +768,13 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_type_set_alignment handles wrong alignment correctly (24)");
 	ok(!bt_ctf_field_type_set_alignment(int_16_type, 4),
 		"bt_ctf_field_type_set_alignment handles correct alignment correctly (4)");
-	bt_ctf_field_type_set_alignment(int_16_type, 32);
-	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
-	bt_ctf_field_type_integer_set_base(uint_35_type,
-		BT_CTF_INTEGER_BASE_HEXADECIMAL);
+	ok(!bt_ctf_field_type_set_alignment(int_16_type, 32),
+		"Set alignment of signed 16 bit integer to 32");
+	ok(!bt_ctf_field_type_integer_set_signed(int_16_type, 1),
+		"Set integer signedness to true");
+	ok(!bt_ctf_field_type_integer_set_base(uint_35_type,
+		BT_CTF_INTEGER_BASE_HEXADECIMAL),
+		"Set signed 16 bit integer base to hexadecimal");
 
 	array_type = bt_ctf_field_type_array_create(int_16_type, ARRAY_TEST_LENGTH);
 	sequence_type = bt_ctf_field_type_sequence_create(int_16_type,
