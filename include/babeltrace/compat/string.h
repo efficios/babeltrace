@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if !defined(__linux__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
+#if !defined(__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
 
 /* XSI-compliant strerror_r */
 static inline
