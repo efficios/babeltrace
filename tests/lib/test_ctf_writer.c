@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 616
+#define NR_TESTS 618
 
 static int64_t current_time = 42;
 
@@ -828,10 +828,10 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"An unknown entry"), "Reject a variant field based on an unknown tag value");
 	ok(bt_ctf_field_type_variant_add_field(variant_type, uint_3_type,
 		"UINT3_TYPE") == 0, "Add a field to a variant");
-	bt_ctf_field_type_variant_add_field(variant_type, int_16_type,
-		"INT16_TYPE");
-	bt_ctf_field_type_variant_add_field(variant_type, uint_35_type,
-		"UINT35_TYPE");
+	ok(!bt_ctf_field_type_variant_add_field(variant_type, int_16_type,
+		"INT16_TYPE"), "Add INT16_TYPE field to variant");
+	ok(!bt_ctf_field_type_variant_add_field(variant_type, uint_35_type,
+		"UINT35_TYPE"), "Add UINT35_TYPE field to variant");
 
 	ok(bt_ctf_field_type_variant_get_tag_type(NULL) == NULL,
 		"bt_ctf_field_type_variant_get_tag_type handles NULL correctly");
