@@ -2339,12 +2339,19 @@ void bt_ctf_field_sequence_freeze(struct bt_ctf_field *field)
 BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field)
 {
+	enum bt_ctf_type_id type_id;
+
 	if (!field) {
 		goto end;
 	}
 
-	field_freeze_funcs[bt_ctf_field_get_type_id(field)](field);
+	type_id = bt_ctf_field_get_type_id(field);
+	if (type_id <= BT_CTF_TYPE_ID_UNKNOWN ||
+			type_id >= BT_CTF_NR_TYPE_IDS) {
+		goto end;
+	}
 
+	field_freeze_funcs[type_id](field);
 end:
 	return;
 }
