@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 609
+#define NR_TESTS 616
 
 static int64_t current_time = 42;
 
@@ -793,12 +793,12 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_array_get_length(array_type) == ARRAY_TEST_LENGTH,
 		"bt_ctf_field_type_array_get_length returns the correct length");
 
-	bt_ctf_field_type_structure_add_field(inner_structure_type,
-		uint_35_type, "seq_len");
-	bt_ctf_field_type_structure_add_field(inner_structure_type,
-		sequence_type, "a_sequence");
-	bt_ctf_field_type_structure_add_field(inner_structure_type,
-		array_type, "an_array");
+	ok(!bt_ctf_field_type_structure_add_field(inner_structure_type,
+		uint_35_type, "seq_len"), "Add seq_len field to inner structure");
+	ok(!bt_ctf_field_type_structure_add_field(inner_structure_type,
+		sequence_type, "a_sequence"), "Add a_sequence field to inner structure");
+	ok(!bt_ctf_field_type_structure_add_field(inner_structure_type,
+		array_type, "an_array"), "Add an_array field to inner structure");
 
 	bt_ctf_field_type_enumeration_add_mapping(enum_variant_type,
 		"UINT3_TYPE", 0, 0);
@@ -879,14 +879,17 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_type_variant_get_field returns a correct field type");
 	bt_put(ret_field_type);
 
-	bt_ctf_field_type_structure_add_field(complex_structure_type,
-		enum_variant_type, "variant_selector");
-	bt_ctf_field_type_structure_add_field(complex_structure_type,
-		string_type, "a_string");
-	bt_ctf_field_type_structure_add_field(complex_structure_type,
-		variant_type, "variant_value");
-	bt_ctf_field_type_structure_add_field(complex_structure_type,
-		inner_structure_type, "inner_structure");
+	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
+		enum_variant_type, "variant_selector"),
+		"Add variant_selector field to complex structure");
+	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
+		string_type, "a_string"), "Add a_string field to complex structure");
+	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
+		variant_type, "variant_value"),
+		"Add variant_value field to complex structure");
+	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
+		inner_structure_type, "inner_structure"),
+		"Add inner_structure field to complex structure");
 
 	ok(bt_ctf_event_class_create("clock") == NULL,
 		"Reject creation of an event class with an illegal name");
