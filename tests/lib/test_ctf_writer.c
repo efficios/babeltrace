@@ -1923,6 +1923,7 @@ void type_field_tests()
 		"bt_ctf_field_type_integer_get_encoding returns a correct value");
 
 	int_16_type = bt_ctf_field_type_integer_create(16);
+	assert(int_16_type);
 	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
 	ok(bt_ctf_field_type_integer_get_signed(int_16_type) == 1,
 		"bt_ctf_field_type_integer_get_signed returns a correct value for signed types");
