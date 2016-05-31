@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 618
+#define NR_TESTS 620
 
 static int64_t current_time = 42;
 
@@ -334,7 +334,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(uint_12_type, "Create an unsigned integer type");
 
-	bt_ctf_field_type_integer_set_signed(int_64_type, 1);
+	ok(!bt_ctf_field_type_integer_set_signed(int_64_type, 1),
+		"Set signed 64 bit integer signedness to true");
 	ok(int_64_type, "Create a signed integer type");
 	enum_type = bt_ctf_field_type_enumeration_create(int_64_type);
 
@@ -1924,7 +1925,8 @@ void type_field_tests()
 
 	int_16_type = bt_ctf_field_type_integer_create(16);
 	assert(int_16_type);
-	bt_ctf_field_type_integer_set_signed(int_16_type, 1);
+	ok(!bt_ctf_field_type_integer_set_signed(int_16_type, 1),
+		"Set signedness of 16 bit integer to true");
 	ok(bt_ctf_field_type_integer_get_signed(int_16_type) == 1,
 		"bt_ctf_field_type_integer_get_signed returns a correct value for signed types");
 	uint_8_type = bt_ctf_field_type_integer_create(8);
