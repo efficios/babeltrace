@@ -830,7 +830,8 @@ int bt_iter_next(struct bt_iter *iter)
 	}
 
 	ret = stream_read_event(file_stream);
-	if (file_stream->pos.parent.trace->interval_set) {
+	if (file_stream->pos.parent.trace &&
+			file_stream->pos.parent.trace->interval_set) {
 		event_outside_interval =
 				file_stream->parent.real_timestamp >
 				file_stream->pos.parent.trace->interval_real.timestamp_end;
