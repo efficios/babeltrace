@@ -44,6 +44,9 @@ void test_bt_dwarf(const char *data_dir)
 
 	fd = open(path, O_RDONLY);
 	ok(fd >= 0, "Open DWARF file %s", path);
+	if (fd < 0) {
+	        exit(EXIT_FAILURE);
+	}
 	dwarf_info = dwarf_begin(fd, DWARF_C_READ);
 	ok(dwarf_info != NULL, "dwarf_begin successful");
 	cu = bt_dwarf_cu_create(dwarf_info);
