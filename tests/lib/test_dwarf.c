@@ -55,6 +55,9 @@ void test_bt_dwarf(const char *data_dir)
 	ok(ret == 0, "bt_dwarf_cu_next successful");
 	die = bt_dwarf_die_create(cu);
 	ok(die != NULL, "bt_dwarf_die_create successful");
+	if (!die) {
+		exit(EXIT_FAILURE);
+	}
 	/*
 	 * Test bt_dwarf_die_next twice, as the code path is different
 	 * for DIEs at depth 0 (just created) and other depths.
@@ -72,6 +75,10 @@ void test_bt_dwarf(const char *data_dir)
 	/* Reset DIE to test dwarf_child */
 	bt_dwarf_die_destroy(die);
 	die = bt_dwarf_die_create(cu);
+	if (!die) {
+		diag("Failed to create bt_dwarf_die");
+		exit(EXIT_FAILURE);
+	}
 
 	ret = bt_dwarf_die_child(die);
 	ok(ret == 0, "bt_dwarf_die_child successful");
