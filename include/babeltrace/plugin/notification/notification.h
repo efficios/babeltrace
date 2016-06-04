@@ -54,8 +54,17 @@ enum bt_notification_type {
 	/** End of stream packet notification, see packet.h */
 	BT_NOTIFICATION_TYPE_END_PACKET = 3,
 
+	/** New trace notification, see model.h */
+	BT_NOTIFICATION_TYPE_NEW_TRACE = 4,
+
+	/** New stream class notification, see model.h */
+	BT_NOTIFICATION_TYPE_NEW_STREAM_CLASS = 5,
+
+	/** New event class notification, see model.h */
+	BT_NOTIFICATION_TYPE_NEW_EVENT_CLASS = 6,
+
 	/** End of trace notification, see eot.h */
-	BT_NOTIFICATION_TYPE_END_OF_TRACE = 4,
+	BT_NOTIFICATION_TYPE_END_OF_TRACE = 7,
 
 	BT_NOTIFICATION_TYPE_NR,
 };

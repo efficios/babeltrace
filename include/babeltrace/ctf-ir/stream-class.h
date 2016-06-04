@@ -31,6 +31,7 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/ctf-ir/visitor.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -270,6 +271,20 @@ bt_ctf_stream_class_get_event_context_type(
 extern int bt_ctf_stream_class_set_event_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_context_type);
+
+/*
+ * bt_ctf_stream_class_visit: visit a stream class' event classes.
+ *
+ * Call visitor on each of a stream class' event classes.
+ *
+ * @param stream_class Stream class instance.
+ * @param visitor visitor function to invoke for each stream class.
+ * @param data user data passed to the visitor.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
+		bt_ctf_ir_visitor visitor, void *data);
 
 #ifdef __cplusplus
 }

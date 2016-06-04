@@ -31,7 +31,9 @@
  */
 
 #include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/visitor.h>
 #include <babeltrace/values.h>
+#include <babeltrace/plugin/notification/notification.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -349,6 +351,21 @@ extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
  */
 extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 		struct bt_ctf_field_type *packet_header_type);
+
+/*
+ * bt_ctf_trace_visit: visit a trace's hierarchy.
+ *
+ * Recursively walk a trace's hierarchy and call visitor on each of its
+ * elements.
+ *
+ * @param trace Trace instance.
+ * @param visitor visitor function to invoke for each element.
+ * @param data user data passed to the visitor.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
+		bt_ctf_ir_visitor visitor, void *data);
 
 /*
  * bt_ctf_trace_add_notification_handler_cb: set a notification callback

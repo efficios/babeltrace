@@ -37,7 +37,9 @@
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
+#include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/plugin/notification/schema.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
@@ -1032,6 +1034,71 @@ end:
 	return ret;
 }
 
+static
+int get_stream_class_count(void *element)
+{
+	return bt_ctf_trace_get_stream_class_count(
+			(struct bt_ctf_trace *) element);
+}
+
+static
+void *get_stream_class(void *element, int i)
+{
+	return bt_ctf_trace_get_stream_class(
+			(struct bt_ctf_trace *) element, i);
+}
+
+static
+int visit_stream_class(void *element, bt_ctf_ir_visitor visitor,void *data)
+{
+	return bt_ctf_stream_class_visit(element, visitor, data);
+}
+
+int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
+		bt_ctf_ir_visitor visitor, void *data)
+{
+	int ret;
+	struct bt_ctf_ir_element element =
+			{ .element = trace, .type = BT_CTF_IR_TYPE_TRACE };
+
+	if (!trace || !visitor) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = visitor_helper(&element, get_stream_class_count,
+			get_stream_class, visit_stream_class, visitor, data);
+end:
+	return ret;
+}
+
+static
+int ir_visitor(struct bt_ctf_ir_element *element, void *data)
+{
+	int ret = 0;
+
+	switch (element->type) {
+	case BT_CTF_IR_TYPE_TRACE:
+	{
+		break;
+	}
+	case BT_CTF_IR_TYPE_STREAM_CLASS:
+	{
+		break;
+	}
+	case BT_CTF_IR_TYPE_EVENT_CLASS:
+	{
+		break;
+	}
+	default:
+		assert(0);
+		ret = -1;
+		goto end;
+	}
+end:
+	return ret;
+}
+
 int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
 		bt_ctf_notification_cb handler, void *handler_data)
 {
@@ -1046,6 +1113,13 @@ int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
 
 	handler_wrapper->func = handler;
 	handler_wrapper->data = handler_data;
+
+	/* Emit notifications describing the current schema. */
+	ret = bt_ctf_trace_visit(trace, ir_visitor, handler_wrapper);
+	if (ret) {
+		goto error;
+	}
+
 	g_ptr_array_add(trace->notification_handlers, handler_wrapper);
 	return ret;
 error:

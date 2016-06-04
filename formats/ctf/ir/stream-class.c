@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
+#include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
@@ -695,6 +696,50 @@ void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 {
 	bt_put(stream_class);
+}
+
+static
+int get_event_class_count(void *element)
+{
+	return bt_ctf_stream_class_get_event_class_count(
+			(struct bt_ctf_stream_class *) element);
+}
+
+static
+void *get_event_class(void *element, int i)
+{
+	return bt_ctf_stream_class_get_event_class(
+			(struct bt_ctf_stream_class *) element, i);
+}
+
+static
+int visit_event_class(void *element, bt_ctf_ir_visitor visitor,void *data)
+{
+	struct bt_ctf_ir_element ir_element =
+			{ .element = element,
+			.type = BT_CTF_IR_TYPE_EVENT_CLASS };
+
+	return visitor(&ir_element, data);
+}
+
+int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
+		bt_ctf_ir_visitor visitor, void *data)
+{
+	int ret;
+	struct bt_ctf_ir_element element =
+			{ .element = stream_class,
+			.type = BT_CTF_IR_TYPE_STREAM_CLASS };
+
+	if (!stream_class || !visitor) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = visitor_helper(&element, get_event_class_count,
+			get_event_class,
+			visit_event_class, visitor, data);
+end:
+	return ret;
 }
 
 BT_HIDDEN
