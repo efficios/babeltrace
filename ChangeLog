@@ -1,3 +1,20 @@
+2016-06-06 babeltrace 1.4.0 (National Yo-Yo Day)
+	* Tests: dereference of NULL pointer on allocation failure
+	* Tests: abort dwarf test on open() failure
+	* Fix: lttng-live does not set a trace descriptor
+	* Tests: Add missing --merge LOG_DRIVER_FLAGS
+	* Fix: strerror_r behavior is glibc specific
+	* sys/param.h is required for MAXNAMLEN on musl libc
+	* Fix: undefined bit shift operation when printing octal numbers
+	* Fix: Wrong variable checked in bin_info_child_die_has_address
+	* Fix: Only close valid fds in is_valid_debug_file
+	* Fix: Free die_name in bin_info_lookup_cu_function_name
+	* Fix: Don't dereference null ptr in error path
+	* Standardise spelling of debug info
+	* Fix: typo in --disable-debug-info in configure error message
+	* Docs: change --clock-raw to --clock-cycles
+	* Fix: segmentation fault with multi-trace having non-correlated clocks
+
 2016-05-13 babeltrace 1.4.0-rc1
 	* Display binary location even if source and symbol lookups fail
 	* Tests: Multi-trace stream intersection test
