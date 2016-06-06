@@ -1,3 +1,14 @@
+2016-06-06 babeltrace 1.3.3 (National Yo-Yo Day)
+	* Fix: undefined bit shift operation when printing octal numbers
+	* Docs: change --clock-raw to --clock-cycles
+	* Fix: segmentation fault with multi-trace having non-correlated clocks
+	* Fix: ctf-text: signed base 8, 16 printout
+	* Fix: respect signed integers' length when printing in hex base
+	* Fix: return event timestamp in _timestamp_at_pos
+	* Fix: lttng-live flush when output to file
+	* Fix: lttng-live use g_free rather than free
+	* Fix: lttng-live data_size and version endianness
+
 2016-02-29 babeltrace 1.3.2
 	* Python bindings: work around Python 3.5 behaviour change
 	* Fix: out-of-bound memory access
