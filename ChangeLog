@@ -1,3 +1,8 @@
+2016-06-06 babeltrace 1.2.6 (National Yo-Yo Day)
+	* Docs: change --clock-raw to --clock-cycles
+	* Fix: out-of-tree dist fails to find test traces
+	* Fix running tests out of tree
+
 2015-11-10 babeltrace 1.2.5
 	* Fix: Confusion between stream and stream class IDs
 	* Fix: babeltrace-log packet seek
