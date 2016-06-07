@@ -335,7 +335,6 @@ AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read
 AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/intersection/test_intersection])
 AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
-AC_CONFIG_FILES([tests/bin/intersection/test_multi_trace_intersection.py:tests/bin/intersection/test_multi_trace_intersection.py], [chmod +x tests/bin/intersection/test_multi_trace_intersection.py])
 
 AC_OUTPUT
 
