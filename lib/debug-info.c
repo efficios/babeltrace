@@ -863,10 +863,11 @@ void debug_info_handle_event(struct debug_info *debug_info,
 		handle_statedump_build_id_event(debug_info, event);
 	} else if (event_class->name == debug_info-> q_lib_unload) {
 		handle_lib_unload_event(debug_info, event);
-	} else {
-		/* Other events: register debug infos */
-		register_event_debug_infos(debug_info, event);
 	}
+
+	/* All events: register debug infos */
+	register_event_debug_infos(debug_info, event);
+
 end:
 	return;
 }
