@@ -560,6 +560,8 @@ void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
 %rename("_bt_ctf_event_get_payload_by_index") bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, int index);
 %rename("_bt_ctf_event_get") bt_ctf_event_get(struct bt_ctf_event *event);
 %rename("_bt_ctf_event_put") bt_ctf_event_put(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_get_stream_event_context") bt_ctf_event_get_stream_event_context(struct bt_ctf_event *event);
+%rename("_bt_ctf_event_set_stream_event_context") bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event, struct bt_ctf_field *stream_event_context);
 
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class);
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event);
@@ -569,6 +571,8 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name, struc
 struct bt_ctf_field *bt_ctf_event_get_payload_by_index(struct bt_ctf_event *event, int index);
 void bt_ctf_event_get(struct bt_ctf_event *event);
 void bt_ctf_event_put(struct bt_ctf_event *event);
+struct bt_ctf_field *bt_ctf_event_get_stream_event_context(struct bt_ctf_event *event);
+int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event, struct bt_ctf_field *stream_event_context);
 
 
 /* stream-class.h */
@@ -584,6 +588,8 @@ void bt_ctf_event_put(struct bt_ctf_event *event);
 %rename("_bt_ctf_stream_class_get_event_class_by_name") bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 %rename("_bt_ctf_stream_class_get_packet_context_type") bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_set_packet_context_type") bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
+%rename("_bt_ctf_stream_class_get_event_context_type") bt_ctf_stream_class_get_event_context_type(struct bt_ctf_stream_class *stream_class);
+%rename("_bt_ctf_stream_class_set_event_context_type") bt_ctf_stream_class_set_event_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *event_context_type);
 %rename("_bt_ctf_stream_class_get") bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 %rename("_bt_ctf_stream_class_put") bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 
@@ -599,6 +605,8 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(struct bt_ctf_str
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(struct bt_ctf_stream_class *stream_class, const char *name);
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_packet_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *packet_context_type);
+struct bt_ctf_field_type *bt_ctf_stream_class_get_event_context_type(struct bt_ctf_stream_class *stream_class);
+int bt_ctf_stream_class_set_event_context_type(struct bt_ctf_stream_class *stream_class, struct bt_ctf_field_type *event_context_type);
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 

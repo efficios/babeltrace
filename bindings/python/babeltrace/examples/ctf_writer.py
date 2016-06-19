@@ -71,6 +71,11 @@ for field in packet_context_type.fields:
 packet_context_type.add_field(uint16_type, "a_custom_packet_context_field")
 stream_class.packet_context_type = packet_context_type
 
+# Set a stream event context
+stream_event_context_type = btw.StructureFieldDeclaration()
+stream_event_context_type.add_field(int32_type, "field_in_stream_event_context")
+stream_class.event_context_type = stream_event_context_type
+
 # Create a string type
 string_type = btw.StringFieldDeclaration()
 
@@ -134,6 +139,8 @@ for i in range(100):
     enumeration_field = event.payload("enum_field")
     integer_field = enumeration_field.container
     enumeration_field.value = i % 10
+
+    event.stream_context.field("field_in_stream_event_context").value = i * 10
 
     stream.append_event(event)
 

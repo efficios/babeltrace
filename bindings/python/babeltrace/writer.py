@@ -1747,6 +1747,34 @@ class Event:
         if ret < 0:
             raise ValueError("Could not set event field payload.")
 
+    @property
+    def stream_context(self):
+        """
+        Stream event context field (instance of
+        :class:`StructureField`).
+
+        Set this attribute to assign a stream event context field
+        to this stream.
+
+        :exc:`ValueError` is raised on error.
+        """
+
+        native_field = nbt._bt_ctf_event_get_stream_event_context(self._e)
+
+        if native_field is None:
+            raise ValueError("Invalid Stream.")
+
+        return Field._create_field_from_native_instance(native_field)
+
+    @stream_context.setter
+    def stream_context(self, field):
+        if not isinstance(field, StructureField):
+            raise TypeError("Argument field must be of type StructureField")
+
+        ret = nbt._bt_ctf_event_set_stream_event_context(self._e, field._f)
+
+        if ret < 0:
+            raise ValueError("Invalid stream context field.")
 
 class StreamClass:
     """
@@ -1922,6 +1950,39 @@ class StreamClass:
 
         if ret < 0:
             raise ValueError("Failed to set packet context type.")
+
+    @property
+    def event_context_type(self):
+        """
+        Stream event context declaration.
+
+        Set this attribute to change the stream event context
+        declaration (must be an instance of
+        :class:`StructureFieldDeclaration`).
+
+        :exc:`ValueError` is raised on error.
+
+        """
+
+        field_type_native = nbt._bt_ctf_stream_class_get_event_context_type(self._sc)
+
+        if field_type_native is None:
+            raise ValueError("Invalid StreamClass")
+
+        field_type = FieldDeclaration._create_field_declaration_from_native_instance(field_type_native)
+
+        return field_type
+
+    @event_context_type.setter
+    def event_context_type(self, field_type):
+        if not isinstance(field_type, StructureFieldDeclaration):
+            raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
+
+        ret = nbt._bt_ctf_stream_class_set_event_context_type(self._sc,
+                                                              field_type._ft)
+
+        if ret < 0:
+            raise ValueError("Failed to set event context type.")
 
 
 class Stream:
