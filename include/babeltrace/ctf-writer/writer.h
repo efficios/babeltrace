@@ -96,6 +96,23 @@ extern int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
 		const char *value);
 
 /*
+ * bt_ctf_writer_add_environment_field_int64: add an environment field to the trace.
+ *
+ * Add an environment field to the trace. The name and value parameters are
+ * copied.
+ *
+ * @param writer Writer instance.
+ * @param name Name of the environment field (will be copied).
+ * @param value Value of the environment field.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_writer_add_environment_field_int64(
+		struct bt_ctf_writer *writer,
+		const char *name,
+		int64_t value);
+
+/*
  * bt_ctf_writer_add_clock: add a clock to the trace.
  *
  * Add a clock to the trace. Clocks assigned to stream classes must be

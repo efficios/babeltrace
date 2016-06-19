@@ -2141,11 +2141,23 @@ class Writer:
         Sets the CTF environment variable named *name* to value *value*
         (converted to a string).
 
-        :exc:`ValueError` is raised on error.
+        :exc:`ValueError` or `TypeError` is raised on error.
         """
 
-        ret = nbt._bt_ctf_writer_add_environment_field(self._w, str(name),
-                                                       str(value))
+        if type(name) != str:
+            raise TypeError("Field name must be a string.")
+
+        t = type(value)
+
+        if t == str:
+            ret = nbt._bt_ctf_writer_add_environment_field(self._w, name,
+                                                           value)
+        elif t == int:
+            ret = nbt._bt_ctf_writer_add_environment_field_int64(self._w,
+                                                                 name,
+                                                                 value)
+        else:
+            raise TypeError("Value type is not supported.")
 
         if ret < 0:
             raise ValueError("Could not add environment field to trace.")
