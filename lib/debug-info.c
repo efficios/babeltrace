@@ -59,20 +59,22 @@ struct debug_info {
 	GQuark q_statedump_build_id;
 	GQuark q_statedump_start;
 	GQuark q_dl_open;
+	GQuark q_lib_load;
 };
 
 static
 int debug_info_init(struct debug_info *info)
 {
-	info->q_statedump_bin_info = g_quark_from_string(
+	info->q_statedump_bin_info = g_quark_from_static_string(
 			"lttng_ust_statedump:bin_info");
-	info->q_statedump_debug_link = g_quark_from_string(
+	info->q_statedump_debug_link = g_quark_from_static_string(
 			"lttng_ust_statedump:debug_link)");
-	info->q_statedump_build_id = g_quark_from_string(
+	info->q_statedump_build_id = g_quark_from_static_string(
 			"lttng_ust_statedump:build_id");
-	info->q_statedump_start = g_quark_from_string(
+	info->q_statedump_start = g_quark_from_static_string(
 			"lttng_ust_statedump:start");
-	info->q_dl_open = g_quark_from_string("lttng_ust_dl:dlopen");
+	info->q_dl_open = g_quark_from_static_string("lttng_ust_dl:dlopen");
+	info->q_lib_load = g_quark_from_static_string("lttng_ust_lib:load");
 
 	return bin_info_init();
 }
@@ -784,7 +786,17 @@ void debug_info_handle_event(struct debug_info *debug_info,
 	if (event_class->name == debug_info->q_statedump_bin_info) {
 		/* State dump */
 		handle_statedump_bin_info_event(debug_info, event);
-	} else if (event_class->name == debug_info->q_dl_open) {
+	} else if (event_class->name == debug_info->q_dl_open ||
+			event_class->name == debug_info->q_lib_load) {
+		/*
+		 * dl_open and lib_load events are both checked for since
+		 * only dl_open was produced as of lttng-ust 2.8.
+		 *
+		 * lib_load, which is produced from lttng-ust 2.9+, is a lot
+		 * more reliable since it will be emitted when other functions
+		 * of the dlopen family are called (e.g. dlmopen) and when
+		 * library are transitively loaded.
+		 */
 		handle_dlopen_event(debug_info, event);
 	} else if (event_class->name == debug_info->q_statedump_start) {
 		/* Start state dump */
