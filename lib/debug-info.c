@@ -60,6 +60,7 @@ struct debug_info {
 	GQuark q_statedump_start;
 	GQuark q_dl_open;
 	GQuark q_lib_load;
+	GQuark q_lib_unload;
 };
 
 static
@@ -75,6 +76,7 @@ int debug_info_init(struct debug_info *info)
 			"lttng_ust_statedump:start");
 	info->q_dl_open = g_quark_from_static_string("lttng_ust_dl:dlopen");
 	info->q_lib_load = g_quark_from_static_string("lttng_ust_lib:load");
+	info->q_lib_unload = g_quark_from_static_string("lttng_ust_lib:unload");
 
 	return bin_info_init();
 }
@@ -697,6 +699,58 @@ void handle_lib_load_event(struct debug_info *debug_info,
 	handle_bin_info_event(debug_info, event_def, false);
 }
 
+static inline
+void handle_lib_unload_event(struct debug_info *debug_info,
+		struct ctf_event_definition *event_def)
+{
+	struct bt_definition *baddr_def = NULL;
+	struct bt_definition *event_fields_def = NULL;
+	struct bt_definition *sec_def = NULL;
+	struct bt_definition *vpid_def = NULL;
+	struct proc_debug_info_sources *proc_dbg_info_src;
+	uint64_t baddr;
+	int64_t vpid;
+	gpointer key_ptr = NULL;
+
+	event_fields_def = (struct bt_definition *) event_def->event_fields;
+	sec_def = (struct bt_definition *)
+			event_def->stream->stream_event_context;
+	if (!event_fields_def || !sec_def) {
+		goto end;
+	}
+
+	baddr_def = bt_lookup_definition(event_fields_def, "_baddr");
+	if (!baddr_def) {
+		goto end;
+	}
+
+	vpid_def = bt_lookup_definition(sec_def, "_vpid");
+	if (!vpid_def) {
+		goto end;
+	}
+
+	if (baddr_def->declaration->id != BT_CTF_TYPE_ID_INTEGER) {
+		goto end;
+	}
+	if (vpid_def->declaration->id != BT_CTF_TYPE_ID_INTEGER) {
+		goto end;
+	}
+
+	baddr = bt_get_unsigned_int(baddr_def);
+	vpid = bt_get_signed_int(vpid_def);
+
+	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
+			debug_info->vpid_to_proc_dbg_info_src, vpid);
+	if (!proc_dbg_info_src) {
+		goto end;
+	}
+
+	key_ptr = (gpointer) &baddr;
+	assert(g_hash_table_remove(proc_dbg_info_src->baddr_to_bin_info,
+			key_ptr));
+end:
+	return;
+}
 
 static
 void handle_statedump_start(struct debug_info *debug_info,
@@ -807,11 +861,12 @@ void debug_info_handle_event(struct debug_info *debug_info,
 	} else if (event_class->name == debug_info->q_statedump_build_id) {
 		/* Build ID info */
 		handle_statedump_build_id_event(debug_info, event);
+	} else if (event_class->name == debug_info-> q_lib_unload) {
+		handle_lib_unload_event(debug_info, event);
 	} else {
 		/* Other events: register debug infos */
 		register_event_debug_infos(debug_info, event);
 	}
-
 end:
 	return;
 }
