@@ -691,7 +691,7 @@ void handle_statedump_bin_info_event(struct debug_info *debug_info,
 }
 
 static inline
-void handle_dlopen_event(struct debug_info *debug_info,
+void handle_lib_load_event(struct debug_info *debug_info,
 		struct ctf_event_definition *event_def)
 {
 	handle_bin_info_event(debug_info, event_def, false);
@@ -797,7 +797,7 @@ void debug_info_handle_event(struct debug_info *debug_info,
 		 * of the dlopen family are called (e.g. dlmopen) and when
 		 * library are transitively loaded.
 		 */
-		handle_dlopen_event(debug_info, event);
+		handle_lib_load_event(debug_info, event);
 	} else if (event_class->name == debug_info->q_statedump_start) {
 		/* Start state dump */
 		handle_statedump_start(debug_info, event);
