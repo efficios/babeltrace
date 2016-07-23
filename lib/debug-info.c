@@ -746,8 +746,8 @@ void handle_lib_unload_event(struct debug_info *debug_info,
 	}
 
 	key_ptr = (gpointer) &baddr;
-	assert(g_hash_table_remove(proc_dbg_info_src->baddr_to_bin_info,
-			key_ptr));
+	(void) g_hash_table_remove(proc_dbg_info_src->baddr_to_bin_info,
+			key_ptr);
 end:
 	return;
 }
