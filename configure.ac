@@ -176,7 +176,7 @@ AC_CHECK_FUNCS([uuid_generate],
         link_with_libc_uuid=yes
       ],
       [
-        # for MinGW32 we have our own internal implemenation of uuid using Windows functions.
+        # for MinGW32 we have our own internal implementation of uuid using Windows functions.
         if test "x$MINGW32" = xno; then
           AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
         fi
