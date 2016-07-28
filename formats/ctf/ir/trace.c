@@ -48,8 +48,8 @@
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
 
-struct notification_handler {
-	bt_ctf_notification_cb func;
+struct listener_wrapper {
+	bt_ctf_listener_cb listener;
 	void *data;
 };
 
@@ -1099,31 +1099,35 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
-		bt_ctf_notification_cb handler, void *handler_data)
+int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
+		bt_ctf_listener_cb listener, void *listener_data)
 {
 	int ret = 0;
-	struct notification_handler *handler_wrapper =
-			g_new0(struct notification_handler, 1);
+	struct listener_wrapper *listener_wrapper =
+			g_new0(struct listener_wrapper, 1);
 
-	if (!trace || !handler || !handler_wrapper) {
+	if (!trace || !listener || !listener_wrapper) {
 		ret = -1;
 		goto error;
 	}
 
-	handler_wrapper->func = handler;
-	handler_wrapper->data = handler_data;
+	listener_wrapper->listener = listener;
+	listener_wrapper->data = listener_data;
 
-	/* Emit notifications describing the current schema. */
-	ret = bt_ctf_trace_visit(trace, ir_visitor, handler_wrapper);
+	/* Visit the current schema. */
+	ret = bt_ctf_trace_visit(trace, ir_visitor, listener_wrapper);
 	if (ret) {
 		goto error;
 	}
 
-	g_ptr_array_add(trace->notification_handlers, handler_wrapper);
+	/*
+	 * Add listener to the array of callbacks which will be invoked on
+	 * schema changes.
+	 */
+	g_ptr_array_add(trace->listeners, listener_wrapper);
 	return ret;
 error:
-	g_free(handler_wrapper);
+	g_free(listener_wrapper);
 	return ret;
 }
 

@@ -46,16 +46,15 @@ struct bt_ctf_stream_class;
 struct bt_ctf_clock;
 
 /**
- * Notification handling function type.
+ * Trace modification handling function type.
  *
- * A reference must be taken on the notification if the handler has to
- * keep ownership of the notification beyond the invocation of the callback.
+ * Callback invoked whenever an element is added to a trace's hierachy.
  *
- * @param notification	Notification to handle
+ * @param element	New element
  * @param data		Handler private data
  */
-typedef void (*bt_ctf_notification_cb)(
-		struct bt_notification *notification, void *data);
+typedef void (*bt_ctf_listener_cb)(
+		struct bt_ctf_ir_element *element, void *data);
 
 /*
  * bt_ctf_trace_create: create a trace instance.
@@ -368,23 +367,23 @@ extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 		bt_ctf_ir_visitor visitor, void *data);
 
 /*
- * bt_ctf_trace_add_notification_handler_cb: set a notification callback
+ * bt_ctf_trace_add_listener: add a trace modification listener
  * which will be invoked whenever a trace's schema is modified.
  *
- * Register a notification handler to a trace.
+ * Register a modification listener to a trace.
  *
  * @param trace Trace instance.
- * @param handler Notification handler to invoke on trace xmodification.
- * @param handler_data Private data passed to the notification handler.
+ * @param listener Callback to invoke on trace modification.
+ * @param listener_data Private data passed to the listener.
  *
  * Returns 0 on success, a negative value on error.
  *
- * Note: the notification handler will be used to serialize the trace's current
+ * Note: the listener will be used to serialize the trace's current
  * state on registration. It will then be invoked on any change occuring within
  * the trace's hierarchy.
  */
-extern int bt_ctf_trace_add_notification_handler_cb(struct bt_ctf_trace *trace,
-		bt_ctf_notification_cb handler, void *handler_data);
+extern int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
+		bt_ctf_listener_cb listener, void *listener_data);
 
 #ifdef __cplusplus
 }
