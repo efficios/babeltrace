@@ -111,6 +111,12 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 		goto error;
 	}
 
+	trace->listeners = g_ptr_array_new_with_free_func(
+			(GDestroyNotify) g_free);
+	if (!trace->listeners) {
+		goto error;
+	}
+
 	return trace;
 
 error:
@@ -137,6 +143,10 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 
 	if (trace->stream_classes) {
 		g_ptr_array_free(trace->stream_classes, TRUE);
+	}
+
+	if (trace->listeners) {
+		g_ptr_array_free(trace->listeners, TRUE);
 	}
 
 	bt_put(trace->packet_header_type);
@@ -640,6 +650,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	bt_ctf_stream_class_freeze(stream_class);
 	bt_ctf_trace_freeze(trace);
 
+	/* Notifiy listeners of the trace's schema modification. */
+	bt_ctf_stream_class_visit(stream_class,
+			bt_ctf_trace_element_modification, trace);
 end:
 	if (ret) {
 		bt_object_set_parent(stream_class, NULL);
@@ -1073,30 +1086,12 @@ end:
 }
 
 static
-int ir_visitor(struct bt_ctf_ir_element *element, void *data)
+int invoke_listener(struct bt_ctf_ir_element *element, void *data)
 {
-	int ret = 0;
+	struct listener_wrapper *listener_wrapper = data;
 
-	switch (element->type) {
-	case BT_CTF_IR_TYPE_TRACE:
-	{
-		break;
-	}
-	case BT_CTF_IR_TYPE_STREAM_CLASS:
-	{
-		break;
-	}
-	case BT_CTF_IR_TYPE_EVENT_CLASS:
-	{
-		break;
-	}
-	default:
-		assert(0);
-		ret = -1;
-		goto end;
-	}
-end:
-	return ret;
+	listener_wrapper->listener(element, listener_wrapper->data);
+	return 0;
 }
 
 int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
@@ -1115,7 +1110,7 @@ int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
 	listener_wrapper->data = listener_data;
 
 	/* Visit the current schema. */
-	ret = bt_ctf_trace_visit(trace, ir_visitor, listener_wrapper);
+	ret = bt_ctf_trace_visit(trace, invoke_listener, listener_wrapper);
 	if (ret) {
 		goto error;
 	}
@@ -1129,6 +1124,30 @@ int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
 error:
 	g_free(listener_wrapper);
 	return ret;
+}
+
+BT_HIDDEN
+int bt_ctf_trace_element_modification(struct bt_ctf_ir_element *element,
+		void *trace_ptr)
+{
+	size_t i;
+	struct bt_ctf_trace *trace = trace_ptr;
+
+	assert(trace);
+	assert(element);
+
+	if (trace->listeners->len == 0) {
+		goto end;
+	}
+
+	for (i = 0; i < trace->listeners->len; i++) {
+		struct listener_wrapper *listener =
+				g_ptr_array_index(trace->listeners, i);
+
+		listener->listener(element, listener->data);
+	}
+end:
+	return 0;
 }
 
 BT_HIDDEN

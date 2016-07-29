@@ -462,6 +462,13 @@ int bt_ctf_stream_class_add_event_class(
 			stream_class->byte_order);
 	}
 
+	/* Notifiy listeners of the trace's schema modification. */
+	if (trace) {
+		struct bt_ctf_ir_element element = { .element = event_class,
+				.type = BT_CTF_IR_TYPE_EVENT_CLASS };
+
+		(void) bt_ctf_trace_element_modification(&element, trace);
+	}
 end:
 	BT_PUT(trace);
 	BT_PUT(old_stream_class);
