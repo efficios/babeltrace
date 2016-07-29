@@ -39,6 +39,7 @@
 #include <sys/stat.h>
 #include <gmodule.h>
 #include <stdbool.h>
+#include <dirent.h>
 
 #define NATIVE_PLUGIN_SUFFIX ".so"
 #define NATIVE_PLUGIN_SUFFIX_LEN sizeof(NATIVE_PLUGIN_SUFFIX)
