@@ -1,7 +1,7 @@
 /*
- * test_ir_visit.c
+ * test_trace_lister.c
  *
- * CTF IR visitor interface test
+ * CTF IR trace listener interface test
  *
  * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -24,11 +24,10 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/visitor.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define NR_TESTS 13
+#define NR_TESTS 21
 
 struct visitor_state {
 	int i;
@@ -46,6 +45,10 @@ struct expected_result expected_results[] = {
 	{ "sc2", BT_CTF_IR_TYPE_STREAM_CLASS },
 	{ "ec2", BT_CTF_IR_TYPE_EVENT_CLASS },
 	{ "ec3", BT_CTF_IR_TYPE_EVENT_CLASS },
+	/* Elements added after the initial add_listener call. */
+	{ "sc3", BT_CTF_IR_TYPE_STREAM_CLASS },
+	{ "ec4", BT_CTF_IR_TYPE_EVENT_CLASS },
+	{ "ec5", BT_CTF_IR_TYPE_EVENT_CLASS },
 };
 
 const char *element_type_str(enum bt_ctf_ir_type type)
@@ -140,9 +143,8 @@ error:
 	goto end;
 }
 
-int visitor(struct bt_ctf_ir_element *element, void *data)
+void visitor(struct bt_ctf_ir_element *element, void *data)
 {
-	int ret = 0;
 	bool names_match;
 	const char *element_name;
 	struct visitor_state *state = data;
@@ -157,8 +159,7 @@ int visitor(struct bt_ctf_ir_element *element, void *data)
 		element_name = bt_ctf_stream_class_get_name(
 				bt_ctf_ir_element_get_element(element));
 		if (!element_name) {
-			ret = -1;
-			goto end;
+			return;
 		}
 
 		names_match = !strcmp(element_name, expected->element_name);
@@ -167,16 +168,14 @@ int visitor(struct bt_ctf_ir_element *element, void *data)
 		element_name = bt_ctf_event_class_get_name(
 				bt_ctf_ir_element_get_element(element));
 		if (!element_name) {
-			ret = -1;
-			goto end;
+			return;
 		}
 
 		names_match = !strcmp(element_name, expected->element_name);
 		break;
 	default:
 		diag("Encountered an unexpected type while visiting trace");
-		ret = -1;
-		goto end;
+		return;
 	}
 
 	ok(expected->element_type == bt_ctf_ir_element_get_type(element),
@@ -186,30 +185,67 @@ int visitor(struct bt_ctf_ir_element *element, void *data)
 	ok(names_match, "Element name is %s, expected %s",
 			element_name ? : "NULL",
 			expected->element_name ? : "NULL");
-end:
-	return ret;
 }
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, index;
 	struct bt_ctf_trace *trace;
 	struct visitor_state state = { 0 };
-	
+	struct bt_ctf_stream_class *sc3;
+	struct bt_ctf_event_class *ec4, *ec5;
+
 	plan_tests(NR_TESTS);
 
-	/*
-	 * Initialize a reference trace which we'll walk using the
-	 * bt_ctf_*_visit() interface.
-	 */
 	trace = init_trace();
 	if (!trace) {
 		diag("Failed to initialize reference trace, aborting.");
 		exit(-1);
 	}
 
-	ret = bt_ctf_trace_visit(trace, visitor, &state);
-	ok(!ret, "bt_ctf_trace_visit returned success");
+	ret = bt_ctf_trace_add_listener(trace, visitor, &state);
+	ok(!ret, "bt_ctf_trace_add_listener returned success");
+
+	/*
+	 * Validate that listeners are notified when new elements are added to a
+	 * trace.
+	 */
+	sc3 = bt_ctf_stream_class_create("sc3");
+	if (!sc3) {
+		diag("Failed to create stream class, aborting.");
+		exit(-1);
+	}
+
+	ec4 = init_event_class("ec4");
+	ec5 = init_event_class("ec5");
+	if (!ec4 || !ec5) {
+		diag("Failed to create event classes, aborting.");
+		exit(-1);
+	}
+
+	ret = bt_ctf_stream_class_add_event_class(sc3, ec4);
+	if (ret) {
+		diag("Failed to add event class to stream class, aborting.");
+	}
+
+	index = state.i;
+	ret = bt_ctf_trace_add_stream_class(trace, sc3);
+	if (ret) {
+		diag("Failed to add stream class sc3 to trace, aborting.");
+		exit(-1);
+	}
+
+	/* Listener should have been invoked two times (sc3 + ec4). */
+	ok(index + 2 == state.i, "trace modification listener has been invoked twice after addition of a stream class");
+
+	index = state.i;
+	ret = bt_ctf_stream_class_add_event_class(sc3, ec5);
+	if (ret) {
+		diag("Failed to add event class to stream class, aborting.");
+		exit(-1);
+	}
+
+	ok(index + 1 == state.i, "trace modification has been invoked once after addition of an event class");
 
 	BT_PUT(trace);
 	return exit_status();

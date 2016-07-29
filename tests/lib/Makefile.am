@@ -28,8 +28,11 @@ test_bt_ctf_field_type_validation_LDADD = $(COMMON_TEST_LDADD)
 
 test_ir_visit_LDADD = $(COMMON_TEST_LDADD)
 
+test_trace_listener_LDADD = $(COMMON_TEST_LDADD)
+
 noinst_PROGRAMS = test_seek test_bitfield test_ctf_writer test_bt_values \
-	test_ctf_ir_ref test_bt_ctf_field_type_validation test_ir_visit
+	test_ctf_ir_ref test_bt_ctf_field_type_validation test_ir_visit \
+	test_trace_listener
 
 test_seek_SOURCES = test_seek.c
 test_bitfield_SOURCES = test_bitfield.c
@@ -38,6 +41,7 @@ test_bt_values_SOURCES = test_bt_values.c
 test_ctf_ir_ref_SOURCES = test_ctf_ir_ref.c
 test_bt_ctf_field_type_validation_SOURCES = test_bt_ctf_field_type_validation.c
 test_ir_visit_SOURCES = test_ir_visit.c
+test_trace_listener_SOURCES = test_trace_listener.c
 
 check_SCRIPTS = test_seek_big_trace \
 		test_seek_empty_packet \
