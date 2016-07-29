@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	ret = bt_component_factory_load(component_factory, opt_plugin_path);
+	ret = bt_component_factory_load_recursive(component_factory, opt_plugin_path);
 	if (ret) {
 		fprintf(stderr, "Failed to load plugins.\n");
 		goto end;
