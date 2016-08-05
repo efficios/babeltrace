@@ -312,7 +312,6 @@ AS_IF([test "x$_enable_debug_info" = xyes], [
 ], [])
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= 2.0.0])
-AC_SUBST(PACKAGE_LIBS)
 
 LIBS="$LIBS $GMODULE_LIBS"
 PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
