@@ -332,7 +332,7 @@ void __attribute__((constructor)) lttng_live_init(void)
 {
 	int ret;
 
-	lttng_live_format.name = g_quark_from_static_string("lttng-live");
+	lttng_live_format.name = g_quark_from_string("lttng-live");
 	ret = bt_register_format(&lttng_live_format);
 	assert(!ret);
 }

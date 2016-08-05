@@ -79,7 +79,7 @@ void __attribute__((constructor)) bt_dummy_init(void)
 {
 	int ret;
 
-	bt_dummy_format.name = g_quark_from_static_string("dummy");
+	bt_dummy_format.name = g_quark_from_string("dummy");
 	ret = bt_register_format(&bt_dummy_format);
 	assert(!ret);
 }

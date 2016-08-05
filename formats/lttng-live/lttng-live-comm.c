@@ -1646,7 +1646,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 		goto end;
 	}
 
-	fmt_write = bt_lookup_format(g_quark_from_static_string("text"));
+	fmt_write = bt_lookup_format(g_quark_from_string("text"));
 	if (!fmt_write) {
 		fprintf(stderr, "[error] ctf-text error\n");
 		goto end;

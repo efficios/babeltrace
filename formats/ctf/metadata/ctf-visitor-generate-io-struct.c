@@ -1114,7 +1114,7 @@ struct bt_declaration *ctf_declaration_enum_visit(FILE *fd, int depth,
 			}
 		}
 		if (!container_type) {
-			declaration = bt_lookup_declaration(g_quark_from_static_string("int"),
+			declaration = bt_lookup_declaration(g_quark_from_string("int"),
 							 declaration_scope);
 			if (!declaration) {
 				fprintf(fd, "[error] %s: \"int\" type declaration missing for enumeration\n", __func__);
@@ -2075,7 +2075,7 @@ int ctf_stream_visit(FILE *fd, int depth, struct ctf_node *node,
 	if (CTF_STREAM_FIELD_IS_SET(stream, stream_id)) {
 		/* check that packet header has stream_id field. */
 		if (!trace->packet_header_decl
-		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("stream_id")) < 0) {
+		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_string("stream_id")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing stream_id field in packet header declaration, but stream_id attribute is declared for stream.\n", __func__);
 			goto error;
@@ -2293,7 +2293,7 @@ int ctf_trace_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 	if (!CTF_TRACE_FIELD_IS_SET(trace, byte_order)) {
 		/* check that the packet header contains a "magic" field */
 		if (!trace->packet_header_decl
-		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_static_string("magic")) < 0) {
+		    || bt_struct_declaration_lookup_field_index(trace->packet_header_decl, g_quark_from_string("magic")) < 0) {
 			ret = -EPERM;
 			fprintf(fd, "[error] %s: missing both byte_order and packet header magic number in trace declaration\n", __func__);
 			goto error;

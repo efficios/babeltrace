@@ -449,7 +449,7 @@ struct bt_definition *
 	definition_integer_parent =
 		enum_declaration->integer_declaration->p.definition_new(&enum_declaration->integer_declaration->p,
 				_enum->p.scope,
-				g_quark_from_static_string("container"), 0, NULL);
+				g_quark_from_string("container"), 0, NULL);
 	_enum->integer = container_of(definition_integer_parent,
 				      struct definition_integer, p);
 	return &_enum->p;

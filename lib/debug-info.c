@@ -66,17 +66,17 @@ struct debug_info {
 static
 int debug_info_init(struct debug_info *info)
 {
-	info->q_statedump_bin_info = g_quark_from_static_string(
+	info->q_statedump_bin_info = g_quark_from_string(
 			"lttng_ust_statedump:bin_info");
-	info->q_statedump_debug_link = g_quark_from_static_string(
+	info->q_statedump_debug_link = g_quark_from_string(
 			"lttng_ust_statedump:debug_link)");
-	info->q_statedump_build_id = g_quark_from_static_string(
+	info->q_statedump_build_id = g_quark_from_string(
 			"lttng_ust_statedump:build_id");
-	info->q_statedump_start = g_quark_from_static_string(
+	info->q_statedump_start = g_quark_from_string(
 			"lttng_ust_statedump:start");
-	info->q_dl_open = g_quark_from_static_string("lttng_ust_dl:dlopen");
-	info->q_lib_load = g_quark_from_static_string("lttng_ust_lib:load");
-	info->q_lib_unload = g_quark_from_static_string("lttng_ust_lib:unload");
+	info->q_dl_open = g_quark_from_string("lttng_ust_dl:dlopen");
+	info->q_lib_load = g_quark_from_string("lttng_ust_lib:load");
+	info->q_lib_unload = g_quark_from_string("lttng_ust_lib:unload");
 
 	return bin_info_init();
 }

@@ -1789,7 +1789,7 @@ begin:
 			fprintf(stderr, "[error] Unable to read packet header: %s\n", strerror(-ret));
 			return ret;
 		}
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("magic"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_string("magic"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 			uint64_t magic;
@@ -1806,7 +1806,7 @@ begin:
 		}
 
 		/* check uuid */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("uuid"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_string("uuid"));
 		if (len_index >= 0) {
 			struct definition_array *defarray;
 			struct bt_definition *field;
@@ -1831,7 +1831,7 @@ begin:
 			}
 		}
 
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_static_string("stream_id"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.trace_packet_header->declaration, g_quark_from_string("stream_id"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1862,7 +1862,7 @@ begin:
 			return ret;
 		}
 		/* read packet size from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("packet_size"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_string("packet_size"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1874,7 +1874,7 @@ begin:
 		}
 
 		/* read content size from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("content_size"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_string("content_size"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1886,7 +1886,7 @@ begin:
 		}
 
 		/* read timestamp begin from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_begin"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_string("timestamp_begin"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1901,7 +1901,7 @@ begin:
 		}
 
 		/* read timestamp end from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("timestamp_end"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_string("timestamp_end"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1916,7 +1916,7 @@ begin:
 		}
 
 		/* read events discarded from header */
-		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_static_string("events_discarded"));
+		len_index = bt_struct_declaration_lookup_field_index(file_stream->parent.stream_packet_context->declaration, g_quark_from_string("events_discarded"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -1928,7 +1928,7 @@ begin:
 		/* read packet_seq_num from header */
 		len_index = bt_struct_declaration_lookup_field_index(
 				file_stream->parent.stream_packet_context->declaration,
-				g_quark_from_static_string("packet_seq_num"));
+				g_quark_from_string("packet_seq_num"));
 		if (len_index >= 0) {
 			struct bt_definition *field;
 
@@ -2848,7 +2848,7 @@ void __attribute__((constructor)) ctf_init(void)
 {
 	int ret;
 
-	ctf_format.name = g_quark_from_static_string("ctf");
+	ctf_format.name = g_quark_from_string("ctf");
 	ret = bt_register_format(&ctf_format);
 	assert(!ret);
 }

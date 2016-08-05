@@ -100,23 +100,23 @@ struct bt_definition *
 	_float->p.path = bt_new_definition_path(parent_scope, field_name, root_name);
 	if (float_declaration->byte_order == LITTLE_ENDIAN) {
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
-			_float->p.scope, g_quark_from_static_string("mantissa"), 0, NULL);
+			_float->p.scope, g_quark_from_string("mantissa"), 0, NULL);
 		_float->mantissa = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
-			_float->p.scope, g_quark_from_static_string("exp"), 1, NULL);
+			_float->p.scope, g_quark_from_string("exp"), 1, NULL);
 		_float->exp = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
-			_float->p.scope, g_quark_from_static_string("sign"), 2, NULL);
+			_float->p.scope, g_quark_from_string("sign"), 2, NULL);
 		_float->sign = container_of(tmp, struct definition_integer, p);
 	} else {
 		tmp = float_declaration->sign->p.definition_new(&float_declaration->sign->p,
-			_float->p.scope, g_quark_from_static_string("sign"), 0, NULL);
+			_float->p.scope, g_quark_from_string("sign"), 0, NULL);
 		_float->sign = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->exp->p.definition_new(&float_declaration->exp->p,
-			_float->p.scope, g_quark_from_static_string("exp"), 1, NULL);
+			_float->p.scope, g_quark_from_string("exp"), 1, NULL);
 		_float->exp = container_of(tmp, struct definition_integer, p);
 		tmp = float_declaration->mantissa->p.definition_new(&float_declaration->mantissa->p,
-			_float->p.scope, g_quark_from_static_string("mantissa"), 2, NULL);
+			_float->p.scope, g_quark_from_string("mantissa"), 2, NULL);
 		_float->mantissa = container_of(tmp, struct definition_integer, p);
 	}
 	_float->p.ref = 1;

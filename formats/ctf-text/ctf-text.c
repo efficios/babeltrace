@@ -123,12 +123,12 @@ static GQuark Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN,
 static
 void __attribute__((constructor)) init_quarks(void)
 {
-	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN = g_quark_from_static_string("stream.packet.context.timestamp_begin");
-	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_END = g_quark_from_static_string("stream.packet.context.timestamp_end");
-	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED = g_quark_from_static_string("stream.packet.context.events_discarded");
-	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE = g_quark_from_static_string("stream.packet.context.content_size");
-	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE = g_quark_from_static_string("stream.packet.context.packet_size");
-	Q_STREAM_PACKET_CONTEXT_PACKET_SEQ_NUM = g_quark_from_static_string("stream.packet.context.packet_seq_num");
+	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_BEGIN = g_quark_from_string("stream.packet.context.timestamp_begin");
+	Q_STREAM_PACKET_CONTEXT_TIMESTAMP_END = g_quark_from_string("stream.packet.context.timestamp_end");
+	Q_STREAM_PACKET_CONTEXT_EVENTS_DISCARDED = g_quark_from_string("stream.packet.context.events_discarded");
+	Q_STREAM_PACKET_CONTEXT_CONTENT_SIZE = g_quark_from_string("stream.packet.context.content_size");
+	Q_STREAM_PACKET_CONTEXT_PACKET_SIZE = g_quark_from_string("stream.packet.context.packet_size");
+	Q_STREAM_PACKET_CONTEXT_PACKET_SEQ_NUM = g_quark_from_string("stream.packet.context.packet_seq_num");
 }
 
 static
@@ -605,7 +605,7 @@ void __attribute__((constructor)) ctf_text_init(void)
 {
 	int ret;
 
-	ctf_text_format.name = g_quark_from_static_string("text");
+	ctf_text_format.name = g_quark_from_string("text");
 	ret = bt_register_format(&ctf_text_format);
 	assert(!ret);
 }

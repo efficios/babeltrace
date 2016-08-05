@@ -132,7 +132,7 @@ void __attribute__((constructor)) ctf_metadata_init(void)
 {
 	int ret;
 
-	ctf_metadata_format.name = g_quark_from_static_string("ctf-metadata");
+	ctf_metadata_format.name = g_quark_from_string("ctf-metadata");
 	ret = bt_register_format(&ctf_metadata_format);
 	assert(!ret);
 }
