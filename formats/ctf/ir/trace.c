@@ -353,7 +353,7 @@ int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 	int ret = 0;
 	struct search_query query = { .value = clock, .found = 0 };
 
-	if (!trace || !clock) {
+	if (!trace || !bt_ctf_clock_is_valid(clock)) {
 		ret = -1;
 		goto end;
 	}

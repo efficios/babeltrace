@@ -844,7 +844,7 @@ int bt_ctf_field_type_integer_set_mapped_clock(
 	struct bt_ctf_field_type_integer *integer;
 	int ret = 0;
 
-	if (!type || type->frozen) {
+	if (!type || type->frozen || !bt_ctf_clock_is_valid(clock)) {
 		ret = -1;
 		goto end;
 	}

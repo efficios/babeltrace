@@ -37,8 +37,7 @@
 static
 void bt_ctf_clock_destroy(struct bt_object *obj);
 
-BT_HIDDEN
-struct bt_ctf_clock *_bt_ctf_clock_create(void)
+struct bt_ctf_clock *bt_ctf_clock_create_empty(void)
 {
 	struct bt_ctf_clock *clock = g_new0(
 		struct bt_ctf_clock, 1);
@@ -55,10 +54,20 @@ end:
 }
 
 BT_HIDDEN
+bool bt_ctf_clock_is_valid(struct bt_ctf_clock *clock)
+{
+	return clock && clock->name;
+}
+
 int bt_ctf_clock_set_name(struct bt_ctf_clock *clock,
 		const char *name)
 {
 	int ret = 0;
+
+	if (!clock || clock->frozen) {
+		ret = -1;
+		goto end;
+	}
 
 	if (bt_ctf_validate_identifier(name)) {
 		ret = -1;
@@ -84,7 +93,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	int ret;
 	struct bt_ctf_clock *clock = NULL;
 
-	clock = _bt_ctf_clock_create();
+	clock = bt_ctf_clock_create_empty();
 	if (!clock) {
 		goto error;
 	}

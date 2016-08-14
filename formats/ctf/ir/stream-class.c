@@ -147,7 +147,8 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 	int ret = 0;
 	struct bt_ctf_field_type *timestamp_field = NULL;
 
-	if (!stream_class || !clock || stream_class->frozen) {
+	if (!stream_class || stream_class->frozen ||
+			!bt_ctf_clock_is_valid(clock)) {
 		ret = -1;
 		goto end;
 	}

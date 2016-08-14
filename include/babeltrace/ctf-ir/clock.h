@@ -49,6 +49,10 @@ struct bt_ctf_clock;
  */
 extern struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
 
+extern struct bt_ctf_clock *bt_ctf_clock_create_empty(void);
+
+extern int bt_ctf_clock_set_name(struct bt_ctf_clock *clock, const char *name);
+
 /*
  * bt_ctf_clock_get_name: get a clock's name.
  *
