@@ -191,11 +191,6 @@ BT_HIDDEN
 void bt_ctf_field_type_set_native_byte_order(
 		struct bt_ctf_field_type *type, int byte_order);
 
-/* Deep copy a field type */
-BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_copy(
-		struct bt_ctf_field_type *type);
-
 BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(
 		struct bt_ctf_field_type *structure, const char *name);

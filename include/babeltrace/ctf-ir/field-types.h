@@ -851,6 +851,9 @@ extern struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_pat
 extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
 		struct bt_ctf_field_type *type_b);
 
+extern struct bt_ctf_field_type *bt_ctf_field_type_copy(
+		struct bt_ctf_field_type *type);
+
 /*
  * bt_ctf_field_type_get_type_id: get a field type's bt_ctf_type_id.
  *

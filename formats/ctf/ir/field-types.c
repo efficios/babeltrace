@@ -2372,7 +2372,6 @@ void bt_ctf_field_type_set_native_byte_order(struct bt_ctf_field_type *type,
 	}
 }
 
-BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_copy(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type *copy = NULL;
