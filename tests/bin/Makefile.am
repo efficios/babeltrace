@@ -1,2 +1,2 @@
 SUBDIRS = intersection
-check_SCRIPTS = test_trace_read test_packet_seq_num
+check_SCRIPTS = test_trace_read test_packet_seq_num test_formats

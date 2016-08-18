@@ -3,6 +3,7 @@
 /tests/bin/intersection/test_intersection
 /tests/bin/intersection/bt_python_helper.py
 /tests/bin/test_packet_seq_num
+/tests/bin/test_formats
 /tests/lib/test_bitfield
 /tests/lib/test_seek
 /tests/lib/test_ctf_writer
