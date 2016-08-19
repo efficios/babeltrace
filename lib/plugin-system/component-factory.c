@@ -107,7 +107,7 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 
 	module = g_module_open(path, 0);
 	if (!module) {
-		printf_error("Module open error: %s", g_module_error());
+		printf_verbose("Module open error: %s\n", g_module_error());
 		ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
 		goto end;
 	}
