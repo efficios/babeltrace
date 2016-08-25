@@ -62,6 +62,17 @@ extern struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
 extern const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
 
 /*
+ * bt_ctf_clock_set_name: set a clock's name.
+ *
+ * Set a clock's name.
+ *
+ * @param name Name of the clock (will be copied).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_name(struct bt_ctf_clock *clock, const char *name);
+
+/*
  * bt_ctf_clock_get_description: get a clock's description.
  *
  * Get the clock's description.
