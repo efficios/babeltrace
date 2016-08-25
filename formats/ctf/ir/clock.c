@@ -37,22 +37,6 @@
 static
 void bt_ctf_clock_destroy(struct bt_object *obj);
 
-struct bt_ctf_clock *bt_ctf_clock_create_empty(void)
-{
-	struct bt_ctf_clock *clock = g_new0(
-		struct bt_ctf_clock, 1);
-
-	if (!clock) {
-		goto end;
-	}
-
-	clock->precision = 1;
-	clock->frequency = 1000000000;
-	bt_object_init(clock, bt_ctf_clock_destroy);
-end:
-	return clock;
-}
-
 BT_HIDDEN
 bool bt_ctf_clock_is_valid(struct bt_ctf_clock *clock)
 {
@@ -91,16 +75,21 @@ end:
 struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 {
 	int ret;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock *clock = g_new0(struct bt_ctf_clock, 1);
 
-	clock = bt_ctf_clock_create_empty();
 	if (!clock) {
 		goto error;
 	}
 
-	ret = bt_ctf_clock_set_name(clock, name);
-	if (ret) {
-		goto error;
+	clock->precision = 1;
+	clock->frequency = 1000000000;
+	bt_object_init(clock, bt_ctf_clock_destroy);
+
+	if (name) {
+		ret = bt_ctf_clock_set_name(clock, name);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	ret = bt_uuid_generate(clock->uuid);

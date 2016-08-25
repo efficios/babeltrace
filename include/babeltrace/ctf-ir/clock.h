@@ -43,15 +43,12 @@ struct bt_ctf_clock;
  *
  * Allocate a new clock setting its reference count to 1.
  *
- * @param name Name of the clock (will be copied).
+ * @param name Name of the clock (will be copied); can be set to NULL
+ *             for nameless clocks.
  *
  * Returns an allocated clock on success, NULL on error.
  */
 extern struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
-
-extern struct bt_ctf_clock *bt_ctf_clock_create_empty(void);
-
-extern int bt_ctf_clock_set_name(struct bt_ctf_clock *clock, const char *name);
 
 /*
  * bt_ctf_clock_get_name: get a clock's name.
