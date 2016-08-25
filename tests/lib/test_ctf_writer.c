@@ -3151,7 +3151,6 @@ int main(int argc, char **argv)
 	/* Define a clock and add it to the trace */
 	ok(bt_ctf_clock_create("signed") == NULL,
 		"Illegal clock name rejected");
-	ok(bt_ctf_clock_create(NULL) == NULL, "NULL clock name rejected");
 	clock = bt_ctf_clock_create(clock_name);
 	ok(clock, "Clock created sucessfully");
 	returned_clock_name = bt_ctf_clock_get_name(clock);
