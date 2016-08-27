@@ -39,22 +39,17 @@ extern "C" {
  * Status code. Errors are always negative.
  */
 enum bt_component_status {
-	/** Memory allocation failure. */
-	BT_COMPONENT_STATUS_NOMEM =		-4,
-
-	/** Invalid arguments. */
-	BT_COMPONENT_STATUS_INVALID =		-3,
-
-	/** Unsupported component feature. */
-	BT_COMPONENT_STATUS_UNSUPPORTED =	-2,
-
+	/** No error, okay. */
+	BT_COMPONENT_STATUS_OK =		0,	
 	/** General error. */
 	BT_COMPONENT_STATUS_ERROR =		-1,
-
-	/** No error, okay. */
-	BT_COMPONENT_STATUS_OK =		0,
+	/** Unsupported component feature. */
+	BT_COMPONENT_STATUS_UNSUPPORTED =	-2,
+	/** Invalid arguments. */
+	BT_COMPONENT_STATUS_INVALID =		-3,
+	/** Memory allocation failure. */
+	BT_COMPONENT_STATUS_NOMEM =		-4,
 };
-
 
 struct bt_component;
 struct bt_value;
