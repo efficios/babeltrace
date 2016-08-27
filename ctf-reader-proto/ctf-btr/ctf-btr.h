@@ -315,7 +315,7 @@ void bt_ctf_btr_destroy(struct bt_ctf_btr *btr);
  *				binary packet containing \p type (bits)
  * @param sz			Size of buffer in bytes (from \p buf)
  * @param status		Returned status (see description above)
- * ­@returns			Number of consumed bits
+ * @returns			Number of consumed bits
  */
 size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 		struct bt_ctf_field_type *type, const uint8_t *buf,
@@ -343,7 +343,7 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
  * @param buf		Buffer
  * @param sz		Size of buffer in bytes (from \p offset)
  * @param status	Returned status (see description above)
- * ­@returns		Number of consumed bits
+ * @returns		Number of consumed bits
  */
 size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
 		const uint8_t *buf, size_t sz,
