@@ -1,7 +1,7 @@
 /*
- * reader.c
+ * fs.c
  *
- * Babeltrace CTF Reader Component
+ * Babeltrace CTF file system Reader Component
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -26,14 +26,69 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/plugin-system.h>
+#include <glib.h>
+#include <assert.h>
 #include "fs-internal.h"
-#include <babeltrace/plugin/source.h>
 
-BT_HIDDEN
-enum bt_component_status fs_init(struct bt_component *component,
-		struct bt_value *params)
+static bool ctf_fs_debug;
+
+static
+struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 {
-	return BT_COMPONENT_STATUS_OK;
+	return g_new0(struct ctf_fs_component, 1);
 }
 
+static
+void ctf_fs_destroy(void *data)
+{
+	g_free(data);
+}
 
+BT_HIDDEN
+enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
+		struct bt_notification_iterator *it)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	assert(source && it);
+	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status ctf_fs_init(struct bt_component *source,
+				 struct bt_value *params)
+{
+	struct ctf_fs_component *ctf_fs;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	assert(source);
+	ctf_fs_debug = g_strcmp0(getenv("CTF_FS_DEBUG"), "1") == 0;
+	ctf_fs = ctf_fs_create(params);
+	if (!ctf_fs) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	ret = bt_component_set_destroy_cb(source, ctf_fs_destroy);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret = bt_component_set_private_data(source, ctf_fs);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret = bt_component_source_set_iterator_init_cb(source,
+			ctf_fs_iterator_init);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+end:
+	return ret;
+error:
+	(void) bt_component_set_private_data(source, NULL);
+        ctf_fs_destroy(ctf_fs);
+	return ret;
+}

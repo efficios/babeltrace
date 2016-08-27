@@ -30,12 +30,20 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/component.h>
 
-#define FS_COMPONENT_NAME "ctf"
-#define FS_COMPONENT_DESCRIPTION \
+#define CTF_FS_COMPONENT_NAME "ctf"
+#define CTF_FS_COMPONENT_DESCRIPTION \
 	"Component used to read a CTF trace located on a file system."
 
+struct ctf_fs_component_options {
+	bool opt_dummy : 1;
+};
+
+struct ctf_fs_component {
+	struct ctf_fs_component_options options;
+};
+
 BT_HIDDEN
-enum bt_component_status fs_init(struct bt_component *source,
+enum bt_component_status ctf_fs_init(struct bt_component *source,
 		struct bt_value *params);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H */
