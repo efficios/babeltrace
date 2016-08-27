@@ -4366,7 +4366,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	}
 
 	clock_node->visited = TRUE;
-	clock = bt_ctf_clock_create_empty();
+	clock = bt_ctf_clock_create(NULL);
 	if (!clock) {
 		_PERROR("%s", "cannot create clock");
 		ret = -ENOMEM;
