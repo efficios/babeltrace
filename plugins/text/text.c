@@ -99,13 +99,9 @@ struct text_component *create_text(void)
 	return g_new0(struct text_component, 1);
 }
 
-static void destroy_text(struct text_component *text)
+static void destroy_text(void *data)
 {
-	if (!text) {
-		return;
-	}
-
-	g_free(text);
+	g_free(data);
 }
 
 static
@@ -128,7 +124,7 @@ enum bt_component_status text_component_init(
 	}
 
 	ret = bt_component_set_destroy_cb(component,
-			(bt_component_destroy_cb) destroy_text);
+			destroy_text);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
