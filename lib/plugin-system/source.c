@@ -37,7 +37,31 @@ BT_HIDDEN
 enum bt_component_status bt_component_source_validate(
 		struct bt_component *component)
 {
-	return BT_COMPONENT_STATUS_OK;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_source *source;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!component->class) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_TYPE_SOURCE) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	source = container_of(component, struct bt_component_source, parent);
+	if (source->init_iterator) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+end:
+	return ret;
 }
 
 BT_HIDDEN
