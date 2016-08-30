@@ -1,6 +1,6 @@
 /*
  * Babeltrace - CTF notification iterator
- *                  ¯¯¯¯¯        ¯¯¯¯
+ *
  * Copyright (c) 2015-2016 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015-2016 Philippe Proulx <pproulx@efficios.com>
  *
@@ -45,8 +45,8 @@
 #define PRINT_PREFIX		"ctf-notif-iter"
 #include "print.h"
 
-#include "ctf-notif-iter.h"
-#include "../ctf-btr/ctf-btr.h"
+#include "notif-iter.h"
+#include "../btr/btr.h"
 
 #define BYTES_TO_BITS(x)		((x) * 8)
 

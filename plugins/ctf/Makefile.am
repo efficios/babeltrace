@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-SUBDIRS = fs lttng-live
+SUBDIRS = common fs lttng-live
 
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = libbabeltrace-plugin-ctf.la

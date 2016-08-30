@@ -343,10 +343,6 @@ AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
 	compat/Makefile
-	ctf-reader-proto/Makefile
-	ctf-reader-proto/metadata-parsing/Makefile
-	ctf-reader-proto/ctf-notif-iter/Makefile
-	ctf-reader-proto/ctf-btr/Makefile
 	formats/Makefile
 	formats/ctf/Makefile
 	formats/ctf/types/Makefile
@@ -380,6 +376,10 @@ AC_CONFIG_FILES([
 	extras/valgrind/Makefile
 	plugins/Makefile
 	plugins/ctf/Makefile
+	plugins/ctf/common/Makefile
+	plugins/ctf/common/btr/Makefile
+	plugins/ctf/common/metadata/Makefile
+	plugins/ctf/common/notif-iter/Makefile
 	plugins/ctf/fs/Makefile
 	plugins/ctf/lttng-live/Makefile
 	plugins/text/Makefile

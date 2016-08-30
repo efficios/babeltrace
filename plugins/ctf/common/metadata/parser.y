@@ -36,9 +36,9 @@
 #include <inttypes.h>
 #include <babeltrace/list.h>
 #include <babeltrace/babeltrace-internal.h>
-#include "ctf-scanner.h"
-#include "ctf-parser.h"
-#include "ctf-ast.h"
+#include "scanner.h"
+#include "parser.h"
+#include "ast.h"
 #include "objstack.h"
 
 BT_HIDDEN

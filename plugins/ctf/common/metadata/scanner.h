@@ -18,7 +18,7 @@
  */
 
 #include <stdio.h>
-#include "ctf-ast.h"
+#include "ast.h"
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T

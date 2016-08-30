@@ -49,9 +49,9 @@
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/clock.h>
 
-#include "ctf-scanner.h"
-#include "ctf-parser.h"
-#include "ctf-ast.h"
+#include "scanner.h"
+#include "parser.h"
+#include "ast.h"
 
 /* Bit value (left shift) */
 #define _BV(_val)		(1 << (_val))

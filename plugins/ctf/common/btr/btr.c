@@ -35,7 +35,7 @@
 #include <babeltrace/align.h>
 #include <glib.h>
 
-#include "ctf-btr.h"
+#include "btr.h"
 
 #define PRINT_ERR_STREAM	btr->err_stream
 #define PRINT_PREFIX		"ctf-btr"

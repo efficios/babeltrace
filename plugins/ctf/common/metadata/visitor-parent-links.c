@@ -34,9 +34,9 @@
 #include <errno.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/list.h>
-#include "ctf-scanner.h"
-#include "ctf-parser.h"
-#include "ctf-ast.h"
+#include "scanner.h"
+#include "parser.h"
+#include "ast.h"
 
 #define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
 

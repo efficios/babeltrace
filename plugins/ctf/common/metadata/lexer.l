@@ -1,6 +1,6 @@
 %{
 /*
- * ctf-lexer.l
+ * lexer.l
  *
  * Common Trace Formal Lexer
  *
@@ -28,9 +28,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <babeltrace/babeltrace-internal.h>
-#include "ctf-scanner.h"
-#include "ctf-parser.h"
-#include "ctf-ast.h"
+#include "scanner.h"
+#include "parser.h"
+#include "ast.h"
 
 #define PARSE_INTEGER_LITERAL(base)					\
 	do {								\
