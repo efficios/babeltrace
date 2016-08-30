@@ -362,6 +362,7 @@ AC_CONFIG_FILES([
 	lib/Makefile
 	lib/prio_heap/Makefile
 	lib/plugin-system/Makefile
+	lib/plugin-system/notification/Makefile
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile

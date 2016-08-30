@@ -1,10 +1,7 @@
-#ifndef BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
-#define BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H
-
 /*
- * BabelTrace - Plug-in Notification internal
+ * Babeltrace Plug-in Notification
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,22 +24,10 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ref-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/plugin/notification/notification-internal.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct bt_notification {
-	struct bt_object base;
-	enum bt_notification_type type;
-};
-
-#ifdef __cplusplus
+enum bt_notification_type bt_notification_get_type(
+		struct bt_notification *notification)
+{
+	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
 }
-#endif
-
-#endif /* BABELTRACE_PLUGIN_NOTIFICATION_INTERNAL_H */

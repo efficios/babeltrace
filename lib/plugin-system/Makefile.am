@@ -1,5 +1,7 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
+SUBDIRS = notification
+
 noinst_LTLIBRARIES = libplugin-system.la
 
 # Plug-in system library
