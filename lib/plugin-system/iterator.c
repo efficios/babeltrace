@@ -42,7 +42,9 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 	iterator = container_of(obj, struct bt_notification_iterator,
 			base);
 	assert(iterator->user_destroy || !iterator->user_data);
-	iterator->user_destroy(iterator);
+	if (iterator->user_destroy) {
+		iterator->user_destroy(iterator);
+	}
 	g_free(iterator);
 }
 
