@@ -86,6 +86,24 @@ end:
 	return source ? &source->parent : NULL;
 }
 
+enum bt_component_status
+bt_component_source_set_iterator_init_cb(struct bt_component *component,
+		bt_component_source_init_iterator_cb init_iterator)
+{
+	struct bt_component_source *source;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (component->class->type != BT_COMPONENT_TYPE_SOURCE) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	source = container_of(component, struct bt_component_source, parent);
+	source->init_iterator = init_iterator;
+end:
+	return ret;
+}
+
 struct bt_notification_iterator *bt_component_source_create_iterator(
 		struct bt_component *component)
 {
