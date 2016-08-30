@@ -99,9 +99,17 @@ struct text_component *create_text(void)
 	return g_new0(struct text_component, 1);
 }
 
-static void destroy_text(void *data)
+static
+void destroy_text_data(struct text_component *data)
 {
 	g_free(data);
+}
+
+static void destroy_text(struct bt_component *component)
+{
+	void *data = bt_component_get_private_data(component);
+
+	destroy_text_data(data);
 }
 
 static
@@ -135,17 +143,16 @@ enum bt_component_status text_component_init(
 	}
 
 	ret = bt_component_sink_set_handle_notification_cb(component,
-		handle_notification);
+			handle_notification);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 end:
 	return ret;
 error:
-	destroy_text(text);
+	destroy_text_data(text);
 	return ret;
 }
-
 
 /* Initialize plug-in entry points. */
 BT_PLUGIN_NAME("ctf-text");
