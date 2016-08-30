@@ -27,11 +27,82 @@
  */
 
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/notification/iterator.h>
 #include <glib.h>
 #include <assert.h>
 #include "fs-internal.h"
 
 static bool ctf_fs_debug;
+
+static
+struct bt_notification *ctf_fs_iterator_get(
+		struct bt_notification_iterator *iterator)
+{
+	return NULL;
+}
+
+static
+enum bt_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_notification_iterator *iterator)
+{
+	return BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
+}
+
+static
+void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
+{
+	g_free(ctf_it);
+}
+
+static
+void ctf_fs_iterator_destroy(struct bt_notification_iterator *it)
+{
+	void *data = bt_notification_iterator_get_private_data(it);
+
+	ctf_fs_iterator_destroy_data(data);
+}
+
+static
+enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
+		struct bt_notification_iterator *it)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct ctf_fs_iterator *ctf_it;
+
+	assert(source && it);
+	ctf_it = g_new0(struct ctf_fs_iterator, 1);
+	if (!ctf_it) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	ret = bt_notification_iterator_set_get_cb(it, ctf_fs_iterator_get);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_next_cb(it, ctf_fs_iterator_next);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_destroy_cb(it,
+			ctf_fs_iterator_destroy);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_private_data(it, ctf_it);
+	if (ret) {
+		goto error;
+	}
+end:
+	return ret;
+error:
+	(void) bt_notification_iterator_set_private_data(it, NULL);
+	ctf_fs_iterator_destroy_data(ctf_it);
+	return ret;
+}
 
 static
 struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
@@ -40,19 +111,17 @@ struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 }
 
 static
-void ctf_fs_destroy(void *data)
+void ctf_fs_destroy_data(struct ctf_fs_component *component)
 {
-	g_free(data);
+	g_free(component);
 }
 
-BT_HIDDEN
-enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
-		struct bt_notification_iterator *it)
+static
+void ctf_fs_destroy(struct bt_component *component)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	void *data = bt_component_get_private_data(component);
 
-	assert(source && it);
-	return ret;
+	ctf_fs_destroy_data(data);
 }
 
 BT_HIDDEN
@@ -89,6 +158,6 @@ end:
 	return ret;
 error:
 	(void) bt_component_set_private_data(source, NULL);
-        ctf_fs_destroy(ctf_fs);
+        ctf_fs_destroy_data(ctf_fs);
 	return ret;
 }

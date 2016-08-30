@@ -66,7 +66,7 @@ void bt_component_destroy(struct bt_object *obj)
 	 * instance.
 	 */
 	if (component->user_destroy) {
-		component->user_destroy(component->user_data);
+		component->user_destroy(component);
 	}
 
 	if (component->destroy) {

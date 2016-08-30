@@ -34,6 +34,10 @@
 #define CTF_FS_COMPONENT_DESCRIPTION \
 	"Component used to read a CTF trace located on a file system."
 
+struct ctf_fs_iterator {
+	int dummy;
+};
+
 struct ctf_fs_component_options {
 	bool opt_dummy : 1;
 };
