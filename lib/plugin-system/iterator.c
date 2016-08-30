@@ -72,7 +72,7 @@ enum bt_notification_iterator_status bt_notification_iterator_validate(
 		struct bt_notification_iterator *iterator)
 {
 	enum bt_notification_iterator_status ret =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!iterator || !iterator->get || !iterator->next) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
@@ -87,14 +87,72 @@ enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(
 		bt_notification_iterator_get_cb get)
 {
 	enum bt_notification_iterator_status ret =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!iterator || !get) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
 		goto end;
 	}
 
-	
+	iterator->get = get;
+end:
+	return ret;
+}
+
+enum bt_notification_iterator_status
+bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
+		bt_notification_iterator_next_cb next)
+{
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	if (!iterator || !next) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
+	iterator->next = next;
+end:
+	return ret;
+}
+
+enum bt_notification_iterator_status
+bt_notification_iterator_set_destroy_cb(
+		struct bt_notification_iterator *iterator,
+		bt_notification_iterator_destroy_cb destroy)
+{
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	if (!iterator || !destroy) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
+	iterator->user_destroy = destroy;
+end:
+	return ret;
+}
+
+void *bt_notification_iterator_get_private_data(
+		struct bt_notification_iterator *iterator)
+{
+	return iterator ? iterator->user_data : NULL;
+}
+
+enum bt_notification_iterator_status
+bt_notification_iterator_set_private_data(
+		struct bt_notification_iterator *iterator, void *data)
+{
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	if (!iterator || !data) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
+	iterator->user_data = data;
 end:
 	return ret;
 }
