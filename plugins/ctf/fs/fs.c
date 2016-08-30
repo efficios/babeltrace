@@ -57,7 +57,7 @@ enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 
 BT_HIDDEN
 enum bt_component_status ctf_fs_init(struct bt_component *source,
-				 struct bt_value *params)
+		struct bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
