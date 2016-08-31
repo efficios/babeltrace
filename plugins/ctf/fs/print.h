@@ -1,8 +1,10 @@
-#ifndef CTF_FS_FILE_H
-#define CTF_FS_FILE_H
+#ifndef CTF_FS_PRINT_H
+#define CTF_FS_PRINT_H
 
 /*
- * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
+ * Define PRINT_PREFIX and PRINT_ERR_STREAM, then include this file.
+ *
+ * Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +26,32 @@
  */
 
 #include <stdio.h>
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
 
-#include "ctf-fs.h"
+#define PERR(fmt, ...)							\
+	do {								\
+		if (PRINT_ERR_STREAM) {					\
+			fprintf(PRINT_ERR_STREAM,			\
+				"Error: " PRINT_PREFIX ": " fmt,	\
+				##__VA_ARGS__);				\
+		}							\
+	} while (0)
 
-struct ctf_fs_file {
-	struct ctf_fs *ctf_fs;
-	GString *path;
-	FILE *fp;
-	off_t size;
-};
+#define PWARN(fmt, ...)							\
+	do {								\
+		if (PRINT_ERR_STREAM) {					\
+			fprintf(PRINT_ERR_STREAM,			\
+				"Warning: " PRINT_PREFIX ": " fmt,	\
+				##__VA_ARGS__);				\
+		}							\
+	} while (0)
 
-BT_HIDDEN
-void ctf_fs_file_destroy(struct ctf_fs_file *file);
+#define PDBG(fmt, ...)							\
+	do { 								\
+		if (ctf_fs_debug) {					\
+			fprintf(stderr,					\
+				"Debug: " PRINT_PREFIX ": " fmt,	\
+				##__VA_ARGS__);				\
+		}							\
+	} while (0)
 
-BT_HIDDEN
-struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs *ctf_fs);
-
-BT_HIDDEN
-int ctf_fs_file_open(struct ctf_fs *ctf_fs, struct ctf_fs_file *file,
-		const char *mode);
-
-#endif /* CTF_FS_FILE_H */
+#endif /* CTF_FS_PRINT_H */

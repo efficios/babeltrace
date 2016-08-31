@@ -30,7 +30,8 @@
 #include <babeltrace/plugin/notification/iterator.h>
 #include <glib.h>
 #include <assert.h>
-#include "fs-internal.h"
+#include <unistd.h>
+#include "fs.h"
 
 static bool ctf_fs_debug;
 
@@ -105,14 +106,14 @@ error:
 }
 
 static
-struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
-{
-	return g_new0(struct ctf_fs_component, 1);
-}
-
-static
 void ctf_fs_destroy_data(struct ctf_fs_component *component)
 {
+	if (component->trace_path) {
+		g_string_free(component->trace_path, TRUE);
+	}
+
+//	ctf_fs_metadata_fini(&component->metadata);
+//	ctf_fs_data_stream_fini(&component->data_stream);
 	g_free(component);
 }
 
@@ -122,6 +123,45 @@ void ctf_fs_destroy(struct bt_component *component)
 	void *data = bt_component_get_private_data(component);
 
 	ctf_fs_destroy_data(data);
+}
+
+static
+struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
+{
+	struct ctf_fs_component *ctf_fs;
+	struct bt_value *value;
+	const char *path;
+	enum bt_value_status ret;
+
+	ctf_fs = g_new0(struct ctf_fs_component, 1);
+	if (!ctf_fs) {
+		goto end;
+	}
+
+	/* FIXME: should probably look for a source URI */
+	value = bt_value_map_get(params, "path");
+	if (!value || bt_value_is_null(value) || !bt_value_is_string(value)) {
+		goto error;
+	}
+
+	ret = bt_value_string_get(value, &path);
+	if (ret != BT_VALUE_STATUS_OK) {
+		goto error;
+	}
+
+	ctf_fs->trace_path = g_string_new(path);
+	if (!ctf_fs->trace_path) {
+		goto error;
+	}
+
+	ctf_fs->error_fp = stderr;
+	ctf_fs->page_size = (size_t) getpagesize();
+
+end:
+	return ctf_fs;
+error:
+	ctf_fs_destroy_data(ctf_fs);
+	return ctf_fs;
 }
 
 BT_HIDDEN

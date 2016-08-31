@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
-#define BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
+#ifndef CTF_FS_METADATA_H
+#define CTF_FS_METADATA_H
 
 /*
- * BabelTrace - CTF on File System Component
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,27 +23,21 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
+#include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
+#include <babeltrace/ctf-ir/trace.h>
+#include "fs.h"
 
-#define CTF_FS_COMPONENT_NAME "ctf"
-#define CTF_FS_COMPONENT_DESCRIPTION \
-	"Component used to read a CTF trace located on a file system."
-
-struct ctf_fs_iterator {
-	int dummy;
-};
-
-struct ctf_fs_component_options {
-	bool opt_dummy : 1;
-};
-
-struct ctf_fs_component {
-	struct ctf_fs_component_options options;
-};
+#define CTF_FS_METADATA_FILENAME	"metadata"
 
 BT_HIDDEN
-enum bt_component_status ctf_fs_init(struct bt_component *source,
-		struct bt_value *params);
+int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata);
 
-#endif /* BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H */
+BT_HIDDEN
+void ctf_fs_metadata_deinit(struct ctf_fs_metadata *metadata);
+
+BT_HIDDEN
+void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs);
+
+#endif /* CTF_FS_METADATA_H */

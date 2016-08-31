@@ -36,10 +36,9 @@
 #define PRINT_PREFIX		"ctf-fs-data-stream"
 #include "print.h"
 
-#include "ctf-fs.h"
-#include "ctf-fs-file.h"
-#include "ctf-fs-metadata.h"
-#include "ctf-notif-iter/ctf-notif-iter.h"
+#include "file.h"
+#include "metadata.h"
+#include "../common/notif-iter/notif-iter.h"
 
 static void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 {
@@ -66,7 +65,7 @@ static size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
 
 static int stream_munmap(struct ctf_fs_stream *stream)
 {
-	struct ctf_fs *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 
 	if (munmap(stream->mmap_addr, stream->mmap_len)) {
 		PERR("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s\n",
@@ -81,7 +80,7 @@ static int stream_munmap(struct ctf_fs_stream *stream)
 
 static int mmap_next(struct ctf_fs_stream *stream)
 {
-	struct ctf_fs *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 	int ret = 0;
 
 	/* Unmap old region */
@@ -123,7 +122,7 @@ static enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	enum bt_ctf_notif_iter_medium_status status =
 		BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_stream *stream = data;
-	struct ctf_fs *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 
 	if (request_sz == 0) {
 		goto end;
@@ -172,7 +171,7 @@ static struct bt_ctf_stream *medop_get_stream(
 		struct bt_ctf_stream_class *stream_class, void *data)
 {
 	struct ctf_fs_stream *fs_stream = data;
-	struct ctf_fs *ctf_fs = fs_stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = fs_stream->file->ctf_fs;
 
 	if (!fs_stream->stream) {
 		int64_t id = bt_ctf_stream_class_get_id(stream_class);
@@ -194,8 +193,8 @@ static struct bt_ctf_notif_iter_medium_ops medops = {
 	.get_stream = medop_get_stream,
 };
 
-static struct ctf_fs_stream *ctf_fs_stream_create(struct ctf_fs *ctf_fs,
-		struct ctf_fs_file *file)
+static struct ctf_fs_stream *ctf_fs_stream_create(
+		struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
 {
 	struct ctf_fs_stream *stream = g_new0(struct ctf_fs_stream, 1);
 
@@ -223,7 +222,7 @@ end:
 	return stream;
 }
 
-int ctf_fs_data_stream_open_streams(struct ctf_fs *ctf_fs)
+int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs)
 {
 	int ret = 0;
 	GError *error = NULL;
@@ -307,7 +306,7 @@ end:
 	return ret;
 }
 
-int ctf_fs_data_stream_init(struct ctf_fs *ctf_fs,
+int ctf_fs_data_stream_init(struct ctf_fs_component *ctf_fs,
 		struct ctf_fs_data_stream *data_stream)
 {
 	int ret = 0;
@@ -334,7 +333,7 @@ void ctf_fs_data_stream_deinit(struct ctf_fs_data_stream *data_stream)
 }
 
 int ctf_fs_data_stream_get_next_notification(
-		struct ctf_fs *ctf_fs,
+		struct ctf_fs_component *ctf_fs,
 		struct bt_ctf_notif_iter_notif **notification)
 {
 	int ret = 0;

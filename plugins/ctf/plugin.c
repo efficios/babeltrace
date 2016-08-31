@@ -27,19 +27,19 @@
  */
 
 #include <babeltrace/plugin/plugin-macros.h>
-#include "fs/fs-internal.h"
+#include "fs/fs.h"
 #include "lttng-live/lttng-live-internal.h"
 
-/* Initialize plug-in entry points. */
+/* Initialize plug-in description. */
 BT_PLUGIN_NAME("ctf");
-BT_PLUGIN_DESCRIPTION("Babeltrace CTF plug-in.");
+BT_PLUGIN_DESCRIPTION("Built-in Babeltrace plug-in providing CTF read support.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
+/* Declare component classes implemented by this plug-in. */
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(CTF_FS_COMPONENT_NAME,
 		CTF_FS_COMPONENT_DESCRIPTION, ctf_fs_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(LTTNG_LIVE_COMPONENT_NAME,
 		LTTNG_LIVE_COMPONENT_DESCRIPTION, lttng_live_init);
 BT_PLUGIN_COMPONENT_CLASSES_END
-

@@ -30,11 +30,11 @@
 #define PRINT_PREFIX		"ctf-fs-file"
 #include "print.h"
 
-#include "ctf-fs-file.h"
+#include "file.h"
 
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {
-	struct ctf_fs *ctf_fs = file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = file->ctf_fs;
 
 	if (!file) {
 		return;
@@ -56,7 +56,7 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 	g_free(file);
 }
 
-struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs *ctf_fs)
+struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs_component *ctf_fs)
 {
 	struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
 
@@ -80,7 +80,7 @@ end:
 	return file;
 }
 
-int ctf_fs_file_open(struct ctf_fs *ctf_fs, struct ctf_fs_file *file,
+int ctf_fs_file_open(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
 		const char *mode)
 {
 	int ret = 0;

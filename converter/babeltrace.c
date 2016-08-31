@@ -40,10 +40,12 @@
 
 
 static char *opt_plugin_path;
+static char *opt_input_path;
 
 enum {
 	OPT_NONE = 0,
 	OPT_PLUGIN_PATH,
+	OPT_INPUT_PATH,
 	OPT_VERBOSE,
 	OPT_DEBUG,
 	OPT_HELP,
@@ -60,6 +62,7 @@ enum {
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
 	{ "plugin-path", 0, POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "input-path", 0, POPT_ARG_STRING, NULL, OPT_INPUT_PATH, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
@@ -95,13 +98,20 @@ static int parse_options(int argc, char **argv)
 			if (!opt_plugin_path) {
 				ret = -EINVAL;
 				goto end;
-			}			;
+			}
 			break;
 		case OPT_VERBOSE:
 			babeltrace_verbose = 1;
 			break;
 		case OPT_DEBUG:
 			babeltrace_debug = 1;
+			break;
+		case OPT_INPUT_PATH:
+			opt_input_path = (char *) poptGetOptArg(pc);
+			if (!opt_input_path) {
+				ret = -EINVAL;
+				goto end;
+			}
 			break;
 		default:
 			ret = -EINVAL;
@@ -133,7 +143,7 @@ const char *component_type_str(enum bt_component_type type)
 }
 
 static
-void print_detected_component_classes(struct bt_component_factory *factory)
+void print_found_component_classes(struct bt_component_factory *factory)
 {
 	int count, i;
 
@@ -183,18 +193,12 @@ void print_detected_component_classes(struct bt_component_factory *factory)
 	}
 }
 
-static
-void test_sink_notifications(struct bt_component *sink)
-{
-	return;
-}
-
 int main(int argc, char **argv)
 {
 	int ret;
+	enum bt_value_status value_status;
 	struct bt_component_factory *component_factory = NULL;
-	struct bt_component_class *source_class = NULL;
-	struct bt_component_class *sink_class = NULL;
+	struct bt_component_class *source_class = NULL, *sink_class = NULL;
 	struct bt_component *source = NULL, *sink = NULL;
 	struct bt_value *source_params = NULL, *sink_params = NULL;
 
@@ -204,6 +208,20 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	} else if (ret > 0) {
 		exit(EXIT_SUCCESS);
+	}
+
+	source_params = bt_value_map_create();
+	if (!source_params) {
+		fprintf(stderr, "Failed to create source parameters map, aborting...\n");
+		ret = -1;
+		goto end;
+	}
+
+	value_status = bt_value_map_insert_string(source_params, "path",
+			opt_input_path);
+	if (value_status != BT_VALUE_STATUS_OK) {
+		ret = -1;
+		goto end;
 	}
 
 	printf_verbose("Verbose mode active.\n");
@@ -229,24 +247,38 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	print_detected_component_classes(component_factory);
+	print_found_component_classes(component_factory);
+
+	source_class = bt_component_factory_get_component_class(
+			component_factory, "ctf", BT_COMPONENT_TYPE_SOURCE,
+			"fs");
+	if (!source_class) {
+		fprintf(stderr, "Could not find ctf-fs output component class. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
 
 	sink_class = bt_component_factory_get_component_class(component_factory,
-			NULL, BT_COMPONENT_TYPE_SINK, "text");
+			"text", BT_COMPONENT_TYPE_SINK, "text");
 	if (!sink_class) {
 		fprintf(stderr, "Could not find text output component class. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 
-	sink = bt_component_create(sink_class, "bt_text_output", sink_params);
-	if (!sink) {
-		fprintf(stderr, "Failed to instanciate text output. Aborting...\n");
+	source = bt_component_create(source_class, "ctf-fs", source_params);
+	if (!source) {
+		fprintf(stderr, "Failed to instantiate source component. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 
-	test_sink_notifications(sink);
+	sink = bt_component_create(sink_class, "bt_text_output", sink_params);
+	if (!sink) {
+		fprintf(stderr, "Failed to instantiate output component. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
 
 	/* teardown and exit */
 end:

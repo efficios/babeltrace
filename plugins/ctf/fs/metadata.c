@@ -35,10 +35,11 @@
 #define PRINT_PREFIX		"ctf-fs-metadata"
 #include "print.h"
 
-#include "ctf-fs.h"
-#include "ctf-fs-file.h"
-#include "metadata-parsing/ctf-ast.h"
-#include "metadata-parsing/ctf-scanner.h"
+#include "fs.h"
+#include "file.h"
+#include "metadata.h"
+#include "../common/metadata/ast.h"
+#include "../common/metadata/scanner.h"
 
 #define TSDL_MAGIC	0x75d11d57
 
@@ -55,7 +56,7 @@ struct packet_header {
 	uint8_t  minor;
 } __attribute__((__packed__));
 
-static struct ctf_fs_file *get_file(struct ctf_fs *ctf_fs,
+static struct ctf_fs_file *get_file(struct ctf_fs_component *ctf_fs,
 		const char *trace_path)
 {
 	struct ctf_fs_file *file = ctf_fs_file_create(ctf_fs);
@@ -84,7 +85,7 @@ end:
 }
 
 static
-bool is_packetized(struct ctf_fs *ctf_fs, struct ctf_fs_file *file)
+bool is_packetized(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
 {
 	uint32_t magic;
 	size_t len;
@@ -117,7 +118,7 @@ bool is_version_valid(unsigned int major, unsigned int minor)
 }
 
 static
-int decode_packet(struct ctf_fs *ctf_fs, FILE *in_fp, FILE *out_fp)
+int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
 {
 	struct packet_header header;
 	size_t readlen, writelen, toread;
@@ -218,7 +219,7 @@ end:
 }
 
 static
-int packetized_file_to_buf(struct ctf_fs *ctf_fs, struct ctf_fs_file *file,
+int packetized_file_to_buf(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
 		uint8_t **buf)
 {
 	FILE *out_fp;
@@ -278,7 +279,7 @@ end:
 	return ret;
 }
 
-void ctf_fs_metadata_set_trace(struct ctf_fs *ctf_fs)
+void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 {
 	int ret = 0;
 	struct ctf_fs_file *file = get_file(ctf_fs, ctf_fs->trace_path->str);

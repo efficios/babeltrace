@@ -56,7 +56,7 @@ enum bt_component_status bt_component_source_validate(
 	}
 
 	source = container_of(component, struct bt_component_source, parent);
-	if (source->init_iterator) {
+	if (!source->init_iterator) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}

@@ -155,7 +155,7 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("ctf-text");
+BT_PLUGIN_NAME("text");
 BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
