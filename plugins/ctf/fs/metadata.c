@@ -393,7 +393,7 @@ int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
 	return 0;
 }
 
-void ctf_fs_metadata_deinit(struct ctf_fs_metadata *metadata)
+void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata)
 {
 	if (metadata->text) {
 		free(metadata->text);

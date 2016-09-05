@@ -32,6 +32,8 @@
 #include <assert.h>
 #include <unistd.h>
 #include "fs.h"
+#include "metadata.h"
+#include "data-stream.h"
 
 static bool ctf_fs_debug;
 
@@ -67,8 +69,8 @@ static
 enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 		struct bt_notification_iterator *it)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct ctf_fs_iterator *ctf_it;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	assert(source && it);
 	ctf_it = g_new0(struct ctf_fs_iterator, 1);
@@ -112,8 +114,8 @@ void ctf_fs_destroy_data(struct ctf_fs_component *component)
 		g_string_free(component->trace_path, TRUE);
 	}
 
-//	ctf_fs_metadata_fini(&component->metadata);
-//	ctf_fs_data_stream_fini(&component->data_stream);
+	ctf_fs_metadata_fini(&component->metadata);
+	ctf_fs_data_stream_fini(&component->data_stream);
 	g_free(component);
 }
 
@@ -156,7 +158,9 @@ struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 
 	ctf_fs->error_fp = stderr;
 	ctf_fs->page_size = (size_t) getpagesize();
-
+	ctf_fs_data_stream_init(ctf_fs, &ctf_fs->data_stream);
+	ctf_fs_metadata_set_trace(ctf_fs);
+	ctf_fs_data_stream_open_streams(ctf_fs);
 end:
 	return ctf_fs;
 error:
@@ -194,6 +198,7 @@ enum bt_component_status ctf_fs_init(struct bt_component *source,
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
 end:
 	return ret;
 error:

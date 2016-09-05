@@ -89,7 +89,7 @@ int ctf_fs_file_open(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
 	PDBG("Opening file \"%s\" with mode \"%s\"\n", file->path->str, mode);
 	file->fp = fopen(file->path->str, mode);
 	if (!file->fp) {
-		PERR("Cannot open file \"%s\" with mode \"%s\": %s",
+		PERR("Cannot open file \"%s\" with mode \"%s\": %s\n",
 			file->path->str, mode, strerror(errno));
 		goto error;
 	}

@@ -33,6 +33,7 @@
 
 struct bt_notification_iterator {
 	struct bt_object base;
+	struct bt_component *component;
 	bt_notification_iterator_get_cb get;
 	bt_notification_iterator_next_cb next;
 	void *user_data;

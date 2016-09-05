@@ -78,6 +78,7 @@ struct ctf_fs_component {
 	GString *trace_path;
 	FILE *error_fp;
 	size_t page_size;
+	struct bt_notification *last_notif;
 	struct ctf_fs_metadata metadata;
 	struct ctf_fs_data_stream data_stream;
 	struct ctf_fs_component_options options;

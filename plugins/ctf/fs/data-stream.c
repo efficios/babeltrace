@@ -327,7 +327,7 @@ end:
 	return ret;
 }
 
-void ctf_fs_data_stream_deinit(struct ctf_fs_data_stream *data_stream)
+void ctf_fs_data_stream_fini(struct ctf_fs_data_stream *data_stream)
 {
 	g_ptr_array_free(data_stream->streams, TRUE);
 }

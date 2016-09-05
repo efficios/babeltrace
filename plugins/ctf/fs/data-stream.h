@@ -28,35 +28,21 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 
-#include "ctf-notif-iter/ctf-notif-iter.h"
-
-struct ctf_fs_stream {
-	struct ctf_fs_file *file;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_notif_iter *notif_iter;
-	void *mmap_addr;
-	size_t mmap_len;
-	off_t mmap_offset;
-	off_t request_offset;
-};
-
-struct ctf_fs_data_stream {
-	GPtrArray *streams;
-};
+#include "../common/notif-iter/notif-iter.h"
 
 BT_HIDDEN
-int ctf_fs_data_stream_init(struct ctf_fs *ctf_fs,
+int ctf_fs_data_stream_init(struct ctf_fs_component *ctf_fs,
 		struct ctf_fs_data_stream *data_stream);
 
 BT_HIDDEN
-void ctf_fs_data_stream_deinit(struct ctf_fs_data_stream *data_stream);
+void ctf_fs_data_stream_fini(struct ctf_fs_data_stream *data_stream);
 
 BT_HIDDEN
-int ctf_fs_data_stream_open_streams(struct ctf_fs *ctf_fs);
+int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs);
 
 BT_HIDDEN
 int ctf_fs_data_stream_get_next_notification(
-		struct ctf_fs *ctf_fs,
+		struct ctf_fs_component *ctf_fs,
 		struct bt_ctf_notif_iter_notif **notification);
 
 #endif /* CTF_FS_DATA_STREAM_H */

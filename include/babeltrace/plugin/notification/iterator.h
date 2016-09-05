@@ -119,6 +119,9 @@ extern enum bt_notification_iterator_status *bt_notification_iterator_seek(
 		struct bt_notification_iterator *iterator, int whence,
 		int64_t time);
 
+extern struct bt_component *bt_notification_iterator_get_component(
+		struct bt_notification_iterator *iterator);
+
 #ifdef __cplusplus
 }
 #endif

@@ -45,6 +45,7 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 	if (iterator->user_destroy) {
 		iterator->user_destroy(iterator);
 	}
+	BT_PUT(iterator->component);
 	g_free(iterator);
 }
 
@@ -64,6 +65,7 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		goto end;
 	}
 
+	iterator->component = bt_get(component);
 	bt_object_init(iterator, bt_notification_iterator_destroy);
 end:
 	return iterator;
@@ -158,3 +160,10 @@ bt_notification_iterator_set_private_data(
 end:
 	return ret;
 }
+
+struct bt_component *bt_notification_iterator_get_component(
+		struct bt_notification_iterator *iterator)
+{
+	return bt_get(iterator->component);
+}
+

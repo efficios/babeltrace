@@ -35,7 +35,7 @@ BT_HIDDEN
 int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata);
 
 BT_HIDDEN
-void ctf_fs_metadata_deinit(struct ctf_fs_metadata *metadata);
+void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
 
 BT_HIDDEN
 void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs);
