@@ -131,7 +131,7 @@ static
 struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs;
-	struct bt_value *value;
+	struct bt_value *value = NULL;
 	const char *path;
 	enum bt_value_status ret;
 
@@ -161,10 +161,12 @@ struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 	ctf_fs_data_stream_init(ctf_fs, &ctf_fs->data_stream);
 	ctf_fs_metadata_set_trace(ctf_fs);
 	ctf_fs_data_stream_open_streams(ctf_fs);
-end:
-	return ctf_fs;
+	goto end;
+
 error:
 	ctf_fs_destroy_data(ctf_fs);
+end:
+	BT_PUT(value);
 	return ctf_fs;
 }
 
