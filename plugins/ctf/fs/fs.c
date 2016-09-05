@@ -41,14 +41,71 @@ static
 struct bt_notification *ctf_fs_iterator_get(
 		struct bt_notification_iterator *iterator)
 {
-	return NULL;
+	struct bt_notification *notification = NULL;
+	struct ctf_fs_component *ctf_fs;
+	struct bt_component *component = bt_notification_iterator_get_component(
+			iterator);
+
+	if (!component) {
+		goto end;
+	}
+
+	ctf_fs = bt_component_get_private_data(component);
+	if (!ctf_fs) {
+		goto end;
+	}
+
+	notification = bt_get(ctf_fs->current_notification);
+end:
+	return notification;
 }
 
 static
 enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator)
 {
-	return BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
+	enum bt_notification_iterator_status ret;
+	struct bt_ctf_notif_iter_notif *notification;
+//	struct bt_notification *notification = NULL;
+	struct ctf_fs_component *ctf_fs;
+	struct bt_component *component = bt_notification_iterator_get_component(
+			iterator);
+
+	if (!component) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = ctf_fs_data_stream_get_next_notification(ctf_fs, &notification);
+	if (ret || !notification) {
+		goto end;
+	}
+
+	switch (notification->type) {
+	case BT_CTF_NOTIF_ITER_NOTIF_NEW_PACKET:
+	{
+		struct bt_ctf_notif_iter_notif_new_packet *notif =
+			(struct bt_ctf_notif_iter_notif_new_packet *) notification;
+		break;
+	}
+	case BT_CTF_NOTIF_ITER_NOTIF_EVENT:
+	{
+		struct bt_ctf_notif_iter_notif_event *notif =
+			(struct bt_ctf_notif_iter_notif_event *) notification;
+		break;
+	}
+	case BT_CTF_NOTIF_ITER_NOTIF_END_OF_PACKET:
+	{
+		struct bt_ctf_notif_iter_notif_end_of_packet *notif =
+			(struct bt_ctf_notif_iter_notif_end_of_packet *) notification;
+		break;
+	}
+	default:
+		break;
+	}
+
+end:
+	return ret;
 }
 
 static
@@ -116,6 +173,7 @@ void ctf_fs_destroy_data(struct ctf_fs_component *component)
 
 	ctf_fs_metadata_fini(&component->metadata);
 	ctf_fs_data_stream_fini(&component->data_stream);
+	BT_PUT(component->current_notification);
 	g_free(component);
 }
 

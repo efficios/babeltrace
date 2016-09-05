@@ -40,21 +40,15 @@ struct bt_notification_iterator;
  * Status code. Errors are always negative.
  */
 enum bt_notification_iterator_status {
-	/** Invalid arguments. */
-	/* -22 for compatibility with -EINVAL */
-	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -22,
-
-	/** End of trace. */
-	BT_NOTIFICATION_ITERATOR_STATUS_EOT = -3,
-
-	/** General error. */
-	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -2,
-
-	/** Unsupported iterator feature. */
-	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -1,
-
 	/** No error, okay. */
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,
+	/** Invalid arguments. */
+	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -1,
+	/** General error. */
+	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -2,
+	/** Unsupported iterator feature. */
+	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -3,
+
 };
 
 /**
