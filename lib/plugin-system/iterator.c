@@ -161,6 +161,22 @@ end:
 	return ret;
 }
 
+struct bt_notification *bt_notification_iterator_get_notification(
+		struct bt_notification_iterator *iterator)
+{
+	assert(iterator);
+	assert(iterator->get);
+	return iterator->get(iterator);
+}
+
+enum bt_notification_iterator_status
+bt_notification_iterator_next(struct bt_notification_iterator *iterator)
+{
+	assert(iterator);
+	assert(iterator->next);
+	return iterator->next(iterator);
+}
+
 struct bt_component *bt_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator)
 {
