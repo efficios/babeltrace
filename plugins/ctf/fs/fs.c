@@ -89,26 +89,30 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	{
 		struct bt_ctf_notif_iter_notif_new_packet *notif =
 			(struct bt_ctf_notif_iter_notif_new_packet *) notification;
+		puts("<packet>");
 		break;
 	}
 	case BT_CTF_NOTIF_ITER_NOTIF_EVENT:
 	{
 		struct bt_ctf_notif_iter_notif_event *notif =
 			(struct bt_ctf_notif_iter_notif_event *) notification;
+		puts("\tevent");
 		break;
 	}
 	case BT_CTF_NOTIF_ITER_NOTIF_END_OF_PACKET:
 	{
 		struct bt_ctf_notif_iter_notif_end_of_packet *notif =
 			(struct bt_ctf_notif_iter_notif_end_of_packet *) notification;
+		puts("</packet>");
 		break;
 	}
 	default:
 		break;
 	}
 
+	bt_ctf_notif_iter_notif_destroy(notification);
 end:
-	return ret;
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static
