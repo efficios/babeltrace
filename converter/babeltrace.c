@@ -30,6 +30,7 @@
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/plugin/component-class.h>
+#include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <stdlib.h>
@@ -201,6 +202,7 @@ int main(int argc, char **argv)
 	struct bt_component_class *source_class = NULL, *sink_class = NULL;
 	struct bt_component *source = NULL, *sink = NULL;
 	struct bt_value *source_params = NULL, *sink_params = NULL;
+	struct bt_notification_iterator *it = NULL;
 
 	ret = parse_options(argc, argv);
 	if (ret < 0) {
@@ -280,6 +282,19 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	it = bt_component_source_create_iterator(source);
+	if (!it) {
+		fprintf(stderr, "Failed to instantiate source iterator. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
+
+	do {
+		struct bt_notification *notification =
+				bt_notification_iterator_get_notification(it);
+		BT_PUT(notification);
+	} while (bt_notification_iterator_next(it) ==
+			BT_NOTIFICATION_ITERATOR_STATUS_OK);
 	/* teardown and exit */
 end:
 	BT_PUT(component_factory);
@@ -289,5 +304,6 @@ end:
 	BT_PUT(sink);
 	BT_PUT(source_params);
 	BT_PUT(sink_params);
+	BT_PUT(it);
 	return ret ? 1 : 0;
 }
