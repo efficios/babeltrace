@@ -4,7 +4,7 @@
 /*
  * BabelTrace - Plug-in Event Notification internal
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,13 +27,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/notification/notification-internal.h>
-#include <babeltrace/ctf-writer/ref-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/event.h>
-#include <glib.h>
+#include <babeltrace/plugin/notification/notification-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,8 +36,6 @@ extern "C" {
 
 struct bt_notification_event {
 	struct bt_notification parent;
-	struct bt_ctf_trace *trace;
-	struct bt_ctf_stream *stream;
 	struct bt_ctf_event *event;
 };
 

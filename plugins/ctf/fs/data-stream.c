@@ -31,14 +31,15 @@
 #include <inttypes.h>
 #include <sys/mman.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/plugin/notification/iterator.h>
+#include "file.h"
+#include "metadata.h"
+#include "../common/notif-iter/notif-iter.h"
+#include <assert.h>
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-data-stream"
 #include "print.h"
-
-#include "file.h"
-#include "metadata.h"
-#include "../common/notif-iter/notif-iter.h"
 
 static void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 {
@@ -95,22 +96,20 @@ static int mmap_next(struct ctf_fs_stream *stream)
 
 	/* Map new region */
 	stream->mmap_addr = mmap((void *) 0, stream->mmap_len,
-		PROT_READ, MAP_PRIVATE, fileno(stream->file->fp),
-		stream->mmap_offset);
+			PROT_READ, MAP_PRIVATE, fileno(stream->file->fp),
+			stream->mmap_offset);
 	if (stream->mmap_addr == MAP_FAILED) {
 		PERR("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %zu: %s\n",
-			stream->mmap_len, stream->file->path->str,
-			stream->file->fp, stream->mmap_offset,
-			strerror(errno));
+				stream->mmap_len, stream->file->path->str,
+				stream->file->fp, stream->mmap_offset,
+				strerror(errno));
 		goto error;
 	}
 
 	goto end;
-
 error:
 	stream_munmap(stream);
 	ret = -1;
-
 end:
 	return ret;
 }
@@ -209,15 +208,12 @@ static struct ctf_fs_stream *ctf_fs_stream_create(
 		goto error;
 	}
 	stream->mmap_len = ctf_fs->page_size;
-
 	goto end;
-
 error:
-	/* Do not touch borrowed file */
+	/* Do not touch "borrowed" file. */
 	stream->file = NULL;
 	ctf_fs_stream_destroy(stream);
 	stream = NULL;
-
 end:
 	return stream;
 }
@@ -225,14 +221,14 @@ end:
 int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs)
 {
 	int ret = 0;
+	const char *name;
 	GError *error = NULL;
 	GDir *dir = g_dir_open(ctf_fs->trace_path->str, 0, &error);
-	const char *name;
 
 	if (!dir) {
 		PERR("Cannot open directory \"%s\": %s (code %d)\n",
-			ctf_fs->trace_path->str, error->message,
-			error->code);
+				ctf_fs->trace_path->str, error->message,
+				error->code);
 		goto error;
 	}
 
@@ -240,69 +236,63 @@ int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs)
 		struct ctf_fs_file *file = NULL;
 		struct ctf_fs_stream *stream = NULL;
 
-		if (strcmp(name, CTF_FS_METADATA_FILENAME) == 0) {
-			/* Ignore the metadata stream */
+		if (!strcmp(name, CTF_FS_METADATA_FILENAME)) {
+			/* Ignore the metadata stream. */
 			PDBG("Ignoring metadata file \"%s\"\n",
-				name);
+					name);
 			continue;
 		}
 
 		if (name[0] == '.') {
 			PDBG("Ignoring hidden file \"%s\"\n",
-				name);
+					name);
 			continue;
 		}
 
-		/* Create the file */
+		/* Create the file. */
 		file = ctf_fs_file_create(ctf_fs);
 		if (!file) {
 			PERR("Cannot create stream file object\n");
 			goto error;
 		}
 
-		/* Create full path string */
-		g_string_append(file->path, ctf_fs->trace_path->str);
-		g_string_append(file->path, "/");
-		g_string_append(file->path, name);
-
+		/* Create full path string. */
+		g_string_append_printf(file->path, "%s/%s",
+				ctf_fs->trace_path->str, name);
 		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
 			PDBG("Ignoring non-regular file \"%s\"\n", name);
 			ctf_fs_file_destroy(file);
 			continue;
 		}
 
-		/* Open the file */
+		/* Open the file. */
 		if (ctf_fs_file_open(ctf_fs, file, "rb")) {
 			ctf_fs_file_destroy(file);
 			goto error;
 		}
 
-		/* Create a private stream */
+		/* Create a private stream. */
 		stream = ctf_fs_stream_create(ctf_fs, file);
 		if (!stream) {
 			ctf_fs_file_destroy(file);
 			goto error;
 		}
 
-		/* Append file to the array of files */
+		/* Append file to the array of files. */
 		g_ptr_array_add(ctf_fs->data_stream.streams, stream);
 	}
 
 	goto end;
-
 error:
 	ret = -1;
-
 end:
 	if (dir) {
 		g_dir_close(dir);
 		dir = NULL;
 	}
-
 	if (error) {
 		g_error_free(error);
 	}
-
 	return ret;
 }
 
@@ -312,17 +302,15 @@ int ctf_fs_data_stream_init(struct ctf_fs_component *ctf_fs,
 	int ret = 0;
 
 	data_stream->streams = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) ctf_fs_stream_destroy);
+			(GDestroyNotify) ctf_fs_stream_destroy);
 	if (!data_stream->streams) {
 		PERR("Cannot allocate array of streams\n");
 		goto error;
 	}
 
 	goto end;
-
 error:
 	ret = -1;
-
 end:
 	return ret;
 }
@@ -332,30 +320,44 @@ void ctf_fs_data_stream_fini(struct ctf_fs_data_stream *data_stream)
 	g_ptr_array_free(data_stream->streams, TRUE);
 }
 
-int ctf_fs_data_stream_get_next_notification(
+enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 		struct ctf_fs_component *ctf_fs,
-		struct bt_ctf_notif_iter_notif **notification)
+		struct bt_notification **notification)
 {
-	int ret = 0;
-	struct ctf_fs_stream *stream = g_ptr_array_index(
-		ctf_fs->data_stream.streams, 0);
 	enum bt_ctf_notif_iter_status status;
+	enum bt_notification_iterator_status ret;
+	/* FIXME, only iterating on one stream for the moment. */
+	struct ctf_fs_stream *stream = g_ptr_array_index(
+			ctf_fs->data_stream.streams, 0);
 
-	status = bt_ctf_notif_iter_get_next_notification(
-		stream->notif_iter, notification);
+	status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
+			notification);
 	if (status != BT_CTF_NOTIF_ITER_STATUS_OK &&
 			status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		goto error;
+		goto end;
 	}
-	if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		*notification = NULL;
-	}
-
-	goto end;
-
-error:
-	ret = -1;
 
 end:
+	switch (status) {
+	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+		/* Not an error, send end of stream notification. */
+		/* Subsequent calls to "next" should return BT_NOTIFICATION_STATUS_END */
+		/* TODO */
+	case BT_CTF_NOTIF_ITER_STATUS_OK:
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+		/*
+		 * Should not make it this far as this is medium-specific;
+		 * there is nothing for the user to do and it should have been
+		 * handled upstream.
+		 */
+		assert(0);
+	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+		/* No argument provided by the user, so don't return INVAL. */
+	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		break;
+	}
 	return ret;
 }

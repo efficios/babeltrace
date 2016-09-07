@@ -116,6 +116,19 @@ static
 enum bt_component_status handle_notification(struct bt_component *component,
 	struct bt_notification *notification)
 {
+	switch (bt_notification_get_type(notification)) {
+	case BT_NOTIFICATION_TYPE_PACKET_START:
+		puts("<packet>");
+		break;
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+		puts("</packet>");
+		break;
+	case BT_NOTIFICATION_TYPE_EVENT:
+		puts("<event>");
+		break;
+	default:
+		puts("Unhandled notification type");
+	}
 	return BT_COMPONENT_STATUS_OK;
 }
 

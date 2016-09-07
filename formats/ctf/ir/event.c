@@ -600,6 +600,27 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 	g_free(event);
 }
 
+uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
+		struct bt_ctf_clock *clock)
+{
+	uint64_t ret = -1ULL;
+	uint64_t *clock_value;
+
+	if (!event || !clock) {
+		goto end;
+	}
+
+	clock_value = g_hash_table_lookup(event->clock_values, clock);
+	if (!clock_value) {
+		goto end;
+	}
+
+	ret = *clock_value;
+
+end:
+	return ret;
+}
+
 static
 int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 {
@@ -854,26 +875,5 @@ int bt_ctf_event_register_stream_clock_values(struct bt_ctf_event *event)
 		insert_stream_clock_value_into_event_clock_values, event);
 	BT_PUT(stream);
 
-	return ret;
-}
-
-uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
-		struct bt_ctf_clock *clock)
-{
-	uint64_t ret = -1ULL;
-	uint64_t *clock_value;
-
-	if (!event || !clock) {
-		goto end;
-	}
-
-	clock_value = g_hash_table_lookup(event->clock_values, clock);
-	if (!clock_value) {
-		goto end;
-	}
-
-	ret = *clock_value;
-
-end:
 	return ret;
 }

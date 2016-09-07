@@ -33,7 +33,7 @@
 /**
  * All objects publicly exposed by Babeltrace APIs must contain this structure
  * as their first member. This allows the unification of all ref counting
- * mechanism and may be used to provide more base functionality to all
+ * mechanisms and may be used to provide more base functionality to all
  * objects.
  */
 struct bt_object {

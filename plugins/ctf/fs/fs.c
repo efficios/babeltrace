@@ -65,8 +65,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator)
 {
 	enum bt_notification_iterator_status ret;
-	struct bt_ctf_notif_iter_notif *notification;
-//	struct bt_notification *notification = NULL;
+	struct bt_notification *notification = NULL;
 	struct ctf_fs_component *ctf_fs;
 	struct bt_component *component = bt_notification_iterator_get_component(
 			iterator);
@@ -84,33 +83,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 		goto end;
 	}
 
-	switch (notification->type) {
-	case BT_CTF_NOTIF_ITER_NOTIF_NEW_PACKET:
-	{
-		struct bt_ctf_notif_iter_notif_new_packet *notif =
-			(struct bt_ctf_notif_iter_notif_new_packet *) notification;
-		puts("<packet>");
-		break;
-	}
-	case BT_CTF_NOTIF_ITER_NOTIF_EVENT:
-	{
-		struct bt_ctf_notif_iter_notif_event *notif =
-			(struct bt_ctf_notif_iter_notif_event *) notification;
-		puts("\tevent");
-		break;
-	}
-	case BT_CTF_NOTIF_ITER_NOTIF_END_OF_PACKET:
-	{
-		struct bt_ctf_notif_iter_notif_end_of_packet *notif =
-			(struct bt_ctf_notif_iter_notif_end_of_packet *) notification;
-		puts("</packet>");
-		break;
-	}
-	default:
-		break;
-	}
-
-	bt_ctf_notif_iter_notif_destroy(notification);
+	bt_put(ctf_fs->current_notification);
+	ctf_fs->current_notification = notification;
 end:
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
@@ -163,6 +137,7 @@ enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 	if (ret) {
 		goto error;
 	}
+
 end:
 	return ret;
 error:

@@ -37,6 +37,8 @@
 
 static bool ctf_fs_debug;
 
+struct bt_notification_heap;
+
 struct ctf_fs_file {
 	struct ctf_fs_component *ctf_fs;
 	GString *path;
@@ -55,6 +57,7 @@ struct ctf_fs_metadata {
 struct ctf_fs_stream {
 	struct ctf_fs_file *file;
 	struct bt_ctf_stream *stream;
+	/* FIXME There should be many and ctf_fs_stream should not own them. */
 	struct bt_ctf_notif_iter *notif_iter;
 	void *mmap_addr;
 	size_t mmap_len;
@@ -67,7 +70,7 @@ struct ctf_fs_data_stream {
 };
 
 struct ctf_fs_iterator {
-	int dummy;
+	struct bt_notification_heap *pending_notifications;
 };
 
 struct ctf_fs_component_options {

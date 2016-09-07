@@ -34,7 +34,7 @@ struct bt_object;
 typedef void (*bt_object_release_func)(struct bt_object *);
 
 struct bt_ref {
-	long count;
+	unsigned long count;
 	bt_object_release_func release;
 };
 
@@ -51,6 +51,8 @@ void bt_ref_get(struct bt_ref *ref)
 {
 	assert(ref);
 	ref->count++;
+	/* Overflow check. */
+	assert(ref->count);
 }
 
 static inline
@@ -58,7 +60,6 @@ void bt_ref_put(struct bt_ref *ref)
 {
 	assert(ref);
 	/* Only assert if the object has opted-in for reference counting. */
-	assert(!ref->release || ref->count > 0);
 	if ((--ref->count) == 0 && ref->release) {
 		ref->release((struct bt_object *) ref);
 	}

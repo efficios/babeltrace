@@ -26,6 +26,17 @@
 
 #include <babeltrace/plugin/notification/notification-internal.h>
 
+BT_HIDDEN
+void bt_notification_init(struct bt_notification *notification,
+		enum bt_notification_type type,
+		bt_object_release_func release)
+{
+	assert(type > BT_NOTIFICATION_TYPE_ALL &&
+			type < BT_NOTIFICATION_TYPE_NR);
+	notification->type = type;
+	bt_object_init(&notification->base, release);
+}
+
 enum bt_notification_type bt_notification_get_type(
 		struct bt_notification *notification)
 {

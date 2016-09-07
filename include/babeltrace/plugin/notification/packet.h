@@ -2,9 +2,9 @@
 #define BABELTRACE_PLUGIN_NOTIFICATION_PACKET_H
 
 /*
- * BabelTrace - Plug-in Packet Notifications
+ * BabelTrace - Plug-in Packet-related Notifications
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,9 +27,23 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/plugin/notification/notification.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*** BT_NOTIFICATION_TYPE_PACKET_START ***/
+struct bt_notification *bt_notification_packet_start_create(
+		struct bt_ctf_packet *packet);
+struct bt_ctf_packet *bt_notification_packet_start_get_packet(
+		struct bt_notification *notification);
+
+/*** BT_NOTIFICATION_TYPE_PACKET_END ***/
+struct bt_notification *bt_notification_packet_end_create(
+		struct bt_ctf_packet *packet);
+struct bt_ctf_packet *bt_notification_packet_end_get_packet(
+		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }

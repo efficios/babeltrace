@@ -48,11 +48,11 @@ enum bt_notification_type {
 	/** Event delivery notification, see event.h */
 	BT_NOTIFICATION_TYPE_EVENT = 1,
 
-	/** New stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_NEW_PACKET = 2,
+	/** Start of stream packet notification, see packet.h */
+	BT_NOTIFICATION_TYPE_PACKET_START = 2,
 
 	/** End of stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_END_PACKET = 3,
+	BT_NOTIFICATION_TYPE_PACKET_END = 3,
 
 	/** New trace notification, see model.h */
 	BT_NOTIFICATION_TYPE_NEW_TRACE = 4,

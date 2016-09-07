@@ -290,9 +290,29 @@ int main(int argc, char **argv)
 	}
 
 	do {
+		enum bt_component_status sink_status;
 		struct bt_notification *notification =
 				bt_notification_iterator_get_notification(it);
+
+		if (!notification) {
+			/*
+			 * Should never happen in final code except after next
+			 * has returned BT_NOTIFICATION_ITERATOR_STATUS_END.
+			 *
+			 * Right now it happens at the first event since the
+			 * iterator is not completely initialized and we don't
+			 * have a notification "heap" in place.
+			 */
+			continue;
+		}
+
+		sink_status = bt_component_sink_handle_notification(sink,
+				notification);
 		BT_PUT(notification);
+		if (sink_status != BT_COMPONENT_STATUS_OK) {
+			fprintf(stderr, "Sink component returned an error, aborting...\n");
+			break;
+		}
 	} while (bt_notification_iterator_next(it) ==
 			BT_NOTIFICATION_ITERATOR_STATUS_OK);
 	/* teardown and exit */

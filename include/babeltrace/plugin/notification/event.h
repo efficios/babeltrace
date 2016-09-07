@@ -4,7 +4,7 @@
 /*
  * BabelTrace - Plug-in Event Notification
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -32,45 +32,19 @@ extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_ctf_trace;
-struct bt_ctf_stream;
 struct bt_ctf_event;
 
+/***BT_NOTIFICATION_TYPE_EVENT ***/
 /**
  * Create an event notification.
  *
- * @param trace			The event's trace
- * @param stream		The event's stream
  * @param event			The event
  * @returns			An event notification instance
  *
  * @see #bt_notification_type
  */
 extern struct bt_notification *bt_notification_event_create(
-		struct bt_ctf_trace *trace, struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
-
-/**
- * Get an event notification's associated trace.
- *
- * @param notification	Event notification instance
- * @returns		A trace instance
- *
- * @see #bt_ctf_trace
- */
-extern struct bt_ctf_trace *bt_notification_event_get_trace(
-		struct bt_notification *notification);
-
-/**
- * Get an event notification's associated stream.
- *
- * @param notification	Event notification instance
- * @returns		A stream instance
- *
- * @see #bt_ctf_stream
- */
-extern struct bt_ctf_stream *bt_notification_event_get_stream(
-		struct bt_notification *notification);
 
 /**
  * Get an event notification's event.

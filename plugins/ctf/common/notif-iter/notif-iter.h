@@ -289,7 +289,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notif_iter);
  * @returns			One of #bt_ctf_notif_iter_status values
  */
 enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
-		struct bt_ctf_notif_iter *notif_iter,
-		struct bt_ctf_notif_iter_notif **notification);
+		struct bt_ctf_notif_iter *notit,
+		struct bt_notification **notification);
 
 #endif /* CTF_NOTIF_ITER_H */

@@ -13,3 +13,6 @@ libplugin_system_la_SOURCES = \
 	source.c \
 	sink.c \
 	iterator.c
+
+libplugin_system_la_LIBADD = \
+	notification/libplugin-system-notification.la

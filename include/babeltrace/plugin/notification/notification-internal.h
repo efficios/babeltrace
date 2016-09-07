@@ -41,6 +41,11 @@ struct bt_notification {
 	enum bt_notification_type type;
 };
 
+BT_HIDDEN
+void bt_notification_init(struct bt_notification *notification,
+		enum bt_notification_type type,
+		bt_object_release_func release);
+
 #ifdef __cplusplus
 }
 #endif
