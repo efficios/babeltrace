@@ -51,7 +51,8 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/notification/event.h \
 	babeltrace/plugin/notification/iterator.h \
 	babeltrace/plugin/notification/packet.h \
-	babeltrace/plugin/notification/schema.h
+	babeltrace/plugin/notification/schema.h \
+	babeltrace/plugin/notification/stream.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
@@ -122,4 +123,5 @@ noinst_HEADERS = \
 	babeltrace/plugin/notification/event-internal.h \
 	babeltrace/plugin/notification/iterator-internal.h \
 	babeltrace/plugin/notification/notification-internal.h \
-	babeltrace/plugin/notification/packet-internal.h
+	babeltrace/plugin/notification/packet-internal.h \
+	babeltrace/plugin/notification/stream-internal.h

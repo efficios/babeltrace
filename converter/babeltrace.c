@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 			component_factory, "ctf", BT_COMPONENT_TYPE_SOURCE,
 			"fs");
 	if (!source_class) {
-		fprintf(stderr, "Could not find ctf-fs output component class. Aborting...\n");
+		fprintf(stderr, "Could not find ctf-fs source component class. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
 	sink_class = bt_component_factory_get_component_class(component_factory,
 			"text", BT_COMPONENT_TYPE_SINK, "text");
 	if (!sink_class) {
-		fprintf(stderr, "Could not find text output component class. Aborting...\n");
+		fprintf(stderr, "Could not find text sink component class. Aborting...\n");
 		ret = -1;
 		goto end;
 	}

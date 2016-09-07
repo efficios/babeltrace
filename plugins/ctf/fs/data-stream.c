@@ -330,6 +330,11 @@ enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 	struct ctf_fs_stream *stream = g_ptr_array_index(
 			ctf_fs->data_stream.streams, 0);
 
+	if (stream->end_reached) {
+		status = BT_CTF_NOTIF_ITER_STATUS_EOF;
+		goto end;
+	}
+
 	status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
 			notification);
 	if (status != BT_CTF_NOTIF_ITER_STATUS_OK &&
@@ -337,12 +342,21 @@ enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 		goto end;
 	}
 
+	/* Should be handled in bt_ctf_notif_iter_get_next_notification. */
+	if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		*notification = bt_notification_stream_end_create(
+				stream->stream);
+		if (!*notification) {
+			status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		}
+		status = BT_CTF_NOTIF_ITER_STATUS_OK;
+		stream->end_reached = true;
+	}
 end:
 	switch (status) {
 	case BT_CTF_NOTIF_ITER_STATUS_EOF:
-		/* Not an error, send end of stream notification. */
-		/* Subsequent calls to "next" should return BT_NOTIFICATION_STATUS_END */
-		/* TODO */
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		break;
 	case BT_CTF_NOTIF_ITER_STATUS_OK:
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 		break;
@@ -356,6 +370,7 @@ end:
 	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
 		/* No argument provided by the user, so don't return INVAL. */
 	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	default:
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		break;
 	}

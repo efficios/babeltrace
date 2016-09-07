@@ -28,7 +28,7 @@
 #include <babeltrace/plugin/notification/packet-internal.h>
 
 static
-void bt_notification_start_packet_destroy(struct bt_object *obj)
+void bt_notification_packet_start_destroy(struct bt_object *obj)
 {
 	struct bt_notification_packet_start *notification =
 			(struct bt_notification_packet_start *) obj;
@@ -38,7 +38,7 @@ void bt_notification_start_packet_destroy(struct bt_object *obj)
 }
 
 static
-void bt_notification_end_packet_destroy(struct bt_object *obj)
+void bt_notification_packet_end_destroy(struct bt_object *obj)
 {
 	struct bt_notification_packet_end *notification =
 			(struct bt_notification_packet_end *) obj;
@@ -59,7 +59,7 @@ struct bt_notification *bt_notification_packet_start_create(
 	notification = g_new0(struct bt_notification_packet_start, 1);
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_PACKET_START,
-			bt_notification_start_packet_destroy);
+			bt_notification_packet_start_destroy);
 	notification->packet = bt_get(packet);
 	return &notification->parent;
 error:
@@ -88,7 +88,7 @@ struct bt_notification *bt_notification_packet_end_create(
 	notification = g_new0(struct bt_notification_packet_end, 1);
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_PACKET_END,
-			bt_notification_end_packet_destroy);
+			bt_notification_packet_end_destroy);
 	notification->packet = bt_get(packet);
 	return &notification->parent;
 error:

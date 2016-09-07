@@ -36,7 +36,6 @@ struct bt_ctf_trace;
 struct bt_ctf_stream_class;
 struct bt_ctf_event_class;
 
-
 /* BT_NOTIFICATION_TYPE_NEW_TRACE */
 /**
  * Create a new trace notification.

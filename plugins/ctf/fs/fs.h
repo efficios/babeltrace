@@ -63,6 +63,7 @@ struct ctf_fs_stream {
 	size_t mmap_len;
 	off_t mmap_offset;
 	off_t request_offset;
+	bool end_reached;
 };
 
 struct ctf_fs_data_stream {

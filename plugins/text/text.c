@@ -72,25 +72,23 @@ const char *loglevel_str [] = {
 };
 
 struct text_options {
-	bool opt_print_all_field_names : 1;
-	bool opt_print_scope_field_names : 1;
-	bool opt_print_header_field_names : 1;
-	bool opt_print_context_field_names : 1;
-	bool opt_print_payload_field_names : 1;
-	bool opt_print_all_fields : 1;
-	bool opt_print_trace_field : 1;
-	bool opt_print_trace_domain_field : 1;
-	bool opt_print_trace_procname_field : 1;
-	bool opt_print_trace_vpid_field : 1;
-	bool opt_print_trace_hostname_field : 1;
-	bool opt_print_trace_default_fields : 1;
-	bool opt_print_loglevel_field : 1;
-	bool opt_print_emf_field : 1;
-	bool opt_print_delta_field : 1;
+	bool print_scope_field_names : 1;
+	bool print_header_field_names : 1;
+	bool print_context_field_names : 1;
+	bool print_payload_field_names : 1;
+	bool print_delta_field : 1;
+	bool print_loglevel_field : 1;
+	bool print_trace_field : 1;
+	bool print_trace_domain_field : 1;
+	bool print_trace_procname_field : 1;
+	bool print_trace_vpid_field : 1;
+	bool print_trace_hostname_field : 1;
+	bool no_size_limit : 1;
 };
 
 struct text_component {
 	struct text_options options;
+	FILE *out, *err;
 };
 
 static
@@ -124,7 +122,10 @@ enum bt_component_status handle_notification(struct bt_component *component,
 		puts("</packet>");
 		break;
 	case BT_NOTIFICATION_TYPE_EVENT:
-		puts("<event>");
+		puts("\t<event>");
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		puts("</stream>");
 		break;
 	default:
 		puts("Unhandled notification type");
@@ -160,6 +161,9 @@ enum bt_component_status text_component_init(
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
+	text->out = stdout;
+	text->err = stderr;
 end:
 	return ret;
 error:

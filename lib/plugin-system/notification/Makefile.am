@@ -6,4 +6,5 @@ noinst_LTLIBRARIES = libplugin-system-notification.la
 libplugin_system_notification_la_SOURCES = \
 	notification.c \
 	packet.c \
-	event.c
+	event.c \
+	stream.c

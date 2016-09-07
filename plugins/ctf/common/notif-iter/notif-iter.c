@@ -1735,6 +1735,28 @@ end:
 	BT_PUT(event);
 }
 
+static
+void notify_eos(struct bt_ctf_notif_iter *notit,
+		struct bt_notification **notification)
+{
+	struct bt_ctf_event *event;
+	struct bt_notification *ret = NULL;
+
+	/* Create event */
+	event = create_event(notit);
+	if (!event) {
+		goto end;
+	}
+
+	ret = bt_notification_stream_end_create(event);
+	if (!ret) {
+		goto end;
+	}
+	*notification = ret;
+end:
+	BT_PUT(event);
+}
+
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
 		struct bt_ctf_notif_iter_medium_ops medops,

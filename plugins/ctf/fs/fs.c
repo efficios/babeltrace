@@ -86,7 +86,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	bt_put(ctf_fs->current_notification);
 	ctf_fs->current_notification = notification;
 end:
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	return ret;
 }
 
 static
@@ -137,7 +137,6 @@ enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 	if (ret) {
 		goto error;
 	}
-
 end:
 	return ret;
 error:
@@ -240,7 +239,6 @@ enum bt_component_status ctf_fs_init(struct bt_component *source,
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
-
 end:
 	return ret;
 error:
