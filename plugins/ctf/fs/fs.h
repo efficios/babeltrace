@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
-#define BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_CTF_FS_H
+#define BABELTRACE_PLUGIN_CTF_FS_H
 
 /*
  * BabelTrace - CTF on File System Component
@@ -92,4 +92,4 @@ BT_HIDDEN
 enum bt_component_status ctf_fs_init(struct bt_component *source,
 		struct bt_value *params);
 
-#endif /* BABELTRACE_PLUGIN_CTF_FS_INTERNAL_H */
+#endif /* BABELTRACE_PLUGIN_CTF_FS_H */

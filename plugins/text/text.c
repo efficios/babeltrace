@@ -30,27 +30,11 @@
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/plugin/notification/event.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-
-enum loglevel {
-        LOGLEVEL_EMERG                  = 0,
-        LOGLEVEL_ALERT                  = 1,
-        LOGLEVEL_CRIT                   = 2,
-        LOGLEVEL_ERR                    = 3,
-        LOGLEVEL_WARNING                = 4,
-        LOGLEVEL_NOTICE                 = 5,
-        LOGLEVEL_INFO                   = 6,
-        LOGLEVEL_DEBUG_SYSTEM           = 7,
-        LOGLEVEL_DEBUG_PROGRAM          = 8,
-        LOGLEVEL_DEBUG_PROCESS          = 9,
-        LOGLEVEL_DEBUG_MODULE           = 10,
-        LOGLEVEL_DEBUG_UNIT             = 11,
-        LOGLEVEL_DEBUG_FUNCTION         = 12,
-        LOGLEVEL_DEBUG_LINE             = 13,
-        LOGLEVEL_DEBUG                  = 14,
-};
+#include "text.h"
 
 static
 const char *loglevel_str [] = {
@@ -71,36 +55,41 @@ const char *loglevel_str [] = {
 	[LOGLEVEL_DEBUG] =		"TRACE_DEBUG",
 };
 
-struct text_options {
-	bool print_scope_field_names : 1;
-	bool print_header_field_names : 1;
-	bool print_context_field_names : 1;
-	bool print_payload_field_names : 1;
-	bool print_delta_field : 1;
-	bool print_loglevel_field : 1;
-	bool print_trace_field : 1;
-	bool print_trace_domain_field : 1;
-	bool print_trace_procname_field : 1;
-	bool print_trace_vpid_field : 1;
-	bool print_trace_hostname_field : 1;
-	bool no_size_limit : 1;
-};
+static
+void destroy_stream_timestamp(void *stream_timestamp)
+{
+	g_free(stream_timestamp);
+}
 
-struct text_component {
-	struct text_options options;
-	FILE *out, *err;
-};
+static
+void destroy_text_data(struct text_component *text)
+{
+	if (text->stream_timestamps) {
+		g_hash_table_destroy(text->stream_timestamps);
+	}
+	g_free(text);
+}
 
 static
 struct text_component *create_text(void)
 {
-	return g_new0(struct text_component, 1);
-}
+	struct text_component *text;
 
-static
-void destroy_text_data(struct text_component *data)
-{
-	g_free(data);
+	text = g_new0(struct text_component, 1);
+	if (!text) {
+		goto end;
+	}
+
+	text->stream_timestamps = g_hash_table_new_full(
+			NULL, NULL, NULL, destroy_stream_timestamp);
+	if (!text->stream_timestamps) {
+		goto error;
+	}
+end:
+	return text;
+error:
+	destroy_text_data(text);
+	return NULL;
 }
 
 static void destroy_text(struct bt_component *component)
@@ -114,6 +103,14 @@ static
 enum bt_component_status handle_notification(struct bt_component *component,
 	struct bt_notification *notification)
 {
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct text_component *text = bt_component_get_private_data(component);
+
+	if (!text) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_START:
 		puts("<packet>");
@@ -122,15 +119,29 @@ enum bt_component_status handle_notification(struct bt_component *component,
 		puts("</packet>");
 		break;
 	case BT_NOTIFICATION_TYPE_EVENT:
+	{
+		struct bt_ctf_event *event = bt_notification_event_get_event(
+				notification);
+
 		puts("\t<event>");
+		if (!event) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		ret = text_print_event(text, event);
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
 		break;
+	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 		puts("</stream>");
 		break;
 	default:
 		puts("Unhandled notification type");
 	}
-	return BT_COMPONENT_STATUS_OK;
+end:
+	return ret;
 }
 
 static
@@ -178,5 +189,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("text", "Formats CTF-IR to text. Formerly known as ctf-text.", text_component_init)
+BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("text",
+		"Formats CTF-IR to text. Formerly known as ctf-text.",
+		text_component_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
