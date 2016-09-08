@@ -57,6 +57,7 @@ struct bt_notification *ctf_fs_iterator_get(
 
 	notification = bt_get(ctf_fs->current_notification);
 end:
+	BT_PUT(component);
 	return notification;
 }
 
@@ -86,6 +87,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	bt_put(ctf_fs->current_notification);
 	ctf_fs->current_notification = notification;
 end:
+	BT_PUT(component);
 	return ret;
 }
 
