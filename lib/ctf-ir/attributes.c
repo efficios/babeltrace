@@ -32,6 +32,7 @@
 #include <babeltrace/values.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <babeltrace/compat/string-internal.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX		1

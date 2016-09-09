@@ -34,6 +34,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/compat/string-internal.h>
 #include <inttypes.h>
 #include <babeltrace/object-internal.h>
 

@@ -86,16 +86,16 @@ extern bt_bool babeltrace_verbose, babeltrace_debug;
 
 #define _bt_printf_perror(fp, fmt, args...)				\
 	({								\
-		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		bt_strerror_r(errno, buf, sizeof(buf));		\
-		_bt_printfe(fp, "error", buf, fmt, ## args);		\
+		const char *errstr;					\
+		errstr = g_strerror(errno);				\
+		_bt_printfe(fp, "error", errstr, fmt, ## args);		\
 	})
 
 #define _bt_printfl_perror(fp, lineno, fmt, args...)			\
 	({								\
-		char buf[PERROR_BUFLEN] = "Error in strerror_r()";	\
-		bt_strerror_r(errno, buf, sizeof(buf));		\
-		_bt_printfle(fp, "error", lineno, buf, fmt, ## args);	\
+		const char *errstr;					\
+		errstr = g_strerror(errno);				\
+		_bt_printfle(fp, "error", lineno, errstr, fmt, ## args);\
 	})
 
 /* printf without lineno information */
