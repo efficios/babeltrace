@@ -56,17 +56,8 @@ const char *loglevel_str [] = {
 };
 
 static
-void destroy_stream_timestamp(void *stream_timestamp)
-{
-	g_free(stream_timestamp);
-}
-
-static
 void destroy_text_data(struct text_component *text)
 {
-	if (text->stream_timestamps) {
-		g_hash_table_destroy(text->stream_timestamps);
-	}
 	g_free(text);
 }
 
@@ -79,17 +70,8 @@ struct text_component *create_text(void)
 	if (!text) {
 		goto end;
 	}
-
-	text->stream_timestamps = g_hash_table_new_full(
-			NULL, NULL, NULL, destroy_stream_timestamp);
-	if (!text->stream_timestamps) {
-		goto error;
-	}
 end:
 	return text;
-error:
-	destroy_text_data(text);
-	return NULL;
 }
 
 static void destroy_text(struct bt_component *component)
@@ -123,7 +105,6 @@ enum bt_component_status handle_notification(struct bt_component *component,
 		struct bt_ctf_event *event = bt_notification_event_get_event(
 				notification);
 
-		puts("\t<event>");
 		if (!event) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
