@@ -1190,7 +1190,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		cfg_conn->downstream_comp_name->str);
 	assert(downstreamp_comp_name_quark > 0);
 	downstream_comp = g_hash_table_lookup(ctx->components,
-		(gpointer) (long) downstreamp_comp_name_quark);
+		GUINT_TO_POINTER(downstreamp_comp_name_quark));
 	if (!downstream_comp) {
 		BT_LOGE("Cannot find downstream component:  comp-name=\"%s\", "
 			"conn-arg=\"%s\"", cfg_conn->downstream_comp_name->str,
@@ -1596,7 +1596,7 @@ int cmd_run_ctx_create_components_from_config_components(
 		quark = g_quark_from_string(cfg_comp->instance_name->str);
 		assert(quark > 0);
 		g_hash_table_insert(ctx->components,
-			(gpointer) (long) quark, comp);
+			GUINT_TO_POINTER(quark), comp);
 		comp = NULL;
 		BT_PUT(comp_cls);
 	}

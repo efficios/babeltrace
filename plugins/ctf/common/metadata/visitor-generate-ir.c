@@ -384,7 +384,7 @@ struct bt_ctf_field_type *ctx_decl_scope_lookup_prefix_alias(
 
 	while (cur_scope && cur_levels < levels) {
 		decl = g_hash_table_lookup(cur_scope->decl_map,
-			(gconstpointer) (unsigned long) qname);
+			(gconstpointer) GUINT_TO_POINTER(qname));
 		if (decl) {
 			/* Caller's reference */
 			bt_get(decl);
@@ -500,7 +500,7 @@ int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope,
 	}
 
 	g_hash_table_insert(scope->decl_map,
-		(gpointer) (unsigned long) qname, decl);
+		GUINT_TO_POINTER(qname), decl);
 
 	/* Hash table's reference */
 	bt_get(decl);
