@@ -132,7 +132,7 @@ extern int bt_ctf_stream_class_set_id(
 		struct bt_ctf_stream_class *stream_class, uint32_t id);
 
 /*
- * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
+ * bt_ctf_stream_class_add_event_class: add an event class to a stream class.
  *
  * Add an event class to a stream class. New events can be added even after a
  * stream has beem instanciated and events have been appended. However, a stream
