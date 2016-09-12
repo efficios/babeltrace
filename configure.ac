@@ -161,6 +161,7 @@ AS_CASE([$host_os],
   [mingw*],
     [
 	MINGW32=yes
+	DEFAULT_ENABLE_DEBUG_INFO=no
     ]
 )
 
