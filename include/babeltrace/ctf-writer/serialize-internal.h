@@ -37,8 +37,11 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/align-internal.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/mmap-align-internal.h>
 #include <babeltrace/types.h>
+
+#define PACKET_LEN_INCREMENT	(bt_common_get_page_size() * 8 * CHAR_BIT)
 
 struct bt_ctf_stream_pos {
 	int fd;

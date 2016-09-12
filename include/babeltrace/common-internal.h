@@ -199,4 +199,10 @@ bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
 BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd);
 
+/*
+ * Return the system page size.
+ */
+BT_HIDDEN
+size_t bt_common_get_page_size(void);
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

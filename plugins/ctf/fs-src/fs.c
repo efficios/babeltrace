@@ -42,7 +42,6 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include "fs.h"
 #include "metadata.h"
 #include "data-stream-file.h"
@@ -1277,7 +1276,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	}
 
 	ctf_fs->error_fp = stderr;
-	ctf_fs->page_size = (size_t) getpagesize();
+	ctf_fs->page_size = bt_common_get_page_size();
 	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);
 	if (!ctf_fs->port_data) {
 		goto error;

@@ -30,8 +30,10 @@
 #include <assert.h>
 #include <ctype.h>
 #include <glib.h>
+#include <stdlib.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
+#include <babeltrace/compat/unistd-internal.h>
 
 #define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace/plugins"
 #define HOME_ENV_VAR		"HOME"
@@ -1124,4 +1126,18 @@ end:
 	}
 
 	return norm_path;
+}
+
+BT_HIDDEN
+size_t bt_common_get_page_size(void)
+{
+	int page_size;
+
+	page_size = bt_sysconf(_SC_PAGESIZE);
+	if (page_size < 0) {
+		printf_error("Cannot get system page size.");
+		abort();
+	}
+
+	return page_size;
 }

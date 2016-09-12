@@ -26,12 +26,7 @@
  */
 
 #include <babeltrace/compiler-internal.h>
-#include <unistd.h>
 #include <babeltrace/compat/limits-internal.h>
-
-#ifndef PAGE_SIZE		/* Cygwin limits.h defines its own PAGE_SIZE */
-#define PAGE_SIZE		sysconf(_SC_PAGE_SIZE)
-#endif
 
 #define ALIGN(x, a)		__ALIGN_MASK(x, (typeof(x))(a) - 1)
 #define __ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))

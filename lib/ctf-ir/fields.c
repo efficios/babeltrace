@@ -39,8 +39,6 @@
 #include <babeltrace/align-internal.h>
 #include <inttypes.h>
 
-#define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)
-
 static
 struct bt_ctf_field *bt_ctf_field_integer_create(struct bt_ctf_field_type *);
 static

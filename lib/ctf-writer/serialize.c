@@ -42,6 +42,7 @@
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/common-internal.h>
 #include <glib.h>
 
 #if (FLT_RADIX != 2)
@@ -284,7 +285,7 @@ void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 
 	/* The writer will add padding */
 	pos->mmap_offset += pos->packet_size / CHAR_BIT;
-	pos->packet_size = getpagesize() * 8 * CHAR_BIT;
+	pos->packet_size = PACKET_LEN_INCREMENT;
 	do {
 		ret = bt_posix_fallocate(pos->fd, pos->mmap_offset,
 			pos->packet_size / CHAR_BIT);
