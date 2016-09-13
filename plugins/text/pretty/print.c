@@ -40,6 +40,7 @@
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
+#include <babeltrace/compat/time-internal.h>
 #include <inttypes.h>
 #include <ctype.h>
 #include "pretty.h"
@@ -201,7 +202,7 @@ void print_timestamp_wall(struct pretty_component *pretty,
 		if (!pretty->options.clock_gmt) {
 			struct tm *res;
 
-			res = localtime_r(&time_s, &tm);
+			res = bt_localtime_r(&time_s, &tm);
 			if (!res) {
 				// TODO: log instead
 				fprintf(stderr, "[warning] Unable to get localtime.\n");
@@ -210,7 +211,7 @@ void print_timestamp_wall(struct pretty_component *pretty,
 		} else {
 			struct tm *res;
 
-			res = gmtime_r(&time_s, &tm);
+			res = bt_gmtime_r(&time_s, &tm);
 			if (!res) {
 				// TODO: log instead
 				fprintf(stderr, "[warning] Unable to get gmtime.\n");
