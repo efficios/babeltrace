@@ -174,8 +174,14 @@ extern bt_bool babeltrace_verbose, babeltrace_debug;
 
 /*
  * BT_HIDDEN: set the hidden attribute for internal functions
+ * On Windows, symbols are local unless explicitly exported,
+ * see https://gcc.gnu.org/wiki/Visibility
  */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define BT_HIDDEN
+#else
 #define BT_HIDDEN __attribute__((visibility("hidden")))
+#endif
 
 #define __STRINGIFY(x)	#x
 #define TOSTRING(x)	__STRINGIFY(x)
