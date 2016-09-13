@@ -1053,9 +1053,9 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
  */
 %expect 2
 %start file
-%token INTEGER_LITERAL STRING_LITERAL CHARACTER_LITERAL LSBRAC RSBRAC LPAREN RPAREN LBRAC RBRAC RARROW STAR PLUS MINUS LT GT TYPEASSIGN COLON SEMICOLON DOTDOTDOT DOT EQUAL COMMA CONST CHAR DOUBLE ENUM ENV EVENT FLOATING_POINT FLOAT INTEGER INT LONG SHORT SIGNED STREAM STRING STRUCT TRACE CALLSITE CLOCK TYPEALIAS TYPEDEF UNSIGNED VARIANT VOID _BOOL _COMPLEX _IMAGINARY TOK_ALIGN
+%token CTF_INTEGER_LITERAL CTF_STRING_LITERAL CTF_CHARACTER_LITERAL CTF_LSBRAC CTF_RSBRAC CTF_LPAREN CTF_RPAREN CTF_LBRAC CTF_RBRAC CTF_RARROW CTF_STAR CTF_PLUS CTF_MINUS CTF_LT CTF_GT CTF_TYPEASSIGN CTF_COLON CTF_SEMICOLON CTF_DOTDOTDOT CTF_DOT CTF_EQUAL CTF_COMMA CTF_CONST CTF_CHAR CTF_DOUBLE CTF_ENUM CTF_ENV CTF_EVENT CTF_FLOATING_POINT CTF_FLOAT CTF_INTEGER CTF_INT CTF_LONG CTF_SHORT CTF_SIGNED CTF_STREAM CTF_STRING CTF_STRUCT CTF_TRACE CTF_CALLSITE CTF_CLOCK CTF_TYPEALIAS CTF_TYPEDEF CTF_UNSIGNED CTF_VARIANT CTF_VOID CTF_BOOL CTF_COMPLEX CTF_IMAGINARY CTF_TOK_ALIGN
 %token <s> IDENTIFIER ID_TYPE
-%token ERROR
+%token CTF_ERROR
 %union
 {
 	long long ll;
@@ -1065,11 +1065,11 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	struct ctf_node *n;
 }
 
-%type <s> STRING_LITERAL CHARACTER_LITERAL
+%type <s> CTF_STRING_LITERAL CTF_CHARACTER_LITERAL
 
 %type <s> keywords
 
-%type <ull> INTEGER_LITERAL
+%type <ull> CTF_INTEGER_LITERAL
 %type <n> postfix_expression unary_expression unary_expression_or_range
 
 %type <n> declaration
@@ -1125,59 +1125,59 @@ file:
 	;
 
 keywords:
-		VOID
+		CTF_VOID
 		{	$$ = yylval.s;		}
-	|	CHAR
+	|	CTF_CHAR
 		{	$$ = yylval.s;		}
-	|	SHORT
+	|	CTF_SHORT
 		{	$$ = yylval.s;		}
-	|	INT
+	|	CTF_INT
 		{	$$ = yylval.s;		}
-	|	LONG
+	|	CTF_LONG
 		{	$$ = yylval.s;		}
-	|	FLOAT
+	|	CTF_FLOAT
 		{	$$ = yylval.s;		}
-	|	DOUBLE
+	|	CTF_DOUBLE
 		{	$$ = yylval.s;		}
-	|	SIGNED
+	|	CTF_SIGNED
 		{	$$ = yylval.s;		}
-	|	UNSIGNED
+	|	CTF_UNSIGNED
 		{	$$ = yylval.s;		}
-	|	_BOOL
+	|	CTF_BOOL
 		{	$$ = yylval.s;		}
-	|	_COMPLEX
+	|	CTF_COMPLEX
 		{	$$ = yylval.s;		}
-	|	_IMAGINARY
+	|	CTF_IMAGINARY
 		{	$$ = yylval.s;		}
-	|	FLOATING_POINT
+	|	CTF_FLOATING_POINT
 		{	$$ = yylval.s;		}
-	|	INTEGER
+	|	CTF_INTEGER
 		{	$$ = yylval.s;		}
-	|	STRING
+	|	CTF_STRING
 		{	$$ = yylval.s;		}
-	|	ENUM
+	|	CTF_ENUM
 		{	$$ = yylval.s;		}
-	|	VARIANT
+	|	CTF_VARIANT
 		{	$$ = yylval.s;		}
-	|	STRUCT
+	|	CTF_STRUCT
 		{	$$ = yylval.s;		}
-	|	CONST
+	|	CTF_CONST
 		{	$$ = yylval.s;		}
-	|	TYPEDEF
+	|	CTF_TYPEDEF
 		{	$$ = yylval.s;		}
-	|	EVENT
+	|	CTF_EVENT
 		{	$$ = yylval.s;		}
-	|	STREAM
+	|	CTF_STREAM
 		{	$$ = yylval.s;		}
-	|	ENV
+	|	CTF_ENV
 		{	$$ = yylval.s;		}
-	|	TRACE
+	|	CTF_TRACE
 		{	$$ = yylval.s;		}
-	|	CLOCK
+	|	CTF_CLOCK
 		{	$$ = yylval.s;		}
-	|	CALLSITE
+	|	CTF_CALLSITE
 		{	$$ = yylval.s;		}
-	|	TOK_ALIGN
+	|	CTF_TOK_ALIGN
 		{	$$ = yylval.s;		}
 	;
 
@@ -1203,29 +1203,29 @@ postfix_expression:
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = yylval.s;
 		}
-	|	INTEGER_LITERAL
+	|	CTF_INTEGER_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_UNSIGNED_CONSTANT;
 			$$->u.unary_expression.u.unsigned_constant = $1;
 		}
-	|	STRING_LITERAL
+	|	CTF_STRING_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = $1;
 		}
-	|	CHARACTER_LITERAL
+	|	CTF_CHARACTER_LITERAL
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
 			$$->u.unary_expression.u.string = $1;
 		}
-	|	LPAREN unary_expression RPAREN
+	|	CTF_LPAREN unary_expression CTF_RPAREN
 		{
 			$$ = $2;
 		}
-	|	postfix_expression LSBRAC unary_expression RSBRAC
+	|	postfix_expression CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_SBRAC;
@@ -1233,7 +1233,7 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
-	|	postfix_expression DOT IDENTIFIER
+	|	postfix_expression CTF_DOT IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
@@ -1242,7 +1242,7 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
-	|	postfix_expression DOT ID_TYPE
+	|	postfix_expression CTF_DOT ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
@@ -1251,7 +1251,7 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
-	|	postfix_expression DOT keywords
+	|	postfix_expression CTF_DOT keywords
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
@@ -1260,7 +1260,7 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
-	|	postfix_expression RARROW IDENTIFIER
+	|	postfix_expression CTF_RARROW IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
@@ -1269,7 +1269,7 @@ postfix_expression:
 			bt_list_splice(&($1)->tmp_head, &($$)->tmp_head);
 			bt_list_add_tail(&($$)->siblings, &($$)->tmp_head);
 		}
-	|	postfix_expression RARROW ID_TYPE
+	|	postfix_expression CTF_RARROW ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_UNARY_EXPRESSION);
 			$$->u.unary_expression.type = UNARY_STRING;
@@ -1283,7 +1283,7 @@ postfix_expression:
 unary_expression:
 		postfix_expression
 		{	$$ = $1;				}
-	|	PLUS postfix_expression
+	|	CTF_PLUS postfix_expression
 		{
 			$$ = $2;
 			if ($$->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT
@@ -1291,7 +1291,7 @@ unary_expression:
 				reparent_error(scanner, "expecting numeric constant");
 			}
 		}
-	|	MINUS postfix_expression
+	|	CTF_MINUS postfix_expression
 		{
 			$$ = $2;
 			if ($$->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT) {
@@ -1308,7 +1308,7 @@ unary_expression:
 	;
 
 unary_expression_or_range:
-		unary_expression DOTDOTDOT unary_expression
+		unary_expression CTF_DOTDOTDOT unary_expression
 		{
 			$$ = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->tmp_head);
@@ -1321,7 +1321,7 @@ unary_expression_or_range:
 /* 2.2: Declarations */
 
 declaration:
-		declaration_specifiers SEMICOLON
+		declaration_specifiers CTF_SEMICOLON
 		{	$$ = $1;	}
 	|	event_declaration
 		{	$$ = $1;	}
@@ -1335,7 +1335,7 @@ declaration:
 		{	$$ = $1;	}
 	|	callsite_declaration
 		{	$$ = $1;	}
-	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -1346,7 +1346,7 @@ declaration:
 			_bt_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
+	|	CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -1356,7 +1356,7 @@ declaration:
 			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	declaration_specifiers TYPEDEF type_declarator_list SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -1366,7 +1366,7 @@ declaration:
 			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
+	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -1400,12 +1400,12 @@ event_declaration:
 	;
 
 event_declaration_begin:
-		EVENT LBRAC
+		CTF_EVENT CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 event_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
@@ -1424,12 +1424,12 @@ stream_declaration:
 	;
 
 stream_declaration_begin:
-		STREAM LBRAC
+		CTF_STREAM CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 stream_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
@@ -1447,12 +1447,12 @@ env_declaration:
 	;
 
 env_declaration_begin:
-		ENV LBRAC
+		CTF_ENV CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 env_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
@@ -1470,21 +1470,21 @@ trace_declaration:
 	;
 
 trace_declaration_begin:
-		TRACE LBRAC
+		CTF_TRACE CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 trace_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
 clock_declaration:
-		CLOCK clock_declaration_begin clock_declaration_end
+		CTF_CLOCK clock_declaration_begin clock_declaration_end
 		{
 			$$ = make_node(scanner, NODE_CLOCK);
 		}
-	|	CLOCK clock_declaration_begin ctf_assignment_expression_list clock_declaration_end
+	|	CTF_CLOCK clock_declaration_begin ctf_assignment_expression_list clock_declaration_end
 		{
 			$$ = make_node(scanner, NODE_CLOCK);
 			if (set_parent_node($3, $$))
@@ -1493,21 +1493,21 @@ clock_declaration:
 	;
 
 clock_declaration_begin:
-		LBRAC
+		CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 clock_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
 callsite_declaration:
-		CALLSITE callsite_declaration_begin callsite_declaration_end
+		CTF_CALLSITE callsite_declaration_begin callsite_declaration_end
 		{
 			$$ = make_node(scanner, NODE_CALLSITE);
 		}
-	|	CALLSITE callsite_declaration_begin ctf_assignment_expression_list callsite_declaration_end
+	|	CTF_CALLSITE callsite_declaration_begin ctf_assignment_expression_list callsite_declaration_end
 		{
 			$$ = make_node(scanner, NODE_CALLSITE);
 			if (set_parent_node($3, $$))
@@ -1516,17 +1516,17 @@ callsite_declaration:
 	;
 
 callsite_declaration_begin:
-		LBRAC
+		CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 callsite_declaration_end:
-		RBRAC SEMICOLON
+		CTF_RBRAC CTF_SEMICOLON
 		{	pop_scope(scanner);	}
 	;
 
 integer_declaration_specifiers:
-		CONST
+		CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -1543,7 +1543,7 @@ integer_declaration_specifiers:
 			node = $1;
 			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
-	|	integer_declaration_specifiers CONST
+	|	integer_declaration_specifiers CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -1560,7 +1560,7 @@ integer_declaration_specifiers:
 	;
 
 declaration_specifiers:
-		CONST
+		CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -1577,7 +1577,7 @@ declaration_specifiers:
 			node = $1;
 			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
-	|	declaration_specifiers CONST
+	|	declaration_specifiers CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -1596,7 +1596,7 @@ declaration_specifiers:
 type_declarator_list:
 		type_declarator
 		{	$$ = $1;	}
-	|	type_declarator_list COMMA type_declarator
+	|	type_declarator_list CTF_COMMA type_declarator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -1604,37 +1604,37 @@ type_declarator_list:
 	;
 
 integer_type_specifier:
-		CHAR
+		CTF_CHAR
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_CHAR;
 		}
-	|	SHORT
+	|	CTF_SHORT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_SHORT;
 		}
-	|	INT
+	|	CTF_INT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INT;
 		}
-	|	LONG
+	|	CTF_LONG
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_LONG;
 		}
-	|	SIGNED
+	|	CTF_SIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_SIGNED;
 		}
-	|	UNSIGNED
+	|	CTF_UNSIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_UNSIGNED;
 		}
-	|	_BOOL
+	|	CTF_BOOL
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_BOOL;
@@ -1645,13 +1645,13 @@ integer_type_specifier:
 			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
 			$$->u.type_specifier.id_type = yylval.s;
 		}
-	|	INTEGER LBRAC RBRAC
+	|	CTF_INTEGER CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INTEGER;
 			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
 		}
-	|	INTEGER LBRAC ctf_assignment_expression_list RBRAC
+	|	CTF_INTEGER CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INTEGER;
@@ -1662,62 +1662,62 @@ integer_type_specifier:
 	;
 
 type_specifier:
-		VOID
+		CTF_VOID
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_VOID;
 		}
-	|	CHAR
+	|	CTF_CHAR
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_CHAR;
 		}
-	|	SHORT
+	|	CTF_SHORT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_SHORT;
 		}
-	|	INT
+	|	CTF_INT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INT;
 		}
-	|	LONG
+	|	CTF_LONG
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_LONG;
 		}
-	|	FLOAT
+	|	CTF_FLOAT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_FLOAT;
 		}
-	|	DOUBLE
+	|	CTF_DOUBLE
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_DOUBLE;
 		}
-	|	SIGNED
+	|	CTF_SIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_SIGNED;
 		}
-	|	UNSIGNED
+	|	CTF_UNSIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_UNSIGNED;
 		}
-	|	_BOOL
+	|	CTF_BOOL
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_BOOL;
 		}
-	|	_COMPLEX
+	|	CTF_COMPLEX
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_COMPLEX;
 		}
-	|	_IMAGINARY
+	|	CTF_IMAGINARY
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_IMAGINARY;
@@ -1728,13 +1728,13 @@ type_specifier:
 			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
 			$$->u.type_specifier.id_type = yylval.s;
 		}
-	|	FLOATING_POINT LBRAC RBRAC
+	|	CTF_FLOATING_POINT CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
 			$$->u.type_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
 		}
-	|	FLOATING_POINT LBRAC ctf_assignment_expression_list RBRAC
+	|	CTF_FLOATING_POINT CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
@@ -1742,13 +1742,13 @@ type_specifier:
 			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "floating point reparent error");
 		}
-	|	INTEGER LBRAC RBRAC
+	|	CTF_INTEGER CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INTEGER;
 			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
 		}
-	|	INTEGER LBRAC ctf_assignment_expression_list RBRAC
+	|	CTF_INTEGER CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_INTEGER;
@@ -1756,19 +1756,19 @@ type_specifier:
 			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "integer reparent error");
 		}
-	|	STRING
+	|	CTF_STRING
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_STRING;
 			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
 		}
-	|	STRING LBRAC RBRAC
+	|	CTF_STRING CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_STRING;
 			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
 		}
-	|	STRING LBRAC ctf_assignment_expression_list RBRAC
+	|	CTF_STRING CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_STRING;
@@ -1776,19 +1776,19 @@ type_specifier:
 			if (set_parent_node($3, $$->u.type_specifier.node))
 				reparent_error(scanner, "string reparent error");
 		}
-	|	ENUM enum_type_specifier
+	|	CTF_ENUM enum_type_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_ENUM;
 			$$->u.type_specifier.node = $2;
 		}
-	|	VARIANT variant_type_specifier
+	|	CTF_VARIANT variant_type_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_VARIANT;
 			$$->u.type_specifier.node = $2;
 		}
-	|	STRUCT struct_type_specifier
+	|	CTF_STRUCT struct_type_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
 			$$->u.type_specifier.type = TYPESPEC_STRUCT;
@@ -1832,7 +1832,7 @@ struct_type_specifier:
 			$$->u._struct.has_body = 0;
 			$$->u._struct.name = $1;
 		}
-	|	struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+	|	struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end CTF_TOK_ALIGN CTF_LPAREN unary_expression CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
@@ -1840,7 +1840,7 @@ struct_type_specifier:
 			if ($2 && set_parent_node($2, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
-	|	IDENTIFIER struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+	|	IDENTIFIER struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end CTF_TOK_ALIGN CTF_LPAREN unary_expression CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
@@ -1849,7 +1849,7 @@ struct_type_specifier:
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "struct reparent error");
 		}
-	|	ID_TYPE struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end TOK_ALIGN LPAREN unary_expression RPAREN
+	|	ID_TYPE struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end CTF_TOK_ALIGN CTF_LPAREN unary_expression CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
 			$$->u._struct.has_body = 1;
@@ -1861,12 +1861,12 @@ struct_type_specifier:
 	;
 
 struct_declaration_begin:
-		LBRAC
+		CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 struct_declaration_end:
-		RBRAC
+		CTF_RBRAC
 		{	pop_scope(scanner);	}
 	;
 
@@ -1878,7 +1878,7 @@ variant_type_specifier:
 			if ($2 && set_parent_node($2, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	CTF_LT IDENTIFIER CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1886,7 +1886,7 @@ variant_type_specifier:
 			if ($5 && set_parent_node($5, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	CTF_LT ID_TYPE CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1902,7 +1902,7 @@ variant_type_specifier:
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	IDENTIFIER LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	IDENTIFIER CTF_LT IDENTIFIER CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1911,14 +1911,14 @@ variant_type_specifier:
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	IDENTIFIER LT IDENTIFIER GT
+	|	IDENTIFIER CTF_LT IDENTIFIER CTF_GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1;
 			$$->u.variant.choice = $3;
 		}
-	|	IDENTIFIER LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	IDENTIFIER CTF_LT ID_TYPE CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1927,7 +1927,7 @@ variant_type_specifier:
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	IDENTIFIER LT ID_TYPE GT
+	|	IDENTIFIER CTF_LT ID_TYPE CTF_GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
@@ -1942,7 +1942,7 @@ variant_type_specifier:
 			if ($3 && set_parent_node($3, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	ID_TYPE LT IDENTIFIER GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	ID_TYPE CTF_LT IDENTIFIER CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1951,14 +1951,14 @@ variant_type_specifier:
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	ID_TYPE LT IDENTIFIER GT
+	|	ID_TYPE CTF_LT IDENTIFIER CTF_GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
 			$$->u.variant.name = $1;
 			$$->u.variant.choice = $3;
 		}
-	|	ID_TYPE LT ID_TYPE GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
+	|	ID_TYPE CTF_LT ID_TYPE CTF_GT variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 1;
@@ -1967,7 +1967,7 @@ variant_type_specifier:
 			if ($6 && set_parent_node($6, $$))
 				reparent_error(scanner, "variant reparent error");
 		}
-	|	ID_TYPE LT ID_TYPE GT
+	|	ID_TYPE CTF_LT ID_TYPE CTF_GT
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
 			$$->u.variant.has_body = 0;
@@ -1977,37 +1977,37 @@ variant_type_specifier:
 	;
 
 variant_declaration_begin:
-		LBRAC
+		CTF_LBRAC
 		{	push_scope(scanner);	}
 	;
 
 variant_declaration_end:
-		RBRAC
+		CTF_RBRAC
 		{	pop_scope(scanner);	}
 	;
 
 enum_type_specifier:
-		LBRAC enumerator_list RBRAC
+		CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			_bt_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
+	|	CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			($$)->u._enum.container_type = $2;
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LBRAC enumerator_list RBRAC
+	|	IDENTIFIER CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
+	|	IDENTIFIER CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -2015,14 +2015,14 @@ enum_type_specifier:
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE LBRAC enumerator_list RBRAC
+	|	ID_TYPE CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list RBRAC
+	|	ID_TYPE CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -2030,27 +2030,27 @@ enum_type_specifier:
 			($$)->u._enum.container_type = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	LBRAC enumerator_list COMMA RBRAC
+	|	CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			_bt_list_splice_tail(&($2)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
+	|	CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			($$)->u._enum.container_type = $2;
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER LBRAC enumerator_list COMMA RBRAC
+	|	IDENTIFIER CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	IDENTIFIER COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
+	|	IDENTIFIER CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -2064,14 +2064,14 @@ enum_type_specifier:
 			$$->u._enum.has_body = 0;
 			$$->u._enum.enum_id = $1;
 		}
-	|	ID_TYPE LBRAC enumerator_list COMMA RBRAC
+	|	ID_TYPE CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
-	|	ID_TYPE COLON integer_declaration_specifiers LBRAC enumerator_list COMMA RBRAC
+	|	ID_TYPE CTF_COLON integer_declaration_specifiers CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
@@ -2103,7 +2103,7 @@ struct_or_variant_declaration_list:
 	;
 
 struct_or_variant_declaration:
-		declaration_specifiers struct_or_variant_declarator_list SEMICOLON
+		declaration_specifiers struct_or_variant_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2113,7 +2113,7 @@ struct_or_variant_declaration:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_bt_list_splice_tail(&($2)->tmp_head, &($$)->u.struct_or_variant_declaration.type_declarators);
 		}
-	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2124,7 +2124,7 @@ struct_or_variant_declaration:
 			_bt_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEDEF declaration_specifiers type_declarator_list SEMICOLON
+	|	CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2134,7 +2134,7 @@ struct_or_variant_declaration:
 			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	declaration_specifiers TYPEDEF type_declarator_list SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF type_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2144,7 +2144,7 @@ struct_or_variant_declaration:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list SEMICOLON
+	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
@@ -2165,7 +2165,7 @@ struct_or_variant_declaration:
 	;
 
 alias_declaration_specifiers:
-		CONST
+		CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -2193,7 +2193,7 @@ alias_declaration_specifiers:
 			node->u.type_specifier.id_type = yylval.s;
 			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
 		}
-	|	alias_declaration_specifiers CONST
+	|	alias_declaration_specifiers CTF_CONST
 		{
 			struct ctf_node *node;
 
@@ -2223,7 +2223,7 @@ alias_declaration_specifiers:
 struct_or_variant_declarator_list:
 		struct_or_variant_declarator
 		{	$$ = $1;	}
-	|	struct_or_variant_declarator_list COMMA struct_or_variant_declarator
+	|	struct_or_variant_declarator_list CTF_COMMA struct_or_variant_declarator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -2233,9 +2233,9 @@ struct_or_variant_declarator_list:
 struct_or_variant_declarator:
 		declarator
 		{	$$ = $1;	}
-	|	COLON unary_expression
+	|	CTF_COLON unary_expression
 		{	$$ = $2;	}
-	|	declarator COLON unary_expression
+	|	declarator CTF_COLON unary_expression
 		{
 			$$ = $1;
 			if (set_parent_node($3, $1))
@@ -2246,7 +2246,7 @@ struct_or_variant_declarator:
 enumerator_list:
 		enumerator
 		{	$$ = $1;	}
-	|	enumerator_list COMMA enumerator
+	|	enumerator_list CTF_COMMA enumerator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -2269,30 +2269,30 @@ enumerator:
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1;
 		}
-	|	STRING_LITERAL
+	|	CTF_STRING_LITERAL
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1;
 		}
-	|	IDENTIFIER EQUAL unary_expression_or_range
-		{
-			$$ = make_node(scanner, NODE_ENUMERATOR);
-			$$->u.enumerator.id = $1;
-			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
-		}
-	|	ID_TYPE EQUAL unary_expression_or_range
+	|	IDENTIFIER CTF_EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
-	|	keywords EQUAL unary_expression_or_range
+	|	ID_TYPE CTF_EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1;
 			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
 		}
-	|	STRING_LITERAL EQUAL unary_expression_or_range
+	|	keywords CTF_EQUAL unary_expression_or_range
+		{
+			$$ = make_node(scanner, NODE_ENUMERATOR);
+			$$->u.enumerator.id = $1;
+			bt_list_splice(&($3)->tmp_head, &($$)->u.enumerator.values);
+		}
+	|	CTF_STRING_LITERAL CTF_EQUAL unary_expression_or_range
 		{
 			$$ = make_node(scanner, NODE_ENUMERATOR);
 			$$->u.enumerator.id = $1;
@@ -2303,7 +2303,7 @@ enumerator:
 abstract_declarator_list:
 		abstract_declarator
 		{	$$ = $1;	}
-	|	abstract_declarator_list COMMA abstract_declarator
+	|	abstract_declarator_list CTF_COMMA abstract_declarator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -2333,13 +2333,13 @@ direct_abstract_declarator:
 			$$->u.type_declarator.type = TYPEDEC_ID;
 			$$->u.type_declarator.u.id = $1;
 		}
-	|	LPAREN abstract_declarator RPAREN
+	|	CTF_LPAREN abstract_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_abstract_declarator LSBRAC unary_expression RSBRAC
+	|	direct_abstract_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2347,7 +2347,7 @@ direct_abstract_declarator:
 			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
-	|	direct_abstract_declarator LSBRAC RSBRAC
+	|	direct_abstract_declarator CTF_LSBRAC CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2359,7 +2359,7 @@ direct_abstract_declarator:
 alias_abstract_declarator_list:
 		alias_abstract_declarator
 		{	$$ = $1;	}
-	|	alias_abstract_declarator_list COMMA alias_abstract_declarator
+	|	alias_abstract_declarator_list CTF_COMMA alias_abstract_declarator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
@@ -2383,13 +2383,13 @@ direct_alias_abstract_declarator:
                         $$->u.type_declarator.type = TYPEDEC_ID;
 			/* id is NULL */
 		}
-	|	LPAREN alias_abstract_declarator RPAREN
+	|	CTF_LPAREN alias_abstract_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_alias_abstract_declarator LSBRAC unary_expression RSBRAC
+	|	direct_alias_abstract_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2397,7 +2397,7 @@ direct_alias_abstract_declarator:
 			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
 		}
-	|	direct_alias_abstract_declarator LSBRAC RSBRAC
+	|	direct_alias_abstract_declarator CTF_LSBRAC CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2423,13 +2423,13 @@ direct_declarator:
 			$$->u.type_declarator.type = TYPEDEC_ID;
 			$$->u.type_declarator.u.id = $1;
 		}
-	|	LPAREN declarator RPAREN
+	|	CTF_LPAREN declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_declarator LSBRAC unary_expression RSBRAC
+	|	direct_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2457,13 +2457,13 @@ direct_type_declarator:
 			$$->u.type_declarator.type = TYPEDEC_ID;
 			$$->u.type_declarator.u.id = $1;
 		}
-	|	LPAREN type_declarator RPAREN
+	|	CTF_LPAREN type_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
 			$$->u.type_declarator.u.nested.type_declarator = $2;
 		}
-	|	direct_type_declarator LSBRAC unary_expression RSBRAC
+	|	direct_type_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
 			$$->u.type_declarator.type = TYPEDEC_NESTED;
@@ -2474,16 +2474,16 @@ direct_type_declarator:
 	;
 
 pointer:
-		STAR
+		CTF_STAR
 		{
 			$$ = make_node(scanner, NODE_POINTER);
 		}
-	|	STAR pointer
+	|	CTF_STAR pointer
 		{
 			$$ = make_node(scanner, NODE_POINTER);
 			bt_list_splice(&($2)->tmp_head, &($$)->tmp_head);
 		}
-	|	STAR type_qualifier_list pointer
+	|	CTF_STAR type_qualifier_list pointer
 		{
 			$$ = make_node(scanner, NODE_POINTER);
 			$$->u.pointer.const_qualifier = 1;
@@ -2493,16 +2493,16 @@ pointer:
 
 type_qualifier_list:
 		/* pointer assumes only const type qualifier */
-		CONST
-	|	type_qualifier_list CONST
+		CTF_CONST
+	|	type_qualifier_list CTF_CONST
 	;
 
 /* 2.3: CTF-specific declarations */
 
 ctf_assignment_expression_list:
-		ctf_assignment_expression SEMICOLON
+		ctf_assignment_expression CTF_SEMICOLON
 		{	$$ = $1;	}
-	|	ctf_assignment_expression_list ctf_assignment_expression SEMICOLON
+	|	ctf_assignment_expression_list ctf_assignment_expression CTF_SEMICOLON
 		{
 			$$ = $1;
 			bt_list_add_tail(&($2)->siblings, &($$)->tmp_head);
@@ -2510,7 +2510,7 @@ ctf_assignment_expression_list:
 	;
 
 ctf_assignment_expression:
-		unary_expression EQUAL unary_expression
+		unary_expression CTF_EQUAL unary_expression
 		{
 			/*
 			 * Because we have left and right, cannot use
@@ -2522,7 +2522,7 @@ ctf_assignment_expression:
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.ctf_expression.right);
 		}
-	|	unary_expression TYPEASSIGN declaration_specifiers	/* Only allow struct */
+	|	unary_expression CTF_TYPEASSIGN declaration_specifiers	/* Only allow struct */
 		{
 			/*
 			 * Because we have left and right, cannot use
@@ -2534,7 +2534,7 @@ ctf_assignment_expression:
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
 			bt_list_add_tail(&($3)->siblings, &($$)->u.ctf_expression.right);
 		}
-	|	declaration_specifiers TYPEDEF declaration_specifiers type_declarator_list
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list
 		{
 			struct ctf_node *list;
 
@@ -2545,7 +2545,7 @@ ctf_assignment_expression:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEDEF declaration_specifiers type_declarator_list
+	|	CTF_TYPEDEF declaration_specifiers type_declarator_list
 		{
 			struct ctf_node *list;
 
@@ -2555,7 +2555,7 @@ ctf_assignment_expression:
 			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	declaration_specifiers TYPEDEF type_declarator_list
+	|	declaration_specifiers CTF_TYPEDEF type_declarator_list
 		{
 			struct ctf_node *list;
 
@@ -2565,7 +2565,7 @@ ctf_assignment_expression:
 			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
 			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
 		}
-	|	TYPEALIAS declaration_specifiers abstract_declarator_list TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list
+	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list
 		{
 			struct ctf_node *list;
 

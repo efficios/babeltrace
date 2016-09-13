@@ -38,7 +38,7 @@
 		yylval->ull = strtoull(yytext, NULL, base);		\
 		if (errno) {						\
 			printfl_perror(yylineno, "Integer literal");	\
-			return ERROR;					\
+			return CTF_ERROR;					\
 		}							\
 	} while (0)
 
@@ -82,61 +82,61 @@ IDENTIFIER			{ID_NONDIGIT}({ID_NONDIGIT}|{DIGIT})*
 
 "//"[^\n]*\n			/* skip comment */
 
-L?\"(\\.|[^\\"])*\"		{ if (import_string(yyextra, yylval, yytext, '\"') < 0) return ERROR; else return STRING_LITERAL; }
-L?\'(\\.|[^\\'])*\'		{ if (import_string(yyextra, yylval, yytext, '\'') < 0) return ERROR; else return CHARACTER_LITERAL; }
+L?\"(\\.|[^\\"])*\"		{ if (import_string(yyextra, yylval, yytext, '\"') < 0) return CTF_ERROR; else return CTF_STRING_LITERAL; }
+L?\'(\\.|[^\\'])*\'		{ if (import_string(yyextra, yylval, yytext, '\'') < 0) return CTF_ERROR; else return CTF_CHARACTER_LITERAL; }
 
-"["				return LSBRAC;
-"]"				return RSBRAC;
-"("				return LPAREN;
-")"				return RPAREN;
-"{"				return LBRAC;
-"}"				return RBRAC;
-"->"				return RARROW;
-"*"				return STAR;
-"+"				return PLUS;
-"-"				return MINUS;
-"<"				return LT;
-">"				return GT;
-:=				return TYPEASSIGN;
-:				return COLON;
-;				return SEMICOLON;
-"..."				return DOTDOTDOT;
-"."				return DOT;
-=				return EQUAL;
-","				return COMMA;
-align				setstring(yyextra, yylval, yytext); return TOK_ALIGN;
-const				setstring(yyextra, yylval, yytext); return CONST;
-char				setstring(yyextra, yylval, yytext); return CHAR;
-clock				setstring(yyextra, yylval, yytext); return CLOCK;
-double				setstring(yyextra, yylval, yytext); return DOUBLE;
-enum				setstring(yyextra, yylval, yytext); return ENUM;
-env				setstring(yyextra, yylval, yytext); return ENV;
-event				setstring(yyextra, yylval, yytext); return EVENT;
-floating_point			setstring(yyextra, yylval, yytext); return FLOATING_POINT;
-float				setstring(yyextra, yylval, yytext); return FLOAT;
-integer				setstring(yyextra, yylval, yytext); return INTEGER;
-int				setstring(yyextra, yylval, yytext); return INT;
-long				setstring(yyextra, yylval, yytext); return LONG;
-short				setstring(yyextra, yylval, yytext); return SHORT;
-signed				setstring(yyextra, yylval, yytext); return SIGNED;
-stream				setstring(yyextra, yylval, yytext); return STREAM;
-string				setstring(yyextra, yylval, yytext); return STRING;
-struct				setstring(yyextra, yylval, yytext); return STRUCT;
-trace				setstring(yyextra, yylval, yytext); return TRACE;
-callsite			setstring(yyextra, yylval, yytext); return CALLSITE;
-typealias			setstring(yyextra, yylval, yytext); return TYPEALIAS;
-typedef				setstring(yyextra, yylval, yytext); return TYPEDEF;
-unsigned			setstring(yyextra, yylval, yytext); return UNSIGNED;
-variant				setstring(yyextra, yylval, yytext); return VARIANT;
-void				setstring(yyextra, yylval, yytext); return VOID;
-_Bool				setstring(yyextra, yylval, yytext); return _BOOL;
-_Complex			setstring(yyextra, yylval, yytext); return _COMPLEX;
-_Imaginary			setstring(yyextra, yylval, yytext); return _IMAGINARY;
-[1-9]{DIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(10); return INTEGER_LITERAL;
-0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return INTEGER_LITERAL;
-0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return INTEGER_LITERAL;
+"["				return CTF_LSBRAC;
+"]"				return CTF_RSBRAC;
+"("				return CTF_LPAREN;
+")"				return CTF_RPAREN;
+"{"				return CTF_LBRAC;
+"}"				return CTF_RBRAC;
+"->"				return CTF_RARROW;
+"*"				return CTF_STAR;
+"+"				return CTF_PLUS;
+"-"				return CTF_MINUS;
+"<"				return CTF_LT;
+">"				return CTF_GT;
+:=				return CTF_TYPEASSIGN;
+:				return CTF_COLON;
+;				return CTF_SEMICOLON;
+"..."				return CTF_DOTDOTDOT;
+"."				return CTF_DOT;
+=				return CTF_EQUAL;
+","				return CTF_COMMA;
+align				setstring(yyextra, yylval, yytext); return CTF_TOK_ALIGN;
+const				setstring(yyextra, yylval, yytext); return CTF_CONST;
+char				setstring(yyextra, yylval, yytext); return CTF_CHAR;
+clock				setstring(yyextra, yylval, yytext); return CTF_CLOCK;
+double				setstring(yyextra, yylval, yytext); return CTF_DOUBLE;
+enum				setstring(yyextra, yylval, yytext); return CTF_ENUM;
+env				setstring(yyextra, yylval, yytext); return CTF_ENV;
+event				setstring(yyextra, yylval, yytext); return CTF_EVENT;
+floating_point			setstring(yyextra, yylval, yytext); return CTF_FLOATING_POINT;
+float				setstring(yyextra, yylval, yytext); return CTF_FLOAT;
+integer				setstring(yyextra, yylval, yytext); return CTF_INTEGER;
+int				setstring(yyextra, yylval, yytext); return CTF_INT;
+long				setstring(yyextra, yylval, yytext); return CTF_LONG;
+short				setstring(yyextra, yylval, yytext); return CTF_SHORT;
+signed				setstring(yyextra, yylval, yytext); return CTF_SIGNED;
+stream				setstring(yyextra, yylval, yytext); return CTF_STREAM;
+string				setstring(yyextra, yylval, yytext); return CTF_STRING;
+struct				setstring(yyextra, yylval, yytext); return CTF_STRUCT;
+trace				setstring(yyextra, yylval, yytext); return CTF_TRACE;
+callsite			setstring(yyextra, yylval, yytext); return CTF_CALLSITE;
+typealias			setstring(yyextra, yylval, yytext); return CTF_TYPEALIAS;
+typedef				setstring(yyextra, yylval, yytext); return CTF_TYPEDEF;
+unsigned			setstring(yyextra, yylval, yytext); return CTF_UNSIGNED;
+variant				setstring(yyextra, yylval, yytext); return CTF_VARIANT;
+void				setstring(yyextra, yylval, yytext); return CTF_VOID;
+_Bool				setstring(yyextra, yylval, yytext); return CTF_BOOL;
+_Complex			setstring(yyextra, yylval, yytext); return CTF_COMPLEX;
+_Imaginary			setstring(yyextra, yylval, yytext); return CTF_IMAGINARY;
+[1-9]{DIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(10); return CTF_INTEGER_LITERAL;
+0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return CTF_INTEGER_LITERAL;
+0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return CTF_INTEGER_LITERAL;
 
 {IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
-.				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return ERROR;
+.				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return CTF_ERROR;
 %%
