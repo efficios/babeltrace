@@ -66,6 +66,8 @@
 #define be64toh(x) BE_64(x)
 
 #elif defined(__MINGW32__)
+#include <stdint.h>
+
 #ifndef __BIG_ENDIAN
 #define __BIG_ENDIAN 4321
 #endif
@@ -81,6 +83,21 @@
 #define BIG_ENDIAN     __BIG_ENDIAN
 #define PDP_ENDIAN     __PDP_ENDIAN
 #define BYTE_ORDER     __BYTE_ORDER
+
+#define htobe16(x) (uint16_t) _byteswap_ushort(x)
+#define htole16(x) (x)
+#define be16toh(x) (uint16_t) _byteswap_ushort(x)
+#define le16toh(x) (x)
+
+#define htobe32(x) (uint32_t) _byteswap_ulong(x)
+#define htole32(x) (x)
+#define be32toh(x) (uint32_t) _byteswap_ulong(x)
+#define le32toh(x) (x)
+
+#define htobe64(x) (uint64_t) _byteswap_uint64(x)
+#define htole64(x) (x)
+#define be64toh(x) (uint64_t) _byteswap_uint64(x)
+#define le64toh(x) (x)
 
 #elif defined(__APPLE__)
 # include <machine/endian.h>
