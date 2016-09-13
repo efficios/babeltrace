@@ -120,7 +120,7 @@ bt_list_splice (struct bt_list_head *add, struct bt_list_head *head)
 
 /* Get typed element from list at a given position.  */
 #define bt_list_entry(ptr, type, member) \
-  ((type *) ((char *) (ptr) - (unsigned long) (&((type *) 0)->member)))
+  ((type *) ((char *) (ptr) - (uintptr_t) (&((type *) 0)->member)))
 
 
 
