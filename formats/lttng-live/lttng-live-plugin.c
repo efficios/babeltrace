@@ -41,6 +41,14 @@
 
 static volatile int should_quit;
 
+void bt_lttng_live_hook(void)
+{
+	/*
+	 * Dummy function to prevent the linker from discarding this format as
+	 * "unused" in static builds.
+	 */
+}
+
 int lttng_live_should_quit(void)
 {
 	return should_quit;

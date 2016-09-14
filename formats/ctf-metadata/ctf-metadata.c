@@ -54,6 +54,14 @@ struct bt_format ctf_metadata_format = {
 	.close_trace = ctf_metadata_close_trace,
 };
 
+void bt_ctf_metadata_hook(void)
+{
+	/*
+	 * Dummy function to prevent the linker from discarding this format as
+	 * "unused" in static builds.
+	 */
+}
+
 static
 int ctf_metadata_trace_pre_handler(struct bt_stream_pos *ppos,
 			struct bt_trace_descriptor *td)

@@ -159,6 +159,14 @@ struct bt_format ctf_format = {
 	.convert_index_timestamp = ctf_convert_index_timestamp,
 };
 
+void bt_ctf_hook(void)
+{
+	/*
+	 * Dummy function to prevent the linker from discarding this format as
+	 * "unused" in static builds.
+	 */
+}
+
 static
 int ctf_timestamp_begin(struct bt_trace_descriptor *descriptor,
 		struct bt_trace_handle *handle, enum bt_clock_type type,

@@ -139,6 +139,14 @@ struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
 			(gpointer) (unsigned long) callsite_name);
 }
 
+void bt_ctf_text_hook(void)
+{
+	/*
+	 * Dummy function to prevent the linker from discarding this format as
+	 * "unused" in static builds.
+	 */
+}
+
 int print_field(struct bt_definition *definition)
 {
 	/* Print all fields in verbose mode */
