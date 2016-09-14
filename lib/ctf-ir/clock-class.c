@@ -456,7 +456,7 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 		goto end;
 	}
 
-	memcpy(clock_class->uuid, uuid, sizeof(uuid_t));
+	memcpy(clock_class->uuid, uuid, BABELTRACE_UUID_LEN);
 	clock_class->uuid_set = 1;
 	BT_LOGV("Set clock class's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",

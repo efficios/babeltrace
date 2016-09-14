@@ -238,7 +238,7 @@ int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace, const unsigned char *uuid)
 		goto end;
 	}
 
-	memcpy(trace->uuid, uuid, sizeof(uuid_t));
+	memcpy(trace->uuid, uuid, BABELTRACE_UUID_LEN);
 	trace->uuid_set = BT_TRUE;
 	BT_LOGV("Set trace's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",

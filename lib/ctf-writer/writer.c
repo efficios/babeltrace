@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "WRITER"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
@@ -133,7 +136,12 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	}
 
 	/* Generate a UUID for this writer's trace */
-	uuid_generate(uuid);
+	ret = bt_uuid_generate(uuid);
+	if (ret) {
+		BT_LOGE_STR("Cannot generate UUID for CTF writer's trace.");
+		goto error_destroy;
+	}
+
 	ret = bt_ctf_trace_set_uuid(writer->trace, uuid);
 	if (ret) {
 		goto error_destroy;

@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-/* This file is only built under MINGW32 */
+#ifdef __MINGW32__
 
-#include <windows.h>
+#include <rpc.h>
 #include <stdlib.h>
 #include <babeltrace/compat/uuid-internal.h>
 
@@ -42,17 +42,17 @@ void swap(unsigned char *ptr, unsigned int i, unsigned int j)
 static
 void fix_uuid_endian(unsigned char * ptr)
 {
-	swap(ptr, 0, 3)
-	swap(ptr, 1, 2)
-	swap(ptr, 4, 5)
-	swap(ptr, 6, 7)
+	swap(ptr, 0, 3);
+	swap(ptr, 1, 2);
+	swap(ptr, 4, 5);
+	swap(ptr, 6, 7);
 }
 
 int bt_uuid_generate(unsigned char *uuid_out)
 {
 	RPC_STATUS status;
 
-	status = UuidCreate((struct UUID *)uuid_out);
+	status = UuidCreate((UUID *) uuid_out);
 	if (status == RPC_S_OK)
 		return 0;
 	else
@@ -70,7 +70,7 @@ int bt_uuid_unparse(const unsigned char *uuid_in, char *str_out)
 	memcpy(copy_of_uuid_in, uuid_in, BABELTRACE_UUID_LEN);
 
 	fix_uuid_endian(copy_of_uuid_in);
-	status = UuidToString((struct UUID *) copy_of_uuid_in, &alloc_str);
+	status = UuidToString((UUID *) copy_of_uuid_in, &alloc_str);
 
 	if (status == RPC_S_OK) {
 		strncpy(str_out, (char *) alloc_str, BABELTRACE_UUID_STR_LEN);
@@ -88,7 +88,7 @@ int bt_uuid_parse(const char *str_in, unsigned char *uuid_out)
 	RPC_STATUS status;
 
 	status = UuidFromString((unsigned char *) str_in,
-			(struct UUID *) uuid_out);
+			(UUID *) uuid_out);
 	fix_uuid_endian(uuid_out);
 
 	if (status == RPC_S_OK)
@@ -102,10 +102,7 @@ int bt_uuid_compare(const unsigned char *uuid_a,
 {
 	RPC_STATUS status;
 
-	if (!UuidCompare((struct UUID *) uuid_a, (struct UUID *) uuid_b,
-			&status)) {
-		return 0;
-	} else {
-		return -1;
-	}
+	return !UuidCompare((UUID *) uuid_a, (UUID *) uuid_b, &status) ? 0 : -1;
 }
+
+#endif

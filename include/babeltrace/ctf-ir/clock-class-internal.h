@@ -43,7 +43,7 @@ struct bt_ctf_clock_class {
 	uint64_t precision;
 	int64_t offset_s;	/* Offset in seconds */
 	int64_t offset;		/* Offset in ticks */
-	uuid_t uuid;
+	unsigned char uuid[BABELTRACE_UUID_LEN];
 	int uuid_set;
 	int absolute;
 

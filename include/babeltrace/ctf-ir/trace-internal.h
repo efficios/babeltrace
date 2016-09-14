@@ -36,7 +36,7 @@
 #include <babeltrace/types.h>
 #include <glib.h>
 #include <sys/types.h>
-#include <uuid/uuid.h>
+#include <babeltrace/compat/uuid-internal.h>
 
 enum field_type_alias {
 	FIELD_TYPE_ALIAS_UINT5_T = 0,
@@ -52,7 +52,7 @@ struct bt_ctf_trace {
 	struct bt_object base;
 	GString *name;
 	int frozen;
-	uuid_t uuid;
+	unsigned char uuid[BABELTRACE_UUID_LEN];
 	bt_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
 	struct bt_value *environment;
