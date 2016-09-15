@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <sys/mman.h>
+#include <babeltrace/compat/mman-internal.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>

@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
-#include <sys/mman.h>
+#include <babeltrace/compat/mman-internal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

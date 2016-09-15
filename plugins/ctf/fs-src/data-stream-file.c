@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <sys/mman.h>
+#include <babeltrace/compat/mman-internal.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-stream.h>
