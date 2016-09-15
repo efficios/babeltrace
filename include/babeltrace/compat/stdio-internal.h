@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
+#include <malloc.h>
+#include <stdlib.h>
 
 #define BT_GETLINE_MINBUFLEN	64
 
