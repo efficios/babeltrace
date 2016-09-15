@@ -38,6 +38,8 @@
 #include <errno.h>
 #include <string.h>
 #include <inttypes.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
@@ -401,9 +403,9 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	}
 
-	ret = mkdir(s_outputname, S_IRWXU|S_IRWXG);
+	ret = g_mkdir(s_outputname, S_IRWXU|S_IRWXG);
 	if (ret) {
-		perror("mkdir");
+		perror("g_mkdir");
 		goto error;
 	}
 
