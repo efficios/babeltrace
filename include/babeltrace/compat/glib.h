@@ -30,7 +30,7 @@
 #if GLIB_CHECK_VERSION(2,31,8)
 
 static inline gboolean
-babeltrace_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
+bt_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 {
 	return g_hash_table_contains(hash_table, key);
 }
@@ -38,7 +38,7 @@ babeltrace_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 #else
 
 static inline gboolean
-babeltrace_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
+bt_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 {
        const char *value;
 
@@ -56,7 +56,7 @@ babeltrace_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 #if GLIB_CHECK_VERSION(2,29,16)
 
 static inline GPtrArray *
-babeltrace_g_ptr_array_new_full(guint reserved_size,
+bt_g_ptr_array_new_full(guint reserved_size,
 		GDestroyNotify element_free_func)
 {
 	return g_ptr_array_new_full(reserved_size, element_free_func);
@@ -65,7 +65,7 @@ babeltrace_g_ptr_array_new_full(guint reserved_size,
 #else
 
 static inline GPtrArray *
-babeltrace_g_ptr_array_new_full(guint reserved_size,
+bt_g_ptr_array_new_full(guint reserved_size,
 		GDestroyNotify element_free_func)
 {
        GPtrArray *array;
