@@ -40,6 +40,14 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <babeltrace/endian-internal.h>
+
+#ifdef __MINGW32__
+
+#include <io.h>
+#include <glib.h>
 
 /*
  * Fallback for systems which don't have fmemopen. Copy buffer to a
@@ -48,7 +56,7 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 static inline
 FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 {
-	char tmpname[PATH_MAX];
+	char *tmpname;
 	size_t len;
 	FILE *fp;
 	int ret;
@@ -59,9 +67,73 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 	if (strcmp(mode, "rb") != 0) {
 		return NULL;
 	}
-	strncpy(tmpname, "/tmp/babeltrace-tmp-XXXXXX", PATH_MAX);
+
+	/* Build a temporary filename */
+	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
+	if (_mktemp(tmpname) == NULL) {
+		goto error_free;
+	}
+
+	/*
+	 * Open as a read/write binary temporary deleted on close file.
+	 * Will be deleted when the last file pointer is closed.
+	 */
+	fp = fopen(tmpname, "w+bTD");
+	if (!fp) {
+		goto error_free;
+	}
+
+	/* Copy the entire buffer to the file */
+	len = fwrite(buf, sizeof(char), size, fp);
+	if (len != size) {
+		goto error_close;
+	}
+
+	/* Set the file pointer to the start of file */
+	ret = fseek(fp, 0L, SEEK_SET);
+	if (ret < 0) {
+		perror("fseek");
+		goto error_close;
+	}
+
+	g_free(tmpname);
+	return fp;
+
+error_close:
+	ret = fclose(fp);
+	if (ret < 0) {
+		perror("close");
+	}
+error_free:
+	g_free(tmpname);
+	return NULL;
+}
+
+#else /* __MINGW32__ */
+
+/*
+ * Fallback for systems which don't have fmemopen. Copy buffer to a
+ * temporary file, and use that file as FILE * input.
+ */
+static inline
+FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
+{
+	char *tmpname;
+	size_t len;
+	FILE *fp;
+	int ret;
+
+	/*
+	 * Support reading only.
+	 */
+	if (strcmp(mode, "rb") != 0) {
+		return NULL;
+	}
+
+	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
 	ret = mkstemp(tmpname);
 	if (ret < 0) {
+		g_free(tmpname);
 		return NULL;
 	}
 	/*
@@ -86,6 +158,7 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 	if (ret < 0) {
 		perror("unlink");
 	}
+	g_free(tmpname);
 	return fp;
 
 error_close:
@@ -98,10 +171,14 @@ error_unlink:
 	if (ret < 0) {
 		perror("unlink");
 	}
+	g_free(tmpname);
 	return NULL;
 }
 
+#endif /* __MINGW32__ */
+
 #endif /* BABELTRACE_HAVE_FMEMOPEN */
+
 
 #ifdef BABELTRACE_HAVE_OPEN_MEMSTREAM
 
@@ -123,6 +200,9 @@ int bt_close_memstream(char **buf, size_t *size, FILE *fp)
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <glib.h>
+
+#ifdef __MINGW32__
 
 /*
  * Fallback for systems which don't have open_memstream. Create FILE *
@@ -133,13 +213,53 @@ int bt_close_memstream(char **buf, size_t *size, FILE *fp)
 static inline
 FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 {
-	char tmpname[PATH_MAX];
+	char *tmpname;
+	FILE *fp;
+
+	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
+
+	if (_mktemp(tmpname) == NULL) {
+		goto error_free;
+	}
+
+	/*
+	 * Open as a read/write binary temporary deleted on close file.
+	 * Will be deleted when the last file pointer is closed.
+	 */
+	fp = fopen(tmpname, "w+bTD");
+	if (!fp) {
+		goto error_free;
+	}
+
+	g_free(tmpname);
+	return fp;
+
+error_free:
+	g_free(tmpname);
+	return NULL;
+}
+
+#else /* __MINGW32__ */
+
+/*
+ * Fallback for systems which don't have open_memstream. Create FILE *
+ * with bt_open_memstream, but require call to
+ * bt_close_memstream to flush all data written to the FILE *
+ * into the buffer (which we allocate).
+ */
+static inline
+FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
+{
+	char *tmpname;
 	int ret;
 	FILE *fp;
 
-	strncpy(tmpname, "/tmp/babeltrace-tmp-XXXXXX", PATH_MAX);
+	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
+
 	ret = mkstemp(tmpname);
 	if (ret < 0) {
+		perror("mkstemp");
+		g_free(tmpname);
 		return NULL;
 	}
 	fp = fdopen(ret, "w+");
@@ -155,6 +275,7 @@ FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 	if (ret < 0) {
 		perror("unlink");
 	}
+	g_free(tmpname);
 	return fp;
 
 error_unlink:
@@ -162,8 +283,11 @@ error_unlink:
 	if (ret < 0) {
 		perror("unlink");
 	}
+	g_free(tmpname);
 	return NULL;
 }
+
+#endif /* __MINGW32__ */
 
 /* Get file size, allocate buffer, copy. */
 static inline
