@@ -140,7 +140,7 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 	/*
 	 * We need to write to the file.
 	 */
-	fp = fdopen(ret, "w+");
+	fp = fdopen(ret, "wb+");
 	if (!fp) {
 		goto error_unlink;
 	}
@@ -263,7 +263,7 @@ FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 		g_free(tmpname);
 		return NULL;
 	}
-	fp = fdopen(ret, "w+");
+	fp = fdopen(ret, "wb+");
 	if (!fp) {
 		goto error_unlink;
 	}
