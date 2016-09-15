@@ -29,7 +29,7 @@
 #if defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 
 static inline
-time_t babeltrace_timegm(struct tm *tm)
+time_t bt_timegm(struct tm *tm)
 {
 	return timegm(tm);
 }
@@ -47,7 +47,7 @@ time_t babeltrace_timegm(struct tm *tm)
  */
 
 static inline
-time_t babeltrace_timegm(struct tm *tm)
+time_t bt_timegm(struct tm *tm)
 {
 	time_t ret;
 	char *tz;

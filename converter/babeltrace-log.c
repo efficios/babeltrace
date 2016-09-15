@@ -230,7 +230,7 @@ void write_event_header(struct ctf_stream_pos *pos, char *line,
 			ti.tm_min = min;
 			ti.tm_sec = sec;
 
-			ep_sec = babeltrace_timegm(&ti);
+			ep_sec = bt_timegm(&ti);
 			if (ep_sec != (time_t) -1) {
 				*ts = (uint64_t) ep_sec * NSEC_PER_SEC
 					+ (uint64_t) msec * NSEC_PER_MSEC;
