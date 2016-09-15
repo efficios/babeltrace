@@ -174,7 +174,7 @@ int bt_context_add_trace(struct bt_context *ctx, const char *path,
 
 	/* Add new handle to container */
 	g_hash_table_insert(ctx->trace_handles,
-		(gpointer) (unsigned long) handle->id,
+		GUINT_TO_POINTER(handle->id),
 		handle);
 
 	return handle->id;
@@ -207,7 +207,7 @@ int bt_context_remove_trace(struct bt_context *ctx, int handle_id)
 	 * automatically.
 	 */
 	if (!g_hash_table_remove(ctx->trace_handles,
-		(gpointer) (unsigned long) handle_id)) {
+		GUINT_TO_POINTER(handle_id))) {
 		ret = -ENOENT;
 		goto end;
 	}

@@ -136,7 +136,7 @@ struct ctf_callsite_dups *ctf_trace_callsite_lookup(struct ctf_trace *trace,
 			GQuark callsite_name)
 {
 	return g_hash_table_lookup(trace->callsites,
-			(gpointer) (unsigned long) callsite_name);
+			GUINT_TO_POINTER(callsite_name));
 }
 
 void bt_ctf_text_hook(void)

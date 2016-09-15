@@ -227,8 +227,8 @@ void bt_untagged_variant_declaration_add_field(struct declaration_untagged_varia
 	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
 	g_hash_table_insert(untagged_variant_declaration->fields_by_tag,
-			    (gpointer) (unsigned long) field->name,
-			    (gpointer) index);
+			    GUINT_TO_POINTER(field->name),
+			    GUINT_TO_POINTER(index));
 	/*
 	 * Alignment of variant is based on the alignment of its currently
 	 * selected choice, so we leave variant alignment as-is (statically
@@ -244,13 +244,13 @@ bt_untagged_variant_declaration_get_field_from_tag(struct declaration_untagged_v
 
 	found = g_hash_table_lookup_extended(
 				untagged_variant_declaration->fields_by_tag,
-				(gconstpointer) (unsigned long) tag, NULL, &index);
+				(gconstpointer) GUINT_TO_POINTER(tag), NULL, &index);
 
 	if (!found) {
 		return NULL;
 	}
 
-	return &g_array_index(untagged_variant_declaration->fields, struct declaration_field, (unsigned long)index);
+	return &g_array_index(untagged_variant_declaration->fields, struct declaration_field, GPOINTER_TO_UINT(index));
 }
 
 /*
@@ -279,7 +279,7 @@ struct bt_definition *bt_variant_get_current_field(struct definition_variant *va
 	assert(tag_array->len == 1);
 	tag = g_array_index(tag_array, GQuark, 0);
 	if (!g_hash_table_lookup_extended(variant_declaration->untagged_variant->fields_by_tag,
-			(gconstpointer) (unsigned long) tag,
+			(gconstpointer) GUINT_TO_POINTER(tag),
 			&orig_key,
 			&value)) {
 		/* Cannot find matching field. */
@@ -287,7 +287,7 @@ struct bt_definition *bt_variant_get_current_field(struct definition_variant *va
 			g_quark_to_string(tag));
 		return NULL;
 	}
-	index = (unsigned long) value;
+	index = GPOINTER_TO_UINT(value);
 	variant->current_field = g_ptr_array_index(variant->fields, index);
 	return variant->current_field;
 }

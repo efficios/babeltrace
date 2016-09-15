@@ -270,7 +270,7 @@ GArray *bt_enum_quark_to_range_set(const struct declaration_enum *enum_declarati
 				GQuark q)
 {
 	return g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
-				   (gconstpointer) (unsigned long) q);
+				   (gconstpointer) GUINT_TO_POINTER(q));
 }
 
 static
@@ -319,12 +319,12 @@ void bt_enum_signed_insert(struct declaration_enum *enum_declaration,
 	}
 
 	array = g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
-				    (gconstpointer) (unsigned long) q);
+				    (gconstpointer) GUINT_TO_POINTER(q));
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE,
 					  sizeof(struct enum_range), 1);
 		g_hash_table_insert(enum_declaration->table.quark_to_range_set,
-				    (gpointer) (unsigned long) q,
+				    GUINT_TO_POINTER(q),
 				    array);
 	}
 	g_array_set_size(array, array->len + 1);
@@ -354,12 +354,12 @@ void bt_enum_unsigned_insert(struct declaration_enum *enum_declaration,
 	}
 
 	array = g_hash_table_lookup(enum_declaration->table.quark_to_range_set,
-				    (gconstpointer) (unsigned long) q);
+				    (gconstpointer) GUINT_TO_POINTER(q));
 	if (!array) {
 		array = g_array_sized_new(FALSE, TRUE,
 					  sizeof(struct enum_range), 1);
 		g_hash_table_insert(enum_declaration->table.quark_to_range_set,
-				    (gpointer) (unsigned long) q,
+				    GUINT_TO_POINTER(q),
 				    array);
 	}
 	g_array_set_size(array, array->len + 1);

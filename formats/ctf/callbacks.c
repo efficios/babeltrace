@@ -115,13 +115,13 @@ int bt_ctf_iter_add_callback(struct bt_ctf_iter *iter,
 			if (event) {
 				/* find the event id */
 				event_id_ptr = g_hash_table_lookup(stream->event_quark_to_id,
-						(gconstpointer) (unsigned long) event);
+						(gconstpointer) GUINT_TO_POINTER(event));
 				/* event not found in this stream class */
 				if (!event_id_ptr) {
 					fprintf(stderr, "[error] Event ID not found in stream class\n");
 					continue;
 				}
-				event_id = (uint64_t)(unsigned long) *event_id_ptr;
+				event_id = GPOINTER_TO_UINT(*event_id_ptr);
 
 				/* find or create the bt_callback_chain for this event */
 				if (event_id >= bt_stream_cb->per_id_callbacks->len) {

@@ -278,7 +278,7 @@ struct ctf_event_declaration *stream_event_lookup(struct ctf_stream_declaration 
 static
 struct ctf_clock *trace_clock_lookup(struct ctf_trace *trace, GQuark clock_name)
 {
-	return g_hash_table_lookup(trace->parent.clocks, (gpointer) (unsigned long) clock_name);
+	return g_hash_table_lookup(trace->parent.clocks, GUINT_TO_POINTER(clock_name));
 }
 
 static
@@ -1907,7 +1907,7 @@ int ctf_event_visit(FILE *fd, int depth, struct ctf_node *node,
 		g_ptr_array_set_size(event->stream->events_by_id, event->id + 1);
 	g_ptr_array_index(event->stream->events_by_id, event->id) = event;
 	g_hash_table_insert(event->stream->event_quark_to_id,
-			    (gpointer) (unsigned long) event->name,
+			    GUINT_TO_POINTER(event->name),
 			    &event->id);
 	g_ptr_array_add(trace->event_declarations, event_decl);
 	return 0;
@@ -2491,7 +2491,7 @@ int ctf_clock_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_trace
 		goto error;
 	}
 	trace->parent.single_clock = clock;
-	g_hash_table_insert(trace->parent.clocks, (gpointer) (unsigned long) clock->name, clock);
+	g_hash_table_insert(trace->parent.clocks, GUINT_TO_POINTER(clock->name), clock);
 	return 0;
 
 error:
@@ -2526,7 +2526,7 @@ void ctf_clock_default(FILE *fd, int depth, struct ctf_trace *trace)
 	}
 
 	trace->parent.single_clock = clock;
-	g_hash_table_insert(trace->parent.clocks, (gpointer) (unsigned long) clock->name, clock);
+	g_hash_table_insert(trace->parent.clocks, GUINT_TO_POINTER(clock->name), clock);
 }
 
 static
@@ -2683,12 +2683,12 @@ int ctf_callsite_visit(FILE *fd, int depth, struct ctf_node *node, struct ctf_tr
 	}
 
 	cs_dups = g_hash_table_lookup(trace->callsites,
-		(gpointer) (unsigned long) callsite->name);
+		GUINT_TO_POINTER(callsite->name));
 	if (!cs_dups) {
 		cs_dups = g_new0(struct ctf_callsite_dups, 1);
 		BT_INIT_LIST_HEAD(&cs_dups->head);
 		g_hash_table_insert(trace->callsites,
-			(gpointer) (unsigned long) callsite->name, cs_dups);
+			GUINT_TO_POINTER(callsite->name), cs_dups);
 	}
 	bt_list_add_tail(&callsite->node, &cs_dups->head);
 	return 0;

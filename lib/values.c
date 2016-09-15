@@ -226,7 +226,7 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 	g_hash_table_iter_init(&iter, typed_map_obj->ght);
 
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
-		const char *key_str = g_quark_to_string((unsigned long) key);
+		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		element_obj_copy = bt_value_copy(element_obj);
 
@@ -357,7 +357,7 @@ bool bt_value_map_compare(const struct bt_value *object_a,
 
 	while (g_hash_table_iter_next(&iter, &key, &element_obj_a)) {
 		struct bt_value *element_obj_b;
-		const char *key_str = g_quark_to_string((unsigned long) key);
+		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		element_obj_b = bt_value_map_get(object_b, key_str);
 
@@ -1156,7 +1156,7 @@ enum bt_value_status bt_value_map_foreach(const struct bt_value *map_obj,
 	g_hash_table_iter_init(&iter, typed_map_obj->ght);
 
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
-		const char *key_str = g_quark_to_string((unsigned long) key);
+		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		if (!cb(key_str, element_obj, data)) {
 			ret = BT_VALUE_STATUS_CANCELLED;

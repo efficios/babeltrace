@@ -196,8 +196,8 @@ void bt_struct_declaration_add_field(struct declaration_struct *struct_declarati
 	field->declaration = field_declaration;
 	/* Keep index in hash rather than pointer, because array can relocate */
 	g_hash_table_insert(struct_declaration->fields_by_name,
-			    (gpointer) (unsigned long) field->name,
-			    (gpointer) index);
+			    GUINT_TO_POINTER(field->name),
+			    GUINT_TO_POINTER(index));
 	/*
 	 * Alignment of structure is the max alignment of declarations contained
 	 * therein.
@@ -219,11 +219,11 @@ int bt_struct_declaration_lookup_field_index(struct declaration_struct *struct_d
 	gboolean found;
 
 	found = g_hash_table_lookup_extended(struct_declaration->fields_by_name,
-				    (gconstpointer) (unsigned long) field_name,
+				    (gconstpointer) GUINT_TO_POINTER(field_name),
 				    NULL, &index);
 	if (!found)
 		return -1;
-	return (int) (unsigned long) index;
+	return GPOINTER_TO_INT(index);
 }
 
 /*

@@ -60,7 +60,7 @@ const char *bt_trace_handle_get_path(struct bt_context *ctx, int handle_id)
 		return NULL;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
-			(gpointer) (unsigned long) handle_id);
+			GUINT_TO_POINTER(handle_id));
 	if (!handle)
 		return NULL;
 	return handle->path;
@@ -77,7 +77,7 @@ int bt_trace_handle_get_timestamp_begin(struct bt_context *ctx,
 		return -1;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
-			(gpointer) (unsigned long) handle_id);
+			GUINT_TO_POINTER(handle_id));
 	if (!handle) {
 		ret = -1;
 		goto end;
@@ -105,7 +105,7 @@ int bt_trace_handle_get_timestamp_end(struct bt_context *ctx,
 		return -1;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
-			(gpointer) (unsigned long) handle_id);
+			GUINT_TO_POINTER(handle_id));
 	if (!handle) {
 		ret = -1;
 		goto end;

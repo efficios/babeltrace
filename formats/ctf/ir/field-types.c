@@ -404,8 +404,8 @@ int add_structure_field(GPtrArray *fields,
 	field->name = name_quark;
 	field->type = field_type;
 	g_hash_table_insert(field_name_to_index,
-		(gpointer) (unsigned long) name_quark,
-		(gpointer) (unsigned long) fields->len);
+		GUINT_TO_POINTER(name_quark),
+		GUINT_TO_POINTER(fields->len));
 	g_ptr_array_add(fields, field);
 end:
 	return ret;

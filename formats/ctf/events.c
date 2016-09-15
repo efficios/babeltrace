@@ -690,7 +690,7 @@ int bt_ctf_get_event_decl_list(int handle_id, struct bt_context *ctx,
 		goto error;
 
 	handle = g_hash_table_lookup(ctx->trace_handles,
-			(gpointer) (unsigned long) handle_id);
+			GUINT_TO_POINTER(handle_id));
 	if (!handle)
 		goto error;
 

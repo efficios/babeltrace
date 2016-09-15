@@ -53,7 +53,7 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 		 * by clock name.
 		 */
 		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->name);
+			GUINT_TO_POINTER(clock_a->name));
 		if (clock_b) {
 			match->clock_match = clock_b;
 			return;
@@ -64,7 +64,7 @@ static void check_clock_match(gpointer key, gpointer value, gpointer user_data)
 		 * clocks.
 		 */
 		clock_b = g_hash_table_lookup(match->clocks,
-			(gpointer) (unsigned long) clock_a->uuid);
+			GUINT_TO_POINTER(clock_a->uuid));
 		if (clock_b) {
 			match->clock_match = clock_b;
 			return;
@@ -87,7 +87,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 		struct ctf_clock *tc_clock;
 
 		tc_clock = g_hash_table_lookup(tc_clocks,
-				(gpointer) (unsigned long) v);
+				GUINT_TO_POINTER(v));
 		if (!tc_clock) {
 			/*
 			 * For now we only support CTF that has one
@@ -105,7 +105,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 					clock_match->tc->offset_first;
 			}
 			g_hash_table_insert(tc_clocks,
-				(gpointer) (unsigned long) v,
+				GUINT_TO_POINTER(v),
 				value);
 		} else if (!t_clock->absolute) {
 			int64_t diff_ns;

@@ -73,7 +73,7 @@ struct bt_format *bt_lookup_format(bt_intern_str name)
 		return NULL;
 
 	return g_hash_table_lookup(format_registry,
-				   (gconstpointer) (unsigned long) name);
+				   (gconstpointer) GUINT_TO_POINTER(name));
 }
 
 static void show_format(gpointer key, gpointer value, gpointer user_data)
@@ -81,7 +81,7 @@ static void show_format(gpointer key, gpointer value, gpointer user_data)
 	struct walk_data *data = user_data;
 
 	fprintf(data->fp, "%s%s", data->iter ? ", " : "",
-		g_quark_to_string((GQuark) (unsigned long) key));
+		g_quark_to_string((GQuark) GPOINTER_TO_UINT(key)));
 	data->iter++;
 }
 
@@ -116,7 +116,7 @@ int bt_register_format(struct bt_format *format)
 
 	format_refcount_inc();
 	g_hash_table_insert(format_registry,
-			    (gpointer) (unsigned long) format->name,
+			    GUINT_TO_POINTER(format->name),
 			    format);
 	return 0;
 }
@@ -125,7 +125,7 @@ void bt_unregister_format(struct bt_format *format)
 {
 	assert(bt_lookup_format(format->name));
 	g_hash_table_remove(format_registry,
-			    (gpointer) (unsigned long) format->name);
+			    GUINT_TO_POINTER(format->name));
 	format_refcount_dec();
 }
 

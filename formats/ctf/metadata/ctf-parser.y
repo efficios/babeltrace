@@ -330,7 +330,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 {
 	int ret;
 
-	ret = (int) (long) g_hash_table_lookup(s->types, id);
+	ret = GPOINTER_TO_INT(g_hash_table_lookup(s->types, id));
 	printf_debug("lookup %p %s %d\n", s, id, ret);
 	return ret;
 }

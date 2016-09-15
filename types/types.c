@@ -56,7 +56,7 @@ struct bt_declaration *
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->typedef_declarations,
-				   (gconstpointer) (unsigned long) declaration_name);
+				   (gconstpointer) GUINT_TO_POINTER(declaration_name));
 }
 
 struct bt_declaration *bt_lookup_declaration(GQuark declaration_name,
@@ -85,7 +85,7 @@ int bt_register_declaration(GQuark name, struct bt_declaration *declaration,
 		return -EEXIST;
 
 	g_hash_table_insert(scope->typedef_declarations,
-			    (gpointer) (unsigned long) name,
+			    GUINT_TO_POINTER(name),
 			    declaration);
 	bt_declaration_ref(declaration);
 	return 0;
@@ -97,7 +97,7 @@ struct bt_definition *
 		struct definition_scope *scope)
 {
 	return g_hash_table_lookup(scope->definitions,
-				   (gconstpointer) (unsigned long) field_name);
+				   (gconstpointer) GUINT_TO_POINTER(field_name));
 }
 
 /*
@@ -273,7 +273,7 @@ int bt_register_field_definition(GQuark field_name, struct bt_definition *defini
 		return -EEXIST;
 
 	g_hash_table_insert(scope->definitions,
-			    (gpointer) (unsigned long) field_name,
+			    GUINT_TO_POINTER(field_name),
 			    definition);
 	/* Don't keep reference on definition */
 	return 0;
@@ -340,7 +340,7 @@ struct declaration_struct *bt_lookup_struct_declaration_scope(GQuark struct_name
 					     struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->struct_declarations,
-				   (gconstpointer) (unsigned long) struct_name);
+				   (gconstpointer) GUINT_TO_POINTER(struct_name));
 }
 
 struct declaration_struct *bt_lookup_struct_declaration(GQuark struct_name,
@@ -372,7 +372,7 @@ int bt_register_struct_declaration(GQuark struct_name,
 		return -EEXIST;
 
 	g_hash_table_insert(scope->struct_declarations,
-			    (gpointer) (unsigned long) struct_name,
+			    GUINT_TO_POINTER(struct_name),
 			    struct_declaration);
 	bt_declaration_ref(&struct_declaration->p);
 
@@ -389,7 +389,7 @@ struct declaration_untagged_variant *
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->variant_declarations,
-				   (gconstpointer) (unsigned long) variant_name);
+				   (gconstpointer) GUINT_TO_POINTER(variant_name));
 }
 
 struct declaration_untagged_variant *
@@ -422,7 +422,7 @@ int bt_register_variant_declaration(GQuark variant_name,
 		return -EEXIST;
 
 	g_hash_table_insert(scope->variant_declarations,
-			    (gpointer) (unsigned long) variant_name,
+			    GUINT_TO_POINTER(variant_name),
 			    untagged_variant_declaration);
 	bt_declaration_ref(&untagged_variant_declaration->p);
 
@@ -440,7 +440,7 @@ struct declaration_enum *
 		struct declaration_scope *scope)
 {
 	return g_hash_table_lookup(scope->enum_declarations,
-				   (gconstpointer) (unsigned long) enum_name);
+				   (gconstpointer) GUINT_TO_POINTER(enum_name));
 }
 
 struct declaration_enum *
@@ -473,7 +473,7 @@ int bt_register_enum_declaration(GQuark enum_name,
 		return -EEXIST;
 
 	g_hash_table_insert(scope->enum_declarations,
-			    (gpointer) (unsigned long) enum_name,
+			    GUINT_TO_POINTER(enum_name),
 			    enum_declaration);
 	bt_declaration_ref(&enum_declaration->p);
 
