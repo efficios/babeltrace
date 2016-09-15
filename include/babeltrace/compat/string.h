@@ -30,7 +30,7 @@
 
 /* XSI-compliant strerror_r */
 static inline
-int compat_strerror_r(int errnum, char *buf, size_t buflen)
+int bt_strerror_r(int errnum, char *buf, size_t buflen)
 {
 	return strerror_r(errnum, buf, buflen);
 }
@@ -39,7 +39,7 @@ int compat_strerror_r(int errnum, char *buf, size_t buflen)
 
 /* GNU-compliant strerror_r */
 static inline
-int compat_strerror_r(int errnum, char *buf, size_t buflen)
+int bt_strerror_r(int errnum, char *buf, size_t buflen)
 {
 	char *retbuf;
 
