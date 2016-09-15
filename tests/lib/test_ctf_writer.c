@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <babeltrace/compat/stdlib-internal.h>
 #include <stdio.h>
-#include <sys/utsname.h>
+#include <babeltrace/compat/utsname-internal.h>
 #include <babeltrace/compat/limits-internal.h>
 #include <babeltrace/compat/stdio-internal.h>
 #include <string.h>

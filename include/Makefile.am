@@ -89,6 +89,7 @@ noinst_HEADERS = \
 	babeltrace/compat/time-internal.h \
 	babeltrace/compat/unistd-internal.h \
 	babeltrace/compat/utc-internal.h \
+	babeltrace/compat/utsname-internal.h \
 	babeltrace/compat/uuid-internal.h \
 	babeltrace/compiler-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
