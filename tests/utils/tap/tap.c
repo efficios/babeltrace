@@ -58,6 +58,18 @@ static void _expected_tests(unsigned int);
 static void _tap_init(void);
 static void _cleanup(void);
 
+#ifdef __MINGW32__
+static inline
+void flockfile (FILE * filehandle) {
+       return;
+}
+
+static inline
+void funlockfile(FILE * filehandle) {
+       return;
+}
+#endif
+
 /*
  * Generate a test result.
  *
