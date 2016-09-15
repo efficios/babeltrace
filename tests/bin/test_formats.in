@@ -27,6 +27,6 @@ expected_formats=(text lttng-live dummy ctf-metadata ctf)
 plan_tests ${#expected_formats[*]}
 
 for format in "${expected_formats[@]}"; do
-    "$BABELTRACE_BIN" --list | grep -qw "$format"
+    "$BABELTRACE_BIN" --list | @GREP@ -qw "$format"
     ok $? "Detect support for format \"$format\""
 done
