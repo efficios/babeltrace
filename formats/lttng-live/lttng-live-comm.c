@@ -408,7 +408,7 @@ int open_metadata_fp_write(struct lttng_live_viewer_stream *stream,
 	int ret = 0;
 
 	stream->metadata_fp_write =
-		babeltrace_open_memstream(metadata_buf, size);
+		bt_open_memstream(metadata_buf, size);
 	if (!stream->metadata_fp_write) {
 		perror("Metadata open_memstream");
 		ret = -1;
@@ -610,7 +610,7 @@ int append_metadata(struct lttng_live_ctx *ctx,
 
 	metadata = viewer_stream->ctf_trace->metadata_stream;
 	metadata->ctf_trace->metadata_fp =
-		babeltrace_fmemopen(metadata_buf,
+		bt_fmemopen(metadata_buf,
 				metadata->metadata_len, "rb");
 	if (!metadata->ctf_trace->metadata_fp) {
 		perror("Metadata fmemopen");
@@ -933,9 +933,9 @@ int get_new_metadata(struct lttng_live_ctx *ctx,
 		}
 	} while (ret > 0 || !len_read);
 
-	if (babeltrace_close_memstream(metadata_buf, &size,
+	if (bt_close_memstream(metadata_buf, &size,
 			metadata_stream->metadata_fp_write)) {
-		perror("babeltrace_close_memstream");
+		perror("bt_close_memstream");
 	}
 	metadata_stream->metadata_fp_write = NULL;
 
@@ -1432,7 +1432,7 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 				goto end_free;
 			}
 
-			trace->metadata_fp = babeltrace_fmemopen(metadata_buf,
+			trace->metadata_fp = bt_fmemopen(metadata_buf,
 					stream->metadata_len, "rb");
 			if (!trace->metadata_fp) {
 				perror("Metadata fmemopen");

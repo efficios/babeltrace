@@ -31,7 +31,7 @@
 #include <stdio.h>
 
 static inline
-FILE *babeltrace_fmemopen(void *buf, size_t size, const char *mode)
+FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 {
 	return fmemopen(buf, size, mode);
 }
@@ -46,7 +46,7 @@ FILE *babeltrace_fmemopen(void *buf, size_t size, const char *mode)
  * temporary file, and use that file as FILE * input.
  */
 static inline
-FILE *babeltrace_fmemopen(void *buf, size_t size, const char *mode)
+FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 {
 	char tmpname[PATH_MAX];
 	size_t len;
@@ -108,13 +108,13 @@ error_unlink:
 #include <stdio.h>
 
 static inline
-FILE *babeltrace_open_memstream(char **ptr, size_t *sizeloc)
+FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 {
 	return open_memstream(ptr, sizeloc);
 }
 
 static inline
-int babeltrace_close_memstream(char **buf, size_t *size, FILE *fp)
+int bt_close_memstream(char **buf, size_t *size, FILE *fp)
 {
 	return fclose(fp);
 }
@@ -126,12 +126,12 @@ int babeltrace_close_memstream(char **buf, size_t *size, FILE *fp)
 
 /*
  * Fallback for systems which don't have open_memstream. Create FILE *
- * with babeltrace_open_memstream, but require call to
- * babeltrace_close_memstream to flush all data written to the FILE *
+ * with bt_open_memstream, but require call to
+ * bt_close_memstream to flush all data written to the FILE *
  * into the buffer (which we allocate).
  */
 static inline
-FILE *babeltrace_open_memstream(char **ptr, size_t *sizeloc)
+FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 {
 	char tmpname[PATH_MAX];
 	int ret;
@@ -167,7 +167,7 @@ error_unlink:
 
 /* Get file size, allocate buffer, copy. */
 static inline
-int babeltrace_close_memstream(char **buf, size_t *size, FILE *fp)
+int bt_close_memstream(char **buf, size_t *size, FILE *fp)
 {
 	size_t len, n;
 	long pos;

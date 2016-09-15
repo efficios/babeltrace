@@ -1415,7 +1415,7 @@ int ctf_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 	 * because its size includes garbage at the end (after final
 	 * \0). This is the allocated size, not the actual string size.
 	 */
-	out = babeltrace_open_memstream(buf, &size);
+	out = bt_open_memstream(buf, &size);
 	if (out == NULL) {
 		perror("Metadata open_memstream");
 		return -errno;
@@ -1431,7 +1431,7 @@ int ctf_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 		}
 	}
 	/* close to flush the buffer */
-	ret = babeltrace_close_memstream(buf, &size, out);
+	ret = bt_close_memstream(buf, &size, out);
 	if (ret < 0) {
 		int closeret;
 
@@ -1453,7 +1453,7 @@ int ctf_trace_metadata_stream_read(struct ctf_trace *td, FILE **fp,
 		*fp = NULL;
 		return -ENOENT;
 	}
-	*fp = babeltrace_fmemopen(*buf, buflen, "rb");
+	*fp = bt_fmemopen(*buf, buflen, "rb");
 	if (!*fp) {
 		perror("Metadata fmemopen");
 		return -errno;
