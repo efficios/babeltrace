@@ -34,6 +34,14 @@ time_t bt_timegm(struct tm *tm)
 	return timegm(tm);
 }
 
+#elif defined(__MINGW32__)
+
+static inline
+time_t bt_timegm(struct tm *tm)
+{
+	return _mkgmtime(tm);
+}
+
 #else
 
 #include <string.h>

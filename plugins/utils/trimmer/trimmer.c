@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/compat/utc-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/private-component.h>
@@ -106,7 +107,7 @@ int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 		time_t result;
 
 		if (gmt) {
-			result = timegm(&tm);
+			result = bt_timegm(&tm);
 			if (result < 0) {
 				return -1;
 			}
@@ -152,7 +153,7 @@ int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 			time_t result;
 
 			if (gmt) {
-				result = timegm(&tm);
+				result = bt_timegm(&tm);
 				if (result < 0) {
 					return -1;
 				}
@@ -200,7 +201,7 @@ int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 		};
 
 		if (gmt) {
-			value = timegm(&tm);
+			value = bt_timegm(&tm);
 			if (value < 0) {
 				return -1;
 			}
@@ -244,7 +245,7 @@ int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 			time_t result;
 
 			if (gmt) {
-				result = timegm(&tm);
+				result = bt_timegm(&tm);
 				if (result < 0) {
 					return -1;
 				}
