@@ -52,6 +52,10 @@
 	bt_component_factory_register_sink_component_class(factory,		\
 			_name, _description, _init);
 
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ENTRY(_name, _description, _init)	\
+	bt_component_factory_register_filter_component_class(factory,		\
+			_name, _description, _init);
+
 #define BT_PLUGIN_COMPONENT_CLASSES_END						\
 	return BT_COMPONENT_STATUS_OK;						\
 }										\

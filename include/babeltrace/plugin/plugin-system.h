@@ -183,6 +183,71 @@ extern enum bt_component_status
 bt_component_sink_get_input_iterator(struct bt_component *sink,
 		unsigned int input, struct bt_notification_iterator **iterator);
 
+/** bt_component_filter */
+/**
+ * Iterator initialization function type.
+ *
+ * A notification iterator's private data, deinitialization, next, and get
+ * callbacks must be set by this function.
+ *
+ * @param filter	Filter component instance
+ * @param iterator	Notification iterator instance
+ */
+typedef enum bt_component_status (*bt_component_filter_init_iterator_cb)(
+		struct bt_component *, struct bt_notification_iterator *);
+
+/**
+ * Iterator addition function type.
+ *
+ * A filter component may choose to refuse the addition of an iterator
+ * by not returning BT_COMPONENT_STATUS_OK.
+ *
+ * @param filter	Filter component instance
+ * @returns		One of #bt_component_status values
+ */
+typedef enum bt_component_status (*bt_component_filter_add_iterator_cb)(
+		struct bt_component *, struct bt_notification_iterator *);
+
+/**
+ * Set a filter component's iterator initialization function.
+ *
+ * @param filter	Filter component instance
+ * @param init_iterator	Notification iterator initialization callback
+ */
+extern enum bt_component_status
+bt_component_filter_set_iterator_init_cb(struct bt_component *filter,
+		bt_component_filter_init_iterator_cb init_iterator);
+
+/**
+ * Set a filter component's iterator addition callback.
+ *
+ * @param filter	Filter component instance
+ * @param add_iterator	Iterator addition callback
+ * @returns		One of #bt_component_status values
+ */
+extern enum bt_component_status
+bt_component_filter_set_add_iterator_cb(struct bt_component *filter,
+		bt_component_filter_add_iterator_cb add_iterator);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_filter_set_minimum_input_count(struct bt_component *filter,
+		unsigned int minimum);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_filter_set_maximum_input_count(struct bt_component *filter,
+		unsigned int maximum);
+
+extern enum bt_component_status
+bt_component_filter_get_input_count(struct bt_component *filter,
+		unsigned int *count);
+
+/* May return NULL after an interator has reached its end. */
+extern enum bt_component_status
+bt_component_filter_get_input_iterator(struct bt_component *filter,
+		unsigned int input, struct bt_notification_iterator **iterator);
+
 /** bt_notification_iterator */
 /**
  * Function returning an iterator's current notification.

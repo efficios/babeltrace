@@ -148,6 +148,11 @@ bt_component_factory_register_sink_component_class(
 		struct bt_component_factory *factory, const char *name,
 		const char *description, bt_component_init_cb init);
 
+extern enum bt_component_factory_status
+bt_component_factory_register_filter_component_class(
+		struct bt_component_factory *factory, const char *name,
+		const char *description, bt_component_init_cb init);
+
 #ifdef __cplusplus
 }
 #endif

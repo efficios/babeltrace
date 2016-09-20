@@ -1,1 +1,1 @@
-SUBDIRS = ctf text
+SUBDIRS = ctf text correlator

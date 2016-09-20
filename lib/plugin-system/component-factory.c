@@ -458,3 +458,12 @@ bt_component_factory_register_sink_component_class(
 	return add_component_class(factory, name, description, init,
 			BT_COMPONENT_TYPE_SINK);
 }
+
+enum bt_component_factory_status
+bt_component_factory_register_filter_component_class(
+		struct bt_component_factory *factory, const char *name,
+		const char *description, bt_component_init_cb init)
+{
+	return add_component_class(factory, name, description, init,
+			BT_COMPONENT_TYPE_FILTER);
+}
