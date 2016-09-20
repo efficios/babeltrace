@@ -31,6 +31,7 @@
  */
 
 #include <babeltrace/plugin/notification/notification.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,45 +122,68 @@ bt_component_source_set_iterator_init_cb(struct bt_component *source,
 
 /** bt_component_sink */
 /**
- * Notification handling function type.
- *
- * A reference must be taken on the notification if the component has to
- * keep ownership of the notification beyond the invocation of the callback.
+ * Notification consumption function type.
  *
  * @param sink		Sink component instance
- * @param notification	Notification to handle
  * @returns		One of #bt_component_status values
  */
-typedef enum bt_component_status (*bt_component_sink_handle_notification_cb)(
-		struct bt_component *, struct bt_notification *);
+typedef enum bt_component_status (*bt_component_sink_consume_cb)(
+		struct bt_component *);
 
 /**
- * Set a sink component's notification handling callback.
+ * Iterator addition function type.
  *
- * @param sink			Sink component instance
- * @param handle_notification	Notification handling callback
- * @returns			One of #bt_component_status values
+ * A sink component may choose to refuse the addition of an iterator
+ * by not returning BT_COMPONENT_STATUS_OK.
+ *
+ * @param sink		Sink component instance
+ * @returns		One of #bt_component_status values
  */
-extern enum bt_component_status
-bt_component_sink_set_handle_notification_cb(struct bt_component *sink,
-		bt_component_sink_handle_notification_cb handle_notification);
+typedef enum bt_component_status (*bt_component_sink_add_iterator_cb)(
+		struct bt_component *, struct bt_notification_iterator *);
 
 /**
- * Register a sink to a given notification type.
+ * Set a sink component's consumption callback.
  *
- * A sink is always registered to notifications of type
- * BT_NOTIFICATION_TYPE_EVENT. However, it may opt to receive any (or all)
- * other notification type(s).
- *
- * @param sink		Sink component instance.
- * @param type		One of #bt_notification_type
- * @returns		One of #bt_component_status
+ * @param sink		Sink component instance
+ * @param consume	Consumption callback
+ * @returns		One of #bt_component_status values
  */
 extern enum bt_component_status
-bt_component_sink_register_notification_type(struct bt_component *sink,
-		enum bt_notification_type type);
+bt_component_sink_set_consume_cb(struct bt_component *sink,
+		bt_component_sink_consume_cb consume);
 
-/** bt_component_notification_iterator */
+/**
+ * Set a sink component's iterator addition callback.
+ *
+ * @param sink		Sink component instance
+ * @param add_iterator	Iterator addition callback
+ * @returns		One of #bt_component_status values
+ */
+extern enum bt_component_status
+bt_component_sink_set_add_iterator_cb(struct bt_component *sink,
+		bt_component_sink_add_iterator_cb add_iterator);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_sink_set_minimum_input_count(struct bt_component *sink,
+		unsigned int minimum);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_sink_set_maximum_input_count(struct bt_component *sink,
+		unsigned int maximum);
+
+extern enum bt_component_status
+bt_component_sink_get_input_count(struct bt_component *sink,
+		unsigned int *count);
+
+/* May return NULL after an interator has reached its end. */
+extern enum bt_component_status
+bt_component_sink_get_input_iterator(struct bt_component *sink,
+		unsigned int input, struct bt_notification_iterator **iterator);
+
+/** bt_notification_iterator */
 /**
  * Function returning an iterator's current notification.
  *

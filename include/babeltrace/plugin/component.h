@@ -40,7 +40,14 @@ extern "C" {
  */
 enum bt_component_status {
 	/** No error, okay. */
-	BT_COMPONENT_STATUS_OK =		0,	
+	BT_COMPONENT_STATUS_OK =		0,
+	/** No more work to be done by this component. **/
+	BT_COMPONENT_STATUS_END =		1,
+	/**
+	 * Component can't process a notification at this time
+	 * (e.g. would block), try again later.
+	 */
+	BT_COMPONENT_STATUS_AGAIN =		2,
 	/** General error. */
 	BT_COMPONENT_STATUS_ERROR =		-1,
 	/** Unsupported component feature. */

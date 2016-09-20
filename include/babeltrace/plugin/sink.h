@@ -37,15 +37,24 @@ struct bt_component;
 struct bt_notification;
 
 /**
- * Hand-off a notification to a sink component.
+ * Add a notification iterator to a sink component.
  *
  * @param component	Component instance
- * @param notification	Notification instance to handle
+ * @param iterator	Notification iterator to add
  * @returns		One of #bt_component_status values
  */
-enum bt_component_status bt_component_sink_handle_notification(
+enum bt_component_status bt_component_sink_add_iterator(
 		struct bt_component *component,
-		struct bt_notification *notification);
+		struct bt_notification_iterator *iterator);
+
+/**
+ * Process one event, consuming from sources as needed.
+ *
+ * @param component	Component instance
+ * @returns		One of #bt_component_status values
+ */
+enum bt_component_status bt_component_sink_consume(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }

@@ -45,6 +45,12 @@ struct bt_component {
 	/** User-defined data and its destruction callback */
 	void *user_data;
 	bt_component_destroy_cb user_destroy;
+
+	/**
+	 * Used to protect operations which may only be used during
+	 * a component's initialization.
+	 */
+	bool initializing;
 };
 
 BT_HIDDEN

@@ -42,9 +42,13 @@ typedef uint32_t notification_mask_t;
 struct bt_component_sink {
 	struct bt_component parent;
 
-	/* Component implementation callbacks */
-	bt_component_sink_handle_notification_cb handle_notification;
-	notification_mask_t registered_notifications_mask;
+	bt_component_sink_consume_cb consume;
+	bt_component_sink_add_iterator_cb add_iterator;
+	GPtrArray *inputs;
+	unsigned int min_input_count;
+	unsigned int max_input_count;
+	bool validated_inputs;
+/*	notification_mask_t registered_notifications_mask;*/
 };
 
 /**

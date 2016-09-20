@@ -435,7 +435,7 @@ add_component_class(struct bt_component_factory *factory, const char *name,
 	}
 
 	component_class = bt_component_class_create(type, name, description,
-		init, factory->current_plugin);
+			init, factory->current_plugin);
 	g_ptr_array_add(factory->component_classes, component_class);
 end:
 	return ret;

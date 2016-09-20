@@ -30,6 +30,7 @@
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/sink.h>
 #include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/event.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -74,7 +75,8 @@ end:
 	return text;
 }
 
-static void destroy_text(struct bt_component *component)
+static
+void destroy_text(struct bt_component *component)
 {
 	void *data = bt_component_get_private_data(component);
 
@@ -82,11 +84,10 @@ static void destroy_text(struct bt_component *component)
 }
 
 static
-enum bt_component_status handle_notification(struct bt_component *component,
+enum bt_component_status handle_notification(struct text_component *text,
 	struct bt_notification *notification)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct text_component *text = bt_component_get_private_data(component);
 
 	if (!text) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -110,6 +111,7 @@ enum bt_component_status handle_notification(struct bt_component *component,
 			goto end;
 		}
 		ret = text_print_event(text, event);
+		bt_put(event);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
@@ -122,6 +124,41 @@ enum bt_component_status handle_notification(struct bt_component *component,
 		puts("Unhandled notification type");
 	}
 end:
+	return ret;
+}
+
+static
+enum bt_component_status run(struct bt_component *component)
+{
+	enum bt_component_status ret;
+	struct bt_notification *notification = NULL;
+	struct bt_notification_iterator *it;
+	struct text_component *text = bt_component_get_private_data(component);
+
+	ret = bt_component_sink_get_input_iterator(component, 0, &it);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto end;
+	}
+
+	if (!text->processed_first_event) {
+		ret = bt_notification_iterator_next(it);
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
+	} else {
+		text->processed_first_event = true;
+	}
+
+	notification = bt_notification_iterator_get_notification(it);
+	if (!notification) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = handle_notification(text, notification);
+end:
+	bt_put(it);
+	bt_put(notification);
 	return ret;
 }
 
@@ -148,8 +185,8 @@ enum bt_component_status text_component_init(
 		goto error;
 	}
 
-	ret = bt_component_sink_set_handle_notification_cb(component,
-			handle_notification);
+	ret = bt_component_sink_set_consume_cb(component,
+			run);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}

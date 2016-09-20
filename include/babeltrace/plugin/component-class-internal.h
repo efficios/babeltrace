@@ -42,8 +42,7 @@ struct bt_component_class {
 };
 
 BT_HIDDEN
-int bt_component_class_init(
-		struct bt_component_class *class, enum bt_component_type type,
+int bt_component_class_init(struct bt_component_class *class, enum bt_component_type type,
 		const char *name);
 
 BT_HIDDEN

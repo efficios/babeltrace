@@ -93,7 +93,8 @@ bt_component_source_set_iterator_init_cb(struct bt_component *component,
 	struct bt_component_source *source;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (component->class->type != BT_COMPONENT_TYPE_SOURCE) {
+	if (component->class->type != BT_COMPONENT_TYPE_SOURCE ||
+			!component->initializing) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}

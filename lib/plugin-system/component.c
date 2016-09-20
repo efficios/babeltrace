@@ -131,7 +131,9 @@ struct bt_component *bt_component_create(
 		goto end;
 	}
 
+	component->initializing = true;
 	component_class->init(component, params);
+	component->initializing = false;
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(component);
@@ -186,7 +188,7 @@ bt_component_set_private_data(struct bt_component *component,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component) {
+	if (!component || !component->initializing) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
@@ -201,7 +203,7 @@ enum bt_component_status bt_component_set_destroy_cb(
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component) {
+	if (!component || !component->initializing) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
