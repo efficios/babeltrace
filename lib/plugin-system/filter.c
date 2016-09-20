@@ -31,5 +31,232 @@
 #include <babeltrace/plugin/filter-internal.h>
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/plugin/notification/iterator-internal.h>
 
+enum bt_component_status bt_component_filter_set_iterator_init_cb(
+		struct bt_component *component,
+		bt_component_filter_init_iterator_cb init_iterator)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
+	if (component->class->type != BT_COMPONENT_TYPE_FILTER ||
+			!component->initializing) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	filter->init_iterator = init_iterator;
+end:
+	return ret;
+}
+
+enum bt_component_status bt_component_filter_set_add_iterator_cb(
+		struct bt_component *component,
+		bt_component_filter_add_iterator_cb add_iterator)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	if (!component->initializing) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	filter->add_iterator = add_iterator;
+end:
+	return ret;
+}
+
+enum bt_component_status bt_component_filter_set_minimum_input_count(
+		struct bt_component *component,
+		unsigned int minimum)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	if (!component->initializing) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	filter->input.min_count = minimum;
+end:
+	return ret;
+}
+
+enum bt_component_status bt_component_filter_set_maximum_input_count(
+		struct bt_component *component,
+		unsigned int maximum)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	if (!component->initializing) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	filter->input.max_count = maximum;
+end:
+	return ret;
+}
+
+enum bt_component_status
+bt_component_filter_get_input_count(struct bt_component *component,
+		unsigned int *count)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component || !count) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	*count = (unsigned int) filter->input.iterators->len;
+end:
+	return ret;
+}
+
+enum bt_component_status
+bt_component_filter_get_input_iterator(struct bt_component *component,
+		unsigned int input, struct bt_notification_iterator **iterator)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component || !iterator) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	if (input >= (unsigned int) filter->input.iterators->len) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	*iterator = bt_get(g_ptr_array_index(filter->input.iterators, input));
+end:
+	return ret;
+}
+
+enum bt_component_status bt_component_filter_add_iterator(
+		struct bt_component *component,
+		struct bt_notification_iterator *iterator)
+{
+	struct bt_component_filter *filter;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component || !iterator) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	if (filter->input.iterators->len == filter->input.max_count) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	if (filter->add_iterator) {
+		ret = filter->add_iterator(component, iterator);
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
+	}
+
+	g_ptr_array_add(filter->input.iterators, bt_get(iterator));
+end:
+	return ret;
+}
+
+struct bt_notification_iterator *bt_component_filter_create_iterator(
+		struct bt_component *component)
+{
+	enum bt_component_status ret_component;
+	enum bt_notification_iterator_status ret_iterator;
+	struct bt_component_filter *filter;
+	struct bt_notification_iterator *iterator = NULL;
+
+	if (!component) {
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+		goto end;
+	}
+
+	iterator = bt_notification_iterator_create(component);
+	if (!iterator) {
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	assert(filter->init_iterator);
+	ret_component = filter->init_iterator(component, iterator);
+	if (ret_component != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	ret_iterator = bt_notification_iterator_validate(iterator);
+	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		goto error;
+	}
+end:
+	return iterator;
+error:
+	BT_PUT(iterator);
+	return iterator;
+}

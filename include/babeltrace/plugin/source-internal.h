@@ -40,8 +40,6 @@ struct bt_component_source_class {
 
 struct bt_component_source {
 	struct bt_component parent;
-
-	/* Component implementation callbacks */
 	bt_component_source_init_iterator_cb init_iterator;
 };
 

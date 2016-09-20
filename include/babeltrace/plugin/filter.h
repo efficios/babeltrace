@@ -44,6 +44,7 @@ struct bt_notification_iterator;
  * @param iterator	Notification iterator to add
  * @returns		One of #bt_component_status values
  */
+extern
 enum bt_component_status bt_component_filter_add_iterator(
 		struct bt_component *component,
 		struct bt_notification_iterator *iterator);
@@ -54,6 +55,7 @@ enum bt_component_status bt_component_filter_add_iterator(
  * @param component	Component instance
  * @returns		Notification iterator instance
  */
+extern
 struct bt_notification_iterator *bt_component_filter_create_iterator(
 		struct bt_component *component);
 

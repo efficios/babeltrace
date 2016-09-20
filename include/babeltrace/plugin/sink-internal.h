@@ -31,6 +31,7 @@
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/component-class-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/input.h>
 
 struct bt_value;
 
@@ -38,16 +39,13 @@ struct bt_component_sink_class {
 	struct bt_component_class parent;
 };
 
-typedef uint32_t notification_mask_t;
+//typedef uint32_t notification_mask_t;
+
 struct bt_component_sink {
 	struct bt_component parent;
-
 	bt_component_sink_consume_cb consume;
 	bt_component_sink_add_iterator_cb add_iterator;
-	GPtrArray *inputs;
-	unsigned int min_input_count;
-	unsigned int max_input_count;
-	bool validated_inputs;
+	struct component_input input;
 /*	notification_mask_t registered_notifications_mask;*/
 };
 

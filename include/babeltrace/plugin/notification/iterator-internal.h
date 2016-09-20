@@ -30,6 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ref-internal.h>
+#include <babeltrace/plugin/notification/iterator.h>
 
 struct bt_notification_iterator {
 	struct bt_object base;

@@ -12,7 +12,9 @@ libplugin_system_la_SOURCES = \
 	plugin.c \
 	source.c \
 	sink.c \
-	iterator.c
+	filter.c \
+	iterator.c \
+	input.c
 
 libplugin_system_la_LIBADD = \
 	notification/libplugin-system-notification.la

@@ -46,9 +46,8 @@ enum bt_component_status bt_component_sink_validate(
 		goto end;
 	}
 
-	if (sink->min_input_count > sink->max_input_count) {
-		printf_error("Invalid sink component; minimum input count > maximum input count.");
-		ret = BT_COMPONENT_STATUS_INVALID;
+	ret = component_input_validate(&sink->input);
+	if (ret) {
 		goto end;
 	}
 end:
@@ -61,7 +60,7 @@ void bt_component_sink_destroy(struct bt_component *component)
 	struct bt_component_sink *sink = container_of(component,
 			struct bt_component_sink, parent);
 
-	g_ptr_array_free(sink->inputs, TRUE);
+	component_input_fini(&sink->input);
 }
 
 BT_HIDDEN
@@ -82,8 +81,6 @@ struct bt_component *bt_component_sink_create(
 		goto error;
 	}
 
-	sink->min_input_count = 1;
-	sink->max_input_count = 1;
 /*
 	ret = bt_component_sink_register_notification_type(&sink->parent,
 		BT_NOTIFICATION_TYPE_EVENT);
@@ -91,8 +88,7 @@ struct bt_component *bt_component_sink_create(
 		goto error;
 	}
 */
-	sink->inputs = g_ptr_array_new_with_free_func(bt_put);
-	if (!sink->inputs) {
+	if (component_input_init(&sink->input)) {
 		goto error;
 	}
 end:
@@ -105,10 +101,10 @@ error:
 static
 enum bt_component_status validate_inputs(struct bt_component_sink *sink)
 {
-	size_t array_size = sink->inputs->len;
+	size_t array_size = sink->input.iterators->len;
 
-	if (array_size < sink->min_input_count ||
-			array_size > sink->max_input_count) {
+	if (array_size < sink->input.min_count ||
+			array_size > sink->input.max_count) {
 		return BT_COMPONENT_STATUS_INVALID;
 	}
 
@@ -132,12 +128,12 @@ enum bt_component_status bt_component_sink_consume(
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	if (!sink->validated_inputs) {
+	if (!sink->input.validated) {
 		ret = validate_inputs(sink);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
-		sink->validated_inputs = true;
+		sink->input.validated = true;
 	}
 
 	assert(sink->consume);
@@ -207,6 +203,34 @@ end:
 	return ret;
 }
 
+enum bt_component_status bt_component_sink_set_add_iterator_cb(
+		struct bt_component *component,
+		bt_component_sink_add_iterator_cb add_iterator)
+{
+	struct bt_component_sink *sink;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	if (!component->initializing) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	sink = container_of(component, struct bt_component_sink, parent);
+	sink->add_iterator = add_iterator;
+end:
+	return ret;
+}
+
 enum bt_component_status bt_component_sink_set_minimum_input_count(
 		struct bt_component *component,
 		unsigned int minimum)
@@ -230,7 +254,7 @@ enum bt_component_status bt_component_sink_set_minimum_input_count(
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	sink->min_input_count = minimum;
+	sink->input.min_count = minimum;
 end:
 	return ret;
 }
@@ -258,7 +282,7 @@ enum bt_component_status bt_component_sink_set_maximum_input_count(
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	sink->max_input_count = maximum;
+	sink->input.max_count = maximum;
 end:
 	return ret;
 }
@@ -281,7 +305,7 @@ bt_component_sink_get_input_count(struct bt_component *component,
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	*count = (unsigned int) sink->inputs->len;
+	*count = (unsigned int) sink->input.iterators->len;
 end:
 	return ret;
 }
@@ -304,12 +328,12 @@ bt_component_sink_get_input_iterator(struct bt_component *component,
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	if (input >= (unsigned int) sink->inputs->len) {
+	if (input >= (unsigned int) sink->input.iterators->len) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	*iterator = bt_get(g_ptr_array_index(sink->inputs, input));
+	*iterator = bt_get(g_ptr_array_index(sink->input.iterators, input));
 end:
 	return ret;
 }
@@ -332,7 +356,7 @@ bt_component_sink_add_iterator(struct bt_component *component,
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	if (sink->inputs->len == sink->max_input_count) {
+	if (sink->input.iterators->len == sink->input.max_count) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -344,7 +368,7 @@ bt_component_sink_add_iterator(struct bt_component *component,
 		}
 	}
 
-	g_ptr_array_add(sink->inputs, bt_get(iterator));
+	g_ptr_array_add(sink->input.iterators, bt_get(iterator));
 end:
 	return ret;
 }

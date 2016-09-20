@@ -43,6 +43,7 @@ struct bt_notification_iterator;
  * @param component	Component instance
  * @returns		Notification iterator instance
  */
+extern
 struct bt_notification_iterator *bt_component_source_create_iterator(
 		struct bt_component *component);
 

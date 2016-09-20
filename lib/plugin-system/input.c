@@ -1,8 +1,7 @@
-#ifndef BABELTRACE_PLUGIN_FILTER_INTERNAL_H
-#define BABELTRACE_PLUGIN_FILTER_INTERNAL_H
-
 /*
- * BabelTrace - Filter Component Internal
+ * input.c
+ *
+ * Babeltrace Component Input
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,44 +26,33 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component-internal.h>
-#include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/plugin/input.h>
+#include <babeltrace/ref.h>
 
-struct bt_value;
-
-struct bt_component_filter_class {
-	struct bt_component_class parent;
-};
-
-struct bt_component_filter {
-	struct bt_component parent;
-	bt_component_filter_init_iterator_cb init_iterator;
-	bt_component_sink_add_iterator_cb add_iterator;
-	struct component_input input;
-};
-
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
 BT_HIDDEN
-struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params);
+int component_input_init(struct component_input *input)
+{
+	input->min_count = 1;
+	input->max_count = 1;
+	input->iterators = g_ptr_array_new_with_free_func(bt_put);
+	if (!input->iterators) {
+		return 1;
+	}
+	return 0;
+}
 
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
 BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
+int component_input_validate(struct component_input *input)
+{
+	if (input->min_count > input->max_count) {
+		printf_error("Invalid component configuration; minimum input count > maximum input count.");
+		return 1;
+	}
+	return 0;
+}
 
-#endif /* BABELTRACE_PLUGIN_FILTER_INTERNAL_H */
+BT_HIDDEN
+void component_input_fini(struct component_input *input)
+{
+	g_ptr_array_free(input->iterators, TRUE);
+}

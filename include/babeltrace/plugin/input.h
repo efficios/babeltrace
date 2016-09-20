@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_FILTER_INTERNAL_H
-#define BABELTRACE_PLUGIN_FILTER_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_INPUT_INTERNAL_H
+#define BABELTRACE_PLUGIN_INPUT_INTERNAL_H
 
 /*
- * BabelTrace - Filter Component Internal
+ * BabelTrace - Component Input
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,43 +28,24 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component-internal.h>
-#include <babeltrace/plugin/component-class-internal.h>
-#include <babeltrace/plugin/plugin-system.h>
-#include <babeltrace/plugin/input.h>
+#include <glib.h>
+#include <stdbool.h>
 
-struct bt_value;
-
-struct bt_component_filter_class {
-	struct bt_component_class parent;
+struct component_input {
+	/* Array of struct bt_notification_iterator pointers. */
+	GPtrArray *iterators;
+	unsigned int min_count;
+	unsigned int max_count;
+	bool validated;
 };
 
-struct bt_component_filter {
-	struct bt_component parent;
-	bt_component_filter_init_iterator_cb init_iterator;
-	bt_component_sink_add_iterator_cb add_iterator;
-	struct component_input input;
-};
-
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
 BT_HIDDEN
-struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params);
+int component_input_init(struct component_input *input);
 
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
 BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
+int component_input_validate(struct component_input *input);
 
-#endif /* BABELTRACE_PLUGIN_FILTER_INTERNAL_H */
+BT_HIDDEN
+void component_input_fini(struct component_input *input);
+
+#endif /* BABELTRACE_PLUGIN_INPUT_INTERNAL_H */

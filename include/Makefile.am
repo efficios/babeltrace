@@ -119,6 +119,7 @@ noinst_HEADERS = \
 	babeltrace/plugin/filter-internal.h \
 	babeltrace/plugin/sink-internal.h \
 	babeltrace/plugin/source-internal.h \
+	babeltrace/plugin/input.h \
 	babeltrace/plugin/notification/eot-internal.h \
 	babeltrace/plugin/notification/event-internal.h \
 	babeltrace/plugin/notification/iterator-internal.h \
