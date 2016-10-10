@@ -226,8 +226,6 @@ struct bt_ctf_notif_iter_notif_event {
 	struct bt_ctf_event *event;
 };
 
-void bt_ctf_notif_iter_notif_destroy(void *notif);
-
 /**
  * Creates a CTF notification iterator.
  *
@@ -245,6 +243,7 @@ void bt_ctf_notif_iter_notif_destroy(void *notif);
  * @returns			New CTF notification iterator on
  *				success, or \c NULL on error
  */
+BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 	size_t max_request_sz, struct bt_ctf_notif_iter_medium_ops medops,
 	void *medops_data, FILE *err_stream);
@@ -256,20 +255,8 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
  *
  * @param notif_iter		CTF notification iterator
  */
+BT_HIDDEN
 void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notif_iter);
-
-/**
- * Resets the internal state of a CTF notification iterator.
- *
- * This function can be used when it is desired to seek to the beginning
- * of another packet. It is expected that the next call to
- * bt_ctf_notif_iter_medium_ops::request_bytes() made by this
- * notification iterator will return the \em first bytes of a \em
- * packet.
- *
- * @param notif_iter		CTF notification iterator
- */
-void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notif_iter);
 
 /**
  * Returns the next notification from a CTF notification iterator.
@@ -288,6 +275,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notif_iter);
  *				return value is #BT_CTF_NOTIF_ITER_STATUS_OK
  * @returns			One of #bt_ctf_notif_iter_status values
  */
+BT_HIDDEN
 enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 		struct bt_ctf_notif_iter *notit,
 		struct bt_notification **notification);

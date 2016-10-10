@@ -143,7 +143,7 @@ struct bt_ctf_notif_iter {
 	/* Current state */
 	enum state state;
 
-	/* User buffer stuff */
+	/* Current medium buffer data */
 	struct {
 		/* Last address provided by medium */
 		const uint8_t *addr;
@@ -161,7 +161,7 @@ struct bt_ctf_notif_iter {
 	/* Binary type reader */
 	struct bt_ctf_btr *btr;
 
-	/* Medium stuff */
+	/* Current medium data */
 	struct {
 		struct bt_ctf_notif_iter_medium_ops medops;
 		size_t max_request_sz;
@@ -174,6 +174,9 @@ struct bt_ctf_notif_iter {
 	/* Current content size (bits) (-1 if unknown) */
 	size_t cur_content_size;
 };
+
+static
+int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit);
 
 static
 void stack_entry_free_func(gpointer data)
@@ -335,7 +338,8 @@ bool buf_has_enough_bits(struct bt_ctf_notif_iter *notit, size_t sz)
 }
 
 static
-enum bt_ctf_notif_iter_status request_medium_bytes(struct bt_ctf_notif_iter *notit)
+enum bt_ctf_notif_iter_status request_medium_bytes(
+		struct bt_ctf_notif_iter *notit)
 {
 	uint8_t *buffer_addr;
 	size_t buffer_sz;
@@ -480,31 +484,30 @@ static
 enum bt_ctf_notif_iter_status read_packet_header_begin_state(
 		struct bt_ctf_notif_iter *notit)
 {
-	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
-	struct bt_ctf_field_type *packet_header_type;
+	struct bt_ctf_field_type *packet_header_type = NULL;
+	enum bt_ctf_notif_iter_status ret = BT_CTF_NOTIF_ITER_STATUS_OK;
 
-	/* Reset all dynamic scopes since we're reading a new packet */
-	put_all_dscopes(notit);
-	BT_PUT(notit->packet);
-	BT_PUT(notit->meta.stream_class);
-	BT_PUT(notit->meta.event_class);
+	if (bt_ctf_notif_iter_switch_packet(notit)) {
+		ret = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		goto end;
+	}
 
-	/* Packet header type is common to the whole trace */
+	/* Packet header type is common to the whole trace. */
 	packet_header_type = bt_ctf_trace_get_packet_header_type(
 			notit->meta.trace);
 	if (!packet_header_type) {
 		PERR("Failed to retrieve trace's packet header type\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		ret = BT_CTF_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
 
-	status = read_dscope_begin_state(notit, packet_header_type,
+	ret = read_dscope_begin_state(notit, packet_header_type,
 			STATE_AFTER_TRACE_PACKET_HEADER,
 			STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE,
 			&notit->dscopes.trace_packet_header);
 end:
 	BT_PUT(packet_header_type);
-	return status;
+	return ret;
 }
 
 static
@@ -1112,6 +1115,19 @@ enum bt_ctf_notif_iter_status handle_state(struct bt_ctf_notif_iter *notit)
 	return status;
 }
 
+
+/**
+ * Resets the internal state of a CTF notification iterator.
+ *
+ * This function can be used when it is desired to seek to the beginning
+ * of another packet. It is expected that the next call to
+ * bt_ctf_notif_iter_medium_ops::request_bytes() made by this
+ * notification iterator will return the \em first bytes of a \em
+ * packet.
+ *
+ * @param notif_iter		CTF notification iterator
+ */
+static
 void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 {
 	assert(notit);
@@ -1127,6 +1143,43 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	notit->state = STATE_INIT;
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
+}
+
+static
+int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit)
+{
+	int ret = 0;
+
+	assert(notit);
+	stack_clear(notit->stack);
+	BT_PUT(notit->meta.stream_class);
+	BT_PUT(notit->meta.event_class);
+	BT_PUT(notit->packet);
+	put_all_dscopes(notit);
+
+	/*
+	 * Adjust current buffer so that addr points to the beginning of the new
+	 * packet.
+	 */
+	if (notit->buf.addr) {
+		size_t consumed_bytes = (size_t) (notit->buf.at / CHAR_BIT);
+
+		/* Packets are assumed to start on a byte frontier. */
+		if (notit->buf.at % CHAR_BIT) {
+			ret = -1;
+			goto end;
+		}
+
+		notit->buf.addr += consumed_bytes;
+		notit->buf.sz -= consumed_bytes;
+		notit->buf.at = 0;
+		notit->buf.packet_offset = 0;
+	}
+
+	notit->cur_content_size = -1;
+	notit->cur_packet_size = -1;
+end:
+	return ret;
 }
 
 static
@@ -1163,6 +1216,10 @@ struct bt_ctf_field *get_next_field(struct bt_ctf_notif_iter *notit)
 	default:
 		assert(false);
 		break;
+	}
+
+	if (!next_field) {
+		next_field = NULL;
 	}
 
 end:
@@ -1507,7 +1564,7 @@ int64_t btr_get_sequence_length_cb(struct bt_ctf_field_type *type, void *data)
 	int iret;
 	struct bt_ctf_field_path *field_path;
 	struct bt_ctf_notif_iter *notit = data;
-	struct bt_ctf_field *field = NULL;
+	struct bt_ctf_field *length_field = NULL;
 	uint64_t length;
 
 	field_path = bt_ctf_field_type_sequence_get_length_field_path(type);
@@ -1515,20 +1572,25 @@ int64_t btr_get_sequence_length_cb(struct bt_ctf_field_type *type, void *data)
 		goto end;
 	}
 
-	field = resolve_field(notit, field_path);
-	if (!field) {
+	length_field = resolve_field(notit, field_path);
+	if (!length_field) {
 		goto end;
 	}
 
-	iret = bt_ctf_field_unsigned_integer_get_value(field, &length);
+	iret = bt_ctf_field_unsigned_integer_get_value(length_field, &length);
 	if (iret) {
 		goto end;
 	}
 
+	iret = bt_ctf_field_sequence_set_length(stack_top(notit->stack)->base,
+			length_field);
+	if (iret) {
+		goto end;
+	}
 	ret = (int64_t) length;
 
 end:
-	BT_PUT(field);
+	BT_PUT(length_field);
 	BT_PUT(field_path);
 
 	return ret;
