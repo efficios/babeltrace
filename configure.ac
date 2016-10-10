@@ -383,7 +383,7 @@ AC_CONFIG_FILES([
 	plugins/ctf/common/notif-iter/Makefile
 	plugins/ctf/fs/Makefile
 	plugins/ctf/lttng-live/Makefile
-	plugins/correlator/Makefile
+	plugins/muxer/Makefile
 	plugins/text/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc

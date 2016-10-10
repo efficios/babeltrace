@@ -1,7 +1,7 @@
 /*
- * correlator.c
+ * muxer.c
  *
- * Babeltrace Trace Correlator
+ * Babeltrace Trace Muxer
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -32,71 +32,71 @@
 #include <babeltrace/plugin/notification/notification.h>
 #include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/event.h>
-#include "correlator.h"
+#include "muxer.h"
 
 static
-void destroy_correlator_data(struct correlator *correlator)
+void destroy_muxer_data(struct muxer *muxer)
 {
-	g_free(correlator);
+	g_free(muxer);
 }
 
 static
-struct correlator *create_correlator(void)
+struct muxer *create_muxer(void)
 {
-	struct correlator *correlator;
+	struct muxer *muxer;
 
-	correlator = g_new0(struct correlator, 1);
-	if (!correlator) {
+	muxer = g_new0(struct muxer, 1);
+	if (!muxer) {
 		goto end;
 	}
 end:
-	return correlator;
+	return muxer;
 }
 
 static
-void destroy_correlator(struct bt_component *component)
+void destroy_muxer(struct bt_component *component)
 {
 	void *data = bt_component_get_private_data(component);
 
-	destroy_correlator_data(data);
+	destroy_muxer_data(data);
 }
 
-enum bt_component_status correlator_component_init(
+enum bt_component_status muxer_component_init(
 	struct bt_component *component, struct bt_value *params)
 {
 	enum bt_component_status ret;
-	struct correlator *correlator = create_correlator();
+	struct muxer *muxer = create_muxer();
 
-	if (!correlator) {
+	if (!muxer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
 	ret = bt_component_set_destroy_cb(component,
-			destroy_correlator);
+			destroy_muxer);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	ret = bt_component_set_private_data(component, correlator);
+	ret = bt_component_set_private_data(component, muxer);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 end:
 	return ret;
 error:
-	destroy_correlator_data(correlator);
+	destroy_muxer_data(muxer);
 	return ret;
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("correlator");
-BT_PLUGIN_DESCRIPTION("Babeltrace Trace Correlator Plug-In.");
+BT_PLUGIN_NAME("muxer");
+BT_PLUGIN_DESCRIPTION("Babeltrace Trace Muxer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_FILTER_COMPONENT_CLASS_ENTRY("correlator",
+BT_PLUGIN_FILTER_COMPONENT_CLASS_ENTRY("muxer",
 		"Time-correlate multiple traces.",
-		correlator_component_init)
+		muxer_component_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
