@@ -11,6 +11,6 @@ libbabeltrace_plugin_muxer_la_SOURCES = \
 libbabeltrace_plugin_muxer_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
-libbabeltrace_plugin_ctf_text_la_LIBADD = \
+libbabeltrace_plugin_muxer_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
