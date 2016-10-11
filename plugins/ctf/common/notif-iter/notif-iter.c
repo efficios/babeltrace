@@ -169,10 +169,10 @@ struct bt_ctf_notif_iter {
 	} medium;
 
 	/* Current packet size (bits) (-1 if unknown) */
-	size_t cur_packet_size;
+	int64_t cur_packet_size;
 
 	/* Current content size (bits) (-1 if unknown) */
-	size_t cur_content_size;
+	int64_t cur_content_size;
 };
 
 static

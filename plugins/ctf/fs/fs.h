@@ -66,10 +66,6 @@ struct ctf_fs_stream {
 	bool end_reached;
 };
 
-struct ctf_fs_data_stream {
-	GPtrArray *streams;
-};
-
 struct ctf_fs_iterator {
 	struct bt_notification_heap *pending_notifications;
 };
@@ -84,8 +80,8 @@ struct ctf_fs_component {
 	size_t page_size;
 	struct bt_notification *current_notification;
 	struct ctf_fs_metadata metadata;
-	struct ctf_fs_data_stream data_stream;
 	struct ctf_fs_component_options options;
+	GPtrArray *streams; /* struct ctf_fs_data_stream * */
 };
 
 BT_HIDDEN

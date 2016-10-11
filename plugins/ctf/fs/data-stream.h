@@ -31,11 +31,11 @@
 #include "../common/notif-iter/notif-iter.h"
 
 BT_HIDDEN
-int ctf_fs_data_stream_init(struct ctf_fs_component *ctf_fs,
-		struct ctf_fs_data_stream *data_stream);
+struct ctf_fs_stream *ctf_fs_stream_create(
+		struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file);
 
 BT_HIDDEN
-void ctf_fs_data_stream_fini(struct ctf_fs_data_stream *data_stream);
+void ctf_fs_stream_destroy(struct ctf_fs_stream *stream);
 
 BT_HIDDEN
 int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs);

@@ -32,6 +32,7 @@
 
 #include "file.h"
 
+BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {
 	struct ctf_fs_component *ctf_fs = file->ctf_fs;
@@ -56,6 +57,7 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 	g_free(file);
 }
 
+BT_HIDDEN
 struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs_component *ctf_fs)
 {
 	struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
@@ -80,6 +82,7 @@ end:
 	return file;
 }
 
+BT_HIDDEN
 int ctf_fs_file_open(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
 		const char *mode)
 {

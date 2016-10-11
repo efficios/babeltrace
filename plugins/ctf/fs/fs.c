@@ -34,6 +34,11 @@
 #include "fs.h"
 #include "metadata.h"
 #include "data-stream.h"
+#include "file.h"
+
+#define PRINT_ERR_STREAM	ctf_fs->error_fp
+#define PRINT_PREFIX		"ctf-fs"
+#include "print.h"
 
 static bool ctf_fs_debug;
 
@@ -155,8 +160,8 @@ void ctf_fs_destroy_data(struct ctf_fs_component *component)
 	}
 
 	ctf_fs_metadata_fini(&component->metadata);
-	ctf_fs_data_stream_fini(&component->data_stream);
 	BT_PUT(component->current_notification);
+	g_ptr_array_free(component->streams, TRUE);
 	g_free(component);
 }
 
@@ -166,6 +171,90 @@ void ctf_fs_destroy(struct bt_component *component)
 	void *data = bt_component_get_private_data(component);
 
 	ctf_fs_destroy_data(data);
+}
+
+static
+int open_trace_streams(struct ctf_fs_component *ctf_fs)
+{
+	int ret = 0;
+	const char *name;
+	GError *error = NULL;
+	GDir *dir = g_dir_open(ctf_fs->trace_path->str, 0, &error);
+
+	if (!dir) {
+		PERR("Cannot open directory \"%s\": %s (code %d)\n",
+				ctf_fs->trace_path->str, error->message,
+				error->code);
+		goto error;
+	}
+
+	while ((name = g_dir_read_name(dir))) {
+		struct ctf_fs_file *file = NULL;
+		struct ctf_fs_stream *stream = NULL;
+
+		if (!strcmp(name, CTF_FS_METADATA_FILENAME)) {
+			/* Ignore the metadata stream. */
+			PDBG("Ignoring metadata file \"%s\"\n",
+					name);
+			continue;
+		}
+
+		if (name[0] == '.') {
+			PDBG("Ignoring hidden file \"%s\"\n",
+					name);
+			continue;
+		}
+
+		/* Create the file. */
+		file = ctf_fs_file_create(ctf_fs);
+		if (!file) {
+			PERR("Cannot create stream file object\n");
+			goto error;
+		}
+
+		/* Create full path string. */
+		g_string_append_printf(file->path, "%s/%s",
+				ctf_fs->trace_path->str, name);
+		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
+			PDBG("Ignoring non-regular file \"%s\"\n", name);
+			ctf_fs_file_destroy(file);
+			continue;
+		}
+
+		/* Open the file. */
+		if (ctf_fs_file_open(ctf_fs, file, "rb")) {
+			ctf_fs_file_destroy(file);
+			goto error;
+		}
+
+		/* Create a private stream; file ownership is passed to it. */
+		stream = ctf_fs_stream_create(ctf_fs, file);
+		if (!stream) {
+			ctf_fs_file_destroy(file);
+			goto error;
+		}
+
+		g_ptr_array_add(ctf_fs->streams, stream);
+	}
+
+	goto end;
+error:
+	ret = -1;
+end:
+	if (dir) {
+		g_dir_close(dir);
+		dir = NULL;
+	}
+	if (error) {
+		g_error_free(error);
+	}
+	return ret;
+}
+
+static
+void stream_destroy(void *stream)
+{
+	ctf_fs_stream_destroy((struct ctf_fs_stream *) stream);
 }
 
 static
@@ -197,15 +286,22 @@ struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 		goto error;
 	}
 
+	ctf_fs->streams = g_ptr_array_new_with_free_func(stream_destroy);
 	ctf_fs->error_fp = stderr;
 	ctf_fs->page_size = (size_t) getpagesize();
-	ctf_fs_data_stream_init(ctf_fs, &ctf_fs->data_stream);
+
+	// FIXME: check error.
 	ctf_fs_metadata_set_trace(ctf_fs);
-	ctf_fs_data_stream_open_streams(ctf_fs);
+
+	ret = open_trace_streams(ctf_fs);
+	if (ret) {
+		goto error;
+	}
 	goto end;
 
 error:
 	ctf_fs_destroy_data(ctf_fs);
+	ctf_fs = NULL;
 end:
 	BT_PUT(value);
 	return ctf_fs;

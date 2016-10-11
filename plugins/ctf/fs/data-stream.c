@@ -41,7 +41,8 @@
 #define PRINT_PREFIX		"ctf-fs-data-stream"
 #include "print.h"
 
-static void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
+BT_HIDDEN
+void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 {
 	if (stream->file) {
 		ctf_fs_file_destroy(stream->file);
@@ -192,7 +193,8 @@ static struct bt_ctf_notif_iter_medium_ops medops = {
 	.get_stream = medop_get_stream,
 };
 
-static struct ctf_fs_stream *ctf_fs_stream_create(
+BT_HIDDEN
+struct ctf_fs_stream *ctf_fs_stream_create(
 		struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
 {
 	struct ctf_fs_stream *stream = g_new0(struct ctf_fs_stream, 1);
@@ -203,11 +205,11 @@ static struct ctf_fs_stream *ctf_fs_stream_create(
 
 	stream->file = file;
 	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata.trace,
-		12, medops, stream, ctf_fs->error_fp);
+			ctf_fs->page_size, medops, stream, ctf_fs->error_fp);
 	if (!stream->notif_iter) {
 		goto error;
 	}
-	stream->mmap_len = ctf_fs->page_size;
+	stream->mmap_len = ctf_fs->page_size * 2048;
 	goto end;
 error:
 	/* Do not touch "borrowed" file. */
@@ -218,108 +220,6 @@ end:
 	return stream;
 }
 
-int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs)
-{
-	int ret = 0;
-	const char *name;
-	GError *error = NULL;
-	GDir *dir = g_dir_open(ctf_fs->trace_path->str, 0, &error);
-
-	if (!dir) {
-		PERR("Cannot open directory \"%s\": %s (code %d)\n",
-				ctf_fs->trace_path->str, error->message,
-				error->code);
-		goto error;
-	}
-
-	while ((name = g_dir_read_name(dir))) {
-		struct ctf_fs_file *file = NULL;
-		struct ctf_fs_stream *stream = NULL;
-
-		if (!strcmp(name, CTF_FS_METADATA_FILENAME)) {
-			/* Ignore the metadata stream. */
-			PDBG("Ignoring metadata file \"%s\"\n",
-					name);
-			continue;
-		}
-
-		if (name[0] == '.') {
-			PDBG("Ignoring hidden file \"%s\"\n",
-					name);
-			continue;
-		}
-
-		/* Create the file. */
-		file = ctf_fs_file_create(ctf_fs);
-		if (!file) {
-			PERR("Cannot create stream file object\n");
-			goto error;
-		}
-
-		/* Create full path string. */
-		g_string_append_printf(file->path, "%s/%s",
-				ctf_fs->trace_path->str, name);
-		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
-			PDBG("Ignoring non-regular file \"%s\"\n", name);
-			ctf_fs_file_destroy(file);
-			continue;
-		}
-
-		/* Open the file. */
-		if (ctf_fs_file_open(ctf_fs, file, "rb")) {
-			ctf_fs_file_destroy(file);
-			goto error;
-		}
-
-		/* Create a private stream. */
-		stream = ctf_fs_stream_create(ctf_fs, file);
-		if (!stream) {
-			ctf_fs_file_destroy(file);
-			goto error;
-		}
-
-		/* Append file to the array of files. */
-		g_ptr_array_add(ctf_fs->data_stream.streams, stream);
-	}
-
-	goto end;
-error:
-	ret = -1;
-end:
-	if (dir) {
-		g_dir_close(dir);
-		dir = NULL;
-	}
-	if (error) {
-		g_error_free(error);
-	}
-	return ret;
-}
-
-int ctf_fs_data_stream_init(struct ctf_fs_component *ctf_fs,
-		struct ctf_fs_data_stream *data_stream)
-{
-	int ret = 0;
-
-	data_stream->streams = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) ctf_fs_stream_destroy);
-	if (!data_stream->streams) {
-		PERR("Cannot allocate array of streams\n");
-		goto error;
-	}
-
-	goto end;
-error:
-	ret = -1;
-end:
-	return ret;
-}
-
-void ctf_fs_data_stream_fini(struct ctf_fs_data_stream *data_stream)
-{
-	g_ptr_array_free(data_stream->streams, TRUE);
-}
-
 enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 		struct ctf_fs_component *ctf_fs,
 		struct bt_notification **notification)
@@ -327,8 +227,7 @@ enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 	enum bt_ctf_notif_iter_status status;
 	enum bt_notification_iterator_status ret;
 	/* FIXME, only iterating on one stream for the moment. */
-	struct ctf_fs_stream *stream = g_ptr_array_index(
-			ctf_fs->data_stream.streams, 0);
+	struct ctf_fs_stream *stream = g_ptr_array_index(ctf_fs->streams, 0);
 
 	if (stream->end_reached) {
 		status = BT_CTF_NOTIF_ITER_STATUS_EOF;
