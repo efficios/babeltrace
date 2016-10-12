@@ -5,7 +5,9 @@ babeltraceinclude_HEADERS = \
 	babeltrace/iterator.h \
 	babeltrace/trace-handle.h \
 	babeltrace/list.h \
-	babeltrace/clock-types.h
+	babeltrace/clock-types.h \
+	babeltrace/values.h \
+	babeltrace/ref.h
 
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h \
@@ -18,7 +20,21 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event-types.h \
 	babeltrace/ctf-writer/event.h \
-	babeltrace/ctf-writer/stream.h
+	babeltrace/ctf-writer/stream.h \
+	babeltrace/ctf-writer/stream-class.h
+
+babeltracectfirinclude_HEADERS = \
+	babeltrace/ctf-ir/clock.h \
+	babeltrace/ctf-ir/fields.h \
+	babeltrace/ctf-ir/field-types.h \
+	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/event-class.h \
+	babeltrace/ctf-ir/field-path.h \
+	babeltrace/ctf-ir/stream.h \
+	babeltrace/ctf-ir/packet.h \
+	babeltrace/ctf-ir/stream-class.h \
+	babeltrace/ctf-ir/trace.h \
+	babeltrace/ctf-ir/utils.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
@@ -31,7 +47,9 @@ noinst_HEADERS = \
 	babeltrace/iterator-internal.h \
 	babeltrace/trace-collection.h \
 	babeltrace/prio_heap.h \
+	babeltrace/ref-internal.h \
 	babeltrace/types.h \
+	babeltrace/object-internal.h \
 	babeltrace/crc32.h \
 	babeltrace/debug-info.h \
 	babeltrace/trace-debug-info.h \
@@ -45,13 +63,20 @@ noinst_HEADERS = \
 	babeltrace/ctf/types.h \
 	babeltrace/ctf/callbacks-internal.h \
 	babeltrace/ctf/ctf-index.h \
-	babeltrace/ctf-writer/ref-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
-	babeltrace/ctf-writer/event-types-internal.h \
-	babeltrace/ctf-writer/event-fields-internal.h \
-	babeltrace/ctf-writer/event-internal.h \
-	babeltrace/ctf-writer/clock-internal.h \
-	babeltrace/ctf-writer/stream-internal.h \
+	babeltrace/ctf-ir/attributes-internal.h \
+	babeltrace/ctf-ir/field-types-internal.h \
+	babeltrace/ctf-ir/fields-internal.h \
+	babeltrace/ctf-ir/event-internal.h \
+	babeltrace/ctf-ir/event-class-internal.h \
+	babeltrace/ctf-ir/field-path-internal.h \
+	babeltrace/ctf-ir/clock-internal.h \
+	babeltrace/ctf-ir/resolve-internal.h \
+	babeltrace/ctf-ir/stream-class-internal.h \
+	babeltrace/ctf-ir/stream-internal.h \
+	babeltrace/ctf-ir/packet-internal.h \
+	babeltrace/ctf-ir/trace-internal.h \
+	babeltrace/ctf-ir/validation-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/trace-handle-internal.h \
 	babeltrace/compat/uuid.h \
@@ -59,6 +84,7 @@ noinst_HEADERS = \
 	babeltrace/compat/string.h \
 	babeltrace/compat/utc.h \
 	babeltrace/compat/limits.h \
+	babeltrace/compat/glib.h \
 	babeltrace/compat/send.h \
 	babeltrace/compat/fcntl.h \
 	babeltrace/compat/stdlib.h \

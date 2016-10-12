@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H
+#define BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Stream internal
+ * BabelTrace - CTF IR: Stream class internal
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,18 +27,18 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <glib.h>
 
-typedef void(*flush_func)(struct bt_ctf_stream *, void *);
-
 struct bt_ctf_stream_class {
-	struct bt_ctf_ref ref_count;
+	struct bt_object base;
 	GString *name;
 	struct bt_ctf_clock *clock;
 	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */
@@ -46,56 +46,37 @@ struct bt_ctf_stream_class {
 	uint32_t id;
 	uint32_t next_event_id;
 	uint32_t next_stream_id;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field *event_header;
 	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field *packet_context;
+	struct bt_ctf_field_type *event_header_type;
 	struct bt_ctf_field_type *event_context_type;
-	struct bt_ctf_field *event_context;
 	int frozen;
-};
+	int byte_order;
 
-struct flush_callback {
-	flush_func func;
-	void *data;
-};
-
-struct bt_ctf_stream {
-	struct bt_ctf_ref ref_count;
-	uint32_t id;
-	struct bt_ctf_stream_class *stream_class;
-	struct flush_callback flush;
-	/* Array of pointers to bt_ctf_event for the current packet */
-	GPtrArray *events;
-	struct ctf_stream_pos pos;
-	unsigned int flushed_packet_count;
-	uint64_t events_discarded;
+	/*
+	 * This flag indicates if the stream class is valid. A valid
+	 * stream class is _always_ frozen.
+	 */
+	int valid;
 };
 
 BT_HIDDEN
 void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class);
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-		uint32_t id);
-
-BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_byte_order(struct bt_ctf_stream_class *stream_class,
-		enum bt_ctf_byte_order byte_order);
+void bt_ctf_stream_class_set_byte_order(
+		struct bt_ctf_stream_class *stream_class, int byte_order);
+
+/* Set stream_class id without checking if the stream class is frozen */
+BT_HIDDEN
+int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
+		uint32_t id);
 
 BT_HIDDEN
-struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class);
+int bt_ctf_stream_class_set_id_no_check(
+		struct bt_ctf_stream_class *stream_class, uint32_t id);
 
-BT_HIDDEN
-int bt_ctf_stream_set_flush_callback(struct bt_ctf_stream *stream,
-		flush_func callback, void *data);
-
-BT_HIDDEN
-int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
-
-#endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H */

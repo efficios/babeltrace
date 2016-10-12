@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_H
-#define BABELTRACE_CTF_WRITER_CLOCK_H
+#ifndef BABELTRACE_CTF_WRITER_STREAM_CLASS_H
+#define BABELTRACE_CTF_WRITER_STREAM_CLASS_H
 
 /*
- * BabelTrace - CTF Writer: Clock
+ * BabelTrace - CTF Writer: Stream Class
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2014 EfficiOS Inc.
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,51 +30,48 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/stream-class.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time);
-
 /*
- * bt_ctf_clock_set_time: set a clock's current time value.
+ * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
  *
- * Set the current time in nanoseconds since the clock's origin (offset and
- * offset_s attributes). Defaults to 0.
+ * Assign a clock to a stream class. This clock will be sampled each time an
+ * event is appended to an instance of this stream class.
+ *
+ * @param stream_class Stream class.
+ * @param clock Clock to assign to the provided stream class.
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
-		int64_t time);
-
-extern uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock);
-
-extern int bt_ctf_clock_set_value(struct bt_ctf_clock *clock,
-		uint64_t value);
+extern int bt_ctf_stream_class_set_clock(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_clock *clock);
 
 /*
- * bt_ctf_clock_get and bt_ctf_clock_put: increment and decrement the
- * refcount of the clock
+ * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
+ * decrement the stream class' reference count.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with clock objects.
+ * You may also use bt_ctf_get() and bt_ctf_put() with stream class objects.
  *
- * These functions ensure that the clock won't be destroyed when it
+ * These functions ensure that the stream class won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) has to be done to
- * destroy a clock.
+ * release the initial reference done at creation) have to be done to
+ * destroy a stream class.
  *
- * When the clock refcount is decremented to 0 by a bt_ctf_clock_put,
- * the clock is freed.
+ * When the stream class' reference count is decremented to 0 by a
+ * bt_ctf_stream_class_put, the stream class is freed.
  *
- * @param clock Clock instance.
+ * @param stream_class Stream class.
  */
-extern void bt_ctf_clock_get(struct bt_ctf_clock *clock);
-extern void bt_ctf_clock_put(struct bt_ctf_clock *clock);
+extern void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
+extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_H */
+#endif /* BABELTRACE_CTF_WRITER_STREAM_CLASS_H */

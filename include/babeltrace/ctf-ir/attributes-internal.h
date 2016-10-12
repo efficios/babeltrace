@@ -1,12 +1,13 @@
-#ifndef BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_ATTRIBUTES_H
+#define BABELTRACE_CTF_IR_ATTRIBUTES_H
 
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
+ * attributes.c
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Babeltrace - CTF IR: Attributes internal
  *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +28,43 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct search_query {
-	gpointer value;
-	int found;
-};
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/values.h>
 
 BT_HIDDEN
-void value_exists(gpointer element, gpointer search_query);
+struct bt_value *bt_ctf_attributes_create(void);
 
-#endif /* BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H */
+BT_HIDDEN
+void bt_ctf_attributes_destroy(struct bt_value *attr_obj);
+
+BT_HIDDEN
+int bt_ctf_attributes_get_count(struct bt_value *attr_obj);
+
+BT_HIDDEN
+const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
+		int index);
+
+BT_HIDDEN
+struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
+		int index);
+
+BT_HIDDEN
+int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
+		const char *name, struct bt_value *value_obj);
+
+BT_HIDDEN
+struct bt_value *bt_ctf_attributes_get_field_value_by_name(
+		struct bt_value *attr_obj, const char *name);
+
+BT_HIDDEN
+int bt_ctf_attributes_freeze(struct bt_value *attr_obj);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_CTF_IR_ATTRIBUTES_H */

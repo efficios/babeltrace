@@ -1,12 +1,9 @@
-#ifndef BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
+ * ref.c: reference counting
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Babeltrace Library
  *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +24,32 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ref-internal.h>
+#include <babeltrace/object-internal.h>
 
-struct search_query {
-	gpointer value;
-	int found;
-};
+void *bt_get(void *ptr)
+{
+	struct bt_object *obj = ptr;
 
-BT_HIDDEN
-void value_exists(gpointer element, gpointer search_query);
+	if (!obj) {
+		goto end;
+	}
 
-#endif /* BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H */
+	if (obj->parent && bt_object_get_ref_count(obj) == 0) {
+		bt_get(obj->parent);
+	}
+	bt_ref_get(&obj->ref_count);
+end:
+	return obj;
+}
+
+void bt_put(void *ptr)
+{
+	struct bt_object *obj = ptr;
+
+	if (!obj) {
+		return;
+	}
+
+	bt_ref_put(&obj->ref_count);
+}

@@ -4,7 +4,7 @@
 /*
  * BabelTrace - CTF Writer: Writer
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/trace.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,13 +41,6 @@ struct bt_ctf_writer;
 struct bt_ctf_stream;
 struct bt_ctf_stream_class;
 struct bt_ctf_clock;
-
-enum bt_ctf_byte_order {
-	BT_CTF_BYTE_ORDER_NATIVE = 0,
-	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
-	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
-	BT_CTF_BYTE_ORDER_NETWORK,
-};
 
 /*
  * bt_ctf_writer_create: create a writer instance.
@@ -57,6 +53,16 @@ enum bt_ctf_byte_order {
  * Returns an allocated writer on success, NULL on error.
  */
 extern struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
+
+/*
+ * bt_ctf_writer_get_trace: Get a writer's associated trace.
+ *
+ * @param writer Writer instance.
+ *
+ * Return the writer's associated instance, NULL on error.
+ */
+extern struct bt_ctf_trace *bt_ctf_writer_get_trace(
+		struct bt_ctf_writer *writer);
 
 /*
  * bt_ctf_writer_create_stream: create a stream instance.
@@ -88,6 +94,23 @@ extern struct bt_ctf_stream *bt_ctf_writer_create_stream(
 extern int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
 		const char *name,
 		const char *value);
+
+/*
+ * bt_ctf_writer_add_environment_field_int64: add an environment field to the trace.
+ *
+ * Add an environment field to the trace. The name and value parameters are
+ * copied.
+ *
+ * @param writer Writer instance.
+ * @param name Name of the environment field (will be copied).
+ * @param value Value of the environment field.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_writer_add_environment_field_int64(
+		struct bt_ctf_writer *writer,
+		const char *name,
+		int64_t value);
 
 /*
  * bt_ctf_writer_add_clock: add a clock to the trace.
@@ -129,13 +152,16 @@ extern void bt_ctf_writer_flush_metadata(struct bt_ctf_writer *writer);
 /*
  * bt_ctf_writer_set_byte_order: set a field type's byte order.
  *
- * Set the trace's byte order. Defaults to BT_CTF_BYTE_ORDER_NATIVE,
- * the host machine's endianness.
+ * Set the trace's byte order. Defaults to the host machine's endianness.
  *
  * @param writer Writer instance.
  * @param byte_order Trace's byte order.
  *
  * Returns 0 on success, a negative value on error.
+ *
+ * Note: byte_order must not be BT_CTF_BYTE_ORDER_NATIVE since, according
+ * to the CTF specification, is defined as "the byte order described in the
+ * trace description".
  */
 extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 		enum bt_ctf_byte_order byte_order);
@@ -143,6 +169,8 @@ extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 /*
  * bt_ctf_writer_get and bt_ctf_writer_put: increment and decrement the
  * writer's reference count.
+ *
+ * You may also use bt_ctf_get() and bt_ctf_put() with writer objects.
  *
  * These functions ensure that the writer won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to

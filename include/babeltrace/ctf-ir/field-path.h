@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_TYPES_H
-#define BABELTRACE_CTF_WRITER_EVENT_TYPES_H
+#ifndef BABELTRACE_CTF_IR_FIELD_PATH
+#define BABELTRACE_CTF_IR_FIELD_PATH
 
 /*
- * BabelTrace - CTF Writer: Event Types
+ * BabelTrace - CTF IR: Field path
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,27 +34,48 @@
 extern "C" {
 #endif
 
+struct bt_ctf_field_path;
+
 /*
- * bt_ctf_field_type_get and bt_ctf_field_type_put: increment and decrement
- * the field type's reference count.
+ * bt_ctf_field_path_get_root_scope: get the root node of a field path.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with field type objects.
+ * Get the field path's root node.
  *
- * These functions ensure that the field type won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy a field type.
+ * @param field_path Field path.
  *
- * When the field type's reference count is decremented to 0 by a
- * bt_ctf_field_type_put, the field type is freed.
- *
- * @param type Field type.
+ * Returns the root node of a field path, or BT_CTF_SCOPE_UNKNOWN on error.
  */
-extern void bt_ctf_field_type_get(struct bt_ctf_field_type *type);
-extern void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
+extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
+		const struct bt_ctf_field_path *field_path);
+
+/*
+ * bt_ctf_field_path_get_index_count: get the number of indexes of a field path.
+ *
+ * Get the number of indexes of a field path.
+ *
+ * @param field_path Field path.
+ *
+ * Returns the field path's index count, or a negative value on error.
+ */
+extern int bt_ctf_field_path_get_index_count(
+		const struct bt_ctf_field_path *field_path);
+
+/*
+ * bt_ctf_field_path_get_index: get the field path's index at a specific index.
+ *
+ * Get the field path's index at a specific index.
+ *
+ * @param field_path Field path.
+ * @param index Index.
+ *
+ * Returns a field path index, or INT_MIN on error.
+ */
+extern int bt_ctf_field_path_get_index(
+		const struct bt_ctf_field_path *field_path,
+		int index);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_EVENT_TYPES_H */
+#endif /* BABELTRACE_CTF_IR_FIELD_PATH */

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_H
-#define BABELTRACE_CTF_WRITER_CLOCK_H
+#ifndef BABELTRACE_CTF_IR_STREAM_H
+#define BABELTRACE_CTF_IR_STREAM_H
 
 /*
- * BabelTrace - CTF Writer: Clock
+ * BabelTrace - CTF IR: Stream
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,51 +30,34 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/stream-class.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time);
+struct bt_ctf_event;
+struct bt_ctf_stream;
+
+extern struct bt_ctf_stream *bt_ctf_stream_create(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name);
+
+extern const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
 
 /*
- * bt_ctf_clock_set_time: set a clock's current time value.
+ * bt_ctf_stream_get_stream_class: get a stream's class.
  *
- * Set the current time in nanoseconds since the clock's origin (offset and
- * offset_s attributes). Defaults to 0.
+ * @param stream Stream instance.
  *
- * Returns 0 on success, a negative value on error.
+ * Returns the stream's class, NULL on error.
  */
-extern int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
-		int64_t time);
-
-extern uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock);
-
-extern int bt_ctf_clock_set_value(struct bt_ctf_clock *clock,
-		uint64_t value);
-
-/*
- * bt_ctf_clock_get and bt_ctf_clock_put: increment and decrement the
- * refcount of the clock
- *
- * You may also use bt_ctf_get() and bt_ctf_put() with clock objects.
- *
- * These functions ensure that the clock won't be destroyed when it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) has to be done to
- * destroy a clock.
- *
- * When the clock refcount is decremented to 0 by a bt_ctf_clock_put,
- * the clock is freed.
- *
- * @param clock Clock instance.
- */
-extern void bt_ctf_clock_get(struct bt_ctf_clock *clock);
-extern void bt_ctf_clock_put(struct bt_ctf_clock *clock);
+extern struct bt_ctf_stream_class *bt_ctf_stream_get_class(
+		struct bt_ctf_stream *stream);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_H */
+#endif /* BABELTRACE_CTF_IR_STREAM_H */

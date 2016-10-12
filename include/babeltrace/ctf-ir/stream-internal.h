@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
+#ifndef BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
+#define BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
+ * BabelTrace - CTF Writer: Stream internal
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,15 +27,34 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf/types.h>
+#include <glib.h>
 
-struct search_query {
-	gpointer value;
-	int found;
+struct bt_ctf_stream {
+	struct bt_object base;
+	uint32_t id;
+	struct bt_ctf_stream_class *stream_class;
+	/* Array of pointers to bt_ctf_event for the current packet */
+	GPtrArray *events;
+	struct ctf_stream_pos pos;
+	unsigned int flushed_packet_count;
+	GString *name;
+	struct bt_ctf_field *packet_header;
+	struct bt_ctf_field *packet_context;
+	GHashTable *clock_values; /* Maps clock addresses to (uint64_t *) */
 };
 
 BT_HIDDEN
-void value_exists(gpointer element, gpointer search_query);
+int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
 
-#endif /* BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H */
+BT_HIDDEN
+void bt_ctf_stream_update_clock_value(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *value_field);
+
+#endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */

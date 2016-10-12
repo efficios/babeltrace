@@ -4,11 +4,6 @@ noinst_LTLIBRARIES = libctf-writer.la
 
 libctf_writer_la_SOURCES = \
 	writer.c \
-	clock.c \
-	stream.c \
-	event-types.c \
-	event-fields.c \
-	event.c \
 	functor.c
 
 libctf_writer_la_LIBADD = \

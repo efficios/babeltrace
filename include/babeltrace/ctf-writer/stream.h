@@ -4,7 +4,7 @@
 /*
  * BabelTrace - CTF Writer: Stream
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,82 +30,33 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-writer/stream-class.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_ctf_event;
-struct bt_ctf_event_class;
-struct bt_ctf_stream_class;
-struct bt_ctf_stream;
-struct bt_ctf_clock;
-
 /*
- * bt_ctf_stream_class_create: create a stream class.
+ * bt_ctf_stream_get_discarded_events_count: get the number of discarded
+ * events associated with this stream.
  *
- * Allocate a new stream class of the given name. The creation of an event class
- * sets its reference count to 1.
+ * Note that discarded events are not stored if the stream's packet
+ * context has no "events_discarded" field. An error will be returned
+ * in that case.
  *
- * @param name Stream name.
+ * @param stream Stream instance.
  *
- * Returns an allocated stream class on success, NULL on error.
+ * Returns the number of discarded events, a negative value on error.
  */
-extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
-
-/*
- * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
- *
- * Assign a clock to a stream class. This clock will be sampled each time an
- * event is appended to an instance of this stream class.
- *
- * @param stream_class Stream class.
- * @param clock Clock to assign to the provided stream class.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_stream_class_set_clock(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_clock *clock);
-
-/*
- * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
- *
- * Add an event class to a stream class. New events can be added even after a
- * stream has beem instanciated and events have been appended. However, a stream
- * will not accept events of a class that has not been registered beforehand.
- * The stream class will share the ownership of "event_class" by incrementing
- * its reference count.
- *
- * @param stream_class Stream class.
- * @param event_class Event class to add to the provided stream class.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_stream_class_add_event_class(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_event_class *event_class);
-
-/*
- * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
- * decrement the stream class' reference count.
- *
- * These functions ensure that the stream class won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy a stream class.
- *
- * When the stream class' reference count is decremented to 0 by a
- * bt_ctf_stream_class_put, the stream class is freed.
- *
- * @param stream_class Stream class.
- */
-extern void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
-extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
+extern int bt_ctf_stream_get_discarded_events_count(
+		struct bt_ctf_stream *stream, uint64_t *count);
 
 /*
  * bt_ctf_stream_append_discarded_events: increment discarded events count.
  *
- * Increase the current packet's discarded event count.
+ * Increase the current packet's discarded event count. Has no effect if the
+ * stream class' packet context has no "events_discarded" field.
  *
  * @param stream Stream instance.
  * @param event_count Number of discarded events to add to the stream's current
@@ -123,6 +74,9 @@ extern void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
  * incrementing its reference count. The current packet is not flushed to disk
  * until the next call to bt_ctf_stream_flush.
  *
+ * The stream event context will be sampled for every appended event if
+ * a stream event context was defined.
+ *
  * @param stream Stream instance.
  * @param event Event instance to append to the stream's current packet.
  *
@@ -132,10 +86,65 @@ extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
 
 /*
+ * bt_ctf_stream_get_packet_header: get a stream's packet header.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_header(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_packet_header: set a stream's packet header.
+ *
+ * The packet header's type must match the trace's packet header
+ * type.
+ *
+ * @param stream Stream instance.
+ * @param packet_header Packet header instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_packet_header(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_header);
+
+/*
+ * bt_ctf_stream_get_packet_context: get a stream's packet context.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_context(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_packet_context: set a stream's packet context.
+ *
+ * The packet context's type must match the stream class' packet
+ * context type.
+ *
+ * @param stream Stream instance.
+ * @param packet_context Packet context field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+extern int bt_ctf_stream_set_packet_context(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_context);
+
+/*
  * bt_ctf_stream_flush: flush a stream.
  *
- * The stream's current packet's events will be flushed to disk. Events
- * subsequently appended to the stream will be added to a new packet.
+ * The stream's current packet's events will be flushed, thus closing the
+ * current packet. Events subsequently appended to the stream will be
+ * added to a new packet.
+ *
+ * Flushing will also set the packet context's default attributes if
+ * they remained unset while populating the current packet. These default
+ * attributes, along with their expected types, are detailed in stream-class.h.
  *
  * @param stream Stream instance.
  *
@@ -146,6 +155,8 @@ extern int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 /*
  * bt_ctf_stream_get and bt_ctf_stream_put: increment and decrement the
  * stream's reference count.
+ *
+ * You may also use bt_ctf_get() and bt_ctf_put() with stream objects.
  *
  * These functions ensure that the stream won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to

@@ -779,8 +779,6 @@ int ctf_init_pos(struct ctf_stream_pos *pos, struct bt_trace_descriptor *trace,
 		pos->parent.rw_table = write_dispatch_table;
 		pos->parent.event_cb = ctf_write_event;
 		pos->parent.trace = trace;
-		if (fd >= 0)
-			ctf_packet_seek(&pos->parent, 0, SEEK_SET);	/* position for write */
 		break;
 	default:
 		assert(0);

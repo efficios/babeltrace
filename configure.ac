@@ -302,6 +302,9 @@ AC_SUBST(babeltracectfincludedir)
 babeltracectfwriterincludedir="${includedir}/babeltrace/ctf-writer"
 AC_SUBST(babeltracectfwriterincludedir)
 
+babeltracectfirincludedir="${includedir}/babeltrace/ctf-ir"
+AC_SUBST(babeltracectfirincludedir)
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
@@ -316,6 +319,7 @@ AC_CONFIG_FILES([
 	formats/lttng-live/Makefile
 	formats/ctf/metadata/Makefile
 	formats/ctf/writer/Makefile
+	formats/ctf/ir/Makefile
 	converter/Makefile
 	doc/Makefile
 	lib/Makefile

@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_PACKET_H
+#define BABELTRACE_CTF_IR_PACKET_H
 
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
+ * BabelTrace - CTF IR: Stream packet
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +23,40 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * The Common Trace Format (CTF) Specification is available at
+ * http://www.efficios.com/ctf
  */
 
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <stdint.h>
 
-struct search_query {
-	gpointer value;
-	int found;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-BT_HIDDEN
-void value_exists(gpointer element, gpointer search_query);
+struct bt_ctf_stream;
+struct bt_ctf_packet;
 
-#endif /* BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H */
+extern struct bt_ctf_packet *bt_ctf_packet_create(
+		struct bt_ctf_stream *stream);
+
+extern struct bt_ctf_stream *bt_ctf_packet_get_stream(
+		struct bt_ctf_packet *packet);
+
+extern struct bt_ctf_field *bt_ctf_packet_get_header(
+		struct bt_ctf_packet *packet);
+
+extern int bt_ctf_packet_set_header(
+		struct bt_ctf_packet *packet, struct bt_ctf_field *header);
+
+extern struct bt_ctf_field *bt_ctf_packet_get_context(
+		struct bt_ctf_packet *context);
+
+extern int bt_ctf_packet_set_context(
+		struct bt_ctf_packet *packet, struct bt_ctf_field *context);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_CTF_IR_PACKET_H */

@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_UTILS_H
+#define BABELTRACE_CTF_IR_UTILS_H
 
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
+ * BabelTrace - CTF IR: Utilities
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,17 +25,32 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * The Common Trace Format (CTF) Specification is available at
+ * http://www.efficios.com/ctf
  */
 
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct search_query {
-	gpointer value;
-	int found;
-};
+/*
+ * bt_ctf_validate_identifier: validate an identifier against the CTF spec.
+ *
+ * Validate that an identifier meets the CTF specification's restrictions on
+ * identifiers. An identifier will be rejected if it is a keyword defined
+ * in the CTF specification or if it does not meet any other requirement imposed
+ * on identifiers.
+ *
+ * Note that this will not check whether or not the identifier clashes with
+ * identifiers used in a given trace.
+ *
+ * Returns 0 if the identifier is valid, a negative value on error.
+ */
+extern int bt_ctf_validate_identifier(const char *identifier);
 
-BT_HIDDEN
-void value_exists(gpointer element, gpointer search_query);
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_UTILS_H */

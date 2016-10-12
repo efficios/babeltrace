@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_REF_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_REF_INTERNAL_H
+#ifndef BABELTRACE_REF_INTERNAL_H
+#define BABELTRACE_REF_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Reference count
+ * Babeltrace - Reference Counting
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,35 +27,41 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/babeltrace-internal.h>
 #include <assert.h>
 
-struct bt_ctf_ref {
-	long refcount;
+struct bt_object;
+typedef void (*bt_object_release_func)(struct bt_object *);
+
+struct bt_ref {
+	long count;
+	bt_object_release_func release;
 };
 
 static inline
-void bt_ctf_ref_init(struct bt_ctf_ref *ref)
+void bt_ref_init(struct bt_ref *ref, bt_object_release_func release)
 {
 	assert(ref);
-	ref->refcount = 1;
+	ref->count = 1;
+	ref->release = release;
 }
 
 static inline
-void bt_ctf_ref_get(struct bt_ctf_ref *ref)
+void bt_ref_get(struct bt_ref *ref)
 {
 	assert(ref);
-	ref->refcount++;
+	ref->count++;
 }
 
 static inline
-void bt_ctf_ref_put(struct bt_ctf_ref *ref,
-		void (*release)(struct bt_ctf_ref *))
+void bt_ref_put(struct bt_ref *ref)
 {
 	assert(ref);
-	assert(release);
-	if ((--ref->refcount) == 0) {
-		release(ref);
+	/* Only assert if the object has opted-in for reference counting. */
+	assert(!ref->release || ref->count > 0);
+	if ((--ref->count) == 0 && ref->release) {
+		ref->release((struct bt_object *) ref);
 	}
 }
 
-#endif /* BABELTRACE_CTF_WRITER_REF_INTERNAL_H */
+#endif /* BABELTRACE_REF_INTERNAL_H */

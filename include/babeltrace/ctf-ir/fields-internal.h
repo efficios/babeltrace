@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_FIELDS_INTERNAL_H
+#define BABELTRACE_CTF_IR_FIELDS_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Event Fields internal
+ * Babeltrace - CTF IR: Event Fields internal
  *
- * Copyright 2013 EfficiOS Inc.
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,16 +27,17 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/ref-internal.h>
 #include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
 #include <glib.h>
 
 struct bt_ctf_field {
-	struct bt_ctf_ref ref_count;
+	struct bt_object base;
 	struct bt_ctf_field_type *type;
 	int payload_set;
+	int frozen;
 };
 
 struct bt_ctf_field_integer {
@@ -90,11 +91,19 @@ BT_HIDDEN
 int bt_ctf_field_structure_set_field(struct bt_ctf_field *structure,
 		const char *name, struct bt_ctf_field *value);
 
+/* Validate that the field's payload is set (returns 0 if set). */
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field);
+
+/* Mark field payload as unset. */
+BT_HIDDEN
+int bt_ctf_field_reset(struct bt_ctf_field *field);
 
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct ctf_stream_pos *pos);
 
-#endif /* BABELTRACE_CTF_WRITER_EVENT_FIELDS_INTERNAL_H */
+BT_HIDDEN
+void bt_ctf_field_freeze(struct bt_ctf_field *field);
+
+#endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

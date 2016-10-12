@@ -9,7 +9,9 @@ libbabeltrace_la_SOURCES = babeltrace.c \
 			   context.c \
 			   trace-handle.c \
 			   trace-collection.c \
-			   registry.c
+			   registry.c \
+			   values.c \
+			   ref.c
 
 libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 
