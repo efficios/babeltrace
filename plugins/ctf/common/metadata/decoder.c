@@ -21,6 +21,7 @@
 #include <babeltrace/compat/memstream-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <glib.h>
+#include <string.h>
 
 #include "ast.h"
 #include "decoder.h"

@@ -30,6 +30,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <babeltrace/compat/mman-internal.h>
+#include <babeltrace/endian-internal.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-stream.h>
@@ -40,6 +41,7 @@
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
 #include "data-stream-file.h"
+#include <string.h>
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-data-stream"
