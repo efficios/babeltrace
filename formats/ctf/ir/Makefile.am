@@ -16,7 +16,9 @@ libctf_ir_la_SOURCES = \
 	trace.c \
 	utils.c \
 	resolve.c \
-	validation.c
+	validation.c \
+	values.c \
+	ref.c
 
 libctf_ir_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la

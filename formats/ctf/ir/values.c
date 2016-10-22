@@ -386,15 +386,18 @@ bool (* const compare_funcs[])(const struct bt_value *,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_compare,
 };
 
+BT_HIDDEN
 void bt_value_null_freeze(struct bt_value *object)
 {
 }
 
+BT_HIDDEN
 void bt_value_generic_freeze(struct bt_value *object)
 {
 	object->is_frozen = true;
 }
 
+BT_HIDDEN
 void bt_value_array_freeze(struct bt_value *object)
 {
 	int i;
@@ -411,6 +414,7 @@ void bt_value_array_freeze(struct bt_value *object)
 	bt_value_generic_freeze(object);
 }
 
+BT_HIDDEN
 void bt_value_map_freeze(struct bt_value *object)
 {
 	GHashTableIter iter;
@@ -456,6 +460,7 @@ void bt_value_destroy(struct bt_object *obj)
 	g_free(value);
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_freeze(struct bt_value *object)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
@@ -471,11 +476,13 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 bool bt_value_is_frozen(const struct bt_value *object)
 {
 	return object && object->is_frozen;
 }
 
+BT_HIDDEN
 enum bt_value_type bt_value_get_type(const struct bt_value *object)
 {
 	if (!object) {
@@ -497,6 +504,7 @@ struct bt_value bt_value_create_base(enum bt_value_type type)
 	return base;
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_bool_create_init(bool val)
 {
 	struct bt_value_bool *bool_obj;
@@ -514,11 +522,13 @@ end:
 	return BT_VALUE_FROM_CONCRETE(bool_obj);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_bool_create(void)
 {
 	return bt_value_bool_create_init(false);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_integer_create_init(int64_t val)
 {
 	struct bt_value_integer *integer_obj;
@@ -536,11 +546,13 @@ end:
 	return BT_VALUE_FROM_CONCRETE(integer_obj);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_integer_create(void)
 {
 	return bt_value_integer_create_init(0);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_float_create_init(double val)
 {
 	struct bt_value_float *float_obj;
@@ -558,11 +570,13 @@ end:
 	return BT_VALUE_FROM_CONCRETE(float_obj);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_float_create(void)
 {
 	return bt_value_float_create_init(0.);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_string_create_init(const char *val)
 {
 	struct bt_value_string *string_obj = NULL;
@@ -590,11 +604,13 @@ end:
 	return BT_VALUE_FROM_CONCRETE(string_obj);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_string_create(void)
 {
 	return bt_value_string_create_init("");
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_array_create(void)
 {
 	struct bt_value_array *array_obj;
@@ -619,6 +635,7 @@ end:
 	return BT_VALUE_FROM_CONCRETE(array_obj);
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_map_create(void)
 {
 	struct bt_value_map *map_obj;
@@ -643,6 +660,7 @@ end:
 	return BT_VALUE_FROM_CONCRETE(map_obj);
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
 		bool *val)
 {
@@ -660,6 +678,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj, bool val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
@@ -681,6 +700,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_integer_get(const struct bt_value *integer_obj,
 		int64_t *val)
 {
@@ -699,6 +719,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_integer_set(struct bt_value *integer_obj,
 		int64_t val)
 {
@@ -722,6 +743,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_float_get(const struct bt_value *float_obj,
 		double *val)
 {
@@ -740,6 +762,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_float_set(struct bt_value *float_obj,
 		double val)
 {
@@ -763,6 +786,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_string_get(const struct bt_value *string_obj,
 		const char **val)
 {
@@ -781,6 +805,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
 		const char *val)
 {
@@ -804,6 +829,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_value_array_size(const struct bt_value *array_obj)
 {
 	int ret;
@@ -821,11 +847,13 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 bool bt_value_array_is_empty(const struct bt_value *array_obj)
 {
 	return bt_value_array_size(array_obj) == 0;
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 		size_t index)
 {
@@ -846,6 +874,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
 		struct bt_value *element_obj)
 {
@@ -870,6 +899,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_bool(struct bt_value *array_obj,
 		bool val)
 {
@@ -883,6 +913,7 @@ enum bt_value_status bt_value_array_append_bool(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_integer(
 		struct bt_value *array_obj, int64_t val)
 {
@@ -896,6 +927,7 @@ enum bt_value_status bt_value_array_append_integer(
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_float(struct bt_value *array_obj,
 		double val)
 {
@@ -909,6 +941,7 @@ enum bt_value_status bt_value_array_append_float(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_string(struct bt_value *array_obj,
 		const char *val)
 {
@@ -922,6 +955,7 @@ enum bt_value_status bt_value_array_append_string(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_empty_array(
 		struct bt_value *array_obj)
 {
@@ -935,6 +969,7 @@ enum bt_value_status bt_value_array_append_empty_array(
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_append_empty_map(struct bt_value *array_obj)
 {
 	enum bt_value_status ret;
@@ -947,6 +982,7 @@ enum bt_value_status bt_value_array_append_empty_map(struct bt_value *array_obj)
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
 		size_t index, struct bt_value *element_obj)
 {
@@ -973,6 +1009,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_value_map_size(const struct bt_value *map_obj)
 {
 	int ret;
@@ -989,11 +1026,13 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 bool bt_value_map_is_empty(const struct bt_value *map_obj)
 {
 	return bt_value_map_size(map_obj) == 0;
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 		const char *key)
 {
@@ -1017,6 +1056,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)
 {
 	bool ret;
@@ -1036,6 +1076,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert(struct bt_value *map_obj,
 		const char *key, struct bt_value *element_obj)
 {
@@ -1062,6 +1103,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_bool(struct bt_value *map_obj,
 		const char *key, bool val)
 {
@@ -1075,6 +1117,7 @@ enum bt_value_status bt_value_map_insert_bool(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_integer(struct bt_value *map_obj,
 		const char *key, int64_t val)
 {
@@ -1088,6 +1131,7 @@ enum bt_value_status bt_value_map_insert_integer(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_float(struct bt_value *map_obj,
 		const char *key, double val)
 {
@@ -1101,6 +1145,7 @@ enum bt_value_status bt_value_map_insert_float(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_string(struct bt_value *map_obj,
 		const char *key, const char *val)
 {
@@ -1114,6 +1159,7 @@ enum bt_value_status bt_value_map_insert_string(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_empty_array(struct bt_value *map_obj,
 		const char *key)
 {
@@ -1127,6 +1173,7 @@ enum bt_value_status bt_value_map_insert_empty_array(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_insert_empty_map(struct bt_value *map_obj,
 		const char *key)
 {
@@ -1140,6 +1187,7 @@ enum bt_value_status bt_value_map_insert_empty_map(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_value_status bt_value_map_foreach(const struct bt_value *map_obj,
 		bt_value_map_foreach_cb cb, void *data)
 {
@@ -1168,6 +1216,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_value *bt_value_copy(const struct bt_value *object)
 {
 	struct bt_value *copy_obj = NULL;
@@ -1182,6 +1231,7 @@ end:
 	return copy_obj;
 }
 
+BT_HIDDEN
 bool bt_value_compare(const struct bt_value *object_a,
 	const struct bt_value *object_b)
 {

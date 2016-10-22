@@ -5,9 +5,7 @@ babeltraceinclude_HEADERS = \
 	babeltrace/iterator.h \
 	babeltrace/trace-handle.h \
 	babeltrace/list.h \
-	babeltrace/clock-types.h \
-	babeltrace/values.h \
-	babeltrace/ref.h
+	babeltrace/clock-types.h
 
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h \
@@ -92,4 +90,6 @@ noinst_HEADERS = \
 	babeltrace/compat/stdio.h \
 	babeltrace/compat/mman.h \
 	babeltrace/endian.h \
-	babeltrace/mmap-align.h
+	babeltrace/mmap-align.h \
+	babeltrace/values.h \
+	babeltrace/ref.h

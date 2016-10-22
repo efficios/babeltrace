@@ -75,6 +75,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/babeltrace-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,7 +153,8 @@ struct bt_value;
  * null value object (of type #BT_VALUE_TYPE_NULL), whereas \c NULL
  * means an error of some sort.
  */
-extern struct bt_value *bt_value_null;
+BT_HIDDEN
+struct bt_value *bt_value_null;
 
 /**
  * User function type for bt_value_map_foreach().
@@ -185,7 +187,8 @@ typedef bool (* bt_value_map_foreach_cb)(const char *key,
  *
  * @see bt_value_is_frozen()
  */
-extern enum bt_value_status bt_value_freeze(struct bt_value *object);
+BT_HIDDEN
+enum bt_value_status bt_value_freeze(struct bt_value *object);
 
 /**
  * Checks whether \p object is frozen or not.
@@ -195,7 +198,8 @@ extern enum bt_value_status bt_value_freeze(struct bt_value *object);
  *
  * @see bt_value_freeze()
  */
-extern bool bt_value_is_frozen(const struct bt_value *object);
+BT_HIDDEN
+bool bt_value_is_frozen(const struct bt_value *object);
 
 /**
  * Returns the type of \p object.
@@ -213,7 +217,8 @@ extern bool bt_value_is_frozen(const struct bt_value *object);
  * @see bt_value_is_array()
  * @see bt_value_is_map()
  */
-extern enum bt_value_type bt_value_get_type(const struct bt_value *object);
+BT_HIDDEN
+enum bt_value_type bt_value_get_type(const struct bt_value *object);
 
 /**
  * Checks whether \p object is a null value object. The only valid null
@@ -326,7 +331,8 @@ bool bt_value_is_map(const struct bt_value *object)
  * @see bt_value_bool_create_init() (creates an initialized
  *				     boolean value object)
  */
-extern struct bt_value *bt_value_bool_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_bool_create(void);
 
 /**
  * Creates a boolean value object with its initial raw value set to
@@ -337,7 +343,8 @@ extern struct bt_value *bt_value_bool_create(void);
  * @param val	Initial raw value
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_bool_create_init(bool val);
+BT_HIDDEN
+struct bt_value *bt_value_bool_create_init(bool val);
 
 /**
  * Creates an integer value object. The created integer value object's
@@ -350,7 +357,8 @@ extern struct bt_value *bt_value_bool_create_init(bool val);
  * @see bt_value_integer_create_init() (creates an initialized
  *					integer value object)
  */
-extern struct bt_value *bt_value_integer_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_integer_create(void);
 
 /**
  * Creates an integer value object with its initial raw value set to
@@ -361,7 +369,8 @@ extern struct bt_value *bt_value_integer_create(void);
  * @param val	Initial raw value
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_integer_create_init(int64_t val);
+BT_HIDDEN
+struct bt_value *bt_value_integer_create_init(int64_t val);
 
 /**
  * Creates a floating point number value object. The created floating
@@ -374,7 +383,8 @@ extern struct bt_value *bt_value_integer_create_init(int64_t val);
  * @see bt_value_float_create_init() (creates an initialized floating
  *				      point number value object)
  */
-extern struct bt_value *bt_value_float_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_float_create(void);
 
 /**
  * Creates a floating point number value object with its initial raw
@@ -385,7 +395,8 @@ extern struct bt_value *bt_value_float_create(void);
  * @param val	Initial raw value
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_float_create_init(double val);
+BT_HIDDEN
+struct bt_value *bt_value_float_create_init(double val);
 
 /**
  * Creates a string value object. The string value object is initially
@@ -398,7 +409,8 @@ extern struct bt_value *bt_value_float_create_init(double val);
  * @see bt_value_string_create_init() (creates an initialized
  *				       string value object)
  */
-extern struct bt_value *bt_value_string_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_string_create(void);
 
 /**
  * Creates a string value object with its initial raw value set to
@@ -411,7 +423,8 @@ extern struct bt_value *bt_value_string_create(void);
  * @param val	Initial raw value (copied on success)
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_string_create_init(const char *val);
+BT_HIDDEN
+struct bt_value *bt_value_string_create_init(const char *val);
 
 /**
  * Creates an empty array value object.
@@ -420,7 +433,8 @@ extern struct bt_value *bt_value_string_create_init(const char *val);
  *
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_array_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_array_create(void);
 
 /**
  * Creates an empty map value object.
@@ -429,7 +443,8 @@ extern struct bt_value *bt_value_array_create(void);
  *
  * @returns	Created value object on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_map_create(void);
+BT_HIDDEN
+struct bt_value *bt_value_map_create(void);
 
 /**
  * Gets the boolean raw value of the boolean value object \p bool_obj.
@@ -440,7 +455,8 @@ extern struct bt_value *bt_value_map_create(void);
  *
  * @see bt_value_bool_set()
  */
-extern enum bt_value_status bt_value_bool_get(
+BT_HIDDEN
+enum bt_value_status bt_value_bool_get(
 		const struct bt_value *bool_obj, bool *val);
 
 /**
@@ -453,7 +469,8 @@ extern enum bt_value_status bt_value_bool_get(
  *
  * @see bt_value_bool_get()
  */
-extern enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
+BT_HIDDEN
+enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
 		bool val);
 
 /**
@@ -466,7 +483,8 @@ extern enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
  *
  * @see bt_value_integer_set()
  */
-extern enum bt_value_status bt_value_integer_get(
+BT_HIDDEN
+enum bt_value_status bt_value_integer_get(
 		const struct bt_value *integer_obj, int64_t *val);
 
 /**
@@ -479,7 +497,8 @@ extern enum bt_value_status bt_value_integer_get(
  *
  * @see bt_value_integer_get()
  */
-extern enum bt_value_status bt_value_integer_set(
+BT_HIDDEN
+enum bt_value_status bt_value_integer_set(
 		struct bt_value *integer_obj, int64_t val);
 
 /**
@@ -492,7 +511,8 @@ extern enum bt_value_status bt_value_integer_set(
  *
  * @see bt_value_float_set()
  */
-extern enum bt_value_status bt_value_float_get(
+BT_HIDDEN
+enum bt_value_status bt_value_float_get(
 		const struct bt_value *float_obj, double *val);
 
 /**
@@ -505,7 +525,8 @@ extern enum bt_value_status bt_value_float_get(
  *
  * @see bt_value_float_get()
  */
-extern enum bt_value_status bt_value_float_set(
+BT_HIDDEN
+enum bt_value_status bt_value_float_set(
 		struct bt_value *float_obj, double val);
 
 /**
@@ -520,7 +541,8 @@ extern enum bt_value_status bt_value_float_set(
  *
  * @see bt_value_string_set()
  */
-extern enum bt_value_status bt_value_string_get(
+BT_HIDDEN
+enum bt_value_status bt_value_string_get(
 		const struct bt_value *string_obj, const char **val);
 
 /**
@@ -535,7 +557,8 @@ extern enum bt_value_status bt_value_string_get(
  *
  * @see bt_value_string_get()
  */
-extern enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
+BT_HIDDEN
+enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
 		const char *val);
 
 /**
@@ -549,7 +572,8 @@ extern enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
  *
  * @see bt_value_array_is_empty()
  */
-extern int bt_value_array_size(const struct bt_value *array_obj);
+BT_HIDDEN
+int bt_value_array_size(const struct bt_value *array_obj);
 
 /**
  * Returns \c true if the array value object \p array_obj is empty.
@@ -559,7 +583,8 @@ extern int bt_value_array_size(const struct bt_value *array_obj);
  *
  * @see bt_value_array_size()
  */
-extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
+BT_HIDDEN
+bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
 /**
  * Gets the value object of the array value object \p array_obj at the
@@ -573,7 +598,8 @@ extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
  * @returns		Value object at index \p index on
  *			success, or \c NULL on error
  */
-extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
+BT_HIDDEN
+struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 		size_t index);
 
 /**
@@ -594,7 +620,8 @@ extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
  * @see bt_value_array_append_empty_array()
  * @see bt_value_array_append_empty_map()
  */
-extern enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
+BT_HIDDEN
+enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
 		struct bt_value *element_obj);
 
 /**
@@ -610,7 +637,8 @@ extern enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_bool(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_bool(
 		struct bt_value *array_obj, bool val);
 
 /**
@@ -626,7 +654,8 @@ extern enum bt_value_status bt_value_array_append_bool(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_integer(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_integer(
 		struct bt_value *array_obj, int64_t val);
 
 /**
@@ -643,7 +672,8 @@ extern enum bt_value_status bt_value_array_append_integer(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_float(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_float(
 		struct bt_value *array_obj, double val);
 
 /**
@@ -661,7 +691,8 @@ extern enum bt_value_status bt_value_array_append_float(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_string(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_string(
 		struct bt_value *array_obj, const char *val);
 
 /**
@@ -676,7 +707,8 @@ extern enum bt_value_status bt_value_array_append_string(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_empty_array(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_empty_array(
 		struct bt_value *array_obj);
 
 /**
@@ -691,7 +723,8 @@ extern enum bt_value_status bt_value_array_append_empty_array(
  *
  * @see bt_value_array_append()
  */
-extern enum bt_value_status bt_value_array_append_empty_map(
+BT_HIDDEN
+enum bt_value_status bt_value_array_append_empty_map(
 		struct bt_value *array_obj);
 
 /**
@@ -708,7 +741,8 @@ extern enum bt_value_status bt_value_array_append_empty_map(
  *			\p array_obj
  * @returns		One of #bt_value_status values
  */
-extern enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
+BT_HIDDEN
+enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
 		size_t index, struct bt_value *element_obj);
 
 /**
@@ -722,7 +756,8 @@ extern enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
  *
  * @see bt_value_map_is_empty()
  */
-extern int bt_value_map_size(const struct bt_value *map_obj);
+BT_HIDDEN
+int bt_value_map_size(const struct bt_value *map_obj);
 
 /**
  * Returns \c true if the map value object \p map_obj is empty.
@@ -732,7 +767,8 @@ extern int bt_value_map_size(const struct bt_value *map_obj);
  *
  * @see bt_value_map_size()
  */
-extern bool bt_value_map_is_empty(const struct bt_value *map_obj);
+BT_HIDDEN
+bool bt_value_map_is_empty(const struct bt_value *map_obj);
 
 /**
  * Gets the value object associated with the key \p key within the
@@ -746,7 +782,8 @@ extern bool bt_value_map_is_empty(const struct bt_value *map_obj);
  * @returns		Value object associated with the key \p key
  *			on success, or \c NULL on error
  */
-extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
+BT_HIDDEN
+struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 		const char *key);
 
 /**
@@ -771,7 +808,8 @@ extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
  *			returned if the loop was cancelled by the user
  *			function
  */
-extern enum bt_value_status bt_value_map_foreach(
+BT_HIDDEN
+enum bt_value_status bt_value_map_foreach(
 		const struct bt_value *map_obj, bt_value_map_foreach_cb cb,
 		void *data);
 
@@ -785,7 +823,8 @@ extern enum bt_value_status bt_value_map_foreach(
  *			or \c false if it doesn't have \p key or
  *			on error
  */
-extern bool bt_value_map_has_key(const struct bt_value *map_obj,
+BT_HIDDEN
+bool bt_value_map_has_key(const struct bt_value *map_obj,
 		const char *key);
 
 /**
@@ -812,7 +851,8 @@ extern bool bt_value_map_has_key(const struct bt_value *map_obj,
  * @see bt_value_map_insert_empty_array()
  * @see bt_value_map_insert_empty_map()
  */
-extern enum bt_value_status bt_value_map_insert(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert(
 		struct bt_value *map_obj, const char *key,
 		struct bt_value *element_obj);
 
@@ -835,7 +875,8 @@ extern enum bt_value_status bt_value_map_insert(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_bool(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_bool(
 		struct bt_value *map_obj, const char *key, bool val);
 
 /**
@@ -856,7 +897,8 @@ extern enum bt_value_status bt_value_map_insert_bool(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_integer(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_integer(
 		struct bt_value *map_obj, const char *key, int64_t val);
 
 /**
@@ -879,7 +921,8 @@ extern enum bt_value_status bt_value_map_insert_integer(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_float(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_float(
 		struct bt_value *map_obj, const char *key, double val);
 
 /**
@@ -900,7 +943,8 @@ extern enum bt_value_status bt_value_map_insert_float(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_string(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_string(
 		struct bt_value *map_obj, const char *key, const char *val);
 
 /**
@@ -919,7 +963,8 @@ extern enum bt_value_status bt_value_map_insert_string(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_empty_array(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_empty_array(
 		struct bt_value *map_obj, const char *key);
 
 /**
@@ -938,7 +983,8 @@ extern enum bt_value_status bt_value_map_insert_empty_array(
  *
  * @see bt_value_map_insert()
  */
-extern enum bt_value_status bt_value_map_insert_empty_map(
+BT_HIDDEN
+enum bt_value_status bt_value_map_insert_empty_map(
 		struct bt_value *map_obj, const char *key);
 
 /**
@@ -954,7 +1000,8 @@ extern enum bt_value_status bt_value_map_insert_empty_map(
  * @returns		Deep copy of \p object on success, or \c NULL
  *			on error
  */
-extern struct bt_value *bt_value_copy(const struct bt_value *object);
+BT_HIDDEN
+struct bt_value *bt_value_copy(const struct bt_value *object);
 
 /**
  * Compares the value objects \p object_a and \p object_b and returns
@@ -966,7 +1013,8 @@ extern struct bt_value *bt_value_copy(const struct bt_value *object);
  *			same content, or \c false if they differ or on
  *			error
  */
-extern bool bt_value_compare(const struct bt_value *object_a,
+BT_HIDDEN
+bool bt_value_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b);
 
 #ifdef __cplusplus
