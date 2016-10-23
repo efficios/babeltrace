@@ -88,4 +88,133 @@ BT_HIDDEN
 void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 		struct metadata_context *context);
 
+/*
+ * bt_ctf_clock_get_name: get a clock's name.
+ *
+ * Get the clock's name.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's name, NULL on error.
+ */
+BT_HIDDEN
+const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_description: get a clock's description.
+ *
+ * Get the clock's description.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's description, NULL if unset.
+ */
+BT_HIDDEN
+const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_frequency: get a clock's frequency.
+ *
+ * Get the clock's frequency (Hz).
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's frequency, -1ULL on error.
+ */
+BT_HIDDEN
+uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_precision: get a clock's precision.
+ *
+ * Get the clock's precision (in clock ticks).
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's precision, -1ULL on error.
+ */
+BT_HIDDEN
+uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_offset_s: get a clock's offset in seconds.
+ *
+ * Get the clock's offset in seconds from POSIX.1 Epoch, 1970-01-01.
+ *
+ * @param clock Clock instance.
+ * @param offset_s Pointer to clock offset in seconds (output).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+BT_HIDDEN
+int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock,
+		int64_t *offset_s);
+
+/*
+ * bt_ctf_clock_get_offset: get a clock's offset in ticks.
+ *
+ * Get the clock's offset in ticks from Epoch + offset_t.
+ *
+ * @param clock Clock instance.
+ * @param offset Clock offset in ticks from Epoch + offset_s (output).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+BT_HIDDEN
+int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock,
+		int64_t *offset);
+
+/*
+ * bt_ctf_clock_get_is_absolute: get a clock's absolute attribute.
+ *
+ * Get the clock's absolute attribute. A clock is absolute if the clock is a
+ * global reference across the trace's other clocks.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's absolute attribute, a negative value on error.
+ */
+BT_HIDDEN
+int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_uuid: get a clock's UUID.
+ *
+ * Get the clock's UUID.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns a pointer to the clock's UUID (16 byte array) on success,
+ * NULL on error.
+ */
+BT_HIDDEN
+const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_uuid: set a clock's UUID.
+ *
+ * Set a clock's UUID.
+ *
+ * @param clock Clock instance.
+ * @param uuid A 16-byte array containing a UUID.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+BT_HIDDEN
+int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock,
+		const unsigned char *uuid);
+
+BT_HIDDEN
+int64_t bt_ctf_clock_ns_from_value(struct bt_ctf_clock *clock,
+		uint64_t value);
+
+BT_HIDDEN
+uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock);
+
+BT_HIDDEN
+int bt_ctf_clock_set_value(struct bt_ctf_clock *clock, uint64_t value);
+
+BT_HIDDEN
+int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time);
+
 #endif /* BABELTRACE_CTF_IR_CLOCK_INTERNAL_H */

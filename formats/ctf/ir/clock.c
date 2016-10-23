@@ -113,6 +113,7 @@ error:
 	return clock;
 }
 
+BT_HIDDEN
 const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock)
 {
 	const char *ret = NULL;
@@ -129,6 +130,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock)
 {
 	const char *ret = NULL;
@@ -159,6 +161,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock)
 {
 	uint64_t ret = -1ULL;
@@ -186,6 +189,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock)
 {
 	uint64_t ret = -1ULL;
@@ -213,6 +217,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s)
 {
 	int ret = 0;
@@ -241,6 +246,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset)
 {
 	int ret = 0;
@@ -269,6 +275,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock)
 {
 	int ret = -1;
@@ -296,6 +303,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock)
 {
 	const unsigned char *ret;
@@ -310,6 +318,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock, const unsigned char *uuid)
 {
 	int ret = 0;
@@ -325,6 +334,7 @@ end:
 	return ret;
 }
 
+static
 uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 {
 	uint64_t ns;
@@ -338,6 +348,7 @@ uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 	return ns;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time)
 {
 	int ret = 0;
@@ -396,6 +407,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock)
 {
 	uint64_t ret = -1ULL;
@@ -417,6 +429,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_clock_set_value(struct bt_ctf_clock *clock, uint64_t value)
 {
 	int ret = 0;
@@ -521,6 +534,7 @@ void bt_ctf_clock_destroy(struct bt_object *obj)
 	g_free(clock);
 }
 
+BT_HIDDEN
 int64_t bt_ctf_clock_ns_from_value(struct bt_ctf_clock *clock, uint64_t value)
 {
 	int64_t ns = -1ULL;

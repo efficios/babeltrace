@@ -39,6 +39,7 @@
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
+#include <babeltrace/ctf-ir/clock-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
