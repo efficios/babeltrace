@@ -103,6 +103,7 @@ error:
 	return event_class;
 }
 
+BT_HIDDEN
 const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 {
 	struct bt_value *obj = NULL;
@@ -127,6 +128,7 @@ end:
 	return name;
 }
 
+BT_HIDDEN
 int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 {
 	struct bt_value *obj = NULL;
@@ -158,6 +160,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 		uint32_t id)
 {
@@ -248,6 +251,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class)
 {
@@ -264,6 +268,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *
 bt_ctf_event_class_get_attribute_name(
 		struct bt_ctf_event_class *event_class, int index)
@@ -281,6 +286,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_value *
 bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
 		int index)
@@ -298,6 +304,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_value *
 bt_ctf_event_class_get_attribute_value_by_name(
 		struct bt_ctf_event_class *event_class, const char *name)
@@ -317,12 +324,14 @@ end:
 
 }
 
+BT_HIDDEN
 struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
 	return (struct bt_ctf_stream_class *) bt_object_get_parent(event_class);
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
 		struct bt_ctf_event_class *event_class)
 {
@@ -338,6 +347,7 @@ end:
 	return payload;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *payload)
 {
@@ -381,6 +391,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class)
 {
@@ -402,6 +413,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
 		int index)
@@ -455,6 +467,7 @@ end:
 	return field_type;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
 		struct bt_ctf_event_class *event_class)
 {
@@ -470,6 +483,7 @@ end:
 	return context_type;
 }
 
+BT_HIDDEN
 int bt_ctf_event_class_set_context_type(
 		struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *context)
