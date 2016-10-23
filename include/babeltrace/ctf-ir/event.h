@@ -42,7 +42,6 @@ struct bt_ctf_event;
 struct bt_ctf_field;
 struct bt_ctf_field_type;
 struct bt_ctf_stream_class;
-struct bt_ctf_packet;
 
 /*
  * bt_ctf_event_create: instanciate an event.

@@ -36,17 +36,20 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
 
+BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_packet_get_stream(struct bt_ctf_packet *packet)
 {
 	return packet ? bt_get(packet->stream) : NULL;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_packet_get_header(
 		struct bt_ctf_packet *packet)
 {
 	return packet ? bt_get(packet->header) : NULL;
 }
 
+BT_HIDDEN
 int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 		struct bt_ctf_field *header)
 {
@@ -87,12 +90,14 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_packet_get_context(
 		struct bt_ctf_packet *packet)
 {
 	return packet ? bt_get(packet->context) : NULL;
 }
 
+BT_HIDDEN
 int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 		struct bt_ctf_field *context)
 {
@@ -154,6 +159,7 @@ void bt_ctf_packet_destroy(struct bt_object *obj)
 	g_free(packet);
 }
 
+BT_HIDDEN
 struct bt_ctf_packet *bt_ctf_packet_create(
 		struct bt_ctf_stream *stream)
 {

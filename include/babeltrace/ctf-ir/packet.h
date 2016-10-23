@@ -37,22 +37,28 @@ extern "C" {
 struct bt_ctf_stream;
 struct bt_ctf_packet;
 
-extern struct bt_ctf_packet *bt_ctf_packet_create(
+BT_HIDDEN
+struct bt_ctf_packet *bt_ctf_packet_create(
 		struct bt_ctf_stream *stream);
 
-extern struct bt_ctf_stream *bt_ctf_packet_get_stream(
+BT_HIDDEN
+struct bt_ctf_stream *bt_ctf_packet_get_stream(
 		struct bt_ctf_packet *packet);
 
-extern struct bt_ctf_field *bt_ctf_packet_get_header(
+BT_HIDDEN
+struct bt_ctf_field *bt_ctf_packet_get_header(
 		struct bt_ctf_packet *packet);
 
-extern int bt_ctf_packet_set_header(
+BT_HIDDEN
+int bt_ctf_packet_set_header(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *header);
 
-extern struct bt_ctf_field *bt_ctf_packet_get_context(
+BT_HIDDEN
+struct bt_ctf_field *bt_ctf_packet_get_context(
 		struct bt_ctf_packet *context);
 
-extern int bt_ctf_packet_set_context(
+BT_HIDDEN
+int bt_ctf_packet_set_context(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *context);
 
 #ifdef __cplusplus
