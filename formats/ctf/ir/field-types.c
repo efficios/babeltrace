@@ -689,6 +689,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	return &integer->parent;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
@@ -739,6 +740,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 		struct bt_ctf_field_type *type)
 {
@@ -784,6 +786,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 		struct bt_ctf_field_type *type)
 {
@@ -820,6 +823,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
 		struct bt_ctf_field_type *type)
 {
@@ -837,6 +841,7 @@ end:
 	return clock;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_integer_set_mapped_clock(
 		struct bt_ctf_field_type *type,
 		struct bt_ctf_clock *clock)
@@ -888,6 +893,7 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 		struct bt_ctf_field_type *type)
 {
@@ -973,6 +979,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_add_mapping_unsigned(
 		struct bt_ctf_field_type *type, const char *string,
 		uint64_t range_start, uint64_t range_end)
@@ -1037,6 +1044,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
 		struct bt_ctf_field_type_enumeration *enumeration_type,
 		uint64_t value)
@@ -1118,6 +1126,7 @@ end:
 	return mapping;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_get_mapping(
 		struct bt_ctf_field_type *type, int index,
 		const char **string, int64_t *range_start, int64_t *range_end)
@@ -1144,6 +1153,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		struct bt_ctf_field_type *type, int index,
 		const char **string, uint64_t *range_start, uint64_t *range_end)
@@ -1170,6 +1180,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
 		struct bt_ctf_field_type *type, const char *name)
 {
@@ -1206,6 +1217,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
 		struct bt_ctf_field_type *type, int64_t value)
 {
@@ -1235,6 +1247,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
 		struct bt_ctf_field_type *type, uint64_t value)
 {
@@ -1291,6 +1304,7 @@ end:
 	return floating_point ? &floating_point->parent : NULL;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_floating_point_get_exponent_digits(
 		struct bt_ctf_field_type *type)
 {
@@ -1337,6 +1351,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_floating_point_get_mantissa_digits(
 		struct bt_ctf_field_type *type)
 {
@@ -1428,6 +1443,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *type)
 {
@@ -1479,6 +1495,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 		struct bt_ctf_field_type *type,
 		const char *name)
@@ -1546,6 +1563,7 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
 		struct bt_ctf_field_type *type)
 {
@@ -1567,6 +1585,7 @@ end:
 	return tag_type;
 }
 
+BT_HIDDEN
 const char *bt_ctf_field_type_variant_get_tag_name(
 		struct bt_ctf_field_type *type)
 {
@@ -1587,6 +1606,7 @@ end:
 	return tag_name;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag_name(
 		struct bt_ctf_field_type *type, const char *name)
 {
@@ -1655,6 +1675,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 		struct bt_ctf_field_type *type,
 		const char *field_name)
@@ -1687,6 +1708,7 @@ end:
 	return field_type;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		struct bt_ctf_field_type *type,
 		struct bt_ctf_field *tag)
@@ -1728,6 +1750,7 @@ end:
 
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
 		int index)
@@ -1788,6 +1811,7 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(
 		struct bt_ctf_field_type *type)
 {
@@ -1831,6 +1855,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *type)
 {
 	int64_t ret;
@@ -1873,6 +1898,7 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
 		struct bt_ctf_field_type *type)
 {
@@ -1917,6 +1943,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *bt_ctf_field_type_sequence_get_length_field_name(
 		struct bt_ctf_field_type *type)
 {
@@ -1951,6 +1978,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_create(void)
 	return &string->parent;
 }
 
+BT_HIDDEN
 enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 		struct bt_ctf_field_type *type)
 {
@@ -1987,6 +2015,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type)
 {
 	int ret;
@@ -2123,6 +2152,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		struct bt_ctf_field_type *type)
 {
@@ -2199,6 +2229,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *type)
 {
@@ -2209,41 +2240,49 @@ enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
 	return type->declaration->id;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_INTEGER;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_FLOAT;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_ENUM;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_string(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_STRING;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_STRUCT;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_array(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_ARRAY;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_SEQUENCE;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_is_variant(struct bt_ctf_field_type *type)
 {
 	return bt_ctf_field_type_get_type_id(type) == BT_CTF_TYPE_ID_VARIANT;
@@ -3988,6 +4027,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
 		struct bt_ctf_field_type *type_b)
 {
@@ -4108,6 +4148,7 @@ int bt_ctf_field_type_get_field_index(struct bt_ctf_field_type *field_type,
 	return field_index;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 		struct bt_ctf_field_type *type)
 {
@@ -4125,6 +4166,7 @@ end:
 	return field_path;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
 		struct bt_ctf_field_type *type)
 {
