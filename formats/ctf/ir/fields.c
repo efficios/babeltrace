@@ -302,6 +302,7 @@ void bt_ctf_field_put(struct bt_ctf_field *field)
 	bt_put(field);
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 {
 	struct bt_ctf_field_type *ret = NULL;
@@ -316,6 +317,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 enum bt_ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 {
 	enum bt_ctf_type_id ret = BT_CTF_TYPE_ID_UNKNOWN;
@@ -329,46 +331,55 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_integer(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_INTEGER;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_floating_point(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_FLOAT;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_enumeration(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_ENUM;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_string(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_STRING;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_structure(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_STRUCT;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_array(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_ARRAY;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_sequence(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_SEQUENCE;
 }
 
+BT_HIDDEN
 int bt_ctf_field_is_variant(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_TYPE_ID_VARIANT;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_sequence_get_length(
 		struct bt_ctf_field *field)
 {
@@ -492,6 +503,7 @@ error:
 	return new_field;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *field, int index)
 {
@@ -763,6 +775,7 @@ end:
 	return new_field;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 		struct bt_ctf_field *variant_field)
 {
@@ -820,6 +833,7 @@ end:
 	return container;
 }
 
+BT_HIDDEN
 const char *bt_ctf_field_enumeration_get_mapping_name(
 	struct bt_ctf_field *field)
 {
@@ -875,6 +889,7 @@ end:
 	return name;
 }
 
+BT_HIDDEN
 int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *field,
 		int64_t *value)
 {
@@ -941,6 +956,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *field,
 		uint64_t *value)
 {
@@ -1006,6 +1022,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *field,
 		double *value)
 {
@@ -1046,6 +1063,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *bt_ctf_field_string_get_value(struct bt_ctf_field *field)
 {
 	const char *ret = NULL;
@@ -1089,6 +1107,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_string_append(struct bt_ctf_field *field,
 		const char *value)
 {
@@ -1116,6 +1135,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 		const char *value, unsigned int length)
 {
@@ -1222,6 +1242,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 {
 	int ret;
