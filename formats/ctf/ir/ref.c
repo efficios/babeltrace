@@ -27,6 +27,7 @@
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
+BT_HIDDEN
 void *bt_get(void *ptr)
 {
 	struct bt_object *obj = ptr;
@@ -43,6 +44,7 @@ end:
 	return obj;
 }
 
+BT_HIDDEN
 void bt_put(void *ptr)
 {
 	struct bt_object *obj = ptr;

@@ -27,6 +27,8 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/babeltrace-internal.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -83,6 +85,7 @@ extern "C" {
  *
  * Returns obj.
  */
+BT_HIDDEN
 void *bt_get(void *obj);
 
 /*
@@ -99,6 +102,7 @@ void *bt_get(void *obj);
  *
  * @param obj Babeltrace object.
  */
+BT_HIDDEN
 void bt_put(void *obj);
 
 #ifdef __cplusplus
