@@ -244,6 +244,7 @@ error:
 	return event;
 }
 
+BT_HIDDEN
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 {
 	struct bt_ctf_event_class *event_class = NULL;
@@ -258,6 +259,7 @@ end:
 	return event_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 {
 	struct bt_ctf_stream *stream = NULL;
@@ -283,6 +285,7 @@ end:
 	return stream;
 }
 
+BT_HIDDEN
 struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
 {
 	struct bt_ctf_clock *clock = NULL;
@@ -350,6 +353,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_event_get_payload_field(struct bt_ctf_event *event)
 {
 	struct bt_ctf_field *payload = NULL;
@@ -364,6 +368,7 @@ end:
 	return payload;
 }
 
+BT_HIDDEN
 int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload)
 {
@@ -416,6 +421,7 @@ end:
 	return field;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 		struct bt_ctf_event *event, int index)
 {
@@ -431,6 +437,7 @@ end:
 	return field;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_event_get_header(
 		struct bt_ctf_event *event)
 {
@@ -446,6 +453,7 @@ end:
 	return header;
 }
 
+BT_HIDDEN
 int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		struct bt_ctf_field *header)
 {
@@ -480,6 +488,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_event_get_event_context(
 		struct bt_ctf_event *event)
 {
@@ -495,6 +504,7 @@ end:
 	return context;
 }
 
+BT_HIDDEN
 int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context)
 {
@@ -521,6 +531,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 		struct bt_ctf_event *event)
 {
@@ -535,6 +546,7 @@ end:
 	return bt_get(stream_event_context);
 }
 
+BT_HIDDEN
 int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *stream_event_context)
 {
@@ -763,6 +775,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet)
 {
@@ -858,6 +871,7 @@ int bt_ctf_event_register_stream_clock_values(struct bt_ctf_event *event)
 	return ret;
 }
 
+BT_HIDDEN
 uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
 		struct bt_ctf_clock *clock)
 {
