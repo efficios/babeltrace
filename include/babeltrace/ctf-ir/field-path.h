@@ -45,7 +45,8 @@ struct bt_ctf_field_path;
  *
  * Returns the root node of a field path, or BT_CTF_SCOPE_UNKNOWN on error.
  */
-extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
+BT_HIDDEN
+enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 		const struct bt_ctf_field_path *field_path);
 
 /*
@@ -57,7 +58,8 @@ extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
  *
  * Returns the field path's index count, or a negative value on error.
  */
-extern int bt_ctf_field_path_get_index_count(
+BT_HIDDEN
+int bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path);
 
 /*
@@ -70,7 +72,8 @@ extern int bt_ctf_field_path_get_index_count(
  *
  * Returns a field path index, or INT_MIN on error.
  */
-extern int bt_ctf_field_path_get_index(
+BT_HIDDEN
+int bt_ctf_field_path_get_index(
 		const struct bt_ctf_field_path *field_path,
 		int index);
 

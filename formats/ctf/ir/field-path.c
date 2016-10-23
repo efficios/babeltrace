@@ -97,6 +97,7 @@ end:
 	return new_path;
 }
 
+BT_HIDDEN
 enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 		const struct bt_ctf_field_path *field_path)
 {
@@ -112,6 +113,7 @@ end:
 	return scope;
 }
 
+BT_HIDDEN
 int bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path)
 {
@@ -127,6 +129,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
 		int index)
 {

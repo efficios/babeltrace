@@ -27,7 +27,6 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/field-types.h \
 	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/event-class.h \
-	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/packet.h \
 	babeltrace/ctf-ir/stream-class.h \
@@ -75,6 +74,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/packet-internal.h \
 	babeltrace/ctf-ir/trace-internal.h \
 	babeltrace/ctf-ir/validation-internal.h \
+	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/trace-handle-internal.h \
 	babeltrace/compat/uuid.h \
