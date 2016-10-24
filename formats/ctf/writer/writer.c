@@ -209,22 +209,6 @@ end:
 	return ret;
 }
 
-int bt_ctf_writer_add_environment_field_int64(struct bt_ctf_writer *writer,
-		const char *name,
-		int64_t value)
-{
-	int ret = -1;
-
-	if (!writer || !name) {
-		goto end;
-	}
-
-	ret = bt_ctf_trace_set_environment_field_integer(writer->trace, name,
-		value);
-end:
-	return ret;
-}
-
 int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer,
 		struct bt_ctf_clock *clock)
 {
