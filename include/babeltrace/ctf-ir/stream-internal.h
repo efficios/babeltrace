@@ -57,4 +57,81 @@ BT_HIDDEN
 void bt_ctf_stream_update_clock_value(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *value_field);
 
+BT_HIDDEN
+const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
+
+BT_HIDDEN
+struct bt_ctf_stream *bt_ctf_stream_create(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name);
+
+/*
+ * bt_ctf_stream_get_discarded_events_count: get the number of discarded
+ * events associated with this stream.
+ *
+ * Note that discarded events are not stored if the stream's packet
+ * context has no "events_discarded" field. An error will be returned
+ * in that case.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns the number of discarded events, a negative value on error.
+ */
+BT_HIDDEN
+int bt_ctf_stream_get_discarded_events_count(
+		struct bt_ctf_stream *stream, uint64_t *count);
+
+/*
+ * bt_ctf_stream_get_stream_class: get a stream's class.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns the stream's class, NULL on error.
+ */
+BT_HIDDEN
+struct bt_ctf_stream_class *bt_ctf_stream_get_class(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_get_packet_header: get a stream's packet header.
+ *
+ * @param stream Stream instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+BT_HIDDEN
+struct bt_ctf_field *bt_ctf_stream_get_packet_header(
+		struct bt_ctf_stream *stream);
+
+/*
+ * bt_ctf_stream_set_packet_header: set a stream's packet header.
+ *
+ * The packet header's type must match the trace's packet header
+ * type.
+ *
+ * @param stream Stream instance.
+ * @param packet_header Packet header instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+BT_HIDDEN
+int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_header);
+
+/*
+ * bt_ctf_stream_set_packet_context: set a stream's packet context.
+ *
+ * The packet context's type must match the stream class' packet
+ * context type.
+ *
+ * @param stream Stream instance.
+ * @param packet_context Packet context field instance.
+ *
+ * Returns a field instance on success, NULL on error.
+ */
+BT_HIDDEN
+int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_context);
+
+
 #endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */

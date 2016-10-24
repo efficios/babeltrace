@@ -38,21 +38,6 @@ extern "C" {
 #endif
 
 /*
- * bt_ctf_stream_get_discarded_events_count: get the number of discarded
- * events associated with this stream.
- *
- * Note that discarded events are not stored if the stream's packet
- * context has no "events_discarded" field. An error will be returned
- * in that case.
- *
- * @param stream Stream instance.
- *
- * Returns the number of discarded events, a negative value on error.
- */
-extern int bt_ctf_stream_get_discarded_events_count(
-		struct bt_ctf_stream *stream, uint64_t *count);
-
-/*
  * bt_ctf_stream_append_discarded_events: increment discarded events count.
  *
  * Increase the current packet's discarded event count. Has no effect if the
@@ -86,31 +71,6 @@ extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event);
 
 /*
- * bt_ctf_stream_get_packet_header: get a stream's packet header.
- *
- * @param stream Stream instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern struct bt_ctf_field *bt_ctf_stream_get_packet_header(
-		struct bt_ctf_stream *stream);
-
-/*
- * bt_ctf_stream_set_packet_header: set a stream's packet header.
- *
- * The packet header's type must match the trace's packet header
- * type.
- *
- * @param stream Stream instance.
- * @param packet_header Packet header instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern int bt_ctf_stream_set_packet_header(
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *packet_header);
-
-/*
  * bt_ctf_stream_get_packet_context: get a stream's packet context.
  *
  * @param stream Stream instance.
@@ -119,21 +79,6 @@ extern int bt_ctf_stream_set_packet_header(
  */
 extern struct bt_ctf_field *bt_ctf_stream_get_packet_context(
 		struct bt_ctf_stream *stream);
-
-/*
- * bt_ctf_stream_set_packet_context: set a stream's packet context.
- *
- * The packet context's type must match the stream class' packet
- * context type.
- *
- * @param stream Stream instance.
- * @param packet_context Packet context field instance.
- *
- * Returns a field instance on success, NULL on error.
- */
-extern int bt_ctf_stream_set_packet_context(
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *packet_context);
 
 /*
  * bt_ctf_stream_flush: flush a stream.

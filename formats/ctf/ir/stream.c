@@ -633,6 +633,7 @@ end:
 	return packet_context;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *field)
 {
@@ -659,6 +660,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *bt_ctf_stream_get_packet_header(
 		struct bt_ctf_stream *stream)
 {
@@ -676,6 +678,7 @@ end:
 	return packet_header;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *field)
 {
@@ -996,6 +999,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
 {
 	const char *name = NULL;
