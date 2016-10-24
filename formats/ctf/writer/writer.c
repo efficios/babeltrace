@@ -125,6 +125,7 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 	g_free(writer);
 }
 
+BT_HIDDEN
 struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 {
 	struct bt_ctf_trace *trace = NULL;

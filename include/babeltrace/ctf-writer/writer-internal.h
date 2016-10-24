@@ -47,4 +47,14 @@ struct bt_ctf_writer {
 BT_HIDDEN
 void bt_ctf_writer_freeze(struct bt_ctf_writer *writer);
 
+/*
+ * bt_ctf_writer_get_trace: Get a writer's associated trace.
+ *
+ * @param writer Writer instance.
+ *
+ * Return the writer's associated instance, NULL on error.
+ */
+BT_HIDDEN
+struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer);
+
 #endif /* BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H */

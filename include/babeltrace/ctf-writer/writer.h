@@ -54,16 +54,6 @@ struct bt_ctf_clock;
 extern struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
 
 /*
- * bt_ctf_writer_get_trace: Get a writer's associated trace.
- *
- * @param writer Writer instance.
- *
- * Return the writer's associated instance, NULL on error.
- */
-extern struct bt_ctf_trace *bt_ctf_writer_get_trace(
-		struct bt_ctf_writer *writer);
-
-/*
  * bt_ctf_writer_create_stream: create a stream instance.
  *
  * Allocate a new stream instance and register it to the writer. The creation of
