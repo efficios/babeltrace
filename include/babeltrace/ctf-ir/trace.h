@@ -32,6 +32,7 @@
 
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/values.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -56,7 +57,8 @@ struct bt_ctf_clock;
  *
  * Returns a new trace on success, NULL on error.
  */
-extern struct bt_ctf_trace *bt_ctf_trace_create(void);
+BT_HIDDEN
+struct bt_ctf_trace *bt_ctf_trace_create(void);
 
 /*
  * bt_ctf_trace_set_environment_field: sets an environment field to the
@@ -78,7 +80,8 @@ extern struct bt_ctf_trace *bt_ctf_trace_create(void);
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_set_environment_field(
+BT_HIDDEN
+int bt_ctf_trace_set_environment_field(
 		struct bt_ctf_trace *trace, const char *name,
 		struct bt_value *value);
 
@@ -96,7 +99,8 @@ extern int bt_ctf_trace_set_environment_field(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_set_environment_field_string(
+BT_HIDDEN
+int bt_ctf_trace_set_environment_field_string(
 		struct bt_ctf_trace *trace, const char *name,
 		const char *value);
 
@@ -114,7 +118,8 @@ extern int bt_ctf_trace_set_environment_field_string(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_set_environment_field_integer(
+BT_HIDDEN
+int bt_ctf_trace_set_environment_field_integer(
 		struct bt_ctf_trace *trace, const char *name,
 		int64_t value);
 
@@ -127,7 +132,8 @@ extern int bt_ctf_trace_set_environment_field_integer(
  *
  * Returns the environment field count, a negative value on error.
  */
-extern int bt_ctf_trace_get_environment_field_count(
+BT_HIDDEN
+int bt_ctf_trace_get_environment_field_count(
 		struct bt_ctf_trace *trace);
 
 /*
@@ -142,7 +148,8 @@ extern int bt_ctf_trace_get_environment_field_count(
  *
  * Returns the environment field's name, NULL on error.
  */
-extern const char *
+BT_HIDDEN
+const char *
 bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
 		int index);
 
@@ -159,7 +166,8 @@ bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
  *
  * Returns the environment field's object value, NULL on error.
  */
-extern struct bt_value *
+BT_HIDDEN
+struct bt_value *
 bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace,
 		int index);
 
@@ -176,7 +184,8 @@ bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace,
  *
  * Returns the environment field's object value, NULL on error.
  */
-extern struct bt_value *
+BT_HIDDEN
+struct bt_value *
 bt_ctf_trace_get_environment_field_value_by_name(struct bt_ctf_trace *trace,
 		const char *name);
 
@@ -191,7 +200,8 @@ bt_ctf_trace_get_environment_field_value_by_name(struct bt_ctf_trace *trace,
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
+BT_HIDDEN
+int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock *clock);
 
 /*
@@ -202,7 +212,8 @@ extern int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
  *
  * Returns the clock count on success, a negative value on error.
  */
-extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace);
+BT_HIDDEN
+int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace);
 
 /*
  * bt_ctf_trace_get_clock: get a trace's clock at index.
@@ -212,7 +223,8 @@ extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace);
  *
  * Return a clock instance on success, NULL on error.
  */
-extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
+BT_HIDDEN
+struct bt_ctf_clock *bt_ctf_trace_get_clock(
 		struct bt_ctf_trace *trace, int index);
 
 /*
@@ -225,7 +237,8 @@ extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
+BT_HIDDEN
+int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_stream_class *stream_class);
 
 /*
@@ -236,7 +249,8 @@ extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
  *
  * Returns the stream class count on success, a negative value on error.
  */
-extern int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace);
+BT_HIDDEN
+int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace);
 
 /*
  * bt_ctf_trace_get_stream_class: get a trace's stream class at index.
@@ -246,7 +260,8 @@ extern int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace);
  *
  * Return a stream class on success, NULL on error.
  */
-extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
+BT_HIDDEN
+struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 		struct bt_ctf_trace *trace, int index);
 
 /*
@@ -257,7 +272,8 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
  *
  * Return a stream class on success, NULL on error.
  */
-extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
+BT_HIDDEN
+struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 		struct bt_ctf_trace *trace, uint32_t id);
 
 /*
@@ -268,7 +284,8 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
  *
  * Return a clock instance on success, NULL on error.
  */
-extern struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
+BT_HIDDEN
+struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
 		struct bt_ctf_trace *trace, const char *name);
 
 /*
@@ -281,7 +298,8 @@ extern struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
  *
  * Returns the metadata string on success, NULL on error.
  */
-extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
+BT_HIDDEN
+char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
 
 /*
  * bt_ctf_trace_get_byte_order: get a trace's byte order.
@@ -292,7 +310,8 @@ extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
  *
  * Returns the trace's endianness, BT_CTF_BYTE_ORDER_UNKNOWN on error.
  */
-extern enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
+BT_HIDDEN
+enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
 		struct bt_ctf_trace *trace);
 
 /*
@@ -309,7 +328,8 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
  * to the CTF specification, is defined as "the byte order described in the
  * trace description".
  */
-extern int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
+BT_HIDDEN
+int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order);
 
 /*
@@ -322,7 +342,8 @@ extern int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
  * Returns the trace's packet header type (a structure) on success, NULL on
  * 	error.
  */
-extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
+BT_HIDDEN
+struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
 		struct bt_ctf_trace *trace);
 
 /*
@@ -335,7 +356,8 @@ extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
+BT_HIDDEN
+int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 		struct bt_ctf_field_type *packet_header_type);
 
 #ifdef __cplusplus

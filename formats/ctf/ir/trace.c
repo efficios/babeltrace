@@ -71,6 +71,7 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
 
+BT_HIDDEN
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
 	struct bt_ctf_trace *trace = NULL;
@@ -111,6 +112,7 @@ error:
 	return trace;
 }
 
+BT_HIDDEN
 void bt_ctf_trace_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_trace *trace;
@@ -136,6 +138,7 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	g_free(trace);
 }
 
+BT_HIDDEN
 int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 		const char *name, struct bt_value *value)
 {
@@ -180,6 +183,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
 		const char *name, const char *value)
 {
@@ -225,6 +229,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_set_environment_field_integer(struct bt_ctf_trace *trace,
 		const char *name, int64_t value)
 {
@@ -268,6 +273,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
 {
 	int ret = 0;
@@ -283,6 +289,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 const char *
 bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
 		int index)
@@ -299,6 +306,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_value *bt_ctf_trace_get_environment_field_value(
 		struct bt_ctf_trace *trace, int index)
 {
@@ -314,6 +322,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_value *bt_ctf_trace_get_environment_field_value_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
@@ -330,6 +339,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock *clock)
 {
@@ -367,6 +377,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace)
 {
 	int ret = -1;
@@ -380,6 +391,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_clock *bt_ctf_trace_get_clock(struct bt_ctf_trace *trace,
 		int index)
 {
@@ -395,6 +407,7 @@ end:
 	return clock;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -656,6 +669,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 {
 	int ret;
@@ -670,6 +684,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 		struct bt_ctf_trace *trace, int index)
 {
@@ -685,6 +700,7 @@ end:
 	return stream_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 		struct bt_ctf_trace *trace, uint32_t id)
 {
@@ -713,6 +729,7 @@ end:
 	return stream_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
@@ -881,6 +898,7 @@ loop_next:
 	g_string_append(context->string, "};\n\n");
 }
 
+BT_HIDDEN
 char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace)
 {
 	char *metadata = NULL;
@@ -924,6 +942,7 @@ end:
 	return metadata;
 }
 
+BT_HIDDEN
 enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(struct bt_ctf_trace *trace)
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
@@ -946,6 +965,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order)
 {
@@ -988,6 +1008,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
 		struct bt_ctf_trace *trace)
 {
@@ -1003,6 +1024,7 @@ end:
 	return field_type;
 }
 
+BT_HIDDEN
 int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 		struct bt_ctf_field_type *packet_header_type)
 {

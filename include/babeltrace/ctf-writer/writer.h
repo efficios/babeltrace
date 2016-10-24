@@ -31,7 +31,6 @@
  */
 
 #include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/trace.h>
 
 #ifdef __cplusplus
 extern "C" {
