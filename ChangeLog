@@ -1,3 +1,28 @@
+2016-10-24 babeltrace 1.5.0-rc1 (First barrel ride down Niagara Falls)
+	* Update version to 1.5.0
+	* Python build fix
+	* Fix enum rename warnings
+	* Hide bt_ctf_writer_get_trace()
+	* Hide bt_ctf_trace_* symbols
+	* Hide get_field_paths_lca_index()
+	* Remove bt_ctf_writer_add_environment_field_int64
+	* Hide new bt_ctf_stream_* symbols
+	* Hide new bt_ctf_stream_class_* symbols
+	* Hide new bt_ctf_field_type_* symbols
+	* Hide new bt_ctf_packet_* symbols
+	* Hide new bt_ctf_field_* symbols
+	* Hide new bt_ctf_field_path_* symbols
+	* Hide new bt_ctf_event_* symbols
+	* Hide bt_ctf_event_class_* symbols
+	* Hide new bt_ctf_clock_* symbols
+	* Hide bt_get and bt_put
+	* Hide bt_values and bt_attributes in libbabeltrace-ctf
+	* Backport the CTF-IR interface
+	* debug info: Call register_event_debug_infos for all events
+	* Typo: configure.ac implemenation -> implementation
+	* configure: fix uuid support detection on static build
+	* Tests: no substitution needed for multi-trace intersection test
+
 2016-06-06 babeltrace 1.4.0 (National Yo-Yo Day)
 	* Tests: dereference of NULL pointer on allocation failure
 	* Tests: abort dwarf test on open() failure
