@@ -89,6 +89,7 @@ error:
 	return stream_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -96,6 +97,7 @@ struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		stream_class);
 }
 
+BT_HIDDEN
 const char *bt_ctf_stream_class_get_name(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -110,6 +112,7 @@ end:
 	return name;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_class_set_name(struct bt_ctf_stream_class *stream_class,
 		const char *name)
 {
@@ -125,6 +128,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -188,6 +192,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int64_t bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class)
 {
 	int64_t ret;
@@ -475,6 +480,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -490,6 +496,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
 		struct bt_ctf_stream_class *stream_class, int index)
 {
@@ -506,6 +513,7 @@ end:
 	return event_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 		struct bt_ctf_stream_class *stream_class, const char *name)
 {
@@ -532,6 +540,7 @@ end:
 	return event_class;
 }
 
+BT_HIDDEN
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint32_t id)
 {
@@ -601,6 +610,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_stream_class_get_event_header_type(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -617,6 +627,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_class_set_event_header_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_header_type)
@@ -646,6 +657,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -662,6 +674,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int bt_ctf_stream_class_set_event_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_context_type)
