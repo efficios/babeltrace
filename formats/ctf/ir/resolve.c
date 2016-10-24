@@ -750,6 +750,7 @@ error:
  *
  * `field_path1` and `field_path2` are owned by the caller.
  */
+static
 int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 		struct bt_ctf_field_path *field_path2)
 {
