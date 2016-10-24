@@ -161,7 +161,9 @@ void ctf_fs_destroy_data(struct ctf_fs_component *component)
 
 	ctf_fs_metadata_fini(&component->metadata);
 	BT_PUT(component->current_notification);
-	g_ptr_array_free(component->streams, TRUE);
+	if (component->streams) {
+		g_ptr_array_free(component->streams, TRUE);
+	}
 	g_free(component);
 }
 
