@@ -26,7 +26,6 @@
  */
 
 #include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 

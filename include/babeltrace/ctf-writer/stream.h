@@ -30,8 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-writer/stream-class.h>
+
+struct bt_ctf_stream;
 
 #ifdef __cplusplus
 extern "C" {

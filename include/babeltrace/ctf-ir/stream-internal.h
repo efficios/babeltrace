@@ -27,7 +27,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>

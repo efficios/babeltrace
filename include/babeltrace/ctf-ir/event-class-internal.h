@@ -33,7 +33,6 @@
 #include <babeltrace/values.h>
 #include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 

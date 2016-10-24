@@ -31,7 +31,6 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
