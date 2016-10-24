@@ -355,7 +355,7 @@ int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 
 	if (!event_class || !payload ||
 		bt_ctf_field_type_get_type_id(payload) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -380,7 +380,7 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -403,7 +403,7 @@ int bt_ctf_event_class_get_field_count(
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -426,7 +426,7 @@ int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -448,7 +448,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		goto end;
 	}
 
@@ -495,7 +495,7 @@ int bt_ctf_event_class_set_context_type(
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(context) != BT_CTF_TYPE_ID_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(context) != CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}

@@ -1037,7 +1037,7 @@ int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 
 	/* packet_header_type must be a structure */
 	if (bt_ctf_field_type_get_type_id(packet_header_type) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}

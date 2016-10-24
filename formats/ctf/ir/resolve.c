@@ -246,7 +246,7 @@ void type_stack_pop(type_stack *stack)
  */
 static
 struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
-		enum bt_ctf_scope scope)
+		enum bt_ctf_ir_scope scope)
 {
 	assert(scope >= BT_CTF_SCOPE_TRACE_PACKET_HEADER &&
 		scope <= BT_CTF_SCOPE_EVENT_FIELDS);
@@ -599,7 +599,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 		struct resolve_context *ctx)
 {
 	int ret;
-	enum bt_ctf_scope root_scope;
+	enum bt_ctf_ir_scope root_scope;
 	GList *ptokens = NULL;
 	struct bt_ctf_field_path *field_path = NULL;
 

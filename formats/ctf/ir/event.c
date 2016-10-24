@@ -387,7 +387,7 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 	}
 
 	if (bt_ctf_field_type_get_type_id(payload_type) !=
-			BT_CTF_TYPE_ID_STRUCT) {
+			CTF_TYPE_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -633,7 +633,7 @@ int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 	assert(field_type);
 
 	if (bt_ctf_field_type_get_type_id(field_type) !=
-			BT_CTF_TYPE_ID_INTEGER) {
+			CTF_TYPE_INTEGER) {
 		/* Not an integer and the value is unset, error. */
 		ret = -1;
 		goto end;

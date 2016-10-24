@@ -70,7 +70,7 @@ int set_packet_header_magic(struct bt_ctf_stream *stream)
 	assert(magic_field_type);
 
 	if (bt_ctf_field_type_get_type_id(magic_field_type) !=
-		BT_CTF_TYPE_ID_INTEGER) {
+		CTF_TYPE_INTEGER) {
 		/* Magic field is not an integer. Not an error, skip. */
 		goto end;
 	}
@@ -121,7 +121,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 	uuid_field_type = bt_ctf_field_get_type(uuid_field);
 	assert(uuid_field_type);
 	if (bt_ctf_field_type_get_type_id(uuid_field_type) !=
-		BT_CTF_TYPE_ID_ARRAY) {
+		CTF_TYPE_ARRAY) {
 		/* UUID field is not an array. Not an error, skip. */
 		goto end;
 	}
@@ -138,7 +138,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		uuid_field_type);
 	assert(element_field_type);
 	if (bt_ctf_field_type_get_type_id(element_field_type) !=
-		BT_CTF_TYPE_ID_INTEGER) {
+		CTF_TYPE_INTEGER) {
 		/* UUID array elements are not integers. Not an error, skip */
 		goto end;
 	}
@@ -194,7 +194,7 @@ int set_packet_header_stream_id(struct bt_ctf_stream *stream)
 	stream_id_field_type = bt_ctf_field_get_type(stream_id_field);
 	assert(stream_id_field_type);
 	if (bt_ctf_field_type_get_type_id(stream_id_field_type) !=
-		BT_CTF_TYPE_ID_INTEGER) {
+		CTF_TYPE_INTEGER) {
 		/* stream_id field is not an integer. Not an error, skip. */
 		goto end;
 	}
@@ -724,7 +724,7 @@ int get_event_header_timestamp(struct bt_ctf_field *event_header, uint64_t *time
 	timestamp_field_type = bt_ctf_field_get_type(timestamp_field);
 	assert(timestamp_field_type);
 	if (bt_ctf_field_type_get_type_id(timestamp_field_type) !=
-		BT_CTF_TYPE_ID_INTEGER) {
+		CTF_TYPE_INTEGER) {
 		ret = -1;
 		goto end;
 	}
@@ -977,7 +977,7 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	field_type = bt_ctf_field_get_type(integer);
 	/* Something is serioulsly wrong */
 	assert(field_type);
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != CTF_TYPE_INTEGER) {
 		/*
 		 * The user most likely meant for us to populate this field
 		 * automatically. However, we can only do this if the field

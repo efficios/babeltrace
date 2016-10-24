@@ -378,7 +378,7 @@ int bt_ctf_field_string_append_len(
  * Returns the field's ctf_type_id, CTF_TYPE_UNKNOWN on error.
  */
 BT_HIDDEN
-enum bt_ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+enum ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
 
 /*
  * bt_ctf_field_get_type: get a field's type

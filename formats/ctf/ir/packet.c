@@ -25,6 +25,7 @@
  */
 
 #include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/trace.h>

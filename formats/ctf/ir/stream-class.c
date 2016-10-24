@@ -597,7 +597,7 @@ int bt_ctf_stream_class_set_packet_context_type(
 		goto end;
 	}
 	if (bt_ctf_field_type_get_type_id(packet_context_type) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		/* A packet context must be a structure */
 		ret = -1;
 		goto end;
@@ -644,7 +644,7 @@ int bt_ctf_stream_class_set_event_header_type(
 		goto end;
 	}
 	if (bt_ctf_field_type_get_type_id(event_header_type) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		/* An event header must be a structure */
 		ret = -1;
 		goto end;
@@ -687,7 +687,7 @@ int bt_ctf_stream_class_set_event_context_type(
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_context_type) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+		CTF_TYPE_STRUCT) {
 		/* A packet context must be a structure */
 		ret = -1;
 		goto end;

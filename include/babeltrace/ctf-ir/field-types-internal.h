@@ -41,20 +41,6 @@ typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
 typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
 		struct metadata_context *);
 
-enum bt_ctf_type_id {
-	BT_CTF_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
-	BT_CTF_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
-	BT_CTF_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
-	BT_CTF_TYPE_ID_ENUM = CTF_TYPE_ENUM,
-	BT_CTF_TYPE_ID_STRING = CTF_TYPE_STRING,
-	BT_CTF_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
-	BT_CTF_TYPE_ID_UNTAGGED_VARIANT = CTF_TYPE_UNTAGGED_VARIANT,
-	BT_CTF_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
-	BT_CTF_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
-	BT_CTF_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
-	BT_CTF_NR_TYPE_IDS,
-};
-
 enum bt_ctf_ir_scope {
 	BT_CTF_SCOPE_UNKNOWN = -1,
 	BT_CTF_SCOPE_ENV = 0,
@@ -728,7 +714,7 @@ int bt_ctf_field_type_compare(struct bt_ctf_field_type *type_a,
  * Returns the field type's bt_ctf_type_id, CTF_TYPE_UNKNOWN on error.
  */
 BT_HIDDEN
-enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
+enum ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *type);
 
 /*

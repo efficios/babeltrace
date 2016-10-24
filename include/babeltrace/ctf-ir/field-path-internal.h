@@ -33,7 +33,7 @@
 
 struct bt_ctf_field_path {
 	struct bt_object base;
-	enum bt_ctf_scope root;
+	enum bt_ctf_ir_scope root;
 
 	/*
 	 * Array of integers (int) indicating the index in either
