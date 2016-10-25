@@ -11,6 +11,7 @@ plugin_LTLIBRARIES = libbabeltrace-plugin-ctf.la
 libbabeltrace_plugin_ctf_la_SOURCES = plugin.c
 
 libbabeltrace_plugin_ctf_la_LDFLAGS = \
+	$(LT_NO_UNDEFINED) \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_plugin_ctf_la_LIBADD = \

@@ -38,7 +38,7 @@ AC_PROG_CC_STDC
 
 # Checks for programs.
 AC_PROG_MAKE_SET
-LT_INIT
+LT_INIT(win32-dll)
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_MKDIR_P
@@ -153,6 +153,7 @@ AC_CHECK_FUNCS([ \
 
 MINGW32=no
 DEFAULT_ENABLE_DEBUG_INFO=yes
+LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],
     [
@@ -162,10 +163,12 @@ AS_CASE([$host_os],
     [
 	MINGW32=yes
 	DEFAULT_ENABLE_DEBUG_INFO=no
+	LT_NO_UNDEFINED="-no-undefined"
     ]
 )
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
+AC_SUBST(LT_NO_UNDEFINED)
 
 # Check for uuid in system libs
 AC_CHECK_FUNCS([uuid_generate],
