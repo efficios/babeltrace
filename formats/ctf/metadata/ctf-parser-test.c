@@ -35,7 +35,7 @@
 #include "ctf-parser.h"
 #include "ctf-ast.h"
 
-int babeltrace_verbose, babeltrace_debug;
+bool babeltrace_verbose, babeltrace_debug;
 
 int main(int argc, char **argv)
 {

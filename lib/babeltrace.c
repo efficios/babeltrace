@@ -31,7 +31,7 @@
 #include <babeltrace/ctf-text/types.h>
 #include <stdlib.h>
 
-int babeltrace_verbose, babeltrace_debug;
+bool babeltrace_verbose, babeltrace_debug;
 
 static
 void __attribute__((constructor)) init_babeltrace_lib(void)

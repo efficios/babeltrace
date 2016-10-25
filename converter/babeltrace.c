@@ -61,8 +61,6 @@ void print_component_classes_found(struct bt_component_factory *factory)
 {
 	int count, i;
 
-	babeltrace_verbose = 1;
-
 	if (!babeltrace_verbose) {
 		return;
 	}
@@ -262,6 +260,9 @@ int main(int argc, char **argv)
 	} else {
 		goto end;
 	}
+
+	babeltrace_verbose = cfg->verbose;
+	babeltrace_debug = cfg->debug;
 
 	/* TODO handle more than 1 source and 1 sink. */
 	if (cfg->sources->len != 1 || cfg->sinks->len != 1) {

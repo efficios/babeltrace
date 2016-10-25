@@ -53,7 +53,7 @@
 #define NSEC_PER_SEC 1000000000ULL
 #define USEC_PER_SEC 1000000UL
 
-int babeltrace_debug, babeltrace_verbose;
+bool babeltrace_debug, babeltrace_verbose;
 
 static char *s_outputname;
 static int s_timestamp;
