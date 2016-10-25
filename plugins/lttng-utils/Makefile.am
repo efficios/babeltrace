@@ -19,7 +19,9 @@ libbabeltrace_plugin_lttng_utils_la_SOURCES = \
 	copy.c
 
 libbabeltrace_plugin_lttng_utils_la_LDFLAGS = \
-	-version-info $(BABELTRACE_LIBRARY_VERSION) -lelf -ldw
+	$(LT_NO_UNDEFINED) \
+	-version-info $(BABELTRACE_LIBRARY_VERSION) \
+	-lelf -ldw
 
 if !BUILT_IN_PLUGINS
 libbabeltrace_plugin_lttng_utils_la_LIBADD = \

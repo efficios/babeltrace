@@ -7,6 +7,7 @@ plugin_LTLIBRARIES = libbabeltrace-plugin-text.la
 
 libbabeltrace_plugin_text_la_SOURCES = plugin.c
 libbabeltrace_plugin_text_la_LDFLAGS = \
+	$(LT_NO_UNDEFINED) \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
 libbabeltrace_plugin_text_la_LIBADD = \
 	pretty/libbabeltrace-plugin-text-pretty-cc.la

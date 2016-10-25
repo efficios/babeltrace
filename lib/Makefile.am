@@ -5,7 +5,8 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 lib_LTLIBRARIES = libbabeltrace.la
 
 libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c logging.c
-libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
+libbabeltrace_la_LDFLAGS = $(LT_NO_UNDEFINED) \
+			-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
