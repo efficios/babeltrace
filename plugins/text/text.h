@@ -70,6 +70,8 @@ struct text_component {
 	FILE *out, *err;
 	bool processed_first_event;
 	uint64_t last_real_timestamp;
+	int depth;	/* nesting, used for tabulation alignment. */
+	GString *string;
 };
 
 BT_HIDDEN

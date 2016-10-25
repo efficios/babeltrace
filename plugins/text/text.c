@@ -59,6 +59,7 @@ const char *loglevel_str [] = {
 static
 void destroy_text_data(struct text_component *text)
 {
+	(void) g_string_free(text->string, TRUE);
 	g_free(text);
 }
 
@@ -71,8 +72,16 @@ struct text_component *create_text(void)
 	if (!text) {
 		goto end;
 	}
+	text->string = g_string_new("");
+	if (!text->string) {
+		goto error;
+	}
 end:
 	return text;
+
+error:
+	g_free(text);
+	return NULL;
 }
 
 static
