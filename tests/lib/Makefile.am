@@ -9,13 +9,13 @@ noinst_LTLIBRARIES = libtestcommon.la
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
 test_seek_LDFLAGS = $(LD_NO_AS_NEEDED)
-COMMON_TEST_LDADD = $(LIBTAP) libtestcommon.a \
+COMMON_TEST_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
 
 test_seek_LDADD = $(COMMON_TEST_LDADD)
 
-test_bitfield_LDADD = $(LIBTAP) libtestcommon.a
+test_bitfield_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
 
 test_ctf_writer_LDADD = $(COMMON_TEST_LDADD)
 
