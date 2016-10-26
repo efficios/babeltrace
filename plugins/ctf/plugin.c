@@ -1,5 +1,5 @@
 /*
- * symbols.c
+ * plugin.c
  *
  * Babeltrace CTF Plug-in Registration Symbols
  *
