@@ -227,7 +227,7 @@ bt_component_factory_load_dir(struct bt_component_factory *factory,
 				goto end;
 			}
 		} else if (S_ISREG(st.st_mode)) {
-		        bt_component_factory_load_file(factory, file_path);
+			bt_component_factory_load_file(factory, file_path);
 		}
 	}
 end:
