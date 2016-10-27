@@ -85,14 +85,14 @@ struct bt_plugin *bt_plugin_create_from_module(GModule *module,
 
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_NAME,
 			(gpointer *) &plugin->name)) {
-		printf_error("Unable to resolve plugin symbol %s from %s",
+		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
 				PLUGIN_SYMBOL_NAME, g_module_name(module));
 		goto error;
 	}
 
 	if (!g_module_symbol(module, PLUGIN_SYMBOL_LICENSE,
 			(gpointer *) &plugin->license)) {
-		printf_error("Unable to resolve plugin symbol %s from %s",
+		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
 				PLUGIN_SYMBOL_LICENSE, g_module_name(module));
 		goto error;
 	}

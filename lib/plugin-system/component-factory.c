@@ -216,7 +216,7 @@ bt_component_factory_load_dir(struct bt_component_factory *factory,
 		stat_ret = stat(file_path, &st);
 		if (stat_ret < 0) {
 			/* Continue to next file / directory. */
-			printf_perror("Failed to stat() plugin file");
+			printf_perror("Failed to stat() plugin file\n");
 			continue;
 		}
 
@@ -465,7 +465,7 @@ add_component_class(struct bt_component_factory *factory, const char *name,
 		struct bt_plugin *plugin = bt_component_class_get_plugin(
 			component_class);
 
-		printf_warning("Duplicate component class registration attempted. Component class %s being registered by plugin %s (path: %s) conflicts with one already registered by plugin %s (path: %s)",
+		printf_warning("Duplicate component class registration attempted. Component class %s being registered by plugin %s (path: %s) conflicts with one already registered by plugin %s (path: %s)\n",
 			name, bt_plugin_get_name(factory->current_plugin),
 			bt_plugin_get_path(factory->current_plugin),
 			bt_plugin_get_name(plugin),

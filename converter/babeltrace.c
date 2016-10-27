@@ -67,7 +67,7 @@ void print_component_classes_found(struct bt_component_factory *factory)
 
 	count = bt_component_factory_get_component_class_count(factory);
 	if (count <= 0) {
-		fprintf(stderr, "No component classes found. Please make sure your plug-in search path is set correctly.");
+		fprintf(stderr, "No component classes found. Please make sure your plug-in search path is set correctly.\n");
 		return;
 	}
 
