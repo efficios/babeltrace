@@ -30,14 +30,29 @@
 
 #include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/component.h>
+#include <babeltrace/plugin/plugin.h>
 
-/* A plugin must define the __bt_plugin_init symbol */
+#ifndef BT_BUILT_IN_PLUGINS
+
+#define BT_PLUGIN_REGISTER(_x)		bt_plugin_register_func __bt_plugin_register = (_x)
 #define BT_PLUGIN_NAME(_x)		const char __bt_plugin_name[] = (_x)
 #define BT_PLUGIN_AUTHOR(_x)		const char __bt_plugin_author[] = (_x)
 #define BT_PLUGIN_LICENSE(_x)		const char __bt_plugin_license[] = (_x)
 #define BT_PLUGIN_DESCRIPTION(_x)	const char __bt_plugin_description[] = (_x)
-#define BT_PLUGIN_INIT(_x)		bt_plugin_init_func __bt_plugin_init = (_x)
-#define BT_PLUGIN_EXIT(_x)		bt_plugin_exit_func __bt_plugin_exit = (_x)
+
+#else /* BT_BUILT_IN_PLUGINS */
+
+/*
+ * Statically-linked plug-in symbol types are stored in separate sections and
+ * which are read using the bt_component_factory interface.
+ */
+#define BT_PLUGIN_REGISTER(_x)		static bt_plugin_register_func __attribute__((section("__plugin_register_funcs"), used)) __plugin_register = (_x)
+#define BT_PLUGIN_NAME(_x)		static const char *__plugin_name __attribute__((section("__plugin_names"), used)) = (_x)
+#define BT_PLUGIN_AUTHOR(_x)		static const char *__plugin_author __attribute__((section("__plugin_authors"), used)) = (_x)
+#define BT_PLUGIN_LICENSE(_x)		static const char *__plugin_license __attribute__((section("__plugin_licenses"), used)) = (_x)
+#define BT_PLUGIN_DESCRIPTION(_x)	static const char *__plugin_description __attribute__((section("__plugin_descriptions"), used)) = (_x)
+
+#endif /* BT_BUILT_IN_PLUGINS */
 
 #define BT_PLUGIN_COMPONENT_CLASSES_BEGIN					\
 	static enum bt_component_status __bt_plugin_register_component_classes(	\
@@ -60,6 +75,6 @@
 	return BT_COMPONENT_STATUS_OK;						\
 }										\
 										\
-	BT_PLUGIN_INIT(__bt_plugin_register_component_classes);			\
+	BT_PLUGIN_REGISTER(__bt_plugin_register_component_classes);		\
 
 #endif /* BABELTRACE_PLUGIN_MACROS_H */

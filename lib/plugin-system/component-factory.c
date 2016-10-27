@@ -48,6 +48,8 @@
 #define PLUGIN_SUFFIX_LEN max_t(size_t, sizeof(NATIVE_PLUGIN_SUFFIX), \
 		sizeof(LIBTOOL_PLUGIN_SUFFIX))
 
+DECLARE_PLUG_IN_SECTIONS;
+
 /* Allocate dirent as recommended by READDIR(3), NOTES on readdir_r */
 static
 struct dirent *alloc_dirent(const char *path)
@@ -66,12 +68,35 @@ struct dirent *alloc_dirent(const char *path)
 }
 
 static
+enum bt_component_factory_status init_plugin(
+		struct bt_component_factory *factory, struct bt_plugin *plugin)
+{
+	enum bt_component_status component_status;
+	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
+
+	BT_MOVE(factory->current_plugin, plugin);
+	component_status = bt_plugin_register_component_classes(
+			factory->current_plugin, factory);
+	BT_PUT(factory->current_plugin);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		switch (component_status) {
+		case BT_COMPONENT_STATUS_NOMEM:
+			ret = BT_COMPONENT_FACTORY_STATUS_NOMEM;
+			break;
+		default:
+			ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
+			break;
+		}
+	}
+	return ret;
+}
+
+static
 enum bt_component_factory_status
 bt_component_factory_load_file(struct bt_component_factory *factory,
 		const char *path)
 {
 	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
-	enum bt_component_status component_status;
 	size_t path_len;
 	GModule *module;
 	struct bt_plugin *plugin;
@@ -112,33 +137,17 @@ bt_component_factory_load_file(struct bt_component_factory *factory,
 		goto end;
 	}
 
-	/* Load plugin and make sure it defines the required entry points */
-	plugin = bt_plugin_create(module, path);
+	/* Load plugin and make sure it defines the required entry points. */
+	plugin = bt_plugin_create_from_module(module, path);
 	if (!plugin) {
 		ret = BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN;
 		if (!g_module_close(module)) {
-			printf_error("Module close error: %s",
+			printf_error("Module close error: %s\n",
 				g_module_error());
 		}
 		goto end;
 	}
-
-	BT_MOVE(factory->current_plugin, plugin);
-	component_status = bt_plugin_register_component_classes(
-			factory->current_plugin, factory);	
-	BT_PUT(factory->current_plugin);
-	if (component_status != BT_COMPONENT_STATUS_OK) {
-		switch (component_status) {
-		case BT_COMPONENT_STATUS_NOMEM:
-			ret = BT_COMPONENT_FACTORY_STATUS_NOMEM;
-			break;
-		default:
-			ret = BT_COMPONENT_FACTORY_STATUS_ERROR;
-			break;
-		}
-
-		goto end;
-	}
+	ret = init_plugin(factory, plugin);
 end:
 	return ret;
 }
@@ -396,6 +405,39 @@ enum bt_component_factory_status bt_component_factory_load(
 		struct bt_component_factory *factory, const char *path)
 {
 	return _bt_component_factory_load(factory, path, false);
+}
+
+enum bt_component_factory_status bt_component_factory_load_static(
+		struct bt_component_factory *factory)
+{
+	size_t count, i;
+	enum bt_component_factory_status ret = BT_COMPONENT_FACTORY_STATUS_OK;
+
+	PRINT_PLUG_IN_SECTIONS(printf_verbose);
+
+	count = SECTION_ELEMENT_COUNT(__plugin_register_funcs);
+	if (SECTION_ELEMENT_COUNT(__plugin_register_funcs) != count ||
+			SECTION_ELEMENT_COUNT(__plugin_names) != count ||
+			SECTION_ELEMENT_COUNT(__plugin_authors) != count ||
+			SECTION_ELEMENT_COUNT(__plugin_licenses) != count ||
+			SECTION_ELEMENT_COUNT(__plugin_descriptions) != count) {
+		printf_error("Some statically-linked plug-ins do not define all mandatory symbols\n");
+		ret = BT_COMPONENT_FACTORY_STATUS_INVAL_PLUGIN;
+		goto end;
+	}
+	printf_verbose("Detected %zu statically-linked plug-ins\n", count);
+
+	for (i = 0; i < count; i++) {
+		struct bt_plugin *plugin = bt_plugin_create_from_static(i);
+
+		if (!plugin) {
+			continue;
+		}
+
+		(void) init_plugin(factory, plugin);
+	}
+end:
+	return ret;
 }
 
 static

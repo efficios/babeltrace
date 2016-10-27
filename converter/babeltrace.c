@@ -302,6 +302,12 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	ret = bt_component_factory_load_static(component_factory);
+	if (ret) {
+		fprintf(stderr, "Failed to load static plugins.\n");
+		goto end;
+	}
+
 	print_component_classes_found(component_factory);
 	source_class = bt_component_factory_get_component_class(
 			component_factory, "ctf", BT_COMPONENT_TYPE_SOURCE,

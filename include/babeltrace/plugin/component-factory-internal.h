@@ -36,6 +36,33 @@
 #include <babeltrace/plugin/plugin.h>
 #include <glib.h>
 
+#define SECTION_BEGIN(_name)	&__start_##_name
+#define SECTION_END(_name)	&__stop_##_name
+
+#define SECTION_ELEMENT_COUNT(_name) (SECTION_END(_name) - SECTION_BEGIN(_name))
+
+#define DECLARE_SECTION(_type, _name)				\
+	extern _type const __start_##_name __attribute((weak));	\
+	extern _type const __stop_##_name __attribute((weak))
+
+#define DECLARE_PLUG_IN_SECTIONS						\
+	DECLARE_SECTION(bt_plugin_register_func, __plugin_register_funcs);	\
+	DECLARE_SECTION(const char *, __plugin_names);				\
+	DECLARE_SECTION(const char *, __plugin_authors);			\
+	DECLARE_SECTION(const char *, __plugin_licenses);			\
+	DECLARE_SECTION(const char *, __plugin_descriptions)
+
+#define PRINT_SECTION(_printer, _name)					\
+	_printer("Section " #_name " [%p - %p], (%zu elements)\n",	\
+	SECTION_BEGIN(_name), SECTION_END(_name), SECTION_ELEMENT_COUNT(_name))
+
+#define PRINT_PLUG_IN_SECTIONS(_printer)					\
+	PRINT_SECTION(_printer, __plugin_register_funcs);			\
+	PRINT_SECTION(_printer, __plugin_names);				\
+	PRINT_SECTION(_printer, __plugin_authors);				\
+	PRINT_SECTION(_printer, __plugin_licenses);				\
+	PRINT_SECTION(_printer, __plugin_descriptions)
+
 struct bt_component_factory {
 	struct bt_object base;
 	/** Array of pointers to struct bt_component_class */

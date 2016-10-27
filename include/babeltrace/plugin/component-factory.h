@@ -138,6 +138,15 @@ extern enum bt_component_factory_status bt_component_factory_load(
 extern enum bt_component_factory_status bt_component_factory_load_recursive(
 		struct bt_component_factory *factory, const char *path);
 
+/**
+ * Load and register Babeltrace plugins statically-linked to the executable.
+ *
+ * @param factory	A component factory instance
+ * @returns		One of #bt_component_factory_status values
+ */
+extern enum bt_component_factory_status bt_component_factory_load_static(
+		struct bt_component_factory *factory);
+
 extern enum bt_component_factory_status
 bt_component_factory_register_source_component_class(
 		struct bt_component_factory *factory, const char *name,

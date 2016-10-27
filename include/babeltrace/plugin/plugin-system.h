@@ -43,9 +43,8 @@ struct bt_component;
 struct bt_component_factory;
 struct bt_value;
 
-typedef enum bt_component_status (*bt_plugin_init_func)(
+typedef enum bt_component_status (*bt_plugin_register_func)(
 		struct bt_component_factory *factory);
-typedef void (*bt_plugin_exit_func)(void);
 
 /**
  * Component private data deallocation function type.
