@@ -242,6 +242,9 @@ extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
 
+extern struct bt_ctf_packet *bt_ctf_event_get_packet(
+		struct bt_ctf_event *event);
+
 extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet);
 

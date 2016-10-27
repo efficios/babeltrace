@@ -783,6 +783,19 @@ end:
 	return ret;
 }
 
+struct bt_ctf_packet *bt_ctf_event_get_packet(struct bt_ctf_event *event)
+{
+	struct bt_ctf_packet *packet = NULL;
+
+	if (!event || !event->packet) {
+		goto end;
+	}
+
+	packet = bt_get(event->packet);
+end:
+	return packet;
+}
+
 int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet)
 {
