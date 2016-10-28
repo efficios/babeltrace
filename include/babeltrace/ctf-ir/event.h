@@ -116,7 +116,7 @@ extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 /*
  * bt_ctf_event_get_payload: get an event's field.
  *
- * Returns the field matching "name". bt_ctf_field_put() must be called on the
+ * Returns the field matching "name". bt_put() must be called on the
  * returned value.
  *
  * @param event Event instance.
@@ -136,7 +136,7 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
  *
  * Set a manually allocated field as an event's payload. The event will share
  * the field's ownership by using its reference count.
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  *
  * @param event Event instance.
  * @param name Event field name, see notes.
@@ -155,7 +155,7 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 /*
  * bt_ctf_event_get_payload_by_index: Get event's field by index.
  *
- * Returns the field associated with the provided index. bt_ctf_field_put()
+ * Returns the field associated with the provided index. bt_put()
  * must be called on the returned value. The indexes to be provided are
  * the same as can be retrieved from the event class.
  *

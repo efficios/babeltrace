@@ -59,7 +59,7 @@ extern struct bt_ctf_field *bt_ctf_field_create(
  * bt_ctf_field_structure_get_field: get a structure's field.
  *
  * Get the structure's field corresponding to the provided field name.
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  *
  * @param structure Structure field instance.
  * @param name Name of the field in the provided structure.
@@ -73,7 +73,7 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
  * bt_ctf_field_structure_get_field_by_index: get a structure's field by index.
  *
  * Get the structure's field corresponding to the provided field name.
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  * The indexes are the same as those provided for bt_ctf_field_type_structure.
  *
  * @param structure Structure field instance.
@@ -87,7 +87,7 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 /*
  * bt_ctf_field_array_get_field: get an array's field at position "index".
  *
- * Return the array's field at position "index". bt_ctf_field_put() must be
+ * Return the array's field at position "index". bt_put() must be
  * called on the returned value.
  *
  * @param array Array field instance.
@@ -130,7 +130,7 @@ extern int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence,
  * Return the sequence's field at position "index". The sequence's length must
  * have been set prior to calling this function using
  * bt_ctf_field_sequence_set_length().
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  *
  * @param array Sequence field instance.
  * @param index Position of the sequence's desired element.
@@ -144,7 +144,7 @@ extern struct bt_ctf_field *bt_ctf_field_sequence_get_field(
  * bt_ctf_field_variant_get_field: get a variant's selected field.
  *
  * Return the variant's selected field. The "tag" field is the selector enum
- * field. bt_ctf_field_put() must be called on the returned value.
+ * field. bt_put() must be called on the returned value.
  *
  * @param variant Variant field instance.
  * @param tag Selector enumeration field.
@@ -190,7 +190,7 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_tag(
  * bt_ctf_field_enumeration_get_container: get an enumeration field's container.
  *
  * Return the enumeration's underlying container field (an integer).
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  *
  * @param enumeration Enumeration field instance.
  *
@@ -204,7 +204,7 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
  *	name.
  *
  * Return the enumeration's underlying container field (an integer).
- * bt_ctf_field_put() must be called on the returned value.
+ * bt_put() must be called on the returned value.
  *
  * @param enumeration Enumeration field instance.
  *
