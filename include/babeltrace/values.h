@@ -153,8 +153,7 @@ struct bt_value;
  * null value object (of type #BT_VALUE_TYPE_NULL), whereas \c NULL
  * means an error of some sort.
  */
-BT_HIDDEN
-struct bt_value *bt_value_null;
+extern struct bt_value *bt_value_null;
 
 /**
  * User function type for bt_value_map_foreach().
