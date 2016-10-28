@@ -78,7 +78,7 @@ struct resolve_context {
 	struct bt_ctf_field_type *scopes[6];
 
 	/* Root scope being visited */
-	enum bt_ctf_scope root_scope;
+	enum bt_ctf_ir_scope root_scope;
 	type_stack *type_stack;
 	struct bt_ctf_field_type *cur_field_type;
 };
@@ -259,10 +259,10 @@ struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
  * CTF_NODE_UNKNOWN if the path is found to be relative.
  */
 static
-enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
+enum bt_ctf_ir_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 {
-	enum bt_ctf_scope scope;
-	enum bt_ctf_scope ret = BT_CTF_SCOPE_UNKNOWN;
+	enum bt_ctf_ir_scope scope;
+	enum bt_ctf_ir_scope ret = BT_CTF_SCOPE_UNKNOWN;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
@@ -1088,7 +1088,7 @@ end:
  * Resolves the root field type corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
+int resolve_root_type(enum bt_ctf_ir_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
