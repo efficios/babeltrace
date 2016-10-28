@@ -806,21 +806,21 @@ end:
 }
 
 int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *type,
-		enum bt_ctf_string_encoding encoding)
+		enum ctf_string_encoding encoding)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_integer *integer;
 
 	if (!type || type->frozen ||
 		(type->declaration->id != CTF_TYPE_INTEGER) ||
-		(encoding < BT_CTF_STRING_ENCODING_NONE) ||
-		(encoding >= BT_CTF_STRING_ENCODING_UNKNOWN)) {
+		(encoding < CTF_STRING_NONE) ||
+		(encoding >= CTF_STRING_UNKNOWN)) {
 		ret = -1;
 		goto end;
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
-	integer->declaration.encoding = (enum ctf_string_encoding) encoding;
+	integer->declaration.encoding = encoding;
 end:
 	return ret;
 }
@@ -2000,20 +2000,20 @@ end:
 }
 
 int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *type,
-		enum bt_ctf_string_encoding encoding)
+		enum ctf_string_encoding encoding)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_string *string;
 
 	if (!type || type->declaration->id != CTF_TYPE_STRING ||
-		(encoding != BT_CTF_STRING_ENCODING_UTF8 &&
-		encoding != BT_CTF_STRING_ENCODING_ASCII)) {
+		(encoding != CTF_STRING_UTF8 &&
+		encoding != CTF_STRING_ASCII)) {
 		ret = -1;
 		goto end;
 	}
 
 	string = container_of(type, struct bt_ctf_field_type_string, parent);
-	string->declaration.encoding = (enum ctf_string_encoding) encoding;
+	string->declaration.encoding = encoding;
 end:
 	return ret;
 }

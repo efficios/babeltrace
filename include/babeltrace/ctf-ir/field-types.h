@@ -130,13 +130,13 @@ extern int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer,
  *
  * @param integer Integer type.
  * @param encoding Integer output encoding, defaults to
- *	BT_CTF_STRING_ENCODING_NONE
+ *	CTF_STRING_NONE
  *
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_integer_set_encoding(
 		struct bt_ctf_field_type *integer,
-		enum bt_ctf_string_encoding encoding);
+		enum ctf_string_encoding encoding);
 
 /*
  * bt_ctf_field_type_enumeration_create: create an enumeration field type.
@@ -339,15 +339,15 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
  * Set the string type's encoding.
  *
  * @param string_type String type.
- * @param encoding String field encoding, default BT_CTF_STRING_ENCODING_ASCII.
- *	Valid values are BT_CTF_STRING_ENCODING_ASCII and
- *	BT_CTF_STRING_ENCODING_UTF8.
+ * @param encoding String field encoding, default CTF_STRING_ASCII.
+ *	Valid values are CTF_STRING_ASCII and
+ *	CTF_STRING_UTF8.
  *
  * Returns 0 on success, a negative value on error.
  */
 extern int bt_ctf_field_type_string_set_encoding(
 		struct bt_ctf_field_type *string_type,
-		enum bt_ctf_string_encoding encoding);
+		enum ctf_string_encoding encoding);
 
 /*
  * bt_ctf_field_type_set_alignment: set a field type's alignment.
