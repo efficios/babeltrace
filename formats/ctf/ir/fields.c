@@ -788,6 +788,27 @@ end:
 	return current_field;
 }
 
+struct bt_ctf_field *bt_ctf_field_variant_get_tag(
+		struct bt_ctf_field *variant_field)
+{
+	struct bt_ctf_field *tag = NULL;
+	struct bt_ctf_field_variant *variant;
+
+	if (!variant_field ||
+			bt_ctf_field_type_get_type_id(variant_field->type) !=
+			BT_CTF_TYPE_ID_VARIANT) {
+		goto end;
+	}
+
+	variant = container_of(variant_field, struct bt_ctf_field_variant,
+			parent);
+	if (variant->tag) {
+		tag = bt_get(variant->tag);
+	}
+end:
+	return tag;
+}
+
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	struct bt_ctf_field *field)
 {
