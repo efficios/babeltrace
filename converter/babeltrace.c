@@ -279,12 +279,6 @@ int main(int argc, char **argv)
 
 	printf_verbose("Verbose mode active.\n");
 	printf_debug("Debug mode active.\n");
-
-	if (bt_value_array_is_empty(cfg->plugin_paths)) {
-		fprintf(stderr, "No plugin path specified, aborting...\n");
-		ret = -1;
-		goto end;
-	}
 	component_factory = bt_component_factory_create();
 	if (!component_factory) {
 		fprintf(stderr, "Failed to create component factory.\n");
@@ -292,14 +286,17 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	first_plugin_path_value = bt_value_array_get(cfg->plugin_paths, 0);
-	bt_value_string_get(first_plugin_path_value, &first_plugin_path);
-
-	ret = bt_component_factory_load_recursive(component_factory,
-			first_plugin_path);
-	if (ret) {
-		fprintf(stderr, "Failed to load plugins.\n");
-		goto end;
+	if (cfg->plugin_paths && !bt_value_array_is_empty(cfg->plugin_paths)) {
+		first_plugin_path_value = bt_value_array_get(
+				cfg->plugin_paths, 0);
+		bt_value_string_get(first_plugin_path_value,
+				&first_plugin_path);
+		ret = bt_component_factory_load_recursive(component_factory,
+				first_plugin_path);
+		if (ret) {
+			fprintf(stderr, "Failed to dynamically load plugins.\n");
+			goto end;
+		}
 	}
 
 	ret = bt_component_factory_load_static(component_factory);
