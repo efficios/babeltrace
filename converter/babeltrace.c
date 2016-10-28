@@ -94,9 +94,9 @@ void print_component_classes_found(struct bt_component_factory *factory)
 
 		printf_verbose("[%s - %s (%s)]\n", plugin_name, component_name,
 			       component_type_str(type));
-		printf_verbose("\tpath: %s\n", path);
-		printf_verbose("\tauthor: %s\n", author);
-		printf_verbose("\tlicense: %s\n", license);
+		printf_verbose("\tpath: %s\n", path ? path : "None");
+		printf_verbose("\tauthor: %s\n", author ? author : "Unknown");
+		printf_verbose("\tlicense: %s\n", license ? license : "Unknown");
 		printf_verbose("\tplugin description: %s\n",
 				plugin_description ? plugin_description : "None");
 		printf_verbose("\tcomponent description: %s\n",
