@@ -685,7 +685,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	integer->parent.declaration->id = CTF_TYPE_INTEGER;
 	integer->declaration.len = size;
 	integer->declaration.base = BT_CTF_INTEGER_BASE_DECIMAL;
-	integer->declaration.encoding = BT_CTF_STRING_ENCODING_NONE;
+	integer->declaration.encoding =
+			(enum ctf_string_encoding) BT_CTF_STRING_ENCODING_NONE;
 	bt_ctf_field_type_init(&integer->parent, TRUE);
 	return &integer->parent;
 }
@@ -799,7 +800,7 @@ enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
-	ret = integer->declaration.encoding;
+	ret = (enum bt_ctf_string_encoding) integer->declaration.encoding;
 end:
 	return ret;
 }
@@ -819,7 +820,7 @@ int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *type,
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
-	integer->declaration.encoding = encoding;
+	integer->declaration.encoding = (enum ctf_string_encoding) encoding;
 end:
 	return ret;
 }
@@ -1974,7 +1975,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_create(void)
 	string->parent.declaration = &string->declaration.p;
 	string->parent.declaration->id = CTF_TYPE_STRING;
 	bt_ctf_field_type_init(&string->parent, TRUE);
-	string->declaration.encoding = BT_CTF_STRING_ENCODING_UTF8;
+	string->declaration.encoding =
+			(enum ctf_string_encoding) BT_CTF_STRING_ENCODING_UTF8;
 	string->parent.declaration->alignment = CHAR_BIT;
 	return &string->parent;
 }
@@ -1992,7 +1994,7 @@ enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 
 	string = container_of(type, struct bt_ctf_field_type_string,
 		parent);
-	ret = string->declaration.encoding;
+	ret = (enum bt_ctf_string_encoding) string->declaration.encoding;
 end:
 	return ret;
 }
@@ -2011,7 +2013,7 @@ int bt_ctf_field_type_string_set_encoding(struct bt_ctf_field_type *type,
 	}
 
 	string = container_of(type, struct bt_ctf_field_type_string, parent);
-	string->declaration.encoding = encoding;
+	string->declaration.encoding = (enum ctf_string_encoding) encoding;
 end:
 	return ret;
 }
@@ -2881,7 +2883,7 @@ int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type *type,
 		"integer { size = %zu; align = %zu; signed = %s; encoding = %s; base = %s; byte_order = %s",
 		integer->declaration.len, type->declaration->alignment,
 		(integer->declaration.signedness ? "true" : "false"),
-		get_encoding_string(integer->declaration.encoding),
+		get_encoding_string((enum bt_ctf_string_encoding) integer->declaration.encoding),
 		get_integer_base_string(integer->declaration.base),
 		get_byte_order_string(integer->declaration.byte_order));
 	if (integer->mapped_clock) {
@@ -3168,7 +3170,7 @@ int bt_ctf_field_type_string_serialize(struct bt_ctf_field_type *type,
 
 	g_string_append_printf(context->string,
 		"string { encoding = %s; }",
-		get_encoding_string(string->declaration.encoding));
+		get_encoding_string((enum bt_ctf_string_encoding) string->declaration.encoding));
 	return 0;
 }
 
