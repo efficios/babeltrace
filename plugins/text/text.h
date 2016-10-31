@@ -49,20 +49,40 @@ enum loglevel {
         LOGLEVEL_DEBUG                  = 14,
 };
 
+enum text_default {
+	TEXT_DEFAULT_UNSET,
+	TEXT_DEFAULT_SHOW,
+	TEXT_DEFAULT_HIDE,
+};
+
 struct text_options {
-	bool print_scope_field_names : 1;
-	bool print_header_field_names : 1;
-	bool print_context_field_names : 1;
-	bool print_payload_field_names : 1;
-	bool print_delta_field : 1;
-	bool print_loglevel_field : 1;
-	bool print_trace_field : 1;
-	bool print_trace_domain_field : 1;
-	bool print_trace_procname_field : 1;
-	bool print_trace_vpid_field : 1;
-	bool print_trace_hostname_field : 1;
-	bool print_timestamp_cycles : 1;
-	bool no_size_limit : 1;
+	char *output_path;
+	char *debug_info_dir;
+	char *debug_info_target_prefix;
+
+	enum text_default name_default;
+	enum text_default field_default;
+
+	bool print_scope_field_names;
+	bool print_header_field_names;
+	bool print_context_field_names;
+	bool print_payload_field_names;
+
+	bool print_delta_field;
+	bool print_loglevel_field;
+	bool print_emf_field;
+	bool print_callsite_field;
+	bool print_trace_field;
+	bool print_trace_domain_field;
+	bool print_trace_procname_field;
+	bool print_trace_vpid_field;
+	bool print_trace_hostname_field;
+
+	bool print_timestamp_cycles;
+	bool clock_seconds;
+	bool clock_date;
+	bool clock_gmt;
+	bool debug_info_full_path;
 };
 
 struct text_component {
@@ -71,7 +91,9 @@ struct text_component {
 	bool processed_first_event;
 	uint64_t last_real_timestamp;
 	int depth;	/* nesting, used for tabulation alignment. */
+	bool start_line;
 	GString *string;
+	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
 };
 
 BT_HIDDEN

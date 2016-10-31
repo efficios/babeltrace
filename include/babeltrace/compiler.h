@@ -37,4 +37,6 @@
 	})
 #endif
 
+#define BT_ARRAY_SIZE(arr)	(sizeof(arr) / sizeof((arr)[0]))
+
 #endif /* _BABELTRACE_COMPILER_H */

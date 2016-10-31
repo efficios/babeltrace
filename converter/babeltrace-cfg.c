@@ -1067,6 +1067,24 @@ GScanner *create_csv_identifiers_scanner(void)
 }
 
 /*
+ * Inserts a string (if exists and not empty) or null to a map value
+ * object.
+ */
+static
+enum bt_value_status map_insert_string_or_null(struct bt_value *map,
+		const char *key, GString *string)
+{
+	enum bt_value_status ret;
+
+	if (string && string->len > 0) {
+		ret = bt_value_map_insert_string(map, key, string->str);
+	} else {
+		ret = bt_value_map_insert(map, key, bt_value_null);
+	}
+	return ret;
+}
+
+/*
  * Converts a comma-delimited list of known names (--names option) to
  * an array value object containing those names as string value objects.
  *
@@ -1077,6 +1095,7 @@ struct bt_value *names_from_arg(const char *arg)
 {
 	GScanner *scanner = NULL;
 	struct bt_value *names = NULL;
+	bool found_all = false, found_none = false, found_item = false;
 
 	names = bt_value_array_create();
 	if (!names) {
@@ -1103,40 +1122,37 @@ struct bt_value *names_from_arg(const char *arg)
 			if (!strcmp(identifier, "payload") ||
 					!strcmp(identifier, "args") ||
 					!strcmp(identifier, "arg")) {
+				found_item = true;
 				if (bt_value_array_append_string(names,
 						"payload")) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "context") ||
 					!strcmp(identifier, "ctx")) {
+				found_item = true;
 				if (bt_value_array_append_string(names,
 						"context")) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "scope") ||
 					!strcmp(identifier, "header")) {
+				found_item = true;
 				if (bt_value_array_append_string(names,
 						identifier)) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "all") ||
-					!strcmp(identifier, "none")) {
-				/*
-				 * "all" and "none" override all the
-				 * specific names.
-				 */
-				BT_PUT(names);
-				names = bt_value_array_create();
-				if (!names) {
-					print_err_oom();
-					goto error;
-				}
-
+			} else if (!strcmp(identifier, "all")) {
+				found_all = true;
 				if (bt_value_array_append_string(names,
 						identifier)) {
 					goto error;
 				}
-				goto end;
+			} else if (!strcmp(identifier, "none")) {
+				found_none = true;
+				if (bt_value_array_append_string(names,
+						identifier)) {
+					goto error;
+				}
 			} else {
 				printf_err("Unknown field name: \"%s\"\n",
 					identifier);
@@ -1153,12 +1169,27 @@ struct bt_value *names_from_arg(const char *arg)
 		}
 	}
 
-	goto end;
+end:
+	if (found_none && found_all) {
+		printf_err("Only either \"all\" or \"none\" can be specified in the list given to the \"--names\" option, but not both.\n");
+		goto error;
+	}
+	/*
+	 * Legacy behavior is to clear the defaults (show none) when at
+	 * least one item is specified.
+	 */
+	if (found_item && !found_none && !found_all) {
+		if (bt_value_array_append_string(names, "none")) {
+			goto error;
+		}
+	}
+	if (scanner) {
+		g_scanner_destroy(scanner);
+	}
+	return names;
 
 error:
 	BT_PUT(names);
-
-end:
 	if (scanner) {
 		g_scanner_destroy(scanner);
 	}
@@ -1208,25 +1239,12 @@ struct bt_value *fields_from_arg(const char *arg)
 					!strcmp(identifier, "trace:vpid") ||
 					!strcmp(identifier, "loglevel") ||
 					!strcmp(identifier, "emf") ||
-					!strcmp(identifier, "callsite")) {
+					!strcmp(identifier, "callsite") ||
+					!strcmp(identifier, "all")) {
 				if (bt_value_array_append_string(fields,
 						identifier)) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "all")) {
-				/* "all" override all the specific fields */
-				BT_PUT(fields);
-				fields = bt_value_array_create();
-				if (!fields) {
-					print_err_oom();
-					goto error;
-				}
-
-				if (bt_value_array_append_string(fields,
-						identifier)) {
-					goto error;
-				}
-				goto end;
 			} else {
 				printf_err("Unknown field name: \"%s\"\n",
 					identifier);
@@ -1265,7 +1283,7 @@ int insert_flat_names_fields_from_array(struct bt_value *map_obj,
 {
 	int ret = 0;
 	int i;
-	GString *tmpstr = NULL;
+	GString *tmpstr = NULL, *default_value = NULL;
 
 	/*
 	 * array_obj may be NULL if no CLI options were specified to
@@ -1282,9 +1300,17 @@ int insert_flat_names_fields_from_array(struct bt_value *map_obj,
 		goto end;
 	}
 
+	default_value = g_string_new(NULL);
+	if (!default_value) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
 	for (i = 0; i < bt_value_array_size(array_obj); i++) {
 		struct bt_value *str_obj = bt_value_array_get(array_obj, i);
 		const char *suffix;
+		bool is_default = false;
 
 		if (!str_obj) {
 			printf_err("Unexpected error\n");
@@ -1301,37 +1327,43 @@ int insert_flat_names_fields_from_array(struct bt_value *map_obj,
 
 		g_string_assign(tmpstr, prefix);
 		g_string_append(tmpstr, "-");
-		g_string_append(tmpstr, suffix);
-		ret = bt_value_map_insert_bool(map_obj, tmpstr->str, true);
-		if (ret) {
-			print_err_oom();
-			goto end;
+
+		/* Special-case for "all" and "none". */
+		if (!strcmp(suffix, "all")) {
+			is_default = true;
+			g_string_assign(default_value, "show");
+		} else if (!strcmp(suffix, "none")) {
+			is_default = true;
+			g_string_assign(default_value, "hide");
+		}
+		if (is_default) {
+			g_string_append(tmpstr, "default");
+			ret = map_insert_string_or_null(map_obj,
+					tmpstr->str,
+					default_value);
+			if (ret) {
+				print_err_oom();
+				goto end;
+			}
+		} else {
+			g_string_append(tmpstr, suffix);
+			ret = bt_value_map_insert_bool(map_obj, tmpstr->str,
+					true);
+			if (ret) {
+				print_err_oom();
+				goto end;
+			}
 		}
 	}
 
 end:
+	if (default_value) {
+		g_string_free(default_value, TRUE);
+	}
 	if (tmpstr) {
 		g_string_free(tmpstr, TRUE);
 	}
 
-	return ret;
-}
-
-/*
- * Inserts a string (if exists and not empty) or null to a map value
- * object.
- */
-static
-enum bt_value_status map_insert_string_or_null(struct bt_value *map,
-		const char *key, GString *string)
-{
-	enum bt_value_status ret;
-
-	if (string && string->len > 0) {
-		ret = bt_value_map_insert_string(map, key, string->str);
-	} else {
-		ret = bt_value_map_insert(map, key, bt_value_null);
-	}
 	return ret;
 }
 
