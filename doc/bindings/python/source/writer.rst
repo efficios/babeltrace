@@ -6,6 +6,31 @@ CTF writer API
 
 .. currentmodule:: babeltrace.writer
 
+.. IMPORTANT::
+   The bindings documented here are the ones of Babeltrace 2, which
+   is not yet released. If you're using a Babeltrace 1.x release, all
+   the names are in the same module named ``babeltrace``.
+
+   In this case, the names found in the ``babeltrace.writer`` module
+   documented here can be found in the ``CTFWriter`` class in the
+   ``babeltrace`` module.
+
+   For example, instead of:
+
+   .. code-block:: python
+
+      import babeltrace.writer
+
+      event_class = babeltrace.writer.EventClass('my_event')
+
+   do:
+
+   .. code-block:: python
+
+      from babeltrace import CTFWriter
+
+      event_class = CTFWriter.EventClass('my_event')
+
 The **CTF writer API** allows to write native
 `CTF <http://www.efficios.com/ctf>`_ traces from a Python environment.
 

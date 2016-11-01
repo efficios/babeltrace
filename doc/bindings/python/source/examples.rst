@@ -4,6 +4,71 @@
 Examples
 ********
 
+.. IMPORTANT::
+   The bindings documented here are the ones of Babeltrace 2, which
+   is not yet released. If you're using a Babeltrace 1.x release, all
+   the names are in the same module named ``babeltrace``. In this case:
+
+   * The names found in the ``babeltrace.common`` module
+     (:ref:`documented here <constants>`) can be found in the
+     ``babeltrace`` module directly.
+
+     For example, instead of:
+
+     .. code-block:: python
+
+        import babeltrace.common
+
+        scope = babeltrace.common.CTFScope.EVENT_CONTEXT
+
+     do:
+
+     .. code-block:: python
+
+        import babeltrace
+
+        scope = babeltrace.CTFScope.EVENT_CONTEXT
+
+   * The names found in the ``babeltrace.reader`` module
+     (:ref:`documented here <reader-api>`) can be found in the
+     ``babeltrace`` module directly.
+
+     For example, instead of:
+
+     .. code-block:: python
+
+        import babeltrace.reader
+
+        trace_collection = babeltrace.reader.TraceCollection()
+
+     do:
+
+     .. code-block:: python
+
+        import babeltrace
+
+        trace_collection = babeltrace.TraceCollection()
+
+   * The names found in the ``babeltrace.writer`` module
+     (:ref:`documented here <ctf-writer-api>`) can be found in the
+     ``CTFWriter`` class in the ``babeltrace`` module.
+
+     For example, instead of:
+
+     .. code-block:: python
+
+        import babeltrace.writer
+
+        event_class = babeltrace.writer.EventClass('my_event')
+
+     do:
+
+     .. code-block:: python
+
+        from babeltrace import CTFWriter
+
+        event_class = CTFWriter.EventClass('my_event')
+
 This section presents a few short and straightforward examples
 of Babeltrace Python bindings usage.
 
