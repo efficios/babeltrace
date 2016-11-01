@@ -7,4 +7,5 @@ libplugin_system_notification_la_SOURCES = \
 	notification.c \
 	packet.c \
 	event.c \
-	stream.c
+	stream.c \
+	heap.c

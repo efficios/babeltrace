@@ -1,8 +1,8 @@
-#ifndef BT_NOTIFICATION_PRIO_HEAP_H
-#define BT_NOTIFICATION_PRIO_HEAP_H
+#ifndef BT_NOTIFICATION_HEAP_H
+#define BT_NOTIFICATION_HEAP_H
 
 /*
- * Babeltrace - Priority Heap
+ * Babeltrace - Notification Heap
  *
  * Copyright (c) 2011 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  * Copyright (c) 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -40,7 +40,7 @@
  * used to order the notifications. This criterion shall ensure a consistent
  * ordering over multiple runs.
  */
-typedef bool (bt_notification_time_compare_func)(
+typedef bool (*bt_notification_time_compare_func)(
 		struct bt_notification *a, struct bt_notification *b);
 
 /**
@@ -86,6 +86,7 @@ extern struct bt_notification *bt_notification_heap_peek(
  * heap. Returns NULL if the heap is empty. The returned notification must be
  * bt_put() by the caller.
  */
-extern void *bt_notification_heap_pop(struct bt_notification_heap *heap);
+extern struct bt_notification *bt_notification_heap_pop(
+		struct bt_notification_heap *heap);
 
-#endif /* BT_NOTIFICATION_PRIO_HEAP_H */
+#endif /* BT_NOTIFICATION_HEAP_H */
