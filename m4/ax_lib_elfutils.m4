@@ -30,19 +30,10 @@
 AC_DEFUN([AX_LIB_ELFUTILS], [
 	m4_pushdef([major_version], [$1])
 	m4_pushdef([minor_version], [$2])
-
-	m4_if([$#], 3, [
-		m4_pushdef([true_action], [$3])
-	], [
-		m4_pushdef([true_action], [])
-	])
-
-	m4_if([$#], 4, [
-		m4_pushdef([false_action], [$4])
-	], [
-		m4_pushdef([false_action], [
-			AC_MSG_ERROR(elfutils >= major_version.minor_version is required)])
-	])
+	m4_pushdef([true_action], m4_default([$3], [:]))
+	m4_pushdef([false_action], m4_default(
+		[$4], [AC_MSG_ERROR(elfutils >= major_version.minor_version is required)]
+	))
 
 	AC_CACHE_CHECK(
 		[for elfutils version >= major_version.minor_version],
