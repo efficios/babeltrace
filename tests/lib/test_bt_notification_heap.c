@@ -71,7 +71,8 @@ error:
 }
 
 static
-bool compare_notifications(struct bt_notification *a, struct bt_notification *b)
+bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
+		void *unused)
 {
 	uint64_t val_a = ((struct dummy_notification *) a)->value;
 	uint64_t val_b = ((struct dummy_notification *) b)->value;
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 
 	/* Initialize tap harness before any tests */
 	plan_tests(NR_TESTS);
-	heap = bt_notification_heap_create(compare_notifications);
+	heap = bt_notification_heap_create(compare_notifications, NULL);
 	ok(heap, "Created a notification heap");
 
 	/* Insert 10 000 notifications with random values. */

@@ -35,6 +35,7 @@ struct bt_notification_heap {
 	GPtrArray *ptrs;
 	size_t count;
 	bt_notification_time_compare_func compare;
+	void *compare_data;
 };
 
 #endif /* CTF_NOTIF_HEAP_INTERNAL_H */

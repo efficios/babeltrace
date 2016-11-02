@@ -43,7 +43,8 @@ void check_heap(struct bt_notification_heap *heap)
 
 	for (i = 1; i < heap->count; i++) {
 		assert(!heap->compare(g_ptr_array_index(heap->ptrs, i),
-				g_ptr_array_index(heap->ptrs, 0)));
+				g_ptr_array_index(heap->ptrs, 0),
+				heap->compare_data));
 	}
 }
 #else
@@ -114,12 +115,14 @@ void heapify(struct bt_notification_heap *heap, size_t i)
 
 		l = left(i);
 		r = right(i);
-		if (l < heap->count && heap->compare(ptrs[l], ptrs[i])) {
+		if (l < heap->count && heap->compare(ptrs[l], ptrs[i],
+				heap->compare_data)) {
 			largest = l;
 		} else {
 			largest = i;
 		}
-		if (r < heap->count && heap->compare(ptrs[r], ptrs[largest])) {
+		if (r < heap->count && heap->compare(ptrs[r], ptrs[largest],
+				heap->compare_data)) {
 			largest = r;
 		}
 		if (unlikely(largest == i)) {
@@ -172,7 +175,7 @@ void bt_notification_heap_destroy(struct bt_object *obj)
 }
 
 struct bt_notification_heap *bt_notification_heap_create(
-		bt_notification_time_compare_func comparator)
+		bt_notification_time_compare_func comparator, void *user_data)
 {
 	struct bt_notification_heap *heap = NULL;
 
@@ -193,6 +196,7 @@ struct bt_notification_heap *bt_notification_heap_create(
 	}
 
 	heap->compare = comparator;
+	heap->compare_data = user_data;
 end:
 	return heap;
 }
@@ -219,7 +223,8 @@ int bt_notification_heap_insert(struct bt_notification_heap *heap,
 
 	ptrs = (struct bt_notification **) heap->ptrs->pdata;
 	pos = heap->count - 1;
-	while (pos > 0 && heap->compare(notification, ptrs[parent(pos)])) {
+	while (pos > 0 && heap->compare(notification, ptrs[parent(pos)],
+		        heap->compare_data)) {
 		/* Move parent down until we find the right spot. */
 		ptrs[pos] = ptrs[parent(pos)];
 		pos = parent(pos);

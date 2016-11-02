@@ -41,7 +41,8 @@
  * ordering over multiple runs.
  */
 typedef bool (*bt_notification_time_compare_func)(
-		struct bt_notification *a, struct bt_notification *b);
+		struct bt_notification *a, struct bt_notification *b,
+		void *user_data);
 
 /**
  * bt_notification_heap_create - create a new bt_notification heap.
@@ -51,7 +52,7 @@ typedef bool (*bt_notification_time_compare_func)(
  * Returns a new notification heap, NULL on error.
  */
 extern struct bt_notification_heap *bt_notification_heap_create(
-		bt_notification_time_compare_func comparator);
+		bt_notification_time_compare_func comparator, void *user_data);
 
 /**
  * bt_notification_heap_insert - insert an element into the heap
