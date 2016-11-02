@@ -1,4 +1,4 @@
-# ax_lib_elfutils.m4 -- Check elfutils version
+# bt_lib_elfutils.m4 -- Check elfutils version
 #
 # Copyright (C) 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
@@ -25,9 +25,9 @@
 #
 # The cache variable for this test is `bt_cv_lib_elfutils`.
 #
-# AX_LIB_ELFUTILS(MAJOR_VERSION, MINOR_VERSION, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
+# BT_LIB_ELFUTILS(MAJOR_VERSION, MINOR_VERSION, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
 # ---------------------------------------------------------------------------
-AC_DEFUN([AX_LIB_ELFUTILS], [
+AC_DEFUN([BT_LIB_ELFUTILS], [
 	m4_pushdef([major_version], [$1])
 	m4_pushdef([minor_version], [$2])
 	m4_pushdef([true_action], m4_default([$3], [:]))
