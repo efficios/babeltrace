@@ -84,7 +84,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	ctf_fs = bt_component_get_private_data(component);
 	assert(ctf_fs);
 
-	ret = ctf_fs_data_stream_get_next_notification(ctf_fs, &notification);
+	ret = ctf_fs_data_stream_get_next_notification(ctf_fs, &notification, 0);
 	if (ret || !notification) {
 		goto end;
 	}

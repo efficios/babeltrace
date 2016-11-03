@@ -1,8 +1,7 @@
 /*
  * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2010-2011 - EfficiOS Inc. and Linux Foundation
- *
- * Some functions are based on older functions written by Mathieu Desnoyers.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,12 +60,12 @@ void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 
 static size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
 {
-	return stream->mmap_offset + stream->mmap_len -
-		stream->request_offset;
+	return stream->mmap_valid_len - stream->request_offset;
 }
 
 static int stream_munmap(struct ctf_fs_stream *stream)
 {
+	int ret = 0;
 	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 
 	if (munmap(stream->mmap_addr, stream->mmap_len)) {
@@ -74,16 +73,17 @@ static int stream_munmap(struct ctf_fs_stream *stream)
 			stream->mmap_addr, stream->mmap_len,
 			stream->file->path->str, stream->file->fp,
 			strerror(errno));
-		return -1;
+		ret = -1;
+		goto end;
 	}
-
-	return 0;
+end:
+	return ret;
 }
 
 static int mmap_next(struct ctf_fs_stream *stream)
 {
-	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 	int ret = 0;
+	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 
 	/* Unmap old region */
 	if (stream->mmap_addr) {
@@ -91,10 +91,15 @@ static int mmap_next(struct ctf_fs_stream *stream)
 			goto error;
 		}
 
-		stream->mmap_offset += stream->mmap_len;
-		stream->request_offset = stream->mmap_offset;
+		stream->mmap_offset += stream->mmap_valid_len;
+		stream->request_offset = 0;
 	}
 
+	stream->mmap_valid_len = MIN(stream->file->size - stream->mmap_offset,
+			stream->mmap_max_len);
+	/* Round up to next page, assuming page size being a power of 2. */
+	stream->mmap_len = (stream->mmap_valid_len + ctf_fs->page_size - 1)
+			& ~(ctf_fs->page_size - 1);
 	/* Map new region */
 	stream->mmap_addr = mmap((void *) 0, stream->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(stream->file->fp),
@@ -140,7 +145,7 @@ static enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	/* Check if we have at least one memory-mapped byte left */
 	if (remaining_mmap_bytes(stream) == 0) {
 		/* Are we at the end of the file? */
-		if (stream->request_offset == stream->file->size) {
+		if (stream->request_offset >= stream->file->size) {
 			PDBG("Reached end of file \"%s\" (%p)\n",
 				stream->file->path->str, stream->file->fp);
 			status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
@@ -155,8 +160,7 @@ static enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	}
 
 	*buffer_sz = MIN(remaining_mmap_bytes(stream), request_sz);
-	*buffer_addr = ((uint8_t *) stream->mmap_addr) +
-		stream->request_offset - stream->mmap_offset;
+	*buffer_addr = ((uint8_t *) stream->mmap_addr) + stream->request_offset;
 	stream->request_offset += *buffer_sz;
 	goto end;
 
@@ -178,10 +182,10 @@ static struct bt_ctf_stream *medop_get_stream(
 
 		PDBG("Creating stream out of stream class %" PRId64 "\n", id);
 		fs_stream->stream = bt_ctf_stream_create(stream_class,
-			fs_stream->file->path->str);
+				fs_stream->file->path->str);
 		if (!fs_stream->stream) {
 			PERR("Cannot create stream (stream class %" PRId64 ")\n",
-				id);
+					id);
 		}
 	}
 
@@ -209,7 +213,7 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 	if (!stream->notif_iter) {
 		goto error;
 	}
-	stream->mmap_len = ctf_fs->page_size * 2048;
+	stream->mmap_max_len = ctf_fs->page_size * 2048;
 	goto end;
 error:
 	/* Do not touch "borrowed" file. */
@@ -222,12 +226,14 @@ end:
 
 enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
 		struct ctf_fs_component *ctf_fs,
-		struct bt_notification **notification)
+		struct bt_notification **notification,
+		size_t stream_id)
 {
 	enum bt_ctf_notif_iter_status status;
 	enum bt_notification_iterator_status ret;
 	/* FIXME, only iterating on one stream for the moment. */
-	struct ctf_fs_stream *stream = g_ptr_array_index(ctf_fs->streams, 0);
+	struct ctf_fs_stream *stream = g_ptr_array_index(ctf_fs->streams,
+			stream_id);
 
 	if (stream->end_reached) {
 		status = BT_CTF_NOTIF_ITER_STATUS_EOF;

@@ -60,8 +60,18 @@ struct ctf_fs_stream {
 	/* FIXME There should be many and ctf_fs_stream should not own them. */
 	struct bt_ctf_notif_iter *notif_iter;
 	void *mmap_addr;
+	/* Max length of chunk to mmap() when updating the current mapping. */
+	size_t mmap_max_len;
+	/* Length of the current mapping. */
 	size_t mmap_len;
+	/* Length of the current mapping which *exists* in the backing file. */
+	size_t mmap_valid_len;
+	/* Offset in the file where the current mapping starts. */
 	off_t mmap_offset;
+	/*
+	 * Offset, in the current mapping, of the address to return on the next
+	 * request.
+	 */
 	off_t request_offset;
 	bool end_reached;
 };
