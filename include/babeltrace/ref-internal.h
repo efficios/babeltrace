@@ -50,12 +50,9 @@ static inline
 void bt_ref_get(struct bt_ref *ref)
 {
 	assert(ref);
-	if (ref->release) {
-		/* Object has opted-in reference counting. */
-		ref->count++;
-		/* Overflow check. */
-		assert(ref->count);
-	}
+	ref->count++;
+	/* Overflow check. */
+	assert(ref->count);
 }
 
 static inline
