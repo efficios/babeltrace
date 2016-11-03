@@ -58,6 +58,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
+	event_class->id = -1;
 	bt_object_init(event_class, bt_ctf_event_class_destroy);
 	event_class->fields = bt_ctf_field_type_structure_create();
 	if (!event_class->fields) {
@@ -112,6 +113,11 @@ const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 		goto end;
 	}
 
+	if (event_class->name) {
+		name = event_class->name;
+		goto end;
+	}
+
 	obj = bt_ctf_attributes_get_field_value(event_class->attributes,
 		BT_CTF_EVENT_CLASS_ATTR_NAME_INDEX);
 	if (!obj) {
@@ -134,6 +140,11 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 
 	if (!event_class) {
 		ret = -1;
+		goto end;
+	}
+
+	if (event_class->id >= 0) {
+		ret = event_class->id;
 		goto end;
 	}
 
@@ -547,6 +558,8 @@ void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class)
 {
 	assert(event_class);
 	event_class->frozen = 1;
+	event_class->name = bt_ctf_event_class_get_name(event_class);
+	event_class->id = bt_ctf_event_class_get_id(event_class);
 	bt_ctf_field_type_freeze(event_class->context);
 	bt_ctf_field_type_freeze(event_class->fields);
 	bt_ctf_attributes_freeze(event_class->attributes);

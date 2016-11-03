@@ -56,6 +56,10 @@ struct bt_ctf_event_class {
 	 * no events are created out of this event class.
 	 */
 	int valid;
+
+	/* Cached values */
+	const char *name;
+	int64_t id;
 };
 
 BT_HIDDEN
