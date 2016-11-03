@@ -430,8 +430,16 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
 	int event_class_count;
 	struct bt_ctf_clock *clock_to_add_to_trace = NULL;
+	struct bt_ctf_trace *current_parent_trace = NULL;
 
 	if (!trace || !stream_class) {
+		ret = -1;
+		goto end;
+	}
+
+	current_parent_trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (current_parent_trace) {
+		/* Stream class is already associated to a trace, abort. */
 		ret = -1;
 		goto end;
 	}
@@ -668,6 +676,7 @@ end:
 	g_free(ec_validation_outputs);
 	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
 	BT_PUT(clock_to_add_to_trace);
+	bt_put(current_parent_trace);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
 	assert(!event_header_type);
