@@ -58,3 +58,5 @@ bindings/python/nativebt_wrap.c
 bindings/python/__pycache__
 babeltrace.pc
 babeltrace-ctf.pc
+TAGS
+cscope*
