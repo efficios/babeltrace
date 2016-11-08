@@ -45,14 +45,18 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include <dirent.h>
+#include <ftw.h>
+#include <pthread.h>
 
 #define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace-python-plugin-provider." G_MODULE_SUFFIX
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	TOSTRING(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 
+#define APPEND_ALL_FROM_DIR_NFDOPEN_MAX	8
+
 #ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
 #include <babeltrace/plugin/python-plugin-provider-internal.h>
+
 static
 struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
 	bt_plugin_python_create_all_from_file;
@@ -380,21 +384,64 @@ end:
 	return comp_cls;
 }
 
-/* Allocate dirent as recommended by READDIR(3), NOTES on readdir_r */
-static
-struct dirent *alloc_dirent(const char *path)
-{
-	size_t len;
-	long name_max;
-	struct dirent *entry;
+static struct {
+	pthread_mutex_t lock;
+	struct bt_plugin_set *plugin_set;
+	bt_bool recurse;
+} append_all_from_dir_info = {
+	.lock = PTHREAD_MUTEX_INITIALIZER
+};
 
-	name_max = pathconf(path, _PC_NAME_MAX);
-	if (name_max == -1) {
-		name_max = PATH_MAX;
+static
+int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
+		struct FTW *s)
+{
+	int ret = 0;
+	const char *name = file + s->base;
+
+	/* Check for recursion */
+	if (!append_all_from_dir_info.recurse && s->level > 1) {
+		goto end;
 	}
-	len = offsetof(struct dirent, d_name) + name_max + 1;
-	entry = zmalloc(len);
-	return entry;
+
+	switch (flag) {
+	case FTW_F:
+		if (name[0] == '.') {
+			/* Skip hidden files */
+			BT_LOGV("Skipping hidden file: path=\"%s\"", file);
+			goto end;
+		}
+		struct bt_plugin_set *plugins_from_file =
+			bt_plugin_create_all_from_file(file);
+
+		if (plugins_from_file) {
+			size_t j;
+
+			for (j = 0; j < plugins_from_file->plugins->len; j++) {
+				struct bt_plugin *plugin =
+					g_ptr_array_index(plugins_from_file->plugins, j);
+
+				BT_LOGD("Adding plugin to plugin set: "
+					"plugin-path=\"%s\", plugin-addr=%p, plugin-name=\"%s\"",
+					file, plugin, bt_plugin_get_name(plugin));
+				bt_plugin_set_add_plugin(append_all_from_dir_info.plugin_set, plugin);
+			}
+
+			bt_put(plugins_from_file);
+		}
+		break;
+	case FTW_DNR:
+		/* Continue to next file / directory. */
+		BT_LOGW("Cannot enter directory: continuing: path=\"%s\"", file);
+		break;
+	case FTW_NS:
+		/* Continue to next file / directory. */
+		BT_LOGD("Cannot get file information: continuing: path=\"%s\"", file);
+		break;
+	}
+
+end:
+	return ret;
 }
 
 static
@@ -402,9 +449,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		struct bt_plugin_set *plugin_set, const char *path,
 		bt_bool recurse)
 {
-	DIR *directory = NULL;
-	struct dirent *entry = NULL, *result = NULL;
-	char *file_path = NULL;
+	int nftw_flags = FTW_PHYS;
 	size_t path_len;
 	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
 
@@ -422,129 +467,22 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		goto end;
 	}
 
-	entry = alloc_dirent(path);
-	if (!entry) {
-		BT_LOGE_STR("Failed to allocate a directory entry.");
+	pthread_mutex_lock(&append_all_from_dir_info.lock);
+
+	append_all_from_dir_info.plugin_set = plugin_set;
+	append_all_from_dir_info.recurse = recurse;
+	ret = nftw(path, nftw_append_all_from_dir,
+		APPEND_ALL_FROM_DIR_NFDOPEN_MAX, nftw_flags);
+
+	pthread_mutex_unlock(&append_all_from_dir_info.lock);
+
+	if (ret != 0) {
+		BT_LOGW("Cannot open directory: %s: path=\"%s\", errno=%d",
+			strerror(errno), path, errno);
 		ret = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
-
-	file_path = zmalloc(PATH_MAX);
-	if (!file_path) {
-		BT_LOGE("Failed to allocate %zu bytes.", (size_t) PATH_MAX);
-		ret = BT_PLUGIN_STATUS_NOMEM;
-		goto end;
-	}
-
-	strncpy(file_path, path, path_len);
-	/* Append a trailing '/' to the path */
-	if (file_path[path_len - 1] != '/') {
-		file_path[path_len++] = '/';
-	}
-
-	directory = opendir(file_path);
-	if (!directory) {
-		if (errno == EACCES) {
-			BT_LOGD("Cannot open directory: %s: continuing: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), file_path, errno);
-			goto end;
-		}
-
-		BT_LOGW("Cannot open directory: %s: "
-			"path=\"%s\", errno=%d",
-			strerror(errno), file_path, errno);
-		ret = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
-
-	/* Recursively walk directory */
-	while (!readdir_r(directory, entry, &result) && result) {
-		struct stat st;
-		int stat_ret;
-		size_t file_name_len;
-
-		if (strcmp(result->d_name, ".") == 0 ||
-				strcmp(result->d_name, "..") == 0) {
-			/* Obviously not logging this */
-			continue;
-		}
-
-		if (result->d_name[0] == '.') {
-			/* Skip hidden files, . and .. */
-			BT_LOGV("Skipping hidden file: path=\"%s/%s\"",
-				path, result->d_name);
-			continue;
-		}
-
-		file_name_len = strlen(result->d_name);
-
-		if (path_len + file_name_len >= PATH_MAX) {
-			BT_LOGD("Skipping file because its path length is too large: continuing: "
-				"path=\"%s/%s\", length=%zu",
-				path, result->d_name,
-				(size_t) (path_len + file_name_len));
-			continue;
-		}
-
-		strncpy(file_path + path_len, result->d_name, file_name_len);
-		file_path[path_len + file_name_len] = '\0';
-		stat_ret = stat(file_path, &st);
-		if (stat_ret < 0) {
-			/* Continue to next file / directory. */
-			BT_LOGD("Cannot get file information: %s: continuing: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), file_path, errno);
-			continue;
-		}
-
-		if (S_ISDIR(st.st_mode) && recurse) {
-			ret = bt_plugin_create_append_all_from_dir(plugin_set,
-				file_path, BT_TRUE);
-			if (ret < 0) {
-				BT_LOGW("Cannot recurse into directory to find plugins: "
-					"path=\"%s\", ret=%d", file_path, ret);
-				goto end;
-			}
-		} else if (S_ISREG(st.st_mode)) {
-			struct bt_plugin_set *plugins_from_file =
-				bt_plugin_create_all_from_file(file_path);
-
-			if (plugins_from_file) {
-				size_t j;
-
-				for (j = 0; j < plugins_from_file->plugins->len; j++) {
-					struct bt_plugin *plugin =
-						g_ptr_array_index(plugins_from_file->plugins, j);
-
-					BT_LOGD("Adding plugin to plugin set: "
-						"plugin-path=\"%s\", plugin-addr=%p, plugin-name=\"%s\"",
-						file_path, plugin,
-						bt_plugin_get_name(plugin));
-					bt_plugin_set_add_plugin(plugin_set,
-						plugin);
-				}
-
-				bt_put(plugins_from_file);
-			}
-		}
 	}
 
 end:
-	if (directory) {
-		if (closedir(directory)) {
-			/*
-			 * We don't want to override the error since there is
-			 * nothing could do.
-			 */
-			BT_LOGE("Cannot close directory entry: %s: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), path, errno);
-		}
-	}
-
-	free(entry);
-	free(file_path);
 	return ret;
 }
 
