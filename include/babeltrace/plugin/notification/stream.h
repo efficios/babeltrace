@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/ctf-ir/stream.h>
 
 #ifdef __cplusplus
 extern "C" {

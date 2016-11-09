@@ -42,3 +42,17 @@ enum bt_notification_type bt_notification_get_type(
 {
 	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
 }
+
+struct bt_ctf_stream *bt_notification_get_stream(
+		struct bt_notification *notification)
+{
+	struct bt_ctf_stream *stream = NULL;
+
+	if (!notification || !notification->get_stream) {
+		goto end;
+	}
+
+	stream = notification->get_stream(notification);
+end:
+	return stream;
+}

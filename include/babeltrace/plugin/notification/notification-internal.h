@@ -31,14 +31,19 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/ctf-ir/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+typedef struct bt_ctf_stream *(*get_stream_func)(
+		struct bt_notification *notification);
+
 struct bt_notification {
 	struct bt_object base;
 	enum bt_notification_type type;
+	get_stream_func get_stream;
 };
 
 BT_HIDDEN
