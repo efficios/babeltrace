@@ -889,12 +889,6 @@ enum bt_ctf_notif_iter_status after_event_header_state(
 {
 	enum bt_ctf_notif_iter_status status;
 
-	status = set_current_packet_content_sizes(notit);
-	if (status != BT_CTF_NOTIF_ITER_STATUS_OK) {
-		PERR("Failed to set current packet and content sizes\n");
-		goto end;
-	}
-
 	status = set_current_event_class(notit);
 	if (status != BT_CTF_NOTIF_ITER_STATUS_OK) {
 		PERR("Failed to set current event class\n");
