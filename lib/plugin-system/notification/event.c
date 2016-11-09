@@ -58,9 +58,16 @@ error:
 struct bt_ctf_event *bt_notification_event_get_event(
 		struct bt_notification *notification)
 {
+	struct bt_ctf_event *event = NULL;
 	struct bt_notification_event *event_notification;
 
+	if (bt_notification_get_type(notification) !=
+			BT_NOTIFICATION_TYPE_EVENT) {
+		goto end;
+	}
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
-	return bt_get(event_notification->event);
+	event = bt_get(event_notification->event);
+end:
+	return event;
 }
