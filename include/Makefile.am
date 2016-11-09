@@ -76,7 +76,6 @@ noinst_HEADERS = \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/common-internal.h \
-	babeltrace/compat/dirent-internal.h \
 	babeltrace/compat/fcntl-internal.h \
 	babeltrace/compat/glib-internal.h \
 	babeltrace/compat/limits-internal.h \
