@@ -48,8 +48,10 @@ enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -1,
 	/** General error. */
 	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -2,
+	/** Out of memory. */
+	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -3,
 	/** Unsupported iterator feature. */
-	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -3,
+	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -4,
 
 };
 

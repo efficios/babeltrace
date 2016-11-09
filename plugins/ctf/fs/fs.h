@@ -78,6 +78,16 @@ struct ctf_fs_stream {
 
 struct ctf_fs_iterator {
 	struct bt_notification_heap *pending_notifications;
+	struct bt_notification *current_notification;
+	/*
+	 * struct ctf_fs_data_stream* which have not yet been associated to a
+	 * bt_ctf_stream. The association is performed on the first packet
+	 * read by the stream (since, at that point, we have read a packet
+	 * header).
+	 */
+	GPtrArray *pending_streams;
+	/* bt_ctf_stream -> ctf_fs_stream */
+	GHashTable *stream_ht;
 };
 
 struct ctf_fs_component_options {
@@ -88,10 +98,8 @@ struct ctf_fs_component {
 	GString *trace_path;
 	FILE *error_fp;
 	size_t page_size;
-	struct bt_notification *current_notification;
-	struct ctf_fs_metadata metadata;
 	struct ctf_fs_component_options options;
-	GPtrArray *streams; /* struct ctf_fs_data_stream * */
+	struct ctf_fs_metadata *metadata;
 };
 
 BT_HIDDEN

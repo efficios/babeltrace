@@ -579,8 +579,7 @@ enum bt_ctf_notif_iter_status set_current_stream_class(struct bt_ctf_notif_iter 
 
 	BT_PUT(notit->meta.stream_class);
 
-	// TODO: get by ID
-	notit->meta.stream_class = bt_ctf_trace_get_stream_class(
+	notit->meta.stream_class = bt_ctf_trace_get_stream_class_by_id(
 			notit->meta.trace, stream_id);
 	if (!notit->meta.stream_class) {
 		PERR("Cannot find stream class with ID %" PRIu64 "\n",

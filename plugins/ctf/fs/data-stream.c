@@ -35,35 +35,20 @@
 #include "metadata.h"
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
+#include "data-stream.h"
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-data-stream"
 #include "print.h"
 
-BT_HIDDEN
-void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
-{
-	if (stream->file) {
-		ctf_fs_file_destroy(stream->file);
-	}
-
-	if (stream->stream) {
-		BT_PUT(stream->stream);
-	}
-
-	if (stream->notif_iter) {
-		bt_ctf_notif_iter_destroy(stream->notif_iter);
-	}
-
-	g_free(stream);
-}
-
-static size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
+static
+size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
 {
 	return stream->mmap_valid_len - stream->request_offset;
 }
 
-static int stream_munmap(struct ctf_fs_stream *stream)
+static
+int stream_munmap(struct ctf_fs_stream *stream)
 {
 	int ret = 0;
 	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
@@ -80,7 +65,8 @@ end:
 	return ret;
 }
 
-static int mmap_next(struct ctf_fs_stream *stream)
+static
+int mmap_next(struct ctf_fs_stream *stream)
 {
 	int ret = 0;
 	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
@@ -120,7 +106,8 @@ end:
 	return ret;
 }
 
-static enum bt_ctf_notif_iter_medium_status medop_request_bytes(
+static
+enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
@@ -171,7 +158,8 @@ end:
 	return status;
 }
 
-static struct bt_ctf_stream *medop_get_stream(
+static
+struct bt_ctf_stream *medop_get_stream(
 		struct bt_ctf_stream_class *stream_class, void *data)
 {
 	struct ctf_fs_stream *fs_stream = data;
@@ -208,11 +196,12 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 	}
 
 	stream->file = file;
-	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata.trace,
+	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata->trace,
 			ctf_fs->page_size, medops, stream, ctf_fs->error_fp);
 	if (!stream->notif_iter) {
 		goto error;
 	}
+
 	stream->mmap_max_len = ctf_fs->page_size * 2048;
 	goto end;
 error:
@@ -224,60 +213,24 @@ end:
 	return stream;
 }
 
-enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
-		struct ctf_fs_component *ctf_fs,
-		struct bt_notification **notification,
-		size_t stream_id)
+BT_HIDDEN
+void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 {
-	enum bt_ctf_notif_iter_status status;
-	enum bt_notification_iterator_status ret;
-	/* FIXME, only iterating on one stream for the moment. */
-	struct ctf_fs_stream *stream = g_ptr_array_index(ctf_fs->streams,
-			stream_id);
-
-	if (stream->end_reached) {
-		status = BT_CTF_NOTIF_ITER_STATUS_EOF;
-		goto end;
+	if (!stream) {
+		return;
 	}
 
-	status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
-			notification);
-	if (status != BT_CTF_NOTIF_ITER_STATUS_OK &&
-			status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		goto end;
+	if (stream->file) {
+		ctf_fs_file_destroy(stream->file);
 	}
 
-	/* Should be handled in bt_ctf_notif_iter_get_next_notification. */
-	if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		*notification = bt_notification_stream_end_create(
-				stream->stream);
-		if (!*notification) {
-			status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
-		}
-		status = BT_CTF_NOTIF_ITER_STATUS_OK;
-		stream->end_reached = true;
+	if (stream->stream) {
+		BT_PUT(stream->stream);
 	}
-end:
-	switch (status) {
-	case BT_CTF_NOTIF_ITER_STATUS_EOF:
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
-		break;
-	case BT_CTF_NOTIF_ITER_STATUS_OK:
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
-		break;
-	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
-		/*
-		 * Should not make it this far as this is medium-specific;
-		 * there is nothing for the user to do and it should have been
-		 * handled upstream.
-		 */
-		assert(0);
-	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
-		/* No argument provided by the user, so don't return INVAL. */
-	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
-	default:
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-		break;
+
+	if (stream->notif_iter) {
+		bt_ctf_notif_iter_destroy(stream->notif_iter);
 	}
-	return ret;
+
+	g_free(stream);
 }

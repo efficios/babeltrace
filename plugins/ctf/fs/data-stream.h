@@ -40,10 +40,4 @@ void ctf_fs_stream_destroy(struct ctf_fs_stream *stream);
 BT_HIDDEN
 int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs);
 
-BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_data_stream_get_next_notification(
-		struct ctf_fs_component *ctf_fs,
-		struct bt_notification **notification,
-		size_t stream_id);
-
 #endif /* CTF_FS_DATA_STREAM_H */

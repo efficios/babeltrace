@@ -27,7 +27,12 @@
  */
 
 #include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/plugin/notification/iterator.h>
+#include <babeltrace/plugin/notification/stream.h>
+#include <babeltrace/plugin/notification/event.h>
+#include <babeltrace/plugin/notification/packet.h>
+#include <babeltrace/plugin/notification/heap.h>
 #include <glib.h>
 #include <assert.h>
 #include <unistd.h>
@@ -46,59 +51,305 @@ static
 struct bt_notification *ctf_fs_iterator_get(
 		struct bt_notification_iterator *iterator)
 {
-	struct bt_notification *notification = NULL;
-	struct ctf_fs_component *ctf_fs;
-	struct bt_component *component = bt_notification_iterator_get_component(
-			iterator);
+	struct ctf_fs_iterator *ctf_it =
+			bt_notification_iterator_get_private_data(iterator);
 
-	if (!component) {
+	return bt_get(ctf_it->current_notification);
+}
+
+static
+enum bt_notification_iterator_status ctf_fs_iterator_get_next_notification(
+		struct ctf_fs_iterator *it,
+		struct ctf_fs_stream *stream,
+		struct bt_notification **notification)
+{
+	enum bt_ctf_notif_iter_status status;
+	enum bt_notification_iterator_status ret;
+
+	if (stream->end_reached) {
+		status = BT_CTF_NOTIF_ITER_STATUS_EOF;
 		goto end;
 	}
 
-	ctf_fs = bt_component_get_private_data(component);
-	if (!ctf_fs) {
+	status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
+			notification);
+	if (status != BT_CTF_NOTIF_ITER_STATUS_OK &&
+			status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
 		goto end;
 	}
 
-	notification = bt_get(ctf_fs->current_notification);
+	/* Should be handled in bt_ctf_notif_iter_get_next_notification. */
+	if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		*notification = bt_notification_stream_end_create(
+				stream->stream);
+		if (!*notification) {
+			status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		}
+		status = BT_CTF_NOTIF_ITER_STATUS_OK;
+		stream->end_reached = true;
+	}
 end:
-	BT_PUT(component);
-	return notification;
+	switch (status) {
+	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_OK:
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+		/*
+		 * Should not make it this far as this is medium-specific;
+		 * there is nothing for the user to do and it should have been
+		 * handled upstream.
+		 */
+		assert(0);
+	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+		/* No argument provided by the user, so don't return INVAL. */
+	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	default:
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		break;
+	}
+	return ret;
+}
+
+/*
+ * Remove me. This is a temporary work-around due to our inhability to use
+ * libbabeltrace-ctf from libbabeltrace-plugin.
+ */
+static
+struct bt_ctf_stream *internal_bt_notification_get_stream(
+		struct bt_notification *notification)
+{
+	struct bt_ctf_stream *stream = NULL;
+
+	assert(notification);
+	switch (bt_notification_get_type(notification)) {
+	case BT_NOTIFICATION_TYPE_EVENT:
+	{
+		struct bt_ctf_event *event;
+
+		event = bt_notification_event_get_event(notification);
+		stream = bt_ctf_event_get_stream(event);
+		bt_put(event);
+		break;
+	}
+	case BT_NOTIFICATION_TYPE_PACKET_START:
+	{
+		struct bt_ctf_packet *packet;
+
+		packet = bt_notification_packet_start_get_packet(notification);
+		stream = bt_ctf_packet_get_stream(packet);
+		bt_put(packet);
+		break;
+	}
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+	{
+		struct bt_ctf_packet *packet;
+
+		packet = bt_notification_packet_end_get_packet(notification);
+		stream = bt_ctf_packet_get_stream(packet);
+		bt_put(packet);
+		break;
+	}
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		stream = bt_notification_stream_end_get_stream(notification);
+		break;
+	default:
+		goto end;
+	}
+end:
+	return stream;
+}
+
+static
+enum bt_notification_iterator_status populate_heap(struct ctf_fs_iterator *it)
+{
+	size_t i, pending_streams_count = it->pending_streams->len;
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	/* Insert one stream-associated notification for each stream. */
+	for (i = 0; i < pending_streams_count; i++) {
+		struct bt_notification *notification;
+		struct ctf_fs_stream *fs_stream;
+		struct bt_ctf_stream *stream;
+		size_t pending_stream_index = pending_streams_count - 1 - i;
+
+		fs_stream = g_ptr_array_index(it->pending_streams,
+				pending_stream_index);
+
+		do {
+			int heap_ret;
+
+			ret = ctf_fs_iterator_get_next_notification(
+					it, fs_stream, &notification);
+			if (ret && ret != BT_NOTIFICATION_ITERATOR_STATUS_END) {
+				printf_debug("Failed to populate heap at stream %zu\n",
+						pending_stream_index);
+				goto end;
+			}
+
+			stream = internal_bt_notification_get_stream(
+					notification);
+			if (stream) {
+				gboolean inserted;
+
+				/*
+				 * Associate pending ctf_fs_stream to
+				 * bt_ctf_stream. Ownership of stream
+				 * is passed to the stream ht.
+				 */
+				inserted = g_hash_table_insert(it->stream_ht,
+						stream, fs_stream);
+				if (!inserted) {
+					ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+					printf_debug("Failed to associate fs stream to ctf stream\n");
+					goto end;
+				}
+			}
+
+			heap_ret = bt_notification_heap_insert(
+					it->pending_notifications,
+					notification);
+			bt_put(notification);
+			if (heap_ret) {
+				ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+				printf_debug("Failed to insert notification in heap\n");
+				goto end;
+			}
+		} while (!stream && ret != BT_NOTIFICATION_ITERATOR_STATUS_END);
+		/*
+		 * Set NULL so the destruction callback registered with the
+		 * array is not invoked on the stream (its ownership was
+		 * transferred to the streams hashtable).
+		 */
+		g_ptr_array_index(it->pending_streams,
+				pending_stream_index) = NULL;
+		g_ptr_array_remove_index(it->pending_streams,
+				pending_stream_index);
+	}
+
+	g_ptr_array_free(it->pending_streams, TRUE);
+	it->pending_streams = NULL;
+end:
+	return ret;
 }
 
 static
 enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator)
 {
-	enum bt_notification_iterator_status ret;
-	struct bt_notification *notification = NULL;
-	struct ctf_fs_component *ctf_fs;
-	struct bt_component *component = bt_notification_iterator_get_component(
-			iterator);
+	int heap_ret;
+	struct bt_ctf_stream *stream;
+	struct ctf_fs_stream *fs_stream;
+	struct bt_notification *notification;
+	struct bt_notification *next_stream_notification;
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct ctf_fs_iterator *ctf_it =
+			bt_notification_iterator_get_private_data(iterator);
 
-	if (!component) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	notification = bt_notification_heap_pop(ctf_it->pending_notifications);
+	if (!notification && !ctf_it->pending_streams) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	}
 
-	ctf_fs = bt_component_get_private_data(component);
-	assert(ctf_fs);
+	if (!notification && ctf_it->pending_streams) {
+		/*
+		 * Insert at one notification per stream in the heap and pop
+		 * one.
+		 */
+		ret = populate_heap(ctf_it);
+		if (ret) {
+			goto end;
+		}
 
-	ret = ctf_fs_data_stream_get_next_notification(ctf_fs, &notification, 0);
-	if (ret || !notification) {
+		notification = bt_notification_heap_pop(
+				ctf_it->pending_notifications);
+		if (!notification) {
+			ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+			goto end;
+		}
+	}
+
+	/* notification is set from here. */
+
+	stream = internal_bt_notification_get_stream(notification);
+	if (!stream) {
+		/*
+		 * The current notification is not associated to a particular
+		 * stream, there is no need to insert a new notification from
+		 * a stream in the heap.
+		 */
 		goto end;
 	}
 
-	bt_put(ctf_fs->current_notification);
-	ctf_fs->current_notification = notification;
+	fs_stream = g_hash_table_lookup(ctf_it->stream_ht, stream);
+	if (!fs_stream) {
+		/* We have reached this stream's end. */
+		goto end;
+	}
+
+	ret = ctf_fs_iterator_get_next_notification(ctf_it, fs_stream,
+			&next_stream_notification);
+	if ((ret && ret != BT_NOTIFICATION_ITERATOR_STATUS_END)) {
+		heap_ret = bt_notification_heap_insert(
+				ctf_it->pending_notifications, notification);
+
+		assert(!next_stream_notification);
+		if (heap_ret) {
+			/*
+			 * We're dropping the most recent notification, but at
+			 * this point, something is seriously wrong...
+			 */
+			ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		}
+		BT_PUT(notification);
+		goto end;
+	}
+
+	if (ret == BT_NOTIFICATION_ITERATOR_STATUS_END) {
+		gboolean success;
+
+		/* Remove stream. */
+		success = g_hash_table_remove(ctf_it->stream_ht, stream);
+		assert(success);
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	} else {
+		heap_ret = bt_notification_heap_insert(ctf_it->pending_notifications,
+						       next_stream_notification);
+		BT_PUT(next_stream_notification);
+		if (heap_ret) {
+			/*
+			 * We're dropping the most recent notification...
+			 */
+			ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		}
+	}
+
+	/*
+	 * Ensure that the stream is removed from both pending_streams and
+	 * the streams hashtable on reception of the "end of stream"
+	 * notification.
+	 */
 end:
-	BT_PUT(component);
+	BT_MOVE(ctf_it->current_notification, notification);
 	return ret;
 }
 
 static
 void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
 {
+	bt_put(ctf_it->current_notification);
+	bt_put(ctf_it->pending_notifications);
+	if (ctf_it->pending_streams) {
+		g_ptr_array_free(ctf_it->pending_streams, TRUE);
+	}
+	if (ctf_it->stream_ht) {
+		g_hash_table_destroy(ctf_it->stream_ht);
+	}
 	g_free(ctf_it);
 }
 
@@ -111,72 +362,21 @@ void ctf_fs_iterator_destroy(struct bt_notification_iterator *it)
 }
 
 static
-enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
-		struct bt_notification_iterator *it)
+bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
+		void *unused)
 {
-	struct ctf_fs_iterator *ctf_it;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	assert(source && it);
-	ctf_it = g_new0(struct ctf_fs_iterator, 1);
-	if (!ctf_it) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
-		goto end;
-	}
-
-	ret = bt_notification_iterator_set_get_cb(it, ctf_fs_iterator_get);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_next_cb(it, ctf_fs_iterator_next);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_destroy_cb(it,
-			ctf_fs_iterator_destroy);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_private_data(it, ctf_it);
-	if (ret) {
-		goto error;
-	}
-end:
-	return ret;
-error:
-	(void) bt_notification_iterator_set_private_data(it, NULL);
-	ctf_fs_iterator_destroy_data(ctf_it);
-	return ret;
+	return a < b;
 }
 
 static
-void ctf_fs_destroy_data(struct ctf_fs_component *component)
+void stream_destroy(void *stream)
 {
-	if (component->trace_path) {
-		g_string_free(component->trace_path, TRUE);
-	}
-
-	ctf_fs_metadata_fini(&component->metadata);
-	BT_PUT(component->current_notification);
-	if (component->streams) {
-		g_ptr_array_free(component->streams, TRUE);
-	}
-	g_free(component);
+	ctf_fs_stream_destroy((struct ctf_fs_stream *) stream);
 }
 
 static
-void ctf_fs_destroy(struct bt_component *component)
-{
-	void *data = bt_component_get_private_data(component);
-
-	ctf_fs_destroy_data(data);
-}
-
-static
-int open_trace_streams(struct ctf_fs_component *ctf_fs)
+int open_trace_streams(struct ctf_fs_component *ctf_fs,
+		struct ctf_fs_iterator *ctf_it)
 {
 	int ret = 0;
 	const char *name;
@@ -236,7 +436,7 @@ int open_trace_streams(struct ctf_fs_component *ctf_fs)
 			goto error;
 		}
 
-		g_ptr_array_add(ctf_fs->streams, stream);
+		g_ptr_array_add(ctf_it->pending_streams, stream);
 	}
 
 	goto end;
@@ -254,9 +454,95 @@ end:
 }
 
 static
-void stream_destroy(void *stream)
+enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
+		struct bt_notification_iterator *it)
 {
-	ctf_fs_stream_destroy((struct ctf_fs_stream *) stream);
+	struct ctf_fs_iterator *ctf_it;
+	struct ctf_fs_component *ctf_fs;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	assert(source && it);
+
+	ctf_fs = bt_component_get_private_data(source);
+	if (!ctf_fs) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	ctf_it = g_new0(struct ctf_fs_iterator, 1);
+	if (!ctf_it) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	ctf_it->stream_ht = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, bt_put, stream_destroy);
+	if (!ctf_it->stream_ht) {
+		goto error;
+	}
+	ctf_it->pending_streams = g_ptr_array_new_with_free_func(
+			stream_destroy);
+	if (!ctf_it->pending_streams) {
+		goto error;
+	}
+	ctf_it->pending_notifications = bt_notification_heap_create(
+			compare_notifications, NULL);
+	if (!ctf_it->pending_notifications) {
+		goto error;
+	}
+
+	ret = open_trace_streams(ctf_fs, ctf_it);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_get_cb(it, ctf_fs_iterator_get);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_next_cb(it, ctf_fs_iterator_next);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_destroy_cb(it,
+			ctf_fs_iterator_destroy);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_notification_iterator_set_private_data(it, ctf_it);
+	if (ret) {
+		goto error;
+	}
+end:
+	return ret;
+error:
+	(void) bt_notification_iterator_set_private_data(it, NULL);
+	ctf_fs_iterator_destroy_data(ctf_it);
+	goto end;
+}
+
+static
+void ctf_fs_destroy_data(struct ctf_fs_component *ctf_fs)
+{
+	if (ctf_fs->trace_path) {
+		g_string_free(ctf_fs->trace_path, TRUE);
+	}
+	if (ctf_fs->metadata) {
+		ctf_fs_metadata_fini(ctf_fs->metadata);
+		g_free(ctf_fs->metadata);
+	}
+	g_free(ctf_fs);
+}
+
+static
+void ctf_fs_destroy(struct bt_component *component)
+{
+	void *data = bt_component_get_private_data(component);
+
+	ctf_fs_destroy_data(data);
 }
 
 static
@@ -287,18 +573,15 @@ struct ctf_fs_component *ctf_fs_create(struct bt_value *params)
 	if (!ctf_fs->trace_path) {
 		goto error;
 	}
-
-	ctf_fs->streams = g_ptr_array_new_with_free_func(stream_destroy);
 	ctf_fs->error_fp = stderr;
 	ctf_fs->page_size = (size_t) getpagesize();
 
 	// FIXME: check error.
-	ctf_fs_metadata_set_trace(ctf_fs);
-
-	ret = open_trace_streams(ctf_fs);
-	if (ret) {
+	ctf_fs->metadata = g_new0(struct ctf_fs_metadata, 1);
+	if (!ctf_fs->metadata) {
 		goto error;
 	}
+	ctf_fs_metadata_set_trace(ctf_fs);
 	goto end;
 
 error:

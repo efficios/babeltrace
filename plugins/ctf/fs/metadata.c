@@ -98,10 +98,10 @@ bool is_packetized(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
 
 	if (magic == TSDL_MAGIC) {
 		ret = 1;
-		ctf_fs->metadata.bo = BYTE_ORDER;
+		ctf_fs->metadata->bo = BYTE_ORDER;
 	} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
 		ret = 1;
-		ctf_fs->metadata.bo = BYTE_ORDER == BIG_ENDIAN ?
+		ctf_fs->metadata->bo = BYTE_ORDER == BIG_ENDIAN ?
 			LITTLE_ENDIAN : BIG_ENDIAN;
 	}
 
@@ -133,7 +133,7 @@ int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
 		goto error;
 	}
 
-	if (ctf_fs->metadata.bo != BYTE_ORDER) {
+	if (ctf_fs->metadata->bo != BYTE_ORDER) {
 		header.magic = GUINT32_SWAP_LE_BE(header.magic);
 		header.checksum = GUINT32_SWAP_LE_BE(header.checksum);
 		header.content_size = GUINT32_SWAP_LE_BE(header.content_size);
@@ -162,10 +162,10 @@ int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
 	}
 
 	/* Set expected trace UUID if not set; otherwise validate it */
-	if (!ctf_fs->metadata.is_uuid_set) {
-		memcpy(ctf_fs->metadata.uuid, header.uuid, sizeof(header.uuid));
-		ctf_fs->metadata.is_uuid_set = true;
-	} else if (bt_uuid_compare(header.uuid, ctf_fs->metadata.uuid)) {
+	if (!ctf_fs->metadata->is_uuid_set) {
+		memcpy(ctf_fs->metadata->uuid, header.uuid, sizeof(header.uuid));
+		ctf_fs->metadata->is_uuid_set = true;
+	} else if (bt_uuid_compare(header.uuid, ctf_fs->metadata->uuid)) {
 		PERR("Metadata UUID mismatch between packets of the same file\n");
 		goto error;
 	}
@@ -305,7 +305,7 @@ void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 		}
 
 		cbuf = (char *) buf;
-		ctf_fs->metadata.text = (char *) cbuf;
+		ctf_fs->metadata->text = (char *) cbuf;
 
 		/* Convert the real file pointer to a memory file pointer */
 		ret = fclose(file->fp);
@@ -363,7 +363,7 @@ void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 	}
 
 	ret = ctf_visitor_generate_ir(ctf_fs->error_fp, &scanner->ast->root,
-		&ctf_fs->metadata.trace);
+		&ctf_fs->metadata->trace);
 	if (ret) {
 		PERR("Cannot create trace object from metadata AST\n");
 		goto error;
@@ -372,9 +372,9 @@ void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 	goto end;
 
 error:
-	if (ctf_fs->metadata.text) {
-		free(ctf_fs->metadata.text);
-		ctf_fs->metadata.text = NULL;
+	if (ctf_fs->metadata->text) {
+		free(ctf_fs->metadata->text);
+		ctf_fs->metadata->text = NULL;
 	}
 
 end:
@@ -389,7 +389,7 @@ end:
 
 int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
 {
-	/* Nothing to initialize for the moment */
+	/* Nothing to initialize for the moment. */
 	return 0;
 }
 
