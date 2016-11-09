@@ -42,7 +42,6 @@
 #include <assert.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <babeltrace/compat/dirent-internal.h>
 #include "tap/tap.h"
 #include <math.h>
 #include <float.h>

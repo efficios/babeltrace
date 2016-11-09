@@ -109,6 +109,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	int ret;
 	struct bt_ctf_writer *writer = NULL;
 	unsigned char uuid[16];
+	char *metadata_path = NULL;
 
 	if (!path) {
 		goto error;
@@ -118,6 +119,8 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	if (!writer) {
 		goto error;
 	}
+
+	metadata_path = g_build_filename(path, "metadata", NULL);
 
 	bt_object_init(writer, bt_ctf_writer_destroy);
 	writer->path = g_string_new(path);
@@ -161,22 +164,20 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	writer->trace_dir_fd = open(path, O_RDONLY, S_IRWXU | S_IRWXG);
-	if (writer->trace_dir_fd < 0) {
-		perror("open");
-		goto error_destroy;
-	}
-
-	writer->metadata_fd = openat(writer->trace_dir_fd, "metadata",
+	writer->metadata_fd = open(metadata_path,
 		O_WRONLY | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
+	// jgalar: Should we handle open() failure here?
+
+	g_free(metadata_path);
 	return writer;
 
 error_destroy:
-	unlinkat(writer->trace_dir_fd, "metadata", 0);
+	unlink(metadata_path);
 	BT_PUT(writer);
 error:
+	g_free(metadata_path);
 	return writer;
 }
 
@@ -188,12 +189,6 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 	bt_ctf_writer_flush_metadata(writer);
 	if (writer->path) {
 		g_string_free(writer->path, TRUE);
-	}
-
-	if (writer->trace_dir_fd > 0) {
-		if (close(writer->trace_dir_fd)) {
-			perror("close");
-		}
 	}
 
 	if (writer->metadata_fd > 0) {

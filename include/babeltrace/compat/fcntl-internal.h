@@ -232,44 +232,4 @@ end:
 }
 #endif /* #else #ifdef BABELTRACE_HAVE_POSIX_FALLOCATE */
 
-
-#ifdef BABELTRACE_HAVE_FACCESSAT
-
-#include <fcntl.h>
-#include <unistd.h>
-
-static inline
-int bt_faccessat(int dirfd, const char *dirname,
-		const char *pathname, int mode, int flags)
-{
-	return faccessat(dirfd, pathname, mode, flags);
-}
-
-#else /* #ifdef BABELTRACE_HAVE_FACCESSAT */
-
-#include <string.h>
-#include <unistd.h>
-
-static inline
-int bt_faccessat(int dirfd, const char *dirname,
-		const char *pathname, int mode, int flags)
-{
-	char cpath[PATH_MAX];
-
-	if (flags != 0) {
-		errno = EINVAL;
-		return -1;
-	}
-	/* Includes middle / and final \0. */
-	if (strlen(dirname) + strlen(pathname) + 2 > PATH_MAX) {
-		return -1;
-	}
-	strcpy(cpath, dirname);
-	strcat(cpath, "/");
-	strcat(cpath, pathname);
-	return access(cpath, mode);
-}
-
-#endif /* #else #ifdef BABELTRACE_HAVE_FACCESSAT */
-
 #endif /* _BABELTRACE_COMPAT_FCNTL_H */

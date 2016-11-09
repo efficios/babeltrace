@@ -668,6 +668,7 @@ int create_stream_file(struct bt_ctf_writer *writer,
 {
 	int fd;
 	GString *filename = g_string_new(stream->stream_class->name->str);
+	char *file_path;
 
 	BT_LOGD("Creating stream file: writer-addr=%p, stream-addr=%p, "
 		"stream-name=\"%s\", stream-class-addr=%p, stream-class-name=\"%s\"",
@@ -692,21 +693,23 @@ int create_stream_file(struct bt_ctf_writer *writer,
 	}
 
 	g_string_append_printf(filename, "_%" PRId64, stream->id);
-	fd = openat(writer->trace_dir_fd, filename->str,
+	file_path = g_build_filename(writer->path->str, filename->str, NULL);
+	fd = open(file_path,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	g_free(file_path);
 	if (fd < 0) {
 		BT_LOGW("Failed to open stream file for writing: %s: "
-			"writer-trace-dir-fd=%d, filename=\"%s\", "
+			"filename=\"%s\", "
 			"ret=%d, errno=%d", strerror(errno),
-			writer->trace_dir_fd, filename->str, fd, errno);
+			filename->str, fd, errno);
 		goto end;
 	}
 
 	BT_LOGD("Created stream file for writing: "
-		"stream-addr=%p, stream-name=\"%s\", writer-trace-dir-fd=%d, "
+		"stream-addr=%p, stream-name=\"%s\", "
 		"filename=\"%s\", fd=%d", stream, bt_ctf_stream_get_name(stream),
-		writer->trace_dir_fd, filename->str, fd);
+		filename->str, fd);
 
 end:
 	g_string_free(filename, TRUE);

@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <babeltrace/compat/mman-internal.h>
-#include <babeltrace/compat/dirent-internal.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -388,8 +388,8 @@ int main(int argc, char **argv)
 {
 	int fd, metadata_fd, ret;
 	DIR *dir;
-	int dir_fd;
 	FILE *metadata_fp;
+	char *file_path;
 
 	ret = parse_args(argc, argv);
 	if (ret) {
@@ -414,23 +414,22 @@ int main(int argc, char **argv)
 		perror("opendir");
 		goto error_rmdir;
 	}
-	dir_fd = bt_dirfd(dir);
-	if (dir_fd < 0) {
-		perror("dirfd");
+
+	file_path = g_build_filename(s_outputname, "datastream", NULL);
+	fd = open(file_path, O_RDWR|O_CREAT,
+		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+	g_free(file_path);
+	if (fd < 0) {
+		perror("open");
 		goto error_closedir;
 	}
 
-	fd = openat(dir_fd, "datastream", O_RDWR|O_CREAT,
-		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-	if (fd < 0) {
-		perror("openat");
-		goto error_closedirfd;
-	}
-
-	metadata_fd = openat(dir_fd, "metadata", O_RDWR|O_CREAT,
+	file_path = g_build_filename(s_outputname, "metadata", NULL);
+	metadata_fd = open(file_path, O_RDWR|O_CREAT,
 			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+	g_free(file_path);
 	if (metadata_fd < 0) {
-		perror("openat");
+		perror("open");
 		goto error_closedatastream;
 	}
 	metadata_fp = fdopen(metadata_fd, "w");
@@ -455,10 +454,6 @@ error_closemetadatafd:
 		perror("close");
 error_closedatastream:
 	ret = close(fd);
-	if (ret)
-		perror("close");
-error_closedirfd:
-	ret = close(dir_fd);
 	if (ret)
 		perror("close");
 error_closedir:

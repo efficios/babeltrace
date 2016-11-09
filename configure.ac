@@ -124,7 +124,6 @@ AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([ \
 	atexit \
-	dirfd \
 	dup2 \
 	ftruncate \
 	gethostbyname \
@@ -231,13 +230,6 @@ AC_CHECK_LIB([c], [open_memstream],
 AC_CHECK_LIB([c], [posix_fallocate],
 [
 	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_POSIX_FALLOCATE], 1, [Has posix_fallocate support.])
-]
-)
-
-# Check for faccessat
-AC_CHECK_LIB([c], [faccessat],
-[
-	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_FACCESSAT], 1, [Has faccessat support.])
 ]
 )
 
