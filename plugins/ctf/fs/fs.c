@@ -336,6 +336,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	 */
 end:
 	BT_MOVE(ctf_it->current_notification, notification);
+	bt_put(stream);
 	return ret;
 }
 
