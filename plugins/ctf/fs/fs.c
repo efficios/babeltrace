@@ -241,7 +241,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator)
 {
 	int heap_ret;
-	struct bt_ctf_stream *stream;
+	struct bt_ctf_stream *stream = NULL;
 	struct ctf_fs_stream *fs_stream;
 	struct bt_notification *notification;
 	struct bt_notification *next_stream_notification;
