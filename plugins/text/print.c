@@ -149,7 +149,6 @@ enum bt_component_status print_event_header(struct text_component *text,
 		fputs("name = ", text->out);
 	}
 	fputs(bt_ctf_event_class_get_name(event_class), text->out);
-	bt_put(event_class);
 end:
 	bt_put(event_class);
 	return ret;
