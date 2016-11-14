@@ -1632,6 +1632,7 @@ struct bt_ctf_field_type *btr_get_variant_type_cb(
 end:
 	BT_PUT(tag_field);
 	BT_PUT(selected_field);
+	BT_PUT(path);
 
 	return selected_field_type;
 }
