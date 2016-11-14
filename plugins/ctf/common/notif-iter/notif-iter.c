@@ -578,7 +578,6 @@ enum bt_ctf_notif_iter_status set_current_stream_class(struct bt_ctf_notif_iter 
 	}
 
 	BT_PUT(notit->meta.stream_class);
-
 	notit->meta.stream_class = bt_ctf_trace_get_stream_class_by_id(
 			notit->meta.trace, stream_id);
 	if (!notit->meta.stream_class) {
@@ -1844,8 +1843,7 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
-	notit->meta.trace = trace;
-	bt_get(notit->meta.trace);
+	notit->meta.trace = bt_get(trace);
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
 	notit->medium.data = data;
