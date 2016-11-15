@@ -1592,6 +1592,14 @@ int bt_ctf_field_structure_validate(struct bt_ctf_field *field)
 	for (i = 0; i < structure->fields->len; i++) {
 		ret = bt_ctf_field_validate(structure->fields->pdata[i]);
 		if (ret) {
+			const char *name;
+			struct bt_ctf_field_type *field_type =
+					bt_ctf_field_get_type(field);
+
+			(void) bt_ctf_field_type_structure_get_field(field_type,
+					&name, NULL, i);
+			fprintf(stderr, "Field %s failed validation\n",
+					name ? name : "NULL");
 			goto end;
 		}
 	}
@@ -1655,6 +1663,7 @@ int bt_ctf_field_sequence_validate(struct bt_ctf_field *field)
 	for (i = 0; i < sequence->elements->len; i++) {
 		ret = bt_ctf_field_validate(sequence->elements->pdata[i]);
 		if (ret) {
+			fprintf(stderr, "Failed to validate sequence field %zu\n", i);
 			goto end;
 		}
 	}
