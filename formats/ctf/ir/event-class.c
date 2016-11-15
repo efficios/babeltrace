@@ -220,7 +220,8 @@ int bt_ctf_event_class_set_attribute(
 		goto end;
 	}
 
-	if (!strcmp(name, "id") || !strcmp(name, "loglevel")) {
+	if (!strcmp(name, "id") || !strcmp(name, "loglevel") ||
+			!strcmp(name, "stream_id")) {
 		if (!bt_value_is_integer(value)) {
 			ret = -1;
 			goto end;
@@ -253,7 +254,7 @@ int bt_ctf_event_class_set_attribute(
 	}
 
 	ret = bt_ctf_attributes_set_field_value(event_class->attributes,
-		name, value);
+			name, value);
 
 end:
 	return ret;
