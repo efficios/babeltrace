@@ -1600,6 +1600,7 @@ int bt_ctf_field_structure_validate(struct bt_ctf_field *field)
 					&name, NULL, i);
 			fprintf(stderr, "Field %s failed validation\n",
 					name ? name : "NULL");
+			bt_put(field_type);
 			goto end;
 		}
 	}
