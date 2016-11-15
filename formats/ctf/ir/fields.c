@@ -1641,6 +1641,7 @@ int bt_ctf_field_array_validate(struct bt_ctf_field *field)
 	for (i = 0; i < array->elements->len; i++) {
 		ret = bt_ctf_field_validate(array->elements->pdata[i]);
 		if (ret) {
+			fprintf(stderr, "Failed to validate sequence field #%zu\n", i);
 			goto end;
 		}
 	}
@@ -1664,7 +1665,7 @@ int bt_ctf_field_sequence_validate(struct bt_ctf_field *field)
 	for (i = 0; i < sequence->elements->len; i++) {
 		ret = bt_ctf_field_validate(sequence->elements->pdata[i]);
 		if (ret) {
-			fprintf(stderr, "Failed to validate sequence field %zu\n", i);
+			fprintf(stderr, "Failed to validate sequence field #%zu\n", i);
 			goto end;
 		}
 	}
@@ -1940,6 +1941,15 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 
 		ret = bt_ctf_field_serialize(field, pos);
 		if (ret) {
+			const char *name;
+			struct bt_ctf_field_type *field_type =
+					bt_ctf_field_get_type(field);
+
+			(void) bt_ctf_field_type_structure_get_field(field_type,
+					&name, NULL, i);
+			fprintf(stderr, "Field %s failed to serialize\n",
+					name ? name : "NULL");
+			bt_put(field_type);
 			break;
 		}
 	}
@@ -1970,6 +1980,7 @@ int bt_ctf_field_array_serialize(struct bt_ctf_field *field,
 		ret = bt_ctf_field_serialize(
 			g_ptr_array_index(array->elements, i), pos);
 		if (ret) {
+			fprintf(stderr, "Failed to serialize array element #%zu\n", i);
 			goto end;
 		}
 	}
@@ -1990,6 +2001,7 @@ int bt_ctf_field_sequence_serialize(struct bt_ctf_field *field,
 		ret = bt_ctf_field_serialize(
 			g_ptr_array_index(sequence->elements, i), pos);
 		if (ret) {
+			fprintf(stderr, "Failed to serialize sequence element #%zu\n", i);
 			goto end;
 		}
 	}
