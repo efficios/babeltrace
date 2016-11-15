@@ -1370,6 +1370,18 @@ enum bt_ctf_btr_status btr_string_begin_cb(
 		goto end;
 	}
 
+	/*
+	 * Initialize string field payload to an empty string since in the
+	 * case of a length 0 string the btr_string_cb won't be called and
+	 * we will end up with an unset string payload.
+	 */
+	ret = bt_ctf_field_string_set_value(field, "");
+	if (ret) {
+		PERR("Failed to initialize string field\n");
+		status = BT_CTF_BTR_STATUS_ERROR;
+		goto end;
+	}
+
 end:
 	BT_PUT(field);
 
