@@ -71,6 +71,10 @@ typedef void (*bt_ctf_listener_cb)(
  */
 extern struct bt_ctf_trace *bt_ctf_trace_create(void);
 
+extern const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace);
+
+extern int bt_ctf_trace_set_name(struct bt_ctf_trace *trace, const char *name);
+
 /*
  * bt_ctf_trace_set_environment_field: sets an environment field to the
  *	trace.

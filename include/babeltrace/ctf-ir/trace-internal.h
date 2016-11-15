@@ -49,6 +49,7 @@ enum field_type_alias {
 
 struct bt_ctf_trace {
 	struct bt_object base;
+	GString *name;
 	int frozen;
 	uuid_t uuid;
 	int byte_order; /* A value defined in Babeltrace's "endian.h" */

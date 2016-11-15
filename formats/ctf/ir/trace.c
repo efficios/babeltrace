@@ -124,6 +124,38 @@ error:
 	return trace;
 }
 
+const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace)
+{
+	const char *name = NULL;
+
+	if (!trace || !trace->name) {
+		goto end;
+	}
+
+	name = trace->name->str;
+end:
+	return name;
+}
+
+int bt_ctf_trace_set_name(struct bt_ctf_trace *trace, const char *name)
+{
+	int ret = 0;
+
+	if (!trace || !name || trace->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	trace->name = trace->name ? g_string_assign(trace->name, name) :
+			g_string_new(name);
+	if (!trace->name) {
+		ret = -1;
+		goto end;
+	}
+end:
+	return ret;
+}
+
 void bt_ctf_trace_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_trace *trace;
@@ -131,6 +163,10 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	trace = container_of(obj, struct bt_ctf_trace, base);
 	if (trace->environment) {
 		bt_ctf_attributes_destroy(trace->environment);
+	}
+
+	if (trace->name) {
+		g_string_free(trace->name, TRUE);
 	}
 
 	if (trace->clocks) {
