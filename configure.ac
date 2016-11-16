@@ -424,6 +424,7 @@ AC_CONFIG_FILES([
 	plugins/muxer/Makefile
 	plugins/text/Makefile
 	plugins/trimmer/Makefile
+	plugins/writer/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
