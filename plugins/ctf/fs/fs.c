@@ -28,6 +28,7 @@
 
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/ctf-ir/clock.h>
 #include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/stream.h>
 #include <babeltrace/plugin/notification/event.h>
@@ -363,9 +364,123 @@ void ctf_fs_iterator_destroy(struct bt_notification_iterator *it)
 }
 
 static
+bool compare_event_notifications(struct bt_notification *a,
+		struct bt_notification *b)
+{
+	int ret;
+	struct bt_ctf_clock *clock;
+	struct bt_ctf_clock_value *a_clock_value, *b_clock_value;
+	struct bt_ctf_stream_class *a_stream_class;
+	struct bt_ctf_stream *a_stream;
+	struct bt_ctf_event *a_event, *b_event;
+	struct bt_ctf_trace *trace;
+	int64_t a_ts, b_ts;
+
+	// FIXME - assumes only one clock
+	a_event = bt_notification_event_get_event(a);
+	b_event = bt_notification_event_get_event(b);
+	assert(a_event);
+	assert(b_event);
+
+	a_stream = bt_ctf_event_get_stream(a_event);
+	assert(a_stream);
+	a_stream_class = bt_ctf_stream_get_class(a_stream);
+	assert(a_stream_class);
+	trace = bt_ctf_stream_class_get_trace(a_stream_class);
+	assert(trace);
+
+	clock = bt_ctf_trace_get_clock(trace, 0);
+	a_clock_value = bt_ctf_event_get_clock_value(a_event, clock);
+	b_clock_value = bt_ctf_event_get_clock_value(b_event, clock);
+	assert(a_clock_value);
+	assert(b_clock_value);
+
+	ret = bt_ctf_clock_value_get_value_ns_from_epoch(a_clock_value, &a_ts);
+	assert(!ret);
+	ret = bt_ctf_clock_value_get_value_ns_from_epoch(b_clock_value, &b_ts);
+	assert(!ret);
+
+	bt_put(a_event);
+	bt_put(b_event);
+	bt_put(a_clock_value);
+	bt_put(b_clock_value);
+	bt_put(a_stream);
+	bt_put(a_stream_class);
+	bt_put(clock);
+	bt_put(trace);
+	return a_ts < b_ts;
+}
+
+static
 bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
 		void *unused)
 {
+	static int notification_priorities[] = {
+		[BT_NOTIFICATION_TYPE_NEW_TRACE] = 0,
+		[BT_NOTIFICATION_TYPE_NEW_STREAM_CLASS] = 1,
+		[BT_NOTIFICATION_TYPE_NEW_EVENT_CLASS] = 2,
+		[BT_NOTIFICATION_TYPE_PACKET_START] = 3,
+		[BT_NOTIFICATION_TYPE_PACKET_END] = 4,
+		[BT_NOTIFICATION_TYPE_EVENT] = 5,
+		[BT_NOTIFICATION_TYPE_END_OF_TRACE] = 6,
+	};
+	int a_prio, b_prio;
+	enum bt_notification_type a_type, b_type;
+
+	assert(a && b);
+	a_type = bt_notification_get_type(a);
+	b_type = bt_notification_get_type(b);
+	assert(a_type > BT_NOTIFICATION_TYPE_ALL);
+	assert(a_type < BT_NOTIFICATION_TYPE_NR);
+	assert(b_type > BT_NOTIFICATION_TYPE_ALL);
+	assert(b_type < BT_NOTIFICATION_TYPE_NR);
+
+	a_prio = notification_priorities[a_type];
+	b_prio = notification_priorities[b_type];
+
+	if (likely((a_type == b_type) && a_type == BT_NOTIFICATION_TYPE_EVENT)) {
+		return compare_event_notifications(a, b);
+	}
+
+	if (unlikely(a_prio != b_prio)) {
+		return a_prio < b_prio;
+	}
+
+	/* Notification types are equal, but not of type "event". */
+	switch (a_type) {
+	case BT_NOTIFICATION_TYPE_PACKET_START:
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+	{
+		int64_t a_sc_id, b_sc_id;
+		struct bt_ctf_stream *a_stream, *b_stream;
+		struct bt_ctf_stream_class *a_sc, *b_sc;
+
+		a_stream = internal_bt_notification_get_stream(a);
+		b_stream = internal_bt_notification_get_stream(b);
+		assert(a_stream && b_stream);
+
+		a_sc = bt_ctf_stream_get_class(a_stream);
+		b_sc = bt_ctf_stream_get_class(b_stream);
+		assert(a_sc && b_sc);
+
+		a_sc_id = bt_ctf_stream_class_get_id(a_sc);
+		b_sc_id = bt_ctf_stream_class_get_id(b_sc);
+		assert(a_sc_id >= 0 && b_sc_id >= 0);
+		bt_put(a_sc);
+		bt_put(a_stream);
+		bt_put(b_sc);
+		bt_put(b_stream);
+		return a_sc_id < b_sc_id;
+	}
+	case BT_NOTIFICATION_TYPE_NEW_TRACE:
+	case BT_NOTIFICATION_TYPE_END_OF_TRACE:
+		/* Impossible to have two separate traces. */
+	default:
+		assert(0);
+	}
+
+	assert(0);
 	return a < b;
 }
 
