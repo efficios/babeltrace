@@ -1,0 +1,122 @@
+/**
+@mainpage Welcome!
+
+Welcome to the
+<strong><em>Babeltrace \btversion C API</em></strong> documentation!
+
+<a href="http://diamon.org/babeltrace">Babeltrace</a> is an open
+source converter of
+<a href="https://en.wikipedia.org/wiki/Tracing_(software)">trace</a>
+formats. You can use its C API to
+write custom source, sink, and filter
+\link btcomponents component classes\endlink which you can package as user
+\link btplugins plugins\endlink.
+
+
+@section intro Introduction
+
+The goal of using this API is to create user
+\link btplugins <em>plugins</em>\endlink.
+
+A Babeltrace plugin contains one or more
+\link btcomponents <em>component classes</em>\endlink.
+
+A component class is either:
+
+- A \b source, or producer of trace events.
+- A \b sink, or consumer of trace events.
+- A \b filter, that is, both a producer and a consumer of trace
+  events.
+
+A program or library can instantiate a component class as many times as
+needed as concrete \em components. At component instantiation time, the
+constructor function receives custom parameters.
+
+Plugins, as of Babeltrace \btversion, are built as dynamic libraries
+(<code>.so</code> or <code>.dll</code> files) and loaded by the \c
+babeltrace converter program. The converter program is responsible for
+passing notifications and events from source components to filter
+components, if any, and from filter components to sink components.
+
+The internal representations of a trace, a stream, and an event follow
+the <a href="http://diamon.org/ctf">Common Trace Format</a> model.
+Within the Babeltrace C API, this representation is called the
+<em>Common Trace Format Intermediate Representation</em>, or
+\link ctfir CTF IR\endlink.
+
+The CTF IR model contains the following objects, amongst others:
+
+<ul>
+<li>
+A \link ctfirfieldtypes field type\endlink is a template for creating
+a concrete \link ctfirfields field\endlink.
+<p>
+For example, an integer field type contains the size (in bits) of the
+integer fields it describes, as well as their byte order, whether or not
+they are signed, and so on. An integer field created out of an integer
+field type, however, only contains a raw integer value. You can create
+many fields from a single field type template.
+
+<li>
+An \link ctfireventclass event class\endlink is a template for
+creating a concrete \link ctfirevent event\endlink.
+<p>
+An event class contains the field types of its various scopes, while an
+event contains the actual fields holding their values.
+
+<li>
+A \link ctfirstreamclass stream class\endlink is a template for
+creating a concrete \link ctfirstream stream\endlink.
+<p>
+A stream class contains the field types of its various scopes, while
+\link ctfirpacket packets\endlink attached to a
+\link ctfirstream stream\endlink instantiated from a
+stream class contains the actual
+fields holding their values. <p> A stream class is the parent of one or
+more event classes.
+
+<li>
+A \link ctfirtraceclass trace class\endlink describes traces.
+<p>
+A trace class is the parent of one or more stream classes.
+
+<li>
+A \link ctfirclockclass clock class\endlink holds the common properties
+of clock values that are instantiated in \link ctfirevent events\endlink.
+</ul>
+
+Some parts of the API require typical scalar value objects (boolean,
+integer, floating point number, string) and compound value objects
+(array, map). For example, the environment of a
+\link ctfirtraceclass CTF IR trace class\endlink maps strings to strings
+or to integers, and the parameters passed to component instances take
+the form of a map. For this purpose, the API uses
+\link values value objects\endlink.
+
+All the <em>Babeltrace objects</em> have a
+<a href="https://en.wikipedia.org/wiki/Reference_counting">reference count</a>
+to make them shareable.
+When you create a Babeltrace object, its reference count is
+initialized to 1: you are its sole owner. When you add this object to
+another one, the latter takes its own reference using bt_get(),
+incrementing the shared object's reference count. When you are done
+with an object, you must call bt_put() to drop your reference,
+decrementing its reference count. When an object's reference count
+reaches 0, the object is considered \em destroyed and cannot be
+used anymore. See \ref refs for more details.
+
+The postconditions of the functions and macros documented here indicate
+what you can expect of the reference counts of the Babeltrace objects
+passed as parameters and returned.
+
+The Babeltrace library can \em freeze almost all of the Babeltrace
+objects. A frozen object is considered \em immutable, although you can
+still get and put references to this object.
+
+The preconditions of the functions and macros documented here indicate
+when they expect unfrozen objects. The postconditions indicate when
+the functions and macros freeze an object.
+
+Have a look at \ref quickstart to learn more about the available
+modules of the Babeltrace C API.
+*/

@@ -1,0 +1,12 @@
+/**
+@defgroup ctfir CTF IR
+@ingroup apiref
+@brief Common Trace Format Intermediate Representation.
+
+The <em>Common Trace Format Intermediate Representation</em>,
+or <strong><em>CTF IR</em></strong>, is a set of objects which are
+analogous to the model of the <a href="http://diamon.org/ctf">CTF</a>
+specification.
+
+TODO: add more stuff
+*/

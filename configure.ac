@@ -349,6 +349,32 @@ AC_SUBST(babeltracectfirincludedir)
 babeltracepluginincludedir="${includedir}/babeltrace/plugin"
 AC_SUBST(babeltracepluginincludedir)
 
+# check for Doxygen
+AC_ARG_ENABLE(
+  [api-doc],
+  [AC_HELP_STRING(
+    [--enable-api-doc],
+    [generate and install HTML API documentation]
+  )],
+  [enable_api_doc=$enableval],
+  [enable_api_doc=no]
+)
+AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = "xyes"])
+
+AS_IF([test "x$enable_api_doc" = "xyes"], [
+  DX_DOXYGEN_FEATURE(ON)
+  DX_DOT_FEATURE(OFF)
+  DX_HTML_FEATURE(ON)
+  DX_CHM_FEATURE(OFF)
+  DX_CHI_FEATURE(OFF)
+  DX_MAN_FEATURE(OFF)
+  DX_RTF_FEATURE(OFF)
+  DX_XML_FEATURE(OFF)
+  DX_PDF_FEATURE(OFF)
+  DX_PS_FEATURE(OFF)
+  DX_INIT_DOXYGEN([Babeltrace], [$(srcdir)/Doxyfile], [output])
+])
+
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
@@ -366,6 +392,8 @@ AC_CONFIG_FILES([
 	formats/ctf/ir/Makefile
 	converter/Makefile
 	doc/Makefile
+        doc/api/Makefile
+        doc/api/Doxyfile
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
 	doc/images/Makefile
@@ -439,6 +467,10 @@ for f in $CFLAGS; do
 done
 ]
 PPRINT_PROP_STRING([Target architecture], $target_arch)
+
+# API doc
+test "x$enable_api_doc" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([HTML API documentation], $value)
 
 # python bindings enabled/disabled
 test "x$enable_python" = "xyes" && value=1 || value=0
