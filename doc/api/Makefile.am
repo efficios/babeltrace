@@ -7,6 +7,7 @@ install-data-local: doxygen-doc
 
 MOSTLYCLEANFILES = $(DX_CLEANFILES)
 EXTRA_DIST = Doxyfile.in \
+	README.adoc \
 	dox/group-api-ref.dox \
 	dox/group-ctf-ir.dox \
 	dox/main-page.dox \

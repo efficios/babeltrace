@@ -1,0 +1,352 @@
+= Babeltrace C API documentation guidelines
+
+Please follow those guidelines when you add to or modify the existing
+documentation of the Babeltrace C API.
+
+
+== Syntax
+
+Syntax example to document a function (tabs are converted to spaces
+in this example, but you really _must_ use tabs to indent):
+
+----
+/**
+@brief  Sets the name of the CTF IR stream class \p stream_class
+        to \p name.
+
+\p name must be unique amongst the names of all the stream classes
+of the trace class to which you eventually add \p stream_class.
+
+@remarks
+This is where you would put some remarks. Lorem ipsum dolor sit amet,
+consectetur adipiscing elit. Vestibulum sagittis tristique velit vitae
+tincidunt.
+
+@warning
+Use a warning command if this message is really important.
+
+@param[in] stream_class Stream class of which to set the name.
+@param[in] name         Name of the stream class (copied on success). If
+                        the description is too long, continue on the
+                        next line like this.
+@returns                0 on success, or a negative value on error.
+
+@prenotnull{stream_class}
+@prenotnull{name}
+@prehot{stream_class}
+@pre Some custom precondition.
+@postrefcountsame{stream_class}
+@post Some custom postcondition.
+
+@sa bt_ctf_stream_class_get_name(): Returns the name of a given
+        stream class.
+*/
+----
+
+**Rules**:
+
+* Try to stay behind the 72th column mark if possible, and behind the
+  80th column otherwise.
+
+* Start the block with
+  https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdbrief[`@brief`]
+  followed by a space followed by a tab followed by the brief
+  description. If the brief description needs more than one line, start
+  the following lines with a tab character.
++
+Try to always refer to all the function or macro parameters in the brief
+description. The sentence _must_ begin with a verb, third-person
+singular. The brief description _must_ contain a single sentence
+which ends with a period.
++
+Follow the brief description by zero or more paragraphs giving more
+details about the object you are documenting.
++
+You can also use the
+https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdremark[`@remarks`]
+and
+https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdwarning[`@warning`]
+commands as needed to add special paragraphs.
+
+* When you refer to parameters, use the
+  https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdp[`\p`]
+  command:
++
+--
+----
+@brief  Transfers the ownership of a Babeltrace object from variable
+        \p _var_src to variable \p _var_dst.
+----
+--
+
+* When you refer to any keyword or definition, use the
+  https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdc[`\c`]
+  command if it's a single word, otherwise surround the words with
+  `<code>` and `</code>`:
++
+--
+----
+@returns         Event class on success, or \c NULL on error.
+----
+--
+
+* Add a new line before the parameter descriptions.
+
+* The syntax for a parameter line is one of:
++
+--
+----
+@param[in] in_param             Input parameter description.
+@param[out] out_param           Output parameter description.
+@param[in,out] inout_param      Input/output parameter description.
+----
+--
++
+That is:
++
+--
+. https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdparam[`@param`]
+. `[in]` (input parameter), `[out]` (output parameter), or `[in,out]`
+  (input/output parameter).
++
+Output and input/output parameters are
+always pointers where, for a parameter named `param`, a result is
+stored _into_ `*param`.
+
+. A space.
+. The name of the parameter.
+. At least one tab.
+. The description which ends with a period.
+--
++
+Make sure all the beginnings of the parameter descriptions and of the
+return value description are vertically aligned by using as many tabs as
+required.
++
+If more than one line is needed, align the beginning of the second line
+with the beginning of the first one (see the return value description in
+the example above).
+
+* The syntax for the return value line is:
++
+--
+. https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdreturns[`@returns`]
+  (_not_ `@return`).
+. At least one tab.
+. The description which ends with a period.
+--
++
+The return value description often takes the form:
++
+--
+----
+X on success, or Y on error.
+----
+--
+
+* When needed, add an empty line after the return value line and add
+  preconditions and postconditions with the
+  https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdpre[`@pre`]
+  and
+  https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdpost[`@post`]
+  commands on the following lines.
++
+Preconditions are a very clear way to indicate what the documented
+function or macro expects from the user in relation to its parameters.
++
+Postconditions are a very clear way to indicate what the user should
+expect from the documented function or macro once it returns.
++
+Use complete sentences, starting with a capital letter and ending with
+a period, when writing conditions. Use the present tense. If there's a
+conditional part, put it in bold at the beginning of the sentence.
++
+If the condition is too long for a single line, continue on the
+following line, after a tab.
++
+Examples:
++
+--
+----
+@pre The size of \p array_obj is equal to the size of \p map_obj.
+@post <strong>On success</strong>, the reference count of \p array_obj
+        is incremented.
+@post The reference count of \p map_obj is not modified.
+----
+--
++
+IMPORTANT: You should use aliases when possible to avoid duplication.
+See the list of available aliases in the `Doxyfile.in` file.
+
+* When relevant, add a new line after the return value line (or after
+  the precondition or postcondition lines, if any) and add
+  as many _see also_ links as needed on the following lines.
++
+The syntax of those lines is:
++
+--
+. https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdsa[`@sa`]
+. A single space.
+. The name of the function, macro, variable, group, file, or page name
+  to see also.
+. `:` (colon).
+. A single space.
+. The capitalized brief description which ends with a period. The
+  sentence _must_ begin with a verb, third-person singular.
+--
++
+This is a way for you to inform the reader about other existing, related
+functions, macros, or any other documentation. Keep in mind that the
+reader does not always know where to look for things.
++
+If the description is too long for a single line, continue on the
+following line, after a tab:
++
+--
+----
+@sa some_function() Lorem ipsum dolor sit amet, consectetur adipiscing
+        cras iaculis lectus quis dolor congue tempor.
+----
+--
+
+* Always prefer the `@` commands to the `\` commands when you use them
+  outside of the text itself.
+
+
+== Style
+
+The ultimate goal of the Babeltrace C API documentation is to make the
+layman write code using this API as fast as possible without having to
+ask for help. For this purpose, the documentation should always be as
+clear as possible, just like the function and type names try to be.
+
+Do not hesitate to repeat technical terms, even in the same sentence, if
+needed. For example, if you document a _value object_, then always use
+the term _value object_ in the documentation, not _value_, nor _object_,
+since they are ambiguous.
+
+You can use light emphasis to show the importance of a part of the text
+with the
+https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdem[`\em`]
+command (one word) or by surrounding the text to emphasize with `<em>`
+and `</em>`. Likewise, you can use strong emphasis when needed with the
+https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdb[`\b`]
+command (one word) or with `<strong>`/`</strong>`. In general, prefer
+light emphasis to strong emphasis.
+
+Links to other parts of the documentation are very important. Consider
+that the reader never knows that other functions exist other than the
+current one. Use as many internal links as possible. Use the following
+forms of links:
+
+* `func()`: automatic link to the function (or macro) `func()`.
+* `file.h`: automatic link to the file named `file.h`.
+* https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdref[`\ref
+  group`]: link to the
+  https://www.stack.nl/\~dimitri/doxygen/manual/grouping.html[group]
+  named `group` (prefer this over a link to a file).
+* https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdref[`\ref
+  variable`]: link to the variable `variable`.
+* https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdlink[`\link
+  reference some text\endlink`]: link to `reference` (file name, group
+  name, function or macro name, etc.) using the text `some text`.
++
+Example:
++
+--
+----
+You can create a \link events CTF IR event\endlink using [...]
+By calling \link func() said function\endlink, [...]
+----
+--
++
+--
+[NOTE]
+.Doxygen limitation.
+====
+Do not put a space between the end of the text and the `\endlink`
+command, because this space becomes part of the hyperlink's text.
+
+Do _not_ do:
+
+----
+You can create a \link events CTF IR event \endlink using [...]
+By calling \link func() said function \endlink, [...]
+----
+====
+--
+
+See Doxygen's
+https://www.stack.nl/\~dimitri/doxygen/manual/autolink.html[Automatic
+link generation] for other ways to create automatic links.
+
+Try to follow as much as possible the
+https://en.wikipedia.org/wiki/Microsoft_Manual_of_Style[Microsoft Manual of Style]
+(4th edition) when you document the API. This includes:
+
+* Use an active voice.
+* Use a gender-neutral language.
+* Use the present tense (you should never need the future tense).
+* Address your reader directly (use _you_).
+* Avoid anthropomorphism.
+* Ensure parallelism in lists, procedures, and sentences.
+* Terminate list items with a period.
+* Do not use Latin abbreviations.
+* Use _and_ or _or_ instead of a slash.
+* Avoid using negatives.
+* Avoid using _should_: most of the time, you mean _must_.
+
+
+== Babeltrace terminology
+
+Here are the official names of the Babeltrace objects that you must use
+as is in the API documentation:
+
+* Value objects:
+** The null value object (_the_, not _a_, since it's a singleton
+   variable)
+** Boolean value object
+** Integer value object
+** Floating point number value object
+** String value object
+** Array value object
+** Map value object
+* CTF IR field path object
+* CTF IR field types
+** CTF IR integer field type
+** CTF IR floating point number field type
+** CTF IR enumeration field type
+** CTF IR string field type
+** CTF IR array field type
+** CTF IR sequence field type
+** CTF IR structure field type
+** CTF IR variant field type
+* CTF IR fields:
+** CTF IR integer field
+** CTF IR floating point number field
+** CTF IR enumeration field
+** CTF IR string field
+** CTF IR array field
+** CTF IR sequence field
+** CTF IR structure field
+** CTF IR variant field
+* CTF IR clock class
+* CTF IR event class
+* CTF IR stream class
+* CTF IR trace class
+* CTF IR event
+* CTF IR packet
+* CTF IR stream
+* CTF IR writer
+* Component
+* Source component
+* Sink component
+* Component class
+* Source component class
+* Sink component class
+* Plugin
+* Notification
+* Iterator
+
+Note that once you mention _CTF IR_ in an object name, you can omit
+it in the few following paragraphs.
