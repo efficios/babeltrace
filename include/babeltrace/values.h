@@ -4,8 +4,8 @@
 /*
  * Babeltrace - Value objects
  *
- * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
- * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2015-2016 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2015-2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,51 +26,6 @@
  * SOFTWARE.
  */
 
-/**
- * @file values.h
- * @brief Value objects
- *
- * This is a set of value objects. The following functions allow you
- * to create, modify, and destroy:
- *
- *   - \link bt_value_null null value objects\endlink
- *   - \link bt_value_bool_create() boolean value objects\endlink
- *   - \link bt_value_integer_create() integer value objects\endlink
- *   - \link bt_value_float_create() floating point number
- *     value objects\endlink
- *   - \link bt_value_string_create() string value objects\endlink
- *   - \link bt_value_array_create() array value objects\endlink,
- *     containing zero or more value objects
- *   - \link bt_value_map_create() map value objects\endlink, mapping
- *     string keys to value objects
- *
- * All the value object types above, except for null values (which
- * always point to the same \link bt_value_null singleton\endlink), have
- * a reference count property. Once a value object is created, its
- * reference count is set to 1. When \link bt_value_array_append()
- * appending a value to an array value object\endlink, or
- * \link bt_value_map_insert() inserting a value object into a map
- * value object\endlink, its reference count is incremented, as well as
- * when getting a value object back from those structures. The
- * bt_get() and bt_put() functions are to be used to handle reference counting
- * Once you are done with a value object, pass it to bt_put().
- *
- * Most functions of this API return a status code, one of the values in
- * #bt_value_status.
- *
- * You can create a deep copy of any value object using the
- * bt_value_copy() function. You can compare two given value objects
- * using bt_value_compare().
- *
- * Any value object may be frozen using bt_value_freeze(). You may get
- * the raw value of a frozen value object, but you cannot modify it.
- * Reference counting still works on frozen value objects. You may also
- * copy and compare frozen value objects.
- *
- * @author	Philippe Proulx <pproulx@efficios.com>
- * @bug		No known bugs
- */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -81,149 +36,264 @@ extern "C" {
 #endif
 
 /**
- * Value object type.
- */
-enum bt_value_type {
-	/** Unknown value object, used as an error code. */
-	BT_VALUE_TYPE_UNKNOWN =		-1,
+@defgroup values Value objects
+@ingroup apiref
+@brief Value objects.
 
-	/** Null value object. */
-	BT_VALUE_TYPE_NULL =		0,
+This is a set of <strong><em>value objects</em></strong>. With the
+functions documented here, you can create and modify:
 
-	/** Boolean value object (holds \c true or \c false). */
-	BT_VALUE_TYPE_BOOL =		1,
+- \link bt_value_bool_create() Boolean value objects\endlink.
+- \link bt_value_integer_create() Integer value objects\endlink.
+- \link bt_value_float_create() Floating point number
+  value objects\endlink.
+- \link bt_value_string_create() String value objects\endlink.
+- \link bt_value_array_create() Array value objects\endlink,
+  containing zero or more value objects.
+- \link bt_value_map_create() Map value objects\endlink, mapping
+  string keys to value objects.
 
-	/** Integer value object (holds a signed 64-bit integer raw value). */
-	BT_VALUE_TYPE_INTEGER =		2,
+As with any Babeltrace object, value objects have
+<a href="https://en.wikipedia.org/wiki/Reference_counting">reference
+counts</a>. When you \link bt_value_array_append() append a value object
+to an array value object\endlink, or when you \link bt_value_map_insert()
+insert a value object into a map value object\endlink, its reference
+count is incremented, as well as when you get a value object back from
+those objects. See \ref refs to learn more about the reference counting
+management of Babeltrace objects.
 
-	/** Floating point number value object (holds a \c double raw value). */
-	BT_VALUE_TYPE_FLOAT =		3,
+Most functions of this API return a <em>status code</em>, one of the
+values of #bt_value_status.
 
-	/** String value object. */
-	BT_VALUE_TYPE_STRING =		4,
+You can create a deep copy of any value object with bt_value_copy(). You
+can compare two value objects with bt_value_compare().
 
-	/** Array value object. */
-	BT_VALUE_TYPE_ARRAY =		5,
+You can \em freeze a value object with bt_value_freeze(). You can get
+the raw value of a frozen value object, but you cannot modify it.
+Reference counting still works on frozen value objects. You can copy
+a frozen value object: the returned copy is not frozen. You can also
+compare a frozen value object to another value object (frozen or not).
+Freezing a value object is typically used to make it immutable after
+it's built by its initial owner.
 
-	/** Map value object. */
-	BT_VALUE_TYPE_MAP =		6,
-};
+The following matrix shows some categorized value object functions
+to use for each value object type:
+
+<table>
+  <tr>
+    <th>Function role &rarr;<br>
+        Value object type &darr;
+    <th>Create
+    <th>Check type
+    <th>Get value
+    <th>Set value
+  </tr>
+  <tr>
+    <th>Null
+    <td>Use the \ref bt_value_null variable
+    <td>bt_value_is_null()
+    <td>N/A
+    <td>N/A
+  </tr>
+  <tr>
+    <th>Boolean
+    <td>bt_value_bool_create()<br>
+        bt_value_bool_create_init()
+    <td>bt_value_is_bool()
+    <td>bt_value_bool_get()
+    <td>bt_value_bool_set()
+  </tr>
+  <tr>
+    <th>Integer
+    <td>bt_value_integer_create()<br>
+        bt_value_integer_create_init()
+    <td>bt_value_is_integer()
+    <td>bt_value_integer_get()
+    <td>bt_value_integer_set()
+  </tr>
+  <tr>
+    <th>Floating point<br>number
+    <td>bt_value_float_create()<br>
+        bt_value_float_create_init()
+    <td>bt_value_is_float()
+    <td>bt_value_float_get()
+    <td>bt_value_float_set()
+  </tr>
+  <tr>
+    <th>String
+    <td>bt_value_string_create()<br>
+        bt_value_string_create_init()
+    <td>bt_value_is_string()
+    <td>bt_value_string_get()
+    <td>bt_value_string_set()
+  </tr>
+  <tr>
+    <th>Array
+    <td>bt_value_array_create()
+    <td>bt_value_is_array()
+    <td>bt_value_array_get()
+    <td>bt_value_array_append()<br>
+        bt_value_array_append_bool()<br>
+        bt_value_array_append_integer()<br>
+        bt_value_array_append_float()<br>
+        bt_value_array_append_string()<br>
+        bt_value_array_append_empty_array()<br>
+        bt_value_array_append_empty_map()<br>
+        bt_value_array_set()
+  </tr>
+  <tr>
+    <th>Map
+    <td>bt_value_map_create()
+    <td>bt_value_is_map()
+    <td>bt_value_map_get()<br>
+        bt_value_map_foreach()
+    <td>bt_value_map_insert()<br>
+        bt_value_map_insert_bool()<br>
+        bt_value_map_insert_integer()<br>
+        bt_value_map_insert_float()<br>
+        bt_value_map_insert_string()<br>
+        bt_value_map_insert_empty_array()<br>
+        bt_value_map_insert_empty_map()
+  </tr>
+</table>
+
+@file
+@brief Value object types and functions.
+@sa values
+
+@addtogroup values
+@{
+*/
 
 /**
- * Status codes.
- */
+@brief Status codes.
+*/
 enum bt_value_status {
-	/** Value object cannot be altered because it's frozen. */
+	/// Value object cannot be altered because it's frozen.
 	BT_VALUE_STATUS_FROZEN =	-4,
 
-	/** Operation cancelled. */
+	/// Operation cancelled.
 	BT_VALUE_STATUS_CANCELLED =	-3,
 
-	/** Invalid arguments. */
 	/* -22 for compatibility with -EINVAL */
-	BT_VALUE_STATUS_INVAL =	-22,
+	/// Invalid arguments.
+	BT_VALUE_STATUS_INVAL =		-22,
 
-	/** General error. */
-	BT_VALUE_STATUS_ERROR =	-1,
+	/// General error.
+	BT_VALUE_STATUS_ERROR =		-1,
 
-	/** Okay, no error. */
+	/// Okay, no error.
 	BT_VALUE_STATUS_OK =		0,
 };
 
 /**
- * Value object.
- */
+@struct bt_value
+@brief A value object.
+@sa values
+*/
 struct bt_value;
 
 /**
- * The null value object singleton.
- *
- * Use this everytime you need a null value object.
- *
- * The null value object singleton has no reference count; there's only
- * one. You may directly compare any value object to the null value
- * object singleton to find out if it's a null value object, or
- * otherwise use bt_value_is_null().
- *
- * The null value object singleton is always frozen (see
- * bt_value_freeze() and bt_value_is_frozen()).
- *
- * Functions of this API return this when the value object is actually a
- * null value object (of type #BT_VALUE_TYPE_NULL), whereas \c NULL
- * means an error of some sort.
- */
+@brief	The null value object singleton.
+
+You \em must use this variable when you need the null value object.
+
+The null value object singleton has no reference count: there is only
+one. You can compare any value object address to the null value object
+singleton to check if it's the null value object, or otherwise with
+bt_value_is_null().
+
+You can pass \ref bt_value_null to bt_get() or bt_put(): it has
+<em>no effect</em>.
+
+The null value object singleton is <em>always frozen</em> (see
+bt_value_is_frozen()).
+
+The functions of this API return this variable when the value object
+is actually the null value object (of type #BT_VALUE_TYPE_NULL),
+whereas \c NULL means an error of some sort.
+*/
 extern struct bt_value *bt_value_null;
 
 /**
- * User function type for bt_value_map_foreach().
- *
- * \p object is a \em weak reference; you must pass it to
- * bt_get() to get your own reference.
- *
- * Return \c true to continue the loop, or \c false to break it.
- *
- * @param key		Key of map entry
- * @param object	Value object of map entry (weak reference)
- * @param data		User data
- * @returns		\c true to continue the loop
- */
-typedef bool (* bt_value_map_foreach_cb)(const char *key,
-	struct bt_value *object, void *data);
+@name Type information
+@{
+*/
 
 /**
- * Recursively freezes the value object \p object.
- *
- * A frozen value object cannot be modified; it is considered immutable.
- * Reference counting still works on a frozen value object though: you
- * may pass a frozen value object to bt_get() and bt_put().
- *
- * @param object	Value object to freeze
- * @returns		One of #bt_value_status values; if \p object
- *			is already frozen, though, #BT_VALUE_STATUS_OK
- *			is returned anyway (i.e. this function never
- *			returns #BT_VALUE_STATUS_FROZEN)
- *
- * @see bt_value_is_frozen()
- */
-extern enum bt_value_status bt_value_freeze(struct bt_value *object);
+@brief Value object type.
+*/
+enum bt_value_type {
+	/// Unknown value object, used as an error code.
+	BT_VALUE_TYPE_UNKNOWN =		-1,
+
+	/// Null value object.
+	BT_VALUE_TYPE_NULL =		0,
+
+	/// Boolean value object (holds \c true or \c false).
+	BT_VALUE_TYPE_BOOL =		1,
+
+	/// Integer value object (holds a signed 64-bit integer raw value).
+	BT_VALUE_TYPE_INTEGER =		2,
+
+	/// Floating point number value object (holds a \c double raw value).
+	BT_VALUE_TYPE_FLOAT =		3,
+
+	/// String value object.
+	BT_VALUE_TYPE_STRING =		4,
+
+	/// Array value object.
+	BT_VALUE_TYPE_ARRAY =		5,
+
+	/// Map value object.
+	BT_VALUE_TYPE_MAP =		6,
+};
 
 /**
- * Checks whether \p object is frozen or not.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is frozen
- *
- * @see bt_value_freeze()
- */
-extern bool bt_value_is_frozen(const struct bt_value *object);
+@brief	Returns the type of the value object \p object.
 
-/**
- * Returns the type of \p object.
- *
- * @param object	Value object of which to get the type
- * @returns		Value object's type, or #BT_VALUE_TYPE_UNKNOWN
- *			on error
- *
- * @see #bt_value_type (value object types)
- * @see bt_value_is_null()
- * @see bt_value_is_bool()
- * @see bt_value_is_integer()
- * @see bt_value_is_float()
- * @see bt_value_is_string()
- * @see bt_value_is_array()
- * @see bt_value_is_map()
- */
+@param[in] object	Value object of which to get the type.
+@returns		Type of value object \p object,
+			or #BT_VALUE_TYPE_UNKNOWN on error.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa #bt_value_type: Value object types.
+@sa bt_value_is_null(): Returns whether or not a given value object
+	is the null value object.
+@sa bt_value_is_bool(): Returns whether or not a given value object
+	is a boolean value object.
+@sa bt_value_is_integer(): Returns whether or not a given value
+	object is an integer value object.
+@sa bt_value_is_float(): Returns whether or not a given value object
+	is a floating point number value object.
+@sa bt_value_is_string(): Returns whether or not a given value object
+	is a string value object.
+@sa bt_value_is_array(): Returns whether or not a given value object
+	is an array value object.
+@sa bt_value_is_map(): Returns whether or not a given value object
+	is a map value object.
+*/
 extern enum bt_value_type bt_value_get_type(const struct bt_value *object);
 
 /**
- * Checks whether \p object is a null value object. The only valid null
- * value object is \ref bt_value_null.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is a null value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is the null
+	value object.
+
+The only valid null value object is \ref bt_value_null.
+
+An alternative to calling this function is to directly compare the value
+object pointer to the \ref bt_value_null variable.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is the null value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_null(const struct bt_value *object)
 {
@@ -231,13 +301,17 @@ bool bt_value_is_null(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is a boolean value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is a boolean value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is a boolean
+	value object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is a boolean value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_bool(const struct bt_value *object)
 {
@@ -245,13 +319,14 @@ bool bt_value_is_bool(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is an integer value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is an integer value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is an integer
+	value object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is an integer value object.
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_integer(const struct bt_value *object)
 {
@@ -259,14 +334,18 @@ bool bt_value_is_integer(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is a floating point number value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is a floating point
- *			number value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is a floating
+	point number value object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is a floating point
+			number value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_float(const struct bt_value *object)
 {
@@ -274,13 +353,17 @@ bool bt_value_is_float(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is a string value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is a string value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is a string
+	value object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is a string value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_string(const struct bt_value *object)
 {
@@ -288,13 +371,17 @@ bool bt_value_is_string(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is an array value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is an array value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is an array
+	value object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is an array value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_array(const struct bt_value *object)
 {
@@ -302,672 +389,1042 @@ bool bt_value_is_array(const struct bt_value *object)
 }
 
 /**
- * Checks whether \p object is a map value object.
- *
- * @param object	Value object to check
- * @returns		\c true if \p object is a map value object
- *
- * @see bt_value_get_type()
- */
+@brief	Returns whether or not the value object \p object is a map value
+	object.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is a map value object.
+
+@prenotnull{object}
+@postrefcountsame{object}
+
+@sa bt_value_get_type(): Returns the type of a given value object.
+*/
 static inline
 bool bt_value_is_map(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
+/** @} */
+
 /**
- * Creates a boolean value object. The created boolean value object's
- * initial raw value is \c false.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- *
- * @see bt_value_bool_create_init() (creates an initialized
- *				     boolean value object)
- */
+@name Common value object functions
+@{
+*/
+
+/**
+@brief	Recursively freezes the value object \p object.
+
+You cannot modify a frozen value object: it is considered immutable.
+Reference counting still works on a frozen value object, however: you
+can pass a frozen value object to bt_get() and bt_put().
+
+If \p object is an array value object or a map value object, this
+function also freezes all its children recursively.
+
+Freezing a value object is typically used to make it immutable after
+it's built by its initial owner.
+
+@param[in] object	Value object to freeze.
+@returns		One of #bt_value_status values. If \p object
+ 			is already frozen, however, #BT_VALUE_STATUS_OK
+ 			is returned anyway (that is, this function never
+ 			returns #BT_VALUE_STATUS_FROZEN).
+
+@prenotnull{object}
+@postrefcountsame{object}
+@post <strong>On success</strong>, \p object and all its children
+	are frozen.
+
+@sa bt_value_is_frozen(): Returns whether or not a value object is
+	frozen.
+*/
+extern enum bt_value_status bt_value_freeze(struct bt_value *object);
+
+/**
+@brief	Returns whether or not the value object \p object is frozen.
+
+@param[in] object	Value object to check.
+@returns		\c true if \p object is frozen.
+
+@prenotnull{object}
+@postrefcountsame{object}
+*/
+extern bool bt_value_is_frozen(const struct bt_value *object);
+
+/**
+@brief	Creates a \em deep copy of the value object \p object.
+
+You can copy a frozen value object: the resulting copy is
+<em>not frozen</em>.
+
+@param[in] object	Value object to copy.
+@returns		Deep copy of \p object on success, or \c NULL
+			on error.
+
+@prenotnull{object}
+@post <strong>On success, if the returned value object is not
+	\ref bt_value_null</strong>, its reference count is 1.
+
+@postrefcountsame{object}
+*/
+extern struct bt_value *bt_value_copy(const struct bt_value *object);
+
+/**
+@brief	Recursively compares the value objects \p object_a and
+	\p object_b and returns \c true if they have the same
+	\em content (raw values).
+
+@param[in] object_a	Value object A to compare to \p object_b.
+@param[in] object_b	Value object B to compare to \p object_a.
+@returns		\c true if \p object_a and \p object_b have the
+			same \em content, or \c false if they differ
+			or on error.
+
+@postrefcountsame{object_a}
+@postrefcountsame{object_b}
+*/
+extern bool bt_value_compare(const struct bt_value *object_a,
+		const struct bt_value *object_b);
+
+/** @} */
+
+/**
+@name Boolean value object functions
+@{
+*/
+
+/**
+@brief	Creates a default boolean value object.
+
+The created boolean value object's initial raw value is \c false.
+
+@returns	Created boolean value object on success, or \c NULL
+		on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_bool_create_init(): Creates an initialized boolean
+	value object.
+*/
 extern struct bt_value *bt_value_bool_create(void);
 
 /**
- * Creates a boolean value object with its initial raw value set to
- * \p val.
- *
- * The created value object's reference count is set to 1.
- *
- * @param val	Initial raw value
- * @returns	Created value object on success, or \c NULL on error
- */
+@brief	Creates a boolean value object with its initial raw value set to
+	\p val.
+
+@param[in] val	Initial raw value.
+@returns	Created boolean value object on success, or
+		\c NULL on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_bool_create(): Creates a default boolean value object.
+*/
 extern struct bt_value *bt_value_bool_create_init(bool val);
 
 /**
- * Creates an integer value object. The created integer value object's
- * initial raw value is 0.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- *
- * @see bt_value_integer_create_init() (creates an initialized
- *					integer value object)
- */
-extern struct bt_value *bt_value_integer_create(void);
+@brief	Returns the boolean raw value of the boolean value object
+	\p bool_obj.
 
-/**
- * Creates an integer value object with its initial raw value set to
- * \p val.
- *
- * The created value object's reference count is set to 1.
- *
- * @param val	Initial raw value
- * @returns	Created value object on success, or \c NULL on error
- */
-extern struct bt_value *bt_value_integer_create_init(int64_t val);
+@param[in] bool_obj	Boolean value object of which to get the
+			raw value.
+@param[out] val		Returned boolean raw value.
+@returns		One of #bt_value_status values.
 
-/**
- * Creates a floating point number value object. The created floating
- * point number value object's initial raw value is 0.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- *
- * @see bt_value_float_create_init() (creates an initialized floating
- *				      point number value object)
- */
-extern struct bt_value *bt_value_float_create(void);
+@prenotnull{bool_obj}
+@prenotnull{val}
+@pre \p bool_obj is a boolean value object.
+@postrefcountsame{bool_obj}
 
-/**
- * Creates a floating point number value object with its initial raw
- * value set to \p val.
- *
- * The created value object's reference count is set to 1.
- *
- * @param val	Initial raw value
- * @returns	Created value object on success, or \c NULL on error
- */
-extern struct bt_value *bt_value_float_create_init(double val);
-
-/**
- * Creates a string value object. The string value object is initially
- * empty.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- *
- * @see bt_value_string_create_init() (creates an initialized
- *				       string value object)
- */
-extern struct bt_value *bt_value_string_create(void);
-
-/**
- * Creates a string value object with its initial raw value set to
- * \p val.
- *
- * On success, \p val is \em copied.
- *
- * The created value object's reference count is set to 1.
- *
- * @param val	Initial raw value (copied on success)
- * @returns	Created value object on success, or \c NULL on error
- */
-extern struct bt_value *bt_value_string_create_init(const char *val);
-
-/**
- * Creates an empty array value object.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- */
-extern struct bt_value *bt_value_array_create(void);
-
-/**
- * Creates an empty map value object.
- *
- * The created value object's reference count is set to 1.
- *
- * @returns	Created value object on success, or \c NULL on error
- */
-extern struct bt_value *bt_value_map_create(void);
-
-/**
- * Gets the boolean raw value of the boolean value object \p bool_obj.
- *
- * @param bool_obj	Boolean value object
- * @param val		Returned boolean raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_bool_set()
- */
+@sa bt_value_bool_set(): Sets the raw value of a boolean value object.
+*/
 extern enum bt_value_status bt_value_bool_get(
 		const struct bt_value *bool_obj, bool *val);
 
 /**
- * Sets the boolean raw value of the boolean value object \p bool_obj
- * to \p val.
- *
- * @param bool_obj	Boolean value object
- * @param val		New boolean raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_bool_get()
- */
+@brief	Sets the boolean raw value of the boolean value object
+	\p bool_obj to \p val.
+
+@param[in] bool_obj	Boolean value object of which to set
+			the raw value.
+@param[in] val		New boolean raw value.
+@returns		One of #bt_value_status values.
+
+@prenotnull{bool_obj}
+@pre \p bool_obj is a boolean value object.
+@prehot{bool_obj}
+@postrefcountsame{bool_obj}
+
+@sa bt_value_bool_get(): Returns the raw value of a given boolean
+	value object.
+*/
 extern enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
 		bool val);
 
+/** @} */
+
 /**
- * Gets the integer raw value of the integer value object
- * \p integer_obj.
- *
- * @param integer_obj	Integer value object
- * @param val		Returned integer raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_integer_set()
- */
+@name Integer value object functions
+@{
+*/
+
+/**
+@brief	Creates a default integer value object.
+
+The created integer value object's initial raw value is 0.
+
+@returns	Created integer value object on success, or \c NULL
+		on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_integer_create_init(): Creates an initialized integer
+	value object.
+*/
+extern struct bt_value *bt_value_integer_create(void);
+
+/**
+@brief	Creates an integer value object with its initial raw value set to
+	\p val.
+
+@param[in] val	Initial raw value.
+@returns	Created integer value object on success, or
+		\c NULL on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_integer_create(): Creates a default integer
+	value object.
+*/
+extern struct bt_value *bt_value_integer_create_init(int64_t val);
+
+/**
+@brief	Returns the integer raw value of the integer value object
+	\p integer_obj.
+
+@param[in] integer_obj	Integer value object of which to get the
+			raw value.
+@param[out] val		Returned integer raw value.
+@returns		One of #bt_value_status values.
+
+@prenotnull{integer_obj}
+@prenotnull{val}
+@pre \p integer_obj is an integer value object.
+@postrefcountsame{integer_obj}
+
+@sa bt_value_integer_set(): Sets the raw value of an integer value
+	object.
+*/
 extern enum bt_value_status bt_value_integer_get(
 		const struct bt_value *integer_obj, int64_t *val);
 
 /**
- * Sets the integer raw value of the integer value object \p integer_obj
- * to \p val.
- *
- * @param integer_obj	Integer value object
- * @param val		New integer raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_integer_get()
- */
+@brief	Sets the integer raw value of the integer value object
+	\p integer_obj to \p val.
+
+@param[in] integer_obj	Integer value object of which to set
+			the raw value.
+@param[in] val		New integer raw value.
+@returns		One of #bt_value_status values.
+
+@prenotnull{integer_obj}
+@pre \p integer_obj is an integer value object.
+@prehot{integer_obj}
+@postrefcountsame{integer_obj}
+
+@sa bt_value_integer_get(): Returns the raw value of a given integer
+	value object.
+*/
 extern enum bt_value_status bt_value_integer_set(
 		struct bt_value *integer_obj, int64_t val);
 
+/** @} */
+
 /**
- * Gets the floating point number raw value of the floating point number
- * value object \p float_obj.
- *
- * @param float_obj	Floating point number value object
- * @param val		Returned floating point number raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_float_set()
- */
+@name Floating point number value object functions
+@{
+*/
+
+/**
+@brief	Creates a default floating point number value object.
+
+The created floating point number value object's initial raw value is 0.
+
+@returns	Created floating point number value object on success,
+		or \c NULL on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_float_create_init(): Creates an initialized floating
+	point number value object.
+*/
+extern struct bt_value *bt_value_float_create(void);
+
+/**
+@brief	Creates a floating point number value object with its initial raw
+	value set to \p val.
+
+@param[in] val	Initial raw value.
+@returns	Created floating point number value object on
+		success, or \c NULL on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_float_create(): Creates a default floating point number
+	value object.
+*/
+extern struct bt_value *bt_value_float_create_init(double val);
+
+/**
+@brief	Returns the floating point number raw value of the floating point
+	number value object \p float_obj.
+
+@param[in] float_obj	Floating point number value object of which to
+			get the raw value.
+@param[out] val		Returned floating point number raw value
+@returns		One of #bt_value_status values.
+
+@prenotnull{float_obj}
+@prenotnull{val}
+@pre \p float_obj is a floating point number value object.
+@postrefcountsame{float_obj}
+
+@sa bt_value_float_set(): Sets the raw value of a given floating
+	point number value object.
+*/
 extern enum bt_value_status bt_value_float_get(
 		const struct bt_value *float_obj, double *val);
 
 /**
- * Sets the floating point number raw value of the floating point number
- * value object \p float_obj to \p val.
- *
- * @param float_obj	Floating point number value object
- * @param val		New floating point number raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_float_get()
- */
+@brief	Sets the floating point number raw value of the floating point
+	number value object \p float_obj to \p val.
+
+@param[in] float_obj	Floating point number value object of which to set
+			the raw value.
+@param[in] val		New floating point number raw value.
+@returns		One of #bt_value_status values.
+
+@prenotnull{float_obj}
+@pre \p float_obj is a floating point number value object.
+@prehot{float_obj}
+@postrefcountsame{float_obj}
+
+@sa bt_value_float_get(): Returns the raw value of a floating point
+	number value object.
+*/
 extern enum bt_value_status bt_value_float_set(
 		struct bt_value *float_obj, double val);
 
+/** @} */
+
 /**
- * Gets the string raw value of the string value object \p string_obj.
- * The returned string is valid as long as this value object exists and
- * is not modified. The ownership of the returned string is \em not
- * transferred to the caller.
- *
- * @param string_obj	String value object
- * @param val		Returned string raw value
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_string_set()
- */
+@name String value object functions
+@{
+*/
+
+/**
+@brief	Creates a default string value object.
+
+The string value object is initially empty.
+
+@returns	Created string value object on success, or \c NULL
+		on error.
+
+@postsuccessrefcountret1
+
+@sa bt_value_string_create_init(): Creates an initialized string
+	value object.
+*/
+extern struct bt_value *bt_value_string_create(void);
+
+/**
+@brief	Creates a string value object with its initial raw value set to
+	\p val.
+
+On success, \p val is copied.
+
+@param[in] val		Initial raw value (copied on success).
+@returns		Created string value object on success, or
+			\c NULL on error.
+
+@prenotnull{val}
+@postsuccessrefcountret1
+
+@sa bt_value_float_create(): Creates a default string value object.
+*/
+extern struct bt_value *bt_value_string_create_init(const char *val);
+
+/**
+@brief	Returns the string raw value of the string value object
+	\p string_obj.
+
+The returned string is placed in \p *val. It is valid as long as this
+value object exists and is \em not modified. The ownership of the
+returned string is \em not transferred to the caller.
+
+@param[in] string_obj	String value object of which to get the
+			raw value.
+@param[out] val		Returned string raw value.
+@returns		One of #bt_value_status values.
+
+@prenotnull{string_obj}
+@prenotnull{val}
+@pre \p string_obj is a string value object.
+@postrefcountsame{string_obj}
+
+@sa bt_value_string_set(): Sets the raw value of a string
+	value object.
+*/
 extern enum bt_value_status bt_value_string_get(
 		const struct bt_value *string_obj, const char **val);
 
 /**
- * Sets the string raw value of the string value object \p string_obj to
- * \p val.
- *
- * On success, \p val is \em copied.
- *
- * @param string_obj	String value object
- * @param val		New string raw value (copied on successf)
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_string_get()
- */
+@brief	Sets the string raw value of the string value object
+	\p string_obj to \p val.
+
+On success, \p val is copied.
+
+@param[in] string_obj	String value object of which to set
+			the raw value.
+@param[in] val		New string raw value (copied on success).
+@returns		One of #bt_value_status values.
+
+@prenotnull{string_obj}
+@prenotnull{val}
+@pre \p string_obj is a string value object.
+@prehot{string_obj}
+@postrefcountsame{string_obj}
+
+@sa bt_value_string_get(): Returns the raw value of a given string
+	value object.
+*/
 extern enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
 		const char *val);
 
 /**
- * Gets the size of the array value object \p array_obj, that is, the
- * number of value objects contained in \p array_obj.
- *
- * @param array_obj	Array value object
- * @returns		Array size if the return value is 0 (empty) or a
- *			positive value, or one of
- *			#bt_value_status negative values otherwise
- *
- * @see bt_value_array_is_empty()
+ * @}
  */
+
+/**
+ * @name Array value object functions
+ * @{
+ */
+
+/**
+@brief	Creates an empty array value object.
+
+@returns	Created array value object on success, or \c NULL
+		on error.
+
+@postsuccessrefcountret1
+*/
+extern struct bt_value *bt_value_array_create(void);
+
+/**
+@brief	Returns the size of the array value object \p array_obj, that is,
+	the number of value objects contained in \p array_obj.
+
+@param[in] array_obj	Array value object of which to get the size.
+@returns		Number of value objects contained in
+			\p array_obj if the return value is 0 (empty)
+			or a positive value, or one of
+			#bt_value_status negative values otherwise.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_is_empty(): Checks whether or not a given array
+	value object is empty.
+*/
 extern int bt_value_array_size(const struct bt_value *array_obj);
 
 /**
- * Returns \c true if the array value object \p array_obj is empty.
- *
- * @param array_obj	Array value object
- * @returns		\c true if \p array_obj is empty
- *
- * @see bt_value_array_size()
- */
+@brief	Checks whether or not the array value object \p array_obj
+	is empty.
+
+@param[in] array_obj	Array value object to check.
+@returns		\c true if \p array_obj is empty.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_size(): Returns the size of a given array value
+	object.
+*/
 extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
 /**
- * Gets the value object of the array value object \p array_obj at the
- * index \p index.
- *
- * The returned value object's reference count is incremented, unless
- * it's a null value object.
- *
- * @param array_obj	Array value object
- * @param index		Index of value object to get
- * @returns		Value object at index \p index on
- *			success, or \c NULL on error
- */
+@brief	Returns the value object contained in the array value object
+	\p array_obj at the index \p index.
+
+@param[in] array_obj	Array value object of which to get an element.
+@param[in] index	Index of value object to get.
+@returns		Value object at index \p index on
+			success, or \c NULL on error.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@pre \p index is lesser than the size of \p array_obj.
+@post <strong>On success, if the returned value object is not
+	\ref bt_value_null</strong>, its reference count is incremented.
+@postrefcountsame{array_obj}
+*/
 extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 		size_t index);
 
 /**
- * Appends the value object \p element_obj to the array value
- * object \p array_obj.
- *
- * The appended value object's reference count is incremented, unless
- * it's a null object.
- *
- * @param array_obj	Array value object
- * @param element_obj	Value object to append
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append_bool()
- * @see bt_value_array_append_integer()
- * @see bt_value_array_append_float()
- * @see bt_value_array_append_string()
- * @see bt_value_array_append_empty_array()
- * @see bt_value_array_append_empty_map()
- */
+@brief	Appends the value object \p element_obj to the array value
+	object \p array_obj.
+
+@param[in] array_obj	Array value object in which to append
+			\p element_obj.
+@param[in] element_obj	Value object to append.
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@prenotnull{element_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@post <strong>On success, if \p element_obj is not
+	\ref bt_value_null</strong>, its reference count is incremented.
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append_bool(): Appends a boolean raw value to a
+	given array value object.
+@sa bt_value_array_append_integer(): Appends an integer raw value
+	to a given array value object.
+@sa bt_value_array_append_float(): Appends a floating point number
+	raw value to a given array value object.
+@sa bt_value_array_append_string(): Appends a string raw value to a
+	given array value object.
+@sa bt_value_array_append_empty_array(): Appends an empty array value
+	object to a given array value object.
+@sa bt_value_array_append_empty_map(): Appends an empty map value
+	object to a given array value object.
+*/
 extern enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
 		struct bt_value *element_obj);
 
 /**
- * Appends the boolean raw value \p val to the array value object
- * \p array_obj. This is a convenience function which creates the
- * underlying boolean value object before appending it.
- *
- * The created boolean value object's reference count is set to 1.
- *
- * @param array_obj	Array value object
- * @param val		Boolean raw value to append
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends the boolean raw value \p val to the array value object
+	\p array_obj.
+
+This is a convenience function which creates the underlying boolean
+value object before appending it.
+
+@param[in] array_obj	Array value object in which to append \p val.
+@param[in] val		Boolean raw value to append to \p array_obj.
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_bool(
 		struct bt_value *array_obj, bool val);
 
 /**
- * Appends the integer raw value \p val to the array value object
- * \p array_obj. This is a convenience function which creates the
- * underlying integer value object before appending it.
- *
- * The created integer value object's reference count is set to 1.
- *
- * @param array_obj	Array value object
- * @param val		Integer raw value to append
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends the integer raw value \p val to the array value object
+	\p array_obj.
+
+This is a convenience function which creates the underlying integer
+value object before appending it.
+
+@param[in] array_obj	Array value object in which to append \p val.
+@param[in] val		Integer raw value to append to \p array_obj.
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_integer(
 		struct bt_value *array_obj, int64_t val);
 
 /**
- * Appends the floating point number raw value \p val to the array value
- * object \p array_obj. This is a convenience function which creates the
- * underlying floating point number value object before appending it.
- *
- * The created floating point number value object's reference count is
- * set to 1.
- *
- * @param array_obj	Array value object
- * @param val		Floating point number raw value to append
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends the floating point number raw value \p val to the array
+	value object \p array_obj.
+
+This is a convenience function which creates the underlying floating
+point number value object before appending it.
+
+@param[in] array_obj	Array value object in which to append \p val.
+@param[in] val		Floating point number raw value to append
+			to \p array_obj.
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_float(
 		struct bt_value *array_obj, double val);
 
 /**
- * Appends the string raw value \p val to the array value object
- * \p array_obj. This is a convenience function which creates the
- * underlying string value object before appending it.
- *
- * On success, \p val is \em copied.
- *
- * The created string value object's reference count is set to 1.
- *
- * @param array_obj	Array value object
- * @param val		String raw value to append (copied on success)
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends the string raw value \p val to the array value object
+	\p array_obj.
+
+This is a convenience function which creates the underlying string value
+object before appending it.
+
+On success, \p val is copied.
+
+@param[in] array_obj	Array value object in which to append \p val.
+@param[in] val		String raw value to append to \p array_obj
+			(copied on success).
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prenotnull{val}
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_string(
 		struct bt_value *array_obj, const char *val);
 
 /**
- * Appends an empty array value object to the array value object
- * \p array_obj. This is a convenience function which creates the
- * underlying array value object before appending it.
- *
- * The created array value object's reference count is set to 1.
- *
- * @param array_obj	Array value object
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends an empty array value object to the array value object
+	\p array_obj.
+
+This is a convenience function which creates the underlying array value
+object before appending it.
+
+@param[in] array_obj	Array value object in which to append an
+			empty array value object
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_empty_array(
 		struct bt_value *array_obj);
 
 /**
- * Appends an empty map value object to the array value object
- * \p array_obj. This is a convenience function which creates the
- * underlying map value object before appending it.
- *
- * The created map value object's reference count is set to 1.
- *
- * @param array_obj	Array value object
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_array_append()
- */
+@brief	Appends an empty map value object to the array value object
+	\p array_obj.
+
+This is a convenience function which creates the underlying map value
+object before appending it.
+
+@param[in] array_obj	Array value object in which to append an empty
+			map value object.
+@returns		One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@pre \p array_obj is an array value object.
+@prehot{array_obj}
+@postrefcountsame{array_obj}
+
+@sa bt_value_array_append(): Appends a value object to a given
+	array value object.
+*/
 extern enum bt_value_status bt_value_array_append_empty_map(
 		struct bt_value *array_obj);
 
 /**
- * Replaces the value object at index \p index of the array
- * value object \p array_obj by \p element_obj.
- *
- * The replaced value object's reference count is decremented, unless
- * it's a null value object. The reference count of \p element_obj is
- * incremented, unless it's a null value object.
- *
- * @param array_obj	Array value object
- * @param index		Index of value object to replace
- * @param element_obj	New value object at position \p index of
- *			\p array_obj
- * @returns		One of #bt_value_status values
- */
+@brief	Replaces the value object contained in the array value object
+	\p array_obj at the index \p index by \p element_obj.
+
+@param[in] array_obj		Array value object in which to replace
+				an element.
+@param[in] index		Index of value object to replace in
+				\p array_obj.
+@param[in] element_obj		New value object at position \p index of
+				\p array_obj.
+@returns			One of #bt_value_status values.
+
+@prenotnull{array_obj}
+@prenotnull{element_obj}
+@pre \p array_obj is an array value object.
+@pre \p index is lesser than the size of \p array_obj.
+@prehot{array_obj}
+@post <strong>On success, if the replaced value object is not
+	\ref bt_value_null</strong>, its reference count is decremented.
+@post <strong>On success, if \p element_obj is not
+	\ref bt_value_null</strong>, its reference count is incremented.
+@postrefcountsame{array_obj}
+*/
 extern enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
 		size_t index, struct bt_value *element_obj);
 
+/** @} */
+
 /**
- * Gets the size of a map value object, that is, the number of entries
- * contained in a map value object.
- *
- * @param map_obj	Map value object
- * @returns		Map size if the return value is 0 (empty) or a
- *			positive value, or one of
- *			#bt_value_status negative values otherwise
- *
- * @see bt_value_map_is_empty()
- */
+@name Map value object functions
+@{
+*/
+
+/**
+@brief	Creates an empty map value object.
+
+@returns	Created map value object on success, or \c NULL on error.
+
+@postsuccessrefcountret1
+*/
+extern struct bt_value *bt_value_map_create(void);
+
+/**
+@brief	Returns the size of the map value object \p map_obj, that is, the
+	number of entries contained in \p map_obj.
+
+@param[in] map_obj	Map value object of which to get the size.
+@returns                Number of entries contained in \p map_obj if the
+			return value is 0 (empty) or a positive value,
+			or one of #bt_value_status negative values
+			otherwise.
+
+@prenotnull{map_obj}
+@pre \p map_obj is a map value object.
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_is_empty(): Checks whether or not a given map value
+	object is empty.
+*/
 extern int bt_value_map_size(const struct bt_value *map_obj);
 
 /**
- * Returns \c true if the map value object \p map_obj is empty.
- *
- * @param map_obj	Map value object
- * @returns		\c true if \p map_obj is empty
- *
- * @see bt_value_map_size()
- */
+@brief	Checks whether or not the map value object \p map_obj is empty.
+
+@param[in] map_obj	Map value object to check.
+@returns		\c true if \p map_obj is empty.
+
+@prenotnull{map_obj}
+@pre \p map_obj is a map value object.
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_size(): Returns the size of a given map value object.
+*/
 extern bool bt_value_map_is_empty(const struct bt_value *map_obj);
 
 /**
- * Gets the value object associated with the key \p key within the
- * map value object \p map_obj.
- *
- * The returned value object's reference count is incremented, unless
- * it's a null value object.
- *
- * @param map_obj	Map value object
- * @param key		Key of the value object to get
- * @returns		Value object associated with the key \p key
- *			on success, or \c NULL on error
- */
+@brief	Returns the value object associated with the key \p key within
+	the map value object \p map_obj.
+
+@param[in] map_obj	Map value object of which to get an entry.
+@param[in] key		Key of the value object to get.
+@returns		Value object associated with the key \p key
+			on success, or \c NULL on error.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@postrefcountsame{map_obj}
+
+@post <strong>On success, if the returned value object is not
+	\ref bt_value_null</strong>, its reference count is incremented.
+*/
 extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 		const char *key);
 
 /**
- * Calls a provided user function \p cb for each value object of the map
- * value object \p map_obj.
- *
- * The value object passed to the user function is a
- * <b>weak reference</b>: you must call bt_get() on it to obtain your own
- * reference.
- *
- * The key passed to the user function is only valid in the scope of
- * this user function call.
- *
- * The user function must return \c true to continue the loop, or
- * \c false to break it.
- *
- * @param map_obj	Map value object
- * @param cb		User function to call back
- * @param data		User data passed to the user function
- * @returns		One of #bt_value_status values; more
- *			specifically, #BT_VALUE_STATUS_CANCELLED is
- *			returned if the loop was cancelled by the user
- *			function
- */
+@brief	User function type to use with bt_value_map_foreach().
+
+\p object is a <em>weak reference</em>: you \em must pass it to bt_get()
+if you need your own reference.
+
+This function \em must return \c true to continue the map value object
+traversal, or \c false to break it.
+
+@param[in] key		Key of map entry.
+@param[in] object	Value object of map entry (weak reference).
+@param[in] data		User data.
+@returns		\c true to continue the loop, or \c false to break it.
+
+@prenotnull{key}
+@prenotnull{object}
+@post The reference count of \p object is not lesser than what it is
+	when the function is called.
+*/
+typedef bool (* bt_value_map_foreach_cb)(const char *key,
+	struct bt_value *object, void *data);
+
+/**
+@brief	Calls a provided user function \p cb for each value object of the
+	map value object \p map_obj.
+
+The value object passed to the user function is a <b>weak reference</b>:
+you \em must pass it to bt_get() if you need your own reference.
+
+The key passed to the user function is only valid in the scope of
+this user function call.
+
+The user function \em must return \c true to continue the traversal of
+\p map_obj, or \c false to break it.
+
+@param[in] map_obj	Map value object on which to iterate.
+@param[in] cb		User function to call back.
+@param[in] data		User data passed to the user function.
+@returns		One of #bt_value_status values. More
+			specifically, #BT_VALUE_STATUS_CANCELLED is
+			returned if the loop was cancelled by the user
+			function.
+
+@prenotnull{map_obj}
+@prenotnull{cb}
+@pre \p map_obj is a map value object.
+@postrefcountsame{map_obj}
+*/
 extern enum bt_value_status bt_value_map_foreach(
 		const struct bt_value *map_obj, bt_value_map_foreach_cb cb,
 		void *data);
 
 /**
- * Returns whether or not the map value object \p map_obj contains the
- * key \p key.
- *
- * @param map_obj	Map value object
- * @param key		Key to check
- * @returns		\c true if \p map_obj contains the key \p key,
- *			or \c false if it doesn't have \p key or
- *			on error
- */
+@brief	Returns whether or not the map value object \p map_obj contains
+	an entry mapped to the key \p key.
+
+@param[in] map_obj	Map value object to check.
+@param[in] key		Key to check.
+@returns		\c true if \p map_obj has an entry mapped to the
+			key \p key, or \c false if it does not or
+			on error.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@postrefcountsame{map_obj}
+*/
 extern bool bt_value_map_has_key(const struct bt_value *map_obj,
 		const char *key);
 
 /**
- * Inserts the value object \p element_obj associated with the key
- * \p key into the map value object \p map_obj. If \p key exists in
- * \p map_obj, the associated value object is first put, and then
- * replaced by \p element_obj.
- *
- * On success, \p key is \em copied.
- *
- * The inserted value object's reference count is incremented, unless
- * it's a null value object.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of value object to insert
- * @param element_obj	Value object to insert, associated with the
- *			key \p key
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert_bool()
- * @see bt_value_map_insert_integer()
- * @see bt_value_map_insert_float()
- * @see bt_value_map_insert_string()
- * @see bt_value_map_insert_empty_array()
- * @see bt_value_map_insert_empty_map()
- */
+@brief	Inserts the value object \p element_obj mapped to the key
+	\p key into the map value object \p map_obj.
+
+If a value object is already mapped to \p key in \p map_obj, the
+associated value object is first put, and then replaced by
+\p element_obj.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert
+			\p element_obj.
+@param[in] key		Key (copied on success) to which the
+			value object to insert is mapped.
+@param[in] element_obj	Value object to insert, mapped to the
+			key \p key.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@prenotnull{element_obj}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@post <strong>On success, if \p element_obj is not
+	\ref bt_value_null</strong>, its reference count is incremented.
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert_bool(): Inserts a boolean raw value into a
+	given map value object.
+@sa bt_value_map_insert_integer(): Inserts an integer raw value into
+	a given map value object.
+@sa bt_value_map_insert_float(): Inserts a floating point number raw
+	value into a given map value object.
+@sa bt_value_map_insert_string(): Inserts a string raw value into a
+	given map value object.
+@sa bt_value_map_insert_empty_array(): Inserts an empty array value
+	object into a given map value object.
+@sa bt_value_map_insert_empty_map(): Inserts an empty map value
+	object into a given map value object.
+*/
 extern enum bt_value_status bt_value_map_insert(
 		struct bt_value *map_obj, const char *key,
 		struct bt_value *element_obj);
 
 /**
- * Inserts the boolean raw value \p val associated with the key \p key
- * into the map value object \p map_obj. This is a convenience function
- * which creates the underlying boolean value object before
- * inserting it.
- *
- * On success, \p key is \em copied.
- *
- * The created boolean value object's reference count is set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of boolean value object
- *			to insert
- * @param val		Boolean raw value to insert, associated with
- *			the key \p key
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts the boolean raw value \p val mapped to the key \p key
+	into the map value object \p map_obj.
+
+This is a convenience function which creates the underlying boolean
+value object before inserting it.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert \p val.
+@param[in] key		Key (copied on success) to which the boolean
+			value object to insert is mapped.
+@param[in] val		Boolean raw value to insert, mapped to
+			the key \p key.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_bool(
 		struct bt_value *map_obj, const char *key, bool val);
 
 /**
- * Inserts the integer raw value \p val associated with the key \p key
- * into the map value object \p map_obj. This is a convenience function
- * which creates the underlying integer value object before inserting it.
- *
- * On success, \p key is \em copied.
- *
- * The created integer value object's reference count is set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of integer value object
- *			to insert
- * @param val		Integer raw value to insert, associated with
- *			the key \p key
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts the integer raw value \p val mapped to the key \p key
+	into the map value object \p map_obj.
+
+This is a convenience function which creates the underlying integer
+value object before inserting it.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert \p val.
+@param[in] key		Key (copied on success) to which the integer
+			value object to insert is mapped.
+@param[in] val		Integer raw value to insert, mapped to
+			the key \p key.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_integer(
 		struct bt_value *map_obj, const char *key, int64_t val);
 
 /**
- * Inserts the floating point number raw value \p val associated with
- * the key \p key into the map value object \p map_obj. This is a
- * convenience function which creates the underlying floating point
- * number value object before inserting it.
- *
- * On success, \p key is \em copied.
- *
- * The created floating point number value object's reference count is
- * set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of floating point number
- *			value object to insert
- * @param val		Floating point number raw value to insert,
- *			associated with the key \p key
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts the floating point number raw value \p val mapped to
+	the key \p key into the map value object \p map_obj.
+
+This is a convenience function which creates the underlying floating
+point number value object before inserting it.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert \p val.
+@param[in] key		Key (copied on success) to which the floating
+			point number value object to insert is mapped.
+@param[in] val		Floating point number raw value to insert,
+			mapped to the key \p key.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_float(
 		struct bt_value *map_obj, const char *key, double val);
 
 /**
- * Inserts the string raw value \p val associated with the key \p key
- * into the map value object \p map_obj. This is a convenience function
- * which creates the underlying string value object before inserting it.
- *
- * On success, \p val and \p key are \em copied.
- *
- * The created string value object's reference count is set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of string value object
- *			to insert
- * @param val		String raw value to insert (copied on success),
- *			associated with the key \p key
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts the string raw value \p val mapped to the key \p key
+	into the map value object \p map_obj.
+
+This is a convenience function which creates the underlying string value
+object before inserting it.
+
+On success, \p val and \p key are copied.
+
+@param[in] map_obj	Map value object in which to insert \p val.
+@param[in] key		Key (copied on success) to which the string
+			value object to insert is mapped.
+@param[in] val		String raw value to insert (copied on success),
+			mapped to the key \p key.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@prenotnull{val}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_string(
 		struct bt_value *map_obj, const char *key, const char *val);
 
 /**
- * Inserts an empty array value object associated with the key \p key
- * into the map value object \p map_obj. This is a convenience function
- * which creates the underlying array value object before inserting it.
- *
- * On success, \p key is \em copied.
- *
- * The created array value object's reference count is set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of empty array value
- *			object to insert
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts an empty array value object mapped to the key \p key
+	into the map value object \p map_obj.
+
+This is a convenience function which creates the underlying array value
+object before inserting it.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert an empty
+			array value object.
+@param[in] key		Key (copied on success) to which the empty array
+			value object to insert is mapped.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_empty_array(
 		struct bt_value *map_obj, const char *key);
 
 /**
- * Inserts an empty map value object associated with the key \p key into
- * the map value object \p map_obj. This is a convenience function which
- * creates the underlying map value object before inserting it.
- *
- * On success, \p key is \em copied.
- *
- * The created map value object's reference count is set to 1.
- *
- * @param map_obj	Map value object
- * @param key		Key (copied on success) of empty map value
- *			object to insert
- * @returns		One of #bt_value_status values
- *
- * @see bt_value_map_insert()
- */
+@brief	Inserts an empty map value object mapped to the key \p key into
+	the map value object \p map_obj.
+
+This is a convenience function which creates the underlying map value
+object before inserting it.
+
+On success, \p key is copied.
+
+@param[in] map_obj	Map value object in which to insert an empty
+			map object.
+@param[in] key		Key (copied on success) to which the empty map
+			value object to insert is mapped.
+@returns		One of #bt_value_status values.
+
+@prenotnull{map_obj}
+@prenotnull{key}
+@pre \p map_obj is a map value object.
+@prehot{map_obj}
+@postrefcountsame{map_obj}
+
+@sa bt_value_map_insert(): Inserts a value object into a given map
+	value object.
+*/
 extern enum bt_value_status bt_value_map_insert_empty_map(
 		struct bt_value *map_obj, const char *key);
 
-/**
- * Creates a deep copy of the value object \p object.
- *
- * The created value object's reference count is set to 1, unless
- * \p object is a null value object.
- *
- * Copying a frozen value object is allowed: the resulting copy is
- * \em not frozen.
- *
- * @param object	Value object to copy
- * @returns		Deep copy of \p object on success, or \c NULL
- *			on error
- */
-extern struct bt_value *bt_value_copy(const struct bt_value *object);
+/** @} */
 
-/**
- * Compares the value objects \p object_a and \p object_b and returns
- * \c true if they have the same \em content (raw values).
- *
- * @param object_a	Value object A
- * @param object_b	Value object B
- * @returns		\c true if \p object_a and \p object_b have the
- *			same content, or \c false if they differ or on
- *			error
- */
-extern bool bt_value_compare(const struct bt_value *object_a,
-		const struct bt_value *object_b);
+/** @} */
 
 #ifdef __cplusplus
 }
