@@ -403,9 +403,6 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		if (ret) {
 			goto error;
 		}
-
-		stream->clock_values = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, g_free);
 	}
 
 	/* Add this stream to the trace's streams */
@@ -937,10 +934,6 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 		g_string_free(stream->name, TRUE);
 	}
 
-	if (stream->clock_values) {
-		g_hash_table_destroy(stream->clock_values);
-	}
-
 	bt_put(stream->packet_header);
 	bt_put(stream->packet_context);
 	g_free(stream);
@@ -1008,79 +1001,4 @@ const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
 
 end:
 	return name;
-}
-
-BT_HIDDEN
-void bt_ctf_stream_update_clock_value(struct bt_ctf_stream *stream,
-		struct bt_ctf_field *value_field)
-{
-	struct bt_ctf_field_type *value_type = NULL;
-	struct bt_ctf_clock *clock = NULL;
-	uint64_t requested_new_value;
-	uint64_t requested_new_value_mask;
-	uint64_t *cur_value;
-	uint64_t cur_value_masked;
-	int requested_new_value_size;
-	int ret;
-
-	assert(stream);
-	assert(clock);
-	assert(value_field);
-	value_type = bt_ctf_field_get_type(value_field);
-	assert(value_type);
-	clock = bt_ctf_field_type_integer_get_mapped_clock(value_type);
-	assert(clock);
-	requested_new_value_size =
-		bt_ctf_field_type_integer_get_size(value_type);
-	assert(requested_new_value_size > 0);
-	ret = bt_ctf_field_unsigned_integer_get_value(value_field,
-		&requested_new_value);
-	assert(!ret);
-	cur_value = g_hash_table_lookup(stream->clock_values, clock);
-
-	if (!cur_value) {
-		/*
-		 * Updating the value of a clock which is not registered
-		 * yet, so register it with the new value as its initial
-		 * value.
-		 */
-		uint64_t *requested_new_value_ptr = g_new0(uint64_t, 1);
-
-		*requested_new_value_ptr = requested_new_value;
-		g_hash_table_insert(stream->clock_values, clock,
-			requested_new_value_ptr);
-		goto end;
-	}
-
-	/*
-	 * Special case for a 64-bit new value, which is the limit
-	 * of a clock value as of this version: overwrite the
-	 * current value directly.
-	 */
-	if (requested_new_value_size == 64) {
-		*cur_value = requested_new_value;
-		goto end;
-	}
-
-	requested_new_value_mask = (1ULL << requested_new_value_size) - 1;
-	cur_value_masked = *cur_value & requested_new_value_mask;
-
-	if (requested_new_value < cur_value_masked) {
-		/*
-		 * It looks like a wrap happened on the number of bits
-		 * of the requested new value. Assume that the clock
-		 * value wrapped only one time.
-		 */
-		*cur_value += requested_new_value_mask + 1;
-	}
-
-	/* Clear the low bits of the current clock value */
-	*cur_value &= ~requested_new_value_mask;
-
-	/* Set the low bits of the current clock value */
-	*cur_value |= requested_new_value;
-
-end:
-	bt_put(clock);
-	bt_put(value_type);
 }

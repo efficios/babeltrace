@@ -51,9 +51,6 @@ struct bt_ctf_event {
 };
 
 BT_HIDDEN
-int bt_ctf_event_register_stream_clock_values(struct bt_ctf_event *event);
-
-BT_HIDDEN
 int bt_ctf_event_validate(struct bt_ctf_event *event);
 
 BT_HIDDEN

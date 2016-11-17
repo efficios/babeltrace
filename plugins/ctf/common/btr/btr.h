@@ -52,6 +52,8 @@
  * Binary type reader API status codes.
  */
 enum bt_ctf_btr_status {
+	/** Out of memory. */
+	BT_CTF_BTR_STATUS_ENOMEM =	-5,
 	/**
 	 * The binary stream reader reached the end of the user-provided
 	 * buffer, but data is still needed to finish decoding the

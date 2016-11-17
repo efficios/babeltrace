@@ -173,6 +173,9 @@ struct bt_ctf_notif_iter {
 
 	/* Current content size (bits) (-1 if unknown) */
 	int64_t cur_content_size;
+
+	/* bt_ctf_clock to uint64_t. */
+	GHashTable *clock_states;
 };
 
 static
@@ -1221,6 +1224,103 @@ end:
 }
 
 static
+void update_clock_state(uint64_t *state,
+		struct bt_ctf_field *value_field)
+{
+	struct bt_ctf_field_type *value_type = NULL;
+	uint64_t requested_new_value;
+	uint64_t requested_new_value_mask;
+	uint64_t cur_value_masked;
+	int requested_new_value_size;
+	int ret;
+
+	value_type = bt_ctf_field_get_type(value_field);
+	assert(value_type);
+
+	requested_new_value_size =
+			bt_ctf_field_type_integer_get_size(value_type);
+	assert(requested_new_value_size > 0);
+
+	ret = bt_ctf_field_unsigned_integer_get_value(value_field,
+			&requested_new_value);
+	assert(!ret);
+
+	/*
+	 * Special case for a 64-bit new value, which is the limit
+	 * of a clock value as of this version: overwrite the
+	 * current value directly.
+	 */
+	if (requested_new_value_size == 64) {
+		*state = requested_new_value;
+		goto end;
+	}
+
+	requested_new_value_mask = (1ULL << requested_new_value_size) - 1;
+	cur_value_masked = *state & requested_new_value_mask;
+
+	if (requested_new_value < cur_value_masked) {
+		/*
+		 * It looks like a wrap happened on the number of bits
+		 * of the requested new value. Assume that the clock
+		 * value wrapped only one time.
+		 */
+		*state += requested_new_value_mask + 1;
+	}
+
+	/* Clear the low bits of the current clock value. */
+	*state &= ~requested_new_value_mask;
+
+	/* Set the low bits of the current clock value. */
+	*state |= requested_new_value;
+end:
+	bt_put(value_type);
+}
+
+static
+enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
+		struct bt_ctf_field_type *int_field_type,
+		struct bt_ctf_field *int_field)
+{
+	gboolean clock_found;
+	uint64_t *clock_state;
+	enum bt_ctf_btr_status ret = BT_CTF_BTR_STATUS_OK;
+	struct bt_ctf_clock *clock = bt_ctf_field_type_integer_get_mapped_clock(
+			int_field_type);
+
+	if (likely(!clock)) {
+		goto end_no_clock;
+	}
+
+	clock_found = g_hash_table_lookup_extended(notit->clock_states,
+			clock, NULL, (gpointer) &clock_state);
+	if (unlikely(!clock_found)) {
+		const char *clock_name = bt_ctf_clock_get_name(clock);
+
+		PERR("Unknown clock %s mapped to integer encountered in stream\n",
+				clock_name ? : "NULL");
+		ret = BT_CTF_BTR_STATUS_ERROR;
+		goto end;
+	}
+
+	if (unlikely(!clock_state)) {
+		clock_state = g_new0(uint64_t, 1);
+		if (!clock_state) {
+			ret = BT_CTF_BTR_STATUS_ENOMEM;
+			goto end;
+		}
+		g_hash_table_insert(notit->clock_states, bt_get(clock),
+				clock_state);
+	}
+
+	/* Update the clock's state. */
+	update_clock_state(clock_state, int_field);
+end:
+	bt_put(clock);
+end_no_clock:
+	return ret;
+}
+
+static
 enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 		struct bt_ctf_field_type *type, void *data)
 {
@@ -1235,18 +1335,22 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 	if (!field) {
 		PERR("Failed to get next field (signed int)\n");
 		status = BT_CTF_BTR_STATUS_ERROR;
-		goto end;
+		goto end_no_put;
 	}
 
 	switch(bt_ctf_field_type_get_type_id(type)) {
 	case BT_CTF_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
+		bt_get(type);
 		break;
 	case BT_CTF_TYPE_ID_ENUM:
 		int_field = bt_ctf_field_enumeration_get_container(field);
+		type = bt_ctf_field_get_type(int_field);
 		break;
 	default:
+		assert(0);
+		type = NULL;
 		break;
 	}
 
@@ -1259,11 +1363,12 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 	ret = bt_ctf_field_signed_integer_set_value(int_field, value);
 	assert(!ret);
 	stack_top(notit->stack)->index++;
-
+	status = update_clock(notit, type, int_field);
 end:
 	BT_PUT(field);
 	BT_PUT(int_field);
-
+	BT_PUT(type);
+end_no_put:
 	return status;
 }
 
@@ -1282,18 +1387,22 @@ enum bt_ctf_btr_status btr_unsigned_int_cb(uint64_t value,
 	if (!field) {
 		PERR("Failed to get next field (unsigned int)\n");
 		status = BT_CTF_BTR_STATUS_ERROR;
-		goto end;
+		goto end_no_put;
 	}
 
 	switch(bt_ctf_field_type_get_type_id(type)) {
 	case BT_CTF_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
+		bt_get(type);
 		break;
 	case BT_CTF_TYPE_ID_ENUM:
 		int_field = bt_ctf_field_enumeration_get_container(field);
+		type = bt_ctf_field_get_type(int_field);
 		break;
 	default:
+		assert(0);
+		type = NULL;
 		break;
 	}
 
@@ -1306,11 +1415,12 @@ enum bt_ctf_btr_status btr_unsigned_int_cb(uint64_t value,
 	ret = bt_ctf_field_unsigned_integer_set_value(int_field, value);
 	assert(!ret);
 	stack_top(notit->stack)->index++;
-
+	status = update_clock(notit, type, int_field);
 end:
 	BT_PUT(field);
 	BT_PUT(int_field);
-
+	BT_PUT(type);
+end_no_put:
 	return status;
 }
 
@@ -1824,11 +1934,40 @@ end:
 	BT_PUT(event);
 }
 
+static
+int init_clock_states(GHashTable *clock_states, struct bt_ctf_trace *trace)
+{
+	int clock_count, i, ret = 0;
+
+	clock_count = bt_ctf_trace_get_clock_count(trace);
+	if (clock_count <= 0) {
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < clock_count; i++) {
+		struct bt_ctf_clock *clock;
+
+		clock = bt_ctf_trace_get_clock(trace, i);
+		if (!clock) {
+			ret = -1;
+			goto end;
+		}
+
+		g_hash_table_insert(clock_states, bt_get(clock), NULL);
+		bt_put(clock);
+	}
+end:
+	return ret;
+}
+
+BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
 		struct bt_ctf_notif_iter_medium_ops medops,
 		void *data, FILE *err_stream)
 {
+	int ret;
 	struct bt_ctf_notif_iter *notit = NULL;
 	struct bt_ctf_btr_cbs cbs = {
 		.types = {
@@ -1854,7 +1993,17 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		PERR("Failed to allocate memory for CTF notification iterator\n");
 		goto end;
 	}
-
+	notit->clock_states = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, bt_put, g_free);
+	if (!notit->clock_states) {
+		PERR("Failed to create hash table\n");
+		goto error;
+	}
+	ret = init_clock_states(notit->clock_states, trace);
+	if (ret) {
+		PERR("Failed to initialize stream clock states\n");
+		goto error;
+	}
 	notit->meta.trace = bt_get(trace);
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
@@ -1863,23 +2012,23 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 	notit->stack = stack_new(notit);
 	if (!notit->stack) {
 		PERR("Failed to create stack\n");
-		bt_ctf_notif_iter_destroy(notit);
-		notit = NULL;
-		goto end;
+		goto error;
 	}
 
 	notit->btr = bt_ctf_btr_create(cbs, notit, err_stream);
 	if (!notit->btr) {
 		PERR("Failed to create binary type reader\n");
-		bt_ctf_notif_iter_destroy(notit);
-		notit = NULL;
-		goto end;
+		goto error;
 	}
 
 	bt_ctf_notif_iter_reset(notit);
 
 end:
 	return notit;
+error:
+	bt_ctf_notif_iter_destroy(notit);
+	notit = NULL;
+	goto end;
 }
 
 void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
@@ -1898,6 +2047,9 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 		bt_ctf_btr_destroy(notit->btr);
 	}
 
+	if (notit->clock_states) {
+		g_hash_table_destroy(notit->clock_states);
+	}
 	g_free(notit);
 }
 

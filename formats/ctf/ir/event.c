@@ -856,37 +856,3 @@ void bt_ctf_event_freeze(struct bt_ctf_event *event)
 	bt_ctf_field_freeze(event->fields_payload);
 	event->frozen = 1;
 }
-
-static
-void insert_stream_clock_value_into_event_clock_values(gpointer key,
-		gpointer value,
-		gpointer data)
-{
-	struct bt_ctf_event *event = data;
-	uint64_t *clock_value;
-
-	assert(event);
-
-	/* Copy clock value because it belongs to the hash table */
-	clock_value = g_new0(uint64_t, 1);
-	*clock_value = *((uint64_t *) value);
-
-	/* Insert copy into event clock values */
-	g_hash_table_insert(event->clock_values, key, clock_value);
-}
-
-BT_HIDDEN
-int bt_ctf_event_register_stream_clock_values(struct bt_ctf_event *event)
-{
-	int ret = 0;
-	struct bt_ctf_stream *stream;
-
-	stream = bt_ctf_event_get_stream(event);
-	assert(stream);
-	g_hash_table_remove_all(event->clock_values);
-	g_hash_table_foreach(stream->clock_values,
-		insert_stream_clock_value_into_event_clock_values, event);
-	BT_PUT(stream);
-
-	return ret;
-}
