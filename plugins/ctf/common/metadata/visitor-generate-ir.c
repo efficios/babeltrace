@@ -120,6 +120,25 @@ enum {
 	_EVENT_FIELDS_SET =		_BV(6),
 };
 
+enum loglevel {
+        LOGLEVEL_EMERG                  = 0,
+        LOGLEVEL_ALERT                  = 1,
+        LOGLEVEL_CRIT                   = 2,
+        LOGLEVEL_ERR                    = 3,
+        LOGLEVEL_WARNING                = 4,
+        LOGLEVEL_NOTICE                 = 5,
+        LOGLEVEL_INFO                   = 6,
+        LOGLEVEL_DEBUG_SYSTEM           = 7,
+        LOGLEVEL_DEBUG_PROGRAM          = 8,
+        LOGLEVEL_DEBUG_PROCESS          = 9,
+        LOGLEVEL_DEBUG_MODULE           = 10,
+        LOGLEVEL_DEBUG_UNIT             = 11,
+        LOGLEVEL_DEBUG_FUNCTION         = 12,
+        LOGLEVEL_DEBUG_LINE             = 13,
+        LOGLEVEL_DEBUG                  = 14,
+	_NR_LOGLEVELS			= 15,
+};
+
 /* Prefixes of type aliases */
 #define _PREFIX_ALIAS			'a'
 #define _PREFIX_ENUM			'e'
@@ -209,6 +228,37 @@ struct ctx {
 	 */
 	GHashTable *stream_classes;
 };
+
+static
+const char *loglevel_str [] = {
+	[ LOGLEVEL_EMERG ] = "TRACE_EMERG",
+	[ LOGLEVEL_ALERT ] = "TRACE_ALERT",
+	[ LOGLEVEL_CRIT ] = "TRACE_CRIT",
+	[ LOGLEVEL_ERR ] = "TRACE_ERR",
+	[ LOGLEVEL_WARNING ] = "TRACE_WARNING",
+	[ LOGLEVEL_NOTICE ] = "TRACE_NOTICE",
+	[ LOGLEVEL_INFO ] = "TRACE_INFO",
+	[ LOGLEVEL_DEBUG_SYSTEM ] = "TRACE_DEBUG_SYSTEM",
+	[ LOGLEVEL_DEBUG_PROGRAM ] = "TRACE_DEBUG_PROGRAM",
+	[ LOGLEVEL_DEBUG_PROCESS ] = "TRACE_DEBUG_PROCESS",
+	[ LOGLEVEL_DEBUG_MODULE ] = "TRACE_DEBUG_MODULE",
+	[ LOGLEVEL_DEBUG_UNIT ] = "TRACE_DEBUG_UNIT",
+	[ LOGLEVEL_DEBUG_FUNCTION ] = "TRACE_DEBUG_FUNCTION",
+	[ LOGLEVEL_DEBUG_LINE ] = "TRACE_DEBUG_LINE",
+	[ LOGLEVEL_DEBUG ] = "TRACE_DEBUG",
+};
+
+static
+const char *print_loglevel(int64_t value)
+{
+	if (value < 0) {
+		return NULL;
+	}
+	if (value >= _NR_LOGLEVELS) {
+		return "<<UNKNOWN>>";
+	}
+	return loglevel_str[value];
+}
 
 /**
  * Creates a new declaration scope.
@@ -3047,7 +3097,9 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (!strcmp(left, "loglevel")) {
-			uint64_t loglevel;
+			uint64_t loglevel_value;
+			const char *loglevel_str;
+			struct bt_value *value_obj, *str_obj;
 
 			if (_IS_SET(set, _EVENT_LOGLEVEL_SET)) {
 				_PERROR_DUP_ATTR("loglevel",
@@ -3057,15 +3109,38 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&loglevel);
+				&loglevel_value);
 			if (ret) {
 				_PERROR("%s", "unexpected unary expression for event declaration's \"loglevel\" attribute");
 				ret = -EINVAL;
 				goto error;
 			}
-
-			// TODO: FIXME: set log level here
-
+			value_obj = bt_value_integer_create_init(loglevel_value);
+			if (!value_obj) {
+				_PERROR("%s", "cannot allocate memory for loglevel value object");
+				ret = -ENOMEM;
+				goto error;
+			}
+			if (bt_ctf_event_class_set_attribute(event_class,
+				"loglevel", value_obj) != BT_VALUE_STATUS_OK) {
+				_PERROR("%s", "cannot set loglevel value");
+				ret = -EINVAL;
+				bt_put(value_obj);
+				goto error;
+			}
+			loglevel_str = print_loglevel(loglevel_value);
+			if (loglevel_str) {
+				str_obj = bt_value_string_create_init(loglevel_str);
+				if (bt_ctf_event_class_set_attribute(event_class,
+						"loglevel_string", str_obj) != BT_VALUE_STATUS_OK) {
+					_PERROR("%s", "cannot set loglevel string");
+					ret = -EINVAL;
+					bt_put(str_obj);
+					goto error;
+				}
+				bt_put(str_obj);
+			}
+			bt_put(value_obj);
 			_SET(set, _EVENT_LOGLEVEL_SET);
 		} else if (!strcmp(left, "model.emf.uri")) {
 			char *right;

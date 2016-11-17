@@ -226,7 +226,8 @@ int bt_ctf_event_class_set_attribute(
 			ret = -1;
 			goto end;
 		}
-	} else if (!strcmp(name, "name") || !strcmp(name, "model.emf.uri")) {
+	} else if (!strcmp(name, "name") || !strcmp(name, "model.emf.uri") ||
+			!strcmp(name, "loglevel_string")) {
 		if (!bt_value_is_string(value)) {
 			ret = -1;
 			goto end;

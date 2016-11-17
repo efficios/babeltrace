@@ -31,24 +31,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/component.h>
 
-enum loglevel {
-        LOGLEVEL_EMERG                  = 0,
-        LOGLEVEL_ALERT                  = 1,
-        LOGLEVEL_CRIT                   = 2,
-        LOGLEVEL_ERR                    = 3,
-        LOGLEVEL_WARNING                = 4,
-        LOGLEVEL_NOTICE                 = 5,
-        LOGLEVEL_INFO                   = 6,
-        LOGLEVEL_DEBUG_SYSTEM           = 7,
-        LOGLEVEL_DEBUG_PROGRAM          = 8,
-        LOGLEVEL_DEBUG_PROCESS          = 9,
-        LOGLEVEL_DEBUG_MODULE           = 10,
-        LOGLEVEL_DEBUG_UNIT             = 11,
-        LOGLEVEL_DEBUG_FUNCTION         = 12,
-        LOGLEVEL_DEBUG_LINE             = 13,
-        LOGLEVEL_DEBUG                  = 14,
-};
-
 enum text_default {
 	TEXT_DEFAULT_UNSET,
 	TEXT_DEFAULT_SHOW,

@@ -189,7 +189,7 @@ end:
 
 static
 enum bt_component_status print_event_timestamp(struct text_component *text,
-		struct bt_ctf_event *event)
+		struct bt_ctf_event *event, bool *start_line)
 {
 	bool print_names = text->options.print_header_field_names;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
@@ -219,7 +219,10 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 		print_timestamp_wall(text, clock, event);
 	}
 
-	fputs(print_names ? ", " : "] ", out);
+	if (!print_names)
+		fputs("] ", out);
+	*start_line = !print_names;
+
 	if (!text->options.print_delta_field) {
 		goto end;
 	}
@@ -238,9 +241,21 @@ enum bt_component_status print_event_header(struct text_component *text,
 	bool print_names = text->options.print_header_field_names;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_event_class *event_class = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_trace *trace_class = NULL;
 
 	event_class = bt_ctf_event_get_class(event);
 	if (!event_class) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	if (!stream_class) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	trace_class = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -248,15 +263,197 @@ enum bt_component_status print_event_header(struct text_component *text,
 		fputs(", ", text->out);
 	}
 	text->start_line = false;
-	ret = print_event_timestamp(text, event);
+	ret = print_event_timestamp(text, event, &text->start_line);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
+	if (text->options.print_trace_field) {
+		const char *name;
+
+		name = bt_ctf_trace_get_name(trace_class);
+		if (name) {
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("trace = ", text->out);
+			}
+			fprintf(text->out, "%s", name);
+		}
+	}
+	if (text->options.print_trace_hostname_field) {
+		struct bt_value *hostname_str;
+
+		hostname_str = bt_ctf_trace_get_environment_field_value_by_name(trace_class,
+				"hostname");
+		if (hostname_str) {
+			const char *str;
+
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("trace:hostname = ", text->out);
+			}
+			if (bt_value_string_get(hostname_str, &str)
+					== BT_VALUE_STATUS_OK) {
+				fprintf(text->out, "%s", str);
+			}
+			bt_put(hostname_str);
+		}
+	}
+	if (text->options.print_trace_domain_field) {
+		struct bt_value *domain_str;
+
+		domain_str = bt_ctf_trace_get_environment_field_value_by_name(trace_class,
+				"domain");
+		if (domain_str) {
+			const char *str;
+
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("trace:domain = ", text->out);
+			}
+			if (bt_value_string_get(domain_str, &str)
+					== BT_VALUE_STATUS_OK) {
+				fprintf(text->out, "%s", str);
+			}
+			bt_put(domain_str);
+		}
+	}
+	if (text->options.print_trace_procname_field) {
+		struct bt_value *procname_str;
+
+		procname_str = bt_ctf_trace_get_environment_field_value_by_name(trace_class,
+				"procname");
+		if (procname_str) {
+			const char *str;
+
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("trace:procname = ", text->out);
+			}
+			if (bt_value_string_get(procname_str, &str)
+					== BT_VALUE_STATUS_OK) {
+				fprintf(text->out, "%s", str);
+			}
+			bt_put(procname_str);
+		}
+	}
+	if (text->options.print_trace_vpid_field) {
+		struct bt_value *vpid_value;
+
+		vpid_value = bt_ctf_trace_get_environment_field_value_by_name(trace_class,
+				"vpid");
+		if (vpid_value) {
+			int64_t value;
+
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("trace:vpid = ", text->out);
+			}
+			if (bt_value_integer_get(vpid_value, &value)
+					== BT_VALUE_STATUS_OK) {
+				fprintf(text->out, "(%" PRId64 ")", value);
+			}
+			bt_put(vpid_value);
+		}
+	}
+	if (text->options.print_loglevel_field) {
+		struct bt_value *loglevel_str, *loglevel_value;
+
+		loglevel_str = bt_ctf_event_class_get_attribute_value_by_name(event_class,
+				"loglevel_string");
+		loglevel_value = bt_ctf_event_class_get_attribute_value_by_name(event_class,
+				"loglevel");
+		if (loglevel_str || loglevel_value) {
+			bool has_str = false;
+
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("loglevel = ", text->out);
+			}
+			if (loglevel_str) {
+				const char *str;
+
+				if (bt_value_string_get(loglevel_str, &str)
+						== BT_VALUE_STATUS_OK) {
+					fprintf(text->out, "%s", str);
+					has_str = true;
+				}
+			}
+			if (loglevel_value) {
+				int64_t value;
+
+				if (bt_value_integer_get(loglevel_value, &value)
+						== BT_VALUE_STATUS_OK) {
+					fprintf(text->out, "%s(%" PRId64 ")",
+						has_str ? " " : "", value);
+				}
+			}
+			bt_put(loglevel_str);
+			bt_put(loglevel_value);
+		}
+	}
+	if (text->options.print_emf_field) {
+		struct bt_value *uri_str;
+
+		uri_str = bt_ctf_event_class_get_attribute_value_by_name(event_class,
+				"model.emf.uri");
+		if (uri_str) {
+			if (!text->start_line) {
+				fputs(", ", text->out);
+			}
+			text->start_line = false;
+			if (print_names) {
+				fputs("model.emf.uri = ", text->out);
+			}
+			if (uri_str) {
+				const char *str;
+
+				if (bt_value_string_get(uri_str, &str)
+						== BT_VALUE_STATUS_OK) {
+					fprintf(text->out, "%s", str);
+				}
+			}
+			bt_put(uri_str);
+		}
+	}
+	if (text->options.print_callsite_field) {
+		if (!text->start_line) {
+			fputs(", ", text->out);
+		}
+		text->start_line = false;
+		if (print_names) {
+			fputs("callsite = ", text->out);
+		}
+		/* TODO */
+	}
+	if (!text->start_line) {
+		fputs(", ", text->out);
+	}
+	text->start_line = false;
 	if (print_names) {
 		fputs("name = ", text->out);
 	}
 	fputs(bt_ctf_event_class_get_name(event_class), text->out);
 end:
+	bt_put(trace_class);
+	bt_put(stream_class);
 	bt_put(event_class);
 	return ret;
 }
