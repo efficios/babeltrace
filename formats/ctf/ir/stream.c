@@ -61,7 +61,7 @@ int set_packet_header_magic(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (!bt_ctf_field_validate(magic_field)) {
+	if (bt_ctf_field_is_set(magic_field)) {
 		/* Value already set. Not an error, skip. */
 		goto end;
 	}
@@ -113,7 +113,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (!bt_ctf_field_validate(uuid_field)) {
+	if (bt_ctf_field_is_set(uuid_field)) {
 		/* Value already set. Not an error, skip. */
 		goto end;
 	}
@@ -186,7 +186,7 @@ int set_packet_header_stream_id(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (!bt_ctf_field_validate(stream_id_field)) {
+	if (bt_ctf_field_is_set(stream_id_field)) {
 		/* Value already set. Not an error, skip. */
 		goto end;
 	}
@@ -959,7 +959,7 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	}
 
 	/* Make sure the payload has not already been set. */
-	if (!bt_ctf_field_validate(integer)) {
+	if (bt_ctf_field_is_set(integer)) {
 		/* Payload already set, not an error */
 		goto end;
 	}
