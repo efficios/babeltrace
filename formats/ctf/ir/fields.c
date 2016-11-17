@@ -1687,7 +1687,7 @@ int bt_ctf_field_array_validate(struct bt_ctf_field *field)
 	for (i = 0; i < array->elements->len; i++) {
 		ret = bt_ctf_field_validate(array->elements->pdata[i]);
 		if (ret) {
-			fprintf(stderr, "Failed to validate sequence field #%zu\n", i);
+			fprintf(stderr, "Failed to validate array field #%zu\n", i);
 			goto end;
 		}
 	}
