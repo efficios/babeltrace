@@ -563,10 +563,14 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace *trace,
 		enum bt_ctf_validation_flag replace_flags)
 {
 	if ((replace_flags & BT_CTF_VALIDATION_FLAG_TRACE) && trace) {
+		bt_ctf_field_type_freeze(trace->packet_header_type);
 		BT_MOVE(trace->packet_header_type, output->packet_header_type);
 	}
 
 	if ((replace_flags & BT_CTF_VALIDATION_FLAG_STREAM) && stream_class) {
+		bt_ctf_field_type_freeze(stream_class->packet_context_type);
+		bt_ctf_field_type_freeze(stream_class->event_header_type);
+		bt_ctf_field_type_freeze(stream_class->event_context_type);
 		BT_MOVE(stream_class->packet_context_type,
 			output->packet_context_type);
 		BT_MOVE(stream_class->event_header_type,
@@ -576,6 +580,8 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace *trace,
 	}
 
 	if ((replace_flags & BT_CTF_VALIDATION_FLAG_EVENT) && event_class) {
+		bt_ctf_field_type_freeze(event_class->context);
+		bt_ctf_field_type_freeze(event_class->fields);
 		BT_MOVE(event_class->context, output->event_context_type);
 		BT_MOVE(event_class->fields, output->event_payload_type);
 	}
