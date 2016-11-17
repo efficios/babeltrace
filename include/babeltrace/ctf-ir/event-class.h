@@ -38,269 +38,531 @@
 extern "C" {
 #endif
 
+/**
+@defgroup ctfireventclass CTF IR event class
+@ingroup ctfir
+@brief CTF IR event class.
+
+A CTF IR <strong><em>event class</em></strong> is a template that you
+can use to create concrete \link ctfirevent CTF IR events\endlink.
+
+An event class has the following properties, both of which \em must
+be unique amongst all the event classes contained in the same
+\link ctfirstreamclass CTF IR stream class\endlink:
+
+- A \b name.
+- A numeric \b ID.
+
+A CTF IR event class owns two
+\link ctfirfieldtypes field types\endlink:
+
+- An optional <strong>event context</strong> field type, which
+  represents the \c event.context CTF scope.
+- A mandatory <strong>event payload</strong> field type, which
+  represents the \c event.fields CTF scope.
+
+Both field types \em must be structure field types as of
+Babeltrace \btversion.
+The event payload field type <em>must not</em> be empty.
+
+As a reminder, here's the structure of a CTF packet:
+
+@imgpacketstructure
+
+In the Babeltrace CTF IR system, a \link ctfirtraceclass trace
+class\endlink contains zero or more \link ctfirstreamclass stream
+classes\endlink, and a stream class contains zero or more event classes.
+
+Before you can create an event from an event class with
+bt_ctf_event_create(), you \em must add the prepared event class to a
+stream class by calling bt_ctf_stream_class_add_event_class(). This
+function, when successful, \em freezes the event class, disallowing any
+future modification of its properties and field types by the user.
+
+As with any Babeltrace object, CTF IR event class objects have
+<a href="https://en.wikipedia.org/wiki/Reference_counting">reference
+counts</a>. See \ref refs to learn more about the reference counting
+management of Babeltrace objects.
+
+bt_ctf_stream_class_add_event_class() \em freezes its event class
+parameter on success. You cannot modify a frozen event class: it is
+considered immutable, except for \link refs reference counting\endlink.
+
+@sa ctfirevent
+@sa ctfirstreamclass
+
+@file
+@brief CTF IR event class type and functions.
+@sa ctfireventclass
+
+@addtogroup ctfireventclass
+@{
+*/
+
+/**
+@struct bt_ctf_event_class
+@brief A CTF IR event class.
+@sa ctfireventclass
+*/
 struct bt_ctf_event_class;
 struct bt_ctf_field;
 struct bt_ctf_field_type;
 struct bt_ctf_stream_class;
 
-/*
- * bt_ctf_event_class_create: create an event class.
- *
- * Allocate a new event class of the given name. The creation of an event class
- * sets its reference count to 1. A unique event id is automatically assigned
- * to the event class.
- *
- * @param name Event class name (will be copied).
- *
- * Returns an allocated event class on success, NULL on error.
- */
+/**
+@name Creation and parent access functions
+@{
+*/
+
+/**
+@brief	Creates a default CTF IR event class named \p name­.
+
+The event class is created \em without an event context
+\link ctfirfieldtypes field type\endlink and with an empty event
+payload field type.
+
+Upon creation, the event class's ID is <em>not set</em>. You
+can set it to a specific value with bt_ctf_event_class_set_id(). If it
+is still unset when you call bt_ctf_stream_class_add_event_class(), then
+the stream class assigns a unique ID to this event class before
+freezing it.
+
+@param[in] name	Name of the event class to create (copied on success).
+@returns	Created event class, or \c NULL on error.
+
+@prenotnull{name}
+@postsuccessrefcountret1
+*/
 extern struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
 
-/*
- * bt_ctf_event_class_get_name: Get an event class' name.
- *
- * @param event_class Event class.
- *
- * Returns the event class' name, NULL on error.
- */
+/**
+@brief	Returns the parent CTF IR stream class of the CTF IR event
+	class \p event_class.
+
+It is possible that the event class was not added to a stream class
+yet, in which case this function returns \c NULL. You can add an
+event class to a stream class with
+bt_ctf_stream_class_add_event_class().
+
+@param[in] event_class	Event class of which to get the parent
+			stream class.
+@returns		Parent stream class of \p event_class,
+			or \c NULL if \p event_class was not
+			added to a stream class yet or on error.
+
+@prenotnull{event_class}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_stream_class_add_event_class(): Add an event class to
+	a stream class.
+*/
+extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
+		struct bt_ctf_event_class *event_class);
+
+/** @} */
+
+/**
+@name Attribute functions
+@{
+*/
+
+/**
+@brief	Returns the name of the CTF IR event class \p event_class.
+
+On success, \p event_class remains the sole owner of the returned
+string.
+
+@param[in] event_class	Event class of which to get the name.
+@returns		Name of event class \p event_class, or
+			\c NULL on error.
+
+@prenotnull{event_class}
+@postrefcountsame{event_class}
+*/
 extern const char *bt_ctf_event_class_get_name(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_get_id: Get an event class' id.
- *
- * @param event_class Event class.
- *
- * Returns the event class' id, a negative value on error.
- */
+/**
+@brief	Returns the numeric ID of the CTF IR event class \p event_class.
+
+@param[in] event_class	Event class of which to get the numeric ID.
+@returns		ID of event class \p event_class, or a
+			negative value on error.
+
+@prenotnull{event_class}
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_set_id(): Sets the numeric ID of a given
+	event class.
+*/
 extern int64_t bt_ctf_event_class_get_id(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_set_id: Set an event class' id.
- *
- * Set an event class' id. Must be unique stream-wise.
- * Note that event classes are already assigned a unique id when added to a
- * stream class if none was set explicitly.
- *
- * @param event_class Event class.
- * @param id Event class id.
- *
- * Returns 0 on success, a negative value on error.
- */
+/**
+@brief	Sets the numeric ID of the CTF IR event class
+	\p event_class to \p id.
+
+\p id must be unique amongst the IDs of all the event classes
+of the stream class to which you eventually add \p event_class.
+
+@param[in] event_class	Event class of which to set the numeric ID.
+@param[in] id		ID of the event class.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prehot{event_class}
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_get_id(): Returns the numeric ID of a given
+	event class.
+*/
 extern int bt_ctf_event_class_set_id(
 		struct bt_ctf_event_class *event_class, uint32_t id);
 
-/*
- * bt_ctf_event_class_set_attribute: sets an attribute to the event
- *	class.
- *
- * Sets an attribute to the event class. The name parameter is copied,
- * whereas the value parameter's reference count is incremented
- * (if the function succeeds).
- *
- * If an attribute exists in the event class for the specified name, it
- * is replaced by the new value.
- *
- * Valid attributes and object types are:
- *
- *   - "id":            integer object with a value >= 0
- *   - "name":          string object
- *   - "loglevel":      integer object with a value >= 0
- *   - "model.emf.uri": string object
- *
- * @param event_class Event class.
- * @param name Name of the attribute (will be copied).
- * @param value Value of the attribute.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_ctf_event_class_set_attribute(
-		struct bt_ctf_event_class *event_class, const char *name,
-		struct bt_value *value);
+/**
+@brief	Returns the number of attributes contained in the CTF IR event
+	class \p event_class.
 
-/*
- * bt_ctf_event_class_get_attribute_count: get the number of attributes
- *	in this event class.
- *
- * Get the event class' attribute count.
- *
- * @param event_class Event class.
- *
- * Returns the attribute count, a negative value on error.
- */
+@param[in] event_class	Event class of which to get the number
+			of contained attributes.
+@returns		Number of contained attributes in
+			\p event_class, or a negative value on error.
+
+@prenotnull{event_class}
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_get_attribute_name(): Returns the name of
+	the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_get_attribute_value(): Returns the value of
+	the attribute of a given event class at a given index.
+*/
 extern int bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_get_attribute_name: get attribute name.
- *
- * Get an attribute's name. The string's ownership is not
- * transferred to the caller. The string data is valid as long as
- * this event class' attributes are not modified.
- *
- * @param event_class Event class.
- * @param index Index of the attribute.
- *
- * Returns the attribute's name, NULL on error.
- */
+/**
+@brief	Returns the name of the attribute at the index \p index of the
+	CTF IR event class \p event_class.
+
+On success, \p event_class remains the sole owner of the returned
+string.
+
+@param[in] event_class	Event class of which to get the name
+			of an attribute.
+@param[in] index	Index of the attribute of which to get the name.
+@returns		Attribute name, or \c NULL on error.
+
+@prenotnull{event_class}
+@pre \p index is lesser than the number of attributes contained by
+	\p event_class.
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_get_attribute_value(): Returns the value of
+	the attribute of a given event class at a given index.
+*/
 extern const char *
 bt_ctf_event_class_get_attribute_name(
 		struct bt_ctf_event_class *event_class, int index);
 
-/*
- * bt_ctf_event_class_get_attribute_value: get attribute value (an object).
- *
- * Get an attribute's value (an object). The returned object's
- * reference count is incremented. When done with the object, the caller
- * must call bt_value_put() on it.
- *
- * @param event_class Event class.
- * @param index Index of the attribute.
- *
- * Returns the attribute's object value, NULL on error.
- */
+/**
+@brief	Returns the value of the attribute at the index \p index of the
+	CTF IR event class \p event_class.
+
+@param[in] event_class	Event class of which to get the value
+			of an attribute.
+@param[in] index	Index of the attribute of which to get the value.
+@returns		Attribute value, or \c NULL on error.
+
+@prenotnull{event_class}
+@pre \p index is lesser than the number of attributes contained by
+	\p event_class.
+@postsuccessrefcountretinc
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_get_attribute_name(): Returns the name of
+	the attribute of a given event class at a given index.
+*/
 extern struct bt_value *
 bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
 		int index);
 
-/*
- * bt_ctf_event_class_get_attribute_value_by_name: get attribute
- *	value (an object) by name.
- *
- * Get an attribute's value (an object) by its name. The returned object's
- * reference count is incremented. When done with the object, the caller
- * must call bt_value_put() on it.
- *
- * @param event_class Event class.
- * @param name Attribute's name
- *
- * Returns the attribute's object value, NULL on error.
- */
+/**
+@brief	Returns the value of the attribute named \p name of the CTF IR
+	event class \p event_class.
+
+On success, the reference count of the returned value object is
+incremented.
+
+@param[in] event_class	Event class of which to get the value
+			of an attribute.
+@param[in] name		Name of the attribute to get.
+@returns		Attribute value, or \c NULL on error.
+
+@prenotnull{event_class}
+@prenotnull{name}
+@postsuccessrefcountretinc
+@postrefcountsame{event_class}
+*/
 extern struct bt_value *
 bt_ctf_event_class_get_attribute_value_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
 
-/*
- * bt_ctf_event_class_get_stream_class: Get an event class' stream class.
- *
- * @param event_class Event class.
- *
- * Returns the event class' stream class, NULL on error or if the event class
- * is not associated with a stream class.
- */
-extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
-		struct bt_ctf_event_class *event_class);
+/**
+@brief	Sets the attribute named \p name of the CTF IR event class
+	\p event_class to the value \p value.
 
-/*
- * bt_ctf_event_class_get_payload_type: get an event class' payload.
- *
- * Get an event class' payload type.
- *
- * @param event_class Event class.
- *
- * Returns the event class' payload, NULL on error.
- */
+Valid attributes, as of Babeltrace \btversion, are:
+
+- <code>id</code>: \em must be an integer value object with a raw value
+  that is greater than or equal to 0. This represents the event class's
+  numeric ID and you can also set it with bt_ctf_event_class_set_id().
+
+- <code>name</code>: must be a string value object. This represents
+  the name of the event class.
+
+- <code>loglevel</code>: must be an integer value object with a raw
+  value greater than or equal to 0. This represents the numeric log level
+  associated with this event class. Log level values
+  are application-specific.
+
+- <code>model.emf.uri</code>: must be a string value object. This
+  represents the application-specific Eclipse Modeling Framework URI
+  of the event class.
+
+@param[in] event_class	Event class of which to set an
+			attribute.
+@param[in] name		Attribute name (copied on success).
+@param[in] value	Attribute value.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prenotnull{name}
+@prenotnull{value}
+@prehot{event_class}
+@postrefcountsame{event_class}
+@postsuccessrefcountinc{value}
+
+@sa bt_ctf_event_class_get_attribute_value_by_name(): Returns the
+	attribute of a given event class having a given name.
+*/
+extern int bt_ctf_event_class_set_attribute(
+		struct bt_ctf_event_class *event_class, const char *name,
+		struct bt_value *value);
+
+/** @} */
+
+/**
+@name Contained field types functions
+@{
+*/
+
+/**
+@brief	Returns the payload field type of the CTF IR event class
+	\p event_class.
+
+@param[in] event_class	Event class of which to get the
+			payload field type.
+@returns		Payload field type of \p event_class,
+			or \c NULL on error.
+
+@prenotnull{event_class}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_event_class_set_payload_type(): Sets the payload field
+	type of a given event class.
+*/
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_set_payload_type: set an event class' payload.
- *
- * Set an event class' payload type.
- *
- * @param event_class Event class.
- * @param payload The payload's type (must be a structure).
- *
- * Returns 0 on success, a negative value on error.
- */
+/**
+@brief	Sets the payload field type of the CTF IR event class
+	\p event_class to \p payload_type.
+
+As of Babeltrace \btversion, \p payload_type \em must be a
+CTF IR structure field type object.
+
+@param[in] event_class	Event class of which to set the payload
+			field type.
+@param[in] payload_type	Payload field type.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prenotnull{payload_type}
+@prehot{event_class}
+@preisstructft{payload_type}
+@postrefcountsame{event_class}
+@postsuccessrefcountinc{payload_type}
+
+@sa bt_ctf_event_class_get_payload_type(): Returns the payload field
+	type of a given event class.
+*/
 extern int bt_ctf_event_class_set_payload_type(
 		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *payload);
+		struct bt_ctf_field_type *payload_type);
 
-/*
- * bt_ctf_event_class_add_field: add a field to an event class.
- *
- * Add a field of type "type" to the event class. The event class will share
- * type's ownership by increasing its reference count. The "name" will be
- * copied.
- *
- * @param event_class Event class.
- * @param type Field type to add to the event class.
- * @param name Name of the new field.
- *
- * Returns 0 on success, a negative value on error.
- *
- * Note: Returns an error if the payload is not a structure.
- */
-extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *type,
-		const char *name);
+/**
+@brief	Returns the number of fields contained in the
+	payload field type of the CTF IR event class \p event_class.
 
-/*
- * bt_ctf_event_class_get_field_count: Get an event class' field count.
- *
- * @param event_class Event class.
- *
- * Returns the event class' field count, a negative value on error.
- *
- * Note: Returns an error if the payload is not a structure.
- */
+@remarks
+Calling this function is the equivalent of getting the payload field
+type of \p event_class with bt_ctf_event_class_get_payload_type() and
+getting its field count with
+bt_ctf_field_type_structure_get_field_count().
+
+@param[in] event_class	Event class of which to get the number
+			of fields contained in its payload field type.
+@returns		Number of fields in the payload field type
+			of \p event_class, or a negative value on error.
+
+@prenotnull{event_class}
+@postrefcountsame{event_class}
+*/
 extern int bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_get_field: Get event class' field type and name by index.
- *
- * @param event_class Event class.
- * @param field_name Pointer to a const char* where the field's name will
- *	be returned.
- * @param field_type Pointer to a bt_ctf_field_type* where the field's type will
- *	be returned.
- * @param index Index of field.
- *
- * Returns 0 on success, a negative error on value.
- *
- * Note: Returns an error if the payload is not a structure.
- */
+/**
+@brief	Returns the type and the name of the field at index \p index
+	in the payload field type of the CTF IR event class
+	\p event_class.
+
+On success, the field's type is placed in \p *field_type if
+\p field_type is not \c NULL. The field's name is placed in
+\p *name if \p name is not \c NULL. \p event_class remains the sole
+owner of \p *name.
+
+Both \p name and \p field_type can be \c NULL if the caller is not
+interested in one of them.
+
+@remarks
+Calling this function is the equivalent of getting the payload field
+type of \p event_class with bt_ctf_event_class_get_payload_type() and
+getting the type and name of one of its field with
+bt_ctf_field_type_structure_get_field().
+
+@param[in] event_class	Event class of which to get the type and name
+			of a field in its payload field type.
+@param[out] field_name	Name of the field at the index
+			\p index in the payload field type of
+			\p event_class (can be \c NULL).
+@param[out] field_type	Type of the field at the index \p index in the
+			payload field type of \p event_class
+			(can be \c NULL).
+@param[in] index	Index of the payload field type's field to find.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@pre \p index is lesser than the number of fields contained in the
+	payload field type of \p event_class (see
+	bt_ctf_event_class_get_field_count()).
+@postrefcountsame{event_class}
+@post <strong>On success, if \p field_type is not \c NULL</strong>, the
+	reference count of \p *field_type is incremented.
+*/
 extern int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
 		int index);
 
-/*
- * bt_ctf_event_class_get_field_type_by_name: Get an event class's field by name
- *
- * @param event_class Event class.
- * @param name Name of the field.
- *
- * Returns a field type on success, NULL on error.
- *
- * Note: Returns an error if the payload is not a structure.
- */
+/**
+@brief  Returns the type of the field named \p name in the payload
+	field type of the CTF IR event class \p event_class.
+
+@remarks
+Calling this function is the equivalent of getting the payload field
+type of \p event_class with bt_ctf_event_class_get_payload_type() and
+getting the type of one of its field with
+bt_ctf_field_type_structure_get_field_type_by_name().
+
+@param[in] event_class	Event class of which to get the type of a
+			payload field type's field.
+@param[in] name		Name of the payload field type's field to get.
+@returns		Type of the field named \p name in the payload
+			field type of \p event_class, or \c NULL if
+			the function cannot find the field or
+			on error.
+
+@prenotnull{event_class}
+@prenotnull{name}
+@postrefcountsame{event_class}
+@postsuccessrefcountretinc
+
+*/
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
 
-/*
- * bt_ctf_event_class_get_context_type: Get an event class's context type
- *
- * @param event_class Event class.
- *
- * Returns a field type (a structure) on success, NULL on error.
- */
+/**
+@brief	Adds a field named \p name with the type \p field_type to the
+	payload field type of the CTF IR event class \p event_class.
+
+@remarks
+Calling this function is the equivalent of getting the payload field
+type of \p event_class with bt_ctf_event_class_get_payload_type() and
+adding a field to it with bt_ctf_field_type_structure_add_field().
+
+@param[in] event_class	Event class containing the payload field
+			type in which to add a field.
+@param[in] field_type	Type of the field to add.
+@param[in] name		Name of the field to add (copied on
+			success).
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prenotnull{type}
+@prenotnull{name}
+@prehot{event_class}
+@postrefcountsame{event_class}
+@postsuccessrefcountinc{field_type}
+*/
+extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *field_type,
+		const char *name);
+
+/**
+@brief	Returns the context field type of the CTF IR event class
+	\p event_class.
+
+@param[in] event_class	Event class of which to get the
+			context field type.
+@returns		Context field type of \p event_class,
+			or \c NULL on error.
+
+@prenotnull{event_class}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_event_class_set_context_type(): Sets the context field
+	type of a given event class.
+*/
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
 		struct bt_ctf_event_class *event_class);
 
-/*
- * bt_ctf_event_class_set_context_type: Set an event class's context type
- *
- * @param event_class Event class.
- * @param context Event context field type (must be a structure).
- *
- * Returns 0 on success, a negative value on error.
- */
+/**
+@brief	Sets the context field type of the CTF IR event class
+	\p event_class to \p context_type.
+
+As of Babeltrace \btversion, \p context_type \em must be a
+CTF IR structure field type object.
+
+@param[in] event_class	Event class of which to set the context
+			field type.
+@param[in] context_type	Context field type.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prenotnull{context_type}
+@prehot{event_class}
+@preisstructft{context_type}
+@postrefcountsame{event_class}
+@postsuccessrefcountinc{context_type}
+
+@sa bt_ctf_event_class_get_context_type(): Returns the context field
+	type of a given event class.
+*/
 extern int bt_ctf_event_class_set_context_type(
 		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *context);
+		struct bt_ctf_field_type *context_type);
+
+/** @} */
+
+/** @} */
 
 #ifdef __cplusplus
 }
