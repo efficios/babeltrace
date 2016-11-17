@@ -63,6 +63,12 @@ struct bt_ctf_clock {
 	int frozen;
 };
 
+struct bt_ctf_clock_value {
+	struct bt_object base;
+	struct bt_ctf_clock *clock_class;
+	uint64_t value;
+};
+
 BT_HIDDEN
 void bt_ctf_clock_freeze(struct bt_ctf_clock *clock);
 

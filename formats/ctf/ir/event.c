@@ -762,13 +762,16 @@ int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
 			timestamp_field_type);
 		bt_put(timestamp_field_type);
 		if (mapped_clock) {
-			int64_t timestamp;
+			int64_t timestamp = 0;
 
+			// FIXME - Clock refactoring
+			/*
 			ret = bt_ctf_clock_get_time(mapped_clock, &timestamp);
 			bt_put(mapped_clock);
 			if (ret) {
 				goto end;
 			}
+			*/
 
 			ret = set_integer_field_value(timestamp_field,
 				timestamp);

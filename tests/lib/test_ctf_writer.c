@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 620
+#define NR_TESTS 604
 
 static int64_t current_time = 42;
 
@@ -2790,24 +2790,6 @@ void test_create_writer_vs_non_writer_mode(void)
 		"bt_ctf_stream_append_event() succeeds with a writer stream");
 
 	/*
-	 * Verify that it's possible to get and set the value of a
-	 * writer mode clock.
-	 */
-	ok (!bt_ctf_clock_set_value(writer_clock, 1000),
-		"bt_ctf_clock_set_value() succeeds with a writer mode clock");
-	ok (bt_ctf_clock_get_value(writer_clock) == 1000,
-		"bt_ctf_clock_get_value() succeeds with a writer mode clock");
-
-	/*
-	 * Verify that it's impossible to get and set the value of a
-	 * non-writer mode clock.
-	 */
-	ok (bt_ctf_clock_set_value(non_writer_clock, 1000),
-		"bt_ctf_clock_set_value() fails with a non-writer mode clock");
-	ok (bt_ctf_clock_get_value(non_writer_clock) == -1ULL,
-		"bt_ctf_clock_get_value() fails with a non-writer mode clock");
-
-	/*
 	 * It should be possible to create a packet from a non-writer
 	 * stream, but not from a writer stream.
 	 */
@@ -2912,13 +2894,8 @@ void test_clock_utils(void)
 	assert(!ret);
 	ret = bt_ctf_clock_set_frequency(clock, 1000000000);
 	assert(!ret);
-	ok(bt_ctf_clock_ns_from_value(clock, 4321) == 1234000005321ULL,
-		"bt_ctf_clock_ns_from_value() returns the correct value with a 1 GHz frequency");
 	ret = bt_ctf_clock_set_frequency(clock, 1534);
 	assert(!ret);
-	ok(bt_ctf_clock_ns_from_value(clock, 4321) ==
-		(uint64_t) 1237468709256.845,
-		"bt_ctf_clock_ns_from_value() returns the correct value with a non-1 GHz frequency");
 
 	BT_PUT(clock);
 }
@@ -2935,8 +2912,7 @@ int main(int argc, char **argv)
 	const int64_t offset_s = 1351530929945824323;
 	const int64_t offset = 1234567;
 	int64_t get_offset_s,
-		get_offset,
-		get_time;
+		get_offset;
 	const uint64_t precision = 10;
 	const int is_absolute = 0xFF;
 	char *metadata_string;
@@ -3212,22 +3188,8 @@ int main(int argc, char **argv)
 	ok(bt_ctf_clock_get_is_absolute(clock) == !!is_absolute,
 		"bt_ctf_clock_get_precision returns the correct is_absolute attribute once it is set");
 
-	ok(bt_ctf_clock_get_time(clock, &get_time) == 0,
-		"bt_ctf_clock_get_time succeeds");
-	ok(get_time == DEFAULT_CLOCK_TIME,
-		"bt_ctf_clock_get_time returns the correct default time");
-	ok(bt_ctf_clock_get_value(clock) == DEFAULT_CLOCK_VALUE,
-		"bt_ctf_clock_get_value returns the correct default value");
-	ok(bt_ctf_clock_set_value(clock, current_time) == 0,
-		"Set clock value");
-	ok(bt_ctf_clock_get_value(clock) == current_time,
-		"bt_ctf_clock_get_value returns the correct value once it is set");
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0,
 		"Set clock time");
-	ok(bt_ctf_clock_get_time(clock, &get_time) == 0,
-		"bt_ctf_clock_get_time succeeds");
-	ok(get_time >= current_time - 1 && get_time <= current_time + 1,
-		"bt_ctf_clock_get_time returns the correct time once it is set");
 
 	ok(!bt_ctf_clock_get_name(NULL),
 		"bt_ctf_clock_get_name correctly handles NULL");
@@ -3247,10 +3209,6 @@ int main(int argc, char **argv)
 		"bt_ctf_clock_get_offset correctly handles NULL output");
 	ok(bt_ctf_clock_get_is_absolute(NULL) < 0,
 		"bt_ctf_clock_get_is_absolute correctly handles NULL");
-	ok(bt_ctf_clock_get_time(NULL, &get_time) < 0,
-		"bt_ctf_clock_get_time correctly handles NULL clock");
-	ok(bt_ctf_clock_get_time(clock, NULL) < 0,
-		"bt_ctf_clock_get_time correctly handles NULL output");
 
 	ok(bt_ctf_clock_set_description(NULL, NULL) < 0,
 		"bt_ctf_clock_set_description correctly handles NULL clock");

@@ -336,30 +336,6 @@ uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 	return ns;
 }
 
-int bt_ctf_clock_get_time(struct bt_ctf_clock *clock, int64_t *time)
-{
-	int ret = 0;
-
-	if (!clock || !time) {
-		ret = -1;
-		goto end;
-	}
-
-
-	if (!clock->has_value) {
-		/*
-		 * Clock belongs to a non-writer mode trace and thus
-		 * this function is disabled.
-		 */
-		goto end;
-	}
-
-	*time = (int64_t) ns_from_value(clock->frequency, clock->value);
-
-end:
-	return ret;
-}
-
 int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 {
 	int ret = 0;
@@ -389,52 +365,8 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 		        (double) clock->frequency) / 1e9);
 	}
 
-	ret = bt_ctf_clock_set_value(clock, value);
-end:
-	return ret;
-}
-
-uint64_t bt_ctf_clock_get_value(struct bt_ctf_clock *clock)
-{
-	uint64_t ret = -1ULL;
-
-	if (!clock) {
-		goto end;
-	}
-
-	if (!clock->has_value) {
-		/*
-		 * Clock belongs to a non-writer mode trace and thus
-		 * this function is disabled.
-		 */
-		goto end;
-	}
-
-	ret = clock->value;
-end:
-	return ret;
-}
-
-int bt_ctf_clock_set_value(struct bt_ctf_clock *clock, uint64_t value)
-{
-	int ret = 0;
-
-	if (!clock) {
-		ret = -1;
-		goto end;
-	}
-
-	if (!clock->has_value) {
-		/*
-		 * Clock belongs to a non-writer mode trace and thus
-		 * this function is disabled.
-		 */
-		ret = -1;
-		goto end;
-	}
-
-	/* Timestamps are strictly monotonic */
-	if (value < clock->value) {
+	if (clock->value > value) {
+		/* Timestamps must be strictly monotonic. */
 		ret = -1;
 		goto end;
 	}
@@ -519,23 +451,78 @@ void bt_ctf_clock_destroy(struct bt_object *obj)
 	g_free(clock);
 }
 
-int64_t bt_ctf_clock_ns_from_value(struct bt_ctf_clock *clock, uint64_t value)
+static
+void bt_ctf_clock_value_destroy(struct bt_object *obj)
 {
-	int64_t ns = -1ULL;
+	struct bt_ctf_clock_value *value;
+
+	if (!obj) {
+		return;
+	}
+
+	value = container_of(obj, struct bt_ctf_clock_value, base);
+	bt_put(value->clock_class);
+	g_free(value);
+}
+
+struct bt_ctf_clock_value *bt_ctf_clock_value_create(
+		struct bt_ctf_clock *clock, uint64_t value)
+{
+	struct bt_ctf_clock_value *ret = NULL;
 
 	if (!clock) {
 		goto end;
 	}
 
-	/* Initialize nanosecond timestamp to clock's offset in seconds */
-	ns = clock->offset_s * 1000000000;
+	ret = g_new0(struct bt_ctf_clock_value, 1);
+	if (!ret) {
+		goto end;
+	}
 
-	/* Add offset in cycles, converted to nanoseconds */
-	ns += ns_from_value(clock->frequency, clock->offset);
-
-	/* Add given value, converter to nanoseconds */
-	ns += ns_from_value(clock->frequency, value);
-
+	bt_object_init(ret, bt_ctf_clock_value_destroy);
+	ret->clock_class = bt_get(clock);
+	ret->value = value;
 end:
-	return ns;
+	return ret;
+}
+
+int bt_ctf_clock_value_get_value(
+		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value)
+{
+	int ret = 0;
+
+	if (!clock_value || !raw_value) {
+		ret = -1;
+		goto end;
+	}
+
+	*raw_value = clock_value->value;
+end:
+	return ret;
+}
+
+int bt_ctf_clock_value_ns_from_epoch(struct bt_ctf_clock_value *value,
+		int64_t *ret_value_ns)
+{
+	int ret = 0;
+	int64_t ns;
+
+	if (!value || !ret_value_ns) {
+		ret = -1;
+		goto end;
+	}
+
+	/* Initialize nanosecond timestamp to clock's offset in seconds. */
+	ns = value->clock_class->offset_s * 1000000000;
+
+	/* Add offset in cycles, converted to nanoseconds. */
+	ns += ns_from_value(value->clock_class->frequency,
+			value->clock_class->offset);
+
+	/* Add given value, converter to nanoseconds. */
+	ns += ns_from_value(value->clock_class->frequency, value->value);
+
+	*ret_value_ns = ns;
+end:
+	return ret;
 }
