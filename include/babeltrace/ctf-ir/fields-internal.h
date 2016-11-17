@@ -106,4 +106,7 @@ int bt_ctf_field_serialize(struct bt_ctf_field *field,
 BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field);
 
+BT_HIDDEN
+bool bt_ctf_field_is_set(struct bt_ctf_field *field);
+
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

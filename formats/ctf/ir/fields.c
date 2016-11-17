@@ -162,6 +162,19 @@ static
 void bt_ctf_field_sequence_freeze(struct bt_ctf_field *);
 
 static
+bool bt_ctf_field_generic_is_set(struct bt_ctf_field *);
+static
+bool bt_ctf_field_structure_is_set(struct bt_ctf_field *);
+static
+bool bt_ctf_field_variant_is_set(struct bt_ctf_field *);
+static
+bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *);
+static
+bool bt_ctf_field_array_is_set(struct bt_ctf_field *);
+static
+bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *);
+
+static
 int increase_packet_size(struct ctf_stream_pos *pos);
 
 static
@@ -252,6 +265,18 @@ void (* const field_freeze_funcs[])(struct bt_ctf_field *) = {
 	[BT_CTF_TYPE_ID_VARIANT] = bt_ctf_field_variant_freeze,
 	[BT_CTF_TYPE_ID_ARRAY] = bt_ctf_field_array_freeze,
 	[BT_CTF_TYPE_ID_SEQUENCE] = bt_ctf_field_sequence_freeze,
+};
+
+static
+bool (* const field_is_set_funcs[])(struct bt_ctf_field *) = {
+	[BT_CTF_TYPE_ID_INTEGER] = bt_ctf_field_generic_is_set,
+	[BT_CTF_TYPE_ID_ENUM] = bt_ctf_field_enumeration_is_set,
+	[BT_CTF_TYPE_ID_FLOAT] = bt_ctf_field_generic_is_set,
+	[BT_CTF_TYPE_ID_STRUCT] = bt_ctf_field_structure_is_set,
+	[BT_CTF_TYPE_ID_VARIANT] = bt_ctf_field_variant_is_set,
+	[BT_CTF_TYPE_ID_ARRAY] = bt_ctf_field_array_is_set,
+	[BT_CTF_TYPE_ID_SEQUENCE] = bt_ctf_field_sequence_is_set,
+	[BT_CTF_TYPE_ID_STRING] = bt_ctf_field_generic_is_set,
 };
 
 struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
@@ -1241,6 +1266,27 @@ int bt_ctf_field_serialize(struct bt_ctf_field *field,
 	ret = field_serialize_funcs[type_id](field, pos);
 end:
 	return ret;
+}
+
+
+BT_HIDDEN
+bool bt_ctf_field_is_set(struct bt_ctf_field *field)
+{
+	bool is_set = false;
+	enum bt_ctf_type_id type_id;
+
+	if (!field) {
+		goto end;
+	}
+
+	type_id = bt_ctf_field_type_get_type_id(field->type);
+	if (type_id <= BT_CTF_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		goto end;
+	}
+
+	is_set = field_is_set_funcs[type_id](field);
+end:
+	return is_set;
 }
 
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
@@ -2397,4 +2443,113 @@ void bt_ctf_field_freeze(struct bt_ctf_field *field)
 	field_freeze_funcs[type_id](field);
 end:
 	return;
+}
+
+static
+bool bt_ctf_field_generic_is_set(struct bt_ctf_field *field)
+{
+	return field && field->payload_set;
+}
+
+static
+bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *field)
+{
+	bool is_set = false;
+	struct bt_ctf_field_enumeration *enumeration;
+
+	if (!field) {
+		goto end;
+	}
+
+	enumeration = container_of(field, struct bt_ctf_field_enumeration,
+			parent);
+	if (!enumeration->payload) {
+		goto end;
+	}
+
+	is_set = bt_ctf_field_is_set(enumeration->payload);
+end:
+	return is_set;
+}
+
+static
+bool bt_ctf_field_structure_is_set(struct bt_ctf_field *field)
+{
+	bool is_set = false;
+	size_t i;
+	struct bt_ctf_field_structure *structure;
+
+	if (!field) {
+		goto end;
+	}
+
+	structure = container_of(field, struct bt_ctf_field_structure, parent);
+	for (i = 0; i < structure->fields->len; i++) {
+		is_set = bt_ctf_field_is_set(structure->fields->pdata[i]);
+		if (!is_set) {
+			goto end;
+		}
+	}
+end:
+	return is_set;
+}
+
+static
+bool bt_ctf_field_variant_is_set(struct bt_ctf_field *field)
+{
+	bool is_set = false;
+	struct bt_ctf_field_variant *variant;
+
+	if (!field) {
+		goto end;
+	}
+
+	variant = container_of(field, struct bt_ctf_field_variant, parent);
+	is_set = bt_ctf_field_is_set(variant->payload);
+end:
+	return is_set;
+}
+
+static
+bool bt_ctf_field_array_is_set(struct bt_ctf_field *field)
+{
+	size_t i;
+	bool is_set = false;
+	struct bt_ctf_field_array *array;
+
+	if (!field) {
+		goto end;
+	}
+
+	array = container_of(field, struct bt_ctf_field_array, parent);
+	for (i = 0; i < array->elements->len; i++) {
+		is_set = bt_ctf_field_validate(array->elements->pdata[i]);
+		if (!is_set) {
+			goto end;
+		}
+	}
+end:
+	return is_set;
+}
+
+static
+bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *field)
+{
+	size_t i;
+	bool is_set = false;
+	struct bt_ctf_field_sequence *sequence;
+
+	if (!field) {
+		goto end;
+	}
+
+	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
+	for (i = 0; i < sequence->elements->len; i++) {
+		is_set = bt_ctf_field_validate(sequence->elements->pdata[i]);
+		if (!is_set) {
+			goto end;
+		}
+	}
+end:
+	return is_set;
 }
