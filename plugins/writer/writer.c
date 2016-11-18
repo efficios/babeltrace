@@ -267,6 +267,7 @@ end:
 	return ret;
 error:
 	destroy_writer_component_data(writer_component);
+	g_free(writer_component);
 	return ret;
 }
 
