@@ -72,6 +72,9 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 		goto error;
 	}
 
+	stream_class->event_classes_ht = g_hash_table_new_full(g_int64_hash,
+			g_int64_equal, g_free, NULL);
+
 	ret = init_event_header(stream_class);
 	if (ret) {
 		goto error;
@@ -318,7 +321,7 @@ int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_event_class *event_class)
 {
 	int ret = 0;
-	int64_t event_id;
+	int64_t *event_id = NULL;
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_stream_class *old_stream_class = NULL;
 	struct bt_ctf_validation_output validation_output = { 0 };
@@ -332,6 +335,12 @@ int bt_ctf_stream_class_add_event_class(
 		BT_CTF_VALIDATION_FLAG_EVENT;
 
 	if (!stream_class || !event_class) {
+		ret = -1;
+		goto end;
+	}
+
+	event_id = g_new(int64_t, 1);
+	if (!event_id) {
 		ret = -1;
 		goto end;
 	}
@@ -411,13 +420,14 @@ int bt_ctf_stream_class_add_event_class(
 	}
 
 	/* Only set an event ID if none was explicitly set before */
-	event_id = bt_ctf_event_class_get_id(event_class);
+	*event_id = bt_ctf_event_class_get_id(event_class);
 	if (event_id < 0) {
 		if (bt_ctf_event_class_set_id(event_class,
 			stream_class->next_event_id++)) {
 			ret = -1;
 			goto end;
 		}
+		*event_id = stream_class->next_event_id;
 	}
 
 	ret = bt_ctf_event_class_set_stream_id(event_class, stream_class->id);
@@ -447,6 +457,9 @@ int bt_ctf_stream_class_add_event_class(
 
 	/* Add to the event classes of the stream class */
 	g_ptr_array_add(stream_class->event_classes, event_class);
+	g_hash_table_insert(stream_class->event_classes_ht, event_id,
+			event_class);
+	event_id = NULL;
 
 	/* Freeze the event class */
 	bt_ctf_event_class_freeze(event_class);
@@ -480,6 +493,7 @@ end:
 	assert(!stream_event_ctx_type);
 	assert(!event_context_type);
 	assert(!event_payload_type);
+	g_free(event_id);
 
 	return ret;
 }
@@ -544,23 +558,16 @@ end:
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint32_t id)
 {
-	size_t i;
+	int64_t id_key = id;
 	struct bt_ctf_event_class *event_class = NULL;
 
 	if (!stream_class) {
 		goto end;
 	}
 
-	for (i = 0; i < stream_class->event_classes->len; i++) {
-		struct bt_ctf_event_class *current_event_class =
-			g_ptr_array_index(stream_class->event_classes, i);
-
-		if (bt_ctf_event_class_get_id(current_event_class) == id) {
-			event_class = current_event_class;
-			bt_get(event_class);
-			goto end;
-		}
-	}
+	event_class = g_hash_table_lookup(stream_class->event_classes_ht,
+			&id_key);
+	bt_get(event_class);
 end:
 	return event_class;
 }
@@ -854,6 +861,9 @@ void bt_ctf_stream_class_destroy(struct bt_object *obj)
 	stream_class = container_of(obj, struct bt_ctf_stream_class, base);
 	bt_put(stream_class->clock);
 
+	if (stream_class->event_classes_ht) {
+		g_hash_table_destroy(stream_class->event_classes_ht);
+	}
 	if (stream_class->event_classes) {
 		g_ptr_array_free(stream_class->event_classes, TRUE);
 	}

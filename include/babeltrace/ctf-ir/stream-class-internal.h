@@ -42,6 +42,8 @@ struct bt_ctf_stream_class {
 	GString *name;
 	struct bt_ctf_clock *clock;
 	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */
+	/* event class id (int64_t) to event class */
+	GHashTable *event_classes_ht;
 	int id_set;
 	uint32_t id;
 	uint32_t next_event_id;
