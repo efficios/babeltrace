@@ -649,11 +649,11 @@ struct bt_ctf_writer *insert_new_writer(
 	enum bt_component_status ret;
 
 	snprintf(trace_name, PATH_MAX, "%s/%s_%03d",
-			writer_component->base_path,
-			writer_component->trace_name_base,
+			writer_component->base_path->str,
+			writer_component->trace_name_base->str,
 			writer_component->trace_id++);
 	printf_verbose("CTF-Writer creating trace in %s\n", trace_name);
-	
+
 	ctf_writer = bt_ctf_writer_create(trace_name);
 	if (!ctf_writer) {
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
@@ -1094,7 +1094,6 @@ enum bt_component_status writer_output_event(
 				__FILE__, __LINE__);
 		goto end_put_event_class;
 	}
-//	printf("%s\n", event_name);
 
 	stream = bt_ctf_event_get_stream(event);
 	if (!stream) {

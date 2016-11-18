@@ -45,6 +45,8 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 	g_hash_table_destroy(writer_component->stream_map);
 	g_hash_table_destroy(writer_component->stream_class_map);
 	g_hash_table_destroy(writer_component->trace_map);
+	g_string_free(writer_component->base_path, true);
+	g_string_free(writer_component->trace_name_base, true);
 }
 
 static
@@ -90,7 +92,12 @@ struct writer_component *create_writer_component(void)
 
 	writer_component->err = stderr;
 	writer_component->trace_id = 0;
-	snprintf(writer_component->trace_name_base, NAME_MAX, "trace");
+	writer_component->trace_name_base = g_string_new("trace");
+	if (!writer_component->trace_name_base) {
+		g_free(writer_component);
+		writer_component = NULL;
+		goto end;
+	}
 
 	/*
 	 * Reader to writer corresponding structures.
@@ -233,7 +240,11 @@ enum bt_component_status writer_component_init(
 		goto error;
 	}
 
-	strncpy(writer_component->base_path, path, PATH_MAX);
+	writer_component->base_path = g_string_new(path);
+	if (!writer_component) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto error;
+	}
 
 	ret = bt_component_set_destroy_cb(component,
 			destroy_writer_component);

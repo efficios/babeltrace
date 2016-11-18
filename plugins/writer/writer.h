@@ -33,8 +33,8 @@
 #include <babeltrace/ctf-writer/writer.h>
 
 struct writer_component {
-	char base_path[PATH_MAX];
-	char trace_name_base[NAME_MAX];
+	GString *base_path;
+	GString *trace_name_base;
 	/* For the directory name suffix. */
 	int trace_id;
 	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
