@@ -26,7 +26,7 @@ babeltrace_LDADD += $(top_builddir)/lib/libdebug-info.la
 endif
 
 if BUILT_IN_PLUGINS
-babeltrace_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,--no-whole-archive
+babeltrace_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
 endif
 
 babeltrace_log_SOURCES = babeltrace-log.c
