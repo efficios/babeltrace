@@ -257,7 +257,7 @@ extern int bt_ctf_clock_value_get_value(
 		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value);
 
 extern int bt_ctf_clock_value_get_value_ns_from_epoch(
-		struct bt_ctf_clock_value, int64_t *value_ns);
+		struct bt_ctf_clock_value *clock_value, int64_t *value_ns);
 
 #ifdef __cplusplus
 }

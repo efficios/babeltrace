@@ -501,7 +501,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_value_ns_from_epoch(struct bt_ctf_clock_value *value,
+int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
 		int64_t *ret_value_ns)
 {
 	int ret = 0;

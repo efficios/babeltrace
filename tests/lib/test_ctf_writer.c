@@ -319,7 +319,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	double ret_double;
 	int64_t ret_range_start_int64_t, ret_range_end_int64_t;
 	uint64_t ret_range_start_uint64_t, ret_range_end_uint64_t;
-	struct bt_ctf_clock *ret_clock;
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context;
 	struct bt_ctf_field *packet_context_field;
@@ -559,13 +558,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	simple_event = bt_ctf_event_create(simple_event_class);
 	ok(simple_event,
 		"Instantiate an event containing a single integer field");
-
-	ok(bt_ctf_event_get_clock(NULL) == NULL,
-		"bt_ctf_event_get_clock handles NULL correctly");
-	ret_clock = bt_ctf_event_get_clock(simple_event);
-	ok(ret_clock == clock,
-		"bt_ctf_event_get_clock returns a correct clock");
-	bt_put(clock);
 
 	integer_field = bt_ctf_field_create(ep_integer_field_type);
 	bt_ctf_field_unsigned_integer_set_value(integer_field, 42);

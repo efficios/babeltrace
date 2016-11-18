@@ -34,9 +34,12 @@
 #include <babeltrace/ctf-ir/clock.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/bitfield.h>
 #include <inttypes.h>
 #include "text.h"
+
+#define NSEC_PER_SEC 1000000000LL
 
 static inline
 const char *rem_(const char *str)
@@ -61,7 +64,23 @@ void print_timestamp_cycles(struct text_component *text,
 		struct bt_ctf_clock *clock,
 		struct bt_ctf_event *event)
 {
-	fputs("00000000000000000000", text->out);
+	int ret;
+	struct bt_ctf_clock_value *clock_value;
+	uint64_t cycles;
+
+	clock_value = bt_ctf_event_get_clock_value(event, clock);
+	if (!clock_value) {
+	        fputs("????????????????????", text->out);
+		return;
+	}
+
+	ret = bt_ctf_clock_value_get_value(clock_value, &cycles);
+	bt_put(clock_value);
+	if (ret) {
+	        fprintf(text->out, "Error");
+		return;
+	}
+	fprintf(text->out, "%020" PRIu64, cycles);
 }
 
 static
@@ -69,17 +88,103 @@ void print_timestamp_wall(struct text_component *text,
 		struct bt_ctf_clock *clock,
 		struct bt_ctf_event *event)
 {
-	fputs("??:??:??.?????????", text->out);
-}
+	int ret;
+	struct bt_ctf_clock_value *clock_value;
+	int64_t ts_nsec = 0;	/* add configurable offset */
+	int64_t ts_sec = 0;	/* add configurable offset */
+	uint64_t ts_sec_abs, ts_nsec_abs;
+	bool is_negative;
 
-static
-enum bt_component_status get_event_timestamp(struct bt_ctf_event *event)
-{
-/*	int ret;
-	uint64_t value, frequency;
-	int64_t offset_s, offset;
-*/
-	return BT_COMPONENT_STATUS_OK;
+	clock_value = bt_ctf_event_get_clock_value(event, clock);
+	if (!clock_value) {
+		fputs("??:??:??.?????????", text->out);
+		return;
+	}
+
+	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, &ts_nsec);
+	bt_put(clock_value);
+	if (ret) {
+	        fprintf(text->out, "Error");
+		return;
+	}
+
+	ts_sec += ts_nsec / NSEC_PER_SEC;
+	ts_nsec = ts_nsec % NSEC_PER_SEC;
+	if (ts_sec >= 0 && ts_nsec >= 0) {
+		is_negative = false;
+		ts_sec_abs = ts_sec;
+		ts_nsec_abs = ts_nsec;
+	} else if (ts_sec > 0 && ts_nsec < 0) {
+		is_negative = false;
+		ts_sec_abs = ts_sec - 1;
+		ts_nsec_abs = NSEC_PER_SEC + ts_nsec;
+	} else if (ts_sec == 0 && ts_nsec < 0) {
+		is_negative = true;
+		ts_sec_abs = ts_sec;
+		ts_nsec_abs = -ts_nsec;
+	} else if (ts_sec < 0 && ts_nsec > 0) {
+		is_negative = true;
+		ts_sec_abs = -(ts_sec + 1);
+		ts_nsec_abs = NSEC_PER_SEC - ts_nsec;
+	} else if (ts_sec < 0 && ts_nsec == 0) {
+		is_negative = true;
+		ts_sec_abs = -ts_sec;
+		ts_nsec_abs = ts_nsec;
+	} else {	/* (ts_sec < 0 && ts_nsec < 0) */
+		is_negative = true;
+		ts_sec_abs = -ts_sec;
+		ts_nsec_abs = -ts_nsec;
+	}
+
+	if (/*!opt_clock_seconds*/true) {
+		struct tm tm;
+		time_t time_s = (time_t) ts_sec_abs;
+
+		if (is_negative) {
+			fprintf(stderr, "[warning] Fallback to [sec.ns] to print negative time value. Use --clock-seconds.\n");
+			goto seconds;
+		}
+
+		if (/*!opt_clock_gmt*/true) {
+			struct tm *res;
+
+			res = localtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get localtime.\n");
+				goto seconds;
+			}
+		} else {
+			struct tm *res;
+
+			res = gmtime_r(&time_s, &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to get gmtime.\n");
+				goto seconds;
+			}
+		}
+		if (/*opt_clock_date*/false) {
+			char timestr[26];
+			size_t res;
+
+			/* Print date and time */
+			res = strftime(timestr, sizeof(timestr),
+					"%F ", &tm);
+			if (!res) {
+				fprintf(stderr, "[warning] Unable to print ascii time.\n");
+				goto seconds;
+			}
+			fprintf(text->out, "%s", timestr);
+		}
+		/* Print time in HH:MM:SS.ns */
+		fprintf(text->out, "%02d:%02d:%02d.%09" PRIu64,
+				tm.tm_hour, tm.tm_min, tm.tm_sec, ts_nsec_abs);
+		goto end;
+	}
+seconds:
+	fprintf(text->out, "%s%" PRId64 ".%09" PRIu64,
+			is_negative ? "-" : "", ts_sec_abs, ts_nsec_abs);
+end:
+	return;
 }
 
 static
@@ -89,6 +194,8 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 	bool print_names = text->options.print_header_field_names;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_clock *clock = NULL;
 	FILE *out = text->out;
 	FILE *err = text->err;
@@ -100,12 +207,10 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 		goto end;
 	}
 
-	clock = bt_ctf_event_get_clock(event);
-	if (!clock) {
-		/* Stream has no timestamp. */
-		//puts("no_timestamp!");
-		//goto end;
-	}
+	/* FIXME - error checking */
+	stream_class = bt_ctf_stream_get_class(stream);
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	clock = bt_ctf_trace_get_clock(trace, 0);
 
 	fputs(print_names ? "timestamp = " : "[", out);
 	if (text->options.print_timestamp_cycles) {
@@ -121,6 +226,8 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 end:
 	bt_put(stream);
 	bt_put(clock);
+	bt_put(stream_class);
+	bt_put(trace);
 	return ret;
 }
 

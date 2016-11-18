@@ -156,7 +156,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 */
 	event->event_class = bt_get(event_class);
 	event->clock_values = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, g_free);
+			g_direct_equal, bt_put, bt_put);
 	event_header =
 		bt_ctf_field_create(validation_output.event_header_type);
 	if (!event_header) {
@@ -280,39 +280,6 @@ struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 
 end:
 	return stream;
-}
-
-struct bt_ctf_clock *bt_ctf_event_get_clock(struct bt_ctf_event *event)
-{
-	struct bt_ctf_clock *clock = NULL;
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_stream_class *stream_class;
-
-	if (!event) {
-		goto end;
-	}
-
-	event_class = bt_ctf_event_get_class(event);
-	if (!event_class) {
-		goto end;
-	}
-
-	stream_class = bt_ctf_event_class_get_stream_class(event_class);
-	if (!stream_class) {
-		goto error_put_event_class;
-	}
-
-	clock = bt_ctf_stream_class_get_clock(stream_class);
-	if (!clock) {
-		goto error_put_stream_class;
-	}
-
-error_put_stream_class:
-	bt_put(stream_class);
-error_put_event_class:
-	bt_put(event_class);
-end:
-	return clock;
 }
 
 int bt_ctf_event_set_payload(struct bt_ctf_event *event,
@@ -600,11 +567,10 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 	g_free(event);
 }
 
-uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
-		struct bt_ctf_clock *clock)
+struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
+		struct bt_ctf_event *event, struct bt_ctf_clock *clock)
 {
-	uint64_t ret = -1ULL;
-	uint64_t *clock_value;
+	struct bt_ctf_clock_value *clock_value = NULL;
 
 	if (!event || !clock) {
 		goto end;
@@ -615,8 +581,22 @@ uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	ret = *clock_value;
+	bt_get(clock_value);
+end:
+	return clock_value;
+}
 
+int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
+		struct bt_ctf_clock *clock, struct bt_ctf_clock_value *value)
+{
+	int ret = 0;
+
+	if (!event || !clock || !value || event->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	g_hash_table_insert(event->clock_values, bt_get(clock), bt_get(value));
 end:
 	return ret;
 }

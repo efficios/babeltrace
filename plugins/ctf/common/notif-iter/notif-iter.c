@@ -1759,6 +1759,37 @@ end:
 }
 
 static
+int set_event_clocks(struct bt_ctf_event *event,
+		struct bt_ctf_notif_iter *notit)
+{
+	int ret;
+	GHashTableIter iter;
+	struct bt_ctf_clock *clock;
+	uint64_t *clock_state;
+
+	g_hash_table_iter_init(&iter, notit->clock_states);
+
+	while (g_hash_table_iter_next(&iter, (gpointer) &clock,
+		        (gpointer) &clock_state)) {
+		struct bt_ctf_clock_value *clock_value;
+
+		clock_value = bt_ctf_clock_value_create(clock, *clock_state);
+		if (!clock_value) {
+			ret = -1;
+			goto end;
+		}
+		ret = bt_ctf_event_set_clock_value(event, clock, clock_value);
+		bt_put(clock_value);
+		if (ret) {
+			goto end;
+		}
+	}
+	ret = 0;
+end:
+	return ret;
+}
+
+static
 struct bt_ctf_event *create_event(struct bt_ctf_notif_iter *notit)
 {
 	int ret;
@@ -1791,6 +1822,11 @@ struct bt_ctf_event *create_event(struct bt_ctf_notif_iter *notit)
 
 	ret = bt_ctf_event_set_payload_field(event,
 		notit->dscopes.event_payload);
+	if (ret) {
+		goto error;
+	}
+
+	ret = set_event_clocks(event, notit);
 	if (ret) {
 		goto error;
 	}

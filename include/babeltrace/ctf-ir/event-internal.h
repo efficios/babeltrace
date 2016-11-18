@@ -46,7 +46,8 @@ struct bt_ctf_event {
 	struct bt_ctf_field *stream_event_context;
 	struct bt_ctf_field *context_payload;
 	struct bt_ctf_field *fields_payload;
-	GHashTable *clock_values; /* Maps clock addresses to (uint64_t *) */
+	/* Maps clock classes to bt_ctf_clock_value. */
+	GHashTable *clock_values;
 	int frozen;
 };
 

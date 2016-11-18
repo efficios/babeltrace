@@ -38,6 +38,8 @@
 extern "C" {
 #endif
 
+struct bt_ctf_clock;
+struct bt_ctf_clock_value;
 struct bt_ctf_event_class;
 struct bt_ctf_event;
 struct bt_ctf_field;
@@ -80,16 +82,6 @@ extern struct bt_ctf_event_class *bt_ctf_event_get_class(
  * Returns the event's associated stream, NULL on error.
  */
 extern struct bt_ctf_stream *bt_ctf_event_get_stream(
-		struct bt_ctf_event *event);
-
-/*
- * bt_ctf_event_get_clock: get an event's associated clock.
- *
- * @param event Event.
- *
- * Returns the event's clock, NULL on error.
- */
-extern struct bt_ctf_clock *bt_ctf_event_get_clock(
 		struct bt_ctf_event *event);
 
 /*
@@ -248,8 +240,12 @@ extern struct bt_ctf_packet *bt_ctf_event_get_packet(
 extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		struct bt_ctf_packet *packet);
 
-extern uint64_t bt_ctf_event_get_clock_value(struct bt_ctf_event *event,
-		struct bt_ctf_clock *clock);
+extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
+		struct bt_ctf_event *event, struct bt_ctf_clock *clock);
+
+extern int bt_ctf_event_set_clock_value(
+		struct bt_ctf_event *event, struct bt_ctf_clock *clock,
+		struct bt_ctf_clock_value *value);
 
 #ifdef __cplusplus
 }
