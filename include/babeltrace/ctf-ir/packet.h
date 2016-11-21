@@ -34,26 +34,205 @@
 extern "C" {
 #endif
 
-struct bt_ctf_stream;
-struct bt_ctf_packet;
+/**
+@defgroup ctfirpacket CTF IR packet
+@ingroup ctfir
+@brief CTF IR packet.
 
+A CTF IR <strong><em>packet</em></strong> is a container of packet
+fields, that is, of the <strong>trace packet header</strong> and
+<strong>stream packet context</strong> fields.
+
+As a reminder, here's the structure of a CTF packet:
+
+@imgpacketstructure
+
+You can create a CTF IR packet \em from a
+\link ctfirstream CTF IR stream\endlink with bt_ctf_packet_create(). The
+stream you use to create a packet object becomes its parent.
+
+When you set the trace packet header and stream packet context fields of
+a packet with resp. bt_ctf_packet_set_header() and
+bt_ctf_packet_set_context(), their field type \em must be equivalent to
+the field types returned by resp. bt_ctf_trace_get_packet_header_type()
+and bt_ctf_stream_class_get_packet_context_type() for its parent trace
+class and stream class.
+
+You can attach a packet object to a \link ctfirevent CTF IR
+event\endlink object with bt_ctf_event_set_packet().
+
+As with any Babeltrace object, CTF IR packet objects have
+<a href="https://en.wikipedia.org/wiki/Reference_counting">reference
+counts</a>. See \ref refs to learn more about the reference counting
+management of Babeltrace objects.
+
+bt_notification_event_create() \em freezes its event parameter on
+success, which in turns freezes the event's associated packet object.
+This is the only way that a CTF IR packet object can be frozen.
+You cannot modify a frozen packet: it is considered immutable,
+except for \link refs reference counting\endlink.
+
+@sa ctfirstream
+@sa ctfirstreamclass
+@sa ctfirtraceclass
+
+@file
+@brief CTF IR packet type and functions.
+@sa ctfirpacket
+
+@addtogroup ctfirpacket
+@{
+*/
+
+/**
+@struct bt_ctf_packet
+@brief A CTF IR packet.
+@sa ctfirpacket
+*/
+struct bt_ctf_packet;
+struct bt_ctf_stream;
+
+/**
+@name Creation and parent access functions
+@{
+*/
+
+/**
+@brief	Creates a default CTF IR packet with \p stream as its parent
+	CTF IR stream.
+
+On success, the packet object's trace packet header and stream packet
+context fields are not set. You can set them with resp.
+bt_ctf_packet_set_header() and bt_ctf_packet_set_context().
+
+@param[in] stream	Parent CTF IR stream of the packet to create.
+@returns		Created packet, or \c NULL on error.
+
+@prenotnull{stream}
+@postsuccessrefcountret1
+*/
 extern struct bt_ctf_packet *bt_ctf_packet_create(
 		struct bt_ctf_stream *stream);
 
+/**
+@brief	Returns the parent CTF IR stream of the CTF IR packet \p packet.
+
+This function returns a reference to the stream which was used to create
+the packet object in the first place with bt_ctf_packet_create().
+
+@param[in] packet	Packet of which to get the parent stream.
+@returns		Parent stream of \p packet, or \c NULL on error.
+
+@prenotnull{packet}
+@postsuccessrefcountretinc
+*/
 extern struct bt_ctf_stream *bt_ctf_packet_get_stream(
 		struct bt_ctf_packet *packet);
 
+/** @} */
+
+/**
+@name Contained fields functions
+@{
+*/
+
+/**
+@brief	Returns the trace packet header field of the CTF IR packet
+	\p packet.
+
+@param[in] packet	Packet of which to get the trace packet header
+			field.
+@returns		Trace packet header field of \p packet,
+			or \c NULL if the trace packet header
+			field is not set or on error.
+
+@prenotnull{packet}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_packet_set_header(): Sets the trace packet header
+	field of a given packet.
+*/
 extern struct bt_ctf_field *bt_ctf_packet_get_header(
 		struct bt_ctf_packet *packet);
 
+/**
+@brief	Sets the trace packet header field of the CTF IR packet
+	\p packet to \p header.
+
+The field type of \p header, as returned by bt_ctf_field_get_type(),
+\em must be equivalent to the field type returned by
+bt_ctf_trace_get_packet_header_type() for the parent trace class
+of \p packet.
+
+@param[in] packet	Packet of which to set the trace packet header
+			field.
+@param[in] header	Trace packet header field.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{packet}
+@prenotnull{header}
+@prehot{packet}
+@pre \p header has a field type equivalent to the field type returned by
+	bt_ctf_trace_get_packet_header_type() for the parent trace class
+	of \p packet.
+@postrefcountsame{packet}
+@postsuccessrefcountinc{header}
+
+@sa bt_ctf_packet_get_header(): Returns the trace packet header field
+	of a given packet.
+*/
 extern int bt_ctf_packet_set_header(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *header);
 
-extern struct bt_ctf_field *bt_ctf_packet_get_context(
-		struct bt_ctf_packet *context);
+/**
+@brief	Returns the stream packet context field of the CTF IR packet
+	\p packet.
 
+@param[in] packet	Packet of which to get the stream packet context
+			field.
+@returns		Stream packet context field of \p packet,
+			or \c NULL if the stream packet context
+			field is not set or on error.
+
+@prenotnull{packet}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_packet_set_context(): Sets the stream packet context
+	field of a given packet.
+*/
+extern struct bt_ctf_field *bt_ctf_packet_get_context(
+		struct bt_ctf_packet *packet);
+
+/**
+@brief	Sets the stream packet context field of the CTF IR packet
+	\p packet to \p context.
+
+The field type of \p context, as returned by bt_ctf_field_get_type(),
+\em must be equivalent to the field type returned by
+bt_ctf_stream_class_get_packet_context_type() for the parent stream
+class of \p packet.
+
+@param[in] packet	Packet of which to set the stream packet context
+			field.
+@param[in] context	Stream packet context field.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{packet}
+@prenotnull{context}
+@prehot{packet}
+@pre \p context has a field type equivalent to the field type returned
+	by bt_ctf_stream_class_get_packet_context_type() for the parent
+	stream class of \p packet.
+@postrefcountsame{packet}
+@postsuccessrefcountinc{context}
+
+@sa bt_ctf_packet_get_context(): Returns the stream packet context field
+	of a given packet.
+*/
 extern int bt_ctf_packet_set_context(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *context);
+
+/** @} */
 
 #ifdef __cplusplus
 }
