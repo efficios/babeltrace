@@ -421,7 +421,7 @@ int bt_ctf_stream_class_add_event_class(
 
 	/* Only set an event ID if none was explicitly set before */
 	*event_id = bt_ctf_event_class_get_id(event_class);
-	if (event_id < 0) {
+	if (*event_id < 0) {
 		if (bt_ctf_event_class_set_id(event_class,
 			stream_class->next_event_id++)) {
 			ret = -1;

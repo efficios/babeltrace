@@ -79,4 +79,7 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 BT_HIDDEN
 bool bt_ctf_clock_is_valid(struct bt_ctf_clock *clock);
 
+BT_HIDDEN
+int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
+
 #endif /* BABELTRACE_CTF_IR_CLOCK_INTERNAL_H */

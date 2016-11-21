@@ -434,6 +434,21 @@ void bt_ctf_clock_serialize(struct bt_ctf_clock *clock,
 	g_string_append(context->string, "};\n\n");
 }
 
+BT_HIDDEN
+int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value)
+{
+	int ret = 0;
+
+	if (!clock || !value) {
+		ret = -1;
+		goto end;
+	}
+
+	*value = clock->value;
+end:
+	return ret;
+}
+
 static
 void bt_ctf_clock_destroy(struct bt_object *obj)
 {

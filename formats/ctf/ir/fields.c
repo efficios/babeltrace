@@ -2523,7 +2523,7 @@ bool bt_ctf_field_array_is_set(struct bt_ctf_field *field)
 
 	array = container_of(field, struct bt_ctf_field_array, parent);
 	for (i = 0; i < array->elements->len; i++) {
-		is_set = bt_ctf_field_validate(array->elements->pdata[i]);
+		is_set = bt_ctf_field_is_set(array->elements->pdata[i]);
 		if (!is_set) {
 			goto end;
 		}

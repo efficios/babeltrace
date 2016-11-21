@@ -45,7 +45,12 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event)
 		goto error;
 	}
 
+	// FIXME - Validate that the event is associated to a packet
+	//         and freeze the event.
 	notification = g_new0(struct bt_notification_event, 1);
+	if (!notification) {
+		goto error;
+	}
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_EVENT,
 			bt_notification_event_destroy);
