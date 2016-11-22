@@ -205,7 +205,7 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf("  %s/%s\n", bt_config_component->plugin_name->str,
+	printf("  %s.%s\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
 	printf("    params:\n");
 	print_value(bt_config_component->params, 6, true);
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 
 	/* TODO handle more than 1 source and 1 sink. */
 	if (cfg->sources->len != 1 || cfg->sinks->len != 1) {
-		fprintf(stderr, "Unexpected configuration, aborting.../n");
+		fprintf(stderr, "Unexpected configuration, aborting...\n");
 		ret = -1;
 		goto end;
 	}
