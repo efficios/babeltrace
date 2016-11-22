@@ -527,6 +527,7 @@ on a frozen stream class.
 @prehot{event_class}
 @postrefcountsame{stream_class}
 @postsuccessrefcountinc{event_class}
+@postsuccessfrozen{event_class}
 */
 extern int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
