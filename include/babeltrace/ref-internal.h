@@ -50,6 +50,11 @@ static inline
 void bt_ref_get(struct bt_ref *ref)
 {
 	assert(ref);
+
+	if (!ref->release) {
+		return;
+	}
+
 	ref->count++;
 	/* Overflow check. */
 	assert(ref->count);
