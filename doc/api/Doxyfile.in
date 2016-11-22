@@ -25,6 +25,7 @@ ALIASES               += postsuccessrefcountretinc="@post <strong>On success</st
 ALIASES               += postsuccessrefcountret1="@post <strong>On success</strong>, the reference count of the returned object is 1."
 ALIASES               += postsuccessrefcountinc{1}="@post <strong>On success</strong>, the reference count of \p \1 is incremented."
 ALIASES               += postrefcountsame{1}="@post The reference count of \p \1 is not modified."
+ALIASES               += postsuccessfrozen{1}="@post <strong>On success</strong>, \p \1 is frozen."
 ALIASES               += prenotnull{1}="@pre \p \1 is not \c NULL."
 ALIASES               += prehot{1}="@pre \p \1 is not frozen."
 ALIASES               += preisintft{1}="@pre \p \1 is a CTF IR integer field type."
@@ -44,6 +45,7 @@ ALIASES               += preisarrayfield{1}="@pre \p \1 is a CTF IR array field.
 ALIASES               += preisseqfield{1}="@pre \p \1 is a CTF IR sequence field."
 ALIASES               += preisvarfield{1}="@pre \p \1 is a CTF IR variant field."
 ALIASES               += imgpacketstructure="@image html ctf-stream-packet.png \"Structure of a CTF packet.\""
+ALIASES               += imgtracestructure="@image html ctf-trace.png \"Structure of a CTF trace.\""
 OPTIMIZE_OUTPUT_FOR_C  = YES
 MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 0
