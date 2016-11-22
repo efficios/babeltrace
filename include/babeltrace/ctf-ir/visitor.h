@@ -34,44 +34,129 @@
 extern "C" {
 #endif
 
+/**
+@defgroup ctfirvisitor CTF IR visitor
+@ingroup ctfir
+@brief CTF IR visitor.
+
+A CTF IR <strong><em>visitor</em></strong> is a function that you
+can use to visit the hierarchy of a
+\link ctfirtraceclass CTF IR trace class\endlink with
+bt_ctf_trace_visit() or of a
+\link ctfirstreamclass CTF IR stream class\endlink with
+bt_ctf_stream_class_visit().
+
+The traversal of the object's hierarchy is always done in a
+pre-order fashion.
+
+@sa ctfirstreamclass
+@sa ctfirtraceclass
+
+@file
+@brief CTF IR visitor types and functions.
+@sa ctfirvisitor
+
+@addtogroup ctfirvisitor
+@{
+*/
+
+/**
+@struct bt_ctf_object
+@brief A CTF IR object wrapper.
+
+This structure wraps both a CTF IR object and its type
+(see #bt_ctf_object_type). It is used in the visiting function.
+
+You can use the bt_ctf_object_get_type() and
+bt_ctf_object_get_object() accessors to get the type and wrapped
+CTF IR object of a CTF IR object wrapper.
+
+A CTF IR object wrapper has <strong>no reference count</strong>: do \em
+not use bt_put() or bt_get() on it.
+
+@sa ctfirvisitor
+*/
 struct bt_ctf_object;
 
+/**
+@brief	CTF IR object wrapper type.
+*/
 enum bt_ctf_object_type {
+	/// Unknown (used for errors).
 	BT_CTF_OBJECT_TYPE_UNKNOWN = -1,
+
+	/// \ref ctfirtraceclass.
 	BT_CTF_OBJECT_TYPE_TRACE = 0,
+
+	/// \ref ctfirstreamclass.
 	BT_CTF_OBJECT_TYPE_STREAM_CLASS = 1,
+
+	/// \ref ctfirstream.
 	BT_CTF_OBJECT_TYPE_STREAM = 2,
+
+	/// \ref ctfireventclass.
 	BT_CTF_OBJECT_TYPE_EVENT_CLASS = 3,
+
+	/// \ref ctfirevent.
 	BT_CTF_OBJECT_TYPE_EVENT = 4,
+
+	/// Number of entries in this enumeration.
 	BT_CTF_OBJECT_TYPE_NR,
 };
 
+/**
+@brief	Visting function type.
+
+A function of this type is called by bt_ctf_trace_visit() or
+bt_ctf_stream_class_visit() when visiting the CTF IR object wrapper
+\p object.
+
+\p object has <strong>no reference count</strong>: do \em not use
+bt_put() or bt_get() on it.
+
+@param[in] object	Currently visited CTF IR object wrapper.
+@param[in] data		User data.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{object}
+
+@sa bt_ctf_trace_visit(): Accepts a visitor to visit a trace class.
+@sa bt_ctf_stream_class_visit(): Accepts a visitor to visit a stream
+	class.
+*/
 typedef int (*bt_ctf_visitor)(struct bt_ctf_object *object,
 		void *data);
 
-/*
- * bt_ctf_object_get_type: get an IR element's type.
- *
- * Get an IR element's type.
- *
- * @param element Element instance.
- *
- * Returns one of #bt_ctf_object_type.
- */
-enum bt_ctf_object_type bt_ctf_object_get_type(
-		struct bt_ctf_object *object);
+/**
+@brief	Returns the type of the CTF IR object wrapped by the CTF IR
+	object wrapper \p object.
 
-/*
- * bt_ctf_object_get_element: get an IR element's value.
- *
- * Get an IR element's value.
- *
- * @param element Element instance.
- *
- * Returns a CTF-IR type. Use #bt_ctf_object_type to determine the
- * concrete type of the value returned.
- */
+@param[in] object	Object wrapper of which to get the type.
+@returns		Type of \p object.
+
+@prenotnull{object}
+
+@sa bt_ctf_object_get_object(): Returns the object wrapped by a given
+	CTF IR object wrapper.
+*/
+enum bt_ctf_object_type bt_ctf_object_get_type(struct bt_ctf_object *object);
+
+/**
+@brief	Returns the CTF IR object wrapped by the CTF IR object
+	wrapper \p object.
+
+@param[in] object	Object wrapper of which to get the wrapped
+			CTF IR object.
+@returns		CTF IR object wrapped by \p object.
+
+@prenotnull{object}
+
+@sa bt_ctf_object_get_type(): Returns the type of a given
+	CTF IR object wrapper.
+*/
 void *bt_ctf_object_get_object(struct bt_ctf_object *object);
+
+/** @} */
 
 #ifdef __cplusplus
 }
