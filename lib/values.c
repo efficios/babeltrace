@@ -51,6 +51,14 @@ struct bt_value {
 
 static
 struct bt_value bt_value_null_instance = {
+	.base = {
+		.ref_count = {
+			.count = 1,
+			.release = NULL,
+		},
+		.release = NULL,
+		.parent = NULL,
+	},
 	.type = BT_VALUE_TYPE_NULL,
 	.is_frozen = true,
 };
