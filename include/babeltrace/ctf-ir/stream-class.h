@@ -42,6 +42,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR stream class.
 
+@note
+See \ref ctfirwriterstreamclass which documents additional CTF IR stream
+class functions exclusive to the CTF IR writer mode.
+
 A CTF IR <strong><em>stream class</em></strong> is a template that you
 can use to create concrete \link ctfirstream CTF IR streams\endlink.
 
@@ -96,7 +100,7 @@ success:
 - bt_ctf_trace_add_stream_class()
 - bt_ctf_event_create()
 - bt_ctf_writer_create_stream()
-  (\link ctfirwriter CTF writer\endlink mode only)
+  (\link ctfirwriter CTF IR writer\endlink mode only)
 
 You cannot modify a frozen stream class: it is considered immutable,
 except for:
@@ -108,6 +112,7 @@ except for:
 @sa ctfirstream
 @sa ctfireventclass
 @sa ctfirtraceclass
+@sa ctfirwriterstreamclass
 
 @file
 @brief CTF IR stream class type and functions.
