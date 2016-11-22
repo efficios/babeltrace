@@ -85,6 +85,12 @@ management of Babeltrace objects.
 @{
 */
 
+/**
+@struct bt_ctf_stream
+@brief A CTF IR stream.
+@sa ctfirstream
+@sa ctfirwriterstream
+*/
 struct bt_ctf_stream;
 struct bt_ctf_event;
 
