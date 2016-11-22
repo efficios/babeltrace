@@ -591,7 +591,7 @@ You can call this function even if \p trace_class is frozen.
 @prenotnull{clock_class}
 @postrefcountsame{trace_class}
 @postsuccessrefcountinc{clock_class}
-@post <strong>On success, if \p trace_class is frozen<strong>,
+@post <strong>On success, if \p trace_class is frozen</strong>,
 	\p clock_class is frozen.
 
 @sa bt_ctf_trace_get_clock(): Returns the clock class contained in a
