@@ -356,6 +356,50 @@ extern int bt_ctf_event_class_set_attribute(
 */
 
 /**
+@brief	Returns the context field type of the CTF IR event class
+	\p event_class.
+
+@param[in] event_class	Event class of which to get the
+			context field type.
+@returns		Context field type of \p event_class,
+			or \c NULL on error.
+
+@prenotnull{event_class}
+@postsuccessrefcountretinc
+
+@sa bt_ctf_event_class_set_context_type(): Sets the context field
+	type of a given event class.
+*/
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
+		struct bt_ctf_event_class *event_class);
+
+/**
+@brief	Sets the context field type of the CTF IR event class
+	\p event_class to \p context_type.
+
+As of Babeltrace \btversion, \p context_type \em must be a
+CTF IR structure field type object.
+
+@param[in] event_class	Event class of which to set the context
+			field type.
+@param[in] context_type	Context field type.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{event_class}
+@prenotnull{context_type}
+@prehot{event_class}
+@preisstructft{context_type}
+@postrefcountsame{event_class}
+@postsuccessrefcountinc{context_type}
+
+@sa bt_ctf_event_class_get_context_type(): Returns the context field
+	type of a given event class.
+*/
+extern int bt_ctf_event_class_set_context_type(
+		struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *context_type);
+
+/**
 @brief	Returns the payload field type of the CTF IR event class
 	\p event_class.
 
@@ -515,50 +559,6 @@ adding a field to it with bt_ctf_field_type_structure_add_field().
 extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *field_type,
 		const char *name);
-
-/**
-@brief	Returns the context field type of the CTF IR event class
-	\p event_class.
-
-@param[in] event_class	Event class of which to get the
-			context field type.
-@returns		Context field type of \p event_class,
-			or \c NULL on error.
-
-@prenotnull{event_class}
-@postsuccessrefcountretinc
-
-@sa bt_ctf_event_class_set_context_type(): Sets the context field
-	type of a given event class.
-*/
-extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
-		struct bt_ctf_event_class *event_class);
-
-/**
-@brief	Sets the context field type of the CTF IR event class
-	\p event_class to \p context_type.
-
-As of Babeltrace \btversion, \p context_type \em must be a
-CTF IR structure field type object.
-
-@param[in] event_class	Event class of which to set the context
-			field type.
-@param[in] context_type	Context field type.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event_class}
-@prenotnull{context_type}
-@prehot{event_class}
-@preisstructft{context_type}
-@postrefcountsame{event_class}
-@postsuccessrefcountinc{context_type}
-
-@sa bt_ctf_event_class_get_context_type(): Returns the context field
-	type of a given event class.
-*/
-extern int bt_ctf_event_class_set_context_type(
-		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *context_type);
 
 /** @} */
 
