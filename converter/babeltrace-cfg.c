@@ -755,6 +755,10 @@ void print_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [OPTIONS]\n");
 	fprintf(fp, "\n");
+	fprintf(fp, "  -b, --base-params=PARAMS          Set PARAMS as the current base parameters\n");
+	fprintf(fp, "                                    of the following source and sink component\n");
+	fprintf(fp, "                                    instances (see the exact format of PARAMS\n");
+	fprintf(fp, "                                    below)\n");
 	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
 	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
 	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
@@ -766,15 +770,19 @@ void print_usage(FILE *fp)
 	fprintf(fp, "  -P, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
 	fprintf(fp, "                                    loaded to PATH\n");
 	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
-	fprintf(fp, "                                    sink instance (in command-line order) to\n");
-	fprintf(fp, "                                    PARAMS (see the exact format below)\n");
+	fprintf(fp, "                                    sink component instance (in command-line \n");
+	fprintf(fp, "                                    order) to PARAMS (see the exact format of\n");
+	fprintf(fp, "                                    PARAMS below)\n");
+	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
+	fprintf(fp, "                                    following source and sink component\n");
+	fprintf(fp, "                                    instances to an empty map\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
 	fprintf(fp, "  -V, --version                     Show version\n");
 	fprintf(fp, "\n\n");
-	fprintf(fp, "Format of the --params option's argument\n");
-	fprintf(fp, "----------------------------------------\n");
+	fprintf(fp, "Format of PARAMS\n");
+	fprintf(fp, "----------------\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
 	fprintf(fp, "\n");
@@ -2098,6 +2106,7 @@ int parse_int64(const char *arg, int64_t *val)
 /* popt options */
 enum {
 	OPT_NONE = 0,
+	OPT_BASE_PARAMS,
 	OPT_CLOCK_CYCLES,
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_FORCE_CORRELATE,
@@ -2120,6 +2129,7 @@ enum {
 	OPT_OUTPUT_PATH,
 	OPT_PARAMS,
 	OPT_PLUGIN_PATH,
+	OPT_RESET_BASE_PARAMS,
 	OPT_SINK,
 	OPT_SOURCE,
 	OPT_STREAM_INTERSECTION,
@@ -2130,6 +2140,7 @@ enum {
 /* popt long option descriptions */
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
 	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
@@ -2152,6 +2163,7 @@ static struct poptOption long_options[] = {
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
 	{ "plugin-path", 'P', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
 	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
 	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
@@ -2213,6 +2225,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	struct bt_config_component *cur_cfg_comp = NULL;
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
+	struct bt_value *cur_base_params = NULL;
 	int opt;
 	bool cur_cfg_comp_params_set = false;
 
@@ -2237,6 +2250,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 
 	text_legacy_opts.dbg_info_target_prefix = g_string_new(NULL);
 	if (!text_legacy_opts.dbg_info_target_prefix) {
+		print_err_oom();
+		goto error;
+	}
+
+	cur_base_params = bt_value_map_create();
+	if (!cur_base_params) {
 		print_err_oom();
 		goto error;
 	}
@@ -2356,6 +2375,9 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto error;
 			}
 
+			assert(cur_base_params);
+			bt_put(cur_cfg_comp->params);
+			cur_cfg_comp->params = bt_get(cur_base_params);
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
 			cur_cfg_comp_params_set = false;
 			break;
@@ -2410,6 +2432,9 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto error;
 			}
 
+			assert(cur_base_params);
+			bt_put(cur_cfg_comp->params);
+			cur_cfg_comp->params = bt_get(cur_base_params);
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
 			cur_cfg_comp_params_set = false;
 			break;
@@ -2417,6 +2442,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 		case OPT_PARAMS:
 		{
 			struct bt_value *params;
+			struct bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
 				printf_err("--params option must follow a --source or --sink option\n");
@@ -2437,10 +2463,40 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto error;
 			}
 
-			BT_MOVE(cur_cfg_comp->params, params);
+			params_to_set = bt_value_map_extend(cur_base_params,
+				params);
+			BT_PUT(params);
+			if (!params_to_set) {
+				printf_err("Cannot extend current base parameters with --params option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			BT_MOVE(cur_cfg_comp->params, params_to_set);
 			cur_cfg_comp_params_set = true;
 			break;
 		}
+		case OPT_BASE_PARAMS:
+		{
+			struct bt_value *params = bt_value_from_arg(arg);
+
+			if (!params) {
+				printf_err("Invalid format for --base-params option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			BT_MOVE(cur_base_params, params);
+			break;
+		}
+		case OPT_RESET_BASE_PARAMS:
+			BT_PUT(cur_base_params);
+			cur_base_params = bt_value_map_create();
+			if (!cur_base_params) {
+				print_err_oom();
+				goto error;
+			}
+			break;
 		case OPT_NAMES:
 			if (text_legacy_opts.names) {
 				printf_err("Duplicate --names option\n");
@@ -2641,6 +2697,7 @@ end:
 
 	free(arg);
 	BT_PUT(cur_cfg_comp);
+	BT_PUT(cur_base_params);
 	BT_PUT(text_legacy_opts.names);
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
