@@ -34,20 +34,35 @@
 extern "C" {
 #endif
 
-/*
- * bt_ctf_validate_identifier: validate an identifier against the CTF spec.
- *
- * Validate that an identifier meets the CTF specification's restrictions on
- * identifiers. An identifier will be rejected if it is a keyword defined
- * in the CTF specification or if it does not meet any other requirement imposed
- * on identifiers.
- *
- * Note that this will not check whether or not the identifier clashes with
- * identifiers used in a given trace.
- *
- * Returns 0 if the identifier is valid, a negative value on error.
- */
+/**
+@defgroup ctfirutils CTF IR utilities
+@ingroup ctfir
+@brief CTF IR utilities.
+
+@file
+@brief CTF IR utilities functions.
+@sa ctfirutils
+
+@addtogroup ctfirutils
+@{
+*/
+
+/**
+@brief	Returns whether or not the string \p identifier is a valid
+	identifier according to CTF.
+
+This function returns a negative value if \p identifier is a CTF keyword
+or if it does not meet any other imposed requirement.
+
+@param[in] identifier	String to test.
+@returns		0 if \p identifier is a valid identifier, or
+			a negative value otherwise or on error.
+
+@prenotnull{identifier}
+*/
 extern int bt_ctf_validate_identifier(const char *identifier);
+
+/** @} */
 
 #ifdef __cplusplus
 }
