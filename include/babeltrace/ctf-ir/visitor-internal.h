@@ -30,22 +30,22 @@
 #include <babeltrace/ctf-ir/visitor.h>
 #include <babeltrace/babeltrace-internal.h>
 
-typedef void *(*bt_child_accessor)(void *element, int index);
-typedef int (*bt_child_count_accessor)(void *element);
-typedef int (*bt_child_visitor)(void *element, bt_ctf_ir_visitor visitor,
+typedef void *(*bt_child_accessor)(void *object, int index);
+typedef int (*bt_child_count_accessor)(void *object);
+typedef int (*bt_child_visitor)(void *object, bt_ctf_visitor visitor,
 		void *data);
 
-struct bt_ctf_ir_element {
-	enum bt_ctf_ir_type type;
-	void *element;
+struct bt_ctf_object {
+	enum bt_ctf_object_type type;
+	void *object;
 };
 
 BT_HIDDEN
-int visitor_helper(struct bt_ctf_ir_element *root,
+int visitor_helper(struct bt_ctf_object *root,
 		bt_child_count_accessor child_counter,
 		bt_child_accessor child_accessor,
 		bt_child_visitor child_visitor,
-		bt_ctf_ir_visitor visitor,
+		bt_ctf_visitor visitor,
 		void *data);
 
 #endif /* BABELTRACE_CTF_IR_VISITOR_INTERNAL_H */

@@ -478,10 +478,10 @@ int bt_ctf_stream_class_add_event_class(
 
 	/* Notifiy listeners of the trace's schema modification. */
 	if (trace) {
-		struct bt_ctf_ir_element element = { .element = event_class,
-				.type = BT_CTF_IR_TYPE_EVENT_CLASS };
+		struct bt_ctf_object obj = { .object = event_class,
+				.type = BT_CTF_OBJECT_TYPE_EVENT_CLASS };
 
-		(void) bt_ctf_trace_element_modification(&element, trace);
+		(void) bt_ctf_trace_object_modification(&obj, trace);
 	}
 end:
 	BT_PUT(trace);
@@ -728,29 +728,29 @@ void *get_event_class(void *element, int i)
 }
 
 static
-int visit_event_class(void *element, bt_ctf_ir_visitor visitor,void *data)
+int visit_event_class(void *object, bt_ctf_visitor visitor,void *data)
 {
-	struct bt_ctf_ir_element ir_element =
-			{ .element = element,
-			.type = BT_CTF_IR_TYPE_EVENT_CLASS };
+	struct bt_ctf_object obj =
+			{ .object = object,
+			.type = BT_CTF_OBJECT_TYPE_EVENT_CLASS };
 
-	return visitor(&ir_element, data);
+	return visitor(&obj, data);
 }
 
 int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
-		bt_ctf_ir_visitor visitor, void *data)
+		bt_ctf_visitor visitor, void *data)
 {
 	int ret;
-	struct bt_ctf_ir_element element =
-			{ .element = stream_class,
-			.type = BT_CTF_IR_TYPE_STREAM_CLASS };
+	struct bt_ctf_object obj =
+			{ .object = stream_class,
+			.type = BT_CTF_OBJECT_TYPE_STREAM_CLASS };
 
 	if (!stream_class || !visitor) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = visitor_helper(&element, get_event_class_count,
+	ret = visitor_helper(&obj, get_event_class_count,
 			get_event_class,
 			visit_event_class, visitor, data);
 end:

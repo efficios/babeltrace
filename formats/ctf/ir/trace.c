@@ -696,7 +696,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 
 	/* Notifiy listeners of the trace's schema modification. */
 	bt_ctf_stream_class_visit(stream_class,
-			bt_ctf_trace_element_modification, trace);
+			bt_ctf_trace_object_modification, trace);
 end:
 	if (ret) {
 		bt_object_set_parent(stream_class, NULL);
@@ -1107,35 +1107,35 @@ void *get_stream_class(void *element, int i)
 }
 
 static
-int visit_stream_class(void *element, bt_ctf_ir_visitor visitor,void *data)
+int visit_stream_class(void *object, bt_ctf_visitor visitor,void *data)
 {
-	return bt_ctf_stream_class_visit(element, visitor, data);
+	return bt_ctf_stream_class_visit(object, visitor, data);
 }
 
 int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
-		bt_ctf_ir_visitor visitor, void *data)
+		bt_ctf_visitor visitor, void *data)
 {
 	int ret;
-	struct bt_ctf_ir_element element =
-			{ .element = trace, .type = BT_CTF_IR_TYPE_TRACE };
+	struct bt_ctf_object obj =
+			{ .object = trace, .type = BT_CTF_OBJECT_TYPE_TRACE };
 
 	if (!trace || !visitor) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = visitor_helper(&element, get_stream_class_count,
+	ret = visitor_helper(&obj, get_stream_class_count,
 			get_stream_class, visit_stream_class, visitor, data);
 end:
 	return ret;
 }
 
 static
-int invoke_listener(struct bt_ctf_ir_element *element, void *data)
+int invoke_listener(struct bt_ctf_object *object, void *data)
 {
 	struct listener_wrapper *listener_wrapper = data;
 
-	listener_wrapper->listener(element, listener_wrapper->data);
+	listener_wrapper->listener(object, listener_wrapper->data);
 	return 0;
 }
 
@@ -1172,14 +1172,14 @@ error:
 }
 
 BT_HIDDEN
-int bt_ctf_trace_element_modification(struct bt_ctf_ir_element *element,
+int bt_ctf_trace_object_modification(struct bt_ctf_object *object,
 		void *trace_ptr)
 {
 	size_t i;
 	struct bt_ctf_trace *trace = trace_ptr;
 
 	assert(trace);
-	assert(element);
+	assert(object);
 
 	if (trace->listeners->len == 0) {
 		goto end;
@@ -1189,7 +1189,7 @@ int bt_ctf_trace_element_modification(struct bt_ctf_ir_element *element,
 		struct listener_wrapper *listener =
 				g_ptr_array_index(trace->listeners, i);
 
-		listener->listener(element, listener->data);
+		listener->listener(object, listener->data);
 	}
 end:
 	return 0;

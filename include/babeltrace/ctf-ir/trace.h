@@ -699,14 +699,13 @@ extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,
 /**
 @brief	User function type to use with bt_ctf_trace_add_listener().
 
-@param[in] element	New element which is part of the trace class
-			hierarchy.
-@param[in] data		User data.
+@param[in] obj	New CTF IR object which is part of the trace
+		class hierarchy.
+@param[in] data	User data.
 
-@prenotnull{element}
+@prenotnull{obj}
 */
-typedef void (*bt_ctf_listener_cb)(
-		struct bt_ctf_ir_element *element, void *data);
+typedef void (*bt_ctf_listener_cb)(struct bt_ctf_object *obj, void *data);
 
 /**
 @brief	Adds the trace class modification listener \p listener to
@@ -746,7 +745,7 @@ class, the stream class itself, and all its children event classes.
 @prenotnull{visitor}
 */
 extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace_class,
-		bt_ctf_ir_visitor visitor, void *data);
+		bt_ctf_visitor visitor, void *data);
 
 /** @} */
 

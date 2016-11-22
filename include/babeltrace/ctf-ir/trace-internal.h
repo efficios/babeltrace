@@ -82,7 +82,7 @@ BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias);
 
 BT_HIDDEN
-int bt_ctf_trace_element_modification(struct bt_ctf_ir_element *element,
+int bt_ctf_trace_object_modification(struct bt_ctf_object *object,
 		void *trace_ptr);
 
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */

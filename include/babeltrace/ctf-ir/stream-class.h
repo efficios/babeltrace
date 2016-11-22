@@ -553,7 +553,7 @@ event classes.
 @prenotnull{visitor}
 */
 extern int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
-		bt_ctf_ir_visitor visitor, void *data);
+		bt_ctf_visitor visitor, void *data);
 
 /** @} */
 

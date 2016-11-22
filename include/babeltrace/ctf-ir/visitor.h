@@ -34,44 +34,44 @@
 extern "C" {
 #endif
 
-struct bt_ctf_ir_element;
+struct bt_ctf_object;
 
-enum bt_ctf_ir_type {
-	BT_CTF_IR_TYPE_UNKNOWN = -1,
-	BT_CTF_IR_TYPE_TRACE = 0,
-	BT_CTF_IR_TYPE_STREAM_CLASS = 1,
-	BT_CTF_IR_TYPE_STREAM = 2,
-	BT_CTF_IR_TYPE_EVENT_CLASS = 3,
-	BT_CTF_IR_TYPE_EVENT = 4,
-	BT_CTF_IR_TYPE_NR,
+enum bt_ctf_object_type {
+	BT_CTF_OBJECT_TYPE_UNKNOWN = -1,
+	BT_CTF_OBJECT_TYPE_TRACE = 0,
+	BT_CTF_OBJECT_TYPE_STREAM_CLASS = 1,
+	BT_CTF_OBJECT_TYPE_STREAM = 2,
+	BT_CTF_OBJECT_TYPE_EVENT_CLASS = 3,
+	BT_CTF_OBJECT_TYPE_EVENT = 4,
+	BT_CTF_OBJECT_TYPE_NR,
 };
 
-typedef int (*bt_ctf_ir_visitor)(struct bt_ctf_ir_element *element,
+typedef int (*bt_ctf_visitor)(struct bt_ctf_object *object,
 		void *data);
 
 /*
- * bt_ctf_ir_element_get_type: get an IR element's type.
+ * bt_ctf_object_get_type: get an IR element's type.
  *
  * Get an IR element's type.
  *
  * @param element Element instance.
  *
- * Returns one of #bt_ctf_ir_type.
+ * Returns one of #bt_ctf_object_type.
  */
-enum bt_ctf_ir_type bt_ctf_ir_element_get_type(
-		struct bt_ctf_ir_element *element);
+enum bt_ctf_object_type bt_ctf_object_get_type(
+		struct bt_ctf_object *object);
 
 /*
- * bt_ctf_ir_element_get_element: get an IR element's value.
+ * bt_ctf_object_get_element: get an IR element's value.
  *
  * Get an IR element's value.
  *
  * @param element Element instance.
  *
- * Returns a CTF-IR type. Use #bt_ctf_ir_type to determine the
+ * Returns a CTF-IR type. Use #bt_ctf_object_type to determine the
  * concrete type of the value returned.
  */
-void *bt_ctf_ir_element_get_element(struct bt_ctf_ir_element *element);
+void *bt_ctf_object_get_object(struct bt_ctf_object *object);
 
 #ifdef __cplusplus
 }

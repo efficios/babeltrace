@@ -30,11 +30,11 @@
 #include <babeltrace/ref.h>
 
 BT_HIDDEN
-int visitor_helper(struct bt_ctf_ir_element *root,
+int visitor_helper(struct bt_ctf_object *root,
 		bt_child_count_accessor child_counter,
 		bt_child_accessor child_accessor,
 		bt_child_visitor child_visitor,
-		bt_ctf_ir_visitor visitor,
+		bt_ctf_visitor visitor,
 		void *data)
 {
 	int ret, child_count, i;
@@ -44,7 +44,7 @@ int visitor_helper(struct bt_ctf_ir_element *root,
 		goto end;
 	}
 
-	child_count = child_counter(root->element);
+	child_count = child_counter(root->object);
 	if (child_count < 0) {
 		ret = child_count;
 		goto end;
@@ -53,7 +53,7 @@ int visitor_helper(struct bt_ctf_ir_element *root,
 	for (i = 0; i < child_count; i++) {
 		void *child;
 
-		child = child_accessor(root->element, i);
+		child = child_accessor(root->object, i);
 		if (!child) {
 			ret = -1;
 			goto end;
@@ -68,29 +68,28 @@ end:
 	return ret;
 }
 
-enum bt_ctf_ir_type bt_ctf_ir_element_get_type(
-		struct bt_ctf_ir_element *element)
+enum bt_ctf_object_type bt_ctf_object_get_type(struct bt_ctf_object *object)
 {
-	enum bt_ctf_ir_type ret = BT_CTF_IR_TYPE_UNKNOWN;
-	
-	if (!element) {
+	enum bt_ctf_object_type ret = BT_CTF_OBJECT_TYPE_UNKNOWN;
+
+	if (!object) {
 		goto end;
 	}
 
-	ret = element->type;
+	ret = object->type;
 end:
 	return ret;
 }
 
-void *bt_ctf_ir_element_get_element(struct bt_ctf_ir_element *element)
+void *bt_ctf_object_get_object(struct bt_ctf_object *object)
 {
 	void *ret = NULL;
 
-	if (!element) {
+	if (!object) {
 		goto end;
 	}
 
-	ret = element->element;
+	ret = object->object;
 end:
 	return ret;
 }

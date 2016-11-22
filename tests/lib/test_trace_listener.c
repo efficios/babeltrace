@@ -34,35 +34,35 @@ struct visitor_state {
 };
 
 struct expected_result {
-	const char *element_name;
-	enum bt_ctf_ir_type element_type;
+	const char *object_name;
+	enum bt_ctf_object_type object_type;
 };
 
 struct expected_result expected_results[] = {
-	{ NULL, BT_CTF_IR_TYPE_TRACE },
-	{ "sc1", BT_CTF_IR_TYPE_STREAM_CLASS },
-	{ "ec1", BT_CTF_IR_TYPE_EVENT_CLASS },
-	{ "sc2", BT_CTF_IR_TYPE_STREAM_CLASS },
-	{ "ec2", BT_CTF_IR_TYPE_EVENT_CLASS },
-	{ "ec3", BT_CTF_IR_TYPE_EVENT_CLASS },
+	{ NULL, BT_CTF_OBJECT_TYPE_TRACE },
+	{ "sc1", BT_CTF_OBJECT_TYPE_STREAM_CLASS },
+	{ "ec1", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
+	{ "sc2", BT_CTF_OBJECT_TYPE_STREAM_CLASS },
+	{ "ec2", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
+	{ "ec3", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
 	/* Elements added after the initial add_listener call. */
-	{ "sc3", BT_CTF_IR_TYPE_STREAM_CLASS },
-	{ "ec4", BT_CTF_IR_TYPE_EVENT_CLASS },
-	{ "ec5", BT_CTF_IR_TYPE_EVENT_CLASS },
+	{ "sc3", BT_CTF_OBJECT_TYPE_STREAM_CLASS },
+	{ "ec4", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
+	{ "ec5", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
 };
 
-const char *element_type_str(enum bt_ctf_ir_type type)
+const char *object_type_str(enum bt_ctf_object_type type)
 {
 	switch (type) {
-	case BT_CTF_IR_TYPE_TRACE:
+	case BT_CTF_OBJECT_TYPE_TRACE:
 		return "trace";
-	case BT_CTF_IR_TYPE_STREAM_CLASS:
+	case BT_CTF_OBJECT_TYPE_STREAM_CLASS:
 		return "stream class";
-	case BT_CTF_IR_TYPE_STREAM:
+	case BT_CTF_OBJECT_TYPE_STREAM:
 		return "stream";
-	case BT_CTF_IR_TYPE_EVENT_CLASS:
+	case BT_CTF_OBJECT_TYPE_EVENT_CLASS:
 		return "event class";
-	case BT_CTF_IR_TYPE_EVENT:
+	case BT_CTF_OBJECT_TYPE_EVENT:
 		return "event";
 	default:
 		return "unknown";
@@ -143,48 +143,48 @@ error:
 	goto end;
 }
 
-void visitor(struct bt_ctf_ir_element *element, void *data)
+void visitor(struct bt_ctf_object *object, void *data)
 {
 	bool names_match;
-	const char *element_name;
+	const char *object_name;
 	struct visitor_state *state = data;
 	struct expected_result *expected = &expected_results[state->i++];
 
-	switch (bt_ctf_ir_element_get_type(element)) {
-	case BT_CTF_IR_TYPE_TRACE:
-		element_name = NULL;
-		names_match = expected->element_name == NULL;
+	switch (bt_ctf_object_get_type(object)) {
+	case BT_CTF_OBJECT_TYPE_TRACE:
+		object_name = NULL;
+		names_match = expected->object_name == NULL;
 		break;
-	case BT_CTF_IR_TYPE_STREAM_CLASS:
-		element_name = bt_ctf_stream_class_get_name(
-				bt_ctf_ir_element_get_element(element));
-		if (!element_name) {
+	case BT_CTF_OBJECT_TYPE_STREAM_CLASS:
+		object_name = bt_ctf_stream_class_get_name(
+				bt_ctf_object_get_object(object));
+		if (!object_name) {
 			return;
 		}
 
-		names_match = !strcmp(element_name, expected->element_name);
+		names_match = !strcmp(object_name, expected->object_name);
 		break;
-	case BT_CTF_IR_TYPE_EVENT_CLASS:
-		element_name = bt_ctf_event_class_get_name(
-				bt_ctf_ir_element_get_element(element));
-		if (!element_name) {
+	case BT_CTF_OBJECT_TYPE_EVENT_CLASS:
+		object_name = bt_ctf_event_class_get_name(
+				bt_ctf_object_get_object(object));
+		if (!object_name) {
 			return;
 		}
 
-		names_match = !strcmp(element_name, expected->element_name);
+		names_match = !strcmp(object_name, expected->object_name);
 		break;
 	default:
 		diag("Encountered an unexpected type while visiting trace");
 		return;
 	}
 
-	ok(expected->element_type == bt_ctf_ir_element_get_type(element),
-			"Encoutered element type %s, expected %s",
-			element_type_str(expected->element_type),
-			element_type_str(bt_ctf_ir_element_get_type(element)));
+	ok(expected->object_type == bt_ctf_object_get_type(object),
+			"Encoutered object type %s, expected %s",
+			object_type_str(expected->object_type),
+			object_type_str(bt_ctf_object_get_type(object)));
 	ok(names_match, "Element name is %s, expected %s",
-			element_name ? : "NULL",
-			expected->element_name ? : "NULL");
+			object_name ? : "NULL",
+			expected->object_name ? : "NULL");
 }
 
 int main(int argc, char **argv)
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 	ok(!ret, "bt_ctf_trace_add_listener returned success");
 
 	/*
-	 * Validate that listeners are notified when new elements are added to a
+	 * Validate that listeners are notified when new objects are added to a
 	 * trace.
 	 */
 	sc3 = bt_ctf_stream_class_create("sc3");
