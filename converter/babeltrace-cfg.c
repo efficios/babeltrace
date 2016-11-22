@@ -918,7 +918,7 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 
 	plugin_component_names_from_arg(arg, &plugin_name, &component_name);
 	if (!plugin_name || !component_name) {
-		printf_err("Cannot get plugin or component name\n");
+		printf_err("Cannot get plugin or component class name\n");
 		goto error;
 	}
 
@@ -1832,9 +1832,9 @@ void print_output_legacy_to_sinks(
 		assert(false);
 	}
 
-	printf_err("Both `%s` legacy output format and non-legacy sink(s) specified.\n\n",
+	printf_err("Both `%s` legacy output format and non-legacy sink component\ninstances(s) specified.\n\n",
 		input_format);
-	printf_err("Specify the following non-legacy sink instead of the legacy `%s`\noutput format options:\n\n",
+	printf_err("Specify the following non-legacy sink component instance instead of the\nlegacy `%s` output format options:\n\n",
 		input_format);
 	g_string_append(str, "-o ");
 
@@ -1943,9 +1943,9 @@ void print_input_legacy_to_sources(enum legacy_input_format legacy_input_format,
 		assert(false);
 	}
 
-	printf_err("Both `%s` legacy input format and non-legacy source(s) specified.\n\n",
+	printf_err("Both `%s` legacy input format and non-legacy source component\ninstance(s) specified.\n\n",
 		input_format);
-	printf_err("Specify the following non-legacy source(s) instead of the legacy `%s`\ninput format options and positional arguments:\n\n",
+	printf_err("Specify the following non-legacy source component instance(s) instead of the\nlegacy `%s` input format options and positional arguments:\n\n",
 		input_format);
 
 	for (i = 0; i < bt_value_array_size(legacy_input_paths); i++) {
@@ -2454,7 +2454,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 
 			cur_cfg_comp = bt_config_component_from_arg(arg);
 			if (!cur_cfg_comp) {
-				printf_err("Invalid source component format:\n    %s\n",
+				printf_err("Invalid format for --source option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -2513,7 +2513,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 
 			cur_cfg_comp = bt_config_component_from_arg(arg);
 			if (!cur_cfg_comp) {
-				printf_err("Invalid sink component format:\n    %s\n",
+				printf_err("Invalid format for --sink option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -2536,7 +2536,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			}
 
 			if (cur_cfg_comp_params_set) {
-				printf_err("Duplicate --params option for the same current component (%s.%s)\n",
+				printf_err("Duplicate --params option for the same current component\ninstance (class %s.%s)\n",
 					cur_cfg_comp->plugin_name->str,
 					cur_cfg_comp->component_name->str);
 				goto error;
@@ -2787,7 +2787,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				legacy_input_format, &ctf_legacy_opts,
 				legacy_input_paths, cur_base_begin_ns,
 				cur_base_end_ns)) {
-			printf_err("Cannot convert legacy input format options to source(s)\n");
+			printf_err("Cannot convert legacy input format options to source component instance(s)\n");
 			goto error;
 		}
 	}
@@ -2799,7 +2799,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	if (legacy_output_format) {
 		if (append_sinks_from_legacy_opts(cfg->sinks,
 				legacy_output_format, &text_legacy_opts)) {
-			printf_err("Cannot convert legacy output format options to sink(s)\n");
+			printf_err("Cannot convert legacy output format options to sink component instance(s)\n");
 			goto error;
 		}
 	}
@@ -2812,7 +2812,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 		bt_put(cfg_component);
 
 		if (!validate_source_config_component(cfg_component)) {
-			printf_err("Invalid source component (%s.%s)\n",
+			printf_err("Invalid source component instance (class %s.%s)\n",
 				cfg_component->plugin_name->str,
 				cfg_component->component_name->str);
 			goto error;
