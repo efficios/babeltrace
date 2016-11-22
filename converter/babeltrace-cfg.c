@@ -589,9 +589,7 @@ end:
 
 /*
  * Returns the parameters map value object from a command-line
- * source/sink option's argument. arg is the full argument, including
- * the plugin/component names, the optional colon, and the optional
- * parameters.
+ * parameter option's argument.
  *
  * Return value is owned by the caller.
  */
@@ -599,19 +597,8 @@ static
 struct bt_value *bt_value_from_arg(const char *arg)
 {
 	struct bt_value *params = NULL;
-	const char *colon;
-	const char *params_string;
 	GString *ini_error = NULL;
 
-	/* Isolate parameters */
-	colon = strchr(arg, ':');
-	if (!colon) {
-		/* No colon: empty parameters */
-		params = bt_value_map_create();
-		goto end;
-	}
-
-	params_string = colon + 1;
 	ini_error = g_string_new(NULL);
 	if (!ini_error) {
 		print_err_oom();
@@ -619,7 +606,7 @@ struct bt_value *bt_value_from_arg(const char *arg)
 	}
 
 	/* Try INI-style parsing */
-	params = bt_value_from_ini(params_string, ini_error);
+	params = bt_value_from_ini(arg, ini_error);
 	if (!params) {
 		printf_err("%s", ini_error->str);
 		goto end;
@@ -634,9 +621,12 @@ end:
 
 /*
  * Returns the plugin and component names from a command-line
- * source/sink option's argument. arg is the full argument, including
- * the plugin/component names, the optional colon, and the optional
- * parameters.
+ * source/sink option's argument. arg must have the following format:
+ *
+ *     PLUGIN.COMPONENT
+ *
+ * where PLUGIN is the plugin name, and COMPONENT is the component
+ * name.
  *
  * On success, both *plugin and *component are not NULL. *plugin
  * and *component are owned by the caller.
@@ -646,48 +636,41 @@ void plugin_component_names_from_arg(const char *arg, char **plugin,
 		char **component)
 {
 	const char *dot;
-	const char *colon;
+	const char *end;
 	size_t plugin_len;
 	size_t component_len;
 
+	/* Initialize both return values to NULL: not found */
 	*plugin = NULL;
 	*component = NULL;
 
 	dot = strchr(arg, '.');
-	if (!dot || dot == arg) {
+	if (!dot) {
+		/* No dot */
 		goto end;
 	}
 
-	colon = strchr(dot, ':');
-	if (colon == dot) {
-		goto end;
-	}
-	if (!colon) {
-		colon = arg + strlen(arg);
-	}
-
+	end = arg + strlen(arg);
 	plugin_len = dot - arg;
-	component_len = colon - dot - 1;
+	component_len = end - dot - 1;
 	if (plugin_len == 0 || component_len == 0) {
 		goto end;
 	}
 
-	*plugin = malloc(plugin_len + 1);
+	*plugin = g_malloc0(plugin_len + 1);
 	if (!*plugin) {
 		print_err_oom();
 		goto end;
 	}
 
-	(*plugin)[plugin_len] = '\0';
-	memcpy(*plugin, arg, plugin_len);
-	*component = malloc(component_len + 1);
+	g_strlcpy(*plugin, arg, plugin_len + 1);
+	*component = g_malloc0(component_len + 1);
 	if (!*component) {
 		print_err_oom();
 		goto end;
 	}
 
-	(*component)[component_len] = '\0';
-	memcpy(*component, dot + 1, component_len);
+	g_strlcpy(*component, dot + 1, component_len + 1);
 
 end:
 	return;
@@ -772,50 +755,53 @@ void print_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [OPTIONS]\n");
 	fprintf(fp, "\n");
+	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
+	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
+	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "  -P, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
+	fprintf(fp, "                                    loaded to PATH\n");
+	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
+	fprintf(fp, "                                    sink instance (in command-line order) to\n");
+	fprintf(fp, "                                    PARAMS (see the exact format below)\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
-	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
-	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
-	fprintf(fp, "  -p, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
-	fprintf(fp, "                                    loaded to PATH\n");
-	fprintf(fp, "  -i, --source=SOURCE               Add source plugin/component SOURCE and its\n");
-	fprintf(fp, "                                    parameters to the active sources (may be\n");
-	fprintf(fp, "                                    repeated; see the exact format below)\n");
-	fprintf(fp, "  -o, --sink=SINK                   Add sink plugin/component SINK and its\n");
-	fprintf(fp, "                                    parameters to the active sinks (may be\n");
-	fprintf(fp, "                                    repeated; see the exact format below)\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
 	fprintf(fp, "  -V, --version                     Show version\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "Format of the --params option's argument\n");
+	fprintf(fp, "----------------------------------------\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "SOURCE/SINK argument format:\n");
+	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  One of:\n");
+	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
+	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
+	fprintf(fp, "VALUE can be one of:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "    PLUGIN.COMPONENT\n");
-	fprintf(fp, "      Load component COMPONENT from plugin PLUGIN with its default parameters.\n");
+	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
+	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
+	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
+	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
+	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
+	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
+	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
+	fprintf(fp, "  the null and boolean value symbols above.\n");
+	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "    PLUGIN.COMPONENT:PARAM=VALUE[,PARAM=VALUE]...\n");
-	fprintf(fp, "      Load component COMPONENT from plugin PLUGIN with the specified parameters.\n");
+	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
-	fprintf(fp, "      where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
-	fprintf(fp, "      VALUE can be one of:\n");
+	fprintf(fp, "Example:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "        * \"null\", \"nul\", \"NULL\": null value (no double quotes)\n");
-	fprintf(fp, "        * \"true\", \"TRUE\", \"yes\", \"YES\": true boolean value (no double quotes)\n");
-	fprintf(fp, "        * \"false\", \"FALSE\", \"no\", \"NO\": false boolean value (no double quotes)\n");
-	fprintf(fp, "        * Binary (\"0b\" prefix), octal (\"0\" prefix), decimal, or\n");
-	fprintf(fp, "          hexadecimal (\"0x\" prefix) signed 64-bit integer\n");
-	fprintf(fp, "        * Double precision floating point number (scientific notation is accepted)\n");
-	fprintf(fp, "        * Unquoted string with no special characters, and not matching any of\n");
-	fprintf(fp, "          the null and boolean value symbols above\n");
-	fprintf(fp, "        * Double-quoted string (accepts escape characters)\n");
+	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
+	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
+	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      Example:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "          plugin.comp:many=null, fresh=yes, condition=false, squirrel=-782329,\n");
-	fprintf(fp, "                      observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
-	fprintf(fp, "                      escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
+	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run babeltrace\n");
+	fprintf(fp, "from a shell.\n");
 }
 
 /*
@@ -847,16 +833,15 @@ end:
 }
 
 /*
- * Creates a component configuration using the given plugin name,
- * component name, and parameters. plugin_name and component_name
- * are copied (belong to the return value), and a reference to
- * params is acquired.
+ * Creates a component configuration using the given plugin name and
+ * component name. plugin_name and component_name are copied (belong to
+ * the return value).
  *
  * Return value is owned by the caller.
  */
 static
 struct bt_config_component *bt_config_component_create(const char *plugin_name,
-		const char *component_name, struct bt_value *params)
+		const char *component_name)
 {
 	struct bt_config_component *cfg_component = NULL;
 
@@ -879,7 +864,13 @@ struct bt_config_component *bt_config_component_create(const char *plugin_name,
 		goto error;
 	}
 
-	cfg_component->params = bt_get(params);
+	/* Start with empty parameters */
+	cfg_component->params = bt_value_map_create();
+	if (!cfg_component->params) {
+		print_err_oom();
+		goto error;
+	}
+
 	goto end;
 
 error:
@@ -891,9 +882,7 @@ end:
 
 /*
  * Creates a component configuration from a command-line source/sink
- * option's argument. arg is the full argument, including
- * the plugin/component names, the optional colon, and the optional
- * parameters.
+ * option's argument.
  */
 static
 struct bt_config_component *bt_config_component_from_arg(const char *arg)
@@ -901,7 +890,6 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 	struct bt_config_component *bt_config_component = NULL;
 	char *plugin_name;
 	char *component_name;
-	struct bt_value *params = NULL;
 
 	plugin_component_names_from_arg(arg, &plugin_name, &component_name);
 	if (!plugin_name || !component_name) {
@@ -909,14 +897,8 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 		goto error;
 	}
 
-	params = bt_value_from_arg(arg);
-	if (!params) {
-		printf_err("Cannot parse parameters\n");
-		goto error;
-	}
-
 	bt_config_component = bt_config_component_create(plugin_name,
-		component_name, params);
+		component_name);
 	if (!bt_config_component) {
 		goto error;
 	}
@@ -927,9 +909,8 @@ error:
 	BT_PUT(bt_config_component);
 
 end:
-	free(plugin_name);
-	free(component_name);
-	BT_PUT(params);
+	g_free(plugin_name);
+	g_free(component_name);
 	return bt_config_component;
 }
 
@@ -1507,10 +1488,12 @@ int append_sinks_from_legacy_opts(GPtrArray *sinks,
 
 	/* Create a component configuration */
 	bt_config_component = bt_config_component_create(plugin_name,
-		component_name, params);
+		component_name);
 	if (!bt_config_component) {
 		goto error;
 	}
+
+	BT_MOVE(bt_config_component->params, params);
 
 	/* Move created component configuration to the array */
 	g_ptr_array_add(sinks, bt_config_component);
@@ -1634,10 +1617,12 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 
 		/* Create a component configuration */
 		bt_config_component = bt_config_component_create("ctf",
-			component_name, params);
+			component_name);
 		if (!bt_config_component) {
 			goto error;
 		}
+
+		BT_MOVE(bt_config_component->params, params);
 
 		/* Move created component configuration to the array */
 		g_ptr_array_add(sources, bt_config_component);
@@ -1645,7 +1630,6 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 		/* Put current stuff */
 		BT_PUT(input_path);
 		BT_PUT(input_path_copy);
-		BT_PUT(params);
 	}
 
 	goto end;
@@ -1844,7 +1828,7 @@ void print_output_legacy_to_sinks(
 			text_legacy_opts_is_any_set(text_legacy_opts)) {
 		int ret;
 
-		g_string_append(str, ":'");
+		g_string_append(str, " -p '");
 
 		if (g_string_append_string_path_param(str, "output-path",
 				text_legacy_opts->output)) {
@@ -1957,10 +1941,10 @@ void print_input_legacy_to_sources(enum legacy_input_format legacy_input_format,
 
 		switch (legacy_input_format) {
 		case LEGACY_INPUT_FORMAT_CTF:
-			g_string_append(str, "fs:'path=\"");
+			g_string_append(str, "fs -p 'path=\"");
 			break;
 		case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-			g_string_append(str, "lttng-live:'url=\"");
+			g_string_append(str, "lttng-live -p 'url=\"");
 			break;
 		default:
 			assert(false);
@@ -2134,6 +2118,7 @@ enum {
 	OPT_NO_DELTA,
 	OPT_OUTPUT_FORMAT,
 	OPT_OUTPUT_PATH,
+	OPT_PARAMS,
 	OPT_PLUGIN_PATH,
 	OPT_SINK,
 	OPT_SOURCE,
@@ -2165,7 +2150,8 @@ static struct poptOption long_options[] = {
 	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
-	{ "plugin-path", 'p', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
+	{ "plugin-path", 'P', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
 	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
@@ -2181,6 +2167,26 @@ static void set_offset_value(struct offset_opt *offset_opt, int64_t value)
 {
 	offset_opt->value = value;
 	offset_opt->is_set = true;
+}
+
+enum bt_config_component_dest {
+	BT_CONFIG_COMPONENT_DEST_SOURCE,
+	BT_CONFIG_COMPONENT_DEST_SINK,
+};
+
+/*
+ * Adds a configuration component to the appropriate configuration
+ * array depending on the destination.
+ */
+static void add_cfg_comp(struct bt_config *cfg,
+		struct bt_config_component *cfg_comp,
+		enum bt_config_component_dest dest)
+{
+	if (dest == BT_CONFIG_COMPONENT_DEST_SOURCE) {
+		g_ptr_array_add(cfg->sources, cfg_comp);
+	} else {
+		g_ptr_array_add(cfg->sinks, cfg_comp);
+	}
 }
 
 /*
@@ -2204,7 +2210,11 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	enum legacy_output_format legacy_output_format =
 		LEGACY_OUTPUT_FORMAT_NONE;
 	struct bt_value *legacy_input_paths = NULL;
+	struct bt_config_component *cur_cfg_comp = NULL;
+	enum bt_config_component_dest cur_cfg_comp_dest =
+		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	int opt;
+	bool cur_cfg_comp_params_set = false;
 
 	*exit_code = 0;
 
@@ -2309,8 +2319,6 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 		case OPT_INPUT_FORMAT:
 		case OPT_SOURCE:
 		{
-			struct bt_config_component *bt_config_component;
-
 			if (opt == OPT_INPUT_FORMAT) {
 				if (!strcmp(arg, "ctf")) {
 					/* Legacy CTF input format */
@@ -2336,21 +2344,25 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			}
 
 			/* Non-legacy: try to create a component config */
-			bt_config_component = bt_config_component_from_arg(arg);
-			if (!bt_config_component) {
+			if (cur_cfg_comp) {
+				add_cfg_comp(cfg, cur_cfg_comp,
+					cur_cfg_comp_dest);
+			}
+
+			cur_cfg_comp = bt_config_component_from_arg(arg);
+			if (!cur_cfg_comp) {
 				printf_err("Invalid source component format:\n    %s\n",
 					arg);
 				goto error;
 			}
 
-			g_ptr_array_add(cfg->sources, bt_config_component);
+			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+			cur_cfg_comp_params_set = false;
 			break;
 		}
 		case OPT_OUTPUT_FORMAT:
 		case OPT_SINK:
 		{
-			struct bt_config_component *bt_config_component;
-
 			if (opt == OPT_OUTPUT_FORMAT) {
 				if (!strcmp(arg, "text")) {
 					/* Legacy CTF-text output format */
@@ -2386,14 +2398,47 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			}
 
 			/* Non-legacy: try to create a component config */
-			bt_config_component = bt_config_component_from_arg(arg);
-			if (!bt_config_component) {
+			if (cur_cfg_comp) {
+				add_cfg_comp(cfg, cur_cfg_comp,
+					cur_cfg_comp_dest);
+			}
+
+			cur_cfg_comp = bt_config_component_from_arg(arg);
+			if (!cur_cfg_comp) {
 				printf_err("Invalid sink component format:\n    %s\n",
 					arg);
 				goto error;
 			}
 
-			g_ptr_array_add(cfg->sinks, bt_config_component);
+			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+			cur_cfg_comp_params_set = false;
+			break;
+		}
+		case OPT_PARAMS:
+		{
+			struct bt_value *params;
+
+			if (!cur_cfg_comp) {
+				printf_err("--params option must follow a --source or --sink option\n");
+				goto error;
+			}
+
+			if (cur_cfg_comp_params_set) {
+				printf_err("Duplicate --params option for the same current component (%s.%s)\n",
+					cur_cfg_comp->plugin_name->str,
+					cur_cfg_comp->component_name->str);
+				goto error;
+			}
+
+			params = bt_value_from_arg(arg);
+			if (!params) {
+				printf_err("Invalid format for --params option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			BT_MOVE(cur_cfg_comp->params, params);
+			cur_cfg_comp_params_set = true;
 			break;
 		}
 		case OPT_NAMES:
@@ -2509,6 +2554,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 		arg = NULL;
 	}
 
+	/* Append current component configuration, if any */
+	if (cur_cfg_comp) {
+		add_cfg_comp(cfg, cur_cfg_comp, cur_cfg_comp_dest);
+		cur_cfg_comp = NULL;
+	}
+
 	/* Check for option parsing error */
 	if (opt < -1) {
 		printf_err("While parsing command-line options, at option %s: %s\n",
@@ -2589,6 +2640,7 @@ end:
 	}
 
 	free(arg);
+	BT_PUT(cur_cfg_comp);
 	BT_PUT(text_legacy_opts.names);
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
