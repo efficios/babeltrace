@@ -770,11 +770,13 @@ void print_usage(FILE *fp)
 	fprintf(fp, "      --end-ns=NS                   Set the end timestamp of the latest source\n");
 	fprintf(fp, "                                    component instance to NS\n");
 	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
+	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest source\n");
+	fprintf(fp, "                                    or sink component to PATH\n");
 	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
 	fprintf(fp, "                                    sink component instance (in command-line \n");
 	fprintf(fp, "                                    order) to PARAMS (see the exact format of\n");
 	fprintf(fp, "                                    PARAMS below)\n");
-	fprintf(fp, "  -P, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
 	fprintf(fp, "                                    loaded to PATH\n");
 	fprintf(fp, "      --reset-base-begin-ns         Reset the current base beginning timestamp\n");
 	fprintf(fp, "                                    of the following source component instances\n");
@@ -2200,6 +2202,7 @@ enum {
 	OPT_NO_DELTA,
 	OPT_OUTPUT_FORMAT,
 	OPT_OUTPUT_PATH,
+	OPT_PATH,
 	OPT_PARAMS,
 	OPT_PLUGIN_PATH,
 	OPT_RESET_BASE_BEGIN_NS,
@@ -2240,8 +2243,9 @@ static struct poptOption long_options[] = {
 	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
+	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-	{ "plugin-path", 'P', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 	{ "reset-base-begin-ns", '\0', POPT_ARG_NONE, NULL, OPT_RESET_BASE_BEGIN_NS, NULL, NULL },
 	{ "reset-base-end-ns", '\0', POPT_ARG_NONE, NULL, OPT_RESET_BASE_END_NS, NULL, NULL },
 	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
@@ -2572,6 +2576,20 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			cur_cfg_comp_params_set = true;
 			break;
 		}
+		case OPT_PATH:
+			if (!cur_cfg_comp) {
+				printf_err("--path option must follow a --source or --sink option\n");
+				goto error;
+			}
+
+			assert(cur_cfg_comp->params);
+
+			if (bt_value_map_insert_string(cur_cfg_comp->params,
+					"path", arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
 		case OPT_BASE_PARAMS:
 		{
 			struct bt_value *params = bt_value_from_arg(arg);
