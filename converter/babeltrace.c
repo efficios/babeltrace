@@ -207,6 +207,22 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
 	printf("  %s.%s\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
+	printf("    begin timestamp: ");
+
+	if (bt_config_component->begin_ns == -1ULL) {
+		printf("not set\n");
+	} else {
+		printf("%" PRIu64 " ns\n", bt_config_component->begin_ns);
+	}
+
+	printf("    end timestamp: ");
+
+	if (bt_config_component->end_ns == -1ULL) {
+		printf("not set\n");
+	} else {
+		printf("%" PRIu64 " ns\n", bt_config_component->end_ns);
+	}
+
 	printf("    params:\n");
 	print_value(bt_config_component->params, 6, true);
 }
