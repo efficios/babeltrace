@@ -280,7 +280,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 
 		if (bt_value_map_has_key(state->params, state->last_map_key)) {
 			g_string_append_printf(state->ini_error,
-				"Duplicate parameter key: \"%s\"\n",
+				"Duplicate parameter key: `%s`\n",
 				state->last_map_key);
 			goto error;
 		}
@@ -727,11 +727,11 @@ void print_legacy_usage(FILE *fp)
 	fprintf(fp, "      --clock-seconds          Print the timestamps as [SEC.NS]\n");
 	fprintf(fp, "                               (default format: [HH:MM:SS.NS])\n");
 	fprintf(fp, "      --debug-info-dir=DIR     Search for debug info in directory DIR\n");
-	fprintf(fp, "                               (default: \"/usr/lib/debug\")\n");
+	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
 	fprintf(fp, "      --debug-info-full-path   Show full debug info source and binary paths\n");
 	fprintf(fp, "      --debug-info-target-prefix=DIR  Use directory DIR as a prefix when looking\n");
 	fprintf(fp, "                                      up executables during debug info analysis\n");
-	fprintf(fp, "                               (default: \"/usr/lib/debug\")\n");
+	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
 	fprintf(fp, "  -f, --fields=NAME[,NAME]...  Print additional fields:\n");
 	fprintf(fp, "                                 all, trace, trace:hostname, trace:domain,\n");
 	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf,\n");
@@ -1160,7 +1160,7 @@ struct bt_value *names_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown field name: \"%s\"\n",
+				printf_err("Unknown field name: `%s`\n",
 					identifier);
 				goto error;
 			}
@@ -1177,7 +1177,7 @@ struct bt_value *names_from_arg(const char *arg)
 
 end:
 	if (found_none && found_all) {
-		printf_err("Only either \"all\" or \"none\" can be specified in the list given to the \"--names\" option, but not both.\n");
+		printf_err("Only either `all` or `none` can be specified in the list given to the --names option, but not both.\n");
 		goto error;
 	}
 	/*
@@ -1252,7 +1252,7 @@ struct bt_value *fields_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown field name: \"%s\"\n",
+				printf_err("Unknown field name: `%s`\n",
 					identifier);
 				goto error;
 			}
@@ -1832,9 +1832,9 @@ void print_output_legacy_to_sinks(
 		assert(false);
 	}
 
-	printf_err("Both \"%s\" legacy output format and non-legacy sink(s) specified.\n\n",
+	printf_err("Both `%s` legacy output format and non-legacy sink(s) specified.\n\n",
 		input_format);
-	printf_err("Specify the following non-legacy sink instead of the legacy \"%s\"\noutput format options:\n\n",
+	printf_err("Specify the following non-legacy sink instead of the legacy `%s`\noutput format options:\n\n",
 		input_format);
 	g_string_append(str, "-o ");
 
@@ -1943,9 +1943,9 @@ void print_input_legacy_to_sources(enum legacy_input_format legacy_input_format,
 		assert(false);
 	}
 
-	printf_err("Both \"%s\" legacy input format and non-legacy source(s) specified.\n\n",
+	printf_err("Both `%s` legacy input format and non-legacy source(s) specified.\n\n",
 		input_format);
-	printf_err("Specify the following non-legacy source(s) instead of the legacy \"%s\"\ninput format options and positional arguments:\n\n",
+	printf_err("Specify the following non-legacy source(s) instead of the legacy `%s`\ninput format options and positional arguments:\n\n",
 		input_format);
 
 	for (i = 0; i < bt_value_array_size(legacy_input_paths); i++) {
@@ -2063,10 +2063,10 @@ bool validate_cfg(struct bt_config *cfg,
 		if (bt_value_array_is_empty(legacy_input_paths)) {
 			switch (*legacy_input_format) {
 			case LEGACY_INPUT_FORMAT_CTF:
-				printf_err("No input path specified for legacy \"ctf\" input format\n");
+				printf_err("No input path specified for legacy `ctf` input format\n");
 				break;
 			case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-				printf_err("No URL specified for legacy \"lttng-live\" input format\n");
+				printf_err("No URL specified for legacy `lttng-live` input format\n");
 				break;
 			default:
 				assert(false);
@@ -2098,7 +2098,7 @@ bool validate_cfg(struct bt_config *cfg,
 		if (text_legacy_opts_is_any_set(text_legacy_opts) &&
 				*legacy_output_format !=
 				LEGACY_OUTPUT_FORMAT_TEXT) {
-			printf_err("Options for legacy \"text\" output format specified with a different legacy output format\n");
+			printf_err("Options for legacy `text` output format specified with a different legacy output format\n");
 			goto error;
 		}
 
@@ -2116,7 +2116,7 @@ bool validate_cfg(struct bt_config *cfg,
 	 */
 	if (*legacy_output_format == LEGACY_OUTPUT_FORMAT_CTF_METADATA &&
 			*legacy_input_format != LEGACY_INPUT_FORMAT_CTF) {
-		printf_err("Legacy \"ctf-metadata\" output format requires using legacy \"ctf\" input format\n");
+		printf_err("Legacy `ctf-metadata` output format requires using legacy `ctf` input format\n");
 		goto error;
 	}
 
