@@ -52,8 +52,8 @@ You can obtain a trace class in two different modes:
 
 - <strong>Normal mode</strong>: use bt_ctf_trace_create() to create a
   default, empty trace class.
-- <strong>CTF writer mode</strong>: use bt_ctf_writer_get_trace() to
-  get the trace class created by a given CTF writer object.
+- <strong>CTF IR writer mode</strong>: use bt_ctf_writer_get_trace() to
+  get the trace class created by a given CTF IR writer object.
 
 A trace class has the following properties:
 
@@ -95,7 +95,7 @@ A trace class also contains zero or more
 @todo
 Elaborate about clock classes irt clock values.
 
-As with any Babeltrace object, CTF IR stream class objects have
+As with any Babeltrace object, CTF IR trace class objects have
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
 counts</a>. See \ref refs to learn more about the reference counting
 management of Babeltrace objects.
@@ -105,7 +105,7 @@ success:
 
 - bt_ctf_trace_add_stream_class()
 - bt_ctf_writer_create_stream()
-  (\link ctfirwriter CTF writer\endlink mode only)
+  (\link ctfirwriter CTF IR writer\endlink mode only)
 
 You cannot modify a frozen trace class: it is considered immutable,
 except for:
@@ -591,6 +591,8 @@ You can call this function even if \p trace_class is frozen.
 @prenotnull{clock_class}
 @postrefcountsame{trace_class}
 @postsuccessrefcountinc{clock_class}
+@post <strong>On success, if \p trace_class is frozen<strong>,
+	\p clock_class is frozen.
 
 @sa bt_ctf_trace_get_clock(): Returns the clock class contained in a
 	given trace class at a given index.
@@ -681,6 +683,7 @@ You can call this function even if \p trace_class is frozen.
 @prenotnull{stream_class}
 @postrefcountsame{trace_class}
 @postsuccessrefcountinc{stream_class}
+@postsuccessfrozen{stream_class}
 
 @sa bt_ctf_trace_get_clock(): Returns the stream class contained in a
 	given trace class at a given index.
