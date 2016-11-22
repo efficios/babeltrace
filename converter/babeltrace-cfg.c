@@ -2461,7 +2461,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
-			cur_cfg_comp->params = bt_get(cur_base_params);
+			cur_cfg_comp->params = bt_value_copy(cur_base_params);
+			if (!cur_cfg_comp) {
+				print_err_oom();
+				goto end;
+			}
+
 			cur_cfg_comp->begin_ns = cur_base_begin_ns;
 			cur_cfg_comp->end_ns = cur_base_end_ns;
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
@@ -2520,7 +2525,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
-			cur_cfg_comp->params = bt_get(cur_base_params);
+			cur_cfg_comp->params = bt_value_copy(cur_base_params);
+			if (!cur_cfg_comp) {
+				print_err_oom();
+				goto end;
+			}
+
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
 			cur_cfg_comp_params_set = false;
 			break;
