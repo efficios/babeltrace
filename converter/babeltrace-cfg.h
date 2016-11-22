@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
@@ -37,6 +38,8 @@ struct bt_config_component {
 	GString *plugin_name;
 	GString *component_name;
 	struct bt_value *params;
+	uint64_t begin_ns;
+	uint64_t end_ns;
 };
 
 struct bt_config {

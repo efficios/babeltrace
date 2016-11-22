@@ -755,27 +755,40 @@ void print_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [OPTIONS]\n");
 	fprintf(fp, "\n");
+	fprintf(fp, "  -B, --base-begin-ns=NS            Set NS as the current base beginning\n");
+	fprintf(fp, "                                    timestamp of the following source component\n");
+	fprintf(fp, "                                    instances\n");
+	fprintf(fp, "  -E, --base-end-ns=NS              Set NS as the current base end timestamp\n");
+	fprintf(fp, "                                    of the following source component instances\n");
 	fprintf(fp, "  -b, --base-params=PARAMS          Set PARAMS as the current base parameters\n");
 	fprintf(fp, "                                    of the following source and sink component\n");
 	fprintf(fp, "                                    instances (see the exact format of PARAMS\n");
 	fprintf(fp, "                                    below)\n");
+	fprintf(fp, "      --begin-ns=NS                 Set the beginning timestamp of the latest\n");
+	fprintf(fp, "                                    source component instance to NS\n");
 	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
-	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "      --end-ns=NS                   Set the end timestamp of the latest source\n");
+	fprintf(fp, "                                    component instance to NS\n");
 	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
-	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "  -P, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
-	fprintf(fp, "                                    loaded to PATH\n");
 	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
 	fprintf(fp, "                                    sink component instance (in command-line \n");
 	fprintf(fp, "                                    order) to PARAMS (see the exact format of\n");
 	fprintf(fp, "                                    PARAMS below)\n");
+	fprintf(fp, "  -P, --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
+	fprintf(fp, "                                    loaded to PATH\n");
+	fprintf(fp, "      --reset-base-begin-ns         Reset the current base beginning timestamp\n");
+	fprintf(fp, "                                    of the following source component instances\n");
+	fprintf(fp, "      --reset-base-end-ns           Reset the current base end timestamp of the\n");
+	fprintf(fp, "                                    following source component instances\n");
 	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
 	fprintf(fp, "                                    following source and sink component\n");
 	fprintf(fp, "                                    instances to an empty map\n");
+	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
@@ -878,6 +891,10 @@ struct bt_config_component *bt_config_component_create(const char *plugin_name,
 		print_err_oom();
 		goto error;
 	}
+
+	/* Begin/end timestamp: not set */
+	cfg_component->begin_ns = -1ULL;
+	cfg_component->end_ns = -1ULL;
 
 	goto end;
 
@@ -1566,7 +1583,8 @@ static
 int append_sources_from_legacy_opts(GPtrArray *sources,
 		enum legacy_input_format legacy_input_format,
 		struct ctf_legacy_opts *ctf_legacy_opts,
-		struct bt_value *legacy_input_paths)
+		struct bt_value *legacy_input_paths,
+		uint64_t begin_ns, uint64_t end_ns)
 {
 	int ret = 0;
 	int i;
@@ -1631,6 +1649,8 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 		}
 
 		BT_MOVE(bt_config_component->params, params);
+		bt_config_component->begin_ns = begin_ns;
+		bt_config_component->end_ns = end_ns;
 
 		/* Move created component configuration to the array */
 		g_ptr_array_add(sources, bt_config_component);
@@ -1980,6 +2000,28 @@ end:
 }
 
 /*
+ * Validates a given source component configuration.
+ */
+static
+bool validate_source_config_component(struct bt_config_component *cfg_comp)
+{
+	bool valid = false;
+
+	if (cfg_comp->begin_ns != -1ULL && cfg_comp->end_ns != -1ULL) {
+		if (cfg_comp->begin_ns > cfg_comp->end_ns) {
+			printf_err("Beginning timestamp (%" PRIu64 ") is greater than end timestamp (%" PRIu64 ")\n",
+				cfg_comp->begin_ns, cfg_comp->end_ns);
+			goto end;
+		}
+	}
+
+	valid = true;
+
+end:
+	return valid;
+}
+
+/*
  * Validates a given configuration, with optional legacy input and
  * output formats options. Prints useful error messages if anything
  * is wrong.
@@ -2103,10 +2145,40 @@ int parse_int64(const char *arg, int64_t *val)
 	return 0;
 }
 
+/*
+ * Parses a time in nanoseconds.
+ *
+ * Returns a negative value if anything goes wrong.
+ */
+static
+int ns_from_arg(const char *arg, uint64_t *ns)
+{
+	int ret = 0;
+	int64_t value;
+
+	if (parse_int64(arg, &value)) {
+		ret = -1;
+		goto end;
+	}
+
+	if (value < 0) {
+		ret = -1;
+		goto end;
+	}
+
+	*ns = (uint64_t) value;
+
+end:
+	return ret;
+}
+
 /* popt options */
 enum {
 	OPT_NONE = 0,
+	OPT_BASE_BEGIN_NS,
+	OPT_BASE_END_NS,
 	OPT_BASE_PARAMS,
+	OPT_BEGIN_NS,
 	OPT_CLOCK_CYCLES,
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_FORCE_CORRELATE,
@@ -2118,6 +2190,7 @@ enum {
 	OPT_DEBUG_INFO_DIR,
 	OPT_DEBUG_INFO_FULL_PATH,
 	OPT_DEBUG_INFO_TARGET_PREFIX,
+	OPT_END_NS,
 	OPT_FIELDS,
 	OPT_HELP,
 	OPT_HELP_LEGACY,
@@ -2129,6 +2202,8 @@ enum {
 	OPT_OUTPUT_PATH,
 	OPT_PARAMS,
 	OPT_PLUGIN_PATH,
+	OPT_RESET_BASE_BEGIN_NS,
+	OPT_RESET_BASE_END_NS,
 	OPT_RESET_BASE_PARAMS,
 	OPT_SINK,
 	OPT_SOURCE,
@@ -2140,7 +2215,10 @@ enum {
 /* popt long option descriptions */
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "base-begin-ns", 'B', POPT_ARG_STRING, NULL, OPT_BASE_BEGIN_NS, NULL, NULL },
+	{ "base-end-ns", 'E', POPT_ARG_STRING, NULL, OPT_BASE_END_NS, NULL, NULL },
 	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
+	{ "begin-ns", '\0', POPT_ARG_STRING, NULL, OPT_BEGIN_NS, NULL, NULL },
 	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
 	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
@@ -2152,6 +2230,7 @@ static struct poptOption long_options[] = {
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
 	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
+	{ "end-ns", '\0', POPT_ARG_STRING, NULL, OPT_END_NS, NULL, NULL },
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "help-legacy", '\0', POPT_ARG_NONE, NULL, OPT_HELP_LEGACY, NULL, NULL },
@@ -2163,6 +2242,8 @@ static struct poptOption long_options[] = {
 	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
 	{ "plugin-path", 'P', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "reset-base-begin-ns", '\0', POPT_ARG_NONE, NULL, OPT_RESET_BASE_BEGIN_NS, NULL, NULL },
+	{ "reset-base-end-ns", '\0', POPT_ARG_NONE, NULL, OPT_RESET_BASE_END_NS, NULL, NULL },
 	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
 	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
 	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
@@ -2226,8 +2307,11 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
+	uint64_t cur_base_begin_ns = -1ULL;
+	uint64_t cur_base_end_ns = -1ULL;
 	int opt;
 	bool cur_cfg_comp_params_set = false;
+	unsigned int i;
 
 	*exit_code = 0;
 
@@ -2378,6 +2462,8 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
 			cur_cfg_comp->params = bt_get(cur_base_params);
+			cur_cfg_comp->begin_ns = cur_base_begin_ns;
+			cur_cfg_comp->end_ns = cur_base_end_ns;
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
 			cur_cfg_comp_params_set = false;
 			break;
@@ -2494,6 +2580,52 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 			cur_base_params = bt_value_map_create();
 			if (!cur_base_params) {
 				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_BASE_BEGIN_NS:
+			if (ns_from_arg(arg, &cur_base_begin_ns)) {
+				printf_err("Invalid --base-begin-ns option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		case OPT_BASE_END_NS:
+			if (ns_from_arg(arg, &cur_base_end_ns)) {
+				printf_err("Invalid --base-end-ns option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		case OPT_RESET_BASE_BEGIN_NS:
+			cur_base_begin_ns = -1ULL;
+			break;
+		case OPT_RESET_BASE_END_NS:
+			cur_base_end_ns = -1ULL;
+			break;
+		case OPT_BEGIN_NS:
+			if (!cur_cfg_comp || cur_cfg_comp_dest ==
+					BT_CONFIG_COMPONENT_DEST_SINK) {
+				printf_err("--begin-ns option must follow a --source option\n");
+				goto error;
+			}
+
+			if (ns_from_arg(arg, &cur_cfg_comp->begin_ns)) {
+				printf_err("Invalid --begin-ns option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		case OPT_END_NS:
+			if (!cur_cfg_comp || cur_cfg_comp_dest ==
+					BT_CONFIG_COMPONENT_DEST_SINK) {
+				printf_err("--end-ns option must follow a --source option\n");
+				goto error;
+			}
+
+			if (ns_from_arg(arg, &cur_cfg_comp->end_ns)) {
+				printf_err("Invalid --end-ns option's argument:\n    %s\n",
+					arg);
 				goto error;
 			}
 			break;
@@ -2653,7 +2785,8 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	if (legacy_input_format) {
 		if (append_sources_from_legacy_opts(cfg->sources,
 				legacy_input_format, &ctf_legacy_opts,
-				legacy_input_paths)) {
+				legacy_input_paths, cur_base_begin_ns,
+				cur_base_end_ns)) {
 			printf_err("Cannot convert legacy input format options to source(s)\n");
 			goto error;
 		}
@@ -2667,6 +2800,21 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 		if (append_sinks_from_legacy_opts(cfg->sinks,
 				legacy_output_format, &text_legacy_opts)) {
 			printf_err("Cannot convert legacy output format options to sink(s)\n");
+			goto error;
+		}
+	}
+
+	for (i = 0; i < cfg->sources->len; i++) {
+		struct bt_config_component *cfg_component =
+			bt_config_get_component(cfg->sources, i);
+
+		/* Only peek */
+		bt_put(cfg_component);
+
+		if (!validate_source_config_component(cfg_component)) {
+			printf_err("Invalid source component (%s.%s)\n",
+				cfg_component->plugin_name->str,
+				cfg_component->component_name->str);
 			goto error;
 		}
 	}
