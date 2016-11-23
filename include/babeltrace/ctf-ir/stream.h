@@ -47,8 +47,8 @@ extern "C" {
 @endcode
 
 @note
-See \ref ctfirwriterstream which documents additional CTF IR stream
-functions exclusive to the CTF IR writer mode.
+See \ref ctfwriterstream which documents additional CTF IR stream
+functions exclusive to the CTF writer mode.
 
 A CTF IR <strong><em>stream</em></strong> is an instance of a
 \link ctfirstreamclass CTF IR stream class\endlink.
@@ -57,10 +57,10 @@ You can obtain a CTF IR stream object in two different modes:
 
 - <strong>Normal mode</strong>: use bt_ctf_stream_create() with a stream
   class having a \link ctfirtraceclass CTF IR trace class\endlink parent
-  \em not created by a \link ctfirwriter CTF IR writer\endlink object to
+  \em not created by a \link ctfwriter CTF writer\endlink object to
   create a default stream.
-- <strong>CTF IR writer mode</strong>: use bt_ctf_stream_create() with
-  a stream class having a trace class parent created by a CTF IR writer
+- <strong>CTF writer mode</strong>: use bt_ctf_stream_create() with
+  a stream class having a trace class parent created by a CTF writer
   object, or use bt_ctf_writer_create_stream().
 
 A CTF IR stream object represents a CTF stream, that is, a sequence of
@@ -79,7 +79,7 @@ management of Babeltrace objects.
 
 @sa ctfirstreamclass
 @sa ctfirpacket
-@sa ctfirwriterstream
+@sa ctfwriterstream
 
 @file
 @brief CTF IR stream type and functions.
@@ -93,7 +93,7 @@ management of Babeltrace objects.
 @struct bt_ctf_stream
 @brief A CTF IR stream.
 @sa ctfirstream
-@sa ctfirwriterstream
+@sa ctfwriterstream
 */
 struct bt_ctf_stream;
 struct bt_ctf_event;
@@ -106,9 +106,9 @@ struct bt_ctf_event;
 \link ctfirtraceclass CTF IR trace class\endlink.
 
 If the parent \link ctfirtraceclass trace class\endlink of
-\p stream_class was created by a \link ctfirwriter CTF IR writer\endlink
-object, then the stream object is created in CTF IR writer mode, and
-you can use the functions of \ref ctfirwriterstream on it.
+\p stream_class was created by a \link ctfwriter CTF writer\endlink
+object, then the stream object is created in CTF writer mode, and
+you can use the functions of \ref ctfwriterstream on it.
 Otherwise it is created in normal mode: you should only use the
 functions documented in this module on it.
 

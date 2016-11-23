@@ -73,7 +73,7 @@ object becomes its parent.
 If the \link ctfirtraceclass CTF IR trace class\endlink of an event
 object (parent of its \link ctfirstreamclass CTF IR stream class\endlink,
 which is the parent of its event class) was created by a
-\link ctfirwriter CTF IR writer\endlink object, then the only possible
+\link ctfwriter CTF writer\endlink object, then the only possible
 action you can do with this event object is to append it to a
 \link ctfirstream CTF IR stream\endlink with
 bt_ctf_stream_append_event(). Otherwise, you can create an event

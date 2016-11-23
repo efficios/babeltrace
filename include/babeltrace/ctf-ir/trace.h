@@ -56,8 +56,8 @@ You can obtain a trace class in two different modes:
 
 - <strong>Normal mode</strong>: use bt_ctf_trace_create() to create a
   default, empty trace class.
-- <strong>CTF IR writer mode</strong>: use bt_ctf_writer_get_trace() to
-  get the trace class created by a given CTF IR writer object.
+- <strong>CTF writer mode</strong>: use bt_ctf_writer_get_trace() to
+  get the trace class created by a given CTF writer object.
 
 A trace class has the following properties:
 
@@ -109,7 +109,7 @@ success:
 
 - bt_ctf_trace_add_stream_class()
 - bt_ctf_writer_create_stream()
-  (\link ctfirwriter CTF IR writer\endlink mode only)
+  (\link ctfwriter CTF writer\endlink mode only)
 
 You cannot modify a frozen trace class: it is considered immutable,
 except for:
