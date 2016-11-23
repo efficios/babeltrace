@@ -234,7 +234,7 @@ void print_bt_config_components(GPtrArray *array)
 
 	for (i = 0; i < array->len; i++) {
 		struct bt_config_component *cfg_component =
-			bt_config_get_component(array, i);
+				bt_config_get_component(array, i);
 		print_bt_config_component(cfg_component);
 		BT_PUT(cfg_component);
 	}
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 	enum bt_component_status sink_status;
 	struct bt_value *first_plugin_path_value = NULL;
 	const char *first_plugin_path;
-	struct bt_config_component *cfg_component;
+	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 
 	cfg = bt_config_from_args(argc, argv, &ret);
 	if (cfg) {
@@ -286,12 +286,6 @@ int main(int argc, char **argv)
 		ret = -1;
 		goto end;
 	}
-	cfg_component = bt_config_get_component(cfg->sources, 0);
-	source_params = bt_get(cfg_component->params);
-	BT_PUT(cfg_component);
-	cfg_component = bt_config_get_component(cfg->sinks, 0);
-	sink_params = bt_get(cfg_component->params);
-	BT_PUT(cfg_component);
 
 	printf_verbose("Verbose mode active.\n");
 	printf_debug("Debug mode active.\n");
@@ -322,33 +316,44 @@ int main(int argc, char **argv)
 	}
 
 	print_component_classes_found(component_factory);
+
+	source_cfg = bt_config_get_component(cfg->sources, 0);
+	source_params = bt_get(source_cfg->params);
 	source_class = bt_component_factory_get_component_class(
-			component_factory, "ctf", BT_COMPONENT_TYPE_SOURCE,
-			"fs");
+			component_factory, source_cfg->plugin_name->str,
+			BT_COMPONENT_TYPE_SOURCE,
+			source_cfg->component_name->str);
 	if (!source_class) {
-		fprintf(stderr, "Could not find ctf-fs source component class. Aborting...\n");
+		fprintf(stderr, "Could not find %s.%s source component class. Aborting...\n",
+				source_cfg->plugin_name->str,
+				source_cfg->component_name->str);
 		ret = -1;
 		goto end;
 	}
 
+	sink_cfg = bt_config_get_component(cfg->sinks, 0);
+	sink_params = bt_get(sink_cfg->params);
 	sink_class = bt_component_factory_get_component_class(component_factory,
-			NULL, BT_COMPONENT_TYPE_SINK, "text");
+			sink_cfg->plugin_name->str, BT_COMPONENT_TYPE_SINK,
+			sink_cfg->component_name->str);
 	if (!sink_class) {
-		fprintf(stderr, "Could not find text output component class. Aborting...\n");
+		fprintf(stderr, "Could not find %s.%s output component class. Aborting...\n",
+				sink_cfg->plugin_name->str,
+				sink_cfg->component_name->str);
 		ret = -1;
 		goto end;
 	}
 
-	source = bt_component_create(source_class, "ctf-fs", source_params);
+	source = bt_component_create(source_class, "source", source_params);
 	if (!source) {
-		fprintf(stderr, "Failed to instantiate ctf-fs source component. Aborting...\n");
+		fprintf(stderr, "Failed to instantiate selected source component. Aborting...\n");
                 ret = -1;
                 goto end;
         }
 
-	sink = bt_component_create(sink_class, "text", sink_params);
+	sink = bt_component_create(sink_class, "sink", sink_params);
 	if (!sink) {
-		fprintf(stderr, "Failed to instanciate text output component. Aborting...\n");
+		fprintf(stderr, "Failed to instantiate selected output component. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
@@ -394,5 +399,7 @@ end:
 	BT_PUT(it);
 	BT_PUT(cfg);
 	BT_PUT(first_plugin_path_value);
+	BT_PUT(sink_cfg);
+	BT_PUT(source_cfg);
 	return ret ? 1 : 0;
 }
