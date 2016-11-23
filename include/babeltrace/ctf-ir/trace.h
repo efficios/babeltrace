@@ -481,6 +481,7 @@ extern int bt_ctf_trace_set_environment_field_string(
 			or \c NULL on error.
 
 @prenotnull{trace_class}
+@postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_trace_set_packet_header_type(): Sets the packet
@@ -729,6 +730,7 @@ is modified, \p listener is called with the new element and with
 
 @prenotnull{trace_class}
 @prenotnull{listener}
+@postrefcountsame{trace_class}
 */
 extern int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
 		bt_ctf_listener_cb listener, void *data);

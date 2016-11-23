@@ -155,6 +155,7 @@ bt_ctf_stream_class_add_event_class().
 			added to a stream class yet or on error.
 
 @prenotnull{event_class}
+@postrefcountsame{event_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_stream_class_add_event_class(): Add an event class to
@@ -369,6 +370,7 @@ extern int bt_ctf_event_class_set_attribute(
 			or \c NULL on error.
 
 @prenotnull{event_class}
+@postrefcountsame{event_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_class_set_context_type(): Sets the context field
@@ -413,6 +415,7 @@ extern int bt_ctf_event_class_set_context_type(
 			or \c NULL on error.
 
 @prenotnull{event_class}
+@postrefcountsame{event_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_class_set_payload_type(): Sets the payload field
@@ -532,7 +535,6 @@ bt_ctf_field_type_structure_get_field_type_by_name().
 @prenotnull{name}
 @postrefcountsame{event_class}
 @postsuccessrefcountretinc
-
 */
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);

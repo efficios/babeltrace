@@ -164,6 +164,7 @@ create the event object in the first place with bt_ctf_event_create().
 			or \c NULL on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 */
 extern struct bt_ctf_event_class *bt_ctf_event_get_class(
@@ -182,6 +183,7 @@ This function returns a reference to the event class which was set to
 			\p event or on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_set_packet(): Associates a given event to a given
@@ -230,6 +232,7 @@ extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 @returns		Parent stream of \p event, or \c NULL on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 */
 extern struct bt_ctf_stream *bt_ctf_event_get_stream(
@@ -253,6 +256,7 @@ extern struct bt_ctf_stream *bt_ctf_event_get_stream(
 			field is not set or on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_get_header(): Sets the stream event header
@@ -301,6 +305,7 @@ extern int bt_ctf_event_set_header(struct bt_ctf_event *event,
 			field is not set or on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_set_stream_event_context(): Sets the stream event
@@ -348,6 +353,7 @@ extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 			the event context field is not set or on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_set_event_context(): Sets the event context field of a
@@ -394,6 +400,7 @@ extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 			the event payload field is not set or on error.
 
 @prenotnull{event}
+@postrefcountsame{event}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_event_set_payload_field(): Sets the event payload field of a

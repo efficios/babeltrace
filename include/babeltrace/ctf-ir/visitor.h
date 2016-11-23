@@ -149,11 +149,16 @@ enum bt_ctf_object_type bt_ctf_object_get_type(struct bt_ctf_object *object);
 @brief	Returns the CTF IR object wrapped by the CTF IR object
 	wrapper \p object.
 
+The reference count of \p object is \em not incremented by this
+function. On success, you must call bt_get() on the return value to
+have your own reference.
+
 @param[in] object	Object wrapper of which to get the wrapped
 			CTF IR object.
 @returns		CTF IR object wrapped by \p object.
 
 @prenotnull{object}
+@post The reference count of the returned object is not modified.
 
 @sa bt_ctf_object_get_type(): Returns the type of a given
 	CTF IR object wrapper.

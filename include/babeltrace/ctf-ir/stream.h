@@ -155,6 +155,7 @@ bt_ctf_stream_create().
 			or \c NULL on error.
 
 @prenotnull{stream}
+@postrefcountsame{stream}
 @postsuccessrefcountretinc
 */
 extern struct bt_ctf_stream_class *bt_ctf_stream_get_class(

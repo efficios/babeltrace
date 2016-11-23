@@ -187,6 +187,7 @@ bt_ctf_trace_add_stream_class().
 			added to a trace class yet or on error.
 
 @prenotnull{stream_class}
+@postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_trace_add_stream_class(): Add a stream class to
@@ -298,6 +299,7 @@ extern int bt_ctf_stream_class_set_id(
 			or \c NULL on error.
 
 @prenotnull{stream_class}
+@postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_stream_class_set_packet_context_type(): Sets the packet
@@ -342,6 +344,7 @@ extern int bt_ctf_stream_class_set_packet_context_type(
 			or \c NULL on error.
 
 @prenotnull{stream_class}
+@postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_stream_class_set_event_header_type(): Sets the event
@@ -387,6 +390,7 @@ extern int bt_ctf_stream_class_set_event_header_type(
 			\p stream_class, or \c NULL on error.
 
 @prenotnull{stream_class}
+@postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_stream_class_set_event_context_type(): Sets the per-stream

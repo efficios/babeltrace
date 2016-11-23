@@ -128,6 +128,7 @@ the packet object in the first place with bt_ctf_packet_create().
 @returns		Parent stream of \p packet, or \c NULL on error.
 
 @prenotnull{packet}
+@postrefcountsame{packet}
 @postsuccessrefcountretinc
 */
 extern struct bt_ctf_stream *bt_ctf_packet_get_stream(
@@ -151,6 +152,7 @@ extern struct bt_ctf_stream *bt_ctf_packet_get_stream(
 			field is not set or on error.
 
 @prenotnull{packet}
+@postrefcountsame{packet}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_packet_set_header(): Sets the trace packet header
@@ -199,6 +201,7 @@ extern int bt_ctf_packet_set_header(
 			field is not set or on error.
 
 @prenotnull{packet}
+@postrefcountsame{packet}
 @postsuccessrefcountretinc
 
 @sa bt_ctf_packet_set_context(): Sets the stream packet context
