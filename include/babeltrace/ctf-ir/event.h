@@ -449,9 +449,7 @@ of \p event.
 extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload);
 
-/**
-@cond DOCUMENT
-*/
+/** @cond DOCUMENT */
 
 /*
  * TODO: Doxygenize.
@@ -515,9 +513,7 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 		const char *name,
 		struct bt_ctf_field *value);
 
-/**
-@endcond
-*/
+/** @endcond */
 
 /** @} */
 
