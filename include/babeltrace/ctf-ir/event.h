@@ -209,6 +209,7 @@ On success, this function also sets the parent stream object of
 \p event to the parent stream of \p packet.
 
 @param[in] event	Event to which to associate \p packet.
+@param[in] packet	Packet to associate to \p event.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
