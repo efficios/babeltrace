@@ -39,173 +39,146 @@
 #include "writer.h"
 
 static
-void tmp_clock(struct bt_ctf_writer *writer,
-		struct bt_ctf_stream_class *writer_stream_class,
-		struct bt_ctf_clock *writer_clock)
-{
-	const char *clock_description = "This is a test clock";
-	const uint64_t frequency = 1000000000ULL;
-	const uint64_t offset_s = 1351530929945824323;
-	const uint64_t precision = 10;
-	const int is_absolute = 0xFF;
-
-	bt_ctf_clock_set_description(writer_clock, clock_description);
-	bt_ctf_clock_set_frequency(writer_clock, frequency);
-	bt_ctf_clock_set_offset_s(writer_clock, offset_s);
-	bt_ctf_clock_set_precision(writer_clock, precision);
-	bt_ctf_clock_set_is_absolute(writer_clock, is_absolute);
-	bt_ctf_writer_add_clock(writer, writer_clock);
-	bt_ctf_stream_class_set_clock(writer_stream_class, writer_clock);
-}
-
-static
 enum bt_component_status copy_clock(FILE *err, struct bt_ctf_writer *writer,
 		struct bt_ctf_stream_class *writer_stream_class,
-		struct bt_ctf_clock *clock,
-		struct bt_ctf_clock *writer_clock)
+		struct bt_ctf_clock *clock)
 {
-	enum bt_component_status ret;
 	int64_t offset, offset_s;
 	int int_ret;
 	uint64_t u64_ret;
 	const char *name, *description;
+	struct bt_ctf_clock *writer_clock = NULL;
+	enum bt_component_status ret;
 
 	name = bt_ctf_clock_get_name(clock);
 	if (!name) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	writer_clock = bt_ctf_clock_create(name);
 	if (!writer_clock) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	description = bt_ctf_clock_get_description(clock);
 	if (!description) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_set_description(writer_clock,
 			description);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	u64_ret = bt_ctf_clock_get_frequency(clock);
 	if (u64_ret == -1ULL) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 	int_ret = bt_ctf_clock_set_frequency(writer_clock, u64_ret);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	u64_ret = bt_ctf_clock_get_precision(clock);
 	if (u64_ret == -1ULL) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 	int_ret = bt_ctf_clock_set_precision(writer_clock, u64_ret);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_get_offset_s(clock, &offset_s);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_set_offset_s(writer_clock, offset_s);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_get_offset(clock, &offset);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_set_offset(writer_clock, offset);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
 	int_ret = bt_ctf_clock_get_is_absolute(clock);
 	if (int_ret == -1) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
+
 	int_ret = bt_ctf_clock_set_is_absolute(writer_clock, int_ret);
 	if (int_ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
-	ret = bt_ctf_writer_add_clock(writer, writer_clock);
-	if (ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+	int_ret = bt_ctf_writer_add_clock(writer, writer_clock);
+	if (int_ret != 0) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end_destroy;
 	}
 
-	ret = bt_ctf_stream_class_set_clock(writer_stream_class,
-			writer_clock);
-	if (ret != 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
 	/*
 	 * Ownership transferred to the writer and the stream_class.
 	 */
 	bt_put(writer_clock);
-
 	ret = BT_COMPONENT_STATUS_OK;
+
 	goto end;
 
 end_destroy:
-	bt_put(writer_clock);
+	BT_PUT(writer_clock);
 end:
 	return ret;
 }
@@ -369,41 +342,44 @@ enum bt_component_status copy_stream_class(FILE *err,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field_type *type;
-	int ret_int;
-	struct bt_ctf_clock *writer_clock;
+	int ret_int, clock_count, i;
+	struct bt_ctf_trace *trace;
 
-	writer_clock = bt_ctf_clock_create("monotonic");
-	if (!writer_clock) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(err, "[error] Failed to create clock\n");
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
-	}
-
-	tmp_clock(writer, writer_stream_class, writer_clock);
-
-	/*
-	 * FIXME: waiting for the clock to work
-	 *
-	struct bt_ctf_clock *clock;
-	clock = bt_ctf_stream_class_get_clock(stream_class);
-	if (!clock) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	ret = copy_clock(err, writer, writer_stream_class, clock, writer_clock);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end_put_clock;
+
+	clock_count = bt_ctf_trace_get_clock_count(trace);
+
+	for (i = 0; i < clock_count; i++) {
+		struct bt_ctf_clock *clock = bt_ctf_trace_get_clock(trace, i);
+
+		if (!clock) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end_put_trace;
+		}
+
+		ret = copy_clock(err, writer, writer_stream_class, clock);
+		bt_put(clock);
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto end_put_trace;
+		}
 	}
-	*/
 
 	type = bt_ctf_stream_class_get_packet_context_type(stream_class);
 	if (!type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	ret_int = bt_ctf_stream_class_set_packet_context_type(
@@ -412,7 +388,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
@@ -420,7 +396,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	ret_int = bt_ctf_stream_class_set_event_header_type(
@@ -429,7 +405,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	type = bt_ctf_stream_class_get_event_context_type(stream_class);
@@ -437,7 +413,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	ret_int = bt_ctf_stream_class_set_event_context_type(
@@ -446,7 +422,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
 	ret = copy_event_classes(err, writer, stream_class, writer_stream_class);
@@ -454,11 +430,11 @@ enum bt_component_status copy_stream_class(FILE *err,
 		fprintf(err, "[error] Failed to copy event classes\n");
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_clock;
+		goto end_put_trace;
 	}
 
-end_put_clock:
-//	bt_put(clock);
+end_put_trace:
+	bt_put(trace);
 end:
 	return ret;
 }
