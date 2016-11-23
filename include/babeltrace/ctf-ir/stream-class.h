@@ -526,6 +526,20 @@ You can call this function even if \p stream_class is frozen. Adding
 event classes is the only operation that is permitted
 on a frozen stream class.
 
+This function tries to resolve the needed
+\link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
+types that are found anywhere in the context or payload field
+types of \p event_class. If any automatic resolving fails:
+
+- If the needed field type should be found in one of the root field
+  types of \p event_class or \p stream_class, this function fails.
+- If \p stream_class is the child of a
+  \link ctfirtraceclass CTF IR trace class\endlink (it was added
+  with bt_ctf_trace_add_stream_class()), this function fails.
+- If \p stream_class is not the child of a trace class yet, the
+  automatic resolving is reported to the next call to
+  bt_ctf_trace_add_stream_class() with \p stream_class.
+
 @param[in] stream_class	Stream class to which to add \p event_class.
 @param[in] event_class	Event class to add to \p stream_class.
 @returns		0 on success, or a negative value on error.

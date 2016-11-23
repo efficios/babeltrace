@@ -680,6 +680,13 @@ You can only add a given stream class to one trace class.
 
 You can call this function even if \p trace_class is frozen.
 
+This function tries to resolve the needed
+\link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
+types that are found anywhere in the root field types of
+\p stream_class and of all its currently contained
+\link ctfireventclass CTF IR event classes\endlink. If any automatic
+resolving fails, then this function fails.
+
 @param[in] trace_class	Trace class to which to add \p stream_class.
 @param[in] stream_class	Stream class to add to \p trace_class.
 @returns		0 on success, or a negative value on error.

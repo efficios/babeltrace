@@ -141,6 +141,17 @@ can set them with bt_ctf_event_set_header(),
 bt_ctf_event_set_stream_event_context(),
 bt_ctf_event_set_event_context(), and bt_ctf_event_set_payload_field().
 
+This function tries to resolve the needed
+\link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
+types that are found anywhere in the context or payload field
+types of \p event_class and in the root field types of the
+parent stream class of \p event_class. If any automatic resolving fails,
+this function fails. This means that, if any dynamic field type need
+a field type which should be found in the trace packet header root
+field type, and if the parent stream class of \p event_class was not
+added to a \link ctfirtraceclass CTF IR trace class\endlink yet
+with bt_ctf_trace_add_stream_class(), then this function fails.
+
 @param[in] event_class	CTF IR event class to use to create the
 			CTF IR event.
 @returns		Created event object, or \c NULL on error.
