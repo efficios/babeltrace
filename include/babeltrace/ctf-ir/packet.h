@@ -39,6 +39,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR packet.
 
+@code
+#include <babeltrace/ctf-ir/packet.h>
+@endcode
+
 A CTF IR <strong><em>packet</em></strong> is a container of packet
 fields, that is, of the <strong>trace packet header</strong> and
 <strong>stream packet context</strong> fields.

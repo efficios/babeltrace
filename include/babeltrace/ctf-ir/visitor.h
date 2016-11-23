@@ -39,6 +39,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR visitor.
 
+@code
+#include <babeltrace/ctf-ir/visitor.h>
+@endcode
+
 A CTF IR <strong><em>visitor</em></strong> is a function that you
 can use to visit the hierarchy of a
 \link ctfirtraceclass CTF IR trace class\endlink with

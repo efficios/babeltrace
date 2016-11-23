@@ -43,6 +43,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR event class.
 
+@code
+#include <babeltrace/ctf-ir/event-class.h>
+@endcode
+
 A CTF IR <strong><em>event class</em></strong> is a template that you
 can use to create concrete \link ctfirevent CTF IR events\endlink.
 

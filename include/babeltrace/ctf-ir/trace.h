@@ -45,6 +45,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR trace class.
 
+@code
+#include <babeltrace/ctf-ir/trace.h>
+@endcode
+
 A CTF IR <strong><em>trace class</em></strong> is a descriptor of
 traces.
 

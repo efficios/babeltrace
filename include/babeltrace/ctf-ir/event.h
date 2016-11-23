@@ -43,6 +43,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR event.
 
+@code
+#include <babeltrace/ctf-ir/event.h>
+@endcode
+
 A CTF IR <strong><em>event</em></strong> is a container of event
 fields:
 

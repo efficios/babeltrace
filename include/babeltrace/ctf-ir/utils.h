@@ -39,6 +39,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR utilities.
 
+@code
+#include <babeltrace/ctf-ir/utils.h>
+@endcode
+
 @file
 @brief CTF IR utilities functions.
 @sa ctfirutils

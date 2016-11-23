@@ -42,6 +42,10 @@ extern "C" {
 @ingroup ctfir
 @brief CTF IR stream.
 
+@code
+#include <babeltrace/ctf-ir/stream.h>
+@endcode
+
 @note
 See \ref ctfirwriterstream which documents additional CTF IR stream
 functions exclusive to the CTF IR writer mode.
