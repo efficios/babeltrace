@@ -65,19 +65,21 @@ variables.
 */
 
 /**
-@brief Calls bt_put() on variable \p _var, then sets \p _var to \c NULL.
+@brief	Calls bt_put() on a variable named \p _var, then
+	sets \p _var to \c NULL.
 
 Using this macro is considered safer than calling bt_put() because it
 makes sure that the variable which used to contain a reference to a
 Babeltrace object is set to \c NULL so that a future BT_PUT() or
 bt_put() call will not cause another, unwanted reference decrementation.
 
-@param[in,out] _var	Variable containing a Babeltrace object's
-			address (can be \c NULL).
+@param[in,out] _var	Name of a variable containing a
+			Babeltrace object's address (this address
+			can be \c NULL).
 
-@post <strong>If \c _var is not \c NULL</strong>, its reference
-	count is decremented.
-@post \p _var is \c NULL.
+@post <strong>If \p _var does not contain \p NULL</strong>,
+	its reference count is decremented.
+@post \p _var contains \c NULL.
 
 @sa BT_MOVE(): Transfers the ownership of a Babeltrace object from a
 	variable to another.
@@ -89,8 +91,8 @@ bt_put() call will not cause another, unwanted reference decrementation.
 	} while (0)
 
 /**
-@brief	Transfers the ownership of a Babeltrace object from variable
-	\p _var_src to variable \p _var_dst.
+@brief	Transfers the ownership of a Babeltrace object from a variable
+	named \p _var_src to a variable named \p _var_dst.
 
 This macro implements the following common pattern:
 
@@ -106,16 +108,20 @@ You must \em not use this macro when both \p _var_dst and
 count of this object is 1. The initial call to bt_put() on \p _var_dst
 would destroy the object and leave a dangling pointer in \p _var_dst.
 
-@param[in,out] _var_dst	Destination variable, possibly containing the
-			address of a Babeltrace object to put first.
-@param[in,out] _var_src	Source variable containing the address of a
-			Babeltrace object to move.
+@param[in,out] _var_dst	Name of the destination variable, containing
+			either the address of a Babeltrace object to
+			put first, or \c NULL.
+@param[in,out] _var_src	Name of the source variable, containing
+			either the address of a Babeltrace object to
+			move, or \c NULL.
 
 @pre <strong>If \p _var_dst and \p _var_src contain the same
-	value</strong>, this object's reference count is greater than 1.
+	value which is not \c NULL</strong>, this object's reference
+	count is greater than 1.
 @post <strong>If \c _var_dst is not \c NULL</strong>, its reference
 	count is decremented.
-@post \p _var_dst is equal to \p _var_src.
+@post \p _var_dst is equal to the value of \p _var_src \em before
+	you called this macro.
 @post \p _var_src is \c NULL.
 
 @sa BT_PUT(): Calls bt_put() on a variable, then sets it to \c NULL.
