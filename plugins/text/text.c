@@ -65,7 +65,6 @@ const char *plugin_options[] = {
 	"field-trace:vpid",
 	"field-loglevel",
 	"field-emf",
-	"field-callsite",
 };
 
 static
@@ -485,7 +484,6 @@ enum bt_component_status apply_params(struct text_component *text,
 		text->options.print_loglevel_field = false;
 		text->options.print_emf_field = false;
 		text->options.print_emf_field = false;
-		text->options.print_callsite_field = false;
 		break;
 	case TEXT_DEFAULT_SHOW:
 		text->options.print_trace_field = true;
@@ -496,7 +494,6 @@ enum bt_component_status apply_params(struct text_component *text,
 		text->options.print_loglevel_field = true;
 		text->options.print_emf_field = true;
 		text->options.print_emf_field = true;
-		text->options.print_callsite_field = true;
 		break;
 	case TEXT_DEFAULT_HIDE:
 		text->options.print_trace_field = false;
@@ -507,7 +504,6 @@ enum bt_component_status apply_params(struct text_component *text,
 		text->options.print_loglevel_field = false;
 		text->options.print_emf_field = false;
 		text->options.print_emf_field = false;
-		text->options.print_callsite_field = false;
 		break;
 	default:
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -594,15 +590,6 @@ enum bt_component_status apply_params(struct text_component *text,
 		text->options.print_emf_field = value;
 	}
 
-	value = false;
-	found = false;
-	ret = apply_one_bool("field-callsite", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
-	if (found) {
-		text->options.print_callsite_field = value;
-	}
 end:
 	bt_put(text->plugin_opt_map);
 	text->plugin_opt_map = NULL;

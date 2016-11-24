@@ -734,8 +734,7 @@ void print_legacy_usage(FILE *fp)
 	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
 	fprintf(fp, "  -f, --fields=NAME[,NAME]...  Print additional fields:\n");
 	fprintf(fp, "                                 all, trace, trace:hostname, trace:domain,\n");
-	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf,\n");
-	fprintf(fp, "                                 callsite\n");
+	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf\n");
 	fprintf(fp, "                                 (default: trace:hostname, trace:procname,\n");
 	fprintf(fp, "                                           trace:vpid)\n");
 	fprintf(fp, "  -n, --names=NAME[,NAME]...   Print field names:\n");

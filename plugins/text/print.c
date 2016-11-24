@@ -433,16 +433,6 @@ enum bt_component_status print_event_header(struct text_component *text,
 			bt_put(uri_str);
 		}
 	}
-	if (text->options.print_callsite_field) {
-		if (!text->start_line) {
-			fputs(", ", text->out);
-		}
-		text->start_line = false;
-		if (print_names) {
-			fputs("callsite = ", text->out);
-		}
-		/* TODO */
-	}
 	if (!text->start_line) {
 		fputs(", ", text->out);
 	}
