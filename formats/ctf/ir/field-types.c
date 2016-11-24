@@ -2150,6 +2150,13 @@ enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		ret = integer->user_byte_order;
 		break;
 	}
+	case BT_CTF_TYPE_ID_ENUM:
+	{
+		struct bt_ctf_field_type_enumeration *enum_ft = container_of(
+			type, struct bt_ctf_field_type_enumeration, parent);
+		ret = bt_ctf_field_type_get_byte_order(enum_ft->container);
+		break;
+	}
 	case BT_CTF_TYPE_ID_FLOAT:
 	{
 		struct bt_ctf_field_type_floating_point *floating_point =
