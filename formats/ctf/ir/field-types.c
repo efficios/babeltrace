@@ -1410,9 +1410,14 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 	int ret = 0;
 	struct bt_ctf_field_type_structure *structure;
 
+	/*
+	 * TODO: check that `field_type` does not contain `type`,
+	 *       recursively.
+	 */
 	if (!type || !field_type || type->frozen ||
 		bt_ctf_validate_identifier(field_name) ||
-		(type->declaration->id != BT_CTF_TYPE_ID_STRUCT)) {
+		(type->declaration->id != BT_CTF_TYPE_ID_STRUCT) ||
+		type == field_type) {
 		ret = -1;
 		goto end;
 	}
@@ -1615,9 +1620,14 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 	struct bt_ctf_field_type_variant *variant;
 	GQuark field_name_quark = g_quark_from_string(field_name);
 
+	/*
+	 * TODO: check that `field_type` does not contain `type`,
+	 *       recursively.
+	 */
 	if (!type || !field_type || type->frozen ||
 		bt_ctf_validate_identifier(field_name) ||
-		(type->declaration->id != BT_CTF_TYPE_ID_VARIANT)) {
+		(type->declaration->id != BT_CTF_TYPE_ID_VARIANT) ||
+		type == field_type) {
 		ret = -1;
 		goto end;
 	}

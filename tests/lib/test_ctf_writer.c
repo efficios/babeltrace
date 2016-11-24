@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 604
+#define NR_TESTS 605
 
 static int64_t current_time = 42;
 
@@ -786,6 +786,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_array_get_length(array_type) == ARRAY_TEST_LENGTH,
 		"bt_ctf_field_type_array_get_length returns the correct length");
 
+	ok(bt_ctf_field_type_structure_add_field(inner_structure_type,
+		inner_structure_type, "yes"), "Cannot add self to structure");
 	ok(!bt_ctf_field_type_structure_add_field(inner_structure_type,
 		uint_35_type, "seq_len"), "Add seq_len field to inner structure");
 	ok(!bt_ctf_field_type_structure_add_field(inner_structure_type,
