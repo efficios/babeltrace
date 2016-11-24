@@ -4,6 +4,7 @@
  * Babeltrace CTF Text Output Plugin Event Printing
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -136,7 +137,7 @@ void print_timestamp_wall(struct text_component *text,
 		ts_nsec_abs = -ts_nsec;
 	}
 
-	if (/*!opt_clock_seconds*/true) {
+	if (!text->options.clock_seconds) {
 		struct tm tm;
 		time_t time_s = (time_t) ts_sec_abs;
 
@@ -145,7 +146,7 @@ void print_timestamp_wall(struct text_component *text,
 			goto seconds;
 		}
 
-		if (/*!opt_clock_gmt*/true) {
+		if (!text->options.clock_gmt) {
 			struct tm *res;
 
 			res = localtime_r(&time_s, &tm);
@@ -162,7 +163,7 @@ void print_timestamp_wall(struct text_component *text,
 				goto seconds;
 			}
 		}
-		if (/*opt_clock_date*/false) {
+		if (text->options.clock_date) {
 			char timestr[26];
 			size_t res;
 
@@ -207,10 +208,21 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 		goto end;
 	}
 
-	/* FIXME - error checking */
 	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 	clock = bt_ctf_trace_get_clock(trace, 0);
+	if (!clock) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 
 	fputs(print_names ? "timestamp = " : "[", out);
 	if (text->options.print_timestamp_cycles) {
@@ -226,6 +238,9 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 	if (!text->options.print_delta_field) {
 		goto end;
 	}
+
+	//TODO delta
+
 end:
 	bt_put(stream);
 	bt_put(clock);
