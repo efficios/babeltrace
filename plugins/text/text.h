@@ -70,11 +70,16 @@ struct text_component {
 	struct text_options options;
 	FILE *out, *err;
 	bool processed_first_event;
-	uint64_t last_real_timestamp;
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
 	GString *string;
 	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
+
+	uint64_t last_cycles_timestamp;
+	uint64_t delta_cycles;
+
+	uint64_t last_real_timestamp;
+	uint64_t delta_real_timestamp;
 };
 
 BT_HIDDEN

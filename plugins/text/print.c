@@ -82,6 +82,11 @@ void print_timestamp_cycles(struct text_component *text,
 		return;
 	}
 	fprintf(text->out, "%020" PRIu64, cycles);
+
+	if (text->last_cycles_timestamp != -1ULL) {
+		text->delta_cycles = cycles - text->last_cycles_timestamp;
+	}
+	text->last_cycles_timestamp = cycles;
 }
 
 static
@@ -108,6 +113,11 @@ void print_timestamp_wall(struct text_component *text,
 	        fprintf(text->out, "Error");
 		return;
 	}
+
+	if (text->last_real_timestamp != -1ULL) {
+		text->delta_real_timestamp = ts_nsec - text->last_real_timestamp;
+	}
+	text->last_real_timestamp = ts_nsec;
 
 	ts_sec += ts_nsec / NSEC_PER_SEC;
 	ts_nsec = ts_nsec % NSEC_PER_SEC;
@@ -233,13 +243,36 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 
 	if (!print_names)
 		fputs("] ", out);
-	*start_line = !print_names;
 
-	if (!text->options.print_delta_field) {
-		goto end;
+	if (text->options.print_delta_field) {
+		if (print_names)
+			fputs(", delta = ", text->out);
+		else
+			fputs("(", text->out);
+		if (text->options.print_timestamp_cycles) {
+			if (text->delta_cycles == -1ULL) {
+				fputs("+??????????\?\?) ", text->out); /* Not a trigraph. */
+			} else {
+				fprintf(text->out, "+%012" PRIu64, text->delta_cycles);
+			}
+		} else {
+			if (text->delta_real_timestamp != -1ULL) {
+				uint64_t delta_sec, delta_nsec, delta;
+
+				delta = text->delta_real_timestamp;
+				delta_sec = delta / NSEC_PER_SEC;
+				delta_nsec = delta % NSEC_PER_SEC;
+				fprintf(text->out, "+%" PRIu64 ".%09" PRIu64,
+					delta_sec, delta_nsec);
+			} else {
+				fputs("+?.?????????", text->out);
+			}
+		}
+		if (!print_names) {
+			fputs(") ", text->out);
+		}
 	}
-
-	//TODO delta
+	*start_line = !print_names;
 
 end:
 	bt_put(stream);

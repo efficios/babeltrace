@@ -613,6 +613,12 @@ enum bt_component_status text_component_init(
 	text->out = stdout;
 	text->err = stderr;
 
+	text->delta_cycles = -1ULL;
+	text->last_cycles_timestamp = -1ULL;
+
+	text->delta_real_timestamp = -1ULL;
+	text->last_real_timestamp = -1ULL;
+
 	ret = apply_params(text, params);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
