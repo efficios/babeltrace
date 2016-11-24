@@ -60,4 +60,8 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 BT_HIDDEN
 enum bt_component_type bt_component_get_type(struct bt_component *component);
 
+BT_HIDDEN
+struct bt_notification_iterator *bt_component_create_iterator(
+		struct bt_component *component);
+
 #endif /* BABELTRACE_PLUGIN_COMPONENT_INTERNAL_H */

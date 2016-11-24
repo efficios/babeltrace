@@ -29,6 +29,8 @@
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/source-internal.h>
+#include <babeltrace/plugin/filter-internal.h>
+#include <babeltrace/plugin/notification/iterator-internal.h>
 #include <babeltrace/plugin/sink-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
@@ -98,6 +100,75 @@ BT_HIDDEN
 enum bt_component_type bt_component_get_type(struct bt_component *component)
 {
 	return component ? component->class->type : BT_COMPONENT_TYPE_UNKNOWN;
+}
+
+BT_HIDDEN
+struct bt_notification_iterator *bt_component_create_iterator(
+		struct bt_component *component)
+{
+	enum bt_notification_iterator_status ret_iterator;
+	enum bt_component_type component_type;
+	struct bt_notification_iterator *iterator = NULL;
+
+	if (!component) {
+		goto error;
+	}
+
+	component_type = bt_component_get_type(component);
+	if (component_type != BT_COMPONENT_TYPE_SOURCE &&
+			component_type != BT_COMPONENT_TYPE_FILTER) {
+		/* Unsupported operation. */
+		goto error;
+	}
+
+	iterator = bt_notification_iterator_create(component);
+	if (!iterator) {
+		goto error;
+	}
+
+	switch (component_type) {
+	case BT_COMPONENT_TYPE_SOURCE:
+	{
+		struct bt_component_source *source;
+		enum bt_component_status ret_component;
+
+		source = container_of(component, struct bt_component_source, parent);
+		assert(source->init_iterator);
+		ret_component = source->init_iterator(component, iterator);
+		if (ret_component != BT_COMPONENT_STATUS_OK) {
+			goto error;
+		}
+		break;
+
+		break;
+	}
+	case BT_COMPONENT_TYPE_FILTER:
+	{
+		struct bt_component_filter *filter;
+		enum bt_component_status ret_component;
+
+		filter = container_of(component, struct bt_component_filter, parent);
+		assert(filter->init_iterator);
+		ret_component = filter->init_iterator(component, iterator);
+		if (ret_component != BT_COMPONENT_STATUS_OK) {
+			goto error;
+		}
+		break;
+	}
+	default:
+		/* Unreachable. */
+		assert(0);
+	}
+
+	ret_iterator = bt_notification_iterator_validate(iterator);
+	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		goto error;
+	}
+
+	return iterator;
+error:
+	BT_PUT(iterator);
+	return iterator;
 }
 
 struct bt_component *bt_component_create(

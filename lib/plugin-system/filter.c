@@ -225,38 +225,5 @@ end:
 struct bt_notification_iterator *bt_component_filter_create_iterator(
 		struct bt_component *component)
 {
-	enum bt_component_status ret_component;
-	enum bt_notification_iterator_status ret_iterator;
-	struct bt_component_filter *filter;
-	struct bt_notification_iterator *iterator = NULL;
-
-	if (!component) {
-		goto end;
-	}
-
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
-		goto end;
-	}
-
-	iterator = bt_notification_iterator_create(component);
-	if (!iterator) {
-		goto end;
-	}
-
-	filter = container_of(component, struct bt_component_filter, parent);
-	assert(filter->init_iterator);
-	ret_component = filter->init_iterator(component, iterator);
-	if (ret_component != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
-	ret_iterator = bt_notification_iterator_validate(iterator);
-	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		goto error;
-	}
-end:
-	return iterator;
-error:
-	BT_PUT(iterator);
-	return iterator;
+	return bt_component_create_iterator(component);
 }
