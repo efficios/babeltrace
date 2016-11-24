@@ -58,15 +58,18 @@ enum bt_notification_iterator_status {
 /**
  * Notification iterator seek reference.
  */
-enum bt_notification_iterator_seek_type {
+enum bt_notification_iterator_seek_origin {
 	/** Seek at a time relative to the beginning of the trace. */
-	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_BEGIN = 0,
+	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_BEGIN = 0,
 
 	/** Seek at a time relative to the current position. */
-	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_CURRENT = 1,
+	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_CURRENT = 1,
 
 	/** Seek at a time relative to the end of the trace. */
-	BT_NOTIFICATION_ITERATOR_SEEK_TYPE_END = 1,
+	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_END = 2,
+
+	/** Seek at a time relative to EPOCH. */
+	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_EPOCH = 3,
 };
 
 /**
@@ -98,14 +101,16 @@ extern enum bt_notification_iterator_status
 bt_notification_iterator_next(struct bt_notification_iterator *iterator);
 
 /**
- * Seek iterator to position.
+ * Seek iterator to time.
  *
  * Sets the iterator's position for the trace associated with the iterator.
  * The new position is computed by adding \p time to the position specified
- * by \p whence.
+ * by \p seek_origin.
+ *
+ * time is expressed in nanoseconds.
  *
  * @param iterator	Iterator instance
- * @param whence	One of #bt_notification_iterator_seek_type values.
+ * @param seek_origin	One of #bt_notification_iterator_seek_type values.
  * @returns		One of #bt_notification_iterator_status values;
  *			if \iterator does not support seeking,
  *			#BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED is
@@ -113,8 +118,9 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator);
  *
  * @see bt_notification_iterator_get_notification()
  */
-extern enum bt_notification_iterator_status *bt_notification_iterator_seek(
-		struct bt_notification_iterator *iterator, int whence,
+extern enum bt_notification_iterator_status bt_notification_iterator_seek_time(
+		struct bt_notification_iterator *iterator,
+		enum bt_notification_iterator_seek_origin seek_origin,
 		int64_t time);
 
 extern struct bt_component *bt_notification_iterator_get_component(
