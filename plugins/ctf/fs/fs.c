@@ -46,7 +46,8 @@
 #define PRINT_PREFIX		"ctf-fs"
 #include "print.h"
 
-static bool ctf_fs_debug;
+BT_HIDDEN
+bool ctf_fs_debug;
 
 static
 struct bt_notification *ctf_fs_iterator_get(

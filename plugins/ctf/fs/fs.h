@@ -35,7 +35,8 @@
 #define CTF_FS_COMPONENT_DESCRIPTION \
 	"Component used to read a CTF trace located on a file system."
 
-static bool ctf_fs_debug;
+BT_HIDDEN
+extern bool ctf_fs_debug;
 
 struct bt_notification_heap;
 
