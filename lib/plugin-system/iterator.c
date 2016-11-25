@@ -188,7 +188,7 @@ enum bt_notification_iterator_status bt_notification_iterator_seek_time(
 		enum bt_notification_iterator_seek_origin seek_origin,
 		int64_t time)
 {
-	enum bt_notification_iterator_status ret = BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
-end:
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
 	return ret;
 }

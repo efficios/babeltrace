@@ -2300,8 +2300,8 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	struct bt_config *cfg = NULL;
 	poptContext pc = NULL;
 	char *arg = NULL;
-	struct ctf_legacy_opts ctf_legacy_opts = { 0 };
-	struct text_legacy_opts text_legacy_opts = { 0 };
+	struct ctf_legacy_opts ctf_legacy_opts;
+	struct text_legacy_opts text_legacy_opts;
 	enum legacy_input_format legacy_input_format = LEGACY_INPUT_FORMAT_NONE;
 	enum legacy_output_format legacy_output_format =
 		LEGACY_OUTPUT_FORMAT_NONE;
@@ -2316,6 +2316,8 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	bool cur_cfg_comp_params_set = false;
 	unsigned int i;
 
+	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
+	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
 	*exit_code = 0;
 
 	if (argc <= 1) {

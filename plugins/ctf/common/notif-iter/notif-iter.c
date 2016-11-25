@@ -40,6 +40,7 @@
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/plugin/notification/packet.h>
 #include <babeltrace/plugin/notification/event.h>
+#include <babeltrace/plugin/notification/stream.h>
 #include <babeltrace/ref.h>
 #include <glib.h>
 
@@ -1942,26 +1943,28 @@ end:
 	BT_PUT(event);
 }
 
+//FIXME: not used ?
 static
 void notify_eos(struct bt_ctf_notif_iter *notit,
 		struct bt_notification **notification)
 {
-	struct bt_ctf_event *event;
+	struct bt_ctf_stream *stream = NULL;
 	struct bt_notification *ret = NULL;
 
-	/* Create event */
-	event = create_event(notit);
-	if (!event) {
+	/* Ask the user for the stream */
+	stream = notit->medium.medops.get_stream(notit->meta.stream_class,
+			notit->medium.data);
+	if (!stream) {
 		goto end;
 	}
 
-	ret = bt_notification_stream_end_create(event);
+	ret = bt_notification_stream_end_create(stream);
 	if (!ret) {
 		goto end;
 	}
 	*notification = ret;
 end:
-	BT_PUT(event);
+	BT_PUT(stream);
 }
 
 static

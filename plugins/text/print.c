@@ -209,8 +209,6 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_clock *clock = NULL;
 	FILE *out = text->out;
-	FILE *err = text->err;
-	uint64_t real_timestamp;
 
 	stream = bt_ctf_event_get_stream(event);
 	if (!stream) {
