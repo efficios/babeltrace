@@ -56,9 +56,13 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 	struct bt_ctf_field_type *header_field_type = NULL;
 	struct bt_ctf_field_type *expected_header_field_type = NULL;
 
-	if (!packet || !header || packet->frozen) {
+	if (!packet || packet->frozen) {
 		ret = -1;
 		goto end;
+	}
+
+	if (!header) {
+		goto skip_validation;
 	}
 
 	stream_class = bt_ctf_stream_get_class(packet->stream);
@@ -75,6 +79,7 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 		goto end;
 	}
 
+skip_validation:
 	bt_put(packet->header);
 	packet->header = bt_get(header);
 
@@ -101,9 +106,13 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 	struct bt_ctf_field_type *context_field_type = NULL;
 	struct bt_ctf_field_type *expected_context_field_type = NULL;
 
-	if (!packet || !context || packet->frozen) {
+	if (!packet || packet->frozen) {
 		ret = -1;
 		goto end;
+	}
+
+	if (!context) {
+		goto skip_validation;
 	}
 
 	stream_class = bt_ctf_stream_get_class(packet->stream);
@@ -119,6 +128,7 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 		goto end;
 	}
 
+skip_validation:
 	bt_put(packet->context);
 	packet->context = bt_get(context);
 
@@ -177,14 +187,14 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	bt_object_init(packet, bt_ctf_packet_destroy);
 	packet->stream = bt_get(stream);
 	packet->header = bt_ctf_field_create(trace->packet_header_type);
-	if (!packet->header) {
+	if (!packet->header && trace->packet_header_type) {
 		BT_PUT(packet);
 		goto end;
 	}
 
 	packet->context = bt_ctf_field_create(
 		stream->stream_class->packet_context_type);
-	if (!packet->context) {
+	if (!packet->context && stream->stream_class->packet_context_type) {
 		BT_PUT(packet);
 		goto end;
 	}
