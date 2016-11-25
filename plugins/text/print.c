@@ -1035,7 +1035,6 @@ enum bt_component_status print_stream_packet_context(struct text_component *text
 	}
 	main_field = bt_ctf_packet_get_context(packet);
 	if (!main_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!text->start_line) {
@@ -1062,7 +1061,6 @@ enum bt_component_status print_event_header_raw(struct text_component *text,
 
 	main_field = bt_ctf_event_get_header(event);
 	if (!main_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!text->start_line) {
@@ -1088,7 +1086,6 @@ enum bt_component_status print_stream_event_context(struct text_component *text,
 
 	main_field = bt_ctf_event_get_stream_event_context(event);
 	if (!main_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!text->start_line) {
@@ -1114,7 +1111,6 @@ enum bt_component_status print_event_context(struct text_component *text,
 
 	main_field = bt_ctf_event_get_event_context(event);
 	if (!main_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!text->start_line) {
@@ -1140,7 +1136,6 @@ enum bt_component_status print_event_payload(struct text_component *text,
 
 	main_field = bt_ctf_event_get_payload_field(event);
 	if (!main_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!text->start_line) {
