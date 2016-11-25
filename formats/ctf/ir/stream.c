@@ -636,7 +636,7 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	int ret = 0;
 	struct bt_ctf_field_type *field_type;
 
-	if (!stream || !field || stream->pos.fd < 0) {
+	if (!stream || stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -649,9 +649,8 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	}
 
 	bt_put(field_type);
-	bt_get(field);
 	bt_put(stream->packet_context);
-	stream->packet_context = field;
+	stream->packet_context = bt_get(field);
 end:
 	return ret;
 }
@@ -680,7 +679,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_field_type *field_type = NULL;
 
-	if (!stream || !field || stream->pos.fd < 0) {
+	if (!stream || stream->pos.fd < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -692,9 +691,8 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	bt_get(field);
 	bt_put(stream->packet_header);
-	stream->packet_header = field;
+	stream->packet_header = bt_get(field);
 end:
 	BT_PUT(trace);
 	bt_put(field_type);

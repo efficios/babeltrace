@@ -355,16 +355,19 @@ int bt_ctf_event_class_set_payload_type(struct bt_ctf_event_class *event_class,
 {
 	int ret = 0;
 
-	if (!event_class || !payload ||
-		bt_ctf_field_type_get_type_id(payload) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+	if (!event_class) {
 		ret = -1;
 		goto end;
 	}
 
-	bt_get(payload);
+	if (payload && bt_ctf_field_type_get_type_id(payload) !=
+			BT_CTF_TYPE_ID_STRUCT) {
+		ret = -1;
+		goto end;
+	}
+
 	bt_put(event_class->fields);
-	event_class->fields = payload;
+	event_class->fields = bt_get(payload);
 end:
 	return ret;
 }
@@ -488,19 +491,19 @@ int bt_ctf_event_class_set_context_type(
 {
 	int ret = 0;
 
-	if (!event_class || !context || event_class->frozen) {
+	if (!event_class || event_class->frozen) {
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(context) != BT_CTF_TYPE_ID_STRUCT) {
+	if (context && bt_ctf_field_type_get_type_id(context) !=
+			BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
 
-	bt_get(context);
 	bt_put(event_class->context);
-	event_class->context = context;
+	event_class->context = bt_get(context);
 end:
 	return ret;
 

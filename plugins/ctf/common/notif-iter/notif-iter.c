@@ -499,8 +499,7 @@ enum bt_ctf_notif_iter_status read_packet_header_begin_state(
 	packet_header_type = bt_ctf_trace_get_packet_header_type(
 			notit->meta.trace);
 	if (!packet_header_type) {
-		PERR("Failed to retrieve trace's packet header type\n");
-		ret = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_AFTER_TRACE_PACKET_HEADER;
 		goto end;
 	}
 
@@ -536,7 +535,8 @@ bool is_variant_type(struct bt_ctf_field_type *field_type)
 }
 
 static inline
-enum bt_ctf_notif_iter_status set_current_stream_class(struct bt_ctf_notif_iter *notit)
+enum bt_ctf_notif_iter_status set_current_stream_class(
+		struct bt_ctf_notif_iter *notit)
 {
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
 	struct bt_ctf_field_type *packet_header_type;
@@ -622,8 +622,7 @@ enum bt_ctf_notif_iter_status read_packet_context_begin_state(
 	packet_context_type = bt_ctf_stream_class_get_packet_context_type(
 			notit->meta.stream_class);
 	if (!packet_context_type) {
-		PERR("Failed to retrieve stream class's packet context\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_AFTER_STREAM_PACKET_CONTEXT;
 		goto end;
 	}
 
@@ -734,8 +733,7 @@ enum bt_ctf_notif_iter_status read_event_header_begin_state(
 	event_header_type = bt_ctf_stream_class_get_event_header_type(
 		notit->meta.stream_class);
 	if (!event_header_type) {
-		PERR("Failed to retrieve stream class's event header type\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_AFTER_STREAM_EVENT_HEADER;
 		goto end;
 	}
 
@@ -913,8 +911,7 @@ enum bt_ctf_notif_iter_status read_stream_event_context_begin_state(
 	stream_event_context_type = bt_ctf_stream_class_get_event_context_type(
 		notit->meta.stream_class);
 	if (!stream_event_context_type) {
-		PERR("Failed to retrieve stream class's event context type\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_DSCOPE_EVENT_CONTEXT_BEGIN;
 		goto end;
 	}
 
@@ -947,11 +944,9 @@ enum bt_ctf_notif_iter_status read_event_context_begin_state(
 	event_context_type = bt_ctf_event_class_get_context_type(
 		notit->meta.event_class);
 	if (!event_context_type) {
-		PERR("Failed to retrieve event class's context type\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_DSCOPE_EVENT_PAYLOAD_BEGIN;
 		goto end;
 	}
-
 	status = read_dscope_begin_state(notit, event_context_type,
 		STATE_DSCOPE_EVENT_PAYLOAD_BEGIN,
 		STATE_DSCOPE_EVENT_CONTEXT_CONTINUE,
@@ -981,8 +976,7 @@ enum bt_ctf_notif_iter_status read_event_payload_begin_state(
 	event_payload_type = bt_ctf_event_class_get_payload_type(
 		notit->meta.event_class);
 	if (!event_payload_type) {
-		PERR("Failed to retrieve event class's payload type\n");
-		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		notit->state = STATE_EMIT_NOTIF_EVENT;
 		goto end;
 	}
 

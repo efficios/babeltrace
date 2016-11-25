@@ -337,7 +337,7 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 	int ret = 0;
 	struct bt_ctf_field_type *payload_type = NULL;
 
-	if (!event || !payload || event->frozen) {
+	if (!event || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -354,10 +354,8 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_get(payload);
 	bt_put(event->fields_payload);
-	event->fields_payload = payload;
-
+	event->fields_payload = bt_get(payload);
 end:
 	bt_put(payload_type);
 	return ret;
@@ -420,13 +418,13 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || !header || event->frozen) {
+	if (!event || event->frozen) {
 		ret = -1;
 		goto end;
 	}
 
 	stream_class = (struct bt_ctf_stream_class *) bt_object_get_parent(
-		event->event_class);
+			event->event_class);
 	/*
 	 * Ensure the provided header's type matches the one registered to the
 	 * stream class.
@@ -438,9 +436,8 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_get(header);
 	bt_put(event->event_header);
-	event->event_header = header;
+	event->event_header = bt_get(header);
 end:
 	bt_put(stream_class);
 	bt_put(field_type);
@@ -468,7 +465,7 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
 
-	if (!event || !context || event->frozen) {
+	if (!event || event->frozen) {
 		ret = -1;
 		goto end;
 	}
@@ -480,9 +477,8 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	bt_get(context);
 	bt_put(event->context_payload);
-	event->context_payload = context;
+	event->context_payload = bt_get(context);
 end:
 	bt_put(field_type);
 	return ret;
@@ -509,7 +505,7 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || !stream_event_context || event->frozen) {
+	if (!event || event->frozen) {
 		ret = -1;
 		goto end;
 	}

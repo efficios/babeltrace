@@ -3163,43 +3163,21 @@ int reset_event_decl_types(struct ctx *ctx,
 	struct bt_ctf_event_class *event_class)
 {
 	int ret = 0;
-	_BT_CTF_FIELD_TYPE_INIT(decl);
 
-	/* Event context */
-	decl = bt_ctf_field_type_structure_create();
-	if (!decl) {
-		_PERROR("%s", "cannot create initial, empty event context structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_event_class_set_context_type(event_class, decl);
-	BT_PUT(decl);
+	/* Context type. */
+	ret = bt_ctf_event_class_set_context_type(event_class, NULL);
 	if (ret) {
-		_PERROR("%s", "cannot set initial, empty event context structure");
-		goto error;
+		_PERROR("%s", "cannot set initial NULL event context");
+		goto end;
 	}
 
-	/* Event payload */
-	decl = bt_ctf_field_type_structure_create();
-	if (!decl) {
-		_PERROR("%s", "cannot create initial, empty event payload structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_event_class_set_payload_type(event_class, decl);
-	BT_PUT(decl);
+	/* Event payload. */
+	ret = bt_ctf_event_class_set_payload_type(event_class, NULL);
 	if (ret) {
-		_PERROR("%s", "cannot set initial, empty event payload structure");
-		goto error;
+		_PERROR("%s", "cannot set initial NULL event payload");
+		goto end;
 	}
-
-	return 0;
-
-error:
-	BT_PUT(decl);
-
+end:
 	return ret;
 }
 
@@ -3208,58 +3186,28 @@ int reset_stream_decl_types(struct ctx *ctx,
 	struct bt_ctf_stream_class *stream_class)
 {
 	int ret = 0;
-	_BT_CTF_FIELD_TYPE_INIT(decl);
 
-	/* Packet context */
-	decl = bt_ctf_field_type_structure_create();
-	if (!decl) {
-		_PERROR("%s", "cannot create initial, empty packet context structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, decl);
-	BT_PUT(decl);
+	/* Packet context. */
+	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, NULL);
 	if (ret) {
-		_PERROR("%s", "cannot set initial, empty packet context structure");
-		goto error;
+		_PERROR("%s", "cannot set initial empty packet context");
+		goto end;
 	}
 
-	/* Event header */
-	decl = bt_ctf_field_type_structure_create();
-	if (!decl) {
-		_PERROR("%s", "cannot create initial, empty event header structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_stream_class_set_event_header_type(stream_class, decl);
-	BT_PUT(decl);
+	/* Event header. */
+	ret = bt_ctf_stream_class_set_event_header_type(stream_class, NULL);
 	if (ret) {
-		_PERROR("%s", "cannot set initial, empty event header structure");
-		goto error;
+		_PERROR("%s", "cannot set initial empty event header");
+		goto end;
 	}
 
-	/* Event context */
-	decl = bt_ctf_field_type_structure_create();
-	if (!decl) {
-		_PERROR("%s", "cannot create initial, empty stream event context structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_stream_class_set_event_context_type(stream_class, decl);
-	BT_PUT(decl);
+	/* Event context. */
+	ret = bt_ctf_stream_class_set_event_context_type(stream_class, NULL);
 	if (ret) {
-		_PERROR("%s", "cannot set initial, empty stream event context structure");
-		goto error;
+		_PERROR("%s", "cannot set initial empty stream event context");
+		goto end;
 	}
-
-	return 0;
-
-error:
-	BT_PUT(decl);
-
+end:
 	return ret;
 }
 
@@ -3276,8 +3224,8 @@ struct bt_ctf_stream_class *create_reset_stream_class(struct ctx *ctx)
 	}
 
 	/*
-	 * Set packet context, event header, and event context to empty
-	 * structures to override the default ones.
+	 * Set packet context, event header, and event context to NULL to
+	 * override the default ones.
 	 */
 	ret = reset_stream_decl_types(ctx, stream_class);
 	if (ret) {
@@ -3322,8 +3270,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	event_class = bt_ctf_event_class_create(event_name);
 
 	/*
-	 * Set context and fields to empty structures to override the
-	 * default ones.
+	 * Unset context and fields to override the default ones.
 	 */
 	ret = reset_event_decl_types(ctx, event_class);
 	if (ret) {
@@ -4489,7 +4436,6 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 {
 	int ret = 0;
 	struct ctx *ctx = NULL;
-	_BT_CTF_FIELD_TYPE_INIT(packet_header_decl);
 
 	printf_verbose("CTF visitor: AST -> CTF IR...\n");
 
@@ -4500,19 +4446,8 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 		goto error;
 	}
 
-	/* Set packet header to an empty struct tu override the default one */
-	packet_header_decl = bt_ctf_field_type_structure_create();
-
-	if (!packet_header_decl) {
-		_FPERROR(efd,
-			"%s",
-			"cannot create initial, empty packet header structure");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_ctf_trace_set_packet_header_type(*trace, packet_header_decl);
-	BT_PUT(packet_header_decl);
+	/* Set packet header to NULL to override the default one */
+	ret = bt_ctf_trace_set_packet_header_type(*trace, NULL);
 	if (ret) {
 		_FPERROR(efd,
 			"%s",
@@ -4654,7 +4589,6 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 	return ret;
 
 error:
-	BT_PUT(packet_header_decl);
 	ctx_destroy(ctx);
 	BT_PUT(*trace);
 

@@ -1073,21 +1073,21 @@ int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || !packet_header_type || trace->frozen) {
+	if (!trace || trace->frozen) {
 		ret = -1;
 		goto end;
 	}
 
-	/* packet_header_type must be a structure */
-	if (bt_ctf_field_type_get_type_id(packet_header_type) !=
-		BT_CTF_TYPE_ID_STRUCT) {
+	/* packet_header_type must be a structure. */
+	if (packet_header_type &&
+			bt_ctf_field_type_get_type_id(packet_header_type) !=
+				BT_CTF_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
 
-	bt_get(packet_header_type);
 	bt_put(trace->packet_header_type);
-	trace->packet_header_type = packet_header_type;
+	trace->packet_header_type = bt_get(packet_header_type);
 end:
 	return ret;
 }
