@@ -478,11 +478,13 @@ extern int bt_ctf_trace_set_environment_field_string(
 @param[in] trace_class	Trace class of which to get the packet
 			header field type.
 @returns		Packet header field type of \p trace_class,
-			or \c NULL on error.
+			or \c NULL if \p trace_class has no packet header field
+			type or on error.
 
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>, its
+	reference count is incremented.
 
 @sa bt_ctf_trace_set_packet_header_type(): Sets the packet
 	header field type of a given trace class.
@@ -492,22 +494,29 @@ extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
 
 /**
 @brief	Sets the packet header field type of the CTF IR trace class
-	\p trace_class to \p packet_context_type.
+	\p trace_class to \p packet_header_type, or unsets the current packet
+	header field type from \p trace_class.
 
-As of Babeltrace \btversion, \p packet_context_type \em must be a
-CTF IR structure field type object.
+If \p packet_header_type is \c NULL, then this function unsets the current
+packet header field type from \p trace_class, effectively making \p trace_class
+a trace without a packet header field type.
+
+As of Babeltrace \btversion, if \p packet_header_type is not \c NULL,
+\p packet_header_type \em must be a CTF IR structure field type object.
 
 @param[in] trace_class		Trace class of which to set the packet
 				header field type.
-@param[in] packet_header_type	Packet header field type.
+@param[in] packet_header_type	Packet header field type, or \c NULL to unset
+				the current packet header field type.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{trace_class}
-@prenotnull{packet_header_type}
 @prehot{trace_class}
-@preisstructft{packet_header_type}
+@pre <strong>\p packet_header_type, if not \c NULL</strong>, is a CTF IR
+	structure field type.
 @postrefcountsame{trace_class}
-@postsuccessrefcountinc{packet_header_type}
+@post <strong>On success, if \p packet_header_type is not \c NULL</strong>,
+	the reference count of \p packet_header_type is incremented.
 
 @sa bt_ctf_trace_get_packet_header_type(): Returns the packet
 	header field type of a given trace class.

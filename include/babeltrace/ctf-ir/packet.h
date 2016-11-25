@@ -162,30 +162,30 @@ extern struct bt_ctf_field *bt_ctf_packet_get_header(
 		struct bt_ctf_packet *packet);
 
 /**
-@brief	Sets the trace packet header field of the CTF IR packet
-	\p packet to \p header.
+@brief	Sets the trace packet header field of the CTF IR packet \p packet to
+	\p header, or unsets the current trace packet header field from
+	\p packet.
 
-The field type of \p header, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
-bt_ctf_trace_get_packet_header_type() for the parent trace class
-of \p packet.
+If \p header is not \c NULL, the field type of \p header, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
+bt_ctf_trace_get_packet_header_type() for the parent trace class of
+\p packet.
 
-@param[in] packet	Packet of which to set the trace packet header
-			field.
+@param[in] packet	Packet of which to set the trace packet header field.
 @param[in] header	Trace packet header field.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{packet}
-@prenotnull{header}
 @prehot{packet}
-@pre \p header has a field type equivalent to the field type returned by
-	bt_ctf_trace_get_packet_header_type() for the parent trace class
-	of \p packet.
-@postrefcountsame{packet}
-@postsuccessrefcountinc{header}
+@pre <strong>\p header, if not \c NULL</strong>, has a field type equivalent to
+	the field type returned by bt_ctf_trace_get_packet_header_type() for the
+	parent trace class of \p packet.
+@postrefcountsame{event}
+@post <strong>On success, if \p header is not \c NULL</strong>, the reference
+	count of \p header is incremented.
 
-@sa bt_ctf_packet_get_header(): Returns the trace packet header field
-	of a given packet.
+@sa bt_ctf_packet_get_header(): Returns the trace packet header field of a given
+	packet.
 */
 extern int bt_ctf_packet_set_header(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *header);
@@ -211,30 +211,29 @@ extern struct bt_ctf_field *bt_ctf_packet_get_context(
 		struct bt_ctf_packet *packet);
 
 /**
-@brief	Sets the stream packet context field of the CTF IR packet
-	\p packet to \p context.
+@brief	Sets the stream packet context field of the CTF IR packet \p packet to
+	\p context, or unsets the current packet context field from \p packet.
 
-The field type of \p context, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
-bt_ctf_stream_class_get_packet_context_type() for the parent stream
-class of \p packet.
+If \p context is not \c NULL, the field type of \p context, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
+bt_ctf_stream_class_get_packet_context_type() for the parent stream class of
+\p packet.
 
-@param[in] packet	Packet of which to set the stream packet context
-			field.
+@param[in] packet	Packet of which to set the stream packet context field.
 @param[in] context	Stream packet context field.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{packet}
-@prenotnull{context}
 @prehot{packet}
-@pre \p context has a field type equivalent to the field type returned
-	by bt_ctf_stream_class_get_packet_context_type() for the parent
-	stream class of \p packet.
+@pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
+	the field type returned by bt_ctf_stream_class_get_packet_context_type()
+	for the parent stream class of \p packet.
 @postrefcountsame{packet}
-@postsuccessrefcountinc{context}
+@post <strong>On success, if \p context is not \c NULL</strong>, the reference
+	count of \p context is incremented.
 
-@sa bt_ctf_packet_get_context(): Returns the stream packet context field
-	of a given packet.
+@sa bt_ctf_packet_get_context(): Returns the stream packet context field of a
+	given packet.
 */
 extern int bt_ctf_packet_set_context(
 		struct bt_ctf_packet *packet, struct bt_ctf_field *context);

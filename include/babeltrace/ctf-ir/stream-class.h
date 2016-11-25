@@ -296,11 +296,13 @@ extern int bt_ctf_stream_class_set_id(
 @param[in] stream_class	Stream class of which to get the packet
 			context field type.
 @returns		Packet context field type of \p stream_class,
-			or \c NULL on error.
+			or \c NULL if \p stream_class has no packet context
+			field type or on error.
 
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>, its
+	reference count is incremented.
 
 @sa bt_ctf_stream_class_set_packet_context_type(): Sets the packet
 	context field type of a given stream class.
@@ -310,22 +312,29 @@ extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 
 /**
 @brief	Sets the packet context field type of the CTF IR stream class
-	\p stream_class to \p packet_context_type.
+	\p stream_class to \p packet_context_type, or unsets the current packet
+	context field type from \p stream_class.
 
-As of Babeltrace \btversion, \p packet_context_type \em must be a
-CTF IR structure field type object.
+If \p packet_context_type is \c NULL, then this function unsets the current
+packet context field type from \p stream_class, effectively making
+\p stream_class a stream class without a packet context field type.
+
+As of Babeltrace \btversion, if \p packet_context_type is not \c NULL,
+\p packet_context_type \em must be a CTF IR structure field type object.
 
 @param[in] stream_class		Stream class of which to set the packet
 				context field type.
-@param[in] packet_context_type	Packet context field type.
+@param[in] packet_context_type	Packet context field type, or \c NULL to unset
+				the current packet context field type.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{stream_class}
-@prenotnull{packet_context_type}
 @prehot{stream_class}
-@preisstructft{packet_context_type}
+@pre <strong>\p packet_context_type, if not \c NULL</strong>, is a CTF IR
+	structure field type.
 @postrefcountsame{stream_class}
-@postsuccessrefcountinc{packet_context_type}
+@post <strong>On success, if \p packet_context_type is not \c NULL</strong>,
+	the reference count of \p packet_context_type is incremented.
 
 @sa bt_ctf_stream_class_get_packet_context_type(): Returns the packet
 	context field type of a given stream class.
@@ -341,11 +350,13 @@ extern int bt_ctf_stream_class_set_packet_context_type(
 @param[in] stream_class	Stream class of which to get the event header
 			field type.
 @returns		Event header field type of \p stream_class,
-			or \c NULL on error.
+			or \c NULL if \p stream_class has no event header field
+			type or on error.
 
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>, its
+	reference count is incremented.
 
 @sa bt_ctf_stream_class_set_event_header_type(): Sets the event
 	header field type of a given stream class.
@@ -356,73 +367,88 @@ bt_ctf_stream_class_get_event_header_type(
 
 /**
 @brief	Sets the event header field type of the CTF IR stream class
-	\p stream_class to \p event_header_type.
+	\p stream_class to \p event_header_type, or unsets the current event
+	header field type from \p stream_class.
 
-As of Babeltrace \btversion, \p event_header_type \em must be a
-CTF IR structure field type object.
+If \p event_header_type is \c NULL, then this function unsets the current
+event header field type from \p stream_class, effectively making \p stream_class
+a stream class without a event header field type.
 
-@param[in] stream_class		Stream class of which to set the event
+As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
+\p event_header_type \em must be a CTF IR structure field type object.
+
+@param[in] trace_class		Trace class of which to set the packet
 				header field type.
-@param[in] event_header_type	Event header field type.
+@param[in] event_header_type	Event header field type, or \c NULL to unset
+				the current event header field type.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{stream_class}
-@prenotnull{event_header_type}
 @prehot{stream_class}
-@preisstructft{event_header_type}
+@pre <strong>\p event_header_type, if not \c NULL</strong>, is a CTF IR
+	structure field type.
 @postrefcountsame{stream_class}
-@postsuccessrefcountinc{event_header_type}
+@post <strong>On success, if \p event_header_type is not \c NULL</strong>,
+	the reference count of \p event_header_type is incremented.
 
-@sa bt_ctf_stream_class_get_event_header_type(): Returns the event
-	header field type of a given stream class.
+@sa bt_ctf_trace_get_packet_header_type(): Returns the packet
+	header field type of a given trace class.
 */
 extern int bt_ctf_stream_class_set_event_header_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_header_type);
 
 /**
-@brief	Returns the per-stream class event context field type of the
-	CTF IR stream class \p stream_class.
+@brief	Returns the event context field type of the CTF IR stream class
+	\p stream_class.
 
-@param[in] stream_class	Stream class of which to get the per-stream
-			class event context field type.
-@returns		Per-stream class event context field type of
-			\p stream_class, or \c NULL on error.
+@param[in] stream_class	Stream class of which to get the event context
+			field type.
+@returns		Event context field type of \p stream_class,
+			or \c NULL if \p stream_class has no event context field
+			type or on error.
 
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>,
+	its reference count is incremented.
 
-@sa bt_ctf_stream_class_set_event_context_type(): Sets the per-stream
-	class event context field type of a given stream class.
+
+@sa bt_ctf_stream_class_set_event_context_type(): Sets the event
+	context field type of a given stream class.
 */
 extern struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class);
 
 /**
-@brief	Sets the per-stream class event context field type of the CTF
-	IR stream class \p stream_class to \p event_context_type.
+@brief	Sets the event context field type of the CTF IR stream class
+	\p stream_class to \p event_context_type, or unsets the current event
+	context field type from \p stream_class.
 
-As of Babeltrace \btversion, \p event_context_type \em must be a
-CTF IR structure field type object.
+If \p event_context_type is \c NULL, then this function unsets the current
+event context field type from \p stream_class, effectively making \p
+stream_class a stream class without a event context field type.
 
-@param[in] stream_class		Stream class of which to set the
-				per-stream class event context
-				field type.
-@param[in] event_context_type	Per-stream class event context context
-				field type.
+As of Babeltrace \btversion, if \p event_context_type is not \c NULL,
+\p event_context_type \em must be a CTF IR structure field type object.
+
+@param[in] stream_class		Stream class of which to set the packet
+				context field type.
+@param[in] event_context_type	Event context field type, or \c NULL to unset
+				the current event context field type.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{stream_class}
-@prenotnull{event_context_type}
 @prehot{stream_class}
-@preisstructft{event_context_type}
+@pre <strong>\p event_context_type, if not \c NULL</strong>, is a CTF IR
+	structure field type.
 @postrefcountsame{stream_class}
-@postsuccessrefcountinc{event_context_type}
+@post <strong>On success, if \p event_context_type is not \c NULL</strong>,
+	the reference count of \p event_context_type is incremented.
 
-@sa bt_ctf_stream_class_get_event_context_type(): Returns the per-stream
-	class event context field type of a given stream class.
+@sa bt_ctf_stream_class_get_event_context_type(): Returns the event context
+	field type of a given stream class.
 */
 extern int bt_ctf_stream_class_set_event_context_type(
 		struct bt_ctf_stream_class *stream_class,

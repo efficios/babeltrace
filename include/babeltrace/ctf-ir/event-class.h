@@ -364,42 +364,49 @@ extern int bt_ctf_event_class_set_attribute(
 @brief	Returns the context field type of the CTF IR event class
 	\p event_class.
 
-@param[in] event_class	Event class of which to get the
-			context field type.
-@returns		Context field type of \p event_class,
-			or \c NULL on error.
+@param[in] event_class	Event class of which to get the context field type.
+@returns		Context field type of \p event_class, or \c NULL if
+			\p event_class has no context field type or on error.
 
 @prenotnull{event_class}
 @postrefcountsame{event_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>, its
+	reference count is incremented.
 
-@sa bt_ctf_event_class_set_context_type(): Sets the context field
-	type of a given event class.
+@sa bt_ctf_event_class_set_context_type(): Sets the context field type of a
+	given event class.
 */
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
 		struct bt_ctf_event_class *event_class);
 
 /**
-@brief	Sets the context field type of the CTF IR event class
-	\p event_class to \p context_type.
+@brief	Sets the context field type of the CTF IR event class \p event_class to
+	\p context_type, or unsets the current context field type from
+	\p event_class.
 
-As of Babeltrace \btversion, \p context_type \em must be a
-CTF IR structure field type object.
+If \p context_type is \c NULL, then this function unsets the current context
+field type from \p event_class, effectively making \p event_class an event class
+without a context field type.
 
-@param[in] event_class	Event class of which to set the context
-			field type.
-@param[in] context_type	Context field type.
-@returns		0 on success, or a negative value on error.
+As of Babeltrace \btversion, if \p context_type is not \c NULL,
+\p context_type \em must be a CTF IR structure field type object.
+
+@param[in] event_class		Event class of which to set the context field
+				type.
+@param[in] context_type		Context field type, or \c NULL to unset the
+				current context field type.
+@returns			0 on success, or a negative value on error.
 
 @prenotnull{event_class}
-@prenotnull{context_type}
 @prehot{event_class}
-@preisstructft{context_type}
+@pre <strong>If \p context_type is not \c NULL</strong>, \p context_type is a
+	CTF IR structure field type.
 @postrefcountsame{event_class}
-@postsuccessrefcountinc{context_type}
+@post <strong>On success, if \p context_type is not \c NULL</strong>,
+	the reference count of \p context_type is incremented.
 
-@sa bt_ctf_event_class_get_context_type(): Returns the context field
-	type of a given event class.
+@sa bt_ctf_event_class_get_context_type(): Returns the context field type of a
+	given event class.
 */
 extern int bt_ctf_event_class_set_context_type(
 		struct bt_ctf_event_class *event_class,
@@ -409,42 +416,49 @@ extern int bt_ctf_event_class_set_context_type(
 @brief	Returns the payload field type of the CTF IR event class
 	\p event_class.
 
-@param[in] event_class	Event class of which to get the
-			payload field type.
-@returns		Payload field type of \p event_class,
-			or \c NULL on error.
+@param[in] event_class	Event class of which to get the payload field type.
+@returns		Payload field type of \p event_class, or \c NULL if
+			\p event_class has no payload field type or on error.
 
 @prenotnull{event_class}
 @postrefcountsame{event_class}
-@postsuccessrefcountretinc
+@post <strong>On success, if the return value is a field type</strong>, its
+	reference count is incremented.
 
-@sa bt_ctf_event_class_set_payload_type(): Sets the payload field
-	type of a given event class.
+@sa bt_ctf_event_class_set_payload_type(): Sets the payload field type of a
+	given event class.
 */
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
 		struct bt_ctf_event_class *event_class);
 
 /**
-@brief	Sets the payload field type of the CTF IR event class
-	\p event_class to \p payload_type.
+@brief	Sets the payload field type of the CTF IR event class \p event_class to
+	\p payload_type, or unsets the current payload field type from
+	\p event_class.
 
-As of Babeltrace \btversion, \p payload_type \em must be a
-CTF IR structure field type object.
+If \p payload_type is \c NULL, then this function unsets the current payload
+field type from \p event_class, effectively making \p event_class an event class
+without a payload field type.
 
-@param[in] event_class	Event class of which to set the payload
-			field type.
-@param[in] payload_type	Payload field type.
-@returns		0 on success, or a negative value on error.
+As of Babeltrace \btversion, if \p payload_type is not \c NULL,
+\p payload_type \em must be a CTF IR structure field type object.
+
+@param[in] event_class		Event class of which to set the payload field
+				type.
+@param[in] payload_type		Payload field type, or \c NULL to unset the
+				current payload field type.
+@returns			0 on success, or a negative value on error.
 
 @prenotnull{event_class}
-@prenotnull{payload_type}
 @prehot{event_class}
-@preisstructft{payload_type}
+@pre <strong>If \p payload_type is not \c NULL</strong>, \p payload_type is a
+	CTF IR structure field type.
 @postrefcountsame{event_class}
-@postsuccessrefcountinc{payload_type}
+@post <strong>On success, if \p payload_type is not \c NULL</strong>,
+	the reference count of \p payload_type is incremented.
 
-@sa bt_ctf_event_class_get_payload_type(): Returns the payload field
-	type of a given event class.
+@sa bt_ctf_event_class_get_payload_type(): Returns the payload field type of a
+	given event class.
 */
 extern int bt_ctf_event_class_set_payload_type(
 		struct bt_ctf_event_class *event_class,

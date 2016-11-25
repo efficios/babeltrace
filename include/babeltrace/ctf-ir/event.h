@@ -279,10 +279,11 @@ extern struct bt_ctf_field *bt_ctf_event_get_header(
 
 /**
 @brief	Sets the stream event header field of the CTF IR event
-	\p event to \p header.
+	\p event to \p header, or unsets the current stream event header field
+	from \p event.
 
-The field type of \p header, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
+If \p header is not \c NULL, the field type of \p header, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
 bt_ctf_stream_class_get_event_header_type() for the parent stream class
 of \p event.
 
@@ -292,13 +293,13 @@ of \p event.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
-@prenotnull{header}
 @prehot{event}
-@pre \p header has a field type equivalent to the field type returned by
-	bt_ctf_stream_class_get_event_header_type() for the parent
-	stream class of \p event.
+@pre <strong>\p header, if not \c NULL</strong>, has a field type equivalent to
+	the field type returned by bt_ctf_stream_class_get_event_header_type()
+	for the parent stream class of \p event.
 @postrefcountsame{event}
-@postsuccessrefcountinc{header}
+@post <strong>On success, if \p header is not \c NULL</strong>,
+	the reference count of \p header is incremented.
 
 @sa bt_ctf_event_get_header(): Returns the stream event header field
 	of a given event.
@@ -320,131 +321,123 @@ extern int bt_ctf_event_set_header(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_stream_event_context(): Sets the stream event
-	context field of a given event.
+@sa bt_ctf_event_set_stream_event_context(): Sets the stream event context
+	field of a given event.
 */
 extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 		struct bt_ctf_event *event);
 
 /**
 @brief	Sets the stream event context field of the CTF IR event
-	\p event to \p context.
+	\p event to \p context, or unsets the current stream event context field
+	from \p event.
 
-The field type of \p context, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
+If \p context is not \c NULL, the field type of \p context, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
 bt_ctf_stream_class_get_event_context_type() for the parent stream class
 of \p event.
 
-@param[in] event	Event of which to set the stream event context
-			field.
+@param[in] event	Event of which to set the stream event context field.
 @param[in] context	Stream event context field.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
-@prenotnull{context}
 @prehot{event}
-@pre \p context has a field type equivalent to the field type returned
-	by bt_ctf_stream_class_get_event_context_type() for the parent
-	stream class of \p event.
+@pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
+	the field type returned by bt_ctf_stream_class_get_event_context_type()
+	for the parent stream class of \p event.
 @postrefcountsame{event}
-@postsuccessrefcountinc{context}
+@post <strong>On success, if \p context is not \c NULL</strong>, the reference
+	count of \p context is incremented.
 
-@sa bt_ctf_event_get_stream_event_context(): Returns the stream event
-	context field of a given event.
+@sa bt_ctf_event_get_stream_event_context(): Returns the stream event context
+	field of a given event.
 */
 extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
 
 /**
-@brief	Returns the event context field of the CTF IR event
-	\p event.
+@brief	Returns the event context field of the CTF IR event \p event.
 
-@param[in] event	Event of which to get the event context
-			field.
-@returns                Event context field of \p event, or \c NULL if
-			the event context field is not set or on error.
+@param[in] event	Event of which to get the context field.
+@returns		Event context field of \p event, or \c NULL if the
+			event context field is not set or on error.
 
 @prenotnull{event}
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_event_context(): Sets the event context field of a
-	given event.
+@sa bt_ctf_event_set_event_context(): Sets the event context field of a given
+	event.
 */
 extern struct bt_ctf_field *bt_ctf_event_get_event_context(
 		struct bt_ctf_event *event);
 
 /**
-@brief	Sets the event context field of the CTF IR event
-	\p event to \p context.
+@brief	Sets the event context field of the CTF IR event \p event to \p context,
+	or unsets the current event context field from \p event.
 
-The field type of \p context, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
-bt_ctf_event_class_get_context_type() for the parent event class
-of \p event.
+If \p context is not \c NULL, the field type of \p context, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
+bt_ctf_event_class_get_context_type() for the parent class of \p event.
 
-@param[in] event	Event of which to set the event context field.
+@param[in] event	Event of which to set the context field.
 @param[in] context	Event context field.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
-@prenotnull{context}
 @prehot{event}
-@pre \p context has a field type equivalent to the field type returned
-	by bt_ctf_event_class_get_context_type() for the parent
-	event class of \p event.
+@pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
+	the field type returned by bt_ctf_event_class_get_context_type() for the
+	parent class of \p event.
 @postrefcountsame{event}
-@postsuccessrefcountinc{context}
+@post <strong>On success, if \p context is not \c NULL</strong>, the reference
+	count of \p context is incremented.
 
-@sa bt_ctf_event_get_event_context(): Returns the event context field of
-	a given event.
+@sa bt_ctf_event_get_context(): Returns the context field of a given event.
 */
 extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
 
 /**
-@brief	Returns the event payload field of the CTF IR event
-	\p event.
+@brief	Returns the payload field of the CTF IR event \p event.
 
-@param[in] event	Event of which to get the event payload
-			field.
-@returns                Event payload field of \p event, or \c NULL if
-			the event payload field is not set or on error.
+@param[in] event	Event of which to get the payload field.
+@returns		Payload field of \p event, or \c NULL if the payload
+			field is not set or on error.
 
 @prenotnull{event}
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_payload_field(): Sets the event payload field of a
-	given event.
+@sa bt_ctf_event_set_payload_field(): Sets the payload field of a given
+	event.
 */
 extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
 		struct bt_ctf_event *event);
 
 /**
-@brief	Sets the event payload field of the CTF IR event
-	\p event to \p payload.
+@brief	Sets the payload field of the CTF IR event \p event to \p payload,
+	or unsets the current event payload field from \p event.
 
-The field type of \p payload, as returned by bt_ctf_field_get_type(),
-\em must be equivalent to the field type returned by
-bt_ctf_event_class_get_payload_type() for the parent event class
-of \p event.
+If \p payload is not \c NULL, the field type of \p payload, as returned by
+bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
+bt_ctf_event_class_get_payload_type() for the parent class of \p event.
 
-@param[in] event	Event of which to set the event payload field.
+@param[in] event	Event of which to set the payload field.
 @param[in] payload	Event payload field.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
-@prenotnull{payload}
 @prehot{event}
-@pre \p payload has a field type equivalent to the field type returned
-	by bt_ctf_event_class_get_payload_type() for the parent
-	event class of \p event.
+@pre <strong>\p payload, if not \c NULL</strong>, has a field type equivalent to
+	the field typereturned by bt_ctf_event_class_get_payload_type() for the
+	parent class of \p event.
 @postrefcountsame{event}
-@postsuccessrefcountinc{payload}
+@post <strong>On success, if \p payload is not \c NULL</strong>, the reference
+	count of \p payload is incremented.
 
-@sa bt_ctf_event_get_payload_field(): Returns the event payload field of
-	a given event.
+@sa bt_ctf_event_get_payload(): Returns the payload field of a given event.
 */
 extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload);
