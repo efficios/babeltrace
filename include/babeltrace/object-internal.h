@@ -45,11 +45,14 @@ struct bt_object {
 };
 
 static inline
-long bt_object_get_ref_count(const void *);
-static inline
-void bt_object_set_parent(void *, void *);
+long bt_object_get_ref_count(const void *ptr)
+{
+	const struct bt_object *obj = ptr;
 
-static
+	return obj->ref_count.count;
+}
+
+static inline
 void bt_object_release(void *ptr)
 {
 	struct bt_object *obj = ptr;
@@ -59,7 +62,7 @@ void bt_object_release(void *ptr)
 	}
 }
 
-static
+static inline
 void generic_release(struct bt_object *obj)
 {
 	if (obj->parent) {
@@ -104,14 +107,6 @@ void bt_object_init(void *ptr, bt_object_release_func release)
 	obj->release = release;
 	obj->parent = NULL;
 	bt_ref_init(&obj->ref_count, generic_release);
-}
-
-static inline
-long bt_object_get_ref_count(const void *ptr)
-{
-	const struct bt_object *obj = ptr;
-
-	return obj->ref_count.count;
 }
 
 #endif /* BABELTRACE_OBJECT_INTERNAL_H */
