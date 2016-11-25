@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_NOTIFICATION_INACTIVITY_H
-#define BABELTRACE_GRAPH_NOTIFICATION_INACTIVITY_H
+#ifndef LTTNG_LIVE_DATA_STREAM_H
+#define LTTNG_LIVE_DATA_STREAM_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,22 @@
  * SOFTWARE.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <stdio.h>
+#include <glib.h>
+#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf-ir/trace.h>
 
-struct bt_notification;
-struct bt_clock_class_priority_map;
-struct bt_ctf_clock_class;
+#include "lttng-live-internal.h"
+#include "../common/notif-iter/notif-iter.h"
 
-extern struct bt_notification *bt_notification_inactivity_create(
-		struct bt_clock_class_priority_map *clock_class_priority_map);
+enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
+		struct lttng_live_session *session);
 
-extern struct bt_clock_class_priority_map *
-bt_notification_inactivity_get_clock_class_priority_map(
-		struct bt_notification *notification);
+struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
+		struct lttng_live_session *session,
+		uint64_t ctf_trace_id,
+		uint64_t stream_id);
 
-extern struct bt_ctf_clock_value *bt_notification_inactivity_get_clock_value(
-		struct bt_notification *notification,
-		struct bt_ctf_clock_class *clock_class);
+void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *stream);
 
-extern int bt_notification_inactivity_set_clock_value(
-		struct bt_notification *notification,
-		struct bt_ctf_clock_value *clock_value);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_GRAPH_NOTIFICATION_INACTIVITY_H */
+#endif /* LTTNG_LIVE_DATA_STREAM_H */

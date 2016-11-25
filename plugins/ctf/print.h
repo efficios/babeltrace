@@ -32,7 +32,7 @@
 	do {								\
 		if (PRINT_ERR_STREAM) {					\
 			fprintf(PRINT_ERR_STREAM,			\
-				"Error: " PRINT_PREFIX ": " fmt,	\
+				"[error " PRINT_PREFIX "] " fmt,	\
 				##__VA_ARGS__);				\
 		}							\
 	} while (0)
@@ -41,7 +41,7 @@
 	do {								\
 		if (PRINT_ERR_STREAM) {					\
 			fprintf(PRINT_ERR_STREAM,			\
-				"Warning: " PRINT_PREFIX ": " fmt,	\
+				"[warning " PRINT_PREFIX "] " fmt,	\
 				##__VA_ARGS__);				\
 		}							\
 	} while (0)
@@ -50,7 +50,7 @@
 	do { 								\
 		if (PRINT_DBG_CHECK) {					\
 			fprintf(stderr,					\
-				"Debug: " PRINT_PREFIX ": " fmt,	\
+				"[debug " PRINT_PREFIX "] " fmt,	\
 				##__VA_ARGS__);				\
 		}							\
 	} while (0)

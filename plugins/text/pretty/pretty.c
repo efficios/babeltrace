@@ -130,8 +130,20 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 
 	assert(pretty);
 
-	if (bt_notification_get_type(notification) == BT_NOTIFICATION_TYPE_EVENT) {
+	switch (bt_notification_get_type(notification)) {
+	case BT_NOTIFICATION_TYPE_EVENT:
 		ret = pretty_print_event(pretty, notification);
+		break;
+	case BT_NOTIFICATION_TYPE_INACTIVITY:
+		fprintf(stderr, "Inactivity notification\n");
+		break;
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		break;
+	default:
+		fprintf(stderr, "Unhandled notification type\n");
 	}
 
 	return ret;
@@ -185,9 +197,6 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	it_ret = bt_notification_iterator_next(it);
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
 		BT_PUT(pretty->input_iterator);

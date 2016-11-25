@@ -321,6 +321,11 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 			goto end;
 		}
 
+		if (strlen(buf) == 0) {
+			/* An empty metadata packet is OK. */
+			goto end;
+		}
+
 		/* Convert the real file pointer to a memory file pointer */
 		fp = bt_fmemopen(buf, strlen(buf), "rb");
 		close_fp = true;

@@ -1127,7 +1127,7 @@ int enqueue_notification_and_automatic(
 		break;
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		/* Always valid */
-		break;
+		goto handle_notif;
 	default:
 		/*
 		 * Invalid type of notification. Only the notification
@@ -1155,6 +1155,7 @@ int enqueue_notification_and_automatic(
 		goto error;
 	}
 
+handle_notif:
 	switch (notif->type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 		ret = handle_notif_event(iterator, notif, notif_stream,
@@ -1173,6 +1174,9 @@ int enqueue_notification_and_automatic(
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		ret = handle_notif_packet_end(iterator, notif, notif_stream,
 			notif_packet);
+		break;
+	case BT_NOTIFICATION_TYPE_INACTIVITY:
+		add_action_push_notif(iterator, notif);
 		break;
 	default:
 		break;

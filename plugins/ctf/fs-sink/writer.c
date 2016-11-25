@@ -217,40 +217,35 @@ enum bt_component_status writer_run(struct bt_private_component *component)
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
 		bt_private_component_get_user_data(component);
-
-	it = writer_component->input_iterator;
-	assert(it);
+	enum bt_notification_iterator_status it_ret;
 
 	if (unlikely(writer_component->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
-	if (likely(writer_component->processed_first_event)) {
-		enum bt_notification_iterator_status it_ret;
+	it = writer_component->input_iterator;
+	assert(it);
+	it_ret = bt_notification_iterator_next(it);
 
-		it_ret = bt_notification_iterator_next(it);
-		switch (it_ret) {
-			case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
-				ret = BT_COMPONENT_STATUS_ERROR;
-				goto end;
-			case BT_NOTIFICATION_ITERATOR_STATUS_END:
-				ret = BT_COMPONENT_STATUS_END;
-				BT_PUT(writer_component->input_iterator);
-				goto end;
-			default:
-				break;
-		}
-	}
-
-	notification = bt_notification_iterator_get_notification(it);
-	if (!notification) {
+	switch (it_ret) {
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		ret = BT_COMPONENT_STATUS_END;
+		BT_PUT(writer_component->input_iterator);
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		ret = BT_COMPONENT_STATUS_AGAIN;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+		break;
+	default:
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
+	notification = bt_notification_iterator_get_notification(it);
+	assert(notification);
 	ret = handle_notification(writer_component, notification);
-	writer_component->processed_first_event = true;
 end:
 	bt_put(notification);
 	return ret;

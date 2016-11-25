@@ -2386,6 +2386,10 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 
 	while (true) {
 		status = handle_state(notit);
+		if (status == BT_CTF_NOTIF_ITER_STATUS_AGAIN) {
+			PDBG("Medium operation reported \"try again later\"");
+			goto end;
+		}
 		if (status != BT_CTF_NOTIF_ITER_STATUS_OK) {
 			if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
 				PDBG("Medium operation reported end of stream\n");

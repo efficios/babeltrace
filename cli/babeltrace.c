@@ -48,6 +48,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <inttypes.h>
+#include <unistd.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
