@@ -774,6 +774,8 @@ extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace_class,
 
 /** @} */
 
+/** @} */
+
 /*
  * bt_ctf_trace_get_metadata_string: get metadata string.
  *
