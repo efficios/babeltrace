@@ -28,22 +28,22 @@ ALIASES               += postrefcountsame{1}="@post The reference count of \p \1
 ALIASES               += postsuccessfrozen{1}="@post <strong>On success</strong>, \p \1 is frozen."
 ALIASES               += prenotnull{1}="@pre \p \1 is not \c NULL."
 ALIASES               += prehot{1}="@pre \p \1 is not frozen."
-ALIASES               += preisintft{1}="@pre \p \1 is a CTF IR integer field type."
-ALIASES               += preisfloatft{1}="@pre \p \1 is a CTF IR floating point number field type."
-ALIASES               += preisenumft{1}="@pre \p \1 is a CTF IR enumeration field type."
-ALIASES               += preisstringft{1}="@pre \p \1 is a CTF IR string field type."
-ALIASES               += preisstructft{1}="@pre \p \1 is a CTF IR structure field type."
-ALIASES               += preisarrayft{1}="@pre \p \1 is a CTF IR array field type."
-ALIASES               += preisseqft{1}="@pre \p \1 is a CTF IR sequence field type."
-ALIASES               += preisvarft{1}="@pre \p \1 is a CTF IR variant field type."
-ALIASES               += preisintfield{1}="@pre \p \1 is a CTF IR integer field."
-ALIASES               += preisfloatfield{1}="@pre \p \1 is a CTF IR floating point number field."
-ALIASES               += preisenumfield{1}="@pre \p \1 is a CTF IR enumeration field."
-ALIASES               += preisstringfield{1}="@pre \p \1 is a CTF IR string field."
-ALIASES               += preisstructfield{1}="@pre \p \1 is a CTF IR structure field."
-ALIASES               += preisarrayfield{1}="@pre \p \1 is a CTF IR array field."
-ALIASES               += preisseqfield{1}="@pre \p \1 is a CTF IR sequence field."
-ALIASES               += preisvarfield{1}="@pre \p \1 is a CTF IR variant field."
+ALIASES               += preisintft{1}="@pre \p \1 is a \link ctfirintfieldtype CTF IR integer field type\endlink."
+ALIASES               += preisfloatft{1}="@pre \p \1 is a \link ctfirfloatfieldtype CTF IR floating point number field type\endlink."
+ALIASES               += preisenumft{1}="@pre \p \1 is a \link ctfirenumfieldtype CTF IR enumeration field type\endlink."
+ALIASES               += preisstringft{1}="@pre \p \1 is a \link ctfirstringfieldtype CTF IR string field type\endlink."
+ALIASES               += preisstructft{1}="@pre \p \1 is a \link ctfirstructfieldtype CTF IR structure field type\endlink."
+ALIASES               += preisarrayft{1}="@pre \p \1 is a \link ctfirarrayfieldtype CTF IR array field type\endlink."
+ALIASES               += preisseqft{1}="@pre \p \1 is a \link ctfirseqfieldtype CTF IR sequence field type\endlink."
+ALIASES               += preisvarft{1}="@pre \p \1 is a \link ctfirvarfieldtype CTF IR variant field type\endlink."
+ALIASES               += preisintfield{1}="@pre \p \1 is a \link ctfirintfield CTF IR integer field\endlink."
+ALIASES               += preisfloatfield{1}="@pre \p \1 is a \link ctfirfloatfield CTF IR floating point number field\endlink."
+ALIASES               += preisenumfield{1}="@pre \p \1 is a \link ctfirenumfield CTF IR enumeration field\endlink."
+ALIASES               += preisstringfield{1}="@pre \p \1 is a \link ctfirstringfield CTF IR string field\endlink."
+ALIASES               += preisstructfield{1}="@pre \p \1 is a \link ctfirstructfield CTF IR structure field\endlink."
+ALIASES               += preisarrayfield{1}="@pre \p \1 is a \link ctfirarrayfield CTF IR array field\endlink."
+ALIASES               += preisseqfield{1}="@pre \p \1 is a \link ctfirseqfield CTF IR sequence field\endlink."
+ALIASES               += preisvarfield{1}="@pre \p \1 is a \link ctfirvarfield CTF IR variant field\endlink."
 ALIASES               += imgpacketstructure="@image html ctf-stream-packet.png \"Structure of a CTF packet.\""
 ALIASES               += imgtracestructure="@image html ctf-trace.png \"Structure of a CTF trace.\""
 OPTIMIZE_OUTPUT_FOR_C  = YES
@@ -76,7 +76,7 @@ SHOW_GROUPED_MEMB_INC  = NO
 FORCE_LOCAL_INCLUDES   = NO
 INLINE_INFO            = YES
 SORT_MEMBER_DOCS       = NO
-SORT_BRIEF_DOCS        = YES
+SORT_BRIEF_DOCS        = NO
 SORT_MEMBERS_CTORS_1ST = NO
 SORT_GROUP_NAMES       = NO
 SORT_BY_SCOPE_NAME     = NO
@@ -91,7 +91,7 @@ SHOW_USED_FILES        = YES
 SHOW_FILES             = YES
 SHOW_NAMESPACES        = NO
 FILE_VERSION_FILTER    =
-LAYOUT_FILE            =
+LAYOUT_FILE            = "@srcdir@/DoxygenLayout.xml"
 CITE_BIB_FILES         =
 
 QUIET                  = NO
@@ -103,9 +103,15 @@ WARN_AS_ERROR          = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           =
 
-INPUT                  = "@top_srcdir@/include" \
+INPUT                  = "@top_srcdir@/include/babeltrace/ctf-ir" \
+                         "@top_srcdir@/include/babeltrace/component" \
+                         "@top_srcdir@/include/babeltrace/plugin" \
+                         "@top_srcdir@/include/babeltrace/ref.h" \
+                         "@top_srcdir@/include/babeltrace/values.h" \
                          "@srcdir@/dox/main-page.dox" \
-                         "@srcdir@/dox/quick-start.dox" \
+                         "@srcdir@/dox/write-plugin.dox" \
+                         "@srcdir@/dox/use-ctf-writer.dox" \
+                         "@srcdir@/dox/examples.dox" \
                          "@srcdir@/dox/group-api-ref.dox" \
                          "@srcdir@/dox/group-ctf-ir.dox"
 INPUT_ENCODING         = UTF-8
@@ -113,7 +119,7 @@ FILE_PATTERNS          = *.h \
                          *.hh \
                          *.hpp \
                          *.dox
-RECURSIVE              = YES
+RECURSIVE              = NO
 EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = *-internal.h
