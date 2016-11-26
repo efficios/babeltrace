@@ -143,7 +143,8 @@ to use for each value object type:
   </tr>
   <tr>
     <th>Map
-    <td>bt_value_map_create()
+    <td>bt_value_map_create()<br>
+        bt_value_map_extend()
     <td>bt_value_is_map()
     <td>bt_value_map_get()<br>
         bt_value_map_foreach()
@@ -427,7 +428,7 @@ Freezing a value object is typically used to make it immutable after
 it's built by its initial owner.
 
 @param[in] object	Value object to freeze.
-@returns		One of #bt_value_status values. If \p object
+@returns		Status code. If \p object
  			is already frozen, however, #BT_VALUE_STATUS_OK
  			is returned anyway (that is, this function never
  			returns #BT_VALUE_STATUS_FROZEN).
@@ -466,7 +467,6 @@ You can copy a frozen value object: the resulting copy is
 @prenotnull{object}
 @post <strong>On success, if the returned value object is not
 	\ref bt_value_null</strong>, its reference count is 1.
-
 @postrefcountsame{object}
 */
 extern struct bt_value *bt_value_copy(const struct bt_value *object);
@@ -531,7 +531,7 @@ extern struct bt_value *bt_value_bool_create_init(bool val);
 @param[in] bool_obj	Boolean value object of which to get the
 			raw value.
 @param[out] val		Returned boolean raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{bool_obj}
 @prenotnull{val}
@@ -550,7 +550,7 @@ extern enum bt_value_status bt_value_bool_get(
 @param[in] bool_obj	Boolean value object of which to set
 			the raw value.
 @param[in] val		New boolean raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{bool_obj}
 @pre \p bool_obj is a boolean value object.
@@ -607,7 +607,7 @@ extern struct bt_value *bt_value_integer_create_init(int64_t val);
 @param[in] integer_obj	Integer value object of which to get the
 			raw value.
 @param[out] val		Returned integer raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{integer_obj}
 @prenotnull{val}
@@ -627,7 +627,7 @@ extern enum bt_value_status bt_value_integer_get(
 @param[in] integer_obj	Integer value object of which to set
 			the raw value.
 @param[in] val		New integer raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{integer_obj}
 @pre \p integer_obj is an integer value object.
@@ -684,7 +684,7 @@ extern struct bt_value *bt_value_float_create_init(double val);
 @param[in] float_obj	Floating point number value object of which to
 			get the raw value.
 @param[out] val		Returned floating point number raw value
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{float_obj}
 @prenotnull{val}
@@ -704,7 +704,7 @@ extern enum bt_value_status bt_value_float_get(
 @param[in] float_obj	Floating point number value object of which to set
 			the raw value.
 @param[in] val		New floating point number raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{float_obj}
 @pre \p float_obj is a floating point number value object.
@@ -767,7 +767,7 @@ returned string is \em not transferred to the caller.
 @param[in] string_obj	String value object of which to get the
 			raw value.
 @param[out] val		Returned string raw value.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{string_obj}
 @prenotnull{val}
@@ -789,7 +789,7 @@ On success, \p val is copied.
 @param[in] string_obj	String value object of which to set
 			the raw value.
 @param[in] val		New string raw value (copied on success).
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{string_obj}
 @prenotnull{val}
@@ -868,7 +868,8 @@ extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
-@pre \p index is lesser than the size of \p array_obj.
+@pre \p index is lesser than the size of \p array_obj (see
+	bt_value_array_size()).
 @post <strong>On success, if the returned value object is not
 	\ref bt_value_null</strong>, its reference count is incremented.
 @postrefcountsame{array_obj}
@@ -883,7 +884,7 @@ extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 @param[in] array_obj	Array value object in which to append
 			\p element_obj.
 @param[in] element_obj	Value object to append.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @prenotnull{element_obj}
@@ -918,7 +919,7 @@ value object before appending it.
 
 @param[in] array_obj	Array value object in which to append \p val.
 @param[in] val		Boolean raw value to append to \p array_obj.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -940,7 +941,7 @@ value object before appending it.
 
 @param[in] array_obj	Array value object in which to append \p val.
 @param[in] val		Integer raw value to append to \p array_obj.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -963,7 +964,7 @@ point number value object before appending it.
 @param[in] array_obj	Array value object in which to append \p val.
 @param[in] val		Floating point number raw value to append
 			to \p array_obj.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -988,7 +989,7 @@ On success, \p val is copied.
 @param[in] array_obj	Array value object in which to append \p val.
 @param[in] val		String raw value to append to \p array_obj
 			(copied on success).
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -1011,7 +1012,7 @@ object before appending it.
 
 @param[in] array_obj	Array value object in which to append an
 			empty array value object
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -1033,7 +1034,7 @@ object before appending it.
 
 @param[in] array_obj	Array value object in which to append an empty
 			map value object.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -1056,12 +1057,13 @@ extern enum bt_value_status bt_value_array_append_empty_map(
 				\p array_obj.
 @param[in] element_obj		New value object at position \p index of
 				\p array_obj.
-@returns			One of #bt_value_status values.
+@returns			Status code.
 
 @prenotnull{array_obj}
 @prenotnull{element_obj}
 @pre \p array_obj is an array value object.
-@pre \p index is lesser than the size of \p array_obj.
+@pre \p index is lesser than the size of \p array_obj (see
+	bt_value_array_size()).
 @prehot{array_obj}
 @post <strong>On success, if the replaced value object is not
 	\ref bt_value_null</strong>, its reference count is decremented.
@@ -1134,7 +1136,6 @@ extern bool bt_value_map_is_empty(const struct bt_value *map_obj);
 @prenotnull{key}
 @pre \p map_obj is a map value object.
 @postrefcountsame{map_obj}
-
 @post <strong>On success, if the returned value object is not
 	\ref bt_value_null</strong>, its reference count is incremented.
 */
@@ -1179,7 +1180,7 @@ The user function \em must return \c true to continue the traversal of
 @param[in] map_obj	Map value object on which to iterate.
 @param[in] cb		User function to call back.
 @param[in] data		User data passed to the user function.
-@returns		One of #bt_value_status values. More
+@returns		Status code. More
 			specifically, #BT_VALUE_STATUS_CANCELLED is
 			returned if the loop was cancelled by the user
 			function.
@@ -1227,7 +1228,7 @@ On success, \p key is copied.
 			value object to insert is mapped.
 @param[in] element_obj	Value object to insert, mapped to the
 			key \p key.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1269,7 +1270,7 @@ On success, \p key is copied.
 			value object to insert is mapped.
 @param[in] val		Boolean raw value to insert, mapped to
 			the key \p key.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1297,7 +1298,7 @@ On success, \p key is copied.
 			value object to insert is mapped.
 @param[in] val		Integer raw value to insert, mapped to
 			the key \p key.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1325,7 +1326,7 @@ On success, \p key is copied.
 			point number value object to insert is mapped.
 @param[in] val		Floating point number raw value to insert,
 			mapped to the key \p key.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1353,7 +1354,7 @@ On success, \p val and \p key are copied.
 			value object to insert is mapped.
 @param[in] val		String raw value to insert (copied on success),
 			mapped to the key \p key.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1381,7 +1382,7 @@ On success, \p key is copied.
 			array value object.
 @param[in] key		Key (copied on success) to which the empty array
 			value object to insert is mapped.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1408,7 +1409,7 @@ On success, \p key is copied.
 			map object.
 @param[in] key		Key (copied on success) to which the empty map
 			value object to insert is mapped.
-@returns		One of #bt_value_status values.
+@returns		Status code.
 
 @prenotnull{map_obj}
 @prenotnull{key}
@@ -1435,28 +1436,28 @@ value objects.
 
 For example, consider the following \p base_map_obj (JSON representation):
 
-@code{.unparsed}
+@verbatim
 {
   "hello": 23,
   "code": -17,
   "em": false,
   "return": [5, 6, null]
 }
-@endcode
+@endverbatim
 
 and the following \p extension_map_obj (JSON representation):
 
-@code{.unparsed}
+@verbatim
 {
   "comma": ",",
   "code": 22,
   "return": 17.88
 }
-@endcode
+@endverbatim
 
 The extended object is (JSON representation):
 
-@code{.unparsed}
+@verbatim
 {
   "hello": 23,
   "code": 22,
@@ -1464,7 +1465,7 @@ The extended object is (JSON representation):
   "return": 17.88,
   "comma": ","
 }
-@endcode
+@endverbatim
 
 @param[in] base_map_obj		Base map value object with initial
 				entries.
