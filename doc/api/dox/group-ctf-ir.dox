@@ -4,9 +4,16 @@
 @brief Common Trace Format Intermediate Representation.
 
 The <em>Common Trace Format Intermediate Representation</em>,
-or <strong><em>CTF IR</em></strong>, is a set of objects which are
-analogous to the model of the <a href="http://diamon.org/ctf">CTF</a>
-specification.
+or <strong><em>CTF IR</em></strong>, is the representation of the
+<a href="http://diamon.org/ctf">CTF</a> model within Babeltrace.
 
-TODO: add more stuff
+As with any Babeltrace object, all the CTF IR objects have
+<a href="https://en.wikipedia.org/wiki/Reference_counting">reference
+counts</a>. See \ref refs to learn more about the reference counting
+management of Babeltrace objects.
+
+When the documentation says that a given
+\link ctfirfieldtypes CTF IR field type\endlink must be
+<em>equivalent to</em> another one, it means that
+bt_ctf_field_type_compare() \em must return 0.
 */

@@ -2,5 +2,29 @@
 @defgroup apiref API reference
 @brief Babeltrace C API reference.
 
-lol lol
+This module and its submodules accurately document the C API of the
+Babeltrace library (v\btversion). See the \ref writeplugin and
+\ref usectfwriter pages for official, procedural user guides to help
+you get started with this API. See \ref examples for informal examples.
+
+The API is divided into the following modules:
+
+- \ref refs contains the macros and functions that you can use
+  to manage the reference count of Babeltrace objects.
+- \ref values is a set of generic value objects which are used at
+  various locations of the API.
+- \ref ctfir is an internal representation of the
+  <a href="http://diamon.org/ctf/">CTF</a> model which Babeltrace
+  uses as a common foundation between trace formats.
+- \ref btcomponents is the Babeltrace component API. A component is an
+  instance of a specific component class within a trace conversion
+  graph of connected iterators.
+- \ref ctfwriter is an API to write concrete CTF traces to the
+  file system.
+
+All the functions and macros documented here indicate their
+\em preconditions and \em postconditions. Unless there is an
+unexpected error (out of memory, resource not available, bug, etc.),
+if you honor the preconditions when you call a function, you are
+guaranteed that this function in turn honors the postconditions.
 */
