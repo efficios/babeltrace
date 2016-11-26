@@ -63,7 +63,7 @@ A trace class has the following properties:
 
 - A \b name.
 - A <strong>default byte order</strong>: all the
-  \link ctfirfieldtype field types\endlink eventually part of the trace
+  \link ctfirfieldtypes field types\endlink eventually part of the trace
   class with a byte order set to #BT_CTF_BYTE_ORDER_NATIVE have this
   "real" byte order.
 - An \b environment, which is a custom key-value mapping. Keys are
