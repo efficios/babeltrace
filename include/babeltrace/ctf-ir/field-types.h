@@ -46,9 +46,9 @@ extern "C" {
 @endcode
 
 A CTF IR <strong><em>field type</em></strong> is a field type that you
-can use to create concrete \link ctfirfields CTF IR fields\endlink.
+can use to create concrete @fields.
 
-You can create a CTF IR field object from a CTF IR field type object
+You can create a @field object from a CTF IR field type object
 with bt_ctf_field_create().
 
 In the CTF IR hierarchy, you can set the root field types of three
@@ -68,12 +68,12 @@ objects:
   - Event payload field type: bt_ctf_event_class_set_payload_type().
 
 As of Babeltrace \btversion, those six previous "root" field types
-\em must be structure field types.
+\em must be @structft objects.
 
-If, at any level within a given root field type, you add a sequence or a
-variant field type, you do not need to specify its associated length
+If, at any level within a given root field type, you add a @seqft or a
+@varft, you do not need to specify its associated length
 or tag field type: the length or tag string is enough for the Babeltrace
-system to resolve the appropriate field type depending on where this
+system to resolve the needed field type depending on where this
 dynamic field type is located within the whole hierarchy. It is
 guaranteed that this automatic resolving is performed for all the field
 types contained in a given
@@ -267,7 +267,7 @@ enum bt_ctf_scope {
 */
 
 /**
-@brief	Type ID of a CTF IR field type.
+@brief	Type ID of a @ft.
 */
 enum bt_ctf_type_id {
 	/// Unknown, used for errors.
@@ -306,7 +306,7 @@ enum bt_ctf_type_id {
 };
 
 /**
-@brief	Returns the type ID of the CTF IR field type \p field_type.
+@brief	Returns the type ID of the @ft \p field_type.
 
 @param[in] field_type	Field type of which to get the type ID.
 @returns		Type ID of \p field_type,
@@ -317,28 +317,27 @@ enum bt_ctf_type_id {
 
 @sa #bt_ctf_type_id: CTF IR field type ID.
 @sa bt_ctf_field_type_is_integer(): Returns whether or not a given
-	field type is an integer field type.
+	field type is a @intft.
 @sa bt_ctf_field_type_is_floating_point(): Returns whether or not a
-	given field type is a floating point number field type.
+	given field type is a @floatft.
 @sa bt_ctf_field_type_is_enumeration(): Returns whether or not a given
-	field type is an enumeration field type.
+	field type is a @enumft.
 @sa bt_ctf_field_type_is_string(): Returns whether or not a given
-	field type is a string field type.
+	field type is a @stringft.
 @sa bt_ctf_field_type_is_structure(): Returns whether or not a given
-	field type is a structure field type.
+	field type is a @structft.
 @sa bt_ctf_field_type_is_array(): Returns whether or not a given
-	field type is an array field type.
+	field type is a @arrayft.
 @sa bt_ctf_field_type_is_sequence(): Returns whether or not a given
-	field type is a sequence field type.
+	field type is a @seqft.
 @sa bt_ctf_field_type_is_variant(): Returns whether or not a given
-	field type is a variant field type.
+	field type is a @varft.
 */
 extern enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	an integer field type.
+@brief	Returns whether or not the @ft \p field_type is a @intft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is an integer field type,
@@ -354,8 +353,7 @@ extern enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
 extern int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	a floating point number field type.
+@brief	Returns whether or not the @ft \p field_type is a @floatft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is a floating point
@@ -371,8 +369,7 @@ extern int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *field_type);
 extern int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	an enumeration field type.
+@brief	Returns whether or not the @ft \p field_type is a @enumft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is an enumeration field type,
@@ -387,8 +384,7 @@ extern int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *field_t
 extern int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	a string field type.
+@brief	Returns whether or not the @ft \p field_type is a @stringft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is a string field type,
@@ -403,8 +399,7 @@ extern int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *field_type
 extern int bt_ctf_field_type_is_string(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	a structure field type.
+@brief	Returns whether or not the @ft \p field_type is a @structft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is a structure field type,
@@ -419,8 +414,7 @@ extern int bt_ctf_field_type_is_string(struct bt_ctf_field_type *field_type);
 extern int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	an array field type.
+@brief	Returns whether or not the @ft \p field_type is a @arrayft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is an array field type,
@@ -435,8 +429,7 @@ extern int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *field_type);
 extern int bt_ctf_field_type_is_array(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	a sequence field type.
+@brief	Returns whether or not the @ft \p field_type is a @seqft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is a sequence field type,
@@ -451,8 +444,7 @@ extern int bt_ctf_field_type_is_array(struct bt_ctf_field_type *field_type);
 extern int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *field_type);
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type is
-	a variant field type.
+@brief	Returns whether or not the @ft \p field_type is a @varft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
 @returns		1 if \p field_type is a variant field type,
@@ -475,7 +467,7 @@ extern int bt_ctf_field_type_is_variant(struct bt_ctf_field_type *field_type);
 
 /**
 @brief	<a href="https://en.wikipedia.org/wiki/Endianness">Byte order</a>
-	of a CTF IR field type.
+	of a @ft.
 */
 enum bt_ctf_byte_order {
 	/// Unknown, used for errors.
@@ -500,7 +492,7 @@ enum bt_ctf_byte_order {
 };
 
 /**
-@brief	String encoding of a CTF IR field type.
+@brief	String encoding of a @ft.
 */
 enum bt_ctf_string_encoding {
 	/// Unknown, used for errors.
@@ -517,8 +509,8 @@ enum bt_ctf_string_encoding {
 };
 
 /**
-@brief  Returns the alignment of the CTF IR fields described by
-	the CTF IR field type \p field_type.
+@brief  Returns the alignment of the @fields described by
+	the @ft \p field_type.
 
 @param[in] field_type	Field type which describes the
 			fields of which to get the alignment.
@@ -535,8 +527,8 @@ extern int bt_ctf_field_type_get_alignment(
 		struct bt_ctf_field_type *field_type);
 
 /**
-@brief  Sets the alignment of the CTF IR fields described by the
-	CTF IR field type \p field_type to \p alignment.
+@brief  Sets the alignment of the @fields described by the
+	@ft \p field_type to \p alignment.
 
 \p alignment \em must be greater than 0 and a power of two.
 
@@ -558,13 +550,11 @@ extern int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *field_type,
 		unsigned int alignment);
 
 /**
-@brief  Returns the byte order of the CTF IR fields described by
-	the CTF IR field type \p field_type.
+@brief  Returns the byte order of the @fields described by
+	the @ft \p field_type.
 
-You can only call this function if \p field_type is a
-\link ctfirintfieldtype CTF IR integer field type\endlink,
-a \link ctfirfloatfieldtype CTF IR floating point number field type\endlink,
-or a \link ctfirenumfieldtype CTF IR enumeration field type\endlink.
+You can only call this function if \p field_type is a @intft, a
+@floatft, or a @enumft.
 
 @param[in] field_type	Field type which describes the
 			fields of which to get the byte order.
@@ -573,8 +563,7 @@ or a \link ctfirenumfieldtype CTF IR enumeration field type\endlink.
 			error.
 
 @prenotnull{field_type}
-@pre \p field_type is an integer field type, a floating point number
-	field type, or an enumeration field type.
+@pre \p field_type is a @intft, a @floatft, or a @enumft.
 @postrefcountsame{field_type}
 
 @sa bt_ctf_field_type_set_byte_order(): Sets the byte order
@@ -584,8 +573,8 @@ extern enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
 		struct bt_ctf_field_type *field_type);
 
 /**
-@brief  Sets the byte order of the CTF IR fields described by the
-	CTF IR field type \p field_type to \p byte_order.
+@brief  Sets the byte order of the @fields described by the
+	@ft \p field_type to \p byte_order.
 
 If \p field_type is a compound field type, this function also
 recursively sets the byte order of its children to \p byte_order.
@@ -601,7 +590,7 @@ recursively sets the byte order of its children to \p byte_order.
 @pre \p byte_order is #BT_CTF_BYTE_ORDER_NATIVE,
 	#BT_CTF_BYTE_ORDER_LITTLE_ENDIAN, #BT_CTF_BYTE_ORDER_BIG_ENDIAN,
 	or #BT_CTF_BYTE_ORDER_NETWORK.
-@postrefcountsame{field_type}F
+@postrefcountsame{field_type}
 
 @sa bt_ctf_field_type_get_byte_order(): Returns the byte order of the
 	fields described by a given field type.
@@ -618,7 +607,7 @@ extern int bt_ctf_field_type_set_byte_order(
 */
 
 /**
-@brief	Returns whether or not the CTF IR field type \p field_type_a
+@brief	Returns whether or not the @ft \p field_type_a
 	is equivalent to the field type \p field_type_b.
 
 You \em must use this function to compare two field types: it is not
@@ -641,13 +630,12 @@ extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *field_type_a,
 		struct bt_ctf_field_type *field_type_b);
 
 /**
-@brief	Creates a \em deep copy of the CTF IR field type \p field_type.
+@brief	Creates a \em deep copy of the @ft \p field_type.
 
 You can copy a frozen field type: the resulting copy is
 <em>not frozen</em>.
 
-This function resets the tag field type of the copied
-\link ctfirvarfieldtype CTF IR variant field types\endlink. The
+This function resets the tag field type of a copied @varft. The
 automatic field resolving which some functions of the API perform
 can set it again when the returned field type is used (learn more
 in the detailed description of this module).
@@ -677,8 +665,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_copy(
 @endcode
 
 A CTF IR <strong><em>integer field type</em></strong> is a field type that
-you can use to create concrete
-\link ctfirintfield CTF IR integer fields\endlink.
+you can use to create concrete @intfield objects.
 
 You can create an integer field type
 with bt_ctf_field_type_integer_create().
@@ -747,8 +734,7 @@ An integer field type has the following properties:
 */
 
 /**
-@brief	Preferred display base (radix) of a
-	\link ctfirintfieldtype CTF IR integer field type\endlink.
+@brief	Preferred display base (radix) of a @intft.
 */
 enum bt_ctf_integer_base {
 	/// Unknown, used for errors.
@@ -768,8 +754,8 @@ enum bt_ctf_integer_base {
 };
 
 /**
-@brief	Creates a default CTF IR integer field type with \p size bits
-	as the storage size of the CTF IR integer fields it describes.
+@brief  Creates a default @intft with \p size bits as the storage size
+	of the @intfields it describes.
 
 @param[in] size	Storage size (bits) of the described integer fields.
 @returns	Created integer field type, or \c NULL on error.
@@ -781,8 +767,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_integer_create(
 		unsigned int size);
 
 /**
-@brief	Returns the storage size, in bits, of the CTF IR integer fields
-	described by the CTF IR integer field type \p int_field_type.
+@brief	Returns the storage size, in bits, of the @intfields
+	described by the @intft \p int_field_type.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to get the
@@ -799,9 +785,8 @@ extern int bt_ctf_field_type_integer_get_size(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief	Returns whether or not the CTF IR integer fields
-	described by the CTF IR integer field type \p int_field_type
-	are signed.
+@brief  Returns whether or not the @intfields described by the @intft
+	\p int_field_type are signed.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to get the
@@ -822,8 +807,8 @@ extern int bt_ctf_field_type_integer_get_signed(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief	Sets whether or not the CTF IR integer fields described by
-	the CTF IR integer field type \p int_field_type are signed.
+@brief	Sets whether or not the @intfields described by
+	the @intft \p int_field_type are signed.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to set the
@@ -846,9 +831,8 @@ extern int bt_ctf_field_type_integer_set_signed(
 		struct bt_ctf_field_type *int_field_type, int is_signed);
 
 /**
-@brief  Returns the preferred display base (radix) of the CTF IR integer
-	fields described by the CTF IR integer field type
-	\p int_field_type.
+@brief  Returns the preferred display base (radix) of the @intfields
+	described by the @intft \p int_field_type.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to get the
@@ -870,9 +854,8 @@ extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief  Sets the preferred display base (radix) of the CTF IR integer
-	fields described by the CTF IR integer field type
-	\p int_field_type to \p base.
+@brief  Sets the preferred display base (radix) of the @intfields
+	described by the @intft \p int_field_type to \p base.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to set the
@@ -898,8 +881,8 @@ extern int bt_ctf_field_type_integer_set_base(
 		enum bt_ctf_integer_base base);
 
 /**
-@brief  Returns the encoding of the CTF IR integer fields described by
-	the CTF IR integer field type \p int_field_type.
+@brief  Returns the encoding of the @intfields described by
+	the @intft \p int_field_type.
 
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to get the
@@ -920,13 +903,11 @@ extern enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief	Sets the encoding of the CTF IR integer fields
-	described by the CTF IR integer field type \p int_field_type
-	to \p encoding.
+@brief  Sets the encoding of the @intfields described by the @intft
+	\p int_field_type to \p encoding.
 
-You can use this property, in CTF IR, to create "text" array or sequence
-field types. A text array field type is an
-\link ctfirarrayfieldtype array field type\endlink with an unsigned,
+You can use this property, in CTF IR, to create "text" @arrayfts or
+@seqfts. A text array field type is array field type with an unsigned,
 8-bit integer field type having an encoding as its element field type.
 
 @param[in] int_field_type	Integer field type which describes the
@@ -952,11 +933,11 @@ extern int bt_ctf_field_type_integer_set_encoding(
 		enum bt_ctf_string_encoding encoding);
 
 /**
-@brief  Returns the CTF IR clock class mapped to the CTF IR integer
-	field type \p int_field_type.
+@brief  Returns the \link ctfirclockclass CTF IR clock class\endlink
+	mapped to the @intft \p int_field_type.
 
 The mapped clock class, if any, indicates the class of the clock which
-an integer field described by \p int_field_type should sample or update.
+an @intfield described by \p int_field_type should sample or update.
 This mapped clock class is only indicative.
 
 @param[in] int_field_type	Integer field type of which to get the
@@ -977,8 +958,8 @@ extern struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief	Sets the CTF IR clock class mapped to the CTF IR integer field
-	type \p int_field_type to \p mapped_clock.
+@brief	Sets the \link ctfirclockclass CTF IR clock class\endlink mapped
+	to the @intft \p int_field_type to \p mapped_clock.
 
 The mapped clock class, if any, indicates the class of the clock which
 an integer field described by \p int_field_type should sample or update.
@@ -1015,8 +996,7 @@ extern int bt_ctf_field_type_integer_set_mapped_clock(
 @endcode
 
 A CTF IR <strong><em>floating point number field type</em></strong> is
-a field type that you can use to create concrete
-\link ctfirfloatfield CTF IR floating point number fields\endlink.
+a field type that you can use to create concrete @floatfields.
 
 You can create a floating point number field type
 with bt_ctf_field_type_floating_point_create().
@@ -1068,7 +1048,7 @@ A floating point number field type has the following properties:
 */
 
 /**
-@brief	Creates a default CTF IR floating point number field type.
+@brief	Creates a default @floatft.
 
 @returns	Created floating point number field type,
 		or \c NULL on error.
@@ -1078,9 +1058,8 @@ A floating point number field type has the following properties:
 extern struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
 
 /**
-@brief  Returns the exponent storage size of the CTF IR floating point
-	number fields described by the CTF IR floating point number
-	field type \p float_field_type.
+@brief  Returns the exponent storage size of the @floatfields
+	described by the @floatft \p float_field_type.
 
 @param[in] float_field_type	Floating point number field type which
 				describes the floating point number
@@ -1103,9 +1082,8 @@ extern int bt_ctf_field_type_floating_point_get_exponent_digits(
 		struct bt_ctf_field_type *float_field_type);
 
 /**
-@brief	Sets the exponent storage size of the CTF IR floating point
-	number fields described by the CTF IR floating point number
-	field type \p float_field_type to \p exponent_size.
+@brief  Sets the exponent storage size of the @floatfields described by
+	the @floatft \p float_field_type to \p exponent_size.
 
 As of Babeltrace \btversion, \p exponent_size can only be 8 or 11.
 
@@ -1133,9 +1111,8 @@ extern int bt_ctf_field_type_floating_point_set_exponent_digits(
 		unsigned int exponent_size);
 
 /**
-@brief  Returns the mantissa and sign storage size of the CTF IR
-	floating point number fields described by the CTF IR floating
-	point number field type \p float_field_type.
+@brief  Returns the mantissa and sign storage size of the @floatfields
+	described by the @floatft \p float_field_type.
 
 On success, the returned value is the sum of the mantissa \em and
 sign storage sizes.
@@ -1161,9 +1138,9 @@ extern int bt_ctf_field_type_floating_point_get_mantissa_digits(
 		struct bt_ctf_field_type *float_field_type);
 
 /**
-@brief  Sets the mantissa and sign storage size of the CTF IR floating
-	point number fields described by the CTF IR floating point
-	number field type \p float_field_type to \p mantissa_sign_size.
+@brief  Sets the mantissa and sign storage size of the @floatfields
+	described by the @floatft \p float_field_type to \p
+	mantissa_sign_size.
 
 As of Babeltrace \btversion, \p mantissa_sign_size can only be 24 or 53.
 
@@ -1202,15 +1179,13 @@ extern int bt_ctf_field_type_floating_point_set_mantissa_digits(
 @endcode
 
 A CTF IR <strong><em>enumeration field type</em></strong> is
-a field type that you can use to create concrete
-\link ctfirenumfield CTF IR enumeration fields\endlink.
+a field type that you can use to create concrete @enumfields.
 
-You can create an enumeration field type
-with bt_ctf_field_type_enumeration_create(). This function needs
-a \link ctfirintfieldtype CTF IR integer field type\endlink which
-represents the storage field type of the created enumeration field type.
-In other words, an enumeration field type wraps an integer field type
-and adds label-value mappings to it.
+You can create an enumeration field type with
+bt_ctf_field_type_enumeration_create(). This function needs a @intft
+which represents the storage field type of the created enumeration field
+type. In other words, an enumeration field type wraps an integer field
+type and adds label-value mappings to it.
 
 An enumeration mapping has:
 
@@ -1221,7 +1196,7 @@ An enumeration mapping has:
 You can add a mapping to an enumeration field type with
 bt_ctf_field_type_enumeration_add_mapping() or
 bt_ctf_field_type_enumeration_add_mapping_unsigned(), depending on the
-signedness of the wrapped integer field type.
+signedness of the wrapped @intft.
 
 Many mappings can share the same name, but the ranges of a given
 enumeration field type <strong>must not overlap</strong>. For example,
@@ -1254,9 +1229,7 @@ the \c CHERRY mapping.
 */
 
 /**
-@brief	Creates a default CTF IR enumeration field type wrapping the
-	\link ctfirintfieldtype CTF IR integer field type\endlink
-	\p int_field_type.
+@brief	Creates a default @enumft wrapping the @intft \p int_field_type.
 
 @param[in] int_field_type	Integer field type wrapped by the
 				created enumeration field type.
@@ -1272,9 +1245,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
-@brief	Returns the
-	\link ctfirintfieldtype CTF IR integer field type\endlink
-	wrapped by the CTF IR enumeration field type \p enum_field_type.
+@brief  Returns the @intft wrapped by the @enumft \p enum_field_type.
 
 @param[in] enum_field_type	Enumeration field type of which to get
 				the wrapped integer field type.
@@ -1292,8 +1263,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 		struct bt_ctf_field_type *enum_field_type);
 
 /**
-@brief	Returns the number of mappings contained in the
-	CTF IR enumeration field type \p enum_field_type.
+@brief  Returns the number of mappings contained in the
+	@enumft \p enum_field_type.
 
 @param[in] enum_field_type	Enumeration field type of which to get
 				the number of contained mappings.
@@ -1309,13 +1280,12 @@ extern int bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enum_field_type);
 
 /**
-@brief	Returns the signed mapping of the CTF IR enumeration field type
+@brief	Returns the signed mapping of the @enumft
 	\p enum_field_type at index \p index.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
-\b signed to use this function.
+The @intft wrapped by \p enum_field_type, as returned by
+bt_ctf_field_type_enumeration_get_container_type(), must be \b signed
+to use this function.
 
 On success, \p enum_field_type remains the sole owner of \p *name.
 
@@ -1337,7 +1307,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 @prenotnull{range_begin}
 @prenotnull{range_end}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is signed.
+@pre The wrapped @intft of \p enum_field_type is signed.
 @pre \p index is lesser than the number of mappings contained in the
 	enumeration field type \p enum_field_type (see
 	bt_ctf_field_type_enumeration_get_mapping_count()).
@@ -1352,11 +1322,10 @@ extern int bt_ctf_field_type_enumeration_get_mapping(
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
 /**
-@brief  Returns the unsigned mapping of the CTF IR enumeration field
-	type \p enum_field_type at index \p index.
+@brief  Returns the unsigned mapping of the @enumft
+	\p enum_field_type at index \p index.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
+The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
@@ -1380,7 +1349,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 @prenotnull{range_begin}
 @prenotnull{range_end}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is unsigned.
+@pre The wrapped @intft of \p enum_field_type is unsigned.
 @pre \p index is lesser than the number of mappings contained in the
 	enumeration field type \p enum_field_type (see
 	bt_ctf_field_type_enumeration_get_mapping_count()).
@@ -1405,12 +1374,10 @@ extern int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
 /** @endcond */
 
 /**
-@brief  Returns the index of the signed mapping of the CTF IR
-	enumeration field type \p field_type which contains the
-	value \p value.
+@brief  Returns the index of the signed mapping of the @enumft
+	\p field_type which contains the value \p value.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
+The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b signed to use this function.
 
@@ -1426,7 +1393,7 @@ bt_ctf_field_type_enumeration_get_container_type(), must be
 
 @prenotnull{enum_field_type}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is signed.
+@pre The wrapped @intft of \p enum_field_type is signed.
 @postrefcountsame{enum_field_type}
 
 @sa bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value():
@@ -1437,12 +1404,10 @@ extern int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
 		struct bt_ctf_field_type *enum_field_type, int64_t value);
 
 /**
-@brief  Returns the index of the unsigned mapping of the CTF IR
-	enumeration field type \p field_type which contains the
-	value \p value.
+@brief  Returns the index of the unsigned mapping of the @enumft
+	\p field_type which contains the value \p value.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
+The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
@@ -1458,7 +1423,7 @@ bt_ctf_field_type_enumeration_get_container_type(), must be
 
 @prenotnull{enum_field_type}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is unsigned.
+@pre The wrapped @intft of \p enum_field_type is unsigned.
 @postrefcountsame{enum_field_type}
 
 @sa bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value():
@@ -1469,15 +1434,14 @@ extern int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
 		struct bt_ctf_field_type *enum_field_type, uint64_t value);
 
 /**
-@brief	Adds a mapping to the CTF IR enumeration field type
-	\p enum_field_type which maps the name \p name to the signed
-	range \p range_begin (included) to \p range_end (included).
+@brief  Adds a mapping to the @enumft \p enum_field_type which maps the
+	name \p name to the signed range \p range_begin (included) to
+	\p range_end (included).
 
 Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
+The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b signed to use this function.
 
@@ -1498,7 +1462,7 @@ there must be no overlap amongst all the ranges of
 @prenotnull{enum_field_type}
 @prenotnull{name}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is signed.
+@pre The wrapped @intft of \p enum_field_type is signed.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
@@ -1510,15 +1474,14 @@ extern int bt_ctf_field_type_enumeration_add_mapping(
 		int64_t range_begin, int64_t range_end);
 
 /**
-@brief	Adds a mapping to the CTF IR enumeration field type
-	\p enum_field_type which maps the name \p name to the unsigned
+@brief	Adds a mapping to the @enumft \p enum_field_type which maps
+	the name \p name to the unsigned
 	range \p range_begin (included) to \p range_end (included).
 
 Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
-The \link ctfirintfieldtype CTF IR integer field type\endlink wrapped by
-\p enum_field_type, as returned by
+The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
@@ -1539,7 +1502,7 @@ there must be no overlap amongst all the ranges of
 @prenotnull{enum_field_type}
 @prenotnull{name}
 @preisenumft{enum_field_type}
-@pre The wrapped integer field type of \p enum_field_type is unsigned.
+@pre The wrapped @intft of \p enum_field_type is unsigned.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
@@ -1562,14 +1525,13 @@ extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
 @endcode
 
 A CTF IR <strong><em>string field type</em></strong> is a field type that
-you can use to create concrete
-\link ctfirstringfield CTF IR string fields\endlink.
+you can use to create concrete @stringfields.
 
 You can create a string field type
 with bt_ctf_field_type_string_create().
 
 A string field type has only one property: the \b encoding of its
-described string fields. By default, the encoding of the string fields
+described @stringfields. By default, the encoding of the string fields
 described by a string field type is #BT_CTF_STRING_ENCODING_UTF8. You
 can set the encoding of the string fields described by a string field
 type with bt_ctf_field_type_string_set_encoding().
@@ -1582,7 +1544,7 @@ type with bt_ctf_field_type_string_set_encoding().
 */
 
 /**
-@brief	Creates a default CTF IR string field type.
+@brief	Creates a default @stringft.
 
 @returns	Created string field type, or \c NULL on error.
 
@@ -1591,8 +1553,8 @@ type with bt_ctf_field_type_string_set_encoding().
 extern struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
 
 /**
-@brief  Returns the encoding of the CTF IR string fields described by
-	the CTF IR string field type \p string_field_type.
+@brief  Returns the encoding of the @stringfields described by
+	the @stringft \p string_field_type.
 
 @param[in] string_field_type	String field type which describes the
 				string fields of which to get the
@@ -1613,9 +1575,8 @@ extern enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 		struct bt_ctf_field_type *string_field_type);
 
 /**
-@brief	Sets the encoding of the CTF IR string fields
-	described by the CTF IR string field type \p string_field_type
-	to \p encoding.
+@brief  Sets the encoding of the @stringfields described by the
+	@stringft \p string_field_type to \p encoding.
 
 @param[in] string_field_type	String field type which describes the
 				string fields of which to set the
@@ -1650,8 +1611,7 @@ extern int bt_ctf_field_type_string_set_encoding(
 @endcode
 
 A CTF IR <strong><em>structure field type</em></strong> is
-a field type that you can use to create concrete
-\link ctfirstructfield CTF IR structure fields\endlink.
+a field type that you can use to create concrete @structfields.
 
 You can create a structure field type
 with bt_ctf_field_type_structure_create(). This function creates
@@ -1667,7 +1627,7 @@ bt_ctf_field_type_set_alignment() function. The \em effective alignment
 of the structure fields described by a structure field type, as per
 <a href="http://diamon.org/ctf/">CTF</a>, is the \em maximum value amongst
 the effective alignments of all its fields. Note that the effective
-alignment of CTF IR variant fields is always 1.
+alignment of @varfields is always 1.
 
 You can set the byte order of <em>all the contained fields</em>,
 recursively, of a structure field type with the common
@@ -1681,7 +1641,7 @@ bt_ctf_field_type_set_byte_order() function.
 */
 
 /**
-@brief	Creates a default, empty CTF IR structure field type.
+@brief	Creates a default, empty @structft.
 
 @returns			Created structure field type,
 				or \c NULL on error.
@@ -1691,8 +1651,8 @@ bt_ctf_field_type_set_byte_order() function.
 extern struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
 
 /**
-@brief	Returns the number of fields contained in the CTF IR
-	structure field type \p struct_field_type.
+@brief	Returns the number of fields contained in the
+	@structft \p struct_field_type.
 
 @param[in] struct_field_type	Structure field type of which to get
 				the number of contained fields.
@@ -1708,8 +1668,8 @@ extern int bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *struct_field_type);
 
 /**
-@brief	Returns the field of the CTF IR structure field type
-	\p struct_field_type at index \p index.
+@brief	Returns the field of the @structft \p struct_field_type
+	at index \p index.
 
 On success, the field's type is placed in \p *field_type if
 \p field_type is not \c NULL. The field's name is placed in
@@ -1745,7 +1705,7 @@ extern int bt_ctf_field_type_structure_get_field(
 
 /**
 @brief  Returns the type of the field named \p field_name found in
-	the CTF IR structure field type \p struct_field_type.
+	the @structft \p struct_field_type.
 
 @param[in] struct_field_type	Structure field type of which to get
 				a field's type.
@@ -1769,9 +1729,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 		const char *field_name);
 
 /**
-@brief	Adds a field named \p field_name with the CTF IR field type
-	\p field_type to the CTF IR structure field type
-	\p struct_field_type.
+@brief	Adds a field named \p field_name with the @ft
+	\p field_type to the @structft \p struct_field_type.
 
 On success, \p field_type becomes the child of \p struct_field_type.
 
@@ -1817,13 +1776,12 @@ extern int bt_ctf_field_type_structure_add_field(
 @endcode
 
 A CTF IR <strong><em>array field type</em></strong> is a field type that
-you can use to create concrete
-\link ctfirarrayfield CTF IR array fields\endlink.
+you can use to create concrete @arrayfields.
 
 You can create an array field type
 with bt_ctf_field_type_array_create(). This function needs
-the field type of the fields contained by the array fields
-described by the array field type to create.
+the @ft of the fields contained by the array fields described by the
+array field type to create.
 
 @sa ctfirarrayfield
 @sa ctfirfieldtypes
@@ -1833,9 +1791,9 @@ described by the array field type to create.
 */
 
 /**
-@brief	Creates a default CTF IR array field type with
+@brief	Creates a default @arrayft with
 	\p element_field_type as the field type of the fields contained
-	in its described array fields of length \p length.
+	in its described @arrayfields of length \p length.
 
 @param[in] element_field_type	Field type of the fields contained in
 				the array fields described by the
@@ -1854,9 +1812,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 		unsigned int length);
 
 /**
-@brief	Returns the CTF IR field type of the CTF IR fields contained in
-	the CTF IR array fields described by the CTF IR array field type
-	\p array_field_type.
+@brief	Returns the @ft of the @fields contained in
+	the @arrayfields described by the @arrayft \p array_field_type.
 
 @param[in] array_field_type	Array field type of which to get
 				the type of the fields contained in its
@@ -1875,9 +1832,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(
 		struct bt_ctf_field_type *array_field_type);
 
 /**
-@brief	Returns the number of CTF IR fields contained in the
-	CTF IR array fields described by the CTF IR array field type
-	\p array_field_type.
+@brief	Returns the number of @fields contained in the
+	@arrayfields described by the @arrayft \p array_field_type.
 
 @param[in] array_field_type	Array field type of which to get
 				the number of fields contained in its
@@ -1906,11 +1862,10 @@ extern int64_t bt_ctf_field_type_array_get_length(
 @endcode
 
 A CTF IR <strong><em>sequence field type</em></strong> is
-a field type that you can use to create concrete
-\link ctfirseqfield CTF IR sequence fields\endlink.
+a field type that you can use to create concrete @seqfields.
 
 You can create a sequence field type with
-bt_ctf_field_type_sequence_create(). This function needs the field type
+bt_ctf_field_type_sequence_create(). This function needs the @ft
 of the fields contained by the sequence fields described by the created
 sequence field type. This function also needs the length name of the
 sequence field type to create. The length name is used to automatically
@@ -1925,10 +1880,9 @@ about the automatic resolving.
 */
 
 /**
-@brief	Creates a default CTF IR sequence field type with
-	\p element_field_type as the field type of the fields contained
-	in its described sequence fields with the length name
-	\p length_name.
+@brief	Creates a default @seqft with \p element_field_type as the
+	@ft of the @fields contained in its described @seqfields
+	with the length name \p length_name.
 
 \p length_name can be an absolute or relative reference. See
 <a href="http://diamon.org/ctf/">CTF</a> for more details.
@@ -1950,9 +1904,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 		const char *length_name);
 
 /**
-@brief	Returns the CTF IR field type of the CTF IR fields contained in
-	the CTF IR sequence fields described by the CTF IR sequence
-	field type \p sequence_field_type.
+@brief	Returns the @ft of the @fields contained in the @seqft
+	described by the @seqft \p sequence_field_type.
 
 @param[in] sequence_field_type	Sequence field type of which to get
 				the type of the fields contained in its
@@ -1971,8 +1924,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
 		struct bt_ctf_field_type *sequence_field_type);
 
 /**
-@brief  Returns the length name of the CTF IR sequence
-	field type \p sequence_field_type.
+@brief  Returns the length name of the @seqft \p sequence_field_type.
 
 On success, \p sequence_field_type remains the sole owner of
 the returned string.
@@ -1992,8 +1944,8 @@ extern const char *bt_ctf_field_type_sequence_get_length_field_name(
 		struct bt_ctf_field_type *sequence_field_type);
 
 /**
-@brief  Returns the length's CTF IR field path of the CTF IR sequence
-	field type \p sequence_field_type.
+@brief  Returns the length's CTF IR field path of the @seqft
+	\p sequence_field_type.
 
 The length's field path of a sequence field type is set when automatic
 resolving is performed (see \ref ctfirfieldtypes).
@@ -2027,29 +1979,26 @@ extern struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_pat
 @endcode
 
 A CTF IR <strong><em>variant field type</em></strong> is
-a field type that you can use to create concrete
-\link ctfirvarfield CTF IR variant fields\endlink.
+a field type that you can use to create concrete @varfields.
 
-You can create a variant field type
-with bt_ctf_field_type_variant_create(). This function expects you to
-pass both the tag's
-\link ctfirenumfieldtype CTF IR enumeration field type\endlink and
-the tag name of the variant field type to create. The tag's field type
-is optional, as the Babeltrace system can automatically resolve it using
-the tag name. You can leave the tag name to \c NULL initially, and set
-it later with bt_ctf_field_type_variant_set_tag_name(). The tag name
-must be set when the variant field type is frozen. See \ref
-ctfirfieldtypes to learn more about the automatic resolving and the
-conditions under which a field type can be frozen.
+You can create a variant field type with
+bt_ctf_field_type_variant_create(). This function expects you to pass
+both the tag's @enumft and the tag name of the variant field type to
+create. The tag's field type is optional, as the Babeltrace system can
+automatically resolve it using the tag name. You can leave the tag name
+to \c NULL initially, and set it later with
+bt_ctf_field_type_variant_set_tag_name(). The tag name must be set when
+the variant field type is frozen. See \ref ctfirfieldtypes to learn more
+about the automatic resolving and the conditions under which a field
+type can be frozen.
 
 You can add a field to a variant field type with
 bt_ctf_field_type_variant_add_field(). All the field names of a
-variant field type \em must exist as mapping names in its tag's
-enumeration field type.
+variant field type \em must exist as mapping names in its tag's @enumft.
 
-The effective alignment of the CTF IR variant fields described by a
+The effective alignment of the @varfields described by a
 variant field type is always 1, but the individual fields of a
-CTF IR variant field can have custom alignments.
+@varfield can have custom alignments.
 
 You can set the byte order of <em>all the contained fields</em>,
 recursively, of a variant field type with the common
@@ -2063,8 +2012,7 @@ bt_ctf_field_type_set_byte_order() function.
 */
 
 /**
-@brief  Creates a default, empty CTF IR variant field type with the
-	tag's \link ctfirenumfieldtype CTF IR enumeration field type\endlink
+@brief  Creates a default, empty @varft with the tag's @enumft
 	\p tag_field_type and the tag name \p tag_name.
 
 \p tag_field_type can be \c NULL; the tag's field type can be
@@ -2093,9 +2041,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 		const char *tag_name);
 
 /**
-@brief	Returns the tag's
-	\link ctfirenumfieldtype CTF IR enumeration field type\endlink
-	of the CTF IR variant field type \p variant_field_type.
+@brief	Returns the tag's @enumft of the @varft \p variant_field_type.
 
 @param[in] variant_field_type	Variant field type of which to get
 				the tag's enumeration field type.
@@ -2113,8 +2059,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
 		struct bt_ctf_field_type *variant_field_type);
 
 /**
-@brief  Returns the tag name of the CTF IR variant
-	field type \p variant_field_type.
+@brief  Returns the tag name of the @varft \p variant_field_type.
 
 On success, \p variant_field_type remains the sole owner of
 the returned string.
@@ -2137,8 +2082,7 @@ extern const char *bt_ctf_field_type_variant_get_tag_name(
 		struct bt_ctf_field_type *variant_field_type);
 
 /**
-@brief	Sets the tag name of the CTF IR variant field type
-	\p variant_field_type.
+@brief	Sets the tag name of the @varft \p variant_field_type.
 
 \p tag_name can be an absolute or relative reference. See
 <a href="http://diamon.org/ctf/">CTF</a> for more details.
@@ -2162,8 +2106,8 @@ extern int bt_ctf_field_type_variant_set_tag_name(
 		const char *tag_name);
 
 /**
-@brief  Returns the tag's CTF IR field path of the CTF IR variant
-	field type \p variant_field_type.
+@brief  Returns the tag's CTF IR field path of the @varft
+	\p variant_field_type.
 
 The tag's field path of a variant field type is set when automatic
 resolving is performed (see \ref ctfirfieldtypes).
@@ -2186,8 +2130,8 @@ extern struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 		struct bt_ctf_field_type *variant_field_type);
 
 /**
-@brief	Returns the number of fields contained in the CTF IR
-	variant field type \p variant_field_type.
+@brief	Returns the number of fields (choices) contained in the @varft
+	\p variant_field_type.
 
 @param[in] variant_field_type	Variant field type of which to get
 				the number of contained fields.
@@ -2203,8 +2147,8 @@ extern int bt_ctf_field_type_variant_get_field_count(
 		struct bt_ctf_field_type *variant_field_type);
 
 /**
-@brief	Returns the field (choice) of the CTF IR variant field type
-	\p variant_field_type at index \p index.
+@brief	Returns the field (choice) of the @varft \p variant_field_type
+	at index \p index.
 
 On success, the field's type is placed in \p *field_type if
 \p field_type is not \c NULL. The field's name is placed in
@@ -2242,7 +2186,7 @@ extern int bt_ctf_field_type_variant_get_field(
 
 /**
 @brief  Returns the type of the field (choice) named \p field_name
-	found in the CTF IR variant field type \p variant_field_type.
+	found in the @varft \p variant_field_type.
 
 @param[in] variant_field_type	Variant field type of which to get
 				a field's type.
@@ -2269,9 +2213,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 
 /**
 @brief  Returns the type of the field (choice) selected by the value of
-	the \link ctfirenumfield CTF IR enumeration field\endlink
-	\p tag_field in the CTF IR variant field type
-	\p variant_field_type.
+	the @enumfield \p tag_field in the @varft \p variant_field_type.
 
 \p tag_field is the current tag value.
 
@@ -2306,9 +2248,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		struct bt_ctf_field *tag_field);
 
 /**
-@brief	Adds a field (a choice) named \p field_name with the CTF IR
-	field type \p field_type to the CTF IR variant field type
-	\p variant_field_type.
+@brief	Adds a field (a choice) named \p field_name with the @ft
+	\p field_type to the @varft \p variant_field_type.
 
 On success, \p field_type becomes the child of \p variant_field_type.
 
