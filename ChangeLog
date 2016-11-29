@@ -1,3 +1,9 @@
+2016-11-29 babeltrace 1.5.0 (National Square Dance Day)
+	* Fix: remove BT_HIDDEN from bt_value_null singleton declaration
+	* Fix mixing of bt_ctf_scope and bt_ctf_ir_scope enums
+	* Revert ABI-breaking enum bt_ctf_string_encoding change
+	* Fix: warnings emitted because of enum ctf_string_encoding mixing
+
 2016-10-24 babeltrace 1.5.0-rc1 (First barrel ride down Niagara Falls)
 	* Update version to 1.5.0
 	* Python build fix
