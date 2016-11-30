@@ -1,8 +1,9 @@
-#ifndef CTF_FS_PRINT_H
-#define CTF_FS_PRINT_H
+#ifndef CTF_PRINT_H
+#define CTF_PRINT_H
 
 /*
- * Define PRINT_PREFIX and PRINT_ERR_STREAM, then include this file.
+ * Define PRINT_PREFIX, PRINT_DBG_CHECK, and PRINT_ERR_STREAM, then
+ * include this file.
  *
  * Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
  *
@@ -47,11 +48,11 @@
 
 #define PDBG(fmt, ...)							\
 	do { 								\
-		if (ctf_fs_debug) {					\
+		if (PRINT_DBG_CHECK) {					\
 			fprintf(stderr,					\
 				"Debug: " PRINT_PREFIX ": " fmt,	\
 				##__VA_ARGS__);				\
 		}							\
 	} while (0)
 
-#endif /* CTF_FS_PRINT_H */
+#endif /* CTF_PRINT_H */

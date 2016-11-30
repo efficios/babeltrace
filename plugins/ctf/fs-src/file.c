@@ -28,7 +28,8 @@
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-file"
-#include "print.h"
+#define PRINT_DBG_CHECK		ctf_fs_debug
+#include "../print.h"
 
 #include "file.h"
 

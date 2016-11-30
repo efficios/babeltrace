@@ -42,7 +42,8 @@
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-data-stream"
-#include "print.h"
+#define PRINT_DBG_CHECK		ctf_fs_debug
+#include "../print.h"
 
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)

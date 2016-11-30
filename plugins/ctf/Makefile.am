@@ -2,6 +2,8 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 SUBDIRS = common fs-src fs-sink lttng-live
 
+noinst_HEADERS = print.h
+
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = libbabeltrace-plugin-ctf.la
 
