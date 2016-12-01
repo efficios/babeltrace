@@ -174,6 +174,9 @@ The following functions can \em freeze field type objects:
 - bt_ctf_event_create() freezes the root field types of its event class
   parameter and of ther parent stream class of this event class.
 
+You cannot modify a frozen field type object: it is considered
+immutable, except for \link refs reference counting\endlink.
+
 @sa ctfirfields
 
 @file
