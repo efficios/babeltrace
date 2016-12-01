@@ -1,3 +1,9 @@
+2016-12-01 babeltrace 1.4.1 (National Pie Day)
+	* debug info: Call register_event_debug_infos for all events
+	* Typo: configure.ac implemenation -> implementation
+	* configure: fix uuid support detection on static build
+	* Tests: no substitution needed for multi-trace intersection test
+
 2016-06-06 babeltrace 1.4.0 (National Yo-Yo Day)
 	* Tests: dereference of NULL pointer on allocation failure
 	* Tests: abort dwarf test on open() failure
