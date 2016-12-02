@@ -1,1 +1,1 @@
-SUBDIRS = ctf text muxer
+SUBDIRS = ctf text muxer trimmer

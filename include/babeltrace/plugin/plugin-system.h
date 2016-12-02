@@ -267,6 +267,17 @@ typedef enum bt_notification_iterator_status (*bt_notification_iterator_next_cb)
 		struct bt_notification_iterator *iterator);
 
 /**
+ * Function advancing an iterator's position to a given time (relative to Epoch).
+ *
+ * @param iterator	Notification iterator instance
+ * @param time		Time at which to seek, expressed in ns since Epoch
+ * @returns 		One of #bt_notification_iterator_status values
+ */
+typedef enum bt_notification_iterator_status
+		(*bt_notification_iterator_seek_time_cb)(
+		struct bt_notification_iterator *iterator, int64_t time);
+
+/**
  * Function cleaning-up an iterator's private data on destruction.
  *
  * @param iterator	Notification iterator instance
@@ -295,6 +306,18 @@ bt_notification_iterator_set_get_cb(struct bt_notification_iterator *iterator,
 extern enum bt_notification_iterator_status
 bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
 		bt_notification_iterator_next_cb next);
+
+/**
+ * Set an iterator's "seek_time" callback which sets the iterator's position to
+ *	provided time (in ns since Epoch).
+ *
+ * @param iterator	Notification iterator instance
+ * @param seek_timetime	Iterator "seek_time" callback
+ * @returns		One of #bt_notification_iterator_status values
+ */
+extern enum bt_notification_iterator_status
+bt_notification_iterator_set_seek_time_cb(struct bt_notification_iterator *iterator,
+		bt_notification_iterator_seek_time_cb seek_time);
 
 /**
  * Set an iterator's "destroy" callback.

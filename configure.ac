@@ -423,6 +423,7 @@ AC_CONFIG_FILES([
 	plugins/ctf/lttng-live/Makefile
 	plugins/muxer/Makefile
 	plugins/text/Makefile
+	plugins/trimmer/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
