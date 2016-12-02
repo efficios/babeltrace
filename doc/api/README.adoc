@@ -50,9 +50,9 @@ Use a warning command if this message is really important.
 
 * Start the block with
   https://www.stack.nl/\~dimitri/doxygen/manual/commands.html#cmdbrief[`@brief`]
-  followed by a space followed by a tab followed by the brief
-  description. If the brief description needs more than one line, start
-  the following lines with a tab character.
+  followed by a tab followed by the brief description. If the brief
+  description needs more than one line, start the following lines with a
+  tab character.
 +
 Try to always refer to all the function or macro parameters in the brief
 description. The sentence _must_ begin with a verb, third-person
