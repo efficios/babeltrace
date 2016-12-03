@@ -180,7 +180,7 @@ immutable, except for \link refs reference counting\endlink.
 @sa ctfirfields
 
 @file
-@brief CTF IR field type type and functions.
+@brief CTF IR field types type and functions.
 @sa ctfirfieldtypes
 
 @addtogroup ctfirfieldtypes
