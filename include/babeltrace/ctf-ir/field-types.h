@@ -178,6 +178,7 @@ You cannot modify a frozen field type object: it is considered
 immutable, except for \link refs reference counting\endlink.
 
 @sa ctfirfields
+@sa \ref ctfirfieldtypesexamples "Examples"
 
 @file
 @brief CTF IR field types type and functions.
@@ -732,6 +733,7 @@ An integer field type has the following properties:
 
 @sa ctfirintfield
 @sa ctfirfieldtypes
+@sa \ref ctfirfieldtypesexamples_intfieldtype "Examples"
 
 @addtogroup ctfirintfieldtype
 @{
@@ -1046,6 +1048,7 @@ A floating point number field type has the following properties:
 
 @sa ctfirfloatfield
 @sa ctfirfieldtypes
+@sa \ref ctfirfieldtypesexamples_floatfieldtype "Examples"
 
 @addtogroup ctfirfloatfieldtype
 @{

@@ -16,4 +16,6 @@ When the documentation says that a given
 \link ctfirfieldtypes CTF IR field type\endlink must be
 <em>equivalent to</em> another one, it means that
 bt_ctf_field_type_compare() \em must return 0.
+
+@sa \ref ctfirexamples "Examples"
 */

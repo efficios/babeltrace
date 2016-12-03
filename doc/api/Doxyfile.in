@@ -82,6 +82,7 @@ ALIASES               += seqfields="\link ctfirseqfield CTF IR sequence fields\e
 ALIASES               += varfields="\link ctfirvarfield CTF IR variant fields\endlink"
 ALIASES               += imgpacketstructure="@image html ctf-stream-packet.png \"Structure of a CTF packet.\""
 ALIASES               += imgtracestructure="@image html ctf-trace.png \"Structure of a CTF trace.\""
+ALIASES               += noteexamplesassert="@note In the following examples, we use \c assert() to validate the results of the called functions."
 OPTIMIZE_OUTPUT_FOR_C  = YES
 MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 0
@@ -148,6 +149,7 @@ INPUT                  = "@top_srcdir@/include/babeltrace/ctf-ir" \
                          "@srcdir@/dox/write-plugin.dox" \
                          "@srcdir@/dox/use-ctf-writer.dox" \
                          "@srcdir@/dox/examples.dox" \
+                         "@srcdir@/dox/examples-ctfir.dox" \
                          "@srcdir@/dox/group-api-ref.dox" \
                          "@srcdir@/dox/group-ctf-ir.dox"
 INPUT_ENCODING         = UTF-8
