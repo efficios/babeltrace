@@ -377,7 +377,7 @@ a stream class without a event header field type.
 As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 \p event_header_type \em must be a CTF IR structure field type object.
 
-@param[in] trace_class		Trace class of which to set the packet
+@param[in] stream_class		Stream class of which to set the event
 				header field type.
 @param[in] event_header_type	Event header field type, or \c NULL to unset
 				the current event header field type.
@@ -391,8 +391,8 @@ As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 @post <strong>On success, if \p event_header_type is not \c NULL</strong>,
 	the reference count of \p event_header_type is incremented.
 
-@sa bt_ctf_trace_get_packet_header_type(): Returns the packet
-	header field type of a given trace class.
+@sa bt_ctf_stream_class_get_event_header_type(): Returns the event
+	header field type of a given stream class.
 */
 extern int bt_ctf_stream_class_set_event_header_type(
 		struct bt_ctf_stream_class *stream_class,
