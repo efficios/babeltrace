@@ -41,7 +41,9 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/component.h \
 	babeltrace/plugin/component-class.h \
+	babeltrace/plugin/component-connection.h \
 	babeltrace/plugin/component-factory.h \
+	babeltrace/plugin/component-graph.h \
 	babeltrace/plugin/source.h \
 	babeltrace/plugin/sink.h \
 	babeltrace/plugin/filter.h \
@@ -113,9 +115,11 @@ noinst_HEADERS = \
 	babeltrace/compat/mman.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h \
+	babeltrace/plugin/component-class-internal.h \
+	babeltrace/plugin/component-connection-internal.h \
 	babeltrace/plugin/component-factory-internal.h \
 	babeltrace/plugin/component-internal.h \
-	babeltrace/plugin/component-class-internal.h \
+	babeltrace/plugin/component-graph-internal.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/filter-internal.h \
 	babeltrace/plugin/sink-internal.h \

@@ -9,6 +9,7 @@ libplugin_system_la_SOURCES = \
 	component.c \
 	component-class.c \
 	component-factory.c \
+	component-graph.c \
 	plugin.c \
 	source.c \
 	sink.c \
