@@ -41,6 +41,7 @@ struct bt_component * (* const component_create_funcs[])(
 		struct bt_component_class *, struct bt_value *) = {
 	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_create,
 	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_create,
+	[BT_COMPONENT_TYPE_FILTER] = bt_component_filter_create,
 };
 
 static
@@ -48,6 +49,7 @@ enum bt_component_status (* const component_validation_funcs[])(
 		struct bt_component *) = {
 	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_validate,
 	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_validate,
+	[BT_COMPONENT_TYPE_FILTER] = bt_component_filter_validate,
 };
 
 static
@@ -185,8 +187,7 @@ struct bt_component *bt_component_create(
 
 	type = bt_component_class_get_type(component_class);
 	if (type <= BT_COMPONENT_TYPE_UNKNOWN ||
-			type >= BT_COMPONENT_TYPE_FILTER) {
-		/* Filter components are not supported yet. */
+			type > BT_COMPONENT_TYPE_FILTER) {
 		goto end;
 	}
 
