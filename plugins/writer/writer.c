@@ -193,14 +193,14 @@ enum bt_component_status run(struct bt_component *component)
 		goto end;
 	}
 
-	ret = bt_notification_iterator_next(it);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
-
 	notification = bt_notification_iterator_get_notification(it);
 	if (!notification) {
 		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = bt_notification_iterator_next(it);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
