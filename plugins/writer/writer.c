@@ -126,10 +126,10 @@ enum bt_component_status handle_notification(
 	}
 
 	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_START:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	{
 		struct bt_ctf_packet *packet =
-			bt_notification_packet_start_get_packet(notification);
+			bt_notification_packet_begin_get_packet(notification);
 
 		if (!packet) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -143,7 +143,7 @@ enum bt_component_status handle_notification(
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	{
 		struct bt_ctf_packet *packet =
-			bt_notification_packet_start_get_packet(notification);
+			bt_notification_packet_end_get_packet(notification);
 
 		if (!packet) {
 			ret = BT_COMPONENT_STATUS_ERROR;

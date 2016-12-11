@@ -30,7 +30,7 @@
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/plugin/notification/notification-internal.h>
 
-struct bt_notification_packet_start {
+struct bt_notification_packet_begin {
 	struct bt_notification parent;
 	struct bt_ctf_packet *packet;
 };

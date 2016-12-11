@@ -144,11 +144,11 @@ struct bt_ctf_stream *internal_bt_notification_get_stream(
 		bt_put(event);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_PACKET_START:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	{
 		struct bt_ctf_packet *packet;
 
-		packet = bt_notification_packet_start_get_packet(notification);
+		packet = bt_notification_packet_begin_get_packet(notification);
 		stream = bt_ctf_packet_get_stream(packet);
 		bt_put(packet);
 		break;
@@ -428,7 +428,7 @@ bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
 		[BT_NOTIFICATION_TYPE_NEW_TRACE] = 0,
 		[BT_NOTIFICATION_TYPE_NEW_STREAM_CLASS] = 1,
 		[BT_NOTIFICATION_TYPE_NEW_EVENT_CLASS] = 2,
-		[BT_NOTIFICATION_TYPE_PACKET_START] = 3,
+		[BT_NOTIFICATION_TYPE_PACKET_BEGIN] = 3,
 		[BT_NOTIFICATION_TYPE_PACKET_END] = 4,
 		[BT_NOTIFICATION_TYPE_EVENT] = 5,
 		[BT_NOTIFICATION_TYPE_END_OF_TRACE] = 6,
@@ -457,7 +457,7 @@ bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
 
 	/* Notification types are equal, but not of type "event". */
 	switch (a_type) {
-	case BT_NOTIFICATION_TYPE_PACKET_START:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 	{

@@ -1896,7 +1896,7 @@ void notify_new_packet(struct bt_ctf_notif_iter *notit,
 		return;
 	}
 
-	ret = bt_notification_packet_start_create(notit->packet);
+	ret = bt_notification_packet_begin_create(notit->packet);
 	if (!ret) {
 		return;
 	}

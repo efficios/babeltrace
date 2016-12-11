@@ -119,7 +119,7 @@ enum bt_component_status handle_notification(struct text_component *text,
 	}
 
 	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_START:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		puts("<packet>");
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:

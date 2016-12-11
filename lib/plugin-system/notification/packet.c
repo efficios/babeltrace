@@ -28,10 +28,10 @@
 #include <babeltrace/plugin/notification/packet-internal.h>
 
 static
-void bt_notification_packet_start_destroy(struct bt_object *obj)
+void bt_notification_packet_begin_destroy(struct bt_object *obj)
 {
-	struct bt_notification_packet_start *notification =
-			(struct bt_notification_packet_start *) obj;
+	struct bt_notification_packet_begin *notification =
+			(struct bt_notification_packet_begin *) obj;
 
 	BT_PUT(notification->packet);
 	g_free(notification);
@@ -47,33 +47,40 @@ void bt_notification_packet_end_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_packet_start_create(
+struct bt_notification *bt_notification_packet_begin_create(
 		struct bt_ctf_packet *packet)
 {
-	struct bt_notification_packet_start *notification;
+	struct bt_notification_packet_begin *notification;
 
 	if (!packet) {
 		goto error;
 	}
 
-	notification = g_new0(struct bt_notification_packet_start, 1);
+	notification = g_new0(struct bt_notification_packet_begin, 1);
 	bt_notification_init(&notification->parent,
-			BT_NOTIFICATION_TYPE_PACKET_START,
-			bt_notification_packet_start_destroy);
+			BT_NOTIFICATION_TYPE_PACKET_BEGIN,
+			bt_notification_packet_begin_destroy);
 	notification->packet = bt_get(packet);
 	return &notification->parent;
 error:
 	return NULL;
 }
 
-struct bt_ctf_packet *bt_notification_packet_start_get_packet(
+struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
 		struct bt_notification *notification)
 {
-	struct bt_notification_packet_start *packet_start;
+	struct bt_ctf_packet *ret = NULL;
+	struct bt_notification_packet_begin *packet_begin;
 
-	packet_start = container_of(notification,
-			struct bt_notification_packet_start, parent);
-	return bt_get(packet_start->packet);
+	if (notification->type != BT_NOTIFICATION_TYPE_PACKET_BEGIN) {
+		goto end;
+	}
+
+	packet_begin = container_of(notification,
+			struct bt_notification_packet_begin, parent);
+	ret = bt_get(packet_begin->packet);
+end:
+	return ret;
 }
 
 struct bt_notification *bt_notification_packet_end_create(
@@ -98,9 +105,16 @@ error:
 struct bt_ctf_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification)
 {
+	struct bt_ctf_packet *ret = NULL;
 	struct bt_notification_packet_end *packet_end;
+
+	if (notification->type != BT_NOTIFICATION_TYPE_PACKET_END) {
+		goto end;
+	}
 
 	packet_end = container_of(notification,
 			struct bt_notification_packet_end, parent);
-	return bt_get(packet_end->packet);
+	ret = bt_get(packet_end->packet);
+end:
+	return ret;
 }
