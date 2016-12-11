@@ -50,11 +50,19 @@ BT_HIDDEN
 bool ctf_fs_debug;
 
 static
+enum bt_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_notification_iterator *iterator);
+
+static
 struct bt_notification *ctf_fs_iterator_get(
 		struct bt_notification_iterator *iterator)
 {
 	struct ctf_fs_iterator *ctf_it =
 			bt_notification_iterator_get_private_data(iterator);
+
+	if (!ctf_it->current_notification) {
+		(void) ctf_fs_iterator_next(iterator);
+	}
 
 	return bt_get(ctf_it->current_notification);
 }
@@ -633,6 +641,7 @@ enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 	if (ret) {
 		goto error;
 	}
+
 end:
 	return ret;
 error:

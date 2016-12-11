@@ -69,7 +69,7 @@ struct text_options {
 struct text_component {
 	struct text_options options;
 	FILE *out, *err;
-	bool processed_first_event;
+	bool processed_first_event; /* Should be per-iterator. */
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
 	GString *string;

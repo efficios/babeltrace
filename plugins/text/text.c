@@ -164,15 +164,21 @@ enum bt_component_status run(struct bt_component *component)
 		goto end;
 	}
 
-	if (!text->processed_first_event) {
-		ret = bt_notification_iterator_next(it);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			goto end;
-		}
-	} else {
-		text->processed_first_event = true;
-	}
+	if (likely(text->processed_first_event)) {
+		enum bt_notification_iterator_status it_ret;
 
+		it_ret = bt_notification_iterator_next(it);
+		switch (it_ret) {
+		case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		case BT_NOTIFICATION_ITERATOR_STATUS_END:
+			ret = BT_COMPONENT_STATUS_END;
+			goto end;
+		default:
+			break;
+		}
+	}
 	notification = bt_notification_iterator_get_notification(it);
 	if (!notification) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -180,6 +186,7 @@ enum bt_component_status run(struct bt_component *component)
 	}
 
 	ret = handle_notification(text, notification);
+	text->processed_first_event = true;
 end:
 	bt_put(it);
 	bt_put(notification);
