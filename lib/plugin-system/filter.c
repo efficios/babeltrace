@@ -28,6 +28,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
+#include <babeltrace/plugin/input.h>
 #include <babeltrace/plugin/filter-internal.h>
 #include <babeltrace/plugin/component-internal.h>
 #include <babeltrace/plugin/notification/notification.h>
@@ -226,4 +227,78 @@ struct bt_notification_iterator *bt_component_filter_create_iterator(
 		struct bt_component *component)
 {
 	return bt_component_create_iterator(component);
+}
+
+static
+void bt_component_filter_destroy(struct bt_component *component)
+{
+	struct bt_component_filter *filter = container_of(component,
+			struct bt_component_filter, parent);
+
+	component_input_fini(&filter->input);
+}
+
+BT_HIDDEN
+struct bt_component *bt_component_filter_create(
+		struct bt_component_class *class, struct bt_value *params)
+{
+	struct bt_component_filter *filter = NULL;
+	enum bt_component_status ret;
+
+	filter = g_new0(struct bt_component_filter, 1);
+	if (!filter) {
+		goto end;
+	}
+
+	filter->parent.class = bt_get(class);
+	ret = bt_component_init(&filter->parent, bt_component_filter_destroy);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	if (component_input_init(&filter->input)) {
+		goto error;
+	}
+end:
+	return filter ? &filter->parent : NULL;
+error:
+	BT_PUT(filter);
+	goto end;
+}
+
+BT_HIDDEN
+enum bt_component_status bt_component_filter_validate(
+		struct bt_component *component)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_filter *filter;
+
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!component->class) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_TYPE_FILTER) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	filter = container_of(component, struct bt_component_filter, parent);
+	if (!filter->init_iterator) {
+		printf_error("Invalid filter component; no iterator initialization callback defined.");
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	ret = component_input_validate(&filter->input);
+	if (ret) {
+		goto end;
+	}
+end:
+	return ret;
 }
