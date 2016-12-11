@@ -31,11 +31,11 @@ void *bt_get(void *ptr)
 {
 	struct bt_object *obj = ptr;
 
-	if (!obj) {
+	if (unlikely(!obj)) {
 		goto end;
 	}
 
-	if (obj->parent && bt_object_get_ref_count(obj) == 0) {
+	if (unlikely(obj->parent && bt_object_get_ref_count(obj) == 0)) {
 		bt_get(obj->parent);
 	}
 	bt_ref_get(&obj->ref_count);
@@ -47,7 +47,7 @@ void bt_put(void *ptr)
 {
 	struct bt_object *obj = ptr;
 
-	if (!obj) {
+	if (unlikely(!obj)) {
 		return;
 	}
 

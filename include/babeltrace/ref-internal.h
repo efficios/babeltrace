@@ -51,7 +51,7 @@ void bt_ref_get(struct bt_ref *ref)
 {
 	assert(ref);
 
-	if (!ref->release) {
+	if (unlikely(!ref->release)) {
 		return;
 	}
 
@@ -65,7 +65,7 @@ void bt_ref_put(struct bt_ref *ref)
 {
 	assert(ref);
 	/* Only assert if the object has opted-in for reference counting. */
-	if ((--ref->count) == 0 && ref->release) {
+	if (unlikely((--ref->count) == 0 && ref->release)) {
 		ref->release((struct bt_object *) ref);
 	}
 }
