@@ -37,6 +37,7 @@ struct bt_notification_iterator {
 	struct bt_component *component;
 	bt_notification_iterator_get_cb get;
 	bt_notification_iterator_next_cb next;
+	bt_notification_iterator_seek_time_cb seek_time;
 	void *user_data;
 	bt_notification_iterator_destroy_cb user_destroy;
 };
