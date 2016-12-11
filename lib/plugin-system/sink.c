@@ -39,6 +39,21 @@ enum bt_component_status bt_component_sink_validate(
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_component_sink *sink;
 
+	if (!component) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!component->class) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_TYPE_SINK) {
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
 	sink = container_of(component, struct bt_component_sink, parent);
 	if (!sink->consume) {
 		printf_error("Invalid sink component; no notification consumption callback defined.");
