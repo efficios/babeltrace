@@ -130,6 +130,24 @@ end:
 }
 
 enum bt_notification_iterator_status
+bt_notification_iterator_set_seek_time_cb(
+		struct bt_notification_iterator *iterator,
+		bt_notification_iterator_seek_time_cb seek_time)
+{
+	enum bt_notification_iterator_status ret =
+			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	if (!iterator || !seek_time) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
+	iterator->seek_time = seek_time;
+end:
+	return ret;
+}
+
+enum bt_notification_iterator_status
 bt_notification_iterator_set_destroy_cb(
 		struct bt_notification_iterator *iterator,
 		bt_notification_iterator_destroy_cb destroy)
