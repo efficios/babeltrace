@@ -53,10 +53,19 @@ BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_component *component)
 {
+	enum bt_component_type type;
 	struct bt_notification_iterator *iterator = NULL;
 
-	if (!component ||
-		bt_component_get_type(component) != BT_COMPONENT_TYPE_SOURCE) {
+	if (!component) {
+		goto end;
+	}
+
+	type = bt_component_get_type(component);
+	switch (type) {
+	case BT_COMPONENT_TYPE_SOURCE:
+	case BT_COMPONENT_TYPE_FILTER:
+		break;
+	default:
 		goto end;
 	}
 
