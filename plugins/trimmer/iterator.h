@@ -28,6 +28,14 @@
  */
 
 #include "trimmer.h"
+#include <babeltrace/plugin/notification/notification.h>
+
+struct trimmer_iterator {
+	/* Input iterators associated with this output iterator. */
+	GPtrArray *input_iterator_group;
+	struct bt_notification *current_notification;
+	GHashTable *stream_to_packet_start_notification;
+};
 
 BT_HIDDEN
 enum bt_component_status trimmer_iterator_init(

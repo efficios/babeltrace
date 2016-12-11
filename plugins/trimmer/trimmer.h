@@ -32,8 +32,13 @@
 #include <babeltrace/plugin/component.h>
 #include <babeltrace/plugin/plugin-system.h>
 
+struct trimmer_bound {
+	int64_t value;
+	bool set;
+};
+
 struct trimmer {
-	int64_t range_start, range_end;
+	struct trimmer_bound begin, end;
 };
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_H */

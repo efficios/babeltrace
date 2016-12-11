@@ -34,6 +34,7 @@
 #include <babeltrace/plugin/notification/event.h>
 #include "trimmer.h"
 #include "iterator.h"
+#include <assert.h>
 
 static
 void destroy_trimmer_data(struct trimmer *trimmer)
@@ -60,6 +61,39 @@ void destroy_trimmer(struct bt_component *component)
 	void *data = bt_component_get_private_data(component);
 
 	destroy_trimmer_data(data);
+}
+
+static
+void init_from_params(struct trimmer *trimmer, struct bt_value *params)
+{
+	struct bt_value *value = NULL;
+
+	assert(params);
+
+        value = bt_value_map_get(params, "begin_ns_epoch");
+	if (value && bt_value_is_integer(value)) {
+		enum bt_value_status value_ret;
+
+		value_ret = bt_value_integer_get(value, &trimmer->begin.value);
+		if (!value_ret) {
+			trimmer->begin.set = true;
+		} else {
+			printf_error("Failed to retrieve begin_ns_epoch value\n");
+		}
+	}
+	bt_put(value);
+        value = bt_value_map_get(params, "end_ns_epoch");
+	if (value && bt_value_is_integer(value)) {
+		enum bt_value_status value_ret;
+
+		value_ret = bt_value_integer_get(value, &trimmer->end.value);
+		if (!value_ret) {
+			trimmer->end.set = true;
+		} else {
+			printf_error("Failed to retrieve end_ns_epoch value\n");
+		}
+	}
+	bt_put(value);
 }
 
 enum bt_component_status trimmer_component_init(
@@ -89,6 +123,8 @@ enum bt_component_status trimmer_component_init(
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
+	init_from_params(trimmer, params);
 end:
 	return ret;
 error:
@@ -97,7 +133,7 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("trimmer");
+BT_PLUGIN_NAME("utils");
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Trimmer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
