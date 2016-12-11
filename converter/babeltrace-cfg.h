@@ -38,14 +38,6 @@ struct bt_config_component {
 	GString *plugin_name;
 	GString *component_name;
 	struct bt_value *params;
-	struct {
-		bool set;
-		int64_t value_ns;
-	} begin;
-	struct {
-		bool set;
-		int64_t value_ns;
-	} end;
 };
 
 struct bt_config {
@@ -71,6 +63,6 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 	return bt_get(g_ptr_array_index(array, index));
 }
 
-struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code);
+struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_code);
 
 #endif /* BABELTRACE_CONVERTER_CFG_H */

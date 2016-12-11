@@ -209,22 +209,6 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
 	printf("  %s.%s\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
-	printf("    begin timestamp: ");
-
-	if (!bt_config_component->begin.set) {
-		printf("not set\n");
-	} else {
-		printf("%" PRIu64 " ns\n", bt_config_component->begin.value_ns);
-	}
-
-	printf("    end timestamp: ");
-
-	if (!bt_config_component->end.set) {
-		printf("not set\n");
-	} else {
-		printf("%" PRIu64 " ns\n", bt_config_component->end.value_ns);
-	}
-
 	printf("    params:\n");
 	print_value(bt_config_component->params, 6, true);
 }
@@ -263,6 +247,7 @@ struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
 	struct bt_component *trimmer = NULL;
 	struct bt_component_class *trimmer_class = NULL;
 	struct bt_value *trimmer_params = NULL;
+	struct bt_value *value;
 
 	assert(component_factory);
 	trimmer_params = bt_value_map_create();
@@ -270,34 +255,33 @@ struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
 		goto end;
 	}
 
-	if (source_cfg->begin.set) {
+	value = bt_value_map_get(source_cfg->params, "begin");
+	if (value) {
 	        enum bt_value_status ret;
-		struct bt_value *value;
 
-		value = bt_value_integer_create_init(
-				source_cfg->begin.value_ns);
-		if (!value) {
-			goto end;
-		}
-
-		ret = bt_value_map_insert(trimmer_params, "begin_ns_epoch",
+		ret = bt_value_map_insert(trimmer_params, "begin",
 				value);
 	        BT_PUT(value);
 		if (ret) {
 			goto end;
 		}
 	}
-	if (source_cfg->end.set) {
+	value = bt_value_map_get(source_cfg->params, "end");
+	if (value) {
 		enum bt_value_status ret;
-		struct bt_value *value;
 
-		value = bt_value_integer_create_init(
-				source_cfg->end.value_ns);
-		if (!value) {
+		ret = bt_value_map_insert(trimmer_params, "end",
+				value);
+		BT_PUT(value);
+		if (ret) {
 			goto end;
 		}
+	}
+	value = bt_value_map_get(source_cfg->params, "clock-gmt");
+	if (value) {
+		enum bt_value_status ret;
 
-		ret = bt_value_map_insert(trimmer_params, "end_ns_epoch",
+		ret = bt_value_map_insert(trimmer_params, "clock-gmt",
 				value);
 		BT_PUT(value);
 		if (ret) {
@@ -341,7 +325,8 @@ int connect_source_sink(struct bt_component *source,
                 goto end;
         }
 
-	if (source_cfg->begin.set || source_cfg->begin.set) {
+	if (bt_value_map_has_key(source_cfg->params, "begin")
+			|| bt_value_map_has_key(source_cfg->params, "end")) {
 		/* A trimmer must be inserted in the graph. */
 		enum bt_component_status trimmer_status;
 
@@ -384,7 +369,7 @@ end:
 	return ret;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
 	int ret;
 	struct bt_component_class *source_class = NULL;

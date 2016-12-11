@@ -204,8 +204,12 @@ struct bt_component *bt_component_create(
 	}
 
 	component->initializing = true;
-	component_class->init(component, params);
+	ret = component_class->init(component, params);
 	component->initializing = false;
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		BT_PUT(component);
+		goto end;
+	}
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(component);

@@ -130,6 +130,64 @@ end:
 }
 
 static
+int update_lazy_bound(struct trimmer_bound *bound, const char *name,
+		int64_t ts)
+{
+	struct tm tm;
+	int64_t value;
+	time_t timeval;
+
+	if (!bound->lazy) {
+		return 0;
+	}
+	tm.tm_isdst = -1;
+	timeval = ts / NSEC_PER_SEC;
+
+	if (bound->lazy_values.gmt) {
+		/* Get day, month, year. */
+		if (!gmtime_r(&timeval, &tm)) {
+			printf_error("Failure in gmtime_r()\n");
+			goto error;
+		}
+		tm.tm_sec = bound->lazy_values.ss;
+		tm.tm_min = bound->lazy_values.mm;
+		tm.tm_hour = bound->lazy_values.hh;
+		timeval = timegm(&tm);
+		if (timeval < 0) {
+			printf_error("Failure in timegm(), incorrectly formatted %s timestamp\n",
+				name);
+			goto error;
+		}
+	} else {
+		/* Get day, month, year. */
+		if (!localtime_r(&timeval, &tm)) {
+			printf_error("Failure in localtime_r()\n");
+			goto error;
+		}
+		tm.tm_sec = bound->lazy_values.ss;
+		tm.tm_min = bound->lazy_values.mm;
+		tm.tm_hour = bound->lazy_values.hh;
+		timeval = mktime(&tm);
+		if (timeval < 0) {
+			printf_error("Failure in mktime(), incorrectly formatted %s timestamp\n",
+				name);
+			goto error;
+		}
+	}
+	value = (int64_t) timeval;
+	value *= NSEC_PER_SEC;
+	value += bound->lazy_values.ns;
+	bound->value = value;
+	bound->set = true;
+	bound->lazy = false;
+	return 0;
+
+error:
+	bound->lazy = false;
+	return -1;
+}
+
+static
 bool evaluate_event_notification(struct bt_notification *notification,
 		struct trimmer_bound *begin, struct trimmer_bound *end)
 {
@@ -173,7 +231,12 @@ bool evaluate_event_notification(struct bt_notification *notification,
 		printf_error("Failed to retrieve clock value timestamp\n");
 		goto end;
 	}
-
+	if (update_lazy_bound(begin, "begin", ts)) {
+		goto end;
+	}
+	if (update_lazy_bound(end, "end", ts)) {
+		goto end;
+	}
 	if (begin->set && ts < begin->value) {
 		in_range = false;
 	}
