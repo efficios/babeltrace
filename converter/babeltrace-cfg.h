@@ -38,8 +38,14 @@ struct bt_config_component {
 	GString *plugin_name;
 	GString *component_name;
 	struct bt_value *params;
-	uint64_t begin_ns;
-	uint64_t end_ns;
+	struct {
+		bool set;
+		int64_t value_ns;
+	} begin;
+	struct {
+		bool set;
+		int64_t value_ns;
+	} end;
 };
 
 struct bt_config {

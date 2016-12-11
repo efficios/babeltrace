@@ -893,10 +893,6 @@ struct bt_config_component *bt_config_component_create(const char *plugin_name,
 		goto error;
 	}
 
-	/* Begin/end timestamp: not set */
-	cfg_component->begin_ns = -1ULL;
-	cfg_component->end_ns = -1ULL;
-
 	goto end;
 
 error:
@@ -1585,7 +1581,7 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 		enum legacy_input_format legacy_input_format,
 		struct ctf_legacy_opts *ctf_legacy_opts,
 		struct bt_value *legacy_input_paths,
-		uint64_t begin_ns, uint64_t end_ns)
+		int64_t *begin_ns, int64_t *end_ns)
 {
 	int ret = 0;
 	int i;
@@ -1650,8 +1646,10 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 		}
 
 		BT_MOVE(bt_config_component->params, params);
-		bt_config_component->begin_ns = begin_ns;
-		bt_config_component->end_ns = end_ns;
+		bt_config_component->begin.value_ns = begin_ns ? *begin_ns : 0;
+		bt_config_component->begin.set = !!begin_ns;
+		bt_config_component->end.value_ns = end_ns ? *end_ns : 0;
+		bt_config_component->end.set = !!end_ns;
 
 		/* Move created component configuration to the array */
 		g_ptr_array_add(sources, bt_config_component);
@@ -2008,10 +2006,11 @@ bool validate_source_config_component(struct bt_config_component *cfg_comp)
 {
 	bool valid = false;
 
-	if (cfg_comp->begin_ns != -1ULL && cfg_comp->end_ns != -1ULL) {
-		if (cfg_comp->begin_ns > cfg_comp->end_ns) {
+	if (cfg_comp->begin.set && cfg_comp->end.set) {
+		if (cfg_comp->begin.value_ns > cfg_comp->end.value_ns) {
 			printf_err("Beginning timestamp (%" PRIu64 ") is greater than end timestamp (%" PRIu64 ")\n",
-				cfg_comp->begin_ns, cfg_comp->end_ns);
+					cfg_comp->begin.value_ns,
+					cfg_comp->end.value_ns);
 			goto end;
 		}
 	}
@@ -2152,7 +2151,7 @@ int parse_int64(const char *arg, int64_t *val)
  * Returns a negative value if anything goes wrong.
  */
 static
-int ns_from_arg(const char *arg, uint64_t *ns)
+int ns_from_arg(const char *arg, int64_t *ns)
 {
 	int ret = 0;
 	int64_t value;
@@ -2167,7 +2166,7 @@ int ns_from_arg(const char *arg, uint64_t *ns)
 		goto end;
 	}
 
-	*ns = (uint64_t) value;
+	*ns = value;
 
 end:
 	return ret;
@@ -2310,8 +2309,10 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
-	uint64_t cur_base_begin_ns = -1ULL;
-	uint64_t cur_base_end_ns = -1ULL;
+	int64_t cur_base_begin_ns = 0;
+	bool cur_base_begin_ns_set = false;
+	int64_t cur_base_end_ns = 0;
+	bool cur_base_end_ns_set = false;
 	int opt;
 	bool cur_cfg_comp_params_set = false;
 	unsigned int i;
@@ -2472,8 +2473,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto end;
 			}
 
-			cur_cfg_comp->begin_ns = cur_base_begin_ns;
-			cur_cfg_comp->end_ns = cur_base_end_ns;
+			cur_cfg_comp->begin.value_ns = cur_base_begin_ns;
+			cur_cfg_comp->begin.set = cur_base_begin_ns_set;
+
+			cur_cfg_comp->end.value_ns = cur_base_end_ns;
+			cur_cfg_comp->end.set = cur_base_end_ns_set;
+
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
 			cur_cfg_comp_params_set = false;
 			break;
@@ -2618,6 +2623,7 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 					arg);
 				goto error;
 			}
+			cur_base_begin_ns_set = true;
 			break;
 		case OPT_BASE_END_NS:
 			if (ns_from_arg(arg, &cur_base_end_ns)) {
@@ -2625,12 +2631,15 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 					arg);
 				goto error;
 			}
+			cur_base_end_ns_set = true;
 			break;
 		case OPT_RESET_BASE_BEGIN_NS:
-			cur_base_begin_ns = -1ULL;
+			cur_base_begin_ns = 0;
+			cur_base_begin_ns = false;
 			break;
 		case OPT_RESET_BASE_END_NS:
-			cur_base_end_ns = -1ULL;
+			cur_base_end_ns = 0;
+			cur_base_end_ns = false;
 			break;
 		case OPT_BEGIN_NS:
 			if (!cur_cfg_comp || cur_cfg_comp_dest ==
@@ -2639,11 +2648,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto error;
 			}
 
-			if (ns_from_arg(arg, &cur_cfg_comp->begin_ns)) {
+			if (ns_from_arg(arg, &cur_cfg_comp->begin.value_ns)) {
 				printf_err("Invalid --begin-ns option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
+			cur_cfg_comp->begin.set = true;
 			break;
 		case OPT_END_NS:
 			if (!cur_cfg_comp || cur_cfg_comp_dest ==
@@ -2652,11 +2662,12 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 				goto error;
 			}
 
-			if (ns_from_arg(arg, &cur_cfg_comp->end_ns)) {
+			if (ns_from_arg(arg, &cur_cfg_comp->end.value_ns)) {
 				printf_err("Invalid --end-ns option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
+			cur_cfg_comp->end.set = true;
 			break;
 		case OPT_NAMES:
 			if (text_legacy_opts.names) {
@@ -2814,8 +2825,9 @@ struct bt_config *bt_config_from_args(int argc, char *argv[], int *exit_code)
 	if (legacy_input_format) {
 		if (append_sources_from_legacy_opts(cfg->sources,
 				legacy_input_format, &ctf_legacy_opts,
-				legacy_input_paths, cur_base_begin_ns,
-				cur_base_end_ns)) {
+				legacy_input_paths,
+				cur_base_begin_ns_set ? &cur_base_begin_ns : NULL,
+				cur_base_end_ns_set ? &cur_base_end_ns : NULL)) {
 			printf_err("Cannot convert legacy input format options to source component instance(s)\n");
 			goto error;
 		}
