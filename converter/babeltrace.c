@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include "babeltrace-cfg.h"
 
+static struct bt_component_factory *component_factory;
+
 static
 const char *component_type_str(enum bt_component_type type)
 {
@@ -209,18 +211,18 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 		bt_config_component->component_name->str);
 	printf("    begin timestamp: ");
 
-	if (bt_config_component->begin_ns == -1ULL) {
+	if (!bt_config_component->begin.set) {
 		printf("not set\n");
 	} else {
-		printf("%" PRIu64 " ns\n", bt_config_component->begin_ns);
+		printf("%" PRIu64 " ns\n", bt_config_component->begin.value_ns);
 	}
 
 	printf("    end timestamp: ");
 
-	if (bt_config_component->end_ns == -1ULL) {
+	if (!bt_config_component->end.set) {
 		printf("not set\n");
 	} else {
-		printf("%" PRIu64 " ns\n", bt_config_component->end_ns);
+		printf("%" PRIu64 " ns\n", bt_config_component->end.value_ns);
 	}
 
 	printf("    params:\n");
@@ -255,16 +257,141 @@ void print_cfg(struct bt_config *cfg)
 	print_bt_config_components(cfg->sinks);
 }
 
+static
+struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
+{
+	struct bt_component *trimmer = NULL;
+	struct bt_component_class *trimmer_class = NULL;
+	struct bt_value *trimmer_params = NULL;
+
+	assert(component_factory);
+	trimmer_params = bt_value_map_create();
+	if (!trimmer_params) {
+		goto end;
+	}
+
+	if (source_cfg->begin.set) {
+	        enum bt_value_status ret;
+		struct bt_value *value;
+
+		value = bt_value_integer_create_init(
+				source_cfg->begin.value_ns);
+		if (!value) {
+			goto end;
+		}
+
+		ret = bt_value_map_insert(trimmer_params, "begin_ns_epoch",
+				value);
+	        BT_PUT(value);
+		if (ret) {
+			goto end;
+		}
+	}
+	if (source_cfg->end.set) {
+		enum bt_value_status ret;
+		struct bt_value *value;
+
+		value = bt_value_integer_create_init(
+				source_cfg->end.value_ns);
+		if (!value) {
+			goto end;
+		}
+
+		ret = bt_value_map_insert(trimmer_params, "end_ns_epoch",
+				value);
+		BT_PUT(value);
+		if (ret) {
+			goto end;
+		}
+	}
+
+	trimmer_class = bt_component_factory_get_component_class(
+			component_factory, "utils", BT_COMPONENT_TYPE_FILTER,
+			"trimmer");
+	if (!trimmer_class) {
+		fprintf(stderr, "Could not find trimmer component class. Aborting...\n");
+		goto end;
+	}
+	trimmer = bt_component_create(trimmer_class, "source_trimmer",
+			trimmer_params);
+	if (!trimmer) {
+		goto end;
+	}
+end:
+	bt_put(trimmer_params);
+	bt_put(trimmer_class);
+	return trimmer;
+}
+
+static
+int connect_source_sink(struct bt_component *source,
+		struct bt_config_component *source_cfg,
+		struct bt_component *sink)
+{
+	int ret = 0;
+	enum bt_component_status sink_status;
+	struct bt_component *trimmer = NULL;
+	struct bt_notification_iterator *source_it = NULL;
+	struct bt_notification_iterator *to_sink_it = NULL;
+
+	source_it = bt_component_source_create_iterator(source);
+	if (!source_it) {
+		fprintf(stderr, "Failed to instantiate source iterator. Aborting...\n");
+                ret = -1;
+                goto end;
+        }
+
+	if (source_cfg->begin.set || source_cfg->begin.set) {
+		/* A trimmer must be inserted in the graph. */
+		enum bt_component_status trimmer_status;
+
+		trimmer = create_trimmer(source_cfg);
+		if (!trimmer) {
+			fprintf(stderr, "Failed to create trimmer component. Aborting...\n");
+			ret = -1;
+			goto end;
+		}
+
+		trimmer_status = bt_component_filter_add_iterator(trimmer,
+				source_it);
+		BT_PUT(source_it);
+		if (trimmer_status != BT_COMPONENT_STATUS_OK) {
+			fprintf(stderr, "Failed to connect source to trimmer. Aborting...\n");
+			ret = -1;
+			goto end;
+		}
+
+		to_sink_it = bt_component_filter_create_iterator(trimmer);
+		if (!to_sink_it) {
+			fprintf(stderr, "Failed to instantiate trimmer iterator. Aborting...\n");
+			ret = -1;
+			goto end;
+		}
+	} else {
+		BT_MOVE(to_sink_it, source_it);
+	}
+
+	sink_status = bt_component_sink_add_iterator(sink, to_sink_it);
+	if (sink_status != BT_COMPONENT_STATUS_OK) {
+		fprintf(stderr, "Failed to connect to sink component. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
+end:
+	bt_put(trimmer);
+	bt_put(source_it);
+	bt_put(to_sink_it);
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
-	struct bt_component_factory *component_factory = NULL;
 	struct bt_component_class *source_class = NULL;
 	struct bt_component_class *sink_class = NULL;
 	struct bt_component *source = NULL, *sink = NULL;
 	struct bt_value *source_params = NULL, *sink_params = NULL;
 	struct bt_config *cfg;
-	struct bt_notification_iterator *it = NULL;
 	enum bt_component_status sink_status;
 	struct bt_value *first_plugin_path_value = NULL;
 	const char *first_plugin_path;
@@ -358,16 +485,8 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	it = bt_component_source_create_iterator(source);
-	if (!it) {
-		fprintf(stderr, "Failed to instantiate source iterator. Aborting...\n");
-                ret = -1;
-                goto end;
-        }
-
-	sink_status = bt_component_sink_add_iterator(sink, it);
-	if (sink_status != BT_COMPONENT_STATUS_OK) {
-		ret = -1;
+	ret = connect_source_sink(source, source_cfg, sink);
+	if (ret) {
 		goto end;
 	}
 
@@ -396,7 +515,6 @@ end:
 	BT_PUT(sink);
 	BT_PUT(source_params);
 	BT_PUT(sink_params);
-	BT_PUT(it);
 	BT_PUT(cfg);
 	BT_PUT(first_plugin_path_value);
 	BT_PUT(sink_cfg);
