@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+struct bt_ctf_packet;
+
 /*** BT_NOTIFICATION_TYPE_PACKET_START ***/
 struct bt_notification *bt_notification_packet_start_create(
 		struct bt_ctf_packet *packet);
