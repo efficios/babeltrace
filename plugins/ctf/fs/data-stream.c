@@ -120,15 +120,6 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 		goto end;
 	}
 
-	/* Check if we need an initial memory map */
-	if (!stream->mmap_addr) {
-		if (mmap_next(stream)) {
-			PERR("Cannot memory-map initial region of file \"%s\" (%p)\n",
-				stream->file->path->str, stream->file->fp);
-			goto error;
-		}
-	}
-
 	/* Check if we have at least one memory-mapped byte left */
 	if (remaining_mmap_bytes(stream) == 0) {
 		/* Are we at the end of the file? */

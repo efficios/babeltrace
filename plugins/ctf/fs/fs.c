@@ -554,6 +554,12 @@ int open_trace_streams(struct ctf_fs_component *ctf_fs,
 			goto error;
 		}
 
+		if (file->size == 0) {
+			/* Skip empty stream. */
+			ctf_fs_file_destroy(file);
+			continue;
+		}
+
 		/* Create a private stream; file ownership is passed to it. */
 		stream = ctf_fs_stream_create(ctf_fs, file);
 		if (!stream) {
