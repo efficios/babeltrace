@@ -300,7 +300,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_val
 		value_ret = bt_value_bool_get(value, &gmt);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve clock-gmt value. Expecting a boolean.\n");
+			printf_error("Failed to retrieve clock-gmt value. Expecting a boolean");
 		}
 	}
 	bt_put(value);
@@ -317,7 +317,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_val
 		if (value_ret || timestamp_from_arg(str,
 				trimmer, &trimmer->begin, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve begin value. Expecting a timestamp string.\n");
+			printf_error("Failed to retrieve begin value. Expecting a timestamp string");
 		}
 	}
 	bt_put(value);
@@ -334,11 +334,17 @@ enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_val
 		if (value_ret || timestamp_from_arg(str,
 				trimmer, &trimmer->end, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve end value. Expecting a timestamp string.\n");
+			printf_error("Failed to retrieve end value. Expecting a timestamp string");
 		}
 	}
 	bt_put(value);
 end:
+	if (trimmer->begin.set && trimmer->end.set) {
+		if (trimmer->begin.value > trimmer->end.value) {
+			printf_error("Unexpected: time range begin value is above end value");
+			ret = BT_COMPONENT_STATUS_INVALID;
+		}
+	}
 	return ret;
 }
 
