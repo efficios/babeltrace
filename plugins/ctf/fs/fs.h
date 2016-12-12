@@ -30,6 +30,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/component.h>
+#include "data-stream.h"
 
 #define CTF_FS_COMPONENT_NAME "fs"
 #define CTF_FS_COMPONENT_DESCRIPTION \
@@ -60,6 +61,8 @@ struct ctf_fs_stream {
 	struct bt_ctf_stream *stream;
 	/* FIXME There should be many and ctf_fs_stream should not own them. */
 	struct bt_ctf_notif_iter *notif_iter;
+	/* A stream is assumed to be indexed. */
+	struct index index;
 	void *mmap_addr;
 	/* Max length of chunk to mmap() when updating the current mapping. */
 	size_t mmap_max_len;

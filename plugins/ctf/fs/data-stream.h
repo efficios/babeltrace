@@ -29,6 +29,25 @@
 #include <babeltrace/ctf-ir/trace.h>
 
 #include "../common/notif-iter/notif-iter.h"
+#include "lttng-index.h"
+
+struct ctf_fs_component;
+struct ctf_fs_file;
+struct ctf_fs_stream;
+
+struct index_entry {
+	uint64_t offset; /* in bytes. */
+	uint64_t packet_size; /* in bytes. */
+	/* relative to the packet context field's mapped clock. */
+	uint64_t timestamp_begin, timestamp_end;
+};
+
+struct index {
+        struct {
+		unsigned int major, minor;
+	} version;
+	GArray *entries; /* Array of struct index_entry. */
+};
 
 BT_HIDDEN
 struct ctf_fs_stream *ctf_fs_stream_create(
