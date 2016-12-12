@@ -777,6 +777,9 @@ void print_usage(FILE *fp)
 	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
 	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
 	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "      --begin                       Start time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
+	fprintf(fp, "      --end                         End time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
+	fprintf(fp, "      --timerange                   Time range: begin,end or [begin,end] (where [] are actual brackets)\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
@@ -2108,6 +2111,7 @@ int parse_int64(const char *arg, int64_t *val)
 enum {
 	OPT_NONE = 0,
 	OPT_BASE_PARAMS,
+	OPT_BEGIN,
 	OPT_CLOCK_CYCLES,
 	OPT_CLOCK_DATE,
 	OPT_CLOCK_FORCE_CORRELATE,
@@ -2119,6 +2123,7 @@ enum {
 	OPT_DEBUG_INFO_DIR,
 	OPT_DEBUG_INFO_FULL_PATH,
 	OPT_DEBUG_INFO_TARGET_PREFIX,
+	OPT_END,
 	OPT_FIELDS,
 	OPT_HELP,
 	OPT_HELP_LEGACY,
@@ -2135,6 +2140,7 @@ enum {
 	OPT_SINK,
 	OPT_SOURCE,
 	OPT_STREAM_INTERSECTION,
+	OPT_TIMERANGE,
 	OPT_VERBOSE,
 	OPT_VERSION,
 };
@@ -2143,6 +2149,7 @@ enum {
 static struct poptOption long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
 	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
+	{ "begin", '\0', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
 	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
 	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
 	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
@@ -2154,6 +2161,7 @@ static struct poptOption long_options[] = {
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
 	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
+	{ "end", '\0', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "help-legacy", '\0', POPT_ARG_NONE, NULL, OPT_HELP_LEGACY, NULL, NULL },
@@ -2170,6 +2178,7 @@ static struct poptOption long_options[] = {
 	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
 	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
+	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "version", 'V', POPT_ARG_NONE, NULL, OPT_VERSION, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
@@ -2202,6 +2211,39 @@ static void add_cfg_comp(struct bt_config *cfg,
 	} else {
 		g_ptr_array_add(cfg->sinks, cfg_comp);
 	}
+}
+
+static int split_timerange(const char *arg, const char **begin, const char **end)
+{
+	const char *c;
+
+	/* Try to match [begin,end] */
+	c = strchr(arg, '[');
+	if (!c)
+		goto skip;
+	*begin = ++c;
+	c = strchr(c, ',');
+	if (!c)
+		goto skip;
+	*end = ++c;
+	c = strchr(c, ']');
+	if (!c)
+		goto skip;
+	goto found;
+
+skip:
+	/* Try to match begin,end */
+	c = arg;
+	*begin = c;
+	c = strchr(c, ',');
+	if (!c)
+		goto not_found;
+	*end = ++c;
+	/* fall-through */
+found:
+	return 0;
+not_found:
+	return -1;
 }
 
 /*
@@ -2608,6 +2650,67 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		case OPT_CLOCK_FORCE_CORRELATE:
 			cfg->force_correlate = true;
 			break;
+		case OPT_BEGIN:
+			if (!cur_cfg_comp) {
+				//TODO
+				printf_err("Unimplemented: apply to default source\n");
+				goto error;
+			}
+			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
+				printf_err("--begin option must follow a --source option\n");
+				goto error;
+			}
+			if (bt_value_map_insert_string(cur_cfg_comp->params,
+					"begin", arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_END:
+			if (!cur_cfg_comp) {
+				//TODO
+				printf_err("Unimplemented: apply to default source\n");
+				goto error;
+			}
+			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
+				printf_err("--end option must follow a --source option\n");
+				goto error;
+			}
+			if (bt_value_map_insert_string(cur_cfg_comp->params,
+					"end", arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_TIMERANGE:
+		{
+			const char *begin, *end;
+
+			if (!cur_cfg_comp) {
+				//TODO
+				printf_err("Unimplemented: apply to default source\n");
+				goto error;
+			}
+			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
+				printf_err("--timerange option must follow a --source option\n");
+				goto error;
+			}
+			if (split_timerange(arg, &begin, &end)) {
+				printf_err("Invalid --timerange format, expecting: begin,end or [begin,end] (where [] are actual brackets)\n");
+				goto error;
+			}
+			if (bt_value_map_insert_string(cur_cfg_comp->params,
+					"begin", begin)) {
+				print_err_oom();
+				goto error;
+			}
+			if (bt_value_map_insert_string(cur_cfg_comp->params,
+					"end", end)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		}
 		case OPT_HELP:
 			BT_PUT(cfg);
 			print_usage(stdout);
