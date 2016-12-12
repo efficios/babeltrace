@@ -80,7 +80,7 @@ void destroy_trimmer(struct bt_component *component)
  *   ss
  */
 static
-int timestamp_from_arg(const char *arg,
+int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 		struct trimmer_bound *result_bound, bool gmt)
 {
 	int ret;
@@ -116,19 +116,54 @@ int timestamp_from_arg(const char *arg,
 		value = (int64_t) result;
 		value *= NSEC_PER_SEC;
 		value += ns;
+		if (!trimmer->date) {
+			trimmer->year = year;
+			trimmer->month = month;
+			trimmer->day = day;
+			trimmer->date = true;
+		}
 		goto set;
 	}
 	/* hh:mm:ss.ns */
 	ret = sscanf(arg, "%u:%u:%u.%u",
 		&hh, &mm, &ss, &ns);
 	if (ret == 4) {
-		/* We don't know which day until we get an event. */
-		result_bound->lazy_values.hh = hh;
-		result_bound->lazy_values.mm = mm;
-		result_bound->lazy_values.ss = ss;
-		result_bound->lazy_values.ns = ns;
-		result_bound->lazy_values.gmt = gmt;
-		goto lazy;
+		if (!trimmer->date) {
+			/* We don't know which day until we get an event. */
+			result_bound->lazy_values.hh = hh;
+			result_bound->lazy_values.mm = mm;
+			result_bound->lazy_values.ss = ss;
+			result_bound->lazy_values.ns = ns;
+			result_bound->lazy_values.gmt = gmt;
+			goto lazy;
+		} else {
+			struct tm tm = {
+				.tm_sec = ss,
+				.tm_min = mm,
+				.tm_hour = hh,
+				.tm_mday = trimmer->day,
+				.tm_mon = trimmer->month - 1,
+				.tm_year = trimmer->year - 1900,
+				.tm_isdst = -1,
+			};
+			time_t result;
+
+			if (gmt) {
+				result = timegm(&tm);
+				if (result < 0) {
+					return -1;
+				}
+			} else {
+				result = mktime(&tm);
+				if (result < 0) {
+					return -1;
+				}
+			}
+			value = (int64_t) result;
+			value *= NSEC_PER_SEC;
+			value += ns;
+			goto set;
+		}
 	}
 	/* -ss.ns */
 	ret = sscanf(arg, "-%u.%u",
@@ -173,19 +208,53 @@ int timestamp_from_arg(const char *arg,
 			}
 		}
 		value *= NSEC_PER_SEC;
+		if (!trimmer->date) {
+			trimmer->year = year;
+			trimmer->month = month;
+			trimmer->day = day;
+			trimmer->date = true;
+		}
 		goto set;
 	}
 	/* hh:mm:ss */
 	ret = sscanf(arg, "%u:%u:%u",
 		&hh, &mm, &ss);
 	if (ret == 3) {
-		/* We don't know which day until we get an event. */
-		result_bound->lazy_values.hh = hh;
-		result_bound->lazy_values.mm = mm;
-		result_bound->lazy_values.ss = ss;
-		result_bound->lazy_values.ns = 0;
-		result_bound->lazy_values.gmt = gmt;
-		goto lazy;
+		if (!trimmer->date) {
+			/* We don't know which day until we get an event. */
+			result_bound->lazy_values.hh = hh;
+			result_bound->lazy_values.mm = mm;
+			result_bound->lazy_values.ss = ss;
+			result_bound->lazy_values.ns = 0;
+			result_bound->lazy_values.gmt = gmt;
+			goto lazy;
+		} else {
+			struct tm tm = {
+				.tm_sec = ss,
+				.tm_min = mm,
+				.tm_hour = hh,
+				.tm_mday = trimmer->day,
+				.tm_mon = trimmer->month - 1,
+				.tm_year = trimmer->year - 1900,
+				.tm_isdst = -1,
+			};
+			time_t result;
+
+			if (gmt) {
+				result = timegm(&tm);
+				if (result < 0) {
+					return -1;
+				}
+			} else {
+				result = mktime(&tm);
+				if (result < 0) {
+					return -1;
+				}
+			}
+			value = (int64_t) result;
+			value *= NSEC_PER_SEC;
+			goto set;
+		}
 	}
 	/* -ss */
 	ret = sscanf(arg, "-%u",
@@ -246,7 +315,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_val
 
 		value_ret = bt_value_string_get(value, &str);
 		if (value_ret || timestamp_from_arg(str,
-				&trimmer->begin, gmt)) {
+				trimmer, &trimmer->begin, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
 			printf_error("Failed to retrieve begin value. Expecting a timestamp string.\n");
 		}
@@ -263,7 +332,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_val
 
 		value_ret = bt_value_string_get(value, &str);
 		if (value_ret || timestamp_from_arg(str,
-				&trimmer->end, gmt)) {
+				trimmer, &trimmer->end, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
 			printf_error("Failed to retrieve end value. Expecting a timestamp string.\n");
 		}

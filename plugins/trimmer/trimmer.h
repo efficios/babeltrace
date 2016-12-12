@@ -46,6 +46,8 @@ struct trimmer_bound {
 
 struct trimmer {
 	struct trimmer_bound begin, end;
+	bool date;
+	int year, month, day;
 };
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_H */
