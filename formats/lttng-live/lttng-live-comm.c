@@ -650,17 +650,6 @@ retry:
 		goto end;
 	}
 
-	/*
-	 * Flush the output between attempts to grab a packet, thus
-	 * ensuring we flush at least at the periodical timer period.
-	 * This ensures the output remains reactive for interactive users and
-	 * that the output is flushed when redirected to a file by the shell.
-	 */
-	if (fflush(LTTNG_LIVE_OUTPUT_FP) < 0) {
-		perror("fflush");
-		goto error;
-	}
-
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_PACKET);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
 	cmd.cmd_version = htobe32(0);
@@ -1291,6 +1280,17 @@ retry:
 				cur_index->ts_cycles.timestamp_begin;
 		file_stream->parent.real_timestamp =
 				cur_index->ts_real.timestamp_begin;
+	}
+
+	/*
+	 * Flush the output between attempts to grab a packet, thus
+	 * ensuring we flush at least at the periodical timer period.
+	 * This ensures the output remains reactive for interactive users and
+	 * that the output is flushed when redirected to a file by the shell.
+	 */
+	if (fflush(LTTNG_LIVE_OUTPUT_FP) < 0) {
+		perror("fflush");
+		goto end;
 	}
 
 	if (pos->packet_size == 0 || pos->offset == EOF) {
