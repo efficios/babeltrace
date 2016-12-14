@@ -50,6 +50,7 @@
 #include <inttypes.h>
 #include <ftw.h>
 #include <string.h>
+#include <signal.h>
 
 #include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
 
@@ -75,6 +76,53 @@ static char *opt_output_path;
 static int opt_stream_intersection;
 
 static struct bt_format *fmt_read;
+static struct ctf_text_stream_pos *lttng_live_sout;
+
+static volatile int should_quit = 0;
+
+static
+void sighandler(int sig)
+{
+	switch (sig) {
+	case SIGTERM:
+	case SIGINT:
+		should_quit = 1;
+		break;
+	default:
+		break;
+	}
+}
+
+/* TODO: clean up the signal handler on quit */
+static
+int setup_sighandler(void)
+{
+	struct sigaction sa;
+	sigset_t sigset;
+	int ret;
+
+	if ((ret = sigemptyset(&sigset)) < 0) {
+		perror("sigemptyset");
+		return ret;
+	}
+	sa.sa_handler = sighandler;
+	sa.sa_mask = sigset;
+	sa.sa_flags = 0;
+	if ((ret = sigaction(SIGTERM, &sa, NULL)) < 0) {
+		perror("sigaction");
+		return ret;
+	}
+	if ((ret = sigaction(SIGINT, &sa, NULL)) < 0) {
+		perror("sigaction");
+		return ret;
+	}
+	return 0;
+}
+
+int lttng_live_should_quit()
+{
+	return should_quit;
+}
 
 static
 void strlower(char *str)
@@ -655,6 +703,24 @@ end:
 }
 
 static
+int process_ctf_event(struct ctf_text_stream_pos *sout, const struct bt_ctf_event *event)
+{
+	int ret;
+	
+	ret = sout->parent.event_cb(&sout->parent, event->parent->stream);
+	if (ret) {
+		fprintf(stderr, "[error] Writing event failed.\n");
+	}
+
+	return ret;
+}
+
+int lttng_live_process_ctf_event(const struct bt_ctf_event *event)
+{
+	return process_ctf_event(lttng_live_sout, event);
+}
+
+static
 int convert_trace(struct bt_trace_descriptor *td_write,
 		  struct bt_context *ctx)
 {
@@ -683,9 +749,8 @@ int convert_trace(struct bt_trace_descriptor *td_write,
 		goto error_iter;
 	}
 	while ((ctf_event = bt_ctf_iter_read_event(iter))) {
-		ret = sout->parent.event_cb(&sout->parent, ctf_event->parent->stream);
+		ret = process_ctf_event(sout, ctf_event);
 		if (ret) {
-			fprintf(stderr, "[error] Writing event failed.\n");
 			goto end;
 		}
 		ret = bt_iter_next(bt_ctf_get_iter(iter));
@@ -772,6 +837,22 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
+	if (!td_write) {
+		fprintf(stderr, "Error opening trace \"%s\" for writing.\n\n",
+			opt_output_path ? : "<none>");
+		goto error_td_write;
+	}
+	if (strcmp(opt_input_format, "lttng-live") == 0) {
+		if (0 > setup_sighandler()) {
+			goto error_td_write;
+		}
+		lttng_live_sout = container_of(td_write, struct ctf_text_stream_pos, trace_descriptor);
+		if (!lttng_live_sout->parent.event_cb) {
+			goto error_td_write;
+		}
+	}
+
 	ctx = bt_context_create();
 	if (!ctx) {
 		goto error_td_read;
@@ -796,13 +877,6 @@ int main(int argc, char **argv)
 	if (!open_success) {
 		fprintf(stderr, "[error] none of the specified trace paths could be opened.\n\n");
 		goto error_td_read;
-	}
-
-	td_write = fmt_write->open_trace(opt_output_path, O_RDWR, NULL, NULL);
-	if (!td_write) {
-		fprintf(stderr, "Error opening trace \"%s\" for writing.\n\n",
-			opt_output_path ? : "<none>");
-		goto error_td_write;
 	}
 
 	/*
@@ -842,12 +916,11 @@ int main(int argc, char **argv)
 
 	/* Error handling */
 error_copy_trace:
-	fmt_write->close_trace(td_write);
-error_td_write:
 	bt_context_put(ctx);
 error_td_read:
+	fmt_write->close_trace(td_write);
+error_td_write:
 	partial_error = 1;
-
 	/* teardown and exit */
 end:
 	free(opt_input_format);
