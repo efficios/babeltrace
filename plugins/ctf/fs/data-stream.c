@@ -233,8 +233,6 @@ int build_index_from_idx_file(struct ctf_fs_stream *stream)
 		ret = -1;
 		goto end;
 	}
-	stream->index.version.major = be32toh(header->index_major);
-	stream->index.version.minor = be32toh(header->index_minor);
 
 	file_index_entry_size = be32toh(header->packet_index_len);
 	file_entry_count = (filesize - sizeof(*header)) / file_index_entry_size;

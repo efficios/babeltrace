@@ -43,9 +43,6 @@ struct index_entry {
 };
 
 struct index {
-        struct {
-		unsigned int major, minor;
-	} version;
 	GArray *entries; /* Array of struct index_entry. */
 };
 
