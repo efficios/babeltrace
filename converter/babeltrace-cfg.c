@@ -35,6 +35,8 @@
 #include <glib.h>
 #include "babeltrace-cfg.h"
 
+#define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
+
 /*
  * Error printf() macro which prepends "Error: " the first time it's
  * called. This gives a nicer feel than having a bunch of error prefixes
@@ -2267,7 +2269,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	enum legacy_output_format legacy_output_format =
 		LEGACY_OUTPUT_FORMAT_NONE;
 	struct bt_value *legacy_input_paths = NULL;
+	struct bt_config_component *implicit_source_comp = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
+	bool cur_is_implicit_source = false;
+	bool use_implicit_source = false;
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
@@ -2331,6 +2336,17 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	if (!legacy_input_paths) {
 		print_err_oom();
 		goto error;
+	}
+
+	/* Note: implicit source never gets positional base params. */
+	implicit_source_comp = bt_config_component_from_arg(DEFAULT_SOURCE_COMPONENT_NAME);
+	if (implicit_source_comp) {
+		cur_cfg_comp = implicit_source_comp;
+		cur_is_implicit_source = true;
+		use_implicit_source = true;
+	} else {
+		printf_debug("Cannot find implicit source plugin \"%s\"",
+			DEFAULT_SOURCE_COMPONENT_NAME);
 	}
 
 	/* Parse options */
@@ -2409,8 +2425,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 				}
 			}
 
+			use_implicit_source = false;
+
 			/* Non-legacy: try to create a component config */
-			if (cur_cfg_comp) {
+			if (cur_cfg_comp && !cur_is_implicit_source) {
 				add_cfg_comp(cfg, cur_cfg_comp,
 					cur_cfg_comp_dest);
 			}
@@ -2421,6 +2439,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 					arg);
 				goto error;
 			}
+			cur_is_implicit_source = false;
 
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
@@ -2472,7 +2491,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			}
 
 			/* Non-legacy: try to create a component config */
-			if (cur_cfg_comp) {
+			if (cur_cfg_comp && !cur_is_implicit_source) {
 				add_cfg_comp(cfg, cur_cfg_comp,
 					cur_cfg_comp_dest);
 			}
@@ -2483,6 +2502,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 					arg);
 				goto error;
 			}
+			cur_is_implicit_source = false;
 
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
@@ -2502,7 +2522,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			struct bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
-				printf_err("--params option must follow a --source or --sink option\n");
+				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
+					DEFAULT_SOURCE_COMPONENT_NAME);
 				goto error;
 			}
 
@@ -2535,7 +2556,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		}
 		case OPT_PATH:
 			if (!cur_cfg_comp) {
-				printf_err("--path option must follow a --source or --sink option\n");
+				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
+					DEFAULT_SOURCE_COMPONENT_NAME);
 				goto error;
 			}
 
@@ -2652,8 +2674,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			break;
 		case OPT_BEGIN:
 			if (!cur_cfg_comp) {
-				//TODO
-				printf_err("Unimplemented: apply to default source\n");
+				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
+					DEFAULT_SOURCE_COMPONENT_NAME);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
@@ -2668,8 +2690,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			break;
 		case OPT_END:
 			if (!cur_cfg_comp) {
-				//TODO
-				printf_err("Unimplemented: apply to default source\n");
+				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
+					DEFAULT_SOURCE_COMPONENT_NAME);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
@@ -2687,8 +2709,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			const char *begin, *end;
 
 			if (!cur_cfg_comp) {
-				//TODO
-				printf_err("Unimplemented: apply to default source\n");
+				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
+					DEFAULT_SOURCE_COMPONENT_NAME);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
@@ -2743,9 +2765,21 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	}
 
 	/* Append current component configuration, if any */
-	if (cur_cfg_comp) {
+	if (cur_cfg_comp && !cur_is_implicit_source) {
 		add_cfg_comp(cfg, cur_cfg_comp, cur_cfg_comp_dest);
-		cur_cfg_comp = NULL;
+	}
+	cur_cfg_comp = NULL;
+
+	if (use_implicit_source) {
+		add_cfg_comp(cfg, implicit_source_comp,
+			BT_CONFIG_COMPONENT_DEST_SOURCE);
+		implicit_source_comp = NULL;
+	} else {
+		if (implicit_source_comp
+				&& !bt_value_map_is_empty(implicit_source_comp->params)) {
+			printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
+			goto error;
+		}
 	}
 
 	/* Check for option parsing error */
@@ -2828,6 +2862,7 @@ end:
 	}
 
 	free(arg);
+	BT_PUT(implicit_source_comp);
 	BT_PUT(cur_cfg_comp);
 	BT_PUT(cur_base_params);
 	BT_PUT(text_legacy_opts.names);
