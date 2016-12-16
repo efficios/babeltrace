@@ -1176,6 +1176,36 @@ extern int bt_ctf_field_type_floating_point_set_mantissa_digits(
 
 /** @} */
 
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+		bt_ctf_field_type_enumeration_find_mappings_by_name(
+			struct bt_ctf_field_type *type,
+			const char *name);
+
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+		bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
+			struct bt_ctf_field_type *type,
+			int64_t value);
+
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+		bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
+			struct bt_ctf_field_type *type,
+			uint64_t value);
+
+int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name);
+
+int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, int64_t *lower, int64_t *upper);
+
+int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, uint64_t *lower, uint64_t *upper);
+
+int bt_ctf_field_type_enumeration_mapping_iterator_next(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
+
 /**
 @defgroup ctfirenumfieldtype CTF IR enumeration field type
 @ingroup ctfirfieldtypes
@@ -1205,8 +1235,8 @@ bt_ctf_field_type_enumeration_add_mapping() or
 bt_ctf_field_type_enumeration_add_mapping_unsigned(), depending on the
 signedness of the wrapped @intft.
 
-Many mappings can share the same name, but the ranges of a given
-enumeration field type <strong>must not overlap</strong>. For example,
+Many mappings can share the same name, and the ranges of a given
+enumeration field type are allowed to overlap. For example,
 this is a valid set of mappings:
 
 @verbatim
@@ -1216,7 +1246,7 @@ CHERRY -> [ 25, 34]
 APPLE  -> [ 55, 55]
 @endverbatim
 
-The following set of mappings is \em not valid, however:
+The following set of mappings is also valid:
 
 @verbatim
 APPLE  -> [  3, 19]
@@ -1286,6 +1316,10 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 extern int bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enum_field_type);
 
+extern int bt_ctf_field_type_enumeration_get_mapping_name(
+		struct bt_ctf_field_type *enum_field_type, int index,
+		const char **name);
+
 /**
 @brief	Returns the signed mapping of the @enumft
 	\p enum_field_type at index \p index.
@@ -1320,11 +1354,11 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_ctf_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping_unsigned(): Returns the
-	unsigned mapping contained by a given enumeration field type
+@sa bt_ctf_field_type_enumeration_get_mapping_signed(): Returns the
+	signed mapping contained by a given enumeration field type
 	at a given index.
 */
-extern int bt_ctf_field_type_enumeration_get_mapping(
+extern int bt_ctf_field_type_enumeration_get_mapping_signed(
 		struct bt_ctf_field_type *enum_field_type, int index,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
@@ -1362,83 +1396,14 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_ctf_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping(): Returns the
-	signed mapping contained by a given enumeration field type
+@sa bt_ctf_field_type_enumeration_get_mapping_unsigned(): Returns the
+	unsigned mapping contained by a given enumeration field type
 	at a given index.
 */
 extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		struct bt_ctf_field_type *enum_field_type, int index,
 		const char **name, uint64_t *range_begin,
 		uint64_t *range_end);
-
-/** @cond DOCUMENT */
-/*
- * TODO: Document once we know what to do with this function (return
- *       the first match?).
- */
-extern int bt_ctf_field_type_enumeration_get_mapping_index_by_name(
-		struct bt_ctf_field_type *enum_field_type, const char *name);
-/** @endcond */
-
-/**
-@brief  Returns the index of the signed mapping of the @enumft
-	\p field_type which contains the value \p value.
-
-The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
-\b signed to use this function.
-
-@param[in] enum_field_type	Enumeration field type of which to get
-				the index of the mapping which contains
-				\p value.
-@param[in] value		Value of the mapping to find.
-@returns			Index of the mapping of
-				\p enum_field_type which contains
-				\p value, or a negative value if the
-				function cannot find such a mapping or
-				on error.
-
-@prenotnull{enum_field_type}
-@preisenumft{enum_field_type}
-@pre The wrapped @intft of \p enum_field_type is signed.
-@postrefcountsame{enum_field_type}
-
-@sa bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value():
-	Finds the index of an unsigned mapping of a given enumeration
-	field type by value.
-*/
-extern int bt_ctf_field_type_enumeration_get_mapping_index_by_value(
-		struct bt_ctf_field_type *enum_field_type, int64_t value);
-
-/**
-@brief  Returns the index of the unsigned mapping of the @enumft
-	\p field_type which contains the value \p value.
-
-The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
-\b unsigned to use this function.
-
-@param[in] enum_field_type	Enumeration field type of which to get
-				the index of the mapping which contains
-				\p value.
-@param[in] value		Value of the mapping to find.
-@returns			Index of the mapping of
-				\p enum_field_type which contains
-				\p value, or a negative value if the
-				function cannot find such a mapping or
-				on error.
-
-@prenotnull{enum_field_type}
-@preisenumft{enum_field_type}
-@pre The wrapped @intft of \p enum_field_type is unsigned.
-@postrefcountsame{enum_field_type}
-
-@sa bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value():
-	Finds the index of a signed mapping of a given enumeration
-	field type by value.
-*/
-extern int bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(
-		struct bt_ctf_field_type *enum_field_type, uint64_t value);
 
 /**
 @brief  Adds a mapping to the @enumft \p enum_field_type which maps the
@@ -1452,9 +1417,7 @@ The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b signed to use this function.
 
-A mapping in \p enum_field_type can exist with the name \p name, but
-there must be no overlap amongst all the ranges of
-\p enum_field_type.
+A mapping in \p enum_field_type can exist with the name \p name.
 
 @param[in] enum_field_type	Enumeration field type to which to add
 				a mapping.
@@ -1492,9 +1455,7 @@ The @intft wrapped by \p enum_field_type, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
-A mapping in \p enum_field_type can exist with the name \p name, but
-there must be no overlap amongst all the ranges of
-\p enum_field_type.
+A mapping in \p enum_field_type can exist with the name \p name.
 
 @param[in] enum_field_type	Enumeration field type to which to add
 				a mapping.

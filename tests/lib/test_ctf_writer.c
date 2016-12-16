@@ -60,7 +60,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 596
+#define NR_TESTS 600
 
 static int64_t current_time = 42;
 
@@ -330,6 +330,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_field_type *ep_integer_field_type = NULL;
 	struct bt_ctf_field_type *ep_enum_field_type = NULL;
 	struct bt_ctf_field_type *ep_enum_field_unsigned_type = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
 	int ret;
 
 	ok(uint_12_type, "Create an unsigned integer type");
@@ -381,44 +382,50 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_enumeration_add_mapping(enum_type, mapping_name_test,
 		42, 42);
 	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type, mapping_name_test,
-		43, 51), "bt_ctf_field_type_enumeration_add_mapping rejects duplicate mapping names");
+		43, 51) == 0, "bt_ctf_field_type_enumeration_add_mapping accepts duplicate mapping names");
 	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type, "something",
-		-500, -400), "bt_ctf_field_type_enumeration_add_mapping rejects overlapping enum entries");
+		-500, -400) == 0, "bt_ctf_field_type_enumeration_add_mapping accepts overlapping enum entries");
 	ok(bt_ctf_field_type_enumeration_add_mapping(enum_type, mapping_name_test,
 		-54, -55), "bt_ctf_field_type_enumeration_add_mapping rejects mapping where end < start");
 	bt_ctf_field_type_enumeration_add_mapping(enum_type, "another entry", -42000, -13000);
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(NULL, -42) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, 1000000) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_value handles invalid values correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_value(enum_type, -55) == 1,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_value returns the correct index");
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(NULL, -42);
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_signed_value handles a NULL field type correctly");
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(enum_type, -4200000);
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_signed_value rejects non-mapped values");
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(enum_type, 3);
+	ok(iter != NULL, "bt_ctf_field_type_enumeration_find_mappings_by_signed_value succeeds with mapped value");
+	ok(bt_ctf_field_type_enumeration_mapping_iterator_get_signed(iter, NULL, NULL, NULL) == 0,
+		"bt_ctf_field_type_enumeration_mapping_iterator_get_signed handles mapped values correctly");
+	BT_PUT(iter);
 
 	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type,
 		"enum_field") == 0, "Add signed enumeration field to event");
 
-	ok(bt_ctf_field_type_enumeration_get_mapping(NULL, 0, &ret_char,
+	ok(bt_ctf_field_type_enumeration_get_mapping_signed(NULL, 0, &ret_char,
 		&ret_range_start_int64_t, &ret_range_end_int64_t) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping handles a NULL enumeration correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping(enum_type, 0, NULL,
-		&ret_range_start_int64_t, &ret_range_end_int64_t) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping handles a NULL string correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping(enum_type, 0, &ret_char,
-		NULL, &ret_range_end_int64_t) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping handles a NULL start correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping(enum_type, 0, &ret_char,
-		&ret_range_start_int64_t, NULL) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping handles a NULL end correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping(enum_type, 5, &ret_char,
+		"bt_ctf_field_type_enumeration_get_mapping_signed handles a NULL enumeration correctly");
+	ok(bt_ctf_field_type_enumeration_get_mapping_signed(enum_type, 0, NULL,
 		&ret_range_start_int64_t, &ret_range_end_int64_t) == 0,
-		"bt_ctf_field_type_enumeration_get_mapping returns a value");
+		"bt_ctf_field_type_enumeration_get_mapping_signed handles a NULL string correctly");
+	ok(bt_ctf_field_type_enumeration_get_mapping_signed(enum_type, 0, &ret_char,
+		NULL, &ret_range_end_int64_t) == 0,
+		"bt_ctf_field_type_enumeration_get_mapping_signed handles a NULL start correctly");
+	ok(bt_ctf_field_type_enumeration_get_mapping_signed(enum_type, 0, &ret_char,
+		&ret_range_start_int64_t, NULL) == 0,
+		"bt_ctf_field_type_enumeration_get_mapping_signed handles a NULL end correctly");
+	/* Assumes entries are sorted by range_start values. */
+	ok(bt_ctf_field_type_enumeration_get_mapping_signed(enum_type, 6, &ret_char,
+		&ret_range_start_int64_t, &ret_range_end_int64_t) == 0,
+		"bt_ctf_field_type_enumeration_get_mapping_signed returns a value");
 	ok(!strcmp(ret_char, mapping_name_test),
-		"bt_ctf_field_type_enumeration_get_mapping returns a correct mapping name");
+		"bt_ctf_field_type_enumeration_get_mapping_signed returns a correct mapping name");
 	ok(ret_range_start_int64_t == 42,
-		"bt_ctf_field_type_enumeration_get_mapping returns a correct mapping start");
+		"bt_ctf_field_type_enumeration_get_mapping_signed returns a correct mapping start");
 	ok(ret_range_end_int64_t == 42,
-		"bt_ctf_field_type_enumeration_get_mapping returns a correct mapping end");
+		"bt_ctf_field_type_enumeration_get_mapping_signed returns a correct mapping end");
 
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned,
 		"escaping; \"test\"", 0, 0) == 0,
@@ -432,9 +439,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
 		42, 42);
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
-		43, 51), "bt_ctf_field_type_enumeration_add_mapping_unsigned rejects duplicate mapping names");
+		43, 51) == 0, "bt_ctf_field_type_enumeration_add_mapping_unsigned accepts duplicate mapping names");
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, "something",
-		7, 8), "bt_ctf_field_type_enumeration_add_mapping_unsigned rejects overlapping enum entries");
+		7, 8) == 0, "bt_ctf_field_type_enumeration_add_mapping_unsigned accepts overlapping enum entries");
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
 		55, 54), "bt_ctf_field_type_enumeration_add_mapping_unsigned rejects mapping where end < start");
 	ok(bt_ctf_event_class_add_field(simple_event_class, enum_type_unsigned,
@@ -442,22 +449,22 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(bt_ctf_field_type_enumeration_get_mapping_count(NULL) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_count handles NULL correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_count(enum_type_unsigned) == 4,
+	ok(bt_ctf_field_type_enumeration_get_mapping_count(enum_type_unsigned) == 6,
 		"bt_ctf_field_type_enumeration_get_mapping_count returns the correct value");
 
 	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(NULL, 0, &ret_char,
 		&ret_range_start_uint64_t, &ret_range_end_uint64_t) < 0,
 		"bt_ctf_field_type_enumeration_get_mapping_unsigned handles a NULL enumeration correctly");
 	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(enum_type_unsigned, 0, NULL,
-		&ret_range_start_uint64_t, &ret_range_end_uint64_t) < 0,
+		&ret_range_start_uint64_t, &ret_range_end_uint64_t) == 0,
 		"bt_ctf_field_type_enumeration_get_mapping_unsigned handles a NULL string correctly");
 	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(enum_type_unsigned, 0, &ret_char,
-		NULL, &ret_range_end_uint64_t) < 0,
+		NULL, &ret_range_end_uint64_t) == 0,
 		"bt_ctf_field_type_enumeration_get_mapping_unsigned handles a NULL start correctly");
 	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(enum_type_unsigned, 0, &ret_char,
-		&ret_range_start_uint64_t, NULL) < 0,
+		&ret_range_start_uint64_t, NULL) == 0,
 		"bt_ctf_field_type_enumeration_get_mapping_unsigned handles a NULL end correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(enum_type_unsigned, 3, &ret_char,
+	ok(bt_ctf_field_type_enumeration_get_mapping_unsigned(enum_type_unsigned, 4, &ret_char,
 		&ret_range_start_uint64_t, &ret_range_end_uint64_t) == 0,
 		"bt_ctf_field_type_enumeration_get_mapping_unsigned returns a value");
 	ok(!strcmp(ret_char, mapping_name_test),
@@ -578,18 +585,19 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	enum_field = bt_ctf_field_create(ep_enum_field_type);
 	assert(enum_field);
-	ret_char = bt_ctf_field_enumeration_get_mapping_name(NULL);
-	ok(!ret_char, "bt_ctf_field_enumeration_get_mapping_name handles NULL correctly");
-	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field);
-	ok(!ret_char, "bt_ctf_field_enumeration_get_mapping_name returns NULL if the enumeration's container field is unset");
+
+	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(NULL);
+	ok(!ret_char, "bt_ctf_field_enumeration_get_single_mapping_name handles NULL correctly");
+	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field);
+	ok(!ret_char, "bt_ctf_field_enumeration_get_single_mapping_name returns NULL if the enumeration's container field is unset");
 	enum_container_field = bt_ctf_field_enumeration_get_container(
 		enum_field);
 	ok(bt_ctf_field_signed_integer_set_value(
 		enum_container_field, -42) == 0,
 		"Set signed enumeration container value");
-	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field);
+	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field);
 	ok(!strcmp(ret_char, mapping_name_negative_test),
-		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an signed container");
+		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an signed container");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 	assert(!ret);
 
@@ -603,9 +611,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
 	assert(!ret);
-	ret_char = bt_ctf_field_enumeration_get_mapping_name(enum_field_unsigned);
+	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field_unsigned);
 	ok(ret_char && !strcmp(ret_char, mapping_name_test),
-		"bt_ctf_field_enumeration_get_mapping_name returns the correct mapping name with an unsigned container");
+		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an unsigned container");
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
@@ -750,6 +758,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_stream_class *ret_stream_class;
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context, *packet_context_field;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
 	struct bt_value *obj;
 
 	ok(bt_ctf_field_type_set_alignment(int_16_type, 0),
@@ -801,22 +810,32 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_field_type_enumeration_add_mapping(enum_variant_type,
 		"UINT35_TYPE", 2, 7);
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(NULL,
-		"INT16_TYPE") < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_name handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(
-		enum_variant_type, NULL) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_name handles a NULL name correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_name(
-		enum_variant_type, "INT16_TYPE") == 1,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_name returns the correct index");
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_name(NULL, "INT16_TYPE");
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_name handles a NULL field type correctly");
 
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(NULL, 1) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles a NULL field type correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, -42) < 0,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value handles invalid values correctly");
-	ok(bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value(enum_variant_type, 5) == 2,
-		"bt_ctf_field_type_enumeration_get_mapping_index_by_unsigned_value returns the correct index");
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_name(enum_variant_type, "INT16_TYPE");
+	ok(iter != NULL, "bt_ctf_field_type_enumeration_find_mappings_by_name handles an existing mapping correctly");
+	ok(bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(iter, NULL, NULL, NULL) == 0,
+		"bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned handles mapped values correctly");
+	BT_PUT(iter);
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_name(enum_variant_type, NULL);
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_name handles a NULL name correctly");
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(NULL, 1);
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value handles a NULL field type correctly");
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(enum_variant_type, -42);
+	ok(iter == NULL, "bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value handles invalid values correctly");
+	ok(bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(iter, NULL, NULL, NULL) != 0,
+		"bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned handles invalid values correctly");
+	BT_PUT(iter);
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(enum_variant_type, 5);
+	ok(iter != NULL, "bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value handles valid values correctly");
+	ok(bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(iter, NULL, NULL, NULL) == 0,
+		"bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned handles valid values correctly");
+	BT_PUT(iter);
 
 	ok(bt_ctf_field_type_variant_add_field(variant_type, uint_3_type,
 		"An unknown entry"), "Reject a variant field based on an unknown tag value");
@@ -1689,7 +1708,7 @@ void field_copy_tests()
 		"bt_ctf_field_copy creates a valid enum's integer field copy");
 
 	/* validate e copy */
-	str_val = bt_ctf_field_enumeration_get_mapping_name(e_copy);
+	str_val = bt_ctf_field_enumeration_get_single_mapping_name(e_copy);
 	ok(str_val && !strcmp(str_val, "LABEL2"),
 		"bt_ctf_field_copy creates a valid enum field copy");
 

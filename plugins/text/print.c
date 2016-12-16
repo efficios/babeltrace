@@ -627,18 +627,75 @@ enum bt_component_status print_enum(struct text_component *text,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field *container_field = NULL;
-	const char *mapping_name;
+	struct bt_ctf_field_type *enumeration_field_type = NULL;
+	struct bt_ctf_field_type *container_field_type = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
+	int nr_mappings = 0;
+	int is_signed;
 
+	enumeration_field_type = bt_ctf_field_get_type(field);
+	if (!enumeration_field_type) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 	container_field = bt_ctf_field_enumeration_get_container(field);
 	if (!container_field) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	mapping_name = bt_ctf_field_enumeration_get_mapping_name(field);
-	if (mapping_name) {
-		fprintf(text->out, "( \"%s\"", mapping_name);
+	container_field_type = bt_ctf_field_get_type(container_field);
+	if (!container_field_type) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	is_signed = bt_ctf_field_type_integer_get_signed(container_field_type);
+	if (is_signed < 0) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	if (is_signed) {
+		int64_t value;
+
+		if (bt_ctf_field_signed_integer_get_value(container_field,
+				&value)) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
+				enumeration_field_type, value);
 	} else {
-		fprintf(text->out, "( <unknown>");
+		uint64_t value;
+
+		if (bt_ctf_field_unsigned_integer_get_value(container_field,
+				&value)) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
+				enumeration_field_type, value);
+	}
+	if (!iter) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	fprintf(text->out, "( ");
+	for (;;) {
+		const char *mapping_name;
+
+		if (bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+				iter, &mapping_name, NULL, NULL) < 0) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		if (nr_mappings++)
+			fprintf(text->out, ", ");
+		fprintf(text->out, "\"%s\"", mapping_name);
+		if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter) < 0) {
+			break;
+		}
+	}
+	if (!nr_mappings) {
+		fprintf(text->out, "<unknown>");
 	}
 	fprintf(text->out, " : container = ");
 	ret = print_integer(text, container_field);
@@ -647,7 +704,10 @@ enum bt_component_status print_enum(struct text_component *text,
 	}
 	fprintf(text->out, " )");
 end:
+	bt_put(iter);
+	bt_put(container_field_type);
 	bt_put(container_field);
+	bt_put(enumeration_field_type);
 	return ret;
 }
 
@@ -958,7 +1018,7 @@ enum bt_component_status print_variant(struct text_component *text,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		tag_choice = bt_ctf_field_enumeration_get_mapping_name(tag_field);
+		tag_choice = bt_ctf_field_enumeration_get_single_mapping_name(tag_field);
 		if (!tag_choice) {
 			bt_put(tag_field);
 			ret = BT_COMPONENT_STATUS_ERROR;

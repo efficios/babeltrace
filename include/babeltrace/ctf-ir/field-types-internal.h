@@ -93,6 +93,25 @@ struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type *container;
 	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	struct declaration_enum declaration;
+	bool has_overlapping_ranges;
+};
+
+enum bt_ctf_field_type_enumeration_mapping_iterator_kind {
+	ITERATOR_BY_NAME,
+	ITERATOR_BY_SIGNED_VALUE,
+	ITERATOR_BY_UNSIGNED_VALUE,
+};
+
+struct bt_ctf_field_type_enumeration_mapping_iterator {
+	struct bt_object base;
+	struct bt_ctf_field_type_enumeration *enumeration_type;
+	enum bt_ctf_field_type_enumeration_mapping_iterator_kind kind;
+	int index;
+	union {
+		GQuark name_quark;
+		int64_t signed_value;
+		uint64_t unsigned_value;
+	} u;
 };
 
 struct bt_ctf_field_type_floating_point {
@@ -176,16 +195,6 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 
 BT_HIDDEN
 int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
-
-BT_HIDDEN
-const char *bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
-		struct bt_ctf_field_type_enumeration *enumeration_type,
-		uint64_t value);
-
-BT_HIDDEN
-const char *bt_ctf_field_type_enumeration_get_mapping_name_signed(
-		struct bt_ctf_field_type_enumeration *enumeration_type,
-		int64_t value);
 
 /* Override field type's byte order only if it is set to "native" */
 BT_HIDDEN

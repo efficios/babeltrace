@@ -126,6 +126,7 @@ struct bt_ctf_field;
 struct bt_ctf_event_class;
 struct bt_ctf_event;
 struct bt_ctf_field_type;
+struct bt_ctf_field_type_enum_iter;
 
 /**
 @name Creation and parent field type access functions
@@ -207,6 +208,19 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 	@varfield.
 */
 extern enum bt_ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+
+/*
+ * bt_ctf_field_signed_integer_get_value: get a signed integer field's value
+ *
+ * Get a signed integer field's value.
+ *
+ * @param integer Signed integer field instance.
+ * @param value Pointer to a signed integer where the value will be stored.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
+		int64_t *value);
 
 /**
 @brief	Returns whether or not the @field \p field is a @intfield.
@@ -1110,6 +1124,9 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_tag(
 		struct bt_ctf_field *variant_field);
 
 /** @} */
+
+const char *bt_ctf_field_enumeration_get_single_mapping_name(
+	struct bt_ctf_field *field);
 
 #ifdef __cplusplus
 }

@@ -866,7 +866,7 @@ end:
 	return container;
 }
 
-const char *bt_ctf_field_enumeration_get_mapping_name(
+const char *bt_ctf_field_enumeration_get_single_mapping_name(
 	struct bt_ctf_field *field)
 {
 	int ret;
@@ -874,7 +874,7 @@ const char *bt_ctf_field_enumeration_get_mapping_name(
 	struct bt_ctf_field *container = NULL;
 	struct bt_ctf_field_type *container_type = NULL;
 	struct bt_ctf_field_type_integer *integer_type = NULL;
-	struct bt_ctf_field_type_enumeration *enumeration_type = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
 
 	container = bt_ctf_field_enumeration_get_container(field);
 	if (!container) {
@@ -888,29 +888,37 @@ const char *bt_ctf_field_enumeration_get_mapping_name(
 
 	integer_type = container_of(container_type,
 		struct bt_ctf_field_type_integer, parent);
-	enumeration_type = container_of(field->type,
-		struct bt_ctf_field_type_enumeration, parent);
 
 	if (!integer_type->declaration.signedness) {
 		uint64_t value;
+
 		ret = bt_ctf_field_unsigned_integer_get_value(container,
 		      &value);
 		if (ret) {
 			goto error_put_container_type;
 		}
-
-		name = bt_ctf_field_type_enumeration_get_mapping_name_unsigned(
-			enumeration_type, value);
+		iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
+				field->type, value);
+		if (!iter) {
+			goto error_put_container_type;
+		}
+		(void) bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
+				iter, &name, NULL, NULL);
 	} else {
 		int64_t value;
+
 		ret = bt_ctf_field_signed_integer_get_value(container,
 		      &value);
 		if (ret) {
 			goto error_put_container_type;
 		}
-
-		name = bt_ctf_field_type_enumeration_get_mapping_name_signed(
-			enumeration_type, value);
+		iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
+				field->type, value);
+		if (!iter) {
+			goto error_put_container_type;
+		}
+		(void) bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+				iter, &name, NULL, NULL);
 	}
 
 error_put_container_type:
