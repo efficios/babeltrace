@@ -2277,7 +2277,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
 	int opt;
-	bool cur_cfg_comp_params_set = false;
 
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
 	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
@@ -2450,7 +2449,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			}
 
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
-			cur_cfg_comp_params_set = false;
 			break;
 		}
 		case OPT_OUTPUT_FORMAT:
@@ -2513,7 +2511,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			}
 
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
-			cur_cfg_comp_params_set = false;
 			break;
 		}
 		case OPT_PARAMS:
@@ -2527,13 +2524,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 				goto error;
 			}
 
-			if (cur_cfg_comp_params_set) {
-				printf_err("Duplicate --params option for the same current component\ninstance (class %s.%s)\n",
-					cur_cfg_comp->plugin_name->str,
-					cur_cfg_comp->component_name->str);
-				goto error;
-			}
-
 			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
@@ -2541,17 +2531,16 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 				goto error;
 			}
 
-			params_to_set = bt_value_map_extend(cur_base_params,
+			params_to_set = bt_value_map_extend(cur_cfg_comp->params,
 				params);
 			BT_PUT(params);
 			if (!params_to_set) {
-				printf_err("Cannot extend current base parameters with --params option's argument:\n    %s\n",
+				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
 
 			BT_MOVE(cur_cfg_comp->params, params_to_set);
-			cur_cfg_comp_params_set = true;
 			break;
 		}
 		case OPT_PATH:
