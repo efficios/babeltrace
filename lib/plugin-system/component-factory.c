@@ -465,7 +465,7 @@ add_component_class(struct bt_component_factory *factory, const char *name,
 		struct bt_plugin *plugin = bt_component_class_get_plugin(
 			component_class);
 
-		printf_warning("Duplicate component class registration attempted. Component class %s being registered by plugin %s (path: %s) conflicts with one already registered by plugin %s (path: %s)\n",
+		printf_verbose("Duplicate component class registration attempted. Component class %s being registered by plugin %s (path: %s) conflicts with one already registered by plugin %s (path: %s)\n",
 			name, bt_plugin_get_name(factory->current_plugin),
 			bt_plugin_get_path(factory->current_plugin),
 			bt_plugin_get_name(plugin),
