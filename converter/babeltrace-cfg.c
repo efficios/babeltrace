@@ -39,6 +39,7 @@
 
 #define SYSTEM_PLUGIN_PATH		INSTALL_LIBDIR "/babeltrace/plugins"
 #define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
+#define DEFAULT_SINK_COMPONENT_NAME	"text.text"
 #define HOME_ENV_VAR			"HOME"
 #define HOME_SUBPATH			"/.babeltrace/plugins"
 
@@ -2004,28 +2005,24 @@ bool validate_cfg(struct bt_config *cfg,
 		enum legacy_output_format *legacy_output_format,
 		struct bt_value *legacy_input_paths,
 		struct ctf_legacy_opts *ctf_legacy_opts,
-		struct text_legacy_opts *text_legacy_opts,
-		bool *use_implicit_source)
+		struct text_legacy_opts *text_legacy_opts)
 {
 	bool legacy_input = false;
 	bool legacy_output = false;
 
 	/* Determine if the input and output should be legacy-style */
 	if (*legacy_input_format != LEGACY_INPUT_FORMAT_NONE ||
-			cfg->sources->len == 0 ||
 			!bt_value_array_is_empty(legacy_input_paths) ||
 			ctf_legacy_opts_is_any_set(ctf_legacy_opts)) {
 		legacy_input = true;
 	}
 
 	if (*legacy_output_format != LEGACY_OUTPUT_FORMAT_NONE ||
-			cfg->sinks->len == 0 ||
 			text_legacy_opts_is_any_set(text_legacy_opts)) {
 		legacy_output = true;
 	}
 
 	if (legacy_input) {
-		*use_implicit_source = false;
 		/* If no legacy input format was specified, default to CTF */
 		if (*legacy_input_format == LEGACY_INPUT_FORMAT_NONE) {
 			*legacy_input_format = LEGACY_INPUT_FORMAT_CTF;
@@ -2055,7 +2052,6 @@ bool validate_cfg(struct bt_config *cfg,
 	}
 
 	if (legacy_output) {
-		*use_implicit_source = false;
 		/*
 		 * If no legacy output format was specified, default to
 		 * "text".
@@ -2327,6 +2323,30 @@ error:
 	return -1;
 }
 
+static int append_sources_from_implicit_params(GPtrArray *sources,
+		struct bt_config_component *implicit_source_comp)
+{
+	size_t i;
+	size_t len = sources->len;
+
+	for (i = 0; i < len; i++) {
+		struct bt_config_component *comp;
+		struct bt_value *params_to_set;
+
+		comp = g_ptr_array_index(sources, i);
+		params_to_set = bt_value_map_extend(comp->params,
+			implicit_source_comp->params);
+		if (!params_to_set) {
+			printf_err("Cannot extend legacy component parameters with non-legacy parameters\n");
+			goto error;
+		}
+		BT_MOVE(comp->params, params_to_set);
+	}
+	return 0;
+error:
+	return -1;
+}
+
 /*
  * Returns a Babeltrace configuration, out of command-line arguments,
  * containing everything that is needed to instanciate specific
@@ -2532,7 +2552,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
-			if (!cur_cfg_comp) {
+			if (!cur_cfg_comp->params) {
 				print_err_oom();
 				goto end;
 			}
@@ -2594,7 +2614,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
-			if (!cur_cfg_comp) {
+			if (!cur_cfg_comp->params) {
 				print_err_oom();
 				goto end;
 			}
@@ -2877,21 +2897,9 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	/* Validate legacy/non-legacy options */
 	if (!validate_cfg(cfg, &legacy_input_format, &legacy_output_format,
 			legacy_input_paths, &ctf_legacy_opts,
-			&text_legacy_opts, &use_implicit_source)) {
+			&text_legacy_opts)) {
 		printf_err("Command-line options form an invalid configuration\n");
 		goto error;
-	}
-
-	if (use_implicit_source) {
-		add_cfg_comp(cfg, implicit_source_comp,
-			BT_CONFIG_COMPONENT_DEST_SOURCE);
-		implicit_source_comp = NULL;
-	} else {
-		if (implicit_source_comp
-				&& !bt_value_map_is_empty(implicit_source_comp->params)) {
-			printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
-			goto error;
-		}
 	}
 
 	/*
@@ -2905,6 +2913,24 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			printf_err("Cannot convert legacy input format options to source component instance(s)\n");
 			goto error;
 		}
+		if (append_sources_from_implicit_params(cfg->sources,
+				implicit_source_comp)) {
+			printf_err("Cannot initialize legacy component parameters\n");
+			goto error;
+		}
+		use_implicit_source = false;
+	} else {
+		if (use_implicit_source) {
+			add_cfg_comp(cfg, implicit_source_comp,
+				BT_CONFIG_COMPONENT_DEST_SOURCE);
+			implicit_source_comp = NULL;
+		} else {
+			if (implicit_source_comp
+					&& !bt_value_map_is_empty(implicit_source_comp->params)) {
+				printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
+				goto error;
+			}
+		}
 	}
 
 	/*
@@ -2917,6 +2943,18 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			printf_err("Cannot convert legacy output format options to sink component instance(s)\n");
 			goto error;
 		}
+	}
+
+	if (cfg->sinks->len == 0) {
+		/* Use implicit sink as default. */
+		cur_cfg_comp = bt_config_component_from_arg(DEFAULT_SINK_COMPONENT_NAME);
+		if (!cur_cfg_comp) {
+			printf_error("Cannot find implicit sink plugin \"%s\"\n",
+				DEFAULT_SINK_COMPONENT_NAME);
+		}
+		add_cfg_comp(cfg, cur_cfg_comp,
+			BT_CONFIG_COMPONENT_DEST_SINK);
+		cur_cfg_comp = NULL;
 	}
 
 	goto end;
