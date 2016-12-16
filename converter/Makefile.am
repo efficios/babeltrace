@@ -48,3 +48,12 @@ if BABELTRACE_BUILD_WITH_MINGW
 babeltrace_log_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 babeltrace_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
+
+check_SCRIPTS = babeltrace.wrapper
+
+all-local: $(PROGRAMS)
+	mv babeltrace babeltrace.libtool
+	cp babeltrace.wrapper babeltrace
+
+clean-local:
+	rm -f babeltrace.libtool

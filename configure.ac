@@ -429,6 +429,7 @@ AC_CONFIG_FILES([
 	babeltrace-ctf.pc
 ])
 
+AC_CONFIG_FILES([converter/babeltrace.wrapper], [chmod +x converter/babeltrace.wrapper])
 AC_CONFIG_FILES([tests/lib/test_ctf_writer_complete], [chmod +x tests/lib/test_ctf_writer_complete])
 AC_CONFIG_FILES([tests/lib/test_seek_big_trace], [chmod +x tests/lib/test_seek_big_trace])
 AC_CONFIG_FILES([tests/lib/test_seek_empty_packet], [chmod +x tests/lib/test_seek_empty_packet])
