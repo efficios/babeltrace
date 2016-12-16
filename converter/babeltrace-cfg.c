@@ -2004,7 +2004,8 @@ bool validate_cfg(struct bt_config *cfg,
 		enum legacy_output_format *legacy_output_format,
 		struct bt_value *legacy_input_paths,
 		struct ctf_legacy_opts *ctf_legacy_opts,
-		struct text_legacy_opts *text_legacy_opts)
+		struct text_legacy_opts *text_legacy_opts,
+		bool *use_implicit_source)
 {
 	bool legacy_input = false;
 	bool legacy_output = false;
@@ -2024,6 +2025,7 @@ bool validate_cfg(struct bt_config *cfg,
 	}
 
 	if (legacy_input) {
+		*use_implicit_source = false;
 		/* If no legacy input format was specified, default to CTF */
 		if (*legacy_input_format == LEGACY_INPUT_FORMAT_NONE) {
 			*legacy_input_format = LEGACY_INPUT_FORMAT_CTF;
@@ -2053,6 +2055,7 @@ bool validate_cfg(struct bt_config *cfg,
 	}
 
 	if (legacy_output) {
+		*use_implicit_source = false;
 		/*
 		 * If no legacy output format was specified, default to
 		 * "text".
@@ -2839,28 +2842,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		arg = NULL;
 	}
 
-	if (add_internal_plugin_paths(cfg)) {
-		goto error;
-	}
-
-	/* Append current component configuration, if any */
-	if (cur_cfg_comp && !cur_is_implicit_source) {
-		add_cfg_comp(cfg, cur_cfg_comp, cur_cfg_comp_dest);
-	}
-	cur_cfg_comp = NULL;
-
-	if (use_implicit_source) {
-		add_cfg_comp(cfg, implicit_source_comp,
-			BT_CONFIG_COMPONENT_DEST_SOURCE);
-		implicit_source_comp = NULL;
-	} else {
-		if (implicit_source_comp
-				&& !bt_value_map_is_empty(implicit_source_comp->params)) {
-			printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
-			goto error;
-		}
-	}
-
 	/* Check for option parsing error */
 	if (opt < -1) {
 		printf_err("While parsing command-line options, at option %s: %s\n",
@@ -2883,12 +2864,34 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		}
 	}
 
+	if (add_internal_plugin_paths(cfg)) {
+		goto error;
+	}
+
+	/* Append current component configuration, if any */
+	if (cur_cfg_comp && !cur_is_implicit_source) {
+		add_cfg_comp(cfg, cur_cfg_comp, cur_cfg_comp_dest);
+	}
+	cur_cfg_comp = NULL;
+
 	/* Validate legacy/non-legacy options */
 	if (!validate_cfg(cfg, &legacy_input_format, &legacy_output_format,
 			legacy_input_paths, &ctf_legacy_opts,
-			&text_legacy_opts)) {
+			&text_legacy_opts, &use_implicit_source)) {
 		printf_err("Command-line options form an invalid configuration\n");
 		goto error;
+	}
+
+	if (use_implicit_source) {
+		add_cfg_comp(cfg, implicit_source_comp,
+			BT_CONFIG_COMPONENT_DEST_SOURCE);
+		implicit_source_comp = NULL;
+	} else {
+		if (implicit_source_comp
+				&& !bt_value_map_is_empty(implicit_source_comp->params)) {
+			printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
+			goto error;
+		}
 	}
 
 	/*
