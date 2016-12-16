@@ -2,9 +2,9 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
 		-DINSTALL_LIBDIR=\"$(libdir)\"
 AM_LDFLAGS = -lpopt
 
-bin_PROGRAMS = babeltrace babeltrace-log
+bin_PROGRAMS = babeltrace.bin babeltrace-log
 
-babeltrace_SOURCES = \
+babeltrace_bin_SOURCES = \
 	babeltrace.c \
 	babeltrace-cfg.c \
 	babeltrace-cfg.h
@@ -12,8 +12,8 @@ babeltrace_SOURCES = \
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-babeltrace_LDFLAGS = -Wl, $(LD_NO_AS_NEEDED), -export-dynamic
-babeltrace_LDADD = \
+babeltrace_bin_LDFLAGS = -Wl, $(LD_NO_AS_NEEDED), -export-dynamic
+babeltrace_bin_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
 	$(top_builddir)/compat/libcompat.la \
@@ -23,11 +23,11 @@ babeltrace_LDADD = \
 	$(top_builddir)/formats/lttng-live/libbabeltrace-lttng-live.la
 
 if ENABLE_DEBUG_INFO
-babeltrace_LDADD += $(top_builddir)/lib/libdebug-info.la
+babeltrace_bin_LDADD += $(top_builddir)/lib/libdebug-info.la
 endif
 
 if BUILT_IN_PLUGINS
-babeltrace_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
+babeltrace_bin_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
 endif
 
 babeltrace_log_SOURCES = babeltrace-log.c
@@ -46,14 +46,7 @@ endif
 
 if BABELTRACE_BUILD_WITH_MINGW
 babeltrace_log_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
-babeltrace_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
+babeltrace_bin_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
 
-check_SCRIPTS = babeltrace.wrapper
-
-all-local: $(PROGRAMS)
-	mv babeltrace babeltrace.libtool
-	cp babeltrace.wrapper babeltrace
-
-clean-local:
-	rm -f babeltrace.libtool
+check_SCRIPTS = babeltrace

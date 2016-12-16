@@ -1,4 +1,0 @@
-#!/bin/sh
-
-babeltrace --omit-system-plugin-path --omit-home-plugin-path \
-		--plugin-path "@abs_top_builddir@/plugins" ${*}

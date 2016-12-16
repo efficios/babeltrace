@@ -1,0 +1,5 @@
+#!/bin/sh
+
+@abs_top_builddir@/converter/babeltrace.bin \
+		--omit-system-plugin-path --omit-home-plugin-path \
+		--plugin-path "@abs_top_builddir@/plugins" ${*}
