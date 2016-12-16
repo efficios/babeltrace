@@ -33,9 +33,14 @@
 #include <babeltrace/values.h>
 #include <popt.h>
 #include <glib.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include "babeltrace-cfg.h"
 
+#define SYSTEM_PLUGIN_PATH		INSTALL_LIBDIR "/babeltrace/plugins"
 #define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
+#define HOME_ENV_VAR			"HOME"
+#define HOME_SUBPATH			"/.babeltrace/plugins"
 
 /*
  * Error printf() macro which prepends "Error: " the first time it's
@@ -141,6 +146,9 @@ enum legacy_output_format {
 	LEGACY_OUTPUT_FORMAT_CTF_METADATA,
 	LEGACY_OUTPUT_FORMAT_DUMMY,
 };
+
+static bool omit_system_plugin_path;
+static bool omit_home_plugin_path;
 
 /*
  * Prints the "out of memory" error.
@@ -782,6 +790,8 @@ void print_usage(FILE *fp)
 	fprintf(fp, "      --begin                       Start time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
 	fprintf(fp, "      --end                         End time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
 	fprintf(fp, "      --timerange                   Time range: begin,end or [begin,end] (where [] are actual brackets)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
@@ -956,6 +966,12 @@ end:
 	return;
 }
 
+static
+bool is_setuid_setgid(void)
+{
+	return (geteuid() != getuid() || getegid() != getgid());
+}
+
 /*
  * Extracts the various paths from the string arg, delimited by ':',
  * and converts them to an array value object.
@@ -965,17 +981,11 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_value *plugin_paths_from_arg(const char *arg)
+enum bt_value_status plugin_paths_from_arg(struct bt_value *plugin_paths,
+		const char *arg)
 {
-	struct bt_value *plugin_paths;
 	const char *at = arg;
 	const char *end = arg + strlen(arg);
-
-	plugin_paths = bt_value_array_create();
-	if (!plugin_paths) {
-		print_err_oom();
-		goto error;
-	}
 
 	while (at < end) {
 		int ret;
@@ -1011,13 +1021,9 @@ struct bt_value *plugin_paths_from_arg(const char *arg)
 		}
 	}
 
-	goto end;
-
+	return BT_VALUE_STATUS_OK;
 error:
-	BT_PUT(plugin_paths);
-
-end:
-	return plugin_paths;
+	return BT_VALUE_STATUS_ERROR;
 }
 
 /*
@@ -2145,6 +2151,8 @@ enum {
 	OPT_TIMERANGE,
 	OPT_VERBOSE,
 	OPT_VERSION,
+	OPT_OMIT_SYSTEM_PLUGIN_PATH,
+	OPT_OMIT_HOME_PLUGIN_PATH,
 };
 
 /* popt long option descriptions */
@@ -2183,6 +2191,8 @@ static struct poptOption long_options[] = {
 	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
 	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
 	{ "version", 'V', POPT_ARG_NONE, NULL, OPT_VERSION, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -2245,6 +2255,72 @@ skip:
 found:
 	return 0;
 not_found:
+	return -1;
+}
+
+static char *bt_secure_getenv(const char *name)
+{
+	if (is_setuid_setgid()) {
+		printf_err("Disregarding %s environment variable for setuid/setgid binary", name);
+		return NULL;
+	}
+	return getenv(name);
+}
+
+static const char *get_home_dir(void)
+{
+	char *val = NULL;
+	struct passwd *pwd;
+
+	val = bt_secure_getenv(HOME_ENV_VAR);
+	if (val) {
+		goto end;
+	}
+	/* Fallback on password file. */
+	pwd = getpwuid(getuid());
+	if (!pwd) {
+		goto end;
+	}
+	val = pwd->pw_dir;
+end:
+	return val;
+}
+
+static int add_internal_plugin_paths(struct bt_config *cfg)
+{
+	if (!omit_home_plugin_path) {
+		char path[PATH_MAX];
+		const char *home_dir;
+
+		if (is_setuid_setgid()) {
+			printf_debug("Skipping non-system plugin paths for setuid/setgid binary.");
+		} else {
+			home_dir = get_home_dir();
+			if (home_dir) {
+				if (strlen(home_dir) + strlen(HOME_SUBPATH) + 1
+						>= PATH_MAX) {
+					printf_err("Home directory path too long\n");
+					goto error;
+				}
+				strcpy(path, home_dir);
+				strcat(path, HOME_SUBPATH);
+				if (plugin_paths_from_arg(cfg->plugin_paths, path)) {
+					printf_err("Invalid home plugin path\n");
+					goto error;
+				}
+			}
+		}
+	}
+
+	if (!omit_system_plugin_path) {
+		if (plugin_paths_from_arg(cfg->plugin_paths,
+				SYSTEM_PLUGIN_PATH)) {
+			printf_err("Invalid system plugin path\n");
+			goto error;
+		}
+	}
+	return 0;
+error:
 	return -1;
 }
 
@@ -2348,6 +2424,12 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			DEFAULT_SOURCE_COMPONENT_NAME);
 	}
 
+	cfg->plugin_paths = bt_value_array_create();
+	if (!cfg->plugin_paths) {
+		print_err_oom();
+		goto error;
+	}
+
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv, long_options, 0);
 	if (!pc) {
@@ -2362,16 +2444,20 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (cfg->plugin_paths) {
-				printf_err("Duplicate --plugin-path option\n");
-				goto error;
+			if (is_setuid_setgid()) {
+				printf_debug("Skipping non-system plugin paths for setuid/setgid binary.");
+			} else {
+				if (plugin_paths_from_arg(cfg->plugin_paths, arg)) {
+					printf_err("Invalid --plugin-path option's argument\n");
+					goto error;
+				}
 			}
-
-			cfg->plugin_paths = plugin_paths_from_arg(arg);
-			if (!cfg->plugin_paths) {
-				printf_err("Invalid --plugin-path option's argument\n");
-				goto error;
-			}
+			break;
+		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+			omit_system_plugin_path = true;
+			break;
+		case OPT_OMIT_HOME_PLUGIN_PATH:
+			omit_home_plugin_path = true;
 			break;
 		case OPT_OUTPUT_PATH:
 			if (text_legacy_opts.output->len > 0) {
@@ -2751,6 +2837,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 
 		free(arg);
 		arg = NULL;
+	}
+
+	if (add_internal_plugin_paths(cfg)) {
+		goto error;
 	}
 
 	/* Append current component configuration, if any */

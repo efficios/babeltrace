@@ -369,6 +369,34 @@ end:
 	return ret;
 }
 
+static int load_plugins(struct bt_config *cfg)
+{
+	int nr_paths, i;
+
+	nr_paths = bt_value_array_size(cfg->plugin_paths);
+	if (nr_paths < 0) {
+		return -1;
+	}
+	for (i = 0; i < nr_paths; i++) {
+		struct bt_value *plugin_path_value = NULL;
+		const char *plugin_path;
+
+		plugin_path_value = bt_value_array_get(cfg->plugin_paths, i);
+		if (bt_value_string_get(plugin_path_value,
+				&plugin_path)) {
+			BT_PUT(plugin_path_value);
+			continue;
+		}
+		if (bt_component_factory_load_recursive(component_factory,
+				plugin_path)) {
+			printf_debug("Unable to dynamically load plugins from path %s.\n",
+				plugin_path);
+		}
+		BT_PUT(plugin_path_value);
+	}
+	return 0;
+}
+
 int main(int argc, const char **argv)
 {
 	int ret;
@@ -378,8 +406,6 @@ int main(int argc, const char **argv)
 	struct bt_value *source_params = NULL, *sink_params = NULL;
 	struct bt_config *cfg;
 	enum bt_component_status sink_status;
-	struct bt_value *first_plugin_path_value = NULL;
-	const char *first_plugin_path;
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 
 	cfg = bt_config_from_args(argc, argv, &ret);
@@ -408,17 +434,10 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	if (cfg->plugin_paths && !bt_value_array_is_empty(cfg->plugin_paths)) {
-		first_plugin_path_value = bt_value_array_get(
-				cfg->plugin_paths, 0);
-		bt_value_string_get(first_plugin_path_value,
-				&first_plugin_path);
-		ret = bt_component_factory_load_recursive(component_factory,
-				first_plugin_path);
-		if (ret) {
-			fprintf(stderr, "Failed to dynamically load plugins.\n");
-			goto end;
-		}
+	if (load_plugins(cfg)) {
+		fprintf(stderr, "Failed to load plugins.\n");
+		ret = -1;
+		goto end;
 	}
 
 	ret = bt_component_factory_load_static(component_factory);
@@ -501,7 +520,6 @@ end:
 	BT_PUT(source_params);
 	BT_PUT(sink_params);
 	BT_PUT(cfg);
-	BT_PUT(first_plugin_path_value);
 	BT_PUT(sink_cfg);
 	BT_PUT(source_cfg);
 	return ret ? 1 : 0;
