@@ -2375,16 +2375,11 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
-	int opt;
+	int opt, nr_omit_opt = 0;
 
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
 	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
 	*exit_code = 0;
-
-	if (argc <= 1) {
-		print_usage(stdout);
-		goto end;
-	}
 
 	text_legacy_opts.output = g_string_new(NULL);
 	if (!text_legacy_opts.output) {
@@ -2478,9 +2473,11 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
 			omit_system_plugin_path = true;
+			nr_omit_opt += 2;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			omit_home_plugin_path = true;
+			nr_omit_opt += 2;
 			break;
 		case OPT_OUTPUT_PATH:
 			if (text_legacy_opts.output->len > 0) {
@@ -2862,6 +2859,11 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		arg = NULL;
 	}
 
+	if (argc - nr_omit_opt <= 1) {
+		print_usage(stdout);
+		goto put_cfg;
+	}
+
 	/* Check for option parsing error */
 	if (opt < -1) {
 		printf_err("While parsing command-line options, at option %s: %s\n",
@@ -2960,10 +2962,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	goto end;
 
 error:
+	*exit_code = 1;
+put_cfg:
 	BT_PUT(cfg);
 	cfg = NULL;
-	*exit_code = 1;
-
 end:
 	if (pc) {
 		poptFreeContext(pc);
