@@ -260,6 +260,7 @@ evaluate_event_notification(struct bt_notification *notification,
 	}
 	if (end->set && ts > end->value) {
 		in_range = false;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
 	}
 end:
 	bt_put(event);
@@ -377,6 +378,9 @@ enum bt_notification_iterator_status evaluate_packet_notification(
 	 * packet.
 	 */
 	in_range = (pkt_end_ns >= begin_ns) && (pkt_begin_ns <= end_ns);
+	if (pkt_begin_ns > end_ns) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+	}
 end:
 	*_packet_in_range = in_range;
 	bt_put(packet);
