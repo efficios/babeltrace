@@ -217,6 +217,10 @@ int build_index_from_idx_file(struct ctf_fs_stream *stream)
 	index_file_path = g_build_filename(directory, "index",
 			index_basename->str, NULL);
 	mapped_file = g_mapped_file_new(index_file_path, FALSE, NULL);
+	if (!mapped_file) {
+		ret = -1;
+		goto end;
+	}
 	filesize = g_mapped_file_get_length(mapped_file);
 	if (filesize < sizeof(*header)) {
 		printf_error("Invalid LTTng trace index: file size < header size");
@@ -294,8 +298,12 @@ end:
 	g_free(directory);
 	g_free(basename);
 	g_free(index_file_path);
-	g_string_free(index_basename, TRUE);
-	g_mapped_file_unref(mapped_file);
+	if (index_basename) {
+		g_string_free(index_basename, TRUE);
+	}
+	if (mapped_file) {
+		g_mapped_file_unref(mapped_file);
+	}
 	return ret;
 invalid_index:
 	g_array_free(stream->index.entries, TRUE);
