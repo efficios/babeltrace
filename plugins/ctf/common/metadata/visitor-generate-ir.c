@@ -1818,6 +1818,15 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 			goto error;
 		}
 
+		if (min_align_value != 0) {
+			ret = bt_ctf_field_type_set_alignment(*struct_decl,
+					min_align_value);
+			if (ret) {
+				_PERROR("%s", "failed to set structure's minimal alignment");
+				goto error;
+			}
+		}
+
 		ret = ctx_push_scope(ctx);
 		if (ret) {
 			_PERROR("%s", "cannot push scope");
