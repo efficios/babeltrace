@@ -622,7 +622,6 @@ struct bt_ctf_field_type *bt_ctf_stream_class_get_event_header_type(
 		goto end;
 	}
 
-	assert(stream_class->event_header_type);
 	bt_get(stream_class->event_header_type);
 	ret = stream_class->event_header_type;
 end:
