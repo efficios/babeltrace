@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 605
+#define NR_TESTS 599
 
 static int64_t current_time = 42;
 
@@ -473,7 +473,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 
 	assert(!bt_ctf_event_class_set_id(simple_event_class, 13));
 
-	/* Set an event context type which will contain a single integer*/
+	/* Set an event context type which will contain a single integer. */
 	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
 		"event_specific_context"),
 		"Add event specific context field");
@@ -482,8 +482,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
 		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
 
-	ok(bt_ctf_event_class_set_context_type(simple_event_class, NULL) < 0,
-		"bt_ctf_event_class_set_context_type handles a NULL context type correctly");
 	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
 		"bt_ctf_event_class_set_context_type handles a NULL event class correctly");
 	ok(!bt_ctf_event_class_set_context_type(simple_event_class, event_context_type),
@@ -3337,8 +3335,6 @@ int main(int argc, char **argv)
 
 	ok(bt_ctf_trace_set_packet_header_type(NULL, packet_header_type) < 0,
 		"bt_ctf_trace_set_packet_header_type handles a NULL trace correctly");
-	ok(bt_ctf_trace_set_packet_header_type(trace, NULL) < 0,
-		"bt_ctf_trace_set_packet_header_type handles a NULL packet_header_type correctly");
 	ok(!bt_ctf_trace_set_packet_header_type(trace, packet_header_type),
 		"Set a trace packet_header_type successfully");
 
@@ -3354,8 +3350,6 @@ int main(int argc, char **argv)
 
 	ok(bt_ctf_stream_class_set_packet_context_type(NULL, packet_context_type),
 		"bt_ctf_stream_class_set_packet_context_type handles a NULL stream class correctly");
-	ok(bt_ctf_stream_class_set_packet_context_type(stream_class, NULL),
-		"bt_ctf_stream_class_set_packet_context_type handles a NULL packet context type correctly");
 
 	integer_type = bt_ctf_field_type_integer_create(32);
 	ok(bt_ctf_stream_class_set_packet_context_type(stream_class,
@@ -3381,9 +3375,6 @@ int main(int argc, char **argv)
 	ok(bt_ctf_stream_class_set_event_context_type(NULL,
 		stream_event_context_type) < 0,
 		"bt_ctf_stream_class_set_event_context_type handles a NULL stream_class correctly");
-	ok(bt_ctf_stream_class_set_event_context_type(stream_class,
-		NULL) < 0,
-		"bt_ctf_stream_class_set_event_context_type handles a NULL event_context correctly");
 	ok(bt_ctf_stream_class_set_event_context_type(stream_class,
 		integer_type) < 0,
 		"bt_ctf_stream_class_set_event_context_type validates that the event context os a structure");

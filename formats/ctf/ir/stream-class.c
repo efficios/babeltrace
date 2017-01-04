@@ -581,7 +581,6 @@ struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		goto end;
 	}
 
-	assert(stream_class->packet_context_type);
 	bt_get(stream_class->packet_context_type);
 	ret = stream_class->packet_context_type;
 end:
