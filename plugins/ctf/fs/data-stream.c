@@ -66,9 +66,10 @@ end:
 }
 
 static
-int mmap_next(struct ctf_fs_stream *stream)
+enum bt_ctf_notif_iter_medium_status mmap_next(struct ctf_fs_stream *stream)
 {
-	int ret = 0;
+	enum bt_ctf_notif_iter_medium_status ret =
+			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
 
 	/* Unmap old region */
@@ -83,10 +84,15 @@ int mmap_next(struct ctf_fs_stream *stream)
 
 	stream->mmap_valid_len = MIN(stream->file->size - stream->mmap_offset,
 			stream->mmap_max_len);
+	if (stream->mmap_valid_len == 0) {
+		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
+		goto end;
+	}
 	/* Round up to next page, assuming page size being a power of 2. */
 	stream->mmap_len = (stream->mmap_valid_len + ctf_fs->page_size - 1)
 			& ~(ctf_fs->page_size - 1);
 	/* Map new region */
+	assert(stream->mmap_len);
 	stream->mmap_addr = mmap((void *) 0, stream->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(stream->file->fp),
 			stream->mmap_offset);
@@ -101,7 +107,7 @@ int mmap_next(struct ctf_fs_stream *stream)
 	goto end;
 error:
 	stream_munmap(stream);
-	ret = -1;
+	ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 end:
 	return ret;
 }
@@ -123,16 +129,23 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	/* Check if we have at least one memory-mapped byte left */
 	if (remaining_mmap_bytes(stream) == 0) {
 		/* Are we at the end of the file? */
-		if (stream->request_offset >= stream->file->size) {
+		if (stream->mmap_offset >= stream->file->size) {
 			PDBG("Reached end of file \"%s\" (%p)\n",
 				stream->file->path->str, stream->file->fp);
 			status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
 			goto end;
 		}
 
-		if (mmap_next(stream)) {
+		status = mmap_next(stream);
+		switch (status) {
+		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK:
+			break;
+		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF:
+			goto end;
+		default:
 			PERR("Cannot memory-map next region of file \"%s\" (%p)\n",
-				stream->file->path->str, stream->file->fp);
+					stream->file->path->str,
+					stream->file->fp);
 			goto error;
 		}
 	}
