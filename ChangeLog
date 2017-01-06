@@ -1,3 +1,6 @@
+2017-01-06 babeltrace 1.4.2 ("Wheel Of Fortune" debuts on NBC)
+	* Fix: perform an explicit stdout flush in live even on empty packets
+
 2016-12-01 babeltrace 1.4.1 (National Pie Day)
 	* debug info: Call register_event_debug_infos for all events
 	* Typo: configure.ac implemenation -> implementation
