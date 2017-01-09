@@ -1635,33 +1635,12 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 	struct bt_ctf_iter *iter;
 	const struct bt_ctf_event *event;
 	struct bt_iter_pos begin_pos;
-	struct bt_trace_descriptor *td_write;
-	struct bt_format *fmt_write;
-	struct ctf_text_stream_pos *sout;
 	uint64_t id;
 
 	ctx->bt_ctx = bt_context_create();
 	if (!ctx->bt_ctx) {
 		fprintf(stderr, "[error] bt_context_create allocation\n");
 		goto end;
-	}
-
-	fmt_write = bt_lookup_format(g_quark_from_static_string("text"));
-	if (!fmt_write) {
-		fprintf(stderr, "[error] ctf-text error\n");
-		goto end;
-	}
-
-	td_write = fmt_write->open_trace(NULL, O_RDWR, NULL, NULL);
-	if (!td_write) {
-		fprintf(stderr, "[error] Error opening output trace\n");
-		goto end_free;
-	}
-
-	sout = container_of(td_write, struct ctf_text_stream_pos,
-			trace_descriptor);
-	if (!sout->parent.event_cb) {
-		goto end_free;
 	}
 
 	ret = lttng_live_create_viewer_session(ctx);
@@ -1724,6 +1703,7 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 			goto end;
 		}
 		for (;;) {
+			/* TODO: destroy iter and clean-up hash table on error or on quit */
 			if (lttng_live_should_quit()) {
 				ret = 0;
 				goto end_free;
@@ -1734,11 +1714,9 @@ int lttng_live_read(struct lttng_live_ctx *ctx)
 					/* End of trace */
 					break;
 				}
-				ret = sout->parent.event_cb(&sout->parent,
-						event->parent->stream);
+
+				ret = lttng_live_process_ctf_event(event);
 				if (ret) {
-					fprintf(stderr, "[error] Writing "
-							"event failed.\n");
 					goto end_free;
 				}
 			}

@@ -101,6 +101,17 @@ int lttng_live_list_sessions(struct lttng_live_ctx *ctx, const char *path);
 int lttng_live_attach_session(struct lttng_live_ctx *ctx, uint64_t id);
 int lttng_live_read(struct lttng_live_ctx *ctx);
 int lttng_live_get_new_streams(struct lttng_live_ctx *ctx, uint64_t id);
-int lttng_live_should_quit(void);
+
+/*
+ * Called from lttng_live_read for each incoming CTF event. Need to be defined by an application.
+ * Returns 0 for success.
+ */
+extern int lttng_live_process_ctf_event(const struct bt_ctf_event *event);
+
+/*
+ * Called from lttng_live_read to ask an application when to stop the loop processing a live stream.
+ * Returns non-zero if should quit.
+ */
+extern int lttng_live_should_quit(void);
 
 #endif /* _LTTNG_LIVE_H */

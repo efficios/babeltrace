@@ -36,58 +36,8 @@
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
+
 #include "lttng-live.h"
-
-static volatile int should_quit;
-
-int lttng_live_should_quit(void)
-{
-	return should_quit;
-}
-
-static
-void sighandler(int sig)
-{
-	switch (sig) {
-	case SIGTERM:
-	case SIGINT:
-		should_quit = 1;
-		break;
-	default:
-		break;
-	}
-}
-
-/*
- * TODO: Eventually, this signal handler setup should be done at the
- * plugin manager level, rather than within this plugin. Beware, we are
- * not cleaning up the signal handler after plugin execution.
- */
-static
-int setup_sighandler(void)
-{
-	struct sigaction sa;
-	sigset_t sigset;
-	int ret;
-
-	if ((ret = sigemptyset(&sigset)) < 0) {
-		perror("sigemptyset");
-		return ret;
-	}
-	sa.sa_handler = sighandler;
-	sa.sa_mask = sigset;
-	sa.sa_flags = 0;
-	if ((ret = sigaction(SIGTERM, &sa, NULL)) < 0) {
-		perror("sigaction");
-		return ret;
-	}
-	if ((ret = sigaction(SIGINT, &sa, NULL)) < 0) {
-		perror("sigaction");
-		return ret;
-	}
-	return 0;
-}
 
 /*
  * hostname parameter needs to hold MAXNAMLEN chars.
@@ -233,10 +183,6 @@ static int lttng_live_open_trace_read(const char *path)
 	ctx->session_ids = g_array_new(FALSE, TRUE, sizeof(uint64_t));
 
 	ret = parse_url(path, ctx);
-	if (ret < 0) {
-		goto end_free;
-	}
-	ret = setup_sighandler();
 	if (ret < 0) {
 		goto end_free;
 	}
