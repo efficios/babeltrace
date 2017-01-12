@@ -224,7 +224,7 @@ void print_timestamp_wall(struct pretty_component *pretty,
 
 			/* Print date and time */
 			res = strftime(timestr, sizeof(timestr),
-					"%F ", &tm);
+					"%Y-%m-%d ", &tm);
 			if (!res) {
 				// TODO: log instead
 				fprintf(stderr, "[warning] Unable to print ascii time.\n");
