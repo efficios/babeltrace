@@ -152,6 +152,8 @@ extern int bt_ctf_stream_set_packet_context(
  */
 extern int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 
+extern int bt_ctf_stream_is_writer(struct bt_ctf_stream *stream);
+
 /*
  * bt_ctf_stream_get and bt_ctf_stream_put: increment and decrement the
  * stream's reference count.

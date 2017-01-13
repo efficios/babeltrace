@@ -1000,3 +1000,17 @@ const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
 end:
 	return name;
 }
+
+int bt_ctf_stream_is_writer(struct bt_ctf_stream *stream)
+{
+	int ret = -1;
+
+	if (!stream) {
+		goto end;
+	}
+
+	ret = (stream->pos.fd >= 0);
+
+end:
+	return ret;
+}
