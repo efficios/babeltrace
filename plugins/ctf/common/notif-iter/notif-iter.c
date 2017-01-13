@@ -104,6 +104,39 @@ enum state {
 	STATE_SKIP_PACKET_PADDING,
 };
 
+struct trace_field_path_cache {
+	/*
+	 * Indexes of the stream_id and stream_instance_id field in the packet
+	 * header structure, -1 if unset.
+	 */
+	int stream_id;
+	int stream_instance_id;
+};
+
+struct stream_class_field_path_cache {
+	/*
+	 * Indexes of the v and id fields in the stream event header structure,
+	 * -1 if unset.
+	 */
+	int v;
+	int id;
+
+	/*
+	 * index of the timestamp_end, packet_size and content_size fields in
+	 * the stream packet context structure. Set to -1 if the fields were
+	 * not found.
+	 */
+	int timestamp_end;
+	int packet_size;
+	int content_size;
+};
+
+struct field_cb_override {
+	enum bt_ctf_btr_status (* func)(void *value,
+			struct bt_ctf_field_type *type, void *data);
+	void *data;
+};
+
 /* CTF notification iterator */
 struct bt_ctf_notif_iter {
 	/* Visit stack */
@@ -131,6 +164,11 @@ struct bt_ctf_notif_iter {
 	/* Current packet (NULL if not created yet) */
 	struct bt_ctf_packet *packet;
 
+	/*
+	 * Current timestamp_end field (to consider before switching packets).
+	 */
+	struct bt_ctf_field *cur_timestamp_end;
+
 	/* Database of current dynamic scopes (owned by this) */
 	struct {
 		struct bt_ctf_field *trace_packet_header;
@@ -140,6 +178,21 @@ struct bt_ctf_notif_iter {
 		struct bt_ctf_field *event_context;
 		struct bt_ctf_field *event_payload;
 	} dscopes;
+
+	/*
+	 * Special field overrides.
+	 *
+	 * Overrides are used to implement the behaviours of special fields such
+	 * as "timestamp_end" (which must be ignored until the end of the
+	 * packet), "id" (event id) which can be present multiple times and must
+	 * be updated multiple time.
+	 *
+	 * This should be used to implement the behaviour of integer fields
+	 * mapped to clocks and other "tagged" fields (in CTF 2).
+	 *
+	 * bt_ctf_field_type to struct field_cb_override
+	 */
+	GHashTable *field_overrides;
 
 	/* Current state */
 	enum state state;
@@ -177,10 +230,29 @@ struct bt_ctf_notif_iter {
 
 	/* bt_ctf_clock to uint64_t. */
 	GHashTable *clock_states;
+
+	/*
+	 * Cache of the trace-constant field paths (event header type)
+	 * associated to the current trace.
+	 */
+	struct trace_field_path_cache trace_field_path_cache;
+
+	/*
+	 * Field path cache associated with the current stream class.
+	 * Ownership of this structure belongs to the field_path_caches HT.
+	 */
+	struct stream_class_field_path_cache *cur_sc_field_path_cache;
+
+	/* bt_ctf_stream_class to struct stream_class_field_path_cache. */
+	GHashTable *sc_field_path_caches;
 };
 
 static
 int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit);
+
+static
+enum bt_ctf_btr_status btr_timestamp_end_cb(void *value,
+		struct bt_ctf_field_type *type, void *data);
 
 static
 void stack_entry_free_func(gpointer data)
@@ -535,14 +607,156 @@ bool is_variant_type(struct bt_ctf_field_type *field_type)
 			BT_CTF_TYPE_ID_VARIANT;
 }
 
+static
+struct stream_class_field_path_cache *
+create_stream_class_field_path_cache_entry(
+		struct bt_ctf_notif_iter *notit,
+		struct bt_ctf_stream_class *stream_class)
+{
+	int v = -1;
+	int id = -1;
+	int timestamp_end = -1;
+	int packet_size = -1;
+	int content_size = -1;
+	struct stream_class_field_path_cache *cache_entry = g_new0(
+			struct stream_class_field_path_cache, 1);
+	struct bt_ctf_field_type *event_header = NULL, *packet_context = NULL;
+
+	if (!cache_entry) {
+		goto end;
+	}
+
+	event_header = bt_ctf_stream_class_get_event_header_type(stream_class);
+	if (event_header && bt_ctf_field_type_is_structure(event_header)) {
+		int i, count;
+
+		count = bt_ctf_field_type_structure_get_field_count(
+				event_header);
+		if (count < 0) {
+			goto error;
+		}
+		for (i = 0; i < count; i++) {
+			int ret;
+			const char *name;
+
+			ret = bt_ctf_field_type_structure_get_field(
+					event_header, &name, NULL, i);
+			if (ret) {
+				goto error;
+			}
+
+			if (v != -1 && id != -1) {
+				break;
+			}
+			if (v == -1 && !strcmp(name, "v")) {
+				v = i;
+			} else if (id == -1 && !strcmp(name, "id")) {
+				id = i;
+			}
+		}
+	}
+
+	packet_context = bt_ctf_stream_class_get_packet_context_type(
+			stream_class);
+	if (packet_context && bt_ctf_field_type_is_structure(packet_context)) {
+		int i, count;
+
+		count = bt_ctf_field_type_structure_get_field_count(
+				packet_context);
+		if (count < 0) {
+			goto error;
+		}
+		for (i = 0; i < count; i++) {
+			int ret;
+			const char *name;
+			struct bt_ctf_field_type *field_type;
+
+			if (timestamp_end != -1 && packet_size != -1 &&
+					content_size != -1) {
+				break;
+			}
+
+			ret = bt_ctf_field_type_structure_get_field(
+					packet_context, &name, &field_type, i);
+			if (ret) {
+				goto error;
+			}
+
+			if (timestamp_end == -1 &&
+					!strcmp(name, "timestamp_end")) {
+				struct field_cb_override *override = g_new0(
+						struct field_cb_override, 1);
+
+				if (!override) {
+					BT_PUT(field_type);
+					goto error;
+				}
+
+				override->func = btr_timestamp_end_cb;
+				override->data = notit;
+
+				g_hash_table_insert(notit->field_overrides,
+						bt_get(field_type), override);
+
+				timestamp_end = i;
+			} else if (packet_size == -1 &&
+					!strcmp(name, "packet_size")) {
+				packet_size = i;
+			} else if (content_size == -1 &&
+					!strcmp(name, "content_size")) {
+				content_size = i;
+			}
+			BT_PUT(field_type);
+		}
+	}
+
+	cache_entry->v = v;
+	cache_entry->id = id;
+	cache_entry->timestamp_end = timestamp_end;
+	cache_entry->packet_size = packet_size;
+	cache_entry->content_size = content_size;
+end:
+	BT_PUT(event_header);
+	BT_PUT(packet_context);
+	return cache_entry;
+error:
+	g_free(cache_entry);
+	cache_entry = NULL;
+	goto end;
+}
+
+static
+struct stream_class_field_path_cache *get_stream_class_field_path_cache(
+		struct bt_ctf_notif_iter *notit,
+		struct bt_ctf_stream_class *stream_class)
+{
+	bool cache_entry_found;
+	struct stream_class_field_path_cache *cache_entry;
+
+	cache_entry_found = g_hash_table_lookup_extended(
+			notit->sc_field_path_caches,
+			stream_class, NULL, (gpointer) &cache_entry);
+	if (unlikely(!cache_entry_found)) {
+		cache_entry = create_stream_class_field_path_cache_entry(notit,
+				stream_class);
+		g_hash_table_insert(notit->sc_field_path_caches,
+				bt_get(stream_class), (gpointer) cache_entry);
+	}
+
+	return cache_entry;
+}
+
 static inline
 enum bt_ctf_notif_iter_status set_current_stream_class(
 		struct bt_ctf_notif_iter *notit)
 {
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
-	struct bt_ctf_field_type *packet_header_type;
+	struct bt_ctf_field_type *packet_header_type = NULL;
 	struct bt_ctf_field_type *stream_id_field_type = NULL;
 	uint64_t stream_id;
+
+	/* Clear the current stream class field path cache. */
+	notit->cur_sc_field_path_cache = NULL;
 
 	/* Is there any "stream_id" field in the packet header? */
 	packet_header_type = bt_ctf_trace_get_packet_header_type(
@@ -561,8 +775,8 @@ enum bt_ctf_notif_iter_status set_current_stream_class(
 				packet_header_type, "stream_id");
 	if (stream_id_field_type) {
 		/* Find appropriate stream class using current stream ID */
-		struct bt_ctf_field *stream_id_field = NULL;
 		int ret;
+		struct bt_ctf_field *stream_id_field = NULL;
 
 		assert(notit->dscopes.trace_packet_header);
 
@@ -591,6 +805,17 @@ enum bt_ctf_notif_iter_status set_current_stream_class(
 		goto end;
 	}
 
+	/*
+	 * Retrieve (or lazily create) the current stream class field path
+	 * cache.
+	 */
+	notit->cur_sc_field_path_cache = get_stream_class_field_path_cache(
+			notit, notit->meta.stream_class);
+	if (!notit->cur_sc_field_path_cache) {
+		PERR("Failed to retrieve stream class field path cache\n");
+		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		goto end;
+	}
 end:
 	BT_PUT(packet_header_type);
 	BT_PUT(stream_id_field_type);
@@ -1105,17 +1330,8 @@ enum bt_ctf_notif_iter_status handle_state(struct bt_ctf_notif_iter *notit)
 	return status;
 }
 
-
 /**
  * Resets the internal state of a CTF notification iterator.
- *
- * This function can be used when it is desired to seek to the beginning
- * of another packet. It is expected that the next call to
- * bt_ctf_notif_iter_medium_ops::request_bytes() made by this
- * notification iterator will return the \em first bytes of a \em
- * packet.
- *
- * @param notif_iter		CTF notification iterator
  */
 static
 void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
@@ -1145,6 +1361,7 @@ int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->cur_timestamp_end);
 	put_all_dscopes(notit);
 
 	/*
@@ -1168,6 +1385,7 @@ int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit)
 
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
+	notit->cur_sc_field_path_cache = NULL;
 end:
 	return ret;
 }
@@ -1206,10 +1424,6 @@ struct bt_ctf_field *get_next_field(struct bt_ctf_notif_iter *notit)
 	default:
 		assert(false);
 		break;
-	}
-
-	if (!next_field) {
-		next_field = NULL;
 	}
 
 end:
@@ -1316,6 +1530,102 @@ end_no_clock:
 }
 
 static
+enum bt_ctf_btr_status btr_unsigned_int_common(uint64_t value,
+		struct bt_ctf_field_type *type, void *data,
+		struct bt_ctf_field **_field)
+{
+	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	struct bt_ctf_field *field = NULL;
+	struct bt_ctf_field *int_field = NULL;
+	struct bt_ctf_notif_iter *notit = data;
+	int ret;
+
+	/* Create next field */
+	field = get_next_field(notit);
+	if (!field) {
+		PERR("Failed to get next field (unsigned int)\n");
+		status = BT_CTF_BTR_STATUS_ERROR;
+		goto end_no_put;
+	}
+
+	switch(bt_ctf_field_type_get_type_id(type)) {
+	case BT_CTF_TYPE_ID_INTEGER:
+		/* Integer field is created field */
+		BT_MOVE(int_field, field);
+		bt_get(type);
+		break;
+	case BT_CTF_TYPE_ID_ENUM:
+		int_field = bt_ctf_field_enumeration_get_container(field);
+		type = bt_ctf_field_get_type(int_field);
+		break;
+	default:
+		assert(0);
+		type = NULL;
+		break;
+	}
+
+	if (!int_field) {
+		PERR("Failed to get integer field\n");
+		status = BT_CTF_BTR_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = bt_ctf_field_unsigned_integer_set_value(int_field, value);
+	assert(!ret);
+	stack_top(notit->stack)->index++;
+	*_field = int_field;
+
+end:
+	BT_PUT(field);
+	BT_PUT(type);
+end_no_put:
+	return status;
+}
+
+static
+enum bt_ctf_btr_status btr_timestamp_end_cb(void *value,
+		struct bt_ctf_field_type *type, void *data)
+{
+	enum bt_ctf_btr_status status;
+	struct bt_ctf_field *field = NULL;
+	struct bt_ctf_notif_iter *notit = data;
+
+	status = btr_unsigned_int_common(*((uint64_t *) value), type, data,
+			&field);
+
+	/* Set as the current packet's timestamp_end field. */
+	BT_MOVE(notit->cur_timestamp_end, field);
+	return status;
+}
+
+static
+enum bt_ctf_btr_status btr_unsigned_int_cb(uint64_t value,
+		struct bt_ctf_field_type *type, void *data)
+{
+	struct bt_ctf_notif_iter *notit = data;
+	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	struct bt_ctf_field *field = NULL;
+	struct field_cb_override *override;
+
+	override = g_hash_table_lookup(notit->field_overrides,
+			type);
+	if (unlikely(override)) {
+		status = override->func(&value, type, override->data);
+		goto end;
+	}
+
+	status = btr_unsigned_int_common(value, type, data, &field);
+	if (status != BT_CTF_BTR_STATUS_OK) {
+		goto end;
+	}
+
+	status = update_clock(notit, type, field);
+	BT_PUT(field);
+end:
+	return status;
+}
+
+static
 enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 		struct bt_ctf_field_type *type, void *data)
 {
@@ -1356,58 +1666,6 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 	}
 
 	ret = bt_ctf_field_signed_integer_set_value(int_field, value);
-	assert(!ret);
-	stack_top(notit->stack)->index++;
-	status = update_clock(notit, type, int_field);
-end:
-	BT_PUT(field);
-	BT_PUT(int_field);
-	BT_PUT(type);
-end_no_put:
-	return status;
-}
-
-static
-enum bt_ctf_btr_status btr_unsigned_int_cb(uint64_t value,
-		struct bt_ctf_field_type *type, void *data)
-{
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field *int_field = NULL;
-	struct bt_ctf_notif_iter *notit = data;
-	int ret;
-
-	/* Create next field */
-	field = get_next_field(notit);
-	if (!field) {
-		PERR("Failed to get next field (unsigned int)\n");
-		status = BT_CTF_BTR_STATUS_ERROR;
-		goto end_no_put;
-	}
-
-	switch(bt_ctf_field_type_get_type_id(type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
-		/* Integer field is created field */
-		BT_MOVE(int_field, field);
-		bt_get(type);
-		break;
-	case BT_CTF_TYPE_ID_ENUM:
-		int_field = bt_ctf_field_enumeration_get_container(field);
-		type = bt_ctf_field_get_type(int_field);
-		break;
-	default:
-		assert(0);
-		type = NULL;
-		break;
-	}
-
-	if (!int_field) {
-		PERR("Failed to get integer field\n");
-		status = BT_CTF_BTR_STATUS_ERROR;
-		goto end;
-	}
-
-	ret = bt_ctf_field_unsigned_integer_set_value(int_field, value);
 	assert(!ret);
 	stack_top(notit->stack)->index++;
 	status = update_clock(notit, type, int_field);
@@ -1994,6 +2252,52 @@ end:
 	return ret;
 }
 
+static
+void init_trace_field_path_cache(struct bt_ctf_trace *trace,
+		struct trace_field_path_cache *trace_field_path_cache)
+{
+	int stream_id = -1;
+	int stream_instance_id = -1;
+	int i, count;
+	struct bt_ctf_field_type *packet_header = NULL;
+
+	packet_header = bt_ctf_trace_get_packet_header_type(trace);
+	if (!packet_header) {
+		goto end;
+	}
+
+	if (!bt_ctf_field_type_is_structure(packet_header)) {
+		goto end;
+	}
+
+	count = bt_ctf_field_type_structure_get_field_count(packet_header);
+	if (count < 0) {
+		goto end;
+	}
+
+	for (i = 0; (i < count && (stream_id == -1 || stream_instance_id == -1)); i++) {
+		int ret;
+		const char *field_name;
+
+		ret = bt_ctf_field_type_structure_get_field(packet_header,
+				&field_name, NULL, i);
+		if (ret) {
+			goto end;
+		}
+
+		if (stream_id == -1 && !strcmp(field_name, "stream_id")) {
+			stream_id = i;
+		} else if (stream_instance_id == -1 &&
+				!strcmp(field_name, "stream_instance_id")) {
+			stream_instance_id = i;
+		}
+	}
+end:
+	trace_field_path_cache->stream_id = stream_id;
+	trace_field_path_cache->stream_instance_id = stream_instance_id;
+	BT_PUT(packet_header);
+}
+
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
@@ -2056,6 +2360,20 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 
 	bt_ctf_notif_iter_reset(notit);
 
+	init_trace_field_path_cache(trace, &notit->trace_field_path_cache);
+	notit->sc_field_path_caches = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, bt_put, g_free);
+	if (!notit->sc_field_path_caches) {
+		PERR("Failed to create stream class field path caches\n");
+		goto error;
+	}
+
+	notit->field_overrides = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, bt_put, g_free);
+	if (!notit->field_overrides) {
+		goto error;
+	}
+
 end:
 	return notit;
 error:
@@ -2070,6 +2388,7 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->cur_timestamp_end);
 	put_all_dscopes(notit);
 
 	if (notit->stack) {
@@ -2082,6 +2401,14 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 
 	if (notit->clock_states) {
 		g_hash_table_destroy(notit->clock_states);
+	}
+
+	if (notit->sc_field_path_caches) {
+		g_hash_table_destroy(notit->sc_field_path_caches);
+	}
+
+	if (notit->field_overrides) {
+		g_hash_table_destroy(notit->field_overrides);
 	}
 	g_free(notit);
 }
@@ -2123,6 +2450,22 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 			}
 			goto end;
 		case STATE_EMIT_NOTIF_END_OF_PACKET:
+			/* Update clock with timestamp_end field. */
+			if (notit->cur_timestamp_end) {
+				enum bt_ctf_btr_status btr_status;
+				struct bt_ctf_field_type *field_type =
+						bt_ctf_field_get_type(
+							notit->cur_timestamp_end);
+
+				btr_status = update_clock(notit, field_type,
+						notit->cur_timestamp_end);
+				BT_PUT(field_type);
+				if (btr_status != BT_CTF_BTR_STATUS_OK) {
+					status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+					goto end;
+				}
+			}
+
 			PDBG("Emitting end of packet notification\n");
 			notify_end_of_packet(notit, notification);
 			if (!*notification) {
