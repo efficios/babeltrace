@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
-#include <pwd.h>
 #include <unistd.h>
 #include <assert.h>
 #include <ctype.h>
@@ -34,6 +33,10 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/compat/unistd-internal.h>
+
+#ifndef __MINGW32__
+#include <pwd.h>
+#endif
 
 #define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace/plugins"
 #define HOME_ENV_VAR		"HOME"
@@ -95,7 +98,8 @@ bool bt_common_is_setuid_setgid(void)
 	return (geteuid() != getuid() || getegid() != getgid());
 }
 
-static char *bt_secure_getenv(const char *name)
+static
+char *bt_secure_getenv(const char *name)
 {
 	if (bt_common_is_setuid_setgid()) {
 		printf_error("Disregarding %s environment variable for setuid/setgid binary",
@@ -105,7 +109,15 @@ static char *bt_secure_getenv(const char *name)
 	return getenv(name);
 }
 
-static const char *get_home_dir(void)
+#ifdef __MINGW32__
+static
+const char *bt_get_home_dir(void)
+{
+	return g_get_home_dir();
+}
+#else /* __MINGW32__ */
+static
+const char *bt_get_home_dir(void)
 {
 	char *val = NULL;
 	struct passwd *pwd;
@@ -123,6 +135,7 @@ static const char *get_home_dir(void)
 end:
 	return val;
 }
+#endif /* __MINGW32__ */
 
 BT_HIDDEN
 char *bt_common_get_home_plugin_path(void)
@@ -130,7 +143,7 @@ char *bt_common_get_home_plugin_path(void)
 	char *path = NULL;
 	const char *home_dir;
 
-	home_dir = get_home_dir();
+	home_dir = bt_get_home_dir();
 	if (!home_dir) {
 		goto end;
 	}
