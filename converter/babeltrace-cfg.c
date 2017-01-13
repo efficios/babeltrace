@@ -2366,7 +2366,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	struct text_legacy_opts text_legacy_opts;
 	enum legacy_input_format legacy_input_format = LEGACY_INPUT_FORMAT_NONE;
 	enum legacy_output_format legacy_output_format =
-		LEGACY_OUTPUT_FORMAT_NONE;
+			LEGACY_OUTPUT_FORMAT_NONE;
 	struct bt_value *legacy_input_paths = NULL;
 	struct bt_config_component *implicit_source_comp = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
