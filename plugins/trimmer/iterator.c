@@ -378,9 +378,6 @@ enum bt_notification_iterator_status evaluate_packet_notification(
 	 * packet.
 	 */
 	in_range = (pkt_end_ns >= begin_ns) && (pkt_begin_ns <= end_ns);
-	if (pkt_begin_ns > end_ns) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
-	}
 end:
 	*_packet_in_range = in_range;
 	bt_put(packet);
@@ -467,6 +464,10 @@ enum bt_notification_iterator_status trimmer_iterator_next(
 			BT_MOVE(trim_it->current_notification, notification);
 		} else {
 			bt_put(notification);
+		}
+
+		if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			break;
 		}
 	}
 end:
