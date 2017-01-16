@@ -26,8 +26,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/clock.h>
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
@@ -47,6 +48,45 @@ static
 void bt_ctf_stream_destroy(struct bt_object *obj);
 static
 int set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
+
+static
+int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
+{
+	int ret = 0;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!field) {
+		ret = -1;
+		goto end;
+	}
+
+	field_type = bt_ctf_field_get_type(field);
+	assert(field_type);
+
+	if (bt_ctf_field_type_get_type_id(field_type) !=
+			BT_CTF_TYPE_ID_INTEGER) {
+		/* Not an integer and the value is unset, error. */
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_integer_get_signed(field_type)) {
+		ret = bt_ctf_field_signed_integer_set_value(field, (int64_t) value);
+		if (ret) {
+			/* Value is out of range, error. */
+			goto end;
+		}
+	} else {
+		ret = bt_ctf_field_unsigned_integer_set_value(field, value);
+		if (ret) {
+			/* Value is out of range, error. */
+			goto end;
+		}
+	}
+end:
+	bt_put(field_type);
+	return ret;
+}
 
 static
 int set_packet_header_magic(struct bt_ctf_stream *stream)
@@ -553,6 +593,86 @@ end:
 	bt_put(events_discarded_field_type);
 }
 
+static int auto_populate_event_header(struct bt_ctf_stream *stream,
+		struct bt_ctf_event *event)
+{
+	int ret = 0;
+	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
+	struct bt_ctf_clock_class *mapped_clock_class = NULL;
+
+	if (!event || event->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * The condition to automatically set the ID are:
+	 *
+	 * 1. The event header field "id" exists and is an integer
+	 *    field.
+	 * 2. The event header field "id" is NOT set.
+	 */
+	id_field = bt_ctf_field_structure_get_field(event->event_header, "id");
+	if (id_field && !bt_ctf_field_is_set(id_field)) {
+		ret = set_integer_field_value(id_field,
+			(uint64_t) bt_ctf_event_class_get_id(
+					event->event_class));
+		if (ret) {
+			goto end;
+		}
+	}
+
+	/*
+	 * The conditions to automatically set the timestamp are:
+	 *
+	 * 1. The event header field "timestamp" exists and is an
+	 *    integer field.
+	 * 2. This stream's class has a registered clock (set with
+	 *    bt_ctf_stream_class_set_clock()).
+	 * 3. The event header field "timestamp" has its type mapped to
+	 *    a clock class which is also the clock class of this
+	 *    stream's class's registered clock.
+	 * 4. The event header field "timestamp" is NOT set.
+	 */
+	timestamp_field = bt_ctf_field_structure_get_field(event->event_header,
+			"timestamp");
+	if (timestamp_field && !bt_ctf_field_is_set(timestamp_field) &&
+			stream->stream_class->clock) {
+		struct bt_ctf_clock_class *stream_class_clock_class =
+			stream->stream_class->clock->clock_class;
+		struct bt_ctf_field_type *timestamp_field_type =
+			bt_ctf_field_get_type(timestamp_field);
+
+		assert(timestamp_field_type);
+		mapped_clock_class =
+			bt_ctf_field_type_integer_get_mapped_clock_class(
+				timestamp_field_type);
+		BT_PUT(timestamp_field_type);
+		if (mapped_clock_class == stream_class_clock_class) {
+			uint64_t timestamp;
+
+			ret = bt_ctf_clock_get_value(
+				stream->stream_class->clock,
+				&timestamp);
+			if (ret) {
+				goto end;
+			}
+
+			ret = set_integer_field_value(timestamp_field,
+					timestamp);
+			if (ret) {
+				goto end;
+			}
+		}
+	}
+
+end:
+	bt_put(id_field);
+	bt_put(timestamp_field);
+	bt_put(mapped_clock_class);
+	return ret;
+}
+
 int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event)
 {
@@ -577,7 +697,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	}
 
 	bt_object_set_parent(event, stream);
-	ret = bt_ctf_event_populate_event_header(event);
+	ret = auto_populate_event_header(stream, event);
 	if (ret) {
 		goto error;
 	}

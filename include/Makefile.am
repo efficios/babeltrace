@@ -24,7 +24,7 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/stream-class.h
 
 babeltracectfirinclude_HEADERS = \
-	babeltrace/ctf-ir/clock.h \
+	babeltrace/ctf-ir/clock-class.h \
 	babeltrace/ctf-ir/fields.h \
 	babeltrace/ctf-ir/field-types.h \
 	babeltrace/ctf-ir/event.h \
@@ -91,7 +91,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/event-internal.h \
 	babeltrace/ctf-ir/event-class-internal.h \
 	babeltrace/ctf-ir/field-path-internal.h \
-	babeltrace/ctf-ir/clock-internal.h \
+	babeltrace/ctf-ir/clock-class-internal.h \
 	babeltrace/ctf-ir/resolve-internal.h \
 	babeltrace/ctf-ir/stream-class-internal.h \
 	babeltrace/ctf-ir/stream-internal.h \
@@ -99,6 +99,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/trace-internal.h \
 	babeltrace/ctf-ir/validation-internal.h \
 	babeltrace/ctf-ir/visitor-internal.h \
+	babeltrace/ctf-writer/clock-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/trace-handle-internal.h \
 	babeltrace/compat/uuid.h \

@@ -27,7 +27,8 @@
  */
 
 #include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-writer/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
@@ -138,8 +139,7 @@ struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 		goto end;
 	}
 
-	clock = stream_class->clock;
-	bt_get(clock);
+	clock = bt_get(stream_class->clock);
 end:
 	return clock;
 }
@@ -150,46 +150,41 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 	int ret = 0;
 	struct bt_ctf_field_type *timestamp_field = NULL;
 
-	if (!stream_class || stream_class->frozen ||
-			!bt_ctf_clock_is_valid(clock)) {
+	if (!stream_class || !clock || stream_class->frozen) {
 		ret = -1;
 		goto end;
 	}
 
 	/*
-	 * Look for a "timestamp" field in the stream class' event header type
-	 * and map the stream's clock to that field if no current mapping is
-	 * currently set.
+	 * Look for a "timestamp" integer field type in the stream
+	 * class's event header field type and map the stream class's
+	 * clock's class to that field type if there's no current
+	 * mapping.
 	 */
 	timestamp_field = bt_ctf_field_type_structure_get_field_type_by_name(
 		stream_class->event_header_type, "timestamp");
 	if (timestamp_field) {
-		struct bt_ctf_clock *mapped_clock;
+		struct bt_ctf_clock_class *mapped_clock_class =
+			bt_ctf_field_type_integer_get_mapped_clock_class(
+				timestamp_field);
 
-		mapped_clock = bt_ctf_field_type_integer_get_mapped_clock(
-			timestamp_field);
-		if (mapped_clock) {
-			bt_put(mapped_clock);
-			goto end;
+		if (!mapped_clock_class) {
+			ret = bt_ctf_field_type_integer_set_mapped_clock_class(
+				timestamp_field, clock->clock_class);
+			if (ret) {
+				goto end;
+			}
 		}
 
-		ret = bt_ctf_field_type_integer_set_mapped_clock(
-			timestamp_field, clock);
-		if (ret) {
-			goto end;
-		}
+		BT_PUT(mapped_clock_class);
 	}
 
-	if (stream_class->clock) {
-		bt_put(stream_class->clock);
-	}
+	/* Replace the current clock of this stream class. */
+	bt_put(stream_class->clock);
+	stream_class->clock = bt_get(clock);
 
-	stream_class->clock = clock;
-	bt_get(clock);
 end:
-	if (timestamp_field) {
-		bt_put(timestamp_field);
-	}
+	bt_put(timestamp_field);
 	return ret;
 }
 
@@ -758,7 +753,10 @@ void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class)
 	bt_ctf_field_type_freeze(stream_class->event_header_type);
 	bt_ctf_field_type_freeze(stream_class->packet_context_type);
 	bt_ctf_field_type_freeze(stream_class->event_context_type);
-	bt_ctf_clock_freeze(stream_class->clock);
+
+	if (stream_class->clock) {
+		bt_ctf_clock_class_freeze(stream_class->clock->clock_class);
+	}
 }
 
 BT_HIDDEN

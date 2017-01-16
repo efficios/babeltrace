@@ -32,7 +32,7 @@
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/trace.h>
@@ -62,14 +62,14 @@ enum bt_component_status print_field(struct text_component *text,
 
 static
 void print_timestamp_cycles(struct text_component *text,
-		struct bt_ctf_clock *clock,
+		struct bt_ctf_clock_class *clock_class,
 		struct bt_ctf_event *event)
 {
 	int ret;
 	struct bt_ctf_clock_value *clock_value;
 	uint64_t cycles;
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock);
+	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 	        fputs("????????????????????", text->out);
 		return;
@@ -91,7 +91,7 @@ void print_timestamp_cycles(struct text_component *text,
 
 static
 void print_timestamp_wall(struct text_component *text,
-		struct bt_ctf_clock *clock,
+		struct bt_ctf_clock_class *clock_class,
 		struct bt_ctf_event *event)
 {
 	int ret;
@@ -101,7 +101,7 @@ void print_timestamp_wall(struct text_component *text,
 	uint64_t ts_sec_abs, ts_nsec_abs;
 	bool is_negative;
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock);
+	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		fputs("??:??:??.?????????", text->out);
 		return;
@@ -207,7 +207,7 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 	struct bt_ctf_stream *stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 	FILE *out = text->out;
 
 	stream = bt_ctf_event_get_stream(event);
@@ -226,17 +226,17 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	clock = bt_ctf_trace_get_clock(trace, 0);
-	if (!clock) {
+	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	if (!clock_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	fputs(print_names ? "timestamp = " : "[", out);
 	if (text->options.print_timestamp_cycles) {
-		print_timestamp_cycles(text, clock, event);
+		print_timestamp_cycles(text, clock_class, event);
 	} else {
-		print_timestamp_wall(text, clock, event);
+		print_timestamp_wall(text, clock_class, event);
 	}
 
 	if (!print_names)
@@ -274,7 +274,7 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 
 end:
 	bt_put(stream);
-	bt_put(clock);
+	bt_put(clock_class);
 	bt_put(stream_class);
 	bt_put(trace);
 	return ret;

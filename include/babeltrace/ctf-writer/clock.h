@@ -30,11 +30,213 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/clock.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_clock;
+
+/*
+ * bt_ctf_clock_create: create a clock.
+ *
+ * Allocate a new clock setting its reference count to 1.
+ *
+ * @param name Name of the clock (will be copied); can be set to NULL
+ *             for nameless clocks.
+ *
+ * Returns an allocated clock on success, NULL on error.
+ */
+extern struct bt_ctf_clock *bt_ctf_clock_create(const char *name);
+
+/*
+ * bt_ctf_clock_get_name: get a clock's name.
+ *
+ * Get the clock's name.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's name, NULL on error.
+ */
+extern const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_get_description: get a clock's description.
+ *
+ * Get the clock's description.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's description, NULL if unset.
+ */
+extern const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_description: set a clock's description.
+ *
+ * Set the clock's description. The description appears in the clock's TSDL
+ * meta-data.
+ *
+ * @param clock Clock instance.
+ * @param desc Description of the clock.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_description(struct bt_ctf_clock *clock,
+        const char *desc);
+
+/*
+ * bt_ctf_clock_get_frequency: get a clock's frequency.
+ *
+ * Get the clock's frequency (Hz).
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's frequency, -1ULL on error.
+ */
+extern uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_frequency: set a clock's frequency.
+ *
+ * Set the clock's frequency (Hz).
+ *
+ * @param clock Clock instance.
+ * @param freq Clock's frequency in Hz, defaults to 1 000 000 000 Hz (1ns).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock,
+        uint64_t freq);
+
+/*
+ * bt_ctf_clock_get_precision: get a clock's precision.
+ *
+ * Get the clock's precision (in clock ticks).
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's precision, -1ULL on error.
+ */
+extern uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_precision: set a clock's precision.
+ *
+ * Set the clock's precision.
+ *
+ * @param clock Clock instance.
+ * @param precision Clock's precision in clock ticks, defaults to 1.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock,
+        uint64_t precision);
+
+/*
+ * bt_ctf_clock_get_offset_s: get a clock's offset in seconds.
+ *
+ * Get the clock's offset in seconds from POSIX.1 Epoch, 1970-01-01.
+ *
+ * @param clock Clock instance.
+ * @param offset_s Pointer to clock offset in seconds (output).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock,
+        int64_t *offset_s);
+
+/*
+ * bt_ctf_clock_set_offset_s: set a clock's offset in seconds.
+ *
+ * Set the clock's offset in seconds from POSIX.1 Epoch, 1970-01-01,
+ * defaults to 0.
+ *
+ * @param clock Clock instance.
+ * @param offset_s Clock's offset in seconds, defaults to 0.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock,
+        int64_t offset_s);
+
+/*
+ * bt_ctf_clock_get_offset: get a clock's offset in ticks.
+ *
+ * Get the clock's offset in ticks from Epoch + offset_t.
+ *
+ * @param clock Clock instance.
+ * @param offset Clock offset in ticks from Epoch + offset_s (output).
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock,
+        int64_t *offset);
+
+/*
+ * bt_ctf_clock_set_offset: set a clock's offset in ticks.
+ *
+ * Set the clock's offset in ticks from Epoch + offset_s.
+ *
+ * @param clock Clock instance.
+ * @param offset Clock's offset in ticks from Epoch + offset_s, defaults to 0.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock,
+        int64_t offset);
+
+/*
+ * bt_ctf_clock_get_is_absolute: get a clock's absolute attribute.
+ *
+ * Get the clock's absolute attribute. A clock is absolute if the clock is a
+ * global reference across the trace's other clocks.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns the clock's absolute attribute, a negative value on error.
+ */
+extern int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_is_absolute: set a clock's absolute attribute.
+ *
+ * Set the clock's absolute attribute. A clock is absolute if the clock is a
+ * global reference across the trace's other clocks.
+ *
+ * @param clock Clock instance.
+ * @param is_absolute Clock's absolute attribute, defaults to FALSE.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock,
+        int is_absolute);
+
+/*
+ * bt_ctf_clock_get_uuid: get a clock's UUID.
+ *
+ * Get the clock's UUID.
+ *
+ * @param clock Clock instance.
+ *
+ * Returns a pointer to the clock's UUID (16 byte array) on success,
+ * NULL on error.
+ */
+extern const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock);
+
+/*
+ * bt_ctf_clock_set_uuid: set a clock's UUID.
+ *
+ * Set a clock's UUID.
+ *
+ * @param clock Clock instance.
+ * @param uuid A 16-byte array containing a UUID.
+ *
+ * Returns 0 on success, a negative value on error.
+ */
+extern int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock,
+        const unsigned char *uuid);
 
 /*
  * bt_ctf_clock_set_time: set a clock's current time value.

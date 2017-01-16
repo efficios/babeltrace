@@ -30,8 +30,8 @@
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/clock.h>
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
@@ -820,39 +820,38 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
+struct bt_ctf_clock_class *bt_ctf_field_type_integer_get_mapped_clock_class(
 		struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type_integer *integer;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 
 	if (!type) {
 		goto end;
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
-	clock = integer->mapped_clock;
-	bt_get(clock);
+	clock_class = integer->mapped_clock;
+	bt_get(clock_class);
 end:
-	return clock;
+	return clock_class;
 }
 
-int bt_ctf_field_type_integer_set_mapped_clock(
+int bt_ctf_field_type_integer_set_mapped_clock_class(
 		struct bt_ctf_field_type *type,
-		struct bt_ctf_clock *clock)
+		struct bt_ctf_clock_class *clock_class)
 {
 	struct bt_ctf_field_type_integer *integer;
 	int ret = 0;
 
-	if (!type || type->frozen || !bt_ctf_clock_is_valid(clock)) {
+	if (!type || type->frozen || !bt_ctf_clock_class_is_valid(clock_class)) {
 		ret = -1;
 		goto end;
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
 	bt_put(integer->mapped_clock);
-	bt_get(clock);
-	integer->mapped_clock = clock;
+	integer->mapped_clock = bt_get(clock_class);
 end:
 	return ret;
 }
@@ -2726,7 +2725,7 @@ void bt_ctf_field_type_integer_freeze(struct bt_ctf_field_type *type)
 		type, struct bt_ctf_field_type_integer, parent);
 
 	if (integer_type->mapped_clock) {
-		bt_ctf_clock_freeze(integer_type->mapped_clock);
+		bt_ctf_clock_class_freeze(integer_type->mapped_clock);
 	}
 
 	generic_field_type_freeze(type);
@@ -2861,7 +2860,7 @@ int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type *type,
 		get_integer_base_string(integer->declaration.base),
 		get_byte_order_string(integer->declaration.byte_order));
 	if (integer->mapped_clock) {
-		const char *clock_name = bt_ctf_clock_get_name(
+		const char *clock_name = bt_ctf_clock_class_get_name(
 			integer->mapped_clock);
 
 		if (!clock_name) {

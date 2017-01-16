@@ -27,13 +27,14 @@
  */
 
 #include <babeltrace/ctf-ir/trace-internal.h>
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
+#include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
@@ -383,44 +384,35 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace,
-		struct bt_ctf_clock *clock)
+int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
+		struct bt_ctf_clock_class *clock_class)
 {
 	int ret = 0;
-	struct search_query query = { .value = clock, .found = 0 };
+	struct search_query query = { .value = clock_class, .found = 0 };
 
-	if (!trace || !bt_ctf_clock_is_valid(clock)) {
+	if (!trace || !bt_ctf_clock_class_is_valid(clock_class)) {
 		ret = -1;
 		goto end;
 	}
 
-	/* Check for duplicate clocks */
+	/* Check for duplicate clock classes */
 	g_ptr_array_foreach(trace->clocks, value_exists, &query);
 	if (query.found) {
 		ret = -1;
 		goto end;
 	}
 
-	bt_get(clock);
-	g_ptr_array_add(trace->clocks, clock);
-
-	if (!trace->is_created_by_writer) {
-		/*
-		 * Non-writer mode trace: disable clock value functions
-		 * because clock values are per-stream in that
-		 * situation.
-		 */
-		clock->has_value = 0;
-	}
+	bt_get(clock_class);
+	g_ptr_array_add(trace->clocks, clock_class);
 
 	if (trace->frozen) {
-		bt_ctf_clock_freeze(clock);
+		bt_ctf_clock_class_freeze(clock_class);
 	}
 end:
 	return ret;
 }
 
-int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace)
+int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
 {
 	int ret = -1;
 
@@ -433,19 +425,19 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock *bt_ctf_trace_get_clock(struct bt_ctf_trace *trace,
-		int index)
+struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
+		struct bt_ctf_trace *trace, int index)
 {
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 
 	if (!trace || index < 0 || index >= trace->clocks->len) {
 		goto end;
 	}
 
-	clock = g_ptr_array_index(trace->clocks, index);
-	bt_get(clock);
+	clock_class = g_ptr_array_index(trace->clocks, index);
+	bt_get(clock_class);
 end:
-	return clock;
+	return clock_class;
 }
 
 int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
@@ -465,7 +457,6 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	struct bt_ctf_field_type *event_header_type = NULL;
 	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
 	int event_class_count;
-	struct bt_ctf_clock *clock_to_add_to_trace = NULL;
 	struct bt_ctf_trace *current_parent_trace = NULL;
 
 	if (!trace || !stream_class) {
@@ -493,29 +484,41 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		}
 	}
 
-	/*
-	 * If the stream class has a clock, register this clock to this
-	 * trace if not already done.
-	 */
 	if (stream_class->clock) {
-		const char *clock_name =
-			bt_ctf_clock_get_name(stream_class->clock);
-		struct bt_ctf_clock *trace_clock;
+		struct bt_ctf_clock_class *stream_clock_class =
+			stream_class->clock->clock_class;
 
-		assert(clock_name);
-		trace_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
-		bt_put(trace_clock);
-		if (trace_clock) {
-			if (trace_clock != stream_class->clock) {
-				/*
-				 * Error: two different clocks in the
-				 * trace would share the same name.
-				 */
+		if (trace->is_created_by_writer) {
+			/*
+			 * Make sure this clock was also added to the
+			 * trace (potentially through its CTF writer
+			 * owner).
+			 */
+			size_t i;
+
+			for (i = 0; i < trace->clocks->len; i++) {
+				if (trace->clocks->pdata[i] ==
+						stream_clock_class) {
+					/* Found! */
+					break;
+				}
+			}
+
+			if (i == trace->clocks->len) {
+				/* Not found */
 				ret = -1;
 				goto end;
 			}
 		} else {
-			clock_to_add_to_trace = bt_get(stream_class->clock);
+			/*
+			 * This trace was NOT created by a CTF writer,
+			 * thus do not allow the stream class to add to
+			 * have a clock at all. Those are two
+			 * independent APIs (non-writer and writer
+			 * APIs), and isolating them simplifies things.
+			 */
+			ret = -1;
+			goto end;
 		}
 	}
 
@@ -681,13 +684,6 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		trace->byte_order);
 	bt_ctf_stream_class_set_byte_order(stream_class, trace->byte_order);
 
-	/* Add stream class's clock if it exists */
-	if (clock_to_add_to_trace) {
-		int add_clock_ret =
-			bt_ctf_trace_add_clock(trace, clock_to_add_to_trace);
-		assert(add_clock_ret == 0);
-	}
-
 	/*
 	 * Freeze the trace and the stream class.
 	 */
@@ -711,7 +707,6 @@ end:
 
 	g_free(ec_validation_outputs);
 	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
-	BT_PUT(clock_to_add_to_trace);
 	bt_put(current_parent_trace);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
@@ -778,34 +773,34 @@ end:
 	return stream_class;
 }
 
-struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
+struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
 	size_t i;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 
 	if (!trace || !name) {
 		goto end;
 	}
 
 	for (i = 0; i < trace->clocks->len; i++) {
-		struct bt_ctf_clock *cur_clk =
+		struct bt_ctf_clock_class *cur_clk =
 			g_ptr_array_index(trace->clocks, i);
-		const char *cur_clk_name = bt_ctf_clock_get_name(cur_clk);
+		const char *cur_clk_name = bt_ctf_clock_class_get_name(cur_clk);
 
 		if (!cur_clk_name) {
 			goto end;
 		}
 
 		if (!strcmp(cur_clk_name, name)) {
-			clock = cur_clk;
-			bt_get(clock);
+			clock_class = cur_clk;
+			bt_get(clock_class);
 			goto end;
 		}
 	}
 
 end:
-	return clock;
+	return clock_class;
 }
 
 BT_HIDDEN
@@ -970,7 +965,7 @@ char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace)
 	}
 	append_env_metadata(trace, context);
 	g_ptr_array_foreach(trace->clocks,
-		(GFunc)bt_ctf_clock_serialize, context);
+		(GFunc)bt_ctf_clock_class_serialize, context);
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
 		err = bt_ctf_stream_class_serialize(
@@ -1226,10 +1221,10 @@ void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 	bt_ctf_attributes_freeze(trace->environment);
 
 	for (i = 0; i < trace->clocks->len; i++) {
-		struct bt_ctf_clock *clock =
+		struct bt_ctf_clock_class *clock_class =
 			g_ptr_array_index(trace->clocks, i);
 
-		bt_ctf_clock_freeze(clock);
+		bt_ctf_clock_class_freeze(clock_class);
 	}
 
 	trace->frozen = 1;

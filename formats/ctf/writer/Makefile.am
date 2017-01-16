@@ -3,6 +3,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libctf-writer.la
 
 libctf_writer_la_SOURCES = \
+	clock.c \
 	writer.c \
 	functor.c
 

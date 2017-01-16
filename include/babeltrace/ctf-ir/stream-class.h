@@ -613,10 +613,6 @@ extern int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 
 /** @} */
 
-// TODO: document for CTF writer
-extern struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
-		struct bt_ctf_stream_class *stream_class);
-
 #ifdef __cplusplus
 }
 #endif

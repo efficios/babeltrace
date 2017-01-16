@@ -4,7 +4,7 @@ noinst_LTLIBRARIES = libctf-ir.la
 
 libctf_ir_la_SOURCES = \
 	attributes.c \
-	clock.c \
+	clock-class.c \
 	event.c \
 	event-class.c \
 	fields.c \

@@ -28,7 +28,7 @@
 
 #include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/plugin/notification/iterator.h>
 #include <babeltrace/plugin/notification/stream.h>
 #include <babeltrace/plugin/notification/event.h>
@@ -377,7 +377,7 @@ bool compare_event_notifications(struct bt_notification *a,
 		struct bt_notification *b)
 {
 	int ret;
-	struct bt_ctf_clock *clock;
+	struct bt_ctf_clock_class *clock_class;
 	struct bt_ctf_clock_value *a_clock_value, *b_clock_value;
 	struct bt_ctf_stream_class *a_stream_class;
 	struct bt_ctf_stream *a_stream;
@@ -398,9 +398,9 @@ bool compare_event_notifications(struct bt_notification *a,
 	trace = bt_ctf_stream_class_get_trace(a_stream_class);
 	assert(trace);
 
-	clock = bt_ctf_trace_get_clock(trace, 0);
-	a_clock_value = bt_ctf_event_get_clock_value(a_event, clock);
-	b_clock_value = bt_ctf_event_get_clock_value(b_event, clock);
+	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	a_clock_value = bt_ctf_event_get_clock_value(a_event, clock_class);
+	b_clock_value = bt_ctf_event_get_clock_value(b_event, clock_class);
 	assert(a_clock_value);
 	assert(b_clock_value);
 
@@ -415,7 +415,7 @@ bool compare_event_notifications(struct bt_notification *a,
 	bt_put(b_clock_value);
 	bt_put(a_stream);
 	bt_put(a_stream_class);
-	bt_put(clock);
+	bt_put(clock_class);
 	bt_put(trace);
 	return a_ts < b_ts;
 }

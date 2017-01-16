@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
@@ -234,7 +234,7 @@ int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_ctf_trace_add_clock(writer->trace, clock);
+	ret = bt_ctf_trace_add_clock_class(writer->trace, clock->clock_class);
 end:
 	return ret;
 }

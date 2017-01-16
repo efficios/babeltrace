@@ -54,7 +54,7 @@ struct bt_ctf_trace {
 	uuid_t uuid;
 	int byte_order; /* A value defined in Babeltrace's "endian.h" */
 	struct bt_value *environment;
-	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock */
+	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock_class */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
 	struct bt_ctf_field_type *packet_header_type;

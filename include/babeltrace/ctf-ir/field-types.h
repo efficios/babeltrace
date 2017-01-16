@@ -721,8 +721,8 @@ An integer field type has the following properties:
     <td><strong>Mapped
         \link ctfirclockclass CTF IR clock class\endlink</strong>
     <td>None
-    <td>bt_ctf_field_type_integer_get_mapped_clock()
-    <td>bt_ctf_field_type_integer_set_mapped_clock()
+    <td>bt_ctf_field_type_integer_get_mapped_clock_class()
+    <td>bt_ctf_field_type_integer_set_mapped_clock_class()
   </tr>
 </table>
 
@@ -951,15 +951,15 @@ This mapped clock class is only indicative.
 @postrefcountsame{int_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_integer_set_mapped_clock(): Sets the mapped
+@sa bt_ctf_field_type_integer_set_mapped_clock_class(): Sets the mapped
 	clock class of a given integer field type.
 */
-extern struct bt_ctf_clock *bt_ctf_field_type_integer_get_mapped_clock(
+extern struct bt_ctf_clock_class *bt_ctf_field_type_integer_get_mapped_clock_class(
 		struct bt_ctf_field_type *int_field_type);
 
 /**
 @brief	Sets the \link ctfirclockclass CTF IR clock class\endlink mapped
-	to the @intft \p int_field_type to \p mapped_clock.
+	to the @intft \p int_field_type to \p clock_class.
 
 The mapped clock class, if any, indicates the class of the clock which
 an integer field described by \p int_field_type should sample or update.
@@ -977,12 +977,12 @@ This mapped clock class is only indicative.
 @postrefcountsame{int_field_type}
 @postsuccessrefcountinc{clock_class}
 
-@sa bt_ctf_field_type_integer_get_mapped_clock(): Returns the mapped
+@sa bt_ctf_field_type_integer_get_mapped_clock_class(): Returns the mapped
 	clock class of a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_mapped_clock(
+extern int bt_ctf_field_type_integer_set_mapped_clock_class(
 		struct bt_ctf_field_type *int_field_type,
-		struct bt_ctf_clock *clock_class);
+		struct bt_ctf_clock_class *clock_class);
 
 /** @} */
 

@@ -116,7 +116,7 @@ except for:
 
 - Adding a stream class to it with
   bt_ctf_trace_add_stream_class().
-- Adding a clock class to it with bt_ctf_trace_add_clock().
+- Adding a clock class to it with bt_ctf_trace_add_clock_class().
 - \link refs Reference counting\endlink.
 
 You can add a custom listener with bt_ctf_trace_add_listener() to get
@@ -144,7 +144,7 @@ or if a clock class is added.
 struct bt_ctf_trace;
 struct bt_ctf_stream;
 struct bt_ctf_stream_class;
-struct bt_ctf_clock;
+struct bt_ctf_clock_class;
 
 /**
 @name Creation function
@@ -544,7 +544,7 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace_class);
+extern int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace_class);
 
 /**
 @brief  Returns the clock class at index \p index in the CTF IR trace
@@ -558,14 +558,14 @@ extern int bt_ctf_trace_get_clock_count(struct bt_ctf_trace *trace_class);
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of clock classes contained in
 	the trace class \p trace_class (see
-	bt_ctf_trace_get_clock_count()).
+	bt_ctf_trace_get_clock_class_count()).
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock_by_name(): Finds a clock class by name.
-@sa bt_ctf_trace_add_clock(): Adds a clock class to a trace class.
+@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name.
+@sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
+extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
 		struct bt_ctf_trace *trace_class, int index);
 
 /**
@@ -582,11 +582,11 @@ extern struct bt_ctf_clock *bt_ctf_trace_get_clock(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock(): Returns the clock class contained in a
-	given trace class at a given index.
-@sa bt_ctf_trace_add_clock(): Adds a clock class to a trace class.
+@sa bt_ctf_trace_get_clock_class(): Returns the clock class contained
+	in a given trace class at a given index.
+@sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_ctf_clock *bt_ctf_trace_get_clock_by_name(
+extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 		struct bt_ctf_trace *trace_class, const char *name);
 
 /**
@@ -608,12 +608,12 @@ You can call this function even if \p trace_class is frozen.
 @post <strong>On success, if \p trace_class is frozen</strong>,
 	\p clock_class is frozen.
 
-@sa bt_ctf_trace_get_clock(): Returns the clock class contained in a
-	given trace class at a given index.
-@sa bt_ctf_trace_get_clock_by_name(): Finds a clock class by name.
+@sa bt_ctf_trace_get_clock_class(): Returns the clock class contained
+	in a given trace class at a given index.
+@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name.
 */
-extern int bt_ctf_trace_add_clock(struct bt_ctf_trace *trace_class,
-		struct bt_ctf_clock *clock_class);
+extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace_class,
+		struct bt_ctf_clock_class *clock_class);
 
 /** @} */
 
@@ -672,8 +672,8 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock(): Returns the stream class contained in a
-	given trace class at a given index.
+@sa bt_ctf_trace_get_stream_class(): Returns the stream class contained
+	in a given trace class at a given index.
 @sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.
 */
 extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
@@ -706,8 +706,8 @@ resolving fails, then this function fails.
 @postsuccessrefcountinc{stream_class}
 @postsuccessfrozen{stream_class}
 
-@sa bt_ctf_trace_get_clock(): Returns the stream class contained in a
-	given trace class at a given index.
+@sa bt_ctf_trace_get_stream_class(): Returns the stream class contained
+	in a given trace class at a given index.
 @sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
 */
 extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,

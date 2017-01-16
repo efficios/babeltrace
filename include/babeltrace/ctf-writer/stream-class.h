@@ -51,6 +51,9 @@ extern int bt_ctf_stream_class_set_clock(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_clock *clock);
 
+extern struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
+        struct bt_ctf_stream_class *stream_class);
+
 /*
  * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
  * decrement the stream class' reference count.

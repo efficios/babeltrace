@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <babeltrace/values.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -535,7 +536,7 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 @sa bt_ctf_event_set_clock_value(): Sets the clock value of a given event.
 */
 extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
-		struct bt_ctf_event *event, struct bt_ctf_clock *clock_class);
+		struct bt_ctf_event *event, struct bt_ctf_clock_class *clock_class);
 
 /**
 @brief	Sets the value, as of the CTF IR event \p event, of the
@@ -561,7 +562,7 @@ extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
 	a given event.
 */
 extern int bt_ctf_event_set_clock_value(
-		struct bt_ctf_event *event, struct bt_ctf_clock *clock_class,
+		struct bt_ctf_event *event, struct bt_ctf_clock_class *clock_class,
 		struct bt_ctf_clock_value *clock_value);
 
 /** @} */

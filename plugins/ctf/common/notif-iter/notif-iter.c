@@ -36,7 +36,7 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/plugin/notification/packet.h>
 #include <babeltrace/plugin/notification/event.h>
@@ -228,7 +228,7 @@ struct bt_ctf_notif_iter {
 	/* Current content size (bits) (-1 if unknown) */
 	int64_t cur_content_size;
 
-	/* bt_ctf_clock to uint64_t. */
+	/* bt_ctf_clock_class to uint64_t. */
 	GHashTable *clock_states;
 
 	/*
@@ -1490,23 +1490,25 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 		struct bt_ctf_field_type *int_field_type,
 		struct bt_ctf_field *int_field)
 {
-	gboolean clock_found;
+	gboolean clock_class_found;
 	uint64_t *clock_state;
 	enum bt_ctf_btr_status ret = BT_CTF_BTR_STATUS_OK;
-	struct bt_ctf_clock *clock = bt_ctf_field_type_integer_get_mapped_clock(
+	struct bt_ctf_clock_class *clock_class =
+		bt_ctf_field_type_integer_get_mapped_clock_class(
 			int_field_type);
 
-	if (likely(!clock)) {
+	if (likely(!clock_class)) {
 		goto end_no_clock;
 	}
 
-	clock_found = g_hash_table_lookup_extended(notit->clock_states,
-			clock, NULL, (gpointer) &clock_state);
-	if (unlikely(!clock_found)) {
-		const char *clock_name = bt_ctf_clock_get_name(clock);
+	clock_class_found = g_hash_table_lookup_extended(notit->clock_states,
+			clock_class, NULL, (gpointer) &clock_state);
+	if (unlikely(!clock_class_found)) {
+		const char *clock_class_name =
+			bt_ctf_clock_class_get_name(clock_class);
 
-		PERR("Unknown clock %s mapped to integer encountered in stream\n",
-				clock_name ? : "NULL");
+		PERR("Unknown clock class %s mapped to integer encountered in stream\n",
+				clock_class_name ? : "NULL");
 		ret = BT_CTF_BTR_STATUS_ERROR;
 		goto end;
 	}
@@ -1517,14 +1519,14 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 			ret = BT_CTF_BTR_STATUS_ENOMEM;
 			goto end;
 		}
-		g_hash_table_insert(notit->clock_states, bt_get(clock),
+		g_hash_table_insert(notit->clock_states, bt_get(clock_class),
 				clock_state);
 	}
 
 	/* Update the clock's state. */
 	update_clock_state(clock_state, int_field);
 end:
-	bt_put(clock);
+	bt_put(clock_class);
 end_no_clock:
 	return ret;
 }
@@ -2017,21 +2019,23 @@ int set_event_clocks(struct bt_ctf_event *event,
 {
 	int ret;
 	GHashTableIter iter;
-	struct bt_ctf_clock *clock;
+	struct bt_ctf_clock_class *clock_class;
 	uint64_t *clock_state;
 
 	g_hash_table_iter_init(&iter, notit->clock_states);
 
-	while (g_hash_table_iter_next(&iter, (gpointer) &clock,
+	while (g_hash_table_iter_next(&iter, (gpointer) &clock_class,
 		        (gpointer) &clock_state)) {
 		struct bt_ctf_clock_value *clock_value;
 
-		clock_value = bt_ctf_clock_value_create(clock, *clock_state);
+		clock_value = bt_ctf_clock_value_create(clock_class,
+			*clock_state);
 		if (!clock_value) {
 			ret = -1;
 			goto end;
 		}
-		ret = bt_ctf_event_set_clock_value(event, clock, clock_value);
+		ret = bt_ctf_event_set_clock_value(event, clock_class,
+			clock_value);
 		bt_put(clock_value);
 		if (ret) {
 			goto end;
@@ -2228,25 +2232,25 @@ end:
 static
 int init_clock_states(GHashTable *clock_states, struct bt_ctf_trace *trace)
 {
-	int clock_count, i, ret = 0;
+	int clock_class_count, i, ret = 0;
 
-	clock_count = bt_ctf_trace_get_clock_count(trace);
-	if (clock_count <= 0) {
+	clock_class_count = bt_ctf_trace_get_clock_class_count(trace);
+	if (clock_class_count <= 0) {
 		ret = -1;
 		goto end;
 	}
 
-	for (i = 0; i < clock_count; i++) {
-		struct bt_ctf_clock *clock;
+	for (i = 0; i < clock_class_count; i++) {
+		struct bt_ctf_clock_class *clock_class;
 
-		clock = bt_ctf_trace_get_clock(trace, i);
-		if (!clock) {
+		clock_class = bt_ctf_trace_get_clock_class(trace, i);
+		if (!clock_class) {
 			ret = -1;
 			goto end;
 		}
 
-		g_hash_table_insert(clock_states, bt_get(clock), NULL);
-		bt_put(clock);
+		g_hash_table_insert(clock_states, bt_get(clock_class), NULL);
+		bt_put(clock_class);
 	}
 end:
 	return ret;

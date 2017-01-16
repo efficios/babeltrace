@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_EVENT_INTERNAL_H
-#define BABELTRACE_CTF_IR_EVENT_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H
+#define BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H
 
 /*
- * Babeltrace - CTF IR: Event internal
+ * BabelTrace - CTF IR: Clock internal
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,38 +27,46 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/event-types.h>
-#include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/ctf/types.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
+#include <babeltrace/compat/uuid.h>
 
-struct bt_ctf_event {
+struct bt_ctf_clock_class {
 	struct bt_object base;
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_packet *packet;
-	struct bt_ctf_field *event_header;
-	struct bt_ctf_field *stream_event_context;
-	struct bt_ctf_field *context_payload;
-	struct bt_ctf_field *fields_payload;
-	/* Maps clock classes to bt_ctf_clock_value. */
-	GHashTable *clock_values;
+	GString *name;
+	GString *description;
+	uint64_t frequency;
+	uint64_t precision;
+	int64_t offset_s;	/* Offset in seconds */
+	int64_t offset;		/* Offset in ticks */
+	uuid_t uuid;
+	int uuid_set;
+	int absolute;
+
+	/*
+	 * A clock's properties can't be modified once it is added to a stream
+	 * class.
+	 */
 	int frozen;
 };
 
-BT_HIDDEN
-int bt_ctf_event_validate(struct bt_ctf_event *event);
+struct bt_ctf_clock_value {
+	struct bt_object base;
+	struct bt_ctf_clock_class *clock_class;
+	uint64_t value;
+};
 
 BT_HIDDEN
-int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct ctf_stream_pos *pos);
+void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class);
 
 BT_HIDDEN
-void bt_ctf_event_freeze(struct bt_ctf_event *event);
+void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
+		struct metadata_context *context);
 
-#endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */
+BT_HIDDEN
+bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class);
+
+#endif /* BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H */

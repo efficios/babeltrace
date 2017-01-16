@@ -27,6 +27,7 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
@@ -59,7 +60,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 599
+#define NR_TESTS 596
 
 static int64_t current_time = 42;
 
@@ -2287,11 +2288,10 @@ end:
 }
 
 static
-void test_custom_event_header_stream(struct bt_ctf_writer *writer)
+void test_custom_event_header_stream(struct bt_ctf_writer *writer,
+			struct bt_ctf_clock *clock)
 {
 	int i, ret;
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_clock *clock = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream *stream = NULL;
 	struct bt_ctf_field_type *integer_type = NULL,
@@ -2300,18 +2300,6 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer)
 		*event_header = NULL, *packet_header = NULL;
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_event *event = NULL;
-
-	trace = bt_ctf_writer_get_trace(writer);
-	if (!trace) {
-		fail("Failed to get trace from writer");
-		goto end;
-	}
-
-	clock = bt_ctf_trace_get_clock(trace, 0);
-	if (!clock) {
-		fail("Failed to get clock from trace");
-		goto end;
-	}
 
 	stream_class = bt_ctf_stream_class_create("custom_event_header_stream");
 	if (!stream_class) {
@@ -2477,8 +2465,6 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer)
 		fail("Failed to flush custom_event_header stream");
 	}
 end:
-	bt_put(clock);
-	bt_put(trace);
 	bt_put(stream);
 	bt_put(stream_class);
 	bt_put(event_class);
@@ -2493,11 +2479,10 @@ end:
 }
 
 static
-void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
+void test_instanciate_event_before_stream(struct bt_ctf_writer *writer,
+		struct bt_ctf_clock *clock)
 {
 	int ret = 0;
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_clock *clock = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream *stream = NULL,
 		*ret_stream = NULL;
@@ -2505,20 +2490,6 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 	struct bt_ctf_event *event = NULL;
 	struct bt_ctf_field_type *integer_type = NULL;
 	struct bt_ctf_field *integer = NULL;
-
-	trace = bt_ctf_writer_get_trace(writer);
-	if (!trace) {
-		diag("Failed to get trace from writer");
-		ret = -1;
-		goto end;
-	}
-
-	clock = bt_ctf_trace_get_clock(trace, 0);
-	if (!clock) {
-		diag("Failed to get clock from trace");
-		ret = -1;
-		goto end;
-	}
 
 	stream_class = bt_ctf_stream_class_create("event_before_stream_test");
 	if (!stream_class) {
@@ -2598,7 +2569,6 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer)
 end:
 	ok(ret == 0,
 		"Create an event before instanciating its associated stream");
-	bt_put(trace);
 	bt_put(stream);
 	bt_put(ret_stream);
 	bt_put(stream_class);
@@ -2606,7 +2576,6 @@ end:
 	bt_put(event);
 	bt_put(integer_type);
 	bt_put(integer);
-	bt_put(clock);
 }
 
 static
@@ -2626,43 +2595,6 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");
 	bt_put(event_class);
-}
-
-static
-void test_trace_stream_class_clock(void)
-{
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_stream_class *sc1 = NULL;
-	struct bt_ctf_stream_class *sc2 = NULL;
-	struct bt_ctf_clock *sc1_clock = NULL;
-	struct bt_ctf_clock *sc2_clock = NULL;
-	const char *clock_name = "hello";
-
-	trace = bt_ctf_trace_create();
-	assert(trace);
-	sc1 = bt_ctf_stream_class_create(NULL);
-	assert(sc1);
-	sc2 = bt_ctf_stream_class_create(NULL);
-	assert(sc2);
-	sc1_clock = bt_ctf_clock_create(clock_name);
-	assert(sc1_clock);
-	sc2_clock = bt_ctf_clock_create(clock_name);
-	assert(sc2_clock);
-
-	ok(!bt_ctf_stream_class_set_clock(sc1, sc1_clock),
-		"bt_ctf_stream_class_set_clock() succeeds for sc1");
-	ok(!bt_ctf_stream_class_set_clock(sc2, sc2_clock),
-		"bt_ctf_stream_class_set_clock() succeeds for sc2");
-	ok(!bt_ctf_trace_add_stream_class(trace, sc1),
-		"bt_ctf_trace_add_stream_class() succeeds with sc1");
-	ok(bt_ctf_trace_add_stream_class(trace, sc2),
-		"bt_ctf_trace_add_stream_class() fails with sc2 (different clock, same name)");
-
-	BT_PUT(trace);
-	BT_PUT(sc1);
-	BT_PUT(sc2);
-	BT_PUT(sc1_clock);
-	BT_PUT(sc2_clock);
 }
 
 static
@@ -2706,7 +2638,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	struct bt_ctf_field_type *empty_struct_ft = NULL;
 	struct bt_ctf_field *int_field = NULL;
 	struct bt_ctf_clock *writer_clock = NULL;
-	struct bt_ctf_clock *non_writer_clock = NULL;
+	struct bt_ctf_clock_class *non_writer_clock_class = NULL;
 	struct bt_ctf_packet *packet = NULL;
 	struct bt_ctf_packet *packet2 = NULL;
 
@@ -2736,7 +2668,7 @@ void test_create_writer_vs_non_writer_mode(void)
 		"bt_ctf_stream_get_name() returns the stream's name");
 	writer_clock = bt_ctf_clock_create("writer_clock");
 	assert(writer_clock);
-	ret = bt_ctf_trace_add_clock(writer_trace, writer_clock);
+	ret = bt_ctf_writer_add_clock(writer, writer_clock);
 	assert(!ret);
 
 	/* Create non-writer trace, stream class, stream, and clock */
@@ -2751,9 +2683,11 @@ void test_create_writer_vs_non_writer_mode(void)
 	assert(!ret);
 	non_writer_stream = bt_ctf_stream_create(non_writer_sc, NULL);
 	assert(non_writer_stream);
-	non_writer_clock = bt_ctf_clock_create("non_writer_clock");
-	assert(non_writer_clock);
-	ret = bt_ctf_trace_add_clock(non_writer_trace, non_writer_clock);
+	non_writer_clock_class =
+		bt_ctf_clock_class_create("non_writer_clock_class");
+	assert(non_writer_clock_class);
+	ret = bt_ctf_trace_add_clock_class(non_writer_trace,
+		non_writer_clock_class);
 	assert(!ret);
 
 	/* Create event class and event */
@@ -2866,7 +2800,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	bt_put(int_field);
 	bt_put(empty_struct_ft);
 	bt_put(writer_clock);
-	bt_put(non_writer_clock);
+	bt_put(non_writer_clock_class);
 	bt_put(packet);
 	bt_put(packet2);
 	recursive_rmdir(trace_path);
@@ -2892,6 +2826,34 @@ void test_clock_utils(void)
 	BT_PUT(clock);
 }
 
+void test_set_clock_non_writer_stream_class(void)
+{
+	struct bt_ctf_clock *clock;
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_stream_class *sc;
+	int ret;
+
+	clock = bt_ctf_clock_create("the_clock");
+	assert(clock);
+
+	trace = bt_ctf_trace_create();
+	assert(trace);
+
+	sc = bt_ctf_stream_class_create(NULL);
+	assert(sc);
+
+	ret = bt_ctf_stream_class_set_clock(sc, clock);
+	assert(ret == 0);
+
+	ret = bt_ctf_trace_add_stream_class(trace, sc);
+	ok(ret < 0,
+		"bt_ctf_trace_add_stream_class() fails with a stream class with a registered clock");
+
+	bt_put(clock);
+	bt_put(trace);
+	bt_put(sc);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -2912,6 +2874,7 @@ int main(int argc, char **argv)
 	struct utsname name;
 	char hostname[BABELTRACE_HOST_NAME_MAX];
 	struct bt_ctf_clock *clock, *ret_clock;
+	struct bt_ctf_clock_class *ret_clock_class;
 	struct bt_ctf_stream_class *stream_class, *ret_stream_class;
 	struct bt_ctf_stream *stream1;
 	const char *ret_string;
@@ -3389,6 +3352,8 @@ int main(int argc, char **argv)
 	bt_put(ret_field_type);
 
 	/* Instantiate a stream and append events */
+	ret = bt_ctf_writer_add_clock(writer, clock);
+	assert(ret == 0);
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
 	ok(stream1, "Instanciate a stream class from writer");
 
@@ -3397,31 +3362,33 @@ int main(int argc, char **argv)
 	 * class to the writer's trace, thus registering the stream
 	 * class's clock to the trace.
 	 */
-	ok(bt_ctf_trace_get_clock_count(NULL) < 0,
-		"bt_ctf_trace_get_clock_count correctly handles NULL");
-	ok(bt_ctf_trace_get_clock_count(trace) == 1,
-		"bt_ctf_trace_get_clock_count returns the correct number of clocks");
-	ok(!bt_ctf_trace_get_clock(NULL, 0),
-		"bt_ctf_trace_get_clock correctly handles NULL");
-	ok(!bt_ctf_trace_get_clock(trace, -1),
-		"bt_ctf_trace_get_clock correctly handles negative indexes");
-	ok(!bt_ctf_trace_get_clock(trace, 1),
-		"bt_ctf_trace_get_clock correctly handles out of bound accesses");
-	ret_clock = bt_ctf_trace_get_clock(trace, 0);
-	ok(ret_clock == clock,
-		"bt_ctf_trace_get_clock returns the right clock instance");
-	bt_put(ret_clock);
-	ok(!bt_ctf_trace_get_clock_by_name(trace, NULL),
-		"bt_ctf_trace_get_clock_by_name correctly handles NULL (trace)");
-	ok(!bt_ctf_trace_get_clock_by_name(NULL, clock_name),
+	ok(bt_ctf_trace_get_clock_class_count(NULL) < 0,
+		"bt_ctf_trace_get_clock_class_count correctly handles NULL");
+	ok(bt_ctf_trace_get_clock_class_count(trace) == 1,
+		"bt_ctf_trace_get_clock_class_count returns the correct number of clocks");
+	ok(!bt_ctf_trace_get_clock_class(NULL, 0),
+		"bt_ctf_trace_get_clock_class correctly handles NULL");
+	ok(!bt_ctf_trace_get_clock_class(trace, -1),
+		"bt_ctf_trace_get_clock_class correctly handles negative indexes");
+	ok(!bt_ctf_trace_get_clock_class(trace, 1),
+		"bt_ctf_trace_get_clock_class correctly handles out of bound accesses");
+	ret_clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	ok(strcmp(bt_ctf_clock_class_get_name(ret_clock_class),
+		bt_ctf_clock_get_name(clock)) == 0,
+		"bt_ctf_trace_get_clock_class returns the right clock instance");
+	bt_put(ret_clock_class);
+	ok(!bt_ctf_trace_get_clock_class_by_name(trace, NULL),
+		"bt_ctf_trace_get_clock_class_by_name correctly handles NULL (trace)");
+	ok(!bt_ctf_trace_get_clock_class_by_name(NULL, clock_name),
 		"bt_ctf_trace_get_clock_by_name correctly handles NULL (clock name)");
-	ok(!bt_ctf_trace_get_clock_by_name(NULL, NULL),
+	ok(!bt_ctf_trace_get_clock_class_by_name(NULL, NULL),
 		"bt_ctf_trace_get_clock_by_name correctly handles NULL (both)");
-	ret_clock = bt_ctf_trace_get_clock_by_name(trace, clock_name);
-	ok(ret_clock == clock,
-		"bt_ctf_trace_get_clock_by_name returns the right clock instance");
-	bt_put(ret_clock);
-	ok(!bt_ctf_trace_get_clock_by_name(trace, "random"),
+	ret_clock_class = bt_ctf_trace_get_clock_class_by_name(trace, clock_name);
+	ok(strcmp(bt_ctf_clock_class_get_name(ret_clock_class),
+		bt_ctf_clock_get_name(clock)) == 0,
+		"bt_ctf_trace_get_clock_class returns the right clock instance");
+	bt_put(ret_clock_class);
+	ok(!bt_ctf_trace_get_clock_class_by_name(trace, "random"),
 		"bt_ctf_trace_get_clock_by_name fails when the requested clock doesn't exist");
 
 	ok(bt_ctf_stream_get_class(NULL) == NULL,
@@ -3513,11 +3480,11 @@ int main(int argc, char **argv)
 
 	test_clock_utils();
 
-	test_trace_stream_class_clock();
-
 	test_create_writer_vs_non_writer_mode();
 
-	test_instanciate_event_before_stream(writer);
+	test_set_clock_non_writer_stream_class();
+
+	test_instanciate_event_before_stream(writer, clock);
 
 	append_simple_event(stream_class, stream1, clock);
 
@@ -3529,7 +3496,7 @@ int main(int argc, char **argv)
 
 	test_empty_stream(writer);
 
-	test_custom_event_header_stream(writer);
+	test_custom_event_header_stream(writer, clock);
 
 	metadata_string = bt_ctf_writer_get_metadata_string(writer);
 	ok(metadata_string, "Get metadata string");

@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/writer.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
@@ -63,7 +64,7 @@ struct bt_ctf_field_type {
 struct bt_ctf_field_type_integer {
 	struct bt_ctf_field_type parent;
 	struct declaration_integer declaration;
-	struct bt_ctf_clock *mapped_clock;
+	struct bt_ctf_clock_class *mapped_clock;
 
 	/*
 	 * This is what the user sets and is never modified by internal

@@ -28,7 +28,7 @@
 
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/clock-internal.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
@@ -47,8 +47,6 @@
 
 static
 void bt_ctf_event_destroy(struct bt_object *obj);
-static
-int set_integer_field_value(struct bt_ctf_field *field, uint64_t value);
 
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 {
@@ -565,15 +563,15 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 }
 
 struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
-		struct bt_ctf_event *event, struct bt_ctf_clock *clock)
+		struct bt_ctf_event *event, struct bt_ctf_clock_class *clock_class)
 {
 	struct bt_ctf_clock_value *clock_value = NULL;
 
-	if (!event || !clock) {
+	if (!event || !clock_class) {
 		goto end;
 	}
 
-	clock_value = g_hash_table_lookup(event->clock_values, clock);
+	clock_value = g_hash_table_lookup(event->clock_values, clock_class);
 	if (!clock_value) {
 		goto end;
 	}
@@ -584,56 +582,19 @@ end:
 }
 
 int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
-		struct bt_ctf_clock *clock, struct bt_ctf_clock_value *value)
+		struct bt_ctf_clock_class *clock_class,
+		struct bt_ctf_clock_value *value)
 {
 	int ret = 0;
 
-	if (!event || !clock || !value || event->frozen) {
+	if (!event || !clock_class || !value || event->frozen) {
 		ret = -1;
 		goto end;
 	}
 
-	g_hash_table_insert(event->clock_values, bt_get(clock), bt_get(value));
+	g_hash_table_insert(event->clock_values, bt_get(clock_class),
+		bt_get(value));
 end:
-	return ret;
-}
-
-static
-int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
-{
-	int ret = 0;
-	struct bt_ctf_field_type *field_type = NULL;
-
-	if (!field) {
-		ret = -1;
-		goto end;
-	}
-
-	field_type = bt_ctf_field_get_type(field);
-	assert(field_type);
-
-	if (bt_ctf_field_type_get_type_id(field_type) !=
-			BT_CTF_TYPE_ID_INTEGER) {
-		/* Not an integer and the value is unset, error. */
-		ret = -1;
-		goto end;
-	}
-
-	if (bt_ctf_field_type_integer_get_signed(field_type)) {
-		ret = bt_ctf_field_signed_integer_set_value(field, (int64_t) value);
-		if (ret) {
-			/* Value is out of range, error. */
-			goto end;
-		}
-	} else {
-		ret = bt_ctf_field_unsigned_integer_set_value(field, value);
-		if (ret) {
-			/* Value is out of range, error. */
-			goto end;
-		}
-	}
-end:
-	bt_put(field_type);
 	return ret;
 }
 
@@ -698,85 +659,6 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		}
 	}
 end:
-	return ret;
-}
-
-BT_HIDDEN
-int bt_ctf_event_populate_event_header(struct bt_ctf_event *event)
-{
-	int ret = 0;
-	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
-	struct bt_ctf_clock *mapped_clock = NULL;
-
-	if (!event || event->frozen) {
-		ret = -1;
-		goto end;
-	}
-
-	id_field = bt_ctf_field_structure_get_field(event->event_header, "id");
-	if (id_field && !bt_ctf_field_is_set(id_field)) {
-		ret = set_integer_field_value(id_field,
-			(uint64_t) bt_ctf_event_class_get_id(
-					event->event_class));
-		if (ret) {
-			goto end;
-		}
-	}
-
-	timestamp_field = bt_ctf_field_structure_get_field(event->event_header,
-			"timestamp");
-	if (timestamp_field && !bt_ctf_field_is_set(timestamp_field)) {
-		struct bt_ctf_field_type *timestamp_field_type =
-			bt_ctf_field_get_type(timestamp_field);
-
-		assert(timestamp_field_type);
-		mapped_clock = bt_ctf_field_type_integer_get_mapped_clock(
-				timestamp_field_type);
-		bt_put(timestamp_field_type);
-		if (mapped_clock) {
-			/*
-			 * Babeltrace 2.0 introduced a notion of per-event clock
-			 * values which can be queried using a "clock" instance.
-			 *
-			 * However, the original CTF-Writer (BT 1.x) had a
-			 * notion of per-stream clock which is sampled on
-			 * a call to append an event to a stream.
-			 *
-			 * If the event has a clock value associated with the
-			 * mapped clock, we ignore the pre-2.0 behaviour and
-			 * populate the timestamp field using the clock value.
-			 */
-			uint64_t timestamp = 0;
-			struct bt_ctf_clock_value *clock_value;
-
-			clock_value = bt_ctf_event_get_clock_value(event,
-					mapped_clock);
-			if (clock_value) {
-				ret = bt_ctf_clock_value_get_value(clock_value,
-						&timestamp);
-				bt_put(clock_value);
-				if (ret) {
-					goto end;
-				}
-			} else {
-				ret = bt_ctf_clock_get_value(mapped_clock,
-						&timestamp);
-				if (ret) {
-					goto end;
-				}
-			}
-
-			ret = set_integer_field_value(timestamp_field,
-					timestamp);
-			if (ret) {
-				goto end;
-			}
-		}
-	}
-end:
-	bt_put(id_field);
-	bt_put(timestamp_field);
-	bt_put(mapped_clock);
 	return ret;
 }
 

@@ -37,7 +37,7 @@
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/fields.h>
@@ -199,7 +199,7 @@ evaluate_event_notification(struct bt_notification *notification,
 	int clock_ret;
 	struct bt_ctf_event *event = NULL;
 	bool in_range = true;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_stream *stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
@@ -221,12 +221,12 @@ evaluate_event_notification(struct bt_notification *notification,
 	assert(trace);
 
 	/* FIXME multi-clock? */
-	clock = bt_ctf_trace_get_clock(trace, 0);
-	if (!clock) {
+	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	if (!clock_class) {
 		goto end;
 	}
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock);
+	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		printf_error("Failed to retrieve clock value");
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -263,7 +263,7 @@ evaluate_event_notification(struct bt_notification *notification,
 	}
 end:
 	bt_put(event);
-	bt_put(clock);
+	bt_put(clock_class);
 	bt_put(trace);
 	bt_put(stream);
 	bt_put(stream_class);
@@ -279,13 +279,14 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 	int is_signed;
 	uint64_t raw_clock_value;
 	struct bt_ctf_field_type *integer_type = NULL;
-	struct bt_ctf_clock *clock = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_ctf_clock_value *clock_value = NULL;
 
 	integer_type = bt_ctf_field_get_type(integer);
 	assert(integer_type);
-	clock = bt_ctf_field_type_integer_get_mapped_clock(integer_type);
-	if (!clock) {
+	clock_class = bt_ctf_field_type_integer_get_mapped_clock_class(
+		integer_type);
+	if (!clock_class) {
 		ret = -1;
 		goto end;
 	}
@@ -302,7 +303,7 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 		goto end;
 	}
 
-	clock_value = bt_ctf_clock_value_create(clock, raw_clock_value);
+	clock_value = bt_ctf_clock_value_create(clock_class, raw_clock_value);
         if (!clock_value) {
 		goto end;
 	}
@@ -310,7 +311,7 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, ns);
 end:
 	bt_put(integer_type);
-	bt_put(clock);
+	bt_put(clock_class);
 	bt_put(clock_value);
 	return ret;
 }

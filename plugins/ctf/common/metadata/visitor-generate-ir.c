@@ -47,7 +47,7 @@
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 
 #include "scanner.h"
 #include "parser.h"
@@ -2247,7 +2247,7 @@ int visit_integer_decl(struct ctx *ctx,
 	int signedness = 0;
 	struct ctf_node *expression;
 	uint64_t alignment = 0, size = 0;
-	struct bt_ctf_clock *mapped_clock = NULL;
+	struct bt_ctf_clock_class *mapped_clock = NULL;
 	enum bt_ctf_string_encoding encoding = BT_CTF_STRING_ENCODING_NONE;
 	enum bt_ctf_integer_base base = BT_CTF_INTEGER_BASE_DECIMAL;
 	enum bt_ctf_byte_order byte_order =
@@ -2514,7 +2514,7 @@ int visit_integer_decl(struct ctx *ctx,
 				continue;
 			}
 
-			mapped_clock = bt_ctf_trace_get_clock_by_name(
+			mapped_clock = bt_ctf_trace_get_clock_class_by_name(
 				ctx->trace, clock_name);
 			if (!mapped_clock) {
 				_PERROR("invalid \"map\" attribute in integer declaration: cannot find clock \"%s\"",
@@ -2563,7 +2563,7 @@ int visit_integer_decl(struct ctx *ctx,
 
 	if (mapped_clock) {
 		/* Move clock */
-		ret |= bt_ctf_field_type_integer_set_mapped_clock(
+		ret |= bt_ctf_field_type_integer_set_mapped_clock_class(
 			*integer_decl, mapped_clock);
 		bt_put(mapped_clock);
 		mapped_clock = NULL;
@@ -4155,7 +4155,7 @@ error:
 
 static
 int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_ctf_clock *clock, int *set)
+	struct bt_ctf_clock_class *clock, int *set)
 {
 	int ret = 0;
 	char *left = NULL;
@@ -4188,7 +4188,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_name(clock, right);
+		ret = bt_ctf_clock_class_set_name(clock, right);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's name");
 			g_free(right);
@@ -4212,7 +4212,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_uuid(clock, uuid);
+		ret = bt_ctf_clock_class_set_uuid(clock, uuid);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's UUID");
 			goto error;
@@ -4236,7 +4236,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_description(clock, right);
+		ret = bt_ctf_clock_class_set_description(clock, right);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's description");
 			g_free(right);
@@ -4262,7 +4262,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_frequency(clock, freq);
+		ret = bt_ctf_clock_class_set_frequency(clock, freq);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's frequency");
 			goto error;
@@ -4286,7 +4286,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_precision(clock, precision);
+		ret = bt_ctf_clock_class_set_precision(clock, precision);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's precision");
 			goto error;
@@ -4310,7 +4310,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_offset_s(clock, offset_s);
+		ret = bt_ctf_clock_class_set_offset_s(clock, offset_s);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's offset in seconds");
 			goto error;
@@ -4334,7 +4334,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_offset(clock, offset);
+		ret = bt_ctf_clock_class_set_offset_cycles(clock, offset);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's offset in cycles");
 			goto error;
@@ -4360,7 +4360,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_ctf_clock_set_is_absolute(clock, ret);
+		ret = bt_ctf_clock_class_set_is_absolute(clock, ret);
 		if (ret) {
 			_PERROR("%s", "cannot set clock's absolute option");
 			goto error;
@@ -4388,7 +4388,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 {
 	int ret = 0;
 	int set = 0;
-	struct bt_ctf_clock *clock;
+	struct bt_ctf_clock_class *clock;
 	struct ctf_node *entry_node;
 	struct bt_list_head *decl_list = &clock_node->u.clock.declaration_list;
 
@@ -4397,7 +4397,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	}
 
 	clock_node->visited = TRUE;
-	clock = bt_ctf_clock_create(NULL);
+	clock = bt_ctf_clock_class_create(NULL);
 	if (!clock) {
 		_PERROR("%s", "cannot create clock");
 		ret = -ENOMEM;
@@ -4418,13 +4418,13 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		goto error;
 	}
 
-	if (bt_ctf_trace_get_clock_count(ctx->trace) != 0) {
+	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 0) {
 		_PERROR("%s", "only CTF traces with a single clock declaration are supported as of this version");
 		ret = -EINVAL;
 		goto error;
 	}
 
-	ret = bt_ctf_trace_add_clock(ctx->trace, clock);
+	ret = bt_ctf_trace_add_clock_class(ctx->trace, clock);
 	if (ret) {
 		_PERROR("%s", "cannot add clock to trace");
 		goto error;
