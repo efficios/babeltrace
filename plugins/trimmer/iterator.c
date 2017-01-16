@@ -260,7 +260,6 @@ evaluate_event_notification(struct bt_notification *notification,
 	}
 	if (end->set && ts > end->value) {
 		in_range = false;
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
 	}
 end:
 	bt_put(event);
@@ -398,6 +397,7 @@ enum bt_notification_iterator_status evaluate_notification(
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
+	*in_range = true;
 	type = bt_notification_get_type(notification);
 	switch (type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
