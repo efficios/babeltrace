@@ -349,8 +349,8 @@ AC_SUBST(babeltracectfirincludedir)
 babeltracepluginincludedir="${includedir}/babeltrace/plugin"
 AC_SUBST(babeltracepluginincludedir)
 
-program_transform_name='s/babeltrace[\].bin/babeltrace/g'
-AC_SUBST(program_transform_name)
+# Add a rule to $program_transform_name to rename babeltrace.bin to babeltrace on installation
+program_transform_name="s&babeltrace\.bin&babeltrace&;$program_transform_name"
 
 # check for Doxygen
 AC_ARG_ENABLE(
