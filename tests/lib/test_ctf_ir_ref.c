@@ -517,6 +517,8 @@ static void create_user_full(struct user *user)
 	assert(user->sc);
 	clock = bt_ctf_clock_create("the_clock");
 	assert(clock);
+	ret = bt_ctf_writer_add_clock(user->writer, clock);
+	assert(!ret);
 	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
 	assert(!ret);
 	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
