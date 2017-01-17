@@ -1,13 +1,18 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-		-DINSTALL_LIBDIR=\"$(libdir)\"
+		-DINSTALL_LIBDIR=\"$(libdir)\" \
+		-DCONFIG_IN_TREE_PLUGIN_DIR=\"$(abs_top_builddir)/plugins/\"
 AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin babeltrace-log
+noinst_PROGRAMS = babeltrace
+#check_PROGRAMS = babeltrace
 
 babeltrace_bin_SOURCES = \
 	babeltrace.c \
 	babeltrace-cfg.c \
-	babeltrace-cfg.h
+	babeltrace-cfg.h \
+	default-cfg.h \
+	default-cfg.c
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
@@ -49,4 +54,8 @@ babeltrace_log_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 babeltrace_bin_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
 
-check_SCRIPTS = babeltrace
+# Only used for in-tree execution and tests
+babeltrace_SOURCES = 	$(babeltrace_bin_SOURCES)
+babeltrace_LDFLAGS = 	$(babeltrace_bin_LDFLAGS)
+babeltrace_LDADD = 	$(babeltrace_bin_LDADD)
+babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION

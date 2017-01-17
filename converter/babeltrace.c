@@ -39,6 +39,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "babeltrace-cfg.h"
+#include "default-cfg.h"
 
 static struct bt_component_factory *component_factory;
 
@@ -408,8 +409,20 @@ int main(int argc, const char **argv)
 	enum bt_component_status sink_status;
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 
-	cfg = bt_config_from_args(argc, argv, &ret);
-	if (cfg) {
+	cfg = bt_config_create();
+	if (!cfg) {
+		fprintf(stderr, "Failed to create Babeltrace configuration\n");
+		ret = 1;
+		goto end;
+	}
+
+	ret = set_default_config(cfg);
+	if (ret) {
+		goto end;
+	}
+
+	ret = bt_config_init_from_args(cfg, argc, argv);
+	if (ret == 0) {
 		print_cfg(cfg);
 	} else {
 		goto end;

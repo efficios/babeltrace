@@ -54,6 +54,8 @@ struct bt_config {
 	bool verbose;
 	bool do_list;
 	bool force_correlate;
+	bool omit_system_plugin_path;
+	bool omit_home_plugin_path;
 };
 
 static inline
@@ -63,6 +65,9 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 	return bt_get(g_ptr_array_index(array, index));
 }
 
-struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_code);
+struct bt_config *bt_config_create(void);
+
+int bt_config_init_from_args(struct bt_config *cfg, int argc,
+		const char *argv[]);
 
 #endif /* BABELTRACE_CONVERTER_CFG_H */

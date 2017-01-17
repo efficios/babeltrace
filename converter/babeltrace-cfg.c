@@ -148,9 +148,6 @@ enum legacy_output_format {
 	LEGACY_OUTPUT_FORMAT_DUMMY,
 };
 
-static bool omit_system_plugin_path;
-static bool omit_home_plugin_path;
-
 /*
  * Prints the "out of memory" error.
  */
@@ -2287,7 +2284,7 @@ end:
 
 static int add_internal_plugin_paths(struct bt_config *cfg)
 {
-	if (!omit_home_plugin_path) {
+	if (!cfg->omit_home_plugin_path) {
 		char path[PATH_MAX];
 		const char *home_dir;
 
@@ -2311,7 +2308,7 @@ static int add_internal_plugin_paths(struct bt_config *cfg)
 		}
 	}
 
-	if (!omit_system_plugin_path) {
+	if (!cfg->omit_system_plugin_path) {
 		if (plugin_paths_from_arg(cfg->plugin_paths,
 				SYSTEM_PLUGIN_PATH)) {
 			printf_err("Invalid system plugin path\n");
@@ -2347,19 +2344,51 @@ error:
 	return -1;
 }
 
+struct bt_config *bt_config_create(void)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = g_new0(struct bt_config, 1);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	bt_object_init(cfg, bt_config_destroy);
+	cfg->sources = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
+	if (!cfg->sources) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->sinks = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
+	if (!cfg->sinks) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->plugin_paths = bt_value_array_create();
+	if (!cfg->plugin_paths) {
+		print_err_oom();
+		goto error;
+	}
+end:
+	return cfg;
+error:
+	BT_PUT(cfg);
+	goto end;
+}
+
 /*
  * Returns a Babeltrace configuration, out of command-line arguments,
  * containing everything that is needed to instanciate specific
  * components with given parameters.
  *
- * *exit_code is set to the appropriate exit code to use as far as this
- * function goes.
- *
- * Return value is NULL on error, otherwise it's owned by the caller.
+ * Return value is set to the appropriate exit code to use.
  */
-struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_code)
+int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[])
 {
-	struct bt_config *cfg = NULL;
 	poptContext pc = NULL;
 	char *arg = NULL;
 	struct ctf_legacy_opts ctf_legacy_opts;
@@ -2375,11 +2404,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	enum bt_config_component_dest cur_cfg_comp_dest =
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
-	int opt, nr_omit_opt = 0;
+	int opt, ret = 0;
 
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
 	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
-	*exit_code = 0;
 
 	text_legacy_opts.output = g_string_new(NULL);
 	if (!text_legacy_opts.output) {
@@ -2405,26 +2433,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		goto error;
 	}
 
-	/* Create config */
-	cfg = g_new0(struct bt_config, 1);
-	if (!cfg) {
-		print_err_oom();
-		goto error;
-	}
-
-	bt_object_init(cfg, bt_config_destroy);
-	cfg->sources = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
-	if (!cfg->sources) {
-		print_err_oom();
-		goto error;
-	}
-
-	cfg->sinks = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
-	if (!cfg->sinks) {
-		print_err_oom();
-		goto error;
-	}
-
 	legacy_input_paths = bt_value_array_create();
 	if (!legacy_input_paths) {
 		print_err_oom();
@@ -2440,12 +2448,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	} else {
 		printf_debug("Cannot find implicit source plugin \"%s\"",
 			DEFAULT_SOURCE_COMPONENT_NAME);
-	}
-
-	cfg->plugin_paths = bt_value_array_create();
-	if (!cfg->plugin_paths) {
-		print_err_oom();
-		goto error;
 	}
 
 	/* Parse options */
@@ -2472,12 +2474,10 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			omit_system_plugin_path = true;
-			nr_omit_opt += 2;
+			cfg->omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			omit_home_plugin_path = true;
-			nr_omit_opt += 2;
+			cfg->omit_home_plugin_path = true;
 			break;
 		case OPT_OUTPUT_PATH:
 			if (text_legacy_opts.output->len > 0) {
@@ -2859,9 +2859,9 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 		arg = NULL;
 	}
 
-	if (argc - nr_omit_opt <= 1) {
+	if (argc <= 1) {
 		print_usage(stdout);
-		goto put_cfg;
+		goto end;
 	}
 
 	/* Check for option parsing error */
@@ -2962,10 +2962,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[], int *exit_co
 	goto end;
 
 error:
-	*exit_code = 1;
-put_cfg:
-	BT_PUT(cfg);
-	cfg = NULL;
+	ret = 1;
 end:
 	if (pc) {
 		poptFreeContext(pc);
@@ -2990,5 +2987,5 @@ end:
 	BT_PUT(text_legacy_opts.names);
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
-	return cfg;
+	return ret;
 }
