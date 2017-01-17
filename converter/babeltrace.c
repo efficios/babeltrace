@@ -116,7 +116,7 @@ void print_indent(size_t indent)
 	size_t i;
 
 	for (i = 0; i < indent; i++) {
-		printf(" ");
+		printf_verbose(" ");
 	}
 }
 
@@ -129,7 +129,7 @@ bool print_map_value(const char *key, struct bt_value *object, void *data)
 	size_t indent = (size_t) data;
 
 	print_indent(indent);
-	printf("\"%s\": ", key);
+	printf_verbose("\"%s\": ", key);
 	print_value(object, indent, false);
 
 	return true;
@@ -155,27 +155,27 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
-		printf("null\n");
+		printf_verbose("null\n");
 		break;
 	case BT_VALUE_TYPE_BOOL:
 		bt_value_bool_get(value, &bool_val);
-		printf("%s\n", bool_val ? "true" : "false");
+		printf_verbose("%s\n", bool_val ? "true" : "false");
 		break;
 	case BT_VALUE_TYPE_INTEGER:
 		bt_value_integer_get(value, &int_val);
-		printf("%" PRId64 "\n", int_val);
+		printf_verbose("%" PRId64 "\n", int_val);
 		break;
 	case BT_VALUE_TYPE_FLOAT:
 		bt_value_float_get(value, &dbl_val);
-		printf("%lf\n", dbl_val);
+		printf_verbose("%lf\n", dbl_val);
 		break;
 	case BT_VALUE_TYPE_STRING:
 		bt_value_string_get(value, &str_val);
-		printf("\"%s\"\n", str_val);
+		printf_verbose("\"%s\"\n", str_val);
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 		size = bt_value_array_size(value);
-		printf("[\n");
+		printf_verbose("[\n");
 
 		for (i = 0; i < size; i++) {
 			struct bt_value *element =
@@ -186,19 +186,19 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 		}
 
 		print_indent(indent);
-		printf("]\n");
+		printf_verbose("]\n");
 		break;
 	case BT_VALUE_TYPE_MAP:
 		if (bt_value_map_is_empty(value)) {
-			printf("{}\n");
+			printf_verbose("{}\n");
 			return;
 		}
 
-		printf("{\n");
+		printf_verbose("{\n");
 		bt_value_map_foreach(value, print_map_value,
 			(void *) (indent + 2));
 		print_indent(indent);
-		printf("}\n");
+		printf_verbose("}\n");
 		break;
 	default:
 		assert(false);
@@ -208,9 +208,9 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf("  %s.%s\n", bt_config_component->plugin_name->str,
+	printf_verbose("  %s.%s\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
-	printf("    params:\n");
+	printf_verbose("    params:\n");
 	print_value(bt_config_component->params, 6, true);
 }
 
@@ -230,15 +230,15 @@ void print_bt_config_components(GPtrArray *array)
 static
 void print_cfg(struct bt_config *cfg)
 {
-	printf("debug:           %d\n", cfg->debug);
-	printf("verbose:         %d\n", cfg->verbose);
-	printf("do list:         %d\n", cfg->do_list);
-	printf("force correlate: %d\n", cfg->force_correlate);
-	printf("plugin paths:\n");
+	printf_verbose("debug:           %d\n", cfg->debug);
+	printf_verbose("verbose:         %d\n", cfg->verbose);
+	printf_verbose("do list:         %d\n", cfg->do_list);
+	printf_verbose("force correlate: %d\n", cfg->force_correlate);
+	printf_verbose("plugin paths:\n");
 	print_value(cfg->plugin_paths, 2, true);
-	printf("sources:\n");
+	printf_verbose("sources:\n");
 	print_bt_config_components(cfg->sources);
-	printf("sinks:\n");
+	printf_verbose("sinks:\n");
 	print_bt_config_components(cfg->sinks);
 }
 
@@ -421,19 +421,17 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	ret = bt_config_init_from_args(cfg, argc, argv);
+	ret = bt_config_init_from_args(cfg, argc, argv);	
 	if (ret == 0) {
+		babeltrace_verbose = cfg->verbose;
+		babeltrace_debug = cfg->debug;
 		print_cfg(cfg);
 	} else {
 		goto end;
 	}
 
-	babeltrace_verbose = cfg->verbose;
-	babeltrace_debug = cfg->debug;
-
 	/* TODO handle more than 1 source and 1 sink. */
 	if (cfg->sources->len != 1 || cfg->sinks->len != 1) {
-		fprintf(stderr, "Unexpected configuration, aborting...\n");
 		ret = -1;
 		goto end;
 	}
