@@ -990,51 +990,87 @@ struct bt_ctf_event *copy_event(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class)
 {
 	struct bt_ctf_event *writer_event;
-	struct bt_ctf_field *field;
+	struct bt_ctf_field *field, *copy_field;
 	int ret;
 
 	writer_event = bt_ctf_event_create(writer_event_class);
 	if (!writer_event) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
 		goto end;
 	}
 
 	field = bt_ctf_event_get_header(event);
-	ret = bt_ctf_event_set_header(writer_event,
-			bt_ctf_field_copy(field));
-	if (ret < 0) {
+	if (!field) {
 		BT_PUT(writer_event);
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
 		goto end;
 	}
+	copy_field = bt_ctf_field_copy(field);
+	bt_put(field);
+	if (copy_field) {
+		ret = bt_ctf_event_set_header(writer_event, copy_field);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		bt_put(copy_field);
+	}
 
+	/* Optional field, so it can fail silently. */
 	field = bt_ctf_event_get_stream_event_context(event);
-	ret = bt_ctf_event_set_stream_event_context(writer_event,
-			bt_ctf_field_copy(field));
-	if (ret < 0) {
-		BT_PUT(writer_event);
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		goto end;
+	copy_field = bt_ctf_field_copy(field);
+	bt_put(field);
+	if (copy_field) {
+		ret = bt_ctf_event_set_stream_event_context(writer_event,
+				copy_field);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		bt_put(copy_field);
 	}
 
+	/* Optional field, so it can fail silently. */
 	field = bt_ctf_event_get_event_context(event);
-	ret = bt_ctf_event_set_event_context(writer_event,
-			bt_ctf_field_copy(field));
-	if (ret < 0) {
-		BT_PUT(writer_event);
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		goto end;
+	copy_field = bt_ctf_field_copy(field);
+	bt_put(field);
+	if (copy_field) {
+		ret = bt_ctf_event_set_event_context(writer_event, copy_field);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		bt_put(copy_field);
 	}
 
 	field = bt_ctf_event_get_payload_field(event);
-	ret = bt_ctf_event_set_payload_field(writer_event,
-			bt_ctf_field_copy(field));
-	if (ret < 0) {
+	if (!field) {
 		BT_PUT(writer_event);
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
 		goto end;
 	}
+	copy_field = bt_ctf_field_copy(field);
+	bt_put(field);
+	if (copy_field) {
+		ret = bt_ctf_event_set_payload_field(writer_event, copy_field);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		bt_put(copy_field);
+	}
+	goto end;
 
+error:
+	bt_put(copy_field);
+	BT_PUT(writer_event);
 end:
 	return writer_event;
 }
