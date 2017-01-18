@@ -33,7 +33,7 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/visitor.h>
 #include <babeltrace/values.h>
-#include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/component/notification/notification.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

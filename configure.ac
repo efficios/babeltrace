@@ -349,8 +349,11 @@ AC_SUBST(babeltracectfirincludedir)
 babeltracepluginincludedir="${includedir}/babeltrace/plugin"
 AC_SUBST(babeltracepluginincludedir)
 
-# Add a rule to $program_transform_name to rename babeltrace.bin to babeltrace on installation
+babeltracecomponentincludedir="${includedir}/babeltrace/component"
+AC_SUBST(babeltracecomponentincludedir)
+
 program_transform_name="s&babeltrace\.bin&babeltrace&;$program_transform_name"
+AC_SUBST(program_transform_name)
 
 # check for Doxygen
 AC_ARG_ENABLE(
@@ -402,8 +405,9 @@ AC_CONFIG_FILES([
 	doc/images/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
-	lib/plugin-system/Makefile
-	lib/plugin-system/notification/Makefile
+	lib/plugin/Makefile
+        lib/component/Makefile
+	lib/component/notification/Makefile
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile

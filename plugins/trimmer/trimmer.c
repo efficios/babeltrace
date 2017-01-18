@@ -26,12 +26,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-macros.h>
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/filter.h>
-#include <babeltrace/plugin/notification/notification.h>
-#include <babeltrace/plugin/notification/iterator.h>
-#include <babeltrace/plugin/notification/event.h>
+#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/component/component.h>
+#include <babeltrace/component/filter.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/event.h>
 #include "trimmer.h"
 #include "iterator.h"
 #include <assert.h>
@@ -391,7 +391,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_FILTER_COMPONENT_CLASS_ENTRY("trimmer",
+BT_PLUGIN_COMPONENT_CLASS_FILTER_ENTRY("trimmer",
 		"Ensure that trace notifications outside of a given range are filtered-out.",
 		trimmer_component_init)
 BT_PLUGIN_COMPONENT_CLASSES_END

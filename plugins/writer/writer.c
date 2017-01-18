@@ -27,13 +27,13 @@
  */
 
 #include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/plugin/plugin-macros.h>
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/sink.h>
-#include <babeltrace/plugin/notification/notification.h>
-#include <babeltrace/plugin/notification/iterator.h>
-#include <babeltrace/plugin/notification/event.h>
-#include <babeltrace/plugin/notification/packet.h>
+#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/component/component.h>
+#include <babeltrace/component/sink.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/event.h>
+#include <babeltrace/component/notification/packet.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -278,7 +278,6 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY("writer",
-		"Formats CTF-IR to CTF.",
+BT_PLUGIN_COMPONENT_CLASS_SINK_ENTRY("writer", "Formats CTF-IR to CTF.",
 		writer_component_init)
 BT_PLUGIN_COMPONENT_CLASSES_END

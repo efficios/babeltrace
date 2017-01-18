@@ -29,7 +29,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
+#include <babeltrace/component/component.h>
 #include "data-stream.h"
 
 #define CTF_FS_COMPONENT_NAME "fs"

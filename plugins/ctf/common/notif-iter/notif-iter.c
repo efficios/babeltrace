@@ -38,9 +38,9 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/plugin/notification/packet.h>
-#include <babeltrace/plugin/notification/event.h>
-#include <babeltrace/plugin/notification/stream.h>
+#include <babeltrace/component/notification/packet.h>
+#include <babeltrace/component/notification/event.h>
+#include <babeltrace/component/notification/stream.h>
 #include <babeltrace/ref.h>
 #include <glib.h>
 

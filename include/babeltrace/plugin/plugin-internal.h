@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_INTERNAL_H
-#define BABELTRACE_PLUGIN_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H
+#define BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H
 
 /*
  * BabelTrace - Plug-in Internal
@@ -28,41 +28,35 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ref-internal.h>
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/plugin-system.h>
+#include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/object-internal.h>
+#include <stdbool.h>
 #include <gmodule.h>
 
-/**
- * Plug-ins are owned by bt_component_factory and the bt_component_class-es
- * it provides. This means that its lifetime bound by either the component
- * factory's, or the concrete components' lifetime which may be in use and which
- * have hold a reference to their bt_component_class which, in turn, have a
- * reference to their plugin.
- *
- * This ensures that a plugin's library is not closed while it is being used
- * even if the bt_component_factory, which created its components, is destroyed.
- */
-struct bt_plugin {
+struct bt_plugin_shared_lib_handle {
 	struct bt_object base;
+	GString *path;
+	GModule *module;
+	bool init_called;
+
+	/* The members below belong to the shared library */
 	const char *name;
 	const char *author;
 	const char *license;
 	const char *description;
-	GString *path;
-	bt_plugin_register_func _register;
-	GModule *module;
+	bt_plugin_init_func init;
+	bt_plugin_exit_func exit;
 };
 
-BT_HIDDEN
-struct bt_plugin *bt_plugin_create_from_module(GModule *module, const char *path);
+struct bt_plugin {
+	struct bt_object base;
+	bool frozen;
 
-BT_HIDDEN
-struct bt_plugin *bt_plugin_create_from_static(size_t i);
+	/* Owned by this */
+	struct bt_plugin_shared_lib_handle *shared_lib_handle;
 
-BT_HIDDEN
-enum bt_component_status bt_plugin_register_component_classes(
-		struct bt_plugin *plugin, struct bt_component_factory *factory);
+	/* Array of pointers to bt_component_class (owned by this) */
+	GPtrArray *comp_classes;
+};
 
-#endif /* BABELTRACE_PLUGIN_INTERNAL_H */
+#endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

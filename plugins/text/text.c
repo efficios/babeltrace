@@ -27,12 +27,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-macros.h>
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/sink.h>
-#include <babeltrace/plugin/notification/notification.h>
-#include <babeltrace/plugin/notification/iterator.h>
-#include <babeltrace/plugin/notification/event.h>
+#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/component/component.h>
+#include <babeltrace/component/sink.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/event.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compiler.h>
 #include <stdio.h>
@@ -661,7 +661,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SINK_COMPONENT_CLASS_ENTRY(PLUGIN_NAME,
+BT_PLUGIN_COMPONENT_CLASS_SINK_ENTRY(PLUGIN_NAME,
 		"Formats CTF-IR to text. Formerly known as ctf-text.",
 		text_component_init)
 BT_PLUGIN_COMPONENT_CLASSES_END

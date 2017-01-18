@@ -29,7 +29,6 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
 
 struct muxer {
 	GHashTable *trace_clocks;

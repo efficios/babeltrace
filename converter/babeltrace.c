@@ -27,10 +27,13 @@
  */
 
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/plugin/component-factory.h>
 #include <babeltrace/plugin/plugin.h>
-#include <babeltrace/plugin/component-class.h>
-#include <babeltrace/plugin/notification/iterator.h>
+#include <babeltrace/component/component.h>
+#include <babeltrace/component/source.h>
+#include <babeltrace/component/sink.h>
+#include <babeltrace/component/filter.h>
+#include <babeltrace/component/component-class.h>
+#include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <stdlib.h>
@@ -38,10 +41,61 @@
 #include <popt.h>
 #include <string.h>
 #include <stdio.h>
+#include <glib.h>
 #include "babeltrace-cfg.h"
 #include "default-cfg.h"
 
-static struct bt_component_factory *component_factory;
+GPtrArray *loaded_plugins;
+
+static
+void init_loaded_plugins_array(void)
+{
+	loaded_plugins = g_ptr_array_new_full(8, bt_put);
+}
+
+static
+void fini_loaded_plugins_array(void)
+{
+	g_ptr_array_free(loaded_plugins, TRUE);
+}
+
+static
+struct bt_plugin *find_plugin(const char *name)
+{
+	int i;
+	struct bt_plugin *plugin = NULL;
+
+	for (i = 0; i < loaded_plugins->len; i++) {
+		plugin = g_ptr_array_index(loaded_plugins, i);
+
+		if (strcmp(name, bt_plugin_get_name(plugin)) == 0) {
+			break;
+		}
+
+		plugin = NULL;
+	}
+
+	return bt_get(plugin);
+}
+
+static
+struct bt_component_class *find_component_class(const char *plugin_name,
+		const char *comp_class_name,
+		enum bt_component_type comp_class_type)
+{
+	struct bt_component_class *comp_class = NULL;
+	struct bt_plugin *plugin = find_plugin(plugin_name);
+
+	if (!plugin) {
+		goto end;
+	}
+
+	comp_class = bt_plugin_get_component_class_by_name_and_type(plugin,
+			comp_class_name, comp_class_type);
+	BT_PUT(plugin);
+end:
+	return comp_class;
+}
 
 static
 const char *component_type_str(enum bt_component_type type)
@@ -60,53 +114,65 @@ const char *component_type_str(enum bt_component_type type)
 }
 
 static
-void print_component_classes_found(struct bt_component_factory *factory)
+void print_component_classes_found(void)
 {
-	int count, i;
+	int plugins_count, component_classes_count = 0, i;
 
 	if (!babeltrace_verbose) {
 		return;
 	}
 
-	count = bt_component_factory_get_component_class_count(factory);
-	if (count <= 0) {
-		fprintf(stderr, "No component classes found. Please make sure your plug-in search path is set correctly.\n");
+	plugins_count = loaded_plugins->len;
+	if (plugins_count == 0) {
+		fprintf(stderr, "No plugins found. Please make sure your plug-in search path is set correctly.\n");
 		return;
 	}
 
-	printf_verbose("Found %d component classes.\n", count);
-	for (i = 0; i < count; i++) {
-		struct bt_component_class *component_class =
-				bt_component_factory_get_component_class_index(
-				factory, i);
-		struct bt_plugin *plugin = bt_component_class_get_plugin(
-				component_class);
-		const char *plugin_name = bt_plugin_get_name(plugin);
-		const char *component_name = bt_component_class_get_name(
-				component_class);
-		const char *path = bt_plugin_get_path(plugin);
-		const char *author = bt_plugin_get_author(plugin);
-		const char *license = bt_plugin_get_license(plugin);
-		const char *plugin_description = bt_plugin_get_description(
-				plugin);
-		const char *component_description =
-				bt_component_class_get_description(
-					component_class);
-		enum bt_component_type type = bt_component_class_get_type(
-				component_class);
+	for (i = 0; i < plugins_count; i++) {
+		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
 
-		printf_verbose("[%s - %s (%s)]\n", plugin_name, component_name,
-			       component_type_str(type));
-		printf_verbose("\tpath: %s\n", path ? path : "None");
-		printf_verbose("\tauthor: %s\n", author ? author : "Unknown");
-		printf_verbose("\tlicense: %s\n", license ? license : "Unknown");
-		printf_verbose("\tplugin description: %s\n",
+		component_classes_count += bt_plugin_get_component_class_count(plugin);
+	}
+
+	printf_verbose("Found %d component classes in %d plugins.\n",
+		component_classes_count, plugins_count);
+
+	for (i = 0; i < plugins_count; i++) {
+		int j;
+		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+
+		component_classes_count =
+			bt_plugin_get_component_class_count(plugin);
+
+		for (j = 0; j < component_classes_count; j++) {
+			struct bt_component_class *comp_class =
+				bt_plugin_get_component_class(plugin, j);
+			const char *plugin_name = bt_plugin_get_name(plugin);
+			const char *comp_class_name =
+				bt_component_class_get_name(comp_class);
+			const char *path = bt_plugin_get_path(plugin);
+			const char *author = bt_plugin_get_author(plugin);
+			const char *license = bt_plugin_get_license(plugin);
+			const char *plugin_description =
+				bt_plugin_get_description(plugin);
+			const char *comp_class_description =
+				bt_component_class_get_description(comp_class);
+			enum bt_component_type type =
+				bt_component_class_get_type(comp_class);
+
+			printf_verbose("[%s - %s (%s)]\n", plugin_name,
+				comp_class_name, component_type_str(type));
+			printf_verbose("\tpath: %s\n", path ? path : "None");
+			printf_verbose("\tauthor: %s\n",
+				author ? author : "Unknown");
+			printf_verbose("\tlicense: %s\n",
+				license ? license : "Unknown");
+			printf_verbose("\tplugin description: %s\n",
 				plugin_description ? plugin_description : "None");
-		printf_verbose("\tcomponent description: %s\n",
-				component_description ? component_description : "None");
-
-		bt_put(plugin);
-		bt_put(component_class);
+			printf_verbose("\tcomponent description: %s\n",
+				comp_class_description ? comp_class_description : "None");
+			bt_put(comp_class);
+		}
 	}
 }
 
@@ -250,7 +316,6 @@ struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
 	struct bt_value *trimmer_params = NULL;
 	struct bt_value *value;
 
-	assert(component_factory);
 	trimmer_params = bt_value_map_create();
 	if (!trimmer_params) {
 		goto end;
@@ -290,9 +355,8 @@ struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
 		}
 	}
 
-	trimmer_class = bt_component_factory_get_component_class(
-			component_factory, "utils", BT_COMPONENT_TYPE_FILTER,
-			"trimmer");
+	trimmer_class = find_component_class("utils", "trimmer",
+		BT_COMPONENT_TYPE_FILTER);
 	if (!trimmer_class) {
 		fprintf(stderr, "Could not find trimmer component class. Aborting...\n");
 		goto end;
@@ -370,17 +434,44 @@ end:
 	return ret;
 }
 
-static int load_plugins(struct bt_config *cfg)
+static
+void add_to_loaded_plugins(struct bt_plugin **plugins)
 {
-	int nr_paths, i;
+	while (*plugins) {
+		struct bt_plugin *plugin = *plugins;
+		/* Check if it's already loaded (from another path). */
+		struct bt_plugin *loaded_plugin =
+				find_plugin(bt_plugin_get_name(plugin));
+
+		if (loaded_plugin) {
+			printf_verbose("Not loading plugin `%s`: already loaded from `%s`\n",
+					bt_plugin_get_path(plugin),
+					bt_plugin_get_path(loaded_plugin));
+			BT_PUT(loaded_plugin);
+			BT_PUT(plugin);
+		} else {
+			/* Transfer ownership to global array. */
+			g_ptr_array_add(loaded_plugins, plugin);
+		}
+		*(plugins++) = NULL;
+	}
+}
+
+static
+int load_dynamic_plugins(struct bt_config *cfg)
+{
+	int nr_paths, i, ret = 0;
 
 	nr_paths = bt_value_array_size(cfg->plugin_paths);
 	if (nr_paths < 0) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	for (i = 0; i < nr_paths; i++) {
 		struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
+		struct bt_plugin **plugins;
 
 		plugin_path_value = bt_value_array_get(cfg->plugin_paths, i);
 		if (bt_value_string_get(plugin_path_value,
@@ -388,14 +479,41 @@ static int load_plugins(struct bt_config *cfg)
 			BT_PUT(plugin_path_value);
 			continue;
 		}
-		if (bt_component_factory_load_recursive(component_factory,
-				plugin_path)) {
+
+		plugins = bt_plugin_create_all_from_dir(plugin_path, true);
+		if (!plugins) {
 			printf_debug("Unable to dynamically load plugins from path %s.\n",
 				plugin_path);
+			BT_PUT(plugin_path_value);
+			continue;
 		}
+
+		add_to_loaded_plugins(plugins);
+		free(plugins);
+
 		BT_PUT(plugin_path_value);
 	}
-	return 0;
+end:
+	return ret;
+}
+
+static
+int load_static_plugins(void)
+{
+	int ret = 0;
+	struct bt_plugin **plugins;
+
+	plugins = bt_plugin_create_all_from_static();
+	if (!plugins) {
+		printf_debug("Unable to load static plugins.\n");
+		ret = -1;
+		goto end;
+	}
+
+	add_to_loaded_plugins(plugins);
+	free(plugins);
+end:
+	return ret;
 }
 
 int main(int argc, const char **argv)
@@ -409,6 +527,8 @@ int main(int argc, const char **argv)
 	enum bt_component_status sink_status;
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 
+	init_loaded_plugins_array();
+
 	cfg = bt_config_create();
 	if (!cfg) {
 		fprintf(stderr, "Failed to create Babeltrace configuration\n");
@@ -421,7 +541,7 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	ret = bt_config_init_from_args(cfg, argc, argv);	
+	ret = bt_config_init_from_args(cfg, argc, argv);
 	if (ret == 0) {
 		babeltrace_verbose = cfg->verbose;
 		babeltrace_debug = cfg->debug;
@@ -438,33 +558,24 @@ int main(int argc, const char **argv)
 
 	printf_verbose("Verbose mode active.\n");
 	printf_debug("Debug mode active.\n");
-	component_factory = bt_component_factory_create();
-	if (!component_factory) {
-		fprintf(stderr, "Failed to create component factory.\n");
+
+	if (load_dynamic_plugins(cfg)) {
+		fprintf(stderr, "Failed to load dynamic plugins.\n");
 		ret = -1;
 		goto end;
 	}
 
-	if (load_plugins(cfg)) {
-		fprintf(stderr, "Failed to load plugins.\n");
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_component_factory_load_static(component_factory);
-	if (ret) {
+	if (load_static_plugins()) {
 		fprintf(stderr, "Failed to load static plugins.\n");
 		goto end;
 	}
 
-	print_component_classes_found(component_factory);
-
+	print_component_classes_found();
 	source_cfg = bt_config_get_component(cfg->sources, 0);
 	source_params = bt_get(source_cfg->params);
-	source_class = bt_component_factory_get_component_class(
-			component_factory, source_cfg->plugin_name->str,
-			BT_COMPONENT_TYPE_SOURCE,
-			source_cfg->component_name->str);
+	source_class = find_component_class(source_cfg->plugin_name->str,
+			source_cfg->component_name->str,
+			BT_COMPONENT_TYPE_SOURCE);
 	if (!source_class) {
 		fprintf(stderr, "Could not find %s.%s source component class. Aborting...\n",
 				source_cfg->plugin_name->str,
@@ -475,9 +586,9 @@ int main(int argc, const char **argv)
 
 	sink_cfg = bt_config_get_component(cfg->sinks, 0);
 	sink_params = bt_get(sink_cfg->params);
-	sink_class = bt_component_factory_get_component_class(component_factory,
-			sink_cfg->plugin_name->str, BT_COMPONENT_TYPE_SINK,
-			sink_cfg->component_name->str);
+	sink_class = find_component_class(sink_cfg->plugin_name->str,
+			sink_cfg->component_name->str,
+			BT_COMPONENT_TYPE_SINK);
 	if (!sink_class) {
 		fprintf(stderr, "Could not find %s.%s output component class. Aborting...\n",
 				sink_cfg->plugin_name->str,
@@ -523,7 +634,6 @@ int main(int argc, const char **argv)
 		}
 	}
 end:
-	BT_PUT(component_factory);
 	BT_PUT(sink_class);
 	BT_PUT(source_class);
 	BT_PUT(source);
@@ -533,5 +643,6 @@ end:
 	BT_PUT(cfg);
 	BT_PUT(sink_cfg);
 	BT_PUT(source_cfg);
+	fini_loaded_plugins_array();
 	return ret ? 1 : 0;
 }

@@ -26,14 +26,13 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-system.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/plugin/notification/iterator.h>
-#include <babeltrace/plugin/notification/stream.h>
-#include <babeltrace/plugin/notification/event.h>
-#include <babeltrace/plugin/notification/packet.h>
-#include <babeltrace/plugin/notification/heap.h>
+#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/stream.h>
+#include <babeltrace/component/notification/event.h>
+#include <babeltrace/component/notification/packet.h>
+#include <babeltrace/component/notification/heap.h>
 #include <glib.h>
 #include <assert.h>
 #include <unistd.h>

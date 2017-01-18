@@ -1,4 +1,4 @@
-SUBDIRS = prio_heap plugin-system .
+SUBDIRS = prio_heap plugin component .
 
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
@@ -31,4 +31,5 @@ libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
 	$(top_builddir)/types/libbabeltrace_types.la \
 	$(top_builddir)/compat/libcompat.la \
-	plugin-system/libplugin-system.la
+	component/libcomponent.la \
+	plugin/libplugin.la

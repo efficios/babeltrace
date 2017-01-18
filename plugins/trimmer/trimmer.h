@@ -29,8 +29,6 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/plugin/component.h>
-#include <babeltrace/plugin/plugin-system.h>
 
 #define NSEC_PER_SEC	1000000000LL
 

@@ -28,7 +28,8 @@
  */
 
 #include "trimmer.h"
-#include <babeltrace/plugin/notification/notification.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/iterator.h>
 
 struct trimmer_iterator {
 	/* Input iterators associated with this output iterator. */

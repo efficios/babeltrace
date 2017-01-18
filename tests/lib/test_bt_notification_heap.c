@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/plugin/notification/heap.h>
-#include <babeltrace/plugin/notification/notification.h>
-#include <babeltrace/plugin/notification/notification-internal.h>
+#include <babeltrace/component/notification/heap.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/notification-internal.h>
 
 #define NR_TESTS 7
 

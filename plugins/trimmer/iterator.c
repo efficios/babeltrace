@@ -28,12 +28,12 @@
 
 #include "trimmer.h"
 #include "iterator.h"
-#include <babeltrace/plugin/notification/iterator.h>
-#include <babeltrace/plugin/notification/notification.h>
-#include <babeltrace/plugin/notification/event.h>
-#include <babeltrace/plugin/notification/stream.h>
-#include <babeltrace/plugin/notification/packet.h>
-#include <babeltrace/plugin/filter.h>
+#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/component/notification/event.h>
+#include <babeltrace/component/notification/stream.h>
+#include <babeltrace/component/notification/packet.h>
+#include <babeltrace/component/filter.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>

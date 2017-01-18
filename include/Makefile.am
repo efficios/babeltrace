@@ -39,23 +39,24 @@ babeltracectfirinclude_HEADERS = \
 
 babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
-	babeltrace/plugin/component.h \
-	babeltrace/plugin/component-class.h \
-	babeltrace/plugin/component-connection.h \
-	babeltrace/plugin/component-factory.h \
-	babeltrace/plugin/component-graph.h \
-	babeltrace/plugin/source.h \
-	babeltrace/plugin/sink.h \
-	babeltrace/plugin/filter.h \
-	babeltrace/plugin/plugin-system.h \
-	babeltrace/plugin/notification/eot.h \
-	babeltrace/plugin/notification/notification.h \
-	babeltrace/plugin/notification/event.h \
-	babeltrace/plugin/notification/iterator.h \
-	babeltrace/plugin/notification/packet.h \
-	babeltrace/plugin/notification/schema.h \
-	babeltrace/plugin/notification/stream.h \
-	babeltrace/plugin/notification/heap.h
+	babeltrace/plugin/plugin-dev.h
+
+babeltracecomponentinclude_HEADERS = \
+	babeltrace/component/component.h \
+	babeltrace/component/component-class.h \
+	babeltrace/component/component-connection.h \
+	babeltrace/component/component-graph.h \
+	babeltrace/component/source.h \
+	babeltrace/component/sink.h \
+	babeltrace/component/filter.h \
+	babeltrace/component/notification/eot.h \
+	babeltrace/component/notification/notification.h \
+	babeltrace/component/notification/event.h \
+	babeltrace/component/notification/iterator.h \
+	babeltrace/component/notification/packet.h \
+	babeltrace/component/notification/schema.h \
+	babeltrace/component/notification/stream.h \
+	babeltrace/component/notification/heap.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
@@ -116,20 +117,19 @@ noinst_HEADERS = \
 	babeltrace/compat/mman.h \
 	babeltrace/endian.h \
 	babeltrace/mmap-align.h \
-	babeltrace/plugin/component-class-internal.h \
-	babeltrace/plugin/component-connection-internal.h \
-	babeltrace/plugin/component-factory-internal.h \
-	babeltrace/plugin/component-internal.h \
-	babeltrace/plugin/component-graph-internal.h \
 	babeltrace/plugin/plugin-internal.h \
-	babeltrace/plugin/filter-internal.h \
-	babeltrace/plugin/sink-internal.h \
-	babeltrace/plugin/source-internal.h \
-	babeltrace/plugin/input.h \
-	babeltrace/plugin/notification/eot-internal.h \
-	babeltrace/plugin/notification/event-internal.h \
-	babeltrace/plugin/notification/iterator-internal.h \
-	babeltrace/plugin/notification/notification-internal.h \
-	babeltrace/plugin/notification/packet-internal.h \
-	babeltrace/plugin/notification/stream-internal.h \
-	babeltrace/plugin/notification/heap-internal.h
+	babeltrace/component/component-class-internal.h \
+	babeltrace/component/component-connection-internal.h \
+	babeltrace/component/component-internal.h \
+	babeltrace/component/component-graph-internal.h \
+	babeltrace/component/filter-internal.h \
+	babeltrace/component/sink-internal.h \
+	babeltrace/component/source-internal.h \
+	babeltrace/component/input.h \
+	babeltrace/component/notification/eot-internal.h \
+	babeltrace/component/notification/event-internal.h \
+	babeltrace/component/notification/iterator-internal.h \
+	babeltrace/component/notification/notification-internal.h \
+	babeltrace/component/notification/packet-internal.h \
+	babeltrace/component/notification/stream-internal.h \
+	babeltrace/component/notification/heap-internal.h

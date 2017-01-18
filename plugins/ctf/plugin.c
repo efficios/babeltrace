@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-macros.h>
+#include <babeltrace/plugin/plugin-dev.h>
 #include "fs/fs.h"
 #include "lttng-live/lttng-live-internal.h"
 
@@ -38,8 +38,8 @@ BT_PLUGIN_LICENSE("MIT");
 
 /* Declare component classes implemented by this plug-in. */
 BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(CTF_FS_COMPONENT_NAME,
+BT_PLUGIN_COMPONENT_CLASS_SOURCE_ENTRY(CTF_FS_COMPONENT_NAME,
 		CTF_FS_COMPONENT_DESCRIPTION, ctf_fs_init)
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_ENTRY(LTTNG_LIVE_COMPONENT_NAME,
+BT_PLUGIN_COMPONENT_CLASS_SOURCE_ENTRY(LTTNG_LIVE_COMPONENT_NAME,
 		LTTNG_LIVE_COMPONENT_DESCRIPTION, lttng_live_init)
 BT_PLUGIN_COMPONENT_CLASSES_END
