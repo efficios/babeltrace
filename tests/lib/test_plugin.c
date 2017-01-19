@@ -1,0 +1,232 @@
+/*
+ * test_plugin.c
+ *
+ * CTF IR Reference Count test
+ *
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; under version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/ref.h>
+#include <babeltrace/values.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
+#include <glib.h>
+#include "tap/tap.h"
+#include "common.h"
+
+#define NR_TESTS 		33
+#define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
+
+/* Those symbols are written to by some test plugins */
+int test_plugin_init_called;
+int test_plugin_exit_called;
+
+static void reset_test_plugin_symbols(void)
+{
+	test_plugin_init_called = 0;
+	test_plugin_exit_called = 0;
+}
+
+static char *get_test_plugin_path(const char *plugin_dir,
+		const char *plugin_name)
+{
+	GString *path = g_string_new(plugin_dir);
+	char *ret;
+
+	assert(path);
+	g_string_append_printf(path, "/plugin-%s.so", plugin_name);
+	ret = path->str;
+	g_string_free(path, FALSE);
+	return ret;
+}
+
+static void test_invalid(const char *plugin_dir)
+{
+	struct bt_plugin *plugin;
+	char *invalid_path = get_test_plugin_path(plugin_dir, "invalid");;
+
+	assert(invalid_path);
+
+	plugin = bt_plugin_create_from_file(NON_EXISTING_PATH);
+	ok(!plugin, "bt_plugin_create_from_file() fails with a non-existing file");
+
+	plugin = bt_plugin_create_from_file(plugin_dir);
+	ok(!plugin, "bt_plugin_create_from_file() fails with a directory");
+
+	plugin = bt_plugin_create_from_file(invalid_path);
+	ok(!plugin, "bt_plugin_create_from_file() fails with an invalid plugin file");
+
+	ok(!bt_plugin_create_from_file(NULL),
+		"bt_plugin_create_from_file() handles NULL correctly");
+	ok(!bt_plugin_create_all_from_dir(NULL, false),
+		"bt_plugin_create_all_from_dir() handles NULL correctly");
+	ok(!bt_plugin_get_name(NULL),
+		"bt_plugin_get_name() handles NULL correctly");
+	ok(!bt_plugin_get_description(NULL),
+		"bt_plugin_get_description() handles NULL correctly");
+	ok(!bt_plugin_get_author(NULL),
+		"bt_plugin_get_author() handles NULL correctly");
+	ok(!bt_plugin_get_license(NULL),
+		"bt_plugin_get_license() handles NULL correctly");
+	ok(!bt_plugin_get_path(NULL),
+		"bt_plugin_get_path() handles NULL correctly");
+	ok(bt_plugin_get_component_class_count(NULL) < 0,
+		"bt_plugin_get_component_class_count() handles NULL correctly");
+	ok(!bt_plugin_get_component_class(NULL, 0),
+		"bt_plugin_get_component_class() handles NULL correctly");
+	ok(!bt_plugin_get_component_class_by_name_and_type(NULL, NULL, 0),
+		"bt_plugin_get_component_class_by_name_and_type() handles NULL correctly");
+
+	free(invalid_path);
+}
+
+static void test_minimal(const char *plugin_dir)
+{
+	struct bt_plugin *plugin;
+	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
+
+	assert(minimal_path);
+	diag("minimal plugin test below");
+
+	reset_test_plugin_symbols();
+	plugin = bt_plugin_create_from_file(minimal_path);
+	ok(plugin, "bt_plugin_create_from_file() succeeds with a valid file");
+	ok(test_plugin_init_called && !test_plugin_exit_called,
+		"plugin's initialization function is called during bt_plugin_create_from_file()");
+	ok(strcmp(bt_plugin_get_name(plugin), "test-minimal") == 0,
+		"bt_plugin_get_name() returns the expected name");
+	ok(strcmp(bt_plugin_get_description(plugin),
+		"Minimal Babeltrace plugin with no component classes") == 0,
+		"bt_plugin_get_description() returns the expected description");
+	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
+		"bt_plugin_get_author() returns the expected author");
+	ok(strcmp(bt_plugin_get_license(plugin), "Beerware") == 0,
+		"bt_plugin_get_license() returns the expected license");
+	ok(strcmp(bt_plugin_get_path(plugin), minimal_path) == 0,
+		"bt_plugin_get_path() returns the expected path");
+	ok(bt_plugin_get_component_class_count(plugin) == 0,
+		"bt_plugin_get_component_class_count() returns the expected value");
+	BT_PUT(plugin);
+	ok(test_plugin_exit_called, "plugin's exit function is called when the plugin is destroyed");
+
+	free(minimal_path);
+}
+
+static void test_sfs(const char *plugin_dir)
+{
+	struct bt_plugin *plugin;
+	struct bt_component_class *sink_comp_class;
+	struct bt_component_class *source_comp_class;
+	struct bt_component_class *filter_comp_class;
+	struct bt_component *sink_component;
+	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
+
+	assert(sfs_path);
+	diag("sfs plugin test below");
+
+	plugin = bt_plugin_create_from_file(sfs_path);
+	assert(plugin);
+	ok(bt_plugin_get_component_class_count(plugin) == 3,
+		"bt_plugin_get_component_class_count() returns the expected value");
+
+	source_comp_class = bt_plugin_get_component_class_by_name_and_type(
+		plugin, "source", BT_COMPONENT_TYPE_SOURCE);
+	ok(source_comp_class,
+		"bt_plugin_get_component_class_by_name_and_type() finds a source component class");
+
+	sink_comp_class = bt_plugin_get_component_class_by_name_and_type(
+		plugin, "sink", BT_COMPONENT_TYPE_SINK);
+
+	ok(sink_comp_class,
+		"bt_plugin_get_component_class_by_name_and_type() finds a sink component class");
+	filter_comp_class = bt_plugin_get_component_class_by_name_and_type(
+		plugin, "filter", BT_COMPONENT_TYPE_FILTER);
+
+	ok(filter_comp_class,
+		"bt_plugin_get_component_class_by_name_and_type() finds a filter component class");
+	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
+		BT_COMPONENT_TYPE_SOURCE),
+		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
+
+	diag("> putting the plugin object here");
+	BT_PUT(plugin);
+	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	ok(sink_component, "bt_component_create() still works after the plugin object is destroyed");
+	BT_PUT(sink_component);
+	BT_PUT(source_comp_class);
+	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	ok(sink_component, "bt_component_create() still works after the source component class object is destroyed");
+	BT_PUT(sink_component);
+	BT_PUT(filter_comp_class);
+	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	ok(sink_component, "bt_component_create() still works after the filter component class object is destroyed");
+	BT_PUT(sink_comp_class);
+	BT_PUT(sink_component);
+
+	free(sfs_path);
+}
+
+static void test_create_all_from_dir(const char *plugin_dir)
+{
+	struct bt_plugin **plugins;
+	struct bt_plugin *plugin;
+	int i;
+
+	diag("create from all test below");
+
+	plugins = bt_plugin_create_all_from_dir(NON_EXISTING_PATH, false);
+	ok(!plugins,
+		"bt_plugin_create_all_from_dir() fails with an invalid path");
+
+	plugins = bt_plugin_create_all_from_dir(plugin_dir, false);
+	ok(plugins, "bt_plugin_create_all_from_dir() succeeds with a valid path");
+
+	i = 0;
+	while ((plugin = plugins[i])) {
+		BT_PUT(plugin);
+		i++;
+	}
+
+	/* 2 or 4, if `.la` files are considered or not */
+	ok(i == 2 || i == 4, "bt_plugin_create_all_from_dir() returns the expected number of plugin objects");
+
+	free(plugins);
+}
+
+int main(int argc, char **argv)
+{
+	int ret;
+	const char *plugin_dir;
+
+	if (argc != 2) {
+		puts("Usage: test_plugin plugin_directory");
+		ret = 1;
+		goto end;
+	}
+
+	plugin_dir = argv[1];
+	plan_tests(NR_TESTS);
+	test_invalid(plugin_dir);
+	test_minimal(plugin_dir);
+	test_sfs(plugin_dir);
+	test_create_all_from_dir(plugin_dir);
+	ret = exit_status();
+end:
+	return ret;
+}
