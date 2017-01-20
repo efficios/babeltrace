@@ -333,6 +333,7 @@ enum bt_component_status copy_event_classes(FILE *err,
 			goto end;
 		}
 		bt_put(event_class);
+		bt_put(writer_event_class);
 	}
 
 end:
@@ -732,6 +733,7 @@ struct bt_ctf_stream *get_writer_stream(
 	} else {
 		writer_stream = insert_new_stream(writer_component, ctf_writer,
 				stream_class, stream);
+		bt_get(writer_stream);
 	}
 
 	bt_put(ctf_writer);
