@@ -237,6 +237,7 @@ struct bt_ctf_event_class *copy_event_class(FILE *err, struct bt_ctf_event_class
 
 		ret = bt_ctf_event_class_set_attribute(writer_event_class,
 				attr_name, attr_value);
+		bt_put(attr_value);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
@@ -247,6 +248,7 @@ struct bt_ctf_event_class *copy_event_class(FILE *err, struct bt_ctf_event_class
 
 	context = bt_ctf_event_class_get_context_type(event_class);
 	ret = bt_ctf_event_class_set_context_type(writer_event_class, context);
+	bt_put(context);
 	if (ret < 0) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
@@ -388,6 +390,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 
 	ret_int = bt_ctf_stream_class_set_packet_context_type(
 			writer_stream_class, type);
+	bt_put(type);
 	if (ret_int < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -405,6 +408,7 @@ enum bt_component_status copy_stream_class(FILE *err,
 
 	ret_int = bt_ctf_stream_class_set_event_header_type(
 			writer_stream_class, type);
+	bt_put(type);
 	if (ret_int < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -413,8 +417,15 @@ enum bt_component_status copy_stream_class(FILE *err,
 	}
 
 	type = bt_ctf_stream_class_get_event_context_type(stream_class);
+	if (!type) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto end_put_trace;
+	}
 	ret_int = bt_ctf_stream_class_set_event_context_type(
 			writer_stream_class, type);
+	bt_put(type);
 	if (ret_int < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -476,6 +487,7 @@ enum bt_component_status copy_trace(FILE *err, struct bt_ctf_writer *ctf_writer,
 
 		ret_int = bt_ctf_trace_set_environment_field(writer_trace,
 				name, value);
+		bt_put(value);
 		if (ret_int < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);

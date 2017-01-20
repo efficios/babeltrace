@@ -272,6 +272,7 @@ enum bt_component_status writer_component_init(
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto error;
 	}
+	bt_put(value);
 
 	writer_component->base_path = g_string_new(path);
 	if (!writer_component) {
