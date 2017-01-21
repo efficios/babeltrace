@@ -272,12 +272,11 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("writer");
+BT_PLUGIN(writer);
 BT_PLUGIN_DESCRIPTION("Babeltrace CTF-Writer output plug-in.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_COMPONENT_CLASS_SINK_ENTRY("writer", "Formats CTF-IR to CTF.",
-		writer_component_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SINK, writer,
+	writer_component_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SINK, writer,
+	"Formats CTF-IR to CTF.");

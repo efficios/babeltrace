@@ -49,13 +49,16 @@ static enum bt_component_status comp_class_dummy_init(
 	return BT_COMPONENT_STATUS_OK;
 }
 
-BT_PLUGIN_NAME("test-sfs");
+BT_PLUGIN(test_sfs);
 BT_PLUGIN_DESCRIPTION("Babeltrace plugin with source, sink, and filter component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");
 
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_COMPONENT_CLASS_SOURCE_ENTRY("source", "A source", comp_class_dummy_init)
-BT_PLUGIN_COMPONENT_CLASS_SINK_ENTRY("sink", "A sink", comp_class_sink_init)
-BT_PLUGIN_COMPONENT_CLASS_FILTER_ENTRY("filter", "A filter", comp_class_dummy_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SOURCE, source, comp_class_dummy_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SOURCE, source, "A source.");
+
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SINK, sink, comp_class_sink_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SINK, sink, "A sink.");
+
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, filter, comp_class_dummy_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, filter, "A filter.");

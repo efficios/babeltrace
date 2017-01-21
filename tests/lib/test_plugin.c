@@ -58,22 +58,16 @@ static char *get_test_plugin_path(const char *plugin_dir,
 
 static void test_invalid(const char *plugin_dir)
 {
-	struct bt_plugin *plugin;
-	char *invalid_path = get_test_plugin_path(plugin_dir, "invalid");;
+	struct bt_plugin **plugins;
 
-	assert(invalid_path);
+	plugins = bt_plugin_create_all_from_file(NON_EXISTING_PATH);
+	ok(!plugins, "bt_plugin_create_all_from_file() fails with a non-existing file");
 
-	plugin = bt_plugin_create_from_file(NON_EXISTING_PATH);
-	ok(!plugin, "bt_plugin_create_from_file() fails with a non-existing file");
+	plugins = bt_plugin_create_all_from_file(plugin_dir);
+	ok(!plugins, "bt_plugin_create_all_from_file() fails with a directory");
 
-	plugin = bt_plugin_create_from_file(plugin_dir);
-	ok(!plugin, "bt_plugin_create_from_file() fails with a directory");
-
-	plugin = bt_plugin_create_from_file(invalid_path);
-	ok(!plugin, "bt_plugin_create_from_file() fails with an invalid plugin file");
-
-	ok(!bt_plugin_create_from_file(NULL),
-		"bt_plugin_create_from_file() handles NULL correctly");
+	ok(!bt_plugin_create_all_from_file(NULL),
+		"bt_plugin_create_all_from_file() handles NULL correctly");
 	ok(!bt_plugin_create_all_from_dir(NULL, false),
 		"bt_plugin_create_all_from_dir() handles NULL correctly");
 	ok(!bt_plugin_get_name(NULL),
@@ -92,12 +86,11 @@ static void test_invalid(const char *plugin_dir)
 		"bt_plugin_get_component_class() handles NULL correctly");
 	ok(!bt_plugin_get_component_class_by_name_and_type(NULL, NULL, 0),
 		"bt_plugin_get_component_class_by_name_and_type() handles NULL correctly");
-
-	free(invalid_path);
 }
 
 static void test_minimal(const char *plugin_dir)
 {
+	struct bt_plugin **plugins;
 	struct bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
 
@@ -105,11 +98,13 @@ static void test_minimal(const char *plugin_dir)
 	diag("minimal plugin test below");
 
 	reset_test_plugin_symbols();
-	plugin = bt_plugin_create_from_file(minimal_path);
-	ok(plugin, "bt_plugin_create_from_file() succeeds with a valid file");
-	ok(test_plugin_init_called && !test_plugin_exit_called,
-		"plugin's initialization function is called during bt_plugin_create_from_file()");
-	ok(strcmp(bt_plugin_get_name(plugin), "test-minimal") == 0,
+	plugins = bt_plugin_create_all_from_file(minimal_path);
+	ok(plugins && plugins[0], "bt_plugin_create_all_from_file() succeeds with a valid file");
+	ok(test_plugin_init_called, "plugin's initialization function is called during bt_plugin_create_all_from_file()");
+	ok(plugins && plugins[0] && !plugins[1],
+		"bt_plugin_create_all_from_file() returns the expected number of plugins");
+	plugin = plugins[0];
+	ok(strcmp(bt_plugin_get_name(plugin), "test_minimal") == 0,
 		"bt_plugin_get_name() returns the expected name");
 	ok(strcmp(bt_plugin_get_description(plugin),
 		"Minimal Babeltrace plugin with no component classes") == 0,
@@ -126,10 +121,12 @@ static void test_minimal(const char *plugin_dir)
 	ok(test_plugin_exit_called, "plugin's exit function is called when the plugin is destroyed");
 
 	free(minimal_path);
+	free(plugins);
 }
 
 static void test_sfs(const char *plugin_dir)
 {
+	struct bt_plugin **plugins;
 	struct bt_plugin *plugin;
 	struct bt_component_class *sink_comp_class;
 	struct bt_component_class *source_comp_class;
@@ -140,8 +137,9 @@ static void test_sfs(const char *plugin_dir)
 	assert(sfs_path);
 	diag("sfs plugin test below");
 
-	plugin = bt_plugin_create_from_file(sfs_path);
-	assert(plugin);
+	plugins = bt_plugin_create_all_from_file(sfs_path);
+	assert(plugins && plugins[0]);
+	plugin = plugins[0];
 	ok(bt_plugin_get_component_class_count(plugin) == 3,
 		"bt_plugin_get_component_class_count() returns the expected value");
 
@@ -180,6 +178,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_PUT(sink_component);
 
 	free(sfs_path);
+	free(plugins);
 }
 
 static void test_create_all_from_dir(const char *plugin_dir)

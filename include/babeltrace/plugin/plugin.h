@@ -51,7 +51,7 @@ enum bt_plugin_status {
 	BT_PLUGIN_STATUS_NOMEM =	-4,
 };
 
-extern struct bt_plugin *bt_plugin_create_from_file(const char *path);
+extern struct bt_plugin **bt_plugin_create_all_from_file(const char *path);
 
 extern struct bt_plugin **bt_plugin_create_all_from_dir(const char *path,
 		bool recurse);

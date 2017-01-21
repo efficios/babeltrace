@@ -37,14 +37,9 @@ struct bt_plugin_shared_lib_handle {
 	struct bt_object base;
 	GString *path;
 	GModule *module;
-	bool init_called;
 
-	/* The members below belong to the shared library */
-	const char *name;
-	const char *author;
-	const char *license;
-	const char *description;
-	bt_plugin_init_func init;
+	/* True if initialization function was called */
+	bool init_called;
 	bt_plugin_exit_func exit;
 };
 
@@ -57,6 +52,14 @@ struct bt_plugin {
 
 	/* Array of pointers to bt_component_class (owned by this) */
 	GPtrArray *comp_classes;
+
+	/* Pointers to plugin's memory: do NOT free */
+	const struct __bt_plugin_descriptor *descriptor;
+	const char *name;
+	const char *author;
+	const char *license;
+	const char *description;
+	bt_plugin_init_func init;
 };
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

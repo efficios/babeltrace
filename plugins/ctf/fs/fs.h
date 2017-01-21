@@ -32,7 +32,6 @@
 #include <babeltrace/component/component.h>
 #include "data-stream.h"
 
-#define CTF_FS_COMPONENT_NAME "fs"
 #define CTF_FS_COMPONENT_DESCRIPTION \
 	"Component used to read a CTF trace located on a file system."
 

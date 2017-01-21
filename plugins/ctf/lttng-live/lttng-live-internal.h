@@ -30,7 +30,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/component/component.h>
 
-#define LTTNG_LIVE_COMPONENT_NAME "lttng-live"
 #define LTTNG_LIVE_COMPONENT_DESCRIPTION "Component implementing an LTTng-live client."
 
 BT_HIDDEN

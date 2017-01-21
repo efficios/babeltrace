@@ -40,8 +40,6 @@
 #include <glib.h>
 #include "text.h"
 
-#define PLUGIN_NAME	"text"
-
 static
 const char *plugin_options[] = {
 	"output-path",
@@ -224,8 +222,7 @@ bool check_param_exists(const char *key, struct bt_value *object, void *data)
 
 	if (!bt_value_map_get(plugin_opt_map, key)) {
 		fprintf(text->err,
-			"[warning] Parameter \"%s\" unknown to \"%s\" plugin\n",
-			key, PLUGIN_NAME);
+			"[warning] Parameter \"%s\" unknown to \"text\" plugin\n", key);
 	}
 	return true;
 }
@@ -655,13 +652,11 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("text");
+BT_PLUGIN(text);
 BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_COMPONENT_CLASS_SINK_ENTRY(PLUGIN_NAME,
-		"Formats CTF-IR to text. Formerly known as ctf-text.",
-		text_component_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SINK, text,
+		text_component_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SINK, text,
+	"Formats CTF-IR to text. Formerly known as ctf-text.");

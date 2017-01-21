@@ -385,13 +385,11 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("utils");
+BT_PLUGIN(utils);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Trimmer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_COMPONENT_CLASS_FILTER_ENTRY("trimmer",
-		"Ensure that trace notifications outside of a given range are filtered-out.",
-		trimmer_component_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, trimmer,
+		trimmer_component_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, trimmer,
+	"Ensure that trace notifications outside of a given range are filtered-out.");

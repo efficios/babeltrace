@@ -90,13 +90,11 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN_NAME("muxer");
+BT_PLUGIN(muxer);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Muxer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-
-BT_PLUGIN_COMPONENT_CLASSES_BEGIN
-BT_PLUGIN_COMPONENT_CLASS_FILTER_ENTRY("muxer",
-		"Time-correlate multiple traces.",
-		muxer_component_init)
-BT_PLUGIN_COMPONENT_CLASSES_END
+BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, muxer,
+	muxer_component_init);
+BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, muxer,
+	"Time-correlate multiple traces.");

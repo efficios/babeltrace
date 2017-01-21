@@ -34,7 +34,7 @@ static enum bt_plugin_status plugin_exit(void)
 	return BT_PLUGIN_STATUS_OK;
 }
 
-BT_PLUGIN_NAME("test-minimal");
+BT_PLUGIN(test_minimal);
 BT_PLUGIN_DESCRIPTION("Minimal Babeltrace plugin with no component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");

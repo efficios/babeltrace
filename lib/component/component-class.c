@@ -67,7 +67,11 @@ struct bt_component_class *bt_component_class_create(
 		enum bt_component_type type, const char *name,
 		const char *description, bt_component_init_cb init)
 {
-	struct bt_component_class *class;
+	struct bt_component_class *class = NULL;
+
+	if (!name) {
+		goto end;
+	}
 
 	class = g_new0(struct bt_component_class, 1);
 	if (!class) {
@@ -78,11 +82,19 @@ struct bt_component_class *bt_component_class_create(
 	class->type = type;
 	class->init = init;
 	class->name = g_string_new(name);
-	class->description = g_string_new(description);
-	if (!class->name || !class->description) {
-	        BT_PUT(class);
+	if (!class->name) {
+		BT_PUT(class);
 		goto end;
 	}
+
+	if (description) {
+		class->description = g_string_new(description);
+		if (!class->description) {
+			BT_PUT(class);
+			goto end;
+		}
+	}
+
 	class->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_component_class_destroyer_listener));
 	if (!class->destroy_listeners) {
@@ -109,7 +121,8 @@ enum bt_component_type bt_component_class_get_type(
 const char *bt_component_class_get_description(
 		struct bt_component_class *component_class)
 {
-	return component_class ? component_class->description->str : NULL;
+	return component_class && component_class->description ?
+		component_class->description->str : NULL;
 }
 
 BT_HIDDEN
