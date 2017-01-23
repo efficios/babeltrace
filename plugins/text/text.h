@@ -91,6 +91,18 @@ struct text_component {
 	uint64_t delta_real_timestamp;
 };
 
+enum stream_packet_context_quarks_enum {
+	Q_TIMESTAMP_BEGIN,
+	Q_TIMESTAMP_END,
+	Q_EVENTS_DISCARDED,
+	Q_CONTENT_SIZE,
+	Q_PACKET_SIZE,
+	Q_PACKET_SEQ_NUM,
+	STREAM_PACKET_CONTEXT_QUARKS_LEN, /* Always the last one of this enum. */
+};
+
+GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
+
 BT_HIDDEN
 enum bt_component_status text_print_event(struct text_component *text,
 		struct bt_ctf_event *event);

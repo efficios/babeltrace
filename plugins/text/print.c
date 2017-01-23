@@ -69,7 +69,8 @@ struct timestamp {
 
 static
 enum bt_component_status print_field(struct text_component *text,
-		struct bt_ctf_field *field, bool print_names);
+		struct bt_ctf_field *field, bool print_names,
+		GQuark *filters_fields, int filter_array_len);
 
 static
 void print_name_equal(struct text_component *text, const char *name)
@@ -784,10 +785,30 @@ end:
 }
 
 static
+int filter_field_name(struct text_component *text, const char *field_name,
+		GQuark *filter_fields, int filter_array_len)
+{
+	int i;
+	GQuark field_quark = g_quark_try_string(field_name);
+
+	if (!field_quark || text->options.verbose) {
+		return 1;
+	}
+
+	for (i = 0; i < filter_array_len; i++) {
+		if (field_quark == filter_fields[i]) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static
 enum bt_component_status print_struct_field(struct text_component *text,
 		struct bt_ctf_field *_struct,
 		struct bt_ctf_field_type *struct_type,
-		int i, bool print_names)
+		int i, bool print_names, int *nr_printed_fields,
+		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	const char *field_name;
@@ -805,7 +826,13 @@ enum bt_component_status print_struct_field(struct text_component *text,
 		goto end;
 	}
 
-	if (i != 0) {
+	if (filter_fields && !filter_field_name(text, field_name,
+				filter_fields, filter_array_len)) {
+		ret = BT_COMPONENT_STATUS_OK;
+		goto end;
+	}
+
+	if (*nr_printed_fields > 0) {
 		fprintf(text->out, ", ");
 	} else {
 		fprintf(text->out, " ");
@@ -813,7 +840,8 @@ enum bt_component_status print_struct_field(struct text_component *text,
 	if (print_names) {
 		print_field_name_equal(text, rem_(field_name));
 	}
-	ret = print_field(text, field, print_names);
+	ret = print_field(text, field, print_names, NULL, 0);
+	*nr_printed_fields += 1;
 end:
 	bt_put(field_type);
 	bt_put(field);
@@ -822,11 +850,12 @@ end:
 
 static
 enum bt_component_status print_struct(struct text_component *text,
-		struct bt_ctf_field *_struct, bool print_names)
+		struct bt_ctf_field *_struct, bool print_names,
+		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field_type *struct_type = NULL;
-	int nr_fields, i;
+	int nr_fields, i, nr_printed_fields;
 
 	struct_type = bt_ctf_field_get_type(_struct);
 	if (!struct_type) {
@@ -840,9 +869,11 @@ enum bt_component_status print_struct(struct text_component *text,
 	}
 	fprintf(text->out, "{");
 	text->depth++;
+	nr_printed_fields = 0;
 	for (i = 0; i < nr_fields; i++) {
 		ret = print_struct_field(text, _struct, struct_type, i,
-				print_names);
+				print_names, &nr_printed_fields, filter_fields,
+				filter_array_len);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
@@ -874,7 +905,7 @@ enum bt_component_status print_array_field(struct text_component *text,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	ret = print_field(text, field, print_names);
+	ret = print_field(text, field, print_names, NULL, 0);
 end:
 	bt_put(field);
 	return ret;
@@ -983,7 +1014,7 @@ enum bt_component_status print_sequence_field(struct text_component *text,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	ret = print_field(text, field, print_names);
+	ret = print_field(text, field, print_names, NULL, 0);
 end:
 	bt_put(field);
 	return ret;
@@ -1127,7 +1158,7 @@ enum bt_component_status print_variant(struct text_component *text,
 		bt_put(tag_field);
 		bt_put(iter);
 	}
-	ret = print_field(text, field, print_names);
+	ret = print_field(text, field, print_names, NULL, 0);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -1140,7 +1171,8 @@ end:
 
 static
 enum bt_component_status print_field(struct text_component *text,
-		struct bt_ctf_field *field, bool print_names)
+		struct bt_ctf_field *field, bool print_names,
+		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_ctf_type_id type_id;
 
@@ -1178,7 +1210,8 @@ enum bt_component_status print_field(struct text_component *text,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	case CTF_TYPE_STRUCT:
-		return print_struct(text, field, print_names);
+		return print_struct(text, field, print_names, filter_fields,
+				filter_array_len);
 	case CTF_TYPE_UNTAGGED_VARIANT:
 	case CTF_TYPE_VARIANT:
 		return print_variant(text, field, print_names);
@@ -1217,7 +1250,9 @@ enum bt_component_status print_stream_packet_context(struct text_component *text
 		print_name_equal(text, "stream.packet.context");
 	}
 	ret = print_field(text, main_field,
-			text->options.print_context_field_names);
+			text->options.print_context_field_names,
+			stream_packet_context_quarks,
+			STREAM_PACKET_CONTEXT_QUARKS_LEN);
 end:
 	bt_put(main_field);
 	bt_put(packet);
@@ -1243,7 +1278,7 @@ enum bt_component_status print_event_header_raw(struct text_component *text,
 		print_name_equal(text, "stream.event.header");
 	}
 	ret = print_field(text, main_field,
-			text->options.print_header_field_names);
+			text->options.print_header_field_names, NULL, 0);
 end:
 	bt_put(main_field);
 	return ret;
@@ -1268,7 +1303,7 @@ enum bt_component_status print_stream_event_context(struct text_component *text,
 		print_name_equal(text, "stream.event.context");
 	}
 	ret = print_field(text, main_field,
-			text->options.print_context_field_names);
+			text->options.print_context_field_names, NULL, 0);
 end:
 	bt_put(main_field);
 	return ret;
@@ -1293,7 +1328,7 @@ enum bt_component_status print_event_context(struct text_component *text,
 		print_name_equal(text, "event.context");
 	}
 	ret = print_field(text, main_field,
-			text->options.print_context_field_names);
+			text->options.print_context_field_names, NULL, 0);
 end:
 	bt_put(main_field);
 	return ret;
@@ -1318,7 +1353,7 @@ enum bt_component_status print_event_payload(struct text_component *text,
 		print_name_equal(text, "event.fields");
 	}
 	ret = print_field(text, main_field,
-			text->options.print_payload_field_names);
+			text->options.print_payload_field_names, NULL, 0);
 end:
 	bt_put(main_field);
 	return ret;

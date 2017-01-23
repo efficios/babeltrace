@@ -666,6 +666,25 @@ void set_use_colors(struct text_component *text)
 }
 
 static
+void init_stream_packet_context_quarks(void)
+{
+	stream_packet_context_quarks[Q_TIMESTAMP_BEGIN] =
+		g_quark_from_string("timestamp_begin");
+	stream_packet_context_quarks[Q_TIMESTAMP_BEGIN] =
+		g_quark_from_string("timestamp_begin");
+	stream_packet_context_quarks[Q_TIMESTAMP_END] =
+		g_quark_from_string("timestamp_end");
+	stream_packet_context_quarks[Q_EVENTS_DISCARDED] =
+		g_quark_from_string("events_discarded");
+	stream_packet_context_quarks[Q_CONTENT_SIZE] =
+		g_quark_from_string("content_size");
+	stream_packet_context_quarks[Q_PACKET_SIZE] =
+		g_quark_from_string("packet_size");
+	stream_packet_context_quarks[Q_PACKET_SEQ_NUM] =
+		g_quark_from_string("packet_seq_num");
+}
+
+static
 enum bt_component_status text_component_init(
 		struct bt_component *component, struct bt_value *params,
 		UNUSED_VAR void *init_method_data)
@@ -698,6 +717,9 @@ enum bt_component_status text_component_init(
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
+	init_stream_packet_context_quarks();
+
 end:
 	return ret;
 error:
@@ -715,4 +737,3 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(text, text_component_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(text, destroy_text);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(text,
 	"Formats CTF-IR to text. Formerly known as ctf-text.");
-
