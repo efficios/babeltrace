@@ -130,6 +130,7 @@ struct text_legacy_opts {
 	bool clock_date;
 	bool clock_gmt;
 	bool dbg_info_full_path;
+	bool verbose;
 };
 
 /* Legacy input format format */
@@ -186,7 +187,7 @@ bool text_legacy_opts_is_any_set(struct text_legacy_opts *opts)
 		bt_value_array_size(opts->names) > 0 ||
 		bt_value_array_size(opts->fields) > 0 ||
 		opts->no_delta || opts->clock_cycles || opts->clock_seconds ||
-		opts->clock_date || opts->clock_gmt ||
+		opts->clock_date || opts->clock_gmt || opts->verbose ||
 		opts->dbg_info_full_path;
 }
 
@@ -1325,6 +1326,12 @@ struct bt_value *params_from_text_legacy_opts(
 		goto error;
 	}
 
+	if (bt_value_map_insert_bool(params, "verbose",
+			text_legacy_opts->verbose)) {
+		print_err_oom();
+		goto error;
+	}
+
 	if (insert_flat_names_fields_from_array(params,
 			text_legacy_opts->names, "name")) {
 		goto error;
@@ -1755,6 +1762,8 @@ void print_output_legacy_to_sinks(
 			text_legacy_opts->clock_date);
 		g_string_append_bool_param(str, "clock-gmt",
 			text_legacy_opts->clock_gmt);
+		g_string_append_bool_param(str, "verbose",
+			text_legacy_opts->verbose);
 		ret = append_prefixed_flag_params(str, text_legacy_opts->names,
 			"name");
 		if (ret) {
@@ -3754,6 +3763,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			BT_PUT(cfg);
 			goto end;
 		case OPT_VERBOSE:
+			text_legacy_opts.verbose = true;
 			cfg->verbose = true;
 			break;
 		case OPT_DEBUG:

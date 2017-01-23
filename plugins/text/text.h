@@ -70,8 +70,8 @@ struct text_options {
 	bool clock_date;
 	bool clock_gmt;
 	bool debug_info_full_path;
-
 	enum text_color_option color;
+	bool verbose;
 };
 
 struct text_component {

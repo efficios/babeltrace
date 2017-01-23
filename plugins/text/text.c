@@ -54,6 +54,7 @@ const char *plugin_options[] = {
 	"clock-seconds",
 	"clock-date",
 	"clock-gmt",
+	"verbose",
 	"name-default",		/* show/hide */
 	"name-payload",
 	"name-context",
@@ -416,6 +417,13 @@ enum bt_component_status apply_params(struct text_component *text,
 		goto end;
 	}
 	text->options.clock_gmt = value;
+
+	value = false;		/* Default. */
+	ret = apply_one_bool("verbose", params, &value, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto end;
+	}
+	text->options.verbose = value;
 
 	/* Names. */
 	ret = apply_one_string("name-default", params, &str);
