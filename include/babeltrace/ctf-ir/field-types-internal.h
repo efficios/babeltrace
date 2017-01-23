@@ -93,10 +93,11 @@ struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type *container;
 	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	struct declaration_enum declaration;
+	/* Only set during validation. */
 	bool has_overlapping_ranges;
 };
 
-enum bt_ctf_field_type_enumeration_mapping_iterator_kind {
+enum bt_ctf_field_type_enumeration_mapping_iterator_type {
 	ITERATOR_BY_NAME,
 	ITERATOR_BY_SIGNED_VALUE,
 	ITERATOR_BY_UNSIGNED_VALUE,
@@ -105,7 +106,7 @@ enum bt_ctf_field_type_enumeration_mapping_iterator_kind {
 struct bt_ctf_field_type_enumeration_mapping_iterator {
 	struct bt_object base;
 	struct bt_ctf_field_type_enumeration *enumeration_type;
-	enum bt_ctf_field_type_enumeration_mapping_iterator_kind kind;
+	enum bt_ctf_field_type_enumeration_mapping_iterator_type type;
 	int index;
 	union {
 		GQuark name_quark;

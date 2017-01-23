@@ -446,6 +446,71 @@ end:
 }
 
 static
+struct enumeration_mapping *get_enumeration_mapping(
+		struct bt_ctf_field_type *type, int index)
+{
+	struct enumeration_mapping *mapping = NULL;
+	struct bt_ctf_field_type_enumeration *enumeration;
+
+	enumeration = container_of(type, struct bt_ctf_field_type_enumeration,
+		parent);
+	if (index >= enumeration->entries->len) {
+		goto end;
+	}
+
+	mapping = g_ptr_array_index(enumeration->entries, index);
+end:
+	return mapping;
+}
+
+/*
+ * Note: This algorithm is O(n^2) vs number of enumeration mappings.
+ * Only used when freezing an enumeration.
+ */
+static
+void set_enumeration_range_overlap(
+		struct bt_ctf_field_type *type)
+{
+	int i, j, len;
+	struct bt_ctf_field_type *container_type;
+	struct bt_ctf_field_type_enumeration *enumeration_type;
+	int is_signed;
+
+	enumeration_type = container_of(type,
+			struct bt_ctf_field_type_enumeration, parent);
+
+	len = enumeration_type->entries->len;
+	container_type = enumeration_type->container;
+	is_signed = bt_ctf_field_type_integer_get_signed(container_type);
+
+	for (i = 0; i < len; i++) {
+		for (j = i + 1; j < len; j++) {
+			struct enumeration_mapping *mapping[2];
+
+			mapping[0] = get_enumeration_mapping(type, i);
+			mapping[1] = get_enumeration_mapping(type, j);
+			if (is_signed) {
+				if (mapping[0]->range_start._signed
+							<= mapping[1]->range_end._signed
+						&& mapping[0]->range_end._signed
+							>= mapping[1]->range_start._signed) {
+					enumeration_type->has_overlapping_ranges = true;
+					return;
+				}
+			} else {
+				if (mapping[0]->range_start._unsigned
+							<= mapping[1]->range_end._unsigned
+						&& mapping[0]->range_end._unsigned
+							>= mapping[1]->range_start._unsigned) {
+					enumeration_type->has_overlapping_ranges = true;
+					return;
+				}
+			}
+		}
+	}
+}
+
+static
 int bt_ctf_field_type_enumeration_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
@@ -561,6 +626,9 @@ static
 bool bt_ctf_field_type_enumeration_has_overlapping_ranges(
 		struct bt_ctf_field_type_enumeration *enumeration_type)
 {
+	if (!enumeration_type->parent.frozen) {
+		set_enumeration_range_overlap(&enumeration_type->parent);
+	}
 	return enumeration_type->has_overlapping_ranges;
 }
 
@@ -869,24 +937,7 @@ end:
 }
 
 static
-struct enumeration_mapping *get_enumeration_mapping(
-		struct bt_ctf_field_type *type, int index)
-{
-	struct enumeration_mapping *mapping = NULL;
-	struct bt_ctf_field_type_enumeration *enumeration;
-
-	enumeration = container_of(type, struct bt_ctf_field_type_enumeration,
-		parent);
-	if (index >= enumeration->entries->len) {
-		goto end;
-	}
-
-	mapping = g_ptr_array_index(enumeration->entries, index);
-end:
-	return mapping;
-}
-
-static void bt_ctf_field_type_enum_iter_destroy(struct bt_object *obj)
+void bt_ctf_field_type_enum_iter_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_field_type_enumeration_mapping_iterator *iter =
 		container_of(obj,
@@ -895,6 +946,64 @@ static void bt_ctf_field_type_enum_iter_destroy(struct bt_object *obj)
 
 	bt_put(&iter->enumeration_type->parent);
 	g_free(iter);
+}
+
+static
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_type(
+		struct bt_ctf_field_type *type,
+		enum bt_ctf_field_type_enumeration_mapping_iterator_type iterator_type)
+{
+	struct bt_ctf_field_type_enumeration *enumeration_type;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
+
+	if (!type || (type->declaration->id != BT_CTF_TYPE_ID_ENUM)) {
+		goto end;
+	}
+
+	enumeration_type = container_of(type,
+		struct bt_ctf_field_type_enumeration, parent);
+	iter = g_new0(struct bt_ctf_field_type_enumeration_mapping_iterator, 1);
+	if (!iter) {
+		goto end;
+	}
+
+	bt_object_init(&iter->base, bt_ctf_field_type_enum_iter_destroy);
+	bt_get(type);
+	iter->enumeration_type = enumeration_type;
+	iter->index = -1;
+	iter->type = iterator_type;
+end:
+	return iter;
+}
+
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_by_name(
+		struct bt_ctf_field_type *type, const char *name)
+{
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter;
+
+	iter = bt_ctf_field_type_enumeration_find_mappings_type(
+			type, ITERATOR_BY_NAME);
+	if (!iter) {
+		goto error;
+	}
+
+	iter->u.name_quark = g_quark_try_string(name);
+	if (!iter->u.name_quark) {
+		goto error;
+	}
+
+	/* Advance iterator to first entry, or leave index at -1. */
+	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
+		/* No entry found. */
+		goto error;
+	}
+
+	return iter;
+error:
+	bt_put(iter);
+	return NULL;
 }
 
 int bt_ctf_field_type_enumeration_mapping_iterator_next(
@@ -911,7 +1020,7 @@ int bt_ctf_field_type_enumeration_mapping_iterator_next(
 		struct enumeration_mapping *mapping =
 			get_enumeration_mapping(type, i);
 
-		switch (iter->kind) {
+		switch (iter->type) {
 		case ITERATOR_BY_NAME:
 			if (mapping->string == iter->u.name_quark) {
 				iter->index = i;
@@ -950,112 +1059,61 @@ end:
 	return ret;
 }
 
-static struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_kind(
-			struct bt_ctf_field_type *type,
-			enum bt_ctf_field_type_enumeration_mapping_iterator_kind kind)
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
+		struct bt_ctf_field_type *type, int64_t value)
 {
 	struct bt_ctf_field_type_enumeration_mapping_iterator *iter;
-	struct bt_ctf_field_type_enumeration *enumeration_type;
 
-	if (!type || (type->declaration->id != BT_CTF_TYPE_ID_ENUM)) {
-		return NULL;
-	}
-	enumeration_type = container_of(type,
-		struct bt_ctf_field_type_enumeration, parent);
-	iter = g_new0(struct bt_ctf_field_type_enumeration_mapping_iterator, 1);
-	if (!iter) {
-		return NULL;
-	}
-	bt_object_init(&iter->base, bt_ctf_field_type_enum_iter_destroy);
-	bt_get(type);
-	iter->enumeration_type = enumeration_type;
-	iter->index = -1;
-	iter->kind = kind;
-	return iter;
-}
-
-struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_name(
-			struct bt_ctf_field_type *type,
-			const char *name)
-{
-	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
-
-	iter = bt_ctf_field_type_enumeration_find_mappings_kind(
-			type, ITERATOR_BY_NAME);
-	if (!iter) {
-		goto error;
-	}
-	iter->u.name_quark = g_quark_try_string(name);
-	if (!iter->u.name_quark) {
-		goto error;
-	}
-	/* Advance iterator to first entry, or leave index at -1. */
-	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
-		/* No entry found. */
-		goto error;
-	}
-	return iter;
-
-error:
-	bt_put(iter);
-	return NULL;
-}
-
-struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
-			struct bt_ctf_field_type *type,
-			int64_t value)
-{
-	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
-
-	iter = bt_ctf_field_type_enumeration_find_mappings_kind(
+	iter = bt_ctf_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_SIGNED_VALUE);
 	if (!iter) {
 		goto error;
 	}
+
 	if (bt_ctf_field_type_integer_get_signed(
 			iter->enumeration_type->container) != 1) {
 		goto error;
 	}
 	iter->u.signed_value = value;
+
 	/* Advance iterator to first entry, or leave index at -1. */
 	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
 		/* No entry found. */
 		goto error;
 	}
-	return iter;
 
+	return iter;
 error:
 	bt_put(iter);
 	return NULL;
 }
 
 struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
-			struct bt_ctf_field_type *type,
-			uint64_t value)
+bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
+		struct bt_ctf_field_type *type, uint64_t value)
 {
-	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter;
 
-	iter = bt_ctf_field_type_enumeration_find_mappings_kind(
+	iter = bt_ctf_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_UNSIGNED_VALUE);
 	if (!iter) {
 		goto error;
 	}
+
 	if (bt_ctf_field_type_integer_get_signed(
 			iter->enumeration_type->container) != 0) {
 		goto error;
 	}
 	iter->u.unsigned_value = value;
+
 	/* Advance iterator to first entry, or leave index at -1. */
 	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
 		/* No entry found. */
 		goto error;
 	}
-	return iter;
 
+	return iter;
 error:
 	bt_put(iter);
 	return NULL;
@@ -1066,31 +1124,81 @@ int bt_ctf_field_type_enumeration_get_mapping_name(
 		int index,
 		const char **mapping_name)
 {
+	int ret = 0;
 	struct enumeration_mapping *mapping;
 
 	if (!enum_field_type || index < 0) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	mapping = get_enumeration_mapping(enum_field_type, index);
 	if (!mapping) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
 	}
-	return 0;
+end:
+	return ret;
 }
 
 int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name)
 {
+	int ret = 0;
+
 	if (!iter) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
-	return bt_ctf_field_type_enumeration_get_mapping_name(
+
+	ret = bt_ctf_field_type_enumeration_get_mapping_name(
 			&iter->enumeration_type->parent, iter->index,
 			mapping_name);
+end:
+	return ret;
+}
+
+int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, int64_t *range_begin,
+		int64_t *range_end)
+{
+	int ret = 0;
+
+	if (!iter) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_enumeration_get_mapping_signed(
+			&iter->enumeration_type->parent, iter->index,
+			mapping_name, range_begin, range_end);
+end:
+	return ret;
+}
+
+int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, uint64_t *range_begin,
+		uint64_t *range_end)
+{
+	int ret = 0;
+
+	if (!iter) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_enumeration_get_mapping_unsigned(
+			&iter->enumeration_type->parent, iter->index,
+			mapping_name, range_begin, range_end);
+end:
+	return ret;
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_signed(
@@ -1099,38 +1207,33 @@ int bt_ctf_field_type_enumeration_get_mapping_signed(
 		const char **mapping_name, int64_t *range_begin,
 		int64_t *range_end)
 {
+	int ret = 0;
 	struct enumeration_mapping *mapping;
 
 	if (!enum_field_type || index < 0) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	mapping = get_enumeration_mapping(enum_field_type, index);
 	if (!mapping) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
 	}
+
 	if (range_begin) {
 		*range_begin = mapping->range_start._signed;
 	}
+
 	if (range_end) {
 		*range_end = mapping->range_end._signed;
 	}
-	return 0;
-}
-
-int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name, int64_t *range_begin,
-		int64_t *range_end)
-{
-	if (!iter) {
-		return -1;
-	}
-	return bt_ctf_field_type_enumeration_get_mapping_signed(
-			&iter->enumeration_type->parent, iter->index,
-			mapping_name, range_begin, range_end);
+end:
+	return ret;
 }
 
 int bt_ctf_field_type_enumeration_get_mapping_unsigned(
@@ -1139,38 +1242,33 @@ int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		const char **mapping_name, uint64_t *range_begin,
 		uint64_t *range_end)
 {
+	int ret = 0;
 	struct enumeration_mapping *mapping;
 
 	if (!enum_field_type || index < 0) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	mapping = get_enumeration_mapping(enum_field_type, index);
 	if (!mapping) {
-		return -1;
+		ret = -1;
+		goto end;
 	}
+
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
 	}
+
 	if (range_begin) {
 		*range_begin = mapping->range_start._unsigned;
 	}
+
 	if (range_end) {
 		*range_end = mapping->range_end._unsigned;
 	}
-	return 0;
-}
-
-int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name, uint64_t *range_begin,
-		uint64_t *range_end)
-{
-	if (!iter) {
-		return -1;
-	}
-	return bt_ctf_field_type_enumeration_get_mapping_unsigned(
-			&iter->enumeration_type->parent, iter->index,
-			mapping_name, range_begin, range_end);
+end:
+	return ret;
 }
 
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
@@ -2816,58 +2914,14 @@ void bt_ctf_field_type_integer_freeze(struct bt_ctf_field_type *type)
 	generic_field_type_freeze(type);
 }
 
-/*
- * Note: This algorithm is O(n^2) vs number of enumeration mappings.
- * Only used when freezing an enumeration.
- */
-static
-void enumeration_range_overlap_check(struct bt_ctf_field_type *type,
-		struct bt_ctf_field_type_enumeration *enumeration_type)
-{
-	int i, j, len = enumeration_type->entries->len;
-	struct bt_ctf_field_type *container_type;
-	int is_signed;
-
-	container_type = bt_ctf_field_type_enumeration_get_container_type(type);
-	assert(container_type);
-	is_signed = bt_ctf_field_type_integer_get_signed(container_type);
-	assert(is_signed >= 0);
-
-	for (i = 0; i < len; i++) {
-		for (j = i + 1; j < len; j++) {
-			struct enumeration_mapping *mapping[2];
-
-			mapping[0] = get_enumeration_mapping(type, i);
-			mapping[1] = get_enumeration_mapping(type, j);
-			if (is_signed) {
-				if (mapping[0]->range_start._signed
-							<= mapping[1]->range_end._signed
-						&& mapping[0]->range_end._signed
-							>= mapping[1]->range_start._signed) {
-					enumeration_type->has_overlapping_ranges = true;
-					return;
-				}
-			} else {
-				if (mapping[0]->range_start._unsigned
-							<= mapping[1]->range_end._unsigned
-						&& mapping[0]->range_end._unsigned
-							>= mapping[1]->range_start._unsigned) {
-					enumeration_type->has_overlapping_ranges = true;
-					return;
-				}
-			}
-		}
-	}
-	assert(!enumeration_type->has_overlapping_ranges);
-}
-
 static
 void bt_ctf_field_type_enumeration_freeze(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type_enumeration *enumeration_type = container_of(
 		type, struct bt_ctf_field_type_enumeration, parent);
 
-	enumeration_range_overlap_check(type, enumeration_type);
+	set_enumeration_range_overlap(type);
+
 	generic_field_type_freeze(type);
 	bt_ctf_field_type_freeze(enumeration_type->container);
 }
