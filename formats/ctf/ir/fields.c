@@ -926,6 +926,7 @@ error_put_container_type:
 error_put_container:
 	bt_put(container);
 end:
+	bt_put(iter);
 	return name;
 }
 
