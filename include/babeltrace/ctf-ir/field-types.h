@@ -198,6 +198,7 @@ struct bt_ctf_event_class;
 struct bt_ctf_event;
 struct bt_ctf_field;
 struct bt_ctf_field_path;
+struct bt_ctf_field_type_enumeration_mapping_iterator;
 
 /** @cond DOCUMENT */
 
