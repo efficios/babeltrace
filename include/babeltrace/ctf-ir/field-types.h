@@ -1177,21 +1177,6 @@ extern int bt_ctf_field_type_floating_point_set_mantissa_digits(
 
 /** @} */
 
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name);
-
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name, int64_t *lower, int64_t *upper);
-
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name, uint64_t *lower, uint64_t *upper);
-
-extern int bt_ctf_field_type_enumeration_mapping_iterator_next(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
-
 /**
 @defgroup ctfirenumfieldtype CTF IR enumeration field type
 @ingroup ctfirfieldtypes
@@ -1337,8 +1322,8 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_ctf_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping_signed(): Returns the
-	signed mapping contained by a given enumeration field type
+@sa bt_ctf_field_type_enumeration_get_mapping_unsigned(): Returns the
+	unsigned mapping contained by a given enumeration field type
 	at a given index.
 */
 extern int bt_ctf_field_type_enumeration_get_mapping_signed(
@@ -1379,8 +1364,8 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_ctf_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping_unsigned(): Returns the
-	unsigned mapping contained by a given enumeration field type
+@sa bt_ctf_field_type_enumeration_get_mapping_signed(): Returns the
+	signed mapping contained by a given enumeration field type
 	at a given index.
 */
 extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
@@ -1526,6 +1511,139 @@ A mapping in \p enum_field_type can exist with the name \p name.
 extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
 		struct bt_ctf_field_type *enum_field_type, const char *name,
 		uint64_t range_begin, uint64_t range_end);
+
+/** @} */
+
+/**
+@defgroup ctfirenummappingiter CTF IR enumeration mapping iterator
+@ingroup ctfirfieldtypes
+@brief CTF IR enumeration mapping iterator.
+@struct bt_ctf_field_type_enumeration_mapping_iterator
+
+@code
+#include <babeltrace/ctf-ir/field-types.h>
+@endcode
+
+A CTF IR <strong><em>enumeration mapping iterator</em></strong> is an
+iterator on @enumft mappings.
+
+You can obtain an enumeration mapping iterator using one of the mapping
+query functions:bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(),
+bt_ctf_field_type_enumeration_find_mappings_by_signed_value(), and
+bt_ctf_field_type_enumeration_find_mappings_by_name().
+
+You can query an enumeration mapping's <strong>name</strong> from an iterator
+using bt_ctf_field_type_enumeration_mapping_iterator_get_name().
+
+You can also query an enumeration mapping's <strong>value range</strong>
+from an iterator with
+bt_ctf_field_type_enumeration_mapping_iterator_get_signed() or
+bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(), depending on
+the signedness of the wrapped @intft.
+
+An <strong><em>enumeration mapping iterator</em></strong>'s position can
+be advanced using
+bt_ctf_field_type_enumeration_mapping_iterator_next().
+
+@sa ctfirenumfieldtype
+@sa ctfirenumfield
+
+@addtogroup ctfirenummappingiter
+@{
+*/
+
+/**
+@brief	Returns the name of the @enumft mapping pointed to by
+	\p iter.
+
+On success, the returned \p mapping_name is valid as long as a reference
+is held on \p iter and its position is not changed.
+
+@param[in] iter			Enumeration mapping iterator.
+@param[out] mapping_name	Returned name of the mapping pointed to
+				by \p iter.
+@returns			0 on success, or a negative value on error.
+
+@prenotnull{iter}
+@prenotnull{mapping_name}
+@postrefcountsame{iter}
+*/
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name);
+
+/**
+@brief	Returns the range of the signed @enumft mapping pointed to by
+	\p iter.
+
+The @intft wrapped by \p enum_field_type, as returned by
+bt_ctf_field_type_enumeration_get_container_type(), must be
+\b signed to use this function.
+
+@param[in] iter			Enumeration mapping iterator.
+@param[out] range_begin		Returned beginning of the range
+				(included) of the mapping pointed to by
+				\p iter.
+@param[out] range_end		Returned end of the range (included) of
+				the mapping pointed to by \p iter.
+@returns			0 on success, or a negative value on error.
+
+@prenotnull{iter}
+@prenotnull{range_begin}
+@prenotnull{range_end}
+@postrefcountsame{iter}
+
+@sa bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(): Returns
+	the range of the unsigned enumeration mapping pointed by an enumeration
+	mapping iterator.
+*/
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name,
+		int64_t *range_begin, int64_t *range_end);
+
+/**
+@brief	Returns the range of the unsigned @enumft mapping pointed to by
+	\p iter.
+
+The @intft wrapped by \p enum_field_type, as returned by
+bt_ctf_field_type_enumeration_get_container_type(), must be
+\b unsigned to use this function.
+
+@param[in] iter			Enumeration mapping iterator.
+@param[out] range_begin		Returned beginning of the range
+				(included) of the mapping pointed to by
+				\p iter.
+@param[out] range_end		Returned end of the range (included) of
+				the mapping pointed to by \p iter.
+@returns			0 on success, or a negative value on error.
+
+@prenotnull{iter}
+@prenotnull{range_begin}
+@prenotnull{range_end}
+@postrefcountsame{iter}
+
+@sa bt_ctf_field_type_enumeration_mapping_iterator_get_signed(): Returns the
+	range of the signed enumeration mapping pointed by an enumeration
+	mapping iterator.
+*/
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name,
+		uint64_t *range_begin, uint64_t *range_end);
+
+/**
+@brief	Advance the position of the @enumiter \p iter.
+
+@param[in] iter			Enumeration mapping iterator.
+@returns			0 on success, or a negative value on error or
+				end of mappings set.
+
+@prenotnull{iter}
+@postrefcountsame{iter}
+*/
+extern int bt_ctf_field_type_enumeration_mapping_iterator_next(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
 
 /** @} */
 
