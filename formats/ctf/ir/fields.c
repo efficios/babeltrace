@@ -866,11 +866,10 @@ end:
 	return container;
 }
 
-const char *bt_ctf_field_enumeration_get_single_mapping_name(
-	struct bt_ctf_field *field)
+struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *field)
 {
 	int ret;
-	const char *name = NULL;
 	struct bt_ctf_field *container = NULL;
 	struct bt_ctf_field_type *container_type = NULL;
 	struct bt_ctf_field_type_integer *integer_type = NULL;
@@ -899,11 +898,6 @@ const char *bt_ctf_field_enumeration_get_single_mapping_name(
 		}
 		iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
 				field->type, value);
-		if (!iter) {
-			goto error_put_container_type;
-		}
-		(void) bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
-				iter, &name, NULL, NULL);
 	} else {
 		int64_t value;
 
@@ -914,11 +908,6 @@ const char *bt_ctf_field_enumeration_get_single_mapping_name(
 		}
 		iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
 				field->type, value);
-		if (!iter) {
-			goto error_put_container_type;
-		}
-		(void) bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
-				iter, &name, NULL, NULL);
 	}
 
 error_put_container_type:
@@ -926,8 +915,7 @@ error_put_container_type:
 error_put_container:
 	bt_put(container);
 end:
-	bt_put(iter);
-	return name;
+	return iter;
 }
 
 int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *field,

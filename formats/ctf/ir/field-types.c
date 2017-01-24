@@ -1879,22 +1879,30 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		struct bt_ctf_field_type *type,
 		struct bt_ctf_field *tag)
 {
+	int ret;
 	const char *enum_value;
 	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
 
 	if (!type || !tag || type->declaration->id != BT_CTF_TYPE_ID_VARIANT) {
 		goto end;
 	}
 
-	enum_value = bt_ctf_field_enumeration_get_single_mapping_name(tag);
-	if (!enum_value) {
+	iter = bt_ctf_field_enumeration_get_mappings(tag);
+	if (!iter) {
 		goto end;
 	}
 
-	/* Already increments field_type's reference count */
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter,
+		&enum_value);
+	if (ret) {
+		goto end;
+	}
+
 	field_type = bt_ctf_field_type_variant_get_field_type_by_name(
 		type, enum_value);
 end:
+	bt_put(iter);
 	return field_type;
 }
 

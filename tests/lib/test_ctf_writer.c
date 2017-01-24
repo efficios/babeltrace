@@ -60,7 +60,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 600
+#define NR_TESTS 602
 
 static int64_t current_time = 42;
 
@@ -586,20 +586,24 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	enum_field = bt_ctf_field_create(ep_enum_field_type);
 	assert(enum_field);
 
-	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(NULL);
-	ok(!ret_char, "bt_ctf_field_enumeration_get_single_mapping_name handles NULL correctly");
-	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field);
-	ok(!ret_char, "bt_ctf_field_enumeration_get_single_mapping_name returns NULL if the enumeration's container field is unset");
+	iter = bt_ctf_field_enumeration_get_mappings(NULL);
+	ok(!iter, "bt_ctf_field_enumeration_get_mappings handles NULL correctly");
+	iter = bt_ctf_field_enumeration_get_mappings(enum_field);
+	ok(!iter, "bt_ctf_field_enumeration_get_mappings returns NULL if the enumeration's container field is unset");
 	enum_container_field = bt_ctf_field_enumeration_get_container(
 		enum_field);
 	ok(bt_ctf_field_signed_integer_set_value(
 		enum_container_field, -42) == 0,
 		"Set signed enumeration container value");
-	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field);
+	iter = bt_ctf_field_enumeration_get_mappings(enum_field);
+	ok(iter, "bt_ctf_field_enumeration_get_mappings returns an iterator to matching mappings");
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter, &ret_char);
+	ok(!ret && ret_char, "bt_ctf_field_type_enumeration_mapping_iterator_get_name return a mapping name");
 	ok(!strcmp(ret_char, mapping_name_negative_test),
 		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an signed container");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 	assert(!ret);
+	BT_PUT(iter);
 
 	enum_field_unsigned = bt_ctf_field_create(ep_enum_field_unsigned_type);
 	assert(enum_field_unsigned);
@@ -611,7 +615,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
 	assert(!ret);
-	ret_char = bt_ctf_field_enumeration_get_single_mapping_name(enum_field_unsigned);
+	iter = bt_ctf_field_enumeration_get_mappings(enum_field_unsigned);
+	assert(iter);
+	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter, &ret_char);
 	ok(ret_char && !strcmp(ret_char, mapping_name_test),
 		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an unsigned container");
 
@@ -701,6 +707,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_put(ep_integer_field_type);
 	bt_put(ep_enum_field_type);
 	bt_put(ep_enum_field_unsigned_type);
+	bt_put(iter);
 }
 
 static
@@ -1381,6 +1388,7 @@ void field_copy_tests()
 	struct bt_ctf_field *a_3_copy = NULL;
 	struct bt_ctf_field *a_4_copy = NULL;
 	struct bt_ctf_field *strct_copy = NULL;
+	struct bt_ctf_field_type_enumeration_mapping_iterator *e_iter = NULL;
 	uint64_t uint64_t_val;
 	const char *str_val;
 	double double_val;
@@ -1708,7 +1716,9 @@ void field_copy_tests()
 		"bt_ctf_field_copy creates a valid enum's integer field copy");
 
 	/* validate e copy */
-	str_val = bt_ctf_field_enumeration_get_single_mapping_name(e_copy);
+	e_iter = bt_ctf_field_enumeration_get_mappings(e_copy);
+	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_name(e_iter,
+		&str_val);
 	ok(str_val && !strcmp(str_val, "LABEL2"),
 		"bt_ctf_field_copy creates a valid enum field copy");
 
@@ -1831,6 +1841,7 @@ void field_copy_tests()
 	bt_put(a_3_copy);
 	bt_put(a_4_copy);
 	bt_put(strct_copy);
+	bt_put(e_iter);
 }
 
 static

@@ -1010,22 +1010,36 @@ enum bt_component_status print_variant(struct text_component *text,
 	fprintf(text->out, "{ ");
 	text->depth++;
 	if (print_names) {
+		int iter_ret;
 		struct bt_ctf_field *tag_field = NULL;
 		const char *tag_choice;
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter;
 
 		tag_field = bt_ctf_field_variant_get_tag(variant);
 		if (!tag_field) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		tag_choice = bt_ctf_field_enumeration_get_single_mapping_name(tag_field);
-		if (!tag_choice) {
+
+		iter = bt_ctf_field_enumeration_get_mappings(tag_field);
+		if (!iter) {
+			bt_put(tag_field);
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+
+		iter_ret =
+			bt_ctf_field_type_enumeration_mapping_iterator_get_name(
+				iter, &tag_choice);
+		if (iter_ret) {
+			bt_put(iter);
 			bt_put(tag_field);
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 		fprintf(text->out, "%s = ", rem_(tag_choice));
 		bt_put(tag_field);
+		bt_put(iter);
 	}
 	ret = print_field(text, field, print_names);
 	if (ret != BT_COMPONENT_STATUS_OK) {

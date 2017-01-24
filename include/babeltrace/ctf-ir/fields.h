@@ -126,7 +126,7 @@ struct bt_ctf_field;
 struct bt_ctf_event_class;
 struct bt_ctf_event;
 struct bt_ctf_field_type;
-struct bt_ctf_field_type_enum_iter;
+struct bt_ctf_field_type_enumeration_mapping_iterator;
 
 /**
 @name Creation and parent field type access functions
@@ -607,9 +607,9 @@ bt_ctf_field_signed_integer_set_value() or
 bt_ctf_field_unsigned_integer_set_value().
 
 Once you set the integral value of an enumeration field by following the
-previous paragraph, you can get the name of the mapping containing this
+previous paragraph, you can get the names of the mappings containing this
 value in the enumeration field with
-bt_ctf_field_enumeration_get_mapping_name().
+bt_ctf_field_enumeration_get_mappings().
 
 @sa ctfirenumfieldtype
 @sa ctfirfields
@@ -639,8 +639,8 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *enum_field);
 
 /**
-@brief	Returns the name of the mapping selected by the current integral
-	value of the @enumfield \p enum_field.
+@brief	Returns an iterator to the mappings selected by the current
+	integral value of the @enumfield \p enum_field.
 
 On success, \p enum_field remains the sole owner of the returned
 value.
@@ -648,9 +648,9 @@ value.
 @param[in] enum_field	Enumeration field of which to get the name of
 			mapping associated to its current integral
 			value.
-@returns		Name of the mapping associated to the current
-			integral value of \p enum_field, or \c NULL
-			on error.
+@returns		An iterator to the mappings associated to the
+			current integral value of \p enum_field, or
+			\c NULL on error.
 
 @prenotnull{enum_field}
 @preisenumfield{enum_field}
@@ -658,8 +658,8 @@ value.
 	value.
 @postrefcountsame{enum_field}
 */
-extern const char *bt_ctf_field_enumeration_get_mapping_name(
-		struct bt_ctf_field *enum_field);
+extern struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);
 
 /** @} */
 
@@ -1124,9 +1124,6 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_tag(
 		struct bt_ctf_field *variant_field);
 
 /** @} */
-
-const char *bt_ctf_field_enumeration_get_single_mapping_name(
-	struct bt_ctf_field *field);
 
 #ifdef __cplusplus
 }
