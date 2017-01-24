@@ -1316,10 +1316,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 extern int bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enum_field_type);
 
-extern int bt_ctf_field_type_enumeration_get_mapping_name(
-		struct bt_ctf_field_type *enum_field_type, int index,
-		const char **name);
-
 /**
 @brief	Returns the signed mapping of the @enumft
 	\p enum_field_type at index \p index.

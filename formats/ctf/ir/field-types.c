@@ -633,6 +633,33 @@ bool bt_ctf_field_type_enumeration_has_overlapping_ranges(
 }
 
 static
+int bt_ctf_field_type_enumeration_get_mapping_name(
+		struct bt_ctf_field_type *enum_field_type,
+		int index,
+		const char **mapping_name)
+{
+	int ret = 0;
+	struct enumeration_mapping *mapping;
+
+	if (!enum_field_type || index < 0) {
+		ret = -1;
+		goto end;
+	}
+
+	mapping = get_enumeration_mapping(enum_field_type, index);
+	if (!mapping) {
+		ret = -1;
+		goto end;
+	}
+
+	if (mapping_name) {
+		*mapping_name = g_quark_to_string(mapping->string);
+	}
+end:
+	return ret;
+}
+
+static
 int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
@@ -1117,32 +1144,6 @@ bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
 error:
 	bt_put(iter);
 	return NULL;
-}
-
-int bt_ctf_field_type_enumeration_get_mapping_name(
-		struct bt_ctf_field_type *enum_field_type,
-		int index,
-		const char **mapping_name)
-{
-	int ret = 0;
-	struct enumeration_mapping *mapping;
-
-	if (!enum_field_type || index < 0) {
-		ret = -1;
-		goto end;
-	}
-
-	mapping = get_enumeration_mapping(enum_field_type, index);
-	if (!mapping) {
-		ret = -1;
-		goto end;
-	}
-
-	if (mapping_name) {
-		*mapping_name = g_quark_to_string(mapping->string);
-	}
-end:
-	return ret;
 }
 
 int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
