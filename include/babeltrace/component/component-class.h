@@ -31,22 +31,6 @@
 extern "C" {
 #endif
 
-/**
- * Component type.
- */
-enum bt_component_type {
-	BT_COMPONENT_TYPE_UNKNOWN =	-1,
-
-	/** A source component is a notification generator. */
-	BT_COMPONENT_TYPE_SOURCE =	0,
-
-	/** A sink component handles incoming notifications. */
-	BT_COMPONENT_TYPE_SINK =	1,
-
-	/** A filter component implements both Source and Sink interfaces. */
-	BT_COMPONENT_TYPE_FILTER =	2,
-};
-
 struct bt_plugin;
 struct bt_component_class;
 
