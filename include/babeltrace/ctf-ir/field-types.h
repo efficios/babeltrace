@@ -1177,34 +1177,19 @@ extern int bt_ctf_field_type_floating_point_set_mantissa_digits(
 
 /** @} */
 
-struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_name(
-			struct bt_ctf_field_type *type,
-			const char *name);
-
-struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
-			struct bt_ctf_field_type *type,
-			int64_t value);
-
-struct bt_ctf_field_type_enumeration_mapping_iterator *
-		bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
-			struct bt_ctf_field_type *type,
-			uint64_t value);
-
-int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name);
 
-int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name, int64_t *lower, int64_t *upper);
 
-int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
+extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name, uint64_t *lower, uint64_t *upper);
 
-int bt_ctf_field_type_enumeration_mapping_iterator_next(
+extern int bt_ctf_field_type_enumeration_mapping_iterator_next(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
 
 /**
@@ -1261,6 +1246,7 @@ the \c CHERRY mapping.
 
 @sa ctfirenumfield
 @sa ctfirfieldtypes
+@sa ctfirenummappingiter
 
 @addtogroup ctfirenumfieldtype
 @{
@@ -1329,7 +1315,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 
 @param[in] enum_field_type	Enumeration field type of which to get
 				the mapping at index \p index.
-­@param[in] index		Index of the mapping to get from
+@param[in] index		Index of the mapping to get from
 				\p enum_field_type.
 @param[out] name		Returned name of the mapping at index
 				\p index.
@@ -1371,7 +1357,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 
 @param[in] enum_field_type	Enumeration field type of which to get
 				the mapping at index \p index.
-­@param[in] index		Index of the mapping to get from
+@param[in] index		Index of the mapping to get from
 				\p enum_field_type.
 @param[out] name		Returned name of the mapping at index
 				\p index.
@@ -1401,6 +1387,69 @@ extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		struct bt_ctf_field_type *enum_field_type, int index,
 		const char **name, uint64_t *range_begin,
 		uint64_t *range_end);
+
+/**
+@brief  Returns a @enumiter on the mappings of the @enumft
+	\p enum_field_type that match \p name.
+
+@param[in] enum_field_type	Enumeration field type of which to get
+				the mapping at index \p index.
+@param[in] name			Name of the mappings to find.
+@returns			@enumiter that
+				match \p name, or \c NULL on error.
+
+@prenotnull{enum_field_type}
+@prenotnull{name}
+@preisenumft{enum_field_type}
+@postrefcountsame{enum_field_type}
+@postsuccessrefcountret1
+*/
+extern struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_by_name(
+		struct bt_ctf_field_type *enum_field_type,
+		const char *name);
+
+/**
+@brief  Returns the mappings of the @enumft
+	\p enum_field_type that match \p value.
+
+@param[in] enum_field_type	Enumeration field type of which to get
+				the mapping at index \p index.
+@param[in] value		Signed value of the mappings to find.
+@returns			Iterator on enumeration mappings that
+				match \p value, or \c NULL on error.
+
+@prenotnull{enum_field_type}
+@prenotnull{name}
+@preisenumft{enum_field_type}
+@postrefcountsame{enum_field_type}
+@postsuccessrefcountret1
+*/
+extern struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
+		struct bt_ctf_field_type *enum_field_type,
+		int64_t value);
+
+/**
+@brief  Returns the mappings of the @enumft
+	\p enum_field_type that match \p value.
+
+@param[in] enum_field_type	Enumeration field type of which to get
+				the mapping at index \p index.
+@param[in] value		Unsigned value of the mappings to find.
+@returns			Iterator on enumeration mappings that
+				match \p value, or \c NULL on error.
+
+@prenotnull{enum_field_type}
+@prenotnull{name}
+@preisenumft{enum_field_type}
+@postrefcountsame{enum_field_type}
+@postsuccessrefcountret1
+*/
+extern struct bt_ctf_field_type_enumeration_mapping_iterator *
+bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
+		struct bt_ctf_field_type *enum_field_type,
+		uint64_t value);
 
 /**
 @brief  Adds a mapping to the @enumft \p enum_field_type which maps the

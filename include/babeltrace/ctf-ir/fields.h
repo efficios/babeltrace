@@ -639,11 +639,8 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *enum_field);
 
 /**
-@brief	Returns an iterator to the mappings selected by the current
+@brief	Returns a @enumiter to the mappings selected by	the current
 	integral value of the @enumfield \p enum_field.
-
-On success, \p enum_field remains the sole owner of the returned
-value.
 
 @param[in] enum_field	Enumeration field of which to get the name of
 			mapping associated to its current integral
@@ -657,6 +654,7 @@ value.
 @pre The wrapped integer field of \p enum_field contains an integral
 	value.
 @postrefcountsame{enum_field}
+@postsuccessrefcountret1
 */
 extern struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);
