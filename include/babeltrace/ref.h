@@ -36,6 +36,10 @@ extern "C" {
 @ingroup apiref
 @brief Common reference counting management for all Babeltrace objects.
 
+@code
+#include <babeltrace/ref.h>
+@endcode
+
 The macros and functions of this module are everything that is needed
 to handle the <strong><em>reference counting</em></strong> of
 Babeltrace objects.

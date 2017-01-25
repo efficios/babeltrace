@@ -40,6 +40,10 @@ extern "C" {
 @ingroup apiref
 @brief Value objects.
 
+@code
+#include <babeltrace/values.h>
+@endcode
+
 This is a set of <strong><em>value objects</em></strong>. With the
 functions documented here, you can create and modify:
 
