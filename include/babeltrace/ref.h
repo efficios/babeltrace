@@ -40,15 +40,46 @@ The macros and functions of this module are everything that is needed
 to handle the <strong><em>reference counting</em></strong> of
 Babeltrace objects.
 
-All Babeltrace objects can be shared by multiple owners thanks to
+Any Babeltrace object can be shared by multiple owners thanks to
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
-counting</a>. A function which returns a Babeltrace object owned
-by another one increments its reference count so that the caller
-becomes an owner too.
+counting</a>.
 
-When a Babeltrace object is created, its reference count is initialized
-to 1. It is your responsibility to discard the object when you don't
-need it anymore with bt_put().
+The Babeltrace C API complies with the following key principles:
+
+1. When you call an API function which accepts a Babeltrace object
+   pointer as a parameter, the API function <strong>borrows the
+   reference</strong> for the <strong>duration of the function</strong>.
+
+   @image html ref-count-user-calls.png
+
+   The API function can also get a new reference if the system needs a
+   more persistent reference, but the ownership is <strong>never
+   transferred</strong> from the caller to the API function.
+
+   In other words, the caller still owns the object after calling any
+   API function: no function "steals" the user's reference (except
+   bt_put()).
+
+2. An API function which \em returns a Babeltrace object pointer to the
+   user returns a <strong>new reference</strong>. The caller becomes an
+   owner of the object.
+
+   @image html ref-count-api-returns.png
+
+   It is your responsibility to discard the object when you don't
+   need it anymore with bt_put().
+
+   For example, see bt_value_array_get().
+
+3. A Babeltrace object pointer received as a parameter in a user
+   function called back from an API function is a
+   <strong>borrowed</strong>, or <strong>weak reference</strong>: if you
+   need a reference which is more persistent that the duration of the
+   user function, call bt_get() on the pointer.
+
+   @image html ref-count-callback.png
+
+   For example, see bt_value_map_foreach().
 
 The two macros BT_PUT() and BT_MOVE() operate on \em variables rather
 than pointer values. You should use BT_PUT() instead of bt_put() when
