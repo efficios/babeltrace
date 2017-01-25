@@ -607,9 +607,9 @@ bt_ctf_field_signed_integer_set_value() or
 bt_ctf_field_unsigned_integer_set_value().
 
 Once you set the integral value of an enumeration field by following the
-previous paragraph, you can get the names of the mappings containing this
-value in the enumeration field with
-bt_ctf_field_enumeration_get_mappings().
+previous paragraph, you can get the mappings containing this value in
+their range with bt_ctf_field_enumeration_get_mappings(). This function
+returns a @enumftiter.
 
 @sa ctfirenumfieldtype
 @sa ctfirfields
@@ -639,15 +639,23 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *enum_field);
 
 /**
-@brief	Returns a @enumiter to the mappings selected by	the current
-	integral value of the @enumfield \p enum_field.
+@brief	Returns a @enumftiter on all the mappings of the field type of
+	\p enum_field which contain the current integral value of the
+	@enumfield \p enum_field in their range.
 
-@param[in] enum_field	Enumeration field of which to get the name of
-			mapping associated to its current integral
-			value.
-@returns		An iterator to the mappings associated to the
-			current integral value of \p enum_field, or
-			\c NULL on error.
+This function is the equivalent of using
+bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value() or
+bt_ctf_field_type_enumeration_find_mappings_by_signed_value() with the
+current integral value of \p enum_field.
+
+@param[in] enum_field	Enumeration field of which to get the mappings
+			containing the current integral value of \p
+			enum_field in their range.
+@returns                @enumftiter on the set of mappings of the field
+			type of \p enum_field which contain the current
+			integral value of \p enum_field in their range,
+			or \c NULL if no mappings were found or on
+			error.
 
 @prenotnull{enum_field}
 @preisenumfield{enum_field}
@@ -655,6 +663,8 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	value.
 @postrefcountsame{enum_field}
 @postsuccessrefcountret1
+@post <strong>On success</strong>, the returned @enumftiter can iterate
+	on at least one mapping.
 */
 extern struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);

@@ -1146,24 +1146,6 @@ error:
 	return NULL;
 }
 
-int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name)
-{
-	int ret = 0;
-
-	if (!iter) {
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_enumeration_get_mapping_name(
-			&iter->enumeration_type->parent, iter->index,
-			mapping_name);
-end:
-	return ret;
-}
-
 int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name, int64_t *range_begin,
@@ -1894,8 +1876,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		goto end;
 	}
 
-	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter,
-		&enum_value);
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_signed(iter,
+		&enum_value, NULL, NULL);
 	if (ret) {
 		goto end;
 	}

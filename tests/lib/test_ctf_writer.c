@@ -597,8 +597,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Set signed enumeration container value");
 	iter = bt_ctf_field_enumeration_get_mappings(enum_field);
 	ok(iter, "bt_ctf_field_enumeration_get_mappings returns an iterator to matching mappings");
-	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter, &ret_char);
-	ok(!ret && ret_char, "bt_ctf_field_type_enumeration_mapping_iterator_get_name return a mapping name");
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_signed(iter, &ret_char, NULL, NULL);
+	ok(!ret && ret_char, "bt_ctf_field_type_enumeration_mapping_iterator_get_signed return a mapping name");
 	ok(!strcmp(ret_char, mapping_name_negative_test),
 		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an signed container");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
@@ -617,9 +617,9 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	assert(!ret);
 	iter = bt_ctf_field_enumeration_get_mappings(enum_field_unsigned);
 	assert(iter);
-	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_name(iter, &ret_char);
+	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(iter, &ret_char, NULL, NULL);
 	ok(ret_char && !strcmp(ret_char, mapping_name_test),
-		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an unsigned container");
+		"bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned returns the correct mapping name with an unsigned container");
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
@@ -1717,8 +1717,8 @@ void field_copy_tests()
 
 	/* validate e copy */
 	e_iter = bt_ctf_field_enumeration_get_mappings(e_copy);
-	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_name(e_iter,
-		&str_val);
+	(void) bt_ctf_field_type_enumeration_mapping_iterator_get_signed(e_iter,
+		&str_val, NULL, NULL);
 	ok(str_val && !strcmp(str_val, "LABEL2"),
 		"bt_ctf_field_copy creates a valid enum field copy");
 

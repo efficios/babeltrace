@@ -1206,6 +1206,20 @@ bt_ctf_field_type_enumeration_add_mapping() or
 bt_ctf_field_type_enumeration_add_mapping_unsigned(), depending on the
 signedness of the wrapped @intft.
 
+You can find mappings by name or by value with the following find
+operations:
+
+- bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+  mappings with a given name.
+- bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value():
+  Finds the mappings which contain a given unsigned value in their
+  range.
+- bt_ctf_field_type_enumeration_find_mappings_by_signed_value():
+  Finds the mappings which contain a given signed value in their range.
+
+Those functions return a @enumftiter on the result set of the find
+operation.
+
 Many mappings can share the same name, and the ranges of a given
 enumeration field type are allowed to overlap. For example,
 this is a valid set of mappings:
@@ -1229,9 +1243,9 @@ APPLE  -> [ 30, 55]
 Here, the range of the second \c APPLE mapping overlaps the range of
 the \c CHERRY mapping.
 
+@sa ctfirenumftmappingiter
 @sa ctfirenumfield
 @sa ctfirfieldtypes
-@sa ctfirenummappingiter
 
 @addtogroup ctfirenumfieldtype
 @{
@@ -1374,20 +1388,35 @@ extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		uint64_t *range_end);
 
 /**
-@brief  Returns a @enumiter on the mappings of the @enumft
-	\p enum_field_type that match \p name.
+@brief  Finds the mappings of the @enumft \p enum_field_type which
+	are named \p name.
 
-@param[in] enum_field_type	Enumeration field type of which to get
-				the mapping at index \p index.
-@param[in] name			Name of the mappings to find.
-@returns			@enumiter that
-				match \p name, or \c NULL on error.
+This function returns an iterator on the result set of this find
+operation. See \ref ctfirenumftmappingiter for more details.
+
+@param[in] enum_field_type	Enumeration field type of which to find
+				the mappings named \p name.
+@param[in] name			Name of the mappings to find in
+				\p enum_field_type.
+@returns			@enumftiter on the set of mappings named
+				\p name in \p enum_field_type, or
+				\c NULL if no mappings were found or
+				on error.
 
 @prenotnull{enum_field_type}
 @prenotnull{name}
 @preisenumft{enum_field_type}
 @postrefcountsame{enum_field_type}
 @postsuccessrefcountret1
+@post <strong>On success</strong>, the returned @enumftiter can iterate
+	on at least one mapping.
+
+@sa bt_ctf_field_type_enumeration_find_mappings_by_signed_value(): Finds
+	the mappings of a given enumeration field type which contain
+	a given signed value in their range.
+@sa bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+	the mappings of a given enumeration field type which contain
+	a given unsigned value in their range.
 */
 extern struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_enumeration_find_mappings_by_name(
@@ -1395,20 +1424,34 @@ bt_ctf_field_type_enumeration_find_mappings_by_name(
 		const char *name);
 
 /**
-@brief  Returns the mappings of the @enumft
-	\p enum_field_type that match \p value.
+@brief  Finds the mappings of the @enumft \p enum_field_type which
+	contain the signed value \p value in their range.
 
-@param[in] enum_field_type	Enumeration field type of which to get
-				the mapping at index \p index.
-@param[in] value		Signed value of the mappings to find.
-@returns			Iterator on enumeration mappings that
-				match \p value, or \c NULL on error.
+This function returns an iterator on the result set of this find
+operation. See \ref ctfirenumftmappingiter for more details.
+
+@param[in] enum_field_type	Enumeration field type of which to find
+				the mappings which contain \p value.
+@param[in] value		Value to find in the ranges of the
+				mappings of \p enum_field_type.
+@returns			@enumftiter on the set of mappings of
+				\p enum_field_type which contain
+				\p value in their range, or \c NULL if
+				no mappings were found or on error.
 
 @prenotnull{enum_field_type}
-@prenotnull{name}
 @preisenumft{enum_field_type}
 @postrefcountsame{enum_field_type}
 @postsuccessrefcountret1
+@post <strong>On success</strong>, the returned @enumftiter can iterate
+	on at least one mapping.
+
+@sa bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+	mappings of a given enumeration field type which have a given
+	name.
+@sa bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+	the mappings of a given enumeration field type which contain
+	a given unsigned value in their range.
 */
 extern struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
@@ -1416,20 +1459,35 @@ bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
 		int64_t value);
 
 /**
-@brief  Returns the mappings of the @enumft
-	\p enum_field_type that match \p value.
+@brief  Finds the mappings of the @enumft \p enum_field_type which
+	contain the unsigned value \p value in their range.
 
-@param[in] enum_field_type	Enumeration field type of which to get
-				the mapping at index \p index.
-@param[in] value		Unsigned value of the mappings to find.
-@returns			Iterator on enumeration mappings that
-				match \p value, or \c NULL on error.
+This function returns an iterator on the result set of this find
+operation. See \ref ctfirenumftmappingiter for more details.
+
+@param[in] enum_field_type	Enumeration field type of which to find
+				the mappings which contain \p value.
+@param[in] value		Value to find in the ranges of the
+				mappings of \p enum_field_type.
+@returns			@enumftiter on the set of mappings of
+				\p enum_field_type which contain
+				\p value in their range, or \c NULL
+				if no mappings were found or
+				on error.
 
 @prenotnull{enum_field_type}
-@prenotnull{name}
 @preisenumft{enum_field_type}
 @postrefcountsame{enum_field_type}
 @postsuccessrefcountret1
+@post <strong>On success</strong>, the returned @enumftiter can iterate
+	on at least one mapping.
+
+@sa bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+	mappings of a given enumeration field type which have a given
+	name.
+@sa bt_ctf_field_type_enumeration_find_mappings_by_signed_value(): Finds
+	the mappings of a given enumeration field type which contain
+	a given unsigned value in their range.
 */
 extern struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
@@ -1515,129 +1573,157 @@ extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
 /** @} */
 
 /**
-@defgroup ctfirenummappingiter CTF IR enumeration mapping iterator
-@ingroup ctfirfieldtypes
-@brief CTF IR enumeration mapping iterator.
-@struct bt_ctf_field_type_enumeration_mapping_iterator
+@defgroup ctfirenumftmappingiter CTF IR enumeration field type mapping iterator
+@ingroup ctfirenumfieldtype
+@brief CTF IR enumeration field type mapping iterator.
 
 @code
 #include <babeltrace/ctf-ir/field-types.h>
 @endcode
 
-A CTF IR <strong><em>enumeration mapping iterator</em></strong> is an
-iterator on @enumft mappings.
+A CTF IR <strong><em>enumeration field type mapping
+iterator</em></strong> is an iterator on @enumft mappings.
 
-You can obtain an enumeration mapping iterator using one of the mapping
-query functions:bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(),
-bt_ctf_field_type_enumeration_find_mappings_by_signed_value(), and
-bt_ctf_field_type_enumeration_find_mappings_by_name().
+You can get an enumeration mapping iterator from one of the following
+functions:
 
-You can query an enumeration mapping's <strong>name</strong> from an iterator
-using bt_ctf_field_type_enumeration_mapping_iterator_get_name().
+- Find operations of an @enumft object:
+  - bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+    mappings with a given name.
+  - bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value():
+    Finds the mappings which contain a given unsigned value in their
+    range.
+  - bt_ctf_field_type_enumeration_find_mappings_by_signed_value():
+    Finds the mappings which contain a given signed value in their range.
+- bt_ctf_field_enumeration_get_mappings(): Finds the mappings in the
+  @enumft of an @enumfield containing its current integral value in
+  their range.
 
-You can also query an enumeration mapping's <strong>value range</strong>
-from an iterator with
-bt_ctf_field_type_enumeration_mapping_iterator_get_signed() or
-bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(), depending on
-the signedness of the wrapped @intft.
+Those functions guarantee that the returned iterator can iterate on
+at least one mapping. Otherwise, they return \c NULL.
 
-An <strong><em>enumeration mapping iterator</em></strong>'s position can
-be advanced using
-bt_ctf_field_type_enumeration_mapping_iterator_next().
+You can get the name and the range of a mapping iterator's current
+mapping with
+bt_ctf_field_type_enumeration_mapping_iterator_get_signed()
+or
+bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(),
+depending on the signedness of the @intft wrapped by the
+@enumft. If you only need the name of the current mapping, you can
+use any of the two functions and set the \p range_begin and \p range_end
+parameters to \c NULL.
+
+You can advance an enumeration field type mapping iterator to the next
+mapping with
+bt_ctf_field_type_enumeration_mapping_iterator_next(). This
+function returns a negative value when you reach the end of the
+result set.
+
+As with any Babeltrace object, CTF IR enumeration field type mapping
+iterator objects have <a
+href="https://en.wikipedia.org/wiki/Reference_counting">reference
+counts</a>. See \ref refs to learn more about the reference counting
+management of Babeltrace objects.
 
 @sa ctfirenumfieldtype
-@sa ctfirenumfield
 
-@addtogroup ctfirenummappingiter
+@addtogroup ctfirenumftmappingiter
 @{
 */
 
 /**
-@brief	Returns the name of the @enumft mapping pointed to by
-	\p iter.
-
-On success, the returned \p mapping_name is valid as long as a reference
-is held on \p iter and its position is not changed.
-
-@param[in] iter			Enumeration mapping iterator.
-@param[out] mapping_name	Returned name of the mapping pointed to
-				by \p iter.
-@returns			0 on success, or a negative value on error.
-
-@prenotnull{iter}
-@prenotnull{mapping_name}
-@postrefcountsame{iter}
+@struct bt_ctf_field_type_enumeration_mapping_iterator
+@brief A CTF IR enumeration field type mapping iterator.
+@sa ctfirenumftmappingiter
 */
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_name(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name);
 
 /**
-@brief	Returns the range of the signed @enumft mapping pointed to by
-	\p iter.
+@brief  Returns the name and the range of the current (signed) mapping
+	of the @enumftiter \p iter.
 
-The @intft wrapped by \p enum_field_type, as returned by
+If one of \p range_begin or \p range_end is not \c NULL, the @intft
+wrapped by the @enumft from which \p iter was obtained, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
-\b signed to use this function.
+\b signed to use this function. Otherwise, if you only need to get the
+name of the current mapping, set \p range_begin and \p range_end to
+\c NULL.
 
-@param[in] iter			Enumeration mapping iterator.
+On success, if \p name is not \c NULL, \p *name remains valid as long
+as \p iter exists and
+bt_ctf_field_type_enumeration_mapping_iterator_next() is
+\em not called on \p iter.
+
+@param[in] iter			Enumeration field type mapping iterator
+				of which to get the range of the current
+				mapping.
+@param[out] name		Returned name of the current mapping of
+				\p iter (can be \c NULL to ignore).
 @param[out] range_begin		Returned beginning of the range
-				(included) of the mapping pointed to by
-				\p iter.
-@param[out] range_end		Returned end of the range (included) of
-				the mapping pointed to by \p iter.
+				(included) of the current mapping of
+				\p iter (can be \c NULL to ignore).
+@param[out] range_end		Returned end of the range
+				(included) of the current mapping of
+				\p iter (can be \c NULL to ignore).
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{iter}
-@prenotnull{range_begin}
-@prenotnull{range_end}
 @postrefcountsame{iter}
 
-@sa bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(): Returns
-	the range of the unsigned enumeration mapping pointed by an enumeration
-	mapping iterator.
+@sa bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned():
+	Returns the name and the unsigned range of the current mapping
+	of a given enumeration field type mapping iterator.
 */
 extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name,
-		int64_t *range_begin, int64_t *range_end);
+		const char **name, int64_t *range_begin, int64_t *range_end);
 
 /**
-@brief	Returns the range of the unsigned @enumft mapping pointed to by
-	\p iter.
+@brief  Returns the name and the range of the current (unsigned) mapping
+	of the @enumftiter \p iter.
 
-The @intft wrapped by \p enum_field_type, as returned by
+If one of \p range_begin or \p range_end is not \c NULL, the @intft
+wrapped by the @enumft from which \p iter was obtained, as returned by
 bt_ctf_field_type_enumeration_get_container_type(), must be
-\b unsigned to use this function.
+\b unsigned to use this function. Otherwise, if you only need to get the
+name of the current mapping, set \p range_begin and \p range_end to
+\c NULL.
 
-@param[in] iter			Enumeration mapping iterator.
+On success, if \p name is not \c NULL, \p *name remains valid as long
+as \p iter exists and
+bt_ctf_field_type_enumeration_mapping_iterator_next() is
+\em not called on \p iter.
+
+@param[in] iter			Enumeration field type mapping iterator
+				of which to get the range of the current
+				mapping.
+@param[out] name		Returned name of the current mapping of
+				\p iter (can be \c NULL to ignore).
 @param[out] range_begin		Returned beginning of the range
-				(included) of the mapping pointed to by
-				\p iter.
-@param[out] range_end		Returned end of the range (included) of
-				the mapping pointed to by \p iter.
+				(included) of the current mapping of
+				\p iter (can be \c NULL to ignore).
+@param[out] range_end		Returned end of the range
+				(included) of the current mapping of
+				\p iter (can be \c NULL to ignore).
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{iter}
-@prenotnull{range_begin}
-@prenotnull{range_end}
 @postrefcountsame{iter}
 
-@sa bt_ctf_field_type_enumeration_mapping_iterator_get_signed(): Returns the
-	range of the signed enumeration mapping pointed by an enumeration
-	mapping iterator.
+@sa
+	bt_ctf_field_type_enumeration_mapping_iterator_get_signed():
+	Returns the name and the signed range of the current mapping of
+	a given enumeration field type mapping iterator.
 */
 extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **mapping_name,
-		uint64_t *range_begin, uint64_t *range_end);
+		const char **name, uint64_t *range_begin, uint64_t *range_end);
 
 /**
-@brief	Advance the position of the @enumiter \p iter.
+@brief	Advances the @enumftiter \p iter to the next mapping.
 
-@param[in] iter			Enumeration mapping iterator.
-@returns			0 on success, or a negative value on error or
-				end of mappings set.
+@param[in] iter		Enumeration field type mapping iterator to
+			advance.
+@returns		0 on success, or a negative value on error or
+			when you reach the end of the set.
 
 @prenotnull{iter}
 @postrefcountsame{iter}
