@@ -1,0 +1,74 @@
+/**
+@page includesbuild Include files and how to build
+
+@section includefiles Include files
+
+You can find all the Babeltrace library include files (C headers) in the
+\c babeltrace directory under the include files directory chosen when
+installing Babeltrace. By default, this is <code>/usr/include</code>.
+If you build Babeltrace from source without specifying an installation
+prefix, this is <code>/usr/local/include</code>.
+
+The documentation modules in \ref apiref always show which header file
+to include to use the documented functions and types.
+
+You can also use the "master" include file which provides everything,
+but which necessarily makes the compilation slower:
+
+@code
+#include <babeltrace/babeltrace.h>
+@endcode
+
+@section howtobuild How to build
+
+Multiple types of applications can use the Babeltrace library:
+
+- A user plugin (shared object) to be loaded by the \c babeltrace
+  converter program or by another application.
+- A user application or library which loads plugins to manually connect
+  existing components in a specific way.
+- A user application or library which creates its own component classes
+  and manually connects them.
+
+In any way, the only library to link to is `libbabeltrace`.
+
+@subsection howtobuildplugin Build a plugin
+
+To build a user plugin:
+
+<ol>
+    <li>Compile the source files which form your plugin:
+
+@verbatim
+cc -c -fpic my-plugin.c
+@endverbatim
+    </li>
+
+    <li>Create the plugin shared object:
+
+@verbatim
+cc -shared my-plugin.o -lbabeltrace -o my-plugin.so
+@endverbatim
+    </li>
+</ol>
+
+@subsection howtobuildapp Build an application
+
+To build an application which uses the Babeltrace library:
+
+<ol>
+    <li>Compile the source files which form your application:
+
+@verbatim
+cc -c my-app.c
+@endverbatim
+    </li>
+
+    <li>Create the executable application:
+
+@verbatim
+cc my-app.o -lbabeltrace -o my-app
+@endverbatim
+    </li>
+</ol>
+*/

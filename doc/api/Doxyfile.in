@@ -147,6 +147,7 @@ INPUT                  = "@top_srcdir@/include/babeltrace/ctf-ir" \
                          "@top_srcdir@/include/babeltrace/ref.h" \
                          "@top_srcdir@/include/babeltrace/values.h" \
                          "@srcdir@/dox/main-page.dox" \
+                         "@srcdir@/dox/includes-build.dox" \
                          "@srcdir@/dox/write-plugin.dox" \
                          "@srcdir@/dox/use-ctf-writer.dox" \
                          "@srcdir@/dox/examples.dox" \
