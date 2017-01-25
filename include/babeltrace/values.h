@@ -1146,7 +1146,7 @@ extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 @brief	User function type to use with bt_value_map_foreach().
 
 \p object is a <em>weak reference</em>: you \em must pass it to bt_get()
-if you need your own reference.
+if you need to keep a reference after this function returns.
 
 This function \em must return \c true to continue the map value object
 traversal, or \c false to break it.
@@ -1169,7 +1169,8 @@ typedef bool (* bt_value_map_foreach_cb)(const char *key,
 	map value object \p map_obj.
 
 The value object passed to the user function is a <b>weak reference</b>:
-you \em must pass it to bt_get() if you need your own reference.
+you \em must pass it to bt_get() if you need to keep a persistent
+reference after the user function returns.
 
 The key passed to the user function is only valid in the scope of
 this user function call.
