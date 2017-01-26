@@ -32,6 +32,7 @@
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
+#include <plugins-common.h>
 #include "trimmer.h"
 #include "iterator.h"
 #include <assert.h>
@@ -350,11 +351,10 @@ end:
 
 enum bt_component_status trimmer_component_init(
 	struct bt_component *component, struct bt_value *params,
-	void *init_method_data)
+	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
 	struct trimmer *trimmer = create_trimmer_data();
-	(void) init_method_data;
 
 	if (!trimmer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;

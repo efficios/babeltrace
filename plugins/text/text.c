@@ -35,6 +35,7 @@
 #include <babeltrace/component/notification/event.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compiler.h>
+#include <plugins-common.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -605,11 +606,10 @@ end:
 static
 enum bt_component_status text_component_init(
 		struct bt_component *component, struct bt_value *params,
-		void *init_method_data)
+		UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
 	struct text_component *text = create_text();
-	(void) init_method_data;
 
 	if (!text) {
 		ret = BT_COMPONENT_STATUS_NOMEM;

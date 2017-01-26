@@ -1,11 +1,8 @@
+#ifndef PLUGINS_COMMON_H
+#define PLUGINS_COMMON_H
+
 /*
- * lttng-live.c
- *
- * Babeltrace CTF LTTng-live Client Component
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +23,10 @@
  * SOFTWARE.
  */
 
-#include "lttng-live-internal.h"
-#include <babeltrace/component/component-source.h>
-#include <plugins-common.h>
+/*
+ * UNUSED_VAR: tag a variable or parameter as explicitly unused so that
+ *             the compiler does not warn.
+ */
+#define UNUSED_VAR __attribute__((unused))
 
-BT_HIDDEN
-enum bt_component_status lttng_live_iterator_init(struct bt_component *source,
-		struct bt_notification_iterator *it)
-{
-    return BT_COMPONENT_STATUS_OK;
-}
-
-BT_HIDDEN
-enum bt_component_status lttng_live_init(struct bt_component *component,
-		struct bt_value *params, UNUSED_VAR void *init_method_data)
-{
-	return BT_COMPONENT_STATUS_OK;
-}
+#endif /* PLUGINS_COMMON_H */
