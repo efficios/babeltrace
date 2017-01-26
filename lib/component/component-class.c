@@ -29,6 +29,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/component/component-class-internal.h>
 #include <babeltrace/ref.h>
+#include <stdbool.h>
 #include <glib.h>
 
 static
@@ -202,7 +203,7 @@ int bt_component_class_set_init_method(
 {
 	int ret = 0;
 
-	if (!component_class || !init_method) {
+	if (!component_class || component_class->frozen || !init_method) {
 		ret = -1;
 		goto end;
 	}
@@ -219,7 +220,7 @@ int bt_component_class_set_destroy_method(
 {
 	int ret = 0;
 
-	if (!component_class || !destroy_method) {
+	if (!component_class || component_class->frozen || !destroy_method) {
 		ret = -1;
 		goto end;
 	}
@@ -236,7 +237,7 @@ extern int bt_component_class_set_description(
 {
 	int ret = 0;
 
-	if (!component_class || !description) {
+	if (!component_class || component_class->frozen || !description) {
 		ret = -1;
 		goto end;
 	}
@@ -274,7 +275,7 @@ int bt_component_class_add_destroy_listener(struct bt_component_class *class,
 	int ret = 0;
 	struct bt_component_class_destroy_listener listener;
 
-	if (!class || !func) {
+	if (!class || class->frozen || !func) {
 		ret = -1;
 		goto end;
 	}
@@ -294,7 +295,8 @@ extern int bt_component_class_sink_set_add_iterator_method(
 	struct bt_component_class_sink *sink_class;
 	int ret = 0;
 
-	if (!component_class || !add_iterator_method ||
+	if (!component_class || component_class->frozen ||
+			!add_iterator_method ||
 			component_class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = -1;
 		goto end;
@@ -315,7 +317,8 @@ extern int bt_component_class_filter_set_add_iterator_method(
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
 
-	if (!component_class || !add_iterator_method ||
+	if (!component_class || component_class->frozen ||
+			!add_iterator_method ||
 			component_class->type !=
 			BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = -1;
@@ -325,6 +328,22 @@ extern int bt_component_class_filter_set_add_iterator_method(
 	filter_class = container_of(component_class,
 		struct bt_component_class_filter, parent);
 	filter_class->methods.add_iterator = add_iterator_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_freeze(
+		struct bt_component_class *component_class)
+{
+	int ret = 0;
+
+	if (!component_class) {
+		ret = -1;
+		goto end;
+	}
+
+	component_class->frozen = true;
 
 end:
 	return ret;

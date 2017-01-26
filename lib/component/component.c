@@ -225,6 +225,8 @@ struct bt_component *bt_component_create(
 		BT_PUT(component);
 		goto end;
 	}
+
+	bt_component_class_freeze(component->class);
 end:
 	return component;
 }

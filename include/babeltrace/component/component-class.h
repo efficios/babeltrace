@@ -66,6 +66,9 @@ extern int bt_component_class_set_description(
 		struct bt_component_class *component_class,
 		const char *description);
 
+extern int bt_component_class_freeze(
+		struct bt_component_class *component_class);
+
 /**
  * Get a component class' name.
  *
