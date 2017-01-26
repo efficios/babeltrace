@@ -49,9 +49,9 @@ babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component-class-sink.h \
 	babeltrace/component/component-connection.h \
 	babeltrace/component/component-graph.h \
-	babeltrace/component/source.h \
-	babeltrace/component/sink.h \
-	babeltrace/component/filter.h \
+	babeltrace/component/component-source.h \
+	babeltrace/component/component-sink.h \
+	babeltrace/component/component-filter.h \
 	babeltrace/component/notification/eot.h \
 	babeltrace/component/notification/notification.h \
 	babeltrace/component/notification/event.h \
@@ -125,9 +125,9 @@ noinst_HEADERS = \
 	babeltrace/component/component-connection-internal.h \
 	babeltrace/component/component-internal.h \
 	babeltrace/component/component-graph-internal.h \
-	babeltrace/component/filter-internal.h \
-	babeltrace/component/sink-internal.h \
-	babeltrace/component/source-internal.h \
+	babeltrace/component/component-filter-internal.h \
+	babeltrace/component/component-sink-internal.h \
+	babeltrace/component/component-source-internal.h \
 	babeltrace/component/input.h \
 	babeltrace/component/notification/eot-internal.h \
 	babeltrace/component/notification/event-internal.h \

@@ -28,7 +28,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
-#include <babeltrace/component/sink-internal.h>
+#include <babeltrace/component/component-sink-internal.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/notification/notification.h>
 

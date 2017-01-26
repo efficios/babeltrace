@@ -27,7 +27,7 @@
  */
 
 #include "lttng-live-internal.h"
-#include <babeltrace/component/source.h>
+#include <babeltrace/component/component-source.h>
 
 BT_HIDDEN
 enum bt_component_status lttng_live_iterator_init(struct bt_component *source,

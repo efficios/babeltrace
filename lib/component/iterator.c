@@ -29,7 +29,7 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/component/component.h>
-#include <babeltrace/component/source-internal.h>
+#include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 

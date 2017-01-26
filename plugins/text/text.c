@@ -29,7 +29,7 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
-#include <babeltrace/component/sink.h>
+#include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>

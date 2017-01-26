@@ -29,9 +29,9 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/component/component.h>
-#include <babeltrace/component/source.h>
-#include <babeltrace/component/sink.h>
-#include <babeltrace/component/filter.h>
+#include <babeltrace/component/component-source.h>
+#include <babeltrace/component/component-sink.h>
+#include <babeltrace/component/component-filter.h>
 #include <babeltrace/component/component-class.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/ref.h>

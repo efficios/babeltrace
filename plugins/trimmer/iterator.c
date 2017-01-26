@@ -33,7 +33,7 @@
 #include <babeltrace/component/notification/event.h>
 #include <babeltrace/component/notification/stream.h>
 #include <babeltrace/component/notification/packet.h>
-#include <babeltrace/component/filter.h>
+#include <babeltrace/component/component-filter.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>
