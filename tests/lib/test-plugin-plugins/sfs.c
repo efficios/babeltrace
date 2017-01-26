@@ -33,6 +33,7 @@ BT_PLUGIN(test_sfs);
 BT_PLUGIN_DESCRIPTION("Babeltrace plugin with source, sink, and filter component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");
+BT_PLUGIN_VERSION(1, 2, 3, "yes");
 
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_init_iterator_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");

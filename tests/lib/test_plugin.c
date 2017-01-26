@@ -30,7 +30,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		33
+#define NR_TESTS 		40
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -74,6 +74,9 @@ static void test_invalid(const char *plugin_dir)
 		"bt_plugin_get_name() handles NULL correctly");
 	ok(!bt_plugin_get_description(NULL),
 		"bt_plugin_get_description() handles NULL correctly");
+	ok(bt_plugin_get_version(NULL, NULL, NULL, NULL, NULL) !=
+		BT_PLUGIN_STATUS_OK,
+		"bt_plugin_get_version() handles NULL correctly");
 	ok(!bt_plugin_get_author(NULL),
 		"bt_plugin_get_author() handles NULL correctly");
 	ok(!bt_plugin_get_license(NULL),
@@ -109,6 +112,9 @@ static void test_minimal(const char *plugin_dir)
 	ok(strcmp(bt_plugin_get_description(plugin),
 		"Minimal Babeltrace plugin with no component classes") == 0,
 		"bt_plugin_get_description() returns the expected description");
+	ok(bt_plugin_get_version(plugin, NULL, NULL, NULL, NULL) !=
+		BT_PLUGIN_STATUS_OK,
+		"bt_plugin_get_version() fails when there's no version");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_get_author() returns the expected author");
 	ok(strcmp(bt_plugin_get_license(plugin), "Beerware") == 0,
@@ -133,6 +139,8 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_component_class *filter_comp_class;
 	struct bt_component *sink_component;
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
+	unsigned int major, minor, patch;
+	const char *extra;
 
 	assert(sfs_path);
 	diag("sfs plugin test below");
@@ -140,6 +148,17 @@ static void test_sfs(const char *plugin_dir)
 	plugins = bt_plugin_create_all_from_file(sfs_path);
 	assert(plugins && plugins[0]);
 	plugin = plugins[0];
+	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
+		BT_PLUGIN_STATUS_OK,
+		"bt_plugin_get_version() succeeds when there's a version");
+	ok(major == 1,
+		"bt_plugin_get_version() returns the expected major version");
+	ok(minor == 2,
+		"bt_plugin_get_version() returns the expected minor version");
+	ok(patch == 3,
+		"bt_plugin_get_version() returns the expected patch version");
+	ok(strcmp(extra, "yes") == 0,
+		"bt_plugin_get_version() returns the expected extra version");
 	ok(bt_plugin_get_component_class_count(plugin) == 3,
 		"bt_plugin_get_component_class_count() returns the expected value");
 
