@@ -1029,8 +1029,8 @@ enum bt_component_status print_variant(struct text_component *text,
 		}
 
 		iter_ret =
-			bt_ctf_field_type_enumeration_mapping_iterator_get_name(
-				iter, &tag_choice);
+			bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
+				iter, &tag_choice, NULL, NULL);
 		if (iter_ret) {
 			bt_put(iter);
 			bt_put(tag_field);
