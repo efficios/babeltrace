@@ -2829,15 +2829,12 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			break;
 		}
 		case OPT_HELP:
-			BT_PUT(cfg);
 			print_usage(stdout);
 			goto end;
 		case OPT_HELP_LEGACY:
-			BT_PUT(cfg);
 			print_legacy_usage(stdout);
 			goto end;
 		case OPT_VERSION:
-			BT_PUT(cfg);
 			print_version();
 			goto end;
 		case OPT_LIST:
