@@ -98,6 +98,10 @@ extern const char *bt_plugin_get_description(struct bt_plugin *plugin);
  */
 extern const char *bt_plugin_get_path(struct bt_plugin *plugin);
 
+extern enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
+		unsigned int *major, unsigned int *minor, unsigned int *patch,
+		const char **extra);
+
 extern int bt_plugin_get_component_class_count(struct bt_plugin *plugin);
 
 extern struct bt_component_class *bt_plugin_get_component_class(

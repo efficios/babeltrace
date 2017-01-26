@@ -83,6 +83,15 @@ enum __bt_plugin_descriptor_attribute_type {
 	BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_AUTHOR		= 2,
 	BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_LICENSE		= 3,
 	BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION		= 4,
+	BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_VERSION		= 5,
+};
+
+/* Plugin (user) version */
+struct __bt_plugin_descriptor_version {
+	uint32_t major;
+	uint32_t minor;
+	uint32_t patch;
+	const char *extra;
 };
 
 /* Plugin attribute (internal use) */
@@ -112,6 +121,9 @@ struct __bt_plugin_descriptor_attribute {
 
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION */
 		const char *description;
+
+		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_VERSION */
+		struct __bt_plugin_descriptor_version version;
 	} value;
 } __attribute__((packed));
 
@@ -308,6 +320,21 @@ struct __bt_plugin_component_class_descriptor_attribute {
  */
 #define BT_PLUGIN_DESCRIPTION_WITH_ID(_id, _x) \
 	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _x)
+
+#define __BT_PLUGIN_VERSION_STRUCT_VALUE(_major, _minor, _patch, _extra) \
+	{.major = _major, .minor = _minor, .patch = _patch, .extra = _extra,}
+
+/*
+ * Defines a version attribute attached to a specific plugin descriptor.
+ *
+ * _id:    Plugin descriptor ID (C identifier).
+ * _major: Plugin's major version (uint32_t).
+ * _minor: Plugin's minor version (uint32_t).
+ * _patch: Plugin's patch version (uint32_t).
+ * _extra: Plugin's version extra information (C string).
+ */
+#define BT_PLUGIN_VERSION_WITH_ID(_id, _major, _minor, _patch, _extra) \
+	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(version, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_VERSION, _id, __BT_PLUGIN_VERSION_STRUCT_VALUE(_major, _minor, _patch, _extra))
 
 /*
  * Declaration of start and stop symbols of component class descriptors
@@ -572,6 +599,17 @@ struct __bt_plugin_component_class_descriptor_attribute {
  * _x: Description (C string).
  */
 #define BT_PLUGIN_DESCRIPTION(_x) 	BT_PLUGIN_DESCRIPTION_WITH_ID(auto, _x)
+
+/*
+ * Defines a version attribute attached to the automatic plugin
+ * descriptor.
+ *
+ * _major: Plugin's major version (uint32_t).
+ * _minor: Plugin's minor version (uint32_t).
+ * _patch: Plugin's patch version (uint32_t).
+ * _extra: Plugin's version extra information (C string).
+ */
+#define BT_PLUGIN_VERSION(_major, _minor, _patch, _extra) BT_PLUGIN_VERSION_WITH_ID(auto, _major, _minor, _patch, _extra)
 
 /*
  * Defines a source component class attached to the automatic plugin

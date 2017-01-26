@@ -335,6 +335,9 @@ enum bt_plugin_status bt_plugin_init(
 		case BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION:
 			plugin->description = cur_attr->value.description;
 			break;
+		case BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_VERSION:
+			plugin->version = &cur_attr->value.version;
+			break;
 		default:
 			printf_verbose("WARNING: Unknown attribute \"%s\" (type %d) for plugin %s\n",
 				cur_attr->type_name, cur_attr->type,
@@ -971,6 +974,37 @@ const char *bt_plugin_get_path(struct bt_plugin *plugin)
 const char *bt_plugin_get_description(struct bt_plugin *plugin)
 {
 	return plugin ? plugin->description : NULL;
+}
+
+enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
+		unsigned int *major, unsigned int *minor, unsigned int *patch,
+		const char **extra)
+{
+	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+
+	if (!plugin || !plugin->version) {
+		status = BT_PLUGIN_STATUS_ERROR;
+		goto end;
+	}
+
+	if (major) {
+		*major = (unsigned int) plugin->version->major;
+	}
+
+	if (minor) {
+		*minor = (unsigned int) plugin->version->minor;
+	}
+
+	if (patch) {
+		*patch = (unsigned int) plugin->version->patch;
+	}
+
+	if (extra) {
+		*extra = plugin->version->extra;
+	}
+
+end:
+	return status;
 }
 
 int bt_plugin_get_component_class_count(struct bt_plugin *plugin)

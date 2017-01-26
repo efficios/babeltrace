@@ -60,6 +60,7 @@ struct bt_plugin {
 	const char *license;
 	const char *description;
 	bt_plugin_init_func init;
+	const struct __bt_plugin_descriptor_version *version;
 };
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */
