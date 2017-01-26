@@ -723,10 +723,11 @@ end:
 
 BT_HIDDEN
 enum bt_component_status ctf_fs_init(struct bt_component *source,
-		struct bt_value *params)
+		struct bt_value *params, void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	(void) init_method_data;
 
 	assert(source);
 	ctf_fs_debug = g_strcmp0(getenv("CTF_FS_DEBUG"), "1") == 0;

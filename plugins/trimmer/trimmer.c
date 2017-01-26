@@ -349,10 +349,12 @@ end:
 }
 
 enum bt_component_status trimmer_component_init(
-	struct bt_component *component, struct bt_value *params)
+	struct bt_component *component, struct bt_value *params,
+	void *init_method_data)
 {
 	enum bt_component_status ret;
 	struct trimmer *trimmer = create_trimmer_data();
+	(void) init_method_data;
 
 	if (!trimmer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;

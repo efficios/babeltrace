@@ -213,13 +213,15 @@ end:
 
 static
 enum bt_component_status writer_component_init(
-	struct bt_component *component, struct bt_value *params)
+	struct bt_component *component, struct bt_value *params,
+	void *init_method_data)
 {
 	enum bt_component_status ret;
 	enum bt_value_status value_ret;
 	struct writer_component *writer_component = create_writer_component();
 	struct bt_value *value = NULL;
 	const char *path;
+	(void) init_method_data;
 
 	if (!writer_component) {
 		ret = BT_COMPONENT_STATUS_NOMEM;

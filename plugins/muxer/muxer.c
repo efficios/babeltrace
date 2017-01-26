@@ -62,10 +62,12 @@ void destroy_muxer(struct bt_component *component)
 }
 
 enum bt_component_status muxer_component_init(
-	struct bt_component *component, struct bt_value *params)
+	struct bt_component *component, struct bt_value *params,
+	void *init_method_data)
 {
 	enum bt_component_status ret;
 	struct muxer *muxer = create_muxer();
+	(void) init_method_data;
 
 	if (!muxer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;

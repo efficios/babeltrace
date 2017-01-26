@@ -74,6 +74,10 @@ extern struct bt_component *bt_component_create(
 		struct bt_component_class *component_class, const char *name,
 		struct bt_value *params);
 
+extern struct bt_component *bt_component_create_with_init_method_data(
+		struct bt_component_class *component_class, const char *name,
+		struct bt_value *params, void *init_method_data);
+
 /**
  * Get a component's private data.
  *

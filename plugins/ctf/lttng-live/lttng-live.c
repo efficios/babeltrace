@@ -37,7 +37,7 @@ enum bt_component_status lttng_live_iterator_init(struct bt_component *source,
 
 BT_HIDDEN
 enum bt_component_status lttng_live_init(struct bt_component *component,
-		struct bt_value *params)
+		struct bt_value *params, void *init_method_data)
 {
 	return BT_COMPONENT_STATUS_OK;
 }

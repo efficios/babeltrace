@@ -177,9 +177,9 @@ error:
 	return iterator;
 }
 
-struct bt_component *bt_component_create(
+struct bt_component *bt_component_create_with_init_method_data(
 		struct bt_component_class *component_class, const char *name,
-		struct bt_value *params)
+		struct bt_value *params, void *init_method_data)
 {
 	int ret;
 	struct bt_component *component = NULL;
@@ -188,7 +188,6 @@ struct bt_component *bt_component_create(
 	if (!component_class) {
 		goto end;
 	}
-
 
 	type = bt_component_class_get_type(component_class);
 	if (type <= BT_COMPONENT_CLASS_TYPE_UNKNOWN ||
@@ -211,7 +210,8 @@ struct bt_component *bt_component_create(
 	component->initializing = true;
 
 	if (component_class->methods.init) {
-		ret = component_class->methods.init(component, params);
+		ret = component_class->methods.init(component, params,
+			init_method_data);
 		component->initializing = false;
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			BT_PUT(component);
@@ -229,6 +229,14 @@ struct bt_component *bt_component_create(
 	bt_component_class_freeze(component->class);
 end:
 	return component;
+}
+
+struct bt_component *bt_component_create(
+		struct bt_component_class *component_class, const char *name,
+		struct bt_value *params)
+{
+	return bt_component_create_with_init_method_data(component_class, name,
+		params, NULL);
 }
 
 const char *bt_component_get_name(struct bt_component *component)

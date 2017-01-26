@@ -107,7 +107,7 @@ struct ctf_fs_component {
 
 BT_HIDDEN
 enum bt_component_status ctf_fs_init(struct bt_component *source,
-		struct bt_value *params);
+		struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
 void ctf_fs_destroy(struct bt_component *component);

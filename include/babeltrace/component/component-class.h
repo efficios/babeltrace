@@ -50,7 +50,8 @@ enum bt_component_class_type {
 };
 
 typedef enum bt_component_status (*bt_component_class_init_method)(
-		struct bt_component *component, struct bt_value *params);
+		struct bt_component *component, struct bt_value *params,
+		void *init_method_data);
 
 typedef void (*bt_component_class_destroy_method)(struct bt_component *component);
 
