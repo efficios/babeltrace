@@ -99,11 +99,11 @@ struct __bt_plugin_descriptor_attribute {
 	/* Plugin descriptor to which to associate this attribute */
 	const struct __bt_plugin_descriptor *plugin_descriptor;
 
-	/* Attribute's type */
-	enum __bt_plugin_descriptor_attribute_type type;
-
 	/* Name of the attribute's type for debug purposes */
 	const char *type_name;
+
+	/* Attribute's type */
+	enum __bt_plugin_descriptor_attribute_type type;
 
 	/* Attribute's value (depends on attribute's type) */
 	union {
@@ -135,11 +135,11 @@ struct __bt_plugin_component_class_descriptor {
 	 */
 	const struct __bt_plugin_descriptor *plugin_descriptor;
 
-	/* Component class type */
-	enum bt_component_class_type type;
-
 	/* Component class name */
 	const char *name;
+
+	/* Component class type */
+	enum bt_component_class_type type;
 
 	/* Mandatory methods (depends on component class type) */
 	union {
@@ -177,11 +177,11 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	 */
 	const struct __bt_plugin_component_class_descriptor *comp_class_descriptor;
 
-	/* Attribute's type */
-	enum __bt_plugin_component_class_descriptor_attribute_type type;
-
 	/* Name of the attribute's type for debug purposes */
 	const char *type_name;
+
+	/* Attribute's type */
+	enum __bt_plugin_component_class_descriptor_attribute_type type;
 
 	/* Attribute's value (depends on attribute's type) */
 	union {
@@ -265,8 +265,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(_attr_name, _attr_type, _id, _x) \
 	static struct __bt_plugin_descriptor_attribute __bt_plugin_descriptor_attribute_##_id##_##_attr_name = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.type = _attr_type,					\
 		.type_name = #_attr_name,				\
+		.type = _attr_type,					\
 		.value._attr_name = _x,					\
 	};								\
 	static struct __bt_plugin_descriptor_attribute const * const __bt_plugin_descriptor_attribute_##_id##_##_attr_name##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_descriptor_attribute_##_id##_##_attr_name; \
@@ -356,8 +356,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _init_iterator_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
 		.name = _name,						\
+		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
 		.methods.source = {					\
 			.init_iterator = _init_iterator_method,		\
 		},							\
@@ -377,8 +377,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _init_iterator_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
 		.name = _name,						\
+		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
 		.methods.filter = {					\
 			.init_iterator = _init_iterator_method,		\
 		},							\
@@ -398,8 +398,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _consume_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.type = BT_COMPONENT_CLASS_TYPE_SINK,			\
 		.name = _name,						\
+		.type = BT_COMPONENT_CLASS_TYPE_SINK,			\
 		.methods.sink = {					\
 			.consume = _consume_method,			\
 		},							\
@@ -422,8 +422,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(_attr_name, _attr_type, _id, _comp_class_id, _type, _x) \
 	static struct __bt_plugin_component_class_descriptor_attribute __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name = { \
 		.comp_class_descriptor = &__bt_plugin_##_type##_component_class_descriptor_##_id##_##_comp_class_id, \
-		.type = _attr_type,					\
 		.type_name = #_attr_name,				\
+		.type = _attr_type,					\
 		.value._attr_name = _x,					\
 	};								\
 	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name; \
