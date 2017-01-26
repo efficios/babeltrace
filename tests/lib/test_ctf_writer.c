@@ -1,9 +1,9 @@
 /*
- * test-ctf-writer.c
+ * test_ctf_writer.c
  *
  * CTF Writer test
  *
- * Copyright 2013 - 2015 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2013 - 2017 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
