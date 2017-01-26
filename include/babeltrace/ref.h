@@ -78,7 +78,7 @@ The Babeltrace C API complies with the following key principles:
 3. A Babeltrace object pointer received as a parameter in a user
    function called back from an API function is a
    <strong>borrowed</strong>, or <strong>weak reference</strong>: if you
-   need a reference which is more persistent that the duration of the
+   need a reference which is more persistent than the duration of the
    user function, call bt_get() on the pointer.
 
    @image html ref-count-callback.png
