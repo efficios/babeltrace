@@ -30,6 +30,12 @@
 #include <babeltrace/component/source.h>
 
 BT_HIDDEN
+enum bt_component_status lttng_live_iterator_init(struct bt_component *source,
+		struct bt_notification_iterator *it)
+{
+}
+
+BT_HIDDEN
 enum bt_component_status lttng_live_init(struct bt_component *component,
 		struct bt_value *params)
 {

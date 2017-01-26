@@ -58,6 +58,25 @@ extern
 enum bt_component_status bt_component_sink_consume(
 		struct bt_component *component);
 
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_sink_set_minimum_input_count(struct bt_component *sink,
+        unsigned int minimum);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_sink_set_maximum_input_count(struct bt_component *sink,
+        unsigned int maximum);
+
+extern enum bt_component_status
+bt_component_sink_get_input_count(struct bt_component *sink,
+        unsigned int *count);
+
+/* May return NULL after an interator has reached its end. */
+extern enum bt_component_status
+bt_component_sink_get_input_iterator(struct bt_component *sink,
+        unsigned int input, struct bt_notification_iterator **iterator);
+
 #ifdef __cplusplus
 }
 #endif

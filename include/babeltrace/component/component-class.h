@@ -31,12 +31,40 @@
 extern "C" {
 #endif
 
-struct bt_plugin;
 struct bt_component_class;
 
-extern struct bt_component_class *bt_component_class_create(
-		enum bt_component_type type, const char *name,
-		const char *description, bt_component_init_cb init);
+/**
+ * Component class type.
+ */
+enum bt_component_class_type {
+	BT_COMPONENT_CLASS_TYPE_UNKNOWN =	-1,
+
+	/** A source component is a notification generator. */
+	BT_COMPONENT_CLASS_TYPE_SOURCE =	0,
+
+	/** A sink component handles incoming notifications. */
+	BT_COMPONENT_CLASS_TYPE_SINK =		1,
+
+	/** A filter component implements both Source and Sink interfaces. */
+	BT_COMPONENT_CLASS_TYPE_FILTER =	2,
+};
+
+typedef enum bt_component_status (*bt_component_class_init_method)(
+		struct bt_component *component, struct bt_value *params);
+
+typedef void (*bt_component_class_destroy_method)(struct bt_component *component);
+
+extern int bt_component_class_set_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_init_method init_method);
+
+extern int bt_component_class_set_destroy_method(
+		struct bt_component_class *component_class,
+		bt_component_class_destroy_method destroy_method);
+
+extern int bt_component_class_set_description(
+		struct bt_component_class *component_class,
+		const char *description);
 
 /**
  * Get a component class' name.
@@ -65,7 +93,11 @@ extern const char *bt_component_class_get_description(
  * @param component_class	Component class of which to get the type
  * @returns			One of #bt_component_type
  */
-extern enum bt_component_type bt_component_class_get_type(
+extern enum bt_component_class_type bt_component_class_get_type(
 		struct bt_component_class *component_class);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_H */

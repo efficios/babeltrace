@@ -144,22 +144,22 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_get_component_class_count() returns the expected value");
 
 	source_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "source", BT_COMPONENT_TYPE_SOURCE);
+		plugin, "source", BT_COMPONENT_CLASS_TYPE_SOURCE);
 	ok(source_comp_class,
 		"bt_plugin_get_component_class_by_name_and_type() finds a source component class");
 
 	sink_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "sink", BT_COMPONENT_TYPE_SINK);
+		plugin, "sink", BT_COMPONENT_CLASS_TYPE_SINK);
 
 	ok(sink_comp_class,
 		"bt_plugin_get_component_class_by_name_and_type() finds a sink component class");
 	filter_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "filter", BT_COMPONENT_TYPE_FILTER);
+		plugin, "filter", BT_COMPONENT_CLASS_TYPE_FILTER);
 
 	ok(filter_comp_class,
 		"bt_plugin_get_component_class_by_name_and_type() finds a filter component class");
 	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
-		BT_COMPONENT_TYPE_SOURCE),
+		BT_COMPONENT_CLASS_TYPE_SOURCE),
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
 
 	diag("> putting the plugin object here");

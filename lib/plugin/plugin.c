@@ -237,6 +237,33 @@ end:
 	return plugin;
 }
 
+/*
+ * This function does the following:
+ *
+ * 1. Iterate on the plugin descriptor attributes section and set the
+ *    plugin's attributes depending on the attribute types. This
+ *    includes the name of the plugin, its description, and its
+ *    initialization function, for example.
+ *
+ * 2. Iterate on the component class descriptors section and create one
+ *    "full descriptor" (temporary structure) for each one that is found
+ *    and attached to our plugin descriptor.
+ *
+ * 3. Iterate on the component class descriptor attributes section and
+ *    set the corresponding full descriptor's attributes depending on
+ *    the attribute types. This includes the description of the
+ *    component class, as well as its initialization and destroy
+ *    methods.
+ *
+ * 4. Call the user's plugin initialization function, if any is
+ *    defined.
+ *
+ * 5. For each full component class descriptor, create a component class
+ *    object, set its optional attributes, and add it to the plugin
+ *    object.
+ *
+ * 6. Freeze the plugin object.
+ */
 static
 enum bt_plugin_status bt_plugin_init(
 		struct bt_plugin *plugin,
@@ -255,6 +282,10 @@ enum bt_plugin_status bt_plugin_init(
 	struct comp_class_full_descriptor {
 		const struct __bt_plugin_component_class_descriptor *descriptor;
 		const char *description;
+		bt_component_class_init_method init_method;
+		bt_component_class_destroy_method destroy_method;
+		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
+		bt_component_class_sink_add_iterator_method sink_add_iterator_method;
 	};
 
 	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
@@ -263,6 +294,7 @@ enum bt_plugin_status bt_plugin_init(
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cur_cc_descr_attr_ptr;
 	GArray *comp_class_full_descriptors;
 	size_t i;
+	int ret;
 
 	comp_class_full_descriptors = g_array_new(FALSE, TRUE,
 		sizeof(struct comp_class_full_descriptor));
@@ -319,14 +351,13 @@ enum bt_plugin_status bt_plugin_init(
 	for (cur_cc_descr_ptr = cc_descriptors_begin; cur_cc_descr_ptr != cc_descriptors_end; cur_cc_descr_ptr++) {
 		const struct __bt_plugin_component_class_descriptor *cur_cc_descr =
 			*cur_cc_descr_ptr;
-		struct comp_class_full_descriptor full_descriptor;
+		struct comp_class_full_descriptor full_descriptor = {0};
 
 		if (cur_cc_descr->plugin_descriptor != descriptor) {
 			continue;
 		}
 
 		full_descriptor.descriptor = cur_cc_descr;
-		full_descriptor.description = NULL;
 		g_array_append_val(comp_class_full_descriptors,
 			full_descriptor);
 	}
@@ -358,6 +389,22 @@ enum bt_plugin_status bt_plugin_init(
 					cc_full_descr->description =
 						cur_cc_descr_attr->value.description;
 					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD:
+					cc_full_descr->init_method =
+						cur_cc_descr_attr->value.init_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD:
+					cc_full_descr->destroy_method =
+						cur_cc_descr_attr->value.destroy_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD:
+					cc_full_descr->filter_add_iterator_method =
+						cur_cc_descr_attr->value.filter_add_iterator_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD:
+					cc_full_descr->sink_add_iterator_method =
+						cur_cc_descr_attr->value.sink_add_iterator_method;
+					break;
 				default:
 					printf_verbose("WARNING: Unknown attribute \"%s\" (type %d) for component class %s (type %d) in plugin %s\n",
 						cur_cc_descr_attr->type_name,
@@ -383,22 +430,97 @@ enum bt_plugin_status bt_plugin_init(
 
 	plugin->shared_lib_handle->init_called = true;
 
+	/* Add described component classes to plugin */
 	for (i = 0; i < comp_class_full_descriptors->len; i++) {
 		struct comp_class_full_descriptor *cc_full_descr =
 			&g_array_index(comp_class_full_descriptors,
 				struct comp_class_full_descriptor, i);
 		struct bt_component_class *comp_class;
 
-		comp_class = bt_component_class_create(
-			cc_full_descr->descriptor->type,
-			cc_full_descr->descriptor->name,
-			cc_full_descr->description,
-			cc_full_descr->descriptor->init_cb);
+		switch (cc_full_descr->descriptor->type) {
+		case BT_COMPONENT_CLASS_TYPE_SOURCE:
+			comp_class = bt_component_class_source_create(
+				cc_full_descr->descriptor->name,
+				cc_full_descr->descriptor->methods.source.init_iterator);
+			break;
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			comp_class = bt_component_class_filter_create(
+				cc_full_descr->descriptor->name,
+				cc_full_descr->descriptor->methods.filter.init_iterator);
+			break;
+		case BT_COMPONENT_CLASS_TYPE_SINK:
+			comp_class = bt_component_class_sink_create(
+				cc_full_descr->descriptor->name,
+				cc_full_descr->descriptor->methods.sink.consume);
+			break;
+		default:
+			printf_verbose("WARNING: Unknown component class type %d for component class %s in plugin %s\n",
+				cc_full_descr->descriptor->type,
+				cc_full_descr->descriptor->name,
+				descriptor->name);
+			continue;
+		}
+
 		if (!comp_class) {
 			status = BT_PLUGIN_STATUS_ERROR;
 			goto end;
 		}
 
+		if (cc_full_descr->description) {
+			ret = bt_component_class_set_description(comp_class,
+				cc_full_descr->description);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->init_method) {
+			ret = bt_component_class_set_init_method(comp_class,
+				cc_full_descr->init_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->destroy_method) {
+			ret = bt_component_class_set_destroy_method(comp_class,
+				cc_full_descr->destroy_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->descriptor->type ==
+				BT_COMPONENT_CLASS_TYPE_FILTER &&
+				cc_full_descr->filter_add_iterator_method) {
+			ret = bt_component_class_filter_set_add_iterator_method(comp_class,
+				cc_full_descr->filter_add_iterator_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->descriptor->type ==
+				BT_COMPONENT_CLASS_TYPE_SINK &&
+				cc_full_descr->sink_add_iterator_method) {
+			ret = bt_component_class_sink_set_add_iterator_method(comp_class,
+				cc_full_descr->sink_add_iterator_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		/* Add component class to the plugin object */
 		status = bt_plugin_add_component_class(plugin,
 			comp_class);
 		BT_PUT(comp_class);
@@ -454,7 +576,7 @@ struct bt_plugin **bt_plugin_create_all_from_sections(
 	printf_verbose("Section: Plugin component class descriptors: [%p - %p], (%zu elements)\n",
 		cc_descriptors_begin, cc_descriptors_end, cc_descriptors_count);
 	printf_verbose("Section: Plugin component class descriptor attributes: [%p - %p], (%zu elements)\n",
-		cc_descr_attrs_begin, cc_descr_attrs_end, attrs_count);
+		cc_descr_attrs_begin, cc_descr_attrs_end, cc_descr_attrs_count);
 	plugins = calloc(descriptor_count + 1, sizeof(*plugins));
 	if (!plugins) {
 		goto error;
@@ -878,7 +1000,7 @@ end:
 
 struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		struct bt_plugin *plugin, const char *name,
-		enum bt_component_type type)
+		enum bt_component_class_type type)
 {
 	struct bt_component_class *comp_class = NULL;
 	size_t i;
@@ -892,7 +1014,7 @@ struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 			g_ptr_array_index(plugin->comp_classes, i);
 		const char *comp_class_cand_name =
 			bt_component_class_get_name(comp_class_candidate);
-		enum bt_component_type comp_class_cand_type =
+		enum bt_component_class_type comp_class_cand_type =
 			bt_component_class_get_type(comp_class_candidate);
 
 		assert(comp_class_cand_name);

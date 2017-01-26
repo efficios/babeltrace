@@ -81,7 +81,7 @@ struct bt_plugin *find_plugin(const char *name)
 static
 struct bt_component_class *find_component_class(const char *plugin_name,
 		const char *comp_class_name,
-		enum bt_component_type comp_class_type)
+		enum bt_component_class_type comp_class_type)
 {
 	struct bt_component_class *comp_class = NULL;
 	struct bt_plugin *plugin = find_plugin(plugin_name);
@@ -98,16 +98,16 @@ end:
 }
 
 static
-const char *component_type_str(enum bt_component_type type)
+const char *component_type_str(enum bt_component_class_type type)
 {
 	switch (type) {
-	case BT_COMPONENT_TYPE_SOURCE:
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
 		return "source";
-	case BT_COMPONENT_TYPE_SINK:
+	case BT_COMPONENT_CLASS_TYPE_SINK:
 		return "sink";
-	case BT_COMPONENT_TYPE_FILTER:
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
 		return "filter";
-	case BT_COMPONENT_TYPE_UNKNOWN:
+	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
 	default:
 		return "unknown";
 	}
@@ -157,7 +157,7 @@ void print_component_classes_found(void)
 				bt_plugin_get_description(plugin);
 			const char *comp_class_description =
 				bt_component_class_get_description(comp_class);
-			enum bt_component_type type =
+			enum bt_component_class_type type =
 				bt_component_class_get_type(comp_class);
 
 			printf_verbose("[%s - %s (%s)]\n", plugin_name,
@@ -356,7 +356,7 @@ struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
 	}
 
 	trimmer_class = find_component_class("utils", "trimmer",
-		BT_COMPONENT_TYPE_FILTER);
+		BT_COMPONENT_CLASS_TYPE_FILTER);
 	if (!trimmer_class) {
 		fprintf(stderr, "Could not find trimmer component class. Aborting...\n");
 		goto end;
@@ -575,7 +575,7 @@ int main(int argc, const char **argv)
 	source_params = bt_get(source_cfg->params);
 	source_class = find_component_class(source_cfg->plugin_name->str,
 			source_cfg->component_name->str,
-			BT_COMPONENT_TYPE_SOURCE);
+			BT_COMPONENT_CLASS_TYPE_SOURCE);
 	if (!source_class) {
 		fprintf(stderr, "Could not find %s.%s source component class. Aborting...\n",
 				source_cfg->plugin_name->str,
@@ -588,7 +588,7 @@ int main(int argc, const char **argv)
 	sink_params = bt_get(sink_cfg->params);
 	sink_class = find_component_class(sink_cfg->plugin_name->str,
 			sink_cfg->component_name->str,
-			BT_COMPONENT_TYPE_SINK);
+			BT_COMPONENT_CLASS_TYPE_SINK);
 	if (!sink_class) {
 		fprintf(stderr, "Could not find %s.%s output component class. Aborting...\n",
 				sink_cfg->plugin_name->str,

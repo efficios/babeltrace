@@ -44,6 +44,9 @@ babeltraceplugininclude_HEADERS = \
 babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component.h \
 	babeltrace/component/component-class.h \
+	babeltrace/component/component-class-source.h \
+	babeltrace/component/component-class-filter.h \
+	babeltrace/component/component-class-sink.h \
 	babeltrace/component/component-connection.h \
 	babeltrace/component/component-graph.h \
 	babeltrace/component/source.h \

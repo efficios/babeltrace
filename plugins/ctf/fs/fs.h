@@ -109,4 +109,11 @@ BT_HIDDEN
 enum bt_component_status ctf_fs_init(struct bt_component *source,
 		struct bt_value *params);
 
+BT_HIDDEN
+void ctf_fs_destroy(struct bt_component *component);
+
+BT_HIDDEN
+enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
+		struct bt_notification_iterator *it);
+
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

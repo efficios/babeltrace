@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_INTERNAL_H
-#define BABELTRACE_COMPONENT_FILTER_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
+#define BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
 
 /*
- * BabelTrace - Filter Component Internal
+ * Babeltrace - Component Class Interface.
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,37 +25,30 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/input.h>
+#include <babeltrace/component/component.h>
 
-struct bt_value;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct bt_component_filter {
-	struct bt_component parent;
-	struct component_input input;
-};
+struct bt_component_class;
 
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
-BT_HIDDEN
-struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params);
+typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
+        struct bt_component *);
 
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
-BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
+typedef enum bt_component_status (*bt_component_class_sink_add_iterator_method)(
+        struct bt_component *, struct bt_notification_iterator *);
 
-#endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */
+extern
+struct bt_component_class *bt_component_class_sink_create(const char *name,
+		bt_component_class_sink_consume_method consume_method);
+
+extern int bt_component_class_sink_set_add_iterator_method(
+		struct bt_component_class *component_class,
+		bt_component_class_sink_add_iterator_method add_iterator_method);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H */

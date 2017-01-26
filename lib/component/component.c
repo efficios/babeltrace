@@ -28,6 +28,7 @@
 
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-internal.h>
+#include <babeltrace/component/component-class-internal.h>
 #include <babeltrace/component/source-internal.h>
 #include <babeltrace/component/filter-internal.h>
 #include <babeltrace/component/notification/iterator-internal.h>
@@ -39,17 +40,17 @@
 static
 struct bt_component * (* const component_create_funcs[])(
 		struct bt_component_class *, struct bt_value *) = {
-	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_create,
-	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_create,
-	[BT_COMPONENT_TYPE_FILTER] = bt_component_filter_create,
+	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_create,
+	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_create,
+	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_create,
 };
 
 static
 enum bt_component_status (* const component_validation_funcs[])(
 		struct bt_component *) = {
-	[BT_COMPONENT_TYPE_SOURCE] = bt_component_source_validate,
-	[BT_COMPONENT_TYPE_SINK] = bt_component_sink_validate,
-	[BT_COMPONENT_TYPE_FILTER] = bt_component_filter_validate,
+	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_validate,
+	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_validate,
+	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_validate,
 };
 
 static
@@ -69,8 +70,8 @@ void bt_component_destroy(struct bt_object *obj)
 	 * User data is destroyed first, followed by the concrete component
 	 * instance.
 	 */
-	if (component->user_destroy) {
-		component->user_destroy(component);
+	if (component->class->methods.destroy) {
+		component->class->methods.destroy(component);
 	}
 
 	if (component->destroy) {
@@ -84,7 +85,7 @@ void bt_component_destroy(struct bt_object *obj)
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		bt_component_destroy_cb destroy)
+		bt_component_class_destroy_method destroy)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
@@ -98,10 +99,10 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
-enum bt_component_type bt_component_get_type(struct bt_component *component)
+enum bt_component_class_type bt_component_get_class_type(
+		struct bt_component *component)
 {
-	return component ? component->class->type : BT_COMPONENT_TYPE_UNKNOWN;
+	return component ? component->class->type : BT_COMPONENT_CLASS_TYPE_UNKNOWN;
 }
 
 BT_HIDDEN
@@ -109,16 +110,17 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		struct bt_component *component)
 {
 	enum bt_notification_iterator_status ret_iterator;
-	enum bt_component_type component_type;
+	enum bt_component_class_type type;
 	struct bt_notification_iterator *iterator = NULL;
+	struct bt_component_class *class = component->class;
 
 	if (!component) {
 		goto error;
 	}
 
-	component_type = bt_component_get_type(component);
-	if (component_type != BT_COMPONENT_TYPE_SOURCE &&
-			component_type != BT_COMPONENT_TYPE_FILTER) {
+	type = bt_component_get_class_type(component);
+	if (type != BT_COMPONENT_CLASS_TYPE_SOURCE &&
+			type != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		/* Unsupported operation. */
 		goto error;
 	}
@@ -128,15 +130,16 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		goto error;
 	}
 
-	switch (component_type) {
-	case BT_COMPONENT_TYPE_SOURCE:
+	switch (type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
 	{
-		struct bt_component_source *source;
+		struct bt_component_class_source *source_class;
 		enum bt_component_status ret_component;
 
-		source = container_of(component, struct bt_component_source, parent);
-		assert(source->init_iterator);
-		ret_component = source->init_iterator(component, iterator);
+		source_class = container_of(class, struct bt_component_class_source, parent);
+		assert(source_class->methods.init_iterator);
+		ret_component =
+			source_class->methods.init_iterator(component, iterator);
 		if (ret_component != BT_COMPONENT_STATUS_OK) {
 			goto error;
 		}
@@ -144,14 +147,15 @@ struct bt_notification_iterator *bt_component_create_iterator(
 
 		break;
 	}
-	case BT_COMPONENT_TYPE_FILTER:
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
 	{
-		struct bt_component_filter *filter;
+		struct bt_component_class_filter *filter_class;
 		enum bt_component_status ret_component;
 
-		filter = container_of(component, struct bt_component_filter, parent);
-		assert(filter->init_iterator);
-		ret_component = filter->init_iterator(component, iterator);
+		filter_class = container_of(class, struct bt_component_class_filter, parent);
+		assert(filter_class->methods.init_iterator);
+		ret_component =
+			filter_class->methods.init_iterator(component, iterator);
 		if (ret_component != BT_COMPONENT_STATUS_OK) {
 			goto error;
 		}
@@ -179,15 +183,16 @@ struct bt_component *bt_component_create(
 {
 	int ret;
 	struct bt_component *component = NULL;
-	enum bt_component_type type;
+	enum bt_component_class_type type;
 
 	if (!component_class) {
 		goto end;
 	}
 
+
 	type = bt_component_class_get_type(component_class);
-	if (type <= BT_COMPONENT_TYPE_UNKNOWN ||
-			type > BT_COMPONENT_TYPE_FILTER) {
+	if (type <= BT_COMPONENT_CLASS_TYPE_UNKNOWN ||
+			type > BT_COMPONENT_CLASS_TYPE_FILTER) {
 		goto end;
 	}
 
@@ -204,12 +209,17 @@ struct bt_component *bt_component_create(
 	}
 
 	component->initializing = true;
-	ret = component_class->init(component, params);
-	component->initializing = false;
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		BT_PUT(component);
-		goto end;
+
+	if (component_class->methods.init) {
+		ret = component_class->methods.init(component, params);
+		component->initializing = false;
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			BT_PUT(component);
+			goto end;
+		}
 	}
+
+	component->initializing = false;
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(component);
@@ -270,21 +280,6 @@ bt_component_set_private_data(struct bt_component *component,
 	}
 
 	component->user_data = data;
-end:
-	return ret;
-}
-
-enum bt_component_status bt_component_set_destroy_cb(
-		struct bt_component *component, bt_component_destroy_cb destroy)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component || !component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	component->user_destroy = destroy;
 end:
 	return ret;
 }

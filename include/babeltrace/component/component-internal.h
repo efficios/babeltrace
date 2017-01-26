@@ -38,12 +38,15 @@ struct bt_component {
 	struct bt_object base;
 	struct bt_component_class *class;
 	GString *name;
-	/** Source, Sink or Filter destroy */
-	bt_component_destroy_cb destroy;
 
-	/** User-defined data and its destruction callback */
+	/**
+	 * Internal destroy function specific to a source, filter, or
+	 * sink component object.
+	 */
+	bt_component_class_destroy_method destroy;
+
+	/** User-defined data */
 	void *user_data;
-	bt_component_destroy_cb user_destroy;
 
 	/**
 	 * Used to protect operations which may only be used during
@@ -54,10 +57,7 @@ struct bt_component {
 
 BT_HIDDEN
 enum bt_component_status bt_component_init(struct bt_component *component,
-		bt_component_destroy_cb destroy);
-
-BT_HIDDEN
-enum bt_component_type bt_component_get_type(struct bt_component *component);
+		bt_component_class_destroy_method destroy);
 
 BT_HIDDEN
 struct bt_notification_iterator *bt_component_create_iterator(

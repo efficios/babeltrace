@@ -359,19 +359,7 @@ enum bt_component_status trimmer_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_destroy_cb(component,
-			destroy_trimmer);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
 	ret = bt_component_set_private_data(component, trimmer);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
-	ret = bt_component_filter_set_iterator_init_cb(component,
-			trimmer_iterator_init);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -389,7 +377,8 @@ BT_PLUGIN(utils);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Trimmer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, trimmer,
-		trimmer_component_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, trimmer,
+BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
 	"Ensure that trace notifications outside of a given range are filtered-out.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(trimmer, destroy_trimmer);

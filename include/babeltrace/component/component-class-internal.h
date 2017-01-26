@@ -30,6 +30,9 @@
 
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-class.h>
+#include <babeltrace/component/component-class-source.h>
+#include <babeltrace/component/component-class-filter.h>
+#include <babeltrace/component/component-class-sink.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
@@ -39,20 +42,45 @@ struct bt_component_class;
 typedef void (*bt_component_class_destroy_listener_func)(
 		struct bt_component_class *class, void *data);
 
-struct bt_component_class_destroyer_listener {
+struct bt_component_class_destroy_listener {
 	bt_component_class_destroy_listener_func func;
 	void *data;
 };
 
 struct bt_component_class {
 	struct bt_object base;
-	enum bt_component_type type;
+	enum bt_component_class_type type;
 	GString *name;
 	GString *description;
-	bt_component_init_cb init;
-
-	/* Array of struct bt_component_class_destroyer_listener */
+	struct {
+		bt_component_class_init_method init;
+		bt_component_class_destroy_method destroy;
+	} methods;
+	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
+};
+
+struct bt_component_class_source {
+	struct bt_component_class parent;
+	struct {
+		bt_component_class_source_init_iterator_method init_iterator;
+	} methods;
+};
+
+struct bt_component_class_sink {
+	struct bt_component_class parent;
+	struct {
+		bt_component_class_sink_consume_method consume;
+		bt_component_class_sink_add_iterator_method add_iterator;
+	} methods;
+};
+
+struct bt_component_class_filter {
+	struct bt_component_class parent;
+	struct {
+		bt_component_class_filter_init_iterator_method init_iterator;
+		bt_component_class_filter_add_iterator_method add_iterator;
+	} methods;
 };
 
 BT_HIDDEN

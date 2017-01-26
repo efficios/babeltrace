@@ -31,55 +31,9 @@
 #include <babeltrace/component/input.h>
 #include <babeltrace/component/filter-internal.h>
 #include <babeltrace/component/component-internal.h>
+#include <babeltrace/component/component-class-internal.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator-internal.h>
-
-enum bt_component_status bt_component_filter_set_iterator_init_cb(
-		struct bt_component *component,
-		bt_component_filter_init_iterator_cb init_iterator)
-{
-	struct bt_component_filter *filter;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (component->class->type != BT_COMPONENT_TYPE_FILTER ||
-			!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	filter = container_of(component, struct bt_component_filter, parent);
-	filter->init_iterator = init_iterator;
-end:
-	return ret;
-}
-
-enum bt_component_status bt_component_filter_set_add_iterator_cb(
-		struct bt_component *component,
-		bt_component_filter_add_iterator_cb add_iterator)
-{
-	struct bt_component_filter *filter;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	filter = container_of(component, struct bt_component_filter, parent);
-	filter->add_iterator = add_iterator;
-end:
-	return ret;
-}
 
 enum bt_component_status bt_component_filter_set_minimum_input_count(
 		struct bt_component *component,
@@ -93,7 +47,7 @@ enum bt_component_status bt_component_filter_set_minimum_input_count(
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -121,7 +75,7 @@ enum bt_component_status bt_component_filter_set_maximum_input_count(
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -149,7 +103,7 @@ bt_component_filter_get_input_count(struct bt_component *component,
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -172,7 +126,7 @@ bt_component_filter_get_input_iterator(struct bt_component *component,
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -194,13 +148,14 @@ enum bt_component_status bt_component_filter_add_iterator(
 {
 	struct bt_component_filter *filter;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_class_filter *filter_class;
 
 	if (!component || !iterator) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_FILTER) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -211,8 +166,10 @@ enum bt_component_status bt_component_filter_add_iterator(
 		goto end;
 	}
 
-	if (filter->add_iterator) {
-		ret = filter->add_iterator(component, iterator);
+	filter_class = container_of(component->class, struct bt_component_class_filter, parent);
+
+	if (filter_class->methods.add_iterator) {
+		ret = filter_class->methods.add_iterator(component, iterator);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
@@ -283,18 +240,12 @@ enum bt_component_status bt_component_filter_validate(
 		goto end;
 	}
 
-	if (component->class->type != BT_COMPONENT_TYPE_FILTER) {
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	filter = container_of(component, struct bt_component_filter, parent);
-	if (!filter->init_iterator) {
-		printf_error("Invalid filter component; no iterator initialization callback defined.");
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
 	ret = component_input_validate(&filter->input);
 	if (ret) {
 		goto end;

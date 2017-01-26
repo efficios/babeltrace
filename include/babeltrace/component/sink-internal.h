@@ -34,16 +34,10 @@
 
 struct bt_value;
 
-struct bt_component_sink_class {
-	struct bt_component_class parent;
-};
-
 //typedef uint32_t notification_mask_t;
 
 struct bt_component_sink {
 	struct bt_component parent;
-	bt_component_sink_consume_cb consume;
-	bt_component_sink_add_iterator_cb add_iterator;
 	struct component_input input;
 /*	notification_mask_t registered_notifications_mask;*/
 };

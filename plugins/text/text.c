@@ -628,19 +628,7 @@ enum bt_component_status text_component_init(
 		goto error;
 	}
 
-	ret = bt_component_set_destroy_cb(component,
-			destroy_text);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
 	ret = bt_component_set_private_data(component, text);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
-	ret = bt_component_sink_set_consume_cb(component,
-			run);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -656,7 +644,9 @@ BT_PLUGIN(text);
 BT_PLUGIN_DESCRIPTION("Babeltrace text output plug-in.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SINK, text,
-		text_component_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SINK, text,
+BT_PLUGIN_SINK_COMPONENT_CLASS(text, run);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(text, text_component_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(text, destroy_text);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(text,
 	"Formats CTF-IR to text. Formerly known as ctf-text.");
+

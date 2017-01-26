@@ -34,6 +34,9 @@
 #include <stdint.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/component/component-class.h>
+#include <babeltrace/component/component-class-source.h>
+#include <babeltrace/component/component-class-filter.h>
+#include <babeltrace/component/component-class-sink.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,7 +96,7 @@ struct __bt_plugin_descriptor_attribute {
 	/* Name of the attribute's type for debug purposes */
 	const char *type_name;
 
-	/* Attribute's value */
+	/* Attribute's value (depends on attribute's type) */
 	union {
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_INIT */
 		bt_plugin_init_func init;
@@ -120,19 +123,38 @@ struct __bt_plugin_component_class_descriptor {
 	 */
 	const struct __bt_plugin_descriptor *plugin_descriptor;
 
-	/* Component type */
-	enum bt_component_type type;
+	/* Component class type */
+	enum bt_component_class_type type;
 
 	/* Component class name */
 	const char *name;
 
-	/* Component initialization function */
-	bt_component_init_cb init_cb;
+	/* Mandatory methods (depends on component class type) */
+	union {
+		/* BT_COMPONENT_CLASS_TYPE_SOURCE */
+		struct {
+			bt_component_class_source_init_iterator_method init_iterator;
+		} source;
+
+		/* BT_COMPONENT_CLASS_TYPE_FILTER */
+		struct {
+			bt_component_class_filter_init_iterator_method init_iterator;
+		} filter;
+
+		/* BT_COMPONENT_CLASS_TYPE_SINK */
+		struct {
+			bt_component_class_sink_consume_method consume;
+		} sink;
+	} methods;
 } __attribute__((packed));
 
 /* Type of a component class attribute (internal use) */
 enum __bt_plugin_component_class_descriptor_attribute_type {
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION	= 0,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION			= 0,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD			= 1,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD		= 2,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD	= 3,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD	= 4,
 };
 
 /* Component class attribute (internal use) */
@@ -149,10 +171,22 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	/* Name of the attribute's type for debug purposes */
 	const char *type_name;
 
-	/* Attribute's value */
+	/* Attribute's value (depends on attribute's type) */
 	union {
-		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION */
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION */
 		const char *description;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD */
+		bt_component_class_init_method init_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD */
+		bt_component_class_destroy_method destroy_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD */
+		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD */
+		bt_component_class_sink_add_iterator_method sink_add_iterator_method;
 	} value;
 } __attribute__((packed));
 
@@ -276,25 +310,75 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _x)
 
 /*
- * Defines a component class descriptor with a custom ID.
- *
- * _id:            ID (any valid C identifier except `auto`).
- * _comp_class_id: Component class ID (C identifier).
- * _type:          Component class type (enum bt_component_type).
- * _name:          Component class name (C string).
- * _init_func:     Component class's initialization function
- *                 (bt_component_init_cb).
+ * Declaration of start and stop symbols of component class descriptors
+ * section.
  */
-#define BT_PLUGIN_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _type, _name, _init_cb) \
-	static struct __bt_plugin_component_class_descriptor __bt_plugin_component_class_descriptor_##_id##_##_comp_class_id##_##_type = { \
-		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.type = _type,						\
-		.name = _name,						\
-		.init_cb = _init_cb,					\
-	};								\
-	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_component_class_descriptor_##_id##_##_comp_class_id##_##_type##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_component_class_descriptor_##_id##_##_comp_class_id##_##_type; \
+#define __BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP \
 	extern struct __bt_plugin_component_class_descriptor const *__start___bt_plugin_component_class_descriptors; \
 	extern struct __bt_plugin_component_class_descriptor const *__stop___bt_plugin_component_class_descriptors
+
+/*
+ * Defines a source component class descriptor with a custom ID.
+ *
+ * _id:                   ID (any valid C identifier except `auto`).
+ * _comp_class_id:        Component class ID (C identifier).
+ * _name:                 Component class name (C string).
+ * _init_iterator_method: Component class's iterator initialization method
+ *                        (bt_component_class_source_init_iterator_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _init_iterator_method) \
+	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
+		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
+		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
+		.name = _name,						\
+		.methods.source = {					\
+			.init_iterator = _init_iterator_method,		\
+		},							\
+	};								\
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id; \
+	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
+
+/*
+ * Defines a filter component class descriptor with a custom ID.
+ *
+ * _id:                   ID (any valid C identifier except `auto`).
+ * _comp_class_id:        Component class ID (C identifier).
+ * _name:                 Component class name (C string).
+ * _init_iterator_method: Component class's iterator initialization method
+ *                        (bt_component_class_filter_init_iterator_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _init_iterator_method) \
+	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
+		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
+		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
+		.name = _name,						\
+		.methods.filter = {					\
+			.init_iterator = _init_iterator_method,		\
+		},							\
+	};								\
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id; \
+	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
+
+/*
+ * Defines a sink component class descriptor with a custom ID.
+ *
+ * _id:                 ID (any valid C identifier except `auto`).
+ * _comp_class_id:      Component class ID (C identifier).
+ * _name:               Component class name (C string).
+ * _consume_method:     Component class's iterator consume method
+ *                      (bt_component_class_sink_consume_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _consume_method) \
+	static struct __bt_plugin_component_class_descriptor __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id = { \
+		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
+		.type = BT_COMPONENT_CLASS_TYPE_SINK,			\
+		.name = _name,						\
+		.methods.sink = {					\
+			.consume = _consume_method,			\
+		},							\
+	};								\
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id; \
+	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
 
 /*
  * Defines a component class descriptor attribute (generic, internal
@@ -302,34 +386,145 @@ struct __bt_plugin_component_class_descriptor_attribute {
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class ID (C identifier).
- * _type:          Component class type (enum bt_component_type).
+ * _type:          Component class type (`source`, `filter`, or `sink`).
  * _attr_name:     Name of the attribute (C identifier).
  * _attr_type:     Type of the attribute
  *                 (enum __bt_plugin_descriptor_attribute_type).
  * _x:             Value.
  */
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(_attr_name, _attr_type, _id, _comp_class_id, _type, _x) \
-	static struct __bt_plugin_component_class_descriptor_attribute __bt_plugin_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_type##_##_attr_name = { \
-		.comp_class_descriptor = &__bt_plugin_component_class_descriptor_##_id##_##_comp_class_id##_##_type, \
+	static struct __bt_plugin_component_class_descriptor_attribute __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name = { \
+		.comp_class_descriptor = &__bt_plugin_##_type##_component_class_descriptor_##_id##_##_comp_class_id, \
 		.type = _attr_type,					\
 		.type_name = #_attr_name,				\
-		.value.description = _x,				\
+		.value._attr_name = _x,					\
 	};								\
-	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_type##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_type##_##_attr_name; \
+	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name; \
 	extern struct __bt_plugin_component_class_descriptor_attribute const *__start___bt_plugin_component_class_descriptor_attributes; \
 	extern struct __bt_plugin_component_class_descriptor_attribute const *__stop___bt_plugin_component_class_descriptor_attributes
 
 /*
- * Defines a description attribute attached to a specific component
- * class descriptor.
+ * Defines a description attribute attached to a specific source
+ * component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _type:          Component class type (enum bt_component_type).
  * _x:             Description (C string).
  */
-#define BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION_WITH_ID(_id, _comp_class_id, _type, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _comp_class_id, _type, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a description attribute attached to a specific filter
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Description (C string).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines a description attribute attached to a specific sink
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Description (C string).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(description, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION, _id, _comp_class_id, sink, _x)
+
+/*
+ * Defines an initialization method attribute attached to a specific
+ * source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines an initialization method attribute attached to a specific
+ * filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an initialization method attribute attached to a specific
+ * sink component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, sink, _x)
+
+/*
+ * Defines a destroy method attribute attached to a specific source
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a destroy method attribute attached to a specific filter
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines a destroy method attribute attached to a specific sink
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, sink, _x)
+
+/*
+ * Defines an add iterator method attribute attached to a specific
+ * filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Add iterator method
+ *                 (bt_component_class_filter_add_iterator_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_add_iterator_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an add iterator method attribute attached to a specific
+ * sink component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Add iterator method
+ *                 (bt_component_class_sink_add_iterator_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_add_iterator_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
  * Defines a plugin descriptor with an automatic ID.
@@ -379,28 +574,157 @@ struct __bt_plugin_component_class_descriptor_attribute {
 #define BT_PLUGIN_DESCRIPTION(_x) 	BT_PLUGIN_DESCRIPTION_WITH_ID(auto, _x)
 
 /*
- * Defines a component class attached to the automatic plugin
+ * Defines a source component class attached to the automatic plugin
  * descriptor. Its ID is the same as its name, hence its name must be a
  * C identifier in this version.
  *
- * _type:          Component class type (enum bt_component_type).
- * _name:          Component class name (C identifier).
- * _init_cb:       Component class's initialization function
- *                 (bt_component_init_cb).
+ * _name:                 Component class name (C identifier).
+ * _init_iterator_method: Component class's iterator initialization method
+ *                        (bt_component_class_source_init_iterator_method).
  */
-#define BT_PLUGIN_COMPONENT_CLASS(_type, _name, _init_cb) \
-	BT_PLUGIN_COMPONENT_CLASS_WITH_ID(auto, _name, _type, #_name, _init_cb)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _init_iterator_method) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _init_iterator_method)
 
 /*
- * Defines a description attribute attached to a component class
+ * Defines a filter component class attached to the automatic plugin
+ * descriptor. Its ID is the same as its name, hence its name must be a
+ * C identifier in this version.
+ *
+ * _name:                 Component class name (C identifier).
+ * _init_iterator_method: Component class's iterator initialization method
+ *                        (bt_component_class_filter_init_iterator_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _init_iterator_method) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _init_iterator_method)
+
+/*
+ * Defines a sink component class attached to the automatic plugin
+ * descriptor. Its ID is the same as its name, hence its name must be a
+ * C identifier in this version.
+ *
+ * _name:           Component class name (C identifier).
+ * _consume_method: Component class's consume method
+ *                  (bt_component_class_sink_consume_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS(_name, _consume_method) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _consume_method)
+
+/*
+ * Defines a description attribute attached to a source component class
  * descriptor which is attached to the automatic plugin descriptor.
  *
- * _type:          Component class type (enum bt_component_type).
- * _name:          Component class name (C identifier).
- * _x: Description (C string).
+ * _name: Component class name (C identifier).
+ * _x:    Description (C string).
  */
-#define BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(_type, _name, _x) \
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, _name, _type, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a description attribute attached to a filter component class
+ * descriptor which is attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Description (C string).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a description attribute attached to a sink component class
+ * descriptor which is attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Description (C string).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an initialization method attribute attached to a source
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an initialization method attribute attached to a filter
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an initialization method attribute attached to a sink
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_init_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a destroy method attribute attached to a source component
+ * class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a destroy method attribute attached to a filter component
+ * class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a destroy method attribute attached to a sink component class
+ * descriptor which is attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_destroy_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an add iterator method attribute attached to a filter
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Add iterator method (bt_component_class_filter_add_iterator_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an add iterator method attribute attached to a sink
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Add iterator method (bt_component_class_sink_add_iterator_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(auto, _name, _x)
 
 #ifdef __cplusplus
 }

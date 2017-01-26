@@ -33,13 +33,8 @@
 
 struct bt_value;
 
-struct bt_component_source_class {
-	struct bt_component_class parent;
-};
-
 struct bt_component_source {
 	struct bt_component parent;
-	bt_component_source_init_iterator_cb init_iterator;
 };
 
 /**

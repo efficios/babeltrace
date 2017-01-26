@@ -72,12 +72,6 @@ enum bt_component_status muxer_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_destroy_cb(component,
-			destroy_muxer);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
 	ret = bt_component_set_private_data(component, muxer);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
@@ -89,12 +83,20 @@ error:
 	return ret;
 }
 
+enum bt_component_status muxer_init_iterator(
+		struct bt_component *component,
+		struct bt_notification_iterator *iter)
+{
+	return BT_COMPONENT_STATUS_OK;
+}
+
 /* Initialize plug-in entry points. */
 BT_PLUGIN(muxer);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Muxer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, muxer,
-	muxer_component_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, muxer,
+BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_init_iterator);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
 	"Time-correlate multiple traces.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_component_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(muxer, destroy_muxer);

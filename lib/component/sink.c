@@ -49,18 +49,12 @@ enum bt_component_status bt_component_sink_validate(
 		goto end;
 	}
 
-	if (component->class->type != BT_COMPONENT_TYPE_SINK) {
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	if (!sink->consume) {
-		printf_error("Invalid sink component; no notification consumption callback defined.");
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
 	ret = component_input_validate(&sink->input);
 	if (ret) {
 		goto end;
@@ -131,13 +125,14 @@ enum bt_component_status bt_component_sink_consume(
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_component_sink *sink = NULL;
+	struct bt_component_class_sink *sink_class = NULL;
 
 	if (!component) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -151,8 +146,9 @@ enum bt_component_status bt_component_sink_consume(
 		sink->input.validated = true;
 	}
 
-	assert(sink->consume);
-	ret = sink->consume(component);
+	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
+	assert(sink_class->methods.consume);
+	ret = sink_class->methods.consume(component);
 end:
 	return ret;
 }
@@ -169,7 +165,7 @@ enum bt_component_status bt_component_sink_register_notification_type(
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -190,61 +186,6 @@ end:
 	return ret;
 }
 */
-enum bt_component_status bt_component_sink_set_consume_cb(
-		struct bt_component *component,
-		bt_component_sink_consume_cb consume)
-{
-	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	sink->consume = consume;
-end:
-	return ret;
-}
-
-enum bt_component_status bt_component_sink_set_add_iterator_cb(
-		struct bt_component *component,
-		bt_component_sink_add_iterator_cb add_iterator)
-{
-	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	sink->add_iterator = add_iterator;
-end:
-	return ret;
-}
 
 enum bt_component_status bt_component_sink_set_minimum_input_count(
 		struct bt_component *component,
@@ -258,7 +199,7 @@ enum bt_component_status bt_component_sink_set_minimum_input_count(
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -286,7 +227,7 @@ enum bt_component_status bt_component_sink_set_maximum_input_count(
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -314,7 +255,7 @@ bt_component_sink_get_input_count(struct bt_component *component,
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -337,7 +278,7 @@ bt_component_sink_get_input_iterator(struct bt_component *component,
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -359,13 +300,14 @@ bt_component_sink_add_iterator(struct bt_component *component,
 {
 	struct bt_component_sink *sink;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component_class_sink *sink_class;
 
 	if (!component || !iterator) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	if (bt_component_get_type(component) != BT_COMPONENT_TYPE_SINK) {
+	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
@@ -376,8 +318,10 @@ bt_component_sink_add_iterator(struct bt_component *component,
 		goto end;
 	}
 
-	if (sink->add_iterator) {
-		ret = sink->add_iterator(component, iterator);
+	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
+
+	if (sink_class->methods.add_iterator) {
+		ret = sink_class->methods.add_iterator(component, iterator);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}

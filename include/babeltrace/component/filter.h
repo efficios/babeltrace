@@ -59,6 +59,25 @@ extern
 struct bt_notification_iterator *bt_component_filter_create_iterator(
 		struct bt_component *component);
 
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_filter_set_minimum_input_count(struct bt_component *filter,
+        unsigned int minimum);
+
+/* Defaults to 1. */
+extern enum bt_component_status
+bt_component_filter_set_maximum_input_count(struct bt_component *filter,
+        unsigned int maximum);
+
+extern enum bt_component_status
+bt_component_filter_get_input_count(struct bt_component *filter,
+        unsigned int *count);
+
+/* May return NULL after an interator has reached its end. */
+extern enum bt_component_status
+bt_component_filter_get_input_iterator(struct bt_component *filter,
+        unsigned int input, struct bt_notification_iterator **iterator);
+
 #ifdef __cplusplus
 }
 #endif

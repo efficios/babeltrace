@@ -106,7 +106,7 @@ extern struct bt_component_class *bt_plugin_get_component_class(
 extern
 struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		struct bt_plugin *plugin, const char *name,
-		enum bt_component_type type);
+		enum bt_component_class_type type);
 
 #ifdef __cplusplus
 }

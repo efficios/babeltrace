@@ -18,33 +18,13 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
 
-static int sink_value = 42;
-
-static enum bt_component_status sink_run(struct bt_component *component)
+static enum bt_component_status sink_consume(struct bt_component *component)
 {
 	return BT_COMPONENT_STATUS_OK;
 }
 
-static enum bt_component_status comp_class_sink_init(
-		struct bt_component *component, struct bt_value *params)
-{
-	enum bt_component_status ret;
-
-	ret = bt_component_set_private_data(component, &sink_value);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		return BT_COMPONENT_STATUS_ERROR;
-	}
-
-	ret = bt_component_sink_set_consume_cb(component, sink_run);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		return BT_COMPONENT_STATUS_ERROR;
-	}
-
-	return BT_COMPONENT_STATUS_OK;
-}
-
-static enum bt_component_status comp_class_dummy_init(
-		struct bt_component *component, struct bt_value *params)
+enum bt_component_status dummy_init_iterator_method(
+		struct bt_component *component, struct bt_notification_iterator *iter)
 {
 	return BT_COMPONENT_STATUS_OK;
 }
@@ -54,11 +34,11 @@ BT_PLUGIN_DESCRIPTION("Babeltrace plugin with source, sink, and filter component
 BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");
 
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SOURCE, source, comp_class_dummy_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SOURCE, source, "A source.");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_init_iterator_method);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");
 
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_SINK, sink, comp_class_sink_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_SINK, sink, "A sink.");
+BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(sink, "A sink.");
 
-BT_PLUGIN_COMPONENT_CLASS(BT_COMPONENT_TYPE_FILTER, filter, comp_class_dummy_init);
-BT_PLUGIN_COMPONENT_CLASS_DESCRIPTION(BT_COMPONENT_TYPE_FILTER, filter, "A filter.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_init_iterator_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");

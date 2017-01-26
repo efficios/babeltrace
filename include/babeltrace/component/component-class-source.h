@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_INTERNAL_H
-#define BABELTRACE_COMPONENT_FILTER_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H
+#define BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H
 
 /*
- * BabelTrace - Filter Component Internal
+ * Babeltrace - Component Class Interface.
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,37 +25,23 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/input.h>
+#include <babeltrace/component/component.h>
 
-struct bt_value;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct bt_component_filter {
-	struct bt_component parent;
-	struct component_input input;
-};
+struct bt_component_class;
 
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
-BT_HIDDEN
-struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params);
+typedef enum bt_component_status (*bt_component_class_source_init_iterator_method)(
+		struct bt_component *, struct bt_notification_iterator *);
 
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
-BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
+extern
+struct bt_component_class *bt_component_class_source_create(const char *name,
+		bt_component_class_source_init_iterator_method init_iterator_method);
 
-#endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H */
