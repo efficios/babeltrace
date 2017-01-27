@@ -384,17 +384,19 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 			bt_object_get_parent(trace);
 
 		assert(writer);
-		stream->packet_context = bt_ctf_field_create(
-			stream_class->packet_context_type);
-		if (!stream->packet_context) {
-			goto error;
-		}
+		if (stream_class->packet_context_type) {
+			stream->packet_context = bt_ctf_field_create(
+				stream_class->packet_context_type);
+			if (!stream->packet_context) {
+				goto error;
+			}
 
-		/* Initialize events_discarded */
-		ret = set_structure_field_integer(stream->packet_context,
-			"events_discarded", 0);
-		if (ret) {
-			goto error;
+			/* Initialize events_discarded */
+			ret = set_structure_field_integer(stream->packet_context,
+				"events_discarded", 0);
+			if (ret) {
+				goto error;
+			}
 		}
 
 		stream->events = g_ptr_array_new_with_free_func(
@@ -870,6 +872,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	uint64_t timestamp_begin, timestamp_end, events_discarded;
 	struct bt_ctf_field *integer = NULL;
 	struct ctf_stream_pos packet_context_pos;
+	bool empty_packet;
 
 	if (!stream || stream->pos.fd < 0) {
 		/*
@@ -880,10 +883,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (!stream->events->len) {
-		goto end;
-	}
-
+	empty_packet = (stream->events->len == 0);
 	ret = bt_ctf_field_validate(stream->packet_header);
 	if (ret) {
 		goto end;
@@ -897,66 +897,68 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	/* Set the default context attributes if present and unset. */
-	if (!get_event_header_timestamp(
-		((struct bt_ctf_event *) g_ptr_array_index(
-		stream->events, 0))->event_header, &timestamp_begin)) {
+	if (stream->packet_context) {
+		/* Set the default context attributes if present and unset. */
+		if (!empty_packet && !get_event_header_timestamp(
+			((struct bt_ctf_event *) g_ptr_array_index(
+				stream->events, 0))->event_header, &timestamp_begin)) {
+			ret = set_structure_field_integer(stream->packet_context,
+				"timestamp_begin", timestamp_begin);
+			if (ret) {
+				goto end;
+			}
+		}
+
+		if (!empty_packet && !get_event_header_timestamp(
+			((struct bt_ctf_event *) g_ptr_array_index(
+				stream->events, stream->events->len - 1))->event_header,
+				&timestamp_end)) {
+
+			ret = set_structure_field_integer(stream->packet_context,
+				"timestamp_end", timestamp_end);
+			if (ret) {
+				goto end;
+			}
+		}
 		ret = set_structure_field_integer(stream->packet_context,
-			"timestamp_begin", timestamp_begin);
+			"content_size", UINT64_MAX);
 		if (ret) {
 			goto end;
 		}
-	}
-
-	if (!get_event_header_timestamp(
-		((struct bt_ctf_event *) g_ptr_array_index(
-		stream->events, stream->events->len - 1))->event_header,
-		&timestamp_end)) {
 
 		ret = set_structure_field_integer(stream->packet_context,
-			"timestamp_end", timestamp_end);
+			"packet_size", UINT64_MAX);
 		if (ret) {
 			goto end;
 		}
-	}
-	ret = set_structure_field_integer(stream->packet_context,
-		"content_size", UINT64_MAX);
-	if (ret) {
-		goto end;
-	}
 
-	ret = set_structure_field_integer(stream->packet_context,
-		"packet_size", UINT64_MAX);
-	if (ret) {
-		goto end;
-	}
+		/* Write packet context */
+		memcpy(&packet_context_pos, &stream->pos,
+			sizeof(struct ctf_stream_pos));
+		ret = bt_ctf_field_serialize(stream->packet_context,
+			&stream->pos);
+		if (ret) {
+			goto end;
+		}
 
-	/* Write packet context */
-	memcpy(&packet_context_pos, &stream->pos,
-	       sizeof(struct ctf_stream_pos));
-	ret = bt_ctf_field_serialize(stream->packet_context,
-		&stream->pos);
-	if (ret) {
-		goto end;
-	}
+		ret = bt_ctf_stream_get_discarded_events_count(stream,
+			&events_discarded);
+		if (ret) {
+			goto end;
+		}
 
-	ret = bt_ctf_stream_get_discarded_events_count(stream,
-		&events_discarded);
-	if (ret) {
-		goto end;
-	}
+		/* Unset the packet context's fields. */
+		ret = bt_ctf_field_reset(stream->packet_context);
+		if (ret) {
+			goto end;
+		}
 
-	/* Unset the packet context's fields. */
-	ret = bt_ctf_field_reset(stream->packet_context);
-	if (ret) {
-		goto end;
-	}
-
-	/* Set the previous number of discarded events. */
-	ret = set_structure_field_integer(stream->packet_context,
-		"events_discarded", events_discarded);
-	if (ret) {
-		goto end;
+		/* Set the previous number of discarded events. */
+		ret = set_structure_field_integer(stream->packet_context,
+			"events_discarded", events_discarded);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	for (i = 0; i < stream->events->len; i++) {
@@ -991,29 +993,31 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 	}
 
-	/*
-	 * Update the packet total size and content size and overwrite the
-	 * packet context.
-	 * Copy base_mma as the packet may have been remapped (e.g. when a
-	 * packet is resized).
-	 */
-	packet_context_pos.base_mma = stream->pos.base_mma;
-	ret = set_structure_field_integer(stream->packet_context,
-		"content_size", stream->pos.offset);
-	if (ret) {
-		goto end;
-	}
+	if (stream->packet_context) {
+		/*
+		 * Update the packet total size and content size and overwrite
+		 * the packet context.
+		 * Copy base_mma as the packet may have been remapped (e.g. when
+		 * a packet is resized).
+		 */
+		packet_context_pos.base_mma = stream->pos.base_mma;
+		ret = set_structure_field_integer(stream->packet_context,
+			"content_size", stream->pos.offset);
+		if (ret) {
+			goto end;
+		}
 
-	ret = set_structure_field_integer(stream->packet_context,
-		"packet_size", stream->pos.packet_size);
-	if (ret) {
-		goto end;
-	}
+		ret = set_structure_field_integer(stream->packet_context,
+			"packet_size", stream->pos.packet_size);
+		if (ret) {
+			goto end;
+		}
 
-	ret = bt_ctf_field_serialize(stream->packet_context,
-		&packet_context_pos);
-	if (ret) {
-		goto end;
+		ret = bt_ctf_field_serialize(stream->packet_context,
+			&packet_context_pos);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	g_ptr_array_set_size(stream->events, 0);

@@ -810,11 +810,13 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	g_string_append(context->string, ";\n\n\tpacket.context := ");
-	ret = bt_ctf_field_type_serialize(stream_class->packet_context_type,
-		context);
-	if (ret) {
-		goto end;
+	if (stream_class->packet_context_type) {
+		g_string_append(context->string, ";\n\n\tpacket.context := ");
+		ret = bt_ctf_field_type_serialize(stream_class->packet_context_type,
+			context);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	if (stream_class->event_context_type) {
