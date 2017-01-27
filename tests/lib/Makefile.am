@@ -1,3 +1,5 @@
+SUBDIRS = writer
+
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/tests/utils
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la

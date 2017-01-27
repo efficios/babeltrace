@@ -412,6 +412,7 @@ AC_CONFIG_FILES([
 	tests/bin/Makefile
 	tests/bin/intersection/Makefile
 	tests/lib/Makefile
+	tests/lib/writer/Makefile
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
 	extras/Makefile
@@ -442,6 +443,7 @@ AC_CONFIG_FILES([tests/lib/test_bin_info_complete], [chmod +x tests/lib/test_bin
 AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read])
 AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/intersection/test_intersection])
 AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
+AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
 AC_CONFIG_FILES([tests/bin/test_formats], [chmod +x tests/bin/test_formats])
 
