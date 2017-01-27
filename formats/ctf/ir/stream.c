@@ -884,6 +884,16 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
+	if (!stream->packet_context && stream->flushed_packet_count > 0) {
+		/*
+		 * A stream without a packet context, and thus without
+		 * content and packet size members, can't have more than
+		 * one packet.
+		 */
+		ret = -1;
+		goto end;
+	}
+
 	empty_packet = (stream->events->len == 0);
 	ret = bt_ctf_field_validate(stream->packet_header);
 	if (ret) {
