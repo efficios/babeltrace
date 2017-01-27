@@ -28,7 +28,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
-#include <babeltrace/component/input.h>
+#include <babeltrace/component/component-input-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-class-internal.h>

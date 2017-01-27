@@ -30,7 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/input.h>
+#include <babeltrace/component/component-input-internal.h>
 
 struct bt_value;
 

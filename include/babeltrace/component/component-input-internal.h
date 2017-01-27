@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_INPUT_INTERNAL_H
-#define BABELTRACE_COMPONENT_INPUT_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_COMPONENT_INPUT_INTERNAL_H
+#define BABELTRACE_COMPONENT_COMPONENT_INPUT_INTERNAL_H
 
 /*
  * BabelTrace - Component Input
@@ -48,4 +48,4 @@ int component_input_validate(struct component_input *input);
 BT_HIDDEN
 void component_input_fini(struct component_input *input);
 
-#endif /* BABELTRACE_COMPONENT_INPUT_INTERNAL_H */
+#endif /* BABELTRACE_COMPONENT_COMPONENT_INPUT_INTERNAL_H */

@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/input.h>
+#include <babeltrace/component/component-input-internal.h>
 #include <babeltrace/ref.h>
 
 BT_HIDDEN
