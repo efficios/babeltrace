@@ -31,10 +31,17 @@
 #include <plugins-common.h>
 
 BT_HIDDEN
-enum bt_component_status lttng_live_iterator_init(struct bt_component *source,
-		struct bt_notification_iterator *it)
+struct bt_notification *lttng_live_iterator_get(
+		struct bt_notification_iterator *iterator)
 {
-    return BT_COMPONENT_STATUS_OK;
+	return NULL;
+}
+
+BT_HIDDEN
+enum bt_notification_iterator_status lttng_live_iterator_next(
+		struct bt_notification_iterator *iterator)
+{
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 BT_HIDDEN

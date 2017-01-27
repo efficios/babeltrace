@@ -23,10 +23,34 @@ static enum bt_component_status sink_consume(struct bt_component *component)
 	return BT_COMPONENT_STATUS_OK;
 }
 
-enum bt_component_status dummy_init_iterator_method(
-		struct bt_component *component, struct bt_notification_iterator *iter)
+static enum bt_notification_iterator_status dummy_iterator_init_method(
+		struct bt_component *component,
+		struct bt_notification_iterator *iterator)
 {
-	return BT_COMPONENT_STATUS_OK;
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+}
+
+static void dummy_iterator_destroy_method(
+		struct bt_notification_iterator *iterator)
+{
+}
+
+static struct bt_notification *dummy_iterator_get_method(
+		struct bt_notification_iterator *iterator)
+{
+	return NULL;
+}
+
+static enum bt_notification_iterator_status dummy_iterator_next_method(
+		struct bt_notification_iterator *iterator)
+{
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+}
+
+static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
+		struct bt_notification_iterator *iterator, int64_t time)
+{
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 BT_PLUGIN(test_sfs);
@@ -35,11 +59,25 @@ BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");
 BT_PLUGIN_VERSION(1, 2, 3, "yes");
 
-BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_init_iterator_method);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_iterator_get_method,
+	dummy_iterator_next_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
+	dummy_iterator_init_method);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(source,
+	dummy_iterator_destroy_method);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(source,
+	dummy_iterator_seek_time_method);
 
 BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(sink, "A sink.");
 
-BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_init_iterator_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_get_method,
+	dummy_iterator_next_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
+	dummy_iterator_init_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(filter,
+	dummy_iterator_destroy_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
+	dummy_iterator_seek_time_method);

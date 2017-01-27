@@ -49,11 +49,9 @@
 BT_HIDDEN
 bool ctf_fs_debug;
 
-static
 enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator);
 
-static
 struct bt_notification *ctf_fs_iterator_get(
 		struct bt_notification_iterator *iterator)
 {
@@ -246,7 +244,6 @@ end:
 	return ret;
 }
 
-static
 enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_notification_iterator *iterator)
 {
@@ -364,7 +361,6 @@ void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
 	g_free(ctf_it);
 }
 
-static
 void ctf_fs_iterator_destroy(struct bt_notification_iterator *it)
 {
 	void *data = bt_notification_iterator_get_private_data(it);
@@ -584,24 +580,24 @@ end:
 	return ret;
 }
 
-enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
+enum bt_notification_iterator_status ctf_fs_iterator_init(struct bt_component *source,
 		struct bt_notification_iterator *it)
 {
 	struct ctf_fs_iterator *ctf_it;
 	struct ctf_fs_component *ctf_fs;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_notification_iterator_status ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	assert(source && it);
 
 	ctf_fs = bt_component_get_private_data(source);
 	if (!ctf_fs) {
-		ret = BT_COMPONENT_STATUS_INVALID;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
 		goto end;
 	}
 
 	ctf_it = g_new0(struct ctf_fs_iterator, 1);
 	if (!ctf_it) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -622,22 +618,6 @@ enum bt_component_status ctf_fs_iterator_init(struct bt_component *source,
 	}
 
 	ret = open_trace_streams(ctf_fs, ctf_it);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_get_cb(it, ctf_fs_iterator_get);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_next_cb(it, ctf_fs_iterator_next);
-	if (ret) {
-		goto error;
-	}
-
-	ret = bt_notification_iterator_set_destroy_cb(it,
-			ctf_fs_iterator_destroy);
 	if (ret) {
 		goto error;
 	}

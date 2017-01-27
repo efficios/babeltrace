@@ -33,11 +33,15 @@
 #define LTTNG_LIVE_COMPONENT_DESCRIPTION "Component implementing an LTTng-live client."
 
 BT_HIDDEN
-enum bt_component_status lttng_live_iterator_init(struct bt_component *source,
-        struct bt_notification_iterator *it);
-
-BT_HIDDEN
 enum bt_component_status lttng_live_init(struct bt_component *source,
 		struct bt_value *params, void *init_method_data);
+
+BT_HIDDEN
+struct bt_notification *lttng_live_iterator_get(
+        struct bt_notification_iterator *iterator);
+
+BT_HIDDEN
+enum bt_notification_iterator_status lttng_live_iterator_next(
+        struct bt_notification_iterator *iterator);
 
 #endif /* BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_INTERNAL_H */

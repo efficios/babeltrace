@@ -33,12 +33,25 @@ extern "C" {
 
 struct bt_component_class;
 
-typedef enum bt_component_status (*bt_component_class_source_init_iterator_method)(
-		struct bt_component *, struct bt_notification_iterator *);
-
 extern
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_source_init_iterator_method init_iterator_method);
+		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
+		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
+
+extern
+int bt_component_class_source_set_notification_iterator_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
+
+extern
+int bt_component_class_source_set_notification_iterator_destroy_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method);
+
+extern
+int bt_component_class_source_set_notification_iterator_seek_time_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
 
 #ifdef __cplusplus
 }

@@ -134,29 +134,27 @@ struct bt_notification_iterator *bt_component_create_iterator(
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
 	{
 		struct bt_component_class_source *source_class;
-		enum bt_component_status ret_component;
+		enum bt_notification_iterator_status status;
 
 		source_class = container_of(class, struct bt_component_class_source, parent);
-		assert(source_class->methods.init_iterator);
-		ret_component =
-			source_class->methods.init_iterator(component, iterator);
-		if (ret_component != BT_COMPONENT_STATUS_OK) {
+		assert(source_class->methods.iterator.init);
+		status = source_class->methods.iterator.init(component,
+				iterator);
+		if (status < 0) {
 			goto error;
 		}
-		break;
-
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
 	{
 		struct bt_component_class_filter *filter_class;
-		enum bt_component_status ret_component;
+		enum bt_notification_iterator_status status;
 
 		filter_class = container_of(class, struct bt_component_class_filter, parent);
-		assert(filter_class->methods.init_iterator);
-		ret_component =
-			filter_class->methods.init_iterator(component, iterator);
-		if (ret_component != BT_COMPONENT_STATUS_OK) {
+		assert(filter_class->methods.iterator.init);
+		status = filter_class->methods.iterator.init(component,
+				iterator);
+		if (status < 0) {
 			goto error;
 		}
 		break;

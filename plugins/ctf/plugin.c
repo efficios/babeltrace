@@ -37,13 +37,17 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
 /* Declare component classes implemented by this plug-in. */
-BT_PLUGIN_SOURCE_COMPONENT_CLASS(fs, ctf_fs_iterator_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS(fs, ctf_fs_iterator_get, ctf_fs_iterator_next);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(fs, CTF_FS_COMPONENT_DESCRIPTION);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(fs, ctf_fs_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD(fs, ctf_fs_destroy);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(fs, CTF_FS_COMPONENT_DESCRIPTION);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(fs,
+	ctf_fs_iterator_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(fs,
+	ctf_fs_iterator_destroy);
 
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, lttng_live, "lttng-live",
-	lttng_live_iterator_init);
+	lttng_live_iterator_get, lttng_live_iterator_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, lttng_live,
 	lttng_live_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, lttng_live,

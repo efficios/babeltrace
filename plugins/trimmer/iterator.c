@@ -43,7 +43,7 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <assert.h>
 
-static
+BT_HIDDEN
 void trimmer_iterator_destroy(struct bt_notification_iterator *it)
 {
 	struct trimmer_iterator *it_data;
@@ -59,49 +59,23 @@ void trimmer_iterator_destroy(struct bt_notification_iterator *it)
 }
 
 BT_HIDDEN
-enum bt_component_status trimmer_iterator_init(struct bt_component *component,
+enum bt_notification_iterator_status trimmer_iterator_init(
+		struct bt_component *component,
 		struct bt_notification_iterator *iterator)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_notification_iterator_status ret =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
 
 	if (!it_data) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
 
 	/* FIXME init trimmer_iterator */
 	it_ret = bt_notification_iterator_set_private_data(iterator, it_data);
 	if (it_ret) {
-		goto end;
-	}
-
-	it_ret = bt_notification_iterator_set_destroy_cb(iterator,
-		        trimmer_iterator_destroy);
-	if (it_ret) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
-	it_ret = bt_notification_iterator_set_next_cb(iterator,
-			trimmer_iterator_next);
-	if (it_ret) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
-	it_ret = bt_notification_iterator_set_get_cb(iterator,
-			trimmer_iterator_get);
-	if (it_ret) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
-	it_ret = bt_notification_iterator_set_seek_time_cb(iterator,
-			trimmer_iterator_seek_time);
-	if (it_ret) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 end:

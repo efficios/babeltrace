@@ -99,12 +99,14 @@ end:
 }
 
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_source_init_iterator_method init_iterator_method)
+		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
+		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
-	if (!name || !init_iterator_method) {
+	if (!name || !notification_iterator_get_method ||
+			!notification_iterator_next_method) {
 		goto end;
 	}
 
@@ -125,19 +127,22 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 		goto end;
 	}
 
-	source_class->methods.init_iterator = init_iterator_method;
+	source_class->methods.iterator.get = notification_iterator_get_method;
+	source_class->methods.iterator.next = notification_iterator_next_method;
 
 end:
 	return &source_class->parent;
 }
 
 struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_filter_init_iterator_method init_iterator_method)
+		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
+		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
-	if (!name || !init_iterator_method) {
+	if (!name || !notification_iterator_get_method ||
+			!notification_iterator_next_method) {
 		goto end;
 	}
 
@@ -158,7 +163,8 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 		goto end;
 	}
 
-	filter_class->methods.init_iterator = init_iterator_method;
+	filter_class->methods.iterator.get = notification_iterator_get_method;
+	filter_class->methods.iterator.next = notification_iterator_next_method;
 
 end:
 	return &filter_class->parent;
@@ -231,7 +237,143 @@ end:
 	return ret;
 }
 
-extern int bt_component_class_set_description(
+int bt_component_class_source_set_notification_iterator_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_init_method notification_iterator_init_method)
+{
+	struct bt_component_class_source *source_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_init_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		ret = -1;
+		goto end;
+	}
+
+	source_class = container_of(component_class,
+		struct bt_component_class_source, parent);
+	source_class->methods.iterator.init = notification_iterator_init_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_source_set_notification_iterator_destroy_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method)
+{
+	struct bt_component_class_source *source_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_destroy_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		ret = -1;
+		goto end;
+	}
+
+	source_class = container_of(component_class,
+		struct bt_component_class_source, parent);
+	source_class->methods.iterator.destroy =
+		notification_iterator_destroy_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_source_set_notification_iterator_seek_time_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method)
+{
+	struct bt_component_class_source *source_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_seek_time_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		ret = -1;
+		goto end;
+	}
+
+	source_class = container_of(component_class,
+		struct bt_component_class_source, parent);
+	source_class->methods.iterator.seek_time =
+		notification_iterator_seek_time_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_filter_set_notification_iterator_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_init_method notification_iterator_init_method)
+{
+	struct bt_component_class_filter *filter_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_init_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		ret = -1;
+		goto end;
+	}
+
+	filter_class = container_of(component_class,
+		struct bt_component_class_filter, parent);
+	filter_class->methods.iterator.init = notification_iterator_init_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_filter_set_notification_iterator_destroy_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method)
+{
+	struct bt_component_class_filter *filter_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_destroy_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		ret = -1;
+		goto end;
+	}
+
+	filter_class = container_of(component_class,
+		struct bt_component_class_filter, parent);
+	filter_class->methods.iterator.destroy =
+		notification_iterator_destroy_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_filter_set_notification_iterator_seek_time_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method)
+{
+	struct bt_component_class_filter *filter_class;
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!notification_iterator_seek_time_method ||
+			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		ret = -1;
+		goto end;
+	}
+
+	filter_class = container_of(component_class,
+		struct bt_component_class_filter, parent);
+	filter_class->methods.iterator.seek_time =
+		notification_iterator_seek_time_method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_set_description(
 		struct bt_component_class *component_class,
 		const char *description)
 {

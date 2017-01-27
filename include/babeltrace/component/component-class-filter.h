@@ -41,10 +41,30 @@ typedef enum bt_component_status (*bt_component_class_filter_add_iterator_method
 
 extern
 struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_filter_init_iterator_method init_iterator_method);
+		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
+		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
 
 extern int bt_component_class_filter_set_add_iterator_method(
 		struct bt_component_class *component_class,
 		bt_component_class_filter_add_iterator_method add_iterator_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_destroy_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_seek_time_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H */

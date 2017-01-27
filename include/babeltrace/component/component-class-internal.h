@@ -62,10 +62,18 @@ struct bt_component_class {
 	bool frozen;
 };
 
+struct bt_component_class_iterator_methods {
+	bt_component_class_notification_iterator_init_method init;
+	bt_component_class_notification_iterator_destroy_method destroy;
+	bt_component_class_notification_iterator_get_method get;
+	bt_component_class_notification_iterator_next_method next;
+	bt_component_class_notification_iterator_seek_time_method seek_time;
+};
+
 struct bt_component_class_source {
 	struct bt_component_class parent;
 	struct {
-		bt_component_class_source_init_iterator_method init_iterator;
+		struct bt_component_class_iterator_methods iterator;
 	} methods;
 };
 
@@ -80,7 +88,7 @@ struct bt_component_class_sink {
 struct bt_component_class_filter {
 	struct bt_component_class parent;
 	struct {
-		bt_component_class_filter_init_iterator_method init_iterator;
+		struct bt_component_class_iterator_methods iterator;
 		bt_component_class_filter_add_iterator_method add_iterator;
 	} methods;
 };

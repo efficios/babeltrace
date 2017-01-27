@@ -30,6 +30,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-source-internal.h>
+#include <babeltrace/component/component-class-internal.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 
@@ -37,14 +38,43 @@ static
 void bt_notification_iterator_destroy(struct bt_object *obj)
 {
 	struct bt_notification_iterator *iterator;
+	struct bt_component_class *comp_class;
 
 	assert(obj);
 	iterator = container_of(obj, struct bt_notification_iterator,
 			base);
-	assert(iterator->user_destroy || !iterator->user_data);
-	if (iterator->user_destroy) {
-		iterator->user_destroy(iterator);
+	assert(iterator->component);
+	comp_class = iterator->component->class;
+
+	/* Call user-defined destroy method */
+	switch (comp_class->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *source_class;
+
+		source_class = container_of(comp_class, struct bt_component_class_source, parent);
+
+		if (source_class->methods.iterator.destroy) {
+			source_class->methods.iterator.destroy(iterator);
+		}
+		break;
 	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *filter_class;
+
+		filter_class = container_of(comp_class, struct bt_component_class_filter, parent);
+
+		if (filter_class->methods.iterator.destroy) {
+			filter_class->methods.iterator.destroy(iterator);
+		}
+		break;
+	}
+	default:
+		/* Unreachable */
+		assert(0);
+	}
+
 	BT_PUT(iterator->component);
 	g_free(iterator);
 }
@@ -87,80 +117,10 @@ enum bt_notification_iterator_status bt_notification_iterator_validate(
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
-	if (!iterator || !iterator->get || !iterator->next) {
+	if (!iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
 		goto end;
 	}
-end:
-	return ret;
-}
-
-enum bt_notification_iterator_status bt_notification_iterator_set_get_cb(
-		struct bt_notification_iterator *iterator,
-		bt_notification_iterator_get_cb get)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	if (!iterator || !get) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
-		goto end;
-	}
-
-	iterator->get = get;
-end:
-	return ret;
-}
-
-enum bt_notification_iterator_status
-bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
-		bt_notification_iterator_next_cb next)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	if (!iterator || !next) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
-		goto end;
-	}
-
-	iterator->next = next;
-end:
-	return ret;
-}
-
-enum bt_notification_iterator_status
-bt_notification_iterator_set_seek_time_cb(
-		struct bt_notification_iterator *iterator,
-		bt_notification_iterator_seek_time_cb seek_time)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	if (!iterator || !seek_time) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
-		goto end;
-	}
-
-	iterator->seek_time = seek_time;
-end:
-	return ret;
-}
-
-enum bt_notification_iterator_status
-bt_notification_iterator_set_destroy_cb(
-		struct bt_notification_iterator *iterator,
-		bt_notification_iterator_destroy_cb destroy)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	if (!iterator || !destroy) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
-		goto end;
-	}
-
-	iterator->user_destroy = destroy;
 end:
 	return ret;
 }
@@ -178,7 +138,7 @@ bt_notification_iterator_set_private_data(
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
-	if (!iterator || !data) {
+	if (!iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
 		goto end;
 	}
@@ -191,17 +151,79 @@ end:
 struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator)
 {
+	bt_component_class_notification_iterator_get_method get_method = NULL;
+
 	assert(iterator);
-	assert(iterator->get);
-	return iterator->get(iterator);
+	assert(iterator->component);
+	assert(iterator->component->class);
+
+	switch (iterator->component->class->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *source_class =
+			container_of(iterator->component->class,
+				struct bt_component_class_source, parent);
+
+		assert(source_class->methods.iterator.get);
+		get_method = source_class->methods.iterator.get;
+		break;
+	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *filter_class =
+			container_of(iterator->component->class,
+				struct bt_component_class_filter, parent);
+
+		assert(filter_class->methods.iterator.get);
+		get_method = filter_class->methods.iterator.get;
+		break;
+	}
+	default:
+		assert(false);
+		break;
+	}
+
+	assert(get_method);
+	return get_method(iterator);
 }
 
 enum bt_notification_iterator_status
 bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 {
+	bt_component_class_notification_iterator_next_method next_method = NULL;
+
 	assert(iterator);
-	assert(iterator->next);
-	return iterator->next(iterator);
+	assert(iterator->component);
+	assert(iterator->component->class);
+
+	switch (iterator->component->class->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *source_class =
+			container_of(iterator->component->class,
+				struct bt_component_class_source, parent);
+
+		assert(source_class->methods.iterator.next);
+		next_method = source_class->methods.iterator.next;
+		break;
+	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *filter_class =
+			container_of(iterator->component->class,
+				struct bt_component_class_filter, parent);
+
+		assert(filter_class->methods.iterator.next);
+		next_method = filter_class->methods.iterator.next;
+		break;
+	}
+	default:
+		assert(false);
+		break;
+	}
+
+	assert(next_method);
+	return next_method(iterator);
 }
 
 struct bt_component *bt_notification_iterator_get_component(

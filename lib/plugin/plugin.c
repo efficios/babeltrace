@@ -286,6 +286,7 @@ enum bt_plugin_status bt_plugin_init(
 		bt_component_class_destroy_method destroy_method;
 		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
 		bt_component_class_sink_add_iterator_method sink_add_iterator_method;
+		struct bt_component_class_iterator_methods iterator_methods;
 	};
 
 	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
@@ -408,6 +409,18 @@ enum bt_plugin_status bt_plugin_init(
 					cc_full_descr->sink_add_iterator_method =
 						cur_cc_descr_attr->value.sink_add_iterator_method;
 					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD:
+					cc_full_descr->iterator_methods.init =
+						cur_cc_descr_attr->value.notif_iter_init_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD:
+					cc_full_descr->iterator_methods.destroy =
+						cur_cc_descr_attr->value.notif_iter_destroy_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD:
+					cc_full_descr->iterator_methods.seek_time =
+						cur_cc_descr_attr->value.notif_iter_seek_time_method;
+					break;
 				default:
 					printf_verbose("WARNING: Unknown attribute \"%s\" (type %d) for component class %s (type %d) in plugin %s\n",
 						cur_cc_descr_attr->type_name,
@@ -444,12 +457,14 @@ enum bt_plugin_status bt_plugin_init(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			comp_class = bt_component_class_source_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.source.init_iterator);
+				cc_full_descr->descriptor->methods.source.notif_iter_get,
+				cc_full_descr->descriptor->methods.source.notif_iter_next);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			comp_class = bt_component_class_filter_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.filter.init_iterator);
+				cc_full_descr->descriptor->methods.source.notif_iter_get,
+				cc_full_descr->descriptor->methods.source.notif_iter_next);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			comp_class = bt_component_class_sink_create(
@@ -499,28 +514,101 @@ enum bt_plugin_status bt_plugin_init(
 			}
 		}
 
-		if (cc_full_descr->descriptor->type ==
-				BT_COMPONENT_CLASS_TYPE_FILTER &&
-				cc_full_descr->filter_add_iterator_method) {
-			ret = bt_component_class_filter_set_add_iterator_method(comp_class,
-				cc_full_descr->filter_add_iterator_method);
-			if (ret) {
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
-				goto end;
+		switch (cc_full_descr->descriptor->type) {
+		case BT_COMPONENT_CLASS_TYPE_SOURCE:
+			if (cc_full_descr->iterator_methods.init) {
+				ret = bt_component_class_source_set_notification_iterator_init_method(
+					comp_class,
+					cc_full_descr->iterator_methods.init);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
 			}
-		}
 
-		if (cc_full_descr->descriptor->type ==
-				BT_COMPONENT_CLASS_TYPE_SINK &&
-				cc_full_descr->sink_add_iterator_method) {
-			ret = bt_component_class_sink_set_add_iterator_method(comp_class,
-				cc_full_descr->sink_add_iterator_method);
-			if (ret) {
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
-				goto end;
+			if (cc_full_descr->iterator_methods.destroy) {
+				ret = bt_component_class_source_set_notification_iterator_destroy_method(
+					comp_class,
+					cc_full_descr->iterator_methods.destroy);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
 			}
+
+			if (cc_full_descr->iterator_methods.seek_time) {
+				ret = bt_component_class_source_set_notification_iterator_seek_time_method(
+					comp_class,
+					cc_full_descr->iterator_methods.seek_time);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+			break;
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			if (cc_full_descr->filter_add_iterator_method) {
+				ret = bt_component_class_filter_set_add_iterator_method(
+					comp_class,
+					cc_full_descr->filter_add_iterator_method);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->iterator_methods.init) {
+				ret = bt_component_class_filter_set_notification_iterator_init_method(
+					comp_class,
+					cc_full_descr->iterator_methods.init);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->iterator_methods.destroy) {
+				ret = bt_component_class_filter_set_notification_iterator_destroy_method(
+					comp_class,
+					cc_full_descr->iterator_methods.destroy);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->iterator_methods.seek_time) {
+				ret = bt_component_class_filter_set_notification_iterator_seek_time_method(
+					comp_class,
+					cc_full_descr->iterator_methods.seek_time);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+			break;
+		case BT_COMPONENT_CLASS_TYPE_SINK:
+			if (cc_full_descr->sink_add_iterator_method) {
+				ret = bt_component_class_sink_set_add_iterator_method(
+					comp_class,
+					cc_full_descr->sink_add_iterator_method);
+				if (ret) {
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_PUT(comp_class);
+					goto end;
+				}
+			}
+			break;
+		default:
+			assert(false);
+			break;
 		}
 
 		/* Add component class to the plugin object */

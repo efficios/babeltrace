@@ -126,90 +126,6 @@ extern enum bt_notification_iterator_status bt_notification_iterator_seek_time(
 extern struct bt_component *bt_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator);
 
-/** bt_notification_iterator */
-/**
- * Function returning an iterator's current notification.
- *
- * @param iterator	Notification iterator instance
- * @returns 		A notification instance
- */
-typedef struct bt_notification *(*bt_notification_iterator_get_cb)(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Function advancing an iterator's position of one element.
- *
- * @param iterator	Notification iterator instance
- * @returns 		One of #bt_notification_iterator_status values
- */
-typedef enum bt_notification_iterator_status (*bt_notification_iterator_next_cb)(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Function advancing an iterator's position to a given time (relative to Epoch).
- *
- * @param iterator	Notification iterator instance
- * @param time		Time at which to seek, expressed in ns since Epoch
- * @returns 		One of #bt_notification_iterator_status values
- */
-typedef enum bt_notification_iterator_status
-		(*bt_notification_iterator_seek_time_cb)(
-		struct bt_notification_iterator *iterator, int64_t time);
-
-/**
- * Function cleaning-up an iterator's private data on destruction.
- *
- * @param iterator	Notification iterator instance
- */
-typedef void (*bt_notification_iterator_destroy_cb)(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Set an iterator's "get" callback which return the current notification.
- *
- * @param iterator	Notification iterator instance
- * @param get		Notification return callback
- * @returns		One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_set_get_cb(struct bt_notification_iterator *iterator,
-		bt_notification_iterator_get_cb get);
-
-/**
- * Set an iterator's "next" callback which advances the iterator's position.
- *
- * @param iterator	Notification iterator instance
- * @param next		Iterator "next" callback
- * @returns		One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_set_next_cb(struct bt_notification_iterator *iterator,
-		bt_notification_iterator_next_cb next);
-
-/**
- * Set an iterator's "seek_time" callback which sets the iterator's position to
- *	provided time (in ns since Epoch).
- *
- * @param iterator	Notification iterator instance
- * @param seek_timetime	Iterator "seek_time" callback
- * @returns		One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_set_seek_time_cb(struct bt_notification_iterator *iterator,
-		bt_notification_iterator_seek_time_cb seek_time);
-
-/**
- * Set an iterator's "destroy" callback.
- *
- * @param iterator	Notification iterator instance
- * @param next		Iterator destruction callback
- * @returns		One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_set_destroy_cb(
-		struct bt_notification_iterator *iterator,
-		bt_notification_iterator_destroy_cb destroy);
-
 /**
  * Set an iterator's private data.
  *
@@ -229,7 +145,6 @@ bt_notification_iterator_set_private_data(
  */
 extern void *bt_notification_iterator_get_private_data(
 		struct bt_notification_iterator *iterator);
-
 
 #ifdef __cplusplus
 }

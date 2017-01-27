@@ -85,11 +85,18 @@ error:
 	return ret;
 }
 
-enum bt_component_status muxer_init_iterator(
-		struct bt_component *component,
-		struct bt_notification_iterator *iter)
+static
+struct bt_notification *muxer_iterator_get(
+		struct bt_notification_iterator *iterator)
 {
-	return BT_COMPONENT_STATUS_OK;
+	return NULL;
+}
+
+static
+enum bt_notification_iterator_status muxer_iterator_next(
+		struct bt_notification_iterator *iterator)
+{
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 /* Initialize plug-in entry points. */
@@ -97,7 +104,8 @@ BT_PLUGIN(muxer);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Muxer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_init_iterator);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_iterator_get,
+	muxer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
 	"Time-correlate multiple traces.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_component_init);

@@ -379,8 +379,15 @@ BT_PLUGIN(utils);
 BT_PLUGIN_DESCRIPTION("Babeltrace Trace Trimmer Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_get,
+	trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
 	"Ensure that trace notifications outside of a given range are filtered-out.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(trimmer, destroy_trimmer);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
+	trimmer_iterator_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(trimmer,
+	trimmer_iterator_destroy);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(trimmer,
+	trimmer_iterator_seek_time);

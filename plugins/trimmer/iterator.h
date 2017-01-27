@@ -38,9 +38,12 @@ struct trimmer_iterator {
 };
 
 BT_HIDDEN
-enum bt_component_status trimmer_iterator_init(
+enum bt_notification_iterator_status trimmer_iterator_init(
 		struct bt_component *component,
 		struct bt_notification_iterator *iterator);
+
+BT_HIDDEN
+void trimmer_iterator_destroy(struct bt_notification_iterator *it);
 
 BT_HIDDEN
 struct bt_notification *trimmer_iterator_get(
