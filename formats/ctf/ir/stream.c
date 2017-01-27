@@ -873,6 +873,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	struct bt_ctf_field *integer = NULL;
 	struct ctf_stream_pos packet_context_pos;
 	bool empty_packet;
+	uint64_t packet_size_bits;
 
 	if (!stream || stream->pos.fd < 0) {
 		/*
@@ -993,6 +994,11 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 	}
 
+	/* Rounded-up in case content_size is not byte-aligned. */
+	packet_size_bits = (stream->pos.offset + (CHAR_BIT - 1)) &
+		~(CHAR_BIT - 1);
+	stream->pos.packet_size = packet_size_bits;
+
 	if (stream->packet_context) {
 		/*
 		 * Update the packet total size and content size and overwrite
@@ -1008,7 +1014,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 
 		ret = set_structure_field_integer(stream->packet_context,
-			"packet_size", stream->pos.packet_size);
+			"packet_size", packet_size_bits);
 		if (ret) {
 			goto end;
 		}
@@ -1022,6 +1028,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 	g_ptr_array_set_size(stream->events, 0);
 	stream->flushed_packet_count++;
+	stream->size += packet_size_bits / CHAR_BIT;
 end:
 	bt_put(integer);
 	return ret;
@@ -1044,8 +1051,24 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 
 	stream = container_of(obj, struct bt_ctf_stream, base);
 	ctf_fini_pos(&stream->pos);
-	if (stream->pos.fd >= 0 && close(stream->pos.fd)) {
-		perror("close");
+	if (stream->pos.fd >= 0) {
+		int ret;
+
+		/*
+		 * Truncate the file's size to the minimum required to fit the
+		 * last packet as we might have grown it too much on the last
+		 * mmap.
+		 */
+		do {
+			ret = ftruncate(stream->pos.fd, stream->size);
+		} while (ret == -1 && errno == EINTR);
+		if (ret) {
+			perror("ftruncate");
+		}
+
+		if (close(stream->pos.fd)) {
+			perror("close");
+		}
 	}
 
 	if (stream->events) {

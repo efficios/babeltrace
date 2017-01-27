@@ -40,13 +40,16 @@ struct bt_ctf_stream {
 	struct bt_object base;
 	uint32_t id;
 	struct bt_ctf_stream_class *stream_class;
+	GString *name;
+	struct bt_ctf_field *packet_header;
+	struct bt_ctf_field *packet_context;
+
+	/* Writer-specific members. */
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
 	struct ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
-	GString *name;
-	struct bt_ctf_field *packet_header;
-	struct bt_ctf_field *packet_context;
+	uint64_t size;
 };
 
 BT_HIDDEN
