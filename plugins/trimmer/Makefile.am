@@ -6,7 +6,10 @@ plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = libbabeltrace-plugin-trimmer.la
 
 libbabeltrace_plugin_trimmer_la_SOURCES = \
-	trimmer.h trimmer.c iterator.h iterator.c
+	trimmer.c \
+	iterator.c \
+	trimmer.h \
+	iterator.h
 
 libbabeltrace_plugin_trimmer_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)

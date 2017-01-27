@@ -7,7 +7,9 @@ plugin_LTLIBRARIES = libbabeltrace-plugin-ctf-writer.la
 
 # ctf-writer plugin
 libbabeltrace_plugin_ctf_writer_la_SOURCES = \
-	writer.h writer.c write.c
+	writer.c \
+	write.c \
+	writer.h
 
 libbabeltrace_plugin_ctf_writer_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
