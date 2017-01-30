@@ -350,6 +350,9 @@ end:
 static
 void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
 {
+	if (!ctf_it) {
+		return;
+	}
 	bt_put(ctf_it->current_notification);
 	bt_put(ctf_it->pending_notifications);
 	if (ctf_it->pending_streams) {
