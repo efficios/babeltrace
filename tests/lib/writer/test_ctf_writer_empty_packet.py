@@ -100,3 +100,5 @@ for event in traces.events:
 print_test_result(4, EXPECTED_EVENT_COUNT == event_count,
                   'Trace was found to contain {} events, expected {}'.format(
                    event_count, EXPECTED_EVENT_COUNT))
+
+shutil.rmtree(trace_path)
