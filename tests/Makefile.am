@@ -18,7 +18,8 @@ TESTS = bin/test_trace_read \
 	lib/test_bt_ctf_field_type_validation \
 	lib/test_ir_visit \
 	lib/test_trace_listener \
-	lib/test_bt_notification_heap
+	lib/test_bt_notification_heap \
+	lib/test_plugin_complete
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** \
 	     $(srcdir)/debug-info-data/** \
