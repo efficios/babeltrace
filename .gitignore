@@ -21,6 +21,9 @@
 /tests/lib/test_seek_big_trace
 /tests/lib/test_seek_empty_packet
 /tests/lib/test_trace_listener
+/tests/lib/test_plugin
+/tests/lib/test_plugin_complete
+/tests/lib/writer/bt_python_helper.py
 *.o
 *.a
 *.la
