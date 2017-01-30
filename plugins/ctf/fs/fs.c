@@ -638,6 +638,9 @@ error:
 static
 void ctf_fs_destroy_data(struct ctf_fs_component *ctf_fs)
 {
+	if (!ctf_fs) {
+		return;
+	}
 	if (ctf_fs->trace_path) {
 		g_string_free(ctf_fs->trace_path, TRUE);
 	}
