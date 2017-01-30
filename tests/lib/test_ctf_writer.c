@@ -3532,8 +3532,6 @@ int main(int argc, char **argv)
 	ok(metadata_string, "Get metadata string");
 
 	bt_ctf_writer_flush_metadata(writer);
-	validate_metadata(argv[1], metadata_path);
-	validate_trace(argv[2], trace_path);
 
 	bt_put(clock);
 	bt_put(ret_stream_class);
@@ -3551,6 +3549,9 @@ int main(int argc, char **argv)
 	bt_put(trace);
 	free(metadata_string);
 	bt_put(stream_class);
+
+	validate_metadata(argv[1], metadata_path);
+	validate_trace(argv[2], trace_path);
 
 	recursive_rmdir(trace_path);
 	return 0;
