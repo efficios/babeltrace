@@ -679,7 +679,7 @@ struct bt_plugin **bt_plugin_create_all_from_sections(
 			descriptors_begin[i];
 		struct bt_plugin *plugin;
 
-		printf_verbose("Loading plugin %s (%d.%d)\n", descriptor->name,
+		printf_verbose("Loading plugin %s (ABI %d.%d)\n", descriptor->name,
 			descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
