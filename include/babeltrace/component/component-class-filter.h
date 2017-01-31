@@ -33,9 +33,6 @@ extern "C" {
 
 struct bt_component_class;
 
-typedef enum bt_component_status (*bt_component_class_filter_init_iterator_method)(
-		struct bt_component *, struct bt_notification_iterator *);
-
 typedef enum bt_component_status (*bt_component_class_filter_add_iterator_method)(
 		struct bt_component *, struct bt_notification_iterator *);
 
