@@ -47,6 +47,10 @@ extern
 struct bt_notification_iterator *bt_component_source_create_iterator(
 		struct bt_component *component);
 
+extern
+struct bt_notification_iterator *bt_component_source_create_iterator_with_init_method_data(
+        struct bt_component *component, void *init_method_data);
+
 #ifdef __cplusplus
 }
 #endif

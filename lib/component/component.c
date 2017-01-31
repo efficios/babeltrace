@@ -107,7 +107,7 @@ enum bt_component_class_type bt_component_get_class_type(
 
 BT_HIDDEN
 struct bt_notification_iterator *bt_component_create_iterator(
-		struct bt_component *component)
+		struct bt_component *component, void *init_method_data)
 {
 	enum bt_notification_iterator_status ret_iterator;
 	enum bt_component_class_type type;
@@ -139,7 +139,7 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		source_class = container_of(class, struct bt_component_class_source, parent);
 		assert(source_class->methods.iterator.init);
 		status = source_class->methods.iterator.init(component,
-				iterator);
+				iterator, init_method_data);
 		if (status < 0) {
 			goto error;
 		}
@@ -153,7 +153,7 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		filter_class = container_of(class, struct bt_component_class_filter, parent);
 		assert(filter_class->methods.iterator.init);
 		status = filter_class->methods.iterator.init(component,
-				iterator);
+				iterator, init_method_data);
 		if (status < 0) {
 			goto error;
 		}

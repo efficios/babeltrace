@@ -42,6 +42,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <assert.h>
+#include <plugins-common.h>
 
 BT_HIDDEN
 void trimmer_iterator_destroy(struct bt_notification_iterator *it)
@@ -61,7 +62,8 @@ void trimmer_iterator_destroy(struct bt_notification_iterator *it)
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
 		struct bt_component *component,
-		struct bt_notification_iterator *iterator)
+		struct bt_notification_iterator *iterator,
+		UNUSED_VAR void *init_method_data)
 {
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;

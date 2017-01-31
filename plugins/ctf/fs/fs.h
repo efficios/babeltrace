@@ -115,7 +115,8 @@ void ctf_fs_destroy(struct bt_component *component);
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_iterator_init(
 		struct bt_component *source,
-		struct bt_notification_iterator *it);
+		struct bt_notification_iterator *it,
+		void *init_method_data);
 
 void ctf_fs_iterator_destroy(struct bt_notification_iterator *it);
 

@@ -58,7 +58,7 @@ typedef void (*bt_component_class_destroy_method)(struct bt_component *component
 typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_init_method)(
 		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
+		struct bt_notification_iterator *iterator, void *init_method_data);
 
 typedef void (*bt_component_class_notification_iterator_destroy_method)(
 		struct bt_notification_iterator *iterator);

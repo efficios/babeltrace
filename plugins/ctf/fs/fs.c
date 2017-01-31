@@ -584,7 +584,8 @@ end:
 }
 
 enum bt_notification_iterator_status ctf_fs_iterator_init(struct bt_component *source,
-		struct bt_notification_iterator *it)
+		struct bt_notification_iterator *it,
+		UNUSED_VAR void *init_method_data)
 {
 	struct ctf_fs_iterator *ctf_it;
 	struct ctf_fs_component *ctf_fs;

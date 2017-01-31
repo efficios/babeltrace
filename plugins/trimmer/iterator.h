@@ -40,7 +40,7 @@ struct trimmer_iterator {
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
 		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
+		struct bt_notification_iterator *iterator, void *init_method_data);
 
 BT_HIDDEN
 void trimmer_iterator_destroy(struct bt_notification_iterator *it);

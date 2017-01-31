@@ -59,6 +59,10 @@ extern
 struct bt_notification_iterator *bt_component_filter_create_iterator(
 		struct bt_component *component);
 
+extern
+struct bt_notification_iterator *bt_component_filter_create_iterator_with_init_method_data(
+        struct bt_component *component, void *init_method_data);
+
 /* Defaults to 1. */
 extern enum bt_component_status
 bt_component_filter_set_minimum_input_count(struct bt_component *filter,

@@ -25,7 +25,8 @@ static enum bt_component_status sink_consume(struct bt_component *component)
 
 static enum bt_notification_iterator_status dummy_iterator_init_method(
 		struct bt_component *component,
-		struct bt_notification_iterator *iterator)
+		struct bt_notification_iterator *iterator,
+		void *init_method_data)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
