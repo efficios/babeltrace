@@ -130,7 +130,8 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int bin_info_set_debug_link(struct bin_info *bin, char *filename, uint32_t crc);
+int bin_info_set_debug_link(struct bin_info *bin, const char *filename,
+		uint32_t crc);
 
 /**
  * Returns whether or not the given bin info \p bin contains the

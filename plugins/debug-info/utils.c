@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/utils.h>
+#include "utils.h"
 
 BT_HIDDEN
 const char *get_filename_from_path(const char *path)

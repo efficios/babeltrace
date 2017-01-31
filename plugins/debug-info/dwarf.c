@@ -27,7 +27,7 @@
  */
 
 #include <glib.h>
-#include <babeltrace/dwarf.h>
+#include "dwarf.h"
 
 BT_HIDDEN
 struct bt_dwarf_cu *bt_dwarf_cu_create(Dwarf *dwarf_info)

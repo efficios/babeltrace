@@ -72,11 +72,6 @@ noinst_HEADERS = \
 	babeltrace/prio_heap.h \
 	babeltrace/ref-internal.h \
 	babeltrace/object-internal.h \
-	babeltrace/crc32.h \
-	babeltrace/dwarf.h \
-	babeltrace/bin-info.h \
-	babeltrace/utils.h \
-	babeltrace/list.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/ctf-writer/serialize-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \

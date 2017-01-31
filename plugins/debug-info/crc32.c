@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include <babeltrace/crc32.h>
+#include "crc32.h"
 
 #define CRC(crc, ch)	 (crc = (crc >> 8) ^ crctab[(crc ^ (ch)) & 0xff])
 

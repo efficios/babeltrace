@@ -25,10 +25,6 @@ babeltrace_bin_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/common/libbabeltrace-common.la
 
-if ENABLE_DEBUG_INFO
-babeltrace_bin_LDADD += $(top_builddir)/lib/libdebug-info.la
-endif
-
 if BUILT_IN_PLUGINS
 babeltrace_bin_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
 endif

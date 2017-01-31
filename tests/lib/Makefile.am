@@ -56,19 +56,20 @@ test_cc_prio_map_SOURCES = test_cc_prio_map.c
 check_SCRIPTS = test_ctf_writer_complete \
 		test_plugin_complete
 
-if ENABLE_DEBUG_INFO
-test_dwarf_LDFLAGS = -static
-test_dwarf_LDADD = $(LIBTAP) \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/lib/libdebug-info.la
-test_dwarf_SOURCES = test_dwarf.c
+#FIXME
+#if ENABLE_DEBUG_INFO
+#test_dwarf_LDFLAGS = -static
+#test_dwarf_LDADD = $(LIBTAP) \
+#	$(top_builddir)/lib/libbabeltrace.la \
+#	$(top_builddir)/lib/libdebug-info.la
+#test_dwarf_SOURCES = test_dwarf.c
 
-test_bin_info_LDFLAGS = -static
-test_bin_info_LDADD = $(LIBTAP) \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/lib/libdebug-info.la
-test_bin_info_SOURCES = test_bin_info.c
+#test_bin_info_LDFLAGS = -static
+#test_bin_info_LDADD = $(LIBTAP) \
+#	$(top_builddir)/lib/libbabeltrace.la \
+#	$(top_builddir)/lib/libdebug-info.la
+#test_bin_info_SOURCES = test_bin_info.c
 
-noinst_PROGRAMS += test_dwarf test_bin_info
-check_SCRIPTS += test_dwarf_complete test_bin_info_complete
-endif
+#noinst_PROGRAMS += test_dwarf test_bin_info
+#check_SCRIPTS += test_dwarf_complete test_bin_info_complete
+#endif

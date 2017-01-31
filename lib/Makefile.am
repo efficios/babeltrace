@@ -7,17 +7,6 @@ lib_LTLIBRARIES = libbabeltrace.la
 libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c
 libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 
-if ENABLE_DEBUG_INFO
-noinst_LTLIBRARIES = libdebug-info.la
-
-libdebug_info_la_SOURCES = bin-info.c \
-			  dwarf.c \
-			  crc32.c \
-			  utils.c
-libdebug_info_la_LDFLAGS = -lelf -ldw
-libdebug_info_la_LIBADD = libbabeltrace.la
-endif
-
 libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
 	$(top_builddir)/compat/libcompat.la \
