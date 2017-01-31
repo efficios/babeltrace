@@ -400,7 +400,7 @@ int connect_source_sink(struct bt_component *source,
 	struct bt_notification_iterator *source_it = NULL;
 	struct bt_notification_iterator *to_sink_it = NULL;
 
-	source_it = bt_component_source_create_iterator(source);
+	source_it = bt_component_source_create_notification_iterator(source);
 	if (!source_it) {
 		fprintf(stderr, "Failed to instantiate source iterator. Aborting...\n");
                 ret = -1;
@@ -428,7 +428,7 @@ int connect_source_sink(struct bt_component *source,
 			goto end;
 		}
 
-		to_sink_it = bt_component_filter_create_iterator(trimmer);
+		to_sink_it = bt_component_filter_create_notification_iterator(trimmer);
 		if (!to_sink_it) {
 			fprintf(stderr, "Failed to instantiate trimmer iterator. Aborting...\n");
 			ret = -1;
