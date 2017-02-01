@@ -137,11 +137,13 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		enum bt_notification_iterator_status status;
 
 		source_class = container_of(class, struct bt_component_class_source, parent);
-		assert(source_class->methods.iterator.init);
-		status = source_class->methods.iterator.init(component,
-				iterator, init_method_data);
-		if (status < 0) {
-			goto error;
+
+		if (source_class->methods.iterator.init) {
+			status = source_class->methods.iterator.init(component,
+					iterator, init_method_data);
+			if (status < 0) {
+				goto error;
+			}
 		}
 		break;
 	}
@@ -151,11 +153,13 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		enum bt_notification_iterator_status status;
 
 		filter_class = container_of(class, struct bt_component_class_filter, parent);
-		assert(filter_class->methods.iterator.init);
-		status = filter_class->methods.iterator.init(component,
-				iterator, init_method_data);
-		if (status < 0) {
-			goto error;
+
+		if (filter_class->methods.iterator.init) {
+			status = filter_class->methods.iterator.init(component,
+					iterator, init_method_data);
+			if (status < 0) {
+				goto error;
+			}
 		}
 		break;
 	}
