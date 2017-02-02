@@ -8,6 +8,7 @@ libbabeltrace_ctf_text_la_SOURCES = \
 	ctf-text.c
 
 libbabeltrace_ctf_text_la_LDFLAGS = \
+	$(LT_NO_UNDEFINED) \
 	$(LD_NO_AS_NEEDED) -version-info $(BABELTRACE_LIBRARY_VERSION) \
 	types/libctf-text-types.la
 

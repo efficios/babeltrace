@@ -20,6 +20,8 @@ libctf_ir_la_SOURCES = \
 	values.c \
 	ref.c
 
+libctf_ir_la_LDFLAGS = $(LT_NO_UNDEFINED)
+
 libctf_ir_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
 

@@ -9,6 +9,8 @@ libctf_writer_la_SOURCES = \
 libctf_writer_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
 
+libctf_writer_la_LDFLAGS = $(LT_NO_UNDEFINED)
+
 if BABELTRACE_BUILD_WITH_LIBUUID
 libctf_writer_la_LIBADD += -luuid
 endif

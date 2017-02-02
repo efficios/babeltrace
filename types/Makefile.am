@@ -12,3 +12,5 @@ libbabeltrace_types_la_SOURCES = \
 	struct.c \
 	variant.c \
 	types.c
+
+libbabeltrace_types_la_LDFLAGS = $(LT_NO_UNDEFINED)

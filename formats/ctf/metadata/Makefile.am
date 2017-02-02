@@ -16,6 +16,7 @@ libctf_parser_la_SOURCES = ctf-lexer.l ctf-parser.y objstack.c
 # with bt_.
 libctf_parser_la_CFLAGS = $(AM_CFLAGS) -I$(srcdir) \
 		-include $(srcdir)/ctf-scanner-symbols.h
+libctf_parser_la_LDFLAGS = $(LT_NO_UNDEFINED)
 
 libctf_ast_la_CFLAGS = $(AM_CFLAGS) -I$(builddir)
 libctf_ast_la_SOURCES = ctf-visitor-xml.c \
@@ -24,6 +25,7 @@ libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 		ctf-visitor-generate-io-struct.c
 libctf_ast_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la
+libctf_ast_la_LDFLAGS = $(LT_NO_UNDEFINED)
 
 if BABELTRACE_BUILD_WITH_LIBUUID
 libctf_ast_la_LIBADD += -luuid

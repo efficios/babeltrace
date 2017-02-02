@@ -128,6 +128,7 @@ AC_CHECK_FUNCS([ \
 
 MINGW32=no
 DEFAULT_ENABLE_DEBUG_INFO=yes
+LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],
     [
@@ -136,10 +137,16 @@ AS_CASE([$host_os],
   [mingw*],
     [
 	MINGW32=yes
+	LT_NO_UNDEFINED="-no-undefined"
+    ],
+  [cygwin*],
+    [
+	LT_NO_UNDEFINED="-no-undefined"
     ]
 )
 
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
+AC_SUBST(LT_NO_UNDEFINED)
 
 # Check what libraries are required on this platform to link sockets programs.
 AX_LIB_SOCKET_NSL
