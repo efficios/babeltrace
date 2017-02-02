@@ -939,30 +939,23 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			goto end;
 		}
 
-		/* Write packet context */
-		memcpy(&packet_context_pos, &stream->pos,
-			sizeof(struct ctf_stream_pos));
-		ret = bt_ctf_field_serialize(stream->packet_context,
-			&stream->pos);
-		if (ret) {
-			goto end;
-		}
-
 		ret = bt_ctf_stream_get_discarded_events_count(stream,
 			&events_discarded);
 		if (ret) {
 			goto end;
 		}
 
-		/* Unset the packet context's fields. */
-		ret = bt_ctf_field_reset(stream->packet_context);
+		ret = set_structure_field_integer(stream->packet_context,
+			"events_discarded", events_discarded);
 		if (ret) {
 			goto end;
 		}
 
-		/* Set the previous number of discarded events. */
-		ret = set_structure_field_integer(stream->packet_context,
-			"events_discarded", events_discarded);
+		/* Write packet context */
+		memcpy(&packet_context_pos, &stream->pos,
+			sizeof(struct ctf_stream_pos));
+		ret = bt_ctf_field_serialize(stream->packet_context,
+			&stream->pos);
 		if (ret) {
 			goto end;
 		}
