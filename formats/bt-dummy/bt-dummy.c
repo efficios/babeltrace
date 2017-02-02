@@ -38,6 +38,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+void bt_dummy_hook(void)
+{
+	/*
+	 * Dummy function to prevent the linker from discarding this format as
+	 * "unused" in static builds.
+	 */
+}
+
 static
 int bt_dummy_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {

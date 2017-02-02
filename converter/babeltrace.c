@@ -76,6 +76,12 @@ static int opt_stream_intersection;
 
 static struct bt_format *fmt_read;
 
+void bt_dummy_hook(void);
+void bt_lttng_live_hook(void);
+void bt_ctf_hook(void);
+void bt_ctf_text_hook(void);
+void bt_ctf_metadata_hook(void);
+
 static
 void strlower(char *str)
 {
@@ -703,6 +709,15 @@ error_iter:
 	return ret;
 }
 
+void call_plugins_hooks(void)
+{
+	bt_dummy_hook();
+	bt_lttng_live_hook();
+	bt_ctf_hook();
+	bt_ctf_text_hook();
+	bt_ctf_metadata_hook();
+}
+
 int main(int argc, char **argv)
 {
 	int ret, partial_error = 0, open_success = 0;
@@ -710,6 +725,8 @@ int main(int argc, char **argv)
 	struct bt_trace_descriptor *td_write;
 	struct bt_context *ctx;
 	int i;
+
+	call_plugins_hooks();
 
 	opt_input_paths = g_ptr_array_new();
 
