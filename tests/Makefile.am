@@ -32,4 +32,5 @@ endif
 
 if USE_PYTHON
 TESTS += bin/intersection/test_multi_trace_intersection.py
+TESTS += lib/writer/test_ctf_writer_no_packet_context.py
 endif
