@@ -26,32 +26,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if !defined(__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
-
-/* XSI-compliant strerror_r */
-static inline
-int compat_strerror_r(int errnum, char *buf, size_t buflen)
-{
-	return strerror_r(errnum, buf, buflen);
-}
-
-#else
-
-/* GNU-compliant strerror_r */
-static inline
-int compat_strerror_r(int errnum, char *buf, size_t buflen)
-{
-	char *retbuf;
-
-	retbuf = strerror_r(errnum, buf, buflen);
-	if (retbuf != buf)
-		strncpy(buf, retbuf, buflen);
-	buf[buflen - 1] = '\0';
-	return 0;
-}
-
-#endif
-
 #ifdef HAVE_STRNLEN
 static inline
 size_t bt_strnlen(const char *str, size_t max)
