@@ -1979,20 +1979,20 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 	}
 
 	for (i = 0; i < structure->fields->len; i++) {
-		struct bt_ctf_field *field = g_ptr_array_index(
+		struct bt_ctf_field *member = g_ptr_array_index(
 			structure->fields, i);
 
-		ret = bt_ctf_field_serialize(field, pos);
+		ret = bt_ctf_field_serialize(member, pos);
 		if (ret) {
 			const char *name;
-			struct bt_ctf_field_type *field_type =
+			struct bt_ctf_field_type *structure_type =
 					bt_ctf_field_get_type(field);
 
-			(void) bt_ctf_field_type_structure_get_field(field_type,
-					&name, NULL, i);
+			(void) bt_ctf_field_type_structure_get_field(
+					structure_type, &name, NULL, i);
 			fprintf(stderr, "Field %s failed to serialize\n",
 					name ? name : "NULL");
-			bt_put(field_type);
+			bt_put(structure_type);
 			break;
 		}
 	}
