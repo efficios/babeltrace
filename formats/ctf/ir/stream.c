@@ -895,10 +895,6 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	empty_packet = (stream->events->len == 0);
-	ret = bt_ctf_field_validate(stream->packet_header);
-	if (ret) {
-		goto end;
-	}
 
 	/* mmap the next packet */
 	ctf_packet_seek(&stream->pos.parent, 0, SEEK_CUR);
