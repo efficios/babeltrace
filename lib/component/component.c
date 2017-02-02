@@ -249,7 +249,7 @@ const char *bt_component_get_name(struct bt_component *component)
 		goto end;
 	}
 
-	ret = component->name->str;
+	ret = component->name->len == 0 ? NULL : component->name->str;
 end:
 	return ret;
 }
