@@ -31,36 +31,116 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/object-internal.h>
 #include <stdbool.h>
-#include <gmodule.h>
+#include <glib.h>
 
-struct bt_plugin_shared_lib_handle {
-	struct bt_object base;
-	GString *path;
-	GModule *module;
-
-	/* True if initialization function was called */
-	bool init_called;
-	bt_plugin_exit_func exit;
+enum bt_plugin_type {
+	BT_PLUGIN_TYPE_SO = 0,
+	BT_PLUGIN_TYPE_PYTHON = 1,
 };
 
 struct bt_plugin {
 	struct bt_object base;
+	enum bt_plugin_type type;
 	bool frozen;
-
-	/* Owned by this */
-	struct bt_plugin_shared_lib_handle *shared_lib_handle;
 
 	/* Array of pointers to bt_component_class (owned by this) */
 	GPtrArray *comp_classes;
 
-	/* Pointers to plugin's memory: do NOT free */
-	const struct __bt_plugin_descriptor *descriptor;
-	const char *name;
-	const char *author;
-	const char *license;
-	const char *description;
-	bt_plugin_init_func init;
-	const struct __bt_plugin_descriptor_version *version;
+	/* Info (owned by this) */
+	struct {
+		GString *path;
+		GString *name;
+		GString *author;
+		GString *license;
+		GString *description;
+		struct {
+			unsigned int major;
+			unsigned int minor;
+			unsigned int patch;
+			GString *extra;
+		} version;
+		bool path_set;
+		bool name_set;
+		bool author_set;
+		bool license_set;
+		bool description_set;
+		bool version_set;
+	} info;
+
+	/* Value depends on the specific plugin type */
+	void *spec_data;
 };
+
+BT_HIDDEN
+struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type);
+
+static inline
+void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
+{
+	assert(plugin);
+	assert(path);
+	g_string_assign(plugin->info.path, path);
+	plugin->info.path_set = true;
+}
+
+static inline
+void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
+{
+	assert(plugin);
+	assert(name);
+	g_string_assign(plugin->info.name, name);
+	plugin->info.name_set = true;
+}
+
+static inline
+void bt_plugin_set_description(struct bt_plugin *plugin,
+		const char *description)
+{
+	assert(plugin);
+	assert(description);
+	g_string_assign(plugin->info.description, description);
+	plugin->info.description_set = true;
+}
+
+static inline
+void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
+{
+	assert(plugin);
+	assert(author);
+	g_string_assign(plugin->info.author, author);
+	plugin->info.author_set = true;
+}
+
+static inline
+void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
+{
+	assert(plugin);
+	assert(license);
+	g_string_assign(plugin->info.license, license);
+	plugin->info.license_set = true;
+}
+
+static inline
+void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
+		unsigned int minor, unsigned int patch, const char *extra)
+{
+	assert(plugin);
+	plugin->info.version.major = major;
+	plugin->info.version.minor = minor;
+	plugin->info.version.patch = patch;
+
+	if (extra) {
+		g_string_assign(plugin->info.version.extra, extra);
+	}
+
+	plugin->info.version_set = true;
+}
+
+static inline
+void bt_plugin_freeze(struct bt_plugin *plugin)
+{
+	assert(plugin);
+	plugin->frozen = true;
+}
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

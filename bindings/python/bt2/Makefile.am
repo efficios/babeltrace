@@ -39,7 +39,8 @@ EXTRA_MODULES = 		\
 	component		\
 	notification		\
 	notification_iterator	\
-	plugin
+	plugin			\
+	py_plugin
 
 # automatically generated file lists
 EXTRA_MODULES_PY = $(addprefix $(srcdir)/,$(addsuffix .py,$(EXTRA_MODULES)))

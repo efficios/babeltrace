@@ -242,36 +242,28 @@ swig_version=2.0.0
 AC_ARG_ENABLE([python-bindings],
               [AC_HELP_STRING([--enable-python-bindings],
                               [generate Python bindings])],
-              [enable_python=yes], [enable_python=no])
+              [enable_python_bindings=yes], [enable_python_bindings=no])
 
-AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
+AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python_bindings:-yes}" = xyes])
 
-AC_ARG_ENABLE([python-bindings-doc],
-              [AC_HELP_STRING([--enable-python-bindings-doc],
-                              [generate Python bindings documentation])],
-              [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
+AC_ARG_ENABLE(
+	[python-plugins],
+	[AC_HELP_STRING(
+		[--enable-python-plugins],
+		[add support for the Babeltrace library and converter to load Python plugins])
+	],
+	[enable_python_plugins=yes],
+	[enable_python_plugins=no]
+)
 
-AC_ARG_ENABLE([python-bindings-tests],
-              [AC_HELP_STRING([--enable-python-bindings-tests],
-                              [test Python bindings])],
-              [enable_python_bindings_tests=yes], [enable_python_bindings_tests=no])
-
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_TESTS], [test "x${enable_python_bindings_tests:-yes}" = xyes])
-
-if test "x${enable_python:-no}" = xno; then
-  if test "x${enable_python_bindings_doc:-yes}" = xyes; then
-    AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
-  fi
-
-  if test "x${enable_python_bindings_tests:-yes}" = xyes; then
-    AC_MSG_ERROR([--enable-python-bindings-tests was specified without --enable-python-bindings])
-  fi
+if test "x${enable_python_bindings:-yes}" = xyes; then
+  AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
+else
+    AC_MSG_NOTICE([You may configure with --enable-python-bindings ]dnl
+[if you want Python bindings.])
 fi
 
-AM_CONDITIONAL([BUILD_PYTHON_BINDINGS_DOC], [test "x${enable_python_bindings_doc:-yes}" = xyes])
-
-if test "x${enable_python:-yes}" = xyes; then
-  AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
+if test "x$enable_python_bindings" != xno || test "x$enable_python_plugins" != xno; then
   AM_PATH_PYTHON([3.0], , [AC_MSG_ERROR(Python3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
 
   AM_PATH_PYTHON_MODULES([PYTHON])
@@ -279,7 +271,8 @@ if test "x${enable_python:-yes}" = xyes; then
   pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
   # pyexecdir is the path that contains shared objects used by the extra modules
   pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
-  AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
+  AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for Python, bypassing python-config])
+  AC_ARG_VAR([PYTHON_LIBS], [Library flags for Python, bypassing python-config])
   AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
   AS_IF([test -z "$PYTHON_INCLUDE"], [
     AS_IF([test -z "$PYTHON_CONFIG"], [
@@ -289,14 +282,52 @@ if test "x${enable_python:-yes}" = xyes; then
                     [`dirname $PYTHON`])
       AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Do you have python-dev installed?])])
     ])
-    AC_MSG_CHECKING([python include flags])
+    AC_MSG_CHECKING([Python include flags])
     PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
     AC_MSG_RESULT([$PYTHON_INCLUDE])
   ])
-else
-    AC_MSG_NOTICE([You may configure with --enable-python-bindings ]dnl
-[if you want Python bindings.])
+  AS_IF([test -z "$PYTHON_LIBS"], [
+    AS_IF([test -z "$PYTHON_CONFIG"], [
+      AC_PATH_PROGS([PYTHON_CONFIG],
+                    [python$PYTHON_VERSION-config python-config],
+                    [no],
+                    [`dirname $PYTHON`])
+      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Do you have python-dev installed?])])
+    ])
+    AC_MSG_CHECKING([Python library flags])
+    PYTHON_LIBS=`$PYTHON_CONFIG --libs`
+    AC_MSG_RESULT([$PYTHON_LIBS])
+  ])
+fi
 
+AM_CONDITIONAL([WITH_PYTHON_PLUGINS], [test "x$enable_python_plugins" != xno])
+AS_IF(
+  [test "x$enable_python_plugins" != xno],
+  AC_DEFINE_UNQUOTED([WITH_PYTHON_PLUGINS], [1], [Python plugin support.])
+)
+
+AC_ARG_ENABLE([python-bindings-doc],
+              [AC_HELP_STRING([--enable-python-bindings-doc],
+                              [generate Python bindings documentation])],
+              [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
+
+AM_CONDITIONAL([BUILD_PYTHON_BINDINGS_DOC], [test "x${enable_python_bindings_doc:-yes}" = xyes])
+
+AC_ARG_ENABLE([python-bindings-tests],
+              [AC_HELP_STRING([--enable-python-bindings-tests],
+                              [test Python bindings])],
+              [enable_python_bindings_tests=yes], [enable_python_bindings_tests=no])
+
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_TESTS], [test "x${enable_python_bindings_tests:-yes}" = xyes])
+
+if test "x${enable_python_bindings:-no}" = xno; then
+  if test "x${enable_python_bindings_doc:-yes}" = xyes; then
+    AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
+  fi
+
+  if test "x${enable_python_bindings_tests:-yes}" = xyes; then
+    AC_MSG_ERROR([--enable-python-bindings-tests was specified without --enable-python-bindings])
+  fi
 fi
 
 if test "x${enable_python_bindings_doc:-yes}" = xyes; then
@@ -522,7 +553,7 @@ test "x$enable_api_doc" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([HTML API documentation], $value)
 
 # python bindings enabled/disabled
-test "x$enable_python" = "xyes" && value=1 || value=0
+test "x$enable_python_bindings" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python bindings], $value)
 
 # python bindings doc enabled/disabled
@@ -532,6 +563,10 @@ PPRINT_PROP_BOOL([Python bindings doc], $value)
 # python bindings tests enabled/disabled
 test "x$enable_python_bindings_tests" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python bindings tests], $value)
+
+# python plugins enabled/disabled
+test "x$enable_python_plugins" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python plugin support], $value)
 
 # debug info enabled/disabled
 test "x$_enable_debug_info" = "xyes" && value=1 || value=0

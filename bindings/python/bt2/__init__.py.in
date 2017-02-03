@@ -32,6 +32,7 @@ from bt2.fields import *
 from bt2.notification import *
 from bt2.notification_iterator import *
 from bt2.plugin import *
+from bt2.py_plugin import *
 from bt2.stream_class import *
 from bt2.trace import *
 from bt2.values import *
