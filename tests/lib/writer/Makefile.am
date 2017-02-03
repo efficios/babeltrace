@@ -1,7 +1,10 @@
-check_SCRIPTS = test_ctf_writer_no_packet_context.py
+TESTS = test_ctf_writer_no_packet_context.py \
+		test_ctf_writer_empty_packet.py
 
-dist_noinst_SCRIPTS = test_ctf_writer_no_packet_context.py
-EXTRA_DIST = test_ctf_writer_no_packet_context.py
+check_SCRIPTS = $(TESTS)
+
+dist_noinst_SCRIPTS = $(TESTS)
+EXTRA_DIST = $(TESTS)
 
 all-local:
 	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
