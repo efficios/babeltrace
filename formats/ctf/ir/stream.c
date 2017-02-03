@@ -1059,6 +1059,16 @@ end:
 				"content_size");
 	}
 	bt_put(integer);
+
+	if (ret < 0) {
+		/*
+		 * We failed to write the packet. Its size is therefore set to 0
+		 * to ensure the next mapping is done in the same place rather
+		 * than advancing by "stream->pos.packet_size", which would
+		 * leave a corrupted packet in the trace.
+		 */
+		stream->pos.packet_size = 0;
+	}
 	return ret;
 }
 
