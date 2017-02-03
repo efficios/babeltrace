@@ -1903,6 +1903,10 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_integer *integer = container_of(field,
 		struct bt_ctf_field_integer, parent);
 
+	if (!bt_ctf_field_generic_is_set(field)) {
+		ret = -1;
+		goto end;
+	}
 retry:
 	ret = ctf_integer_write(&pos->parent, &integer->definition.p);
 	if (ret == -EFAULT) {
@@ -1938,6 +1942,10 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_floating_point *floating_point = container_of(field,
 		struct bt_ctf_field_floating_point, parent);
 
+	if (!bt_ctf_field_generic_is_set(field)) {
+		ret = -1;
+		goto end;
+	}
 retry:
 	ret = ctf_float_write(&pos->parent, &floating_point->definition.p);
 	if (ret == -EFAULT) {
