@@ -47,6 +47,8 @@
 static
 void bt_ctf_stream_destroy(struct bt_object *obj);
 static
+int try_set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
+static
 int set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
 
 static
@@ -392,9 +394,10 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 			}
 
 			/* Initialize events_discarded */
-			ret = set_structure_field_integer(stream->packet_context,
+			ret = try_set_structure_field_integer(
+				stream->packet_context,
 				"events_discarded", 0);
-			if (ret) {
+			if (ret != 1) {
 				goto error;
 			}
 		}
@@ -909,9 +912,10 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		if (!empty_packet && !get_event_header_timestamp(
 			((struct bt_ctf_event *) g_ptr_array_index(
 				stream->events, 0))->event_header, &timestamp_begin)) {
-			ret = set_structure_field_integer(stream->packet_context,
+			ret = try_set_structure_field_integer(
+				stream->packet_context,
 				"timestamp_begin", timestamp_begin);
-			if (ret) {
+			if (ret < 0) {
 				goto end;
 			}
 		}
@@ -921,33 +925,22 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 				stream->events, stream->events->len - 1))->event_header,
 				&timestamp_end)) {
 
-			ret = set_structure_field_integer(stream->packet_context,
+			ret = try_set_structure_field_integer(
+				stream->packet_context,
 				"timestamp_end", timestamp_end);
-			if (ret) {
+			if (ret < 0) {
 				goto end;
 			}
 		}
-		ret = set_structure_field_integer(stream->packet_context,
+		ret = try_set_structure_field_integer(stream->packet_context,
 			"content_size", UINT64_MAX);
-		if (ret) {
+		if (ret < 0) {
 			goto end;
 		}
 
-		ret = set_structure_field_integer(stream->packet_context,
+		ret = try_set_structure_field_integer(stream->packet_context,
 			"packet_size", UINT64_MAX);
-		if (ret) {
-			goto end;
-		}
-
-		ret = bt_ctf_stream_get_discarded_events_count(stream,
-			&events_discarded);
-		if (ret) {
-			goto end;
-		}
-
-		ret = set_structure_field_integer(stream->packet_context,
-			"events_discarded", events_discarded);
-		if (ret) {
+		if (ret < 0) {
 			goto end;
 		}
 
@@ -1084,8 +1077,8 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 }
 
 static
-int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
-		uint64_t value)
+int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
+		uint64_t value, bool force)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
@@ -1103,13 +1096,12 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	}
 
 	/* Make sure the payload has not already been set. */
-	if (bt_ctf_field_is_set(integer)) {
+	if (!force && bt_ctf_field_is_set(integer)) {
 		/* Payload already set, not an error */
 		goto end;
 	}
 
 	field_type = bt_ctf_field_get_type(integer);
-	/* Something is serioulsly wrong */
 	assert(field_type);
 	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
 		/*
@@ -1127,10 +1119,31 @@ int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	} else {
 		ret = bt_ctf_field_unsigned_integer_set_value(integer, value);
 	}
+	ret = !ret ? 1 : ret;
 end:
 	bt_put(integer);
 	bt_put(field_type);
 	return ret;
+}
+
+static
+int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
+		uint64_t value)
+{
+	return _set_structure_field_integer(structure, name, value, true);
+}
+
+/*
+ * Returns the following codes:
+ * 1 if the field was found and set,
+ * 0 if nothing was done (field not found, or was already set),
+ * <0 if an error was encoutered
+ */
+static
+int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
+		uint64_t value)
+{
+	return _set_structure_field_integer(structure, name, value, false);
 }
 
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
