@@ -41,6 +41,16 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/plugin-dev.h
 
+babeltracecomponentnotifinclude_HEADERS = \
+	babeltrace/component/notification/eot.h \
+	babeltrace/component/notification/notification.h \
+	babeltrace/component/notification/event.h \
+	babeltrace/component/notification/iterator.h \
+	babeltrace/component/notification/packet.h \
+	babeltrace/component/notification/schema.h \
+	babeltrace/component/notification/stream.h \
+	babeltrace/component/notification/heap.h
+
 babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component.h \
 	babeltrace/component/component-class.h \
@@ -51,15 +61,7 @@ babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component-graph.h \
 	babeltrace/component/component-source.h \
 	babeltrace/component/component-sink.h \
-	babeltrace/component/component-filter.h \
-	babeltrace/component/notification/eot.h \
-	babeltrace/component/notification/notification.h \
-	babeltrace/component/notification/event.h \
-	babeltrace/component/notification/iterator.h \
-	babeltrace/component/notification/packet.h \
-	babeltrace/component/notification/schema.h \
-	babeltrace/component/notification/stream.h \
-	babeltrace/component/notification/heap.h
+	babeltrace/component/component-filter.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \

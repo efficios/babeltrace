@@ -352,6 +352,9 @@ AC_SUBST(babeltracepluginincludedir)
 babeltracecomponentincludedir="${includedir}/babeltrace/component"
 AC_SUBST(babeltracecomponentincludedir)
 
+babeltracecomponentnotifincludedir="${includedir}/babeltrace/component/notification"
+AC_SUBST(babeltracecomponentnotifincludedir)
+
 program_transform_name="s&babeltrace\.bin&babeltrace&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
