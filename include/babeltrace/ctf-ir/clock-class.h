@@ -76,6 +76,8 @@ extern int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 		const unsigned char *uuid);
 extern struct bt_ctf_clock_value *bt_ctf_clock_value_create(
 		struct bt_ctf_clock_class *clock_class, uint64_t value);
+extern struct bt_ctf_clock_class *bt_ctf_clock_value_get_class(
+		struct bt_ctf_clock_value *clock_value);
 extern int bt_ctf_clock_value_get_value(
 		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value);
 extern int bt_ctf_clock_value_get_value_ns_from_epoch(

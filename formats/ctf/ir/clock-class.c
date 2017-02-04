@@ -480,3 +480,18 @@ int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
 end:
 	return ret;
 }
+
+struct bt_ctf_clock_class *bt_ctf_clock_value_get_class(
+		struct bt_ctf_clock_value *clock_value)
+{
+	struct bt_ctf_clock_class *clock_class = NULL;
+
+	if (!clock_value) {
+		goto end;
+	}
+
+	clock_class = bt_get(clock_value->clock_class);
+
+end:
+	return clock_class;
+}
