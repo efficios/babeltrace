@@ -2034,8 +2034,7 @@ int set_event_clocks(struct bt_ctf_event *event,
 			ret = -1;
 			goto end;
 		}
-		ret = bt_ctf_event_set_clock_value(event, clock_class,
-			clock_value);
+		ret = bt_ctf_event_set_clock_value(event, clock_value);
 		bt_put(clock_value);
 		if (ret) {
 			goto end;

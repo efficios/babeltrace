@@ -582,18 +582,17 @@ end:
 }
 
 int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
-		struct bt_ctf_clock_class *clock_class,
 		struct bt_ctf_clock_value *value)
 {
 	int ret = 0;
 
-	if (!event || !clock_class || !value || event->frozen) {
+	if (!event || !value || event->frozen) {
 		ret = -1;
 		goto end;
 	}
 
-	g_hash_table_insert(event->clock_values, bt_get(clock_class),
-		bt_get(value));
+	g_hash_table_insert(event->clock_values,
+		bt_ctf_clock_value_get_class(value), bt_get(value));
 end:
 	return ret;
 }

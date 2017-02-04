@@ -540,29 +540,25 @@ extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
 
 /**
 @brief	Sets the value, as of the CTF IR event \p event, of the
-	clock described by the
-	\link ctfirclockclass CTF IR clock class\endlink \p clock_class.
+	clock described by its \link ctfirclockclass CTF IR
+	clock class\endlink.
 
 @param[in] event	Event of which to set the value of the clock
-			described by \p clock_class.
-@param[in] clock_class	Class of the clock of which to set the value
-			for \p event.
-@param[in] clock_value	Value of the clock described by \p clock_class
+			described by the clock class of \p clock_value.
+@param[in] clock_value	Value of the clock described by its clock class
 			as of \p event.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event}
-@prenotnull{clock_class}
 @prenotnull{clock_value}
 @prehot{event}
 @postrefcountsame{event}
-@postrefcountsame{clock_class}
 
 @sa bt_ctf_event_get_clock_value(): Returns the clock value of
 	a given event.
 */
 extern int bt_ctf_event_set_clock_value(
-		struct bt_ctf_event *event, struct bt_ctf_clock_class *clock_class,
+		struct bt_ctf_event *event,
 		struct bt_ctf_clock_value *clock_value);
 
 /** @} */
