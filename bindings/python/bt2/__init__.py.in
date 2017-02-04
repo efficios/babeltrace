@@ -1,0 +1,73 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+__version__ = '@PACKAGE_VERSION@'
+
+
+from bt2.clock_class import *
+from bt2.component import *
+from bt2.ctf_writer import *
+from bt2.event_class import *
+from bt2.field_types import *
+from bt2.fields import *
+from bt2.notification import *
+from bt2.notification_iterator import *
+from bt2.plugin import *
+from bt2.stream_class import *
+from bt2.trace import *
+from bt2.values import *
+
+
+class Error(Exception):
+    pass
+
+
+class CreationError(Error):
+    pass
+
+
+class FrozenError(Error):
+    pass
+
+
+class UnsupportedFeature(Exception):
+    pass
+
+
+class TryAgain(Exception):
+    pass
+
+
+class Stop(StopIteration):
+    pass
+
+
+class IncompleteUserClassError(Error):
+    pass
+
+
+
+import bt2.native_bt as _native_bt
+import atexit
+
+atexit.register(_native_bt.py3_cc_exit_handler)
+_native_bt.py3_cc_init_from_bt2()

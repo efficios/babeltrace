@@ -415,6 +415,8 @@ AC_CONFIG_FILES([
 	bindings/Makefile
 	bindings/python/Makefile
 	bindings/python/babeltrace/Makefile
+	bindings/python/bt2/Makefile
+	bindings/python/bt2/__init__.py
 	tests/Makefile
 	tests/bin/Makefile
 	tests/bin/intersection/Makefile
