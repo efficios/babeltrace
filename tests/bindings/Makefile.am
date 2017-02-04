@@ -1,0 +1,3 @@
+if ENABLE_PYTHON_BINDINGS_TESTS
+SUBDIRS = python
+endif

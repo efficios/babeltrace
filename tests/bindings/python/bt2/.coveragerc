@@ -1,0 +1,14 @@
+[run]
+include = */babeltrace/bindings/python/bt2/*.py
+
+omit =
+    *native_*.py
+    */object.py
+    */utils.py
+
+[report]
+exclude_lines =
+    def __repr__
+    raise bt2\.CreationError
+    raise NotImplementedError
+    pass

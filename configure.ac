@@ -251,8 +251,21 @@ AC_ARG_ENABLE([python-bindings-doc],
                               [generate Python bindings documentation])],
               [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
 
-if test "x${enable_python:-no}" = xno && test "x${enable_python_bindings_doc:-yes}" = xyes; then
-  AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
+AC_ARG_ENABLE([python-bindings-tests],
+              [AC_HELP_STRING([--enable-python-bindings-tests],
+                              [test Python bindings])],
+              [enable_python_bindings_tests=yes], [enable_python_bindings_tests=no])
+
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_TESTS], [test "x${enable_python_bindings_tests:-yes}" = xyes])
+
+if test "x${enable_python:-no}" = xno; then
+  if test "x${enable_python_bindings_doc:-yes}" = xyes; then
+    AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
+  fi
+
+  if test "x${enable_python_bindings_tests:-yes}" = xyes; then
+    AC_MSG_ERROR([--enable-python-bindings-tests was specified without --enable-python-bindings])
+  fi
 fi
 
 AM_CONDITIONAL([BUILD_PYTHON_BINDINGS_DOC], [test "x${enable_python_bindings_doc:-yes}" = xyes])
@@ -290,6 +303,13 @@ if test "x${enable_python_bindings_doc:-yes}" = xyes; then
     AM_CHECK_PYTHON_SPHINX([PYTHON])
     AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno],
       AC_MSG_ERROR([The Sphinx package for Python 3 is required to build Python bindings documentation])
+    )
+fi
+
+if test "x${enable_python_bindings_tests:-yes}" = xyes; then
+    AM_CHECK_PYTHON_TAPPY([PYTHON])
+    AS_IF([test "x$PYTHON_TAPPY_EXISTS" = xno],
+        AC_MSG_ERROR([You need the tappy Python project to test the Python bindings (see <https://github.com/python-tap/tappy>)])
     )
 fi
 
@@ -425,6 +445,9 @@ AC_CONFIG_FILES([
 	tests/lib/test-plugin-plugins/Makefile
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
+	tests/bindings/Makefile
+	tests/bindings/python/Makefile
+	tests/bindings/python/bt2/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
@@ -457,6 +480,13 @@ AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
 AC_CONFIG_FILES([tests/bin/test_formats], [chmod +x tests/bin/test_formats])
+
+AS_IF([test "x$enable_python" = "xyes"], [
+	AC_CONFIG_FILES(
+		[tests/bindings/python/bt2/testall.sh],
+		[chmod +x tests/bindings/python/bt2/testall.sh]
+	)
+])
 
 AC_OUTPUT
 
@@ -498,6 +528,10 @@ PPRINT_PROP_BOOL([Python bindings], $value)
 # python bindings doc enabled/disabled
 test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python bindings doc], $value)
+
+# python bindings tests enabled/disabled
+test "x$enable_python_bindings_tests" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python bindings tests], $value)
 
 # debug info enabled/disabled
 test "x$_enable_debug_info" = "xyes" && value=1 || value=0

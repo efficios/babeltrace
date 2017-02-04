@@ -1,4 +1,4 @@
-SUBDIRS = utils bin lib
+SUBDIRS = utils bin lib bindings
 
 LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
@@ -33,5 +33,6 @@ endif
 if USE_PYTHON
 TESTS += bin/intersection/test_multi_trace_intersection.py \
 	lib/writer/test_ctf_writer_no_packet_context.py \
-	lib/writer/test_ctf_writer_empty_packet.py
+	lib/writer/test_ctf_writer_empty_packet.py \
+	bindings/python/bt2/testall.sh
 endif
