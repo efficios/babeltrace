@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <babeltrace/babeltrace.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/values.h>
 #include <popt.h>
 #include <glib.h>
@@ -37,11 +38,8 @@
 #include <pwd.h>
 #include "babeltrace-cfg.h"
 
-#define SYSTEM_PLUGIN_PATH		INSTALL_LIBDIR "/babeltrace/plugins"
 #define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
 #define DEFAULT_SINK_COMPONENT_NAME	"text.text"
-#define HOME_ENV_VAR			"HOME"
-#define HOME_SUBPATH			"/.babeltrace/plugins"
 
 /*
  * Error printf() macro which prepends "Error: " the first time it's
@@ -970,6 +968,11 @@ bool is_setuid_setgid(void)
 	return (geteuid() != getuid() || getegid() != getgid());
 }
 
+static void destroy_gstring(void *data)
+{
+	g_string_free(data, TRUE);
+}
+
 /*
  * Extracts the various paths from the string arg, delimited by ':',
  * and converts them to an array value object.
@@ -982,46 +985,31 @@ static
 enum bt_value_status plugin_paths_from_arg(struct bt_value *plugin_paths,
 		const char *arg)
 {
-	const char *at = arg;
-	const char *end = arg + strlen(arg);
+	enum bt_value_status status = BT_VALUE_STATUS_OK;
+	GPtrArray *dirs = g_ptr_array_new_with_free_func(destroy_gstring);
+	int ret;
+	size_t i;
 
-	while (at < end) {
-		int ret;
-		GString *path;
-		const char *next_colon;
-
-		next_colon = strchr(at, ':');
-		if (next_colon == at) {
-			/*
-			 * Empty path: try next character (supported
-			 * to conform to the typical parsing of $PATH).
-			 */
-			at++;
-			continue;
-		} else if (!next_colon) {
-			/* No more colon: use the remaining */
-			next_colon = arg + strlen(arg);
-		}
-
-		path = g_string_new(NULL);
-		if (!path) {
-			print_err_oom();
-			goto error;
-		}
-
-		g_string_append_len(path, at, next_colon - at);
-		at = next_colon + 1;
-		ret = bt_value_array_append_string(plugin_paths, path->str);
-		g_string_free(path, TRUE);
-		if (ret) {
-			print_err_oom();
-			goto error;
-		}
+	if (!dirs) {
+		status = BT_VALUE_STATUS_ERROR;
+		goto end;
 	}
 
-	return BT_VALUE_STATUS_OK;
-error:
-	return BT_VALUE_STATUS_ERROR;
+	ret = bt_common_append_plugin_path_dirs(arg, dirs);
+	if (ret) {
+		status = BT_VALUE_STATUS_ERROR;
+		goto end;
+	}
+
+	for (i = 0; i < dirs->len; i++) {
+		GString *dir = g_ptr_array_index(dirs, i);
+
+		bt_value_array_append_string(plugin_paths, dir->str);
+	}
+
+end:
+	g_ptr_array_free(dirs, TRUE);
+	return status;
 }
 
 /*
@@ -2254,53 +2242,23 @@ not_found:
 	return -1;
 }
 
-static char *bt_secure_getenv(const char *name)
-{
-	if (is_setuid_setgid()) {
-		printf_err("Disregarding %s environment variable for setuid/setgid binary", name);
-		return NULL;
-	}
-	return getenv(name);
-}
-
-static const char *get_home_dir(void)
-{
-	char *val = NULL;
-	struct passwd *pwd;
-
-	val = bt_secure_getenv(HOME_ENV_VAR);
-	if (val) {
-		goto end;
-	}
-	/* Fallback on password file. */
-	pwd = getpwuid(getuid());
-	if (!pwd) {
-		goto end;
-	}
-	val = pwd->pw_dir;
-end:
-	return val;
-}
-
 static int add_internal_plugin_paths(struct bt_config *cfg)
 {
-	if (!cfg->omit_home_plugin_path) {
-		char path[PATH_MAX];
-		const char *home_dir;
+	int ret;
 
-		if (is_setuid_setgid()) {
+	if (!cfg->omit_home_plugin_path) {
+		if (bt_common_is_setuid_setgid()) {
 			printf_debug("Skipping non-system plugin paths for setuid/setgid binary.");
 		} else {
-			home_dir = get_home_dir();
-			if (home_dir) {
-				if (strlen(home_dir) + strlen(HOME_SUBPATH) + 1
-						>= PATH_MAX) {
-					printf_err("Home directory path too long\n");
-					goto error;
-				}
-				strcpy(path, home_dir);
-				strcat(path, HOME_SUBPATH);
-				if (plugin_paths_from_arg(cfg->plugin_paths, path)) {
+			char *home_plugin_dir =
+				bt_common_get_home_plugin_path();
+
+			if (home_plugin_dir) {
+				ret = plugin_paths_from_arg(cfg->plugin_paths,
+					home_plugin_dir);
+				free(home_plugin_dir);
+
+				if (ret) {
 					printf_err("Invalid home plugin path\n");
 					goto error;
 				}
@@ -2310,7 +2268,7 @@ static int add_internal_plugin_paths(struct bt_config *cfg)
 
 	if (!cfg->omit_system_plugin_path) {
 		if (plugin_paths_from_arg(cfg->plugin_paths,
-				SYSTEM_PLUGIN_PATH)) {
+				bt_common_get_system_plugin_path())) {
 			printf_err("Invalid system plugin path\n");
 			goto error;
 		}

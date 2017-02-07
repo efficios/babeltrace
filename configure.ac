@@ -438,6 +438,7 @@ AS_IF([test "x$enable_api_doc" = "xyes"], [
 AC_CONFIG_FILES([
 	Makefile
 	types/Makefile
+	common/Makefile
 	compat/Makefile
 	formats/Makefile
 	formats/ctf/Makefile

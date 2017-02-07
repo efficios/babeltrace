@@ -32,4 +32,5 @@ libbabeltrace_la_LIBADD = \
 	$(top_builddir)/types/libbabeltrace_types.la \
 	$(top_builddir)/compat/libcompat.la \
 	component/libcomponent.la \
-	plugin/libplugin.la
+	plugin/libplugin.la \
+	$(top_builddir)/common/libbabeltrace-common.la

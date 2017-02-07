@@ -29,6 +29,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <glib.h>
@@ -178,6 +179,139 @@ struct bt_plugin **bt_plugin_create_all_from_file(const char *path)
 
 end:
 	return plugins;
+}
+
+static void destroy_gstring(void *data)
+{
+	g_string_free(data, TRUE);
+}
+
+void free_plugins(struct bt_plugin **plugins) {
+	if (plugins) {
+		struct bt_plugin **cur_plugin = plugins;
+
+		while (*cur_plugin) {
+			bt_put(*cur_plugin);
+			cur_plugin++;
+		}
+
+		free(plugins);
+	}
+}
+
+struct bt_plugin *bt_plugin_create_from_name(const char *plugin_name)
+{
+	const char *system_plugin_dir;
+	char *home_plugin_dir = NULL;
+	const char *envvar;
+	struct bt_plugin *plugin = NULL;
+	struct bt_plugin **plugins = NULL;
+	struct bt_plugin **cur_plugin;
+	GPtrArray *dirs = NULL;
+	int ret;
+	size_t i;
+
+	if (!plugin_name) {
+		goto end;
+	}
+
+	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
+	if (!dirs) {
+		goto end;
+	}
+
+	/*
+	 * Search order is:
+	 *
+	 * 1. BABELTRACE_PLUGIN_PATH environment variable
+	 *    (colon-separated list of directories)
+	 * 2. ~/.local/lib/babeltrace/plugins
+	 * 3. Default system directory for Babeltrace plugins, usually
+	 *    /usr/lib/babeltrace/plugins or
+	 *    /usr/local/lib/babeltrace/plugins if installed
+	 *    locally
+	 * 4. Built-in plugins (static)
+	 *
+	 * Directories are searched non-recursively.
+	 */
+	envvar = getenv("BABELTRACE_PLUGIN_PATH");
+	if (envvar) {
+		ret = bt_common_append_plugin_path_dirs(envvar, dirs);
+		if (ret) {
+			goto end;
+		}
+	}
+
+	home_plugin_dir = bt_common_get_home_plugin_path();
+	if (home_plugin_dir) {
+		GString *home_plugin_dir_str =
+			g_string_new(home_plugin_dir);
+
+		if (!home_plugin_dir_str) {
+			goto end;
+		}
+
+		g_ptr_array_add(dirs, home_plugin_dir_str);
+	}
+
+	system_plugin_dir = bt_common_get_system_plugin_path();
+	if (system_plugin_dir) {
+		GString *system_plugin_dir_str =
+			g_string_new(system_plugin_dir);
+
+		if (!system_plugin_dir_str) {
+			goto end;
+		}
+
+		g_ptr_array_add(dirs, system_plugin_dir_str);
+	}
+
+	for (i = 0; i < dirs->len; i++) {
+		GString *dir = g_ptr_array_index(dirs, i);
+
+		printf_verbose("Trying to load plugins from directory `%s`\n",
+			dir->str);
+		free_plugins(plugins);
+		plugins = bt_plugin_create_all_from_dir(dir->str, false);
+		if (!plugins) {
+			continue;
+		}
+
+		cur_plugin = plugins;
+
+		while (*cur_plugin) {
+			if (strcmp(bt_plugin_get_name(*cur_plugin), plugin_name)
+					== 0) {
+				plugin = bt_get(*cur_plugin);
+				goto end;
+			}
+
+			cur_plugin++;
+		}
+	}
+
+	free_plugins(plugins);
+	plugins = bt_plugin_create_all_from_static();
+	cur_plugin = plugins;
+
+	while (*cur_plugin) {
+		if (strcmp(bt_plugin_get_name(*cur_plugin), plugin_name) == 0) {
+			plugin = bt_get(*cur_plugin);
+			goto end;
+		}
+
+		cur_plugin++;
+	}
+
+end:
+	free(home_plugin_dir);
+	free_plugins(plugins);
+
+	if (dirs) {
+		g_ptr_array_free(dirs, TRUE);
+	}
+
+	return plugin;
 }
 
 /* Allocate dirent as recommended by READDIR(3), NOTES on readdir_r */
