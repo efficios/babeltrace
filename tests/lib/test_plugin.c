@@ -27,10 +27,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <glib.h>
+#include <linux/limits.h>
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		40
+#define NR_TESTS 		44
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -227,6 +228,29 @@ static void test_create_all_from_dir(const char *plugin_dir)
 	free(plugins);
 }
 
+static void test_create_from_name(const char *plugin_dir)
+{
+	struct bt_plugin *plugin;
+	char *plugin_path;
+
+	ok(!bt_plugin_create_from_name(NULL),
+		"bt_plugin_create_from_name() handles NULL");
+	ok(!bt_plugin_create_from_name(NON_EXISTING_PATH),
+		"bt_plugin_create_from_name() returns NULL with an unknown plugin name");
+	plugin_path = malloc(PATH_MAX * 5);
+	assert(plugin_path);
+	sprintf(plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
+		NON_EXISTING_PATH, plugin_dir);
+	setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
+	plugin = bt_plugin_create_from_name("test_minimal");
+	ok(plugin,
+		"bt_plugin_create_from_name() succeeds with a plugin name it can find");
+	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
+		"bt_plugin_create_from_name() finds the correct plugin for a given name");
+	BT_PUT(plugin);
+	free(plugin_path);
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -244,6 +268,7 @@ int main(int argc, char **argv)
 	test_minimal(plugin_dir);
 	test_sfs(plugin_dir);
 	test_create_all_from_dir(plugin_dir);
+	test_create_from_name(plugin_dir);
 	ret = exit_status();
 end:
 	return ret;
