@@ -49,6 +49,8 @@ const char *bt_component_class_get_name(
 		struct bt_component_class *component_class);
 const char *bt_component_class_get_description(
 		struct bt_component_class *component_class);
+const char *bt_component_class_get_help(
+		struct bt_component_class *component_class);
 enum bt_component_class_type bt_component_class_get_type(
 		struct bt_component_class *component_class);
 
@@ -884,12 +886,19 @@ end:
 /* Component class creation functions (called from Python module) */
 
 static int bt_py3_cc_set_optional_attrs_methods(struct bt_component_class *cc,
-		const char *description)
+		const char *description, const char *help)
 {
 	int ret = 0;
 
 	if (description) {
 		ret = bt_component_class_set_description(cc, description);
+		if (ret) {
+			goto end;
+		}
+	}
+
+	if (help) {
+		ret = bt_component_class_set_help(cc, help);
 		if (ret) {
 			goto end;
 		}
@@ -943,7 +952,7 @@ end:
 
 static struct bt_component_class *bt_py3_component_class_source_create(
 		PyObject *py_cls, const char *name, const char *description,
-		bool has_seek_time)
+		const char *help, bool has_seek_time)
 {
 	struct bt_component_class *cc;
 	int ret;
@@ -956,7 +965,7 @@ static struct bt_component_class *bt_py3_component_class_source_create(
 		goto end;
 	}
 
-	ret = bt_py3_cc_set_optional_attrs_methods(cc, description);
+	ret = bt_py3_cc_set_optional_attrs_methods(cc, description, help);
 	if (ret) {
 		BT_PUT(cc);
 		goto end;
@@ -980,7 +989,7 @@ end:
 
 static struct bt_component_class *bt_py3_component_class_filter_create(
 		PyObject *py_cls, const char *name, const char *description,
-		bool has_seek_time)
+		const char *help, bool has_seek_time)
 {
 	struct bt_component_class *cc;
 	int ret;
@@ -993,7 +1002,7 @@ static struct bt_component_class *bt_py3_component_class_filter_create(
 		goto end;
 	}
 
-	ret = bt_py3_cc_set_optional_attrs_methods(cc, description);
+	ret = bt_py3_cc_set_optional_attrs_methods(cc, description, help);
 	if (ret) {
 		BT_PUT(cc);
 		goto end;
@@ -1023,7 +1032,8 @@ end:
 }
 
 static struct bt_component_class *bt_py3_component_class_sink_create(
-		PyObject *py_cls, const char *name, const char *description)
+		PyObject *py_cls, const char *name, const char *description,
+		const char *help)
 {
 	struct bt_component_class *cc;
 	int ret;
@@ -1034,7 +1044,7 @@ static struct bt_component_class *bt_py3_component_class_sink_create(
 		goto end;
 	}
 
-	ret = bt_py3_cc_set_optional_attrs_methods(cc, description);
+	ret = bt_py3_cc_set_optional_attrs_methods(cc, description, help);
 	if (ret) {
 		BT_PUT(cc);
 		goto end;
@@ -1107,12 +1117,13 @@ static void bt_py3_component_on_del(PyObject *py_comp)
 
 struct bt_component_class *bt_py3_component_class_source_create(
 		PyObject *py_cls, const char *name, const char *description,
-		bool has_seek_time);
+		const char *help, bool has_seek_time);
 struct bt_component_class *bt_py3_component_class_filter_create(
 		PyObject *py_cls, const char *name, const char *description,
-		bool has_seek_time);
+		const char *help, bool has_seek_time);
 struct bt_component_class *bt_py3_component_class_sink_create(
-		PyObject *py_cls, const char *name, const char *description);
+		PyObject *py_cls, const char *name, const char *description,
+		const char *help);
 void bt_py3_component_create(
 		struct bt_component_class *comp_class, PyObject *py_self,
 		const char *name);

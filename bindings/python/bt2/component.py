@@ -23,6 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.notification_iterator
 import collections.abc
+import sys
 import bt2
 
 
@@ -38,6 +39,10 @@ class _GenericComponentClass(object._Object):
     @property
     def description(self):
         return native_bt.component_class_get_description(self._ptr)
+
+    @property
+    def help(self):
+        return native_bt.component_class_get_help(self._ptr)
 
     def __call__(self, params=None, name=None):
         params = bt2.create_value(params)
@@ -168,6 +173,31 @@ def _create_generic_component_class_from_ptr(ptr):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_CLS[comp_cls_type]._create_from_ptr(ptr)
 
 
+def _trim_docstring(docstring):
+    lines = docstring.expandtabs().splitlines()
+    indent = sys.maxsize
+
+    for line in lines[1:]:
+        stripped = line.lstrip()
+
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+
+    trimmed = [lines[0].strip()]
+
+    if indent < sys.maxsize:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+
+    return '\n'.join(trimmed)
+
+
 # Metaclass for component classes defined by Python code.
 #
 # The Python user can create a standard Python class which inherits one
@@ -246,7 +276,19 @@ class _UserComponentType(type):
             return
 
         comp_cls_name = kwargs.get('name', class_name)
-        comp_cls_descr = getattr(cls, '__doc__', None)
+        comp_cls_descr = None
+        comp_cls_help = None
+
+        if hasattr(cls, '__doc__') and cls.__doc__ is not None:
+            docstring = _trim_docstring(cls.__doc__)
+            lines = docstring.splitlines()
+
+            if len(lines) >= 1:
+                comp_cls_descr = lines[0]
+
+            if len(lines) >= 3:
+                comp_cls_help = '\n'.join(lines[2:])
+
         iter_cls = kwargs.get('notification_iterator_class')
 
         if UserSourceComponent in bases:
@@ -255,6 +297,7 @@ class _UserComponentType(type):
             cc_ptr = native_bt.py3_component_class_source_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
+                                                                 comp_cls_help,
                                                                  has_seek_time)
         elif UserFilterComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
@@ -262,6 +305,7 @@ class _UserComponentType(type):
             cc_ptr = native_bt.py3_component_class_filter_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
+                                                                 comp_cls_help,
                                                                  has_seek_time)
         elif UserSinkComponent in bases:
             if not hasattr(cls, '_consume'):
@@ -269,7 +313,8 @@ class _UserComponentType(type):
 
             cc_ptr = native_bt.py3_component_class_sink_create(cls,
                                                                comp_cls_name,
-                                                               comp_cls_descr)
+                                                               comp_cls_descr,
+                                                               comp_cls_help)
         else:
             raise bt2.IncompleteUserClassError("cannot find a known component class base in the bases of '{}'".format(class_name))
 
@@ -351,6 +396,10 @@ class _UserComponentType(type):
     @property
     def description(cls):
         return native_bt.component_class_get_description(cls._cc_ptr)
+
+    @property
+    def help(cls):
+        return native_bt.component_class_get_help(cls._cc_ptr)
 
     @property
     def addr(cls):
