@@ -56,6 +56,16 @@ def create_plugins_from_dir(path, recurse=True):
     return _plugin_ptrs_to_plugins(plugin_ptrs)
 
 
+def create_plugin_from_name(name):
+    utils._check_str(name)
+    plugin_ptr = native_bt.plugin_create_from_name(name)
+
+    if plugin_ptr is None:
+        return
+
+    return _Plugin._create_from_ptr(plugin_ptr)
+
+
 class _PluginVersion:
     def __init__(self, major, minor, patch, extra):
         self._major = major

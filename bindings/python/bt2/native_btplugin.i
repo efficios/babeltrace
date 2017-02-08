@@ -52,6 +52,7 @@ struct bt_component_class *bt_plugin_get_component_class(
 struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		struct bt_plugin *plugin, const char *name,
 		enum bt_component_class_type type);
+struct bt_plugin *bt_plugin_create_from_name(const char *plugin_name);
 
 %{
 static PyObject *bt_py3_plugin_ptrs_list_from_bt_plugins(struct bt_plugin **plugins)
