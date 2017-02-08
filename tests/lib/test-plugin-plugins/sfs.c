@@ -72,6 +72,12 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(source,
 
 BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(sink, "A sink.");
+BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(sink,
+	"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
+	"Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
+	"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
+	"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n"
+);
 
 BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_get_method,
 	dummy_iterator_next_method);

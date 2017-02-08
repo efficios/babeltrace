@@ -31,7 +31,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		44
+#define NR_TESTS 		45
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -170,12 +170,17 @@ static void test_sfs(const char *plugin_dir)
 
 	sink_comp_class = bt_plugin_get_component_class_by_name_and_type(
 		plugin, "sink", BT_COMPONENT_CLASS_TYPE_SINK);
-
 	ok(sink_comp_class,
 		"bt_plugin_get_component_class_by_name_and_type() finds a sink component class");
+	ok(strcmp(bt_component_class_get_help(sink_comp_class),
+		"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
+		"Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
+		"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
+		"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n") == 0,
+		"bt_component_class_get_help() returns the expected help text");
+
 	filter_comp_class = bt_plugin_get_component_class_by_name_and_type(
 		plugin, "filter", BT_COMPONENT_CLASS_TYPE_FILTER);
-
 	ok(filter_comp_class,
 		"bt_plugin_get_component_class_by_name_and_type() finds a filter component class");
 	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
