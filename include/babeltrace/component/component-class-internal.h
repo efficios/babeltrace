@@ -53,6 +53,7 @@ struct bt_component_class {
 	enum bt_component_class_type type;
 	GString *name;
 	GString *description;
+	GString *help;
 	struct {
 		bt_component_class_init_method init;
 		bt_component_class_destroy_method destroy;

@@ -85,6 +85,10 @@ extern int bt_component_class_set_description(
 		struct bt_component_class *component_class,
 		const char *description);
 
+extern int bt_component_class_set_help(
+		struct bt_component_class *component_class,
+		const char *help);
+
 extern int bt_component_class_freeze(
 		struct bt_component_class *component_class);
 
@@ -107,6 +111,9 @@ extern const char *bt_component_class_get_name(
  * @returns			Description of the component class, or NULL.
  */
 extern const char *bt_component_class_get_description(
+		struct bt_component_class *component_class);
+
+extern const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
 
 /**

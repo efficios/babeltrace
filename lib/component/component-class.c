@@ -57,6 +57,9 @@ void bt_component_class_destroy(struct bt_object *obj)
 	if (class->description) {
 		g_string_free(class->description, TRUE);
 	}
+	if (class->help) {
+		g_string_free(class->help, TRUE);
+	}
 	if (class->destroy_listeners) {
 		g_array_free(class->destroy_listeners, TRUE);
 	}
@@ -79,6 +82,11 @@ int bt_component_class_init(struct bt_component_class *class,
 
 	class->description = g_string_new(NULL);
 	if (!class->description) {
+		goto error;
+	}
+
+	class->help = g_string_new(NULL);
+	if (!class->help) {
 		goto error;
 	}
 
@@ -390,6 +398,23 @@ end:
 	return ret;
 }
 
+int bt_component_class_set_help(
+		struct bt_component_class *component_class,
+		const char *help)
+{
+	int ret = 0;
+
+	if (!component_class || component_class->frozen || !help) {
+		ret = -1;
+		goto end;
+	}
+
+	g_string_assign(component_class->help, help);
+
+end:
+	return ret;
+}
+
 const char *bt_component_class_get_name(
 		struct bt_component_class *component_class)
 {
@@ -408,6 +433,13 @@ const char *bt_component_class_get_description(
 {
 	return component_class && component_class->description ?
 		component_class->description->str : NULL;
+}
+
+const char *bt_component_class_get_help(
+		struct bt_component_class *component_class)
+{
+	return component_class && component_class->help ?
+		component_class->help->str : NULL;
 }
 
 BT_HIDDEN
