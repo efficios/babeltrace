@@ -122,13 +122,52 @@ class GenCompClassTestCase(unittest.TestCase):
 
     def test_attr_description(self):
         class MySink(bt2.UserSinkComponent):
-            'hello'
+            '''This is the description.
+
+            This is the help.
+
+            This too:
+
+                * And this.
+                * And also that.
+
+            Voilà.
+            '''
 
             def _consume(self):
                 pass
 
         sink = MySink()
-        self.assertEqual(sink.component_class.description, 'hello')
+        self.assertEqual(sink.component_class.description,
+                         'This is the description.')
+
+    def test_attr_help(self):
+        class MySink(bt2.UserSinkComponent):
+            '''This is the description.
+
+            This is the help.
+
+            This too:
+
+                * And this.
+                * And also that.
+
+            Voilà.
+            '''
+
+            def _consume(self):
+                pass
+
+        sink = MySink()
+        expected_help = '''This is the help.
+
+This too:
+
+    * And this.
+    * And also that.
+
+Voilà.'''
+        self.assertEqual(sink.component_class.help, expected_help)
 
     def test_instantiate(self):
         class MySink(bt2.UserSinkComponent):
@@ -173,12 +212,49 @@ class UserCompClassTestCase(unittest.TestCase):
 
     def test_attr_description(self):
         class MySink(bt2.UserSinkComponent):
-            'here is your description'
+            '''This is the description.
+
+            This is the help.
+
+            This too:
+
+                * And this.
+                * And also that.
+
+            Voilà.
+            '''
 
             def _consume(self):
                 pass
 
-        self.assertEqual(MySink.description, 'here is your description')
+        self.assertEqual(MySink.description, 'This is the description.')
+
+    def test_attr_help(self):
+        class MySink(bt2.UserSinkComponent):
+            '''This is the description.
+
+            This is the help.
+
+            This too:
+
+                * And this.
+                * And also that.
+
+            Voilà.
+            '''
+
+            def _consume(self):
+                pass
+
+        expected_help = '''This is the help.
+
+This too:
+
+    * And this.
+    * And also that.
+
+Voilà.'''
+        self.assertEqual(MySink.help, expected_help)
 
     def test_init(self):
         class MySink(bt2.UserSinkComponent):
