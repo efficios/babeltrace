@@ -692,143 +692,6 @@ void print_version(void)
 }
 
 /*
- * Prints the legacy, Babeltrace 1.x command usage. Those options are
- * still compatible in Babeltrace 2.x, but it is recommended to use
- * the more generic plugin/component parameters instead of those
- * hard-coded option names.
- */
-static
-void print_legacy_usage(FILE *fp)
-{
-	fprintf(fp, "Usage: babeltrace [OPTIONS] INPUT...\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "The following options are compatible with the Babeltrace 1.x options:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "      --help-legacy            Show this help\n");
-	fprintf(fp, "  -V, --version                Show version\n");
-	fprintf(fp, "      --clock-force-correlate  Assume that clocks are inherently correlated\n");
-	fprintf(fp, "                               across traces\n");
-	fprintf(fp, "  -d, --debug                  Enable debug mode\n");
-	fprintf(fp, "  -i, --input-format=FORMAT    Input trace format (default: ctf)\n");
-	fprintf(fp, "  -l, --list                   List available formats\n");
-	fprintf(fp, "  -o, --output-format=FORMAT   Output trace format (default: text)\n");
-	fprintf(fp, "  -v, --verbose                Enable verbose output\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  Available input formats:  ctf, lttng-live, ctf-metadata\n");
-	fprintf(fp, "  Available output formats: text, dummy\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Input formats specific options:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  INPUT...                     Input trace file(s), directory(ies), or URLs\n");
-	fprintf(fp, "      --clock-offset=SEC       Set clock offset to SEC seconds\n");
-	fprintf(fp, "      --clock-offset-ns=NS     Set clock offset to NS nanoseconds\n");
-	fprintf(fp, "      --stream-intersection    Only process events when all streams are active\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "text output format specific options:\n");
-	fprintf(fp, "  \n");
-	fprintf(fp, "      --clock-cycles           Print timestamps in clock cycles\n");
-	fprintf(fp, "      --clock-date             Print timestamp dates\n");
-	fprintf(fp, "      --clock-gmt              Print and parse timestamps in GMT time zone\n");
-	fprintf(fp, "                               (default: local time zone)\n");
-	fprintf(fp, "      --clock-seconds          Print the timestamps as [SEC.NS]\n");
-	fprintf(fp, "                               (default format: [HH:MM:SS.NS])\n");
-	fprintf(fp, "      --debug-info-dir=DIR     Search for debug info in directory DIR\n");
-	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
-	fprintf(fp, "      --debug-info-full-path   Show full debug info source and binary paths\n");
-	fprintf(fp, "      --debug-info-target-prefix=DIR  Use directory DIR as a prefix when looking\n");
-	fprintf(fp, "                                      up executables during debug info analysis\n");
-	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
-	fprintf(fp, "  -f, --fields=NAME[,NAME]...  Print additional fields:\n");
-	fprintf(fp, "                                 all, trace, trace:hostname, trace:domain,\n");
-	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf\n");
-	fprintf(fp, "                                 (default: trace:hostname, trace:procname,\n");
-	fprintf(fp, "                                           trace:vpid)\n");
-	fprintf(fp, "  -n, --names=NAME[,NAME]...   Print field names:\n");
-	fprintf(fp, "                                 payload (or arg or args)\n");
-	fprintf(fp, "                                 none, all, scope, header, context (or ctx)\n");
-	fprintf(fp, "                                 (default: payload, context)\n");
-	fprintf(fp, "      --no-delta               Do not print time delta between consecutive\n");
-	fprintf(fp, "                               events\n");
-	fprintf(fp, "  -w, --output=PATH            Write output to PATH (default: standard output)\n");
-}
-
-/*
- * Prints the Babeltrace 2.x usage.
- */
-static
-void print_usage(FILE *fp)
-{
-	fprintf(fp, "Usage: babeltrace [OPTIONS]\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  -b, --base-params=PARAMS          Set PARAMS as the current base parameters\n");
-	fprintf(fp, "                                    of the following source and sink component\n");
-	fprintf(fp, "                                    instances (see the exact format of PARAMS\n");
-	fprintf(fp, "                                    below)\n");
-	fprintf(fp, "      --begin=BEGIN                 Set beginning time to BEGIN\n");
-	fprintf(fp, "                                    (format: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn])\n");
-	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
-	fprintf(fp, "      --end=END                     Set end time to END\n");
-	fprintf(fp, "                                    (format: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn])\n");
-	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
-	fprintf(fp, "                                    sink component instance (in command-line \n");
-	fprintf(fp, "                                    order) to PARAMS (see the exact format of\n");
-	fprintf(fp, "                                    PARAMS below)\n");
-	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest source\n");
-	fprintf(fp, "                                    or sink component to PATH\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which dynamic\n");
-	fprintf(fp, "                                    plugins can be loaded\n");
-	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
-	fprintf(fp, "                                    following source and sink component\n");
-	fprintf(fp, "                                    instances to an empty map\n");
-	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "      --timerange=TIMERANGE         Set time range to TIMERANGE: BEGIN,END or\n");
-	fprintf(fp, "                                    [BEGIN,END] (where [ and ] are actual brackets)\n");
-	fprintf(fp, "  -h  --help                        Show this help\n");
-	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
-	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
-	fprintf(fp, "  -V, --version                     Show version\n");
-	fprintf(fp, "\n\n");
-	fprintf(fp, "Format of PARAMS\n");
-	fprintf(fp, "----------------\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
-	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
-	fprintf(fp, "VALUE can be one of:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
-	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
-	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
-	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
-	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
-	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
-	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
-	fprintf(fp, "  the null and boolean value symbols above.\n");
-	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Example:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
-	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
-	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run babeltrace\n");
-	fprintf(fp, "from a shell.\n");
-}
-
-/*
  * Destroys a component configuration.
  */
 static
@@ -944,23 +807,35 @@ end:
 static
 void bt_config_destroy(struct bt_object *obj)
 {
-	struct bt_config *bt_config =
+	struct bt_config *cfg =
 		container_of(obj, struct bt_config, base);
 
 	if (!obj) {
 		goto end;
 	}
 
-	if (bt_config->sources) {
-		g_ptr_array_free(bt_config->sources, TRUE);
+	switch (cfg->command) {
+	case BT_CONFIG_COMMAND_CONVERT:
+		if (cfg->cmd_data.convert.sources) {
+			g_ptr_array_free(cfg->cmd_data.convert.sources, TRUE);
+		}
+
+		if (cfg->cmd_data.convert.sinks) {
+			g_ptr_array_free(cfg->cmd_data.convert.sinks, TRUE);
+		}
+
+		BT_PUT(cfg->cmd_data.convert.plugin_paths);
+		break;
+
+	case BT_CONFIG_COMMAND_LIST_PLUGINS:
+		BT_PUT(cfg->cmd_data.list_plugins.plugin_paths);
+		break;
+
+	default:
+		assert(false);
 	}
 
-	if (bt_config->sinks) {
-		g_ptr_array_free(bt_config->sinks, TRUE);
-	}
-
-	BT_PUT(bt_config->plugin_paths);
-	g_free(bt_config);
+	g_free(cfg);
 
 end:
 	return;
@@ -2022,7 +1897,7 @@ bool validate_cfg(struct bt_config *cfg,
 		}
 
 		/* Make sure no non-legacy sources are specified */
-		if (cfg->sources->len != 0) {
+		if (cfg->cmd_data.convert.sources->len != 0) {
 			print_input_legacy_to_sources(*legacy_input_format,
 				legacy_input_paths, ctf_legacy_opts);
 			goto error;
@@ -2050,7 +1925,7 @@ bool validate_cfg(struct bt_config *cfg,
 		}
 
 		/* Make sure no non-legacy sinks are specified */
-		if (cfg->sinks->len != 0) {
+		if (cfg->cmd_data.convert.sinks->len != 0) {
 			print_output_legacy_to_sinks(*legacy_output_format,
 				text_legacy_opts);
 			goto error;
@@ -2111,15 +1986,16 @@ enum {
 	OPT_END,
 	OPT_FIELDS,
 	OPT_HELP,
-	OPT_HELP_LEGACY,
 	OPT_INPUT_FORMAT,
 	OPT_LIST,
 	OPT_NAMES,
 	OPT_NO_DELTA,
+	OPT_OMIT_HOME_PLUGIN_PATH,
+	OPT_OMIT_SYSTEM_PLUGIN_PATH,
 	OPT_OUTPUT_FORMAT,
 	OPT_OUTPUT_PATH,
-	OPT_PATH,
 	OPT_PARAMS,
+	OPT_PATH,
 	OPT_PLUGIN_PATH,
 	OPT_RESET_BASE_PARAMS,
 	OPT_SINK,
@@ -2127,50 +2003,6 @@ enum {
 	OPT_STREAM_INTERSECTION,
 	OPT_TIMERANGE,
 	OPT_VERBOSE,
-	OPT_VERSION,
-	OPT_OMIT_SYSTEM_PLUGIN_PATH,
-	OPT_OMIT_HOME_PLUGIN_PATH,
-};
-
-/* popt long option descriptions */
-static struct poptOption long_options[] = {
-	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
-	{ "begin", '\0', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
-	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
-	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
-	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
-	{ "clock-gmt", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
-	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
-	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
-	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
-	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
-	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
-	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
-	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
-	{ "end", '\0', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
-	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
-	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-	{ "help-legacy", '\0', POPT_ARG_NONE, NULL, OPT_HELP_LEGACY, NULL, NULL },
-	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
-	{ "list", 'l', POPT_ARG_NONE, NULL, OPT_LIST, NULL, NULL },
-	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
-	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
-	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
-	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
-	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
-	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
-	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
-	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
-	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
-	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
-	{ "version", 'V', POPT_ARG_NONE, NULL, OPT_VERSION, NULL, NULL },
-	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
-	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
 /*
@@ -2196,9 +2028,9 @@ static void add_cfg_comp(struct bt_config *cfg,
 		enum bt_config_component_dest dest)
 {
 	if (dest == BT_CONFIG_COMPONENT_DEST_SOURCE) {
-		g_ptr_array_add(cfg->sources, cfg_comp);
+		g_ptr_array_add(cfg->cmd_data.convert.sources, cfg_comp);
 	} else {
-		g_ptr_array_add(cfg->sinks, cfg_comp);
+		g_ptr_array_add(cfg->cmd_data.convert.sinks, cfg_comp);
 	}
 }
 
@@ -2235,7 +2067,7 @@ not_found:
 	return -1;
 }
 
-static int add_env_var_plugin_paths(struct bt_config *cfg)
+static int append_env_var_plugin_paths(struct bt_value *plugin_paths)
 {
 	int ret = 0;
 	const char *envvar;
@@ -2250,17 +2082,18 @@ static int add_env_var_plugin_paths(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = bt_config_append_plugin_paths(cfg->plugin_paths, envvar);
+	ret = bt_config_append_plugin_paths(plugin_paths, envvar);
 
 end:
 	return ret;
 }
 
-static int append_home_and_system_plugin_paths(struct bt_config *cfg)
+static int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
+		bool omit_system_plugin_path, bool omit_home_plugin_path)
 {
 	int ret;
 
-	if (!cfg->omit_home_plugin_path) {
+	if (!omit_home_plugin_path) {
 		if (bt_common_is_setuid_setgid()) {
 			printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
 		} else {
@@ -2268,7 +2101,8 @@ static int append_home_and_system_plugin_paths(struct bt_config *cfg)
 				bt_common_get_home_plugin_path();
 
 			if (home_plugin_dir) {
-				ret = bt_config_append_plugin_paths(cfg->plugin_paths,
+				ret = bt_config_append_plugin_paths(
+					plugin_paths,
 					home_plugin_dir);
 				free(home_plugin_dir);
 
@@ -2280,8 +2114,8 @@ static int append_home_and_system_plugin_paths(struct bt_config *cfg)
 		}
 	}
 
-	if (!cfg->omit_system_plugin_path) {
-		if (bt_config_append_plugin_paths(cfg->plugin_paths,
+	if (!omit_system_plugin_path) {
+		if (bt_config_append_plugin_paths(plugin_paths,
 				bt_common_get_system_plugin_path())) {
 			printf_err("Invalid system plugin path\n");
 			goto error;
@@ -2316,7 +2150,7 @@ error:
 	return -1;
 }
 
-struct bt_config *bt_config_create(void)
+static struct bt_config *bt_config_base_create(enum bt_config_command command)
 {
 	struct bt_config *cfg;
 
@@ -2328,37 +2162,433 @@ struct bt_config *bt_config_create(void)
 	}
 
 	bt_object_init(cfg, bt_config_destroy);
-	cfg->sources = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
-	if (!cfg->sources) {
-		print_err_oom();
-		goto error;
-	}
+	cfg->command = command;
+	goto end;
 
-	cfg->sinks = g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
-	if (!cfg->sinks) {
-		print_err_oom();
-		goto error;
-	}
-
-	cfg->plugin_paths = bt_value_array_create();
-	if (!cfg->plugin_paths) {
-		print_err_oom();
-		goto error;
-	}
-end:
-	return cfg;
 error:
 	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+static struct bt_config *bt_config_convert_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_CONVERT);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.convert.sources = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_put);
+	if (!cfg->cmd_data.convert.sources) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.convert.sinks = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_put);
+	if (!cfg->cmd_data.convert.sinks) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (initial_plugin_paths) {
+		cfg->cmd_data.convert.plugin_paths =
+			bt_get(initial_plugin_paths);
+	} else {
+		cfg->cmd_data.convert.plugin_paths = bt_value_array_create();
+		if (!cfg->cmd_data.convert.plugin_paths) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
 	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+static struct bt_config *bt_config_list_plugins_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_LIST_PLUGINS);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (initial_plugin_paths) {
+		cfg->cmd_data.list_plugins.plugin_paths =
+			bt_get(initial_plugin_paths);
+	} else {
+		cfg->cmd_data.list_plugins.plugin_paths =
+			bt_value_array_create();
+		if (!cfg->cmd_data.list_plugins.plugin_paths) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
+	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
 }
 
 /*
- * Initializes a created Babeltrace config object according to the
- * command-line arguments found in argv.
- *
- * Return value is set to the appropriate exit code to use.
+ * Prints the list-plugins command usage.
  */
-int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[])
+static
+void print_list_plugins_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] list-plugins [OPTIONS]\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+}
+
+static struct poptOption list_plugins_long_options[] = {
+	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ NULL, 0, 0, NULL, 0, NULL, NULL },
+};
+
+/*
+ * Creates a Babeltrace config object from the arguments of a
+ * list-plugins command.
+ *
+ * *retcode is set to the appropriate exit code to use.
+ */
+struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	poptContext pc = NULL;
+	char *arg = NULL;
+	int opt;
+	int ret;
+	struct bt_config *cfg = NULL;
+	const char *leftover;
+
+	*retcode = 0;
+	cfg = bt_config_list_plugins_create(initial_plugin_paths);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.list_plugins.omit_system_plugin_path = omit_system_plugin_path;
+	cfg->cmd_data.list_plugins.omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(
+		cfg->cmd_data.list_plugins.plugin_paths);
+	if (ret) {
+		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+		goto error;
+	}
+
+	/* Parse options */
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		list_plugins_long_options, 0);
+	if (!pc) {
+		printf_err("Cannot get popt context\n");
+		goto error;
+	}
+
+	poptReadDefaultConfig(pc, 0);
+
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		arg = poptGetOptArg(pc);
+
+		switch (opt) {
+		case OPT_PLUGIN_PATH:
+			if (bt_common_is_setuid_setgid()) {
+				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+			} else {
+				if (bt_config_append_plugin_paths(
+						cfg->cmd_data.list_plugins.plugin_paths,
+						arg)) {
+					printf_err("Invalid --plugin-path option's argument\n");
+					goto error;
+				}
+			}
+			break;
+		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+			cfg->cmd_data.list_plugins.omit_system_plugin_path = true;
+			break;
+		case OPT_OMIT_HOME_PLUGIN_PATH:
+			cfg->cmd_data.list_plugins.omit_home_plugin_path = true;
+			break;
+		case OPT_HELP:
+			print_list_plugins_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
+			goto end;
+		default:
+			printf_err("Unknown command-line option specified (option code %d)\n",
+				opt);
+			goto error;
+		}
+
+		free(arg);
+		arg = NULL;
+	}
+
+	/* Check for option parsing error */
+	if (opt < -1) {
+		printf_err("While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
+		goto error;
+	}
+
+	leftover = poptGetArg(pc);
+	if (leftover) {
+		printf_err("Invalid argument: %s\n", leftover);
+		goto error;
+	}
+
+	if (append_home_and_system_plugin_paths(
+			cfg->cmd_data.list_plugins.plugin_paths,
+			cfg->cmd_data.list_plugins.omit_system_plugin_path,
+			cfg->cmd_data.list_plugins.omit_home_plugin_path)) {
+		printf_err("Cannot append home and system plugin paths\n");
+		goto error;
+	}
+
+	goto end;
+
+error:
+	*retcode = 1;
+	BT_PUT(cfg);
+
+end:
+	if (pc) {
+		poptFreeContext(pc);
+	}
+
+	free(arg);
+	return cfg;
+}
+
+
+/*
+ * Prints the legacy, Babeltrace 1.x command usage. Those options are
+ * still compatible in Babeltrace 2.x, but it is recommended to use
+ * the more generic plugin/component parameters instead of those
+ * hard-coded option names.
+ */
+static
+void print_legacy_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [OPTIONS] INPUT...\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "The following options are compatible with the Babeltrace 1.x options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --clock-force-correlate  Assume that clocks are inherently correlated\n");
+	fprintf(fp, "                               across traces\n");
+	fprintf(fp, "  -d, --debug                  Enable debug mode\n");
+	fprintf(fp, "  -i, --input-format=FORMAT    Input trace format (default: ctf)\n");
+	fprintf(fp, "  -l, --list                   List available formats\n");
+	fprintf(fp, "  -o, --output-format=FORMAT   Output trace format (default: text)\n");
+	fprintf(fp, "  -v, --verbose                Enable verbose output\n");
+	fprintf(fp, "      --help-legacy            Show this help and quit\n");
+	fprintf(fp, "  -V, --version                Show version and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  Available input formats:  ctf, lttng-live, ctf-metadata\n");
+	fprintf(fp, "  Available output formats: text, dummy\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Input formats specific options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  INPUT...                     Input trace file(s), directory(ies), or URLs\n");
+	fprintf(fp, "      --clock-offset=SEC       Set clock offset to SEC seconds\n");
+	fprintf(fp, "      --clock-offset-ns=NS     Set clock offset to NS nanoseconds\n");
+	fprintf(fp, "      --stream-intersection    Only process events when all streams are active\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "text output format specific options:\n");
+	fprintf(fp, "  \n");
+	fprintf(fp, "      --clock-cycles           Print timestamps in clock cycles\n");
+	fprintf(fp, "      --clock-date             Print timestamp dates\n");
+	fprintf(fp, "      --clock-gmt              Print and parse timestamps in GMT time zone\n");
+	fprintf(fp, "                               (default: local time zone)\n");
+	fprintf(fp, "      --clock-seconds          Print the timestamps as [SEC.NS]\n");
+	fprintf(fp, "                               (default format: [HH:MM:SS.NS])\n");
+	fprintf(fp, "      --debug-info-dir=DIR     Search for debug info in directory DIR\n");
+	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
+	fprintf(fp, "      --debug-info-full-path   Show full debug info source and binary paths\n");
+	fprintf(fp, "      --debug-info-target-prefix=DIR  Use directory DIR as a prefix when looking\n");
+	fprintf(fp, "                                      up executables during debug info analysis\n");
+	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
+	fprintf(fp, "  -f, --fields=NAME[,NAME]...  Print additional fields:\n");
+	fprintf(fp, "                                 all, trace, trace:hostname, trace:domain,\n");
+	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf\n");
+	fprintf(fp, "                                 (default: trace:hostname, trace:procname,\n");
+	fprintf(fp, "                                           trace:vpid)\n");
+	fprintf(fp, "  -n, --names=NAME[,NAME]...   Print field names:\n");
+	fprintf(fp, "                                 payload (or arg or args)\n");
+	fprintf(fp, "                                 none, all, scope, header, context (or ctx)\n");
+	fprintf(fp, "                                 (default: payload, context)\n");
+	fprintf(fp, "      --no-delta               Do not print time delta between consecutive\n");
+	fprintf(fp, "                               events\n");
+	fprintf(fp, "  -w, --output=PATH            Write output to PATH (default: standard output)\n");
+}
+
+/*
+ * Prints the convert command usage.
+ */
+static
+void print_convert_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] convert [OPTIONS]\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  -b, --base-params=PARAMS          Set PARAMS as the current base parameters\n");
+	fprintf(fp, "                                    for the following component instances\n");
+	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
+	fprintf(fp, "      --begin=BEGIN                 Set the `begin` parameter of the latest\n");
+	fprintf(fp, "                                    source component instance to BEGIN\n");
+	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
+	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
+	fprintf(fp, "      --end=END                     Set the `end` parameter of the latest\n");
+	fprintf(fp, "                                    source component instance to END\n");
+	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest component\n");
+	fprintf(fp, "                                    instance (in command-line order) to PARAMS\n");
+	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
+	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest\n");
+	fprintf(fp, "                                    component instance to PATH\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
+	fprintf(fp, "                                    following source and sink component\n");
+	fprintf(fp, "                                    instances to an empty map\n");
+	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
+	fprintf(fp, "      --timerange=TIMERANGE         Set time range to TIMERANGE: BEGIN,END or\n");
+	fprintf(fp, "                                    [BEGIN,END] (literally `[` and `]`)\n");
+	fprintf(fp, "                                    (suggested format of BEGIN/END below)\n");
+	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
+	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "Suggested format of BEGIN and END\n");
+	fprintf(fp, "---------------------------------\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "Expected format of PARAMS\n");
+	fprintf(fp, "-------------------------\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
+	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
+	fprintf(fp, "VALUE can be one of:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
+	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
+	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
+	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
+	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
+	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
+	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
+	fprintf(fp, "  the null and boolean value symbols above.\n");
+	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Example:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
+	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
+	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run babeltrace\n");
+	fprintf(fp, "from a shell.\n");
+}
+
+static struct poptOption convert_long_options[] = {
+	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
+	{ "begin", '\0', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
+	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
+	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
+	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
+	{ "clock-gmt", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
+	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
+	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
+	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
+	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
+	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
+	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
+	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
+	{ "end", '\0', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
+	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
+	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
+	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
+	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
+	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
+	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
+	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
+	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
+	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
+	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
+	{ NULL, 0, 0, NULL, 0, NULL, NULL },
+};
+
+/*
+ * Creates a Babeltrace config object from the arguments of a convert
+ * command.
+ *
+ * *retcode is set to the appropriate exit code to use.
+ */
+struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2376,10 +2606,26 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 		BT_CONFIG_COMPONENT_DEST_SOURCE;
 	struct bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
+	struct bt_config *cfg = NULL;
 
+	*retcode = 0;
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
 	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
 
+	if (argc <= 1) {
+		print_convert_usage(stdout);
+		*retcode = -1;
+		goto end;
+	}
+
+	cfg = bt_config_convert_create(initial_plugin_paths);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.convert.omit_system_plugin_path = omit_system_plugin_path;
+	cfg->cmd_data.convert.omit_home_plugin_path = omit_home_plugin_path;
 	text_legacy_opts.output = g_string_new(NULL);
 	if (!text_legacy_opts.output) {
 		print_err_oom();
@@ -2410,7 +2656,7 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 		goto error;
 	}
 
-	ret = add_env_var_plugin_paths(cfg);
+	ret = append_env_var_plugin_paths(cfg->cmd_data.convert.plugin_paths);
 	if (ret) {
 		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
 		goto error;
@@ -2428,7 +2674,8 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 	}
 
 	/* Parse options */
-	pc = poptGetContext(NULL, argc, (const char **) argv, long_options, 0);
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		convert_long_options, 0);
 	if (!pc) {
 		printf_err("Cannot get popt context\n");
 		goto error;
@@ -2444,17 +2691,19 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			if (bt_common_is_setuid_setgid()) {
 				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
 			} else {
-				if (bt_config_append_plugin_paths(cfg->plugin_paths, arg)) {
+				if (bt_config_append_plugin_paths(
+						cfg->cmd_data.convert.plugin_paths,
+						arg)) {
 					printf_err("Invalid --plugin-path option's argument\n");
 					goto error;
 				}
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->omit_system_plugin_path = true;
+			cfg->cmd_data.convert.omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->omit_home_plugin_path = true;
+			cfg->cmd_data.convert.omit_home_plugin_path = true;
 			break;
 		case OPT_OUTPUT_PATH:
 			if (text_legacy_opts.output->len > 0) {
@@ -2528,7 +2777,7 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
 			if (!cur_cfg_comp->params) {
 				print_err_oom();
-				goto end;
+				goto error;
 			}
 
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
@@ -2590,7 +2839,7 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
 			if (!cur_cfg_comp->params) {
 				print_err_oom();
-				goto end;
+				goto error;
 			}
 
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
@@ -2742,7 +2991,7 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			ctf_legacy_opts.stream_intersection = true;
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
-			cfg->force_correlate = true;
+			cfg->cmd_data.convert.force_correlate = true;
 			break;
 		case OPT_BEGIN:
 			if (!cur_cfg_comp) {
@@ -2806,16 +3055,9 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 			break;
 		}
 		case OPT_HELP:
-			print_usage(stdout);
-			goto end;
-		case OPT_HELP_LEGACY:
-			print_legacy_usage(stdout);
-			goto end;
-		case OPT_VERSION:
-			print_version();
-			goto end;
-		case OPT_LIST:
-			cfg->do_list = true;
+			print_convert_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
 			goto end;
 		case OPT_VERBOSE:
 			cfg->verbose = true;
@@ -2831,11 +3073,6 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 
 		free(arg);
 		arg = NULL;
-	}
-
-	if (argc <= 1) {
-		print_usage(stdout);
-		goto end;
 	}
 
 	/* Check for option parsing error */
@@ -2860,7 +3097,11 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 		}
 	}
 
-	if (append_home_and_system_plugin_paths(cfg)) {
+	if (append_home_and_system_plugin_paths(
+			cfg->cmd_data.convert.plugin_paths,
+			cfg->cmd_data.convert.omit_system_plugin_path,
+			cfg->cmd_data.convert.omit_home_plugin_path)) {
+		printf_err("Cannot append home and system plugin paths\n");
 		goto error;
 	}
 
@@ -2883,13 +3124,15 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 	 * component configurations.
 	 */
 	if (legacy_input_format) {
-		if (append_sources_from_legacy_opts(cfg->sources,
+		if (append_sources_from_legacy_opts(
+				cfg->cmd_data.convert.sources,
 				legacy_input_format, &ctf_legacy_opts,
 				legacy_input_paths)) {
 			printf_err("Cannot convert legacy input format options to source component instance(s)\n");
 			goto error;
 		}
-		if (append_sources_from_implicit_params(cfg->sources,
+		if (append_sources_from_implicit_params(
+				cfg->cmd_data.convert.sources,
 				implicit_source_comp)) {
 			printf_err("Cannot initialize legacy component parameters\n");
 			goto error;
@@ -2914,14 +3157,14 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 	 * component configurations.
 	 */
 	if (legacy_output_format) {
-		if (append_sinks_from_legacy_opts(cfg->sinks,
+		if (append_sinks_from_legacy_opts(cfg->cmd_data.convert.sinks,
 				legacy_output_format, &text_legacy_opts)) {
 			printf_err("Cannot convert legacy output format options to sink component instance(s)\n");
 			goto error;
 		}
 	}
 
-	if (cfg->sinks->len == 0) {
+	if (cfg->cmd_data.convert.sinks->len == 0) {
 		/* Use implicit sink as default. */
 		cur_cfg_comp = bt_config_component_from_arg(DEFAULT_SINK_COMPONENT_NAME);
 		if (!cur_cfg_comp) {
@@ -2936,7 +3179,9 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 	goto end;
 
 error:
-	ret = 1;
+	*retcode = 1;
+	BT_PUT(cfg);
+
 end:
 	if (pc) {
 		poptFreeContext(pc);
@@ -2961,5 +3206,145 @@ end:
 	BT_PUT(text_legacy_opts.names);
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
-	return ret;
+	return cfg;
+}
+
+/*
+ * Prints the Babeltrace 2.x general usage.
+ */
+static
+void print_gen_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [COMMAND] [COMMAND OPTIONS]\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "General options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  -d, --debug        Enable debug mode\n");
+	fprintf(fp, "  -h  --help         Show this help and quit\n");
+	fprintf(fp, "      --help-legacy  Show Babeltrace 1.x legacy help and quit\n");
+	fprintf(fp, "  -v, --verbose      Enable verbose output\n");
+	fprintf(fp, "  -V, --version      Show version and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Available commands:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    convert       Build a trace conversion graph and run it (default)\n");
+	fprintf(fp, "    list-plugins  List available plugins and their content\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
+}
+
+struct bt_config *bt_config_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *config = NULL;
+	bool verbose = false;
+	bool debug = false;
+	int i;
+	enum bt_config_command command = -1;
+	const char **command_argv = NULL;
+	int command_argc = -1;
+	const char *command_name = NULL;
+
+	*retcode = -1;
+
+	if (argc <= 1) {
+		print_gen_usage(stdout);
+		goto end;
+	}
+
+	for (i = 1; i < argc; i++) {
+		const char *cur_arg = argv[i];
+
+		if (strcmp(cur_arg, "-d") == 0 ||
+				strcmp(cur_arg, "--debug") == 0) {
+			debug = true;
+		} else if (strcmp(cur_arg, "-v") == 0 ||
+				strcmp(cur_arg, "--verbose") == 0) {
+			verbose = true;
+		} else if (strcmp(cur_arg, "-V") == 0 ||
+				strcmp(cur_arg, "--version") == 0) {
+			print_version();
+			goto end;
+		} else if (strcmp(cur_arg, "-h") == 0 ||
+				strcmp(cur_arg, "--help") == 0) {
+			print_gen_usage(stdout);
+			goto end;
+		} else if (strcmp(cur_arg, "--help-legacy") == 0) {
+			print_legacy_usage(stdout);
+			goto end;
+		} else {
+			/*
+			 * First unknown argument: is it a known command
+			 * name?
+			 */
+			if (strcmp(cur_arg, "convert") == 0) {
+				command = BT_CONFIG_COMMAND_CONVERT;
+				command_argv = &argv[i];
+				command_argc = argc - i;
+				command_name = cur_arg;
+			} else if (strcmp(cur_arg, "list-plugins") == 0) {
+				command = BT_CONFIG_COMMAND_LIST_PLUGINS;
+				command_argv = &argv[i];
+				command_argc = argc - i;
+				command_name = cur_arg;
+			} else {
+				/*
+				 * Unknown argument, but not a known
+				 * command name: assume the whole
+				 * arguments are for the default convert
+				 * command.
+				 */
+				command = BT_CONFIG_COMMAND_CONVERT;
+				command_argv = argv;
+				command_argc = argc;
+			}
+			break;
+		}
+	}
+
+	if ((int) command < 0) {
+		/*
+		 * We only got non-help, non-version general options
+		 * like --verbose and --debug, without any other
+		 * arguments, so we can't do anything useful: print the
+		 * usage and quit.
+		 */
+		print_gen_usage(stdout);
+		goto end;
+	}
+
+	assert(command_argv);
+	assert(command_argc >= 0);
+
+	switch (command) {
+	case BT_CONFIG_COMMAND_CONVERT:
+		config = bt_config_convert_from_args(command_argc, command_argv,
+			retcode, omit_system_plugin_path,
+			omit_home_plugin_path, initial_plugin_paths);
+		break;
+	case BT_CONFIG_COMMAND_LIST_PLUGINS:
+		config = bt_config_list_plugins_from_args(command_argc,
+			command_argv, retcode, omit_system_plugin_path,
+			omit_home_plugin_path, initial_plugin_paths);
+		break;
+	default:
+		assert(false);
+	}
+
+	if (config) {
+		if (verbose) {
+			config->verbose = true;
+		}
+
+		if (debug) {
+			config->debug = true;
+		}
+
+		config->command_name = command_name;
+	}
+
+end:
+	return config;
 }

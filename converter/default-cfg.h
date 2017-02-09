@@ -27,6 +27,7 @@
 
 #include "babeltrace-cfg.h"
 
-int set_default_config(struct bt_config *cfg);
+struct bt_config *bt_config_from_args_with_defaults(int argc,
+		const char *argv[], int *retcode);
 
 #endif /* BABELTRACE_DEFAULT_CFG_H */

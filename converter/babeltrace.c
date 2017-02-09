@@ -28,6 +28,7 @@
 
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/plugin/plugin.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-source.h>
 #include <babeltrace/component/component-sink.h>
@@ -98,102 +99,6 @@ end:
 }
 
 static
-const char *component_type_str(enum bt_component_class_type type)
-{
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		return "source";
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-		return "sink";
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		return "filter";
-	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
-	default:
-		return "unknown";
-	}
-}
-
-static
-void print_component_classes_found(void)
-{
-	int plugins_count, component_classes_count = 0, i;
-
-	if (!babeltrace_verbose) {
-		return;
-	}
-
-	plugins_count = loaded_plugins->len;
-	if (plugins_count == 0) {
-		fprintf(stderr, "No plugins found. Please make sure your plug-in search path is set correctly.\n");
-		return;
-	}
-
-	for (i = 0; i < plugins_count; i++) {
-		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
-
-		component_classes_count += bt_plugin_get_component_class_count(plugin);
-	}
-
-	printf("Found %d component classes in %d plugins.\n",
-		component_classes_count, plugins_count);
-
-	for (i = 0; i < plugins_count; i++) {
-		int j;
-		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
-		unsigned int major, minor, patch;
-		const char *extra;
-		enum bt_plugin_status version_status;
-
-		component_classes_count =
-			bt_plugin_get_component_class_count(plugin);
-		version_status = bt_plugin_get_version(plugin, &major, &minor,
-			&patch, &extra);
-
-		for (j = 0; j < component_classes_count; j++) {
-			struct bt_component_class *comp_class =
-				bt_plugin_get_component_class(plugin, j);
-			const char *plugin_name = bt_plugin_get_name(plugin);
-			const char *comp_class_name =
-				bt_component_class_get_name(comp_class);
-			const char *path = bt_plugin_get_path(plugin);
-			const char *author = bt_plugin_get_author(plugin);
-			const char *license = bt_plugin_get_license(plugin);
-			const char *plugin_description =
-				bt_plugin_get_description(plugin);
-			const char *comp_class_description =
-				bt_component_class_get_description(comp_class);
-			enum bt_component_class_type type =
-				bt_component_class_get_type(comp_class);
-
-			printf("[%s - %s (%s)]\n", plugin_name,
-				comp_class_name, component_type_str(type));
-			printf("\tpath: %s\n", path ? path : "None");
-			printf("\tauthor: %s\n",
-				author ? author : "Unknown");
-			printf("\tlicense: %s\n",
-				license ? license : "Unknown");
-			printf("\tplugin description: %s\n",
-				plugin_description ? plugin_description : "None");
-
-			if (version_status == BT_PLUGIN_STATUS_OK) {
-				printf("\tplugin version: %u.%u.%u",
-					major, minor, patch);
-
-				if (extra) {
-					printf("%s", extra);
-				}
-
-				printf("\n");
-			}
-
-			printf("\tcomponent description: %s\n",
-				comp_class_description ? comp_class_description : "None");
-			bt_put(comp_class);
-		}
-	}
-}
-
-static
 void print_indent(size_t indent)
 {
 	size_t i;
@@ -204,22 +109,39 @@ void print_indent(size_t indent)
 }
 
 static
-void print_value(struct bt_value *, size_t, bool);
+void print_value(struct bt_value *, size_t);
 
 static
 bool print_map_value(const char *key, struct bt_value *object, void *data)
 {
-	size_t indent = (size_t) data;
+	size_t *indent = data;
 
-	print_indent(indent);
-	printf("\"%s\": ", key);
-	print_value(object, indent, false);
+	print_indent(*indent);
+	printf("%s: ", key);
 
+	if (bt_value_is_array(object) &&
+			bt_value_array_is_empty(object)) {
+		printf("[ ]\n");
+		return true;
+	}
+
+	if (bt_value_is_map(object) &&
+			bt_value_map_is_empty(object)) {
+		printf("{ }\n");
+		return true;
+	}
+
+	if (bt_value_is_array(object) ||
+			bt_value_is_map(object)) {
+		printf("\n");
+	}
+
+	print_value(object, *indent + 2);
 	return true;
 }
 
 static
-void print_value(struct bt_value *value, size_t indent, bool do_indent)
+void print_value(struct bt_value *value, size_t indent)
 {
 	bool bool_val;
 	int64_t int_val;
@@ -232,17 +154,13 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 		return;
 	}
 
-	if (do_indent) {
-		print_indent(indent);
-	}
-
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
 		printf("null\n");
 		break;
 	case BT_VALUE_TYPE_BOOL:
 		bt_value_bool_get(value, &bool_val);
-		printf("%s\n", bool_val ? "true" : "false");
+		printf("%s\n", bool_val ? "yes" : "no");
 		break;
 	case BT_VALUE_TYPE_INTEGER:
 		bt_value_integer_get(value, &int_val);
@@ -254,34 +172,55 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 		break;
 	case BT_VALUE_TYPE_STRING:
 		bt_value_string_get(value, &str_val);
-		printf("\"%s\"\n", str_val);
+		printf("%s\n", str_val);
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 		size = bt_value_array_size(value);
-		printf("[\n");
+		assert(size >= 0);
+
+		if (size == 0) {
+			print_indent(indent);
+			printf("[ ]\n");
+			break;
+		}
 
 		for (i = 0; i < size; i++) {
 			struct bt_value *element =
 					bt_value_array_get(value, i);
 
-			print_value(element, indent + 2, true);
+			assert(element);
+			print_indent(indent);
+			printf("- ");
+
+			if (bt_value_is_array(element) &&
+					bt_value_array_is_empty(element)) {
+				printf("[ ]\n");
+				continue;
+			}
+
+			if (bt_value_is_map(element) &&
+					bt_value_map_is_empty(element)) {
+				printf("{ }\n");
+				continue;
+			}
+
+			if (bt_value_is_array(element) ||
+					bt_value_is_map(element)) {
+				printf("\n");
+			}
+
+			print_value(element, indent + 2);
 			BT_PUT(element);
 		}
-
-		print_indent(indent);
-		printf("]\n");
 		break;
 	case BT_VALUE_TYPE_MAP:
 		if (bt_value_map_is_empty(value)) {
-			printf("{}\n");
-			return;
+			print_indent(indent);
+			printf("{ }\n");
+			break;
 		}
 
-		printf("{\n");
-		bt_value_map_foreach(value, print_map_value,
-			(void *) (indent + 2));
-		print_indent(indent);
-		printf("}\n");
+		bt_value_map_foreach(value, print_map_value, &indent);
 		break;
 	default:
 		assert(false);
@@ -291,10 +230,10 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf("  %s.%s\n", bt_config_component->plugin_name->str,
+	printf("    %s.%s:\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
-	printf("    params:\n");
-	print_value(bt_config_component->params, 6, true);
+	printf("      Parameters:\n");
+	print_value(bt_config_component->params, 8);
 }
 
 static
@@ -311,22 +250,51 @@ void print_bt_config_components(GPtrArray *array)
 }
 
 static
+void print_plugin_paths(struct bt_value *plugin_paths)
+{
+	printf("  Plugin paths:\n");
+	print_value(plugin_paths, 4);
+}
+
+static
+void print_cfg_convert(struct bt_config *cfg)
+{
+	printf("  Force correlate: %s\n",
+		cfg->cmd_data.convert.force_correlate ? "yes" : "no");
+	print_plugin_paths(cfg->cmd_data.convert.plugin_paths);
+	printf("  Source component instances:\n");
+	print_bt_config_components(cfg->cmd_data.convert.sources);
+	printf("  Sink component instances:\n");
+	print_bt_config_components(cfg->cmd_data.convert.sinks);
+}
+
+static
+void print_cfg_list_plugins(struct bt_config *cfg)
+{
+	print_plugin_paths(cfg->cmd_data.list_plugins.plugin_paths);
+}
+
+static
 void print_cfg(struct bt_config *cfg)
 {
 	if (!babeltrace_verbose) {
 		return;
 	}
 
-	printf("debug:           %d\n", cfg->debug);
-	printf("verbose:         %d\n", cfg->verbose);
-	printf("do list:         %d\n", cfg->do_list);
-	printf("force correlate: %d\n", cfg->force_correlate);
-	printf("plugin paths:\n");
-	print_value(cfg->plugin_paths, 2, true);
-	printf("sources:\n");
-	print_bt_config_components(cfg->sources);
-	printf("sinks:\n");
-	print_bt_config_components(cfg->sinks);
+	printf("Configuration:\n");
+	printf("  Debug mode: %s\n", cfg->debug ? "yes" : "no");
+	printf("  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
+
+	switch (cfg->command) {
+	case BT_CONFIG_COMMAND_CONVERT:
+		print_cfg_convert(cfg);
+		break;
+	case BT_CONFIG_COMMAND_LIST_PLUGINS:
+		print_cfg_list_plugins(cfg);
+		break;
+	default:
+		assert(false);
+	}
 }
 
 static
@@ -479,11 +447,11 @@ void add_to_loaded_plugins(struct bt_plugin **plugins)
 }
 
 static
-int load_dynamic_plugins(struct bt_config *cfg)
+int load_dynamic_plugins(struct bt_value *plugin_paths)
 {
 	int nr_paths, i, ret = 0;
 
-	nr_paths = bt_value_array_size(cfg->plugin_paths);
+	nr_paths = bt_value_array_size(plugin_paths);
 	if (nr_paths < 0) {
 		ret = -1;
 		goto end;
@@ -494,7 +462,7 @@ int load_dynamic_plugins(struct bt_config *cfg)
 		const char *plugin_path;
 		struct bt_plugin **plugins;
 
-		plugin_path_value = bt_value_array_get(cfg->plugin_paths, i);
+		plugin_path_value = bt_value_array_get(plugin_paths, i);
 		if (bt_value_string_get(plugin_path_value,
 				&plugin_path)) {
 			BT_PUT(plugin_path_value);
@@ -537,50 +505,27 @@ end:
 	return ret;
 }
 
-int main(int argc, const char **argv)
+static
+const char *component_type_str(enum bt_component_class_type type)
 {
-	int ret;
-	struct bt_component_class *source_class = NULL;
-	struct bt_component_class *sink_class = NULL;
-	struct bt_component *source = NULL, *sink = NULL;
-	struct bt_value *source_params = NULL, *sink_params = NULL;
-	struct bt_config *cfg;
-	enum bt_component_status sink_status;
-	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
-
-	init_loaded_plugins_array();
-
-	cfg = bt_config_create();
-	if (!cfg) {
-		fprintf(stderr, "Failed to create Babeltrace configuration\n");
-		ret = 1;
-		goto end;
+	switch (type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		return "source";
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+		return "sink";
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+		return "filter";
+	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
+	default:
+		return "unknown";
 	}
+}
 
-	ret = set_default_config(cfg);
-	if (ret) {
-		goto end;
-	}
+static int load_all_plugins(struct bt_value *plugin_paths)
+{
+	int ret = 0;
 
-	ret = bt_config_init_from_args(cfg, argc, argv);
-	if (ret == 0) {
-		babeltrace_verbose = cfg->verbose;
-		babeltrace_debug = cfg->debug;
-		print_cfg(cfg);
-	} else {
-		goto end;
-	}
-
-	/* TODO handle more than 1 source and 1 sink. */
-	if (cfg->sources->len != 1 || cfg->sinks->len != 1) {
-		ret = -1;
-		goto end;
-	}
-
-	printf_verbose("Verbose mode active.\n");
-	printf_debug("Debug mode active.\n");
-
-	if (load_dynamic_plugins(cfg)) {
+	if (load_dynamic_plugins(plugin_paths)) {
 		fprintf(stderr, "Failed to load dynamic plugins.\n");
 		ret = -1;
 		goto end;
@@ -588,11 +533,164 @@ int main(int argc, const char **argv)
 
 	if (load_static_plugins()) {
 		fprintf(stderr, "Failed to load static plugins.\n");
+		ret = -1;
 		goto end;
 	}
 
-	print_component_classes_found();
-	source_cfg = bt_config_get_component(cfg->sources, 0);
+end:
+	return ret;
+}
+
+static int cmd_list_plugins(struct bt_config *cfg)
+{
+	int ret;
+	int plugins_count, component_classes_count = 0, i;
+
+	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	if (ret) {
+		goto end;
+	}
+
+	plugins_count = loaded_plugins->len;
+	if (plugins_count == 0) {
+		fprintf(stderr, "%s%sNo plugins found.%s\n",
+			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_reset());
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Please make sure your plugin search path is set correctly. You can use\n");
+		fprintf(stderr, "the --plugin-path command-line option or the BABELTRACE_PLUGIN_PATH\n");
+		fprintf(stderr, "environment variable.\n");
+		ret = -1;
+		goto end;
+	}
+
+	for (i = 0; i < plugins_count; i++) {
+		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+
+		component_classes_count += bt_plugin_get_component_class_count(plugin);
+	}
+
+	printf("Found %s%d%s component classes in %s%d%s plugins.\n",
+		bt_common_color_bold(),
+		component_classes_count,
+		bt_common_color_reset(),
+		bt_common_color_bold(),
+		plugins_count,
+		bt_common_color_reset());
+
+	for (i = 0; i < plugins_count; i++) {
+		int j;
+		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+		unsigned int major, minor, patch;
+		const char *extra;
+		enum bt_plugin_status version_status;
+		const char *plugin_name = bt_plugin_get_name(plugin);
+		const char *path = bt_plugin_get_path(plugin);
+		const char *author = bt_plugin_get_author(plugin);
+		const char *license = bt_plugin_get_license(plugin);
+		const char *plugin_description =
+			bt_plugin_get_description(plugin);
+
+		component_classes_count =
+			bt_plugin_get_component_class_count(plugin);
+		version_status = bt_plugin_get_version(plugin, &major, &minor,
+			&patch, &extra);
+
+		printf("\n%s%s%s%s:\n", bt_common_color_bold(),
+			bt_common_color_fg_blue(), plugin_name,
+			bt_common_color_reset());
+		printf("  %sPath%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(), path ? path : "(None)");
+
+		if (version_status == BT_PLUGIN_STATUS_OK) {
+			printf("  %sVersion%s: %u.%u.%u",
+				bt_common_color_bold(), bt_common_color_reset(),
+				major, minor, patch);
+
+			if (extra) {
+				printf("%s", extra);
+			}
+
+			printf("\n");
+		}
+
+		printf("  %sDescription%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(),
+			plugin_description ? plugin_description : "(None)");
+		printf("  %sAuthor%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(), author ? author : "(Unknown)");
+		printf("  %sLicense%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(),
+			license ? license : "(Unknown)");
+
+		if (component_classes_count == 0) {
+			printf("  %sComponent classes%s: (None)\n",
+				bt_common_color_bold(),
+				bt_common_color_reset());
+		} else {
+			printf("  %sComponent classes%s:\n",
+				bt_common_color_bold(),
+				bt_common_color_reset());
+		}
+
+		for (j = 0; j < component_classes_count; j++) {
+			struct bt_component_class *comp_class =
+				bt_plugin_get_component_class(plugin, j);
+			const char *comp_class_name =
+				bt_component_class_get_name(comp_class);
+			const char *comp_class_description =
+				bt_component_class_get_description(comp_class);
+			enum bt_component_class_type type =
+				bt_component_class_get_type(comp_class);
+
+			printf("    %s%s--%s%s %s%s%s.%s%s%s",
+				bt_common_color_bold(),
+				bt_common_color_fg_cyan(),
+				component_type_str(type),
+				bt_common_color_fg_default(),
+				bt_common_color_fg_blue(),
+				plugin_name,
+				bt_common_color_fg_default(),
+				bt_common_color_fg_yellow(),
+				comp_class_name,
+				bt_common_color_reset());
+
+			if (comp_class_description) {
+				printf(": %s", comp_class_description);
+			}
+
+			printf("\n");
+			bt_put(comp_class);
+		}
+	}
+
+end:
+	return ret;
+}
+
+static int cmd_convert(struct bt_config *cfg)
+{
+	int ret = 0;
+	struct bt_component_class *source_class = NULL;
+	struct bt_component_class *sink_class = NULL;
+	struct bt_component *source = NULL, *sink = NULL;
+	struct bt_value *source_params = NULL, *sink_params = NULL;
+	enum bt_component_status sink_status;
+	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
+
+	/* TODO handle more than 1 source and 1 sink. */
+	if (cfg->cmd_data.convert.sources->len != 1 ||
+			cfg->cmd_data.convert.sinks->len != 1) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
+	if (ret) {
+		goto end;
+	}
+
+	source_cfg = bt_config_get_component(cfg->cmd_data.convert.sources, 0);
 	source_params = bt_get(source_cfg->params);
 	source_class = find_component_class(source_cfg->plugin_name->str,
 			source_cfg->component_name->str,
@@ -605,7 +703,7 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	sink_cfg = bt_config_get_component(cfg->sinks, 0);
+	sink_cfg = bt_config_get_component(cfg->cmd_data.convert.sinks, 0);
 	sink_params = bt_get(sink_cfg->params);
 	sink_class = find_component_class(sink_cfg->plugin_name->str,
 			sink_cfg->component_name->str,
@@ -634,6 +732,7 @@ int main(int argc, const char **argv)
 
 	ret = connect_source_sink(source, source_cfg, sink);
 	if (ret) {
+		ret = -1;
 		goto end;
 	}
 
@@ -654,6 +753,7 @@ int main(int argc, const char **argv)
 			goto end;
 		}
 	}
+
 end:
 	BT_PUT(sink_class);
 	BT_PUT(source_class);
@@ -661,9 +761,73 @@ end:
 	BT_PUT(sink);
 	BT_PUT(source_params);
 	BT_PUT(sink_params);
-	BT_PUT(cfg);
 	BT_PUT(sink_cfg);
 	BT_PUT(source_cfg);
+	return ret;
+}
+
+static void warn_command_name_and_directory_clash(struct bt_config *cfg)
+{
+	if (!cfg->command_name) {
+		return;
+	}
+
+	if (g_file_test(cfg->command_name,
+			G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
+		fprintf(stderr, "\nNOTE: The `%s` command was executed. If you meant to convert a\n",
+			cfg->command_name);
+		fprintf(stderr, "trace located in the local `%s` directory, please use:\n",
+			cfg->command_name);
+		fprintf(stderr, "\n");
+		fprintf(stderr, "    babeltrace convert %s [OPTIONS]\n",
+			cfg->command_name);
+	}
+}
+
+int main(int argc, const char **argv)
+{
+	int ret;
+	int retcode;
+	struct bt_config *cfg;
+
+	init_loaded_plugins_array();
+	cfg = bt_config_from_args_with_defaults(argc, argv, &retcode);
+
+	if (retcode < 0) {
+		/* Quit without errors; typically usage/version */
+		retcode = 0;
+		goto end;
+	}
+
+	if (retcode > 0) {
+		goto end;
+	}
+
+	if (!cfg) {
+		fprintf(stderr, "Failed to create Babeltrace configuration\n");
+		goto end;
+	}
+
+	babeltrace_debug = cfg->debug;
+	babeltrace_verbose = cfg->verbose;
+	print_cfg(cfg);
+
+	switch (cfg->command) {
+	case BT_CONFIG_COMMAND_CONVERT:
+		ret = cmd_convert(cfg);
+		break;
+	case BT_CONFIG_COMMAND_LIST_PLUGINS:
+		ret = cmd_list_plugins(cfg);
+		break;
+	default:
+		assert(false);
+	}
+
+	warn_command_name_and_directory_clash(cfg);
+	retcode = ret ? 1 : 0;
+
+end:
+	BT_PUT(cfg);
 	fini_loaded_plugins_array();
-	return ret ? 1 : 0;
+	return retcode;
 }

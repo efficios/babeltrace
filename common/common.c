@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -162,4 +163,146 @@ error:
 
 end:
 	return ret;
+}
+
+static bool supports_colors(void)
+{
+	static bool supports_colors = false;
+	static bool supports_colors_set = false;
+	const char *term;
+
+	if (supports_colors_set) {
+		goto end;
+	}
+
+	supports_colors_set = true;
+
+	term = getenv("TERM");
+	if (!term) {
+		goto end;
+	}
+
+	if (strncmp(term, "xterm", 5) != 0 &&
+			strncmp(term, "rxvt", 4) != 0 &&
+			strncmp(term, "konsole", 7) != 0 &&
+			strncmp(term, "gnome", 5) != 0) {
+		goto end;
+	}
+
+	if (!isatty(1)) {
+		goto end;
+	}
+
+	supports_colors = true;
+
+end:
+	return supports_colors;
+}
+
+BT_HIDDEN
+const char *bt_common_color_reset(void)
+{
+	return supports_colors() ? "\033[0m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bold(void)
+{
+	return supports_colors() ? "\033[1m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_default(void)
+{
+	return supports_colors() ? "\033[39m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_red(void)
+{
+	return supports_colors() ? "\033[31m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_green(void)
+{
+	return supports_colors() ? "\033[32m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_yellow(void)
+{
+	return supports_colors() ? "\033[33m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_blue(void)
+{
+	return supports_colors() ? "\033[34m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_magenta(void)
+{
+	return supports_colors() ? "\033[35m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_cyan(void)
+{
+	return supports_colors() ? "\033[36m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_fg_light_gray(void)
+{
+	return supports_colors() ? "\033[37m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_default(void)
+{
+	return supports_colors() ? "\033[49m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_red(void)
+{
+	return supports_colors() ? "\033[41m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_green(void)
+{
+	return supports_colors() ? "\033[42m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_yellow(void)
+{
+	return supports_colors() ? "\033[43m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_blue(void)
+{
+	return supports_colors() ? "\033[44m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_magenta(void)
+{
+	return supports_colors() ? "\033[45m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_cyan(void)
+{
+	return supports_colors() ? "\033[46m" : "";
+}
+
+BT_HIDDEN
+const char *bt_common_color_bg_light_gray(void)
+{
+	return supports_colors() ? "\033[47m" : "";
 }

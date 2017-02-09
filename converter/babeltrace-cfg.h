@@ -40,22 +40,40 @@ struct bt_config_component {
 	struct bt_value *params;
 };
 
+enum bt_config_command {
+	BT_CONFIG_COMMAND_CONVERT,
+	BT_CONFIG_COMMAND_LIST_PLUGINS,
+};
+
 struct bt_config {
 	struct bt_object base;
-	struct bt_value *plugin_paths;
-
-	/* Array of pointers to struct bt_config_component */
-	GPtrArray *sources;
-
-	/* Array of pointers to struct bt_config_component */
-	GPtrArray *sinks;
-
 	bool debug;
 	bool verbose;
-	bool do_list;
-	bool force_correlate;
-	bool omit_system_plugin_path;
-	bool omit_home_plugin_path;
+	const char *command_name;
+	enum bt_config_command command;
+	union {
+		/* BT_CONFIG_COMMAND_CONVERT */
+		struct {
+			struct bt_value *plugin_paths;
+
+			/* Array of pointers to struct bt_config_component */
+			GPtrArray *sources;
+
+			/* Array of pointers to struct bt_config_component */
+			GPtrArray *sinks;
+
+			bool force_correlate;
+			bool omit_system_plugin_path;
+			bool omit_home_plugin_path;
+		} convert;
+
+		/* BT_CONFIG_COMMAND_LIST_PLUGINS */
+		struct {
+			struct bt_value *plugin_paths;
+			bool omit_system_plugin_path;
+			bool omit_home_plugin_path;
+		} list_plugins;
+	} cmd_data;
 };
 
 static inline
@@ -65,10 +83,10 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 	return bt_get(g_ptr_array_index(array, index));
 }
 
-struct bt_config *bt_config_create(void);
-
-int bt_config_init_from_args(struct bt_config *cfg, int argc,
-		const char *argv[]);
+struct bt_config *bt_config_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths);
 
 enum bt_value_status bt_config_append_plugin_paths(
 		struct bt_value *plugin_paths, const char *arg);

@@ -33,23 +33,43 @@
 
 #ifdef BT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
-int set_default_config(struct bt_config *cfg)
+struct bt_config *bt_config_from_args_with_defaults(int argc,
+		const char *argv[], int *retcode)
 {
+	struct bt_value *initial_plugin_paths;
+	struct bt_config *cfg = NULL;
 	int ret;
 
-	cfg->omit_system_plugin_path = true;
-	cfg->omit_home_plugin_path = true;
-	ret = bt_config_append_plugin_paths(cfg->plugin_paths,
+	initial_plugin_paths = bt_value_array_create();
+	if (!initial_plugin_paths) {
+		goto error;
+	}
+
+	ret = bt_config_append_plugin_paths(initial_plugin_paths,
 		CONFIG_IN_TREE_PLUGIN_PATH);
-	return ret;
+	if (ret) {
+		goto error;
+	}
+
+	cfg = bt_config_from_args(argc, argv, retcode, true, true,
+		initial_plugin_paths);
+	goto end;
+
+error:
+	*retcode = 1;
+	BT_PUT(cfg);
+
+end:
+	bt_put(initial_plugin_paths);
+	return cfg;
 }
 
 #else /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
 
-int set_default_config(struct bt_config *cfg)
+struct bt_config *bt_config_from_args_with_defaults(int argc,
+		const char *argv[], int *retcode)
 {
-	/* Nothing to set. */
-	return 0;
+	return bt_config_from_args(argc, argv, retcode, false, false, NULL);
 }
 
 #endif /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
