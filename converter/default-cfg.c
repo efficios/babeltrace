@@ -27,6 +27,7 @@
  */
 
 #include <babeltrace/values.h>
+#include "babeltrace-cfg.h"
 #include "default-cfg.h"
 #include "config.h"
 
@@ -38,8 +39,8 @@ int set_default_config(struct bt_config *cfg)
 
 	cfg->omit_system_plugin_path = true;
 	cfg->omit_home_plugin_path = true;
-	ret = bt_value_array_append_string(cfg->plugin_paths,
-			CONFIG_IN_TREE_PLUGIN_DIR);
+	ret = bt_config_append_plugin_paths(cfg->plugin_paths,
+		CONFIG_IN_TREE_PLUGIN_PATH);
 	return ret;
 }
 

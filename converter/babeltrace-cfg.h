@@ -70,4 +70,7 @@ struct bt_config *bt_config_create(void);
 int bt_config_init_from_args(struct bt_config *cfg, int argc,
 		const char *argv[]);
 
+enum bt_value_status bt_config_append_plugin_paths(
+		struct bt_value *plugin_paths, const char *arg);
+
 #endif /* BABELTRACE_CONVERTER_CFG_H */

@@ -497,7 +497,7 @@ int load_dynamic_plugins(struct bt_config *cfg)
 			continue;
 		}
 
-		plugins = bt_plugin_create_all_from_dir(plugin_path, true);
+		plugins = bt_plugin_create_all_from_dir(plugin_path, false);
 		if (!plugins) {
 			printf_debug("Unable to dynamically load plugins from path %s.\n",
 				plugin_path);

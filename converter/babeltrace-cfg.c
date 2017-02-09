@@ -764,16 +764,23 @@ void print_usage(FILE *fp)
 	fprintf(fp, "                                    of the following source and sink component\n");
 	fprintf(fp, "                                    instances (see the exact format of PARAMS\n");
 	fprintf(fp, "                                    below)\n");
+	fprintf(fp, "      --begin=BEGIN                 Set beginning time to BEGIN\n");
+	fprintf(fp, "                                    (format: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn])\n");
 	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
+	fprintf(fp, "      --end=END                     Set end time to END\n");
+	fprintf(fp, "                                    (format: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn])\n");
 	fprintf(fp, "  -l, --list                        List available plugins and their components\n");
-	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest source\n");
-	fprintf(fp, "                                    or sink component to PATH\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest source or\n");
 	fprintf(fp, "                                    sink component instance (in command-line \n");
 	fprintf(fp, "                                    order) to PARAMS (see the exact format of\n");
 	fprintf(fp, "                                    PARAMS below)\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Set paths from which dynamic plugins can be\n");
-	fprintf(fp, "                                    loaded to PATH\n");
+	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest source\n");
+	fprintf(fp, "                                    or sink component to PATH\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which dynamic\n");
+	fprintf(fp, "                                    plugins can be loaded\n");
 	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
 	fprintf(fp, "                                    following source and sink component\n");
 	fprintf(fp, "                                    instances to an empty map\n");
@@ -783,11 +790,8 @@ void print_usage(FILE *fp)
 	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
 	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
 	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "      --begin                       Start time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
-	fprintf(fp, "      --end                         End time: [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
-	fprintf(fp, "      --timerange                   Time range: begin,end or [begin,end] (where [] are actual brackets)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "      --timerange=TIMERANGE         Set time range to TIMERANGE: BEGIN,END or\n");
+	fprintf(fp, "                                    [BEGIN,END] (where [ and ] are actual brackets)\n");
 	fprintf(fp, "  -h  --help                        Show this help\n");
 	fprintf(fp, "      --help-legacy                 Show Babeltrace 1.x legacy options\n");
 	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
@@ -962,12 +966,6 @@ end:
 	return;
 }
 
-static
-bool is_setuid_setgid(void)
-{
-	return (geteuid() != getuid() || getegid() != getgid());
-}
-
 static void destroy_gstring(void *data)
 {
 	g_string_free(data, TRUE);
@@ -975,15 +973,10 @@ static void destroy_gstring(void *data)
 
 /*
  * Extracts the various paths from the string arg, delimited by ':',
- * and converts them to an array value object.
- *
- * Returned array value object is empty if arg is empty.
- *
- * Return value is owned by the caller.
+ * and appends them to the array value object plugin_paths.
  */
-static
-enum bt_value_status plugin_paths_from_arg(struct bt_value *plugin_paths,
-		const char *arg)
+enum bt_value_status bt_config_append_plugin_paths(
+		struct bt_value *plugin_paths, const char *arg)
 {
 	enum bt_value_status status = BT_VALUE_STATUS_OK;
 	GPtrArray *dirs = g_ptr_array_new_with_free_func(destroy_gstring);
@@ -2242,19 +2235,40 @@ not_found:
 	return -1;
 }
 
-static int add_internal_plugin_paths(struct bt_config *cfg)
+static int add_env_var_plugin_paths(struct bt_config *cfg)
+{
+	int ret = 0;
+	const char *envvar;
+
+	if (bt_common_is_setuid_setgid()) {
+		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		goto end;
+	}
+
+	envvar = getenv("BABELTRACE_PLUGIN_PATH");
+	if (!envvar) {
+		goto end;
+	}
+
+	ret = bt_config_append_plugin_paths(cfg->plugin_paths, envvar);
+
+end:
+	return ret;
+}
+
+static int append_home_and_system_plugin_paths(struct bt_config *cfg)
 {
 	int ret;
 
 	if (!cfg->omit_home_plugin_path) {
 		if (bt_common_is_setuid_setgid()) {
-			printf_debug("Skipping non-system plugin paths for setuid/setgid binary.");
+			printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
 		} else {
 			char *home_plugin_dir =
 				bt_common_get_home_plugin_path();
 
 			if (home_plugin_dir) {
-				ret = plugin_paths_from_arg(cfg->plugin_paths,
+				ret = bt_config_append_plugin_paths(cfg->plugin_paths,
 					home_plugin_dir);
 				free(home_plugin_dir);
 
@@ -2267,7 +2281,7 @@ static int add_internal_plugin_paths(struct bt_config *cfg)
 	}
 
 	if (!cfg->omit_system_plugin_path) {
-		if (plugin_paths_from_arg(cfg->plugin_paths,
+		if (bt_config_append_plugin_paths(cfg->plugin_paths,
 				bt_common_get_system_plugin_path())) {
 			printf_err("Invalid system plugin path\n");
 			goto error;
@@ -2339,9 +2353,8 @@ error:
 }
 
 /*
- * Returns a Babeltrace configuration, out of command-line arguments,
- * containing everything that is needed to instanciate specific
- * components with given parameters.
+ * Initializes a created Babeltrace config object according to the
+ * command-line arguments found in argv.
  *
  * Return value is set to the appropriate exit code to use.
  */
@@ -2397,6 +2410,12 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 		goto error;
 	}
 
+	ret = add_env_var_plugin_paths(cfg);
+	if (ret) {
+		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+		goto error;
+	}
+
 	/* Note: implicit source never gets positional base params. */
 	implicit_source_comp = bt_config_component_from_arg(DEFAULT_SOURCE_COMPONENT_NAME);
 	if (implicit_source_comp) {
@@ -2422,10 +2441,10 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (is_setuid_setgid()) {
-				printf_debug("Skipping non-system plugin paths for setuid/setgid binary.");
+			if (bt_common_is_setuid_setgid()) {
+				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
 			} else {
-				if (plugin_paths_from_arg(cfg->plugin_paths, arg)) {
+				if (bt_config_append_plugin_paths(cfg->plugin_paths, arg)) {
 					printf_err("Invalid --plugin-path option's argument\n");
 					goto error;
 				}
@@ -2841,7 +2860,7 @@ int bt_config_init_from_args(struct bt_config *cfg, int argc, const char *argv[]
 		}
 	}
 
-	if (add_internal_plugin_paths(cfg)) {
+	if (append_home_and_system_plugin_paths(cfg)) {
 		goto error;
 	}
 
