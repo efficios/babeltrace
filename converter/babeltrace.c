@@ -134,7 +134,7 @@ void print_component_classes_found(void)
 		component_classes_count += bt_plugin_get_component_class_count(plugin);
 	}
 
-	printf_verbose("Found %d component classes in %d plugins.\n",
+	printf("Found %d component classes in %d plugins.\n",
 		component_classes_count, plugins_count);
 
 	for (i = 0; i < plugins_count; i++) {
@@ -165,18 +165,18 @@ void print_component_classes_found(void)
 			enum bt_component_class_type type =
 				bt_component_class_get_type(comp_class);
 
-			printf_verbose("[%s - %s (%s)]\n", plugin_name,
+			printf("[%s - %s (%s)]\n", plugin_name,
 				comp_class_name, component_type_str(type));
-			printf_verbose("\tpath: %s\n", path ? path : "None");
-			printf_verbose("\tauthor: %s\n",
+			printf("\tpath: %s\n", path ? path : "None");
+			printf("\tauthor: %s\n",
 				author ? author : "Unknown");
-			printf_verbose("\tlicense: %s\n",
+			printf("\tlicense: %s\n",
 				license ? license : "Unknown");
-			printf_verbose("\tplugin description: %s\n",
+			printf("\tplugin description: %s\n",
 				plugin_description ? plugin_description : "None");
 
 			if (version_status == BT_PLUGIN_STATUS_OK) {
-				printf_verbose("\tplugin version: %u.%u.%u",
+				printf("\tplugin version: %u.%u.%u",
 					major, minor, patch);
 
 				if (extra) {
@@ -186,7 +186,7 @@ void print_component_classes_found(void)
 				printf("\n");
 			}
 
-			printf_verbose("\tcomponent description: %s\n",
+			printf("\tcomponent description: %s\n",
 				comp_class_description ? comp_class_description : "None");
 			bt_put(comp_class);
 		}
@@ -199,7 +199,7 @@ void print_indent(size_t indent)
 	size_t i;
 
 	for (i = 0; i < indent; i++) {
-		printf_verbose(" ");
+		printf(" ");
 	}
 }
 
@@ -212,7 +212,7 @@ bool print_map_value(const char *key, struct bt_value *object, void *data)
 	size_t indent = (size_t) data;
 
 	print_indent(indent);
-	printf_verbose("\"%s\": ", key);
+	printf("\"%s\": ", key);
 	print_value(object, indent, false);
 
 	return true;
@@ -238,27 +238,27 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
-		printf_verbose("null\n");
+		printf("null\n");
 		break;
 	case BT_VALUE_TYPE_BOOL:
 		bt_value_bool_get(value, &bool_val);
-		printf_verbose("%s\n", bool_val ? "true" : "false");
+		printf("%s\n", bool_val ? "true" : "false");
 		break;
 	case BT_VALUE_TYPE_INTEGER:
 		bt_value_integer_get(value, &int_val);
-		printf_verbose("%" PRId64 "\n", int_val);
+		printf("%" PRId64 "\n", int_val);
 		break;
 	case BT_VALUE_TYPE_FLOAT:
 		bt_value_float_get(value, &dbl_val);
-		printf_verbose("%lf\n", dbl_val);
+		printf("%lf\n", dbl_val);
 		break;
 	case BT_VALUE_TYPE_STRING:
 		bt_value_string_get(value, &str_val);
-		printf_verbose("\"%s\"\n", str_val);
+		printf("\"%s\"\n", str_val);
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 		size = bt_value_array_size(value);
-		printf_verbose("[\n");
+		printf("[\n");
 
 		for (i = 0; i < size; i++) {
 			struct bt_value *element =
@@ -269,19 +269,19 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 		}
 
 		print_indent(indent);
-		printf_verbose("]\n");
+		printf("]\n");
 		break;
 	case BT_VALUE_TYPE_MAP:
 		if (bt_value_map_is_empty(value)) {
-			printf_verbose("{}\n");
+			printf("{}\n");
 			return;
 		}
 
-		printf_verbose("{\n");
+		printf("{\n");
 		bt_value_map_foreach(value, print_map_value,
 			(void *) (indent + 2));
 		print_indent(indent);
-		printf_verbose("}\n");
+		printf("}\n");
 		break;
 	default:
 		assert(false);
@@ -291,9 +291,9 @@ void print_value(struct bt_value *value, size_t indent, bool do_indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf_verbose("  %s.%s\n", bt_config_component->plugin_name->str,
+	printf("  %s.%s\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
-	printf_verbose("    params:\n");
+	printf("    params:\n");
 	print_value(bt_config_component->params, 6, true);
 }
 
@@ -313,15 +313,19 @@ void print_bt_config_components(GPtrArray *array)
 static
 void print_cfg(struct bt_config *cfg)
 {
-	printf_verbose("debug:           %d\n", cfg->debug);
-	printf_verbose("verbose:         %d\n", cfg->verbose);
-	printf_verbose("do list:         %d\n", cfg->do_list);
-	printf_verbose("force correlate: %d\n", cfg->force_correlate);
-	printf_verbose("plugin paths:\n");
+	if (!babeltrace_verbose) {
+		return;
+	}
+
+	printf("debug:           %d\n", cfg->debug);
+	printf("verbose:         %d\n", cfg->verbose);
+	printf("do list:         %d\n", cfg->do_list);
+	printf("force correlate: %d\n", cfg->force_correlate);
+	printf("plugin paths:\n");
 	print_value(cfg->plugin_paths, 2, true);
-	printf_verbose("sources:\n");
+	printf("sources:\n");
 	print_bt_config_components(cfg->sources);
-	printf_verbose("sinks:\n");
+	printf("sinks:\n");
 	print_bt_config_components(cfg->sinks);
 }
 
