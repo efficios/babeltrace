@@ -63,7 +63,13 @@ struct bt_config {
 			GPtrArray *sources;
 
 			/* Array of pointers to struct bt_config_component */
+			GPtrArray *filters;
+
+			/* Array of pointers to struct bt_config_component */
 			GPtrArray *sinks;
+
+			/* Array of pointers to struct bt_config_connection */
+			GPtrArray *connections;
 
 			bool force_correlate;
 			bool omit_system_plugin_path;
@@ -100,6 +106,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
 		struct bt_value *initial_plugin_paths);
+
+struct bt_config_component *bt_config_component_from_arg(const char *arg);
 
 enum bt_value_status bt_config_append_plugin_paths(
 		struct bt_value *plugin_paths, const char *arg);

@@ -12,7 +12,9 @@ babeltrace_bin_SOURCES = \
 	babeltrace-cfg.c \
 	babeltrace-cfg.h \
 	default-cfg.h \
-	default-cfg.c
+	default-cfg.c \
+	babeltrace-cfg-connect.h \
+	babeltrace-cfg-connect.c
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having

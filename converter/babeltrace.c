@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include "babeltrace-cfg.h"
+#include "babeltrace-cfg-connect.h"
 #include "default-cfg.h"
 
 GPtrArray *loaded_plugins;
@@ -265,13 +266,36 @@ void print_plugin_paths(struct bt_value *plugin_paths)
 static
 void print_cfg_convert(struct bt_config *cfg)
 {
+	size_t i;
+
 	printf("  Force correlate: %s\n",
 		cfg->cmd_data.convert.force_correlate ? "yes" : "no");
 	print_plugin_paths(cfg->cmd_data.convert.plugin_paths);
 	printf("  Source component instances:\n");
 	print_bt_config_components(cfg->cmd_data.convert.sources);
+
+	if (cfg->cmd_data.convert.filters->len > 0) {
+		printf("  Filter component instances:\n");
+		print_bt_config_components(cfg->cmd_data.convert.filters);
+	}
+
 	printf("  Sink component instances:\n");
 	print_bt_config_components(cfg->cmd_data.convert.sinks);
+	printf("  Connections:\n");
+
+	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+		struct bt_config_connection *cfg_connection =
+			g_ptr_array_index(cfg->cmd_data.convert.connections,
+				i);
+
+		printf("    %s%s%s -> %s%s%s\n",
+			cfg_connection->src_instance_name->str,
+			cfg_connection->src_port_name->len > 0 ? "." : "",
+			cfg_connection->src_port_name->str,
+			cfg_connection->dst_instance_name->str,
+			cfg_connection->dst_port_name->len > 0 ? "." : "",
+			cfg_connection->dst_port_name->str);
+	}
 }
 
 static
@@ -810,12 +834,14 @@ static int cmd_convert(struct bt_config *cfg)
 	/* TODO handle more than 1 source and 1 sink. */
 	if (cfg->cmd_data.convert.sources->len != 1 ||
 			cfg->cmd_data.convert.sinks->len != 1) {
+		fprintf(stderr, "Only one source and one sink component class are supported. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 
 	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
 	if (ret) {
+		fprintf(stderr, "Could not load plugins from configured plugin paths. Aborting...\n");
 		goto end;
 	}
 

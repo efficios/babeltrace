@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include "babeltrace-cfg.h"
+#include "babeltrace-cfg-connect.h"
 
 #define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
 #define DEFAULT_SINK_COMPONENT_NAME	"text.text"
@@ -781,7 +782,6 @@ end:
  * Creates a component configuration from a command-line source/sink
  * option's argument.
  */
-static
 struct bt_config_component *bt_config_component_from_arg(const char *arg)
 {
 	struct bt_config_component *bt_config_component = NULL;
@@ -830,8 +830,17 @@ void bt_config_destroy(struct bt_object *obj)
 			g_ptr_array_free(cfg->cmd_data.convert.sources, TRUE);
 		}
 
+		if (cfg->cmd_data.convert.filters) {
+			g_ptr_array_free(cfg->cmd_data.convert.filters, TRUE);
+		}
+
 		if (cfg->cmd_data.convert.sinks) {
 			g_ptr_array_free(cfg->cmd_data.convert.sinks, TRUE);
+		}
+
+		if (cfg->cmd_data.convert.connections) {
+			g_ptr_array_free(cfg->cmd_data.convert.connections,
+				TRUE);
 		}
 
 		BT_PUT(cfg->cmd_data.convert.plugin_paths);
@@ -1998,6 +2007,7 @@ enum {
 	OPT_CLOCK_OFFSET,
 	OPT_CLOCK_OFFSET_NS,
 	OPT_CLOCK_SECONDS,
+	OPT_CONNECT,
 	OPT_DEBUG,
 	OPT_DEBUG_INFO_DIR,
 	OPT_DEBUG_INFO_FULL_PATH,
@@ -2212,9 +2222,23 @@ static struct bt_config *bt_config_convert_create(
 		goto error;
 	}
 
+	cfg->cmd_data.convert.filters = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_put);
+	if (!cfg->cmd_data.convert.filters) {
+		print_err_oom();
+		goto error;
+	}
+
 	cfg->cmd_data.convert.sinks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	if (!cfg->cmd_data.convert.sinks) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.convert.connections = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_config_connection_destroy);
+	if (!cfg->cmd_data.convert.connections) {
 		print_err_oom();
 		goto error;
 	}
@@ -2768,6 +2792,8 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "      --begin=BEGIN                 Set the `begin` parameter of the latest\n");
 	fprintf(fp, "                                    source component instance to BEGIN\n");
 	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
+	fprintf(fp, "  -c, --connect=CONNECTION          Connect two component instances (see the\n");
+	fprintf(fp, "                                    expected format of CONNECTION below)\n");
 	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
 	fprintf(fp, "      --end=END                     Set the `end` parameter of the latest\n");
 	fprintf(fp, "                                    source component instance to END\n");
@@ -2806,6 +2832,26 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "---------------------------------\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "    [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "Expected format of CONNECTION\n");
+	fprintf(fp, "-----------------------------\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    SRC[.SRCPORT]:DST[.DSTPORT]\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "SRC and DST are the names of the source and destination component\n");
+	fprintf(fp, "instances to connect together. You can set the name of a component\n");
+	fprintf(fp, "instance with the --name option.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "SRCPORT and DSTPORT are the optional source and destination ports to use\n");
+	fprintf(fp, "for the connection. When the port is not specified, the default port is\n");
+	fprintf(fp, "used.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "You can connect a source component to a filter or sink component. You\n");
+	fprintf(fp, "can connect a filter component to a sink component.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Example:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    my-filter.top10:json-out\n");
 	fprintf(fp, "\n\n");
 	fprintf(fp, "Expected format of PARAMS\n");
 	fprintf(fp, "-------------------------\n");
@@ -2849,6 +2895,7 @@ static struct poptOption convert_long_options[] = {
 	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
 	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
 	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
+	{ "connect", 'c', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
@@ -2905,6 +2952,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
 	struct bt_value *instance_names = NULL;
+	struct bt_value *connection_args = NULL;
+	char error_buf[256] = { 0 };
 
 	*retcode = 0;
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
@@ -2956,6 +3005,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	instance_names = bt_value_map_create();
 	if (!instance_names) {
+		print_err_oom();
+		goto error;
+	}
+
+	connection_args = bt_value_array_create();
+	if (!connection_args) {
 		print_err_oom();
 		goto error;
 	}
@@ -3388,6 +3443,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 			break;
 		}
+		case OPT_CONNECT:
+			if (bt_value_array_append_string(connection_args,
+					arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
 		case OPT_HELP:
 			print_convert_usage(stdout);
 			*retcode = -1;
@@ -3510,6 +3572,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		cur_cfg_comp = NULL;
 	}
 
+	ret = bt_config_create_connections(cfg, connection_args,
+		error_buf, 256);
+	if (ret) {
+		printf_err("Cannot creation connections:\n%s", error_buf);
+		goto error;
+	}
+
 	goto end;
 
 error:
@@ -3541,6 +3610,7 @@ end:
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
 	BT_PUT(instance_names);
+	BT_PUT(connection_args);
 	return cfg;
 }
 
