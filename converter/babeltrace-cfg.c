@@ -2335,7 +2335,8 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 				if (bt_config_append_plugin_paths(
 						cfg->cmd_data.list_plugins.plugin_paths,
 						arg)) {
-					printf_err("Invalid --plugin-path option's argument\n");
+					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+						arg);
 					goto error;
 				}
 			}
@@ -2669,7 +2670,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		cur_is_implicit_source = true;
 		use_implicit_source = true;
 	} else {
-		printf_debug("Cannot find implicit source plugin \"%s\"",
+		printf_debug("Cannot find implicit source plugin `%s`",
 			DEFAULT_SOURCE_COMPONENT_NAME);
 	}
 
@@ -2694,7 +2695,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				if (bt_config_append_plugin_paths(
 						cfg->cmd_data.convert.plugin_paths,
 						arg)) {
-					printf_err("Invalid --plugin-path option's argument\n");
+					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+						arg);
 					goto error;
 				}
 			}
@@ -2851,8 +2853,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			struct bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
-				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
-					DEFAULT_SOURCE_COMPONENT_NAME);
+				printf_err("Cannot add parameters to unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
 				goto error;
 			}
 
@@ -2877,8 +2879,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 		case OPT_PATH:
 			if (!cur_cfg_comp) {
-				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
-					DEFAULT_SOURCE_COMPONENT_NAME);
+				printf_err("Cannot add `path` parameter to unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
 				goto error;
 			}
 
@@ -2919,7 +2921,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			text_legacy_opts.names = names_from_arg(arg);
 			if (!text_legacy_opts.names) {
-				printf_err("Invalid --names option's argument\n");
+				printf_err("Invalid --names option's argument:\n    %s\n",
+					arg);
 				goto error;
 			}
 			break;
@@ -2931,7 +2934,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			text_legacy_opts.fields = fields_from_arg(arg);
 			if (!text_legacy_opts.fields) {
-				printf_err("Invalid --fields option's argument\n");
+				printf_err("Invalid --fields option's argument:\n    %s\n",
+					arg);
 				goto error;
 			}
 			break;
@@ -2963,7 +2967,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			if (parse_int64(arg, &val)) {
-				printf_err("Invalid --clock-offset option's argument\n");
+				printf_err("Invalid --clock-offset option's argument:\n    %s\n",
+					arg);
 				goto error;
 			}
 
@@ -2980,7 +2985,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			if (parse_int64(arg, &val)) {
-				printf_err("Invalid --clock-offset-ns option's argument\n");
+				printf_err("Invalid --clock-offset-ns option's argument:\n    %s\n",
+					arg);
 				goto error;
 			}
 
@@ -2995,12 +3001,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_BEGIN:
 			if (!cur_cfg_comp) {
-				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
-					DEFAULT_SOURCE_COMPONENT_NAME);
+				printf_err("Cannot add `begin` parameter to unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--begin option must follow a --source option\n");
+				printf_err("--begin option must follow a --source option:\n    %s\n",
+					arg);
 				goto error;
 			}
 			if (bt_value_map_insert_string(cur_cfg_comp->params,
@@ -3011,12 +3018,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_END:
 			if (!cur_cfg_comp) {
-				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
-					DEFAULT_SOURCE_COMPONENT_NAME);
+				printf_err("Cannot add `end` parameter to unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--end option must follow a --source option\n");
+				printf_err("--end option must follow a --source option:\n    %s\n",
+					arg);
 				goto error;
 			}
 			if (bt_value_map_insert_string(cur_cfg_comp->params,
@@ -3030,16 +3038,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			const char *begin, *end;
 
 			if (!cur_cfg_comp) {
-				printf_err("Can not apply parameter to unavailable default source component \"%s\".\n",
-					DEFAULT_SOURCE_COMPONENT_NAME);
+				printf_err("Cannot add `begin` and `end` parameters to unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
 				goto error;
 			}
 			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--timerange option must follow a --source option\n");
+				printf_err("--timerange option must follow a --source option:\n    %s\n",
+					arg);
 				goto error;
 			}
 			if (split_timerange(arg, &begin, &end)) {
-				printf_err("Invalid --timerange format, expecting: begin,end or [begin,end] (where [] are actual brackets)\n");
+				printf_err("Invalid --timerange format: expecting BEGIN,END or [BEGIN,END]:\n    %s\n",
+					arg);
 				goto error;
 			}
 			if (bt_value_map_insert_string(cur_cfg_comp->params,
@@ -3168,7 +3178,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		/* Use implicit sink as default. */
 		cur_cfg_comp = bt_config_component_from_arg(DEFAULT_SINK_COMPONENT_NAME);
 		if (!cur_cfg_comp) {
-			printf_error("Cannot find implicit sink plugin \"%s\"\n",
+			printf_error("Cannot find implicit sink plugin `%s`\n",
 				DEFAULT_SINK_COMPONENT_NAME);
 		}
 		add_cfg_comp(cfg, cur_cfg_comp,
