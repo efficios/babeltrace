@@ -431,14 +431,16 @@ enum bt_component_class_type bt_component_class_get_type(
 const char *bt_component_class_get_description(
 		struct bt_component_class *component_class)
 {
-	return component_class && component_class->description ?
+	return component_class && component_class->description &&
+		component_class->description->str[0] != '\0' ?
 		component_class->description->str : NULL;
 }
 
 const char *bt_component_class_get_help(
 		struct bt_component_class *component_class)
 {
-	return component_class && component_class->help ?
+	return component_class && component_class->help &&
+		component_class->help->str[0] != '\0' ?
 		component_class->help->str : NULL;
 }
 

@@ -541,6 +541,169 @@ end:
 	return ret;
 }
 
+static void print_plugin_info(struct bt_plugin *plugin)
+{
+	unsigned int major, minor, patch;
+	const char *extra;
+	enum bt_plugin_status version_status;
+	const char *plugin_name;
+	const char *path;
+	const char *author;
+	const char *license;
+	const char *plugin_description;
+
+	plugin_name = bt_plugin_get_name(plugin);
+	path = bt_plugin_get_path(plugin);
+	author = bt_plugin_get_author(plugin);
+	license = bt_plugin_get_license(plugin);
+	plugin_description = bt_plugin_get_description(plugin);
+	version_status = bt_plugin_get_version(plugin, &major, &minor,
+		&patch, &extra);
+	printf("%s%s%s%s:\n", bt_common_color_bold(),
+		bt_common_color_fg_blue(), plugin_name,
+		bt_common_color_reset());
+	printf("  %sPath%s: %s\n", bt_common_color_bold(),
+		bt_common_color_reset(), path ? path : "(None)");
+
+	if (version_status == BT_PLUGIN_STATUS_OK) {
+		printf("  %sVersion%s: %u.%u.%u",
+			bt_common_color_bold(), bt_common_color_reset(),
+			major, minor, patch);
+
+		if (extra) {
+			printf("%s", extra);
+		}
+
+		printf("\n");
+	}
+
+	printf("  %sDescription%s: %s\n", bt_common_color_bold(),
+		bt_common_color_reset(),
+		plugin_description ? plugin_description : "(None)");
+	printf("  %sAuthor%s: %s\n", bt_common_color_bold(),
+		bt_common_color_reset(), author ? author : "(Unknown)");
+	printf("  %sLicense%s: %s\n", bt_common_color_bold(),
+		bt_common_color_reset(),
+		license ? license : "(Unknown)");
+}
+
+static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
+		const char *comp_cls_name, enum bt_component_class_type type)
+{
+	fprintf(fh, "%s%s--%s%s %s%s%s.%s%s%s",
+		bt_common_color_bold(),
+		bt_common_color_fg_cyan(),
+		component_type_str(type),
+		bt_common_color_fg_default(),
+		bt_common_color_fg_blue(),
+		plugin_name,
+		bt_common_color_fg_default(),
+		bt_common_color_fg_yellow(),
+		comp_cls_name,
+		bt_common_color_reset());
+}
+
+static int cmd_help(struct bt_config *cfg)
+{
+	int ret;
+	struct bt_plugin *plugin = NULL;
+	size_t i;
+
+	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	if (ret) {
+		goto end;
+	}
+
+	plugin = find_plugin(cfg->cmd_data.help.plugin_name->str);
+	if (!plugin) {
+		fprintf(stderr, "%s%sCannot find plugin %s%s%s\n",
+			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_fg_blue(),
+			cfg->cmd_data.help.plugin_name->str,
+			bt_common_color_reset());
+		ret = -1;
+		goto end;
+	}
+
+	print_plugin_info(plugin);
+	printf("  %sComponent classes%s: %d\n",
+			bt_common_color_bold(),
+			bt_common_color_reset(),
+			bt_plugin_get_component_class_count(plugin));
+
+
+	if (cfg->cmd_data.help.comp_cls_type !=
+			BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+		struct bt_component_class *needed_comp_cls =
+			find_component_class(
+				cfg->cmd_data.help.plugin_name->str,
+				cfg->cmd_data.help.component_name->str,
+				cfg->cmd_data.help.comp_cls_type);
+
+		if (!needed_comp_cls) {
+			fprintf(stderr, "\n%s%sCannot find component class %s",
+				bt_common_color_bold(),
+				bt_common_color_fg_red(),
+				bt_common_color_reset());
+			print_plugin_comp_cls_opt(stderr,
+				cfg->cmd_data.help.plugin_name->str,
+				cfg->cmd_data.help.component_name->str,
+				cfg->cmd_data.help.comp_cls_type);
+			fprintf(stderr, "\n");
+			ret = -1;
+			goto end;
+		}
+
+		bt_put(needed_comp_cls);
+	}
+
+	for (i = 0; i < bt_plugin_get_component_class_count(plugin); i++) {
+		struct bt_component_class *comp_cls =
+			bt_plugin_get_component_class(plugin, i);
+		const char *comp_class_name =
+			bt_component_class_get_name(comp_cls);
+		const char *comp_class_description =
+			bt_component_class_get_description(comp_cls);
+		const char *comp_class_help =
+			bt_component_class_get_help(comp_cls);
+		enum bt_component_class_type type =
+			bt_component_class_get_type(comp_cls);
+
+		assert(comp_cls);
+
+		if (cfg->cmd_data.help.comp_cls_type !=
+				BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+			if (strcmp(cfg->cmd_data.help.component_name->str,
+					comp_class_name) != 0 &&
+					type ==
+					cfg->cmd_data.help.comp_cls_type) {
+				bt_put(comp_cls);
+				continue;
+			}
+		}
+
+		printf("\n");
+		print_plugin_comp_cls_opt(stdout,
+			cfg->cmd_data.help.plugin_name->str,
+			comp_class_name,
+			type);
+		printf("\n");
+		printf("  %sDescription%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(),
+			comp_class_description ? comp_class_description : "(None)");
+
+		if (comp_class_help) {
+			printf("\n%s\n", comp_class_help);
+		}
+
+		bt_put(comp_cls);
+	}
+
+end:
+	bt_put(plugin);
+	return ret;
+}
+
 static int cmd_list_plugins(struct bt_config *cfg)
 {
 	int ret;
@@ -551,6 +714,9 @@ static int cmd_list_plugins(struct bt_config *cfg)
 		goto end;
 	}
 
+	printf("From the following plugin paths:\n\n");
+	print_value(cfg->cmd_data.list_plugins.plugin_paths, 2);
+	printf("\n");
 	plugins_count = loaded_plugins->len;
 	if (plugins_count == 0) {
 		fprintf(stderr, "%s%sNo plugins found.%s\n",
@@ -581,47 +747,11 @@ static int cmd_list_plugins(struct bt_config *cfg)
 	for (i = 0; i < plugins_count; i++) {
 		int j;
 		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
-		unsigned int major, minor, patch;
-		const char *extra;
-		enum bt_plugin_status version_status;
-		const char *plugin_name = bt_plugin_get_name(plugin);
-		const char *path = bt_plugin_get_path(plugin);
-		const char *author = bt_plugin_get_author(plugin);
-		const char *license = bt_plugin_get_license(plugin);
-		const char *plugin_description =
-			bt_plugin_get_description(plugin);
 
 		component_classes_count =
 			bt_plugin_get_component_class_count(plugin);
-		version_status = bt_plugin_get_version(plugin, &major, &minor,
-			&patch, &extra);
-
-		printf("\n%s%s%s%s:\n", bt_common_color_bold(),
-			bt_common_color_fg_blue(), plugin_name,
-			bt_common_color_reset());
-		printf("  %sPath%s: %s\n", bt_common_color_bold(),
-			bt_common_color_reset(), path ? path : "(None)");
-
-		if (version_status == BT_PLUGIN_STATUS_OK) {
-			printf("  %sVersion%s: %u.%u.%u",
-				bt_common_color_bold(), bt_common_color_reset(),
-				major, minor, patch);
-
-			if (extra) {
-				printf("%s", extra);
-			}
-
-			printf("\n");
-		}
-
-		printf("  %sDescription%s: %s\n", bt_common_color_bold(),
-			bt_common_color_reset(),
-			plugin_description ? plugin_description : "(None)");
-		printf("  %sAuthor%s: %s\n", bt_common_color_bold(),
-			bt_common_color_reset(), author ? author : "(Unknown)");
-		printf("  %sLicense%s: %s\n", bt_common_color_bold(),
-			bt_common_color_reset(),
-			license ? license : "(Unknown)");
+		printf("\n");
+		print_plugin_info(plugin);
 
 		if (component_classes_count == 0) {
 			printf("  %sComponent classes%s: (None)\n",
@@ -643,17 +773,10 @@ static int cmd_list_plugins(struct bt_config *cfg)
 			enum bt_component_class_type type =
 				bt_component_class_get_type(comp_class);
 
-			printf("    %s%s--%s%s %s%s%s.%s%s%s",
-				bt_common_color_bold(),
-				bt_common_color_fg_cyan(),
-				component_type_str(type),
-				bt_common_color_fg_default(),
-				bt_common_color_fg_blue(),
-				plugin_name,
-				bt_common_color_fg_default(),
-				bt_common_color_fg_yellow(),
-				comp_class_name,
-				bt_common_color_reset());
+			printf("    ");
+			print_plugin_comp_cls_opt(stdout,
+				bt_plugin_get_name(plugin), comp_class_name,
+				type);
 
 			if (comp_class_description) {
 				printf(": %s", comp_class_description);
@@ -818,6 +941,9 @@ int main(int argc, const char **argv)
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		ret = cmd_list_plugins(cfg);
+		break;
+	case BT_CONFIG_COMMAND_HELP:
+		ret = cmd_help(cfg);
 		break;
 	default:
 		assert(false);

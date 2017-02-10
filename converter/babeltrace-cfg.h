@@ -31,6 +31,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/component/component-class.h>
 #include <glib.h>
 
 struct bt_config_component {
@@ -43,6 +44,7 @@ struct bt_config_component {
 enum bt_config_command {
 	BT_CONFIG_COMMAND_CONVERT,
 	BT_CONFIG_COMMAND_LIST_PLUGINS,
+	BT_CONFIG_COMMAND_HELP,
 };
 
 struct bt_config {
@@ -73,6 +75,16 @@ struct bt_config {
 			bool omit_system_plugin_path;
 			bool omit_home_plugin_path;
 		} list_plugins;
+
+		/* BT_CONFIG_COMMAND_HELP */
+		struct {
+			struct bt_value *plugin_paths;
+			bool omit_system_plugin_path;
+			bool omit_home_plugin_path;
+			enum bt_component_class_type comp_cls_type;
+			GString *plugin_name;
+			GString *component_name;
+		} help;
 	} cmd_data;
 };
 

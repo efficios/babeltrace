@@ -826,11 +826,20 @@ void bt_config_destroy(struct bt_object *obj)
 
 		BT_PUT(cfg->cmd_data.convert.plugin_paths);
 		break;
-
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		BT_PUT(cfg->cmd_data.list_plugins.plugin_paths);
 		break;
+	case BT_CONFIG_COMMAND_HELP:
+		BT_PUT(cfg->cmd_data.help.plugin_paths);
 
+		if (cfg->cmd_data.help.plugin_name) {
+			g_string_free(cfg->cmd_data.help.plugin_name, TRUE);
+		}
+
+		if (cfg->cmd_data.help.component_name) {
+			g_string_free(cfg->cmd_data.help.component_name, TRUE);
+		}
+		break;
 	default:
 		assert(false);
 	}
@@ -1985,6 +1994,7 @@ enum {
 	OPT_DEBUG_INFO_TARGET_PREFIX,
 	OPT_END,
 	OPT_FIELDS,
+	OPT_FILTER,
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
 	OPT_LIST,
@@ -2251,6 +2261,276 @@ end:
 	return cfg;
 }
 
+static struct bt_config *bt_config_help_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_HELP);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (initial_plugin_paths) {
+		cfg->cmd_data.help.plugin_paths =
+			bt_get(initial_plugin_paths);
+	} else {
+		cfg->cmd_data.help.plugin_paths =
+			bt_value_array_create();
+		if (!cfg->cmd_data.help.plugin_paths) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
+	cfg->cmd_data.help.plugin_name = g_string_new(NULL);
+	if (!cfg->cmd_data.help.plugin_name) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.help.component_name = g_string_new(NULL);
+	if (!cfg->cmd_data.help.component_name) {
+		print_err_oom();
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+/*
+ * Prints the help command usage.
+ */
+static
+void print_help_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink PLUGIN.COMPCLS\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Get help for the filter component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "      --sink=PLUGIN.COMPCLS         Get help for the sink component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "      --source=PLUGIN.COMPCLS       Get help for the source component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Use `babeltrace list-plugins` to show the list of available plugins.\n");
+}
+
+static struct poptOption help_long_options[] = {
+	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ NULL, 0, 0, NULL, 0, NULL, NULL },
+};
+
+/*
+ * Creates a Babeltrace config object from the arguments of a help
+ * command.
+ *
+ * *retcode is set to the appropriate exit code to use.
+ */
+struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	poptContext pc = NULL;
+	char *arg = NULL;
+	int opt;
+	int ret;
+	struct bt_config *cfg = NULL;
+	const char *leftover;
+	char *plugin_name = NULL, *component_name = NULL;
+	char *plugin_comp_cls_names = NULL;
+
+	*retcode = 0;
+	cfg = bt_config_help_create(initial_plugin_paths);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.help.comp_cls_type = BT_COMPONENT_CLASS_TYPE_UNKNOWN;
+	cfg->cmd_data.help.omit_system_plugin_path = omit_system_plugin_path;
+	cfg->cmd_data.help.omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(cfg->cmd_data.help.plugin_paths);
+	if (ret) {
+		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+		goto error;
+	}
+
+	/* Parse options */
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		help_long_options, 0);
+	if (!pc) {
+		printf_err("Cannot get popt context\n");
+		goto error;
+	}
+
+	poptReadDefaultConfig(pc, 0);
+
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		arg = poptGetOptArg(pc);
+
+		switch (opt) {
+		case OPT_PLUGIN_PATH:
+			if (bt_common_is_setuid_setgid()) {
+				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+			} else {
+				if (bt_config_append_plugin_paths(
+						cfg->cmd_data.help.plugin_paths,
+						arg)) {
+					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+						arg);
+					goto error;
+				}
+			}
+			break;
+		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+			cfg->cmd_data.help.omit_system_plugin_path = true;
+			break;
+		case OPT_OMIT_HOME_PLUGIN_PATH:
+			cfg->cmd_data.help.omit_home_plugin_path = true;
+			break;
+		case OPT_SOURCE:
+		case OPT_FILTER:
+		case OPT_SINK:
+			if (cfg->cmd_data.help.comp_cls_type !=
+					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			switch (opt) {
+			case OPT_SOURCE:
+				cfg->cmd_data.help.comp_cls_type =
+					BT_COMPONENT_CLASS_TYPE_SOURCE;
+				break;
+			case OPT_FILTER:
+				cfg->cmd_data.help.comp_cls_type =
+					BT_COMPONENT_CLASS_TYPE_FILTER;
+				break;
+			case OPT_SINK:
+				cfg->cmd_data.help.comp_cls_type =
+					BT_COMPONENT_CLASS_TYPE_SINK;
+				break;
+			default:
+				assert(false);
+			}
+			plugin_comp_cls_names = strdup(arg);
+			if (!plugin_comp_cls_names) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_HELP:
+			print_help_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
+			goto end;
+		default:
+			printf_err("Unknown command-line option specified (option code %d)\n",
+				opt);
+			goto error;
+		}
+
+		free(arg);
+		arg = NULL;
+	}
+
+	/* Check for option parsing error */
+	if (opt < -1) {
+		printf_err("While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
+		goto error;
+	}
+
+	leftover = poptGetArg(pc);
+	if (leftover) {
+		if (cfg->cmd_data.help.comp_cls_type !=
+					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+			printf_err("Cannot specify plugin name and --source/--filter/--sink component class:\n    %s\n",
+				leftover);
+			goto error;
+		}
+
+		g_string_assign(cfg->cmd_data.help.plugin_name, leftover);
+	} else {
+		if (cfg->cmd_data.help.comp_cls_type ==
+					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+			print_help_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
+			goto end;
+		}
+
+		plugin_component_names_from_arg(plugin_comp_cls_names,
+			&plugin_name, &component_name);
+		if (plugin_name && component_name) {
+			g_string_assign(cfg->cmd_data.help.plugin_name, plugin_name);
+			g_string_assign(cfg->cmd_data.help.component_name,
+				component_name);
+		} else {
+			printf_err("Invalid --source/--filter/--sink option's argument:\n    %s\n",
+				plugin_comp_cls_names);
+			goto error;
+		}
+	}
+
+	if (append_home_and_system_plugin_paths(
+			cfg->cmd_data.help.plugin_paths,
+			cfg->cmd_data.help.omit_system_plugin_path,
+			cfg->cmd_data.help.omit_home_plugin_path)) {
+		printf_err("Cannot append home and system plugin paths\n");
+		goto error;
+	}
+
+	goto end;
+
+error:
+	*retcode = 1;
+	BT_PUT(cfg);
+
+end:
+	free(plugin_comp_cls_names);
+	g_free(plugin_name);
+	g_free(component_name);
+
+	if (pc) {
+		poptFreeContext(pc);
+	}
+
+	free(arg);
+	return cfg;
+}
+
 /*
  * Prints the list-plugins command usage.
  */
@@ -2269,6 +2549,8 @@ void print_list_plugins_usage(FILE *fp)
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Use `babeltrace help` to get help for a specific plugin or component class.\n");
 }
 
 static struct poptOption list_plugins_long_options[] = {
@@ -2397,7 +2679,6 @@ end:
 	free(arg);
 	return cfg;
 }
-
 
 /*
  * Prints the legacy, Babeltrace 1.x command usage. Those options are
@@ -2665,14 +2946,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Note: implicit source never gets positional base params. */
 	implicit_source_comp = bt_config_component_from_arg(DEFAULT_SOURCE_COMPONENT_NAME);
-	if (implicit_source_comp) {
-		cur_cfg_comp = implicit_source_comp;
-		cur_is_implicit_source = true;
-		use_implicit_source = true;
-	} else {
-		printf_debug("Cannot find implicit source plugin `%s`",
-			DEFAULT_SOURCE_COMPONENT_NAME);
+	if (!implicit_source_comp) {
+		print_err_oom();
+		goto error;
 	}
+
+	cur_cfg_comp = implicit_source_comp;
+	cur_is_implicit_source = true;
+	use_implicit_source = true;
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
@@ -3238,6 +3519,7 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "Available commands:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "    convert       Build a trace conversion graph and run it (default)\n");
+	fprintf(fp, "    help          Get help for a plugin or a component class\n");
 	fprintf(fp, "    list-plugins  List available plugins and their content\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
@@ -3285,20 +3567,18 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 			print_legacy_usage(stdout);
 			goto end;
 		} else {
+			bool has_command = true;
+
 			/*
 			 * First unknown argument: is it a known command
 			 * name?
 			 */
 			if (strcmp(cur_arg, "convert") == 0) {
 				command = BT_CONFIG_COMMAND_CONVERT;
-				command_argv = &argv[i];
-				command_argc = argc - i;
-				command_name = cur_arg;
 			} else if (strcmp(cur_arg, "list-plugins") == 0) {
 				command = BT_CONFIG_COMMAND_LIST_PLUGINS;
-				command_argv = &argv[i];
-				command_argc = argc - i;
-				command_name = cur_arg;
+			} else if (strcmp(cur_arg, "help") == 0) {
+				command = BT_CONFIG_COMMAND_HELP;
 			} else {
 				/*
 				 * Unknown argument, but not a known
@@ -3309,6 +3589,13 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 				command = BT_CONFIG_COMMAND_CONVERT;
 				command_argv = argv;
 				command_argc = argc;
+				has_command = false;
+			}
+
+			if (has_command) {
+				command_argv = &argv[i];
+				command_argc = argc - i;
+				command_name = cur_arg;
 			}
 			break;
 		}
@@ -3336,6 +3623,11 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
+			command_argv, retcode, omit_system_plugin_path,
+			omit_home_plugin_path, initial_plugin_paths);
+		break;
+	case BT_CONFIG_COMMAND_HELP:
+		config = bt_config_help_from_args(command_argc,
 			command_argv, retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
 		break;
