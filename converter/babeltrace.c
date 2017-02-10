@@ -232,6 +232,12 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
 	printf("    %s.%s:\n", bt_config_component->plugin_name->str,
 		bt_config_component->component_name->str);
+
+	if (bt_config_component->instance_name->len > 0) {
+		printf("      Name: %s\n",
+			bt_config_component->instance_name->str);
+	}
+
 	printf("      Parameters:\n");
 	print_value(bt_config_component->params, 8);
 }

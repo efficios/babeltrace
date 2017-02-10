@@ -712,6 +712,10 @@ void bt_config_component_destroy(struct bt_object *obj)
 		g_string_free(bt_config_component->component_name, TRUE);
 	}
 
+	if (bt_config_component->instance_name) {
+		g_string_free(bt_config_component->instance_name, TRUE);
+	}
+
 	BT_PUT(bt_config_component->params);
 	g_free(bt_config_component);
 
@@ -747,6 +751,12 @@ struct bt_config_component *bt_config_component_create(const char *plugin_name,
 
 	cfg_component->component_name = g_string_new(component_name);
 	if (!cfg_component->component_name) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg_component->instance_name = g_string_new(NULL);
+	if (!cfg_component->instance_name) {
 		print_err_oom();
 		goto error;
 	}
@@ -1998,6 +2008,7 @@ enum {
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
 	OPT_LIST,
+	OPT_NAME,
 	OPT_NAMES,
 	OPT_NO_DELTA,
 	OPT_OMIT_HOME_PLUGIN_PATH,
@@ -2761,6 +2772,9 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "      --end=END                     Set the `end` parameter of the latest\n");
 	fprintf(fp, "                                    source component instance to END\n");
 	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
+	fprintf(fp, "      --name=NAME                   Set the name of the latest component\n");
+	fprintf(fp, "                                    instance to NAME (must be unique amongst\n");
+	fprintf(fp, "                                    all the names of the component instances)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -2843,6 +2857,7 @@ static struct poptOption convert_long_options[] = {
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
+	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
 	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
@@ -2889,6 +2904,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
+	struct bt_value *instance_names = NULL;
 
 	*retcode = 0;
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
@@ -2934,6 +2950,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	legacy_input_paths = bt_value_array_create();
 	if (!legacy_input_paths) {
+		print_err_oom();
+		goto error;
+	}
+
+	instance_names = bt_value_map_create();
+	if (!instance_names) {
 		print_err_oom();
 		goto error;
 	}
@@ -3169,6 +3191,27 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_map_insert_string(cur_cfg_comp->params,
 					"path", arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_NAME:
+			if (!cur_cfg_comp) {
+				printf_err("Cannot set the name of unavailable default source component `%s`:\n    %s\n",
+					DEFAULT_SOURCE_COMPONENT_NAME, arg);
+				goto error;
+			}
+
+			if (bt_value_map_has_key(instance_names, arg)) {
+				printf_err("Duplicate component instance name:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			g_string_assign(cur_cfg_comp->instance_name, arg);
+
+			if (bt_value_map_insert(instance_names,
+					arg, bt_value_null)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3497,6 +3540,7 @@ end:
 	BT_PUT(text_legacy_opts.names);
 	BT_PUT(text_legacy_opts.fields);
 	BT_PUT(legacy_input_paths);
+	BT_PUT(instance_names);
 	return cfg;
 }
 

@@ -39,6 +39,7 @@ struct bt_config_component {
 	GString *plugin_name;
 	GString *component_name;
 	struct bt_value *params;
+	GString *instance_name;
 };
 
 enum bt_config_command {
