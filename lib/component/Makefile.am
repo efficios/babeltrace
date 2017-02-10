@@ -9,11 +9,11 @@ libcomponent_la_SOURCES = \
 	component.c \
 	component-class.c \
 	component-graph.c \
+	component-connection.c \
 	source.c \
 	sink.c \
 	filter.c \
-	iterator.c \
-	input.c
+	iterator.c
 
 libcomponent_la_LIBADD = \
 	notification/libcomponent-notification.la

@@ -134,7 +134,6 @@ noinst_HEADERS = \
 	babeltrace/component/component-filter-internal.h \
 	babeltrace/component/component-sink-internal.h \
 	babeltrace/component/component-source-internal.h \
-	babeltrace/component/component-input-internal.h \
 	babeltrace/component/notification/eot-internal.h \
 	babeltrace/component/notification/event-internal.h \
 	babeltrace/component/notification/iterator-internal.h \
