@@ -113,6 +113,9 @@ static
 void print_value(struct bt_value *, size_t);
 
 static
+void print_value_rec(struct bt_value *, size_t);
+
+static
 bool print_map_value(const char *key, struct bt_value *object, void *data)
 {
 	size_t *indent = data;
@@ -137,12 +140,12 @@ bool print_map_value(const char *key, struct bt_value *object, void *data)
 		printf("\n");
 	}
 
-	print_value(object, *indent + 2);
+	print_value_rec(object, *indent + 2);
 	return true;
 }
 
 static
-void print_value(struct bt_value *value, size_t indent)
+void print_value_rec(struct bt_value *value, size_t indent)
 {
 	bool bool_val;
 	int64_t int_val;
@@ -157,23 +160,32 @@ void print_value(struct bt_value *value, size_t indent)
 
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
-		printf("null\n");
+		printf("%snull%s\n", bt_common_color_bold(),
+			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_BOOL:
 		bt_value_bool_get(value, &bool_val);
-		printf("%s\n", bool_val ? "yes" : "no");
+		printf("%s%s%s%s\n", bt_common_color_bold(),
+			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
+			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_INTEGER:
 		bt_value_integer_get(value, &int_val);
-		printf("%" PRId64 "\n", int_val);
+		printf("%s%s%" PRId64 "%s\n", bt_common_color_bold(),
+			bt_common_color_fg_red(), int_val,
+			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_FLOAT:
 		bt_value_float_get(value, &dbl_val);
-		printf("%lf\n", dbl_val);
+		printf("%s%s%lf%s\n", bt_common_color_bold(),
+			bt_common_color_fg_red(), dbl_val,
+			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_STRING:
 		bt_value_string_get(value, &str_val);
-		printf("%s\n", str_val);
+		printf("%s%s%s%s\n", bt_common_color_bold(),
+			bt_common_color_fg_green(), str_val,
+			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 		size = bt_value_array_size(value);
@@ -210,7 +222,7 @@ void print_value(struct bt_value *value, size_t indent)
 				printf("\n");
 			}
 
-			print_value(element, indent + 2);
+			print_value_rec(element, indent + 2);
 			BT_PUT(element);
 		}
 		break;
@@ -226,6 +238,16 @@ void print_value(struct bt_value *value, size_t indent)
 	default:
 		assert(false);
 	}
+}
+
+static
+void print_value(struct bt_value *value, size_t indent)
+{
+	if (!bt_value_is_array(value) && !bt_value_is_map(value)) {
+		print_indent(indent);
+	}
+
+	print_value_rec(value, indent);
 }
 
 static
@@ -305,6 +327,21 @@ void print_cfg_list_plugins(struct bt_config *cfg)
 }
 
 static
+void print_cfg_help(struct bt_config *cfg)
+{
+	print_plugin_paths(cfg->cmd_data.help.plugin_paths);
+}
+
+static
+void print_cfg_query_info(struct bt_config *cfg)
+{
+	print_plugin_paths(cfg->cmd_data.query_info.plugin_paths);
+	printf("  Action: `%s`\n", cfg->cmd_data.query_info.action->str);
+	printf("  Component class:\n");
+	print_bt_config_component(cfg->cmd_data.query_info.cfg_component);
+}
+
+static
 void print_cfg(struct bt_config *cfg)
 {
 	if (!babeltrace_verbose) {
@@ -321,6 +358,12 @@ void print_cfg(struct bt_config *cfg)
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		print_cfg_list_plugins(cfg);
+		break;
+	case BT_CONFIG_COMMAND_HELP:
+		print_cfg_help(cfg);
+		break;
+	case BT_CONFIG_COMMAND_QUERY_INFO:
+		print_cfg_query_info(cfg);
 		break;
 	default:
 		assert(false);
