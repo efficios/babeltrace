@@ -57,6 +57,7 @@ struct bt_component_class {
 	struct {
 		bt_component_class_init_method init;
 		bt_component_class_destroy_method destroy;
+		bt_component_class_query_info_method query_info;
 	} methods;
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
