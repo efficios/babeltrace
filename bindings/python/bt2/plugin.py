@@ -61,7 +61,7 @@ def create_plugin_from_name(name):
     plugin_ptr = native_bt.plugin_create_from_name(name)
 
     if plugin_ptr is None:
-        return
+        raise bt2.NoSuchPluginError(name)
 
     return _Plugin._create_from_ptr(plugin_ptr)
 

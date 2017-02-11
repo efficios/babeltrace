@@ -50,6 +50,10 @@ class FrozenError(Error):
     pass
 
 
+class NoSuchPluginError(Error):
+    pass
+
+
 class UnsupportedFeature(Exception):
     pass
 
@@ -64,7 +68,6 @@ class Stop(StopIteration):
 
 class IncompleteUserClassError(Error):
     pass
-
 
 
 import bt2.native_bt as _native_bt
