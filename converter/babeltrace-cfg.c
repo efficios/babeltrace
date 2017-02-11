@@ -1362,7 +1362,7 @@ int append_sinks_from_legacy_opts(GPtrArray *sinks,
 		component_name = "metadata-text";
 		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		plugin_name = "dummy";
+		plugin_name = "utils";
 		component_name = "dummy";
 		break;
 	default:
@@ -1683,7 +1683,7 @@ void print_output_legacy_to_sinks(
 		enum legacy_output_format legacy_output_format,
 		struct text_legacy_opts *text_legacy_opts)
 {
-	const char *input_format;
+	const char *output_format;
 	GString *str = NULL;
 
 	str = g_string_new("    ");
@@ -1694,22 +1694,22 @@ void print_output_legacy_to_sinks(
 
 	switch (legacy_output_format) {
 	case LEGACY_OUTPUT_FORMAT_TEXT:
-		input_format = "text";
+		output_format = "text";
 		break;
 	case LEGACY_OUTPUT_FORMAT_CTF_METADATA:
-		input_format = "ctf-metadata";
+		output_format = "ctf-metadata";
 		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		input_format = "dummy";
+		output_format = "dummy";
 		break;
 	default:
 		assert(false);
 	}
 
 	printf_err("Both `%s` legacy output format and non-legacy sink component\ninstances(s) specified.\n\n",
-		input_format);
+		output_format);
 	printf_err("Specify the following non-legacy sink component instance instead of the\nlegacy `%s` output format options:\n\n",
-		input_format);
+		output_format);
 	g_string_append(str, "-o ");
 
 	switch (legacy_output_format) {
@@ -1720,7 +1720,7 @@ void print_output_legacy_to_sinks(
 		g_string_append(str, "ctf.metadata-text");
 		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		g_string_append(str, "dummy.dummy");
+		g_string_append(str, "utils.dummy");
 		break;
 	default:
 		assert(false);
