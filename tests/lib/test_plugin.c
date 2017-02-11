@@ -31,7 +31,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		45
+#define NR_TESTS 		51
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -142,6 +142,12 @@ static void test_sfs(const char *plugin_dir)
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
+	struct bt_value *params;
+	struct bt_value *results;
+	struct bt_value *action;
+	struct bt_value *res_params;
+	const char *action_str;
+	int ret;
 
 	assert(sfs_path);
 	diag("sfs plugin test below");
@@ -186,6 +192,27 @@ static void test_sfs(const char *plugin_dir)
 	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
 		BT_COMPONENT_CLASS_TYPE_SOURCE),
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
+	params = bt_value_integer_create_init(23);
+	assert(params);
+	ok (!bt_component_class_query_info(NULL, "get-something", params),
+		"bt_component_class_query_info() handles NULL (component class)");
+	ok (!bt_component_class_query_info(filter_comp_class, NULL, params),
+		"bt_component_class_query_info() handles NULL (action)");
+	ok (!bt_component_class_query_info(filter_comp_class, "get-something", NULL),
+		"bt_component_class_query_info() handles NULL (parameters)");
+	results = bt_component_class_query_info(filter_comp_class,
+		"get-something", params);
+	ok(results, "bt_component_class_query_info() succeeds");
+	assert(bt_value_is_array(results) && bt_value_array_size(results) == 2);
+	action = bt_value_array_get(results, 0);
+	assert(action && bt_value_is_string(action));
+	ret = bt_value_string_get(action, &action_str);
+	assert(ret == 0);
+	ok(strcmp(action_str, "get-something") == 0,
+		"bt_component_class_query_info() receives the expected action name");
+	res_params = bt_value_array_get(results, 1);
+	ok(res_params == params,
+		"bt_component_class_query_info() receives the expected parameters");
 
 	diag("> putting the plugin object here");
 	BT_PUT(plugin);
@@ -204,6 +231,10 @@ static void test_sfs(const char *plugin_dir)
 
 	free(sfs_path);
 	free(plugins);
+	bt_put(action);
+	bt_put(res_params);
+	bt_put(results);
+	bt_put(params);
 }
 
 static void test_create_all_from_dir(const char *plugin_dir)

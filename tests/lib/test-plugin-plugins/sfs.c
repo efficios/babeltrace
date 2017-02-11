@@ -16,7 +16,10 @@
  */
 
 #include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/component/component-class.h>
+#include <babeltrace/values.h>
+#include <babeltrace/ref.h>
+#include <assert.h>
 
 static enum bt_component_status sink_consume(struct bt_component *component)
 {
@@ -54,6 +57,21 @@ static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
+static struct bt_value *query_info_method(
+		struct bt_component_class *component_class,
+		const char *action, struct bt_value *params)
+{
+	int ret;
+	struct bt_value *results = bt_value_array_create();
+
+	assert(results);
+	ret = bt_value_array_append_string(results, action);
+	assert(ret == 0);
+	ret = bt_value_array_append(results, params);
+	assert(ret == 0);
+	return results;
+}
+
 BT_PLUGIN(test_sfs);
 BT_PLUGIN_DESCRIPTION("Babeltrace plugin with source, sink, and filter component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");
@@ -88,3 +106,4 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(filter,
 	dummy_iterator_destroy_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
 	dummy_iterator_seek_time_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_INFO_METHOD(filter, query_info_method);
