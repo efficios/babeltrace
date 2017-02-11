@@ -40,4 +40,14 @@ void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
 BT_HIDDEN
 void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs);
 
+BT_HIDDEN
+FILE *ctf_fs_metadata_open_file(const char *trace_path);
+
+BT_HIDDEN
+bool ctf_metadata_is_packetized(FILE *fp, int *byte_order);
+
+BT_HIDDEN
+int ctf_metadata_packetized_file_to_buf(struct ctf_fs_component *ctf_fs,
+		FILE *fp, uint8_t **buf, int byte_order);
+
 #endif /* CTF_FS_METADATA_H */

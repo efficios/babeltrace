@@ -56,6 +56,35 @@ struct packet_header {
 	uint8_t  minor;
 } __attribute__((__packed__));
 
+BT_HIDDEN
+FILE *ctf_fs_metadata_open_file(const char *trace_path)
+{
+	GString *metadata_path = g_string_new(trace_path);
+	FILE *fp = NULL;
+
+	if (!metadata_path) {
+		goto error;
+	}
+
+	g_string_append(metadata_path, "/" CTF_FS_METADATA_FILENAME);
+	fp = fopen(metadata_path->str, "rb");
+	if (!fp) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (fp) {
+		fclose(fp);
+		fp = NULL;
+	}
+
+end:
+	g_string_free(metadata_path, TRUE);
+	return fp;
+}
+
 static struct ctf_fs_file *get_file(struct ctf_fs_component *ctf_fs,
 		const char *trace_path)
 {
@@ -84,29 +113,31 @@ end:
 	return file;
 }
 
-static
-bool is_packetized(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
+BT_HIDDEN
+bool ctf_metadata_is_packetized(FILE *fp, int *byte_order)
 {
 	uint32_t magic;
 	size_t len;
 	int ret = 0;
 
-	len = fread(&magic, sizeof(magic), 1, file->fp);
+	len = fread(&magic, sizeof(magic), 1, fp);
 	if (len != 1) {
 		goto end;
 	}
 
-	if (magic == TSDL_MAGIC) {
-		ret = 1;
-		ctf_fs->metadata->bo = BYTE_ORDER;
-	} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
-		ret = 1;
-		ctf_fs->metadata->bo = BYTE_ORDER == BIG_ENDIAN ?
-			LITTLE_ENDIAN : BIG_ENDIAN;
+	if (byte_order) {
+		if (magic == TSDL_MAGIC) {
+			ret = 1;
+			*byte_order = BYTE_ORDER;
+		} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
+			ret = 1;
+			*byte_order = BYTE_ORDER == BIG_ENDIAN ?
+				LITTLE_ENDIAN : BIG_ENDIAN;
+		}
 	}
 
 end:
-	rewind(file->fp);
+	rewind(fp);
 
 	return ret;
 }
@@ -118,7 +149,8 @@ bool is_version_valid(unsigned int major, unsigned int minor)
 }
 
 static
-int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
+int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp,
+		int byte_order)
 {
 	struct packet_header header;
 	size_t readlen, writelen, toread;
@@ -133,7 +165,7 @@ int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
 		goto error;
 	}
 
-	if (ctf_fs->metadata->bo != BYTE_ORDER) {
+	if (byte_order != BYTE_ORDER) {
 		header.magic = GUINT32_SWAP_LE_BE(header.magic);
 		header.checksum = GUINT32_SWAP_LE_BE(header.checksum);
 		header.content_size = GUINT32_SWAP_LE_BE(header.content_size);
@@ -162,12 +194,14 @@ int decode_packet(struct ctf_fs_component *ctf_fs, FILE *in_fp, FILE *out_fp)
 	}
 
 	/* Set expected trace UUID if not set; otherwise validate it */
-	if (!ctf_fs->metadata->is_uuid_set) {
-		memcpy(ctf_fs->metadata->uuid, header.uuid, sizeof(header.uuid));
-		ctf_fs->metadata->is_uuid_set = true;
-	} else if (bt_uuid_compare(header.uuid, ctf_fs->metadata->uuid)) {
-		PERR("Metadata UUID mismatch between packets of the same file\n");
-		goto error;
+	if (ctf_fs) {
+		if (!ctf_fs->metadata->is_uuid_set) {
+			memcpy(ctf_fs->metadata->uuid, header.uuid, sizeof(header.uuid));
+			ctf_fs->metadata->is_uuid_set = true;
+		} else if (bt_uuid_compare(header.uuid, ctf_fs->metadata->uuid)) {
+			PERR("Metadata UUID mismatch between packets of the same file\n");
+			goto error;
+		}
 	}
 
 	if ((header.content_size / CHAR_BIT) < sizeof(header)) {
@@ -218,9 +252,9 @@ end:
 	return ret;
 }
 
-static
-int packetized_file_to_buf(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
-		uint8_t **buf)
+BT_HIDDEN
+int ctf_metadata_packetized_file_to_buf(struct ctf_fs_component *ctf_fs,
+		FILE *fp, uint8_t **buf, int byte_order)
 {
 	FILE *out_fp;
 	size_t size;
@@ -235,11 +269,11 @@ int packetized_file_to_buf(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *
 	}
 
 	for (;;) {
-		if (feof(file->fp) != 0) {
+		if (feof(fp) != 0) {
 			break;
 		}
 
-		tret = decode_packet(ctf_fs, file->fp, out_fp);
+		tret = decode_packet(ctf_fs, fp, out_fp, byte_order);
 		if (tret) {
 			PERR("Cannot decode packet #%zu\n", packet_index);
 			goto error;
@@ -296,9 +330,10 @@ void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 		// yydebug = 1;
 	}
 
-	if (is_packetized(ctf_fs, file)) {
+	if (ctf_metadata_is_packetized(file->fp, &ctf_fs->metadata->bo)) {
 		PDBG("Metadata file \"%s\" is packetized\n", file->path->str);
-		ret = packetized_file_to_buf(ctf_fs, file, &buf);
+		ret = ctf_metadata_packetized_file_to_buf(ctf_fs, file->fp,
+			&buf, ctf_fs->metadata->bo);
 		if (ret) {
 			// log: details
 			goto error;
