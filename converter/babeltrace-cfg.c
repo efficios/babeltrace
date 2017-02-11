@@ -143,7 +143,6 @@ enum legacy_input_format {
 enum legacy_output_format {
 	LEGACY_OUTPUT_FORMAT_NONE = 0,
 	LEGACY_OUTPUT_FORMAT_TEXT,
-	LEGACY_OUTPUT_FORMAT_CTF_METADATA,
 	LEGACY_OUTPUT_FORMAT_DUMMY,
 };
 
@@ -1361,10 +1360,6 @@ int append_sinks_from_legacy_opts(GPtrArray *sinks,
 		plugin_name = "text";
 		component_name = "text";
 		break;
-	case LEGACY_OUTPUT_FORMAT_CTF_METADATA:
-		plugin_name = "ctf";
-		component_name = "metadata-text";
-		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
 		plugin_name = "utils";
 		component_name = "dummy";
@@ -1700,9 +1695,6 @@ void print_output_legacy_to_sinks(
 	case LEGACY_OUTPUT_FORMAT_TEXT:
 		output_format = "text";
 		break;
-	case LEGACY_OUTPUT_FORMAT_CTF_METADATA:
-		output_format = "ctf-metadata";
-		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
 		output_format = "dummy";
 		break;
@@ -1719,9 +1711,6 @@ void print_output_legacy_to_sinks(
 	switch (legacy_output_format) {
 	case LEGACY_OUTPUT_FORMAT_TEXT:
 		g_string_append(str, "text.text");
-		break;
-	case LEGACY_OUTPUT_FORMAT_CTF_METADATA:
-		g_string_append(str, "ctf.metadata-text");
 		break;
 	case LEGACY_OUTPUT_FORMAT_DUMMY:
 		g_string_append(str, "utils.dummy");
@@ -1896,7 +1885,8 @@ bool validate_cfg(struct bt_config *cfg,
 	bool legacy_output = false;
 
 	/* Determine if the input and output should be legacy-style */
-	if (*legacy_input_format != LEGACY_INPUT_FORMAT_NONE ||
+	if (cfg->cmd_data.convert.print_ctf_metadata ||
+			*legacy_input_format != LEGACY_INPUT_FORMAT_NONE ||
 			!bt_value_array_is_empty(legacy_input_paths) ||
 			ctf_legacy_opts_is_any_set(ctf_legacy_opts)) {
 		legacy_input = true;
@@ -1930,13 +1920,45 @@ bool validate_cfg(struct bt_config *cfg,
 
 		/* Make sure no non-legacy sources are specified */
 		if (cfg->cmd_data.convert.sources->len != 0) {
-			print_input_legacy_to_sources(*legacy_input_format,
-				legacy_input_paths, ctf_legacy_opts);
+			if (cfg->cmd_data.convert.print_ctf_metadata) {
+				printf_err("You cannot instantiate a source component with the `ctf-metadata` output format\n");
+			} else {
+				print_input_legacy_to_sources(
+					*legacy_input_format,
+					legacy_input_paths, ctf_legacy_opts);
+			}
+
 			goto error;
 		}
 	}
 
-	if (legacy_output) {
+	/*
+	 * Strict rule: if we need to print the CTF metadata, the input
+	 * format must be legacy and CTF. Also there should be no
+	 * other sinks, and no legacy output format.
+	 */
+	if (cfg->cmd_data.convert.print_ctf_metadata) {
+		if (*legacy_input_format != LEGACY_INPUT_FORMAT_CTF) {
+			printf_err("The `ctf-metadata` output format requires legacy `ctf` input format\n");
+			goto error;
+		}
+
+		if (bt_value_array_size(legacy_input_paths) != 1) {
+			printf_err("You need to specify exactly one path with the `ctf-metadata` output format\n");
+			goto error;
+		}
+
+		if (legacy_output) {
+			printf_err("You cannot use another legacy output format with the `ctf-metadata` output format\n");
+			goto error;
+		}
+
+		if (cfg->cmd_data.convert.sinks->len != 0) {
+			printf_err("You cannot instantiate a sink component with the `ctf-metadata` output format\n");
+			goto error;
+			goto error;
+		}
+	} else if (legacy_output) {
 		/*
 		 * If no legacy output format was specified, default to
 		 * "text".
@@ -1962,16 +1984,6 @@ bool validate_cfg(struct bt_config *cfg,
 				text_legacy_opts);
 			goto error;
 		}
-	}
-
-	/*
-	 * If the output is the legacy "ctf-metadata" format, then the
-	 * input should be the legacy "ctf" input format.
-	 */
-	if (*legacy_output_format == LEGACY_OUTPUT_FORMAT_CTF_METADATA &&
-			*legacy_input_format != LEGACY_INPUT_FORMAT_CTF) {
-		printf_err("Legacy `ctf-metadata` output format requires using legacy `ctf` input format\n");
-		goto error;
 	}
 
 	return true;
@@ -3460,14 +3472,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						LEGACY_OUTPUT_FORMAT_DUMMY;
 					break;
 				} else if (!strcmp(arg, "ctf-metadata")) {
-					/* Legacy CTF-metadata output format */
-					if (legacy_output_format) {
-						print_err_dup_legacy_output();
-						goto error;
-					}
-
-					legacy_output_format =
-						LEGACY_OUTPUT_FORMAT_CTF_METADATA;
+					cfg->cmd_data.convert.print_ctf_metadata = true;
 					break;
 				}
 			}
@@ -3835,10 +3840,19 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		} else {
 			if (implicit_source_comp
 					&& !bt_value_map_is_empty(implicit_source_comp->params)) {
-				printf_err("Arguments specified for implicit source, but an explicit source has been specified, overriding it\n");
+				printf_err("Arguments specified for implicit input format, but an explicit source component instance has been specified: overriding it\n");
 				goto error;
 			}
 		}
+	}
+
+	/*
+	 * At this point if we need to print the CTF metadata text, we
+	 * don't care about the legacy/implicit sinks and component
+	 * connections.
+	 */
+	if (cfg->cmd_data.convert.print_ctf_metadata) {
+		goto end;
 	}
 
 	/*

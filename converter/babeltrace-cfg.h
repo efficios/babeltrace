@@ -76,6 +76,7 @@ struct bt_config {
 			bool force_correlate;
 			bool omit_system_plugin_path;
 			bool omit_home_plugin_path;
+			bool print_ctf_metadata;
 		} convert;
 
 		/* BT_CONFIG_COMMAND_LIST_PLUGINS */

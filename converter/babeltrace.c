@@ -293,6 +293,8 @@ void print_cfg_convert(struct bt_config *cfg)
 	printf("  Force correlate: %s\n",
 		cfg->cmd_data.convert.force_correlate ? "yes" : "no");
 	print_plugin_paths(cfg->cmd_data.convert.plugin_paths);
+	printf("  Print CTF metadata: %s\n",
+		cfg->cmd_data.convert.print_ctf_metadata ? "yes" : "no");
 	printf("  Source component instances:\n");
 	print_bt_config_components(cfg->cmd_data.convert.sources);
 
@@ -921,6 +923,86 @@ end:
 	return ret;
 }
 
+static int print_ctf_metadata(struct bt_config *cfg)
+{
+	int ret = 0;
+	struct bt_component_class *comp_cls = NULL;
+	struct bt_config_component *source_cfg = NULL;
+	struct bt_value *results = NULL;
+	struct bt_value *path = NULL;
+	struct bt_value *params = NULL;
+	struct bt_value *metadata_text_value = NULL;
+	const char *metadata_text = NULL;
+
+	assert(cfg->cmd_data.convert.sources->len == 1);
+	source_cfg = bt_config_get_component(cfg->cmd_data.convert.sources, 0);
+	assert(source_cfg);
+	comp_cls = find_component_class(source_cfg->plugin_name->str,
+			source_cfg->component_name->str,
+			source_cfg->type);
+	if (!comp_cls) {
+		fprintf(stderr, "%s%sCannot find component class %s",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		print_plugin_comp_cls_opt(stderr,
+			source_cfg->plugin_name->str,
+			source_cfg->component_name->str,
+			source_cfg->type);
+		fprintf(stderr, "\n");
+		ret = -1;
+		goto end;
+	}
+
+	path = bt_value_map_get(source_cfg->params, "path");
+	if (!path) {
+		ret = -1;
+		goto end;
+	}
+
+	params = bt_value_map_create();
+	if (!params) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_value_map_insert(params, "path", path);
+	if (ret) {
+		ret = -1;
+		goto end;
+	}
+
+	results = bt_component_class_query_info(comp_cls, "get-metadata-info",
+		params);
+	if (!results) {
+		ret = -1;
+		fprintf(stderr, "%s%sFailed to get metadata info%s\n",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		goto end;
+	}
+
+	metadata_text_value = bt_value_map_get(results, "text");
+	if (!metadata_text_value) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_value_string_get(metadata_text_value, &metadata_text);
+	assert(ret == 0);
+	printf("%s\n", metadata_text);
+
+end:
+	bt_put(results);
+	bt_put(path);
+	bt_put(params);
+	bt_put(metadata_text_value);
+	bt_put(comp_cls);
+	bt_put(source_cfg);
+	return 0;
+}
+
 static int cmd_convert(struct bt_config *cfg)
 {
 	int ret = 0;
@@ -931,17 +1013,22 @@ static int cmd_convert(struct bt_config *cfg)
 	enum bt_component_status sink_status;
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 
+	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
+	if (ret) {
+		fprintf(stderr, "Could not load plugins from configured plugin paths. Aborting...\n");
+		goto end;
+	}
+
+	if (cfg->cmd_data.convert.print_ctf_metadata) {
+		ret = print_ctf_metadata(cfg);
+		goto end;
+	}
+
 	/* TODO handle more than 1 source and 1 sink. */
 	if (cfg->cmd_data.convert.sources->len != 1 ||
 			cfg->cmd_data.convert.sinks->len != 1) {
 		fprintf(stderr, "Only one source and one sink component class are supported. Aborting...\n");
 		ret = -1;
-		goto end;
-	}
-
-	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
-	if (ret) {
-		fprintf(stderr, "Could not load plugins from configured plugin paths. Aborting...\n");
 		goto end;
 	}
 
