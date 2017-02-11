@@ -47,6 +47,7 @@ enum bt_config_command {
 	BT_CONFIG_COMMAND_CONVERT,
 	BT_CONFIG_COMMAND_LIST_PLUGINS,
 	BT_CONFIG_COMMAND_HELP,
+	BT_CONFIG_COMMAND_QUERY_INFO,
 };
 
 struct bt_config {
@@ -91,6 +92,15 @@ struct bt_config {
 			bool omit_home_plugin_path;
 			struct bt_config_component *cfg_component;
 		} help;
+
+		/* BT_CONFIG_COMMAND_QUERY_INFO */
+		struct {
+			struct bt_value *plugin_paths;
+			bool omit_system_plugin_path;
+			bool omit_home_plugin_path;
+			GString *action;
+			struct bt_config_component *cfg_component;
+		} query_info;
 	} cmd_data;
 };
 

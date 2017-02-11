@@ -855,6 +855,14 @@ void bt_config_destroy(struct bt_object *obj)
 		BT_PUT(cfg->cmd_data.help.plugin_paths);
 		BT_PUT(cfg->cmd_data.help.cfg_component);
 		break;
+	case BT_CONFIG_COMMAND_QUERY_INFO:
+		BT_PUT(cfg->cmd_data.query_info.plugin_paths);
+		BT_PUT(cfg->cmd_data.query_info.cfg_component);
+
+		if (cfg->cmd_data.query_info.action) {
+			g_string_free(cfg->cmd_data.query_info.action, TRUE);
+		}
+		break;
 	default:
 		assert(false);
 	}
@@ -2333,6 +2341,83 @@ end:
 	return cfg;
 }
 
+static struct bt_config *bt_config_query_info_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_QUERY_INFO);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (initial_plugin_paths) {
+		cfg->cmd_data.query_info.plugin_paths =
+			bt_get(initial_plugin_paths);
+	} else {
+		cfg->cmd_data.query_info.plugin_paths =
+			bt_value_array_create();
+		if (!cfg->cmd_data.query_info.plugin_paths) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
+	cfg->cmd_data.query_info.action = g_string_new(NULL);
+	if (!cfg->cmd_data.query_info.action) {
+		print_err_oom();
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+/*
+ * Prints the expected format for a --params option.
+ */
+static
+void print_expected_params_format(FILE *fp)
+{
+	fprintf(fp, "Expected format of PARAMS\n");
+	fprintf(fp, "-------------------------\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
+	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
+	fprintf(fp, "VALUE can be one of:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
+	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
+	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
+	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
+	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
+	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
+	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
+	fprintf(fp, "  the null and boolean value symbols above.\n");
+	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Example:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
+	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
+	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run babeltrace\n");
+	fprintf(fp, "from a shell.\n");
+}
+
+
 /*
  * Prints the help command usage.
  */
@@ -2340,9 +2425,9 @@ static
 void print_help_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source=PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter=PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink=PLUGIN.COMPCLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -2555,6 +2640,246 @@ end:
 		poptFreeContext(pc);
 	}
 
+	free(arg);
+	return cfg;
+}
+
+/*
+ * Prints the help command usage.
+ */
+static
+void print_query_info_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GEN OPTS] query-info [OPTS] ACTION --source=PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GEN OPTS] query-info [OPTS] ACTION --filter=PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GEN OPTS] query-info [OPTS] ACTION --sink=PLUGIN.COMPCLS\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Query info from the filter component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "  -p, --params=PARAMS               Set the query parameters to PARAMS\n");
+	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "      --sink=PLUGIN.COMPCLS         Query info from the sink component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "      --source=PLUGIN.COMPCLS       Query info from the source component class\n");
+	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "\n\n");
+	print_expected_params_format(fp);
+}
+
+static struct poptOption query_info_long_options[] = {
+	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ NULL, 0, 0, NULL, 0, NULL, NULL },
+};
+
+/*
+ * Creates a Babeltrace config object from the arguments of a query-info
+ * command.
+ *
+ * *retcode is set to the appropriate exit code to use.
+ */
+struct bt_config *bt_config_query_info_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	poptContext pc = NULL;
+	char *arg = NULL;
+	int opt;
+	int ret;
+	struct bt_config *cfg = NULL;
+	const char *leftover;
+	struct bt_value *params = bt_value_null;
+
+	*retcode = 0;
+	cfg = bt_config_query_info_create(initial_plugin_paths);
+	if (!cfg) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.query_info.omit_system_plugin_path =
+		omit_system_plugin_path;
+	cfg->cmd_data.query_info.omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(cfg->cmd_data.query_info.plugin_paths);
+	if (ret) {
+		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+		goto error;
+	}
+
+	/* Parse options */
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		query_info_long_options, 0);
+	if (!pc) {
+		printf_err("Cannot get popt context\n");
+		goto error;
+	}
+
+	poptReadDefaultConfig(pc, 0);
+
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		arg = poptGetOptArg(pc);
+
+		switch (opt) {
+		case OPT_PLUGIN_PATH:
+			if (bt_common_is_setuid_setgid()) {
+				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+			} else {
+				if (bt_config_append_plugin_paths(
+						cfg->cmd_data.query_info.plugin_paths,
+						arg)) {
+					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+						arg);
+					goto error;
+				}
+			}
+			break;
+		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+			cfg->cmd_data.query_info.omit_system_plugin_path = true;
+			break;
+		case OPT_OMIT_HOME_PLUGIN_PATH:
+			cfg->cmd_data.query_info.omit_home_plugin_path = true;
+			break;
+		case OPT_SOURCE:
+		case OPT_FILTER:
+		case OPT_SINK:
+		{
+			enum bt_component_class_type type;
+
+			if (cfg->cmd_data.query_info.cfg_component) {
+				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			switch (opt) {
+			case OPT_SOURCE:
+				type = BT_COMPONENT_CLASS_TYPE_SOURCE;
+				break;
+			case OPT_FILTER:
+				type = BT_COMPONENT_CLASS_TYPE_FILTER;
+				break;
+			case OPT_SINK:
+				type = BT_COMPONENT_CLASS_TYPE_SINK;
+				break;
+			default:
+				assert(false);
+			}
+
+			cfg->cmd_data.query_info.cfg_component =
+				bt_config_component_from_arg(type, arg);
+			if (!cfg->cmd_data.query_info.cfg_component) {
+				printf_err("Invalid format for --source/--filter/--sink option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			/* Default parameters: null */
+			bt_put(cfg->cmd_data.query_info.cfg_component->params);
+			cfg->cmd_data.query_info.cfg_component->params =
+				bt_value_null;
+			break;
+		}
+		case OPT_PARAMS:
+		{
+			params = bt_value_from_arg(arg);
+			if (!params) {
+				printf_err("Invalid format for --params option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		}
+		case OPT_HELP:
+			print_query_info_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
+			goto end;
+		default:
+			printf_err("Unknown command-line option specified (option code %d)\n",
+				opt);
+			goto error;
+		}
+
+		free(arg);
+		arg = NULL;
+	}
+
+	if (!cfg->cmd_data.query_info.cfg_component) {
+		printf_err("No target component class specified with --source/--filter/--sink option\n");
+		goto error;
+	}
+
+	assert(params);
+	BT_MOVE(cfg->cmd_data.query_info.cfg_component->params, params);
+
+	/* Check for option parsing error */
+	if (opt < -1) {
+		printf_err("While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
+		goto error;
+	}
+
+	/*
+	 * We need exactly one leftover argument which is the
+	 * mandatory action.
+	 */
+	leftover = poptGetArg(pc);
+	if (leftover) {
+		if (strlen(leftover) == 0) {
+			printf_err("Invalid empty action\n");
+			goto error;
+		}
+
+		g_string_assign(cfg->cmd_data.query_info.action, leftover);
+	} else {
+		print_query_info_usage(stdout);
+		*retcode = -1;
+		BT_PUT(cfg);
+		goto end;
+	}
+
+	leftover = poptGetArg(pc);
+	if (leftover) {
+		printf_err("Invalid argument: %s\n", leftover);
+		goto error;
+	}
+
+	if (append_home_and_system_plugin_paths(
+			cfg->cmd_data.query_info.plugin_paths,
+			cfg->cmd_data.query_info.omit_system_plugin_path,
+			cfg->cmd_data.query_info.omit_home_plugin_path)) {
+		printf_err("Cannot append home and system plugin paths\n");
+		goto error;
+	}
+
+	goto end;
+
+error:
+	*retcode = 1;
+	BT_PUT(cfg);
+
+end:
+	if (pc) {
+		poptFreeContext(pc);
+	}
+
+	BT_PUT(params);
 	free(arg);
 	return cfg;
 }
@@ -2846,35 +3171,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "    my-filter.top10:json-out\n");
 	fprintf(fp, "\n\n");
-	fprintf(fp, "Expected format of PARAMS\n");
-	fprintf(fp, "-------------------------\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
-	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
-	fprintf(fp, "VALUE can be one of:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
-	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
-	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
-	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
-	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
-	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
-	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
-	fprintf(fp, "  the null and boolean value symbols above.\n");
-	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Example:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
-	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
-	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\"\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run babeltrace\n");
-	fprintf(fp, "from a shell.\n");
+	print_expected_params_format(fp);
 }
 
 static struct poptOption convert_long_options[] = {
@@ -3633,6 +3930,7 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "    convert       Build a trace conversion graph and run it (default)\n");
 	fprintf(fp, "    help          Get help for a plugin or a component class\n");
 	fprintf(fp, "    list-plugins  List available plugins and their content\n");
+	fprintf(fp, "    query-info    Query information from a component class\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
 }
@@ -3691,6 +3989,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 				command = BT_CONFIG_COMMAND_LIST_PLUGINS;
 			} else if (strcmp(cur_arg, "help") == 0) {
 				command = BT_CONFIG_COMMAND_HELP;
+			} else if (strcmp(cur_arg, "query-info") == 0) {
+				command = BT_CONFIG_COMMAND_QUERY_INFO;
 			} else {
 				/*
 				 * Unknown argument, but not a known
@@ -3740,6 +4040,11 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 		break;
 	case BT_CONFIG_COMMAND_HELP:
 		config = bt_config_help_from_args(command_argc,
+			command_argv, retcode, omit_system_plugin_path,
+			omit_home_plugin_path, initial_plugin_paths);
+		break;
+	case BT_CONFIG_COMMAND_QUERY_INFO:
+		config = bt_config_query_info_from_args(command_argc,
 			command_argv, retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
 		break;

@@ -633,6 +633,63 @@ static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		bt_common_color_reset());
 }
 
+static int cmd_query_info(struct bt_config *cfg)
+{
+	int ret;
+	struct bt_component_class *comp_cls = NULL;
+	struct bt_value *results = NULL;
+
+	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	if (ret) {
+		goto end;
+	}
+
+	comp_cls = find_component_class(cfg->cmd_data.query_info.cfg_component->plugin_name->str,
+		cfg->cmd_data.query_info.cfg_component->component_name->str,
+		cfg->cmd_data.query_info.cfg_component->type);
+	if (!comp_cls) {
+		fprintf(stderr, "%s%sCannot find component class %s",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		print_plugin_comp_cls_opt(stderr,
+			cfg->cmd_data.query_info.cfg_component->plugin_name->str,
+			cfg->cmd_data.query_info.cfg_component->component_name->str,
+			cfg->cmd_data.query_info.cfg_component->type);
+		fprintf(stderr, "\n");
+		ret = -1;
+		goto end;
+	}
+
+	results = bt_component_class_query_info(comp_cls,
+		cfg->cmd_data.query_info.action->str,
+		cfg->cmd_data.query_info.cfg_component->params);
+	if (!results) {
+		fprintf(stderr, "%s%sFailed to query info to %s",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		print_plugin_comp_cls_opt(stderr,
+			cfg->cmd_data.query_info.cfg_component->plugin_name->str,
+			cfg->cmd_data.query_info.cfg_component->component_name->str,
+			cfg->cmd_data.query_info.cfg_component->type);
+		fprintf(stderr, "%s%s with action `%s`%s\n",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			cfg->cmd_data.query_info.action->str,
+			bt_common_color_reset());
+		ret = -1;
+		goto end;
+	}
+
+	print_value(results, 0);
+
+end:
+	bt_put(comp_cls);
+	bt_put(results);
+	return ret;
+}
+
 static int cmd_help(struct bt_config *cfg)
 {
 	int ret;
@@ -976,6 +1033,9 @@ int main(int argc, const char **argv)
 		break;
 	case BT_CONFIG_COMMAND_HELP:
 		ret = cmd_help(cfg);
+		break;
+	case BT_CONFIG_COMMAND_QUERY_INFO:
+		ret = cmd_query_info(cfg);
 		break;
 	default:
 		assert(false);
