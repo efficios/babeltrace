@@ -23,6 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.notification_iterator
 import collections.abc
+import bt2.values
 import sys
 import bt2
 
@@ -43,6 +44,9 @@ class _GenericComponentClass(object._Object):
     @property
     def help(self):
         return native_bt.component_class_get_help(self._ptr)
+
+    def query_info(self, action, params=None):
+        return _query_info(self._ptr, action, params)
 
     def __call__(self, params=None, name=None):
         params = bt2.create_value(params)
@@ -196,6 +200,27 @@ def _trim_docstring(docstring):
         trimmed.pop(0)
 
     return '\n'.join(trimmed)
+
+
+def _query_info(comp_cls_ptr, action, params):
+    utils._check_str(action)
+
+    if params is None:
+        params_ptr = native_bt.value_null
+    else:
+        params = bt2.create_value(params)
+        params_ptr = params._ptr
+
+    results_ptr = native_bt.component_class_query_info(comp_cls_ptr, action,
+                                                       params_ptr)
+
+    if results_ptr is None:
+        raise bt2.Error('cannot query info with action "{}"'.format(action))
+
+    if results_ptr == native_bt.value_null:
+        return
+
+    return bt2.values._create_from_ptr(results_ptr)
 
 
 # Metaclass for component classes defined by Python code.
@@ -404,6 +429,29 @@ class _UserComponentType(type):
     @property
     def addr(cls):
         return int(cls._cc_ptr)
+
+    def query_info(cls, action, params=None):
+        return _query_info(cls._cc_ptr, action, params)
+
+    def _query_info_from_bt(cls, action, params):
+        # this can raise, in which case the native call to
+        # bt_component_class_query_info() returns NULL
+        results = cls._query_info(action, params)
+        results = bt2.create_value(results)
+
+        if results is None:
+            results_addr = int(native_bt.value_null)
+        else:
+            # steal the underlying native value object for the caller
+            results_addr = int(results._ptr)
+            results._ptr = None
+
+        return results_addr
+
+    @staticmethod
+    def _query_info(action, params):
+        # BT catches this and returns NULL to the user
+        raise NotImplementedError
 
     def __del__(cls):
         if hasattr(cls, '_cc_ptr'):

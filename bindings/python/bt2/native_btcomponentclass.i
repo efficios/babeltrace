@@ -51,6 +51,9 @@ const char *bt_component_class_get_description(
 		struct bt_component_class *component_class);
 const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
+struct bt_value *bt_component_class_query_info(
+		struct bt_component_class *component_class,
+		const char *action, struct bt_value *params);
 enum bt_component_class_type bt_component_class_get_type(
 		struct bt_component_class *component_class);
 
@@ -560,6 +563,70 @@ static void bt_py3_cc_destroy(struct bt_component *component)
 	}
 }
 
+static struct bt_value *bt_py3_cc_query_info(
+		struct bt_component_class *component_class,
+		const char *action, struct bt_value *params)
+{
+	PyObject *py_cls = NULL;
+	PyObject *py_params = NULL;
+	PyObject *py_query_info_func = NULL;
+	PyObject *py_action = NULL;
+	PyObject *py_results_addr = NULL;
+	struct bt_value *results = NULL;
+
+	py_cls = lookup_cc_ptr_to_py_cls(component_class);
+	if (!py_cls) {
+		goto error;
+	}
+
+	py_params = bt_py3_bt_value_from_ptr(params);
+	if (!py_params) {
+		goto error;
+	}
+
+	py_action = SWIG_FromCharPtr(action);
+	if (!py_action) {
+		goto error;
+	}
+
+	py_results_addr = PyObject_CallMethod(py_cls,
+		"_query_info_from_bt", "(OO)", py_action, py_params);
+	if (!py_results_addr) {
+		goto error;
+	}
+
+	/*
+	 * The returned object, on success, is an integer object
+	 * (PyLong) containing the address of a BT value object
+	 * (which is now ours).
+	 */
+	results = (struct bt_value *) PyLong_AsUnsignedLongLong(
+		py_results_addr);
+
+	/* Clear potential overflow error; should never happen */
+	if (PyErr_Occurred()) {
+		results = NULL;
+		goto error;
+	}
+
+	if (!results) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(results);
+	PyErr_Clear();
+
+end:
+	Py_XDECREF(py_params);
+	Py_XDECREF(py_query_info_func);
+	Py_XDECREF(py_action);
+	Py_XDECREF(py_results_addr);
+	return results;
+}
+
 static enum bt_notification_iterator_status bt_py3_exc_to_notif_iter_status(void)
 {
 	enum bt_notification_iterator_status status =
@@ -728,13 +795,14 @@ static struct bt_notification *bt_py3_cc_notification_iterator_get(
 	/*
 	 * The returned object, on success, is an integer object
 	 * (PyLong) containing the address of a BT notification
-	 * object (which is not ours).
+	 * object (which is now ours).
 	 */
 	notif = (struct bt_notification *) PyLong_AsUnsignedLongLong(
 		py_get_method_result);
 
 	/* Clear potential overflow error; should never happen */
 	if (PyErr_Occurred()) {
+		notif = NULL;
 		goto error;
 	}
 
@@ -910,6 +978,12 @@ static int bt_py3_cc_set_optional_attrs_methods(struct bt_component_class *cc,
 	}
 
 	ret = bt_component_class_set_destroy_method(cc, bt_py3_cc_destroy);
+	if (ret) {
+		goto end;
+	}
+
+	ret = bt_component_class_set_query_info_method(cc,
+		bt_py3_cc_query_info);
 	if (ret) {
 		goto end;
 	}
