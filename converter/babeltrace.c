@@ -644,12 +644,12 @@ static int cmd_help(struct bt_config *cfg)
 		goto end;
 	}
 
-	plugin = find_plugin(cfg->cmd_data.help.plugin_name->str);
+	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
 		fprintf(stderr, "%s%sCannot find plugin %s%s%s\n",
 			bt_common_color_bold(), bt_common_color_fg_red(),
 			bt_common_color_fg_blue(),
-			cfg->cmd_data.help.plugin_name->str,
+			cfg->cmd_data.help.cfg_component->plugin_name->str,
 			bt_common_color_reset());
 		ret = -1;
 		goto end;
@@ -662,13 +662,13 @@ static int cmd_help(struct bt_config *cfg)
 			bt_plugin_get_component_class_count(plugin));
 
 
-	if (cfg->cmd_data.help.comp_cls_type !=
+	if (cfg->cmd_data.help.cfg_component->type !=
 			BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
 		struct bt_component_class *needed_comp_cls =
 			find_component_class(
-				cfg->cmd_data.help.plugin_name->str,
-				cfg->cmd_data.help.component_name->str,
-				cfg->cmd_data.help.comp_cls_type);
+				cfg->cmd_data.help.cfg_component->plugin_name->str,
+				cfg->cmd_data.help.cfg_component->component_name->str,
+				cfg->cmd_data.help.cfg_component->type);
 
 		if (!needed_comp_cls) {
 			fprintf(stderr, "\n%s%sCannot find component class %s",
@@ -676,9 +676,9 @@ static int cmd_help(struct bt_config *cfg)
 				bt_common_color_fg_red(),
 				bt_common_color_reset());
 			print_plugin_comp_cls_opt(stderr,
-				cfg->cmd_data.help.plugin_name->str,
-				cfg->cmd_data.help.component_name->str,
-				cfg->cmd_data.help.comp_cls_type);
+				cfg->cmd_data.help.cfg_component->plugin_name->str,
+				cfg->cmd_data.help.cfg_component->component_name->str,
+				cfg->cmd_data.help.cfg_component->type);
 			fprintf(stderr, "\n");
 			ret = -1;
 			goto end;
@@ -701,12 +701,12 @@ static int cmd_help(struct bt_config *cfg)
 
 		assert(comp_cls);
 
-		if (cfg->cmd_data.help.comp_cls_type !=
+		if (cfg->cmd_data.help.cfg_component->type !=
 				BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
-			if (strcmp(cfg->cmd_data.help.component_name->str,
+			if (strcmp(cfg->cmd_data.help.cfg_component->component_name->str,
 					comp_class_name) != 0 &&
 					type ==
-					cfg->cmd_data.help.comp_cls_type) {
+					cfg->cmd_data.help.cfg_component->type) {
 				bt_put(comp_cls);
 				continue;
 			}
@@ -714,7 +714,7 @@ static int cmd_help(struct bt_config *cfg)
 
 		printf("\n");
 		print_plugin_comp_cls_opt(stdout,
-			cfg->cmd_data.help.plugin_name->str,
+			cfg->cmd_data.help.cfg_component->plugin_name->str,
 			comp_class_name,
 			type);
 		printf("\n");

@@ -36,6 +36,7 @@
 
 struct bt_config_component {
 	struct bt_object base;
+	enum bt_component_class_type type;
 	GString *plugin_name;
 	GString *component_name;
 	struct bt_value *params;
@@ -88,9 +89,7 @@ struct bt_config {
 			struct bt_value *plugin_paths;
 			bool omit_system_plugin_path;
 			bool omit_home_plugin_path;
-			enum bt_component_class_type comp_cls_type;
-			GString *plugin_name;
-			GString *component_name;
+			struct bt_config_component *cfg_component;
 		} help;
 	} cmd_data;
 };
@@ -107,7 +106,8 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 		bool omit_home_plugin_path,
 		struct bt_value *initial_plugin_paths);
 
-struct bt_config_component *bt_config_component_from_arg(const char *arg);
+struct bt_config_component *bt_config_component_from_arg(
+		enum bt_component_class_type type, const char *arg);
 
 enum bt_value_status bt_config_append_plugin_paths(
 		struct bt_value *plugin_paths, const char *arg);

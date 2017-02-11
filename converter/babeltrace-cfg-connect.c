@@ -318,25 +318,22 @@ end:
 }
 
 static struct bt_config_component *find_component(struct bt_config *cfg,
-		const char *name, enum bt_component_class_type *type)
+		const char *name)
 {
 	struct bt_config_component *comp;
 
 	comp = find_component_in_array(cfg->cmd_data.convert.sources, name);
 	if (comp) {
-		*type = BT_COMPONENT_CLASS_TYPE_SOURCE;
 		goto end;
 	}
 
 	comp = find_component_in_array(cfg->cmd_data.convert.filters, name);
 	if (comp) {
-		*type = BT_COMPONENT_CLASS_TYPE_FILTER;
 		goto end;
 	}
 
 	comp = find_component_in_array(cfg->cmd_data.convert.sinks, name);
 	if (comp) {
-		*type = BT_COMPONENT_CLASS_TYPE_SINK;
 		goto end;
 	}
 
@@ -354,14 +351,12 @@ static int validate_all_endpoints_exist(struct bt_config *cfg, char *error_buf,
 		struct bt_config_connection *connection =
 			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
 		struct bt_config_component *comp;
-		enum bt_component_class_type type;
 
-		comp = find_component(cfg, connection->src_instance_name->str,
-			&type);
+		comp = find_component(cfg, connection->src_instance_name->str);
 		bt_put(comp);
 		if (!comp) {
 			comp = find_component(cfg,
-				connection->dst_instance_name->str, &type);
+				connection->dst_instance_name->str);
 			bt_put(comp);
 			if (!comp) {
 				snprintf(error_buf, error_buf_size,
@@ -389,19 +384,17 @@ static int validate_connection_directions(struct bt_config *cfg,
 	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
 		struct bt_config_connection *connection =
 			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
-		enum bt_component_class_type src_type;
-		enum bt_component_class_type dst_type;
 
 		src_comp = find_component(cfg,
-			connection->src_instance_name->str, &src_type);
+			connection->src_instance_name->str);
 		assert(src_comp);
 		dst_comp = find_component(cfg,
-			connection->dst_instance_name->str, &dst_type);
+			connection->dst_instance_name->str);
 		assert(dst_comp);
 
-		if (src_type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
-			if (dst_type != BT_COMPONENT_CLASS_TYPE_FILTER &&
-					dst_type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		if (src_comp->type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
+			if (dst_comp->type != BT_COMPONENT_CLASS_TYPE_FILTER &&
+					dst_comp->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 				snprintf(error_buf, error_buf_size,
 					"Invalid connection: source component `%s` not connected to filter or sink component:\n    %s\n",
 					connection->src_instance_name->str,
@@ -409,9 +402,9 @@ static int validate_connection_directions(struct bt_config *cfg,
 				ret = -1;
 				goto end;
 			}
-		} else if (src_type == BT_COMPONENT_CLASS_TYPE_FILTER) {
-			if (dst_type != BT_COMPONENT_CLASS_TYPE_FILTER &&
-					dst_type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		} else if (src_comp->type == BT_COMPONENT_CLASS_TYPE_FILTER) {
+			if (dst_comp->type != BT_COMPONENT_CLASS_TYPE_FILTER &&
+					dst_comp->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 				snprintf(error_buf, error_buf_size,
 					"Invalid connection: filter component `%s` not connected to filter or sink component:\n    %s\n",
 					connection->src_instance_name->str,
@@ -752,7 +745,8 @@ static int auto_connect(struct bt_config *cfg)
 	}
 
 	/* Add an implicit muxer filter */
-	muxer_cfg_comp = bt_config_component_from_arg("utils.muxer");
+	muxer_cfg_comp = bt_config_component_from_arg(
+		BT_COMPONENT_CLASS_TYPE_FILTER, "utils.muxer");
 	if (!muxer_cfg_comp) {
 		goto error;
 	}

@@ -732,8 +732,9 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_config_component *bt_config_component_create(const char *plugin_name,
-		const char *component_name)
+struct bt_config_component *bt_config_component_create(
+		enum bt_component_class_type type,
+		const char *plugin_name, const char *component_name)
 {
 	struct bt_config_component *cfg_component = NULL;
 
@@ -744,6 +745,7 @@ struct bt_config_component *bt_config_component_create(const char *plugin_name,
 	}
 
 	bt_object_init(cfg_component, bt_config_component_destroy);
+	cfg_component->type = type;
 	cfg_component->plugin_name = g_string_new(plugin_name);
 	if (!cfg_component->plugin_name) {
 		print_err_oom();
@@ -782,7 +784,8 @@ end:
  * Creates a component configuration from a command-line source/sink
  * option's argument.
  */
-struct bt_config_component *bt_config_component_from_arg(const char *arg)
+struct bt_config_component *bt_config_component_from_arg(
+		enum bt_component_class_type type, const char *arg)
 {
 	struct bt_config_component *bt_config_component = NULL;
 	char *plugin_name;
@@ -794,7 +797,7 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 		goto error;
 	}
 
-	bt_config_component = bt_config_component_create(plugin_name,
+	bt_config_component = bt_config_component_create(type, plugin_name,
 		component_name);
 	if (!bt_config_component) {
 		goto error;
@@ -850,14 +853,7 @@ void bt_config_destroy(struct bt_object *obj)
 		break;
 	case BT_CONFIG_COMMAND_HELP:
 		BT_PUT(cfg->cmd_data.help.plugin_paths);
-
-		if (cfg->cmd_data.help.plugin_name) {
-			g_string_free(cfg->cmd_data.help.plugin_name, TRUE);
-		}
-
-		if (cfg->cmd_data.help.component_name) {
-			g_string_free(cfg->cmd_data.help.component_name, TRUE);
-		}
+		BT_PUT(cfg->cmd_data.help.cfg_component);
 		break;
 	default:
 		assert(false);
@@ -1389,8 +1385,8 @@ int append_sinks_from_legacy_opts(GPtrArray *sinks,
 	}
 
 	/* Create a component configuration */
-	bt_config_component = bt_config_component_create(plugin_name,
-		component_name);
+	bt_config_component = bt_config_component_create(
+		BT_COMPONENT_CLASS_TYPE_SINK, plugin_name, component_name);
 	if (!bt_config_component) {
 		goto error;
 	}
@@ -1518,8 +1514,8 @@ int append_sources_from_legacy_opts(GPtrArray *sources,
 		}
 
 		/* Create a component configuration */
-		bt_config_component = bt_config_component_create("ctf",
-			component_name);
+		bt_config_component = bt_config_component_create(
+			BT_COMPONENT_CLASS_TYPE_SOURCE, "ctf", component_name);
 		if (!bt_config_component) {
 			goto error;
 		}
@@ -2320,14 +2316,10 @@ static struct bt_config *bt_config_help_create(
 		}
 	}
 
-	cfg->cmd_data.help.plugin_name = g_string_new(NULL);
-	if (!cfg->cmd_data.help.plugin_name) {
-		print_err_oom();
-		goto error;
-	}
-
-	cfg->cmd_data.help.component_name = g_string_new(NULL);
-	if (!cfg->cmd_data.help.component_name) {
+	cfg->cmd_data.help.cfg_component =
+		bt_config_component_create(BT_COMPONENT_CLASS_TYPE_UNKNOWN,
+			NULL, NULL);
+	if (!cfg->cmd_data.help.cfg_component) {
 		print_err_oom();
 		goto error;
 	}
@@ -2411,7 +2403,6 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	cfg->cmd_data.help.comp_cls_type = BT_COMPONENT_CLASS_TYPE_UNKNOWN;
 	cfg->cmd_data.help.omit_system_plugin_path = omit_system_plugin_path;
 	cfg->cmd_data.help.omit_home_plugin_path = omit_home_plugin_path;
 	ret = append_env_var_plugin_paths(cfg->cmd_data.help.plugin_paths);
@@ -2456,7 +2447,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		case OPT_SOURCE:
 		case OPT_FILTER:
 		case OPT_SINK:
-			if (cfg->cmd_data.help.comp_cls_type !=
+			if (cfg->cmd_data.help.cfg_component->type !=
 					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
 				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
 					arg);
@@ -2465,15 +2456,15 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 			switch (opt) {
 			case OPT_SOURCE:
-				cfg->cmd_data.help.comp_cls_type =
+				cfg->cmd_data.help.cfg_component->type =
 					BT_COMPONENT_CLASS_TYPE_SOURCE;
 				break;
 			case OPT_FILTER:
-				cfg->cmd_data.help.comp_cls_type =
+				cfg->cmd_data.help.cfg_component->type =
 					BT_COMPONENT_CLASS_TYPE_FILTER;
 				break;
 			case OPT_SINK:
-				cfg->cmd_data.help.comp_cls_type =
+				cfg->cmd_data.help.cfg_component->type =
 					BT_COMPONENT_CLASS_TYPE_SINK;
 				break;
 			default:
@@ -2509,16 +2500,17 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		if (cfg->cmd_data.help.comp_cls_type !=
+		if (cfg->cmd_data.help.cfg_component->type !=
 					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
 			printf_err("Cannot specify plugin name and --source/--filter/--sink component class:\n    %s\n",
 				leftover);
 			goto error;
 		}
 
-		g_string_assign(cfg->cmd_data.help.plugin_name, leftover);
+		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+			leftover);
 	} else {
-		if (cfg->cmd_data.help.comp_cls_type ==
+		if (cfg->cmd_data.help.cfg_component->type ==
 					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
 			print_help_usage(stdout);
 			*retcode = -1;
@@ -2529,8 +2521,9 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		plugin_component_names_from_arg(plugin_comp_cls_names,
 			&plugin_name, &component_name);
 		if (plugin_name && component_name) {
-			g_string_assign(cfg->cmd_data.help.plugin_name, plugin_name);
-			g_string_assign(cfg->cmd_data.help.component_name,
+			g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+				plugin_name);
+			g_string_assign(cfg->cmd_data.help.cfg_component->component_name,
 				component_name);
 		} else {
 			printf_err("Invalid --source/--filter/--sink option's argument:\n    %s\n",
@@ -3022,7 +3015,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Note: implicit source never gets positional base params. */
-	implicit_source_comp = bt_config_component_from_arg(DEFAULT_SOURCE_COMPONENT_NAME);
+	implicit_source_comp = bt_config_component_from_arg(
+		BT_COMPONENT_CLASS_TYPE_SOURCE, DEFAULT_SOURCE_COMPONENT_NAME);
 	if (!implicit_source_comp) {
 		print_err_oom();
 		goto error;
@@ -3124,7 +3118,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					cur_cfg_comp_dest);
 			}
 
-			cur_cfg_comp = bt_config_component_from_arg(arg);
+			cur_cfg_comp = bt_config_component_from_arg(
+				BT_COMPONENT_CLASS_TYPE_SOURCE, arg);
 			if (!cur_cfg_comp) {
 				printf_err("Invalid format for --source option's argument:\n    %s\n",
 					arg);
@@ -3186,7 +3181,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					cur_cfg_comp_dest);
 			}
 
-			cur_cfg_comp = bt_config_component_from_arg(arg);
+			cur_cfg_comp = bt_config_component_from_arg(
+				BT_COMPONENT_CLASS_TYPE_SINK, arg);
 			if (!cur_cfg_comp) {
 				printf_err("Invalid format for --sink option's argument:\n    %s\n",
 					arg);
@@ -3562,7 +3558,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	if (cfg->cmd_data.convert.sinks->len == 0) {
 		/* Use implicit sink as default. */
-		cur_cfg_comp = bt_config_component_from_arg(DEFAULT_SINK_COMPONENT_NAME);
+		cur_cfg_comp = bt_config_component_from_arg(
+			BT_COMPONENT_CLASS_TYPE_SINK,
+			DEFAULT_SINK_COMPONENT_NAME);
 		if (!cur_cfg_comp) {
 			printf_error("Cannot find implicit sink plugin `%s`\n",
 				DEFAULT_SINK_COMPONENT_NAME);
