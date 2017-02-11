@@ -1,6 +1,6 @@
 PLUGINS_PATH = $(abs_top_builddir)/plugins
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/muxer:$(PLUGINS_PATH)/trimmer:$(PLUGINS_PATH)/writer\"
+		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/muxer:$(PLUGINS_PATH)/writer:$(PLUGINS_PATH)/utils\"
 AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin babeltrace-log

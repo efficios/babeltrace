@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_TRIMMER_H
-#define BABELTRACE_PLUGIN_TRIMMER_H
+#ifndef BABELTRACE_PLUGINS_UTILS_DUMMY_H
+#define BABELTRACE_PLUGINS_UTILS_DUMMY_H
 
 /*
- * BabelTrace - Trace Trimmer Plug-in
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,25 +23,6 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
+enum bt_component_status dummy_consume(struct bt_component *component);
 
-#define NSEC_PER_SEC	1000000000LL
-
-struct trimmer_bound {
-	int64_t value;
-	bool set;
-	bool lazy;
-	struct {
-		int hh, mm, ss, ns;
-		bool gmt;
-	} lazy_values;
-};
-
-struct trimmer {
-	struct trimmer_bound begin, end;
-	bool date;
-	int year, month, day;
-};
-
-#endif /* BABELTRACE_PLUGIN_TRIMMER_H */
+#endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */
