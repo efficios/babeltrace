@@ -168,11 +168,12 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP			= 1,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD			= 2,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD		= 3,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD	= 4,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD	= 5,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD	= 6,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD	= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD	= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD		= 4,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD	= 5,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD	= 6,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD	= 7,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD	= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD	= 9,
 };
 
 /* Component class attribute (internal use) */
@@ -202,6 +203,9 @@ struct __bt_plugin_component_class_descriptor_attribute {
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD */
 		bt_component_class_destroy_method destroy_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD */
+		bt_component_class_query_info_method query_info_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD */
 		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
@@ -587,6 +591,39 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
+ * Defines a query info method attribute attached to a specific source
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_info_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a query info method attribute attached to a specific filter
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_info_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines a query info method attribute attached to a specific sink
+ * component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Destroy method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_info_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD, _id, _comp_class_id, sink, _x)
+
+/*
  * Defines an add iterator method attribute attached to a specific
  * filter component class descriptor.
  *
@@ -904,6 +941,39 @@ struct __bt_plugin_component_class_descriptor_attribute {
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a query info method attribute attached to a source component
+ * class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_INFO_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a query info method attribute attached to a filter component
+ * class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_INFO_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a query info method attribute attached to a sink component
+ * class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_query_info_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_INFO_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_INFO_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an add iterator method attribute attached to a filter
