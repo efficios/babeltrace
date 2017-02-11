@@ -256,6 +256,93 @@ This too:
 Voilà.'''
         self.assertEqual(MySink.help, expected_help)
 
+    def test_query_info_missing(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+        with self.assertRaises(bt2.Error):
+            MySink.query_info('salut')
+
+    def test_query_info_raises(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                raise ValueError
+
+        with self.assertRaises(bt2.Error):
+            MySink.query_info('salut')
+
+    def test_query_info_gets_none_params(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                nonlocal recv_params
+                recv_params = params
+
+        recv_params = NotImplemented
+        MySink.query_info('allo', None)
+        self.assertIsNone(recv_params)
+
+    def test_query_info_gets_same_params(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                nonlocal recv_params
+                recv_params = params
+
+        recv_params = NotImplemented
+        params = bt2.create_value(23)
+        MySink.query_info('allo', params)
+        self.assertEqual(recv_params.addr, params.addr)
+
+    def test_query_info_action(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                nonlocal recv_action
+                recv_action = action
+
+        recv_action = None
+        MySink.query_info('salut')
+        self.assertEqual(recv_action, 'salut')
+
+    def test_query_info_returns_none(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                pass
+
+        self.assertIsNone(MySink.query_info('allo', 177))
+
+    def test_query_info_returns_params(self):
+        class MySink(bt2.UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query_info(action, params):
+                return {'action': action, 'params': params}
+
+        results = MySink.query_info('hello', (45, 'lol'))
+        self.assertEqual(results['action'], 'hello')
+        self.assertEqual(results['params'], (45, 'lol'))
+
     def test_init(self):
         class MySink(bt2.UserSinkComponent):
             def __init__(self):
