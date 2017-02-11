@@ -37,6 +37,12 @@ enum text_default {
 	TEXT_DEFAULT_HIDE,
 };
 
+enum text_color_option {
+	TEXT_COLOR_OPT_NEVER,
+	TEXT_COLOR_OPT_AUTO,
+	TEXT_COLOR_OPT_ALWAYS,
+};
+
 struct text_options {
 	char *output_path;
 	char *debug_info_dir;
@@ -64,6 +70,8 @@ struct text_options {
 	bool clock_date;
 	bool clock_gmt;
 	bool debug_info_full_path;
+
+	enum text_color_option color;
 };
 
 struct text_component {
@@ -74,6 +82,7 @@ struct text_component {
 	bool start_line;
 	GString *string;
 	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
+	bool use_colors;
 
 	uint64_t last_cycles_timestamp;
 	uint64_t delta_cycles;

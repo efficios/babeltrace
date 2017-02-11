@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/common-internal.h>
 
 #define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace/plugins"
 #define HOME_ENV_VAR		"HOME"
@@ -165,7 +166,8 @@ end:
 	return ret;
 }
 
-static bool supports_colors(void)
+BT_HIDDEN
+bool bt_common_colors_supported(void)
 {
 	static bool supports_colors = false;
 	static bool supports_colors_set = false;
@@ -202,107 +204,109 @@ end:
 BT_HIDDEN
 const char *bt_common_color_reset(void)
 {
-	return supports_colors() ? "\033[0m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_RESET : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bold(void)
 {
-	return supports_colors() ? "\033[1m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BOLD : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_default(void)
 {
-	return supports_colors() ? "\033[39m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_DEFAULT : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_red(void)
 {
-	return supports_colors() ? "\033[31m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_RED : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_green(void)
 {
-	return supports_colors() ? "\033[32m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_GREEN : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_yellow(void)
 {
-	return supports_colors() ? "\033[33m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_YELLOW : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_blue(void)
 {
-	return supports_colors() ? "\033[34m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_BLUE : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_magenta(void)
 {
-	return supports_colors() ? "\033[35m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_MAGENTA : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_cyan(void)
 {
-	return supports_colors() ? "\033[36m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_CYAN : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_light_gray(void)
 {
-	return supports_colors() ? "\033[37m" : "";
+	return bt_common_colors_supported() ?
+		BT_COMMON_COLOR_FG_LIGHT_GRAY : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_default(void)
 {
-	return supports_colors() ? "\033[49m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_DEFAULT : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_red(void)
 {
-	return supports_colors() ? "\033[41m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_RED : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_green(void)
 {
-	return supports_colors() ? "\033[42m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_GREEN : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_yellow(void)
 {
-	return supports_colors() ? "\033[43m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_YELLOW : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_blue(void)
 {
-	return supports_colors() ? "\033[44m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_BLUE : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_magenta(void)
 {
-	return supports_colors() ? "\033[45m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_MAGENTA : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_cyan(void)
 {
-	return supports_colors() ? "\033[46m" : "";
+	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_CYAN : "";
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void)
 {
-	return supports_colors() ? "\033[47m" : "";
+	return bt_common_colors_supported() ?
+		BT_COMMON_COLOR_BG_LIGHT_GRAY : "";
 }

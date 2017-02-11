@@ -37,10 +37,21 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/bitfield.h>
+#include <babeltrace/common-internal.h>
 #include <inttypes.h>
 #include "text.h"
 
 #define NSEC_PER_SEC 1000000000LL
+
+#define COLOR_NAME			BT_COMMON_COLOR_BOLD
+#define COLOR_FIELD_NAME		BT_COMMON_COLOR_FG_CYAN
+#define COLOR_RST			BT_COMMON_COLOR_RESET
+#define COLOR_STRING_VALUE		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_GREEN
+#define COLOR_NUMBER_VALUE		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_RED
+#define COLOR_ENUM_MAPPING_NAME		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_CYAN
+#define COLOR_UNKNOWN			BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_RED
+#define COLOR_EVENT_NAME		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_MAGENTA
+#define COLOR_TIMESTAMP			BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_YELLOW
 
 static inline
 const char *rem_(const char *str)
@@ -59,6 +70,27 @@ struct timestamp {
 static
 enum bt_component_status print_field(struct text_component *text,
 		struct bt_ctf_field *field, bool print_names);
+
+static
+void print_name_equal(struct text_component *text, const char *name)
+{
+	if (text->use_colors) {
+		fprintf(text->out, "%s%s%s = ", COLOR_NAME, name, COLOR_RST);
+	} else {
+		fputs(name, text->out);
+	}
+}
+
+static
+void print_field_name_equal(struct text_component *text, const char *name)
+{
+	if (text->use_colors) {
+		fprintf(text->out, "%s%s%s = ", COLOR_FIELD_NAME, name,
+			COLOR_RST);
+	} else {
+		fputs(name, text->out);
+	}
+}
 
 static
 void print_timestamp_cycles(struct text_component *text,
@@ -232,21 +264,33 @@ enum bt_component_status print_event_timestamp(struct text_component *text,
 		goto end;
 	}
 
-	fputs(print_names ? "timestamp = " : "[", out);
+	if (print_names) {
+		print_name_equal(text, "timestamp");
+	} else {
+		fputs("[", out);
+	}
+	if (text->use_colors) {
+		fputs(COLOR_TIMESTAMP, text->out);
+	}
 	if (text->options.print_timestamp_cycles) {
 		print_timestamp_cycles(text, clock_class, event);
 	} else {
 		print_timestamp_wall(text, clock_class, event);
+	}
+	if (text->use_colors) {
+		fputs(COLOR_RST, text->out);
 	}
 
 	if (!print_names)
 		fputs("] ", out);
 
 	if (text->options.print_delta_field) {
-		if (print_names)
-			fputs(", delta = ", text->out);
-		else
+		if (print_names) {
+			fputs(", ", text->out);
+			print_name_equal(text, "delta");
+		} else {
 			fputs("(", text->out);
+		}
 		if (text->options.print_timestamp_cycles) {
 			if (text->delta_cycles == -1ULL) {
 				fputs("+??????????\?\?) ", text->out); /* Not a trigraph. */
@@ -323,7 +367,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("trace = ", text->out);
+				print_name_equal(text, "trace");
 			}
 			fprintf(text->out, "%s", name);
 		}
@@ -341,7 +385,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("trace:hostname = ", text->out);
+				print_name_equal(text, "trace:hostname");
 			}
 			if (bt_value_string_get(hostname_str, &str)
 					== BT_VALUE_STATUS_OK) {
@@ -363,7 +407,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("trace:domain = ", text->out);
+				print_name_equal(text, "trace:domain");
 			}
 			if (bt_value_string_get(domain_str, &str)
 					== BT_VALUE_STATUS_OK) {
@@ -385,7 +429,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("trace:procname = ", text->out);
+				print_name_equal(text, "trace:procname");
 			}
 			if (bt_value_string_get(procname_str, &str)
 					== BT_VALUE_STATUS_OK) {
@@ -407,7 +451,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("trace:vpid = ", text->out);
+				print_name_equal(text, "trace:vpid");
 			}
 			if (bt_value_integer_get(vpid_value, &value)
 					== BT_VALUE_STATUS_OK) {
@@ -431,7 +475,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("loglevel = ", text->out);
+				print_name_equal(text, "loglevel");
 			}
 			if (loglevel_str) {
 				const char *str;
@@ -466,7 +510,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			text->start_line = false;
 			if (print_names) {
-				fputs("model.emf.uri = ", text->out);
+				print_name_equal(text, "model.emf.uri");
 			}
 			if (uri_str) {
 				const char *str;
@@ -484,9 +528,15 @@ enum bt_component_status print_event_header(struct text_component *text,
 	}
 	text->start_line = false;
 	if (print_names) {
-		fputs("name = ", text->out);
+		print_name_equal(text, "name");
+	}
+	if (text->use_colors) {
+		fputs(COLOR_EVENT_NAME, text->out);
 	}
 	fputs(bt_ctf_event_class_get_name(event_class), text->out);
+	if (text->use_colors) {
+		fputs(COLOR_RST, text->out);
+	}
 end:
 	bt_put(trace_class);
 	bt_put(stream_class);
@@ -507,6 +557,7 @@ enum bt_component_status print_integer(struct text_component *text,
 		uint64_t u;
 		int64_t s;
 	} v;
+	bool rst_color = false;
 
 	field_type = bt_ctf_field_get_type(field);
 	if (!field_type) {
@@ -542,6 +593,11 @@ enum bt_component_status print_integer(struct text_component *text,
 	default:
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
+	}
+
+	if (text->use_colors) {
+		fputs(COLOR_NUMBER_VALUE, text->out);
+		rst_color = true;
 	}
 
 	base = bt_ctf_field_type_integer_get_base(field_type);
@@ -617,6 +673,9 @@ enum bt_component_status print_integer(struct text_component *text,
 		goto end;
 	}
 end:
+	if (rst_color) {
+		fputs(COLOR_RST, text->out);
+	}
 	bt_put(field_type);
 	return ret;
 }
@@ -689,13 +748,26 @@ enum bt_component_status print_enum(struct text_component *text,
 		}
 		if (nr_mappings++)
 			fprintf(text->out, ", ");
+		if (text->use_colors) {
+			fputs(COLOR_ENUM_MAPPING_NAME, text->out);
+		}
+		// TODO: escape string
 		fprintf(text->out, "\"%s\"", mapping_name);
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 		if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter) < 0) {
 			break;
 		}
 	}
 	if (!nr_mappings) {
+		if (text->use_colors) {
+			fputs(COLOR_UNKNOWN, text->out);
+		}
 		fprintf(text->out, "<unknown>");
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 	}
 	fprintf(text->out, " : container = ");
 	ret = print_integer(text, container_field);
@@ -739,7 +811,7 @@ enum bt_component_status print_struct_field(struct text_component *text,
 		fprintf(text->out, " ");
 	}
 	if (print_names) {
-		fprintf(text->out, "%s = ", rem_(field_name));
+		print_field_name_equal(text, rem_(field_name));
 	}
 	ret = print_field(text, field, print_names);
 end:
@@ -874,7 +946,14 @@ enum bt_component_status print_array(struct text_component *text,
 	text->depth--;
 
 	if (is_string) {
+		if (text->use_colors) {
+			fputs(COLOR_STRING_VALUE, text->out);
+		}
+		// TODO: escape string
 		fprintf(text->out, "\"%s\"", text->string->str);
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 	} else {
 		fprintf(text->out, " ]");
 	}
@@ -984,7 +1063,14 @@ enum bt_component_status print_sequence(struct text_component *text,
 	text->depth--;
 
 	if (is_string) {
+		if (text->use_colors) {
+			fputs(COLOR_STRING_VALUE, text->out);
+		}
+		// TODO: escape string
 		fprintf(text->out, "\"%s\"", text->string->str);
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 	} else {
 		fprintf(text->out, " ]");
 	}
@@ -1037,7 +1123,7 @@ enum bt_component_status print_variant(struct text_component *text,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		fprintf(text->out, "%s = ", rem_(tag_choice));
+		print_field_name_equal(text, rem_(tag_choice));
 		bt_put(tag_field);
 		bt_put(iter);
 	}
@@ -1069,13 +1155,27 @@ enum bt_component_status print_field(struct text_component *text,
 		if (bt_ctf_field_floating_point_get_value(field, &v)) {
 			return BT_COMPONENT_STATUS_ERROR;
 		}
+		if (text->use_colors) {
+			fputs(COLOR_NUMBER_VALUE, text->out);
+		}
 		fprintf(text->out, "%g", v);
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 		return BT_COMPONENT_STATUS_OK;
 	}
 	case CTF_TYPE_ENUM:
 		return print_enum(text, field);
 	case CTF_TYPE_STRING:
-		fprintf(text->out, "\"%s\"", bt_ctf_field_string_get_value(field));
+		if (text->use_colors) {
+			fputs(COLOR_STRING_VALUE, text->out);
+		}
+		// TODO: escape the string value
+		fprintf(text->out, "\"%s\"",
+			bt_ctf_field_string_get_value(field));
+		if (text->use_colors) {
+			fputs(COLOR_RST, text->out);
+		}
 		return BT_COMPONENT_STATUS_OK;
 	case CTF_TYPE_STRUCT:
 		return print_struct(text, field, print_names);
@@ -1114,7 +1214,7 @@ enum bt_component_status print_stream_packet_context(struct text_component *text
 	}
 	text->start_line = false;
 	if (text->options.print_scope_field_names) {
-		fputs("stream.packet.context = ", text->out);
+		print_name_equal(text, "stream.packet.context");
 	}
 	ret = print_field(text, main_field,
 			text->options.print_context_field_names);
@@ -1140,7 +1240,7 @@ enum bt_component_status print_event_header_raw(struct text_component *text,
 	}
 	text->start_line = false;
 	if (text->options.print_scope_field_names) {
-		fputs("stream.event.header = ", text->out);
+		print_name_equal(text, "stream.event.header");
 	}
 	ret = print_field(text, main_field,
 			text->options.print_header_field_names);
@@ -1165,7 +1265,7 @@ enum bt_component_status print_stream_event_context(struct text_component *text,
 	}
 	text->start_line = false;
 	if (text->options.print_scope_field_names) {
-		fputs("stream.event.context = ", text->out);
+		print_name_equal(text, "stream.event.context");
 	}
 	ret = print_field(text, main_field,
 			text->options.print_context_field_names);
@@ -1190,7 +1290,7 @@ enum bt_component_status print_event_context(struct text_component *text,
 	}
 	text->start_line = false;
 	if (text->options.print_scope_field_names) {
-		fputs("event.context = ", text->out);
+		print_name_equal(text, "event.context");
 	}
 	ret = print_field(text, main_field,
 			text->options.print_context_field_names);
@@ -1215,7 +1315,7 @@ enum bt_component_status print_event_payload(struct text_component *text,
 	}
 	text->start_line = false;
 	if (text->options.print_scope_field_names) {
-		fputs("event.fields = ", text->out);
+		print_name_equal(text, "event.fields");
 	}
 	ret = print_field(text, main_field,
 			text->options.print_payload_field_names);

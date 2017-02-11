@@ -35,6 +35,7 @@
 #include <babeltrace/component/notification/event.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compiler.h>
+#include <babeltrace/common-internal.h>
 #include <plugins-common.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -43,6 +44,7 @@
 
 static
 const char *plugin_options[] = {
+	"color",
 	"output-path",
 	"debug-info-dir",
 	"debug-info-target-prefix",
@@ -290,6 +292,13 @@ end:
 }
 
 static
+void warn_wrong_color_param(struct text_component *text)
+{
+	fprintf(text->err,
+		"[warning] Accepted values for the \"color\" parameter are:\n    \"always\", \"auto\", \"never\"\n");
+}
+
+static
 enum bt_component_status apply_params(struct text_component *text,
 		struct bt_value *params)
 {
@@ -317,6 +326,34 @@ enum bt_component_status apply_params(struct text_component *text,
 		goto end;
 	}
 	/* Known parameters. */
+	text->options.color = TEXT_COLOR_OPT_AUTO;
+	if (bt_value_map_has_key(params, "color")) {
+		struct bt_value *color_value;
+		const char *color;
+
+		color_value = bt_value_map_get(params, "color");
+		if (!color_value) {
+			goto end;
+		}
+
+		ret = bt_value_string_get(color_value, &color);
+		if (ret) {
+			warn_wrong_color_param(text);
+		} else {
+			if (strcmp(color, "never") == 0) {
+				text->options.color = TEXT_COLOR_OPT_NEVER;
+			} else if (strcmp(color, "auto") == 0) {
+				text->options.color = TEXT_COLOR_OPT_AUTO;
+			} else if (strcmp(color, "always") == 0) {
+				text->options.color = TEXT_COLOR_OPT_ALWAYS;
+			} else {
+				warn_wrong_color_param(text);
+			}
+		}
+
+		bt_put(color_value);
+	}
+
 	ret = apply_one_string("output-path",
 			params,
 			&text->options.output_path);
@@ -604,6 +641,23 @@ end:
 }
 
 static
+void set_use_colors(struct text_component *text)
+{
+	switch (text->options.color) {
+	case TEXT_COLOR_OPT_ALWAYS:
+		text->use_colors = true;
+		break;
+	case TEXT_COLOR_OPT_AUTO:
+		text->use_colors = text->out == stdout &&
+			bt_common_colors_supported();
+		break;
+	case TEXT_COLOR_OPT_NEVER:
+		text->use_colors = false;
+		break;
+	}
+}
+
+static
 enum bt_component_status text_component_init(
 		struct bt_component *component, struct bt_value *params,
 		UNUSED_VAR void *init_method_data)
@@ -629,6 +683,8 @@ enum bt_component_status text_component_init(
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
+	set_use_colors(text);
 
 	ret = bt_component_set_private_data(component, text);
 	if (ret != BT_COMPONENT_STATUS_OK) {
