@@ -252,7 +252,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		const char *help;
 		bt_component_class_init_method init_method;
 		bt_component_class_destroy_method destroy_method;
-		bt_component_class_query_info_method query_info_method;
+		bt_component_class_query_method query_method;
 		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
 		bt_component_class_sink_add_iterator_method sink_add_iterator_method;
 		struct bt_component_class_iterator_methods iterator_methods;
@@ -379,9 +379,9 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->destroy_method =
 						cur_cc_descr_attr->value.destroy_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_INFO_METHOD:
-					cc_full_descr->query_info_method =
-						cur_cc_descr_attr->value.query_info_method;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD:
+					cc_full_descr->query_method =
+						cur_cc_descr_attr->value.query_method;
 					break;
 				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD:
 					cc_full_descr->filter_add_iterator_method =
@@ -506,9 +506,9 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 		}
 
-		if (cc_full_descr->query_info_method) {
-			ret = bt_component_class_set_query_info_method(
-				comp_class, cc_full_descr->query_info_method);
+		if (cc_full_descr->query_method) {
+			ret = bt_component_class_set_query_method(
+				comp_class, cc_full_descr->query_method);
 			if (ret) {
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);

@@ -335,12 +335,12 @@ void print_cfg_help(struct bt_config *cfg)
 }
 
 static
-void print_cfg_query_info(struct bt_config *cfg)
+void print_cfg_query(struct bt_config *cfg)
 {
-	print_plugin_paths(cfg->cmd_data.query_info.plugin_paths);
-	printf("  Action: `%s`\n", cfg->cmd_data.query_info.action->str);
+	print_plugin_paths(cfg->cmd_data.query.plugin_paths);
+	printf("  Object: `%s`\n", cfg->cmd_data.query.object->str);
 	printf("  Component class:\n");
-	print_bt_config_component(cfg->cmd_data.query_info.cfg_component);
+	print_bt_config_component(cfg->cmd_data.query.cfg_component);
 }
 
 static
@@ -364,8 +364,8 @@ void print_cfg(struct bt_config *cfg)
 	case BT_CONFIG_COMMAND_HELP:
 		print_cfg_help(cfg);
 		break;
-	case BT_CONFIG_COMMAND_QUERY_INFO:
-		print_cfg_query_info(cfg);
+	case BT_CONFIG_COMMAND_QUERY:
+		print_cfg_query(cfg);
 		break;
 	default:
 		assert(false);
@@ -678,7 +678,7 @@ static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		bt_common_color_reset());
 }
 
-static int cmd_query_info(struct bt_config *cfg)
+static int cmd_query(struct bt_config *cfg)
 {
 	int ret;
 	struct bt_component_class *comp_cls = NULL;
@@ -689,39 +689,39 @@ static int cmd_query_info(struct bt_config *cfg)
 		goto end;
 	}
 
-	comp_cls = find_component_class(cfg->cmd_data.query_info.cfg_component->plugin_name->str,
-		cfg->cmd_data.query_info.cfg_component->component_name->str,
-		cfg->cmd_data.query_info.cfg_component->type);
+	comp_cls = find_component_class(cfg->cmd_data.query.cfg_component->plugin_name->str,
+		cfg->cmd_data.query.cfg_component->component_name->str,
+		cfg->cmd_data.query.cfg_component->type);
 	if (!comp_cls) {
 		fprintf(stderr, "%s%sCannot find component class %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
 			bt_common_color_reset());
 		print_plugin_comp_cls_opt(stderr,
-			cfg->cmd_data.query_info.cfg_component->plugin_name->str,
-			cfg->cmd_data.query_info.cfg_component->component_name->str,
-			cfg->cmd_data.query_info.cfg_component->type);
+			cfg->cmd_data.query.cfg_component->plugin_name->str,
+			cfg->cmd_data.query.cfg_component->component_name->str,
+			cfg->cmd_data.query.cfg_component->type);
 		fprintf(stderr, "\n");
 		ret = -1;
 		goto end;
 	}
 
-	results = bt_component_class_query_info(comp_cls,
-		cfg->cmd_data.query_info.action->str,
-		cfg->cmd_data.query_info.cfg_component->params);
+	results = bt_component_class_query(comp_cls,
+		cfg->cmd_data.query.object->str,
+		cfg->cmd_data.query.cfg_component->params);
 	if (!results) {
 		fprintf(stderr, "%s%sFailed to query info to %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
 			bt_common_color_reset());
 		print_plugin_comp_cls_opt(stderr,
-			cfg->cmd_data.query_info.cfg_component->plugin_name->str,
-			cfg->cmd_data.query_info.cfg_component->component_name->str,
-			cfg->cmd_data.query_info.cfg_component->type);
-		fprintf(stderr, "%s%s with action `%s`%s\n",
+			cfg->cmd_data.query.cfg_component->plugin_name->str,
+			cfg->cmd_data.query.cfg_component->component_name->str,
+			cfg->cmd_data.query.cfg_component->type);
+		fprintf(stderr, "%s%s with object `%s`%s\n",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
-			cfg->cmd_data.query_info.action->str,
+			cfg->cmd_data.query.object->str,
 			bt_common_color_reset());
 		ret = -1;
 		goto end;
@@ -972,11 +972,11 @@ static int print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	results = bt_component_class_query_info(comp_cls, "get-metadata-info",
+	results = bt_component_class_query(comp_cls, "metadata-info",
 		params);
 	if (!results) {
 		ret = -1;
-		fprintf(stderr, "%s%sFailed to get metadata info%s\n",
+		fprintf(stderr, "%s%sFailed to request metadata info%s\n",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
 			bt_common_color_reset());
@@ -1164,8 +1164,8 @@ int main(int argc, const char **argv)
 	case BT_CONFIG_COMMAND_HELP:
 		ret = cmd_help(cfg);
 		break;
-	case BT_CONFIG_COMMAND_QUERY_INFO:
-		ret = cmd_query_info(cfg);
+	case BT_CONFIG_COMMAND_QUERY:
+		ret = cmd_query(cfg);
 		break;
 	default:
 		assert(false);

@@ -45,8 +45,8 @@ class _GenericComponentClass(object._Object):
     def help(self):
         return native_bt.component_class_get_help(self._ptr)
 
-    def query_info(self, action, params=None):
-        return _query_info(self._ptr, action, params)
+    def query(self, obj, params=None):
+        return _query(self._ptr, obj, params)
 
     def __call__(self, params=None, name=None):
         params = bt2.create_value(params)
@@ -202,8 +202,8 @@ def _trim_docstring(docstring):
     return '\n'.join(trimmed)
 
 
-def _query_info(comp_cls_ptr, action, params):
-    utils._check_str(action)
+def _query(comp_cls_ptr, obj, params):
+    utils._check_str(obj)
 
     if params is None:
         params_ptr = native_bt.value_null
@@ -211,11 +211,11 @@ def _query_info(comp_cls_ptr, action, params):
         params = bt2.create_value(params)
         params_ptr = params._ptr
 
-    results_ptr = native_bt.component_class_query_info(comp_cls_ptr, action,
+    results_ptr = native_bt.component_class_query(comp_cls_ptr, obj,
                                                        params_ptr)
 
     if results_ptr is None:
-        raise bt2.Error('cannot query info with action "{}"'.format(action))
+        raise bt2.Error('cannot query info with object "{}"'.format(obj))
 
     if results_ptr == native_bt.value_null:
         return
@@ -430,13 +430,13 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._cc_ptr)
 
-    def query_info(cls, action, params=None):
-        return _query_info(cls._cc_ptr, action, params)
+    def query(cls, action, params=None):
+        return _query(cls._cc_ptr, action, params)
 
-    def _query_info_from_bt(cls, action, params):
+    def _query_from_bt(cls, action, params):
         # this can raise, in which case the native call to
-        # bt_component_class_query_info() returns NULL
-        results = cls._query_info(action, params)
+        # bt_component_class_query() returns NULL
+        results = cls._query(action, params)
         results = bt2.create_value(results)
 
         if results is None:
@@ -449,7 +449,7 @@ class _UserComponentType(type):
         return results_addr
 
     @staticmethod
-    def _query_info(action, params):
+    def _query(action, params):
         # BT catches this and returns NULL to the user
         raise NotImplementedError
 

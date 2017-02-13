@@ -228,18 +228,18 @@ end:
 	return ret;
 }
 
-int bt_component_class_set_query_info_method(
+int bt_component_class_set_query_method(
 		struct bt_component_class *component_class,
-		bt_component_class_query_info_method query_info_method)
+		bt_component_class_query_method query_method)
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !query_info_method) {
+	if (!component_class || component_class->frozen || !query_method) {
 		ret = -1;
 		goto end;
 	}
 
-	component_class->methods.query_info = query_info_method;
+	component_class->methods.query = query_method;
 
 end:
 	return ret;
@@ -542,19 +542,19 @@ end:
 	return ret;
 }
 
-struct bt_value *bt_component_class_query_info(
+struct bt_value *bt_component_class_query(
 		struct bt_component_class *component_class,
-		const char *action, struct bt_value *params)
+		const char *object, struct bt_value *params)
 {
 	struct bt_value *results = NULL;
 
-	if (!component_class || !action || !params ||
-			!component_class->methods.query_info) {
+	if (!component_class || !object || !params ||
+			!component_class->methods.query) {
 		goto end;
 	}
 
-	results = component_class->methods.query_info(component_class,
-		action, params);
+	results = component_class->methods.query(component_class,
+		object, params);
 
 end:
 	return results;

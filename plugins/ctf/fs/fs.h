@@ -127,7 +127,7 @@ struct bt_notification *ctf_fs_iterator_get(
 		struct bt_notification_iterator *iterator);
 
 BT_HIDDEN
-struct bt_value *ctf_fs_query_info(struct bt_component_class *comp_class,
-		const char *action, struct bt_value *params);
+struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
+		const char *object, struct bt_value *params);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

@@ -73,9 +73,9 @@ typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_seek_time_method)(
 		struct bt_notification_iterator *iterator, int64_t time);
 
-typedef struct bt_value *(*bt_component_class_query_info_method)(
+typedef struct bt_value *(*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
-		const char *action, struct bt_value *params);
+		const char *object, struct bt_value *params);
 
 extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
@@ -120,13 +120,13 @@ extern const char *bt_component_class_get_description(
 extern const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
 
-extern int bt_component_class_set_query_info_method(
+extern int bt_component_class_set_query_method(
 		struct bt_component_class *component_class,
-		bt_component_class_query_info_method query_info_method);
+		bt_component_class_query_method query_method);
 
-extern struct bt_value *bt_component_class_query_info(
+extern struct bt_value *bt_component_class_query(
 		struct bt_component_class *component_class,
-		const char *action, struct bt_value *params);
+		const char *object, struct bt_value *params);
 
 /**
  * Get a component class' type.

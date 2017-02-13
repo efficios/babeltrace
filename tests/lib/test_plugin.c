@@ -144,9 +144,9 @@ static void test_sfs(const char *plugin_dir)
 	const char *extra;
 	struct bt_value *params;
 	struct bt_value *results;
-	struct bt_value *action;
+	struct bt_value *object;
 	struct bt_value *res_params;
-	const char *action_str;
+	const char *object_str;
 	int ret;
 
 	assert(sfs_path);
@@ -194,25 +194,25 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
 	params = bt_value_integer_create_init(23);
 	assert(params);
-	ok (!bt_component_class_query_info(NULL, "get-something", params),
-		"bt_component_class_query_info() handles NULL (component class)");
-	ok (!bt_component_class_query_info(filter_comp_class, NULL, params),
-		"bt_component_class_query_info() handles NULL (action)");
-	ok (!bt_component_class_query_info(filter_comp_class, "get-something", NULL),
-		"bt_component_class_query_info() handles NULL (parameters)");
-	results = bt_component_class_query_info(filter_comp_class,
+	ok (!bt_component_class_query(NULL, "get-something", params),
+		"bt_component_class_query() handles NULL (component class)");
+	ok (!bt_component_class_query(filter_comp_class, NULL, params),
+		"bt_component_class_query() handles NULL (object)");
+	ok (!bt_component_class_query(filter_comp_class, "get-something", NULL),
+		"bt_component_class_query() handles NULL (parameters)");
+	results = bt_component_class_query(filter_comp_class,
 		"get-something", params);
-	ok(results, "bt_component_class_query_info() succeeds");
+	ok(results, "bt_component_class_query() succeeds");
 	assert(bt_value_is_array(results) && bt_value_array_size(results) == 2);
-	action = bt_value_array_get(results, 0);
-	assert(action && bt_value_is_string(action));
-	ret = bt_value_string_get(action, &action_str);
+	object = bt_value_array_get(results, 0);
+	assert(object && bt_value_is_string(object));
+	ret = bt_value_string_get(object, &object_str);
 	assert(ret == 0);
-	ok(strcmp(action_str, "get-something") == 0,
-		"bt_component_class_query_info() receives the expected action name");
+	ok(strcmp(object_str, "get-something") == 0,
+		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_get(results, 1);
 	ok(res_params == params,
-		"bt_component_class_query_info() receives the expected parameters");
+		"bt_component_class_query() receives the expected parameters");
 
 	diag("> putting the plugin object here");
 	BT_PUT(plugin);
@@ -231,7 +231,7 @@ static void test_sfs(const char *plugin_dir)
 
 	free(sfs_path);
 	free(plugins);
-	bt_put(action);
+	bt_put(object);
 	bt_put(res_params);
 	bt_put(results);
 	bt_put(params);

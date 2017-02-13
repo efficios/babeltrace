@@ -57,15 +57,15 @@ static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
-static struct bt_value *query_info_method(
+static struct bt_value *query_method(
 		struct bt_component_class *component_class,
-		const char *action, struct bt_value *params)
+		const char *object, struct bt_value *params)
 {
 	int ret;
 	struct bt_value *results = bt_value_array_create();
 
 	assert(results);
-	ret = bt_value_array_append_string(results, action);
+	ret = bt_value_array_append_string(results, object);
 	assert(ret == 0);
 	ret = bt_value_array_append(results, params);
 	assert(ret == 0);
@@ -106,4 +106,4 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(filter,
 	dummy_iterator_destroy_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
 	dummy_iterator_seek_time_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_INFO_METHOD(filter, query_info_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, query_method);

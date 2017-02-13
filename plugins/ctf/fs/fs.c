@@ -738,8 +738,8 @@ error:
 }
 
 BT_HIDDEN
-struct bt_value *ctf_fs_query_info(struct bt_component_class *comp_class,
-		const char *action, struct bt_value *params)
+struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
+		const char *object, struct bt_value *params)
 {
 	struct bt_value *results = NULL;
 	struct bt_value *path_value = NULL;
@@ -747,7 +747,7 @@ struct bt_value *ctf_fs_query_info(struct bt_component_class *comp_class,
 	FILE *metadata_fp = NULL;
 	GString *g_metadata_text = NULL;
 
-	if (strcmp(action, "get-metadata-info") == 0) {
+	if (strcmp(object, "metadata-info") == 0) {
 		int ret;
 		int bo;
 		const char *path;
@@ -760,7 +760,7 @@ struct bt_value *ctf_fs_query_info(struct bt_component_class *comp_class,
 
 		if (!bt_value_is_map(params)) {
 			fprintf(stderr,
-				"Query info parameters is not a map value object\n");
+				"Query parameters is not a map value object\n");
 			goto error;
 		}
 
@@ -840,7 +840,7 @@ struct bt_value *ctf_fs_query_info(struct bt_component_class *comp_class,
 			goto error;
 		}
 	} else {
-		fprintf(stderr, "Unknown query info action `%s`\n", action);
+		fprintf(stderr, "Unknown query object `%s`\n", object);
 		goto error;
 	}
 

@@ -51,7 +51,7 @@ const char *bt_component_class_get_description(
 		struct bt_component_class *component_class);
 const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
-struct bt_value *bt_component_class_query_info(
+struct bt_value *bt_component_class_query(
 		struct bt_component_class *component_class,
 		const char *action, struct bt_value *params);
 enum bt_component_class_type bt_component_class_get_type(
@@ -563,14 +563,14 @@ static void bt_py3_cc_destroy(struct bt_component *component)
 	}
 }
 
-static struct bt_value *bt_py3_cc_query_info(
+static struct bt_value *bt_py3_cc_query(
 		struct bt_component_class *component_class,
-		const char *action, struct bt_value *params)
+		const char *object, struct bt_value *params)
 {
 	PyObject *py_cls = NULL;
 	PyObject *py_params = NULL;
-	PyObject *py_query_info_func = NULL;
-	PyObject *py_action = NULL;
+	PyObject *py_query_func = NULL;
+	PyObject *py_object = NULL;
 	PyObject *py_results_addr = NULL;
 	struct bt_value *results = NULL;
 
@@ -584,13 +584,13 @@ static struct bt_value *bt_py3_cc_query_info(
 		goto error;
 	}
 
-	py_action = SWIG_FromCharPtr(action);
-	if (!py_action) {
+	py_object = SWIG_FromCharPtr(object);
+	if (!py_object) {
 		goto error;
 	}
 
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_query_info_from_bt", "(OO)", py_action, py_params);
+		"_query_from_bt", "(OO)", py_object, py_params);
 	if (!py_results_addr) {
 		goto error;
 	}
@@ -621,8 +621,8 @@ error:
 
 end:
 	Py_XDECREF(py_params);
-	Py_XDECREF(py_query_info_func);
-	Py_XDECREF(py_action);
+	Py_XDECREF(py_query_func);
+	Py_XDECREF(py_object);
 	Py_XDECREF(py_results_addr);
 	return results;
 }
@@ -982,8 +982,7 @@ static int bt_py3_cc_set_optional_attrs_methods(struct bt_component_class *cc,
 		goto end;
 	}
 
-	ret = bt_component_class_set_query_info_method(cc,
-		bt_py3_cc_query_info);
+	ret = bt_component_class_set_query_method(cc, bt_py3_cc_query);
 	if (ret) {
 		goto end;
 	}
