@@ -842,6 +842,25 @@ end:
 	return ret;
 }
 
+int bt_ctf_field_type_integer_set_size(struct bt_ctf_field_type *type,
+		size_t size)
+{
+	int ret = 0;
+	struct bt_ctf_field_type_integer *integer;
+
+	if (!type || type->frozen ||
+		type->id != BT_CTF_TYPE_ID_INTEGER ||
+		!size || size > 64) {
+		ret = -1;
+		goto end;
+	}
+
+	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
+	integer->size = size;
+end:
+	return ret;
+}
+
 enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 		struct bt_ctf_field_type *type)
 {
