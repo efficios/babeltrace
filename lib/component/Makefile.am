@@ -10,6 +10,7 @@ libcomponent_la_SOURCES = \
 	component-class.c \
 	component-graph.c \
 	component-connection.c \
+	component-port.c \
 	source.c \
 	sink.c \
 	filter.c \

@@ -58,6 +58,7 @@ babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component-class-filter.h \
 	babeltrace/component/component-class-sink.h \
 	babeltrace/component/component-connection.h \
+	babeltrace/component/component-port.h \
 	babeltrace/component/component-graph.h \
 	babeltrace/component/component-source.h \
 	babeltrace/component/component-sink.h \
@@ -129,6 +130,7 @@ noinst_HEADERS = \
 	babeltrace/plugin/plugin-python-disabled-internal.h \
 	babeltrace/component/component-class-internal.h \
 	babeltrace/component/component-connection-internal.h \
+	babeltrace/component/component-port-internal.h \
 	babeltrace/component/component-internal.h \
 	babeltrace/component/component-graph-internal.h \
 	babeltrace/component/component-filter-internal.h \
