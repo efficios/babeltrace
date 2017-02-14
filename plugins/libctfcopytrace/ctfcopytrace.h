@@ -81,7 +81,9 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
  * Returns NULL or error.
  */
 struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
-		struct bt_ctf_stream_class *stream_class);
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_trace *writer_trace,
+		bool override_ts64);
 
 /*
  * Copy the value of a packet context field and add it to the
@@ -104,7 +106,7 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
-enum bt_component_status ctf_copy_packet_context(FILE *err,
+struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream);
 
@@ -115,7 +117,8 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
  * Returns NULL on error.
  */
 struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
-		struct bt_ctf_event_class *writer_event_class);
+		struct bt_ctf_event_class *writer_event_class,
+		bool override_ts64);
 
 /*
  * Copy the environment and the packet header from the input trace to the

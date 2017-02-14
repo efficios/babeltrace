@@ -37,6 +37,7 @@
 #include <assert.h>
 
 #include "ctfcopytrace.h"
+#include "clock-fields.h"
 
 struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 		struct bt_ctf_clock_class *clock_class)
@@ -161,7 +162,6 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_ctf_trace *trace)
 {
 	enum bt_component_status ret;
-
 	int int_ret, clock_class_count, i;
 
 	clock_class_count = bt_ctf_trace_get_clock_class_count(trace);
@@ -196,7 +196,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		}
 
 		/*
-		 * Ownership transferred to the writer and the stream_class.
+		 * Ownership transferred to the trace.
 		 */
 		bt_put(writer_clock_class);
 	}
@@ -355,9 +355,11 @@ end:
 }
 
 struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_trace *writer_trace,
+		bool override_ts64)
 {
-	struct bt_ctf_field_type *type;
+	struct bt_ctf_field_type *type, *new_event_header_type;
 	struct bt_ctf_stream_class *writer_stream_class;
 	int ret_int;
 	const char *name = bt_ctf_stream_class_get_name(stream_class);
@@ -396,8 +398,22 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 		goto error;
 	}
 
+	if (override_ts64) {
+		new_event_header_type = override_header_type(err, type,
+				writer_trace);
+		bt_put(type);
+		if (!new_event_header_type) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
+	} else {
+		new_event_header_type = type;
+	}
+
 	ret_int = bt_ctf_stream_class_set_event_header_type(
-			writer_stream_class, type);
+			writer_stream_class, new_event_header_type);
+	bt_put(new_event_header_type);
 	if (ret_int < 0) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
@@ -493,19 +509,18 @@ end:
 	return ret;
 }
 
-enum bt_component_status ctf_copy_packet_context(FILE *err,
+struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream)
 {
 	enum bt_component_status ret;
-	struct bt_ctf_field *packet_context, *writer_packet_context;
+	struct bt_ctf_field *packet_context, *writer_packet_context = NULL;
 	struct bt_ctf_field_type *struct_type, *writer_packet_context_type;
 	struct bt_ctf_stream_class *writer_stream_class;
-	int nr_fields, i, int_ret;
+	int nr_fields, i;
 
 	packet_context = bt_ctf_packet_get_context(packet);
 	if (!packet_context) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto end;
@@ -513,7 +528,6 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 
 	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
 	if (!writer_stream_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto end_put_packet_context;
@@ -522,7 +536,6 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 	writer_packet_context_type = bt_ctf_stream_class_get_packet_context_type(
 			writer_stream_class);
 	if (!writer_packet_context_type) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto end_put_writer_stream_class;
@@ -530,7 +543,6 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 
 	struct_type = bt_ctf_field_get_type(packet_context);
 	if (!struct_type) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto end_put_writer_packet_context_type;
@@ -538,7 +550,6 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 
 	writer_packet_context = bt_ctf_field_create(writer_packet_context_type);
 	if (!writer_packet_context) {
-		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto end_put_struct_type;
@@ -553,18 +564,18 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 		field =  bt_ctf_field_structure_get_field_by_index(
 				packet_context, i);
 		if (!field) {
-			ret = BT_COMPONENT_STATUS_ERROR;
+			BT_PUT(writer_packet_context);
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
-			goto end_put_writer_packet_context;
+			goto end_put_struct_type;
 		}
 		if (bt_ctf_field_type_structure_get_field(struct_type,
 					&field_name, &field_type, i) < 0) {
-			ret = BT_COMPONENT_STATUS_ERROR;
 			bt_put(field);
+			BT_PUT(writer_packet_context);
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
-			goto end_put_writer_packet_context;
+			goto end_put_struct_type;
 		}
 		if (!strncmp(field_name, "content_size", strlen("content_size")) ||
 				!strncmp(field_name, "packet_size",
@@ -577,8 +588,8 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
 			fprintf(err, "[error] Unexpected packet context field type\n");
 			bt_put(field);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end_put_writer_packet_context;
+			BT_PUT(writer_packet_context);
+			goto end_put_struct_type;
 		}
 
 		ret = ctf_copy_packet_context_field(err, field, field_name,
@@ -586,21 +597,13 @@ enum bt_component_status ctf_copy_packet_context(FILE *err,
 		bt_put(field_type);
 		bt_put(field);
 		if (ret != BT_COMPONENT_STATUS_OK) {
+			BT_PUT(writer_packet_context);
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
-			goto end_put_writer_packet_context;
+			goto end_put_struct_type;
 		}
 	}
 
-	int_ret = bt_ctf_stream_set_packet_context(writer_stream,
-			writer_packet_context);
-	if (int_ret < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end_put_writer_packet_context;
-	}
-
-end_put_writer_packet_context:
-	bt_put(writer_packet_context);
 end_put_struct_type:
 	bt_put(struct_type);
 end_put_writer_packet_context_type:
@@ -610,11 +613,74 @@ end_put_writer_stream_class:
 end_put_packet_context:
 	bt_put(packet_context);
 end:
+	return writer_packet_context;
+}
+
+static
+int copy_event_header(FILE *err, struct bt_ctf_event *event,
+		struct bt_ctf_event_class *writer_event_class,
+		struct bt_ctf_event *writer_event,
+		struct bt_ctf_field *event_header)
+{
+	struct bt_ctf_clock_class *writer_clock_class;
+	struct bt_ctf_clock_value *clock_value;
+
+	int ret;
+	struct bt_ctf_field *writer_event_header;
+
+	writer_event_header = bt_ctf_field_copy(event_header);
+	if (!writer_event_header) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		ret = -1;
+		goto end;
+	}
+
+	writer_clock_class = event_get_clock_class(err, writer_event);
+	if (!writer_clock_class) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	clock_value = bt_ctf_event_get_clock_value(event, writer_clock_class);
+	bt_put(writer_clock_class);
+	if (!clock_value) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_event_set_clock_value(writer_event, clock_value);
+	bt_put(clock_value);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_event_set_header(writer_event, writer_event_header);
+	if (ret < 0) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+	bt_put(writer_event_header);
+
+	ret = 0;
+
+	goto end;
+
+error:
+	BT_PUT(writer_event_header);
+	ret = -1;
+end:
 	return ret;
 }
 
 struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
-		struct bt_ctf_event_class *writer_event_class)
+		struct bt_ctf_event_class *writer_event_class,
+		bool override_ts64)
 {
 	struct bt_ctf_event *writer_event;
 	struct bt_ctf_field *field, *copy_field;
@@ -635,16 +701,39 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		goto end;
 	}
 
-	copy_field = bt_ctf_field_copy(field);
-	bt_put(field);
-	if (copy_field) {
-		ret = bt_ctf_event_set_header(writer_event, copy_field);
-		if (ret < 0) {
+	/*
+	 * If override_ts64, we override all integer fields mapped to a clock
+	 * to a uint64_t field type, otherwise, we just copy it as is.
+	 */
+	if (override_ts64) {
+		copy_field = bt_ctf_event_get_header(writer_event);
+		if (!copy_field) {
+			BT_PUT(writer_event);
+			bt_put(field);
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
-			goto error;
+			goto end;
 		}
-		bt_put(copy_field);
+
+		ret = copy_override_field(err, event, writer_event, field,
+				copy_field);
+		bt_put(field);
+		if (ret) {
+			BT_PUT(writer_event);
+			BT_PUT(copy_field);
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto end;
+		}
+	} else {
+		ret = copy_event_header(err, event, writer_event_class,
+				writer_event, field);
+		if (ret) {
+			BT_PUT(writer_event);
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto end;
+		}
 	}
 
 	/* Optional field, so it can fail silently. */

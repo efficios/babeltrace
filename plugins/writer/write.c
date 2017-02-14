@@ -46,25 +46,16 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		struct bt_ctf_writer *ctf_writer,
 		struct bt_ctf_stream_class *stream_class)
 {
-	struct bt_ctf_stream_class *writer_stream_class;
+	struct bt_ctf_stream_class *writer_stream_class = NULL;
 	struct bt_ctf_trace *trace, *writer_trace;
 	enum bt_component_status ret;
-
-	writer_stream_class = ctf_copy_stream_class(writer_component->err,
-			stream_class);
-	if (!writer_stream_class) {
-		fprintf(writer_component->err, "[error] Failed to copy stream class\n");
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto end;
-	}
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (!trace) {
 		fprintf(writer_component->err,
 				"[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto error;
+		goto end;
 	}
 
 	writer_trace = bt_ctf_writer_get_trace(ctf_writer);
@@ -74,20 +65,27 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 				"[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		ret = BT_COMPONENT_STATUS_ERROR;
-		goto error;
+		goto end_put_trace;
 	}
 
 	ret = ctf_copy_clock_classes(writer_component->err, writer_trace,
 			writer_stream_class, trace);
-	bt_put(writer_trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		bt_put(trace);
 		fprintf(writer_component->err,
 				"[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto error;
+		goto end_put_writer_trace;
 	}
-	bt_put(trace);
+
+	writer_stream_class = ctf_copy_stream_class(writer_component->err,
+			stream_class, writer_trace, true);
+	if (!writer_stream_class) {
+		fprintf(writer_component->err, "[error] Failed to copy stream class\n");
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto end_put_writer_trace;
+	}
 
 	ret = ctf_copy_event_classes(writer_component->err, stream_class,
 			writer_stream_class);
@@ -101,10 +99,10 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 	g_hash_table_insert(writer_component->stream_class_map,
 			(gpointer) stream_class, writer_stream_class);
 
-	goto end;
-
-error:
-	BT_PUT(writer_stream_class);
+end_put_writer_trace:
+	bt_put(writer_trace);
+end_put_trace:
+	bt_put(trace);
 end:
 	return writer_stream_class;
 }
@@ -311,7 +309,9 @@ enum bt_component_status writer_new_packet(
 		struct bt_ctf_packet *packet)
 {
 	struct bt_ctf_stream *stream, *writer_stream;
+	struct bt_ctf_field *writer_packet_context;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int int_ret;
 
 	stream = bt_ctf_packet_get_stream(packet);
 	if (!stream) {
@@ -329,17 +329,28 @@ enum bt_component_status writer_new_packet(
 		goto end_put;
 	}
 
-	ret = ctf_copy_packet_context(writer_component->err, packet,
-			writer_stream);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	writer_packet_context = ctf_copy_packet_context(writer_component->err,
+			packet, writer_stream);
+	if (!writer_packet_context) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		goto end_put;
 	}
 
+	int_ret = bt_ctf_stream_set_packet_context(writer_stream,
+			writer_packet_context);
+	if (int_ret < 0) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto end_put_writer_packet_context;
+	}
+
 	bt_put(writer_stream);
 
+end_put_writer_packet_context:
+	bt_put(writer_packet_context);
 end_put:
 	bt_put(stream);
 end:
@@ -468,7 +479,8 @@ enum bt_component_status writer_output_event(
 		goto end_put_writer_stream_class;
 	}
 
-	writer_event = ctf_copy_event(writer_component->err, event, writer_event_class);
+	writer_event = ctf_copy_event(writer_component->err, event,
+			writer_event_class, true);
 	if (!writer_event) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
