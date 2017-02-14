@@ -1,4 +1,5 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/plugins
+AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/plugins \
+	    -I$(top_srcdir)/plugins/libctfcopytrace
 
 SUBDIRS = .
 
@@ -15,4 +16,7 @@ libbabeltrace_plugin_ctf_writer_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_plugin_ctf_writer_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
+
+noinst_HEADERS = writer.h
