@@ -43,7 +43,7 @@
 #include <glib.h>
 #include <gmodule.h>
 
-#define NATIVE_PLUGIN_SUFFIX		".so"
+#define NATIVE_PLUGIN_SUFFIX		"." G_MODULE_SUFFIX
 #define NATIVE_PLUGIN_SUFFIX_LEN	sizeof(NATIVE_PLUGIN_SUFFIX)
 #define LIBTOOL_PLUGIN_SUFFIX		".la"
 #define LIBTOOL_PLUGIN_SUFFIX_LEN	sizeof(LIBTOOL_PLUGIN_SUFFIX)
