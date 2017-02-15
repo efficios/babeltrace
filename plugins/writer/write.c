@@ -87,15 +87,6 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		goto end_put_writer_trace;
 	}
 
-	ret = ctf_copy_event_classes(writer_component->err, stream_class,
-			writer_stream_class);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		fprintf(writer_component->err, "[error] Failed to copy event classes\n");
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-
 	g_hash_table_insert(writer_component->stream_class_map,
 			(gpointer) stream_class, writer_stream_class);
 
@@ -473,10 +464,22 @@ enum bt_component_status writer_output_event(
 	writer_event_class = get_event_class(writer_component,
 			writer_stream_class, event_class);
 	if (!writer_event_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto end_put_writer_stream_class;
+		writer_event_class = ctf_copy_event_class(writer_component->err,
+				event_class);
+		if (!writer_event_class) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			fprintf(writer_component->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto end_put_writer_stream_class;
+		}
+		int_ret = bt_ctf_stream_class_add_event_class(
+				writer_stream_class, writer_event_class);
+		if (int_ret) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			fprintf(writer_component->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto end_put_writer_stream_class;
+		}
 	}
 
 	writer_event = ctf_copy_event(writer_component->err, event,
