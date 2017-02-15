@@ -197,7 +197,7 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 		goto error;
 	}
 
-	shared_lib_handle->module = g_module_open(path, 0);
+	shared_lib_handle->module = g_module_open(path, G_MODULE_BIND_LOCAL);
 	if (!shared_lib_handle->module) {
 		/*
 		 * DEBUG-level logging because we're only _trying_ to
