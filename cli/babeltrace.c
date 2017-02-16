@@ -623,6 +623,7 @@ end:
 	return ret;
 }
 
+#ifdef BT_BUILT_IN_PLUGINS
 static
 int load_static_plugins(void)
 {
@@ -642,6 +643,7 @@ int load_static_plugins(void)
 end:
 	return ret;
 }
+#endif
 
 static
 int load_all_plugins(struct bt_value *plugin_paths)
@@ -653,10 +655,12 @@ int load_all_plugins(struct bt_value *plugin_paths)
 		goto end;
 	}
 
+#ifdef BT_BUILT_IN_PLUGINS
 	if (load_static_plugins()) {
 		ret = -1;
 		goto end;
 	}
+#endif
 
 	BT_LOGI("Loaded all plugins: count=%u", loaded_plugins->len);
 

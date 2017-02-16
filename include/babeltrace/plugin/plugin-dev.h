@@ -32,6 +32,7 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-source.h>
@@ -226,34 +227,159 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	} value;
 } __attribute__((packed));
 
+struct __bt_plugin_descriptor const * const *__bt_get_begin_section_plugin_descriptors(void);
+struct __bt_plugin_descriptor const * const *__bt_get_end_section_plugin_descriptors(void);
+struct __bt_plugin_descriptor_attribute const * const *__bt_get_begin_section_plugin_descriptor_attributes(void);
+struct __bt_plugin_descriptor_attribute const * const *__bt_get_end_section_plugin_descriptor_attributes(void);
+struct __bt_plugin_component_class_descriptor const * const *__bt_get_begin_section_component_class_descriptors(void);
+struct __bt_plugin_component_class_descriptor const * const *__bt_get_end_section_component_class_descriptors(void);
+struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_begin_section_component_class_descriptor_attributes(void);
+struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_end_section_component_class_descriptor_attributes(void);
+
 /*
  * Variable attributes for a plugin descriptor pointer to be added to
  * the plugin descriptor section (internal use).
  */
+#ifdef __APPLE__
+#define __BT_PLUGIN_DESCRIPTOR_ATTRS \
+	__attribute__((section("__DATA,btp_desc"), used))
+
+#define __BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL \
+	__start___bt_plugin_descriptors
+
+#define __BT_PLUGIN_DESCRIPTOR_END_SYMBOL \
+	__stop___bt_plugin_descriptors
+
+#define __BT_PLUGIN_DESCRIPTOR_BEGIN_EXTRA \
+	__asm("section$start$__DATA$btp_desc")
+
+#define __BT_PLUGIN_DESCRIPTOR_END_EXTRA \
+	__asm("section$end$__DATA$btp_desc")
+
+#else
+
 #define __BT_PLUGIN_DESCRIPTOR_ATTRS \
 	__attribute__((section("__bt_plugin_descriptors"), used))
+
+#define __BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL \
+	__start___bt_plugin_descriptors
+
+#define __BT_PLUGIN_DESCRIPTOR_END_SYMBOL \
+	__stop___bt_plugin_descriptors
+
+#define __BT_PLUGIN_DESCRIPTOR_BEGIN_EXTRA
+
+#define __BT_PLUGIN_DESCRIPTOR_END_EXTRA
+#endif
 
 /*
  * Variable attributes for a plugin attribute pointer to be added to
  * the plugin attribute section (internal use).
  */
+#ifdef __APPLE__
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS \
+	__attribute__((section("__DATA,btp_desc_att"), used))
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
+	__start___bt_plugin_descriptor_attributes
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_SYMBOL \
+	__stop___bt_plugin_descriptor_attributes
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA \
+	__asm("section$start$__DATA$btp_desc_att")
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_EXTRA \
+	__asm("section$end$__DATA$btp_desc_att")
+
+#else
+
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS \
 	__attribute__((section("__bt_plugin_descriptor_attributes"), used))
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
+	__start___bt_plugin_descriptor_attributes
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_SYMBOL \
+	__stop___bt_plugin_descriptor_attributes
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA
+
+#define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_EXTRA
+#endif
 
 /*
  * Variable attributes for a component class descriptor pointer to be
  * added to the component class descriptor section (internal use).
  */
+#ifdef __APPLE__
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS \
+	__attribute__((section("__DATA,btp_cc_desc"), used))
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL \
+	__start___bt_plugin_component_class_descriptors
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_SYMBOL \
+	__stop___bt_plugin_component_class_descriptors
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_EXTRA \
+	__asm("section$start$__DATA$btp_cc_desc")
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_EXTRA \
+	__asm("section$end$__DATA$btp_cc_desc")
+
+#else
+
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS \
 	__attribute__((section("__bt_plugin_component_class_descriptors"), used))
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL \
+	__start___bt_plugin_component_class_descriptors
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_SYMBOL \
+	__stop___bt_plugin_component_class_descriptors
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_EXTRA
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_EXTRA
+#endif
 
 /*
  * Variable attributes for a component class descriptor attribute
  * pointer to be added to the component class descriptor attribute
  * section (internal use).
  */
+#ifdef __APPLE__
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS \
+	__attribute__((section("__DATA,btp_cc_desc_att"), used))
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
+	__start___bt_plugin_component_class_descriptor_attributes
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL \
+	__stop___bt_plugin_component_class_descriptor_attributes
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA \
+	__asm("section$start$__DATA$btp_cc_desc_att")
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_EXTRA \
+	__asm("section$end$__DATA$btp_cc_desc_att")
+
+#else
+
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS \
 	__attribute__((section("__bt_plugin_component_class_descriptor_attributes"), used))
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
+	__start___bt_plugin_component_class_descriptor_attributes
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL \
+	__stop___bt_plugin_component_class_descriptor_attributes
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA
+
+#define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_EXTRA
+#endif
 
 /*
  * Declares a plugin descriptor pointer variable with a custom ID.
@@ -274,9 +400,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		.minor = __BT_PLUGIN_VERSION_MINOR,			\
 		.name = _name,						\
 	};								\
-	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_##_id##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRS = &__bt_plugin_descriptor_##_id; \
-	extern struct __bt_plugin_descriptor const *__start___bt_plugin_descriptors; \
-	extern struct __bt_plugin_descriptor const *__stop___bt_plugin_descriptors
+	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_##_id##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRS = &__bt_plugin_descriptor_##_id
 
 /*
  * Defines a plugin attribute (generic, internal use).
@@ -293,9 +417,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		.type = _attr_type,					\
 		.value._attr_name = _x,					\
 	};								\
-	static struct __bt_plugin_descriptor_attribute const * const __bt_plugin_descriptor_attribute_##_id##_##_attr_name##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_descriptor_attribute_##_id##_##_attr_name; \
-	extern struct __bt_plugin_descriptor_attribute const *__start___bt_plugin_descriptor_attributes; \
-	extern struct __bt_plugin_descriptor_attribute const *__stop___bt_plugin_descriptor_attributes
+	static struct __bt_plugin_descriptor_attribute const * const __bt_plugin_descriptor_attribute_##_id##_##_attr_name##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_descriptor_attribute_##_id##_##_attr_name
 
 /*
  * Defines a plugin initialization function attribute attached to a
@@ -361,14 +483,6 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(version, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_VERSION, _id, __BT_PLUGIN_VERSION_STRUCT_VALUE(_major, _minor, _patch, _extra))
 
 /*
- * Declaration of start and stop symbols of component class descriptors
- * section.
- */
-#define __BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP \
-	extern struct __bt_plugin_component_class_descriptor const *__start___bt_plugin_component_class_descriptors; \
-	extern struct __bt_plugin_component_class_descriptor const *__stop___bt_plugin_component_class_descriptors
-
-/*
  * Defines a source component class descriptor with a custom ID.
  *
  * _id:                     ID (any valid C identifier except `auto`).
@@ -386,8 +500,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 			.notif_iter_next = _notif_iter_next_method,	\
 		},							\
 	};								\
-	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id; \
-	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id
 
 /*
  * Defines a filter component class descriptor with a custom ID.
@@ -407,8 +520,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 			.notif_iter_next = _notif_iter_next_method,	\
 		},							\
 	};								\
-	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id; \
-	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id
 
 /*
  * Defines a sink component class descriptor with a custom ID.
@@ -428,8 +540,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 			.consume = _consume_method,			\
 		},							\
 	};								\
-	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id; \
-	__BT_PLUGIN_DECL_COMPONENT_CLASS_DESCRIPTORS_SECTION_START_STOP
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id
 
 /*
  * Defines a component class descriptor attribute (generic, internal
@@ -450,9 +561,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		.type = _attr_type,					\
 		.value._attr_name = _x,					\
 	};								\
-	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name; \
-	extern struct __bt_plugin_component_class_descriptor_attribute const *__start___bt_plugin_component_class_descriptor_attributes; \
-	extern struct __bt_plugin_component_class_descriptor_attribute const *__stop___bt_plugin_component_class_descriptor_attributes
+	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name
 
 /*
  * Defines a description attribute attached to a specific source
@@ -1224,6 +1333,56 @@ struct __bt_plugin_component_class_descriptor_attribute {
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD_WITH_ID(auto, _name, _x)
+
+#define BT_PLUGIN_MODULE() \
+	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_dummy __BT_PLUGIN_DESCRIPTOR_ATTRS = NULL; \
+	BT_HIDDEN extern struct __bt_plugin_descriptor const *__BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL __BT_PLUGIN_DESCRIPTOR_BEGIN_EXTRA; \
+	BT_HIDDEN extern struct __bt_plugin_descriptor const *__BT_PLUGIN_DESCRIPTOR_END_SYMBOL __BT_PLUGIN_DESCRIPTOR_END_EXTRA; \
+	\
+	static struct __bt_plugin_descriptor_attribute const * const __bt_plugin_descriptor_attribute_dummy __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS = NULL; \
+	BT_HIDDEN extern struct __bt_plugin_descriptor_attribute const *__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA; \
+	BT_HIDDEN extern struct __bt_plugin_descriptor_attribute const *__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_SYMBOL __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_EXTRA; \
+	\
+	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_component_class_descriptor_dummy __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = NULL; \
+	BT_HIDDEN extern struct __bt_plugin_component_class_descriptor const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_EXTRA; \
+	BT_HIDDEN extern struct __bt_plugin_component_class_descriptor const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_EXTRA; \
+	\
+	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_component_class_descriptor_attribute_dummy __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = NULL; \
+	BT_HIDDEN extern struct __bt_plugin_component_class_descriptor_attribute const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA; \
+	BT_HIDDEN extern struct __bt_plugin_component_class_descriptor_attribute const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_EXTRA; \
+	\
+	struct __bt_plugin_descriptor const * const *__bt_get_begin_section_plugin_descriptors(void) \
+	{ \
+		return &__BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL; \
+	} \
+	struct __bt_plugin_descriptor const * const *__bt_get_end_section_plugin_descriptors(void) \
+	{ \
+		return &__BT_PLUGIN_DESCRIPTOR_END_SYMBOL; \
+	} \
+	struct __bt_plugin_descriptor_attribute const * const *__bt_get_begin_section_plugin_descriptor_attributes(void) \
+	{ \
+		return &__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL; \
+	} \
+	struct __bt_plugin_descriptor_attribute const * const *__bt_get_end_section_plugin_descriptor_attributes(void) \
+	{ \
+		return &__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_SYMBOL; \
+	} \
+	struct __bt_plugin_component_class_descriptor const * const *__bt_get_begin_section_component_class_descriptors(void) \
+	{ \
+		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL; \
+	} \
+	struct __bt_plugin_component_class_descriptor const * const *__bt_get_end_section_component_class_descriptors(void) \
+	{ \
+		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_SYMBOL; \
+	} \
+	struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_begin_section_component_class_descriptor_attributes(void) \
+	{ \
+		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL; \
+	} \
+	struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_end_section_component_class_descriptor_attributes(void) \
+	{ \
+		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL; \
+	}
 
 #ifdef __cplusplus
 }

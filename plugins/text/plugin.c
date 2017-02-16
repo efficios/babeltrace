@@ -23,6 +23,10 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include "pretty/pretty.h"
 
+#ifndef BT_BUILT_IN_PLUGINS
+BT_PLUGIN_MODULE();
+#endif
+
 BT_PLUGIN(text);
 BT_PLUGIN_DESCRIPTION("Plain text component classes");
 BT_PLUGIN_AUTHOR("Julien Desfossez, Mathieu Desnoyers, Philippe Proulx");

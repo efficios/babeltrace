@@ -31,6 +31,10 @@
 #include "fs-sink/writer.h"
 #include "lttng-live/lttng-live-internal.h"
 
+#ifndef BT_BUILT_IN_PLUGINS
+BT_PLUGIN_MODULE();
+#endif
+
 /* Initialize plug-in description. */
 BT_PLUGIN(ctf);
 BT_PLUGIN_DESCRIPTION("CTF source and sink support");
