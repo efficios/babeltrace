@@ -52,18 +52,7 @@
 #define PLUGIN_SUFFIX_LEN	max_t(size_t, sizeof(NATIVE_PLUGIN_SUFFIX), \
 					sizeof(LIBTOOL_PLUGIN_SUFFIX))
 
-#define SECTION_BEGIN(_name)		(&(__start_##_name))
-#define SECTION_END(_name)		(&(__stop_##_name))
-#define SECTION_ELEMENT_COUNT(_name) (SECTION_END(_name) - SECTION_BEGIN(_name))
-
-#define DECLARE_SECTION(_type, _name)				\
-	extern _type __start_##_name __attribute((weak));	\
-	extern _type __stop_##_name __attribute((weak))
-
-DECLARE_SECTION(struct __bt_plugin_descriptor const *, __bt_plugin_descriptors);
-DECLARE_SECTION(struct __bt_plugin_descriptor_attribute const *, __bt_plugin_descriptor_attributes);
-DECLARE_SECTION(struct __bt_plugin_component_class_descriptor const *, __bt_plugin_component_class_descriptors);
-DECLARE_SECTION(struct __bt_plugin_component_class_descriptor_attribute const *, __bt_plugin_component_class_descriptor_attributes);
+BT_PLUGIN_MODULE();
 
 /*
  * This list, global to the library, keeps all component classes that
@@ -336,6 +325,10 @@ enum bt_plugin_status bt_plugin_so_init(
 		const struct __bt_plugin_descriptor_attribute *cur_attr =
 			*cur_attr_ptr;
 
+		if (cur_attr == NULL) {
+			continue;
+		}
+
 		if (cur_attr->plugin_descriptor != descriptor) {
 			continue;
 		}
@@ -393,6 +386,10 @@ enum bt_plugin_status bt_plugin_so_init(
 			*cur_cc_descr_ptr;
 		struct comp_class_full_descriptor full_descriptor = {0};
 
+		if (cur_cc_descr == NULL) {
+			continue;
+		}
+
 		if (cur_cc_descr->plugin_descriptor != descriptor) {
 			continue;
 		}
@@ -410,6 +407,10 @@ enum bt_plugin_status bt_plugin_so_init(
 	for (cur_cc_descr_attr_ptr = cc_descr_attrs_begin; cur_cc_descr_attr_ptr != cc_descr_attrs_end; cur_cc_descr_attr_ptr++) {
 		const struct __bt_plugin_component_class_descriptor_attribute *cur_cc_descr_attr =
 			*cur_cc_descr_attr_ptr;
+
+		if (cur_cc_descr_attr == NULL) {
+			continue;
+		}
 
 		if (cur_cc_descr_attr->comp_class_descriptor->plugin_descriptor !=
 				descriptor) {
@@ -806,6 +807,23 @@ end:
 }
 
 static
+size_t count_non_null_items_in_section(const void *begin, const void *end)
+{
+	size_t count = 0;
+	const int * const *begin_int = (const int * const *) begin;
+	const int * const *end_int = (const int * const *) end;
+	const int * const *iter;
+
+	for (iter = begin_int; iter != end_int; iter++) {
+		if (*iter) {
+			count++;
+		}
+	}
+
+	return count;
+}
+
+static
 struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 		struct bt_plugin_so_shared_lib_handle *shared_lib_handle,
 		struct __bt_plugin_descriptor const * const *descriptors_begin,
@@ -824,10 +842,10 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 	size_t i;
 	struct bt_plugin_set *plugin_set = NULL;
 
-	descriptor_count = descriptors_end - descriptors_begin;
-	attrs_count = attrs_end - attrs_begin;
-	cc_descriptors_count = cc_descriptors_end - cc_descriptors_begin;
-	cc_descr_attrs_count = cc_descr_attrs_end - cc_descr_attrs_begin;
+	descriptor_count = count_non_null_items_in_section(descriptors_begin, descriptors_end);
+	attrs_count = count_non_null_items_in_section(attrs_begin, attrs_end);
+	cc_descriptors_count = count_non_null_items_in_section(cc_descriptors_begin, cc_descriptors_end);
+	cc_descr_attrs_count =  count_non_null_items_in_section(cc_descr_attrs_begin, cc_descr_attrs_end);
 
 	BT_LOGD("Creating all SO plugins from sections: "
 		"plugin-path=\"%s\", "
@@ -850,11 +868,15 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 		goto error;
 	}
 
-	for (i = 0; i < descriptor_count; i++) {
+	for (i = 0; i < descriptors_end - descriptors_begin; i++) {
 		enum bt_plugin_status status;
 		const struct __bt_plugin_descriptor *descriptor =
 			descriptors_begin[i];
 		struct bt_plugin *plugin;
+
+		if (descriptor == NULL) {
+			continue;
+		}
 
 		BT_LOGD("Creating plugin object for plugin: "
 			"name=\"%s\", abi-major=%d, abi-minor=%d",
@@ -928,14 +950,14 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
 
 	BT_LOGD_STR("Creating all SO plugins from built-in plugins.");
 	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
-		SECTION_BEGIN(__bt_plugin_descriptors),
-		SECTION_END(__bt_plugin_descriptors),
-		SECTION_BEGIN(__bt_plugin_descriptor_attributes),
-		SECTION_END(__bt_plugin_descriptor_attributes),
-		SECTION_BEGIN(__bt_plugin_component_class_descriptors),
-		SECTION_END(__bt_plugin_component_class_descriptors),
-		SECTION_BEGIN(__bt_plugin_component_class_descriptor_attributes),
-		SECTION_END(__bt_plugin_component_class_descriptor_attributes));
+		__bt_get_begin_section_plugin_descriptors(),
+		__bt_get_end_section_plugin_descriptors(),
+		__bt_get_begin_section_plugin_descriptor_attributes(),
+		__bt_get_end_section_plugin_descriptor_attributes(),
+		__bt_get_begin_section_component_class_descriptors(),
+		__bt_get_end_section_component_class_descriptors(),
+		__bt_get_begin_section_component_class_descriptor_attributes(),
+		__bt_get_end_section_component_class_descriptor_attributes());
 
 end:
 	BT_PUT(shared_lib_handle);
@@ -956,6 +978,14 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	struct __bt_plugin_component_class_descriptor const * const *cc_descriptors_end = NULL;
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_begin = NULL;
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_end = NULL;
+	struct __bt_plugin_descriptor const * const *(*get_begin_section_plugin_descriptors)(void);
+	struct __bt_plugin_descriptor const * const *(*get_end_section_plugin_descriptors)(void);
+	struct __bt_plugin_descriptor_attribute const * const *(*get_begin_section_plugin_descriptor_attributes)(void);
+	struct __bt_plugin_descriptor_attribute const * const *(*get_end_section_plugin_descriptor_attributes)(void);
+	struct __bt_plugin_component_class_descriptor const * const *(*get_begin_section_component_class_descriptors)(void);
+	struct __bt_plugin_component_class_descriptor const * const *(*get_end_section_component_class_descriptors)(void);
+	struct __bt_plugin_component_class_descriptor_attribute const * const *(*get_begin_section_component_class_descriptor_attributes)(void);
+	struct __bt_plugin_component_class_descriptor_attribute const * const *(*get_end_section_component_class_descriptor_attributes)(void);
 	bt_bool is_libtool_wrapper = BT_FALSE, is_shared_object = BT_FALSE;
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
@@ -995,34 +1025,42 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 		goto end;
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_descriptors",
-			(gpointer *) &descriptors_begin)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_begin_section_plugin_descriptors",
+			(gpointer *) &get_begin_section_plugin_descriptors)) {
+		descriptors_begin = get_begin_section_plugin_descriptors();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__start___bt_plugin_descriptors");
+			"__bt_get_begin_section_plugin_descriptors");
 		goto end;
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_descriptors",
-			(gpointer *) &descriptors_end)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_end_section_plugin_descriptors",
+			(gpointer *) &get_end_section_plugin_descriptors)) {
+		descriptors_end = get_end_section_plugin_descriptors();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__stop___bt_plugin_descriptors");
+			"__bt_get_end_section_plugin_descriptors");
 		goto end;
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_descriptor_attributes",
-			(gpointer *) &attrs_begin)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_begin_section_plugin_descriptor_attributes",
+			(gpointer *) &get_begin_section_plugin_descriptor_attributes)) {
+		 attrs_begin = get_begin_section_plugin_descriptor_attributes();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__start___bt_plugin_descriptor_attributes");
+			"__bt_get_begin_section_plugin_descriptor_attributes");
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_descriptor_attributes",
-			(gpointer *) &attrs_end)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_end_section_plugin_descriptor_attributes",
+			(gpointer *) &get_end_section_plugin_descriptor_attributes)) {
+		attrs_end = get_end_section_plugin_descriptor_attributes();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__stop___bt_plugin_descriptor_attributes");
+			"__bt_get_end_section_plugin_descriptor_attributes");
 	}
 
 	if ((!!attrs_begin - !!attrs_end) != 0) {
@@ -1030,24 +1068,28 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
-			path, "__start___bt_plugin_descriptor_attributes",
-			"__stop___bt_plugin_descriptor_attributes",
+			path, "__bt_get_begin_section_plugin_descriptor_attributes",
+			"__bt_get_end_section_plugin_descriptor_attributes",
 			attrs_begin, attrs_end);
 		goto end;
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_component_class_descriptors",
-			(gpointer *) &cc_descriptors_begin)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_begin_section_component_class_descriptors",
+			(gpointer *) &get_begin_section_component_class_descriptors)) {
+		cc_descriptors_begin = get_begin_section_component_class_descriptors();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__start___bt_plugin_component_class_descriptors");
+			"__bt_get_begin_section_component_class_descriptors");
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_component_class_descriptors",
-			(gpointer *) &cc_descriptors_end)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_end_section_component_class_descriptors",
+			(gpointer *) &get_end_section_component_class_descriptors)) {
+		cc_descriptors_end = get_end_section_component_class_descriptors();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__stop___bt_plugin_component_class_descriptors");
+			"__bt_get_end_section_component_class_descriptors");
 	}
 
 	if ((!!cc_descriptors_begin - !!cc_descriptors_end) != 0) {
@@ -1055,24 +1097,28 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
-			path, "__start___bt_plugin_component_class_descriptors",
-			"__stop___bt_plugin_component_class_descriptors",
+			path, "__bt_get_begin_section_component_class_descriptors",
+			"__bt_get_end_section_component_class_descriptors",
 			cc_descriptors_begin, cc_descriptors_end);
 		goto end;
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_component_class_descriptor_attributes",
-			(gpointer *) &cc_descr_attrs_begin)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_begin_section_component_class_descriptor_attributes",
+			(gpointer *) &get_begin_section_component_class_descriptor_attributes)) {
+		cc_descr_attrs_begin = get_begin_section_component_class_descriptor_attributes();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__start___bt_plugin_component_class_descriptor_attributes");
+			"__bt_get_begin_section_component_class_descriptor_attributes");
 	}
 
-	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_component_class_descriptor_attributes",
-			(gpointer *) &cc_descr_attrs_end)) {
+	if (g_module_symbol(shared_lib_handle->module, "__bt_get_end_section_component_class_descriptor_attributes",
+			(gpointer *) &get_end_section_component_class_descriptor_attributes)) {
+		cc_descr_attrs_end = get_end_section_component_class_descriptor_attributes();
+	} else {
 		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
-			"__stop___bt_plugin_component_class_descriptor_attributes");
+			"__bt_get_end_section_component_class_descriptor_attributes");
 	}
 
 	if ((!!cc_descr_attrs_begin - !!cc_descr_attrs_end) != 0) {
@@ -1080,8 +1126,8 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
-			path, "__start___bt_plugin_component_class_descriptor_attributes",
-			"__stop___bt_plugin_component_class_descriptor_attributes",
+			path, "__bt_get_begin_section_component_class_descriptor_attributes",
+			"__bt_get_end_section_component_class_descriptor_attributes",
 			cc_descr_attrs_begin, cc_descr_attrs_end);
 		goto end;
 	}

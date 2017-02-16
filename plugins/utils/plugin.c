@@ -26,6 +26,10 @@
 #include "trimmer/iterator.h"
 #include "muxer/muxer.h"
 
+#ifndef BT_BUILT_IN_PLUGINS
+BT_PLUGIN_MODULE();
+#endif
+
 BT_PLUGIN(utils);
 BT_PLUGIN_DESCRIPTION("Graph utilities");
 BT_PLUGIN_AUTHOR("Julien Desfossez, Jérémie Galarneau, Philippe Proulx");

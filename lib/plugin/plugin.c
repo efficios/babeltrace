@@ -406,13 +406,16 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 
 	switch (flag) {
 	case FTW_F:
+	{
+		struct bt_plugin_set *plugins_from_file;
+
 		if (name[0] == '.') {
 			/* Skip hidden files */
 			BT_LOGV("Skipping hidden file: path=\"%s\"", file);
 			goto end;
 		}
-		struct bt_plugin_set *plugins_from_file =
-			bt_plugin_create_all_from_file(file);
+
+		plugins_from_file = bt_plugin_create_all_from_file(file);
 
 		if (plugins_from_file) {
 			size_t j;
@@ -430,6 +433,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 			bt_put(plugins_from_file);
 		}
 		break;
+	}
 	case FTW_DNR:
 		/* Continue to next file / directory. */
 		BT_LOGW("Cannot enter directory: continuing: path=\"%s\"", file);

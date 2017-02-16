@@ -201,19 +201,19 @@ int bt_common_append_plugin_path_dirs(const char *paths, GPtrArray *dirs)
 
 	while (at < end) {
 		GString *path;
-		const char *next_colon;
+		const char *next_sep;
 
-		next_colon = strchr(at, ':');
-		if (next_colon == at) {
+		next_sep = strchr(at, G_SEARCHPATH_SEPARATOR);
+		if (next_sep == at) {
 			/*
 			 * Empty path: try next character (supported
 			 * to conform to the typical parsing of $PATH).
 			 */
 			at++;
 			continue;
-		} else if (!next_colon) {
-			/* No more colon: use the remaining */
-			next_colon = paths + strlen(paths);
+		} else if (!next_sep) {
+			/* No more separator: use the remaining */
+			next_sep = paths + strlen(paths);
 		}
 
 		path = g_string_new(NULL);
@@ -221,8 +221,8 @@ int bt_common_append_plugin_path_dirs(const char *paths, GPtrArray *dirs)
 			goto error;
 		}
 
-		g_string_append_len(path, at, next_colon - at);
-		at = next_colon + 1;
+		g_string_append_len(path, at, next_sep - at);
+		at = next_sep + 1;
 		g_ptr_array_add(dirs, path);
 	}
 
