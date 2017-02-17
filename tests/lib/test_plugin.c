@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <glib.h>
-#include <linux/limits.h>
 #include "tap/tap.h"
 #include "common.h"
 
