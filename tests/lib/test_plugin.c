@@ -275,7 +275,7 @@ static void test_find(const char *plugin_dir)
 	assert(plugin_path);
 	sprintf(plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
 		NON_EXISTING_PATH, plugin_dir);
-	setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
+	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
 	plugin = bt_plugin_find("test_minimal");
 	ok(plugin,
 		"bt_plugin_find() succeeds with a plugin name it can find");
