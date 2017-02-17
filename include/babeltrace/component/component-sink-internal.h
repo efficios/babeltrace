@@ -30,7 +30,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/component-input-internal.h>
 
 struct bt_value;
 
@@ -38,7 +37,7 @@ struct bt_value;
 
 struct bt_component_sink {
 	struct bt_component parent;
-	struct component_input input;
+	GPtrArray *input_ports;
 /*	notification_mask_t registered_notifications_mask;*/
 };
 

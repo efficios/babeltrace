@@ -4,7 +4,7 @@
 /*
  * BabelTrace - Sink Component Interface
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -37,18 +37,6 @@ struct bt_component;
 struct bt_notification;
 
 /**
- * Add a notification iterator to a sink component.
- *
- * @param component	Component instance
- * @param iterator	Notification iterator to add
- * @returns		One of #bt_component_status values
- */
-extern
-enum bt_component_status bt_component_sink_add_iterator(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
-
-/**
  * Process one event, consuming from sources as needed.
  *
  * @param component	Component instance
@@ -58,24 +46,21 @@ extern
 enum bt_component_status bt_component_sink_consume(
 		struct bt_component *component);
 
-/* Defaults to 1. */
-extern enum bt_component_status
-bt_component_sink_set_minimum_input_count(struct bt_component *sink,
-        unsigned int minimum);
+extern int bt_component_sink_get_input_port_count(
+		struct bt_component *component);
+extern struct bt_port *bt_component_sink_get_input_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_sink_get_input_port_at_index(
+		struct bt_component *component, int index);
 
-/* Defaults to 1. */
-extern enum bt_component_status
-bt_component_sink_set_maximum_input_count(struct bt_component *sink,
-        unsigned int maximum);
-
-extern enum bt_component_status
-bt_component_sink_get_input_count(struct bt_component *sink,
-        unsigned int *count);
-
-/* May return NULL after an interator has reached its end. */
-extern enum bt_component_status
-bt_component_sink_get_input_iterator(struct bt_component *sink,
-        unsigned int input, struct bt_notification_iterator **iterator);
+/* Only allowed during the sink's initialization. */
+extern struct bt_port *bt_component_sink_add_input_port(
+		struct bt_component *component, const char *name);
+/* Only allowed during the sink's initialization. */
+extern enum bt_component_status bt_component_sink_remove_input_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_sink_get_default_input_port(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }

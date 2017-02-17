@@ -32,6 +32,7 @@
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/component-sink-internal.h>
+#include <babeltrace/component/component-graph-internal.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
@@ -294,4 +295,181 @@ bt_component_set_private_data(struct bt_component *component,
 	component->user_data = data;
 end:
 	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status bt_component_set_graph(struct bt_component *component,
+		struct bt_graph *graph)
+{
+	bt_object_set_parent(component, &graph->base);
+	return BT_COMPONENT_STATUS_OK;
+}
+
+struct bt_graph *bt_component_get_graph(
+		struct bt_component *component)
+{
+	return (struct bt_graph *) bt_object_get_parent(&component->base);
+}
+
+BT_HIDDEN
+int bt_component_init_input_ports(struct bt_component *component,
+		GPtrArray **input_ports)
+{
+	int ret = 0;
+	struct bt_port *default_port;
+
+	*input_ports = g_ptr_array_new_with_free_func(bt_object_release);
+	if (*input_ports) {
+		ret = -1;
+		goto end;
+	}
+
+	default_port = bt_port_create(component, BT_PORT_TYPE_INPUT,
+			DEFAULT_INPUT_PORT_NAME);
+	if (!default_port) {
+		ret = -1;
+		goto end;
+	}
+
+	g_ptr_array_add(*input_ports, default_port);
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_component_init_output_ports(struct bt_component *component,
+		GPtrArray **output_ports)
+{
+	int ret = 0;
+	struct bt_port *default_port;
+
+	*output_ports = g_ptr_array_new_with_free_func(bt_object_release);
+	if (*output_ports) {
+		ret = -1;
+		goto end;
+	}
+
+	default_port = bt_port_create(component, BT_PORT_TYPE_OUTPUT,
+			DEFAULT_OUTPUT_PORT_NAME);
+	if (!default_port) {
+		ret = -1;
+		goto end;
+	}
+
+	g_ptr_array_add(*output_ports, default_port);
+end:
+	return ret;
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name)
+{
+	size_t i;
+	struct bt_port *ret_port = NULL;
+
+	for (i = 0; i < ports->len; i++) {
+		struct bt_port *port = g_ptr_array_index(ports, i);
+		const char *port_name = bt_port_get_name(port);
+
+		if (!port_name) {
+			continue;
+		}
+
+		if (!strcmp(name, port_name)) {
+			ret_port = bt_get(port);
+			break;
+		}
+	}
+
+	return ret_port;
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_get_port_at_index(GPtrArray *ports, int index)
+{
+	struct bt_port *port = NULL;
+
+	if (index < 0 || index >= ports->len) {
+		goto end;
+	}
+
+	port = bt_get(g_ptr_array_index(ports, index));
+end:
+	return port;
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_add_port(
+		struct bt_component *component,GPtrArray *ports,
+		enum bt_port_type port_type, const char *name)
+{
+	size_t i;
+	struct bt_port *new_port;
+
+	if (!component->initializing || !name || *name == '\0') {
+		new_port = NULL;
+		goto end;
+	}
+
+	new_port = bt_port_create(component, port_type, name);
+	if (!new_port) {
+		goto end;
+	}
+
+	/* Look for a port having the same name. */
+	for (i = 0; i < ports->len; i++) {
+		const char *port_name;
+		struct bt_port *port = g_ptr_array_index(
+				ports, i);
+
+		port_name = bt_port_get_name(port);
+		if (!port_name) {
+			continue;
+		}
+
+		if (!strcmp(name, port_name)) {
+			/* Port name clash, abort. */
+			goto error;
+		}
+	}
+
+	/* No name clash, add the port. */
+	g_ptr_array_add(ports, bt_get(new_port));
+end:
+	return new_port;
+error:
+	BT_PUT(new_port);
+	goto end;
+}
+
+BT_HIDDEN
+enum bt_component_status bt_component_remove_port(
+		struct bt_component *component, GPtrArray *ports,
+		const char *name)
+{
+	size_t i;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+
+	if (!component->initializing || !name) {
+		status = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	for (i = 0; i < ports->len; i++) {
+		const char *port_name;
+		struct bt_port *port = g_ptr_array_index(ports, i);
+
+		port_name = bt_port_get_name(port);
+		if (!port_name) {
+			continue;
+		}
+
+		if (!strcmp(name, port_name)) {
+			g_ptr_array_remove_index(ports, i);
+			goto end;
+		}
+	}
+	status = BT_COMPONENT_STATUS_NOT_FOUND;
+end:
+	return status;
 }

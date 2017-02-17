@@ -35,6 +35,7 @@ struct bt_value;
 
 struct bt_component_source {
 	struct bt_component parent;
+	GPtrArray *output_ports;
 };
 
 /**

@@ -37,7 +37,6 @@ enum bt_component_status bt_component_sink_validate(
 		struct bt_component *component)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_sink *sink;
 
 	if (!component) {
 		ret = BT_COMPONENT_STATUS_INVALID;
@@ -53,12 +52,6 @@ enum bt_component_status bt_component_sink_validate(
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	ret = component_input_validate(&sink->input);
-	if (ret) {
-		goto end;
-	}
 end:
 	return ret;
 }
@@ -69,7 +62,9 @@ void bt_component_sink_destroy(struct bt_component *component)
 	struct bt_component_sink *sink = container_of(component,
 			struct bt_component_sink, parent);
 
-	component_input_fini(&sink->input);
+	if (sink->input_ports) {
+		g_ptr_array_free(sink->input_ports, TRUE);
+	}
 }
 
 BT_HIDDEN
@@ -97,9 +92,12 @@ struct bt_component *bt_component_sink_create(
 		goto error;
 	}
 */
-	if (component_input_init(&sink->input)) {
+	ret = bt_component_init_input_ports(&sink->parent,
+			&sink->input_ports);
+	if (ret) {
 		goto error;
 	}
+
 end:
 	return sink ? &sink->parent : NULL;
 error:
@@ -107,24 +105,10 @@ error:
 	return NULL;
 }
 
-static
-enum bt_component_status validate_inputs(struct bt_component_sink *sink)
-{
-	size_t array_size = sink->input.iterators->len;
-
-	if (array_size < sink->input.min_count ||
-			array_size > sink->input.max_count) {
-		return BT_COMPONENT_STATUS_INVALID;
-	}
-
-	return BT_COMPONENT_STATUS_OK;
-}
-
 enum bt_component_status bt_component_sink_consume(
 		struct bt_component *component)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_sink *sink = NULL;
 	struct bt_component_class_sink *sink_class = NULL;
 
 	if (!component) {
@@ -135,15 +119,6 @@ enum bt_component_status bt_component_sink_consume(
 	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	if (!sink->input.validated) {
-		ret = validate_inputs(sink);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			goto end;
-		}
-		sink->input.validated = true;
 	}
 
 	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
@@ -187,147 +162,102 @@ end:
 }
 */
 
-enum bt_component_status bt_component_sink_set_minimum_input_count(
-		struct bt_component *component,
-		unsigned int minimum)
+int bt_component_sink_get_input_port_count(struct bt_component *component)
 {
+	int ret;
 	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		ret = -1;
 		goto end;
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	sink->input.min_count = minimum;
+	ret = sink->input_ports->len;
 end:
 	return ret;
 }
 
-enum bt_component_status bt_component_sink_set_maximum_input_count(
-		struct bt_component *component,
-		unsigned int maximum)
+struct bt_port *bt_component_sink_get_input_port(
+		struct bt_component *component, const char *name)
 {
 	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_port *ret_port = NULL;
 
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (!component->initializing) {
-		ret = BT_COMPONENT_STATUS_INVALID;
+	if (!component || !name ||
+			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		goto end;
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	sink->input.max_count = maximum;
+	ret_port = bt_component_get_port(sink->input_ports, name);
 end:
-	return ret;
+	return ret_port;
 }
 
-enum bt_component_status
-bt_component_sink_get_input_count(struct bt_component *component,
-		unsigned int *count)
+struct bt_port *bt_component_sink_get_input_port_at_index(
+		struct bt_component *component, int index)
 {
+	struct bt_port *port = NULL;
 	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component || !count) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+	if (!component ||
+			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		goto end;
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	*count = (unsigned int) sink->input.iterators->len;
+	port = bt_component_get_port_at_index(sink->input_ports, index);
 end:
-	return ret;
+	return port;
 }
 
-enum bt_component_status
-bt_component_sink_get_input_iterator(struct bt_component *component,
-		unsigned int input, struct bt_notification_iterator **iterator)
+struct bt_port *bt_component_sink_get_default_input_port(
+		struct bt_component *component)
 {
-	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component || !iterator) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	if (input >= (unsigned int) sink->input.iterators->len) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	*iterator = bt_get(g_ptr_array_index(sink->input.iterators, input));
-end:
-	return ret;
+	return bt_component_sink_get_input_port(component,
+			DEFAULT_INPUT_PORT_NAME);
 }
 
-enum bt_component_status
-bt_component_sink_add_iterator(struct bt_component *component,
-		struct bt_notification_iterator *iterator)
+struct bt_port *bt_component_sink_add_input_port(
+		struct bt_component *component, const char *name)
 {
+	struct bt_port *port;
 	struct bt_component_sink *sink;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_class_sink *sink_class;
 
-	if (!component || !iterator) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+	if (!component ||
+			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		port = NULL;
 		goto end;
 	}
 
 	sink = container_of(component, struct bt_component_sink, parent);
-	if (sink->input.iterators->len == sink->input.max_count) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
+	port = bt_component_add_port(component, sink->input_ports,
+			BT_PORT_TYPE_INPUT, name);
+end:
+	return port;
+}
+
+enum bt_component_status bt_component_sink_remove_input_port(
+		struct bt_component *component, const char *name)
+{
+	enum bt_component_status status;
+	struct bt_component_sink *sink;
+
+	if (!component ||
+			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
-
-	if (sink_class->methods.add_iterator) {
-		ret = sink_class->methods.add_iterator(component, iterator);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			goto end;
-		}
-	}
-
-	g_ptr_array_add(sink->input.iterators, bt_get(iterator));
+	sink = container_of(component, struct bt_component_sink, parent);
+	status = bt_component_remove_port(component, sink->input_ports,
+			name);
 end:
-	return ret;
+	return status;
 }

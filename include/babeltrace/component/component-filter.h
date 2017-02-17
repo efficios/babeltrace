@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+struct bt_port;
 struct bt_component;
 struct bt_notification_iterator;
 
@@ -63,24 +64,23 @@ extern
 struct bt_notification_iterator *bt_component_filter_create_notification_iterator_with_init_method_data(
         struct bt_component *component, void *init_method_data);
 
-/* Defaults to 1. */
-extern enum bt_component_status
-bt_component_filter_set_minimum_input_count(struct bt_component *filter,
-        unsigned int minimum);
+extern int bt_component_filter_get_input_port_count(
+		struct bt_component *component);
+extern struct bt_port *bt_component_filter_get_input_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_filter_get_input_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_filter_get_default_input_port(
+		struct bt_component *component);
 
-/* Defaults to 1. */
-extern enum bt_component_status
-bt_component_filter_set_maximum_input_count(struct bt_component *filter,
-        unsigned int maximum);
-
-extern enum bt_component_status
-bt_component_filter_get_input_count(struct bt_component *filter,
-        unsigned int *count);
-
-/* May return NULL after an interator has reached its end. */
-extern enum bt_component_status
-bt_component_filter_get_input_iterator(struct bt_component *filter,
-        unsigned int input, struct bt_notification_iterator **iterator);
+extern int bt_component_filter_get_output_port_count(
+		struct bt_component *component);
+extern struct bt_port *bt_component_filter_get_output_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_filter_get_output_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_filter_get_default_output_port(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }

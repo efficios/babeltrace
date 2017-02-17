@@ -30,9 +30,13 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/component/component-port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 #include <stdio.h>
+
+#define DEFAULT_INPUT_PORT_NAME		"default"
+#define DEFAULT_OUTPUT_PORT_NAME	"default"
 
 struct bt_component {
 	struct bt_object base;
@@ -62,5 +66,33 @@ enum bt_component_status bt_component_init(struct bt_component *component,
 BT_HIDDEN
 struct bt_notification_iterator *bt_component_create_iterator(
 		struct bt_component *component, void *init_method_data);
+
+BT_HIDDEN
+enum bt_component_status bt_component_set_graph(struct bt_component *component,
+		struct bt_graph *graph);
+
+BT_HIDDEN
+int bt_component_init_input_ports(struct bt_component *component,
+		GPtrArray **input_ports);
+
+BT_HIDDEN
+int bt_component_init_output_ports(struct bt_component *component,
+		GPtrArray **output_ports);
+
+BT_HIDDEN
+struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name);
+
+BT_HIDDEN
+struct bt_port *bt_component_get_port_at_index(GPtrArray *ports, int index);
+
+BT_HIDDEN
+struct bt_port *bt_component_add_port(
+		struct bt_component *component,GPtrArray *ports,
+		enum bt_port_type port_type, const char *name);
+
+BT_HIDDEN
+enum bt_component_status bt_component_remove_port(
+		struct bt_component *component, GPtrArray *ports,
+		const char *name);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H */

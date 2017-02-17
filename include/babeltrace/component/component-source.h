@@ -37,19 +37,22 @@ extern "C" {
 struct bt_component;
 struct bt_notification_iterator;
 
-/**
- * Create an iterator on a component instance.
- *
- * @param component	Component instance
- * @returns		Notification iterator instance
- */
-extern
-struct bt_notification_iterator *bt_component_source_create_notification_iterator(
+/* FIXME should return a bt_component_status, same applies for filter and sink. Use uint64_t. */
+extern int bt_component_source_get_output_port_count(
+		struct bt_component *component);
+extern struct bt_port *bt_component_source_get_output_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_source_get_output_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_source_get_default_output_port(
 		struct bt_component *component);
 
-extern
-struct bt_notification_iterator *bt_component_source_create_notification_iterator_with_init_method_data(
-        struct bt_component *component, void *init_method_data);
+/* Only allowed during the source's initialization. */
+extern struct bt_port *bt_component_source_add_output_port(
+		struct bt_component *component, const char *name);
+/* Only allowed during the source's initialization. */
+extern enum bt_component_status bt_component_source_remove_output_port(
+		struct bt_component *component, const char *name);
 
 #ifdef __cplusplus
 }
