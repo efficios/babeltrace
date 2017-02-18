@@ -62,4 +62,14 @@ BT_HIDDEN
 enum bt_component_status bt_component_sink_validate(
 		struct bt_component *component);
 
+/**
+ * Process one event, consuming from sources as needed.
+ *
+ * @param component	Component instance
+ * @returns		One of #bt_component_status values
+ */
+BT_HIDDEN
+enum bt_component_status bt_component_sink_consume(
+		struct bt_component *component);
+
 #endif /* BABELTRACE_COMPONENT_SINK_INTERNAL_H */

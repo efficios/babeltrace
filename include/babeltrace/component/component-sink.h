@@ -36,16 +36,6 @@ extern "C" {
 struct bt_component;
 struct bt_notification;
 
-/**
- * Process one event, consuming from sources as needed.
- *
- * @param component	Component instance
- * @returns		One of #bt_component_status values
- */
-extern
-enum bt_component_status bt_component_sink_consume(
-		struct bt_component *component);
-
 extern int bt_component_sink_get_input_port_count(
 		struct bt_component *component);
 extern struct bt_port *bt_component_sink_get_input_port(

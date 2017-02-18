@@ -105,6 +105,7 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
 enum bt_component_status bt_component_sink_consume(
 		struct bt_component *component)
 {
