@@ -34,44 +34,14 @@
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 
-enum bt_component_status bt_component_filter_add_iterator(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_class_filter *filter_class;
-
-	if (!component || !iterator) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	/* TODO validate iterator count limits. */
-
-	filter_class = container_of(component->class,
-			struct bt_component_class_filter, parent);
-	if (filter_class->methods.add_iterator) {
-		ret = filter_class->methods.add_iterator(component, iterator);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
+BT_HIDDEN
 struct bt_notification_iterator *bt_component_filter_create_notification_iterator(
 		struct bt_component *component)
 {
 	return bt_component_create_iterator(component, NULL);
 }
 
+BT_HIDDEN
 struct bt_notification_iterator *bt_component_filter_create_notification_iterator_with_init_method_data(
 		struct bt_component *component, void *init_method_data)
 {
