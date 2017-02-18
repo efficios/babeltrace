@@ -59,4 +59,18 @@ BT_HIDDEN
 enum bt_component_status bt_component_source_validate(
 		struct bt_component *component);
 
+/**
+ * Create an iterator on a component instance.
+ *
+ * @param component	Component instance
+ * @returns		Notification iterator instance
+ */
+BT_HIDDEN
+struct bt_notification_iterator *bt_component_source_create_notification_iterator(
+		struct bt_component *component);
+
+BT_HIDDEN
+struct bt_notification_iterator *bt_component_source_create_notification_iterator_with_init_method_data(
+        struct bt_component *component, void *init_method_data);
+
 #endif /* BABELTRACE_COMPONENT_SOURCE_INTERNAL_H */

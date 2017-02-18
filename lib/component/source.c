@@ -102,12 +102,14 @@ error:
 	goto end;
 }
 
+BT_HIDDEN
 struct bt_notification_iterator *bt_component_source_create_notification_iterator(
 		struct bt_component *component)
 {
 	return bt_component_create_iterator(component, NULL);
 }
 
+BT_HIDDEN
 struct bt_notification_iterator *bt_component_source_create_notification_iterator_with_init_method_data(
 		struct bt_component *component, void *init_method_data)
 {
