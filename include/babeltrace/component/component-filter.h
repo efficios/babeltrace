@@ -38,32 +38,6 @@ struct bt_port;
 struct bt_component;
 struct bt_notification_iterator;
 
-/**
- * Add a notification iterator to a filter component.
- *
- * @param component	Component instance
- * @param iterator	Notification iterator to add
- * @returns		One of #bt_component_status values
- */
-extern
-enum bt_component_status bt_component_filter_add_iterator(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator);
-
-/**
- * Create an iterator on a component instance.
- *
- * @param component	Component instance
- * @returns		Notification iterator instance
- */
-extern
-struct bt_notification_iterator *bt_component_filter_create_notification_iterator(
-		struct bt_component *component);
-
-extern
-struct bt_notification_iterator *bt_component_filter_create_notification_iterator_with_init_method_data(
-        struct bt_component *component, void *init_method_data);
-
 extern int bt_component_filter_get_input_port_count(
 		struct bt_component *component);
 extern struct bt_port *bt_component_filter_get_input_port(
