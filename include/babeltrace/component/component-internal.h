@@ -68,7 +68,7 @@ struct bt_notification_iterator *bt_component_create_iterator(
 		struct bt_component *component, void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status bt_component_set_graph(struct bt_component *component,
+void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN

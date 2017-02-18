@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/component/component-class.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/values.h>
 #include <stdio.h>
@@ -34,6 +35,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_component_class;
+struct bt_component_graph;
+struct bt_component;
+struct bt_value;
 
 /**
  * Status code. Errors are always negative.
@@ -56,11 +62,9 @@ enum bt_component_status {
 	BT_COMPONENT_STATUS_INVALID =		-3,
 	/** Memory allocation failure. */
 	BT_COMPONENT_STATUS_NOMEM =		-4,
+	/** Element not found. */
+	BT_COMPONENT_STATUS_NOT_FOUND =		-5,
 };
-
-struct bt_component_class;
-struct bt_component;
-struct bt_value;
 
 /**
  * Create an instance of a component from a component class.
@@ -115,6 +119,8 @@ extern struct bt_component_class *bt_component_get_class(
 
 extern enum bt_component_class_type bt_component_get_class_type(
 		struct bt_component *component);
+
+extern struct bt_graph *bt_component_get_graph(struct bt_component *component);
 
 #ifdef __cplusplus
 }

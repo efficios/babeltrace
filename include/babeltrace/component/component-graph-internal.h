@@ -4,7 +4,7 @@
 /*
  * BabelTrace - Component Graph Internal
  *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -32,24 +32,25 @@
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 
-struct bt_component_graph {
+struct bt_graph {
+	/**
+	 * A component graph contains components and point-to-point connection
+	 * between these components.
+	 *
+	 * In terms of ownership:
+	 * 1) The graph is the components' parent,
+	 * 2) The graph is the connnections' parent,
+	 * 3) Components share the ownership of their connections,
+	 * 4) A connection holds weak references to its two component endpoints.
+	 */
 	struct bt_object base;
-	/* Array of pointers to bt_component_connection. */
+
+	/* Array of pointers to bt_connection. */
 	GPtrArray *connections;
-	/*
-	 * Array of pointers to bt_component.
-	 *
-	 * Components which were added to the graph, but have not been connected
-	 * yet.
-	 */
-	GPtrArray *loose_components;
-	/*
-	 * Array of pointers to sink bt_component.
-	 *
-	 * A reference is held to the Sink components in order to implement the
-	 * "run" interface, which executes the sinks in a round-robin pattern.
-	 */
-	GPtrArray *sinks;
+	/* Array of pointers to bt_component. */
+	GPtrArray *components;
+	/* Queue of pointers (weak references) to sink bt_components. */
+	GQueue *sinks_to_consume;
 };
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_GRAPH_INTERNAL_H */
