@@ -1,3 +1,10 @@
+2017-02-20 babeltrace 1.5.2 (National Cherry Pie Day)
+	* Add empty plug-in hooks to prevent their elimination by the linker
+	* Port: Link live lib with ctf to satisfy cygwin linker
+	* Port: Link with no-undefined on Windows
+	* Port: win32 DLLs don't support hidden symbols
+	* Port: replace strerror_r() with glib g_strerror()
+
 2017-01-06 babeltrace 1.5.1 ("Wheel Of Fortune" debuts on NBC)
 	* Fix: perform an explicit stdout flush in live even on empty packets
 
