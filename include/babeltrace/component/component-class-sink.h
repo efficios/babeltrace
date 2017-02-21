@@ -36,16 +36,9 @@ struct bt_component_class;
 typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
         struct bt_component *);
 
-typedef enum bt_component_status (*bt_component_class_sink_add_iterator_method)(
-        struct bt_component *, struct bt_notification_iterator *);
-
 extern
 struct bt_component_class *bt_component_class_sink_create(const char *name,
 		bt_component_class_sink_consume_method consume_method);
-
-extern int bt_component_class_sink_set_add_iterator_method(
-		struct bt_component_class *component_class,
-		bt_component_class_sink_add_iterator_method add_iterator_method);
 
 #ifdef __cplusplus
 }

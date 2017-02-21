@@ -169,11 +169,10 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD			= 2,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD		= 3,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD		= 4,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD	= 5,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD	= 6,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD	= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD	= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD	= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD	= 5,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD	= 6,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD	= 7,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD	= 8,
 };
 
 /* Component class attribute (internal use) */
@@ -207,11 +206,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD */
 		bt_component_class_query_method query_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD */
-		bt_component_class_filter_add_iterator_method filter_add_iterator_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD */
-		bt_component_class_sink_add_iterator_method sink_add_iterator_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD */
+		bt_component_class_new_connection_method new_connection_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD */
 		bt_component_class_notification_iterator_init_method notif_iter_init_method;
@@ -624,28 +620,40 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
- * Defines an add iterator method attribute attached to a specific
+ * Defines a new connection method attribute attached to a specific
+ * source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             New connection method
+ *                 (bt_component_class_new_connection_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(new_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a new connection method attribute attached to a specific
  * filter component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Add iterator method
- *                 (bt_component_class_filter_add_iterator_method).
+ * _x:             New connection method
+ *                 (bt_component_class_new_connection_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_add_iterator_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FILTER_ADD_ITERATOR_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(new_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
- * Defines an add iterator method attribute attached to a specific
+ * Defines a new connection method attribute attached to a specific
  * sink component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Add iterator method
- *                 (bt_component_class_sink_add_iterator_method).
+ * _x:             New connection method
+ *                 (bt_component_class_new_connection_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_add_iterator_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_SINK_ADD_ITERATOR_METHOD, _id, _comp_class_id, sink, _x)
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(new_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a
@@ -976,26 +984,34 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines an add iterator method attribute attached to a filter
- * component class descriptor which is attached to the automatic plugin
- * descriptor.
+ * Defines a new connection method attribute attached to a source component
+ * class descriptor which is attached to the automatic plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Add iterator method (bt_component_class_filter_add_iterator_method).
+ * _x:    New connections method (bt_component_class_new_connection_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NEW_CONNECTION_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines an add iterator method attribute attached to a sink
- * component class descriptor which is attached to the automatic plugin
- * descriptor.
+ * Defines a new connection method attribute attached to a filter component
+ * class descriptor which is attached to the automatic plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Add iterator method (bt_component_class_sink_add_iterator_method).
+ * _x:    New connections method (bt_component_class_new_connection_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD(_name, _x) \
-	BT_PLUGIN_SINK_COMPONENT_CLASS_ADD_ITERATOR_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NEW_CONNECTION_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a new connection method attribute attached to a sink component
+ * class descriptor which is attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    New connections method (bt_component_class_new_connection_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a

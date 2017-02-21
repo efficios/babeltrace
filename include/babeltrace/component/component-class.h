@@ -77,6 +77,9 @@ typedef struct bt_value *(*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
 		const char *object, struct bt_value *params);
 
+typedef enum bt_component_status (*bt_component_class_new_connection_method)(
+		struct bt_port *own_port, struct bt_connection *connection);
+
 extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
 		bt_component_class_init_method init_method);
@@ -84,6 +87,10 @@ extern int bt_component_class_set_init_method(
 extern int bt_component_class_set_destroy_method(
 		struct bt_component_class *component_class,
 		bt_component_class_destroy_method destroy_method);
+
+extern int bt_component_class_set_new_connection_method(
+		struct bt_component_class *component_class,
+		bt_component_class_new_connection_method new_connection_method);
 
 extern int bt_component_class_set_description(
 		struct bt_component_class *component_class,
@@ -123,6 +130,10 @@ extern const char *bt_component_class_get_help(
 extern int bt_component_class_set_query_method(
 		struct bt_component_class *component_class,
 		bt_component_class_query_method query_method);
+
+extern int bt_component_class_set_new_connection_method(
+		struct bt_component_class *component_class,
+		bt_component_class_new_connection_method new_connection_method);
 
 extern struct bt_value *bt_component_class_query(
 		struct bt_component_class *component_class,

@@ -58,6 +58,7 @@ struct bt_component_class {
 		bt_component_class_init_method init;
 		bt_component_class_destroy_method destroy;
 		bt_component_class_query_method query;
+		bt_component_class_new_connection_method new_connection_method;
 	} methods;
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
@@ -83,7 +84,6 @@ struct bt_component_class_sink {
 	struct bt_component_class parent;
 	struct {
 		bt_component_class_sink_consume_method consume;
-		bt_component_class_sink_add_iterator_method add_iterator;
 	} methods;
 };
 
@@ -91,7 +91,6 @@ struct bt_component_class_filter {
 	struct bt_component_class parent;
 	struct {
 		struct bt_component_class_iterator_methods iterator;
-		bt_component_class_filter_add_iterator_method add_iterator;
 	} methods;
 };
 

@@ -245,6 +245,24 @@ end:
 	return ret;
 }
 
+int bt_component_class_set_new_connection_method(
+		struct bt_component_class *component_class,
+		bt_component_class_new_connection_method new_connection_method)
+{
+	int ret = 0;
+
+	if (!component_class || component_class->frozen ||
+			!new_connection_method) {
+		ret = -1;
+		goto end;
+	}
+
+	component_class->methods.new_connection_method = new_connection_method;
+
+end:
+	return ret;
+}
+
 int bt_component_class_set_destroy_method(
 		struct bt_component_class *component_class,
 		bt_component_class_destroy_method destroy_method)
@@ -476,51 +494,6 @@ int bt_component_class_add_destroy_listener(struct bt_component_class *class,
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(class->destroy_listeners, listener);
-
-end:
-	return ret;
-}
-
-extern int bt_component_class_sink_set_add_iterator_method(
-		struct bt_component_class *component_class,
-		bt_component_class_sink_add_iterator_method add_iterator_method)
-{
-	struct bt_component_class_sink *sink_class;
-	int ret = 0;
-
-	if (!component_class || component_class->frozen ||
-			!add_iterator_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = -1;
-		goto end;
-	}
-
-	sink_class = container_of(component_class,
-		struct bt_component_class_sink, parent);
-	sink_class->methods.add_iterator = add_iterator_method;
-
-end:
-	return ret;
-}
-
-extern int bt_component_class_filter_set_add_iterator_method(
-		struct bt_component_class *component_class,
-		bt_component_class_filter_add_iterator_method add_iterator_method)
-{
-	struct bt_component_class_filter *filter_class;
-	int ret = 0;
-
-	if (!component_class || component_class->frozen ||
-			!add_iterator_method ||
-			component_class->type !=
-			BT_COMPONENT_CLASS_TYPE_FILTER) {
-		ret = -1;
-		goto end;
-	}
-
-	filter_class = container_of(component_class,
-		struct bt_component_class_filter, parent);
-	filter_class->methods.add_iterator = add_iterator_method;
 
 end:
 	return ret;
