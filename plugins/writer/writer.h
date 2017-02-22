@@ -44,6 +44,7 @@ struct writer_component {
 	/* Map between reader and writer stream class. */
 	GHashTable *stream_class_map;
 	FILE *err;
+	struct bt_notification_iterator *input_iterator;
 };
 
 BT_HIDDEN

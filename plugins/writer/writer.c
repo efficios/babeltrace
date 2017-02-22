@@ -30,6 +30,8 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-sink.h>
+#include <babeltrace/component/component-port.h>
+#include <babeltrace/component/component-connection.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
@@ -39,10 +41,12 @@
 #include <stdbool.h>
 #include <glib.h>
 #include "writer.h"
+#include <assert.h>
 
 static
 void destroy_writer_component_data(struct writer_component *writer_component)
 {
+	bt_put(writer_component->input_iterator);
 	g_hash_table_destroy(writer_component->stream_map);
 	g_hash_table_destroy(writer_component->stream_class_map);
 	g_hash_table_destroy(writer_component->trace_map);
@@ -181,6 +185,29 @@ end:
 }
 
 static
+enum bt_component_status writer_component_new_connection(
+		struct bt_port *own_port, struct bt_connection *connection)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component *component;
+	struct writer_component *writer;
+
+	component = bt_port_get_component(own_port);
+	assert(component);
+	writer = bt_component_get_private_data(component);
+	assert(writer);
+	assert(!writer->input_iterator);
+        writer->input_iterator = bt_connection_create_notification_iterator(
+			connection);
+
+	if (!writer->input_iterator) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+	}
+	bt_put(component);
+	return ret;
+}
+
+static
 enum bt_component_status run(struct bt_component *component)
 {
 	enum bt_component_status ret;
@@ -189,10 +216,8 @@ enum bt_component_status run(struct bt_component *component)
 	struct writer_component *writer_component =
 		bt_component_get_private_data(component);
 
-	ret = bt_component_sink_get_input_iterator(component, 0, &it);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	it = writer_component->input_iterator;
+	assert(it);
 
 	notification = bt_notification_iterator_get_notification(it);
 	if (!notification) {
@@ -268,5 +293,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(writer, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(writer, writer_component_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(writer,
+		writer_component_new_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(writer, destroy_writer_component);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(writer, "Formats CTF-IR to CTF.");
