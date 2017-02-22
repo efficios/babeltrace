@@ -25,25 +25,101 @@
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/notification.h>
+#include <plugins-common.h>
 #include <assert.h>
+#include "dummy.h"
+
+static
+void destroy_private_dummy_data(struct dummy *dummy)
+{
+	if (dummy->iterators) {
+		g_ptr_array_free(dummy->iterators, TRUE);
+	}
+	g_free(dummy);
+}
+
+void dummy_destroy(struct bt_component *component)
+{
+	struct dummy *dummy;
+
+	assert(component);
+	dummy = bt_component_get_private_data(component);
+	assert(dummy);
+	destroy_private_dummy_data(dummy);
+}
+
+enum bt_component_status dummy_init(struct bt_component *component,
+		struct bt_value *params, UNUSED_VAR void *init_method_data)
+{
+	enum bt_component_status ret;
+	struct dummy *dummy = g_new0(struct dummy, 1);
+
+	if (!dummy) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	dummy->iterators = g_ptr_array_new_with_free_func(
+			(GDestroyNotify) bt_put);
+	if (!dummy->iterators) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	ret = bt_component_set_private_data(component, dummy);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+end:
+	return ret;
+error:
+	destroy_private_dummy_data(dummy);
+	return ret;
+}
+
+enum bt_component_status dummy_new_connection(struct bt_port *own_port,
+		struct bt_connection *connection)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component *component;
+	struct dummy *dummy;
+	struct bt_notification_iterator *iterator;
+
+	component = bt_port_get_component(own_port);
+	assert(component);
+
+	dummy = bt_component_get_private_data(component);
+	assert(dummy);
+
+	iterator = bt_connection_create_notification_iterator(connection);
+	if (!iterator) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
+	g_ptr_array_add(dummy->iterators, iterator);
+end:
+	bt_put(component);
+	return ret;
+}
 
 enum bt_component_status dummy_consume(struct bt_component *component)
 {
 	enum bt_component_status ret;
 	struct bt_notification *notif = NULL;
-	struct bt_notification_iterator *it = NULL;
-	unsigned int it_count;
 	size_t i;
-	bool got_one = false;
+	struct dummy *dummy;
 
-	ret = bt_component_sink_get_input_count(component, &it_count);
-	assert(ret == 0);
+	dummy = bt_component_get_private_data(component);
+	assert(dummy);
 
-	for (i = 0; i < it_count; i++) {
+	/* Consume one notification from each iterator. */
+	for (i = 0; i < dummy->iterators->len; i++) {
+		struct bt_notification_iterator *it;
 		enum bt_notification_iterator_status it_ret;
 
-		ret = bt_component_sink_get_input_iterator(component, i, &it);
-		assert(ret == 0);
+		it = g_ptr_array_index(dummy->iterators, i);
+
 		it_ret = bt_notification_iterator_next(it);
 		switch (it_ret) {
 		case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
@@ -51,7 +127,8 @@ enum bt_component_status dummy_consume(struct bt_component *component)
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_END:
 			ret = BT_COMPONENT_STATUS_END;
-			BT_PUT(it);
+			g_ptr_array_remove_index(dummy->iterators, i);
+			i--;
 			continue;
 		default:
 			break;
@@ -67,17 +144,13 @@ enum bt_component_status dummy_consume(struct bt_component *component)
 		 * Dummy! I'm doing nothing with this notification,
 		 * NOTHING.
 		 */
-		got_one = true;
-		BT_PUT(it);
 		BT_PUT(notif);
 	}
 
-	if (!got_one) {
+	if (dummy->iterators->len == 0) {
 		ret = BT_COMPONENT_STATUS_END;
 	}
-
 end:
-	bt_put(it);
 	bt_put(notif);
 	return ret;
 }

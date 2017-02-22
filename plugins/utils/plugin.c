@@ -32,6 +32,9 @@ BT_PLUGIN_LICENSE("MIT");
 
 /* dummy sink */
 BT_PLUGIN_SINK_COMPONENT_CLASS(dummy, dummy_consume);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(dummy, dummy_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(dummy, dummy_destroy);
+BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(dummy, dummy_new_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
     "Dummy sink component class: does absolutely nothing!");
 
