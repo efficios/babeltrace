@@ -48,13 +48,13 @@
  * (since the following lines usually describe the error and possible
  * solutions), or the error prefix just at the end.
  */
-#define printf_err(fmt, args...)			\
-	do {						\
-		if (is_first_error) {			\
-			fprintf(stderr, "Error: ");	\
-			is_first_error = false;		\
-		}					\
-		fprintf(stderr, fmt, ##args);		\
+#define printf_err(fmt, args...)					\
+	do {								\
+		if (is_first_error) {					\
+			fprintf(stderr, "Command line error: ");	\
+			is_first_error = false;				\
+		}							\
+		fprintf(stderr, fmt, ##args);				\
 	} while (0)
 
 static bool is_first_error = true;
