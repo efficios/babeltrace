@@ -26,8 +26,6 @@
  * SOFTWARE.
  */
 
-#include "trimmer.h"
-#include "iterator.h"
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/notification.h>
@@ -49,6 +47,10 @@
 #include <assert.h>
 #include <plugins-common.h>
 
+#include "trimmer.h"
+#include "iterator.h"
+#include "copy.h"
+
 BT_HIDDEN
 void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 {
@@ -58,6 +60,7 @@ void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 	assert(it_data);
 
 	bt_put(it_data->input_iterator);
+	g_hash_table_destroy(it_data->packet_map);
 	g_free(it_data);
 }
 
@@ -93,6 +96,10 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
+
+	it_data->err = stderr;
+	it_data->packet_map = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, NULL, NULL);
 
 	it_ret = bt_private_notification_iterator_set_user_data(iterator,
 		it_data);
@@ -167,26 +174,35 @@ error:
 }
 
 static
-enum bt_notification_iterator_status
-evaluate_event_notification(struct bt_notification *notification,
+struct bt_notification *evaluate_event_notification(
+		struct bt_notification *notification,
+		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_event_in_range)
 {
 	int64_t ts;
 	int clock_ret;
-	struct bt_ctf_event *event = NULL;
+	struct bt_ctf_event *event = NULL, *writer_event;
 	bool in_range = true;
 	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_stream *stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_clock_value *clock_value = NULL;
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	bool lazy_update = false;
+	struct bt_notification *new_notification = NULL;
+	struct bt_clock_class_priority_map *cc_prio_map;
 
 	event = bt_notification_event_get_event(notification);
 	assert(event);
+	cc_prio_map = bt_notification_event_get_clock_class_priority_map(
+			notification);
+	assert(cc_prio_map);
+	writer_event = trimmer_output_event(trim_it, event);
+	assert(writer_event);
+	new_notification = bt_notification_event_create(writer_event, cc_prio_map);
+	assert(new_notification);
+	bt_put(cc_prio_map);
 
 	stream = bt_ctf_event_get_stream(event);
 	assert(stream);
@@ -206,30 +222,25 @@ evaluate_event_notification(struct bt_notification *notification,
 	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		printf_error("Failed to retrieve clock value");
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-		goto end;
+		goto error;
 	}
 
 	clock_ret = bt_ctf_clock_value_get_value_ns_from_epoch(
 			clock_value, &ts);
 	if (clock_ret) {
 		printf_error("Failed to retrieve clock value timestamp");
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-		goto end;
+		goto error;
 	}
 	if (update_lazy_bound(begin, "begin", ts, &lazy_update)) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 	if (update_lazy_bound(end, "end", ts, &lazy_update)) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 	if (lazy_update && begin->set && end->set) {
 		if (begin->value > end->value) {
 			printf_error("Unexpected: time range begin value is above end value");
-			ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-			goto end;
+			goto error;
 		}
 	}
 	if (begin->set && ts < begin->value) {
@@ -238,15 +249,21 @@ evaluate_event_notification(struct bt_notification *notification,
 	if (end->set && ts > end->value) {
 		in_range = false;
 	}
+
+	goto end;
+
+error:
+	BT_PUT(new_notification);
 end:
 	bt_put(event);
+	bt_put(writer_event);
 	bt_put(clock_class);
 	bt_put(trace);
 	bt_put(stream);
 	bt_put(stream_class);
 	bt_put(clock_value);
 	*_event_in_range = in_range;
-	return ret;
+	return new_notification;
 }
 
 static
@@ -293,58 +310,139 @@ end:
 	return ret;
 }
 
+static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
+{
+	uint64_t ns;
+
+	if (frequency == NSEC_PER_SEC) {
+		ns = value;
+	} else {
+		ns = (uint64_t) ((1e9 * (double) value) / (double) frequency);
+	}
+
+	return ns;
+}
+
+/*
+ * timestamp minus the offset.
+ */
 static
-enum bt_notification_iterator_status evaluate_packet_notification(
+int64_t get_raw_timestamp(struct bt_ctf_packet *writer_packet,
+		int64_t timestamp)
+{
+	struct bt_ctf_clock_class *writer_clock_class;
+	int64_t sec_offset, cycles_offset, ns;
+	struct bt_ctf_trace *writer_trace;
+	struct bt_ctf_stream *writer_stream;
+	struct bt_ctf_stream_class *writer_stream_class;
+	int ret;
+	uint64_t freq;
+
+	writer_stream = bt_ctf_packet_get_stream(writer_packet);
+	assert(writer_stream);
+
+	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
+	assert(writer_stream_class);
+
+	writer_trace = bt_ctf_stream_class_get_trace(writer_stream_class);
+	assert(writer_trace);
+
+	/* FIXME multi-clock? */
+	writer_clock_class = bt_ctf_trace_get_clock_class(writer_trace, 0);
+	assert(writer_clock_class);
+
+	ret = bt_ctf_clock_class_get_offset_s(writer_clock_class, &sec_offset);
+	assert(!ret);
+	ns = sec_offset * NSEC_PER_SEC;
+
+	freq = bt_ctf_clock_class_get_frequency(writer_clock_class);
+	assert(freq != -1ULL);
+
+	ret = bt_ctf_clock_class_get_offset_cycles(writer_clock_class, &cycles_offset);
+	assert(!ret);
+
+	ns += ns_from_value(freq, cycles_offset);
+
+	bt_put(writer_clock_class);
+	bt_put(writer_trace);
+	bt_put(writer_stream_class);
+	bt_put(writer_stream);
+
+	return timestamp - ns;
+}
+
+static
+struct bt_notification *evaluate_packet_notification(
 		struct bt_notification *notification,
+		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_packet_in_range)
 {
-        enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	int64_t begin_ns, pkt_begin_ns, end_ns, pkt_end_ns;
 	bool in_range = true;
-	struct bt_ctf_packet *packet = NULL;
+	struct bt_ctf_packet *packet = NULL, *writer_packet = NULL;
 	struct bt_ctf_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
+	struct bt_notification *new_notification = NULL;
+	enum bt_component_status ret;
+	bool lazy_update = false;
 
         switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		packet = bt_notification_packet_begin_get_packet(notification);
+		assert(packet);
+		writer_packet = trimmer_new_packet(trim_it, packet);
+		assert(writer_packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		packet = bt_notification_packet_end_get_packet(notification);
+		assert(packet);
+		writer_packet = trimmer_close_packet(trim_it, packet);
+		assert(writer_packet);
 		break;
 	default:
-		break;
-	}
-	assert(packet);
-
-	packet_context = bt_ctf_packet_get_context(packet);
-	if (!packet_context) {
 		goto end;
+	}
+
+	packet_context = bt_ctf_packet_get_context(writer_packet);
+	if (!packet_context) {
+		goto end_no_notif;
 	}
 
 	if (!bt_ctf_field_is_structure(packet_context)) {
-		goto end;
+		goto end_no_notif;
 	}
 
 	timestamp_begin = bt_ctf_field_structure_get_field(
 			packet_context, "timestamp_begin");
 	if (!timestamp_begin || !bt_ctf_field_is_integer(timestamp_begin)) {
-		goto end;
+		goto end_no_notif;
 	}
 	timestamp_end = bt_ctf_field_structure_get_field(
 			packet_context, "timestamp_end");
 	if (!timestamp_end || !bt_ctf_field_is_integer(timestamp_end)) {
-		goto end;
+		goto end_no_notif;
 	}
 
 	if (ns_from_integer_field(timestamp_begin, &pkt_begin_ns)) {
-		goto end;
+		goto end_no_notif;
 	}
 	if (ns_from_integer_field(timestamp_end, &pkt_end_ns)) {
-		goto end;
+		goto end_no_notif;
+	}
+
+	if (update_lazy_bound(begin, "begin", pkt_begin_ns, &lazy_update)) {
+		goto end_no_notif;
+	}
+	if (update_lazy_bound(end, "end", pkt_end_ns, &lazy_update)) {
+		goto end_no_notif;
+	}
+	if (lazy_update && begin->set && end->set) {
+		if (begin->value > end->value) {
+			printf_error("Unexpected: time range begin value is above end value");
+			goto end_no_notif;
+		}
 	}
 
 	begin_ns = begin->set ? begin->value : INT64_MIN;
@@ -355,43 +453,96 @@ enum bt_notification_iterator_status evaluate_packet_notification(
 	 * packet.
 	 */
 	in_range = (pkt_end_ns >= begin_ns) && (pkt_begin_ns <= end_ns);
+	if (!in_range) {
+		goto end_no_notif;
+	}
+
+	if (begin_ns > pkt_begin_ns) {
+		ret = update_packet_context_field(trim_it->err, writer_packet,
+				"timestamp_begin",
+				get_raw_timestamp(writer_packet, begin_ns));
+		assert(!ret);
+	}
+
+	if (end_ns < pkt_end_ns) {
+		ret = update_packet_context_field(trim_it->err, writer_packet,
+				"timestamp_end",
+				get_raw_timestamp(writer_packet, end_ns));
+		assert(!ret);
+	}
+
 end:
+        switch (bt_notification_get_type(notification)) {
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+		new_notification = bt_notification_packet_begin_create(writer_packet);
+		assert(new_notification);
+		break;
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+		new_notification = bt_notification_packet_end_create(writer_packet);
+		assert(new_notification);
+		break;
+	default:
+		break;
+	}
+end_no_notif:
 	*_packet_in_range = in_range;
 	bt_put(packet);
+	bt_put(writer_packet);
 	bt_put(packet_context);
 	bt_put(timestamp_begin);
 	bt_put(timestamp_end);
-	return ret;
+	return new_notification;
+}
+
+static
+struct bt_notification *evaluate_stream_notification(
+		struct bt_notification *notification,
+		struct trimmer_iterator *trim_it)
+{
+	struct bt_ctf_stream *stream;
+
+	stream = bt_notification_stream_end_get_stream(notification);
+	assert(stream);
+
+	/* FIXME: useless copy */
+	return bt_notification_stream_end_create(stream);
 }
 
 /* Return true if the notification should be forwarded. */
 static
 enum bt_notification_iterator_status evaluate_notification(
-		struct bt_notification *notification,
+		struct bt_notification **notification,
+		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *in_range)
 {
 	enum bt_notification_type type;
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct bt_notification *new_notification = NULL;
 
 	*in_range = true;
-	type = bt_notification_get_type(notification);
+	type = bt_notification_get_type(*notification);
 	switch (type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-	        ret = evaluate_event_notification(notification, begin,
-				end, in_range);
+	        new_notification = evaluate_event_notification(*notification,
+				trim_it, begin, end, in_range);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	case BT_NOTIFICATION_TYPE_PACKET_END:
-	        ret = evaluate_packet_notification(notification, begin,
-				end, in_range);
+	        new_notification = evaluate_packet_notification(*notification,
+				trim_it, begin, end, in_range);
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		new_notification = evaluate_stream_notification(*notification,
+				trim_it);
 		break;
 	default:
 		/* Accept all other notifications. */
 		break;
 	}
-	return ret;
+	BT_PUT(*notification);
+	*notification = new_notification;
+
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 BT_HIDDEN
@@ -433,11 +584,11 @@ struct bt_notification_iterator_next_return trimmer_iterator_next(
 			goto end;
 		}
 
-	        ret.status = evaluate_notification(ret.notification,
+	        ret.status = evaluate_notification(&ret.notification, trim_it,
 				&trimmer->begin, &trimmer->end,
 				&notification_in_range);
 		if (!notification_in_range) {
-			bt_put(ret.notification);
+			BT_PUT(ret.notification);
 		}
 
 		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {

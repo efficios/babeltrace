@@ -36,6 +36,10 @@
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */
 	struct bt_notification_iterator *input_iterator;
+	struct bt_notification *current_notification;
+	FILE *err;
+	/* Map between reader and writer packets. */
+	GHashTable *packet_map;
 };
 
 BT_HIDDEN
