@@ -187,7 +187,7 @@ bool text_legacy_opts_is_any_set(struct text_legacy_opts *opts)
 		bt_value_array_size(opts->names) > 0 ||
 		bt_value_array_size(opts->fields) > 0 ||
 		opts->no_delta || opts->clock_cycles || opts->clock_seconds ||
-		opts->clock_date || opts->clock_gmt || opts->verbose ||
+		opts->clock_date || opts->clock_gmt ||
 		opts->dbg_info_full_path;
 }
 
