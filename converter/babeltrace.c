@@ -34,6 +34,9 @@
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/component-filter.h>
 #include <babeltrace/component/component-class.h>
+#include <babeltrace/component/component-port.h>
+#include <babeltrace/component/component-graph.h>
+#include <babeltrace/component/component-connection.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
@@ -437,28 +440,35 @@ end:
 }
 
 static
-int connect_source_sink(struct bt_component *source,
+int connect_source_sink(struct bt_graph *graph,
+		struct bt_component *source,
 		struct bt_config_component *source_cfg,
 		struct bt_component *sink)
 {
 	int ret = 0;
-	enum bt_component_status sink_status;
+	struct bt_connection *connection = NULL;
 	struct bt_component *trimmer = NULL;
-	struct bt_notification_iterator *source_it = NULL;
-	struct bt_notification_iterator *to_sink_it = NULL;
+	struct bt_port *source_port =
+			bt_component_source_get_default_output_port(source);
+	struct bt_port *sink_port =
+			bt_component_sink_get_default_input_port(sink);
+	struct bt_port *to_sink_port = NULL;
+	struct bt_port *trimmer_input_port = NULL;
 
-	source_it = bt_component_source_create_notification_iterator(source);
-	if (!source_it) {
-		fprintf(stderr, "Failed to instantiate source iterator. Aborting...\n");
-                ret = -1;
-                goto end;
-        }
+	if (!source_port) {
+		fprintf(stderr, "Failed to find default source output port. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
+	if (!sink_port) {
+		fprintf(stderr, "Failed to find default sink input port. Aborting...\n");
+		ret = -1;
+		goto end;
+	}
 
 	if (bt_value_map_has_key(source_cfg->params, "begin")
 			|| bt_value_map_has_key(source_cfg->params, "end")) {
 		/* A trimmer must be inserted in the graph. */
-		enum bt_component_status trimmer_status;
-
 		trimmer = create_trimmer(source_cfg);
 		if (!trimmer) {
 			fprintf(stderr, "Failed to create trimmer component. Aborting...\n");
@@ -466,35 +476,45 @@ int connect_source_sink(struct bt_component *source,
 			goto end;
 		}
 
-		trimmer_status = bt_component_filter_add_iterator(trimmer,
-				source_it);
-		BT_PUT(source_it);
-		if (trimmer_status != BT_COMPONENT_STATUS_OK) {
+		trimmer_input_port = bt_component_filter_get_default_input_port(
+				trimmer);
+		if (!trimmer_input_port) {
+			fprintf(stderr, "Failed to find trimmer input port. Aborting...\n");
+			ret = -1;
+			goto end;
+		}
+		to_sink_port = bt_component_filter_get_default_output_port(
+				trimmer);
+		if (!to_sink_port) {
+			fprintf(stderr, "Failed to find trimmer output port. Aborting...\n");
+			ret = -1;
+			goto end;
+		}
+
+		connection = bt_graph_connect(graph, source_port,
+				trimmer_input_port);
+		if (!connection) {
 			fprintf(stderr, "Failed to connect source to trimmer. Aborting...\n");
 			ret = -1;
 			goto end;
 		}
-
-		to_sink_it = bt_component_filter_create_notification_iterator(trimmer);
-		if (!to_sink_it) {
-			fprintf(stderr, "Failed to instantiate trimmer iterator. Aborting...\n");
-			ret = -1;
-			goto end;
-		}
+		BT_PUT(connection);
 	} else {
-		BT_MOVE(to_sink_it, source_it);
+		BT_MOVE(to_sink_port, source_port);
 	}
 
-	sink_status = bt_component_sink_add_iterator(sink, to_sink_it);
-	if (sink_status != BT_COMPONENT_STATUS_OK) {
-		fprintf(stderr, "Failed to connect to sink component. Aborting...\n");
+	connection = bt_graph_connect(graph, to_sink_port, sink_port);
+	if (!connection) {
+		fprintf(stderr, "Failed to connect to sink. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 end:
 	bt_put(trimmer);
-	bt_put(source_it);
-	bt_put(to_sink_it);
+	bt_put(source_port);
+	bt_put(sink_port);
+	bt_put(to_sink_port);
+	bt_put(connection);
 	return ret;
 }
 
@@ -1010,8 +1030,8 @@ static int cmd_convert(struct bt_config *cfg)
 	struct bt_component_class *sink_class = NULL;
 	struct bt_component *source = NULL, *sink = NULL;
 	struct bt_value *source_params = NULL, *sink_params = NULL;
-	enum bt_component_status sink_status;
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
+	struct bt_graph *graph = NULL;
 
 	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
 	if (ret) {
@@ -1058,6 +1078,12 @@ static int cmd_convert(struct bt_config *cfg)
 		goto end;
 	}
 
+	graph = bt_graph_create();
+	if (!graph) {
+		ret = -1;
+		goto end;
+	}
+
 	source = bt_component_create(source_class, "source", source_params);
 	if (!source) {
 		fprintf(stderr, "Failed to instantiate selected source component. Aborting...\n");
@@ -1072,20 +1098,20 @@ static int cmd_convert(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = connect_source_sink(source, source_cfg, sink);
+	ret = connect_source_sink(graph, source, source_cfg, sink);
 	if (ret) {
 		ret = -1;
 		goto end;
 	}
 
 	while (true) {
-		sink_status = bt_component_sink_consume(sink);
-		switch (sink_status) {
-		case BT_COMPONENT_STATUS_AGAIN:
+		enum bt_graph_status graph_status;
+
+		graph_status = bt_graph_run(graph, NULL);
+		switch (graph_status) {
+		case BT_GRAPH_STATUS_AGAIN:
 			/* Wait for an arbitraty 500 ms. */
 			usleep(500000);
-			break;
-		case BT_COMPONENT_STATUS_OK:
 			break;
 		case BT_COMPONENT_STATUS_END:
 			goto end;
@@ -1097,14 +1123,15 @@ static int cmd_convert(struct bt_config *cfg)
 	}
 
 end:
-	BT_PUT(sink_class);
-	BT_PUT(source_class);
-	BT_PUT(source);
-	BT_PUT(sink);
-	BT_PUT(source_params);
-	BT_PUT(sink_params);
-	BT_PUT(sink_cfg);
-	BT_PUT(source_cfg);
+	bt_put(sink_class);
+	bt_put(source_class);
+	bt_put(source);
+	bt_put(sink);
+	bt_put(source_params);
+	bt_put(sink_params);
+	bt_put(sink_cfg);
+	bt_put(source_cfg);
+	bt_put(graph);
 	return ret;
 }
 
