@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-class-internal.h>
 
