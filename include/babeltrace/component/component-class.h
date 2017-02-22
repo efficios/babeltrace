@@ -26,12 +26,18 @@
  */
 
 #include <babeltrace/component/component.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class;
+struct bt_component;
+struct bt_port;
+struct bt_connection;
+struct bt_value;
+struct bt_notification_iterator;
 
 /**
  * Component class type.
