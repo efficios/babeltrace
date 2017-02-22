@@ -30,6 +30,8 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-sink.h>
+#include <babeltrace/component/component-port.h>
+#include <babeltrace/component/component-connection.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
@@ -41,6 +43,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include "text.h"
+#include <assert.h>
 
 static
 const char *plugin_options[] = {
@@ -73,6 +76,7 @@ const char *plugin_options[] = {
 static
 void destroy_text_data(struct text_component *text)
 {
+	bt_put(text->input_iterator);
 	(void) g_string_free(text->string, TRUE);
 	g_free(text->options.output_path);
 	g_free(text->options.debug_info_dir);
@@ -154,6 +158,29 @@ end:
 }
 
 static
+enum bt_component_status text_new_connection(struct bt_port *own_port,
+		struct bt_connection *connection)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component *component;
+	struct text_component *text;
+
+	component = bt_port_get_component(own_port);
+	assert(component);
+	text = bt_component_get_private_data(component);
+	assert(text);
+	assert(!text->input_iterator);
+	text->input_iterator = bt_connection_create_notification_iterator(
+			connection);
+
+	if (!text->input_iterator) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+	}
+	bt_put(component);
+	return ret;
+}
+
+static
 enum bt_component_status run(struct bt_component *component)
 {
 	enum bt_component_status ret;
@@ -161,10 +188,7 @@ enum bt_component_status run(struct bt_component *component)
 	struct bt_notification_iterator *it;
 	struct text_component *text = bt_component_get_private_data(component);
 
-	ret = bt_component_sink_get_input_iterator(component, 0, &it);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	it = text->input_iterator;
 
 	if (likely(text->processed_first_event)) {
 		enum bt_notification_iterator_status it_ret;
@@ -176,6 +200,7 @@ enum bt_component_status run(struct bt_component *component)
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_END:
 			ret = BT_COMPONENT_STATUS_END;
+			BT_PUT(text->input_iterator);
 			goto end;
 		default:
 			break;
@@ -190,7 +215,6 @@ enum bt_component_status run(struct bt_component *component)
 	ret = handle_notification(text, notification);
 	text->processed_first_event = true;
 end:
-	bt_put(it);
 	bt_put(notification);
 	return ret;
 }
@@ -734,6 +758,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(text, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(text, text_component_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(text, text_new_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(text, destroy_text);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(text,
 	"Formats CTF-IR to text. Formerly known as ctf-text.");

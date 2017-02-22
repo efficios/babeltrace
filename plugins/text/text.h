@@ -76,6 +76,7 @@ struct text_options {
 
 struct text_component {
 	struct text_options options;
+	struct bt_notification_iterator *input_iterator;
 	FILE *out, *err;
 	bool processed_first_event; /* Should be per-iterator. */
 	int depth;	/* nesting, used for tabulation alignment. */
