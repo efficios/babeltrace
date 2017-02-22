@@ -187,7 +187,10 @@ bool bt_common_colors_supported(void)
 	if (strncmp(term, "xterm", 5) != 0 &&
 			strncmp(term, "rxvt", 4) != 0 &&
 			strncmp(term, "konsole", 7) != 0 &&
-			strncmp(term, "gnome", 5) != 0) {
+			strncmp(term, "gnome", 5) != 0 &&
+			strncmp(term, "screen", 5) != 0 &&
+			strncmp(term, "tmux", 4) != 0 &&
+			strncmp(term, "putty", 5) != 0) {
 		goto end;
 	}
 
