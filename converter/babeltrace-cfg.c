@@ -642,42 +642,74 @@ static
 void plugin_component_names_from_arg(const char *arg, char **plugin,
 		char **component)
 {
-	const char *dot;
-	const char *end;
-	size_t plugin_len;
-	size_t component_len;
+	const char *arg_ch = arg;
+	char *ch;
+	bool in_component = false;
 
-	/* Initialize both return values to NULL: not found */
-	*plugin = NULL;
-	*component = NULL;
-
-	dot = strchr(arg, '.');
-	if (!dot) {
-		/* No dot */
-		goto end;
-	}
-
-	end = arg + strlen(arg);
-	plugin_len = dot - arg;
-	component_len = end - dot - 1;
-	if (plugin_len == 0 || component_len == 0) {
-		goto end;
-	}
-
-	*plugin = g_malloc0(plugin_len + 1);
+	/* Initialize both return values */
+	*plugin = g_malloc0(strlen(arg) + 1);
+	ch = *plugin;
 	if (!*plugin) {
 		print_err_oom();
-		goto end;
+		goto error;
 	}
 
-	g_strlcpy(*plugin, arg, plugin_len + 1);
-	*component = g_malloc0(component_len + 1);
+	*component = g_malloc0(strlen(arg) + 1);
 	if (!*component) {
 		print_err_oom();
-		goto end;
+		goto error;
 	}
 
-	g_strlcpy(*component, dot + 1, component_len + 1);
+	while (*arg_ch != '\0') {
+		switch (*arg_ch) {
+		case '\\':
+			if (arg_ch[1] == '\0') {
+				/* `\` at the end of the string */
+				*ch = *arg_ch;
+				ch++;
+				arg_ch++;
+			} else if (arg_ch[1] == '\\' || arg_ch[1] == '.') {
+				/* Escaped `\` or `.` */
+				*ch = arg_ch[1];
+				ch++;
+				arg_ch += 2;
+			} else {
+				/* Unknown escaped character (write `\` too) */
+				ch[0] = arg_ch[0];
+				ch[1] = arg_ch[1];
+				ch += 2;
+				arg_ch += 2;
+
+			}
+			continue;
+		case '.':
+			if (in_component) {
+				goto error;
+			}
+
+			in_component = true;
+			ch = *component;
+			arg_ch++;
+			break;
+		default:
+			*ch = *arg_ch;
+			ch++;
+			arg_ch++;
+			break;
+		}
+	}
+
+	if (strlen(*plugin) == 0 || strlen(*component) == 0) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	g_free(*plugin);
+	*plugin = NULL;
+	g_free(*component);
+	*component = NULL;
 
 end:
 	return;

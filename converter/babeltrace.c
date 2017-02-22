@@ -112,6 +112,94 @@ void print_indent(size_t indent)
 	}
 }
 
+static char *escape_name_for_shell(const char *input)
+{
+	char *output = g_malloc0(strlen(input) * 5 + 1);
+	const char *in;
+	char *out = output;
+
+	if (!output) {
+		goto end;
+	}
+
+	for (in = input; *in != '\0'; in++) {
+		switch (*in) {
+		case '\\':
+			*out++ = '\\';
+			*out++ = '\\';
+			break;
+		case '\'':
+			*out++ = '\'';
+			*out++ = '"';
+			*out++ = '\'';
+			*out++ = '"';
+			*out++ = '\'';
+			break;
+		case '.':
+			*out++ = '\\';
+			*out++ = '.';
+			break;
+		default:
+			*out++ = *in;
+			break;
+		}
+	}
+
+end:
+	return output;
+}
+
+static
+const char *component_type_str(enum bt_component_class_type type)
+{
+	switch (type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		return "source";
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+		return "sink";
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+		return "filter";
+	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
+	default:
+		return "unknown";
+	}
+}
+
+static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
+		const char *comp_cls_name, enum bt_component_class_type type)
+{
+	char *shell_plugin_name = NULL;
+	char *shell_comp_cls_name = NULL;
+
+	shell_plugin_name = escape_name_for_shell(plugin_name);
+	if (!shell_plugin_name) {
+		goto end;
+	}
+
+	shell_comp_cls_name = escape_name_for_shell(comp_cls_name);
+	if (!shell_comp_cls_name) {
+		goto end;
+	}
+
+	fprintf(fh, "%s%s--%s%s %s'%s%s%s%s.%s%s%s'",
+		bt_common_color_bold(),
+		bt_common_color_fg_cyan(),
+		component_type_str(type),
+		bt_common_color_reset(),
+		bt_common_color_fg_default(),
+		bt_common_color_bold(),
+		bt_common_color_fg_blue(),
+		shell_plugin_name,
+		bt_common_color_fg_default(),
+		bt_common_color_fg_yellow(),
+		shell_comp_cls_name,
+		bt_common_color_reset());
+
+end:
+	g_free(shell_plugin_name);
+	g_free(shell_comp_cls_name);
+}
+
 static
 void print_value(struct bt_value *, size_t);
 
@@ -256,8 +344,11 @@ void print_value(struct bt_value *value, size_t indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf("    %s.%s:\n", bt_config_component->plugin_name->str,
-		bt_config_component->component_name->str);
+	printf("    ");
+	print_plugin_comp_cls_opt(stdout, bt_config_component->plugin_name->str,
+		bt_config_component->component_name->str,
+		bt_config_component->type);
+	printf(":\n");
 
 	if (bt_config_component->instance_name->len > 0) {
 		printf("      Name: %s\n",
@@ -600,22 +691,6 @@ end:
 	return ret;
 }
 
-static
-const char *component_type_str(enum bt_component_class_type type)
-{
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		return "source";
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-		return "sink";
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		return "filter";
-	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
-	default:
-		return "unknown";
-	}
-}
-
 static int load_all_plugins(struct bt_value *plugin_paths)
 {
 	int ret = 0;
@@ -680,22 +755,6 @@ static void print_plugin_info(struct bt_plugin *plugin)
 	printf("  %sLicense%s: %s\n", bt_common_color_bold(),
 		bt_common_color_reset(),
 		license ? license : "(Unknown)");
-}
-
-static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
-		const char *comp_cls_name, enum bt_component_class_type type)
-{
-	fprintf(fh, "%s%s--%s%s %s%s%s.%s%s%s",
-		bt_common_color_bold(),
-		bt_common_color_fg_cyan(),
-		component_type_str(type),
-		bt_common_color_fg_default(),
-		bt_common_color_fg_blue(),
-		plugin_name,
-		bt_common_color_fg_default(),
-		bt_common_color_fg_yellow(),
-		comp_cls_name,
-		bt_common_color_reset());
 }
 
 static int cmd_query(struct bt_config *cfg)
@@ -1058,9 +1117,10 @@ static int cmd_convert(struct bt_config *cfg)
 			source_cfg->component_name->str,
 			BT_COMPONENT_CLASS_TYPE_SOURCE);
 	if (!source_class) {
-		fprintf(stderr, "Could not find %s.%s source component class. Aborting...\n",
-				source_cfg->plugin_name->str,
-				source_cfg->component_name->str);
+		fprintf(stderr, "Could not find ");
+		print_plugin_comp_cls_opt(stderr, source_cfg->plugin_name->str,
+			source_cfg->component_name->str, BT_COMPONENT_CLASS_TYPE_SOURCE);
+		fprintf(stderr, ". Aborting...\n");
 		ret = -1;
 		goto end;
 	}
@@ -1071,9 +1131,10 @@ static int cmd_convert(struct bt_config *cfg)
 			sink_cfg->component_name->str,
 			BT_COMPONENT_CLASS_TYPE_SINK);
 	if (!sink_class) {
-		fprintf(stderr, "Could not find %s.%s output component class. Aborting...\n",
-				sink_cfg->plugin_name->str,
-				sink_cfg->component_name->str);
+		fprintf(stderr, "Could not find ");
+		print_plugin_comp_cls_opt(stderr, sink_cfg->plugin_name->str,
+			sink_cfg->component_name->str, BT_COMPONENT_CLASS_TYPE_SINK);
+		fprintf(stderr, ". Aborting...\n");
 		ret = -1;
 		goto end;
 	}
