@@ -3310,6 +3310,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct bt_value *instance_names = NULL;
 	struct bt_value *connection_args = NULL;
 	char error_buf[256] = { 0 };
+	bool got_verbose_opt = false;
 
 	*retcode = 0;
 	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
@@ -3835,8 +3836,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			BT_PUT(cfg);
 			goto end;
 		case OPT_VERBOSE:
+			if (got_verbose_opt) {
+				printf_err("Duplicate -v option\n");
+				goto error;
+			}
+
 			text_legacy_opts.verbose = true;
 			cfg->verbose = true;
+			got_verbose_opt = true;
 			break;
 		case OPT_DEBUG:
 			cfg->debug = true;
