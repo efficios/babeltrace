@@ -32,8 +32,8 @@
 #include <babeltrace/component/notification/iterator.h>
 
 struct trimmer_iterator {
-	/* Input iterators associated with this output iterator. */
-	GPtrArray *input_iterator_group;
+	/* Input iterator associated with this output iterator. */
+	struct bt_notification_iterator *input_iterator;
 	struct bt_notification *current_notification;
 };
 
