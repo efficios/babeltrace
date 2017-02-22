@@ -2104,6 +2104,7 @@ static void set_offset_value(struct offset_opt *offset_opt, int64_t value)
 
 enum bt_config_component_dest {
 	BT_CONFIG_COMPONENT_DEST_SOURCE,
+	BT_CONFIG_COMPONENT_DEST_FILTER,
 	BT_CONFIG_COMPONENT_DEST_SINK,
 };
 
@@ -2115,10 +2116,18 @@ static void add_cfg_comp(struct bt_config *cfg,
 		struct bt_config_component *cfg_comp,
 		enum bt_config_component_dest dest)
 {
-	if (dest == BT_CONFIG_COMPONENT_DEST_SOURCE) {
+	switch (dest) {
+	case BT_CONFIG_COMPONENT_DEST_SOURCE:
 		g_ptr_array_add(cfg->cmd_data.convert.sources, cfg_comp);
-	} else {
+		break;
+	case BT_CONFIG_COMPONENT_DEST_FILTER:
+		g_ptr_array_add(cfg->cmd_data.convert.filters, cfg_comp);
+		break;
+	case BT_CONFIG_COMPONENT_DEST_SINK:
 		g_ptr_array_add(cfg->cmd_data.convert.sinks, cfg_comp);
+		break;
+	default:
+		assert(false);
 	}
 }
 
@@ -3169,6 +3178,9 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "      --end=END                     Set the `end` parameter of the latest\n");
 	fprintf(fp, "                                    source component instance to END\n");
 	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
+	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Instantiate a filter component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
+	fprintf(fp, "                                    repeated)\n");
 	fprintf(fp, "      --name=NAME                   Set the name of the latest component\n");
 	fprintf(fp, "                                    instance to NAME (must be unique amongst\n");
 	fprintf(fp, "                                    all the names of the component instances)\n");
@@ -3245,6 +3257,7 @@ static struct poptOption convert_long_options[] = {
 	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
 	{ "end", '\0', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
+	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
 	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
@@ -3486,6 +3499,33 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+			break;
+		}
+		case OPT_FILTER:
+		{
+			if (cur_cfg_comp && !cur_is_implicit_source) {
+				add_cfg_comp(cfg, cur_cfg_comp,
+					cur_cfg_comp_dest);
+			}
+
+			cur_cfg_comp = bt_config_component_from_arg(
+				BT_COMPONENT_CLASS_TYPE_FILTER, arg);
+			if (!cur_cfg_comp) {
+				printf_err("Invalid format for --filter option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+			cur_is_implicit_source = false;
+
+			assert(cur_base_params);
+			bt_put(cur_cfg_comp->params);
+			cur_cfg_comp->params = bt_value_copy(cur_base_params);
+			if (!cur_cfg_comp->params) {
+				print_err_oom();
+				goto error;
+			}
+
+			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
 			break;
 		}
 		case OPT_OUTPUT_FORMAT:
