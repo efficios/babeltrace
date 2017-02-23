@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-port.h>
+#include <babeltrace/component/port.h>
 
 #ifdef __cplusplus
 extern "C" {

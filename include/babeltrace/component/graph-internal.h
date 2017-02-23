@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-graph.h>
+#include <babeltrace/component/graph.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>

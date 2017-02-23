@@ -1,5 +1,5 @@
 /*
- * component-connection.c
+ * connection.c
  *
  * Babeltrace Connection
  *
@@ -26,9 +26,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-connection-internal.h>
-#include <babeltrace/component/component-graph-internal.h>
-#include <babeltrace/component/component-port-internal.h>
+#include <babeltrace/component/connection-internal.h>
+#include <babeltrace/component/graph-internal.h>
+#include <babeltrace/component/port-internal.h>
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/object-internal.h>

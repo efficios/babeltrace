@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-connection.h>
+#include <babeltrace/component/connection.h>
 #include <babeltrace/object-internal.h>
 
 struct bt_graph;

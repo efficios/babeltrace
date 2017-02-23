@@ -1,5 +1,5 @@
 /*
- * component-graph.c
+ * graph.c
  *
  * Babeltrace Plugin Component Graph
  *
@@ -27,12 +27,12 @@
  */
 
 #include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-graph-internal.h>
-#include <babeltrace/component/component-connection-internal.h>
+#include <babeltrace/component/graph-internal.h>
+#include <babeltrace/component/connection-internal.h>
 #include <babeltrace/component/component-sink-internal.h>
 #include <babeltrace/component/component-source.h>
 #include <babeltrace/component/component-filter.h>
-#include <babeltrace/component/component-port.h>
+#include <babeltrace/component/port.h>
 #include <babeltrace/compiler.h>
 #include <unistd.h>
 

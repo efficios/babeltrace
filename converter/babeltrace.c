@@ -34,9 +34,9 @@
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/component-filter.h>
 #include <babeltrace/component/component-class.h>
-#include <babeltrace/component/component-port.h>
-#include <babeltrace/component/component-graph.h>
-#include <babeltrace/component/component-connection.h>
+#include <babeltrace/component/port.h>
+#include <babeltrace/component/graph.h>
+#include <babeltrace/component/connection.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>

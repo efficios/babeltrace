@@ -1,5 +1,5 @@
 /*
- * component-port.c
+ * port.c
  *
  * Babeltrace Port
  *
@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-port-internal.h>
+#include <babeltrace/component/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 

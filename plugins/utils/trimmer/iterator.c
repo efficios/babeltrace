@@ -34,8 +34,8 @@
 #include <babeltrace/component/notification/stream.h>
 #include <babeltrace/component/notification/packet.h>
 #include <babeltrace/component/component-filter.h>
-#include <babeltrace/component/component-port.h>
-#include <babeltrace/component/component-connection.h>
+#include <babeltrace/component/port.h>
+#include <babeltrace/component/connection.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>

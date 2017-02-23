@@ -30,7 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/component-port-internal.h>
+#include <babeltrace/component/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 #include <stdio.h>

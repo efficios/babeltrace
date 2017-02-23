@@ -8,9 +8,9 @@ noinst_LTLIBRARIES = libcomponent.la
 libcomponent_la_SOURCES = \
 	component.c \
 	component-class.c \
-	component-graph.c \
-	component-connection.c \
-	component-port.c \
+	graph.c \
+	connection.c \
+	port.c \
 	source.c \
 	sink.c \
 	filter.c \

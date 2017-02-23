@@ -32,7 +32,7 @@
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/component-sink-internal.h>
-#include <babeltrace/component/component-graph-internal.h>
+#include <babeltrace/component/graph-internal.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>

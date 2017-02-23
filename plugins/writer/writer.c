@@ -30,8 +30,8 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-sink.h>
-#include <babeltrace/component/component-port.h>
-#include <babeltrace/component/component-connection.h>
+#include <babeltrace/component/port.h>
+#include <babeltrace/component/connection.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
