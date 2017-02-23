@@ -127,25 +127,26 @@ end:
 	return ret;
 }
 
-int bt_component_filter_get_input_port_count(struct bt_component *component)
+enum bt_component_status bt_component_filter_get_input_port_count(
+		struct bt_component *component, uint64_t *count)
 {
-	int ret;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_component_filter *filter;
 
-	if (!component) {
-		ret = -1;
+	if (!component || !count) {
+	        status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		ret = -1;
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	filter = container_of(component, struct bt_component_filter, parent);
-	ret = filter->input_ports->len;
+	*count = (uint64_t) filter->input_ports->len;
 end:
-	return ret;
+	return status;
 }
 
 struct bt_port *bt_component_filter_get_input_port(
@@ -227,25 +228,26 @@ end:
 	return status;
 }
 
-int bt_component_filter_get_output_port_count(struct bt_component *component)
+enum bt_component_status bt_component_filter_get_output_port_count(
+		struct bt_component *component, uint64_t *count)
 {
-	int ret;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_component_filter *filter;
 
-	if (!component) {
-		ret = -1;
+	if (!component || !count) {
+	        status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		ret = -1;
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	filter = container_of(component, struct bt_component_filter, parent);
-	ret = filter->output_ports->len;
+	*count = (uint64_t) filter->output_ports->len;
 end:
-	return ret;
+	return status;
 }
 
 struct bt_port *bt_component_filter_get_output_port(

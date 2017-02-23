@@ -116,25 +116,26 @@ struct bt_notification_iterator *bt_component_source_create_notification_iterato
 	return bt_component_create_iterator(component, init_method_data);
 }
 
-int bt_component_source_get_output_port_count(struct bt_component *component)
+enum bt_component_status bt_component_source_get_output_port_count(
+		struct bt_component *component, uint64_t *count)
 {
-	int ret;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_component_source *source;
 
-	if (!component) {
-		ret = -1;
+	if (!component || !count) {
+	        status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
-		ret = -1;
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	source = container_of(component, struct bt_component_source, parent);
-	ret = source->output_ports->len;
+	*count = (uint64_t) source->output_ports->len;
 end:
-	return ret;
+	return status;
 }
 
 struct bt_port *bt_component_source_get_output_port(

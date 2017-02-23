@@ -189,44 +189,44 @@ error:
 }
 
 static
-int get_component_port_counts(struct bt_component *component, int *input_count,
-		int *output_count)
+enum bt_component_status get_component_port_counts(
+		struct bt_component *component, uint64_t *input_count,
+		uint64_t *output_count)
 {
-	int ret = -1;
+	enum bt_component_status ret;
 
 	switch (bt_component_get_class_type(component)) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		ret = bt_component_source_get_output_port_count(component);
-		if (ret < 0) {
+		ret = bt_component_source_get_output_port_count(component,
+				output_count);
+		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
-		*output_count = ret;
 		break;
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		ret = bt_component_filter_get_output_port_count(component);
-		if (ret < 0) {
+		ret = bt_component_filter_get_output_port_count(component,
+				output_count);
+		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
-		*output_count = ret;
-		break;
-		ret = bt_component_filter_get_input_port_count(component);
-		if (ret < 0) {
+		ret = bt_component_filter_get_input_port_count(component,
+				input_count);
+		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
-		*input_count = ret;
 		break;
 	case BT_COMPONENT_CLASS_TYPE_SINK:
-		ret = bt_component_sink_get_input_port_count(component);
-		if (ret < 0) {
+		ret = bt_component_sink_get_input_port_count(component,
+				input_count);
+		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
-		*input_count = ret;
 		break;
 	default:
 		assert(false);
 		break;
 	}
-	ret = 0;
+	ret = BT_COMPONENT_STATUS_OK;
 end:
 	return ret;
 }
@@ -275,10 +275,10 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 		struct bt_component *origin,
 		struct bt_component *new_component)
 {
-	int origin_input_port_count = 0;
-	int origin_output_port_count = 0;
-	int new_input_port_count = 0;
-	int new_output_port_count = 0;
+	uint64_t origin_input_port_count = 0;
+	uint64_t origin_output_port_count = 0;
+	uint64_t new_input_port_count = 0;
+	uint64_t new_output_port_count = 0;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	struct bt_graph *origin_graph = NULL;
 	struct bt_graph *new_graph = NULL;
@@ -314,12 +314,12 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 	}
 
 	if (get_component_port_counts(origin, &origin_input_port_count,
-			&origin_output_port_count)) {
+			&origin_output_port_count) != BT_COMPONENT_STATUS_OK) {
 		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 	if (get_component_port_counts(new_component, &new_input_port_count,
-			&new_output_port_count)) {
+			&new_output_port_count) != BT_COMPONENT_STATUS_OK) {
 		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}

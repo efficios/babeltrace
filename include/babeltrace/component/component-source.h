@@ -37,9 +37,8 @@ extern "C" {
 struct bt_component;
 struct bt_notification_iterator;
 
-/* FIXME should return a bt_component_status, same applies for filter and sink. Use uint64_t. */
-extern int bt_component_source_get_output_port_count(
-		struct bt_component *component);
+extern enum bt_component_status bt_component_source_get_output_port_count(
+		struct bt_component *component, uint64_t *count);
 extern struct bt_port *bt_component_source_get_output_port(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_source_get_output_port_at_index(
