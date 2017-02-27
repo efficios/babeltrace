@@ -45,6 +45,7 @@ struct writer_component {
 	GHashTable *stream_class_map;
 	FILE *err;
 	struct bt_notification_iterator *input_iterator;
+	bool processed_first_event;
 };
 
 BT_HIDDEN

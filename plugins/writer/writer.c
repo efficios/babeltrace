@@ -97,6 +97,7 @@ struct writer_component *create_writer_component(void)
 	writer_component->err = stderr;
 	writer_component->trace_id = 0;
 	writer_component->trace_name_base = g_string_new("trace");
+	writer_component->processed_first_event = false;
 	if (!writer_component->trace_name_base) {
 		g_free(writer_component);
 		writer_component = NULL;
@@ -221,21 +222,32 @@ enum bt_component_status run(struct bt_private_component *component)
 	it = writer_component->input_iterator;
 	assert(it);
 
+	if (likely(writer_component->processed_first_event)) {
+		enum bt_notification_iterator_status it_ret;
+
+		it_ret = bt_notification_iterator_next(it);
+		switch (it_ret) {
+			case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+				ret = BT_COMPONENT_STATUS_ERROR;
+				goto end;
+			case BT_NOTIFICATION_ITERATOR_STATUS_END:
+				ret = BT_COMPONENT_STATUS_END;
+				BT_PUT(writer_component->input_iterator);
+				goto end;
+			default:
+				break;
+		}
+	}
+
 	notification = bt_notification_iterator_get_notification(it);
 	if (!notification) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
-	it_status = bt_notification_iterator_next(it);
-	if (it_status != BT_COMPONENT_STATUS_OK) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
 	ret = handle_notification(writer_component, notification);
+	writer_component->processed_first_event = true;
 end:
-	bt_put(it);
 	bt_put(notification);
 	return ret;
 }
