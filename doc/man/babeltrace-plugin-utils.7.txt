@@ -1,0 +1,60 @@
+babeltrace-plugin-utils(7)
+==========================
+:manpagetype: plugin
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-plugin-utils - Babeltrace's utilities plugin
+
+
+DESCRIPTION
+-----------
+The Babeltrace `utils` plugin contains common, generic utility component
+classes which you can use in any processing graph.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+
+COMPONENT CLASSES
+-----------------
+compcls:filter.utils.muxer::
+    Multiplexes the notifications received on its multiple input ports
+    by time to its single output port.
++
+See man:babeltrace-filter.utils.muxer(7).
+
+compcls:filter.utils.trimmer::
+    Discards all the received events with a timestamp less than a given
+    beginning timestamp and greater than a given end timestamp,
+    effectively ``cutting'' the traces.
++
+See man:babeltrace-filter.utils.trimmer(7).
+
+compcls:sink.utils.dummy::
+    Receives the notifications from its single input port and discards
+    them (does absolutely nothing with them). This is useful for
+    testing and benchmarking a trace processing graph application,
+    for example man:babeltrace(1).
++
+See man:babeltrace-sink.utils.dummy(7).
+
+compcls:sink.utils.counter::
+    Prints the number of notifications received from its single input
+    port, either once at the end or periodically.
++
+See man:babeltrace-sink.utils.counter(7).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-intro(7),
+man:babeltrace-filter.utils.muxer(7),
+man:babeltrace-filter.utils.trimmer(7),
+man:babeltrace-sink.utils.counter(7),
+man:babeltrace-sink.utils.dummy(7)

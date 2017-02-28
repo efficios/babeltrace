@@ -1,0 +1,36 @@
+BUGS
+----
+If you encounter any issue or usability problem, please report it on the
+https://bugs.linuxfoundation.org/buglist.cgi?product=Diamon&component=Babeltrace[Babeltrace
+bug tracker].
+
+
+RESOURCES
+---------
+The Babeltrace project shares some communication channels with the
+http://lttng.org/[LTTng project].
+
+* http://diamon.org/babeltrace[Babeltrace website]
+* http://git.linuxfoundation.org/?p=diamon/babeltrace.git[Git repository]
+* http://github.com/efficios/[EfficiOS GitHub organization]
+* https://ci.lttng.org/job/babeltrace_master_build/[Continuous integration]
+* http://lists.lttng.org[Mailing list] for support and
+  development: `lttng-dev@lists.lttng.org`
+* irc://irc.oftc.net/lttng[IRC channel]: `#lttng` on `irc.oftc.net`
+
+
+AUTHORS
+-------
+The Babeltrace project is the result of efforts by many regular
+developers and occasional contributors.
+
+The current project maintainer is
+mailto:jeremie.galarneau@efficios.com[Jérémie Galarneau].
+
+
+COPYRIGHT
+---------
+This {manpagetype} is part of the Babeltrace project.
+
+Babeltrace is distributed under the
+https://opensource.org/licenses/MIT[MIT license].

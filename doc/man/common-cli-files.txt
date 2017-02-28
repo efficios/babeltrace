@@ -1,0 +1,7 @@
+FILES
+-----
+`$HOME/.local/lib/babeltrace/plugins`::
+    User plugin directory.
+
++{system_plugin_path}+::
+    System plugin directory.

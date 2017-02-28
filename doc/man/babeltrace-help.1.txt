@@ -1,0 +1,94 @@
+babeltrace-help(1)
+==================
+:manpagetype: command
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-help - Get help for a Babeltrace plugin or component class
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace help* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+                [opt:--omit-system-plugin-path]
+                [opt:--plugin-path='PATH'[:__PATH__]...]
+                ('PLUGIN' | 'TYPE.PLUGIN.COMPCLS')
+
+
+DESCRIPTION
+-----------
+The `help` command prints the details and help text of either the plugin
+'PLUGIN' or the specific component class 'TYPE.PLUGIN.COMPCLS'.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+The available values for 'TYPE' are:
+
+`source` or `src`::
+    Source component class.
+
+`filter` or `flt`::
+    Filter component class.
+
+`sink`::
+    Sink component class.
+
+See <<examples,EXAMPLES>> for usage examples.
+
+
+include::common-cmd-plugin-path.txt[]
+
+
+OPTIONS
+-------
+include::common-gen-options.txt[]
+
+include::common-plugin-path-options.txt[]
+
+include::common-cmd-info-options.txt[]
+
+
+[[examples]]
+EXAMPLES
+--------
+.Get help for a plugin and all its component classes.
+====
+[role="term"]
+----
+$ babeltrace help my-plugin
+----
+====
+
+.Get help for a specific plugin's source component class.
+====
+[role="term"]
+----
+$ babeltrace help src.my-plugin.my-source
+----
+====
+
+.Get help for a specific plugin's sink component class.
+====
+[role="term"]
+----
+$ babeltrace help sink.my-plugin.my-sink
+----
+====
+
+
+include::common-cli-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace(1),
+man:babeltrace-list-plugins(1)
+man:babeltrace-intro(7)

@@ -1,0 +1,187 @@
+babeltrace(1)
+=============
+:manpagetype: program
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace - Convert or process one or more traces, and more
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace* [opt:--debug | opt:--verbose | opt:--log-level='LVL'] ['<<commands,CMD>>'] ['CMD ARGS']
+
+
+DESCRIPTION
+-----------
+`babeltrace` is an open-source trace converter and processor. The tool
+can convert from one trace format to another, possibly with one or more
+filters in the conversion path, and perform other operations depending
+on the command 'CMD'.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+Most of the `babeltrace` commands load Babeltrace plugins to perform
+their operation. The search path for Babeltrace plugins is, in this
+order:
+
+. The colon-separated list of directories in the
+  `BABELTRACE_PLUGIN_PATH` environment variable.
+
+. The colon-separated list of directories in the specific command's
+  nlopt:--plugin-path option.
+
+. `$HOME/.local/lib/babeltrace/plugins`
+
+. +{system_plugin_path}+
+
+You can use the man:babeltrace-list-plugins(1) command to dynamically
+list the available plugins and what they offer. See <<plugins,PLUGINS>>
+for a list of plugins shipped with Babeltrace.
+
+
+OPTIONS
+-------
+opt:-d, opt:--debug::
+    Turn the debugging mode on.
++
+This is equivalent to opt:--log-level=`VERBOSE`.
+
+opt:--log-level='LVL'::
+    Set the log level of all known Babeltrace loggers to 'LVL'. You
+    can override the level of a specific logger with a dedicated
+    log level environment variable. If you don't specify this option,
+    it is equivalent to nlopt:--log-level=`WARNING`.
++
+The available values for 'LVL' are:
++
+--
+`NONE`::
+`N`::
+    Logging is disabled.
+
+`FATAL`::
+`F`::
+    Severe errors that lead the execution to abort immediately. This
+    level should be enabled in production.
+
+`ERROR`::
+`E`::
+    Errors that might still allow the execution to continue. Usually,
+    once one or more errors are reported at this level, the application,
+    plugin, or library won't perform any more useful task, but it should
+    still exit cleanly. This level should be enabled in production.
+
+`WARN`::
+`WARNING`::
+`W`::
+    Potentially harmful situations which still allow the execution
+    to continue. This level should be enabled in production.
+
+`INFO`::
+`I`::
+    Informational messages that highlight progress or important states
+    of the application, plugin, or library. This level can be enabled in
+    production.
+
+`DEBUG`::
+`D`::
+    Debugging information, with a higher level of details than the
+    `VERBOSE` level. This level should :not: be enabled in production.
+
+`VERBOSE`::
+`V`::
+    Low-level debugging context information. This level should :not: be
+    enabled in production.
+--
+
+opt:-v, opt:--verbose::
+    Turn the verbose mode on.
++
+This is equivalent to opt:--log-level=`INFO`.
+
+opt:-h, opt:--help::
+    Show help and quit.
+
+opt:-V, opt:--version::
+    Show version and quit.
+
+
+[[commands]]
+COMMANDS
+--------
+The following commands also have their own nlopt:--help option.
+
+man:babeltrace-convert(1)::
+    Build a trace conversion graph and run it.
++
+This is the default command: you don't need to explicitly
+specify this command name to use it.
+
+man:babeltrace-help(1)::
+    Get help for a specific plugin or plugin's component class.
+
+man:babeltrace-list-plugins(1)::
+    List the available Babeltrace plugins and their component classes.
+
+man:babeltrace-query(1)::
+    Query an object from a component class.
+
+man:babeltrace-run(1)::
+    Build a trace processing graph and run it.
+
+
+[[plugins]]
+PLUGINS
+-------
+The following plugins are provided by the Babeltrace project itself:
+
+man:babeltrace-plugin-ctf(7)::
+    CTF trace input (from the file system and from the LTTng-live
+    protocol) and output to the file system.
++
+* man:babeltrace-sink.ctf.fs(7)
+* man:babeltrace-source.ctf.fs(7)
+* man:babeltrace-source.ctf.lttng-live(7)
+
+ifeval::[{enable_debug_info} == 1]
+man:babeltrace-plugin-lttng-utils(7)::
+    Processing graph utilities for LTTng traces.
++
+* man:babeltrace-filter.lttng-utils.debug-info(7)
+endif::[]
+
+man:babeltrace-plugin-text(7)::
+    Text input and output.
++
+* man:babeltrace-sink.text.pretty(7)
+* man:babeltrace-source.text.dmesg(7)
+
+man:babeltrace-plugin-utils(7)::
+    Processing graph utilities.
++
+* man:babeltrace-filter.utils.muxer(7)
+* man:babeltrace-filter.utils.trimmer(7)
+* man:babeltrace-sink.utils.counter(7)
+* man:babeltrace-sink.utils.dummy(7)
+
+
+include::common-cli-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-convert(1),
+man:babeltrace-help(1),
+man:babeltrace-list-plugins(1),
+man:babeltrace-query(1),
+man:babeltrace-run(1),
+man:babeltrace-intro(7)

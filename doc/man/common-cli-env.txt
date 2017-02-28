@@ -1,0 +1,16 @@
+ENVIRONMENT VARIABLES
+---------------------
+include::common-lib-env.txt[]
+
+include::common-ppp-env.txt[]
+
+CLI
+~~~
+`BABELTRACE_CLI_LOG_LEVEL`::
+    `babeltrace` CLI's log level. The available values are the same as
+    for the manopt:babeltrace(1):--log-level option.
+
+`BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH`::
+    Set to `0` to disable the warning message which `babeltrace` prints
+    when you convert a trace with a relative path that's also the name
+    of a `babeltrace` command.

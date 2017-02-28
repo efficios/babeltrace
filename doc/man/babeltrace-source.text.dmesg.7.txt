@@ -1,0 +1,80 @@
+babeltrace-source.text.dmesg(7)
+===============================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-source.text.dmesg - Babeltrace's Linux kernel ring buffer
+source component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:source.text.dmesg component class, provided by
+the man:babeltrace-plugin-text(7) plugin, once instantiated, reads the
+lines of a Linux kernel ring buffer, as printed by the man:dmesg(1)
+tool, and emits corresponding event notifications on its output port.
+
+The events created by a compcls:source.text.dmesg component are named
+`string` and contain a single payload string field named `str` which
+contains the corresponding ring buffer line.
+
+By default, a compcls:source.text.dmesg component reads the lines of the
+standard input stream. You can make the component read the lines of a
+text file instead with the param:path parameter.
+
+By default, the component tries to extract the timestamps of the kernel
+ring buffer lines and use them as the created events's timestamps. A
+typical man:dmesg(1) line looks like this:
+
+----
+[87166.510937] PM: Finishing wakeup.
+----
+
+In the last example, the `[87166.510937]` part is the timestamp to
+extract. You can make the component not extract timestamps from lines
+with the param:no-extract-timestamp parameter.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+The following parameters are optional.
+
+param:no-extract-timestamp=`yes` (boolean)::
+    Do :not: extract timestamps from the kernel ring buffer lines: set
+    the created event's payload's `str` field to the whole line,
+    including any timestamp prefix.
+
+param:path='PATH' (string)::
+    Read the kernel ring buffer lines from the file 'PATH' instead of
+    the standard input stream.
+
+
+PORTS
+-----
+Output
+~~~~~~
+`out`::
+    Single output port to which the component sends the created
+    notifications.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-text(7),
+man:babeltrace-intro(7)

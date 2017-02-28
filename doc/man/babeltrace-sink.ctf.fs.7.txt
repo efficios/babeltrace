@@ -1,0 +1,115 @@
+babeltrace-sink.ctf.fs(7)
+=========================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-sink.ctf.fs - Babeltrace's file system CTF sink component
+class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:sink.ctf.fs component class, provided by the
+man:babeltrace-plugin-ctf(7) plugin, once instantiated, writes the
+events it receives to one or more http://diamon.org/ctf/[CTF] traces on
+the file system.
+
+A compcls:sink.ctf.fs component does not merge traces, in that it writes
+the notifications of different input traces to different output traces.
+
+This component guarantees that the output traces are semantically
+equivalent to the input traces. This means that a given output CTF trace
+contains:
+
+* The original trace environment.
+* The original clock classes.
+* The original event class names, log levels, and other static
+  attributes, except for the numeric IDs.
+* The original field _values_, except for:
+** Timestamp fields, but the equivalent clock value remains the same.
+** Numeric ID fields.
+
+The component does not guarantee to keep:
+
+* The original field type attributes (for example, the sizes of the
+  integer field types).
+* The original stream class and event class numeric IDs.
+
+
+Output path
+~~~~~~~~~~~
+The path of a CTF trace is the directory which directly contains the
+metadata and data stream files as children.
+
+The rules to determine the path of a generated CTF trace are:
+
+* If the param:single-trace parameter is true, use the value of the
+  param:path parameter.
++
+Otherwise:
++
+--
+* If the input trace has a name, use `OUTPUTPATH/TRACENAME[SUFFIX]`,
+  where `OUTPUTPATH` is the value of the param:path parameter,
+  `TRACENAME` is the input trace's name, and `SUFFIX` is an optional
+  numeric suffix if `OUTPUTPATH/TRACENAME` already exists.
++
+Note that the name of a trace that a compcls:source.ctf.fs component
+creates includes its hostname and its relative path while making sure to
+avoid conflicts.
++
+Otherwise, use `OUTPUTPATH/trace[SUFFIX]`, where `OUTPUTPATH` and
+`SUFFIX` are defined above.
+--
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+param:path='PATH' (string, mandatory)::
+    Depending on the value of the param:single-trace parameter, prefix
+    of output trace paths or full output trace path.
+
+param:single-trace=`yes` (boolean, optional)::
+    Assume that the component only receives notifications related to
+    a single source trace.
+
+
+PORTS
+-----
+Input
+~~~~~
+`in`::
+    Single input port from which the component receives the
+    notifications.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-ctf-plugin-env.txt[]
+
+
+Component class
+~~~~~~~~~~~~~~~
+include::common-common-compat-env.txt[]
+
+`BABELTRACE_SINK_CTF_FS_LOG_LEVEL`::
+    Component class's log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-ctf(7),
+man:babeltrace-intro(7)

@@ -1,0 +1,125 @@
+babeltrace-filter.utils.trimmer(7)
+==================================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-filter.utils.trimmer - Babeltrace's trimmer filter
+component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:filter.utils.trimmer component class, provided by
+the man:babeltrace-plugin-utils(7) plugin, once instantiated, discards
+all the received events with a time less than a given beginning time and
+greater than a given end time. It effectively ``cuts'', or trims traces.
+
+A compcls:filter.utils.trimmer component modifies the `timestamp_begin`
+and `timestamp_end` fields of the packet contexts it receives to match
+the beggining and end times of the trimming range when needed.
+
+The component used a notification's clock value with the highest
+priority to decide whether to discard it or not.
+
+
+[[time-param-fmt]]
+Time parameter format
+~~~~~~~~~~~~~~~~~~~~~
+The format of the param:begin and param:end parameters is:
+
+[verse]
+$$[$$__YYYY__-__MM__-__DD__ [__hh__:__mm__:]]__ss__[.__nnnnnnnnn__]
+
+'YYYY'::
+    4-digit year.
+
+'MM'::
+    2-digit month (January is `01`).
+
+'DD'::
+    2-digit day.
+
+'hh'::
+    2-digit hour (24-hour format).
+
+'mm'::
+    2-digit minute.
+
+'ss'::
+    2-digit second.
+
+'nnnnnnnnn'::
+    9-digit nanosecond.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+You must specify at least one of the param:begin and param:end
+parameters.
+
+param:begin='BEGIN' (string or integer)::
+    Set the trimmer's beginning time to 'BEGIN'.
++
+If 'BEGIN' is a string, see <<time-param-fmt,Time parameter format>> for
+its format. If 'BEGIN' is an integer, it is the number of nanoseconds
+since Epoch.
++
+If you don't specify this parameter, the component discards no events
+until the end of the trimming range.
+
+param:clock-gmt=`yes` (boolean)::
+    Set the time zone of the param:begin and param:end parameters
+    to GMT instead of the local time zone.
+
+param:end='END' (string or integer)::
+    Set the trimmer's end time to 'END'.
++
+If 'END' is a string, see <<time-param-fmt,Time parameter format>> for
+its format. If 'END' is an integer, it is the number of nanoseconds
+since Epoch.
++
+If you don't specify this parameter, the component discards no events
+from the beginning of the trimming range.
+
+
+PORTS
+-----
+Input
+~~~~~
+`in`::
+    Single input port from which the component receives the
+    notifications.
+
+
+Output
+~~~~~~
+`out`::
+    Single output port to which the components sends the notifications
+    of which the time is in the trimming range.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+`BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL`::
+    Component class's log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-utils(7),
+man:babeltrace-intro(7)

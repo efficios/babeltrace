@@ -1,0 +1,16 @@
+`ctf` plugin
+~~~~~~~~~~~~
+`BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL`::
+    Binary type reader's log level. The available values are the same as
+    for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+`BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL`::
+    Metadata decoder's log level. The available values are the same as
+    for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+`BABELTRACE_PLUGIN_CTF_NOTIF_ITER_LOG_LEVEL`::
+    Notification iterator's log level. The available values are the same
+    as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).

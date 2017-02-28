@@ -1,0 +1,86 @@
+babeltrace-filter.utils.muxer(7)
+================================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-filter.utils.muxer - Babeltrace's notification multiplexer
+filter component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:filter.utils.muxer component class, provided by
+the man:babeltrace-plugin-utils(7) plugin, once instantiated,
+multiplexes the notifications that it receives from one or more input
+ports into a linear sequence of events ordered by time on its output
+port.
+
+A compcls:filter.utils.muxer component does not alter the notifications
+it receives: it only sorts them.
+
+A compcls:filter.utils.muxer component can only work on notifications in
+which the clock value with the highest priority has an absolute clock
+class. You can use the param:assume-absolute-clock-classes parameter to
+make the component assume that all clock classes are absolute. In this
+case, you must ensure that, when more than one clock class exists, they
+are correlatable.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+The following parameters are optional.
+
+param:assume-absolute-clock-classes=`yes` (boolean)::
+    Assume that all clock classes are absolute.
+
+
+PORTS
+-----
+Input
+~~~~~
+`inN`, where `N` is a decimal integer starting at 0::
+    Input port from which the component receives notifications to
+    multiplex.
++
+When you create the component, its only input port is
+`in0`. When you connect the `in0` port, the component creates
+the `in1` input port, and so on. If you disconnect an input port,
+the component does not create a new input port: the disconnected
+input port is now available for a new connection.
++
+In other words, a compcls:filter.utils.muxer component always makes sure
+that it has at least one available input port.
+
+
+Output
+~~~~~~
+`out`::
+    Single output port to which the component sends the
+    sorted notifications.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+`BABELTRACE_FLT_UTILS_MUXER_LOG_LEVEL`::
+    Component class's log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-utils(7),
+man:babeltrace-intro(7)

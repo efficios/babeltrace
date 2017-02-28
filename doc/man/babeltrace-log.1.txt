@@ -1,0 +1,75 @@
+babeltrace-log(1)
+=================
+:manpagetype: program
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-log - Convert a Linux kernel ring buffer to a CTF trace
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace-log* [opt:--with-timestamps] 'OUTPUT-PATH'
+
+
+DESCRIPTION
+-----------
+The `babeltrace-log` tool reads the lines of a Linux kernel ring buffer,
+as printed by the man:dmesg(1) tool, from the standard input stream and
+converts them to a http://diamon.org/ctf/[CTF] trace written to the
+'OUTPUT-PATH' directory.
+
+Usage example:
+
+[role="term"]
+----
+$ dmesg | babeltrace-log --with-timestamps my-trace
+----
+
+The events of the generated CTF trace are named `string` and contain a
+single payload string field named `str` which contains the corresponding
+ring buffer line.
+
+By default, `babeltrace-log` does not try to extract the timestamps of
+the kernel ring buffer lines to use them as the created events's
+timestamps. A typical man:dmesg(1) line looks like this:
+
+----
+[87166.510937] PM: Finishing wakeup.
+----
+
+In the last example, the `[87166.510937]` part is a timestamp which
+could be extracted. You can make `babeltrace-log` extract timestamps
+from lines with the opt:--with-timestamps option.
+
+
+OPTIONS
+-------
+opt:-t, opt:--with-timestamps::
+    Extract timestamps from the kernel ring buffer lines: set
+    the created event's payload's `str` field to the rest of the line,
+    excluding any timestamp prefix.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+See the environment variables of man:babeltrace-source.text.dmesg(7),
+man:babeltrace-filter.utils.muxer(7), and
+man:babeltrace-sink.ctf.fs(7).
+
+include::common-lib-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-intro(7),
+man:babeltrace-source.text.dmesg(7),
+man:babeltrace-filter.utils.muxer(7),
+man:babeltrace-sink.ctf.fs(7)

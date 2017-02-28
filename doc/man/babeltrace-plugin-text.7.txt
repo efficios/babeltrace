@@ -1,0 +1,44 @@
+babeltrace-plugin-text(7)
+=========================
+:manpagetype: plugin
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-plugin-text - Babeltrace's plain text plugin
+
+
+DESCRIPTION
+-----------
+The Babeltrace `text` plugin contains component classes which read or
+write plain text data.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+
+COMPONENT CLASSES
+-----------------
+compcls:sink.text.pretty::
+    Pretty-prints the notifications it receives to the console or to a
+    file.
++
+See man:babeltrace-sink.text.pretty(7).
+
+compcls:source.text.dmesg::
+    Reads the lines of a Linux kernel ring buffer, that is, the output
+    of the man:dmesg(1) tool, and emits each line as an event
+    notification.
++
+See man:babeltrace-source.text.dmesg(7).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-sink-text.text(7),
+man:babeltrace-source-text.dmesg(7),
+man:babeltrace-intro(7),

@@ -1,0 +1,415 @@
+babeltrace-intro(7)
+===================
+:manpagetype: man page
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-intro - Introduction to Babeltrace
+
+
+DESCRIPTION
+-----------
+This man page is an introduction to the Babeltrace project.
+
+The <<what-is,WHAT IS BABELTRACE?>> section lists the parts of the
+project and shows the major changes from Babeltrace{nbsp}1 to
+Babeltrace{nbsp}2 while the <<concepts,BABELTRACE CONCEPTS>> section
+defines the core concepts of Babeltrace.
+
+The <<graph-repr,TRACE PROCESSING GRAPH REPRESENTATION>> section shows
+how some <<concepts,concepts>> are visually represented in other
+Babeltrace man pages.
+
+
+[[what-is]]
+WHAT IS BABELTRACE?
+-------------------
+Babeltrace is an open-source software project of which the purpose is
+to process or convert
+https://en.wikipedia.org/wiki/Tracing_(software)[traces].
+
+The Babeltrace project includes the following parts:
+
+[[libbabeltrace]]Babeltrace library (libbabeltrace)::
+    A shared library with a C API.
++
+With libbabeltrace, you can programmatically create <<plugin,plugins>>
+and <<comp-cls,component classes>>, build and run <<graph,processing
+graphs>>, and more (see the <<concepts,BABELTRACE CONCEPTS>> section for
+more details about those concepts). All the other Babeltrace parts rely
+on this library.
+
+[[babeltrace-1]]`babeltrace` command::
+    A command-line interface which uses libbabeltrace to load plugins,
+    create a trace processing graph, create components, and run the
+    graph.
++
+You can also use `babeltrace` to list the available plugins or to query
+an object from a component class.
++
+See man:babeltrace(1).
+
+[[python-bindings]]Babeltrace Python bindings::
+    A Python{nbsp}3 package which offers a Pythonic interface of
+    libbabeltrace.
++
+You can perform the same operations which are available in libbabeltrace
+with the Python bindings, but in a really easier way and with less code.
+
+Babeltrace project's plugins::
+    The Babeltrace <<plugin,plugins>> shipped with the project.
++
+Those plugins are not special, in that they only rely on libbabeltrace
+and you don't need them to use libbabeltrace, man:babeltrace(1), or the
+Python bindings.
++
+The Babeltrace project's plugins are:
++
+--
+`ctf`::
+  Common Trace Format input/output, including the LTTng live source.
++
+See man:babeltrace-plugin-ctf(7).
+
+`lttng-utils`::
+  Graph utilities specific to http://lttng.org/[LTTng] traces.
++
+See man:babeltrace-plugin-lttng-utils(7).
+
+`text`::
+  Text input/output.
++
+See man:babeltrace-plugin-text(7).
+
+`utils`::
+  Graph utilities (muxer, trimmer, counter, dummy sink).
++
+See man:babeltrace-plugin-utils(7).
+--
+
+Python plugin provider::
+    A shared library which libbabeltrace tries to load to add support
+    for Babeltrace plugins written in Python.
++
+The package you use to write a Python Babeltrace plugin is the one
+provided by the Python bindings.
+
+
+Changes since Babeltrace{nbsp}1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This man page is an introduction to Babeltrace{nbsp}2, a rewrite of
+Babeltrace{nbsp}1 with a focus on extensibility and flexibility.
+
+Babeltrace{nbsp}1 exists since 2010. The major improvements brought by
+Babeltrace{nbsp}2 are:
+
+* Full plugin support: any user can distribute a Babeltrace plugin and,
+  as long as <<libbabeltrace,libbabeltrace>> finds it, any application
+  linked to libbabeltrace can load it and use it.
++
+Plugins are not just input and output formats: they provide source,
+filter, and sink <<comp-cls,component classes>> so that you can connect
+specialized, reusable components together in a graph to create a
+customized trace conversion or analysis device.
+
+* In order to support user components, all the objects of libbabeltrace
+  have a reference count. The possible reference cycles are handled
+  internally so that the library's API is clean and predictable. The two
+  reference counting functions, `bt_get()` and `bt_put()`, are all you
+  need to manage the lifetime of any Babeltrace object.
+
+* All the parts of the Babeltrace project run on the major operating
+  systems, including Windows and macOS.
+
+
+[[concepts]]
+BABELTRACE CONCEPTS
+-------------------
+This section defines the main concepts of the Babeltrace project. These
+concepts translate into types and functions in
+<<libbabeltrace,libbabeltrace>> and its <<python-bindings,Python
+bindings>>, but also as command-line actions and options in the
+<<babeltrace-1,`babeltrace` command>>. The other Babeltrace man pages
+assume that you are familiar with the following definitions.
+
+Some Babeltrace concepts are interdependent: it is normal to jump from
+one definition to another to understand the big picture.
+
+[[comp-cls]]Component class::
+    A reusable class from which you can instantiate one or more
+    <<comp,component>> instances.
++
+There are three types of component classes used to instantiate the three
+types of components (source, filter, and sink).
++
+A component class provides methods, one of which is an initialization
+method, or constructor, to create a component. You pass _initialization
+parameters_ to this method to customize the created component. For
+example, the initialization method of the compcls:src.ctf.fs component
+class accepts a mandatory manparam:source.ctf.fs:path parameter which is
+the file system path to the trace(s). It also accepts an optional
+manparam:source.ctf.fs:clock-class-offset-ns parameter which is an
+offset, in nanoseconds, to add to all the clock classes found in the
+traces's metadata.
+
+[[comp]]Component::
+    A node within a <<graph,trace processing graph>>.
++
+There are three types of components:
++
+--
+Source component::
+    An input component which produces <<notif,notifications>>.
++
+Examples: CTF files input, log file input, LTTng-live input, random
+event generator.
+
+Filter component::
+    An intermediate component which can discard the notifications it
+    receives, transform them, augment them, sort them, or create new
+    ones.
++
+Examples: filter which removes notifications based on an expression,
+filter which adds debugging information to selected events, notification
+multiplexer, trace trimmer.
+
+Sink component::
+    An output component which consumes notifications and usually writes
+    them to one or more formatted files.
++
+Examples: log file output, CTF files output, text output on the
+console.
+--
++
+Components are connected together within a <<graph,trace processing
+graph>> through their <<port,ports>>. Source components have output
+ports, sink components have input ports, and filter components have
+both.
++
+A component is the instance of a <<comp-cls,component class>>. The terms
+_component_ and _component instance_ are equivalent.
++
+Within a trace processing graph, each component has a unique name. This
+is not the name of its component class, but an instance name. If `human`
+is a component class name, than `John` could be a component name.
+
+[[port]]Port::
+    A connection point, on a <<comp,component>>, from which are sent or
+    to which are received <<notif,notifications>> when the <<graph,trace
+    processing graph>> is running.
++
+An output port is where notifications are sent. An input port is where
+notifications are received. Source components have output ports, sink
+components have input ports, and filter components have both.
++
+An output port can only be connected to a single input port at a given
+time.
++
+A filter or sink component receiving notifications from its input ports
+is said to _consume_ notifications.
++
+The link between an output port and input port is a <<conn,connection>>.
++
+A component can dynamically add and remove ports while a graph is
+running. For example, a compcls:filter.utils.muxer component always
+makes sure that it has at least one available input port.
+
+[[conn]]Connection::
+    The link between an output <<port,port>> and an input port through
+    which <<notif,notifications>> flow when a <<graph,trace processing
+    graph>> is running.
+
+[[notif]]Notification::
+    An atomic element sent from an output <<port,port>> to an
+    input port.
++
+A source <<comp,component>> produces notifications, while a sink
+component consumes them. A filter component can both consume and
+produce notifications.
++
+The main types of notifications are:
++
+--
+Event::
+    A trace event record within a packet.
+
+Packet beginning::
+    The beginning of a packet within a stream.
++
+A packet is a container of events.
+
+Packet end::
+    The end of a packet within a stream.
+
+Stream beginning::
+    The beginning of a stream.
++
+A stream is a container of packets.
++
+Usually, a given source component's output port sends packet and
+event notifications which belong to a single stream.
+
+Stream end::
+    The end of a stream.
+
+Discarded events::
+    A count of discarded events within a given time interval for a given
+    stream.
+
+Discarded packets::
+    A count of discarded packets within a given time interval for a
+    given stream.
+--
+
+[[graph]]Trace processing graph::
+    A https://en.wikipedia.org/wiki/Filter_graph[filter graph] where
+    nodes are <<comp,components>> and <<notif,notifications>> flow from
+    output <<port,ports>> to input ports.
++
+You can build a trace processing graph with
+<<libbabeltrace,libbabeltrace>>, with the <<python-bindings,Babeltrace
+Python bindings>>, or with the man:babeltrace-run(1) and
+man:babeltrace-convert(1) commands.
++
+When you _run_ a trace processing graph, the sink components consume
+notifications from their input ports, making all the graph's components
+work one notification at a time to perform the trace conversion or
+analysis.
+
+[[plugin]]Plugin::
+    A container of <<comp-cls,component classes>> as a shared library.
++
+Each component class within a plugin has a type (source, filter, or
+sink) and a name. The type and name pair is unique within a given
+plugin.
++
+<<libbabeltrace,libbabeltrace>> can load a plugin (`.so` or `.dll` file)
+at run time: the result is a plugin object in which you can find a
+specific component class and instantiate it within a <<graph,trace
+processing graph>> as a <<comp,component>>.
++
+The <<babeltrace-1,`babeltrace` command>> uses the
+'TYPE.PLUGIN.COMPCLS' format to identify a specific component
+class within a specific plugin. 'TYPE' is either `source`, `filter`,
+or `sink`.
++
+You can list the available Babeltrace plugins with the
+man:babeltrace-list-plugins(1) command.
+
+[[query]]Query::
+    An operation with which you can get a named object from a
+    <<comp-cls,component class>>, possibly with the help of query
+    parameters.
++
+The plain text metadata stream of a CTF trace and the available LTTng
+live sessions of a given LTTng relay daemon are examples of queries.
++
+You can use the man:babeltrace-query(1) command to query a component
+class's object.
+
+
+[[graph-repr]]
+TRACE PROCESSING GRAPH REPRESENTATION
+-------------------------------------
+In the Babeltrace man pages, a component is represented with a box. The
+box has the <<comp-cls,component class>> type, <<plugin,plugin>> name,
+and component class name at the top. Just below, between square
+brackets, is its component instance name within the <<graph,trace
+processing graph>>. Each <<port,port>> is represented with an `@` symbol
+on the edge of the component box with its name inside the box. Output
+ports are on the right edge while input ports are on the left edge.
+
+For example, here's a source component box:
+
+----
++------------+
+| src.ctf.fs |
+|  [my-src]  |
+|            |
+|    stream0 @
+|    stream1 @
+|    stream2 @
++------------+
+----
+
+This one is an instance of the compcls:src.ctf.fs component class named
+`my-src`. It has three output ports named `stream0`, `stream1`, and
+`stream2`.
+
+A trace processing graph is represented with multiple component boxes
+connected together. The <<conn,connections>> are arrows from output
+ports to input ports.
+
+For example, here's a simple conversion graph:
+
+----
++------------+    +-----------------+    +------------------+
+| src.ctf.fs |    | flt.utils.muxer |    | sink.text.pretty |
+|    [ctf]   |    |     [muxer]     |    |      [text]      |
+|            |    |                 |    |                  |
+|    stream0 @--->@ in0         out @--->@ in               |
+|    stream1 @--->@ in1             |    +------------------+
+|    stream2 @--->@ in2             |
++------------+    @ in3             |
+                  +-----------------+
+----
+
+Note that input port `in3` of component `muxer` is not currently
+connected in this example.
+
+Sometimes, we symbolically represent other resources which are consumed
+from or produced by components. In this case, arrows are used, but they
+do not go to or from port symbols (`@`). For example, in the graph above,
+the `ctf` component consumes a CTF trace and the `text` component
+prints to the console, so here's a more complete diagram:
+
+----
+   CTF trace
+       |
+.------'
+|  +------------+    +-----------------+    +------------------+
+|  | src.ctf.fs |    | flt.utils.muxer |    | sink.text.pretty |
+'->|    [ctf]   |    |     [muxer]     |    |      [text]      |
+   |            |    |                 |    |                  |
+   |    stream0 @--->@ in0         out @--->@ in               |
+   |    stream1 @--->@ in1             |    +--+---------------+
+   |    stream2 @--->@ in2             |          |
+   +------------+    @ in3             |          '---> Console
+                     +-----------------+
+----
+
+Here's another example of a more complex graph which splits a specific
+stream using some criteria:
+
+----
++------------+    +-----------------+    +------------------+
+| src.ctf.fs |    | flt.utils.muxer |    | sink.text.pretty |
+|  [ctf-in]  |    |     [muxer]     |    |      [text]      |
+|            |    |                 |    |                  |
+|    stream0 @--->@ in0         out @--->@ in               |
+|    stream1 @--->@ in1             |    +------------------+
+|    stream2 @-.  @ in2             |
++------------+ |  +-----------------+      +-------------+
+               |                           | sink.ctf.fs |
+               |                           |  [ctf-out0] |
+               |  +-------------------+    |             |
+               |  | flt.some.splitter | .->@ in          |
+               |  |     [splitter]    | |  +-------------+
+               |  |                   | |
+               '->@ in              A @-'  +-------------+
+                  |                 B @-.  | sink.ctf.fs |
+                  +-------------------+ |  |  [ctf-out1] |
+                                        |  |             |
+                                        '->@ in          |
+                                           +-------------+
+----
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace(1)

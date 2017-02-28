@@ -455,6 +455,14 @@ AC_ARG_ENABLE([built-in-python-plugin-support],
   [enable_built_in_python_plugin_support=no]
 )
 
+# Man pages
+# Enabled by default
+AC_ARG_ENABLE([man-pages],
+  [AS_HELP_STRING([--disable-man-pages], [Do not build and install man pages (already built in a distributed tarball])],
+  [], dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
+  [enable_man_pages=yes]
+)
+
 
 # Set automake variables for optionnal feature conditionnals in Makefile.am
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
@@ -464,6 +472,7 @@ AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$enable_debug_info" = xyes])
 AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
+AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
 
 
 # Set defines for optionnal features conditionnals in the source code
@@ -484,6 +493,13 @@ AS_IF([test "x$enable_built_in_plugins" = xyes],
 AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
   [AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
+
+AS_IF([test "x$enable_debug_info" = xyes],
+  [ENABLE_DEBUG_INFO_VAL=1],
+  [ENABLE_DEBUG_INFO_VAL=0]
+)
+
+AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
 
 # Check for conflicting optional features user choices
@@ -593,6 +609,55 @@ AS_IF([test "x$enable_api_doc" = "xyes"],
   ]
 )
 
+have_asciidoc_xmlto=no
+warn_prebuilt_man_pages=no
+
+AS_IF([test "x$enable_man_pages" = "xyes"], [
+  AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
+  AC_PATH_PROG([XMLTO], [xmlto], [no])
+
+  AS_IF([test "x$ASCIIDOC" = "xno" || test "x$XMLTO" = "xno"], [
+    AS_IF([test "x$in_git_repo" = "xyes"], [
+      # this is an error because we're in the Git repo, which
+      # means the man pages are not already generated for us,
+      # thus asciixmlto are required because we were asked
+      # to build the man pages
+      AC_MSG_ERROR([
+You need asciidoc and xmlto to build the Babeltrace man pages. Use
+--disable-man-pages to disable building the man pages, in which case
+they will not be installed.
+      ])
+    ], [
+      # only warn here: since we're in the tarball, the man
+      # pages should already be generated at this point, thus
+      # asciidoc/xmlto are not strictly required
+      warn_prebuilt_man_pages=yes
+    ])
+  ], [
+    have_asciidoc_xmlto=yes
+  ])
+])
+
+# export AsciiDoc and xmlto existence
+AM_CONDITIONAL([HAVE_ASCIIDOC_XMLTO], [test "x$have_asciidoc_xmlto" = "xyes"])
+
+# a wonderful hack that seems necessary because $libdir is
+# literally `${exec_prefix}/lib`, and $exec_prefix is set to `NONE`
+# by autoconf when it's not specified by the user
+AS_IF([test "x$exec_prefix" = xNONE], [
+  AS_IF([test "x$prefix" = xNONE], [
+    PREFIX="$ac_default_prefix"
+  ], [
+    PREFIX="$prefix"
+  ])
+
+  LIBDIR="$PREFIX/lib"
+], [
+  LIBDIR="$libdir"
+])
+
+AC_SUBST(LIBDIR)
+
 
 # Set global CFLAGS in AM_CFLAGS
 AM_CFLAGS="-Wall -Wformat $PTHREAD_CFLAGS $GLIB_CFLAGS"
@@ -657,6 +722,8 @@ AC_CONFIG_FILES([
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
 	doc/contributing-images/Makefile
+  doc/man/Makefile
+  doc/man/asciidoc-attrs.conf
 	lib/Makefile
 	lib/prio_heap/Makefile
 	lib/plugin/Makefile
@@ -790,6 +857,28 @@ PPRINT_PROP_BOOL([Built-in Python plugin support], $value)
 
 AS_ECHO
 PPRINT_SUBTITLE([Documentation])
+
+# man pages build enabled/disabled
+m4_pushdef([build_man_pages_msg], [Build and install man pages])
+
+AS_IF([test "x$enable_man_pages" != "xno"], [
+  AS_IF([test "x$in_git_repo" = "xyes"], [
+    PPRINT_PROP_BOOL([build_man_pages_msg], 1)
+  ], [
+    AS_IF([test "x$have_asciidoc_xmlto" = "xyes"], [
+      PPRINT_PROP_BOOL([build_man_pages_msg], 1)
+    ], [
+      PPRINT_PROP_STRING([build_man_pages_msg],
+        [${PPRINT_COLOR_BLDGRN}yes (already built)],
+        $PPRINT_COLOR_SUBTITLE)
+    ])
+  ])
+], [
+  PPRINT_PROP_BOOL([build_man_pages_msg], 0)
+])
+
+m4_popdef([build_man_pages_msg])
+
 test "x$enable_api_doc" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([HTML API documentation], $value)
 test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0

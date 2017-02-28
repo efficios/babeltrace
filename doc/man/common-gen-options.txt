@@ -1,0 +1,18 @@
+General options
+~~~~~~~~~~~~~~~
+See man:babeltrace(1) for more details.
+
+nlopt:-d, nlopt:--debug::
+    Turn the debugging mode on.
+
+nlopt:--log-level='LVL'::
+    Set the log level of all known Babeltrace loggers to 'LVL'.
+
+nlopt:-v, nlopt:--verbose::
+    Turn the verbose mode on.
+
+nlopt:-h, nlopt:--help::
+    Show general help and quit.
+
+nlopt:-V, nlopt:--version::
+    Show version and quit.
