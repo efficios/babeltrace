@@ -1,0 +1,48 @@
+[[params-fmt]]
+Parameters format
+~~~~~~~~~~~~~~~~~
+The format of the 'PARAMS' option's argument is a comma-separated
+list of `NAME=VALUE` assignments:
+
+[verse]
+'NAME'='VALUE'[,'NAME'='VALUE']...
+
+'NAME'::
+    Parameter name (C{nbsp}identifier plus the `:`, `.`, and `-` characters).
+
+'VALUE'::
+    One of:
++
+--
+* `null`, `nul`, `NULL`: null value.
+
+* `true`, `TRUE`, `yes`, `YES`: true boolean value.
+
+* `false`, `FALSE`, `no`, `NO`: false boolean value.
+
+* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal
+  (`0x` prefix) signed 64-bit integer.
+
+* Double precision floating point number (scientific notation is
+  accepted).
+
+* Unquoted string with no special characters, and not matching any of
+  the null and boolean value symbols above.
+
+* Double-quoted string (accepts escape characters).
+
+You may put whitespaces around the individual `=` (assignment) and `,`
+(separator) characters.
+--
+
+Example:
+
+----
+babeltrace ... --params='many=null, fresh=yes, condition=false,
+                         squirrel=-782329, observe=3.14,
+                         simple=beef, needs-quotes="some string",
+                         escape.chars-are:allowed="a \" quote"'
+----
+
+IMPORTANT: Like in the example above, make sure to single-quote the
+whole argument when you run this command from a shell.

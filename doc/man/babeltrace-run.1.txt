@@ -1,0 +1,400 @@
+babeltrace-run(1)
+=================
+:manpagetype: command
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-run - Create a trace processing graph and run it
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace run* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+               [opt:--omit-system-plugin-path]
+               [opt:--plugin-path='PATH'[:__PATH__]...]
+               [opt:--retry-duration='DURUS']
+               opt:--connect='CONN-RULE'... 'COMPONENTS'
+
+
+DESCRIPTION
+-----------
+The `run` command creates a trace processing graph and runs it.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+The `run` command uses libbabeltrace to dynamically load plugins which
+supply component classes. With the `run` command, you specify which
+component classes to instantiate as components and how they must be
+connected.
+
+The steps to write a `babeltrace run` command line are:
+
+. Specify which component classes to instantiate as components and
+  how. This is the 'COMPONENTS' part of the synopsis. See
+  <<create-comps,Create components>> to learn more.
+
+. Specify how to connect component instances together with one or more
+  opt:--connect options. See <<connect-comps,Connect components>> to
+  learn more.
+
+NOTE: The man:babeltrace-convert(1) command is a specialization of the
+`run` command for the very common case of converting one or more traces:
+it generates a `run` command line and executes it. You can use its
+manopt:babeltrace-convert(1):--run-args or
+manopt:babeltrace-convert(1):--run-args-0 option to make it print the
+equivalent `run` command line instead.
+
+
+[[create-comps]]
+Create components
+~~~~~~~~~~~~~~~~~
+To create a component, use the opt:--component option. This option
+specifies:
+
+* **Optional**: The name of the component instance. You can also use the
+  opt:--name option for this.
+
+* The type of the component class to instantiate: source, filter, or
+  sink.
+
+* The name of the plugin in which to find the component class to
+  instantiate.
+
+* The name of the component class to instantiate.
+
+You can use the opt:--component option multiple times to create
+multiple components. You can instantiate the same component class
+multiple times as different component instances.
+
+At any point in the command line, the opt:--base-params sets the current
+base initialization parameters and the opt:--reset-base-params resets
+them. When you specify a opt:--component option, its initial
+initialization parameters are a copy of the current base initialization
+parameters.
+
+Immediately following a opt:--component option on the command line, the
+created component is known as the _current component_ (until the next
+opt:--component option).
+
+The following, optional command-line options apply to the current
+component:
+
+opt:--name='NAME'::
+    Set the name of the current component to 'NAME'.
+
+opt:--params='PARAMS'::
+    Add 'PARAMS' to the initialization parameters of the current
+    component. If 'PARAMS' contains a key which exists in the current
+    component's initialization parameters, this parameter is replaced.
++
+See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
+
+opt:--key='KEY' followed with opt:--value='VALUE'::
+    Set the current component's initialization parameter named 'KEY' to
+    the string value 'VALUE'. If 'KEY' exists in the current component's
+    initialization parameters, the parameter is replaced.
+
+
+[[connect-comps]]
+Connect components
+~~~~~~~~~~~~~~~~~~
+The components which you create from component classes with the
+opt:--component option (see <<create-comps,Create components>>) can
+create input and output _ports_ depending on their type. An output port
+is where notifications, like trace events, are sent. An input port is
+where notifications are received. For a given component instance, each
+port has a unique name.
+
+The purpose of the `run` command is to create a trace processing graph,
+that is, to know which component ports to connect together. The command
+achieves this with the help of the connection rules that you provide
+with the opt:--connect option.
+
+The format of a connection rule (the argument of the opt:--connect
+option) is:
+
+[verse]
+__UP-COMP-PAT__[.__UP-PORT-PAT__]:__DOWN-COMP-PAT__[.__DOWN-PORT-PAT__]
+
+'UP-COMP-PATH'::
+    Upstream component name pattern.
+
+'UP-PORT-PAT'::
+    Upstream port name pattern.
+
+'DOWN-COMP-PATH'::
+    Downstream component name pattern.
+
+'DOWN-PORT-PAT'::
+    Downstream port name pattern.
+
+When a source or filter component adds a new output port within the
+processing graph, the `run` command does the following to find an
+input port to connect it to:
+
+----
+For each connection rule:
+  If the output port's component's name matches UP-COMP-PAT and
+  the output port's name matches UP-PORT-PAT:
+    For each component COMP in the processing graph:
+      If the name of COMP matches DOWN-COMP-PAT:
+        Select the first input port of COMP of which the name
+        matches DOWN-PORT-PAT, or fail with no match.
+Fail with no match.
+----
+
+__UP-COMP-PAT__, __UP-PORT-PAT__, __DOWN-COMP-PAT__, and
+__DOWN-PORT-PAT__ are globbing patterns where only the wildcard
+character, `*`, is special: it matches zero or more characters. You must
+escape the `*`, `?`, `[`, `.`, `:`, and :bs: characters with :bs:.
+
+When you do not specify __UP-PORT-PAT__ or __DOWN-PORT-PAT__, they are
+equivalent to `*`.
+
+You can leverage this connection mechanism to specify fallbacks with a
+careful use of wildcards. For example:
+
+----
+--connect='A.out*:B.in*' --connect=A:B --connect='*:C'
+----
+
+With those connection rules:
+
+* Any output port of which the name starts with `out` of component `A`
+  is connected to the first input port of which the name starts with
+  `in` of component `B`.
+
+* Any other output port of component `A` is connected to the first
+  available input port of component `B`.
+
+* Any other output port (of any component except `A`) is connected to
+  the first available input port of component `C`.
+
+The `run` command fails when it cannot find an input port to which to
+connect a created output port using the provided connection
+rules.
+
+See <<examples,EXAMPLES>> for more examples.
+
+
+include::common-cmd-params-format.txt[]
+
+include::common-cmd-plugin-path.txt[]
+
+
+OPTIONS
+-------
+include::common-gen-options.txt[]
+
+
+Component creation
+~~~~~~~~~~~~~~~~~~
+opt:-b 'PARAMS', opt:--base-params='PARAMS'::
+    Set the current base parameters to 'PARAMS'. You can reset the
+    current base parameters with the opt:--reset-base-params option.
+    See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
+
+opt:-c $$[$$__NAME__:]'TYPE'.'PLUGIN'.'COMPCLS', opt:--component=$$[$$__NAME__:]'TYPE'.'PLUGIN'.'COMPCLS'::
+    Create a component initially named 'NAME' (if specified) from the
+    component class of type 'TYPE' named 'COMPCLS' found in the plugin
+    named 'PLUGIN', and set it as the current component.
++
+The available values for 'TYPE' are:
++
+--
+`source`::
+`src`::
+    Source component class.
+
+`filter`::
+`flt`::
+    Filter component class.
+
+`sink`::
+    Sink component class.
+--
++
+The initial initialization parameters of this component are copied from
+the current base initialization parameters (see the opt:--base-params
+option).
+
+opt:--key='KEY'::
+    Set the current parameter key to 'KEY'. The next opt:--value option
+    uses this key to add a parameter to the current component.
+
+opt:--name='NAME'::
+    Set the name of the current component to 'NAME'. The names of all
+    the components in the processing graph must be unique.
+
+opt:-p 'PARAMS', opt:--params='PARAMS'::
+    Add 'PARAMS' to the initialization parameters of the current
+    component. If 'PARAMS' contains a key which exists in the current
+    component's initialization parameters, replace the parameter.
+    See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
+
+opt:-r, opt:--reset-base-params::
+    Reset the current base parameters. You can set the current base
+    parameters with the opt:--base-params option.
+
+opt:-v 'VALUE', opt:--value='VALUE'::
+    Add a parameter to the current component's initialization parameters
+    of which the key is the argument of the last opt:--key option and
+    the string value is 'VALUE'. If the current component's
+    initialization parameters already contain a key named 'KEY', replace
+    the parameter.
+
+
+Component connection
+~~~~~~~~~~~~~~~~~~~~
+opt:-C 'CONN-RULE', opt:--connect='CONN-RULE'::
+    Add the connection rule 'CONN-RULE'. See
+    <<connect-comps,Connect components>> for the format of 'CONN-RULE'.
+
+
+Graph configuration
+~~~~~~~~~~~~~~~~~~~
+opt:--retry-duration='DURUS'::
+    Set the duration of a single retry to 'DURUS'{nbsp}µs when a
+    component reports "try again later" (busy network or file system,
+    for example).
++
+Default: 100000 (100{nbsp}ms).
+
+
+include::common-plugin-path-options.txt[]
+
+include::common-cmd-info-options.txt[]
+
+
+[[examples]]
+EXAMPLES
+--------
+.Create a single-port source component and a single-port sink component and connect them.
+====
+[role="term"]
+----
+$ babeltrace run --component=A:src.plug.my-src \
+                 --component=B:sink.plug.my-sink \
+                 --connect=A:B
+----
+
+Possible resulting graph:
+
+----
++-----------------+    +-------------------+
+| src.plug.my-src |    | sink.plug.my-sink |
+|       [A]       |    |         [B]       |
+|                 |    |                   |
+|             out @--->@ in                |
++-----------------+    +-------------------+
+----
+====
+
+.Use the opt:--name option to name the current component.
+====
+[role="term"]
+----
+$ babeltrace run --component=src.plug.my-src --name=the-source \
+                 --component=the-sink:sink.plug.my-sink \
+                 --connect=the-source:the-sink
+----
+====
+
+.Use the opt:--params option to set the current component's initialization parameters.
+====
+In this example, the opt:--params option only applies to component
+`the-source`.
+
+[role="term"]
+----
+$ babeltrace run --component=the-source:src.my-plugin.my-src \
+                 --params='offset=123, flag=true' \
+                 --component=the-sink:sink.my-plugin.my-sink \
+                 --connect=the-source:the-sink
+----
+====
+
+.Use the opt:--key and opt:--value options to set a current component's initialization parameter.
+====
+[role="term"]
+----
+$ babeltrace run --component=the-source:src.my-plugin.my-src \
+                 --key=path --value ~/my-traces/the-trace
+                 --component=the-sink:sink.my-plugin.my-sink \
+                 --connect=the-source:the-sink
+----
+====
+
+.Use the opt:--base-params and opt:--reset-base-params options to set and reset the current base initialization parameters.
+====
+In this example, the effective initialization parameters of the
+created components are:
+
+* Component `A`: `offset=1203, flag=false`
+* Component `B`: `offset=1203, flag=true, type=event`
+* Component `C`: `ratio=0.25`
+
+[role="term"]
+----
+$ babeltrace run --base-params='offset=1203, flag=false' \
+                 --component=A:src.plugin.compcls \
+                 --component=B:flt.plugin.compcls \
+                 --params='flag=true, type=event' \
+                 --reset-base-params \
+                 --component=C:sink.plugin.compcls \
+                 --params='ratio=0.25' \
+                 --connect=A:B --connect=B:C
+----
+====
+
+.Specify a component connection fallback rule.
+====
+In this example, any `A` output port of which the name starts with
+`foo` is connected to a `B` input port of which the name starts with
+`nin`. Any other `A` output port is connected to a `B` input port of
+which the name starts with `oth`.
+
+The order of the opt:--connect options is important here: the opposite
+order would create a system in which the first rule is always satisfied,
+and _any_ `A` output port, whatever its name, would be connected to a
+`B` input port with a name that starts with `oth`.
+
+[role="term"]
+----
+$ babeltrace run --component=A:src.plug.my-src \
+                 --component=B:sink.plug.my-sink \
+                 --connect='A.foo*:B:nin*' --connect='A:B.oth*'
+----
+
+Possible resulting graph:
+
+----
++-----------------+    +-------------------+
+| src.plug.my-src |    | sink.plug.my-sink |
+|       [A]       |    |        [B]        |
+|                 |    |                   |
+|            foot @--->@ nine              |
+|         foodies @--->@ ninja             |
+|       some-port @--->@ othello           |
+|           hello @--->@ other             |
++-----------------+    +-------------------+
+----
+====
+
+
+include::common-cli-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace(1),
+man:babeltrace-convert(1),
+man:babeltrace-intro(7)

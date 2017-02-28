@@ -1,0 +1,147 @@
+babeltrace-sink.text.pretty(7)
+==============================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-sink.text.pretty - Babeltrace's pretty-printing sink
+component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:sink.text.pretty component class, provided by the
+man:babeltrace-plugin-text(7) plugin, once instantiated, pretty-prints
+the events it receives from its input port to the console or to a file.
+
+By default, a compcls:sink.text.pretty component pretty-prints to
+the standard output. You can use the param:path parameter for the
+component to write to a file instead.
+
+The component also prints warnings on the standard error stream when it
+receives a discarded packets or discarded events notification.
+
+If you don't use the param:path parameter and the application's
+standard output is connected to a color-capable terminal, the component
+emits terminal color codes to enhance the text output for human
+consumption. You can use the param:color parameter to force the color
+support or to disable it.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+The following parameters are optional.
+
+param:clock-cycles=`yes` (boolean)::
+    Print event times in clock cycles instead of hours, minutes,
+    seconds, and nanoseconds.
+
+param:clock-date=`yes` (boolean)::
+    Print event times _and_ dates.
+
+param:clock-gmt=`yes` (boolean)::
+    Print event times in the GMT time zone instead of the local time
+    zone.
+
+param:clock-seconds=`yes` (boolean)::
+    Print event times in seconds instead of hours, minutes,
+    seconds, and nanoseconds.
+
+param:color=(`never` | `auto` | `always`) (string)::
+    Force the terminal color support, one of:
++
+--
+`auto` (default)::
+    Only emit terminal color codes when the standard output and error
+    streams are connected to a color-capable terminal.
+
+`never`::
+    Never emit terminal color codes.
+
+`always`::
+    Always emit terminal color codes.
+--
++
+The `BABELTRACE_TERM_COLOR` environment variable overrides this
+parameter.
+
+param:field-default=(`show` | `hide`) (string)::
+    By default, show or hide all the fields. This sets the default value
+    of all the parameters which start with `field-`.
+
+param:field-emf=(`yes` | `no`) (boolean)::
+    Show or hide the event's Eclipse Modeling Framework URI field.
+
+param:field-loglevel=(`yes` | `no`) (boolean)::
+    Show or hide the event's logging level field.
+
+param:field-trace=(`yes` | `no`) (boolean)::
+    Show or hide the trace name field.
+
+param:field-trace:domain=(`yes` | `no`) (boolean)::
+    Show or hide the tracing domain field.
+
+param:field-trace:hostname=(`yes` | `no`) (boolean)::
+    Show or hide the hostname field.
+
+param:field-trace:procname=(`yes` | `no`) (boolean)::
+    Show or hide the process name field.
+
+param:field-trace:vpid=(`yes` | `no`) (boolean)::
+    Show or hide the virtual process ID field.
+
+param:name-context=(`yes` | `no`) (boolean)::
+    Show or hide the field names in the context scopes.
+
+param:name-default=(`show` | `hide`) (string)::
+    By default, show or hide all the names. This sets the
+    default value of all the parameters which start with `name-`.
+
+param:name-header=(`yes` | `no`) (boolean)::
+    Show or hide the field names in the header scopes.
+
+param:name-payload=(`yes` | `no`) (boolean)::
+    Show or hide the field names in the event payload scopes.
+
+param:name-scope=(`yes` | `no`) (boolean)::
+    Show or hide the scope names.
+
+param:no-delta=`yes` (boolean)::
+    Do not print the time delta between consecutive lines.
+
+param:path='PATH' (string)::
+    Print the text output to the file 'PATH' instead of the standard
+    output.
+
+param:verbose=`yes` (boolean)::
+    Turn the verbose mode on.
+
+
+PORTS
+-----
+Input
+~~~~~
+`in`::
+    Single input port from which the component receives the
+    event notifications to pretty-print.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-text(7),
+man:babeltrace-intro(7)

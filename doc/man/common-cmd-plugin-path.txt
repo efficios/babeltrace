@@ -1,0 +1,19 @@
+Plugin path
+~~~~~~~~~~~
+This command loads Babeltrace plugins to perform its operation. The
+search path for Babeltrace plugins is, in this order:
+
+. The colon-separated list of directories in the
+  `BABELTRACE_PLUGIN_PATH` environment variable.
+
+. The colon-separated list of directories in the opt:--plugin-path
+  option.
+
+. *If the opt:--omit-home-plugin-path option is absent*:
+  `$HOME/.local/lib/babeltrace/plugins`
+
+. *If the opt:--omit-system-plugin-path option is absent*:
+  +{system_plugin_path}+
+
+You can use the man:babeltrace-list-plugins(1) command to dynamically
+list the available plugins.

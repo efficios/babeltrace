@@ -1,0 +1,87 @@
+babeltrace-sink.utils.counter(7)
+================================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-sink.utils.counter - Babeltrace's notification counter sink
+component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:sink.utils.counter component class, provided by
+the man:babeltrace-plugin-utils(7) plugin, once instantiated, prints to
+the standard output the number of notifications it receives on its input
+port, with a count for each type.
+
+The component's output looks like this:
+
+----
+         664891 events
+             12 stream beginnings
+              0 stream ends
+             93 packet beginnings
+             81 packet ends
+              0 inactivities
+              6 discarded events notifications
+         375378   known discarded events
+              2 discarded packets notifications
+              5   known discarded packets
+        1040455 notifications (TOTAL)
+----
+
+By default, a compcls:sink.utils.counter component prints a new block of
+statistics every 1000 received notifications, whatever their types. You
+can use the param:step parameter to override this default period.
+
+The component always prints a block of statistics when there's no more
+notifications to receive from its input port and the last block was
+different.
+
+By default, a compcls:sink.utils.counter component prints the count of
+notifications for each type, even if this count is 0. You can make it
+hide the zero counts with the param:hide-zero parameter.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+The following parameters are optional.
+
+param:hide-zero=`yes` (boolean)::
+    Do not print the statistics lines where the count is zero.
+
+param:step='STEP' (integer)::
+    Print a new block of statistics every 'STEP' received notifications
+    instead of 1000. If 'STEP' is 0, then the component only prints
+    statistics when there's no more notifications to receive.
+
+
+PORTS
+-----
+Input
+~~~~~
+`in`::
+    Single input port from which the component receives the
+    notifications to count.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-utils(7),
+man:babeltrace-intro(7)

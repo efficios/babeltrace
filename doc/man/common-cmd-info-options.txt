@@ -1,0 +1,4 @@
+Command information
+~~~~~~~~~~~~~~~~~~~
+opt:-h, opt:--help::
+    Show the command's help and quit.

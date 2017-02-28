@@ -1,0 +1,258 @@
+babeltrace-source.ctf.fs(7)
+===========================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-source.ctf.fs - Babeltrace's file system CTF source
+component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:source.ctf.fs component class, provided by the
+man:babeltrace-plugin-ctf(7) plugin, once instantiated, opens one or
+more http://diamon.org/ctf/[CTF] traces on the file system and emits the
+notifications of their data streams on its output ports.
+
+
+Operation
+~~~~~~~~~
+A compcls:source.ctf.fs component recurses the directory given by the
+param:path parameter to find CTF traces. Note that, since a CTF trace
+directory cannot contain another CTF trace, if you need to open a single
+trace, set the param:path parameter to a directory which directly
+contains the `metadata` file.
+
+For each trace, the component creates one output port per effective data
+stream. Multiple data stream files can constitute a single effective
+data stream. The name of a data stream output port is the absolute path
+to the corresponding data stream file, or to one of the corresponding
+data stream files if there's more than one.
+
+The component skips the following files when looking for data stream
+files:
+
+* Any file which starts with `.`, including subdirectories.
+* Any non-regular file.
+
+
+[[trace-naming]]
+Trace naming
+~~~~~~~~~~~~
+A compcls:source.ctf.fs component names each trace `[HOSTNAME/]PATH`,
+with:
+
+`HOSTNAME`::
+    Value of the trace's `hostname` environment constant. If this
+    environment constant does not exist, or if its value is not a
+    string, then this part is omitted.
+
+`PATH`::
+    Relative path to the trace, starting at and including the basename
+    of the param:path parameter. This path is normalized, that is, it
+    doesn't contain path elements named `..` or `.`.
+
+For example, assume the following hierarchy:
+
+----
+/
+  home/
+    user/
+      my-traces/
+        trace1/
+          metadata
+          ...
+        node-traces/
+          server/
+            metadata
+            ...
+          client/
+            metadata
+            ...
+----
+
+If you set the param:path parameter to `/home/user/my-traces`, and
+assuming the hostname of the `trace1` and `server` traces is `machine`,
+and the hostname of the `client` trace is `embedded`, then the trace
+names are:
+
+* `machine/my-traces/trace1`
+* `machine/my-traces/node-traces/server`
+* `embedded/my-traces/node-traces/client`
+
+
+Metadata quirks
+~~~~~~~~~~~~~~~
+A compcls:source.ctf.fs component makes some efforts to support as many
+CTF traces as possible, even those of which the metadata is malformed
+or implements specification bugs.
+
+In particular:
+
+* If the component detects that the trace was produced by LTTng, it sets
+  the `monotonic` clock class as absolute so that different LTTng traces
+  are directly correlatable. An LTTng trace has its `tracer_name`
+  environment constant starting with `lttng`.
+
+* If the `timestamp_begin` or `timestamp_end` packet context field
+  type exists, but it is not mapped to a clock class, and there's
+  only one clock class at this point in the metadata stream, the
+  component maps it to this unique clock class.
+
+* If an enumeration field type's label starts with `_`, the component
+  removes the starting `_` character. This is needed to accomodate
+  an eventual variant field type which refers to the enumeration field type
+  as its tag and which has equivalent choice names also starting
+  with `_` (the `_` must be removed from field and choice names as
+  per CTF{nbsp}1.8.2).
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+The following parameters are optional unless indicated otherwise.
+
+param:clock-class-offset-ns (integer)::
+    Value to add, in nanoseconds, to the offset of all the clock classes
+    that the component creates.
++
+You can combine this parameter with the param:clock-class-offset-s
+parameter.
+
+param:clock-class-offset-s (integer)::
+    Value to add, in seconds, to the offset of all the clock classes
+    that the component creates.
++
+You can combine this parameter with the param:clock-class-offset-ns
+parameter.
+
+param:path='PATH' (string, mandatory)::
+    Path to the directory to recurse for CTF traces.
+
+
+PORTS
+-----
+Output
+~~~~~~
+For each opened trace, the component creates one output port for each
+effective data stream. The name of a data stream output port is the
+normalized (no `..` or `.` elements) absolute path to the corresponding
+data stream file, or to one of the corresponding data stream files if
+there's more than one.
+
+
+QUERY OBJECTS
+-------------
+`metadata-info`
+~~~~~~~~~~~~~~~
+You can query the `metadata-info` object for a specific CTF trace to get
+its plain text metadata stream as well as whether or not it is
+packetized.
+
+Parameters:
+
+`path` (string, mandatory)::
+    Path to the CTF trace directory which contains the `metadata` file.
+
+Returned object (map):
+
+`text` (string)::
+    Plain text metadata.
+
+`is-packetized` (boolean)::
+    True if the metadata stream is packetized.
+
+
+`trace-info`
+~~~~~~~~~~~~
+You can query the `trace-info` object for a set of CTF traces to get
+information about the data streams they contain, their intersection time
+range, and more.
+
+This query object requires that the processed CTF traces have the
+`timestamp_begin` and `timestamp_end` fields in their packet context
+field types.
+
+Parameters:
+
+`path` (string, mandatory)::
+    Path to a directory to recurse to find CTF traces.
+
+Returned object (array of maps, one element for each found trace):
+
+`name` (string)::
+    Trace name, as per the explanations in the <<trace-naming,Trace
+    naming>> section.
+
+`path` (string)::
+    Trace path.
+
+`range-ns` (map)::
+    Full time range of the trace.
++
+--
+`begin` (integer)::
+    Beginning time (ns since Epoch) of the trace.
+
+`end` (integer)::
+    End time (ns since Epoch) of the trace.
+--
+
+`intersection-range-ns` (map)::
+    This entry only exists if there is a data stream intersection range.
++
+--
+`begin` (integer)::
+    Beginning time (ns since Epoch) of the trace's data stream
+    intersection.
+
+`end` (integer)::
+    End time (ns since Epoch) of the trace's data stream intersection.
+--
+
+`streams` (array of maps, one element for each trace's effective data stream)::
++
+--
+`paths` (array of strings)::
+    Absolute paths to the data stream files which are part of this
+    data stream.
+
+`class-id` (integer)::
+    Numeric ID of the data stream's class.
+
+`range-ns` (map)::
+    Full time range of the data stream.
++
+--
+`begin` (integer)::
+    Beginning time (ns since Epoch) of the data stream.
+
+`end` (integer)::
+    End time (ns since Epoch) of the data stream.
+--
+--
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-ctf-plugin-env.txt[]
+
+
+Component class
+~~~~~~~~~~~~~~~
+include::common-common-compat-env.txt[]
+
+`BABELTRACE_SRC_CTF_FS_LOG_LEVEL`::
+    Component class's log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-ctf(7),
+man:babeltrace-intro(7)

@@ -1,0 +1,51 @@
+babeltrace-list-plugins(1)
+==========================
+:manpagetype: command
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-list-plugins - List Babeltrace plugins and their properties
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace list-plugins* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+                        [opt:--omit-system-plugin-path]
+                        [opt:--plugin-path='PATH'[:__PATH__]...]
+
+
+DESCRIPTION
+-----------
+The `list-plugins` command prints a list of available Babeltrace
+plugins along with their component classes and their properties.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+
+include::common-cmd-plugin-path.txt[]
+
+
+OPTIONS
+-------
+include::common-gen-options.txt[]
+
+include::common-plugin-path-options.txt[]
+
+include::common-cmd-info-options.txt[]
+
+include::common-cli-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace(1),
+man:babeltrace-help(1),
+man:babeltrace-intro(7)

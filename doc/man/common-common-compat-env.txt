@@ -1,0 +1,23 @@
+`BABELTRACE_COMMON_LOG_LEVEL`::
+    Common functions's log level. The available values are the same as
+    for the manopt:babeltrace(1):--log-level option of man:babeltrace(1).
+
+`BABELTRACE_COMPAT_LOG_LEVEL`::
+    Compatibility functions's log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1).
+
+`BABELTRACE_TERM_COLOR`::
+    Force the terminal color support. The available values are:
++
+--
+`AUTO`::
+    Only emit terminal color codes when the standard output and error
+    streams are connected to a color-capable terminal.
+
+`NEVER`::
+    Never emit terminal color codes.
+
+`ALWAYS`::
+    Always emit terminal color codes.
+--

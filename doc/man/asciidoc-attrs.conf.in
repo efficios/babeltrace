@@ -1,0 +1,5 @@
+[attributes]
+# default values
+system_plugin_path="@LIBDIR@/babeltrace/plugins"
+babeltrace_version="@PACKAGE_VERSION@"
+enable_debug_info="@ENABLE_DEBUG_INFO_VAL@"
