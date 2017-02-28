@@ -1,0 +1,57 @@
+babeltrace-sink.utils.dummy(7)
+==============================
+:manpagetype: component class
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-sink.utils.dummy - Babeltrace's dummy sink component class
+
+
+DESCRIPTION
+-----------
+The Babeltrace compcls:sink.utils.dummy component class, provided by the
+man:babeltrace-plugin-utils(7) plugin, once instantiated, receives
+notifications from its input port and discards them (does absolutely
+nothing with them).
+
+A compcls:sink.utils.dummy sink component can be useful to run a trace
+processing graph with no sink side effect, for example to perform
+benchmarks. You should prefer this component class for such tasks
+instead of, for example, using a compcls:sink.text.pretty component and
+sending its output to `/dev/null`, as a compcls:sink.text.pretty
+component still performs pretty-printing operations.
+
+
+INITIALIZATION PARAMETERS
+-------------------------
+This component class has no initialization parameters.
+
+
+PORTS
+-----
+Input
+~~~~~
+`in`::
+    Single input port from which the component receives the
+    notifications to discard.
+
+
+QUERY OBJECTS
+-------------
+This component class has no objects to query.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+include::common-common-compat-env.txt[]
+
+
+include::common-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace-plugin-utils(7),
+man:babeltrace-intro(7)

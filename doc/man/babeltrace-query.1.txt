@@ -1,0 +1,128 @@
+babeltrace-query(1)
+===================
+:manpagetype: command
+:revdate: 5 October 2017
+
+
+NAME
+----
+babeltrace-query - Query object from a component class
+
+
+SYNOPSIS
+--------
+[verse]
+*babeltrace query* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+                 [opt:--omit-system-plugin-path]
+                 [opt:--plugin-path='PATH'[:__PATH__]...]
+                 [opt:--params='PARAMS'] 'TYPE.PLUGIN.COMPCLS' 'OBJECT'
+
+
+DESCRIPTION
+-----------
+The `query` command queries the object named 'OBJECT' from the component
+class 'COMPCLS' of the type 'TYPE' found in the Babeltrace plugin
+'PLUGIN' and prints the results.
+
+See man:babeltrace-intro(7) to learn more about the Babeltrace
+project and its core concepts.
+
+The available values for 'TYPE' are:
+
+`source`::
+`src`::
+    Source component class.
+
+`filter`::
+`flt`::
+    Filter component class.
+
+`sink`::
+    Sink component class.
+
+The exact object names and the parameters that a given component class
+expects are described in its documentation. man:babeltrace-help(1) can
+generally provide this information.
+
+You can use the opt:--params='PARAMS' option to pass parameters to the
+component class's query function. See <<params-fmt,Parameters format>>
+for the exact format of 'PARAMS'.
+
+The output of the `query` command looks like YAML, although it is not
+guaranteed that it is YAML-compliant.
+
+See <<examples,EXAMPLES>> for usage examples.
+
+
+include::common-cmd-params-format.txt[]
+
+include::common-cmd-plugin-path.txt[]
+
+
+OPTIONS
+-------
+include::common-gen-options.txt[]
+
+
+Query parameters
+~~~~~~~~~~~~~~~~
+opt:-p 'PARAMS', opt:--params='PARAMS'::
+    Set the query parameters to 'PARAMS'. See <<params-fmt,Parameters
+    format>> for the exact format of 'PARAMS'.
+
+
+include::common-plugin-path-options.txt[]
+
+include::common-cmd-info-options.txt[]
+
+
+[[examples]]
+EXAMPLES
+--------
+.Query the available sessions of the LTTng live source component class.
+====
+[role="term"]
+----
+$ babeltrace query src.ctf.lttng-live sessions \
+                   --params='url="net://RHOST/host/TGTHOST"'
+----
+====
+
+.Query the metadata info (includes the decoded text) of a CTF trace located on the local file system.
+====
+[role="term"]
+----
+$ babeltrace query src.ctf.fs metadata-info \
+                   --params='path="/path/to/trace"'
+----
+====
+
+.Query the trace info of CTF traces located on the local file system.
+====
+[role="term"]
+----
+$ babeltrace query src.ctf.fs trace-info \
+                   --params='path="/path/to/trace"'
+----
+====
+
+.Query some object from a sink component class without parameters.
+====
+[role="term"]
+----
+$ babeltrace query sink.my-plugin.my-sink some-object
+----
+====
+
+
+include::common-cli-env.txt[]
+
+include::common-cli-files.txt[]
+
+include::common-cmd-footer.txt[]
+
+
+SEE ALSO
+--------
+man:babeltrace(1),
+man:babeltrace-intro(7)

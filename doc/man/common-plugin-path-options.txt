@@ -1,0 +1,11 @@
+Plugin path
+~~~~~~~~~~~
+opt:--omit-home-plugin-path::
+    Do not search for plugins in `$HOME/.local/lib/babeltrace/plugins`.
+
+opt:--omit-system-plugin-path::
+    Do not search for plugins in +{system_plugin_path}+.
+
+opt:--plugin-path='PATH'[:__PATH__]...::
+    Add 'PATH' to the list of paths in which dynamic plugins can be
+    found.

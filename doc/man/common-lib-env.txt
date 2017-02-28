@@ -1,0 +1,20 @@
+Babeltrace library
+~~~~~~~~~~~~~~~~~~
+include::common-common-compat-env.txt[]
+
+`BABELTRACE_DISABLE_PYTHON_PLUGINS`::
+    Set to `1` to disable the loading of any Babeltrace Python plugin.
+
+`BABELTRACE_LOGGING_GLOBAL_LEVEL`::
+    Babeltrace library's global log level. The available values are the
+    same as for the manopt:babeltrace(1):--log-level option of
+    man:babeltrace(1)
+
+`BABELTRACE_NO_DLCLOSE`::
+    Set to `1` to make the Babeltrace library leave any dynamically
+    loaded modules (plugins and Python plugin provider) open at exit.
+    This can be useful for debugging purposes.
+
+`BABELTRACE_PLUGIN_PATH`::
+    Colon-separated list of directories, in order, in which dynamic
+    plugins can be found before other directories are considered.
