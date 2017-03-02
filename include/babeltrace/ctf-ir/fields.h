@@ -88,6 +88,9 @@ yet:
 - bt_ctf_field_sequence_get_field()
 - bt_ctf_field_variant_get_field()
 
+If you already have a field object, you can also assign it to a specific
+name within a @structfield with bt_ctf_field_structure_set_field().
+
 You can get a reference to the @ft which was used to create a field with
 bt_ctf_field_get_type(). You can get the
 \link #bt_ctf_type_id type ID\endlink of this field type directly with
@@ -824,7 +827,9 @@ different @fts, and which is described by a @structft.
 
 To set the value of a specific field of a structure field, you need to
 first get the field with bt_ctf_field_structure_get_field() or
-bt_ctf_field_structure_get_field_by_index().
+bt_ctf_field_structure_get_field_by_index(). If you already have a
+field object, you can assign it to a specific name within a structure
+field with bt_ctf_field_structure_set_field().
 
 @sa ctfirstructfieldtype
 @sa ctfirfields
@@ -854,6 +859,8 @@ exist.
 
 @sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
 	given structure field by index.
+@sa bt_ctf_field_structure_set_field(): Sets the field of a given
+	structure field.
 */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
 		struct bt_ctf_field *struct_field, const char *name);
@@ -878,9 +885,54 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
 
 @sa bt_ctf_field_structure_get_field(): Returns the field of a
 	given structure field by name.
+@sa bt_ctf_field_structure_set_field(): Sets the field of a given
+	structure field.
 */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *struct_field, int index);
+
+/**
+@brief	Sets the field of the @structfield \p struct_field named \p name
+	to the @field \p field.
+
+If \p struct_field already contains a field named \p name, then its
+reference count is decremented, and \p field replaces it.
+
+The field type of \p field, as returned by bt_ctf_field_get_type(),
+\em must be equivalent to the field type returned by
+bt_ctf_field_type_structure_get_field_type_by_name() with the field
+type of \p struct_field and the same name, \p name.
+
+bt_ctf_trace_get_packet_header_type() for the parent trace class of
+\p packet.
+
+@param[in] struct_field	Structure field of which to set the field
+			named \p name.
+@param[in] name		Name of the field to set in \p struct_field.
+@param[in] field	Field named \p name to set in \p struct_field.
+@returns		0 on success, or -1 on error.
+
+@prenotnull{struct_field}
+@prenotnull{name}
+@prenotnull{field}
+@prehot{struct_field}
+@preisstructfield{struct_field}
+@pre \p field has a field type equivalent to the field type returned by
+	bt_ctf_field_type_structure_get_field_type_by_name() for the
+	field type of \p struct_field with the name \p name.
+@postrefcountsame{struct_field}
+@post <strong>On success, if there's an existing field in
+	\p struct_field named \p name</strong>, its reference count is
+	decremented.
+@postsuccessrefcountinc{field}
+
+@sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
+	given structure field by index.
+@sa bt_ctf_field_structure_get_field(): Returns the field of a
+	given structure field by name.
+*/
+extern int bt_ctf_field_structure_set_field(struct bt_ctf_field *struct_field,
+		const char *name, struct bt_ctf_field *field);
 
 /** @} */
 
