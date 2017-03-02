@@ -407,17 +407,23 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 					__LINE__);
 			goto error;
 		}
+		ret_int = bt_ctf_stream_class_set_event_header_type(
+				writer_stream_class, new_event_header_type);
+		bt_put(new_event_header_type);
+		if (ret_int < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
 	} else {
-		new_event_header_type = type;
-	}
-
-	ret_int = bt_ctf_stream_class_set_event_header_type(
-			writer_stream_class, new_event_header_type);
-	bt_put(new_event_header_type);
-	if (ret_int < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
+		ret_int = bt_ctf_stream_class_set_event_header_type(
+				writer_stream_class, type);
+		bt_put(type);
+		if (ret_int < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
 	}
 
 	type = bt_ctf_stream_class_get_event_context_type(stream_class);
@@ -561,7 +567,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_field_type *field_type;
 		const char *field_name;
 
-		field =  bt_ctf_field_structure_get_field_by_index(
+		field = bt_ctf_field_structure_get_field_by_index(
 				packet_context, i);
 		if (!field) {
 			BT_PUT(writer_packet_context);
@@ -616,24 +622,39 @@ end:
 	return writer_packet_context;
 }
 
-static
-int copy_event_header(FILE *err, struct bt_ctf_event *event,
+int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
 		struct bt_ctf_event *writer_event,
 		struct bt_ctf_field *event_header)
 {
-	struct bt_ctf_clock_class *writer_clock_class;
-	struct bt_ctf_clock_value *clock_value;
+	struct bt_ctf_clock_class *clock_class, *writer_clock_class;
+	struct bt_ctf_clock_value *clock_value, *writer_clock_value;
 
 	int ret;
-	struct bt_ctf_field *writer_event_header;
+	struct bt_ctf_field *writer_event_header = NULL;
+	uint64_t value;
 
-	writer_event_header = bt_ctf_field_copy(event_header);
-	if (!writer_event_header) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
-		goto end;
+	clock_class = event_get_clock_class(err, event);
+	if (!clock_class) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
+	bt_put(clock_class);
+	if (!clock_value) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_clock_value_get_value(clock_value, &value);
+	bt_put(clock_value);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
 	}
 
 	writer_clock_class = event_get_clock_class(err, writer_event);
@@ -643,29 +664,37 @@ int copy_event_header(FILE *err, struct bt_ctf_event *event,
 		goto error;
 	}
 
-	clock_value = bt_ctf_event_get_clock_value(event, writer_clock_class);
+	writer_clock_value = bt_ctf_clock_value_create(writer_clock_class, value);
 	bt_put(writer_clock_class);
-	if (!clock_value) {
+	if (!writer_clock_value) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto error;
+		goto end;
 	}
 
-	ret = bt_ctf_event_set_clock_value(writer_event, clock_value);
-	bt_put(clock_value);
+	ret = bt_ctf_event_set_clock_value(writer_event, writer_clock_value);
+	bt_put(writer_clock_value);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto error;
 	}
 
+	writer_event_header = bt_ctf_field_copy(event_header);
+	if (!writer_event_header) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		ret = -1;
+		goto end;
+	}
+
 	ret = bt_ctf_event_set_header(writer_event, writer_event_header);
+	bt_put(writer_event_header);
 	if (ret < 0) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
 	}
-	bt_put(writer_event_header);
 
 	ret = 0;
 
@@ -726,7 +755,7 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 			goto end;
 		}
 	} else {
-		ret = copy_event_header(err, event, writer_event_class,
+		ret = ctf_copy_event_header(err, event, writer_event_class,
 				writer_event, field);
 		if (ret) {
 			BT_PUT(writer_event);

@@ -121,6 +121,16 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		bool override_ts64);
 
 /*
+ * Copies the content of the event header to writer_event_header.
+ *
+ * Returns 0 on success, -1 on error.
+ */
+int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
+		struct bt_ctf_event_class *writer_event_class,
+		struct bt_ctf_event *writer_event,
+		struct bt_ctf_field *event_header);
+
+/*
  * Copy the environment and the packet header from the input trace to the
  * writer_trace.
  *
