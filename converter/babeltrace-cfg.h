@@ -38,13 +38,15 @@ struct bt_config_component {
 	struct bt_object base;
 	enum bt_component_class_type type;
 	GString *plugin_name;
-	GString *component_name;
+	GString *comp_cls_name;
 	struct bt_value *params;
 	GString *instance_name;
 };
 
 enum bt_config_command {
-	BT_CONFIG_COMMAND_CONVERT,
+	BT_CONFIG_COMMAND_RUN,
+	BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
+	BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
 	BT_CONFIG_COMMAND_LIST_PLUGINS,
 	BT_CONFIG_COMMAND_HELP,
 	BT_CONFIG_COMMAND_QUERY,
@@ -54,13 +56,15 @@ struct bt_config {
 	struct bt_object base;
 	bool debug;
 	bool verbose;
+	struct bt_value *plugin_paths;
+	bool omit_system_plugin_path;
+	bool omit_home_plugin_path;
+	bool command_needs_plugins;
 	const char *command_name;
 	enum bt_config_command command;
 	union {
-		/* BT_CONFIG_COMMAND_CONVERT */
+		/* BT_CONFIG_COMMAND_RUN */
 		struct {
-			struct bt_value *plugin_paths;
-
 			/* Array of pointers to struct bt_config_component */
 			GPtrArray *sources;
 
@@ -72,36 +76,28 @@ struct bt_config {
 
 			/* Array of pointers to struct bt_config_connection */
 			GPtrArray *connections;
-
-			bool force_correlate;
-			bool omit_system_plugin_path;
-			bool omit_home_plugin_path;
-			bool print_ctf_metadata;
-		} convert;
-
-		/* BT_CONFIG_COMMAND_LIST_PLUGINS */
-		struct {
-			struct bt_value *plugin_paths;
-			bool omit_system_plugin_path;
-			bool omit_home_plugin_path;
-		} list_plugins;
+		} run;
 
 		/* BT_CONFIG_COMMAND_HELP */
 		struct {
-			struct bt_value *plugin_paths;
-			bool omit_system_plugin_path;
-			bool omit_home_plugin_path;
 			struct bt_config_component *cfg_component;
 		} help;
 
 		/* BT_CONFIG_COMMAND_QUERY */
 		struct {
-			struct bt_value *plugin_paths;
-			bool omit_system_plugin_path;
-			bool omit_home_plugin_path;
 			GString *object;
 			struct bt_config_component *cfg_component;
 		} query;
+
+		/* BT_CONFIG_COMMAND_PRINT_CTF_METADATA */
+		struct {
+			GString *path;
+		} print_ctf_metadata;
+
+		/* BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS */
+		struct {
+			GString *url;
+		} print_lttng_live_sessions;
 	} cmd_data;
 };
 

@@ -21,32 +21,38 @@
  */
 
 #include <babeltrace/values.h>
+#include <babeltrace/common-internal.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-connect.h"
 
-static bool all_named_in_array(GPtrArray *comps)
+static bool all_named_and_printable_in_array(GPtrArray *comps)
 {
 	size_t i;
-	bool all_named = true;
+	bool all_named_and_printable = true;
 
 	for (i = 0; i < comps->len; i++) {
 		struct bt_config_component *comp = g_ptr_array_index(comps, i);
 
 		if (comp->instance_name->len == 0) {
-			all_named = false;
+			all_named_and_printable = false;
+			goto end;
+		}
+
+		if (!bt_common_string_is_printable(comp->instance_name->str)) {
+			all_named_and_printable = false;
 			goto end;
 		}
 	}
 
 end:
-	return all_named;
+	return all_named_and_printable;
 }
 
-static bool all_named(struct bt_config *cfg)
+static bool all_named_and_printable(struct bt_config *cfg)
 {
-	return all_named_in_array(cfg->cmd_data.convert.sources) &&
-		all_named_in_array(cfg->cmd_data.convert.filters) &&
-		all_named_in_array(cfg->cmd_data.convert.sinks);
+	return all_named_and_printable_in_array(cfg->cmd_data.run.sources) &&
+		all_named_and_printable_in_array(cfg->cmd_data.run.filters) &&
+		all_named_and_printable_in_array(cfg->cmd_data.run.sinks);
 }
 
 void bt_config_connection_destroy(struct bt_config_connection *connection)
@@ -122,180 +128,119 @@ end:
 	return cfg_connection;
 }
 
-static struct bt_config_connection *bt_config_connection_create_full(
-	const char *src_instance_name, const char *src_port_name,
-	const char *dst_instance_name, const char *dst_port_name,
-	const char *arg)
-{
-	struct bt_config_connection *cfg_connection =
-		bt_config_connection_create(arg);
-
-	if (!cfg_connection) {
-		goto end;
-	}
-
-	g_string_assign(cfg_connection->src_instance_name, src_instance_name);
-	g_string_assign(cfg_connection->dst_instance_name, dst_instance_name);
-	g_string_assign(cfg_connection->src_port_name, src_port_name);
-	g_string_assign(cfg_connection->dst_port_name, dst_port_name);
-
-end:
-	return cfg_connection;
-}
-
-static GScanner *create_connection_arg_scanner(void)
-{
-	GScannerConfig scanner_config = {
-		.cset_skip_characters = " \t\n",
-		.cset_identifier_first = G_CSET_a_2_z G_CSET_A_2_Z G_CSET_DIGITS "_-",
-		.cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z G_CSET_DIGITS "_-",
-		.case_sensitive = TRUE,
-		.cpair_comment_single = NULL,
-		.skip_comment_multi = TRUE,
-		.skip_comment_single = TRUE,
-		.scan_comment_multi = FALSE,
-		.scan_identifier = TRUE,
-		.scan_identifier_1char = TRUE,
-		.scan_identifier_NULL = FALSE,
-		.scan_symbols = FALSE,
-		.symbol_2_token = FALSE,
-		.scope_0_fallback = FALSE,
-		.scan_binary = FALSE,
-		.scan_octal = FALSE,
-		.scan_float = FALSE,
-		.scan_hex = FALSE,
-		.scan_hex_dollar = FALSE,
-		.numbers_2_int = FALSE,
-		.int_2_float = FALSE,
-		.store_int64 = FALSE,
-		.scan_string_sq = FALSE,
-		.scan_string_dq = FALSE,
-		.identifier_2_string = FALSE,
-		.char_2_token = TRUE,
-	};
-
-	return g_scanner_new(&scanner_config);
-}
-
 static struct bt_config_connection *cfg_connection_from_arg(const char *arg)
 {
-	struct bt_config_connection *connection = NULL;
-	GScanner *scanner = NULL;
+	const char *at = arg;
+	size_t end_pos;
+	struct bt_config_connection *cfg_conn = NULL;
+	GString *gs = NULL;
 	enum {
-		EXPECTING_SRC,
-		EXPECTING_SRC_DOT,
-		EXPECTING_SRC_PORT,
-		EXPECTING_COLON,
-		EXPECTING_DST,
-		EXPECTING_DST_DOT,
-		EXPECTING_DST_PORT,
-		DONE,
-	} state = EXPECTING_SRC;
+		SRC_NAME,
+		DST_NAME,
+		SRC_PORT_NAME,
+		DST_PORT_NAME,
+	} state = SRC_NAME;
 
-	connection = bt_config_connection_create(arg);
-	if (!connection) {
+	if (!bt_common_string_is_printable(arg)) {
 		goto error;
 	}
 
-	scanner = create_connection_arg_scanner();
-	if (!scanner) {
+	cfg_conn = bt_config_connection_create(arg);
+	if (!cfg_conn) {
 		goto error;
 	}
-
-	g_scanner_input_text(scanner, arg, strlen(arg));
 
 	while (true) {
-		GTokenType token_type = g_scanner_get_next_token(scanner);
-
-		if (token_type == G_TOKEN_EOF) {
-			goto after_scan;
-		}
-
 		switch (state) {
-		case EXPECTING_SRC:
-			if (token_type != G_TOKEN_IDENTIFIER) {
+		case SRC_NAME:
+			gs = bt_common_string_until(at, ".:\\", ".:", &end_pos);
+			if (!gs || gs->len == 0) {
 				goto error;
 			}
 
-			g_string_assign(connection->src_instance_name,
-				scanner->value.v_identifier);
-			state = EXPECTING_SRC_DOT;
+			g_string_free(cfg_conn->src_instance_name, TRUE);
+			cfg_conn->src_instance_name = gs;
+			gs = NULL;
+
+			if (at[end_pos] == ':') {
+				state = DST_NAME;
+			} else if (at[end_pos] == '.') {
+				state = SRC_PORT_NAME;
+			} else {
+				goto error;
+			}
+
+			at += end_pos + 1;
 			break;
-		case EXPECTING_SRC_DOT:
-			if (token_type == ':') {
-				state = EXPECTING_DST;
-				break;
-			}
-
-			if (token_type != '.') {
+		case DST_NAME:
+			gs = bt_common_string_until(at, ".:\\", ".:", &end_pos);
+			if (!gs || gs->len == 0) {
 				goto error;
 			}
 
-			state = EXPECTING_SRC_PORT;
+			g_string_free(cfg_conn->dst_instance_name, TRUE);
+			cfg_conn->dst_instance_name = gs;
+			gs = NULL;
+
+			if (at[end_pos] == '.') {
+				state = DST_PORT_NAME;
+			} else if (at[end_pos] == '\0') {
+				goto end;
+			} else {
+				goto error;
+			}
+
+			at += end_pos + 1;
 			break;
-		case EXPECTING_SRC_PORT:
-			if (token_type != G_TOKEN_IDENTIFIER) {
+		case SRC_PORT_NAME:
+			gs = bt_common_string_until(at, ".:\\", ".:", &end_pos);
+			if (!gs || gs->len == 0) {
 				goto error;
 			}
 
-			g_string_assign(connection->src_port_name,
-				scanner->value.v_identifier);
-			state = EXPECTING_COLON;
+			g_string_free(cfg_conn->src_port_name, TRUE);
+			cfg_conn->src_port_name = gs;
+			gs = NULL;
+
+			if (at[end_pos] == ':') {
+				state = DST_NAME;
+			} else {
+				goto error;
+			}
+
+			at += end_pos + 1;
 			break;
-		case EXPECTING_COLON:
-			if (token_type != ':') {
+		case DST_PORT_NAME:
+			gs = bt_common_string_until(at, ".:\\", ".:", &end_pos);
+			if (!gs || gs->len == 0) {
 				goto error;
 			}
 
-			state = EXPECTING_DST;
-			break;
-		case EXPECTING_DST:
-			if (token_type != G_TOKEN_IDENTIFIER) {
+			g_string_free(cfg_conn->dst_port_name, TRUE);
+			cfg_conn->dst_port_name = gs;
+			gs = NULL;
+
+			if (at[end_pos] == '\0') {
+				goto end;
+			} else {
 				goto error;
 			}
-
-			g_string_assign(connection->dst_instance_name,
-				scanner->value.v_identifier);
-			state = EXPECTING_DST_DOT;
-			break;
-		case EXPECTING_DST_DOT:
-			if (token_type != '.') {
-				goto error;
-			}
-
-			state = EXPECTING_DST_PORT;
-			break;
-		case EXPECTING_DST_PORT:
-			if (token_type != G_TOKEN_IDENTIFIER) {
-				goto error;
-			}
-
-			g_string_assign(connection->dst_port_name,
-				scanner->value.v_identifier);
-			state = DONE;
 			break;
 		default:
-			goto error;
+			assert(false);
 		}
 	}
 
-after_scan:
-	if (state != EXPECTING_DST_DOT && state != DONE) {
-		goto error;
-	}
-
-	goto end;
-
 error:
-	bt_config_connection_destroy(connection);
-	connection = NULL;
+	bt_config_connection_destroy(cfg_conn);
+	cfg_conn = NULL;
 
 end:
-	if (scanner) {
-		g_scanner_destroy(scanner);
+	if (gs) {
+		g_string_free(gs, TRUE);
 	}
 
-	return connection;
+	return cfg_conn;
 }
 
 static struct bt_config_component *find_component_in_array(GPtrArray *comps,
@@ -322,17 +267,17 @@ static struct bt_config_component *find_component(struct bt_config *cfg,
 {
 	struct bt_config_component *comp;
 
-	comp = find_component_in_array(cfg->cmd_data.convert.sources, name);
+	comp = find_component_in_array(cfg->cmd_data.run.sources, name);
 	if (comp) {
 		goto end;
 	}
 
-	comp = find_component_in_array(cfg->cmd_data.convert.filters, name);
+	comp = find_component_in_array(cfg->cmd_data.run.filters, name);
 	if (comp) {
 		goto end;
 	}
 
-	comp = find_component_in_array(cfg->cmd_data.convert.sinks, name);
+	comp = find_component_in_array(cfg->cmd_data.run.sinks, name);
 	if (comp) {
 		goto end;
 	}
@@ -347,25 +292,31 @@ static int validate_all_endpoints_exist(struct bt_config *cfg, char *error_buf,
 	size_t i;
 	int ret = 0;
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
+			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 		struct bt_config_component *comp;
 
 		comp = find_component(cfg, connection->src_instance_name->str);
 		bt_put(comp);
 		if (!comp) {
-			comp = find_component(cfg,
-				connection->dst_instance_name->str);
-			bt_put(comp);
-			if (!comp) {
-				snprintf(error_buf, error_buf_size,
-					"Invalid connection: cannot find component `%s`:\n    %s\n",
-					connection->dst_instance_name->str,
-					connection->arg->str);
-				ret = -1;
-				goto end;
-			}
+			snprintf(error_buf, error_buf_size,
+				"Invalid connection: cannot find upstream component `%s`:\n    %s\n",
+				connection->src_instance_name->str,
+				connection->arg->str);
+			ret = -1;
+			goto end;
+		}
+
+		comp = find_component(cfg, connection->dst_instance_name->str);
+		bt_put(comp);
+		if (!comp) {
+			snprintf(error_buf, error_buf_size,
+				"Invalid connection: cannot find downstream component `%s`:\n    %s\n",
+				connection->dst_instance_name->str,
+				connection->arg->str);
+			ret = -1;
+			goto end;
 		}
 	}
 
@@ -381,9 +332,9 @@ static int validate_connection_directions(struct bt_config *cfg,
 	struct bt_config_component *src_comp = NULL;
 	struct bt_config_component *dst_comp = NULL;
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
+			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 
 		src_comp = find_component(cfg,
 			connection->src_instance_name->str);
@@ -432,28 +383,83 @@ end:
 	return ret;
 }
 
-static int validate_self_connections(struct bt_config *cfg, char *error_buf,
+static int validate_no_cycles_rec(struct bt_config *cfg, GPtrArray *path,
+		char *error_buf, size_t error_buf_size)
+{
+	int ret = 0;
+	size_t conn_i;
+	const char *src_comp_name;
+
+	assert(path && path->len > 0);
+	src_comp_name = g_ptr_array_index(path, path->len - 1);
+
+	for (conn_i = 0; conn_i < cfg->cmd_data.run.connections->len; conn_i++) {
+		struct bt_config_connection *conn =
+			g_ptr_array_index(cfg->cmd_data.run.connections, conn_i);
+
+		if (strcmp(conn->src_instance_name->str, src_comp_name) == 0) {
+			size_t path_i;
+
+			for (path_i = 0; path_i < path->len; path_i++) {
+				const char *comp_name =
+					g_ptr_array_index(path, path_i);
+
+				if (strcmp(comp_name, conn->dst_instance_name->str) == 0) {
+					snprintf(error_buf, error_buf_size,
+						"Invalid connection: connection forms a cycle:\n    %s\n",
+						conn->arg->str);
+					ret = -1;
+					goto end;
+				}
+			}
+
+			g_ptr_array_add(path, conn->dst_instance_name->str);
+			ret = validate_no_cycles_rec(cfg, path, error_buf,
+					error_buf_size);
+			if (ret) {
+				goto end;
+			}
+
+			g_ptr_array_remove_index(path, path->len - 1);
+		}
+	}
+
+end:
+	return ret;
+}
+
+static int validate_no_cycles(struct bt_config *cfg, char *error_buf,
 		size_t error_buf_size)
 {
 	size_t i;
 	int ret = 0;
+	GPtrArray *path;
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
-		struct bt_config_connection *connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
+	path = g_ptr_array_new();
+	if (!path) {
+		ret = -1;
+		goto end;
+	}
 
-		if (strcmp(connection->src_instance_name->str,
-				connection->dst_instance_name->str) == 0) {
-			snprintf(error_buf, error_buf_size,
-				"Invalid connection: component `%s` is connected to itself:\n    %s\n",
-				connection->src_instance_name->str,
-				connection->arg->str);
-			ret = -1;
+	g_ptr_array_add(path, NULL);
+
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
+		struct bt_config_connection *conn =
+			g_ptr_array_index(cfg->cmd_data.run.connections, i);
+
+		g_ptr_array_index(path, 0) = conn->src_instance_name->str;
+		ret = validate_no_cycles_rec(cfg, path,
+			error_buf, error_buf_size);
+		if (ret) {
 			goto end;
 		}
 	}
 
 end:
+	if (path) {
+		g_ptr_array_free(path, TRUE);
+	}
+
 	return ret;
 }
 
@@ -493,9 +499,9 @@ static int validate_all_components_connected(struct bt_config *cfg,
 		goto end;
 	}
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
+			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 
 		ret = bt_value_map_insert(connected_components,
 			connection->src_instance_name->str, bt_value_null);
@@ -511,21 +517,21 @@ static int validate_all_components_connected(struct bt_config *cfg,
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.convert.sources, connected_components,
+		cfg->cmd_data.run.sources, connected_components,
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.convert.filters, connected_components,
+		cfg->cmd_data.run.filters, connected_components,
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.convert.sinks, connected_components,
+		cfg->cmd_data.run.sinks, connected_components,
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -555,11 +561,11 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 		goto end;
 	}
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections, i);
+			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 
-		g_string_printf(flat_connection_name, "%s.%s:%s.%s",
+		g_string_printf(flat_connection_name, "%s\x01%s\x01%s\x01%s",
 			connection->src_instance_name->str,
 			connection->src_port_name->str,
 			connection->dst_instance_name->str,
@@ -606,11 +612,6 @@ static int validate_connections(struct bt_config *cfg, char *error_buf,
 		goto end;
 	}
 
-	ret = validate_self_connections(cfg, error_buf, error_buf_size);
-	if (ret) {
-		goto end;
-	}
-
 	ret = validate_all_components_connected(cfg, error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -621,204 +622,12 @@ static int validate_connections(struct bt_config *cfg, char *error_buf,
 		goto end;
 	}
 
-end:
-	return ret;
-}
-
-static bool component_name_exists_in_array(GPtrArray *comps, const char *name)
-{
-	size_t i;
-	bool exists = false;
-
-	for (i = 0; i < comps->len; i++) {
-		struct bt_config_component *comp = g_ptr_array_index(comps, i);
-
-		if (comp->instance_name->len > 0) {
-			if (strcmp(comp->instance_name->str, name) == 0) {
-				exists = true;
-				break;
-			}
-		}
-	}
-
-	return exists;
-}
-
-static bool component_name_exists_at_all(struct bt_config *cfg,
-		const char *name)
-{
-	return component_name_exists_in_array(cfg->cmd_data.convert.sources,
-		name) || component_name_exists_in_array(
-			cfg->cmd_data.convert.filters, name) ||
-		component_name_exists_in_array(
-			cfg->cmd_data.convert.sinks, name);
-}
-
-static int auto_name_component(struct bt_config *cfg, const char *prefix,
-		struct bt_config_component *comp)
-{
-	int ret = 0;
-	unsigned int i = 0;
-	GString *new_name;
-
-	assert(comp->instance_name->len == 0);
-	new_name = g_string_new(NULL);
-	if (!new_name) {
-		ret = -1;
-		goto end;
-	}
-
-	do {
-		g_string_printf(new_name, "%s-%s.%s-%d", prefix,
-			comp->plugin_name->str, comp->component_name->str, i);
-		i++;
-	} while (component_name_exists_at_all(cfg, new_name->str));
-
-	g_string_assign(comp->instance_name, new_name->str);
-
-end:
-	if (new_name) {
-		g_string_free(new_name, TRUE);
-	}
-
-	return ret;
-}
-
-static int auto_name_components_in_array(struct bt_config *cfg,
-		GPtrArray *comps, const char *prefix)
-{
-	int ret = 0;
-	size_t i;
-
-	for (i = 0; i < comps->len; i++) {
-		struct bt_config_component *comp = g_ptr_array_index(comps, i);
-
-		if (comp->instance_name->len == 0) {
-			ret = auto_name_component(cfg, prefix, comp);
-			if (ret) {
-				goto end;
-			}
-		}
-	}
-
-end:
-	return ret;
-}
-
-static int auto_name_components(struct bt_config *cfg)
-{
-	int ret;
-
-	ret = auto_name_components_in_array(cfg, cfg->cmd_data.convert.sources,
-		"source");
-	if (ret) {
-		goto end;
-	}
-
-	ret = auto_name_components_in_array(cfg, cfg->cmd_data.convert.filters,
-		"filter");
-	if (ret) {
-		goto end;
-	}
-
-	ret = auto_name_components_in_array(cfg, cfg->cmd_data.convert.sinks,
-		"sink");
+	ret = validate_no_cycles(cfg, error_buf, error_buf_size);
 	if (ret) {
 		goto end;
 	}
 
 end:
-	return ret;
-}
-
-static int auto_connect(struct bt_config *cfg)
-{
-	int ret = 0;
-	struct bt_config_component *muxer_cfg_comp = NULL;
-	size_t i;
-	const char *last_filter_comp_name;
-
-	/* Make sure all components have a unique instance name */
-	ret = auto_name_components(cfg);
-	if (ret) {
-		goto error;
-	}
-
-	/* Add an implicit muxer filter */
-	muxer_cfg_comp = bt_config_component_from_arg(
-		BT_COMPONENT_CLASS_TYPE_FILTER, "utils.muxer");
-	if (!muxer_cfg_comp) {
-		goto error;
-	}
-
-	auto_name_component(cfg, "filter", muxer_cfg_comp);
-	g_ptr_array_add(cfg->cmd_data.convert.filters, bt_get(muxer_cfg_comp));
-
-	/* Connect all sources to this mux */
-	for (i = 0; i < cfg->cmd_data.convert.sources->len; i++) {
-		struct bt_config_component *comp =
-			g_ptr_array_index(cfg->cmd_data.convert.sources, i);
-		struct bt_config_connection *cfg_connection =
-			bt_config_connection_create_full(
-				comp->instance_name->str, "",
-				muxer_cfg_comp->instance_name->str, "",
-				"(auto)");
-
-		if (!cfg_connection) {
-			goto error;
-		}
-
-		g_ptr_array_add(cfg->cmd_data.convert.connections,
-			cfg_connection);
-	}
-
-	/* Connect this mux to the filter components, in order */
-	last_filter_comp_name = muxer_cfg_comp->instance_name->str;
-
-	for (i = 0; i < cfg->cmd_data.convert.filters->len - 1; i++) {
-		struct bt_config_component *comp =
-			g_ptr_array_index(cfg->cmd_data.convert.filters, i);
-		struct bt_config_connection *cfg_connection;
-
-		cfg_connection = bt_config_connection_create_full(
-				last_filter_comp_name, "",
-				comp->instance_name->str, "",
-				"(auto)");
-
-		if (!cfg_connection) {
-			goto error;
-		}
-
-		g_ptr_array_add(cfg->cmd_data.convert.connections,
-			cfg_connection);
-		last_filter_comp_name = comp->instance_name->str;
-	}
-
-	/* Connect the last filter component to all sink components */
-	for (i = 0; i < cfg->cmd_data.convert.sinks->len; i++) {
-		struct bt_config_component *comp =
-			g_ptr_array_index(cfg->cmd_data.convert.sinks, i);
-		struct bt_config_connection *cfg_connection =
-			bt_config_connection_create_full(
-				last_filter_comp_name, "",
-				comp->instance_name->str, "",
-				"(auto)");
-
-		if (!cfg_connection) {
-			goto error;
-		}
-
-		g_ptr_array_add(cfg->cmd_data.convert.connections,
-			cfg_connection);
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	bt_put(muxer_cfg_comp);
 	return ret;
 }
 
@@ -829,16 +638,9 @@ int bt_config_create_connections(struct bt_config *cfg,
 	int ret;
 	size_t i;
 
-	if (bt_value_array_is_empty(connection_args)) {
-		/* No explicit connections: do automatic connection */
-		ret = auto_connect(cfg);
-		if (ret) {
-			goto error;
-		}
-	}
-
-	if (!all_named(cfg)) {
-		snprintf(error_buf, error_buf_size, "At least one connection (--connect) specified, but not all component\ninstances are named (use --name)\n");
+	if (!all_named_and_printable(cfg)) {
+		snprintf(error_buf, error_buf_size,
+			"One or more components are unnamed (use --name) or contain a non-printable character\n");
 		goto error;
 	}
 
@@ -858,7 +660,7 @@ int bt_config_create_connections(struct bt_config *cfg,
 			goto error;
 		}
 
-		g_ptr_array_add(cfg->cmd_data.convert.connections,
+		g_ptr_array_add(cfg->cmd_data.run.connections,
 			cfg_connection);
 	}
 

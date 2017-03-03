@@ -22,6 +22,16 @@
 #define BT_COMMON_COLOR_BG_CYAN            "\033[46m"
 #define BT_COMMON_COLOR_BG_LIGHT_GRAY      "\033[47m"
 
+struct bt_common_lttng_live_url_parts {
+	GString *proto;
+	GString *hostname;
+	GString *target_hostname;
+	GString *session_name;
+
+	/* -1 means default port */
+	int port;
+};
+
 BT_HIDDEN
 bool bt_common_is_setuid_setgid(void);
 
@@ -90,5 +100,23 @@ const char *bt_common_color_bg_cyan(void);
 
 BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void);
+
+BT_HIDDEN
+GString *bt_common_string_until(const char *input, const char *escapable_chars,
+                    const char *end_chars, size_t *end_pos);
+
+BT_HIDDEN
+GString *bt_common_shell_quote(const char *input);
+
+BT_HIDDEN
+bool bt_common_string_is_printable(const char *input);
+
+BT_HIDDEN
+void bt_common_destroy_lttng_live_url_parts(
+		struct bt_common_lttng_live_url_parts *parts);
+
+BT_HIDDEN
+struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
+		const char *url, char *error_buf, size_t error_buf_size);
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

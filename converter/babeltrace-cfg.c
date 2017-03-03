@@ -39,9 +39,6 @@
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-connect.h"
 
-#define DEFAULT_SOURCE_COMPONENT_NAME	"ctf.fs"
-#define DEFAULT_SINK_COMPONENT_NAME	"text.text"
-
 /*
  * Error printf() macro which prepends "Error: " the first time it's
  * called. This gives a nicer feel than having a bunch of error prefixes
@@ -154,51 +151,6 @@ static
 void print_err_oom(void)
 {
 	printf_err("Out of memory\n");
-}
-
-/*
- * Prints duplicate legacy output format error.
- */
-static
-void print_err_dup_legacy_output(void)
-{
-	printf_err("More than one legacy output format specified\n");
-}
-
-/*
- * Prints duplicate legacy input format error.
- */
-static
-void print_err_dup_legacy_input(void)
-{
-	printf_err("More than one legacy input format specified\n");
-}
-
-/*
- * Checks if any of the "text" legacy options is set.
- */
-static
-bool text_legacy_opts_is_any_set(struct text_legacy_opts *opts)
-{
-	return (opts->output && opts->output->len > 0) ||
-		(opts->dbg_info_dir && opts->dbg_info_dir->len > 0) ||
-		(opts->dbg_info_target_prefix &&
-			opts->dbg_info_target_prefix->len > 0) ||
-		bt_value_array_size(opts->names) > 0 ||
-		bt_value_array_size(opts->fields) > 0 ||
-		opts->no_delta || opts->clock_cycles || opts->clock_seconds ||
-		opts->clock_date || opts->clock_gmt ||
-		opts->dbg_info_full_path;
-}
-
-/*
- * Checks if any of the "ctf" legacy options is set.
- */
-static
-bool ctf_legacy_opts_is_any_set(struct ctf_legacy_opts *opts)
-{
-	return opts->offset_s.is_set || opts->offset_ns.is_set ||
-		opts->stream_intersection;
 }
 
 /*
@@ -627,89 +579,110 @@ end:
 }
 
 /*
- * Returns the plugin and component names from a command-line
- * source/sink option's argument. arg must have the following format:
+ * Returns the plugin and component class names, and the instance name,
+ * from a command-line source/filter/sink option's argument. arg must
+ * have the following format:
  *
- *     PLUGIN.COMPONENT
+ *     [NAME:]PLUGIN.CLS
  *
- * where PLUGIN is the plugin name, and COMPONENT is the component
- * name.
+ * where NAME is the optional component name, PLUGIN is the plugin name,
+ * and CLS is the component class name.
  *
  * On success, both *plugin and *component are not NULL. *plugin
- * and *component are owned by the caller.
+ * and *component are owned by the caller. On success, *name can be NULL
+ * if no component name was found.
  */
 static
-void plugin_component_names_from_arg(const char *arg, char **plugin,
-		char **component)
+void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
+		char **comp_cls)
 {
-	const char *arg_ch = arg;
-	char *ch;
-	bool in_component = false;
+	const char *at = arg;
+	GString *gs_name = NULL;
+	GString *gs_plugin = NULL;
+	GString *gs_comp_cls = NULL;
+	size_t end_pos;
 
-	/* Initialize both return values */
-	*plugin = g_malloc0(strlen(arg) + 1);
-	ch = *plugin;
-	if (!*plugin) {
-		print_err_oom();
+	assert(arg);
+	assert(plugin);
+	assert(comp_cls);
+
+	if (!bt_common_string_is_printable(arg)) {
+		printf_err("Argument contains a non-printable character\n");
 		goto error;
 	}
 
-	*component = g_malloc0(strlen(arg) + 1);
-	if (!*component) {
-		print_err_oom();
+	/* Parse the component name */
+	gs_name = bt_common_string_until(at, ".:\\", ":", &end_pos);
+	if (!gs_name) {
 		goto error;
 	}
 
-	while (*arg_ch != '\0') {
-		switch (*arg_ch) {
-		case '\\':
-			if (arg_ch[1] == '\0') {
-				/* `\` at the end of the string */
-				*ch = *arg_ch;
-				ch++;
-				arg_ch++;
-			} else if (arg_ch[1] == '\\' || arg_ch[1] == '.') {
-				/* Escaped `\` or `.` */
-				*ch = arg_ch[1];
-				ch++;
-				arg_ch += 2;
-			} else {
-				/* Unknown escaped character (write `\` too) */
-				ch[0] = arg_ch[0];
-				ch[1] = arg_ch[1];
-				ch += 2;
-				arg_ch += 2;
+	if (arg[end_pos] == ':') {
+		at += end_pos + 1;
+	} else {
+		/* No name */
+		g_string_assign(gs_name, "");
+	}
 
-			}
-			continue;
-		case '.':
-			if (in_component) {
-				goto error;
-			}
+	/* Parse the plugin name */
+	gs_plugin = bt_common_string_until(at, ".:\\", ".", &end_pos);
+	if (!gs_plugin || gs_plugin->len == 0 || at[end_pos] == '\0') {
+		goto error;
+	}
 
-			in_component = true;
-			ch = *component;
-			arg_ch++;
-			break;
-		default:
-			*ch = *arg_ch;
-			ch++;
-			arg_ch++;
-			break;
+	at += end_pos + 1;
+
+	/* Parse the component class name */
+	gs_comp_cls = bt_common_string_until(at, ".:\\", ".", &end_pos);
+	if (!gs_comp_cls || gs_comp_cls->len == 0) {
+		goto error;
+	}
+
+	if (at[end_pos] != '\0') {
+		/* Found a non-escaped `.` */
+		goto error;
+	}
+
+	if (name) {
+		if (gs_name->len == 0) {
+			*name = NULL;
+			g_string_free(gs_name, TRUE);
+		} else {
+			*name = gs_name->str;
+			g_string_free(gs_name, FALSE);
 		}
+	} else {
+		g_string_free(gs_name, TRUE);
 	}
 
-	if (strlen(*plugin) == 0 || strlen(*component) == 0) {
-		goto error;
-	}
-
+	*plugin = gs_plugin->str;
+	*comp_cls = gs_comp_cls->str;
+	g_string_free(gs_plugin, FALSE);
+	g_string_free(gs_comp_cls, FALSE);
+	gs_name = NULL;
+	gs_plugin = NULL;
+	gs_comp_cls = NULL;
 	goto end;
 
 error:
-	g_free(*plugin);
+	if (gs_name) {
+		g_string_free(gs_name, TRUE);
+	}
+
+	if (gs_plugin) {
+		g_string_free(gs_plugin, TRUE);
+	}
+
+	if (gs_comp_cls) {
+		g_string_free(gs_comp_cls, TRUE);
+	}
+
+	if (name) {
+		*name = NULL;
+	}
+
 	*plugin = NULL;
-	g_free(*component);
-	*component = NULL;
+	*comp_cls = NULL;
 
 end:
 	return;
@@ -741,8 +714,8 @@ void bt_config_component_destroy(struct bt_object *obj)
 		g_string_free(bt_config_component->plugin_name, TRUE);
 	}
 
-	if (bt_config_component->component_name) {
-		g_string_free(bt_config_component->component_name, TRUE);
+	if (bt_config_component->comp_cls_name) {
+		g_string_free(bt_config_component->comp_cls_name, TRUE);
 	}
 
 	if (bt_config_component->instance_name) {
@@ -758,15 +731,15 @@ end:
 
 /*
  * Creates a component configuration using the given plugin name and
- * component name. plugin_name and component_name are copied (belong to
- * the return value).
+ * component name. `plugin_name` and `comp_cls_name` are copied (belong
+ * to the return value).
  *
  * Return value is owned by the caller.
  */
 static
 struct bt_config_component *bt_config_component_create(
 		enum bt_component_class_type type,
-		const char *plugin_name, const char *component_name)
+		const char *plugin_name, const char *comp_cls_name)
 {
 	struct bt_config_component *cfg_component = NULL;
 
@@ -784,8 +757,8 @@ struct bt_config_component *bt_config_component_create(
 		goto error;
 	}
 
-	cfg_component->component_name = g_string_new(component_name);
-	if (!cfg_component->component_name) {
+	cfg_component->comp_cls_name = g_string_new(comp_cls_name);
+	if (!cfg_component->comp_cls_name) {
 		print_err_oom();
 		goto error;
 	}
@@ -819,31 +792,36 @@ end:
 struct bt_config_component *bt_config_component_from_arg(
 		enum bt_component_class_type type, const char *arg)
 {
-	struct bt_config_component *bt_config_component = NULL;
-	char *plugin_name;
-	char *component_name;
+	struct bt_config_component *cfg_comp = NULL;
+	char *name = NULL;
+	char *plugin_name = NULL;
+	char *comp_cls_name = NULL;
 
-	plugin_component_names_from_arg(arg, &plugin_name, &component_name);
-	if (!plugin_name || !component_name) {
+	plugin_comp_cls_names(arg, &name, &plugin_name, &comp_cls_name);
+	if (!plugin_name || !comp_cls_name) {
 		printf_err("Cannot get plugin or component class name\n");
 		goto error;
 	}
 
-	bt_config_component = bt_config_component_create(type, plugin_name,
-		component_name);
-	if (!bt_config_component) {
+	cfg_comp = bt_config_component_create(type, plugin_name, comp_cls_name);
+	if (!cfg_comp) {
 		goto error;
+	}
+
+	if (name) {
+		g_string_assign(cfg_comp->instance_name, name);
 	}
 
 	goto end;
 
 error:
-	BT_PUT(bt_config_component);
+	BT_PUT(cfg_comp);
 
 end:
+	g_free(name);
 	g_free(plugin_name);
-	g_free(component_name);
-	return bt_config_component;
+	g_free(comp_cls_name);
+	return cfg_comp;
 }
 
 /*
@@ -859,40 +837,50 @@ void bt_config_destroy(struct bt_object *obj)
 		goto end;
 	}
 
+	BT_PUT(cfg->plugin_paths);
+
 	switch (cfg->command) {
-	case BT_CONFIG_COMMAND_CONVERT:
-		if (cfg->cmd_data.convert.sources) {
-			g_ptr_array_free(cfg->cmd_data.convert.sources, TRUE);
+	case BT_CONFIG_COMMAND_RUN:
+		if (cfg->cmd_data.run.sources) {
+			g_ptr_array_free(cfg->cmd_data.run.sources, TRUE);
 		}
 
-		if (cfg->cmd_data.convert.filters) {
-			g_ptr_array_free(cfg->cmd_data.convert.filters, TRUE);
+		if (cfg->cmd_data.run.filters) {
+			g_ptr_array_free(cfg->cmd_data.run.filters, TRUE);
 		}
 
-		if (cfg->cmd_data.convert.sinks) {
-			g_ptr_array_free(cfg->cmd_data.convert.sinks, TRUE);
+		if (cfg->cmd_data.run.sinks) {
+			g_ptr_array_free(cfg->cmd_data.run.sinks, TRUE);
 		}
 
-		if (cfg->cmd_data.convert.connections) {
-			g_ptr_array_free(cfg->cmd_data.convert.connections,
+		if (cfg->cmd_data.run.connections) {
+			g_ptr_array_free(cfg->cmd_data.run.connections,
 				TRUE);
 		}
-
-		BT_PUT(cfg->cmd_data.convert.plugin_paths);
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
-		BT_PUT(cfg->cmd_data.list_plugins.plugin_paths);
 		break;
 	case BT_CONFIG_COMMAND_HELP:
-		BT_PUT(cfg->cmd_data.help.plugin_paths);
 		BT_PUT(cfg->cmd_data.help.cfg_component);
 		break;
 	case BT_CONFIG_COMMAND_QUERY:
-		BT_PUT(cfg->cmd_data.query.plugin_paths);
 		BT_PUT(cfg->cmd_data.query.cfg_component);
 
 		if (cfg->cmd_data.query.object) {
 			g_string_free(cfg->cmd_data.query.object, TRUE);
+		}
+		break;
+	case BT_CONFIG_COMMAND_PRINT_CTF_METADATA:
+		if (cfg->cmd_data.print_ctf_metadata.path) {
+			g_string_free(cfg->cmd_data.print_ctf_metadata.path,
+				TRUE);
+		}
+		break;
+	case BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS:
+		if (cfg->cmd_data.print_lttng_live_sessions.url) {
+			g_string_free(
+				cfg->cmd_data.print_lttng_live_sessions.url,
+				TRUE);
 		}
 		break;
 	default:
@@ -908,6 +896,21 @@ end:
 static void destroy_gstring(void *data)
 {
 	g_string_free(data, TRUE);
+}
+
+static void destroy_glist_of_gstring(GList *list)
+{
+	if (!list) {
+		return;
+	}
+
+	GList *at;
+
+	for (at = list; at != NULL; at = g_list_next(at)) {
+		g_string_free(at->data, TRUE);
+	}
+
+	g_list_free(list);
 }
 
 /*
@@ -953,6 +956,7 @@ end:
 static
 GScanner *create_csv_identifiers_scanner(void)
 {
+	GScanner *scanner;
 	GScannerConfig scanner_config = {
 		.cset_skip_characters = " \t\n",
 		.cset_identifier_first = G_CSET_a_2_z G_CSET_A_2_Z "_",
@@ -982,25 +986,12 @@ GScanner *create_csv_identifiers_scanner(void)
 		.char_2_token = TRUE,
 	};
 
-	return g_scanner_new(&scanner_config);
-}
-
-/*
- * Inserts a string (if exists and not empty) or null to a map value
- * object.
- */
-static
-enum bt_value_status map_insert_string_or_null(struct bt_value *map,
-		const char *key, GString *string)
-{
-	enum bt_value_status ret;
-
-	if (string && string->len > 0) {
-		ret = bt_value_map_insert_string(map, key, string->str);
-	} else {
-		ret = bt_value_map_insert(map, key, bt_value_null);
+	scanner = g_scanner_new(&scanner_config);
+	if (!scanner) {
+		print_err_oom();
 	}
-	return ret;
+
+	return scanner;
 }
 
 /*
@@ -1024,7 +1015,6 @@ struct bt_value *names_from_arg(const char *arg)
 
 	scanner = create_csv_identifiers_scanner();
 	if (!scanner) {
-		print_err_oom();
 		goto error;
 	}
 
@@ -1073,7 +1063,7 @@ struct bt_value *names_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown field name: `%s`\n",
+				printf_err("Unknown name: `%s`\n",
 					identifier);
 				goto error;
 			}
@@ -1115,7 +1105,6 @@ error:
 	return names;
 }
 
-
 /*
  * Converts a comma-delimited list of known fields (--fields option) to
  * an array value object containing those fields as string
@@ -1137,7 +1126,6 @@ struct bt_value *fields_from_arg(const char *arg)
 
 	scanner = create_csv_identifiers_scanner();
 	if (!scanner) {
-		print_err_oom();
 		goto error;
 	}
 
@@ -1165,7 +1153,7 @@ struct bt_value *fields_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown field name: `%s`\n",
+				printf_err("Unknown field: `%s`\n",
 					identifier);
 				goto error;
 			}
@@ -1192,23 +1180,39 @@ end:
 	return fields;
 }
 
+static
+void append_param_arg(GString *params_arg, const char *key, const char *value)
+{
+	assert(params_arg);
+	assert(key);
+	assert(value);
+
+	if (params_arg->len != 0) {
+		g_string_append_c(params_arg, ',');
+	}
+
+	g_string_append(params_arg, key);
+	g_string_append_c(params_arg, '=');
+	g_string_append(params_arg, value);
+}
+
 /*
- * Inserts the equivalent "prefix-name" true boolean value objects into
- * map_obj where the names are in array_obj.
+ * Inserts the equivalent "prefix-NAME=yes" strings into params_arg
+ * where the names are in names_array.
  */
 static
-int insert_flat_names_fields_from_array(struct bt_value *map_obj,
-		struct bt_value *array_obj, const char *prefix)
+int insert_flat_params_from_array(GString *params_arg,
+		struct bt_value *names_array, const char *prefix)
 {
 	int ret = 0;
 	int i;
 	GString *tmpstr = NULL, *default_value = NULL;
 
 	/*
-	 * array_obj may be NULL if no CLI options were specified to
+	 * names_array may be NULL if no CLI options were specified to
 	 * trigger its creation.
 	 */
-	if (!array_obj) {
+	if (!names_array) {
 		goto end;
 	}
 
@@ -1226,8 +1230,8 @@ int insert_flat_names_fields_from_array(struct bt_value *map_obj,
 		goto end;
 	}
 
-	for (i = 0; i < bt_value_array_size(array_obj); i++) {
-		struct bt_value *str_obj = bt_value_array_get(array_obj, i);
+	for (i = 0; i < bt_value_array_size(names_array); i++) {
+		struct bt_value *str_obj = bt_value_array_get(names_array, i);
 		const char *suffix;
 		bool is_default = false;
 
@@ -1257,21 +1261,11 @@ int insert_flat_names_fields_from_array(struct bt_value *map_obj,
 		}
 		if (is_default) {
 			g_string_append(tmpstr, "default");
-			ret = map_insert_string_or_null(map_obj,
-					tmpstr->str,
-					default_value);
-			if (ret) {
-				print_err_oom();
-				goto end;
-			}
+			append_param_arg(params_arg, tmpstr->str,
+				default_value->str);
 		} else {
 			g_string_append(tmpstr, suffix);
-			ret = bt_value_map_insert_bool(map_obj, tmpstr->str,
-					true);
-			if (ret) {
-				print_err_oom();
-				goto end;
-			}
+			append_param_arg(params_arg, tmpstr->str, "yes");
 		}
 	}
 
@@ -1279,777 +1273,12 @@ end:
 	if (default_value) {
 		g_string_free(default_value, TRUE);
 	}
+
 	if (tmpstr) {
 		g_string_free(tmpstr, TRUE);
 	}
 
 	return ret;
-}
-
-/*
- * Returns the parameters (map value object) corresponding to the
- * legacy text format options.
- *
- * Return value is owned by the caller.
- */
-static
-struct bt_value *params_from_text_legacy_opts(
-		struct text_legacy_opts *text_legacy_opts)
-{
-	struct bt_value *params;
-
-	params = bt_value_map_create();
-	if (!params) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (map_insert_string_or_null(params, "output-path",
-			text_legacy_opts->output)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (map_insert_string_or_null(params, "debug-info-dir",
-			text_legacy_opts->dbg_info_dir)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (map_insert_string_or_null(params, "debug-info-target-prefix",
-			text_legacy_opts->dbg_info_target_prefix)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "debug-info-full-path",
-			text_legacy_opts->dbg_info_full_path)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "no-delta",
-			text_legacy_opts->no_delta)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "clock-cycles",
-			text_legacy_opts->clock_cycles)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "clock-seconds",
-			text_legacy_opts->clock_seconds)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "clock-date",
-			text_legacy_opts->clock_date)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "clock-gmt",
-			text_legacy_opts->clock_gmt)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "verbose",
-			text_legacy_opts->verbose)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (insert_flat_names_fields_from_array(params,
-			text_legacy_opts->names, "name")) {
-		goto error;
-	}
-
-	if (insert_flat_names_fields_from_array(params,
-			text_legacy_opts->fields, "field")) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_PUT(params);
-
-end:
-	return params;
-}
-
-static
-int append_sinks_from_legacy_opts(GPtrArray *sinks,
-		enum legacy_output_format legacy_output_format,
-		struct text_legacy_opts *text_legacy_opts)
-{
-	int ret = 0;
-	struct bt_value *params = NULL;
-	const char *plugin_name;
-	const char *component_name;
-	struct bt_config_component *bt_config_component = NULL;
-
-	switch (legacy_output_format) {
-	case LEGACY_OUTPUT_FORMAT_TEXT:
-		plugin_name = "text";
-		component_name = "text";
-		break;
-	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		plugin_name = "utils";
-		component_name = "dummy";
-		break;
-	default:
-		assert(false);
-		break;
-	}
-
-	if (legacy_output_format == LEGACY_OUTPUT_FORMAT_TEXT) {
-		/* Legacy "text" output format has parameters */
-		params = params_from_text_legacy_opts(text_legacy_opts);
-		if (!params) {
-			goto error;
-		}
-	} else {
-		/*
-		 * Legacy "dummy" and "ctf-metadata" output formats do
-		 * not have parameters.
-		 */
-		params = bt_value_map_create();
-		if (!params) {
-			print_err_oom();
-			goto error;
-		}
-	}
-
-	/* Create a component configuration */
-	bt_config_component = bt_config_component_create(
-		BT_COMPONENT_CLASS_TYPE_SINK, plugin_name, component_name);
-	if (!bt_config_component) {
-		goto error;
-	}
-
-	BT_MOVE(bt_config_component->params, params);
-
-	/* Move created component configuration to the array */
-	g_ptr_array_add(sinks, bt_config_component);
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	BT_PUT(params);
-
-	return ret;
-}
-
-/*
- * Returns the parameters (map value object) corresponding to the
- * given legacy CTF format options.
- *
- * Return value is owned by the caller.
- */
-static
-struct bt_value *params_from_ctf_legacy_opts(
-		struct ctf_legacy_opts *ctf_legacy_opts)
-{
-	struct bt_value *params;
-
-	params = bt_value_map_create();
-	if (!params) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_integer(params, "offset-s",
-			ctf_legacy_opts->offset_s.value)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_integer(params, "offset-ns",
-			ctf_legacy_opts->offset_ns.value)) {
-		print_err_oom();
-		goto error;
-	}
-
-	if (bt_value_map_insert_bool(params, "stream-intersection",
-			ctf_legacy_opts->stream_intersection)) {
-		print_err_oom();
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_PUT(params);
-
-end:
-	return params;
-}
-
-static
-int append_sources_from_legacy_opts(GPtrArray *sources,
-		enum legacy_input_format legacy_input_format,
-		struct ctf_legacy_opts *ctf_legacy_opts,
-		struct bt_value *legacy_input_paths)
-{
-	int ret = 0;
-	int i;
-	struct bt_value *base_params;
-	struct bt_value *params = NULL;
-	struct bt_value *input_path = NULL;
-	struct bt_value *input_path_copy = NULL;
-	const char *input_key;
-	const char *component_name;
-
-	switch (legacy_input_format) {
-	case LEGACY_INPUT_FORMAT_CTF:
-		input_key = "path";
-		component_name = "fs";
-		break;
-	case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-		input_key = "url";
-		component_name = "lttng-live";
-		break;
-	default:
-		assert(false);
-		break;
-	}
-
-	base_params = params_from_ctf_legacy_opts(ctf_legacy_opts);
-	if (!base_params) {
-		goto error;
-	}
-
-	for (i = 0; i < bt_value_array_size(legacy_input_paths); i++) {
-		struct bt_config_component *bt_config_component = NULL;
-
-		/* Copy base parameters as current parameters */
-		params = bt_value_copy(base_params);
-		if (!params) {
-			goto error;
-		}
-
-		/* Get current input path string value object */
-		input_path = bt_value_array_get(legacy_input_paths, i);
-		if (!input_path) {
-			goto error;
-		}
-
-		/* Copy current input path value object */
-		input_path_copy = bt_value_copy(input_path);
-		if (!input_path_copy) {
-			goto error;
-		}
-
-		/* Insert input path value object into current parameters */
-		ret = bt_value_map_insert(params, input_key, input_path_copy);
-		if (ret) {
-			goto error;
-		}
-
-		/* Create a component configuration */
-		bt_config_component = bt_config_component_create(
-			BT_COMPONENT_CLASS_TYPE_SOURCE, "ctf", component_name);
-		if (!bt_config_component) {
-			goto error;
-		}
-
-		BT_MOVE(bt_config_component->params, params);
-
-		/* Move created component configuration to the array */
-		g_ptr_array_add(sources, bt_config_component);
-
-		/* Put current stuff */
-		BT_PUT(input_path);
-		BT_PUT(input_path_copy);
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	BT_PUT(base_params);
-	BT_PUT(params);
-	BT_PUT(input_path);
-	BT_PUT(input_path_copy);
-	return ret;
-}
-
-/*
- * Escapes a string for the shell. The string is escaped knowing that
- * it's a parameter string value (double-quoted), and that it will be
- * entered between single quotes in the shell.
- *
- * Return value is owned by the caller.
- */
-static
-char *str_shell_escape(const char *input)
-{
-	char *ret = NULL;
-	const char *at = input;
-	GString *str = g_string_new(NULL);
-
-	if (!str) {
-		goto end;
-	}
-
-	while (*at != '\0') {
-		switch (*at) {
-		case '\\':
-			g_string_append(str, "\\\\");
-			break;
-		case '"':
-			g_string_append(str, "\\\"");
-			break;
-		case '\'':
-			g_string_append(str, "'\"'\"'");
-			break;
-		case '\n':
-			g_string_append(str, "\\n");
-			break;
-		case '\t':
-			g_string_append(str, "\\t");
-			break;
-		default:
-			g_string_append_c(str, *at);
-			break;
-		}
-
-		at++;
-	}
-
-end:
-	if (str) {
-		ret = str->str;
-		g_string_free(str, FALSE);
-	}
-
-	return ret;
-}
-
-static
-int append_prefixed_flag_params(GString *str, struct bt_value *flags,
-		const char *prefix)
-{
-	int ret = 0;
-	int i;
-
-	if (!flags) {
-		goto end;
-	}
-
-	for (i = 0; i < bt_value_array_size(flags); i++) {
-		struct bt_value *value = bt_value_array_get(flags, i);
-		const char *flag;
-
-		if (!value) {
-			ret = -1;
-			goto end;
-		}
-
-		if (bt_value_string_get(value, &flag)) {
-			BT_PUT(value);
-			ret = -1;
-			goto end;
-		}
-
-		g_string_append_printf(str, ",%s-%s=true", prefix, flag);
-		BT_PUT(value);
-	}
-
-end:
-	return ret;
-}
-
-/*
- * Appends a boolean parameter string.
- */
-static
-void g_string_append_bool_param(GString *str, const char *name, bool value)
-{
-	g_string_append_printf(str, ",%s=%s", name, value ? "true" : "false");
-}
-
-/*
- * Appends a path parameter string, or null if it's empty.
- */
-static
-int g_string_append_string_path_param(GString *str, const char *name,
-		GString *path)
-{
-	int ret = 0;
-
-	if (path->len > 0) {
-		char *escaped_path = str_shell_escape(path->str);
-
-		if (!escaped_path) {
-			print_err_oom();
-			goto error;
-		}
-
-		g_string_append_printf(str, "%s=\"%s\"", name, escaped_path);
-		free(escaped_path);
-	} else {
-		g_string_append_printf(str, "%s=null", name);
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	return ret;
-}
-
-/*
- * Prints the non-legacy sink options equivalent to the specified
- * legacy output format options.
- */
-static
-void print_output_legacy_to_sinks(
-		enum legacy_output_format legacy_output_format,
-		struct text_legacy_opts *text_legacy_opts)
-{
-	const char *output_format;
-	GString *str = NULL;
-
-	str = g_string_new("    ");
-	if (!str) {
-		print_err_oom();
-		goto end;
-	}
-
-	switch (legacy_output_format) {
-	case LEGACY_OUTPUT_FORMAT_TEXT:
-		output_format = "text";
-		break;
-	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		output_format = "dummy";
-		break;
-	default:
-		assert(false);
-	}
-
-	printf_err("Both `%s` legacy output format and non-legacy sink component\ninstances(s) specified.\n\n",
-		output_format);
-	printf_err("Specify the following non-legacy sink component instance instead of the\nlegacy `%s` output format options:\n\n",
-		output_format);
-	g_string_append(str, "-o ");
-
-	switch (legacy_output_format) {
-	case LEGACY_OUTPUT_FORMAT_TEXT:
-		g_string_append(str, "text.text");
-		break;
-	case LEGACY_OUTPUT_FORMAT_DUMMY:
-		g_string_append(str, "utils.dummy");
-		break;
-	default:
-		assert(false);
-	}
-
-	if (legacy_output_format == LEGACY_OUTPUT_FORMAT_TEXT &&
-			text_legacy_opts_is_any_set(text_legacy_opts)) {
-		int ret;
-
-		g_string_append(str, " -p '");
-
-		if (g_string_append_string_path_param(str, "output-path",
-				text_legacy_opts->output)) {
-			goto end;
-		}
-
-		g_string_append(str, ",");
-
-		if (g_string_append_string_path_param(str, "debug-info-dir",
-				text_legacy_opts->dbg_info_dir)) {
-			goto end;
-		}
-
-		g_string_append(str, ",");
-
-		if (g_string_append_string_path_param(str,
-				"debug-info-target-prefix",
-				text_legacy_opts->dbg_info_target_prefix)) {
-			goto end;
-		}
-
-		g_string_append_bool_param(str, "no-delta",
-			text_legacy_opts->no_delta);
-		g_string_append_bool_param(str, "clock-cycles",
-			text_legacy_opts->clock_cycles);
-		g_string_append_bool_param(str, "clock-seconds",
-			text_legacy_opts->clock_seconds);
-		g_string_append_bool_param(str, "clock-date",
-			text_legacy_opts->clock_date);
-		g_string_append_bool_param(str, "clock-gmt",
-			text_legacy_opts->clock_gmt);
-		g_string_append_bool_param(str, "verbose",
-			text_legacy_opts->verbose);
-		ret = append_prefixed_flag_params(str, text_legacy_opts->names,
-			"name");
-		if (ret) {
-			goto end;
-		}
-
-		ret = append_prefixed_flag_params(str, text_legacy_opts->fields,
-			"field");
-		if (ret) {
-			goto end;
-		}
-
-		/* Remove last comma and close single quote */
-		g_string_append(str, "'");
-	}
-
-	printf_err("%s\n\n", str->str);
-
-end:
-	if (str) {
-		g_string_free(str, TRUE);
-	}
-	return;
-}
-
-/*
- * Prints the non-legacy source options equivalent to the specified
- * legacy input format options.
- */
-static
-void print_input_legacy_to_sources(enum legacy_input_format legacy_input_format,
-		struct bt_value *legacy_input_paths,
-		struct ctf_legacy_opts *ctf_legacy_opts)
-{
-	const char *input_format;
-	GString *str = NULL;
-	int i;
-
-	str = g_string_new("    ");
-	if (!str) {
-		print_err_oom();
-		goto end;
-	}
-
-	switch (legacy_input_format) {
-	case LEGACY_INPUT_FORMAT_CTF:
-		input_format = "ctf";
-		break;
-	case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-		input_format = "lttng-live";
-		break;
-	default:
-		assert(false);
-	}
-
-	printf_err("Both `%s` legacy input format and non-legacy source component\ninstance(s) specified.\n\n",
-		input_format);
-	printf_err("Specify the following non-legacy source component instance(s) instead of the\nlegacy `%s` input format options and positional arguments:\n\n",
-		input_format);
-
-	for (i = 0; i < bt_value_array_size(legacy_input_paths); i++) {
-		struct bt_value *input_value =
-			bt_value_array_get(legacy_input_paths, i);
-		const char *input = NULL;
-		char *escaped_input;
-		int ret;
-
-		assert(input_value);
-		ret = bt_value_string_get(input_value, &input);
-		BT_PUT(input_value);
-		assert(!ret && input);
-		escaped_input = str_shell_escape(input);
-		if (!escaped_input) {
-			print_err_oom();
-			goto end;
-		}
-
-		g_string_append(str, "-i ctf.");
-
-		switch (legacy_input_format) {
-		case LEGACY_INPUT_FORMAT_CTF:
-			g_string_append(str, "fs -p 'path=\"");
-			break;
-		case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-			g_string_append(str, "lttng-live -p 'url=\"");
-			break;
-		default:
-			assert(false);
-		}
-
-		g_string_append(str, escaped_input);
-		g_string_append(str, "\"");
-		g_string_append_printf(str, ",offset-s=%" PRId64,
-			ctf_legacy_opts->offset_s.value);
-		g_string_append_printf(str, ",offset-ns=%" PRId64,
-			ctf_legacy_opts->offset_ns.value);
-		g_string_append_bool_param(str, "stream-intersection",
-			ctf_legacy_opts->stream_intersection);
-		g_string_append(str, "' ");
-		g_free(escaped_input);
-	}
-
-	printf_err("%s\n\n", str->str);
-
-end:
-	if (str) {
-		g_string_free(str, TRUE);
-	}
-	return;
-}
-
-/*
- * Validates a given configuration, with optional legacy input and
- * output formats options. Prints useful error messages if anything
- * is wrong.
- *
- * Returns true when the configuration is valid.
- */
-static
-bool validate_cfg(struct bt_config *cfg,
-		enum legacy_input_format *legacy_input_format,
-		enum legacy_output_format *legacy_output_format,
-		struct bt_value *legacy_input_paths,
-		struct ctf_legacy_opts *ctf_legacy_opts,
-		struct text_legacy_opts *text_legacy_opts)
-{
-	bool legacy_input = false;
-	bool legacy_output = false;
-
-	/* Determine if the input and output should be legacy-style */
-	if (cfg->cmd_data.convert.print_ctf_metadata ||
-			*legacy_input_format != LEGACY_INPUT_FORMAT_NONE ||
-			!bt_value_array_is_empty(legacy_input_paths) ||
-			ctf_legacy_opts_is_any_set(ctf_legacy_opts)) {
-		legacy_input = true;
-	}
-
-	if (*legacy_output_format != LEGACY_OUTPUT_FORMAT_NONE ||
-			text_legacy_opts_is_any_set(text_legacy_opts)) {
-		legacy_output = true;
-	}
-
-	if (legacy_input) {
-		/* If no legacy input format was specified, default to CTF */
-		if (*legacy_input_format == LEGACY_INPUT_FORMAT_NONE) {
-			*legacy_input_format = LEGACY_INPUT_FORMAT_CTF;
-		}
-
-		/* Make sure at least one input path exists */
-		if (bt_value_array_is_empty(legacy_input_paths)) {
-			switch (*legacy_input_format) {
-			case LEGACY_INPUT_FORMAT_CTF:
-				printf_err("No input path specified for legacy `ctf` input format\n");
-				break;
-			case LEGACY_INPUT_FORMAT_LTTNG_LIVE:
-				printf_err("No URL specified for legacy `lttng-live` input format\n");
-				break;
-			default:
-				assert(false);
-			}
-			goto error;
-		}
-
-		/* Make sure no non-legacy sources are specified */
-		if (cfg->cmd_data.convert.sources->len != 0) {
-			if (cfg->cmd_data.convert.print_ctf_metadata) {
-				printf_err("You cannot instantiate a source component with the `ctf-metadata` output format\n");
-			} else {
-				print_input_legacy_to_sources(
-					*legacy_input_format,
-					legacy_input_paths, ctf_legacy_opts);
-			}
-
-			goto error;
-		}
-	}
-
-	/*
-	 * Strict rule: if we need to print the CTF metadata, the input
-	 * format must be legacy and CTF. Also there should be no
-	 * other sinks, and no legacy output format.
-	 */
-	if (cfg->cmd_data.convert.print_ctf_metadata) {
-		if (*legacy_input_format != LEGACY_INPUT_FORMAT_CTF) {
-			printf_err("The `ctf-metadata` output format requires legacy `ctf` input format\n");
-			goto error;
-		}
-
-		if (bt_value_array_size(legacy_input_paths) != 1) {
-			printf_err("You need to specify exactly one path with the `ctf-metadata` output format\n");
-			goto error;
-		}
-
-		if (legacy_output) {
-			printf_err("You cannot use another legacy output format with the `ctf-metadata` output format\n");
-			goto error;
-		}
-
-		if (cfg->cmd_data.convert.sinks->len != 0) {
-			printf_err("You cannot instantiate a sink component with the `ctf-metadata` output format\n");
-			goto error;
-			goto error;
-		}
-	} else if (legacy_output) {
-		/*
-		 * If no legacy output format was specified, default to
-		 * "text".
-		 */
-		if (*legacy_output_format == LEGACY_OUTPUT_FORMAT_NONE) {
-			*legacy_output_format = LEGACY_OUTPUT_FORMAT_TEXT;
-		}
-
-		/*
-		 * If any "text" option was specified, the output must be
-		 * legacy "text".
-		 */
-		if (text_legacy_opts_is_any_set(text_legacy_opts) &&
-				*legacy_output_format !=
-				LEGACY_OUTPUT_FORMAT_TEXT) {
-			printf_err("Options for legacy `text` output format specified with a different legacy output format\n");
-			goto error;
-		}
-
-		/* Make sure no non-legacy sinks are specified */
-		if (cfg->cmd_data.convert.sinks->len != 0) {
-			print_output_legacy_to_sinks(*legacy_output_format,
-				text_legacy_opts);
-			goto error;
-		}
-	}
-
-	return true;
-
-error:
-	return false;
-}
-
-/*
- * Parses a 64-bit signed integer.
- *
- * Returns a negative value if anything goes wrong.
- */
-static
-int parse_int64(const char *arg, int64_t *val)
-{
-	char *endptr;
-
-	errno = 0;
-	*val = strtoll(arg, &endptr, 0);
-	if (*endptr != '\0' || arg == endptr || errno != 0) {
-		return -1;
-	}
-
-	return 0;
 }
 
 /* popt options */
@@ -2064,6 +1293,7 @@ enum {
 	OPT_CLOCK_OFFSET,
 	OPT_CLOCK_OFFSET_NS,
 	OPT_CLOCK_SECONDS,
+	OPT_COLOR,
 	OPT_CONNECT,
 	OPT_DEBUG,
 	OPT_DEBUG_INFO_DIR,
@@ -2074,33 +1304,30 @@ enum {
 	OPT_FILTER,
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
+	OPT_KEY,
 	OPT_LIST,
 	OPT_NAME,
 	OPT_NAMES,
+	OPT_NO_DEBUG_INFO,
 	OPT_NO_DELTA,
 	OPT_OMIT_HOME_PLUGIN_PATH,
 	OPT_OMIT_SYSTEM_PLUGIN_PATH,
 	OPT_OUTPUT_FORMAT,
-	OPT_OUTPUT_PATH,
+	OPT_OUTPUT,
 	OPT_PARAMS,
 	OPT_PATH,
 	OPT_PLUGIN_PATH,
 	OPT_RESET_BASE_PARAMS,
+	OPT_RUN_ARGS,
+	OPT_RUN_ARGS_0,
 	OPT_SINK,
 	OPT_SOURCE,
 	OPT_STREAM_INTERSECTION,
 	OPT_TIMERANGE,
+	OPT_URL,
+	OPT_VALUE,
 	OPT_VERBOSE,
 };
-
-/*
- * Sets the value of a given legacy offset option and marks it as set.
- */
-static void set_offset_value(struct offset_opt *offset_opt, int64_t value)
-{
-	offset_opt->value = value;
-	offset_opt->is_set = true;
-}
 
 enum bt_config_component_dest {
 	BT_CONFIG_COMPONENT_DEST_SOURCE,
@@ -2112,56 +1339,58 @@ enum bt_config_component_dest {
  * Adds a configuration component to the appropriate configuration
  * array depending on the destination.
  */
-static void add_cfg_comp(struct bt_config *cfg,
+static void add_run_cfg_comp(struct bt_config *cfg,
 		struct bt_config_component *cfg_comp,
 		enum bt_config_component_dest dest)
 {
+	bt_get(cfg_comp);
+
 	switch (dest) {
 	case BT_CONFIG_COMPONENT_DEST_SOURCE:
-		g_ptr_array_add(cfg->cmd_data.convert.sources, cfg_comp);
+		g_ptr_array_add(cfg->cmd_data.run.sources, cfg_comp);
 		break;
 	case BT_CONFIG_COMPONENT_DEST_FILTER:
-		g_ptr_array_add(cfg->cmd_data.convert.filters, cfg_comp);
+		g_ptr_array_add(cfg->cmd_data.run.filters, cfg_comp);
 		break;
 	case BT_CONFIG_COMPONENT_DEST_SINK:
-		g_ptr_array_add(cfg->cmd_data.convert.sinks, cfg_comp);
+		g_ptr_array_add(cfg->cmd_data.run.sinks, cfg_comp);
 		break;
 	default:
 		assert(false);
 	}
 }
 
-static int split_timerange(const char *arg, const char **begin, const char **end)
+static int add_run_cfg_comp_check_name(struct bt_config *cfg,
+		struct bt_config_component *cfg_comp,
+		enum bt_config_component_dest dest,
+		struct bt_value *instance_names)
 {
-	const char *c;
+	int ret = 0;
 
-	/* Try to match [begin,end] */
-	c = strchr(arg, '[');
-	if (!c)
-		goto skip;
-	*begin = ++c;
-	c = strchr(c, ',');
-	if (!c)
-		goto skip;
-	*end = ++c;
-	c = strchr(c, ']');
-	if (!c)
-		goto skip;
-	goto found;
+	if (cfg_comp->instance_name->len == 0) {
+		printf_err("Found an unnamed component\n");
+		ret = -1;
+		goto end;
+	}
 
-skip:
-	/* Try to match begin,end */
-	c = arg;
-	*begin = c;
-	c = strchr(c, ',');
-	if (!c)
-		goto not_found;
-	*end = ++c;
-	/* fall-through */
-found:
-	return 0;
-not_found:
-	return -1;
+	if (bt_value_map_has_key(instance_names, cfg_comp->instance_name->str)) {
+		printf_err("Duplicate component instance name:\n    %s\n",
+			cfg_comp->instance_name->str);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_value_map_insert(instance_names,
+			cfg_comp->instance_name->str, bt_value_null)) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	add_run_cfg_comp(cfg, cfg_comp, dest);
+
+end:
+	return ret;
 }
 
 static int append_env_var_plugin_paths(struct bt_value *plugin_paths)
@@ -2182,6 +1411,10 @@ static int append_env_var_plugin_paths(struct bt_value *plugin_paths)
 	ret = bt_config_append_plugin_paths(plugin_paths, envvar);
 
 end:
+	if (ret) {
+		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+	}
+
 	return ret;
 }
 
@@ -2199,8 +1432,7 @@ static int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
 
 			if (home_plugin_dir) {
 				ret = bt_config_append_plugin_paths(
-					plugin_paths,
-					home_plugin_dir);
+					plugin_paths, home_plugin_dir);
 				free(home_plugin_dir);
 
 				if (ret) {
@@ -2220,34 +1452,18 @@ static int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
 	}
 	return 0;
 error:
+	printf_err("Cannot append home and system plugin paths\n");
 	return -1;
 }
 
-static int append_sources_from_implicit_params(GPtrArray *sources,
-		struct bt_config_component *implicit_source_comp)
+static int append_home_and_system_plugin_paths_cfg(struct bt_config *cfg)
 {
-	size_t i;
-	size_t len = sources->len;
-
-	for (i = 0; i < len; i++) {
-		struct bt_config_component *comp;
-		struct bt_value *params_to_set;
-
-		comp = g_ptr_array_index(sources, i);
-		params_to_set = bt_value_map_extend(comp->params,
-			implicit_source_comp->params);
-		if (!params_to_set) {
-			printf_err("Cannot extend legacy component parameters with non-legacy parameters\n");
-			goto error;
-		}
-		BT_MOVE(comp->params, params_to_set);
-	}
-	return 0;
-error:
-	return -1;
+	return append_home_and_system_plugin_paths(cfg->plugin_paths,
+		cfg->omit_system_plugin_path, cfg->omit_home_plugin_path);
 }
 
-static struct bt_config *bt_config_base_create(enum bt_config_command command)
+static struct bt_config *bt_config_base_create(enum bt_config_command command,
+		struct bt_value *initial_plugin_paths, bool needs_plugins)
 {
 	struct bt_config *cfg;
 
@@ -2260,6 +1476,18 @@ static struct bt_config *bt_config_base_create(enum bt_config_command command)
 
 	bt_object_init(cfg, bt_config_destroy);
 	cfg->command = command;
+	cfg->command_needs_plugins = needs_plugins;
+
+	if (initial_plugin_paths) {
+		cfg->plugin_paths = bt_get(initial_plugin_paths);
+	} else {
+		cfg->plugin_paths = bt_value_array_create();
+		if (!cfg->plugin_paths) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
 	goto end;
 
 error:
@@ -2269,55 +1497,44 @@ end:
 	return cfg;
 }
 
-static struct bt_config *bt_config_convert_create(
+static struct bt_config *bt_config_run_create(
 		struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
-	cfg = bt_config_base_create(BT_CONFIG_COMMAND_CONVERT);
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_RUN,
+		initial_plugin_paths, true);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.convert.sources = g_ptr_array_new_with_free_func(
+	cfg->cmd_data.run.sources = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
-	if (!cfg->cmd_data.convert.sources) {
+	if (!cfg->cmd_data.run.sources) {
 		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.convert.filters = g_ptr_array_new_with_free_func(
+	cfg->cmd_data.run.filters = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
-	if (!cfg->cmd_data.convert.filters) {
+	if (!cfg->cmd_data.run.filters) {
 		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.convert.sinks = g_ptr_array_new_with_free_func(
+	cfg->cmd_data.run.sinks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
-	if (!cfg->cmd_data.convert.sinks) {
+	if (!cfg->cmd_data.run.sinks) {
 		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.convert.connections = g_ptr_array_new_with_free_func(
+	cfg->cmd_data.run.connections = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_config_connection_destroy);
-	if (!cfg->cmd_data.convert.connections) {
+	if (!cfg->cmd_data.run.connections) {
 		print_err_oom();
 		goto error;
-	}
-
-	if (initial_plugin_paths) {
-		cfg->cmd_data.convert.plugin_paths =
-			bt_get(initial_plugin_paths);
-	} else {
-		cfg->cmd_data.convert.plugin_paths = bt_value_array_create();
-		if (!cfg->cmd_data.convert.plugin_paths) {
-			print_err_oom();
-			goto error;
-		}
 	}
 
 	goto end;
@@ -2335,22 +1552,10 @@ static struct bt_config *bt_config_list_plugins_create(
 	struct bt_config *cfg;
 
 	/* Create config */
-	cfg = bt_config_base_create(BT_CONFIG_COMMAND_LIST_PLUGINS);
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_LIST_PLUGINS,
+		initial_plugin_paths, true);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
-	}
-
-	if (initial_plugin_paths) {
-		cfg->cmd_data.list_plugins.plugin_paths =
-			bt_get(initial_plugin_paths);
-	} else {
-		cfg->cmd_data.list_plugins.plugin_paths =
-			bt_value_array_create();
-		if (!cfg->cmd_data.list_plugins.plugin_paths) {
-			print_err_oom();
-			goto error;
-		}
 	}
 
 	goto end;
@@ -2368,29 +1573,16 @@ static struct bt_config *bt_config_help_create(
 	struct bt_config *cfg;
 
 	/* Create config */
-	cfg = bt_config_base_create(BT_CONFIG_COMMAND_HELP);
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_HELP,
+		initial_plugin_paths, true);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
-	}
-
-	if (initial_plugin_paths) {
-		cfg->cmd_data.help.plugin_paths =
-			bt_get(initial_plugin_paths);
-	} else {
-		cfg->cmd_data.help.plugin_paths =
-			bt_value_array_create();
-		if (!cfg->cmd_data.help.plugin_paths) {
-			print_err_oom();
-			goto error;
-		}
 	}
 
 	cfg->cmd_data.help.cfg_component =
 		bt_config_component_create(BT_COMPONENT_CLASS_TYPE_UNKNOWN,
 			NULL, NULL);
 	if (!cfg->cmd_data.help.cfg_component) {
-		print_err_oom();
 		goto error;
 	}
 
@@ -2409,22 +1601,10 @@ static struct bt_config *bt_config_query_create(
 	struct bt_config *cfg;
 
 	/* Create config */
-	cfg = bt_config_base_create(BT_CONFIG_COMMAND_QUERY);
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_QUERY,
+		initial_plugin_paths, true);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
-	}
-
-	if (initial_plugin_paths) {
-		cfg->cmd_data.query.plugin_paths =
-			bt_get(initial_plugin_paths);
-	} else {
-		cfg->cmd_data.query.plugin_paths =
-			bt_value_array_create();
-		if (!cfg->cmd_data.query.plugin_paths) {
-			print_err_oom();
-			goto error;
-		}
 	}
 
 	cfg->cmd_data.query.object = g_string_new(NULL);
@@ -2442,6 +1622,81 @@ end:
 	return cfg;
 }
 
+static struct bt_config *bt_config_print_ctf_metadata_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
+		initial_plugin_paths, true);
+	if (!cfg) {
+		goto error;
+	}
+
+	cfg->cmd_data.print_ctf_metadata.path = g_string_new(NULL);
+	if (!cfg->cmd_data.print_ctf_metadata.path) {
+		print_err_oom();
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+static struct bt_config *bt_config_print_lttng_live_sessions_create(
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg;
+
+	/* Create config */
+	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
+		initial_plugin_paths, true);
+	if (!cfg) {
+		goto error;
+	}
+
+	cfg->cmd_data.print_lttng_live_sessions.url = g_string_new(NULL);
+	if (!cfg->cmd_data.print_lttng_live_sessions.url) {
+		print_err_oom();
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(cfg);
+
+end:
+	return cfg;
+}
+
+int bt_config_append_plugin_paths_check_setuid_setgid(
+		struct bt_value *plugin_paths, const char *arg)
+{
+	int ret = 0;
+
+	if (bt_common_is_setuid_setgid()) {
+		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		goto end;
+	}
+
+	if (bt_config_append_plugin_paths(plugin_paths, arg)) {
+		printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+			arg);
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
 /*
  * Prints the expected format for a --params option.
  */
@@ -2454,8 +1709,8 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "    PARAM=VALUE[,PARAM=VALUE]...\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "The parameter string is a comma-separated list of PARAM=VALUE assignments,\n");
-	fprintf(fp, "where PARAM is the parameter name (C identifier plus [:.-] characters), and\n");
-	fprintf(fp, "VALUE can be one of:\n");
+	fprintf(fp, "where PARAM is the parameter name (C identifier plus the [:.-] characters),\n");
+	fprintf(fp, "and VALUE can be one of:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "* `null`, `nul`, `NULL`: null value (no backticks).\n");
 	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
@@ -2467,7 +1722,7 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "  the null and boolean value symbols above.\n");
 	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Whitespaces are allowed around individual `=` and `,` tokens.\n");
+	fprintf(fp, "You can put whitespaces allowed around individual `=` and `,` symbols.\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Example:\n");
 	fprintf(fp, "\n");
@@ -2487,23 +1742,23 @@ static
 void print_help_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source=PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter=PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink=PLUGIN.COMPCLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source=PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter=PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink=PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Get help for the filter component class\n");
-	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -f, --filter=PLUGIN.CLS           Get help for the filter component class\n");
+	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "      --sink=PLUGIN.COMPCLS         Get help for the sink component class\n");
-	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
-	fprintf(fp, "      --source=PLUGIN.COMPCLS       Get help for the source component class\n");
-	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -S, --sink=PLUGIN.CLS             Get help for the sink component class\n");
+	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -s, --source=PLUGIN.CLS           Get help for the source component class\n");
+	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
@@ -2513,13 +1768,13 @@ void print_help_usage(FILE *fp)
 
 static struct poptOption help_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
 	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -2529,6 +1784,7 @@ static struct poptOption help_long_options[] = {
  *
  * *retcode is set to the appropriate exit code to use.
  */
+static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
@@ -2540,21 +1796,19 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	int ret;
 	struct bt_config *cfg = NULL;
 	const char *leftover;
-	char *plugin_name = NULL, *component_name = NULL;
-	char *plugin_comp_cls_names = NULL;
+	char *plugin_name = NULL, *comp_cls_name = NULL;
+	char *plug_comp_cls_names = NULL;
 
 	*retcode = 0;
 	cfg = bt_config_help_create(initial_plugin_paths);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.help.omit_system_plugin_path = omit_system_plugin_path;
-	cfg->cmd_data.help.omit_home_plugin_path = omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(cfg->cmd_data.help.plugin_paths);
+	cfg->omit_system_plugin_path = omit_system_plugin_path;
+	cfg->omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(cfg->plugin_paths);
 	if (ret) {
-		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
 		goto error;
 	}
 
@@ -2573,23 +1827,16 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (bt_common_is_setuid_setgid()) {
-				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
-			} else {
-				if (bt_config_append_plugin_paths(
-						cfg->cmd_data.help.plugin_paths,
-						arg)) {
-					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
-						arg);
-					goto error;
-				}
+			if (bt_config_append_plugin_paths_check_setuid_setgid(
+					cfg->plugin_paths, arg)) {
+				goto error;
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->cmd_data.help.omit_system_plugin_path = true;
+			cfg->omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->cmd_data.help.omit_home_plugin_path = true;
+			cfg->omit_home_plugin_path = true;
 			break;
 		case OPT_SOURCE:
 		case OPT_FILTER:
@@ -2617,8 +1864,8 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			default:
 				assert(false);
 			}
-			plugin_comp_cls_names = strdup(arg);
-			if (!plugin_comp_cls_names) {
+			plug_comp_cls_names = strdup(arg);
+			if (!plug_comp_cls_names) {
 				print_err_oom();
 				goto error;
 			}
@@ -2665,25 +1912,21 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			goto end;
 		}
 
-		plugin_component_names_from_arg(plugin_comp_cls_names,
-			&plugin_name, &component_name);
-		if (plugin_name && component_name) {
+		plugin_comp_cls_names(plug_comp_cls_names, NULL,
+			&plugin_name, &comp_cls_name);
+		if (plugin_name && comp_cls_name) {
 			g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
 				plugin_name);
-			g_string_assign(cfg->cmd_data.help.cfg_component->component_name,
-				component_name);
+			g_string_assign(cfg->cmd_data.help.cfg_component->comp_cls_name,
+				comp_cls_name);
 		} else {
 			printf_err("Invalid --source/--filter/--sink option's argument:\n    %s\n",
-				plugin_comp_cls_names);
+				plug_comp_cls_names);
 			goto error;
 		}
 	}
 
-	if (append_home_and_system_plugin_paths(
-			cfg->cmd_data.help.plugin_paths,
-			cfg->cmd_data.help.omit_system_plugin_path,
-			cfg->cmd_data.help.omit_home_plugin_path)) {
-		printf_err("Cannot append home and system plugin paths\n");
+	if (append_home_and_system_plugin_paths_cfg(cfg)) {
 		goto error;
 	}
 
@@ -2694,9 +1937,9 @@ error:
 	BT_PUT(cfg);
 
 end:
-	free(plugin_comp_cls_names);
+	free(plug_comp_cls_names);
 	g_free(plugin_name);
-	g_free(component_name);
+	g_free(comp_cls_name);
 
 	if (pc) {
 		poptFreeContext(pc);
@@ -2712,14 +1955,14 @@ end:
 static
 void print_query_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] OBJECT --source=PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --filter=PLUGIN.COMPCLS\n");
-	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --sink=PLUGIN.COMPCLS\n");
+	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] OBJECT --source=PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --filter=PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --sink=PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Query object from the filter component\n");
-	fprintf(fp, "                                    class COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -f. --filter=PLUGIN.CLS           Query object from the filter component\n");
+	fprintf(fp, "                                    class CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -2727,10 +1970,10 @@ void print_query_usage(FILE *fp)
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "      --sink=PLUGIN.COMPCLS         Query object from the sink component class\n");
-	fprintf(fp, "                                    COMPCLS found in the plugin PLUGIN\n");
-	fprintf(fp, "      --source=PLUGIN.COMPCLS       Query object from the source component\n");
-	fprintf(fp, "                                    class COMPCLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -S, --sink=PLUGIN.CLS             Query object from the sink component class\n");
+	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -s, --source=PLUGIN.CLS           Query object from the source component\n");
+	fprintf(fp, "                                    class CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n\n");
 	print_expected_params_format(fp);
@@ -2738,14 +1981,14 @@ void print_query_usage(FILE *fp)
 
 static struct poptOption query_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
 	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
@@ -2755,6 +1998,7 @@ static struct poptOption query_long_options[] = {
  *
  * *retcode is set to the appropriate exit code to use.
  */
+static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
@@ -2771,16 +2015,14 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	*retcode = 0;
 	cfg = bt_config_query_create(initial_plugin_paths);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.query.omit_system_plugin_path =
+	cfg->omit_system_plugin_path =
 		omit_system_plugin_path;
-	cfg->cmd_data.query.omit_home_plugin_path = omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(cfg->cmd_data.query.plugin_paths);
+	cfg->omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(cfg->plugin_paths);
 	if (ret) {
-		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
 		goto error;
 	}
 
@@ -2799,23 +2041,16 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (bt_common_is_setuid_setgid()) {
-				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
-			} else {
-				if (bt_config_append_plugin_paths(
-						cfg->cmd_data.query.plugin_paths,
-						arg)) {
-					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
-						arg);
-					goto error;
-				}
+			if (bt_config_append_plugin_paths_check_setuid_setgid(
+					cfg->plugin_paths, arg)) {
+				goto error;
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->cmd_data.query.omit_system_plugin_path = true;
+			cfg->omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->cmd_data.query.omit_home_plugin_path = true;
+			cfg->omit_home_plugin_path = true;
 			break;
 		case OPT_SOURCE:
 		case OPT_FILTER:
@@ -2918,15 +2153,11 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		printf_err("Invalid argument: %s\n", leftover);
+		printf_err("Unexpected argument: %s\n", leftover);
 		goto error;
 	}
 
-	if (append_home_and_system_plugin_paths(
-			cfg->cmd_data.query.plugin_paths,
-			cfg->cmd_data.query.omit_system_plugin_path,
-			cfg->cmd_data.query.omit_home_plugin_path)) {
-		printf_err("Cannot append home and system plugin paths\n");
+	if (append_home_and_system_plugin_paths_cfg(cfg)) {
 		goto error;
 	}
 
@@ -2983,6 +2214,7 @@ static struct poptOption list_plugins_long_options[] = {
  *
  * *retcode is set to the appropriate exit code to use.
  */
+static
 struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
@@ -2998,16 +2230,13 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 	*retcode = 0;
 	cfg = bt_config_list_plugins_create(initial_plugin_paths);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.list_plugins.omit_system_plugin_path = omit_system_plugin_path;
-	cfg->cmd_data.list_plugins.omit_home_plugin_path = omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(
-		cfg->cmd_data.list_plugins.plugin_paths);
+	cfg->omit_system_plugin_path = omit_system_plugin_path;
+	cfg->omit_home_plugin_path = omit_home_plugin_path;
+	ret = append_env_var_plugin_paths(cfg->plugin_paths);
 	if (ret) {
-		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
 		goto error;
 	}
 
@@ -3026,23 +2255,16 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (bt_common_is_setuid_setgid()) {
-				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
-			} else {
-				if (bt_config_append_plugin_paths(
-						cfg->cmd_data.list_plugins.plugin_paths,
-						arg)) {
-					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
-						arg);
-					goto error;
-				}
+			if (bt_config_append_plugin_paths_check_setuid_setgid(
+					cfg->plugin_paths, arg)) {
+				goto error;
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->cmd_data.list_plugins.omit_system_plugin_path = true;
+			cfg->omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->cmd_data.list_plugins.omit_home_plugin_path = true;
+			cfg->omit_home_plugin_path = true;
 			break;
 		case OPT_HELP:
 			print_list_plugins_usage(stdout);
@@ -3068,15 +2290,11 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		printf_err("Invalid argument: %s\n", leftover);
+		printf_err("Unexpected argument: %s\n", leftover);
 		goto error;
 	}
 
-	if (append_home_and_system_plugin_paths(
-			cfg->cmd_data.list_plugins.plugin_paths,
-			cfg->cmd_data.list_plugins.omit_system_plugin_path,
-			cfg->cmd_data.list_plugins.omit_home_plugin_path)) {
-		printf_err("Cannot append home and system plugin paths\n");
+	if (append_home_and_system_plugin_paths_cfg(cfg)) {
 		goto error;
 	}
 
@@ -3096,138 +2314,68 @@ end:
 }
 
 /*
- * Prints the legacy, Babeltrace 1.x command usage. Those options are
- * still compatible in Babeltrace 2.x, but it is recommended to use
- * the more generic plugin/component parameters instead of those
- * hard-coded option names.
+ * Prints the run command usage.
  */
 static
-void print_legacy_usage(FILE *fp)
+void print_run_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [OPTIONS] INPUT...\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "The following options are compatible with the Babeltrace 1.x options:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "      --clock-force-correlate  Assume that clocks are inherently correlated\n");
-	fprintf(fp, "                               across traces\n");
-	fprintf(fp, "  -d, --debug                  Enable debug mode\n");
-	fprintf(fp, "  -i, --input-format=FORMAT    Input trace format (default: ctf)\n");
-	fprintf(fp, "  -l, --list                   List available formats\n");
-	fprintf(fp, "  -o, --output-format=FORMAT   Output trace format (default: text)\n");
-	fprintf(fp, "  -v, --verbose                Enable verbose output\n");
-	fprintf(fp, "      --help-legacy            Show this help and quit\n");
-	fprintf(fp, "  -V, --version                Show version and quit\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  Available input formats:  ctf, lttng-live, ctf-metadata\n");
-	fprintf(fp, "  Available output formats: text, dummy\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Input formats specific options:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  INPUT...                     Input trace file(s), directory(ies), or URLs\n");
-	fprintf(fp, "      --clock-offset=SEC       Set clock offset to SEC seconds\n");
-	fprintf(fp, "      --clock-offset-ns=NS     Set clock offset to NS nanoseconds\n");
-	fprintf(fp, "      --stream-intersection    Only process events when all streams are active\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "text output format specific options:\n");
-	fprintf(fp, "  \n");
-	fprintf(fp, "      --clock-cycles           Print timestamps in clock cycles\n");
-	fprintf(fp, "      --clock-date             Print timestamp dates\n");
-	fprintf(fp, "      --clock-gmt              Print and parse timestamps in GMT time zone\n");
-	fprintf(fp, "                               (default: local time zone)\n");
-	fprintf(fp, "      --clock-seconds          Print the timestamps as [SEC.NS]\n");
-	fprintf(fp, "                               (default format: [HH:MM:SS.NS])\n");
-	fprintf(fp, "      --debug-info-dir=DIR     Search for debug info in directory DIR\n");
-	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
-	fprintf(fp, "      --debug-info-full-path   Show full debug info source and binary paths\n");
-	fprintf(fp, "      --debug-info-target-prefix=DIR  Use directory DIR as a prefix when looking\n");
-	fprintf(fp, "                                      up executables during debug info analysis\n");
-	fprintf(fp, "                               (default: `/usr/lib/debug`)\n");
-	fprintf(fp, "  -f, --fields=NAME[,NAME]...  Print additional fields:\n");
-	fprintf(fp, "                                 all, trace, trace:hostname, trace:domain,\n");
-	fprintf(fp, "                                 trace:procname, trace:vpid, loglevel, emf\n");
-	fprintf(fp, "                                 (default: trace:hostname, trace:procname,\n");
-	fprintf(fp, "                                           trace:vpid)\n");
-	fprintf(fp, "  -n, --names=NAME[,NAME]...   Print field names:\n");
-	fprintf(fp, "                                 payload (or arg or args)\n");
-	fprintf(fp, "                                 none, all, scope, header, context (or ctx)\n");
-	fprintf(fp, "                                 (default: payload, context)\n");
-	fprintf(fp, "      --no-delta               Do not print time delta between consecutive\n");
-	fprintf(fp, "                               events\n");
-	fprintf(fp, "  -w, --output=PATH            Write output to PATH (default: standard output)\n");
-}
-
-/*
- * Prints the convert command usage.
- */
-static
-void print_convert_usage(FILE *fp)
-{
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] convert [OPTIONS]\n");
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] run [OPTIONS]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -b, --base-params=PARAMS          Set PARAMS as the current base parameters\n");
-	fprintf(fp, "                                    for the following component instances\n");
+	fprintf(fp, "                                    for all the following components until\n");
+	fprintf(fp, "                                    --reset-base-params is encountered\n");
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
-	fprintf(fp, "      --begin=BEGIN                 Set the `begin` parameter of the latest\n");
-	fprintf(fp, "                                    source component instance to BEGIN\n");
-	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
-	fprintf(fp, "  -c, --connect=CONNECTION          Connect two component instances (see the\n");
+	fprintf(fp, "  -c, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
-	fprintf(fp, "  -d, --debug                       Enable debug mode\n");
-	fprintf(fp, "      --end=END                     Set the `end` parameter of the latest\n");
-	fprintf(fp, "                                    source component instance to END\n");
-	fprintf(fp, "                                    (see the suggested format of BEGIN below)\n");
-	fprintf(fp, "      --filter=PLUGIN.COMPCLS       Instantiate a filter component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "      --name=NAME                   Set the name of the latest component\n");
-	fprintf(fp, "                                    instance to NAME (must be unique amongst\n");
-	fprintf(fp, "                                    all the names of the component instances)\n");
+	fprintf(fp, "  -f, --filter=[NAME:]PLUGIN.CLS    Instantiate a filter component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "      --key=KEY                     Set the current initialization string\n");
+	fprintf(fp, "                                    parameter key to KEY (see --value)\n");
+	fprintf(fp, "  -n, --name=NAME                   Set the name of the current component\n");
+	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
+	fprintf(fp, "                                    names of the created components)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "  -p, --params=PARAMS               Set the parameters of the latest component\n");
-	fprintf(fp, "                                    instance (in command-line order) to PARAMS\n");
-	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
-	fprintf(fp, "  -P, --path=PATH                   Set the `path` parameter of the latest\n");
-	fprintf(fp, "                                    component instance to PATH\n");
+	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
+	fprintf(fp, "                                    current component (see the expected format\n");
+	fprintf(fp, "                                    of PARAMS below)\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters of the\n");
-	fprintf(fp, "                                    following source and sink component\n");
-	fprintf(fp, "                                    instances to an empty map\n");
-	fprintf(fp, "  -o, --sink=PLUGIN.COMPCLS         Instantiate a sink component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "  -i, --source=PLUGIN.COMPCLS       Instantiate a source component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class COMPCLS (may be\n");
-	fprintf(fp, "                                    repeated)\n");
-	fprintf(fp, "      --timerange=TIMERANGE         Set time range to TIMERANGE: BEGIN,END or\n");
-	fprintf(fp, "                                    [BEGIN,END] (literally `[` and `]`)\n");
-	fprintf(fp, "                                    (suggested format of BEGIN/END below)\n");
-	fprintf(fp, "  -v, --verbose                     Enable verbose output\n");
+	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters to an\n");
+	fprintf(fp, "                                    empty map\n");
+	fprintf(fp, "  -S, --sink=[NAME:]PLUGIN.CLS      Instantiate a sink component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "  -s, --source=[NAME:]PLUGIN.CLS    Instantiate a source component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "      --value=VAL                   Add a string initialization parameter to\n");
+	fprintf(fp, "                                    the current component with a name given by\n");
+	fprintf(fp, "                                    the last argument of the --key option and a\n");
+	fprintf(fp, "                                    value set to VAL\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
 	fprintf(fp, "\n\n");
-	fprintf(fp, "Suggested format of BEGIN and END\n");
-	fprintf(fp, "---------------------------------\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "    [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
-	fprintf(fp, "\n\n");
 	fprintf(fp, "Expected format of CONNECTION\n");
 	fprintf(fp, "-----------------------------\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "    SRC[.SRCPORT]:DST[.DSTPORT]\n");
+	fprintf(fp, "    UPSTREAM[.UPSTREAM-PORT]:DOWNSTREAM[.DOWNSTREAM-PORT]\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "SRC and DST are the names of the source and destination component\n");
-	fprintf(fp, "instances to connect together. You can set the name of a component\n");
-	fprintf(fp, "instance with the --name option.\n");
+	fprintf(fp, "UPSTREAM and DOWNSTREAM are the names of the upstream and downstream components\n");
+	fprintf(fp, "to connect together. You can set the name of the current component with the\n");
+	fprintf(fp, "--name option.\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "SRCPORT and DSTPORT are the optional source and destination ports to use\n");
-	fprintf(fp, "for the connection. When the port is not specified, the default port is\n");
-	fprintf(fp, "used.\n");
+	fprintf(fp, "UPSTREAM-PORT and DOWNSTREAM-PORT are the optional upstream and downstream\n");
+	fprintf(fp, "ports to use for the connection. When the port is not specified, the default\n");
+	fprintf(fp, "port is used.\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "You can connect a source component to a filter or sink component. You\n");
 	fprintf(fp, "can connect a filter component to a sink component.\n");
@@ -3239,123 +2387,71 @@ void print_convert_usage(FILE *fp)
 	print_expected_params_format(fp);
 }
 
-static struct poptOption convert_long_options[] = {
+static struct poptOption run_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
 	{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
-	{ "begin", '\0', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
-	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
-	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
-	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
-	{ "clock-gmt", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
-	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
-	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
-	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
 	{ "connect", 'c', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
-	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
-	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
-	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
-	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
-	{ "end", '\0', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
-	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
-	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
-	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
-	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
-	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
+	{ "key", '\0', POPT_ARG_STRING, NULL, OPT_KEY, NULL, NULL },
+	{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT_PATH, NULL, NULL },
-	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
 	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 	{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
-	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
-	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
-	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
-	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
+	{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ "value", '\0', POPT_ARG_STRING, NULL, OPT_VALUE, NULL, NULL },
 	{ NULL, 0, 0, NULL, 0, NULL, NULL },
 };
 
 /*
- * Creates a Babeltrace config object from the arguments of a convert
+ * Creates a Babeltrace config object from the arguments of a run
  * command.
  *
  * *retcode is set to the appropriate exit code to use.
  */
-struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
+static
+struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
 		struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
-	struct ctf_legacy_opts ctf_legacy_opts;
-	struct text_legacy_opts text_legacy_opts;
-	enum legacy_input_format legacy_input_format = LEGACY_INPUT_FORMAT_NONE;
-	enum legacy_output_format legacy_output_format =
-			LEGACY_OUTPUT_FORMAT_NONE;
-	struct bt_value *legacy_input_paths = NULL;
-	struct bt_config_component *implicit_source_comp = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
-	bool cur_is_implicit_source = false;
-	bool use_implicit_source = false;
-	enum bt_config_component_dest cur_cfg_comp_dest =
-		BT_CONFIG_COMPONENT_DEST_SOURCE;
+	enum bt_config_component_dest cur_cfg_comp_dest;
 	struct bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
 	struct bt_value *instance_names = NULL;
 	struct bt_value *connection_args = NULL;
+	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
-	bool got_verbose_opt = false;
 
 	*retcode = 0;
-	memset(&ctf_legacy_opts, 0, sizeof(ctf_legacy_opts));
-	memset(&text_legacy_opts, 0, sizeof(text_legacy_opts));
+	cur_param_key = g_string_new(NULL);
+	if (!cur_param_key) {
+		print_err_oom();
+		goto error;
+	}
 
 	if (argc <= 1) {
-		print_convert_usage(stdout);
+		print_run_usage(stdout);
 		*retcode = -1;
 		goto end;
 	}
 
-	cfg = bt_config_convert_create(initial_plugin_paths);
+	cfg = bt_config_run_create(initial_plugin_paths);
 	if (!cfg) {
-		print_err_oom();
 		goto error;
 	}
 
-	cfg->cmd_data.convert.omit_system_plugin_path = omit_system_plugin_path;
-	cfg->cmd_data.convert.omit_home_plugin_path = omit_home_plugin_path;
-	text_legacy_opts.output = g_string_new(NULL);
-	if (!text_legacy_opts.output) {
-		print_err_oom();
-		goto error;
-	}
-
-	text_legacy_opts.dbg_info_dir = g_string_new(NULL);
-	if (!text_legacy_opts.dbg_info_dir) {
-		print_err_oom();
-		goto error;
-	}
-
-	text_legacy_opts.dbg_info_target_prefix = g_string_new(NULL);
-	if (!text_legacy_opts.dbg_info_target_prefix) {
-		print_err_oom();
-		goto error;
-	}
-
+	cfg->omit_system_plugin_path = omit_system_plugin_path;
+	cfg->omit_home_plugin_path = omit_home_plugin_path;
 	cur_base_params = bt_value_map_create();
 	if (!cur_base_params) {
-		print_err_oom();
-		goto error;
-	}
-
-	legacy_input_paths = bt_value_array_create();
-	if (!legacy_input_paths) {
 		print_err_oom();
 		goto error;
 	}
@@ -3372,27 +2468,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	ret = append_env_var_plugin_paths(cfg->cmd_data.convert.plugin_paths);
+	ret = append_env_var_plugin_paths(cfg->plugin_paths);
 	if (ret) {
-		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
 		goto error;
 	}
-
-	/* Note: implicit source never gets positional base params. */
-	implicit_source_comp = bt_config_component_from_arg(
-		BT_COMPONENT_CLASS_TYPE_SOURCE, DEFAULT_SOURCE_COMPONENT_NAME);
-	if (!implicit_source_comp) {
-		print_err_oom();
-		goto error;
-	}
-
-	cur_cfg_comp = implicit_source_comp;
-	cur_is_implicit_source = true;
-	use_implicit_source = true;
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		convert_long_options, 0);
+		run_long_options, 0);
 	if (!pc) {
 		printf_err("Cannot get popt context\n");
 		goto error;
@@ -3405,174 +2488,62 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 		switch (opt) {
 		case OPT_PLUGIN_PATH:
-			if (bt_common_is_setuid_setgid()) {
-				printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
-			} else {
-				if (bt_config_append_plugin_paths(
-						cfg->cmd_data.convert.plugin_paths,
-						arg)) {
-					printf_err("Invalid --plugin-path option's argument:\n    %s\n",
-						arg);
-					goto error;
-				}
+			if (bt_config_append_plugin_paths_check_setuid_setgid(
+					cfg->plugin_paths, arg)) {
+				goto error;
 			}
 			break;
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->cmd_data.convert.omit_system_plugin_path = true;
+			cfg->omit_system_plugin_path = true;
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->cmd_data.convert.omit_home_plugin_path = true;
+			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_OUTPUT_PATH:
-			if (text_legacy_opts.output->len > 0) {
-				printf_err("Duplicate --output option\n");
-				goto error;
-			}
-
-			g_string_assign(text_legacy_opts.output, arg);
-			break;
-		case OPT_DEBUG_INFO_DIR:
-			if (text_legacy_opts.dbg_info_dir->len > 0) {
-				printf_err("Duplicate --debug-info-dir option\n");
-				goto error;
-			}
-
-			g_string_assign(text_legacy_opts.dbg_info_dir, arg);
-			break;
-		case OPT_DEBUG_INFO_TARGET_PREFIX:
-			if (text_legacy_opts.dbg_info_target_prefix->len > 0) {
-				printf_err("Duplicate --debug-info-target-prefix option\n");
-				goto error;
-			}
-
-			g_string_assign(text_legacy_opts.dbg_info_target_prefix, arg);
-			break;
-		case OPT_INPUT_FORMAT:
 		case OPT_SOURCE:
-		{
-			if (opt == OPT_INPUT_FORMAT) {
-				if (!strcmp(arg, "ctf")) {
-					/* Legacy CTF input format */
-					if (legacy_input_format) {
-						print_err_dup_legacy_input();
-						goto error;
-					}
-
-					legacy_input_format =
-						LEGACY_INPUT_FORMAT_CTF;
-					break;
-				} else if (!strcmp(arg, "lttng-live")) {
-					/* Legacy LTTng-live input format */
-					if (legacy_input_format) {
-						print_err_dup_legacy_input();
-						goto error;
-					}
-
-					legacy_input_format =
-						LEGACY_INPUT_FORMAT_LTTNG_LIVE;
-					break;
-				}
-			}
-
-			use_implicit_source = false;
-
-			/* Non-legacy: try to create a component config */
-			if (cur_cfg_comp && !cur_is_implicit_source) {
-				add_cfg_comp(cfg, cur_cfg_comp,
-					cur_cfg_comp_dest);
-			}
-
-			cur_cfg_comp = bt_config_component_from_arg(
-				BT_COMPONENT_CLASS_TYPE_SOURCE, arg);
-			if (!cur_cfg_comp) {
-				printf_err("Invalid format for --source option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-			cur_is_implicit_source = false;
-
-			assert(cur_base_params);
-			bt_put(cur_cfg_comp->params);
-			cur_cfg_comp->params = bt_value_copy(cur_base_params);
-			if (!cur_cfg_comp->params) {
-				print_err_oom();
-				goto error;
-			}
-
-			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
-			break;
-		}
 		case OPT_FILTER:
-		{
-			if (cur_cfg_comp && !cur_is_implicit_source) {
-				add_cfg_comp(cfg, cur_cfg_comp,
-					cur_cfg_comp_dest);
-			}
-
-			cur_cfg_comp = bt_config_component_from_arg(
-				BT_COMPONENT_CLASS_TYPE_FILTER, arg);
-			if (!cur_cfg_comp) {
-				printf_err("Invalid format for --filter option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-			cur_is_implicit_source = false;
-
-			assert(cur_base_params);
-			bt_put(cur_cfg_comp->params);
-			cur_cfg_comp->params = bt_value_copy(cur_base_params);
-			if (!cur_cfg_comp->params) {
-				print_err_oom();
-				goto error;
-			}
-
-			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
-			break;
-		}
-		case OPT_OUTPUT_FORMAT:
 		case OPT_SINK:
 		{
-			if (opt == OPT_OUTPUT_FORMAT) {
-				if (!strcmp(arg, "text")) {
-					/* Legacy CTF-text output format */
-					if (legacy_output_format) {
-						print_err_dup_legacy_output();
-						goto error;
-					}
+			enum bt_component_class_type new_comp_type;
+			enum bt_config_component_dest new_dest;
+			const char *opt_name;
 
-					legacy_output_format =
-						LEGACY_OUTPUT_FORMAT_TEXT;
-					break;
-				} else if (!strcmp(arg, "dummy")) {
-					/* Legacy dummy output format */
-					if (legacy_output_format) {
-						print_err_dup_legacy_output();
-						goto error;
-					}
+			switch (opt) {
+			case OPT_SOURCE:
+				new_comp_type = BT_COMPONENT_CLASS_TYPE_SOURCE;
+				new_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+				opt_name = "--source";
+				break;
+			case OPT_FILTER:
+				new_comp_type = BT_COMPONENT_CLASS_TYPE_FILTER;
+				new_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
+				opt_name = "--filter";
+				break;
+			case OPT_SINK:
+				new_comp_type = BT_COMPONENT_CLASS_TYPE_SINK;
+				new_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+				opt_name = "--sink";
+				break;
+			default:
+				assert(false);
+			}
 
-					legacy_output_format =
-						LEGACY_OUTPUT_FORMAT_DUMMY;
-					break;
-				} else if (!strcmp(arg, "ctf-metadata")) {
-					cfg->cmd_data.convert.print_ctf_metadata = true;
-					break;
+			if (cur_cfg_comp) {
+				ret = add_run_cfg_comp_check_name(cfg,
+					cur_cfg_comp, cur_cfg_comp_dest,
+					instance_names);
+				BT_PUT(cur_cfg_comp);
+				if (ret) {
+					goto error;
 				}
 			}
 
-			/* Non-legacy: try to create a component config */
-			if (cur_cfg_comp && !cur_is_implicit_source) {
-				add_cfg_comp(cfg, cur_cfg_comp,
-					cur_cfg_comp_dest);
-			}
-
 			cur_cfg_comp = bt_config_component_from_arg(
-				BT_COMPONENT_CLASS_TYPE_SINK, arg);
+				new_comp_type, arg);
 			if (!cur_cfg_comp) {
-				printf_err("Invalid format for --sink option's argument:\n    %s\n",
-					arg);
+				printf_err("Invalid format for %s option's argument:\n    %s\n",
+					opt_name, arg);
 				goto error;
 			}
-			cur_is_implicit_source = false;
 
 			assert(cur_base_params);
 			bt_put(cur_cfg_comp->params);
@@ -3582,7 +2553,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			cur_cfg_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+			cur_cfg_comp_dest = new_dest;
 			break;
 		}
 		case OPT_PARAMS:
@@ -3591,8 +2562,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			struct bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
-				printf_err("Cannot add parameters to unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
+				printf_err("Cannot add parameters to unavailable component:\n    %s\n",
+					arg);
 				goto error;
 			}
 
@@ -3615,41 +2586,41 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			BT_MOVE(cur_cfg_comp->params, params_to_set);
 			break;
 		}
-		case OPT_PATH:
-			if (!cur_cfg_comp) {
-				printf_err("Cannot add `path` parameter to unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
+		case OPT_KEY:
+			if (strlen(arg) == 0) {
+				printf_err("Cannot set an empty string as the current parameter key\n");
 				goto error;
 			}
 
-			assert(cur_cfg_comp->params);
+			g_string_assign(cur_param_key, arg);
+			break;
+		case OPT_VALUE:
+			if (!cur_cfg_comp) {
+				printf_err("Cannot set a parameter's value of unavailable component:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (cur_param_key->len == 0) {
+				printf_err("--value option specified without preceding --key option:\n    %s\n",
+					arg);
+				goto error;
+			}
 
 			if (bt_value_map_insert_string(cur_cfg_comp->params,
-					"path", arg)) {
+					cur_param_key->str, arg)) {
 				print_err_oom();
 				goto error;
 			}
 			break;
 		case OPT_NAME:
 			if (!cur_cfg_comp) {
-				printf_err("Cannot set the name of unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
-				goto error;
-			}
-
-			if (bt_value_map_has_key(instance_names, arg)) {
-				printf_err("Duplicate component instance name:\n    %s\n",
+				printf_err("Cannot set the name of unavailable component:\n    %s\n",
 					arg);
 				goto error;
 			}
 
 			g_string_assign(cur_cfg_comp->instance_name, arg);
-
-			if (bt_value_map_insert(instance_names,
-					arg, bt_value_null)) {
-				print_err_oom();
-				goto error;
-			}
 			break;
 		case OPT_BASE_PARAMS:
 		{
@@ -3672,157 +2643,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 			break;
-		case OPT_NAMES:
-			if (text_legacy_opts.names) {
-				printf_err("Duplicate --names option\n");
-				goto error;
-			}
-
-			text_legacy_opts.names = names_from_arg(arg);
-			if (!text_legacy_opts.names) {
-				printf_err("Invalid --names option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-			break;
-		case OPT_FIELDS:
-			if (text_legacy_opts.fields) {
-				printf_err("Duplicate --fields option\n");
-				goto error;
-			}
-
-			text_legacy_opts.fields = fields_from_arg(arg);
-			if (!text_legacy_opts.fields) {
-				printf_err("Invalid --fields option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-			break;
-		case OPT_NO_DELTA:
-			text_legacy_opts.no_delta = true;
-			break;
-		case OPT_CLOCK_CYCLES:
-			text_legacy_opts.clock_cycles = true;
-			break;
-		case OPT_CLOCK_SECONDS:
-			text_legacy_opts.clock_seconds = true;
-			break;
-		case OPT_CLOCK_DATE:
-			text_legacy_opts.clock_date = true;
-			break;
-		case OPT_CLOCK_GMT:
-			text_legacy_opts.clock_gmt = true;
-			break;
-		case OPT_DEBUG_INFO_FULL_PATH:
-			text_legacy_opts.dbg_info_full_path = true;
-			break;
-		case OPT_CLOCK_OFFSET:
-		{
-			int64_t val;
-
-			if (ctf_legacy_opts.offset_s.is_set) {
-				printf_err("Duplicate --clock-offset option\n");
-				goto error;
-			}
-
-			if (parse_int64(arg, &val)) {
-				printf_err("Invalid --clock-offset option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			set_offset_value(&ctf_legacy_opts.offset_s, val);
-			break;
-		}
-		case OPT_CLOCK_OFFSET_NS:
-		{
-			int64_t val;
-
-			if (ctf_legacy_opts.offset_ns.is_set) {
-				printf_err("Duplicate --clock-offset-ns option\n");
-				goto error;
-			}
-
-			if (parse_int64(arg, &val)) {
-				printf_err("Invalid --clock-offset-ns option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			set_offset_value(&ctf_legacy_opts.offset_ns, val);
-			break;
-		}
-		case OPT_STREAM_INTERSECTION:
-			ctf_legacy_opts.stream_intersection = true;
-			break;
-		case OPT_CLOCK_FORCE_CORRELATE:
-			cfg->cmd_data.convert.force_correlate = true;
-			break;
-		case OPT_BEGIN:
-			if (!cur_cfg_comp) {
-				printf_err("Cannot add `begin` parameter to unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
-				goto error;
-			}
-			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--begin option must follow a --source option:\n    %s\n",
-					arg);
-				goto error;
-			}
-			if (bt_value_map_insert_string(cur_cfg_comp->params,
-					"begin", arg)) {
-				print_err_oom();
-				goto error;
-			}
-			break;
-		case OPT_END:
-			if (!cur_cfg_comp) {
-				printf_err("Cannot add `end` parameter to unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
-				goto error;
-			}
-			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--end option must follow a --source option:\n    %s\n",
-					arg);
-				goto error;
-			}
-			if (bt_value_map_insert_string(cur_cfg_comp->params,
-					"end", arg)) {
-				print_err_oom();
-				goto error;
-			}
-			break;
-		case OPT_TIMERANGE:
-		{
-			const char *begin, *end;
-
-			if (!cur_cfg_comp) {
-				printf_err("Cannot add `begin` and `end` parameters to unavailable default source component `%s`:\n    %s\n",
-					DEFAULT_SOURCE_COMPONENT_NAME, arg);
-				goto error;
-			}
-			if (cur_cfg_comp_dest != BT_CONFIG_COMPONENT_DEST_SOURCE) {
-				printf_err("--timerange option must follow a --source option:\n    %s\n",
-					arg);
-				goto error;
-			}
-			if (split_timerange(arg, &begin, &end)) {
-				printf_err("Invalid --timerange format: expecting BEGIN,END or [BEGIN,END]:\n    %s\n",
-					arg);
-				goto error;
-			}
-			if (bt_value_map_insert_string(cur_cfg_comp->params,
-					"begin", begin)) {
-				print_err_oom();
-				goto error;
-			}
-			if (bt_value_map_insert_string(cur_cfg_comp->params,
-					"end", end)) {
-				print_err_oom();
-				goto error;
-			}
-			break;
-		}
 		case OPT_CONNECT:
 			if (bt_value_array_append_string(connection_args,
 					arg)) {
@@ -3831,23 +2651,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 			break;
 		case OPT_HELP:
-			print_convert_usage(stdout);
+			print_run_usage(stdout);
 			*retcode = -1;
 			BT_PUT(cfg);
 			goto end;
-		case OPT_VERBOSE:
-			if (got_verbose_opt) {
-				printf_err("Duplicate -v option\n");
-				goto error;
-			}
-
-			text_legacy_opts.verbose = true;
-			cfg->verbose = true;
-			got_verbose_opt = true;
-			break;
-		case OPT_DEBUG:
-			cfg->debug = true;
-			break;
 		default:
 			printf_err("Unknown command-line option specified (option code %d)\n",
 				opt);
@@ -3865,109 +2672,34 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	/* Consume leftover arguments as legacy input paths */
-	while (true) {
-		const char *input_path = poptGetArg(pc);
-
-		if (!input_path) {
-			break;
-		}
-
-		if (bt_value_array_append_string(legacy_input_paths,
-				input_path)) {
-			print_err_oom();
-			goto error;
-		}
-	}
-
-	if (append_home_and_system_plugin_paths(
-			cfg->cmd_data.convert.plugin_paths,
-			cfg->cmd_data.convert.omit_system_plugin_path,
-			cfg->cmd_data.convert.omit_home_plugin_path)) {
-		printf_err("Cannot append home and system plugin paths\n");
+	/* This command does not accept leftover arguments */
+	if (poptPeekArg(pc)) {
+		printf_err("Unexpected argument: %s\n", poptPeekArg(pc));
 		goto error;
 	}
 
-	/* Append current component configuration, if any */
-	if (cur_cfg_comp && !cur_is_implicit_source) {
-		add_cfg_comp(cfg, cur_cfg_comp, cur_cfg_comp_dest);
+	/* Add current component */
+	if (cur_cfg_comp) {
+		ret = add_run_cfg_comp_check_name(cfg, cur_cfg_comp,
+			cur_cfg_comp_dest, instance_names);
+		BT_PUT(cur_cfg_comp);
+		if (ret) {
+			goto error;
+		}
 	}
-	cur_cfg_comp = NULL;
 
-	/* Validate legacy/non-legacy options */
-	if (!validate_cfg(cfg, &legacy_input_format, &legacy_output_format,
-			legacy_input_paths, &ctf_legacy_opts,
-			&text_legacy_opts)) {
-		printf_err("Command-line options form an invalid configuration\n");
+	if (cfg->cmd_data.run.sources->len == 0) {
+		printf_err("Incomplete graph: no source component\n");
 		goto error;
 	}
 
-	/*
-	 * If there's a legacy input format, convert it to source
-	 * component configurations.
-	 */
-	if (legacy_input_format) {
-		if (append_sources_from_legacy_opts(
-				cfg->cmd_data.convert.sources,
-				legacy_input_format, &ctf_legacy_opts,
-				legacy_input_paths)) {
-			printf_err("Cannot convert legacy input format options to source component instance(s)\n");
-			goto error;
-		}
-		if (append_sources_from_implicit_params(
-				cfg->cmd_data.convert.sources,
-				implicit_source_comp)) {
-			printf_err("Cannot initialize legacy component parameters\n");
-			goto error;
-		}
-		use_implicit_source = false;
-	} else {
-		if (use_implicit_source) {
-			add_cfg_comp(cfg, implicit_source_comp,
-				BT_CONFIG_COMPONENT_DEST_SOURCE);
-			implicit_source_comp = NULL;
-		} else {
-			if (implicit_source_comp
-					&& !bt_value_map_is_empty(implicit_source_comp->params)) {
-				printf_err("Arguments specified for implicit input format, but an explicit source component instance has been specified: overriding it\n");
-				goto error;
-			}
-		}
+	if (cfg->cmd_data.run.sinks->len == 0) {
+		printf_err("Incomplete graph: no sink component\n");
+		goto error;
 	}
 
-	/*
-	 * At this point if we need to print the CTF metadata text, we
-	 * don't care about the legacy/implicit sinks and component
-	 * connections.
-	 */
-	if (cfg->cmd_data.convert.print_ctf_metadata) {
-		goto end;
-	}
-
-	/*
-	 * If there's a legacy output format, convert it to sink
-	 * component configurations.
-	 */
-	if (legacy_output_format) {
-		if (append_sinks_from_legacy_opts(cfg->cmd_data.convert.sinks,
-				legacy_output_format, &text_legacy_opts)) {
-			printf_err("Cannot convert legacy output format options to sink component instance(s)\n");
-			goto error;
-		}
-	}
-
-	if (cfg->cmd_data.convert.sinks->len == 0) {
-		/* Use implicit sink as default. */
-		cur_cfg_comp = bt_config_component_from_arg(
-			BT_COMPONENT_CLASS_TYPE_SINK,
-			DEFAULT_SINK_COMPONENT_NAME);
-		if (!cur_cfg_comp) {
-			printf_error("Cannot find implicit sink plugin `%s`\n",
-				DEFAULT_SINK_COMPONENT_NAME);
-		}
-		add_cfg_comp(cfg, cur_cfg_comp,
-			BT_CONFIG_COMPONENT_DEST_SINK);
-		cur_cfg_comp = NULL;
+	if (append_home_and_system_plugin_paths_cfg(cfg)) {
+		goto error;
 	}
 
 	ret = bt_config_create_connections(cfg, connection_args,
@@ -3988,27 +2720,1827 @@ end:
 		poptFreeContext(pc);
 	}
 
-	if (text_legacy_opts.output) {
-		g_string_free(text_legacy_opts.output, TRUE);
-	}
-
-	if (text_legacy_opts.dbg_info_dir) {
-		g_string_free(text_legacy_opts.dbg_info_dir, TRUE);
-	}
-
-	if (text_legacy_opts.dbg_info_target_prefix) {
-		g_string_free(text_legacy_opts.dbg_info_target_prefix, TRUE);
+	if (cur_param_key) {
+		g_string_free(cur_param_key, TRUE);
 	}
 
 	free(arg);
-	BT_PUT(implicit_source_comp);
 	BT_PUT(cur_cfg_comp);
 	BT_PUT(cur_base_params);
-	BT_PUT(text_legacy_opts.names);
-	BT_PUT(text_legacy_opts.fields);
-	BT_PUT(legacy_input_paths);
 	BT_PUT(instance_names);
 	BT_PUT(connection_args);
+	return cfg;
+}
+
+static
+struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	struct bt_config *cfg = NULL;
+	const char **argv;
+	size_t i;
+	const size_t argc = bt_value_array_size(run_args) + 1;
+
+	argv = calloc(argc, sizeof(*argv));
+	if (!argv) {
+		print_err_oom();
+		goto end;
+	}
+
+	argv[0] = "run";
+
+	for (i = 0; i < bt_value_array_size(run_args); i++) {
+		int ret;
+		struct bt_value *arg_value = bt_value_array_get(run_args, i);
+		const char *arg;
+
+		assert(arg_value);
+		ret = bt_value_string_get(arg_value, &arg);
+		assert(ret == 0);
+		assert(arg);
+		argv[i + 1] = arg;
+		bt_put(arg_value);
+	}
+
+	cfg = bt_config_run_from_args(argc, argv, retcode,
+		omit_system_plugin_path, omit_home_plugin_path,
+		initial_plugin_paths);
+
+end:
+	free(argv);
+	return cfg;
+}
+
+/*
+ * Prints the convert command usage.
+ */
+static
+void print_convert_usage(FILE *fp)
+{
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [convert] [OPTIONS] [PATH/URL]\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --filter=[NAME:]PLUGIN.CLS    Instantiate a filter component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "      --name=NAME                   Set the name of the current component\n");
+	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
+	fprintf(fp, "                                    names of the created components)\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
+	fprintf(fp, "                                    current component (see the expected format\n");
+	fprintf(fp, "                                    of PARAMS below)\n");
+	fprintf(fp, "  -P, --path=PATH                   Set the `path` string parameter of the\n");
+	fprintf(fp, "                                    current component to PATH\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "      --run-args                    Print the equivalent arguments for the\n");
+	fprintf(fp, "                                    `run` command to the standard output,\n");
+	fprintf(fp, "                                    formatted for a shell, and quit\n");
+	fprintf(fp, "      --run-args-0                  Print the equivalent arguments for the\n");
+	fprintf(fp, "                                    `run` command to the standard output,\n");
+	fprintf(fp, "                                    formatted for `xargs -0`, and quit\n");
+	fprintf(fp, "      --sink=[NAME:]PLUGIN.CLS      Instantiate a sink component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "      --source=[NAME:]PLUGIN.CLS    Instantiate a source component from plugin\n");
+	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
+	fprintf(fp, "                                    the current component, and if NAME is\n");
+	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "  -u, --url=URL                     Set the `url` string parameter of the\n");
+	fprintf(fp, "                                    current component to URL\n");
+	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Implicit `ctf.fs` source component options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --clock-offset=SEC            Set clock offset to SEC seconds\n");
+	fprintf(fp, "      --clock-offset-ns=NS          Set clock offset to NS ns\n");
+	fprintf(fp, "      --stream-intersection         Only process events when all streams\n");
+	fprintf(fp, "                                    are active\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Implicit `text.text` sink component options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --clock-cycles                Print timestamps in clock cycles\n");
+	fprintf(fp, "      --clock-date                  Print timestamp dates\n");
+	fprintf(fp, "      --clock-gmt                   Print and parse timestamps in the GMT\n");
+	fprintf(fp, "                                    time zone instead of the local time zone\n");
+	fprintf(fp, "      --clock-seconds               Print the timestamps as `SEC.NS` instead\n");
+	fprintf(fp, "                                    of `hh:mm:ss.nnnnnnnnn`\n");
+	fprintf(fp, "      --color=(never | auto | always)\n");
+	fprintf(fp, "                                    Never, automatically, or always emit\n");
+	fprintf(fp, "                                    console color codes\n");
+	fprintf(fp, "  -f, --fields=FIELD[,FIELD]...     Print additional fields; FIELD can be:\n");
+	fprintf(fp, "                                      `all`, `trace`, `trace:hostname`,\n");
+	fprintf(fp, "                                      `trace:domain`, `trace:procname`,\n");
+	fprintf(fp, "                                      `trace:vpid`, `loglevel`, `emf`\n");
+	fprintf(fp, "  -n, --names=NAME[,NAME]...        Print field names; NAME can be:\n");
+	fprintf(fp, "                                      `payload` (or `arg` or `args`), `none`,\n");
+	fprintf(fp, "                                      `all`, `scope`, `header`, `context`\n");
+	fprintf(fp, "                                      (or `ctx`)\n");
+	fprintf(fp, "      --no-delta                    Do not print time delta between\n");
+	fprintf(fp, "                                    consecutive events\n");
+	fprintf(fp, "  -w, --output=PATH                 Write output text to PATH instead of\n");
+	fprintf(fp, "                                    the standard output\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Implicit `utils.muxer` filter component options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --clock-force-correlate       Assume that clocks are inherently\n");
+	fprintf(fp, "                                    correlated across traces\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Implicit `utils.trimmer` filter component options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  -b, --begin=BEGIN                 Set the beginning time of the conversion\n");
+	fprintf(fp, "                                    time range to BEGIN (see the format of\n");
+	fprintf(fp, "                                    BEGIN below)\n");
+	fprintf(fp, "  -e, --end=END                     Set the end time of the conversion time\n");
+	fprintf(fp, "                                    range to END (see the format of END below)\n");
+	fprintf(fp, "  -t, --timerange=TIMERANGE         Set conversion time range to TIMERANGE:\n");
+	fprintf(fp, "                                    BEGIN,END or [BEGIN,END] (literally `[` and\n");
+	fprintf(fp, "                                    `]`) (see the format of BEGIN/END below)\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Implicit `lttng-utils.debug-info` filter component options:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "      --debug-info-dir=DIR          Search for debug info in directory DIR\n");
+	fprintf(fp, "                                    instead of `/usr/lib/debug`\n");
+	fprintf(fp, "      --debug-info-full-path        Show full debug info source and\n");
+	fprintf(fp, "                                    binary paths instead of just names\n");
+	fprintf(fp, "      --debug-info-target-prefix=DIR\n");
+	fprintf(fp, "                                    Use directory DIR as a prefix when\n");
+	fprintf(fp, "                                    looking up executables during debug\n");
+	fprintf(fp, "                                    info analysis\n");
+	fprintf(fp, "      --no-debug-info               Do not create an implicit\n");
+	fprintf(fp, "                                    `lttng-utils.debug-info` filter component\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "Legacy options that still work:\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "  -i, --input-format=(ctf | lttng-live)\n");
+	fprintf(fp, "                                    `ctf`:\n");
+	fprintf(fp, "                                      Create an implicit `ctf.fs` source\n");
+	fprintf(fp, "                                      component\n");
+	fprintf(fp, "                                    `lttng-live`:\n");
+	fprintf(fp, "                                      Create an implicit `ctf.lttng-live`\n");
+	fprintf(fp, "                                      source component\n");
+	fprintf(fp, "  -o, --output-format=(text | dummy | ctf-metadata)\n");
+	fprintf(fp, "                                    `text`:\n");
+	fprintf(fp, "                                      Create an implicit `text.text` sink\n");
+	fprintf(fp, "                                      component\n");
+	fprintf(fp, "                                    `dummy`:\n");
+	fprintf(fp, "                                      Create an implicit `utils.dummy` sink\n");
+	fprintf(fp, "                                      component\n");
+	fprintf(fp, "                                    `ctf-metadata`:\n");
+	fprintf(fp, "                                      Query the `ctf.fs` component class for\n");
+	fprintf(fp, "                                      metadata text and quit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "Format of BEGIN and END\n");
+	fprintf(fp, "-----------------------\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "    [YYYY-MM-DD [hh:mm:]]ss[.nnnnnnnnn]\n");
+	fprintf(fp, "\n\n");
+	print_expected_params_format(fp);
+}
+
+static struct poptOption convert_long_options[] = {
+	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
+	{ "begin", 'b', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
+	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
+	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
+	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
+	{ "clock-gmt", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
+	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
+	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
+	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
+	{ "color", '\0', POPT_ARG_STRING, NULL, OPT_COLOR, NULL, NULL },
+	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
+	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
+	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
+	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
+	{ "end", 'e', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
+	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
+	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
+	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
+	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
+	{ "no-debug-info", '\0', POPT_ARG_NONE, NULL, OPT_NO_DEBUG_INFO, NULL, NULL },
+	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
+	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
+	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
+	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT, NULL, NULL },
+	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
+	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
+	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
+	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
+	{ "run-args", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS, NULL, NULL },
+	{ "run-args-0", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS_0, NULL, NULL },
+	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
+	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
+	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
+	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
+	{ "url", 'u', POPT_ARG_STRING, NULL, OPT_URL, NULL, NULL },
+	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
+	{ NULL, 0, 0, NULL, 0, NULL, NULL },
+};
+
+static
+GString *get_component_auto_name(const char *prefix,
+		struct bt_value *existing_names)
+{
+	unsigned int i = 0;
+	GString *auto_name = g_string_new(NULL);
+
+	if (!auto_name) {
+		print_err_oom();
+		goto end;
+	}
+
+	if (!bt_value_map_has_key(existing_names, prefix)) {
+		g_string_assign(auto_name, prefix);
+		goto end;
+	}
+
+	do {
+		g_string_printf(auto_name, "%s-%d", prefix, i);
+		i++;
+	} while (bt_value_map_has_key(existing_names, auto_name->str));
+
+end:
+	return auto_name;
+}
+
+struct implicit_component_args {
+	bool exists;
+	GString *plugin_comp_cls_arg;
+	GString *name_arg;
+	GString *params_arg;
+	struct bt_value *extra_args;
+};
+
+static
+int assign_name_to_implicit_component(struct implicit_component_args *args,
+		const char *prefix, struct bt_value *existing_names,
+		GList **comp_names, bool append_to_comp_names)
+{
+	int ret = 0;
+	GString *name = NULL;
+
+	if (!args->exists) {
+		goto end;
+	}
+
+	name = get_component_auto_name(prefix, existing_names);
+
+	if (!name) {
+		ret = -1;
+		goto end;
+	}
+
+	g_string_assign(args->name_arg, name->str);
+
+	if (bt_value_map_insert(existing_names, name->str,
+			bt_value_null)) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	if (append_to_comp_names) {
+		*comp_names = g_list_append(*comp_names, name);
+		name = NULL;
+	}
+
+end:
+	if (name) {
+		g_string_free(name, TRUE);
+	}
+
+	return ret;
+}
+
+static
+int append_run_args_for_implicit_component(
+		enum bt_component_class_type type,
+		struct implicit_component_args *impl_args,
+		struct bt_value *run_args)
+{
+	int ret = 0;
+	size_t i;
+
+	if (!impl_args->exists) {
+		goto end;
+	}
+
+	switch (type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		if (bt_value_array_append_string(run_args, "--source")) {
+			print_err_oom();
+			goto error;
+		}
+		break;
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+		if (bt_value_array_append_string(run_args, "--filter")) {
+			print_err_oom();
+			goto error;
+		}
+		break;
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+		if (bt_value_array_append_string(run_args, "--sink")) {
+			print_err_oom();
+			goto error;
+		}
+		break;
+	default:
+		assert(false);
+	}
+
+	if (bt_value_array_append_string(run_args,
+			impl_args->plugin_comp_cls_arg->str)) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (bt_value_array_append_string(run_args, "--name")) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (bt_value_array_append_string(run_args, impl_args->name_arg->str)) {
+		print_err_oom();
+		goto error;
+	}
+
+	if (impl_args->params_arg->len > 0) {
+		if (bt_value_array_append_string(run_args, "--params")) {
+			print_err_oom();
+			goto error;
+		}
+
+		if (bt_value_array_append_string(run_args,
+				impl_args->params_arg->str)) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
+	for (i = 0; i < bt_value_array_size(impl_args->extra_args); i++) {
+		struct bt_value *elem;
+		const char *arg;
+
+		elem = bt_value_array_get(impl_args->extra_args, i);
+		if (!elem) {
+			goto error;
+		}
+
+		assert(bt_value_is_string(elem));
+		if (bt_value_string_get(elem, &arg)) {
+			goto error;
+		}
+
+		ret = bt_value_array_append_string(run_args, arg);
+		bt_put(elem);
+		if (ret) {
+			print_err_oom();
+			goto error;
+		}
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
+static
+void destroy_implicit_component_args(struct implicit_component_args *args)
+{
+	assert(args);
+
+	if (args->plugin_comp_cls_arg) {
+		g_string_free(args->plugin_comp_cls_arg, TRUE);
+	}
+
+	if (args->name_arg) {
+		g_string_free(args->name_arg, TRUE);
+	}
+
+	if (args->params_arg) {
+		g_string_free(args->params_arg, TRUE);
+	}
+
+	bt_put(args->extra_args);
+}
+
+static
+int init_implicit_component_args(struct implicit_component_args *args,
+		const char *plugin_comp_cls_arg, bool exists)
+{
+	int ret = 0;
+
+	args->exists = exists;
+	args->plugin_comp_cls_arg = g_string_new(plugin_comp_cls_arg);
+	args->name_arg = g_string_new(NULL);
+	args->params_arg = g_string_new(NULL);
+	args->extra_args = bt_value_array_create();
+
+	if (!args->plugin_comp_cls_arg || !args->name_arg ||
+			!args->params_arg || !args->extra_args) {
+		ret = -1;
+		destroy_implicit_component_args(args);
+		print_err_oom();
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+void append_implicit_component_param(struct implicit_component_args *args,
+	const char *key, const char *value)
+{
+	assert(args);
+	assert(key);
+	assert(value);
+	append_param_arg(args->params_arg, key, value);
+}
+
+static
+int append_implicit_component_extra_arg(struct implicit_component_args *args,
+		const char *key, const char *value)
+{
+	int ret = 0;
+
+	assert(args);
+	assert(key);
+	assert(value);
+
+	if (bt_value_array_append_string(args->extra_args, "--key")) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_value_array_append_string(args->extra_args, key)) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_value_array_append_string(args->extra_args, "--value")) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_value_array_append_string(args->extra_args, value)) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+int convert_append_name_param(enum bt_config_component_dest dest,
+		GString *cur_name, GString *cur_name_prefix,
+		struct bt_value *run_args, struct bt_value *all_names,
+		GList **source_names, GList **filter_names,
+		GList **sink_names)
+{
+	int ret = 0;
+
+	if (cur_name_prefix->len > 0) {
+		/* We're after a --source/--filter/--sink */
+		GString *name = NULL;
+		bool append_name_opt = false;
+
+		if (cur_name->len == 0) {
+			/*
+			 * No explicit name was provided for the user
+			 * component.
+			 */
+			name = get_component_auto_name(
+				cur_name_prefix->str,
+				all_names);
+			append_name_opt = true;
+		} else {
+			/*
+			 * An explicit name was provided for the user
+			 * component.
+			 */
+			if (bt_value_map_has_key(all_names,
+					cur_name->str)) {
+				printf_err("Duplicate component instance name:\n    %s\n",
+					cur_name->str);
+				goto error;
+			}
+
+			name = g_string_new(cur_name->str);
+		}
+
+		if (!name) {
+			print_err_oom();
+			goto error;
+		}
+
+		/*
+		 * Remember this name globally, for the uniqueness of
+		 * all component names.
+		 */
+		if (bt_value_map_insert(all_names, name->str, bt_value_null)) {
+			print_err_oom();
+			goto error;
+		}
+
+		/*
+		 * Append the --name option if necessary.
+		 */
+		if (append_name_opt) {
+			if (bt_value_array_append_string(run_args, "--name")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, name->str)) {
+				print_err_oom();
+				goto error;
+			}
+		}
+
+		/*
+		 * Remember this name specifically for the type of the
+		 * component. This is to create connection arguments.
+		 */
+		switch (dest) {
+		case BT_CONFIG_COMPONENT_DEST_SOURCE:
+			*source_names = g_list_append(*source_names, name);
+			break;
+		case BT_CONFIG_COMPONENT_DEST_FILTER:
+			*filter_names = g_list_append(*filter_names, name);
+			break;
+		case BT_CONFIG_COMPONENT_DEST_SINK:
+			*sink_names = g_list_append(*sink_names, name);
+			break;
+		default:
+			assert(false);
+		}
+
+		g_string_assign(cur_name_prefix, "");
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
+/*
+ * Escapes `.`, `:`, and `\` of `input` with `\`.
+ */
+GString *escape_dot_colon(const char *input)
+{
+	GString *output = g_string_new(NULL);
+	const char *ch;
+
+	if (!output) {
+		print_err_oom();
+		goto end;
+	}
+
+	for (ch = input; *ch != '\0'; ch++) {
+		if (*ch == '\\' || *ch == '.' || *ch == ':') {
+			g_string_append_c(output, '\\');
+		}
+
+		g_string_append_c(output, *ch);
+	}
+
+end:
+	return output;
+}
+
+/*
+ * Appends a --connect option to a list of arguments. `upstream_name`
+ * and `downstream_name` are escaped with escape_dot_colon() in this
+ * function.
+ */
+int append_connect_arg(struct bt_value *run_args,
+		const char *upstream_name, const char *downstream_name)
+{
+	int ret = 0;
+	GString *e_upstream_name = escape_dot_colon(upstream_name);
+	GString *e_downstream_name = escape_dot_colon(downstream_name);
+	GString *arg = g_string_new(NULL);
+
+	if (!e_upstream_name || !e_downstream_name || !arg) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_value_array_append_string(run_args, "--connect");
+	if (ret) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	g_string_append(arg, e_upstream_name->str);
+	g_string_append_c(arg, ':');
+	g_string_append(arg, e_downstream_name->str);
+	ret = bt_value_array_append_string(run_args, arg->str);
+	if (ret) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+end:
+	if (arg) {
+		g_string_free(arg, TRUE);
+	}
+
+	if (e_upstream_name) {
+		g_string_free(e_upstream_name, TRUE);
+	}
+
+	if (e_downstream_name) {
+		g_string_free(e_downstream_name, TRUE);
+	}
+
+	return ret;
+}
+
+/*
+ * Appends the run command's --connect options for the convert command.
+ */
+int convert_auto_connect(struct bt_value *run_args,
+		GList *source_names, GList *filter_names,
+		GList *sink_names)
+{
+	int ret = 0;
+	GList *source_at = source_names;
+	GList *filter_at = filter_names;
+	GList *filter_prev;
+	GList *sink_at = sink_names;
+
+	assert(source_names);
+	assert(filter_names);
+	assert(sink_names);
+
+	/* Connect all sources to the first filter */
+	for (source_at = source_names; source_at != NULL; source_at = g_list_next(source_at)) {
+		GString *source_name = source_at->data;
+		GString *filter_name = filter_at->data;
+
+		ret = append_connect_arg(run_args, source_name->str,
+			filter_name->str);
+		if (ret) {
+			goto error;
+		}
+	}
+
+	filter_prev = filter_at;
+	filter_at = g_list_next(filter_at);
+
+	/* Connect remaining filters */
+	for (; filter_at != NULL; filter_prev = filter_at, filter_at = g_list_next(filter_at)) {
+		GString *filter_name = filter_at->data;
+		GString *filter_prev_name = filter_prev->data;
+
+		ret = append_connect_arg(run_args, filter_prev_name->str,
+			filter_name->str);
+		if (ret) {
+			goto error;
+		}
+	}
+
+	/* Connect last filter to all sinks */
+	for (sink_at = sink_names; sink_at != NULL; sink_at = g_list_next(sink_at)) {
+		GString *filter_name = filter_prev->data;
+		GString *sink_name = sink_at->data;
+
+		ret = append_connect_arg(run_args, filter_name->str,
+			sink_name->str);
+		if (ret) {
+			goto error;
+		}
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
+static int split_timerange(const char *arg, char **begin, char **end)
+{
+	int ret = 0;
+	const char *ch = arg;
+	size_t end_pos;
+	GString *g_begin = NULL;
+	GString *g_end = NULL;
+
+	assert(arg);
+
+	if (*ch == '[') {
+		ch++;
+	}
+
+	g_begin = bt_common_string_until(ch, "", ",", &end_pos);
+	if (!g_begin || ch[end_pos] != ',' || g_begin->len == 0) {
+		goto error;
+	}
+
+	ch += end_pos + 1;
+
+	g_end = bt_common_string_until(ch, "", "]", &end_pos);
+	if (!g_end || g_end->len == 0) {
+		goto error;
+	}
+
+	assert(begin);
+	assert(end);
+	*begin = g_begin->str;
+	*end = g_end->str;
+	g_string_free(g_begin, FALSE);
+	g_string_free(g_end, FALSE);
+	g_begin = NULL;
+	g_end = NULL;
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	if (g_begin) {
+		g_string_free(g_begin, TRUE);
+	}
+
+	if (g_end) {
+		g_string_free(g_end, TRUE);
+	}
+
+	return ret;
+}
+
+static
+int g_list_prepend_gstring(GList **list, const char *string)
+{
+	int ret = 0;
+	GString *gs = g_string_new(string);
+
+	assert(list);
+
+	if (!gs) {
+		print_err_oom();
+		goto end;
+	}
+
+	*list = g_list_prepend(*list, gs);
+
+end:
+	return ret;
+}
+
+/*
+ * Creates a Babeltrace config object from the arguments of a convert
+ * command.
+ *
+ * *retcode is set to the appropriate exit code to use.
+ */
+static
+struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
+		struct bt_value *initial_plugin_paths)
+{
+	poptContext pc = NULL;
+	char *arg = NULL;
+	enum bt_config_component_dest cur_comp_dest;
+	int opt, ret = 0;
+	struct bt_config *cfg = NULL;
+	bool got_verbose_opt = false;
+	bool got_debug_opt = false;
+	bool got_input_format_opt = false;
+	bool got_output_format_opt = false;
+	bool trimmer_has_begin = false;
+	bool trimmer_has_end = false;
+	GString *cur_name = NULL;
+	GString *cur_name_prefix = NULL;
+	const char *leftover = NULL;
+	bool print_run_args = false;
+	bool print_run_args_0 = false;
+	bool print_ctf_metadata = false;
+	struct bt_value *run_args = NULL;
+	struct bt_value *all_names = NULL;
+	GList *source_names = NULL;
+	GList *filter_names = NULL;
+	GList *sink_names = NULL;
+	struct implicit_component_args implicit_ctf_args = { 0 };
+	struct implicit_component_args implicit_lttng_live_args = { 0 };
+	struct implicit_component_args implicit_dummy_args = { 0 };
+	struct implicit_component_args implicit_text_args = { 0 };
+	struct implicit_component_args implicit_debug_info_args = { 0 };
+	struct implicit_component_args implicit_muxer_args = { 0 };
+	struct implicit_component_args implicit_trimmer_args = { 0 };
+	struct bt_value *plugin_paths = bt_get(initial_plugin_paths);
+	char error_buf[256] = { 0 };
+	size_t i;
+	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
+
+	*retcode = 0;
+
+	if (argc <= 1) {
+		print_convert_usage(stdout);
+		*retcode = -1;
+		goto end;
+	}
+
+	if (init_implicit_component_args(&implicit_ctf_args, "ctf.fs", false)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_lttng_live_args,
+			"ctf.lttng-live", false)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_text_args, "text.text",
+			false)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_dummy_args, "utils.dummy",
+			false)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_debug_info_args,
+			"lttng-utils.debug-info", true)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_muxer_args, "utils.muxer",
+			true)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_trimmer_args,
+			"utils.trimmer", false)) {
+		goto error;
+	}
+
+	all_names = bt_value_map_create();
+	if (!all_names) {
+		print_err_oom();
+		goto error;
+	}
+
+	run_args = bt_value_array_create();
+	if (!run_args) {
+		print_err_oom();
+		goto error;
+	}
+
+	cur_name = g_string_new(NULL);
+	if (!cur_name) {
+		print_err_oom();
+		goto error;
+	}
+
+	cur_name_prefix = g_string_new(NULL);
+	if (!cur_name_prefix) {
+		print_err_oom();
+		goto error;
+	}
+
+	ret = append_env_var_plugin_paths(plugin_paths);
+	if (ret) {
+		goto error;
+	}
+
+	/*
+	 * First pass: collect all arguments which need to be passed
+	 * as is to the run command. This pass can also add --name
+	 * arguments if needed to automatically name unnamed component
+	 * instances. Also it does the following transformations:
+	 *
+	 *     --path=PATH -> --key path --value PATH
+	 *     --url=URL   -> --key url --value URL
+	 *
+	 * Also it appends the plugin paths of --plugin-path to
+	 * `plugin_paths`.
+	 */
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		convert_long_options, 0);
+	if (!pc) {
+		printf_err("Cannot get popt context\n");
+		goto error;
+	}
+
+	poptReadDefaultConfig(pc, 0);
+
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		char *name = NULL;
+		char *plugin_name = NULL;
+		char *comp_cls_name = NULL;
+
+		arg = poptGetOptArg(pc);
+
+		switch (opt) {
+		case OPT_SOURCE:
+		case OPT_FILTER:
+		case OPT_SINK:
+			/* Append current component's name if needed */
+			ret = convert_append_name_param(cur_comp_dest, cur_name,
+				cur_name_prefix, run_args, all_names,
+				&source_names, &filter_names, &sink_names);
+			if (ret) {
+				goto error;
+			}
+
+			/* Parse the argument */
+			plugin_comp_cls_names(arg, &name, &plugin_name,
+				&comp_cls_name);
+			if (!plugin_name || !comp_cls_name) {
+				printf_err("Invalid format for --source/--filter/--sink option's argument:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (name) {
+				g_string_assign(cur_name, name);
+			} else {
+				g_string_assign(cur_name, "");
+			}
+
+			switch (opt) {
+			case OPT_SOURCE:
+				cur_comp_dest =
+					BT_CONFIG_COMPONENT_DEST_SOURCE;
+				if (bt_value_array_append_string(run_args,
+						"--source")) {
+					print_err_oom();
+					goto error;
+				}
+				break;
+			case OPT_FILTER:
+				cur_comp_dest =
+					BT_CONFIG_COMPONENT_DEST_FILTER;
+				if (bt_value_array_append_string(run_args,
+						"--filter")) {
+					print_err_oom();
+					goto error;
+				}
+				break;
+			case OPT_SINK:
+				cur_comp_dest =
+					BT_CONFIG_COMPONENT_DEST_SINK;
+				if (bt_value_array_append_string(run_args,
+						"--sink")) {
+					print_err_oom();
+					goto error;
+				}
+				break;
+			default:
+				assert(false);
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+
+			g_string_assign(cur_name_prefix, "");
+			g_string_append(cur_name_prefix, plugin_name);
+			g_string_append_c(cur_name_prefix, '.');
+			g_string_append(cur_name_prefix, comp_cls_name);
+			free(name);
+			free(plugin_name);
+			free(comp_cls_name);
+			name = NULL;
+			plugin_name = NULL;
+			comp_cls_name = NULL;
+			break;
+		case OPT_PARAMS:
+			if (cur_name_prefix->len == 0) {
+				printf_err("No current component of which to set parameters:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args,
+					"--params")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_PATH:
+			if (cur_name_prefix->len == 0) {
+				printf_err("No current component of which to set `path` parameter:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "--key")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "path")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "--value")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_URL:
+			if (cur_name_prefix->len == 0) {
+				printf_err("No current component of which to set `url` parameter:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "--key")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "url")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "--value")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_NAME:
+			if (cur_name_prefix->len == 0) {
+				printf_err("No current component to name:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, "--name")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+
+			g_string_assign(cur_name, arg);
+			break;
+		case OPT_OMIT_HOME_PLUGIN_PATH:
+			if (bt_value_array_append_string(run_args,
+					"--omit-home-plugin-path")) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+			if (bt_value_array_append_string(run_args,
+					"--omit-system-plugin-path")) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_PLUGIN_PATH:
+			if (bt_config_append_plugin_paths_check_setuid_setgid(
+					plugin_paths, arg)) {
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args,
+					"--plugin-path")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+			break;
+		case OPT_HELP:
+			print_convert_usage(stdout);
+			*retcode = -1;
+			BT_PUT(cfg);
+			goto end;
+		case OPT_BEGIN:
+		case OPT_CLOCK_CYCLES:
+		case OPT_CLOCK_DATE:
+		case OPT_CLOCK_FORCE_CORRELATE:
+		case OPT_CLOCK_GMT:
+		case OPT_CLOCK_OFFSET:
+		case OPT_CLOCK_OFFSET_NS:
+		case OPT_CLOCK_SECONDS:
+		case OPT_COLOR:
+		case OPT_DEBUG:
+		case OPT_DEBUG_INFO_DIR:
+		case OPT_DEBUG_INFO_FULL_PATH:
+		case OPT_DEBUG_INFO_TARGET_PREFIX:
+		case OPT_END:
+		case OPT_FIELDS:
+		case OPT_INPUT_FORMAT:
+		case OPT_NAMES:
+		case OPT_NO_DEBUG_INFO:
+		case OPT_NO_DELTA:
+		case OPT_OUTPUT_FORMAT:
+		case OPT_OUTPUT:
+		case OPT_RUN_ARGS:
+		case OPT_RUN_ARGS_0:
+		case OPT_STREAM_INTERSECTION:
+		case OPT_TIMERANGE:
+		case OPT_VERBOSE:
+			/* Ignore in this pass */
+			break;
+		default:
+			printf_err("Unknown command-line option specified (option code %d)\n",
+				opt);
+			goto error;
+		}
+
+		free(arg);
+		arg = NULL;
+	}
+
+	/* Append current component's name if needed */
+	ret = convert_append_name_param(cur_comp_dest, cur_name,
+		cur_name_prefix, run_args, all_names, &source_names,
+		&filter_names, &sink_names);
+	if (ret) {
+		goto error;
+	}
+
+	/* Check for option parsing error */
+	if (opt < -1) {
+		printf_err("While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
+		goto error;
+	}
+
+	poptFreeContext(pc);
+	free(arg);
+	arg = NULL;
+
+	/*
+	 * Second pass: transform the convert-specific options and
+	 * arguments into implicit component instances for the run
+	 * command.
+	 */
+	pc = poptGetContext(NULL, argc, (const char **) argv,
+		convert_long_options, 0);
+	if (!pc) {
+		printf_err("Cannot get popt context\n");
+		goto error;
+	}
+
+	poptReadDefaultConfig(pc, 0);
+
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		arg = poptGetOptArg(pc);
+
+		switch (opt) {
+		case OPT_BEGIN:
+			if (trimmer_has_begin) {
+				printf("At --begin option: --begin or --timerange option already specified\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			trimmer_has_begin = true;
+			ret = append_implicit_component_extra_arg(
+				&implicit_trimmer_args, "begin", arg);
+			implicit_trimmer_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_END:
+			if (trimmer_has_end) {
+				printf("At --end option: --end or --timerange option already specified\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			trimmer_has_end = true;
+			ret = append_implicit_component_extra_arg(
+				&implicit_trimmer_args, "end", arg);
+			implicit_trimmer_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_TIMERANGE:
+		{
+			char *begin;
+			char *end;
+
+			if (trimmer_has_begin || trimmer_has_end) {
+				printf("At --timerange option: --begin, --end, or --timerange option already specified\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			ret = split_timerange(arg, &begin, &end);
+			if (ret) {
+				printf_err("Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			ret = append_implicit_component_extra_arg(
+				&implicit_trimmer_args, "begin", begin);
+			ret |= append_implicit_component_extra_arg(
+				&implicit_trimmer_args, "end", end);
+			implicit_trimmer_args.exists = true;
+			free(begin);
+			free(end);
+			if (ret) {
+				goto error;
+			}
+			break;
+		}
+		case OPT_CLOCK_CYCLES:
+			append_implicit_component_param(
+				&implicit_text_args, "clock-cycles", "yes");
+			implicit_text_args.exists = true;
+			break;
+		case OPT_CLOCK_DATE:
+			append_implicit_component_param(
+				&implicit_text_args, "clock-date", "yes");
+			implicit_text_args.exists = true;
+			break;
+		case OPT_CLOCK_FORCE_CORRELATE:
+			append_implicit_component_param(
+				&implicit_muxer_args, "force-correlate", "yes");
+			break;
+		case OPT_CLOCK_GMT:
+			append_implicit_component_param(
+				&implicit_text_args, "clock-gmt", "yes");
+			implicit_text_args.exists = true;
+			break;
+		case OPT_CLOCK_OFFSET:
+			ret = append_implicit_component_extra_arg(
+				&implicit_ctf_args, "clock-offset-cycles", arg);
+			implicit_ctf_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_CLOCK_OFFSET_NS:
+			ret = append_implicit_component_extra_arg(
+				&implicit_ctf_args, "clock-offset-ns", arg);
+			implicit_ctf_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_CLOCK_SECONDS:
+			append_implicit_component_param(
+				&implicit_text_args, "clock-seconds", "yes");
+			implicit_text_args.exists = true;
+			break;
+		case OPT_COLOR:
+			ret = append_implicit_component_extra_arg(
+				&implicit_text_args, "color", arg);
+			implicit_text_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_NO_DEBUG_INFO:
+			implicit_debug_info_args.exists = false;
+			break;
+		case OPT_DEBUG_INFO_DIR:
+			ret = append_implicit_component_extra_arg(
+				&implicit_debug_info_args, "dir", arg);
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_DEBUG_INFO_FULL_PATH:
+			append_implicit_component_param(
+				&implicit_debug_info_args, "full-path", "yes");
+			break;
+		case OPT_DEBUG_INFO_TARGET_PREFIX:
+			ret = append_implicit_component_extra_arg(
+				&implicit_debug_info_args,
+				"target-prefix", arg);
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_FIELDS:
+		{
+			struct bt_value *fields = fields_from_arg(arg);
+
+			if (!fields) {
+				goto error;
+			}
+
+			ret = insert_flat_params_from_array(
+				implicit_text_args.params_arg,
+				fields, "field");
+			bt_put(fields);
+			if (ret) {
+				goto error;
+			}
+			break;
+		}
+		case OPT_NAMES:
+		{
+			struct bt_value *names = names_from_arg(arg);
+
+			if (!names) {
+				goto error;
+			}
+
+			ret = insert_flat_params_from_array(
+				implicit_text_args.params_arg,
+				names, "name");
+			bt_put(names);
+			if (ret) {
+				goto error;
+			}
+			break;
+		}
+		case OPT_NO_DELTA:
+			append_implicit_component_param(
+				&implicit_text_args, "no-delta", "yes");
+			implicit_text_args.exists = true;
+			break;
+		case OPT_INPUT_FORMAT:
+			if (got_input_format_opt) {
+				printf_err("Duplicate --input-format option\n");
+				goto error;
+			}
+
+			got_input_format_opt = true;
+
+			if (strcmp(arg, "ctf") == 0) {
+				implicit_ctf_args.exists = true;
+			} else if (strcmp(arg, "lttng-live") == 0) {
+				implicit_lttng_live_args.exists = true;
+			} else {
+				printf_err("Unknown legacy input format:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		case OPT_OUTPUT_FORMAT:
+			if (got_output_format_opt) {
+				printf_err("Duplicate --output-format option\n");
+				goto error;
+			}
+
+			got_output_format_opt = true;
+
+			if (strcmp(arg, "text") == 0) {
+				implicit_text_args.exists = true;
+			} else if (strcmp(arg, "dummy") == 0) {
+				implicit_dummy_args.exists = true;
+			} else if (strcmp(arg, "ctf-metadata") == 0) {
+				print_ctf_metadata = true;
+			} else {
+				printf_err("Unknown legacy output format:\n    %s\n",
+					arg);
+				goto error;
+			}
+			break;
+		case OPT_OUTPUT:
+			ret = append_implicit_component_extra_arg(
+				&implicit_text_args, "path", arg);
+			implicit_text_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+			break;
+		case OPT_RUN_ARGS:
+			if (print_run_args_0) {
+				printf_err("Cannot specify --run-args and --run-args-0\n");
+				goto error;
+			}
+
+			print_run_args = true;
+			break;
+		case OPT_RUN_ARGS_0:
+			if (print_run_args) {
+				printf_err("Cannot specify --run-args and --run-args-0\n");
+				goto error;
+			}
+
+			print_run_args_0 = true;
+			break;
+		case OPT_STREAM_INTERSECTION:
+			append_implicit_component_param(&implicit_ctf_args,
+				"stream-intersection", "yes");
+			implicit_ctf_args.exists = true;
+			break;
+		case OPT_VERBOSE:
+			if (got_verbose_opt) {
+				printf_err("Duplicate -v/--verbose option\n");
+				goto error;
+			}
+
+			append_implicit_component_param(&implicit_text_args,
+				"verbose", "yes");
+			implicit_text_args.exists = true;
+			got_verbose_opt = true;
+			break;
+		case OPT_DEBUG:
+			got_debug_opt = true;
+			break;
+		}
+
+		free(arg);
+		arg = NULL;
+	}
+
+	/* Check for option parsing error */
+	if (opt < -1) {
+		printf_err("While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
+		goto error;
+	}
+
+	/*
+	 * Append home and system plugin paths now that we possibly got
+	 * --plugin-path.
+	 */
+	if (append_home_and_system_plugin_paths(plugin_paths,
+			omit_system_plugin_path, omit_home_plugin_path)) {
+		goto error;
+	}
+
+	/* Consume leftover argument */
+	leftover = poptGetArg(pc);
+
+	if (poptPeekArg(pc)) {
+		printf_err("Unexpected argument:\n    %s\n",
+			poptPeekArg(pc));
+		goto error;
+	}
+
+	/* Print CTF metadata or print LTTng-live sessions */
+	if (print_ctf_metadata) {
+		if (!leftover) {
+			printf_err("--output-format=ctf-metadata specified without a path\n");
+			goto error;
+		}
+
+		cfg = bt_config_print_ctf_metadata_create(plugin_paths);
+		if (!cfg) {
+			goto error;
+		}
+
+		cfg->debug = got_debug_opt;
+		cfg->verbose = got_verbose_opt;
+		g_string_assign(cfg->cmd_data.print_ctf_metadata.path,
+			leftover);
+		goto end;
+	}
+
+	/*
+	 * If -o dummy was not specified, and if there are no explicit
+	 * sink components, then use an implicit `text.text` sink.
+	 */
+	if (!implicit_dummy_args.exists && !sink_names) {
+		implicit_text_args.exists = true;
+	}
+
+	/* Decide where the leftover argument goes */
+	if (leftover) {
+		if (implicit_lttng_live_args.exists) {
+			lttng_live_url_parts =
+				bt_common_parse_lttng_live_url(leftover,
+					error_buf, 256);
+			if (!lttng_live_url_parts.proto) {
+				printf_err("Invalid LTTng-live URL format: %s\n",
+					error_buf);
+				goto error;
+			}
+
+			if (!lttng_live_url_parts.session_name) {
+				/* Print LTTng-live sessions */
+				cfg = bt_config_print_lttng_live_sessions_create(
+					plugin_paths);
+				if (!cfg) {
+					goto error;
+				}
+
+				cfg->debug = got_debug_opt;
+				cfg->verbose = got_verbose_opt;
+				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
+					leftover);
+				goto end;
+			}
+
+			ret = append_implicit_component_extra_arg(
+				&implicit_lttng_live_args, "url", leftover);
+			if (ret) {
+				goto error;
+			}
+		} else {
+			ret = append_implicit_component_extra_arg(
+				&implicit_ctf_args, "path", leftover);
+			implicit_ctf_args.exists = true;
+			if (ret) {
+				goto error;
+			}
+		}
+	}
+
+	/*
+	 * Ensure mutual exclusion between implicit `ctf.fs` and
+	 * `ctf.lttng-live` sources.
+	 */
+	if (implicit_ctf_args.exists && implicit_lttng_live_args.exists) {
+		printf_err("Cannot create both implicit `ctf.fs` and `ctf.lttng-live` source components\n");
+		goto error;
+	}
+
+	/*
+	 * If the implicit `ctf.fs` or `ctf.lttng-live` source exists,
+	 * make sure there's a leftover (which is the path or URL).
+	 */
+	if (implicit_ctf_args.exists && !leftover) {
+		printf_err("Missing path for implicit `ctf.fs` source component\n");
+		goto error;
+	}
+
+	if (implicit_lttng_live_args.exists && !leftover) {
+		printf_err("Missing URL for implicit `ctf.lttng-live` source component\n");
+		goto error;
+	}
+
+	/* Assign names to implicit components */
+	ret = assign_name_to_implicit_component(&implicit_ctf_args,
+		"ctf", all_names, &source_names, true);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_lttng_live_args,
+		"lttng-live", all_names, &source_names, true);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_text_args,
+		"text", all_names, &sink_names, true);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_dummy_args,
+		"dummy", all_names, &sink_names, true);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_muxer_args,
+		"mux", all_names, NULL, false);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_trimmer_args,
+		"trim", all_names, NULL, false);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_debug_info_args,
+		"debug-info", all_names, NULL, false);
+	if (ret) {
+		goto error;
+	}
+
+	/* Make sure there's at least one source and one sink */
+	if (!source_names) {
+		printf_err("No source component\n");
+		goto error;
+	}
+
+	if (!sink_names) {
+		printf_err("No sink component\n");
+		goto error;
+	}
+
+	/*
+	 * Prepend the muxer, the trimmer, and the debug info to the
+	 * filter chain so that we have:
+	 *
+	 *     sources -> muxer -> [trimmer] -> [debug info] ->
+	 *                [user filters] -> sinks
+	 */
+	if (implicit_debug_info_args.exists) {
+		if (g_list_prepend_gstring(&filter_names,
+				implicit_debug_info_args.name_arg->str)) {
+			goto error;
+		}
+	}
+
+	if (implicit_trimmer_args.exists) {
+		if (g_list_prepend_gstring(&filter_names,
+				implicit_trimmer_args.name_arg->str)) {
+			goto error;
+		}
+	}
+
+	if (g_list_prepend_gstring(&filter_names,
+			implicit_muxer_args.name_arg->str)) {
+		goto error;
+	}
+
+	/*
+	 * Append the equivalent run arguments for the implicit
+	 * components.
+	 */
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_SOURCE, &implicit_ctf_args, run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_SOURCE, &implicit_lttng_live_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_SINK, &implicit_text_args, run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_SINK, &implicit_dummy_args, run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_muxer_args, run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_trimmer_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(
+		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_debug_info_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	/* Auto-connect components */
+	ret = convert_auto_connect(run_args, source_names, filter_names,
+			sink_names);
+	if (ret) {
+		printf_err("Cannot auto-connect components\n");
+		goto error;
+	}
+
+	/*
+	 * We have all the run command arguments now. Depending on
+	 * --run-args, we pass this to the run command or print them
+	 * here.
+	 */
+	if (print_run_args || print_run_args_0) {
+		for (i = 0; i < bt_value_array_size(run_args); i++) {
+			struct bt_value *arg_value =
+				bt_value_array_get(run_args, i);
+			const char *arg;
+			GString *quoted = NULL;
+			const char *arg_to_print;
+
+			assert(arg_value);
+			ret = bt_value_string_get(arg_value, &arg);
+			assert(ret == 0);
+			BT_PUT(arg_value);
+
+			if (print_run_args) {
+				quoted = bt_common_shell_quote(arg);
+				if (!quoted) {
+					goto error;
+				}
+
+				arg_to_print = quoted->str;
+			} else {
+				arg_to_print = arg;
+			}
+
+			printf("%s", arg_to_print);
+
+			if (quoted) {
+				g_string_free(quoted, TRUE);
+			}
+
+			if (i < bt_value_array_size(run_args) - 1) {
+				if (print_run_args) {
+					putchar(' ');
+				} else {
+					putchar('\0');
+				}
+			}
+		}
+
+		*retcode = -1;
+		BT_PUT(cfg);
+		goto end;
+	}
+
+	cfg = bt_config_run_from_args_array(run_args, retcode,
+		omit_system_plugin_path, omit_home_plugin_path,
+		initial_plugin_paths);
+	goto end;
+
+error:
+	*retcode = 1;
+	BT_PUT(cfg);
+
+end:
+	if (pc) {
+		poptFreeContext(pc);
+	}
+
+	free(arg);
+
+	if (cur_name) {
+		g_string_free(cur_name, TRUE);
+	}
+
+	if (cur_name_prefix) {
+		g_string_free(cur_name_prefix, TRUE);
+	}
+
+	bt_put(run_args);
+	bt_put(all_names);
+	destroy_glist_of_gstring(source_names);
+	destroy_glist_of_gstring(filter_names);
+	destroy_glist_of_gstring(sink_names);
+	destroy_implicit_component_args(&implicit_ctf_args);
+	destroy_implicit_component_args(&implicit_lttng_live_args);
+	destroy_implicit_component_args(&implicit_dummy_args);
+	destroy_implicit_component_args(&implicit_text_args);
+	destroy_implicit_component_args(&implicit_debug_info_args);
+	destroy_implicit_component_args(&implicit_muxer_args);
+	destroy_implicit_component_args(&implicit_trimmer_args);
+	bt_put(plugin_paths);
+	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
 	return cfg;
 }
 
@@ -4018,22 +4550,22 @@ end:
 static
 void print_gen_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [COMMAND] [COMMAND OPTIONS]\n");
+	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [COMMAND] [COMMAND ARGUMENTS]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "General options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -d, --debug        Enable debug mode\n");
+	fprintf(fp, "  -d, --debug        Turn on debug mode\n");
 	fprintf(fp, "  -h  --help         Show this help and quit\n");
-	fprintf(fp, "      --help-legacy  Show Babeltrace 1.x legacy help and quit\n");
-	fprintf(fp, "  -v, --verbose      Enable verbose output\n");
+	fprintf(fp, "  -v, --verbose      Turn on verbose mode\n");
 	fprintf(fp, "  -V, --version      Show version and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Available commands:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "    convert       Build a trace conversion graph and run it (default)\n");
+	fprintf(fp, "    convert       Convert and trim traces (default)\n");
 	fprintf(fp, "    help          Get help for a plugin or a component class\n");
 	fprintf(fp, "    list-plugins  List available plugins and their content\n");
 	fprintf(fp, "    query         Query objects from a component class\n");
+	fprintf(fp, "    run           Build a processing graph and run it\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
 }
@@ -4047,12 +4579,30 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 	bool verbose = false;
 	bool debug = false;
 	int i;
-	enum bt_config_command command = -1;
 	const char **command_argv = NULL;
 	int command_argc = -1;
 	const char *command_name = NULL;
 
+	enum command_type {
+		COMMAND_TYPE_NONE = -1,
+		COMMAND_TYPE_RUN = 0,
+		COMMAND_TYPE_CONVERT,
+		COMMAND_TYPE_LIST_PLUGINS,
+		COMMAND_TYPE_HELP,
+		COMMAND_TYPE_QUERY,
+	} command_type = COMMAND_TYPE_NONE;
+
 	*retcode = -1;
+
+	if (!initial_plugin_paths) {
+		initial_plugin_paths = bt_value_array_create();
+		if (!initial_plugin_paths) {
+			*retcode = 1;
+			goto end;
+		}
+	} else {
+		bt_get(initial_plugin_paths);
+	}
 
 	if (argc <= 1) {
 		print_gen_usage(stdout);
@@ -4076,9 +4626,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 				strcmp(cur_arg, "--help") == 0) {
 			print_gen_usage(stdout);
 			goto end;
-		} else if (strcmp(cur_arg, "--help-legacy") == 0) {
-			print_legacy_usage(stdout);
-			goto end;
 		} else {
 			bool has_command = true;
 
@@ -4087,13 +4634,15 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 			 * name?
 			 */
 			if (strcmp(cur_arg, "convert") == 0) {
-				command = BT_CONFIG_COMMAND_CONVERT;
+				command_type = COMMAND_TYPE_CONVERT;
 			} else if (strcmp(cur_arg, "list-plugins") == 0) {
-				command = BT_CONFIG_COMMAND_LIST_PLUGINS;
+				command_type = COMMAND_TYPE_LIST_PLUGINS;
 			} else if (strcmp(cur_arg, "help") == 0) {
-				command = BT_CONFIG_COMMAND_HELP;
+				command_type = COMMAND_TYPE_HELP;
 			} else if (strcmp(cur_arg, "query") == 0) {
-				command = BT_CONFIG_COMMAND_QUERY;
+				command_type = COMMAND_TYPE_QUERY;
+			} else if (strcmp(cur_arg, "run") == 0) {
+				command_type = COMMAND_TYPE_RUN;
 			} else {
 				/*
 				 * Unknown argument, but not a known
@@ -4101,7 +4650,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 				 * arguments are for the default convert
 				 * command.
 				 */
-				command = BT_CONFIG_COMMAND_CONVERT;
+				command_type = COMMAND_TYPE_CONVERT;
 				command_argv = argv;
 				command_argc = argc;
 				has_command = false;
@@ -4116,7 +4665,7 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 		}
 	}
 
-	if ((int) command < 0) {
+	if (command_type == COMMAND_TYPE_NONE) {
 		/*
 		 * We only got non-help, non-version general options
 		 * like --verbose and --debug, without any other
@@ -4130,23 +4679,28 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 	assert(command_argv);
 	assert(command_argc >= 0);
 
-	switch (command) {
-	case BT_CONFIG_COMMAND_CONVERT:
+	switch (command_type) {
+	case COMMAND_TYPE_RUN:
+		config = bt_config_run_from_args(command_argc, command_argv,
+			retcode, omit_system_plugin_path,
+			omit_home_plugin_path, initial_plugin_paths);
+		break;
+	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
 			retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
 		break;
-	case BT_CONFIG_COMMAND_LIST_PLUGINS:
+	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
 			command_argv, retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
 		break;
-	case BT_CONFIG_COMMAND_HELP:
+	case COMMAND_TYPE_HELP:
 		config = bt_config_help_from_args(command_argc,
 			command_argv, retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
 		break;
-	case BT_CONFIG_COMMAND_QUERY:
+	case COMMAND_TYPE_QUERY:
 		config = bt_config_query_from_args(command_argc,
 			command_argv, retcode, omit_system_plugin_path,
 			omit_home_plugin_path, initial_plugin_paths);
@@ -4168,5 +4722,6 @@ struct bt_config *bt_config_from_args(int argc, const char *argv[],
 	}
 
 end:
+	bt_put(initial_plugin_paths);
 	return config;
 }

@@ -346,7 +346,7 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
 	printf("    ");
 	print_plugin_comp_cls_opt(stdout, bt_config_component->plugin_name->str,
-		bt_config_component->component_name->str,
+		bt_config_component->comp_cls_name->str,
 		bt_config_component->type);
 	printf(":\n");
 
@@ -380,30 +380,26 @@ void print_plugin_paths(struct bt_value *plugin_paths)
 }
 
 static
-void print_cfg_convert(struct bt_config *cfg)
+void print_cfg_run(struct bt_config *cfg)
 {
 	size_t i;
 
-	printf("  Force correlate: %s\n",
-		cfg->cmd_data.convert.force_correlate ? "yes" : "no");
-	print_plugin_paths(cfg->cmd_data.convert.plugin_paths);
-	printf("  Print CTF metadata: %s\n",
-		cfg->cmd_data.convert.print_ctf_metadata ? "yes" : "no");
+	print_plugin_paths(cfg->plugin_paths);
 	printf("  Source component instances:\n");
-	print_bt_config_components(cfg->cmd_data.convert.sources);
+	print_bt_config_components(cfg->cmd_data.run.sources);
 
-	if (cfg->cmd_data.convert.filters->len > 0) {
+	if (cfg->cmd_data.run.filters->len > 0) {
 		printf("  Filter component instances:\n");
-		print_bt_config_components(cfg->cmd_data.convert.filters);
+		print_bt_config_components(cfg->cmd_data.run.filters);
 	}
 
 	printf("  Sink component instances:\n");
-	print_bt_config_components(cfg->cmd_data.convert.sinks);
+	print_bt_config_components(cfg->cmd_data.run.sinks);
 	printf("  Connections:\n");
 
-	for (i = 0; i < cfg->cmd_data.convert.connections->len; i++) {
+	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *cfg_connection =
-			g_ptr_array_index(cfg->cmd_data.convert.connections,
+			g_ptr_array_index(cfg->cmd_data.run.connections,
 				i);
 
 		printf("    %s%s%s -> %s%s%s\n",
@@ -419,19 +415,33 @@ void print_cfg_convert(struct bt_config *cfg)
 static
 void print_cfg_list_plugins(struct bt_config *cfg)
 {
-	print_plugin_paths(cfg->cmd_data.list_plugins.plugin_paths);
+	print_plugin_paths(cfg->plugin_paths);
 }
 
 static
 void print_cfg_help(struct bt_config *cfg)
 {
-	print_plugin_paths(cfg->cmd_data.help.plugin_paths);
+	print_plugin_paths(cfg->plugin_paths);
+}
+
+static
+void print_cfg_print_ctf_metadata(struct bt_config *cfg)
+{
+	print_plugin_paths(cfg->plugin_paths);
+	printf("  Path: %s\n", cfg->cmd_data.print_ctf_metadata.path->str);
+}
+
+static
+void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
+{
+	print_plugin_paths(cfg->plugin_paths);
+	printf("  URL: %s\n", cfg->cmd_data.print_lttng_live_sessions.url->str);
 }
 
 static
 void print_cfg_query(struct bt_config *cfg)
 {
-	print_plugin_paths(cfg->cmd_data.query.plugin_paths);
+	print_plugin_paths(cfg->plugin_paths);
 	printf("  Object: `%s`\n", cfg->cmd_data.query.object->str);
 	printf("  Component class:\n");
 	print_bt_config_component(cfg->cmd_data.query.cfg_component);
@@ -449,8 +459,8 @@ void print_cfg(struct bt_config *cfg)
 	printf("  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
 
 	switch (cfg->command) {
-	case BT_CONFIG_COMMAND_CONVERT:
-		print_cfg_convert(cfg);
+	case BT_CONFIG_COMMAND_RUN:
+		print_cfg_run(cfg);
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		print_cfg_list_plugins(cfg);
@@ -460,6 +470,12 @@ void print_cfg(struct bt_config *cfg)
 		break;
 	case BT_CONFIG_COMMAND_QUERY:
 		print_cfg_query(cfg);
+		break;
+	case BT_CONFIG_COMMAND_PRINT_CTF_METADATA:
+		print_cfg_print_ctf_metadata(cfg);
+		break;
+	case BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS:
+		print_cfg_print_lttng_live_sessions(cfg);
 		break;
 	default:
 		assert(false);
@@ -763,13 +779,13 @@ static int cmd_query(struct bt_config *cfg)
 	struct bt_component_class *comp_cls = NULL;
 	struct bt_value *results = NULL;
 
-	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	ret = load_all_plugins(cfg->plugin_paths);
 	if (ret) {
 		goto end;
 	}
 
 	comp_cls = find_component_class(cfg->cmd_data.query.cfg_component->plugin_name->str,
-		cfg->cmd_data.query.cfg_component->component_name->str,
+		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 		cfg->cmd_data.query.cfg_component->type);
 	if (!comp_cls) {
 		fprintf(stderr, "%s%sCannot find component class %s",
@@ -778,7 +794,7 @@ static int cmd_query(struct bt_config *cfg)
 			bt_common_color_reset());
 		print_plugin_comp_cls_opt(stderr,
 			cfg->cmd_data.query.cfg_component->plugin_name->str,
-			cfg->cmd_data.query.cfg_component->component_name->str,
+			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 			cfg->cmd_data.query.cfg_component->type);
 		fprintf(stderr, "\n");
 		ret = -1;
@@ -795,7 +811,7 @@ static int cmd_query(struct bt_config *cfg)
 			bt_common_color_reset());
 		print_plugin_comp_cls_opt(stderr,
 			cfg->cmd_data.query.cfg_component->plugin_name->str,
-			cfg->cmd_data.query.cfg_component->component_name->str,
+			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 			cfg->cmd_data.query.cfg_component->type);
 		fprintf(stderr, "%s%s with object `%s`%s\n",
 			bt_common_color_bold(),
@@ -820,7 +836,7 @@ static int cmd_help(struct bt_config *cfg)
 	struct bt_plugin *plugin = NULL;
 	size_t i;
 
-	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	ret = load_all_plugins(cfg->plugin_paths);
 	if (ret) {
 		goto end;
 	}
@@ -848,7 +864,7 @@ static int cmd_help(struct bt_config *cfg)
 		struct bt_component_class *needed_comp_cls =
 			find_component_class(
 				cfg->cmd_data.help.cfg_component->plugin_name->str,
-				cfg->cmd_data.help.cfg_component->component_name->str,
+				cfg->cmd_data.help.cfg_component->comp_cls_name->str,
 				cfg->cmd_data.help.cfg_component->type);
 
 		if (!needed_comp_cls) {
@@ -858,7 +874,7 @@ static int cmd_help(struct bt_config *cfg)
 				bt_common_color_reset());
 			print_plugin_comp_cls_opt(stderr,
 				cfg->cmd_data.help.cfg_component->plugin_name->str,
-				cfg->cmd_data.help.cfg_component->component_name->str,
+				cfg->cmd_data.help.cfg_component->comp_cls_name->str,
 				cfg->cmd_data.help.cfg_component->type);
 			fprintf(stderr, "\n");
 			ret = -1;
@@ -884,7 +900,7 @@ static int cmd_help(struct bt_config *cfg)
 
 		if (cfg->cmd_data.help.cfg_component->type !=
 				BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
-			if (strcmp(cfg->cmd_data.help.cfg_component->component_name->str,
+			if (strcmp(cfg->cmd_data.help.cfg_component->comp_cls_name->str,
 					comp_class_name) != 0 &&
 					type ==
 					cfg->cmd_data.help.cfg_component->type) {
@@ -920,13 +936,13 @@ static int cmd_list_plugins(struct bt_config *cfg)
 	int ret;
 	int plugins_count, component_classes_count = 0, i;
 
-	ret = load_all_plugins(cfg->cmd_data.list_plugins.plugin_paths);
+	ret = load_all_plugins(cfg->plugin_paths);
 	if (ret) {
 		goto end;
 	}
 
 	printf("From the following plugin paths:\n\n");
-	print_value(cfg->cmd_data.list_plugins.plugin_paths, 2);
+	print_value(cfg->plugin_paths, 2);
 	printf("\n");
 	plugins_count = loaded_plugins->len;
 	if (plugins_count == 0) {
@@ -1002,39 +1018,36 @@ end:
 	return ret;
 }
 
-static int print_ctf_metadata(struct bt_config *cfg)
+static int cmd_print_lttng_live_sessions(struct bt_config *cfg)
+{
+	printf("TODO\n");
+	return -1;
+}
+
+static int cmd_print_ctf_metadata(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
-	struct bt_config_component *source_cfg = NULL;
 	struct bt_value *results = NULL;
-	struct bt_value *path = NULL;
 	struct bt_value *params = NULL;
 	struct bt_value *metadata_text_value = NULL;
 	const char *metadata_text = NULL;
+	static const char * const plugin_name = "ctf";
+	static const char * const comp_cls_name = "fs";
+	static const enum bt_component_class_type comp_cls_type =
+		BT_COMPONENT_CLASS_TYPE_SOURCE;
 
-	assert(cfg->cmd_data.convert.sources->len == 1);
-	source_cfg = bt_config_get_component(cfg->cmd_data.convert.sources, 0);
-	assert(source_cfg);
-	comp_cls = find_component_class(source_cfg->plugin_name->str,
-			source_cfg->component_name->str,
-			source_cfg->type);
+	assert(cfg->cmd_data.print_ctf_metadata.path);
+	comp_cls = find_component_class(plugin_name, comp_cls_name,
+		comp_cls_type);
 	if (!comp_cls) {
 		fprintf(stderr, "%s%sCannot find component class %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
 			bt_common_color_reset());
-		print_plugin_comp_cls_opt(stderr,
-			source_cfg->plugin_name->str,
-			source_cfg->component_name->str,
-			source_cfg->type);
+		print_plugin_comp_cls_opt(stderr, plugin_name,
+			comp_cls_name, comp_cls_type);
 		fprintf(stderr, "\n");
-		ret = -1;
-		goto end;
-	}
-
-	path = bt_value_map_get(source_cfg->params, "path");
-	if (!path) {
 		ret = -1;
 		goto end;
 	}
@@ -1045,7 +1058,8 @@ static int print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = bt_value_map_insert(params, "path", path);
+	ret = bt_value_map_insert_string(params, "path",
+		cfg->cmd_data.print_ctf_metadata.path->str);
 	if (ret) {
 		ret = -1;
 		goto end;
@@ -1074,15 +1088,13 @@ static int print_ctf_metadata(struct bt_config *cfg)
 
 end:
 	bt_put(results);
-	bt_put(path);
 	bt_put(params);
 	bt_put(metadata_text_value);
 	bt_put(comp_cls);
-	bt_put(source_cfg);
 	return 0;
 }
 
-static int cmd_convert(struct bt_config *cfg)
+static int cmd_run(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *source_class = NULL;
@@ -1092,48 +1104,42 @@ static int cmd_convert(struct bt_config *cfg)
 	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
 	struct bt_graph *graph = NULL;
 
-	ret = load_all_plugins(cfg->cmd_data.convert.plugin_paths);
+	ret = load_all_plugins(cfg->plugin_paths);
 	if (ret) {
-		fprintf(stderr, "Could not load plugins from configured plugin paths. Aborting...\n");
-		goto end;
-	}
-
-	if (cfg->cmd_data.convert.print_ctf_metadata) {
-		ret = print_ctf_metadata(cfg);
 		goto end;
 	}
 
 	/* TODO handle more than 1 source and 1 sink. */
-	if (cfg->cmd_data.convert.sources->len != 1 ||
-			cfg->cmd_data.convert.sinks->len != 1) {
+	if (cfg->cmd_data.run.sources->len != 1 ||
+			cfg->cmd_data.run.sinks->len != 1) {
 		fprintf(stderr, "Only one source and one sink component class are supported. Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 
-	source_cfg = bt_config_get_component(cfg->cmd_data.convert.sources, 0);
+	source_cfg = bt_config_get_component(cfg->cmd_data.run.sources, 0);
 	source_params = bt_get(source_cfg->params);
 	source_class = find_component_class(source_cfg->plugin_name->str,
-			source_cfg->component_name->str,
+			source_cfg->comp_cls_name->str,
 			BT_COMPONENT_CLASS_TYPE_SOURCE);
 	if (!source_class) {
 		fprintf(stderr, "Could not find ");
 		print_plugin_comp_cls_opt(stderr, source_cfg->plugin_name->str,
-			source_cfg->component_name->str, BT_COMPONENT_CLASS_TYPE_SOURCE);
+			source_cfg->comp_cls_name->str, BT_COMPONENT_CLASS_TYPE_SOURCE);
 		fprintf(stderr, ". Aborting...\n");
 		ret = -1;
 		goto end;
 	}
 
-	sink_cfg = bt_config_get_component(cfg->cmd_data.convert.sinks, 0);
+	sink_cfg = bt_config_get_component(cfg->cmd_data.run.sinks, 0);
 	sink_params = bt_get(sink_cfg->params);
 	sink_class = find_component_class(sink_cfg->plugin_name->str,
-			sink_cfg->component_name->str,
+			sink_cfg->comp_cls_name->str,
 			BT_COMPONENT_CLASS_TYPE_SINK);
 	if (!sink_class) {
 		fprintf(stderr, "Could not find ");
 		print_plugin_comp_cls_opt(stderr, sink_cfg->plugin_name->str,
-			sink_cfg->component_name->str, BT_COMPONENT_CLASS_TYPE_SINK);
+			sink_cfg->comp_cls_name->str, BT_COMPONENT_CLASS_TYPE_SINK);
 		fprintf(stderr, ". Aborting...\n");
 		ret = -1;
 		goto end;
@@ -1235,6 +1241,7 @@ int main(int argc, const char **argv)
 
 	if (!cfg) {
 		fprintf(stderr, "Failed to create Babeltrace configuration\n");
+		retcode = 1;
 		goto end;
 	}
 
@@ -1242,9 +1249,17 @@ int main(int argc, const char **argv)
 	babeltrace_verbose = cfg->verbose;
 	print_cfg(cfg);
 
+	if (cfg->command_needs_plugins) {
+		ret = load_all_plugins(cfg->plugin_paths);
+		if (ret) {
+			retcode = 1;
+			goto end;
+		}
+	}
+
 	switch (cfg->command) {
-	case BT_CONFIG_COMMAND_CONVERT:
-		ret = cmd_convert(cfg);
+	case BT_CONFIG_COMMAND_RUN:
+		ret = cmd_run(cfg);
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		ret = cmd_list_plugins(cfg);
@@ -1254,6 +1269,12 @@ int main(int argc, const char **argv)
 		break;
 	case BT_CONFIG_COMMAND_QUERY:
 		ret = cmd_query(cfg);
+		break;
+	case BT_CONFIG_COMMAND_PRINT_CTF_METADATA:
+		ret = cmd_print_ctf_metadata(cfg);
+		break;
+	case BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS:
+		ret = cmd_print_lttng_live_sessions(cfg);
 		break;
 	default:
 		assert(false);
