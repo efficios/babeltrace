@@ -78,7 +78,7 @@ void print_name_equal(struct text_component *text, const char *name)
 	if (text->use_colors) {
 		fprintf(text->out, "%s%s%s = ", COLOR_NAME, name, COLOR_RST);
 	} else {
-		fputs(name, text->out);
+		fprintf(text->out, "%s = ", name);
 	}
 }
 
@@ -89,7 +89,7 @@ void print_field_name_equal(struct text_component *text, const char *name)
 		fprintf(text->out, "%s%s%s = ", COLOR_FIELD_NAME, name,
 			COLOR_RST);
 	} else {
-		fputs(name, text->out);
+		fprintf(text->out, "%s = ", name);
 	}
 }
 
