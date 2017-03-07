@@ -8,6 +8,7 @@ TESTS = bin/test_trace_read \
 	bin/test_trace_read \
 	bin/test_packet_seq_num \
 	bin/test_formats \
+	bin/test_convert_args \
 	bin/intersection/test_intersection \
 	lib/test_bitfield \
 	lib/test_seek_empty_packet \
