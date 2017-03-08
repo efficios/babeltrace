@@ -1,7 +1,7 @@
 /*
- * plugin-python.c
+ * python-plugin-provider.c
  *
- * Babeltrace Plugin (Python)
+ * Babeltrace Python plugin provider
  *
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
@@ -28,11 +28,11 @@
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/component/component-class-internal.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <Python.h>
+#include <glib.h>
+#include <gmodule.h>
 
 #define PYTHON_PLUGIN_FILE_PREFIX	"bt_plugin_"
 #define PYTHON_PLUGIN_FILE_PREFIX_LEN	(sizeof(PYTHON_PLUGIN_FILE_PREFIX) - 1)
@@ -344,7 +344,7 @@ end:
 	return plugin;
 }
 
-BT_HIDDEN
+G_MODULE_EXPORT
 struct bt_plugin **bt_plugin_python_create_all_from_file(const char *path)
 {
 	struct bt_plugin **plugins = NULL;

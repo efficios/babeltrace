@@ -64,7 +64,4 @@ BT_HIDDEN
 int bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class);
 
-BT_HIDDEN
-void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin);
-
 #endif /* BABELTRACE_PLUGIN_PLUGIN_SO_INTERNAL_H */

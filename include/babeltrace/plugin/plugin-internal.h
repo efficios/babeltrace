@@ -69,10 +69,111 @@ struct bt_plugin {
 
 	/* Value depends on the specific plugin type */
 	void *spec_data;
+	void (*destroy_spec_data)(struct bt_plugin *);
 };
 
-BT_HIDDEN
-struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type);
+static inline
+void bt_plugin_destroy(struct bt_object *obj)
+{
+	struct bt_plugin *plugin;
+
+	assert(obj);
+	plugin = container_of(obj, struct bt_plugin, base);
+
+	if (plugin->destroy_spec_data) {
+		plugin->destroy_spec_data(plugin);
+	}
+
+	if (plugin->comp_classes) {
+		g_ptr_array_free(plugin->comp_classes, TRUE);
+	}
+
+	if (plugin->info.name) {
+		g_string_free(plugin->info.name, TRUE);
+	}
+
+	if (plugin->info.path) {
+		g_string_free(plugin->info.path, TRUE);
+	}
+
+	if (plugin->info.description) {
+		g_string_free(plugin->info.description, TRUE);
+	}
+
+	if (plugin->info.author) {
+		g_string_free(plugin->info.author, TRUE);
+	}
+
+	if (plugin->info.license) {
+		g_string_free(plugin->info.license, TRUE);
+	}
+
+	if (plugin->info.version.extra) {
+		g_string_free(plugin->info.version.extra, TRUE);
+	}
+
+	g_free(plugin);
+}
+
+static inline
+struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
+{
+	struct bt_plugin *plugin = NULL;
+
+	plugin = g_new0(struct bt_plugin, 1);
+	if (!plugin) {
+		goto error;
+	}
+
+	bt_object_init(plugin, bt_plugin_destroy);
+	plugin->type = type;
+
+	/* Create empty array of component classes */
+	plugin->comp_classes =
+		g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
+	if (!plugin->comp_classes) {
+		goto error;
+	}
+
+	/* Create empty info */
+	plugin->info.name = g_string_new(NULL);
+	if (!plugin->info.name) {
+		goto error;
+	}
+
+	plugin->info.path = g_string_new(NULL);
+	if (!plugin->info.path) {
+		goto error;
+	}
+
+	plugin->info.description = g_string_new(NULL);
+	if (!plugin->info.description) {
+		goto error;
+	}
+
+	plugin->info.author = g_string_new(NULL);
+	if (!plugin->info.author) {
+		goto error;
+	}
+
+	plugin->info.license = g_string_new(NULL);
+	if (!plugin->info.license) {
+		goto error;
+	}
+
+	plugin->info.version.extra = g_string_new(NULL);
+	if (!plugin->info.version.extra) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(plugin);
+
+end:
+	return plugin;
+}
 
 static inline
 void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)

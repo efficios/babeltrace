@@ -376,6 +376,16 @@ AS_IF([test "x$BUILT_IN_PLUGINS" != x], [
 ])
 AM_CONDITIONAL([BUILT_IN_PLUGINS], [test "x$built_in_plugins" = "xyes"])
 
+AC_ARG_VAR([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [Statically-link Python plugin support into the babeltrace binary])
+AS_IF([test "x$BUILT_IN_PYTHON_PLUGIN_SUPPORT" != x], [
+# Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
+  AS_IF([test "x$enable_static" != "xyes"], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace executable)])
+  AS_IF([test "x$enable_shared" = "xyes"], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace executable)])
+  built_in_python_plugin_support=yes
+  AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])
+])
+AM_CONDITIONAL([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$built_in_python_plugin_support" = "xyes"])
+
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= 2.0.0])
 
 LIBS="$LIBS $GMODULE_LIBS"
@@ -496,6 +506,7 @@ AC_CONFIG_FILES([
 	plugins/utils/Makefile
 	plugins/utils/dummy/Makefile
 	plugins/utils/trimmer/Makefile
+	python-plugin-provider/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])
@@ -570,6 +581,10 @@ PPRINT_PROP_BOOL([Python bindings tests], $value)
 # python plugins enabled/disabled
 test "x$enable_python_plugins" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python plugin support], $value)
+
+# built-in Python plugin support enabled/disabled
+test "x$built_in_python_plugin_support" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Built-in Python plugin support], $value)
 
 # debug info enabled/disabled
 test "x$_enable_debug_info" = "xyes" && value=1 || value=0

@@ -2,7 +2,25 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = include common types compat lib formats plugins converter bindings tests doc extras
+SUBDIRS =			\
+	include			\
+	common			\
+	types			\
+	compat
+
+if WITH_PYTHON_PLUGINS
+SUBDIRS += python-plugin-provider
+endif
+
+SUBDIRS +=			\
+	lib			\
+	formats			\
+	plugins			\
+	converter		\
+	bindings		\
+	tests			\
+	doc			\
+	extras
 
 dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
 		std-ext-lib.txt README

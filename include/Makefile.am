@@ -126,8 +126,6 @@ noinst_HEADERS = \
 	babeltrace/mmap-align.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
-	babeltrace/plugin/plugin-python-enabled-internal.h \
-	babeltrace/plugin/plugin-python-disabled-internal.h \
 	babeltrace/component/component-class-internal.h \
 	babeltrace/component/connection-internal.h \
 	babeltrace/component/port-internal.h \

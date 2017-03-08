@@ -188,7 +188,7 @@ end:
 	return shared_lib_handle;
 }
 
-BT_HIDDEN
+static
 void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin)
 {
 	struct bt_plugin_so_spec_data *spec = plugin->spec_data;
@@ -642,6 +642,7 @@ struct bt_plugin *bt_plugin_so_create_empty(
 		goto error;
 	}
 
+	plugin->destroy_spec_data = bt_plugin_so_destroy_spec_data;
 	plugin->spec_data = g_new0(struct bt_plugin_so_spec_data, 1);
 	if (!plugin->spec_data) {
 		goto error;

@@ -34,3 +34,7 @@ libbabeltrace_la_LIBADD = \
 	component/libcomponent.la \
 	plugin/libplugin.la \
 	$(top_builddir)/common/libbabeltrace-common.la
+
+if BUILT_IN_PYTHON_PLUGIN_SUPPORT
+libbabeltrace_la_LIBADD += $(top_builddir)/python-plugin-provider/libbabeltrace-python-plugin-provider.la
+endif

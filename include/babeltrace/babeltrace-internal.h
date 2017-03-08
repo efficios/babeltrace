@@ -180,6 +180,9 @@ extern bool babeltrace_verbose, babeltrace_debug;
 #define BT_CTF_MAJOR	1
 #define BT_CTF_MINOR	8
 
+#define __STRINGIFY(x)	#x
+#define TOSTRING(x)	__STRINGIFY(x)
+
 struct bt_trace_descriptor;
 struct trace_collection {
 	GPtrArray *array;	/* struct bt_trace_descriptor */

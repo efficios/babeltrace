@@ -1,9 +1,7 @@
-#ifndef BABELTRACE_PLUGIN_PLUGIN_PYTHON_ENABLED_INTERNAL_H
-#define BABELTRACE_PLUGIN_PLUGIN_PYTHON_ENABLED_INTERNAL_H
+#ifndef BABELTRACE_PLUGIN_PYTHON_PLUGIN_PROVIDER_INTERNAL_H
+#define BABELTRACE_PLUGIN_PYTHON_PLUGIN_PROVIDER_INTERNAL_H
 
-/*
- * BabelTrace - Babeltrace Plug-in Interface
- *
+/* *
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,14 +23,9 @@
  * SOFTWARE.
  */
 
-struct bt_plugin;
+#include <babeltrace/plugin/plugin.h>
 
-BT_HIDDEN
+extern
 struct bt_plugin **bt_plugin_python_create_all_from_file(const char *path);
 
-static inline
-void bt_plugin_python_destroy_spec_data(struct bt_plugin *plugin)
-{
-}
-
-#endif /* BABELTRACE_PLUGIN_PLUGIN_PYTHON_ENABLED_INTERNAL_H */
+#endif /* BABELTRACE_PLUGIN_PYTHON_PLUGIN_PROVIDER_INTERNAL_H */

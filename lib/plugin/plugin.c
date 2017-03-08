@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/common-internal.h>
@@ -38,118 +39,46 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#ifdef WITH_PYTHON_PLUGINS
-# include <babeltrace/plugin/plugin-python-enabled-internal.h>
-#else
-# include <babeltrace/plugin/plugin-python-disabled-internal.h>
-#endif
+#define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace-python-plugin-provider." G_MODULE_SUFFIX
+#define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
+#define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	TOSTRING(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 
+#ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
+#include <babeltrace/plugin/python-plugin-provider-internal.h>
 static
-void bt_plugin_destroy(struct bt_object *obj)
-{
-	struct bt_plugin *plugin;
+struct bt_plugin **(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
+	bt_plugin_python_create_all_from_file;
+#else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
+static GModule *python_plugin_provider_module;
+static
+struct bt_plugin **(*bt_plugin_python_create_all_from_file_sym)(const char *path);
 
-	assert(obj);
-	plugin = container_of(obj, struct bt_plugin, base);
-
-	if (plugin->type == BT_PLUGIN_TYPE_SO) {
-		bt_plugin_so_destroy_spec_data(plugin);
-	} else if (plugin->type == BT_PLUGIN_TYPE_PYTHON) {
-		bt_plugin_python_destroy_spec_data(plugin);
-	} else {
-		assert(false);
+__attribute__((constructor)) static
+void init_python_plugin_provider(void) {
+	python_plugin_provider_module =
+		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME,
+			G_MODULE_BIND_LOCAL);
+	if (!python_plugin_provider_module) {
+		printf_warning("Cannot find `%s`: Python plugin support is disabled\n",
+			PYTHON_PLUGIN_PROVIDER_FILENAME);
+		return;
 	}
 
-	if (plugin->comp_classes) {
-		g_ptr_array_free(plugin->comp_classes, TRUE);
+	if (!g_module_symbol(python_plugin_provider_module,
+			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR,
+			(gpointer) &bt_plugin_python_create_all_from_file_sym)) {
+		printf_warning("Cannot find the Python plugin provider loading symbole: Python plugin support is disabled\n");
 	}
-
-	if (plugin->info.name) {
-		g_string_free(plugin->info.name, TRUE);
-	}
-
-	if (plugin->info.path) {
-		g_string_free(plugin->info.path, TRUE);
-	}
-
-	if (plugin->info.description) {
-		g_string_free(plugin->info.description, TRUE);
-	}
-
-	if (plugin->info.author) {
-		g_string_free(plugin->info.author, TRUE);
-	}
-
-	if (plugin->info.license) {
-		g_string_free(plugin->info.license, TRUE);
-	}
-
-	if (plugin->info.version.extra) {
-		g_string_free(plugin->info.version.extra, TRUE);
-	}
-
-	g_free(plugin);
 }
 
-BT_HIDDEN
-struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
-{
-	struct bt_plugin *plugin = NULL;
-
-	plugin = g_new0(struct bt_plugin, 1);
-	if (!plugin) {
-		goto error;
+__attribute__((destructor)) static
+void fini_python_plugin_provider(void) {
+	if (python_plugin_provider_module) {
+		(void) g_module_close(python_plugin_provider_module);
+		python_plugin_provider_module = NULL;
 	}
-
-	bt_object_init(plugin, bt_plugin_destroy);
-	plugin->type = type;
-
-	/* Create empty array of component classes */
-	plugin->comp_classes =
-		g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
-	if (!plugin->comp_classes) {
-		goto error;
-	}
-
-	/* Create empty info */
-	plugin->info.name = g_string_new(NULL);
-	if (!plugin->info.name) {
-		goto error;
-	}
-
-	plugin->info.path = g_string_new(NULL);
-	if (!plugin->info.path) {
-		goto error;
-	}
-
-	plugin->info.description = g_string_new(NULL);
-	if (!plugin->info.description) {
-		goto error;
-	}
-
-	plugin->info.author = g_string_new(NULL);
-	if (!plugin->info.author) {
-		goto error;
-	}
-
-	plugin->info.license = g_string_new(NULL);
-	if (!plugin->info.license) {
-		goto error;
-	}
-
-	plugin->info.version.extra = g_string_new(NULL);
-	if (!plugin->info.version.extra) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_PUT(plugin);
-
-end:
-	return plugin;
 }
+#endif
 
 struct bt_plugin **bt_plugin_create_all_from_static(void)
 {
@@ -172,9 +101,12 @@ struct bt_plugin **bt_plugin_create_all_from_file(const char *path)
 		goto end;
 	}
 
-	plugins = bt_plugin_python_create_all_from_file(path);
-	if (plugins) {
-		goto end;
+	/* Try Python plugins if support is available */
+	if (bt_plugin_python_create_all_from_file_sym) {
+		plugins = bt_plugin_python_create_all_from_file_sym(path);
+		if (plugins) {
+			goto end;
+		}
 	}
 
 end:
