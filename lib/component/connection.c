@@ -81,13 +81,13 @@ end:
 struct bt_port *bt_connection_get_input_port(
 		struct bt_connection *connection)
 {
-	return connection ? connection->input_port : NULL;
+	return connection ? bt_get(connection->input_port) : NULL;
 }
 
 struct bt_port *bt_connection_get_output_port(
 		struct bt_connection *connection)
 {
-	return connection ? connection->output_port : NULL;
+	return connection ? bt_get(connection->output_port) : NULL;
 }
 
 struct bt_notification_iterator *
