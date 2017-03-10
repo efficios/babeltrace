@@ -96,6 +96,7 @@ void bt_object_set_parent(void *child_ptr, void *parent)
 	 * to the parent will be released once the object's reference count
 	 * falls to zero.
 	 */
+	BT_PUT(child->parent);
 	child->parent = bt_get(parent);
 }
 
