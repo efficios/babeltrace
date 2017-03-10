@@ -94,7 +94,8 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
-	bool components_added = false;
+	bool upstream_was_already_in_graph;
+	bool downstream_was_already_in_graph;
 
 	if (!graph || !upstream_port || !downstream_port) {
 		goto end;
@@ -115,6 +116,7 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 		fprintf(stderr, "Upstream component is already part of another graph\n");
 		goto error;
 	}
+	upstream_was_already_in_graph = (graph == upstream_graph);
 
 	downstream_component = bt_port_get_component(downstream_port);
 	assert(downstream_component);
@@ -123,6 +125,7 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 		fprintf(stderr, "Downstream component is already part of another graph\n");
 		goto error;
 	}
+	downstream_was_already_in_graph = (graph == downstream_graph);
 
 	connection = bt_connection_create(graph, upstream_port,
 			downstream_port);
@@ -135,25 +138,25 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 	 * transferred to the graph.
 	 */
 	g_ptr_array_add(graph->connections, connection);
-	g_ptr_array_add(graph->components, upstream_component);
-	g_ptr_array_add(graph->components, downstream_component);
-	if (bt_component_get_class_type(downstream_component) ==
-			BT_COMPONENT_CLASS_TYPE_SINK) {
-		g_queue_push_tail(graph->sinks_to_consume,
-				downstream_component);
+
+	if (!upstream_was_already_in_graph) {
+		g_ptr_array_add(graph->components, upstream_component);
+		bt_component_set_graph(upstream_component, graph);
+	}
+	if (!downstream_was_already_in_graph) {
+		g_ptr_array_add(graph->components, downstream_component);
+		bt_component_set_graph(downstream_component, graph);
+		if (bt_component_get_class_type(downstream_component) ==
+				BT_COMPONENT_CLASS_TYPE_SINK) {
+			g_queue_push_tail(graph->sinks_to_consume,
+					downstream_component);
+		}
 	}
 
 	/*
 	 * The graph is now the parent of these components which garantees their
 	 * existence for the duration of the graph's lifetime.
 	 */
-	bt_component_set_graph(upstream_component, graph);
-	bt_put(upstream_component);
-	bt_component_set_graph(downstream_component, graph);
-	bt_put(downstream_component);
-
-	/* Rollback the connection from this point on. */
-	components_added = true;
 
 	/*
 	 * The components and connection are added to the graph before invoking
