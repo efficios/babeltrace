@@ -876,6 +876,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 	member = bt_ctf_field_structure_get_field(structure, name);
 	assert(member);
 	(void) bt_ctf_field_reset(member);
+	bt_put(member);
 }
 
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
