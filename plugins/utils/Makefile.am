@@ -11,4 +11,4 @@ libbabeltrace_plugin_utils_la_LDFLAGS = \
 libbabeltrace_plugin_utils_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	dummy/libbabeltrace-plugin-dummy-cc.la \
-	trimmer/libbabeltrace-plugin-dummy-cc.la
+	trimmer/libbabeltrace-plugin-trimmer.la
