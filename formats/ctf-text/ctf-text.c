@@ -350,6 +350,8 @@ int ctf_text_write_event(struct bt_stream_pos *ppos, struct ctf_stream_definitio
 		set_field_names_print(pos, ITEM_HEADER);
 		if (pos->print_names) {
 			fprintf(pos->fp, "trace:domain = ");
+		} else if (dom_print) {
+			fprintf(pos->fp, ":");
 		}
 		fprintf(pos->fp, "%s", stream_class->trace->env.domain);
 		if (pos->print_names)
