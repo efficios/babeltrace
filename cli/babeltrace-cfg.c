@@ -1207,6 +1207,7 @@ int insert_flat_params_from_array(GString *params_arg,
 	int ret = 0;
 	int i;
 	GString *tmpstr = NULL, *default_value = NULL;
+	bool default_set = false, non_default_set = false;
 
 	/*
 	 * names_array may be NULL if no CLI options were specified to
@@ -1260,12 +1261,28 @@ int insert_flat_params_from_array(GString *params_arg,
 			g_string_assign(default_value, "hide");
 		}
 		if (is_default) {
+			default_set = true;
 			g_string_append(tmpstr, "default");
 			append_param_arg(params_arg, tmpstr->str,
 				default_value->str);
 		} else {
+			non_default_set = true;
 			g_string_append(tmpstr, suffix);
 			append_param_arg(params_arg, tmpstr->str, "yes");
+		}
+	}
+
+	/* Implicit field-default=hide if any non-default option is set. */
+	if (non_default_set && !default_set) {
+		g_string_assign(tmpstr, prefix);
+		g_string_append(tmpstr, "-default");
+		g_string_assign(default_value, "hide");
+		ret = map_insert_string_or_null(map_obj,
+				tmpstr->str,
+				default_value);
+		if (ret) {
+			print_err_oom();
+			goto end;
 		}
 	}
 

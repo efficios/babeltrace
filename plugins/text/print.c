@@ -334,6 +334,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace_class = NULL;
+	int dom_print = 0;
 
 	event_class = bt_ctf_event_get_class(event);
 	if (!event_class) {
@@ -350,10 +351,6 @@ enum bt_component_status print_event_header(struct text_component *text,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	if (!text->start_line) {
-		fputs(", ", text->out);
-	}
-	text->start_line = false;
 	ret = print_event_timestamp(text, event, &text->start_line);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
@@ -366,11 +363,13 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "trace");
 			}
 			fprintf(text->out, "%s", name);
+			if (!print_names) {
+				fprintf(text->out, " ");
+			}
 		}
 	}
 	if (text->options.print_trace_hostname_field) {
@@ -384,7 +383,6 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "trace:hostname");
 			}
@@ -393,6 +391,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 				fprintf(text->out, "%s", str);
 			}
 			bt_put(hostname_str);
+			dom_print = 1;
 		}
 	}
 	if (text->options.print_trace_domain_field) {
@@ -406,15 +405,17 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "trace:domain");
+			} else if (dom_print) {
+				fputs(":", text->out);
 			}
 			if (bt_value_string_get(domain_str, &str)
 					== BT_VALUE_STATUS_OK) {
 				fprintf(text->out, "%s", str);
 			}
 			bt_put(domain_str);
+			dom_print = 1;
 		}
 	}
 	if (text->options.print_trace_procname_field) {
@@ -428,15 +429,17 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "trace:procname");
+			} else if (dom_print) {
+				fputs(":", text->out);
 			}
 			if (bt_value_string_get(procname_str, &str)
 					== BT_VALUE_STATUS_OK) {
 				fprintf(text->out, "%s", str);
 			}
 			bt_put(procname_str);
+			dom_print = 1;
 		}
 	}
 	if (text->options.print_trace_vpid_field) {
@@ -450,15 +453,17 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "trace:vpid");
+			} else if (dom_print) {
+				fputs(":", text->out);
 			}
 			if (bt_value_integer_get(vpid_value, &value)
 					== BT_VALUE_STATUS_OK) {
 				fprintf(text->out, "(%" PRId64 ")", value);
 			}
 			bt_put(vpid_value);
+			dom_print = 1;
 		}
 	}
 	if (text->options.print_loglevel_field) {
@@ -474,9 +479,10 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "loglevel");
+			} else if (dom_print) {
+				fputs(":", text->out);
 			}
 			if (loglevel_str) {
 				const char *str;
@@ -498,6 +504,7 @@ enum bt_component_status print_event_header(struct text_component *text,
 			}
 			bt_put(loglevel_str);
 			bt_put(loglevel_value);
+			dom_print = 1;
 		}
 	}
 	if (text->options.print_emf_field) {
@@ -509,9 +516,10 @@ enum bt_component_status print_event_header(struct text_component *text,
 			if (!text->start_line) {
 				fputs(", ", text->out);
 			}
-			text->start_line = false;
 			if (print_names) {
 				print_name_equal(text, "model.emf.uri");
+			} else if (dom_print) {
+				fputs(":", text->out);
 			}
 			if (uri_str) {
 				const char *str;
@@ -522,12 +530,16 @@ enum bt_component_status print_event_header(struct text_component *text,
 				}
 			}
 			bt_put(uri_str);
+			dom_print = 1;
 		}
+	}
+	if (dom_print && !print_names) {
+		fputs(" ", text->out);
 	}
 	if (!text->start_line) {
 		fputs(", ", text->out);
 	}
-	text->start_line = false;
+	text->start_line = true;
 	if (print_names) {
 		print_name_equal(text, "name");
 	}
@@ -537,6 +549,11 @@ enum bt_component_status print_event_header(struct text_component *text,
 	fputs(bt_ctf_event_class_get_name(event_class), text->out);
 	if (text->use_colors) {
 		fputs(COLOR_RST, text->out);
+	}
+	if (!print_names) {
+		fputs(": ", text->out);
+	} else {
+		fputs(", ", text->out);
 	}
 end:
 	bt_put(trace_class);
@@ -899,6 +916,9 @@ enum bt_component_status print_array_field(struct text_component *text,
 		} else {
 			fprintf(text->out, " ");
 		}
+		if (print_names) {
+			fprintf(text->out, "[%" PRIu64 "] = ", i);
+		}
 	}
 	field = bt_ctf_field_array_get_field(array, i);
 	if (!field) {
@@ -1007,6 +1027,9 @@ enum bt_component_status print_sequence_field(struct text_component *text,
 			fprintf(text->out, ", ");
 		} else {
 			fprintf(text->out, " ");
+		}
+		if (print_names) {
+			fprintf(text->out, "[%" PRIu64 "] = ", i);
 		}
 	}
 	field = bt_ctf_field_sequence_get_field(seq, i);
@@ -1376,9 +1399,11 @@ enum bt_component_status text_print_event(struct text_component *text,
 		goto end;
 	}
 
-	ret = print_event_header_raw(text, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
+	if (text->options.verbose) {
+		ret = print_event_header_raw(text, event);
+		if (ret != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
 	}
 
 	ret = print_stream_event_context(text, event);

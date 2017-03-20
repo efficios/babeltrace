@@ -59,6 +59,7 @@ struct text_options {
 	bool print_delta_field;
 	bool print_loglevel_field;
 	bool print_emf_field;
+	bool print_callsite_field;
 	bool print_trace_field;
 	bool print_trace_domain_field;
 	bool print_trace_procname_field;
