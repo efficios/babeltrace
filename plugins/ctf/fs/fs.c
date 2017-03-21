@@ -402,8 +402,49 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 
 	ctf_fs->trace_path = g_string_new(path);
 	if (!ctf_fs->trace_path) {
+		BT_PUT(value);
 		goto error;
 	}
+	bt_put(value);
+
+	value = bt_value_map_get(params, "offset-s");
+	if (value) {
+		int64_t offset;
+
+		if (!bt_value_is_integer(value)) {
+			fprintf(stderr,
+				"offset-s should be an integer\n");
+			goto error;
+		}
+		ret = bt_value_integer_get(value, &offset);
+		if (ret != BT_VALUE_STATUS_OK) {
+			fprintf(stderr,
+				"Failed to get offset-s value\n");
+			goto error;
+		}
+		ctf_fs->options.clock_offset = offset;
+		bt_put(value);
+	}
+
+	value = bt_value_map_get(params, "offset-ns");
+	if (value) {
+		int64_t offset;
+
+		if (!bt_value_is_integer(value)) {
+			fprintf(stderr,
+				"offset-ns should be an integer\n");
+			goto error;
+		}
+		ret = bt_value_integer_get(value, &offset);
+		if (ret != BT_VALUE_STATUS_OK) {
+			fprintf(stderr,
+				"Failed to get offset-ns value\n");
+			goto error;
+		}
+		ctf_fs->options.clock_offset_ns = offset;
+		bt_put(value);
+	}
+
 	ctf_fs->error_fp = stderr;
 	ctf_fs->page_size = (size_t) getpagesize();
 
@@ -434,7 +475,6 @@ error:
 	ctf_fs_destroy_data(ctf_fs);
 	ctf_fs = NULL;
 end:
-	BT_PUT(value);
 	return ctf_fs;
 }
 

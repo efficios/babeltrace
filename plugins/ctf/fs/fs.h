@@ -78,6 +78,8 @@ struct ctf_fs_stream {
 };
 
 struct ctf_fs_component_options {
+	uint64_t clock_offset;
+	uint64_t clock_offset_ns;
 };
 
 struct ctf_fs_port_data {

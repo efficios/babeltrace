@@ -4382,7 +4382,53 @@ error:
 }
 
 static
-int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
+uint64_t cycles_from_ns(uint64_t frequency, uint64_t ns)
+{
+	uint64_t cycles;
+
+	/* 1GHz */
+	if (frequency == 1000000000ULL) {
+		cycles = ns;
+	} else {
+		cycles = (uint64_t) (((double) ns * (double) frequency) / 1e9);
+	}
+
+	return cycles;
+}
+
+static
+int apply_clock_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock,
+		uint64_t clock_offset_ns)
+{
+	int ret;
+	uint64_t freq;
+	int64_t offset_cycles;
+
+	freq = bt_ctf_clock_class_get_frequency(clock);
+	if (freq == -1ULL) {
+		_PERROR("%s", "No clock frequency");
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_clock_class_get_offset_cycles(clock, &offset_cycles);
+	if (ret) {
+		_PERROR("%s", "Getting offset cycles");
+		ret = -1;
+		goto end;
+	}
+
+	offset_cycles += cycles_from_ns(freq, clock_offset_ns);
+
+	ret = bt_ctf_clock_class_set_offset_cycles(clock, offset_cycles);
+
+end:
+	return ret;
+}
+
+static
+int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node,
+		uint64_t clock_offset_ns)
 {
 	int ret = 0;
 	int set = 0;
@@ -4419,6 +4465,12 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 0) {
 		_PERROR("%s", "only CTF traces with a single clock declaration are supported as of this version");
 		ret = -EINVAL;
+		goto error;
+	}
+
+	ret = apply_clock_offset(ctx, clock, clock_offset_ns);
+	if (ret) {
+		_PERROR("%s", "cannot apply clock offset ");
 		goto error;
 	}
 
@@ -4514,7 +4566,7 @@ end:
 }
 
 int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
-	struct bt_ctf_trace **trace)
+	struct bt_ctf_trace **trace, uint64_t clock_offset_ns)
 {
 	int ret = 0;
 	struct ctx *ctx = NULL;
@@ -4582,7 +4634,7 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 		 * to one.
 		 */
 		bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
-			ret = visit_clock_decl(ctx, iter);
+			ret = visit_clock_decl(ctx, iter, clock_offset_ns);
 			if (ret) {
 				_PERROR("error while visiting clock declaration (%d)",
 					ret);

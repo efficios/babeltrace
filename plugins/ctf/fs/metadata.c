@@ -43,6 +43,8 @@
 
 #define TSDL_MAGIC	0x75d11d57
 
+#define NSEC_PER_SEC 1000000000LL
+
 struct packet_header {
 	uint32_t magic;
 	uint8_t  uuid[16];
@@ -398,7 +400,9 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 	}
 
 	ret = ctf_visitor_generate_ir(ctf_fs->error_fp, &scanner->ast->root,
-		&ctf_fs->metadata->trace);
+		&ctf_fs->metadata->trace,
+		ctf_fs->options.clock_offset * NSEC_PER_SEC +
+		ctf_fs->options.clock_offset_ns);
 	if (ret) {
 		PERR("Cannot create trace object from metadata AST\n");
 		goto error;

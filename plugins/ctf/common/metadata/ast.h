@@ -307,7 +307,7 @@ struct ctf_trace;
 
 BT_HIDDEN
 int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
-		struct bt_ctf_trace **trace);
+		struct bt_ctf_trace **trace, uint64_t clock_offset_ns);
 
 BT_HIDDEN
 int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
