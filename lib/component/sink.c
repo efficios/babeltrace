@@ -56,15 +56,9 @@ end:
 	return ret;
 }
 
-static
+BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
 {
-	struct bt_component_sink *sink = container_of(component,
-			struct bt_component_sink, parent);
-
-	if (sink->input_ports) {
-		g_ptr_array_free(sink->input_ports, TRUE);
-	}
 }
 
 BT_HIDDEN
@@ -72,37 +66,14 @@ struct bt_component *bt_component_sink_create(
 		struct bt_component_class *class, struct bt_value *params)
 {
 	struct bt_component_sink *sink = NULL;
-	enum bt_component_status ret;
 
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
 		goto end;
 	}
 
-	sink->parent.class = bt_get(class);
-	ret = bt_component_init(&sink->parent, bt_component_sink_destroy);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
-/*
-	ret = bt_component_sink_register_notification_type(&sink->parent,
-		BT_NOTIFICATION_TYPE_EVENT);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-*/
-	ret = bt_component_init_input_ports(&sink->parent,
-			&sink->input_ports);
-	if (ret) {
-		goto error;
-	}
-
 end:
 	return sink ? &sink->parent : NULL;
-error:
-	BT_PUT(sink);
-	return NULL;
 }
 
 BT_HIDDEN
@@ -128,59 +99,19 @@ enum bt_component_status bt_component_sink_consume(
 end:
 	return ret;
 }
-/*
-static
-enum bt_component_status bt_component_sink_register_notification_type(
-		struct bt_component *component, enum bt_notification_type type)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_sink *sink = NULL;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
-	if (type <= BT_NOTIFICATION_TYPE_UNKNOWN ||
-		type >= BT_NOTIFICATION_TYPE_NR) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-	sink = container_of(component, struct bt_component_sink, parent);
-	if (type == BT_NOTIFICATION_TYPE_ALL) {
-		sink->registered_notifications_mask = ~(notification_mask_t) 0;
-	} else {
-		sink->registered_notifications_mask |=
-			(notification_mask_t) 1 << type;
-	}
-end:
-	return ret;
-}
-*/
 
 enum bt_component_status bt_component_sink_get_input_port_count(
 		struct bt_component *component, uint64_t *count)
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
-	struct bt_component_sink *sink;
 
-	if (!component || !count) {
+	if (!component || !count ||
+			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 	        status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
-	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-		status = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	*count = (uint64_t) sink->input_ports->len;
+	*count = bt_component_get_input_port_count(component);
 end:
 	return status;
 }
@@ -188,33 +119,29 @@ end:
 struct bt_port *bt_component_sink_get_input_port(
 		struct bt_component *component, const char *name)
 {
-	struct bt_component_sink *sink;
-	struct bt_port *ret_port = NULL;
+	struct bt_port *port = NULL;
 
 	if (!component || !name ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		goto end;
 	}
 
-	sink = container_of(component, struct bt_component_sink, parent);
-	ret_port = bt_component_get_port(sink->input_ports, name);
+	port = bt_component_get_input_port(component, name);
 end:
-	return ret_port;
+	return port;
 }
 
 struct bt_port *bt_component_sink_get_input_port_at_index(
 		struct bt_component *component, int index)
 {
 	struct bt_port *port = NULL;
-	struct bt_component_sink *sink;
 
 	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
 		goto end;
 	}
 
-	sink = container_of(component, struct bt_component_sink, parent);
-	port = bt_component_get_port_at_index(sink->input_ports, index);
+	port = bt_component_get_input_port_at_index(component, index);
 end:
 	return port;
 }
@@ -229,37 +156,14 @@ struct bt_port *bt_component_sink_get_default_input_port(
 struct bt_port *bt_component_sink_add_input_port(
 		struct bt_component *component, const char *name)
 {
-	struct bt_port *port;
-	struct bt_component_sink *sink;
+	struct bt_port *port = NULL;
 
 	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-		port = NULL;
 		goto end;
 	}
 
-	sink = container_of(component, struct bt_component_sink, parent);
-	port = bt_component_add_port(component, sink->input_ports,
-			BT_PORT_TYPE_INPUT, name);
+	port = bt_component_add_input_port(component, name);
 end:
 	return port;
-}
-
-enum bt_component_status bt_component_sink_remove_input_port(
-		struct bt_component *component, const char *name)
-{
-	enum bt_component_status status;
-	struct bt_component_sink *sink;
-
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-		status = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	sink = container_of(component, struct bt_component_sink, parent);
-	status = bt_component_remove_port(component, sink->input_ports,
-			name);
-end:
-	return status;
 }

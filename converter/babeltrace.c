@@ -1174,7 +1174,7 @@ static int cmd_run(struct bt_config *cfg)
 	while (true) {
 		enum bt_graph_status graph_status;
 
-		graph_status = bt_graph_run(graph, NULL);
+		graph_status = bt_graph_run(graph);
 		switch (graph_status) {
 		case BT_GRAPH_STATUS_AGAIN:
 			/* Wait for an arbitraty 500 ms. */

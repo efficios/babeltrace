@@ -83,8 +83,11 @@ typedef struct bt_value *(*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
 		const char *object, struct bt_value *params);
 
-typedef enum bt_component_status (*bt_component_class_new_connection_method)(
-		struct bt_port *own_port, struct bt_connection *connection);
+typedef enum bt_component_status (*bt_component_class_accept_port_connection_method)(
+		struct bt_component *component, struct bt_port *port);
+
+typedef void (*bt_component_class_port_disconnected_method)(
+		struct bt_component *component, struct bt_port *port);
 
 extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
@@ -94,9 +97,17 @@ extern int bt_component_class_set_destroy_method(
 		struct bt_component_class *component_class,
 		bt_component_class_destroy_method destroy_method);
 
-extern int bt_component_class_set_new_connection_method(
+extern int bt_component_class_set_accept_port_connection_method(
 		struct bt_component_class *component_class,
-		bt_component_class_new_connection_method new_connection_method);
+		bt_component_class_accept_port_connection_method accept_port_connection_method);
+
+extern int bt_component_class_set_port_disconnected_method(
+		struct bt_component_class *component_class,
+		bt_component_class_port_disconnected_method port_disconnected_method);
+
+extern int bt_component_class_set_query_method(
+		struct bt_component_class *component_class,
+		bt_component_class_query_method query_method);
 
 extern int bt_component_class_set_description(
 		struct bt_component_class *component_class,
@@ -132,14 +143,6 @@ extern const char *bt_component_class_get_description(
 
 extern const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
-
-extern int bt_component_class_set_query_method(
-		struct bt_component_class *component_class,
-		bt_component_class_query_method query_method);
-
-extern int bt_component_class_set_new_connection_method(
-		struct bt_component_class *component_class,
-		bt_component_class_new_connection_method new_connection_method);
 
 extern struct bt_value *bt_component_class_query(
 		struct bt_component_class *component_class,

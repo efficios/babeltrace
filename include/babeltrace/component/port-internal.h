@@ -37,8 +37,7 @@ struct bt_port {
 	struct bt_object base;
 	enum bt_port_type type;
 	GString *name;
-	GPtrArray *connections;
-	uint64_t max_connection_count;
+	struct bt_connection *connection;
 };
 
 BT_HIDDEN
@@ -46,7 +45,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name);
 
 BT_HIDDEN
-int bt_port_add_connection(struct bt_port *port,
+void bt_port_set_connection(struct bt_port *port,
 		struct bt_connection *connection);
 
 #ifdef __cplusplus

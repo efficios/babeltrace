@@ -43,61 +43,74 @@ struct bt_component {
 	struct bt_component_class *class;
 	GString *name;
 
-	/**
+	/*
 	 * Internal destroy function specific to a source, filter, or
 	 * sink component object.
 	 */
 	bt_component_class_destroy_method destroy;
 
-	/** User-defined data */
+	/* User-defined data */
 	void *user_data;
 
-	/**
+	/*
 	 * Used to protect operations which may only be used during
 	 * a component's initialization.
 	 */
 	bool initializing;
-};
 
-BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *component,
-		bt_component_class_destroy_method destroy);
+	/* Input and output ports (weak references) */
+	GPtrArray *input_ports;
+	GPtrArray *output_ports;
+};
 
 BT_HIDDEN
 struct bt_notification_iterator *bt_component_create_iterator(
 		struct bt_component *component, void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status bt_component_new_connection(
-		struct bt_component *component, struct bt_port *own_port,
-		struct bt_connection *connection);
+enum bt_component_status bt_component_accept_port_connection(
+		struct bt_component *component, struct bt_port *self_port);
+
+BT_HIDDEN
+void bt_component_port_disconnected(struct bt_component *comp,
+		struct bt_port *port);
 
 BT_HIDDEN
 void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN
-int bt_component_init_input_ports(struct bt_component *component,
-		GPtrArray **input_ports);
+uint64_t bt_component_get_input_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-int bt_component_init_output_ports(struct bt_component *component,
-		GPtrArray **output_ports);
+uint64_t bt_component_get_output_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name);
+struct bt_port *bt_component_get_input_port_at_index(struct bt_component *comp,
+		int index);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_port_at_index(GPtrArray *ports, int index);
+struct bt_port *bt_component_get_output_port_at_index(struct bt_component *comp,
+		int index);
 
 BT_HIDDEN
-struct bt_port *bt_component_add_port(
-		struct bt_component *component,GPtrArray *ports,
-		enum bt_port_type port_type, const char *name);
+struct bt_port *bt_component_get_input_port(struct bt_component *comp,
+		const char *name);
+
+BT_HIDDEN
+struct bt_port *bt_component_get_output_port(struct bt_component *comp,
+		const char *name);
+
+BT_HIDDEN
+struct bt_port *bt_component_add_input_port(
+		struct bt_component *component, const char *name);
+
+BT_HIDDEN
+struct bt_port *bt_component_add_output_port(
+		struct bt_component *component, const char *name);
 
 BT_HIDDEN
 enum bt_component_status bt_component_remove_port(
-		struct bt_component *component, GPtrArray *ports,
-		const char *name);
+		struct bt_component *component, struct bt_port *port);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H */

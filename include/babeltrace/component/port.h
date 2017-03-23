@@ -52,19 +52,11 @@ extern const char *BT_DEFAULT_PORT_NAME;
 
 extern const char *bt_port_get_name(struct bt_port *port);
 extern enum bt_port_type bt_port_get_type(struct bt_port *port);
-
-extern enum bt_port_status bt_port_get_connection_count(struct bt_port *port,
-		uint64_t *count);
-extern struct bt_connection *bt_port_get_connection(struct bt_port *port,
-		int index);
-
+extern struct bt_connection *bt_port_get_connection(struct bt_port *port);
 extern struct bt_component *bt_port_get_component(struct bt_port *port);
-
-/* Only valid before a connection is established. */
-extern enum bt_port_status bt_port_get_maximum_connection_count(
-		struct bt_port *port, uint64_t *count);
-extern enum bt_port_status bt_port_set_maximum_connection_count(
-		struct bt_port *port, uint64_t count);
+extern int bt_port_remove_from_component(struct bt_port *port);
+extern int bt_port_disconnect(struct bt_port *port);
+extern int bt_port_is_connected(struct bt_port *port);
 
 #ifdef __cplusplus
 }

@@ -35,10 +35,10 @@ struct bt_component;
 struct bt_connection;
 
 /* Returns the "downstream" input port. */
-extern struct bt_port *bt_connection_get_input_port(
+extern struct bt_port *bt_connection_get_downstream_port(
 		struct bt_connection *connection);
 /* Returns the "upstream" output port. */
-extern struct bt_port *bt_connection_get_output_port(
+extern struct bt_port *bt_connection_get_upstream_port(
 		struct bt_connection *connection);
 
 extern struct bt_notification_iterator *

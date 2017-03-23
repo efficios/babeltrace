@@ -35,7 +35,6 @@ struct bt_value;
 
 struct bt_component_source {
 	struct bt_component parent;
-	GPtrArray *output_ports;
 };
 
 /**
@@ -48,6 +47,9 @@ struct bt_component_source {
 BT_HIDDEN
 struct bt_component *bt_component_source_create(
 		struct bt_component_class *class, struct bt_value *params);
+
+BT_HIDDEN
+void bt_component_source_destroy(struct bt_component *component);
 
 /**
  * Validate a source component.

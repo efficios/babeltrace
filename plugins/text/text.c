@@ -158,25 +158,26 @@ end:
 }
 
 static
-enum bt_component_status text_new_connection(struct bt_port *own_port,
-		struct bt_connection *connection)
+enum bt_component_status text_accept_port_connection(struct bt_component *component,
+		struct bt_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component *component;
+	struct bt_connection *connection;
 	struct text_component *text;
 
-	component = bt_port_get_component(own_port);
-	assert(component);
 	text = bt_component_get_private_data(component);
 	assert(text);
 	assert(!text->input_iterator);
+	connection = bt_port_get_connection(self_port);
+	assert(connection);
 	text->input_iterator = bt_connection_create_notification_iterator(
 			connection);
 
 	if (!text->input_iterator) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 	}
-	bt_put(component);
+
+	bt_put(connection);
 	return ret;
 }
 
@@ -361,8 +362,8 @@ enum bt_component_status apply_params(struct text_component *text,
 			goto end;
 		}
 
-		ret = bt_value_string_get(color_value, &color);
-		if (ret) {
+		status = bt_value_string_get(color_value, &color);
+		if (status) {
 			warn_wrong_color_param(text);
 		} else {
 			if (strcmp(color, "never") == 0) {
@@ -758,7 +759,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(text, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(text, text_component_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(text, text_new_connection);
+BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(text, text_accept_port_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(text, destroy_text);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(text,
 	"Formats CTF-IR to text. Formerly known as ctf-text.");

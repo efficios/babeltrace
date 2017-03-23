@@ -44,13 +44,18 @@ struct bt_connection {
 	 * components.
 	 */
 	/* Downstream port. */
-	struct bt_port *input_port;
+	struct bt_port *downstream_port;
 	/* Upstream port. */
-	struct bt_port *output_port;
+	struct bt_port *upstream_port;
 };
 
 BT_HIDDEN
 struct bt_connection *bt_connection_create(struct bt_graph *graph,
-		struct bt_port *upstream, struct bt_port *downstream);
+		struct bt_port *upstream_port,
+		struct bt_port *downstream_port);
+
+BT_HIDDEN
+void bt_connection_disconnect_ports(struct bt_connection *conn,
+		struct bt_component *comp);
 
 #endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */

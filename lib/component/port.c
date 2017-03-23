@@ -28,6 +28,7 @@
 
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/port-internal.h>
+#include <babeltrace/component/connection-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 
@@ -39,9 +40,6 @@ void bt_port_destroy(struct bt_object *obj)
 	if (port->name) {
 		g_string_free(port->name, TRUE);
 	}
-	if (port->connections) {
-		g_ptr_array_free(port->connections, TRUE);
-	}
 	g_free(port);
 }
 
@@ -49,14 +47,13 @@ BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name)
 {
-	struct bt_port *port;
+	struct bt_port *port = NULL;
 
 	assert(name);
 	assert(parent_component);
 	assert(type == BT_PORT_TYPE_INPUT || type == BT_PORT_TYPE_OUTPUT);
 
-	if (*name == '\0') {
-		port = NULL;
+	if (strlen(name) == 0) {
 		goto end;
 	}
 
@@ -73,13 +70,6 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	}
 
 	port->type = type;
-	port->connections = g_ptr_array_new();
-	if (!port->connections) {
-		BT_PUT(port);
-		goto end;
-	}
-
-	port->max_connection_count = 1;
 
 	bt_object_set_parent(port, &parent_component->base);
 end:
@@ -96,31 +86,15 @@ enum bt_port_type bt_port_get_type(struct bt_port *port)
 	return port ? port->type : BT_PORT_TYPE_UNKOWN;
 }
 
-enum bt_port_status bt_port_get_connection_count(struct bt_port *port,
-		uint64_t *count)
+struct bt_connection *bt_port_get_connection(struct bt_port *port)
 {
-	enum bt_port_status status = BT_PORT_STATUS_OK;
+	struct bt_connection *connection = NULL;
 
-	if (!port || !count) {
-		status = BT_PORT_STATUS_INVALID;
+	if (!port || !port->connection) {
 		goto end;
 	}
 
-	*count = (uint64_t) port->connections->len;
-end:
-	return status;
-}
-
-struct bt_connection *bt_port_get_connection(struct bt_port *port, int index)
-{
-	struct bt_connection *connection;
-
-	if (!port || index < 0 || index >= port->connections->len) {
-		connection = NULL;
-		goto end;
-	}
-
-	connection = bt_get(g_ptr_array_index(port->connections, index));
+	connection = bt_get(port->connection);
 end:
 	return connection;
 }
@@ -131,51 +105,63 @@ struct bt_component *bt_port_get_component(struct bt_port *port)
 }
 
 BT_HIDDEN
-int bt_port_add_connection(struct bt_port *port,
+void bt_port_set_connection(struct bt_port *port,
 		struct bt_connection *connection)
 {
-	int ret = 0;
+	/*
+	 * Don't take a reference on connection as its existence is
+	 * guaranteed by the existence of the graph in which the
+	 * connection exists.
+	 */
+	port->connection = connection;
+}
 
-	if (port->connections->len == port->max_connection_count) {
+int bt_port_remove_from_component(struct bt_port *port)
+{
+	int ret = 0;
+	struct bt_component *comp = NULL;
+
+	if (!port) {
 		ret = -1;
 		goto end;
 	}
 
-	/*
-	 * Don't take a reference on connection as its existence is guaranteed
-	 * by the existence of the graph in which the connection exists.
-	 */
-	g_ptr_array_add(port->connections, connection);
+	comp = (void *) bt_object_get_parent(port);
+	ret = bt_component_remove_port(comp, port);
+
+end:
+	bt_put(comp);
+	return ret;
+}
+
+int bt_port_disconnect(struct bt_port *port)
+{
+	int ret = 0;
+
+	if (!port) {
+		ret = -1;
+		goto end;
+	}
+
+	if (port->connection) {
+		bt_connection_disconnect_ports(port->connection, NULL);
+	}
+
 end:
 	return ret;
 }
 
-enum bt_port_status bt_port_get_maximum_connection_count(
-		struct bt_port *port, uint64_t *count)
+int bt_port_is_connected(struct bt_port *port)
 {
-	enum bt_port_status status = BT_PORT_STATUS_OK;
+	int ret;
 
-	if (!port || !count) {
-		status = BT_PORT_STATUS_INVALID;
+	if (!port) {
+		ret = -1;
 		goto end;
 	}
 
-	*count = port->max_connection_count;
+	ret = port->connection ? 1 : 0;
+
 end:
-	return status;
-}
-
-enum bt_port_status bt_port_set_maximum_connection_count(
-		struct bt_port *port, uint64_t count)
-{
-	enum bt_port_status status = BT_PORT_STATUS_OK;
-
-	if (!port || count < port->connections->len || count == 0) {
-		status = BT_PORT_STATUS_INVALID;
-		goto end;
-	}
-
-	port->max_connection_count = count;
-end:
-	return status;
+	return ret;
 }

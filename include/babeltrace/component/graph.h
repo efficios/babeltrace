@@ -37,6 +37,8 @@ struct bt_port;
 struct bt_connection;
 
 enum bt_graph_status {
+	/** No sink can consume at the moment. */
+	BT_GRAPH_STATUS_AGAIN = 2,
 	/** Downstream component does not support multiple inputs. */
 	BT_GRAPH_STATUS_END = 1,
 	BT_GRAPH_STATUS_OK = 0,
@@ -50,8 +52,6 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NO_SINK = -4,
 	/** General error. */
 	BT_GRAPH_STATUS_ERROR = -5,
-	/** No sink can consume at the moment. */
-	BT_GRAPH_STATUS_AGAIN = -6,
 };
 
 extern struct bt_graph *bt_graph_create(void);
@@ -79,15 +79,14 @@ extern enum bt_graph_status bt_graph_add_component_as_sibling(
  * Runs "bt_component_sink_consume()" on all sinks in round-robin until they all
  * indicate that the end is reached or that an error occured.
  */
-extern enum bt_graph_status bt_graph_run(struct bt_graph *graph,
-		enum bt_component_status *component_status);
+extern enum bt_graph_status bt_graph_run(struct bt_graph *graph);
 
 /**
  * Runs "bt_component_sink_consume()" on the graph's sinks. Each invokation will
  * invoke "bt_component_sink_consume()" on the next sink, in round-robin, until
  * they all indicated that the end is reached.
  */
-extern enum bt_component_status bt_graph_consume(struct bt_graph *graph);
+extern enum bt_graph_status bt_graph_consume(struct bt_graph *graph);
 
 #ifdef __cplusplus
 }

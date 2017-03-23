@@ -80,7 +80,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	/* Create a new iterator on the upstream component. */
 	input_port = bt_component_filter_get_default_input_port(component);
 	assert(input_port);
-	connection = bt_port_get_connection(input_port, 0);
+	connection = bt_port_get_connection(input_port);
 	assert(connection);
 
 	it_data->input_iterator = bt_connection_create_notification_iterator(
@@ -469,9 +469,5 @@ BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_seek_time(
 		struct bt_notification_iterator *iterator, int64_t time)
 {
-	enum bt_notification_iterator_status ret;
-
-	ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
-end:
-	return ret;
+	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }

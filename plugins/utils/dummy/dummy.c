@@ -77,19 +77,19 @@ error:
 	return ret;
 }
 
-enum bt_component_status dummy_new_connection(struct bt_port *own_port,
-		struct bt_connection *connection)
+enum bt_component_status dummy_accept_port_connection(struct bt_component *component,
+		struct bt_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component *component;
 	struct dummy *dummy;
+	struct bt_connection *connection;
 	struct bt_notification_iterator *iterator;
-
-	component = bt_port_get_component(own_port);
-	assert(component);
 
 	dummy = bt_component_get_private_data(component);
 	assert(dummy);
+
+	connection = bt_port_get_connection(self_port);
+	assert(connection);
 
 	iterator = bt_connection_create_notification_iterator(connection);
 	if (!iterator) {
@@ -99,7 +99,7 @@ enum bt_component_status dummy_new_connection(struct bt_port *own_port,
 
 	g_ptr_array_add(dummy->iterators, iterator);
 end:
-	bt_put(component);
+	bt_put(connection);
 	return ret;
 }
 

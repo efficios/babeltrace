@@ -245,19 +245,35 @@ end:
 	return ret;
 }
 
-int bt_component_class_set_new_connection_method(
+int bt_component_class_set_accept_port_connection_method(
 		struct bt_component_class *component_class,
-		bt_component_class_new_connection_method new_connection_method)
+		bt_component_class_accept_port_connection_method method)
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!new_connection_method) {
+	if (!component_class || component_class->frozen || !method) {
 		ret = -1;
 		goto end;
 	}
 
-	component_class->methods.new_connection_method = new_connection_method;
+	component_class->methods.accept_port_connection = method;
+
+end:
+	return ret;
+}
+
+int bt_component_class_set_port_disconnected_method(
+		struct bt_component_class *component_class,
+		bt_component_class_port_disconnected_method method)
+{
+	int ret = 0;
+
+	if (!component_class || component_class->frozen || !method) {
+		ret = -1;
+		goto end;
+	}
+
+	component_class->methods.port_disconnected = method;
 
 end:
 	return ret;

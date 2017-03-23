@@ -35,8 +35,9 @@ struct dummy {
 enum bt_component_status dummy_init(struct bt_component *component,
 		struct bt_value *params, void *init_method_data);
 void dummy_destroy(struct bt_component *component);
-enum bt_component_status dummy_new_connection(struct bt_port *own_port,
-		struct bt_connection *connection);
+enum bt_component_status dummy_accept_port_connection(
+		struct bt_component *component,
+		struct bt_port *own_port);
 enum bt_component_status dummy_consume(struct bt_component *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */

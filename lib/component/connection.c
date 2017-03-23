@@ -26,11 +26,12 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/component/component-internal.h>
+#include <babeltrace/component/component-source-internal.h>
+#include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/connection-internal.h>
 #include <babeltrace/component/graph-internal.h>
 #include <babeltrace/component/port-internal.h>
-#include <babeltrace/component/component-source-internal.h>
-#include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 #include <glib.h>
@@ -51,14 +52,15 @@ void bt_connection_destroy(struct bt_object *obj)
 BT_HIDDEN
 struct bt_connection *bt_connection_create(
 		struct bt_graph *graph,
-		struct bt_port *upstream, struct bt_port *downstream)
+		struct bt_port *upstream_port,
+		struct bt_port *downstream_port)
 {
 	struct bt_connection *connection = NULL;
 
-	if (bt_port_get_type(upstream) != BT_PORT_TYPE_OUTPUT) {
+	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
 		goto end;
 	}
-	if (bt_port_get_type(downstream) != BT_PORT_TYPE_INPUT) {
+	if (bt_port_get_type(downstream_port) != BT_PORT_TYPE_INPUT) {
 		goto end;
 	}
 
@@ -69,25 +71,63 @@ struct bt_connection *bt_connection_create(
 
 	bt_object_init(connection, bt_connection_destroy);
 	/* Weak references are taken, see comment in header. */
-	connection->output_port = upstream;
-	connection->input_port = downstream;
-	bt_port_add_connection(upstream, connection);
-	bt_port_add_connection(downstream, connection);
+	connection->upstream_port = upstream_port;
+	connection->downstream_port = downstream_port;
+	bt_port_set_connection(upstream_port, connection);
+	bt_port_set_connection(downstream_port, connection);
 	bt_object_set_parent(connection, &graph->base);
 end:
 	return connection;
 }
 
-struct bt_port *bt_connection_get_input_port(
-		struct bt_connection *connection)
+BT_HIDDEN
+void bt_connection_disconnect_ports(struct bt_connection *conn,
+		struct bt_component *acting_comp)
 {
-	return connection ? bt_get(connection->input_port) : NULL;
+	struct bt_component *downstream_comp = NULL;
+	struct bt_component *upstream_comp = NULL;
+	struct bt_port *downstream_port = conn->downstream_port;
+	struct bt_port *upstream_port = conn->upstream_port;
+
+	if (downstream_port) {
+		downstream_comp = bt_port_get_component(downstream_port);
+		bt_port_set_connection(downstream_port, NULL);
+		conn->downstream_port = NULL;
+	}
+
+	if (upstream_port) {
+		upstream_comp = bt_port_get_component(upstream_port);
+		bt_port_set_connection(upstream_port, NULL);
+		conn->upstream_port = NULL;
+	}
+
+	if (downstream_comp && downstream_comp != acting_comp &&
+			downstream_comp->class->methods.port_disconnected) {
+		bt_component_port_disconnected(downstream_comp,
+			downstream_port);
+	}
+
+	if (upstream_comp && upstream_comp != acting_comp &&
+			upstream_comp->class->methods.port_disconnected) {
+		bt_component_port_disconnected(upstream_comp, upstream_port);
+	}
+
+	// TODO: notify graph user: component's port disconnected
+
+	bt_put(downstream_comp);
+	bt_put(upstream_comp);
 }
 
-struct bt_port *bt_connection_get_output_port(
+struct bt_port *bt_connection_get_upstream_port(
 		struct bt_connection *connection)
 {
-	return connection ? bt_get(connection->output_port) : NULL;
+	return connection ? bt_get(connection->upstream_port) : NULL;
+}
+
+struct bt_port *bt_connection_get_downstream_port(
+		struct bt_connection *connection)
+{
+	return connection ? bt_get(connection->downstream_port) : NULL;
 }
 
 struct bt_notification_iterator *
@@ -100,7 +140,11 @@ bt_connection_create_notification_iterator(struct bt_connection *connection)
 		goto end;
 	}
 
-	upstream_component = bt_port_get_component(connection->output_port);
+	if (!connection->upstream_port || !connection->downstream_port) {
+		goto end;
+	}
+
+	upstream_component = bt_port_get_component(connection->upstream_port);
 	assert(upstream_component);
 
 	switch (bt_component_get_class_type(upstream_component)) {

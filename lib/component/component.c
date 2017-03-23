@@ -32,6 +32,7 @@
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/component-sink-internal.h>
+#include <babeltrace/component/connection-internal.h>
 #include <babeltrace/component/graph-internal.h>
 #include <babeltrace/component/notification/iterator-internal.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -44,6 +45,13 @@ struct bt_component * (* const component_create_funcs[])(
 	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_create,
 	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_create,
 	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_create,
+};
+
+static
+void (*component_destroy_funcs[])(struct bt_component *) = {
+	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_destroy,
+	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_destroy,
+	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_destroy,
 };
 
 static
@@ -79,26 +87,17 @@ void bt_component_destroy(struct bt_object *obj)
 		component->destroy(component);
 	}
 
+	if (component->input_ports) {
+		g_ptr_array_free(component->input_ports, TRUE);
+	}
+
+	if (component->output_ports) {
+		g_ptr_array_free(component->output_ports, TRUE);
+	}
+
 	g_string_free(component->name, TRUE);
 	bt_put(component_class);
 	g_free(component);
-}
-
-BT_HIDDEN
-enum bt_component_status bt_component_init(struct bt_component *component,
-		bt_component_class_destroy_method destroy)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	component->initializing = true;
-	component->destroy = destroy;
-end:
-	return ret;
 }
 
 enum bt_component_class_type bt_component_get_class_type(
@@ -181,6 +180,65 @@ error:
 	return iterator;
 }
 
+static
+struct bt_port *bt_component_add_port(
+		struct bt_component *component, GPtrArray *ports,
+		enum bt_port_type port_type, const char *name)
+{
+	size_t i;
+	struct bt_port *new_port = NULL;
+
+	if (!name || strlen(name) == 0) {
+		goto end;
+	}
+
+	/* Look for a port having the same name. */
+	for (i = 0; i < ports->len; i++) {
+		const char *port_name;
+		struct bt_port *port = g_ptr_array_index(
+				ports, i);
+
+		port_name = bt_port_get_name(port);
+		if (!port_name) {
+			continue;
+		}
+
+		if (!strcmp(name, port_name)) {
+			/* Port name clash, abort. */
+			goto end;
+		}
+	}
+
+	new_port = bt_port_create(component, port_type, name);
+	if (!new_port) {
+		goto end;
+	}
+
+	/*
+	 * No name clash, add the port.
+	 * The component is now the port's parent; it should _not_
+	 * hold a reference to the port since the port's lifetime
+	 * is now protected by the component's own lifetime.
+	 */
+	g_ptr_array_add(ports, new_port);
+end:
+	return new_port;
+}
+
+BT_HIDDEN
+uint64_t bt_component_get_input_port_count(struct bt_component *comp)
+{
+	assert(comp);
+	return comp->input_ports->len;
+}
+
+BT_HIDDEN
+uint64_t bt_component_get_output_port_count(struct bt_component *comp)
+{
+	assert(comp);
+	return comp->output_ports->len;
+}
+
 struct bt_component *bt_component_create_with_init_method_data(
 		struct bt_component_class *component_class, const char *name,
 		struct bt_value *params, void *init_method_data)
@@ -188,6 +246,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	int ret;
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
+	struct bt_port *default_port = NULL;
 
 	if (!component_class) {
 		goto end;
@@ -205,11 +264,55 @@ struct bt_component *bt_component_create_with_init_method_data(
 	}
 
 	bt_object_init(component, bt_component_destroy);
+	component->class = bt_get(component_class);
+	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {
 		BT_PUT(component);
 		goto end;
 	}
+
+	component->input_ports = g_ptr_array_new_with_free_func(
+		bt_object_release);
+	if (!component->input_ports) {
+		BT_PUT(component);
+		goto end;
+	}
+
+	component->output_ports = g_ptr_array_new_with_free_func(
+		bt_object_release);
+	if (!component->output_ports) {
+		BT_PUT(component);
+		goto end;
+	}
+
+	if (type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
+			type == BT_COMPONENT_CLASS_TYPE_FILTER) {
+		default_port = bt_component_add_port(component,
+			component->output_ports, BT_PORT_TYPE_OUTPUT,
+			DEFAULT_OUTPUT_PORT_NAME);
+		if (!default_port) {
+			BT_PUT(component);
+			goto end;
+		}
+
+		BT_PUT(default_port);
+	}
+
+	if (type == BT_COMPONENT_CLASS_TYPE_FILTER ||
+			type == BT_COMPONENT_CLASS_TYPE_SINK) {
+		default_port = bt_component_add_port(component,
+			component->input_ports, BT_PORT_TYPE_INPUT,
+			DEFAULT_INPUT_PORT_NAME);
+		if (!default_port) {
+			BT_PUT(component);
+			goto end;
+		}
+
+		BT_PUT(default_port);
+	}
+
+	component->initializing = true;
 
 	if (component_class->methods.init) {
 		ret = component_class->methods.init(component, params,
@@ -230,6 +333,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 
 	bt_component_class_freeze(component->class);
 end:
+	bt_put(default_port);
 	return component;
 }
 
@@ -315,59 +419,13 @@ struct bt_graph *bt_component_get_graph(
 	return (struct bt_graph *) bt_object_get_parent(&component->base);
 }
 
-BT_HIDDEN
-int bt_component_init_input_ports(struct bt_component *component,
-		GPtrArray **input_ports)
-{
-	int ret = 0;
-	struct bt_port *default_port;
-
-	*input_ports = g_ptr_array_new_with_free_func(bt_object_release);
-	if (!*input_ports) {
-		ret = -1;
-		goto end;
-	}
-
-	default_port = bt_component_add_port(component, *input_ports,
-			BT_PORT_TYPE_INPUT, DEFAULT_INPUT_PORT_NAME);
-	if (!default_port) {
-		ret = -1;
-		goto end;
-	}
-	bt_put(default_port);
-end:
-	return ret;
-}
-
-BT_HIDDEN
-int bt_component_init_output_ports(struct bt_component *component,
-		GPtrArray **output_ports)
-{
-	int ret = 0;
-	struct bt_port *default_port;
-
-	*output_ports = g_ptr_array_new_with_free_func(bt_object_release);
-	if (!*output_ports) {
-		ret = -1;
-		goto end;
-	}
-
-	default_port = bt_component_add_port(component, *output_ports,
-			BT_PORT_TYPE_OUTPUT, DEFAULT_OUTPUT_PORT_NAME);
-	if (!default_port) {
-		ret = -1;
-		goto end;
-	}
-	bt_put(default_port);
-end:
-	return ret;
-}
-
-BT_HIDDEN
+static
 struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name)
 {
 	size_t i;
 	struct bt_port *ret_port = NULL;
+
+	assert(name);
 
 	for (i = 0; i < ports->len; i++) {
 		struct bt_port *port = g_ptr_array_index(ports, i);
@@ -387,6 +445,24 @@ struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name)
 }
 
 BT_HIDDEN
+struct bt_port *bt_component_get_input_port(struct bt_component *comp,
+		const char *name)
+{
+	assert(comp);
+
+	return bt_component_get_port(comp->input_ports, name);
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_get_output_port(struct bt_component *comp,
+		const char *name)
+{
+	assert(comp);
+
+	return bt_component_get_port(comp->output_ports, name);
+}
+
+static
 struct bt_port *bt_component_get_port_at_index(GPtrArray *ports, int index)
 {
 	struct bt_port *port = NULL;
@@ -401,93 +477,124 @@ end:
 }
 
 BT_HIDDEN
-struct bt_port *bt_component_add_port(
-		struct bt_component *component,GPtrArray *ports,
-		enum bt_port_type port_type, const char *name)
+struct bt_port *bt_component_get_input_port_at_index(struct bt_component *comp,
+		int index)
 {
-	size_t i;
-	struct bt_port *new_port = NULL;
+	assert(comp);
 
-	if (!component->initializing || !name || *name == '\0') {
-		goto end;
+	return bt_component_get_port_at_index(comp->input_ports, index);
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_get_output_port_at_index(struct bt_component *comp,
+		int index)
+{
+	assert(comp);
+
+	return bt_component_get_port_at_index(comp->output_ports, index);
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_add_input_port(
+		struct bt_component *component, const char *name)
+{
+	return bt_component_add_port(component, component->input_ports,
+		BT_PORT_TYPE_INPUT, name);
+}
+
+BT_HIDDEN
+struct bt_port *bt_component_add_output_port(
+		struct bt_component *component, const char *name)
+{
+	return bt_component_add_port(component, component->output_ports,
+		BT_PORT_TYPE_OUTPUT, name);
+}
+
+static
+void bt_component_remove_port_at_index(struct bt_component *component,
+		GPtrArray *ports, size_t index)
+{
+	struct bt_port *port;
+
+	assert(ports);
+	assert(index < ports->len);
+	port = g_ptr_array_index(ports, index);
+
+	/* Disconnect both ports of this port's connection, if any */
+	if (port->connection) {
+		bt_connection_disconnect_ports(port->connection, component);
 	}
 
-	/* Look for a port having the same name. */
-	for (i = 0; i < ports->len; i++) {
-		const char *port_name;
-		struct bt_port *port = g_ptr_array_index(
-				ports, i);
+	/* Remove from parent's array of ports (weak refs) */
+	g_ptr_array_remove_index(ports, index);
 
-		port_name = bt_port_get_name(port);
-		if (!port_name) {
-			continue;
-		}
+	/* Detach port from its component parent */
+	BT_PUT(port->base.parent);
 
-		if (!strcmp(name, port_name)) {
-			/* Port name clash, abort. */
-			goto end;
-		}
-	}
-
-	new_port = bt_port_create(component, port_type, name);
-	if (!new_port) {
-		goto end;
-	}
-
-	/*
-	 * No name clash, add the port.
-	 * The component is now the port's parent; it should _not_
-	 * hold a reference to the port since the port's lifetime
-	 * is now protected by the component's own lifetime.
-	 */
-	g_ptr_array_add(ports, new_port);
-end:
-	return new_port;
+	// TODO: notify graph user: component's port removed
 }
 
 BT_HIDDEN
 enum bt_component_status bt_component_remove_port(
-		struct bt_component *component, GPtrArray *ports,
-		const char *name)
+		struct bt_component *component, struct bt_port *port)
 {
 	size_t i;
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	GPtrArray *ports = NULL;
 
-	if (!component->initializing || !name) {
+	if (!component || !port) {
 		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
+	if (bt_port_get_type(port) == BT_PORT_TYPE_INPUT) {
+		ports = component->input_ports;
+	} else if (bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT) {
+		ports = component->output_ports;
+	}
+
+	assert(ports);
+
 	for (i = 0; i < ports->len; i++) {
-		const char *port_name;
-		struct bt_port *port = g_ptr_array_index(ports, i);
+		struct bt_port *cur_port = g_ptr_array_index(ports, i);
 
-		port_name = bt_port_get_name(port);
-		if (!port_name) {
-			continue;
-		}
-
-		if (!strcmp(name, port_name)) {
-			g_ptr_array_remove_index(ports, i);
+		if (cur_port == port) {
+			bt_component_remove_port_at_index(component,
+				ports, i);
 			goto end;
 		}
 	}
+
 	status = BT_COMPONENT_STATUS_NOT_FOUND;
 end:
 	return status;
 }
 
 BT_HIDDEN
-enum bt_component_status bt_component_new_connection(
-		struct bt_component *component, struct bt_port *own_port,
-		struct bt_connection *connection)
+enum bt_component_status bt_component_accept_port_connection(
+		struct bt_component *comp, struct bt_port *port)
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 
-	if (component->class->methods.new_connection_method) {
-		status = component->class->methods.new_connection_method(
-				own_port, connection);
+	assert(comp);
+	assert(port);
+
+	if (comp->class->methods.accept_port_connection) {
+		status = comp->class->methods.accept_port_connection(
+			comp, port);
 	}
 
 	return status;
+}
+
+BT_HIDDEN
+void bt_component_port_disconnected(struct bt_component *comp,
+		struct bt_port *port)
+{
+	assert(comp);
+	assert(port);
+
+	if (comp->class->methods.port_disconnected) {
+		comp->class->methods.port_disconnected(comp, port);
+	}
 }

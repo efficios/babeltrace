@@ -58,7 +58,8 @@ struct bt_component_class {
 		bt_component_class_init_method init;
 		bt_component_class_destroy_method destroy;
 		bt_component_class_query_method query;
-		bt_component_class_new_connection_method new_connection_method;
+		bt_component_class_accept_port_connection_method accept_port_connection;
+		bt_component_class_port_disconnected_method port_disconnected;
 	} methods;
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;

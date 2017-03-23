@@ -185,25 +185,25 @@ end:
 }
 
 static
-enum bt_component_status writer_component_new_connection(
-		struct bt_port *own_port, struct bt_connection *connection)
+enum bt_component_status writer_component_accept_port_connection(
+		struct bt_component *component, struct bt_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component *component;
+	struct bt_connection *connection;
 	struct writer_component *writer;
 
-	component = bt_port_get_component(own_port);
-	assert(component);
 	writer = bt_component_get_private_data(component);
 	assert(writer);
 	assert(!writer->input_iterator);
+	connection = bt_port_get_connection(self_port);
+	assert(connection);
         writer->input_iterator = bt_connection_create_notification_iterator(
 			connection);
 
 	if (!writer->input_iterator) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 	}
-	bt_put(component);
+	bt_put(connection);
 	return ret;
 }
 
@@ -211,6 +211,7 @@ static
 enum bt_component_status run(struct bt_component *component)
 {
 	enum bt_component_status ret;
+	enum bt_notification_iterator_status it_status;
 	struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
@@ -225,8 +226,9 @@ enum bt_component_status run(struct bt_component *component)
 		goto end;
 	}
 
-	ret = bt_notification_iterator_next(it);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	it_status = bt_notification_iterator_next(it);
+	if (it_status != BT_COMPONENT_STATUS_OK) {
+		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
@@ -293,7 +295,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(writer, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(writer, writer_component_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_NEW_CONNECTION_METHOD(writer,
-		writer_component_new_connection);
+BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(writer,
+		writer_component_accept_port_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(writer, destroy_writer_component);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(writer, "Formats CTF-IR to CTF.");

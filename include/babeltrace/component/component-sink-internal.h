@@ -38,8 +38,6 @@ struct bt_value;
 
 struct bt_component_sink {
 	struct bt_component parent;
-	GPtrArray *input_ports;
-/*	notification_mask_t registered_notifications_mask;*/
 };
 
 /**
@@ -52,6 +50,9 @@ struct bt_component_sink {
 BT_HIDDEN
 struct bt_component *bt_component_sink_create(
 		struct bt_component_class *class, struct bt_value *params);
+
+BT_HIDDEN
+void bt_component_sink_destroy(struct bt_component *component);
 
 /**
  * Validate a sink component.

@@ -253,7 +253,8 @@ enum bt_plugin_status bt_plugin_so_init(
 		bt_component_class_init_method init_method;
 		bt_component_class_destroy_method destroy_method;
 		bt_component_class_query_method query_method;
-		bt_component_class_new_connection_method new_connection_method;
+		bt_component_class_accept_port_connection_method accept_port_connection_method;
+		bt_component_class_port_disconnected_method port_disconnected_method;
 		struct bt_component_class_iterator_methods iterator_methods;
 	};
 
@@ -382,9 +383,13 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->query_method =
 						cur_cc_descr_attr->value.query_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NEW_CONNECTION_METHOD:
-					cc_full_descr->new_connection_method =
-						cur_cc_descr_attr->value.new_connection_method;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD:
+					cc_full_descr->accept_port_connection_method =
+						cur_cc_descr_attr->value.accept_port_connection_method;
+					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD:
+					cc_full_descr->port_disconnected_method =
+						cur_cc_descr_attr->value.port_disconnected_method;
 					break;
 				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD:
 					cc_full_descr->iterator_methods.init =
@@ -511,9 +516,19 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 		}
 
-		if (cc_full_descr->new_connection_method) {
-			ret = bt_component_class_set_new_connection_method(
-				comp_class, cc_full_descr->new_connection_method);
+		if (cc_full_descr->accept_port_connection_method) {
+			ret = bt_component_class_set_accept_port_connection_method(
+				comp_class, cc_full_descr->accept_port_connection_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->port_disconnected_method) {
+			ret = bt_component_class_set_port_disconnected_method(
+				comp_class, cc_full_descr->port_disconnected_method);
 			if (ret) {
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
