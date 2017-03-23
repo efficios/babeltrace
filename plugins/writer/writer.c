@@ -69,7 +69,7 @@ void finalize_writer_component(struct bt_private_component *component)
 static
 void unref_stream_class(struct bt_ctf_stream_class *writer_stream_class)
 {
-	return;
+	bt_put(writer_stream_class);
 }
 
 static
@@ -81,7 +81,7 @@ void unref_stream(struct bt_ctf_stream_class *writer_stream)
 static
 void unref_trace(struct bt_ctf_writer *writer)
 {
-	return;
+	bt_put(writer);
 }
 
 static

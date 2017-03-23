@@ -89,14 +89,14 @@ static
 int update_header_clock_int_field_type(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
-	struct bt_ctf_clock_class *clock;
+	struct bt_ctf_clock_class *clock = NULL;
 	int ret;
 
 	clock = bt_ctf_field_type_integer_get_mapped_clock_class(type);
 	if (!clock) {
 		return 0;
 	}
-	bt_put(clock);
+	BT_PUT(clock);
 
 	ret = bt_ctf_field_type_integer_set_size(type, 64);
 	if (ret) {
@@ -158,10 +158,10 @@ int find_update_variant_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
 	int count, i, ret;
+	struct bt_ctf_field_type *entry_type = NULL;
 
 	count = bt_ctf_field_type_variant_get_field_count(type);
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field_type *entry_type;
 		const char *entry_name;
 
 		ret = bt_ctf_field_type_variant_get_field(type,
@@ -169,23 +169,25 @@ int find_update_variant_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
-			ret = -1;
-			goto end;
+			goto error;
 		}
 		ret = find_update_clock_fields(err, entry_type,
 				writer_clock_class);
-		bt_put(entry_type);
 		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
-			ret = -1;
-			goto end;
+			goto error;
 		}
+		BT_PUT(entry_type);
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	ret = -1;
 end:
+	bt_put(entry_type);
 	return ret;
 }
 
@@ -194,10 +196,10 @@ int find_update_struct_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
 	int count, i, ret;
+	struct bt_ctf_field_type *entry_type = NULL;
 
 	count = bt_ctf_field_type_structure_get_field_count(type);
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field_type *entry_type;
 		const char *entry_name;
 
 		ret = bt_ctf_field_type_structure_get_field(type,
@@ -205,22 +207,23 @@ int find_update_struct_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
-			ret = -1;
-			goto end;
+			goto error;
 		}
 		ret = find_update_clock_fields(err, entry_type,
 				writer_clock_class);
-		bt_put(entry_type);
 		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
-			ret = -1;
-			goto end;
+			goto error;
 		}
+		BT_PUT(entry_type);
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	bt_put(entry_type);
 end:
 	return ret;
 }
@@ -230,20 +233,27 @@ int find_update_sequence_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
 	int ret;
-	struct bt_ctf_field_type *entry_type;
+	struct bt_ctf_field_type *entry_type = NULL;
 
 	entry_type = bt_ctf_field_type_sequence_get_element_type(type);
+	if (!entry_type) {
+		fprintf(err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	bt_put(entry_type);
+	BT_PUT(entry_type);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	ret = -1;
 end:
 	return ret;
 }
@@ -253,11 +263,16 @@ int find_update_array_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
 	int ret;
-	struct bt_ctf_field_type *entry_type;
+	struct bt_ctf_field_type *entry_type = NULL;
 
 	entry_type = bt_ctf_field_type_array_get_element_type(type);
+	if (!entry_type) {
+		fprintf(err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	bt_put(entry_type);
+	BT_PUT(entry_type);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
@@ -266,7 +281,10 @@ int find_update_array_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	ret = -1;
 end:
 	return ret;
 }
@@ -276,20 +294,27 @@ int find_update_enum_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *writer_clock_class)
 {
 	int ret;
-	struct bt_ctf_field_type *entry_type;
+	struct bt_ctf_field_type *entry_type = NULL;
 
 	entry_type = bt_ctf_field_type_enumeration_get_container_type(type);
+	if (!entry_type) {
+		fprintf(err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	bt_put(entry_type);
+	BT_PUT(entry_type);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	ret = -1;
 end:
 	return ret;
 }
@@ -300,22 +325,22 @@ struct bt_ctf_field_type *override_header_type(FILE *err,
 		struct bt_ctf_trace *writer_trace)
 {
 	struct bt_ctf_field_type *new_type = NULL;
+	struct bt_ctf_clock_class *writer_clock_class = NULL;
 	int ret;
-	struct bt_ctf_clock_class *writer_clock_class;
 
 	/* FIXME multi-clock? */
 	writer_clock_class = bt_ctf_trace_get_clock_class(writer_trace, 0);
 	if (!writer_clock_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
-		goto end;
+		goto error;
 	}
 
 	new_type = bt_ctf_field_type_copy(type);
 	if (!new_type) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
-		goto end_put;
+		goto error;
 	}
 
 	if (bt_ctf_field_type_get_type_id(new_type) != BT_CTF_TYPE_ID_STRUCT) {
@@ -329,13 +354,13 @@ struct bt_ctf_field_type *override_header_type(FILE *err,
 				__func__, __FILE__, __LINE__);
 		goto error;
 	}
+	BT_PUT(writer_clock_class);
 
-	goto end_put;
+	goto end;
 
 error:
-	BT_PUT(new_type);
-end_put:
 	bt_put(writer_clock_class);
+	BT_PUT(new_type);
 end:
 	return new_type;
 }
@@ -403,7 +428,7 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event *writer_event, struct bt_ctf_field *field,
 		struct bt_ctf_field *copy_field)
 {
-	struct bt_ctf_field_type *type;
+	struct bt_ctf_field_type *type = NULL;
 	int ret;
 
 	type = bt_ctf_field_get_type(field);
@@ -453,7 +478,7 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 	}
 
 	ret = 0;
-	bt_put(type);
+	BT_PUT(type);
 
 end:
 	return ret;
@@ -465,7 +490,7 @@ int copy_find_clock_enum_field(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_field_type *type, struct bt_ctf_field *copy_field)
 {
 	int ret;
-	struct bt_ctf_field *container, *copy_container;
+	struct bt_ctf_field *container = NULL, *copy_container = NULL;
 
 	container = bt_ctf_field_enumeration_get_container(field);
 	if (!container) {
@@ -480,7 +505,7 @@ int copy_find_clock_enum_field(FILE *err, struct bt_ctf_event *event,
 		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_container;
+		goto error;
 	}
 
 	ret = copy_override_field(err, event, writer_event, container,
@@ -489,14 +514,17 @@ int copy_find_clock_enum_field(FILE *err, struct bt_ctf_event *event,
 		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_copy_container;
+		goto error;
 	}
+	
+	ret = 0;
+	goto end;
 
-end_put_copy_container:
-	bt_put(copy_container);
-end_put_container:
-	bt_put(container);
+error:
+	ret = -1;
 end:
+	bt_put(copy_container);
+	bt_put(container);
 	return ret;
 }
 
@@ -506,52 +534,47 @@ int copy_find_clock_variant_field(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_field_type *type, struct bt_ctf_field *copy_field)
 {
 	int ret;
-	struct bt_ctf_field *tag;
-	struct bt_ctf_field *variant_field, *copy_variant_field;
+	struct bt_ctf_field *tag = NULL;
+	struct bt_ctf_field *variant_field = NULL, *copy_variant_field = NULL;
 
 	tag = bt_ctf_field_variant_get_tag(field);
 	if (!tag) {
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	variant_field = bt_ctf_field_variant_get_field(field, tag);
 	if (!variant_field) {
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_tag;
+		goto error;
 	}
 
 	copy_variant_field = bt_ctf_field_variant_get_field(copy_field, tag);
 	if (!copy_variant_field) {
-		bt_put(variant_field);
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_variant_field;
+		goto error;
 	}
 
 	ret = copy_override_field(err, event, writer_event, variant_field,
 			copy_variant_field);
 	if (ret) {
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_copy_variand_field;
+		goto error;
 	}
 
 	ret = 0;
+	goto end;
 
-end_put_copy_variand_field:
-	bt_put(copy_variant_field);
-end_put_variant_field:
-	bt_put(variant_field);
-end_put_tag:
-	bt_put(tag);
+error:
+	ret = -1;
 end:
+	bt_put(copy_variant_field);
+	bt_put(variant_field);
+	bt_put(tag);
 	return ret;
 }
 
@@ -563,77 +586,65 @@ int copy_find_clock_sequence_field(FILE *err,
 {
 	int ret;
 	uint64_t i, count;
-	struct bt_ctf_field_type *entry_type;
-	struct bt_ctf_field *length_field;
-
-	entry_type = bt_ctf_field_type_sequence_get_element_type(type);
-	if (!entry_type) {
-		ret = -1;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
+	struct bt_ctf_field *length_field = NULL;
+	struct bt_ctf_field *entry_field = NULL, *entry_copy = NULL;
 
 	length_field = bt_ctf_field_sequence_get_length(field);
 	if (!length_field) {
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = bt_ctf_field_unsigned_integer_get_value(length_field, &count);
 	if (ret) {
-		bt_put(length_field);
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = bt_ctf_field_sequence_set_length(copy_field, length_field);
-	bt_put(length_field);
 	if (ret) {
-		ret = -1;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
+	BT_PUT(length_field);
 
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field *entry_field, *entry_copy;
-
 		entry_field = bt_ctf_field_sequence_get_field(field, i);
 		if (!entry_field) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		entry_copy = bt_ctf_field_sequence_get_field(copy_field, i);
 		if (!entry_copy) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
-		bt_put(entry_field);
-		bt_put(entry_copy);
 		if (ret) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
+		BT_PUT(entry_field);
+		BT_PUT(entry_copy);
 	}
 
-	bt_put(entry_type);
 	ret = 0;
+	goto end;
 
+error:
+	bt_put(length_field);
+	bt_put(entry_field);
+	bt_put(entry_copy);
+	ret = -1;
 end:
 	return ret;
 }
@@ -645,49 +656,42 @@ int copy_find_clock_array_field(FILE *err,
 		struct bt_ctf_field *copy_field)
 {
 	int ret, count, i;
-	struct bt_ctf_field_type *entry_type;
+	struct bt_ctf_field *entry_field = NULL, *entry_copy = NULL;
 
 	count = bt_ctf_field_type_array_get_length(type);
-	entry_type = bt_ctf_field_type_array_get_element_type(type);
-	if (!entry_type) {
-		ret = -1;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field *entry_field, *entry_copy;
-
 		entry_field = bt_ctf_field_array_get_field(field, i);
 		if (!entry_field) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		entry_copy = bt_ctf_field_array_get_field(copy_field, i);
 		if (!entry_copy) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
-		bt_put(entry_field);
-		bt_put(entry_copy);
 		if (ret) {
 			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
+		BT_PUT(entry_field);
+		BT_PUT(entry_copy);
 	}
 
-	bt_put(entry_type);
 	ret = 0;
+	goto end;
+
+error:
+	bt_put(entry_field);
+	bt_put(entry_copy);
 
 end:
 	return ret;
@@ -700,59 +704,55 @@ int copy_find_clock_struct_field(FILE *err,
 		struct bt_ctf_field *copy_field)
 {
 	int count, i, ret;
+	struct bt_ctf_field_type *entry_type = NULL;
+	struct bt_ctf_field *entry_field = NULL, *entry_copy = NULL;
 
 	count = bt_ctf_field_type_structure_get_field_count(type);
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field_type *entry_type;
-		struct bt_ctf_field *entry_field;
 		const char *entry_name;
-		struct bt_ctf_field *entry_copy;
 
 		entry_field = bt_ctf_field_structure_get_field_by_index(field, i);
 		if (!entry_field) {
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		ret = bt_ctf_field_type_structure_get_field(type, &entry_name,
 				&entry_type, i);
 		if (ret) {
-			bt_put(entry_field);
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
-			goto end;
+			goto error;
 		}
 
 		entry_copy = bt_ctf_field_structure_get_field_by_index(copy_field, i);
 		if (!entry_copy) {
-			bt_put(entry_field);
-			bt_put(entry_type);
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
-
-		bt_put(entry_copy);
-		bt_put(entry_field);
-		bt_put(entry_type);
 		if (ret) {
-			BT_PUT(entry_copy);
-			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
-			goto end;
+			goto error;
 		}
+		BT_PUT(entry_copy);
+		BT_PUT(entry_field);
+		BT_PUT(entry_type);
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	bt_put(entry_type);
+	bt_put(entry_field);
+	bt_put(entry_copy);
+	ret = -1;
 end:
 	return ret;
 }
@@ -774,7 +774,6 @@ int set_int_value(FILE *err, struct bt_ctf_field *field,
 					__FILE__, __LINE__);
 			goto end;
 		}
-		printf(" - v(s) = %ld\n", value);
 		ret = bt_ctf_field_signed_integer_set_value(copy_field, value);
 		if (ret) {
 			ret = -1;
@@ -808,7 +807,7 @@ end:
 struct bt_ctf_clock_class *stream_class_get_clock_class(FILE *err,
 		struct bt_ctf_stream_class *stream_class)
 {
-	struct bt_ctf_trace *trace;
+	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_clock_class *clock_class = NULL;
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
@@ -828,8 +827,8 @@ end:
 
 struct bt_ctf_clock_class *event_get_clock_class(FILE *err, struct bt_ctf_event *event)
 {
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_event_class *event_class = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_clock_class *clock_class = NULL;
 
 	event_class = bt_ctf_event_get_class(event);
@@ -840,17 +839,16 @@ struct bt_ctf_clock_class *event_get_clock_class(FILE *err, struct bt_ctf_event 
 	}
 
 	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	BT_PUT(event_class);
 	if (!stream_class) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end_put_event_class;
+		goto end;
 	}
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
 	bt_put(stream_class);
 
-end_put_event_class:
-	bt_put(event_class);
 end:
 	return clock_class;
 }
@@ -861,8 +859,8 @@ int copy_find_clock_int_field(FILE *err,
 		struct bt_ctf_field *field, struct bt_ctf_field_type *type,
 		struct bt_ctf_field *copy_field)
 {
-	struct bt_ctf_clock_class *clock_class, *writer_clock_class;
-	struct bt_ctf_clock_value *clock_value, *writer_clock_value;
+	struct bt_ctf_clock_class *clock_class = NULL, *writer_clock_class = NULL;
+	struct bt_ctf_clock_value *clock_value = NULL, *writer_clock_value = NULL;
 	uint64_t value;
 	int ret;
 
@@ -872,53 +870,56 @@ int copy_find_clock_int_field(FILE *err,
 	}
 
 	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
-	bt_put(clock_class);
+	BT_PUT(clock_class);
 	if (!clock_value) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = bt_ctf_clock_value_get_value(clock_value, &value);
-	bt_put(clock_value);
+	BT_PUT(clock_value);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = bt_ctf_field_unsigned_integer_set_value(copy_field, value);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	writer_clock_class = event_get_clock_class(err, writer_event);
 	if (!writer_clock_class) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	writer_clock_value = bt_ctf_clock_value_create(writer_clock_class, value);
-	bt_put(writer_clock_class);
+	BT_PUT(writer_clock_class);
 	if (!writer_clock_value) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = bt_ctf_event_set_clock_value(writer_event, writer_clock_value);
-	bt_put(writer_clock_value);
+	BT_PUT(writer_clock_value);
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
 	}
 
 	ret = 0;
+	goto end;
 
+error:
+	ret = -1;
 end:
 	return ret;
 }
