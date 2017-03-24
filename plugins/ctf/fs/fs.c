@@ -43,6 +43,7 @@
 #include "metadata.h"
 #include "data-stream.h"
 #include "file.h"
+#include "../common/metadata/decoder.h"
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs"
@@ -548,11 +549,12 @@ struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
 			goto error;
 		}
 
-		is_packetized = ctf_metadata_is_packetized(metadata_fp, &bo);
+		is_packetized = ctf_metadata_decoder_is_packetized(metadata_fp,
+			&bo);
 
 		if (is_packetized) {
-			ret = ctf_metadata_packetized_file_to_buf(NULL,
-				metadata_fp, (uint8_t **) &metadata_text, bo);
+			ret = ctf_metadata_decoder_packetized_file_stream_to_buf(
+				metadata_fp, &metadata_text, bo);
 			if (ret) {
 				fprintf(stderr,
 					"Cannot decode packetized metadata file\n");

@@ -20,7 +20,9 @@ libctf_ast_la_SOURCES = \
 	objstack.h \
 	parser.h \
 	scanner.h \
-	scanner-symbols.h
+	scanner-symbols.h \
+	decoder.c \
+	decoder.h
 
 libctf_ast_la_LIBADD = $(top_builddir)/lib/libbabeltrace.la
 

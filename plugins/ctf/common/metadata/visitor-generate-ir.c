@@ -152,30 +152,35 @@ enum loglevel {
 /* Error printing wrappers */
 #define _PERROR(_fmt, ...)					\
 	do {							\
+		if (!ctx->efd) break;				\
 		fprintf(ctx->efd, "[error] %s: " _fmt "\n",	\
 			__func__, __VA_ARGS__);			\
 	} while (0)
 
 #define _PWARNING(_fmt, ...)					\
 	do {							\
+		if (!ctx->efd) break;				\
 		fprintf(ctx->efd, "[warning] %s: " _fmt "\n",	\
 			__func__, __VA_ARGS__);			\
 	} while (0)
 
 #define _FPERROR(_stream, _fmt, ...)				\
 	do {							\
+		if (!_stream) break;				\
 		fprintf(_stream, "[error] %s: " _fmt "\n",	\
 			__func__, __VA_ARGS__);			\
 	} while (0)
 
 #define _FPWARNING(_stream, _fmt, ...)				\
 	do {							\
+		if (!_stream) break;				\
 		fprintf(_stream, "[warning] %s: " _fmt "\n",	\
 			__func__, __VA_ARGS__);			\
 	} while (0)
 
 #define _PERROR_DUP_ATTR(_attr, _entity)			\
 	do {							\
+		if (!ctx->efd) break;				\
 		fprintf(ctx->efd,				\
 			"[error] %s: duplicate attribute \""	\
 			_attr "\" in " _entity "\n", __func__);	\
@@ -199,10 +204,10 @@ struct ctx_decl_scope {
 };
 
 /*
- * Visitor context.
+ * Visitor context (private).
  */
 struct ctx {
-	/* Trace being filled (weak ref.) */
+	/* Trace being filled (owned by this) */
 	struct bt_ctf_trace *trace;
 
 	/* Error stream to use during visit */
@@ -214,7 +219,11 @@ struct ctx {
 	/* 1 if trace declaration is visited */
 	int is_trace_visited;
 
+	/* Offset (ns) to apply to clock classes on creation */
+	uint64_t clock_class_offset_ns;
+
 	/* Trace attributes */
+	enum bt_ctf_byte_order trace_bo;
 	uint64_t trace_major;
 	uint64_t trace_minor;
 	unsigned char trace_uuid[BABELTRACE_UUID_LEN];
@@ -226,6 +235,11 @@ struct ctx {
 	 */
 	GHashTable *stream_classes;
 };
+
+/*
+ * Visitor (public).
+ */
+struct ctf_visitor_generate_ir { };
 
 static
 const char *loglevel_str [] = {
@@ -562,12 +576,13 @@ int ctx_decl_scope_register_variant(struct ctx_decl_scope *scope,
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(struct bt_ctf_trace *trace, FILE *efd)
+struct ctx *ctx_create(struct bt_ctf_trace *trace, FILE *efd,
+		uint64_t clock_class_offset_ns)
 {
 	struct ctx *ctx = NULL;
 	struct ctx_decl_scope *scope = NULL;
 
-	ctx = g_new(struct ctx, 1);
+	ctx = g_new0(struct ctx, 1);
 	if (!ctx) {
 		goto error;
 	}
@@ -587,14 +602,13 @@ struct ctx *ctx_create(struct bt_ctf_trace *trace, FILE *efd)
 	ctx->trace = trace;
 	ctx->efd = efd;
 	ctx->current_scope = scope;
-	ctx->is_trace_visited = FALSE;
-
+	ctx->trace_bo = BT_CTF_BYTE_ORDER_NATIVE;
+	ctx->clock_class_offset_ns = clock_class_offset_ns;
 	return ctx;
 
 error:
 	g_free(ctx);
 	ctx_decl_scope_destroy(scope);
-
 	return NULL;
 }
 
@@ -624,6 +638,7 @@ void ctx_destroy(struct ctx *ctx)
 		scope = parent_scope;
 	}
 
+	bt_put(ctx->trace);
 	g_hash_table_destroy(ctx->stream_classes);
 	g_free(ctx);
 
@@ -2505,7 +2520,7 @@ int visit_integer_decl(struct ctx *ctx,
 					goto error;
 				}
 
-				_PWARNING("invalid \"map\" attribute in integer declaration: unknown clock: \"%s\"",
+				_PWARNING("invalid \"map\" attribute in integer declaration: unknown clock class: \"%s\"",
 					s_right);
 				_SET(&set, _INTEGER_MAP_SET);
 				g_free(s_right);
@@ -2515,7 +2530,7 @@ int visit_integer_decl(struct ctx *ctx,
 			mapped_clock = bt_ctf_trace_get_clock_class_by_name(
 				ctx->trace, clock_name);
 			if (!mapped_clock) {
-				_PERROR("invalid \"map\" attribute in integer declaration: cannot find clock \"%s\"",
+				_PERROR("invalid \"map\" attribute in integer declaration: cannot find clock class \"%s\"",
 					clock_name);
 				ret = -EINVAL;
 				goto error;
@@ -3333,8 +3348,9 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	char *event_name = NULL;
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_event_class *eevent_class;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.event.declaration_list;
+	bool pop_scope = false;
 
 	if (node->visited) {
 		goto end;
@@ -3359,12 +3375,13 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-
 	ret = ctx_push_scope(ctx);
 	if (ret) {
 		_PERROR("%s", "cannot push scope");
 		goto error;
 	}
+
+	pop_scope = true;
 
 	bt_list_for_each_entry(iter, decl_list, siblings) {
 		ret = visit_event_decl_entry(ctx, iter, event_class,
@@ -3377,11 +3394,17 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	if (!_IS_SET(&set, _EVENT_STREAM_ID_SET)) {
 		GList *keys = NULL;
 		struct bt_ctf_stream_class *new_stream_class;
+		size_t stream_class_count =
+			g_hash_table_size(ctx->stream_classes) +
+			bt_ctf_trace_get_stream_class_count(ctx->trace);
 
-		/* Allow missing stream_id if there is only a single stream */
-		switch (g_hash_table_size(ctx->stream_classes)) {
+		/*
+		 * Allow missing stream_id if there is only a single
+		 * stream class.
+		 */
+		switch (stream_class_count) {
 		case 0:
-			/* Create stream if there's none */
+			/* Create implicit stream class if there's none */
 			new_stream_class = create_reset_stream_class(ctx);
 			if (!new_stream_class) {
 				ret = -EINVAL;
@@ -3390,7 +3413,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 
 			ret = bt_ctf_stream_class_set_id(new_stream_class, 0);
 			if (ret) {
-				_PERROR("%s", "cannot set stream's ID");
+				_PERROR("%s", "cannot set stream class's ID");
 				BT_PUT(new_stream_class);
 				goto error;
 			}
@@ -3401,14 +3424,23 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 			g_hash_table_insert(ctx->stream_classes,
 				(gpointer) stream_id, new_stream_class);
 			new_stream_class = NULL;
-
 			break;
 		case 1:
-			/* Single stream: get its ID */
-			keys = g_hash_table_get_keys(ctx->stream_classes);
-			stream_id = (int64_t) keys->data;
-			g_list_free(keys);
-			keys = NULL;
+			/* Single stream class: get its ID */
+			if (g_hash_table_size(ctx->stream_classes) == 1) {
+				keys = g_hash_table_get_keys(ctx->stream_classes);
+				stream_id = (int64_t) keys->data;
+				g_list_free(keys);
+			} else {
+				assert(bt_ctf_trace_get_stream_class_count(
+					ctx->trace) == 1);
+				stream_class = bt_ctf_trace_get_stream_class(
+					ctx->trace, 0);
+				assert(stream_class);
+				stream_id = bt_ctf_stream_class_get_id(
+					stream_class);
+				BT_PUT(stream_class);
+			}
 			break;
 		default:
 			_PERROR("%s", "missing \"stream_id\" attribute in event declaration");
@@ -3417,19 +3449,24 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 	}
 
-
-
 	assert(stream_id >= 0);
 
-	/* We have the stream ID now; borrow the stream class if found */
+	/* We have the stream ID now; get the stream class if found */
 	stream_class = g_hash_table_lookup(ctx->stream_classes,
 		(gpointer) stream_id);
+	bt_get(stream_class);
 	if (!stream_class) {
-		_PERROR("cannot find stream class with ID %" PRId64,
+		stream_class = bt_ctf_trace_get_stream_class_by_id(ctx->trace,
 			stream_id);
-		ret = -EINVAL;
-		goto error;
+		if (!stream_class) {
+			_PERROR("cannot find stream class with ID %" PRId64,
+				stream_id);
+			ret = -EINVAL;
+			goto error;
+		}
 	}
+
+	assert(stream_class);
 
 	if (!_IS_SET(&set, _EVENT_ID_SET)) {
 		/* Allow only one event without ID per stream */
@@ -3469,32 +3506,31 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		event_name);
 	if (eevent_class) {
 		BT_PUT(eevent_class);
-		eevent_class = NULL;
 		_PERROR("%s",
 			"duplicate event with name \"%s\" in same stream");
 		ret = -EEXIST;
 		goto error;
 	}
 
-	g_free(event_name);
 	ret = bt_ctf_stream_class_add_event_class(stream_class, event_class);
 	BT_PUT(event_class);
-	event_class = NULL;
-
 	if (ret) {
 		_PERROR("%s", "cannot add event class to stream class");
 		goto error;
 	}
 
-end:
-	return 0;
+	goto end;
 
 error:
+	bt_put(event_class);
+
+end:
+	if (pop_scope) {
+		ctx_pop_scope(ctx);
+	}
+
 	g_free(event_name);
-	BT_PUT(event_class);
-
-	/* stream_class is borrowed; it still belongs to the hash table */
-
+	bt_put(stream_class);
 	return ret;
 }
 
@@ -3683,6 +3719,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	int ret = 0;
 	struct ctf_node *iter;
 	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_stream_class *existing_stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.stream.declaration_list;
 
 	if (node->visited) {
@@ -3761,17 +3798,35 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
+	/*
+	 * Make sure that this stream class's ID is currently unique in
+	 * the trace.
+	 */
+	if (g_hash_table_lookup(ctx->stream_classes, (gpointer) id)) {
+		_PERROR("a stream class with ID: %" PRId64 " already exists in the trace", id);
+		ret = -EINVAL;
+		goto error;
+	}
+
+	existing_stream_class = bt_ctf_trace_get_stream_class_by_id(ctx->trace,
+		id);
+	if (existing_stream_class) {
+		_PERROR("a stream class with ID: %" PRId64 " already exists in the trace", id);
+		ret = -EINVAL;
+		goto error;
+	}
+
 	/* Move reference to visitor's context */
 	g_hash_table_insert(ctx->stream_classes, (gpointer) (int64_t) id,
 		stream_class);
 	stream_class = NULL;
-
-end:
-	return 0;
+	goto end;
 
 error:
-	BT_PUT(stream_class);
+	bt_put(stream_class);
 
+end:
+	bt_put(existing_stream_class);
 	return ret;
 }
 
@@ -4123,6 +4178,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 					goto error;
 				}
 
+				ctx->trace_bo = bo;
 				ret = bt_ctf_trace_set_native_byte_order(
 					ctx->trace, bo);
 				if (ret) {
@@ -4173,7 +4229,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		char *right;
 
 		if (_IS_SET(set, _CLOCK_NAME_SET)) {
-			_PERROR_DUP_ATTR("name", "clock declaration");
+			_PERROR_DUP_ATTR("name", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4181,14 +4237,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		right = concatenate_unary_strings(
 			&entry_node->u.ctf_expression.right);
 		if (!right) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"name\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"name\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_name(clock, right);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's name");
+			_PERROR("%s", "cannot set clock class's name");
 			g_free(right);
 			goto error;
 		}
@@ -4199,20 +4255,20 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		unsigned char uuid[BABELTRACE_UUID_LEN];
 
 		if (_IS_SET(set, _CLOCK_UUID_SET)) {
-			_PERROR_DUP_ATTR("uuid", "clock declaration");
+			_PERROR_DUP_ATTR("uuid", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
 
 		ret = get_unary_uuid(&entry_node->u.ctf_expression.right, uuid);
 		if (ret) {
-			_PERROR("%s", "invalid clock UUID");
+			_PERROR("%s", "invalid clock class UUID");
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_uuid(clock, uuid);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's UUID");
+			_PERROR("%s", "cannot set clock class's UUID");
 			goto error;
 		}
 
@@ -4221,7 +4277,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		char *right;
 
 		if (_IS_SET(set, _CLOCK_DESCRIPTION_SET)) {
-			_PERROR_DUP_ATTR("description", "clock declaration");
+			_PERROR_DUP_ATTR("description", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4229,14 +4285,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		right = concatenate_unary_strings(
 			&entry_node->u.ctf_expression.right);
 		if (!right) {
-			_PERROR("%s", "unexpected unary expression for clock's \"description\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class's \"description\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_description(clock, right);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's description");
+			_PERROR("%s", "cannot set clock class's description");
 			g_free(right);
 			goto error;
 		}
@@ -4247,7 +4303,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		uint64_t freq;
 
 		if (_IS_SET(set, _CLOCK_FREQ_SET)) {
-			_PERROR_DUP_ATTR("freq", "clock declaration");
+			_PERROR_DUP_ATTR("freq", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4255,14 +4311,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		ret = get_unary_unsigned(
 			&entry_node->u.ctf_expression.right, &freq);
 		if (ret) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"freq\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"freq\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_frequency(clock, freq);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's frequency");
+			_PERROR("%s", "cannot set clock class's frequency");
 			goto error;
 		}
 
@@ -4271,7 +4327,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		uint64_t precision;
 
 		if (_IS_SET(set, _CLOCK_PRECISION_SET)) {
-			_PERROR_DUP_ATTR("precision", "clock declaration");
+			_PERROR_DUP_ATTR("precision", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4279,14 +4335,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		ret = get_unary_unsigned(
 			&entry_node->u.ctf_expression.right, &precision);
 		if (ret) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"precision\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"precision\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_precision(clock, precision);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's precision");
+			_PERROR("%s", "cannot set clock class's precision");
 			goto error;
 		}
 
@@ -4295,7 +4351,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		uint64_t offset_s;
 
 		if (_IS_SET(set, _CLOCK_OFFSET_S_SET)) {
-			_PERROR_DUP_ATTR("offset_s", "clock declaration");
+			_PERROR_DUP_ATTR("offset_s", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4303,14 +4359,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		ret = get_unary_unsigned(
 			&entry_node->u.ctf_expression.right, &offset_s);
 		if (ret) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"offset_s\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"offset_s\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_offset_s(clock, offset_s);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's offset in seconds");
+			_PERROR("%s", "cannot set clock class's offset in seconds");
 			goto error;
 		}
 
@@ -4319,7 +4375,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		uint64_t offset;
 
 		if (_IS_SET(set, _CLOCK_OFFSET_SET)) {
-			_PERROR_DUP_ATTR("offset", "clock declaration");
+			_PERROR_DUP_ATTR("offset", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4327,14 +4383,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		ret = get_unary_unsigned(
 			&entry_node->u.ctf_expression.right, &offset);
 		if (ret) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"offset\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"offset\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_offset_cycles(clock, offset);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's offset in cycles");
+			_PERROR("%s", "cannot set clock class's offset in cycles");
 			goto error;
 		}
 
@@ -4343,7 +4399,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		struct ctf_node *right;
 
 		if (_IS_SET(set, _CLOCK_ABSOLUTE_SET)) {
-			_PERROR_DUP_ATTR("absolute", "clock declaration");
+			_PERROR_DUP_ATTR("absolute", "clock class declaration");
 			ret = -EPERM;
 			goto error;
 		}
@@ -4353,20 +4409,20 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			struct ctf_node, siblings);
 		ret = get_boolean(ctx->efd, right);
 		if (ret < 0) {
-			_PERROR("%s", "unexpected unary expression for clock declaration's \"absolute\" attribute");
+			_PERROR("%s", "unexpected unary expression for clock class declaration's \"absolute\" attribute");
 			ret = -EINVAL;
 			goto error;
 		}
 
 		ret = bt_ctf_clock_class_set_is_absolute(clock, ret);
 		if (ret) {
-			_PERROR("%s", "cannot set clock's absolute option");
+			_PERROR("%s", "cannot set clock class's absolute option");
 			goto error;
 		}
 
 		_SET(set, _CLOCK_ABSOLUTE_SET);
 	} else {
-		_PWARNING("unknown attribute \"%s\" in clock declaration",
+		_PWARNING("unknown attribute \"%s\" in clock class declaration",
 			left);
 	}
 
@@ -4397,8 +4453,7 @@ uint64_t cycles_from_ns(uint64_t frequency, uint64_t ns)
 }
 
 static
-int apply_clock_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock,
-		uint64_t clock_offset_ns)
+int apply_clock_class_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock)
 {
 	int ret;
 	uint64_t freq;
@@ -4406,20 +4461,19 @@ int apply_clock_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock,
 
 	freq = bt_ctf_clock_class_get_frequency(clock);
 	if (freq == -1ULL) {
-		_PERROR("%s", "No clock frequency");
+		_PERROR("%s", "cannot get clock class frequency");
 		ret = -1;
 		goto end;
 	}
 
 	ret = bt_ctf_clock_class_get_offset_cycles(clock, &offset_cycles);
 	if (ret) {
-		_PERROR("%s", "Getting offset cycles");
+		_PERROR("%s", "cannot get offset in cycles");
 		ret = -1;
 		goto end;
 	}
 
-	offset_cycles += cycles_from_ns(freq, clock_offset_ns);
-
+	offset_cycles += cycles_from_ns(freq, ctx->clock_class_offset_ns);
 	ret = bt_ctf_clock_class_set_offset_cycles(clock, offset_cycles);
 
 end:
@@ -4427,8 +4481,7 @@ end:
 }
 
 static
-int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node,
-		uint64_t clock_offset_ns)
+int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 {
 	int ret = 0;
 	int set = 0;
@@ -4457,26 +4510,26 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node,
 
 	if (!_IS_SET(&set, _CLOCK_NAME_SET)) {
 		_PERROR("%s",
-			"missing \"name\" attribute in clock declaration");
+			"missing \"name\" attribute in clock class declaration");
 		ret = -EPERM;
 		goto error;
 	}
 
 	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 0) {
-		_PERROR("%s", "only CTF traces with a single clock declaration are supported as of this version");
+		_PERROR("%s", "only CTF traces with a single clock class declaration are supported as of this version");
 		ret = -EINVAL;
 		goto error;
 	}
 
-	ret = apply_clock_offset(ctx, clock, clock_offset_ns);
+	ret = apply_clock_class_offset(ctx, clock);
 	if (ret) {
-		_PERROR("%s", "cannot apply clock offset ");
+		_PERROR("%s", "cannot apply clock class offset ");
 		goto error;
 	}
 
 	ret = bt_ctf_trace_add_clock_class(ctx->trace, clock);
 	if (ret) {
-		_PERROR("%s", "cannot add clock to trace");
+		_PERROR("%s", "cannot add clock class to trace");
 		goto error;
 	}
 
@@ -4542,7 +4595,7 @@ end:
 }
 
 static
-int add_stream_classes_to_trace(struct ctx *ctx)
+int move_ctx_stream_classes_to_trace(struct ctx *ctx)
 {
 	int ret;
 	GHashTableIter iter;
@@ -4561,40 +4614,78 @@ int add_stream_classes_to_trace(struct ctx *ctx)
 		}
 	}
 
+	g_hash_table_remove_all(ctx->stream_classes);
+
 end:
 	return ret;
 }
 
-int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
-	struct bt_ctf_trace **trace, uint64_t clock_offset_ns)
+BT_HIDDEN
+struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
+		uint64_t clock_class_offset_ns)
 {
-	int ret = 0;
+	int ret;
 	struct ctx *ctx = NULL;
+	struct bt_ctf_trace *trace;
 
-	printf_verbose("CTF visitor: AST -> CTF IR...\n");
-
-	*trace = bt_ctf_trace_create();
-	if (!*trace) {
+	trace = bt_ctf_trace_create();
+	if (!trace) {
 		_FPERROR(efd, "%s", "cannot create trace");
-		ret = -ENOMEM;
 		goto error;
 	}
 
 	/* Set packet header to NULL to override the default one */
-	ret = bt_ctf_trace_set_packet_header_type(*trace, NULL);
+	ret = bt_ctf_trace_set_packet_header_type(trace, NULL);
 	if (ret) {
-		_FPERROR(efd,
-			"%s",
+		_FPERROR(efd, "%s",
 			"cannot set initial, empty packet header structure");
 		goto error;
 	}
 
-	ctx = ctx_create(*trace, efd);
+	/* Create visitor's context */
+	ctx = ctx_create(trace, efd, clock_class_offset_ns);
 	if (!ctx) {
 		_FPERROR(efd, "%s", "cannot create visitor context");
-		ret = -ENOMEM;
 		goto error;
 	}
+
+	trace = NULL;
+	goto end;
+
+error:
+	ctx_destroy(ctx);
+	ctx = NULL;
+
+end:
+	bt_put(trace);
+	return (void *) ctx;
+}
+
+BT_HIDDEN
+void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
+{
+	ctx_destroy((void *) visitor);
+}
+
+BT_HIDDEN
+struct bt_ctf_trace *ctf_visitor_generate_ir_get_trace(
+		struct ctf_visitor_generate_ir *visitor)
+{
+	struct ctx *ctx = (void *) visitor;
+
+	assert(ctx);
+	assert(ctx->trace);
+	return bt_get(ctx->trace);
+}
+
+BT_HIDDEN
+int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
+		struct ctf_node *node)
+{
+	int ret = 0;
+	struct ctx *ctx = (void *) visitor;
+
+	printf_verbose("CTF visitor: AST -> CTF IR...\n");
 
 	switch (node->type) {
 	case NODE_ROOT:
@@ -4604,43 +4695,56 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 		int found_callsite = FALSE;
 
 		/*
-		 * Find trace declaration's byte order first (for early
-		 * type aliases).
+		 * The first thing we need is the native byte order of
+		 * the trace block, because early type aliases can have
+		 * a `byte_order` attribute set to `native`. If we don't
+		 * have the native byte order yet, and we don't have any
+		 * trace block yet, then fail with EINCOMPLETE.
 		 */
-		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
-			if (got_trace_decl) {
-				_PERROR("%s", "duplicate trace declaration");
-				goto error;
+		if (ctx->trace_bo == BT_CTF_BYTE_ORDER_NATIVE) {
+			bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
+				if (got_trace_decl) {
+					_PERROR("%s", "duplicate trace declaration");
+					ret = -1;
+					goto end;
+				}
+
+				ret = set_trace_byte_order(ctx, iter);
+				if (ret) {
+					_PERROR("cannot set trace's native byte order (%d)",
+						ret);
+					goto end;
+				}
+
+				got_trace_decl = TRUE;
 			}
 
-			ret = set_trace_byte_order(ctx, iter);
-			if (ret) {
-				_PERROR("cannot set trace's byte order (%d)",
-					ret);
-				goto error;
+			if (!got_trace_decl) {
+				ret = -EINCOMPLETE;
+				goto end;
 			}
-
-			got_trace_decl = TRUE;
 		}
 
-		if (!got_trace_decl) {
-			_PERROR("no trace declaration found (%d)", ret);
-			ret = -EPERM;
-			goto error;
-		}
+		assert(ctx->trace_bo == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
+			ctx->trace_bo == BT_CTF_BYTE_ORDER_BIG_ENDIAN);
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		/*
 		 * Visit clocks first since any early integer can be mapped
 		 * to one.
 		 */
 		bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
-			ret = visit_clock_decl(ctx, iter, clock_offset_ns);
+			ret = visit_clock_decl(ctx, iter);
 			if (ret) {
-				_PERROR("error while visiting clock declaration (%d)",
+				_PERROR("error while visiting clock class declaration (%d)",
 					ret);
-				goto error;
+				goto end;
 			}
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		/*
 		 * Visit root declarations next, as they can be used by any
@@ -4652,15 +4756,21 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 			if (ret) {
 				_PERROR("error while visiting root declaration (%d)",
 					ret);
-				goto error;
+				goto end;
 			}
 		}
 
-		/* Callsite are not supported */
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
+
+		/* Callsite blocks are not supported */
 		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
 			found_callsite = TRUE;
 			break;
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		if (found_callsite) {
 			_PWARNING("%s", "\"callsite\" blocks are not supported as of this version");
@@ -4672,59 +4782,62 @@ int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
 			if (ret) {
 				_PERROR("error while visiting environment block (%d)",
 					ret);
-				goto error;
+				goto end;
 			}
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		/* Trace */
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 			ret = visit_trace_decl(ctx, iter);
 			if (ret) {
 				_PERROR("%s", "error while visiting trace declaration");
-				goto error;
+				goto end;
 			}
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		/* Streams */
 		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
 			ret = visit_stream_decl(ctx, iter);
 			if (ret) {
 				_PERROR("%s", "error while visiting stream declaration");
-				goto error;
+				goto end;
 			}
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 
 		/* Events */
 		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
 			ret = visit_event_decl(ctx, iter);
 			if (ret) {
 				_PERROR("%s", "error while visiting event declaration");
-				goto error;
+				goto end;
 			}
 		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
 		break;
 	}
-	case NODE_UNKNOWN:
 	default:
-		_PERROR("unknown node type: %d", (int) node->type);
+		_PERROR("cannot decode node type: %d", (int) node->type);
 		ret = -EINVAL;
-		goto error;
+		goto end;
 	}
 
-	/* Add stream classes to trace now */
-	ret = add_stream_classes_to_trace(ctx);
+	/* Move decoded stream classes to trace, if any */
+	ret = move_ctx_stream_classes_to_trace(ctx);
 	if (ret) {
-		_PERROR("%s", "cannot add stream classes to trace");
+		_PERROR("%s", "cannot move stream classes to trace");
 	}
 
-	ctx_destroy(ctx);
-	printf_verbose("done!\n");
-
-	return ret;
-
-error:
-	ctx_destroy(ctx);
-	BT_PUT(*trace);
-
+end:
 	return ret;
 }

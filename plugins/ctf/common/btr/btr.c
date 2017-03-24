@@ -39,7 +39,7 @@
 
 #define PRINT_ERR_STREAM	btr->err_stream
 #define PRINT_PREFIX		"ctf-btr"
-#include "print.h"
+#include "../print.h"
 
 #define DIV8(_x)			((_x) >> 3)
 #define BYTES_TO_BITS(_x)		((_x) * 8)

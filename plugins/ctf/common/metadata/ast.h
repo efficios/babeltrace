@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <babeltrace/list.h>
 #include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace-internal.h>
 
 // the parameter name (of the reentrant 'yyparse' function)
 // data is a pointer to a 'SParserParam' structure
@@ -29,6 +30,9 @@
 
 struct ctf_node;
 struct ctf_parser;
+struct ctf_visitor_generate_ir;
+
+#define EINCOMPLETE	1000
 
 #define FOREACH_CTF_NODES(F) \
 	F(NODE_UNKNOWN) \
@@ -303,19 +307,24 @@ struct ctf_ast {
 
 const char *node_type(struct ctf_node *node);
 
-struct ctf_trace;
+BT_HIDDEN
+struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
+		uint64_t clock_class_offset_ns);
+
+void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN
-int ctf_visitor_generate_ir(FILE *efd, struct ctf_node *node,
-		struct bt_ctf_trace **trace, uint64_t clock_offset_ns);
+struct bt_ctf_trace *ctf_visitor_generate_ir_get_trace(
+		struct ctf_visitor_generate_ir *visitor);
+
+BT_HIDDEN
+int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
+		struct ctf_node *node);
 
 BT_HIDDEN
 int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
 
 BT_HIDDEN
 int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
-
-BT_HIDDEN
-int ctf_destroy_metadata(struct ctf_trace *trace);
 
 #endif /* _CTF_AST_H */
