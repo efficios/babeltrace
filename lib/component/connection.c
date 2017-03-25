@@ -112,7 +112,24 @@ void bt_connection_disconnect_ports(struct bt_connection *conn,
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 
-	// TODO: notify graph user: component's port disconnected
+	if (upstream_comp) {
+		struct bt_graph *graph = bt_component_get_graph(upstream_comp);
+
+		assert(graph);
+		bt_graph_notify_port_disconnected(graph, upstream_comp,
+			upstream_port);
+		bt_put(graph);
+	}
+
+	if (downstream_comp) {
+		struct bt_graph *graph =
+			bt_component_get_graph(downstream_comp);
+
+		assert(graph);
+		bt_graph_notify_port_disconnected(graph, downstream_comp,
+			downstream_port);
+		bt_put(graph);
+	}
 
 	bt_put(downstream_comp);
 	bt_put(upstream_comp);

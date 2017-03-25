@@ -187,6 +187,7 @@ struct bt_port *bt_component_add_port(
 {
 	size_t i;
 	struct bt_port *new_port = NULL;
+	struct bt_graph *graph = NULL;
 
 	if (!name || strlen(name) == 0) {
 		goto end;
@@ -221,6 +222,16 @@ struct bt_port *bt_component_add_port(
 	 * is now protected by the component's own lifetime.
 	 */
 	g_ptr_array_add(ports, new_port);
+
+	/*
+	 * Notify the graph's creator that a new port was added.
+	 */
+	graph = bt_component_get_graph(component);
+	if (graph) {
+		bt_graph_notify_port_added(graph, new_port);
+		BT_PUT(graph);
+	}
+
 end:
 	return new_port;
 }
@@ -515,6 +526,7 @@ void bt_component_remove_port_at_index(struct bt_component *component,
 		GPtrArray *ports, size_t index)
 {
 	struct bt_port *port;
+	struct bt_graph *graph;
 
 	assert(ports);
 	assert(index < ports->len);
@@ -531,7 +543,14 @@ void bt_component_remove_port_at_index(struct bt_component *component,
 	/* Detach port from its component parent */
 	BT_PUT(port->base.parent);
 
-	// TODO: notify graph user: component's port removed
+	/*
+	 * Notify the graph's creator that a port is removed.
+	 */
+	graph = bt_component_get_graph(component);
+	if (graph) {
+		bt_graph_notify_port_removed(graph, component, port);
+		BT_PUT(graph);
+	}
 }
 
 BT_HIDDEN

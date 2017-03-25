@@ -32,6 +32,9 @@
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 
+struct bt_component;
+struct bt_port;
+
 struct bt_graph {
 	/**
 	 * A component graph contains components and point-to-point connection
@@ -51,6 +54,28 @@ struct bt_graph {
 	GPtrArray *components;
 	/* Queue of pointers (weak references) to sink bt_components. */
 	GQueue *sinks_to_consume;
+
+	struct {
+		GArray *port_added;
+		GArray *port_removed;
+		GArray *port_connected;
+		GArray *port_disconnected;
+	} listeners;
 };
+
+BT_HIDDEN
+void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port);
+
+BT_HIDDEN
+void bt_graph_notify_port_removed(struct bt_graph *graph,
+		struct bt_component *comp, struct bt_port *port);
+
+BT_HIDDEN
+void bt_graph_notify_port_connected(struct bt_graph *graph,
+		struct bt_port *port);
+
+BT_HIDDEN
+void bt_graph_notify_port_disconnected(struct bt_graph *graph,
+		struct bt_component *comp, struct bt_port *port);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_GRAPH_INTERNAL_H */

@@ -54,6 +54,16 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_ERROR = -5,
 };
 
+typedef void (*bt_graph_port_added_listener)(struct bt_port *port,
+		void *data);
+typedef void (*bt_graph_port_removed_listener)(struct bt_component *component,
+		struct bt_port *port, void *data);
+typedef void (*bt_graph_port_connected_listener)(struct bt_port *port,
+		void *data);
+typedef void (*bt_graph_port_disconnected_listener)(
+		struct bt_component *component, struct bt_port *port,
+		void *data);
+
 extern struct bt_graph *bt_graph_create(void);
 
 /**
@@ -87,6 +97,22 @@ extern enum bt_graph_status bt_graph_run(struct bt_graph *graph);
  * they all indicated that the end is reached.
  */
 extern enum bt_graph_status bt_graph_consume(struct bt_graph *graph);
+
+extern enum bt_graph_status bt_graph_add_port_added_listener(
+		struct bt_graph *graph,
+		bt_graph_port_added_listener listener, void *data);
+
+extern enum bt_graph_status bt_graph_add_port_removed_listener(
+		struct bt_graph *graph,
+		bt_graph_port_removed_listener listener, void *data);
+
+extern enum bt_graph_status bt_graph_add_port_connected_listener(
+		struct bt_graph *graph,
+		bt_graph_port_connected_listener listener, void *data);
+
+extern enum bt_graph_status bt_graph_add_port_disconnected_listener(
+		struct bt_graph *graph,
+		bt_graph_port_disconnected_listener listener, void *data);
 
 #ifdef __cplusplus
 }

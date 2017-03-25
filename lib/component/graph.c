@@ -35,6 +35,12 @@
 #include <babeltrace/component/port.h>
 #include <babeltrace/compiler.h>
 #include <unistd.h>
+#include <glib.h>
+
+struct bt_graph_listener {
+	void *func;
+	void *data;
+};
 
 static
 void bt_graph_destroy(struct bt_object *obj)
@@ -51,12 +57,46 @@ void bt_graph_destroy(struct bt_object *obj)
 	if (graph->sinks_to_consume) {
 		g_queue_free(graph->sinks_to_consume);
 	}
+
+	if (graph->listeners.port_added) {
+		g_array_free(graph->listeners.port_added, TRUE);
+	}
+
+	if (graph->listeners.port_removed) {
+		g_array_free(graph->listeners.port_removed, TRUE);
+	}
+
+	if (graph->listeners.port_connected) {
+		g_array_free(graph->listeners.port_connected, TRUE);
+	}
+
+	if (graph->listeners.port_disconnected) {
+		g_array_free(graph->listeners.port_disconnected, TRUE);
+	}
+
 	g_free(graph);
+}
+
+static
+int init_listeners_array(GArray **listeners)
+{
+	int ret = 0;
+
+	assert(listeners);
+	*listeners = g_array_new(FALSE, TRUE, sizeof(struct bt_graph_listener));
+	if (!*listeners) {
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
 }
 
 struct bt_graph *bt_graph_create(void)
 {
 	struct bt_graph *graph;
+	int ret;
 
 	graph = g_new0(struct bt_graph, 1);
 	if (!graph) {
@@ -77,6 +117,27 @@ struct bt_graph *bt_graph_create(void)
 	if (!graph->sinks_to_consume) {
 		goto error;
 	}
+
+	ret = init_listeners_array(&graph->listeners.port_added);
+	if (ret) {
+		goto error;
+	}
+
+	ret = init_listeners_array(&graph->listeners.port_removed);
+	if (ret) {
+		goto error;
+	}
+
+	ret = init_listeners_array(&graph->listeners.port_connected);
+	if (ret) {
+		goto error;
+	}
+
+	ret = init_listeners_array(&graph->listeners.port_disconnected);
+	if (ret) {
+		goto error;
+	}
+
 end:
 	return graph;
 error:
@@ -204,6 +265,14 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		goto error_rollback;
 	}
+
+	/*
+	 * Both components accepted the connection. Notify the graph's
+	 * creator that both ports are connected.
+	 */
+	bt_graph_notify_port_connected(graph, upstream_port);
+	bt_graph_notify_port_connected(graph, downstream_port);
+
 end:
 	bt_put(upstream_graph);
 	bt_put(downstream_graph);
@@ -557,4 +626,150 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 	}
 error:
 	return status;
+}
+
+static
+void add_listener(GArray *listeners, void *func, void *data)
+{
+	struct bt_graph_listener listener = {
+		.func = func,
+		.data = data,
+	};
+
+	g_array_append_val(listeners, listener);
+}
+
+enum bt_graph_status bt_graph_add_port_added_listener(
+		struct bt_graph *graph,
+		bt_graph_port_added_listener listener, void *data)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+
+	if (!graph || !listener) {
+		status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	add_listener(graph->listeners.port_added, listener, data);
+
+end:
+	return status;
+}
+
+enum bt_graph_status bt_graph_add_port_removed_listener(
+		struct bt_graph *graph,
+		bt_graph_port_removed_listener listener, void *data)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+
+	if (!graph || !listener) {
+		status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	add_listener(graph->listeners.port_removed, listener, data);
+
+end:
+	return status;
+}
+
+enum bt_graph_status bt_graph_add_port_connected_listener(
+		struct bt_graph *graph,
+		bt_graph_port_connected_listener listener, void *data)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+
+	if (!graph || !listener) {
+		status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	add_listener(graph->listeners.port_connected, listener, data);
+
+end:
+	return status;
+}
+
+enum bt_graph_status bt_graph_add_port_disconnected_listener(
+		struct bt_graph *graph,
+		bt_graph_port_disconnected_listener listener, void *data)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+
+	if (!graph || !listener) {
+		status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	add_listener(graph->listeners.port_disconnected, listener, data);
+
+end:
+	return status;
+}
+
+BT_HIDDEN
+void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port)
+{
+	size_t i;
+
+	for (i = 0; i < graph->listeners.port_added->len; i++) {
+		struct bt_graph_listener listener =
+			g_array_index(graph->listeners.port_added,
+				struct bt_graph_listener, i);
+		bt_graph_port_added_listener func = listener.func;
+
+		assert(func);
+		func(port, listener.data);
+	}
+}
+
+BT_HIDDEN
+void bt_graph_notify_port_removed(struct bt_graph *graph,
+		struct bt_component *comp, struct bt_port *port)
+{
+	size_t i;
+
+	for (i = 0; i < graph->listeners.port_removed->len; i++) {
+		struct bt_graph_listener listener =
+			g_array_index(graph->listeners.port_removed,
+				struct bt_graph_listener, i);
+		bt_graph_port_removed_listener func = listener.func;
+
+		assert(func);
+		func(comp, port, listener.data);
+	}
+}
+
+BT_HIDDEN
+void bt_graph_notify_port_connected(struct bt_graph *graph,
+		struct bt_port *port)
+{
+	size_t i;
+
+	for (i = 0; i < graph->listeners.port_connected->len; i++) {
+		struct bt_graph_listener listener =
+			g_array_index(graph->listeners.port_connected,
+				struct bt_graph_listener, i);
+		bt_graph_port_connected_listener func = listener.func;
+
+		assert(func);
+		func(port, listener.data);
+	}
+}
+
+BT_HIDDEN
+void bt_graph_notify_port_disconnected(struct bt_graph *graph,
+		struct bt_component *comp, struct bt_port *port)
+{
+	size_t i;
+
+	for (i = 0; i < graph->listeners.port_disconnected->len; i++) {
+		struct bt_graph_listener listener =
+			g_array_index(graph->listeners.port_disconnected,
+				struct bt_graph_listener, i);
+		bt_graph_port_disconnected_listener func = listener.func;
+
+		assert(func);
+		func(comp, port, listener.data);
+	}
 }
