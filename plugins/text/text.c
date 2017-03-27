@@ -82,6 +82,14 @@ void destroy_text_data(struct text_component *text)
 {
 	bt_put(text->input_iterator);
 	(void) g_string_free(text->string, TRUE);
+	if (text->out != stdout) {
+		int ret;
+
+		ret = fclose(text->out);
+		if (ret) {
+			perror("close output file");
+		}
+	}
 	g_free(text->options.output_path);
 	g_free(text->options.debug_info_dir);
 	g_free(text->options.debug_info_target_prefix);
@@ -323,6 +331,28 @@ void warn_wrong_color_param(struct text_component *text)
 }
 
 static
+enum bt_component_status open_output_file(struct text_component *text)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (!text->options.output_path) {
+		goto end;
+	}
+
+	text->out = fopen(text->options.output_path, "w");
+	if (!text->out) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = BT_COMPONENT_STATUS_ERROR;
+end:
+	return ret;
+}
+
+static
 enum bt_component_status apply_params(struct text_component *text,
 		struct bt_value *params)
 {
@@ -381,6 +411,10 @@ enum bt_component_status apply_params(struct text_component *text,
 	ret = apply_one_string("output-path",
 			params,
 			&text->options.output_path);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto end;
+	}
+	ret = open_output_file(text);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
