@@ -39,6 +39,7 @@
 #include <babeltrace/bitfield.h>
 #include <babeltrace/common-internal.h>
 #include <inttypes.h>
+#include <ctype.h>
 #include "text.h"
 
 #define NSEC_PER_SEC 1000000000LL
@@ -699,6 +700,72 @@ end:
 }
 
 static
+void print_escape_string(struct text_component *text, const char *str)
+{
+	int i;
+
+	fputc('"', text->out);
+	for (i = 0; i < strlen(str); i++) {
+		/* Escape sequences not recognized by iscntrl(). */
+		switch (str[i]) {
+		case '\\':
+			fputs("\\\\", text->out);
+			continue;
+		case '\'':
+			fputs("\\\'", text->out);
+			continue;
+		case '\"':
+			fputs("\\\"", text->out);
+			continue;
+		case '\?':
+			fputs("\\\?", text->out);
+			continue;
+		}
+
+		/* Standard characters. */
+		if (!iscntrl(str[i])) {
+			fputc(str[i], text->out);
+			continue;
+		}
+
+		switch (str[i]) {
+		case '\0':
+			fputs("\\0", text->out);
+			break;
+		case '\a':
+			fputs("\\a", text->out);
+			break;
+		case '\b':
+			fputs("\\b", text->out);
+			break;
+		case '\e':
+			fputs("\\e", text->out);
+			break;
+		case '\f':
+			fputs("\\f", text->out);
+			break;
+		case '\n':
+			fputs("\\n", text->out);
+			break;
+		case '\r':
+			fputs("\\r", text->out);
+			break;
+		case '\t':
+			fputs("\\t", text->out);
+			break;
+		case '\v':
+			fputs("\\v", text->out);
+			break;
+		default:
+			/* Unhandled control-sequence, print as hex. */
+			fprintf(text->out, "\\x%02x", str[i]);
+			break;
+		}
+	}
+	fputc('"', text->out);
+}
+
+static
 enum bt_component_status print_enum(struct text_component *text,
 		struct bt_ctf_field *field)
 {
@@ -769,8 +836,7 @@ enum bt_component_status print_enum(struct text_component *text,
 		if (text->use_colors) {
 			fputs(COLOR_ENUM_MAPPING_NAME, text->out);
 		}
-		// TODO: escape string
-		fprintf(text->out, "\"%s\"", mapping_name);
+		print_escape_string(text, mapping_name);
 		if (text->use_colors) {
 			fputs(COLOR_RST, text->out);
 		}
@@ -1000,8 +1066,7 @@ enum bt_component_status print_array(struct text_component *text,
 		if (text->use_colors) {
 			fputs(COLOR_STRING_VALUE, text->out);
 		}
-		// TODO: escape string
-		fprintf(text->out, "\"%s\"", text->string->str);
+		print_escape_string(text, text->string->str);
 		if (text->use_colors) {
 			fputs(COLOR_RST, text->out);
 		}
@@ -1120,8 +1185,7 @@ enum bt_component_status print_sequence(struct text_component *text,
 		if (text->use_colors) {
 			fputs(COLOR_STRING_VALUE, text->out);
 		}
-		// TODO: escape string
-		fprintf(text->out, "\"%s\"", text->string->str);
+		print_escape_string(text, text->string->str);
 		if (text->use_colors) {
 			fputs(COLOR_RST, text->out);
 		}
@@ -1225,9 +1289,7 @@ enum bt_component_status print_field(struct text_component *text,
 		if (text->use_colors) {
 			fputs(COLOR_STRING_VALUE, text->out);
 		}
-		// TODO: escape the string value
-		fprintf(text->out, "\"%s\"",
-			bt_ctf_field_string_get_value(field));
+		print_escape_string(text, bt_ctf_field_string_get_value(field));
 		if (text->use_colors) {
 			fputs(COLOR_RST, text->out);
 		}
