@@ -36,6 +36,7 @@ struct bt_component_class;
 struct bt_component;
 struct bt_private_component;
 struct bt_private_port;
+struct bt_port;
 struct bt_value;
 struct bt_private_notification_iterator;
 
@@ -88,7 +89,8 @@ typedef struct bt_value *(*bt_component_class_query_method)(
 
 typedef enum bt_component_status (*bt_component_class_accept_port_connection_method)(
 		struct bt_private_component *private_component,
-		struct bt_private_port *private_port);
+		struct bt_private_port *self_private_port,
+		struct bt_port *other_port);
 
 typedef void (*bt_component_class_port_disconnected_method)(
 		struct bt_private_component *private_component,

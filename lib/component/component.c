@@ -534,17 +534,20 @@ end:
 
 BT_HIDDEN
 enum bt_component_status bt_component_accept_port_connection(
-		struct bt_component *comp, struct bt_port *port)
+		struct bt_component *comp, struct bt_port *self_port,
+		struct bt_port *other_port)
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 
 	assert(comp);
-	assert(port);
+	assert(self_port);
+	assert(other_port);
 
 	if (comp->class->methods.accept_port_connection) {
 		status = comp->class->methods.accept_port_connection(
 			bt_private_component_from_component(comp),
-			bt_private_port_from_port(port));
+			bt_private_port_from_port(self_port),
+			other_port);
 	}
 
 	return status;

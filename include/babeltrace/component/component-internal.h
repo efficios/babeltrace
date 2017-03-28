@@ -79,7 +79,8 @@ struct bt_private_component *bt_private_component_from_component(
 
 BT_HIDDEN
 enum bt_component_status bt_component_accept_port_connection(
-		struct bt_component *component, struct bt_port *self_port);
+		struct bt_component *component, struct bt_port *self_port,
+		struct bt_port *other_port);
 
 BT_HIDDEN
 void bt_component_port_disconnected(struct bt_component *comp,

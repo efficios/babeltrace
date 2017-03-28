@@ -256,12 +256,12 @@ struct bt_connection *bt_graph_connect(struct bt_graph *graph,
 	 * invocation.
 	 */
 	component_status = bt_component_accept_port_connection(
-		upstream_component, upstream_port);
+		upstream_component, upstream_port, downstream_port);
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		goto error_rollback;
 	}
 	component_status = bt_component_accept_port_connection(
-		downstream_component, downstream_port);
+		downstream_component, downstream_port, upstream_port);
 	if (component_status != BT_COMPONENT_STATUS_OK) {
 		goto error_rollback;
 	}

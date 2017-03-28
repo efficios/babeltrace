@@ -163,7 +163,8 @@ end:
 static
 enum bt_component_status text_accept_port_connection(
 		struct bt_private_component *component,
-		struct bt_private_port *self_port)
+		struct bt_private_port *self_port,
+		struct bt_port *other_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_private_connection *connection;

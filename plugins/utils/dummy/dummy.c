@@ -24,6 +24,7 @@
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/private-component.h>
 #include <babeltrace/component/private-port.h>
+#include <babeltrace/component/port.h>
 #include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/notification/iterator.h>
@@ -82,7 +83,8 @@ error:
 
 enum bt_component_status dummy_accept_port_connection(
 		struct bt_private_component *component,
-		struct bt_private_port *self_port)
+		struct bt_private_port *self_port,
+		struct bt_port *other_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
