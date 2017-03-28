@@ -77,6 +77,7 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		assert(0);
 	}
 
+	BT_PUT(iterator->current_notification);
 	BT_PUT(iterator->component);
 	g_free(iterator);
 }
@@ -159,42 +160,16 @@ end:
 struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator)
 {
-	struct bt_private_notification_iterator *priv_iterator =
-		bt_private_notification_iterator_from_notification_iterator(iterator);
-	bt_component_class_notification_iterator_get_method get_method = NULL;
+	struct bt_notification *notification = NULL;
 
-	assert(iterator);
-	assert(iterator->component);
-	assert(iterator->component->class);
-
-	switch (iterator->component->class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *source_class =
-			container_of(iterator->component->class,
-				struct bt_component_class_source, parent);
-
-		assert(source_class->methods.iterator.get);
-		get_method = source_class->methods.iterator.get;
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *filter_class =
-			container_of(iterator->component->class,
-				struct bt_component_class_filter, parent);
-
-		assert(filter_class->methods.iterator.get);
-		get_method = filter_class->methods.iterator.get;
-		break;
-	}
-	default:
-		assert(false);
-		break;
+	if (!iterator) {
+		goto end;
 	}
 
-	assert(get_method);
-	return get_method(priv_iterator);
+	notification = bt_get(iterator->current_notification);
+
+end:
+	return notification;
 }
 
 enum bt_notification_iterator_status
@@ -203,8 +178,15 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	struct bt_private_notification_iterator *priv_iterator =
 		bt_private_notification_iterator_from_notification_iterator(iterator);
 	bt_component_class_notification_iterator_next_method next_method = NULL;
+	struct bt_notification_iterator_next_return next_return;
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
-	assert(iterator);
+	if (!iterator) {
+		status = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		goto end;
+	}
+
 	assert(iterator->component);
 	assert(iterator->component->class);
 
@@ -235,7 +217,19 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	}
 
 	assert(next_method);
-	return next_method(priv_iterator);
+	next_return = next_method(priv_iterator);
+	if (next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		if (!next_return.notification) {
+			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
+
+		BT_MOVE(iterator->current_notification,
+			next_return.notification);
+	}
+
+end:
+	return next_return.status;
 }
 
 struct bt_component *bt_notification_iterator_get_component(

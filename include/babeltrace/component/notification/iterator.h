@@ -72,6 +72,11 @@ enum bt_notification_iterator_seek_origin {
 	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_EPOCH = 3,
 };
 
+struct bt_notification_iterator_next_return {
+	struct bt_notification *notification;
+	enum bt_notification_iterator_status status;
+};
+
 /**
  * Get current notification at iterator's position.
  *

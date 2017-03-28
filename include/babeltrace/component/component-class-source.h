@@ -35,7 +35,6 @@ struct bt_component_class;
 
 extern
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
 		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
 
 extern

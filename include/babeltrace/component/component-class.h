@@ -72,10 +72,7 @@ typedef enum bt_notification_iterator_status
 typedef void (*bt_component_class_notification_iterator_finalize_method)(
 		struct bt_private_notification_iterator *private_notification_iterator);
 
-typedef struct bt_notification *(*bt_component_class_notification_iterator_get_method)(
-		struct bt_private_notification_iterator *private_notification_iterator);
-
-typedef enum bt_notification_iterator_status (*bt_component_class_notification_iterator_next_method)(
+typedef struct bt_notification_iterator_next_return (*bt_component_class_notification_iterator_next_method)(
 		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef enum bt_notification_iterator_status

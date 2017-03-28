@@ -81,7 +81,6 @@ struct ctf_fs_stream {
 
 struct ctf_fs_iterator {
 	struct bt_notification_heap *pending_notifications;
-	struct bt_notification *current_notification;
 	/*
 	 * struct ctf_fs_data_stream* which have not yet been associated to a
 	 * bt_ctf_stream. The association is performed on the first packet
@@ -120,10 +119,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 
 void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it);
 
-enum bt_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_private_notification_iterator *iterator);
-
-struct bt_notification *ctf_fs_iterator_get(
+struct bt_notification_iterator_next_return ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN

@@ -53,22 +53,8 @@
 BT_HIDDEN
 bool ctf_fs_debug;
 
-enum bt_notification_iterator_status ctf_fs_iterator_next(
+struct bt_notification_iterator_next_return ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator);
-
-struct bt_notification *ctf_fs_iterator_get(
-		struct bt_private_notification_iterator *iterator)
-{
-	struct ctf_fs_iterator *ctf_it =
-			bt_private_notification_iterator_get_user_data(
-				iterator);
-
-	if (!ctf_it->current_notification) {
-		(void) ctf_fs_iterator_next(iterator);
-	}
-
-	return bt_get(ctf_it->current_notification);
-}
 
 static
 enum bt_notification_iterator_status ctf_fs_iterator_get_next_notification(
@@ -249,47 +235,49 @@ end:
 	return ret;
 }
 
-enum bt_notification_iterator_status ctf_fs_iterator_next(
+struct bt_notification_iterator_next_return ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator)
 {
 	int heap_ret;
 	struct bt_ctf_stream *stream = NULL;
 	struct ctf_fs_stream *fs_stream;
-	struct bt_notification *notification;
 	struct bt_notification *next_stream_notification;
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct ctf_fs_iterator *ctf_it =
 			bt_private_notification_iterator_get_user_data(
 				iterator);
+	struct bt_notification_iterator_next_return ret = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+		.notification = NULL,
+	};
 
-	notification = bt_notification_heap_pop(ctf_it->pending_notifications);
-	if (!notification && !ctf_it->pending_streams) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+	ret.notification =
+		bt_notification_heap_pop(ctf_it->pending_notifications);
+	if (!ret.notification && !ctf_it->pending_streams) {
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	}
 
-	if (!notification && ctf_it->pending_streams) {
+	if (!ret.notification && ctf_it->pending_streams) {
 		/*
 		 * Insert at one notification per stream in the heap and pop
 		 * one.
 		 */
-		ret = populate_heap(ctf_it);
-		if (ret) {
+		ret.status = populate_heap(ctf_it);
+		if (ret.status) {
 			goto end;
 		}
 
-		notification = bt_notification_heap_pop(
+		ret.notification = bt_notification_heap_pop(
 				ctf_it->pending_notifications);
-		if (!notification) {
-			ret = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		if (!ret.notification) {
+			ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 			goto end;
 		}
 	}
 
 	/* notification is set from here. */
 
-	stream = internal_bt_notification_get_stream(notification);
+	stream = internal_bt_notification_get_stream(ret.notification);
 	if (!stream) {
 		/*
 		 * The current notification is not associated to a particular
@@ -305,11 +293,12 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 		goto end;
 	}
 
-	ret = ctf_fs_iterator_get_next_notification(ctf_it, fs_stream,
+	ret.status = ctf_fs_iterator_get_next_notification(ctf_it, fs_stream,
 			&next_stream_notification);
-	if ((ret && ret != BT_NOTIFICATION_ITERATOR_STATUS_END)) {
+	if ((ret.status && ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END)) {
 		heap_ret = bt_notification_heap_insert(
-				ctf_it->pending_notifications, notification);
+				ctf_it->pending_notifications,
+				ret.notification);
 
 		assert(!next_stream_notification);
 		if (heap_ret) {
@@ -317,19 +306,19 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 			 * We're dropping the most recent notification, but at
 			 * this point, something is seriously wrong...
 			 */
-			ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+			ret.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		}
-		BT_PUT(notification);
+		BT_PUT(ret.notification);
 		goto end;
 	}
 
-	if (ret == BT_NOTIFICATION_ITERATOR_STATUS_END) {
+	if (ret.status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
 		gboolean success;
 
 		/* Remove stream. */
 		success = g_hash_table_remove(ctf_it->stream_ht, stream);
 		assert(success);
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	} else {
 		heap_ret = bt_notification_heap_insert(ctf_it->pending_notifications,
 						       next_stream_notification);
@@ -338,7 +327,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 			/*
 			 * We're dropping the most recent notification...
 			 */
-			ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+			ret.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		}
 	}
 
@@ -348,7 +337,6 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	 * notification.
 	 */
 end:
-	BT_MOVE(ctf_it->current_notification, notification);
 	bt_put(stream);
 	return ret;
 }
@@ -359,7 +347,6 @@ void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
 	if (!ctf_it) {
 		return;
 	}
-	bt_put(ctf_it->current_notification);
 	bt_put(ctf_it->pending_notifications);
 	if (ctf_it->pending_streams) {
 		g_ptr_array_free(ctf_it->pending_streams, TRUE);

@@ -30,12 +30,14 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref-internal.h>
+#include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/private-iterator.h>
 
 struct bt_notification_iterator {
 	struct bt_object base;
 	struct bt_component *component;
+	struct bt_notification *current_notification;
 	void *user_data;
 };
 

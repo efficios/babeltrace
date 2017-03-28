@@ -194,31 +194,25 @@ enum bt_component_status run(struct bt_private_component *component)
 	struct bt_notification_iterator *it;
 	struct text_component *text =
 		bt_private_component_get_user_data(component);
+	enum bt_notification_iterator_status it_ret;
 
 	it = text->input_iterator;
 
-	if (likely(text->processed_first_event)) {
-		enum bt_notification_iterator_status it_ret;
-
-		it_ret = bt_notification_iterator_next(it);
-		switch (it_ret) {
-		case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		case BT_NOTIFICATION_ITERATOR_STATUS_END:
-			ret = BT_COMPONENT_STATUS_END;
-			BT_PUT(text->input_iterator);
-			goto end;
-		default:
-			break;
-		}
-	}
-	notification = bt_notification_iterator_get_notification(it);
-	if (!notification) {
+	it_ret = bt_notification_iterator_next(it);
+	switch (it_ret) {
+	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		ret = BT_COMPONENT_STATUS_END;
+		BT_PUT(text->input_iterator);
+		goto end;
+	default:
+		break;
 	}
 
+	notification = bt_notification_iterator_get_notification(it);
+	assert(notification);
 	ret = handle_notification(text, notification);
 	text->processed_first_event = true;
 end:

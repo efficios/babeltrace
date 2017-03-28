@@ -145,13 +145,11 @@ struct __bt_plugin_component_class_descriptor {
 	union {
 		/* BT_COMPONENT_CLASS_TYPE_SOURCE */
 		struct {
-			bt_component_class_notification_iterator_get_method notif_iter_get;
 			bt_component_class_notification_iterator_next_method notif_iter_next;
 		} source;
 
 		/* BT_COMPONENT_CLASS_TYPE_FILTER */
 		struct {
-			bt_component_class_notification_iterator_get_method notif_iter_get;
 			bt_component_class_notification_iterator_next_method notif_iter_next;
 		} filter;
 
@@ -372,18 +370,15 @@ struct __bt_plugin_component_class_descriptor_attribute {
  * _id:                     ID (any valid C identifier except `auto`).
  * _comp_class_id:          Component class ID (C identifier).
  * _name:                   Component class name (C string).
- * _notif_iter_get_method:  Component class's iterator get method
- *                          (bt_component_class_notification_iterator_get_method).
  * _notif_iter_next_method: Component class's iterator next method
  *                          (bt_component_class_notification_iterator_next_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_get_method, _notif_iter_next_method) \
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.name = _name,						\
 		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
 		.methods.source = {					\
-			.notif_iter_get = _notif_iter_get_method,	\
 			.notif_iter_next = _notif_iter_next_method,	\
 		},							\
 	};								\
@@ -396,18 +391,15 @@ struct __bt_plugin_component_class_descriptor_attribute {
  * _id:                   ID (any valid C identifier except `auto`).
  * _comp_class_id:        Component class ID (C identifier).
  * _name:                 Component class name (C string).
- * _notif_iter_get_method:  Component class's iterator get method
- *                          (bt_component_class_notification_iterator_get_method).
  * _notif_iter_next_method: Component class's iterator next method
  *                          (bt_component_class_notification_iterator_next_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_get_method, _notif_iter_next_method) \
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.name = _name,						\
 		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
 		.methods.filter = {					\
-			.notif_iter_get = _notif_iter_get_method,	\
 			.notif_iter_next = _notif_iter_next_method,	\
 		},							\
 	};								\
@@ -831,13 +823,11 @@ struct __bt_plugin_component_class_descriptor_attribute {
  * C identifier in this version.
  *
  * _name:                   Component class name (C identifier).
- * _notif_iter_get_method:  Component class's iterator get method
- *                          (bt_component_class_notification_iterator_get_method).
  * _notif_iter_next_method: Component class's iterator next method
  *                          (bt_component_class_notification_iterator_next_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _notif_iter_get_method, _notif_iter_next_method) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_get_method, _notif_iter_next_method)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _notif_iter_next_method) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
 
 /*
  * Defines a filter component class attached to the automatic plugin
@@ -845,13 +835,11 @@ struct __bt_plugin_component_class_descriptor_attribute {
  * C identifier in this version.
  *
  * _name:                   Component class name (C identifier).
- * _notif_iter_get_method:  Component class's iterator get method
- *                          (bt_component_class_notification_iterator_get_method).
  * _notif_iter_next_method: Component class's iterator next method
  *                          (bt_component_class_notification_iterator_next_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _notif_iter_get_method, _notif_iter_next_method) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_get_method, _notif_iter_next_method)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _notif_iter_next_method) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
 
 /*
  * Defines a sink component class attached to the automatic plugin

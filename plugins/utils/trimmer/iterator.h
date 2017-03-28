@@ -36,7 +36,6 @@
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */
 	struct bt_notification_iterator *input_iterator;
-	struct bt_notification *current_notification;
 };
 
 BT_HIDDEN
@@ -49,11 +48,7 @@ BT_HIDDEN
 void trimmer_iterator_finalize(struct bt_private_notification_iterator *it);
 
 BT_HIDDEN
-struct bt_notification *trimmer_iterator_get(
-		struct bt_private_notification_iterator *iterator);
-
-BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_next(
+struct bt_notification_iterator_next_return trimmer_iterator_next(
 		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN

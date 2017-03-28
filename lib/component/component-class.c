@@ -107,14 +107,12 @@ end:
 }
 
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
 		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
-	if (!name || !notification_iterator_get_method ||
-			!notification_iterator_next_method) {
+	if (!name || !notification_iterator_next_method) {
 		goto end;
 	}
 
@@ -135,7 +133,6 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 		goto end;
 	}
 
-	source_class->methods.iterator.get = notification_iterator_get_method;
 	source_class->methods.iterator.next = notification_iterator_next_method;
 
 end:
@@ -143,14 +140,12 @@ end:
 }
 
 struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_notification_iterator_get_method notification_iterator_get_method,
 		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
-	if (!name || !notification_iterator_get_method ||
-			!notification_iterator_next_method) {
+	if (!name || !notification_iterator_next_method) {
 		goto end;
 	}
 
@@ -171,7 +166,6 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 		goto end;
 	}
 
-	filter_class->methods.iterator.get = notification_iterator_get_method;
 	filter_class->methods.iterator.next = notification_iterator_next_method;
 
 end:

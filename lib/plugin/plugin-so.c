@@ -439,13 +439,11 @@ enum bt_plugin_status bt_plugin_so_init(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			comp_class = bt_component_class_source_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.source.notif_iter_get,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			comp_class = bt_component_class_filter_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.source.notif_iter_get,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:

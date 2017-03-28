@@ -57,7 +57,6 @@ void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 	it_data = bt_private_notification_iterator_get_user_data(it);
 	assert(it_data);
 
-	bt_put(it_data->current_notification);
 	bt_put(it_data->input_iterator);
 	g_free(it_data);
 }
@@ -103,27 +102,6 @@ end:
 	bt_put(connection);
 	bt_put(input_port);
 	return ret;
-}
-
-BT_HIDDEN
-struct bt_notification *trimmer_iterator_get(
-		struct bt_private_notification_iterator *iterator)
-{
-	struct trimmer_iterator *trim_it;
-
-	trim_it = bt_private_notification_iterator_get_user_data(iterator);
-	assert(trim_it);
-
-	if (!trim_it->current_notification) {
-		enum bt_notification_iterator_status it_ret;
-
-		it_ret = trimmer_iterator_next(iterator);
-		if (it_ret) {
-			goto end;
-		}
-	}
-end:
-	return bt_get(trim_it->current_notification);
 }
 
 static
@@ -415,15 +393,17 @@ enum bt_notification_iterator_status evaluate_notification(
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_next(
+struct bt_notification_iterator_next_return trimmer_iterator_next(
 		struct bt_private_notification_iterator *iterator)
 {
 	struct trimmer_iterator *trim_it = NULL;
 	struct bt_private_component *component = NULL;
 	struct trimmer *trimmer = NULL;
 	struct bt_notification_iterator *source_it = NULL;
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct bt_notification_iterator_next_return ret = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+		.notification = NULL,
+	};
 	bool notification_in_range = false;
 
 	trim_it = bt_private_notification_iterator_get_user_data(iterator);
@@ -439,30 +419,26 @@ enum bt_notification_iterator_status trimmer_iterator_next(
 	assert(source_it);
 
 	while (!notification_in_range) {
-		struct bt_notification *notification;
-
-		ret = bt_notification_iterator_next(source_it);
-		if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		ret.status = bt_notification_iterator_next(source_it);
+		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			goto end;
 		}
 
-		notification = bt_notification_iterator_get_notification(
+		ret.notification = bt_notification_iterator_get_notification(
 			        source_it);
-		if (!notification) {
-			ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		if (!ret.notification) {
+			ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-	        ret = evaluate_notification(notification,
+	        ret.status = evaluate_notification(ret.notification,
 				&trimmer->begin, &trimmer->end,
 				&notification_in_range);
-		if (notification_in_range) {
-			BT_MOVE(trim_it->current_notification, notification);
-		} else {
-			bt_put(notification);
+		if (!notification_in_range) {
+			bt_put(ret.notification);
 		}
 
-		if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			break;
 		}
 	}

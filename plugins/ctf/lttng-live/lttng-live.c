@@ -38,10 +38,14 @@ struct bt_notification *lttng_live_iterator_get(
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status lttng_live_iterator_next(
+struct bt_notification_iterator_next_return lttng_live_iterator_next(
 		struct bt_private_notification_iterator *iterator)
 {
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct bt_notification_iterator_next_return ret = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
+	};
+
+	return ret;
 }
 
 BT_HIDDEN

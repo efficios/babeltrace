@@ -39,8 +39,7 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
     "Dummy sink component class: does absolutely nothing!");
 
 /* trimmer filter */
-BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_get,
-    trimmer_iterator_next);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
     "Ensure that trace notifications outside of a given range are filtered-out.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
