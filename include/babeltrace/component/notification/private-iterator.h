@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGINS_UTILS_DUMMY_H
-#define BABELTRACE_PLUGINS_UTILS_DUMMY_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -9,6 +9,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
@@ -23,20 +24,33 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/private-port.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct dummy {
-	GPtrArray *iterators;
-};
+struct bt_connection;
+struct bt_private_port;
+struct bt_private_connection;
+struct bt_private_notification_iterator;
 
-enum bt_component_status dummy_init(struct bt_private_component *component,
-		struct bt_value *params, void *init_method_data);
-void dummy_destroy(struct bt_private_component *component);
-enum bt_component_status dummy_accept_port_connection(
-		struct bt_private_component *component,
-		struct bt_private_port *own_port);
-enum bt_component_status dummy_consume(struct bt_private_component *component);
+struct bt_notification_iterator *
+bt_notification_iterator_from_private_notification_iterator(
+		struct bt_private_notification_iterator *private_notification_iterator);
 
-#endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */
+extern struct bt_private_component *
+bt_private_notification_iterator_get_private_component(
+		struct bt_private_notification_iterator *private_notification_iterator);
+
+extern enum bt_notification_iterator_status
+bt_private_notification_iterator_set_user_data(
+		struct bt_private_notification_iterator *private_notification_iterator,
+		void *user_data);
+
+extern void *bt_private_notification_iterator_get_user_data(
+		struct bt_private_notification_iterator *private_notification_iterator);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H */

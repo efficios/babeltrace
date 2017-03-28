@@ -43,6 +43,12 @@ void bt_port_destroy(struct bt_object *obj)
 	g_free(port);
 }
 
+struct bt_port *bt_port_from_private_port(
+		struct bt_private_port *private_port)
+{
+	return bt_get(bt_port_from_private(private_port));
+}
+
 BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name)
@@ -104,6 +110,20 @@ struct bt_component *bt_port_get_component(struct bt_port *port)
 	return (struct bt_component *) bt_object_get_parent(port);
 }
 
+struct bt_private_connection *bt_private_port_get_private_connection(
+		struct bt_private_port *private_port)
+{
+	return bt_private_connection_from_connection(bt_port_get_connection(
+		bt_port_from_private(private_port)));
+}
+
+struct bt_private_component *bt_private_port_get_private_component(
+		struct bt_private_port *private_port)
+{
+	return bt_private_component_from_component(bt_port_get_component(
+		bt_port_from_private(private_port)));
+}
+
 BT_HIDDEN
 void bt_port_set_connection(struct bt_port *port,
 		struct bt_connection *connection)
@@ -116,9 +136,11 @@ void bt_port_set_connection(struct bt_port *port,
 	port->connection = connection;
 }
 
-int bt_port_remove_from_component(struct bt_port *port)
+int bt_private_port_remove_from_component(
+		struct bt_private_port *private_port)
 {
 	int ret = 0;
+	struct bt_port *port = bt_port_from_private(private_port);
 	struct bt_component *comp = NULL;
 
 	if (!port) {

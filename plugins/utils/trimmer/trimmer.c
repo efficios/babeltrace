@@ -28,9 +28,11 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
 #include <babeltrace/component/component-filter.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/private-iterator.h>
 #include <babeltrace/component/notification/event.h>
 #include <plugins-common.h>
 #include "trimmer.h"
@@ -56,9 +58,9 @@ end:
 	return trimmer;
 }
 
-void destroy_trimmer(struct bt_component *component)
+void destroy_trimmer(struct bt_private_component *component)
 {
-	void *data = bt_component_get_private_data(component);
+	void *data = bt_private_component_get_user_data(component);
 
 	destroy_trimmer_data(data);
 }
@@ -285,7 +287,8 @@ lazy:
 }
 
 static
-enum bt_component_status init_from_params(struct trimmer *trimmer, struct bt_value *params)
+enum bt_component_status init_from_params(struct trimmer *trimmer,
+		struct bt_value *params)
 {
 	struct bt_value *value = NULL;
 	bool gmt = false;
@@ -349,7 +352,7 @@ end:
 }
 
 enum bt_component_status trimmer_component_init(
-	struct bt_component *component, struct bt_value *params,
+	struct bt_private_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -360,7 +363,7 @@ enum bt_component_status trimmer_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_private_data(component, trimmer);
+	ret = bt_private_component_set_user_data(component, trimmer);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGINS_UTILS_DUMMY_H
-#define BABELTRACE_PLUGINS_UTILS_DUMMY_H
+#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
+#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,20 +23,26 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/private-port.h>
+#include <babeltrace/component/component.h>
 
-struct dummy {
-	GPtrArray *iterators;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-enum bt_component_status dummy_init(struct bt_private_component *component,
-		struct bt_value *params, void *init_method_data);
-void dummy_destroy(struct bt_private_component *component);
-enum bt_component_status dummy_accept_port_connection(
-		struct bt_private_component *component,
-		struct bt_private_port *own_port);
-enum bt_component_status dummy_consume(struct bt_private_component *component);
+struct bt_private_component;
 
-#endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */
+struct bt_component *bt_component_from_private_component(
+		struct bt_private_component *private_component);
+
+extern void *bt_private_component_get_user_data(
+		struct bt_private_component *private_component);
+
+extern enum bt_component_status bt_private_component_set_user_data(
+		struct bt_private_component *private_component,
+		void *user_data);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H */

@@ -30,6 +30,8 @@
 #include "trimmer.h"
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/private-component.h>
+#include <babeltrace/component/private-port.h>
 
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */
@@ -39,22 +41,24 @@ struct trimmer_iterator {
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator, void *init_method_data);
+		struct bt_private_component *component,
+		struct bt_private_port *port,
+		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN
-void trimmer_iterator_destroy(struct bt_notification_iterator *it);
+void trimmer_iterator_destroy(struct bt_private_notification_iterator *it);
 
 BT_HIDDEN
 struct bt_notification *trimmer_iterator_get(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_next(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_seek_time(
-		struct bt_notification_iterator *iterator, int64_t time);
+		struct bt_private_notification_iterator *iterator,
+		int64_t time);
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_ITERATOR_H */

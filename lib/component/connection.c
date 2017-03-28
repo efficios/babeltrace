@@ -26,10 +26,12 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/component/notification/iterator-internal.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/connection-internal.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/graph-internal.h>
 #include <babeltrace/component/port-internal.h>
 #include <babeltrace/object-internal.h>
@@ -47,6 +49,12 @@ void bt_connection_destroy(struct bt_object *obj)
 	 * to them.
 	 */
 	g_free(connection);
+}
+
+struct bt_connection *bt_connection_from_private_connection(
+		struct bt_private_connection *private_connection)
+{
+	return bt_get(bt_connection_from_private(private_connection));
 }
 
 BT_HIDDEN
@@ -101,14 +109,12 @@ void bt_connection_disconnect_ports(struct bt_connection *conn,
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp && downstream_comp != acting_comp &&
-			downstream_comp->class->methods.port_disconnected) {
+	if (downstream_comp && downstream_comp != acting_comp) {
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
 	}
 
-	if (upstream_comp && upstream_comp != acting_comp &&
-			upstream_comp->class->methods.port_disconnected) {
+	if (upstream_comp && upstream_comp != acting_comp) {
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 
@@ -148,35 +154,94 @@ struct bt_port *bt_connection_get_downstream_port(
 }
 
 struct bt_notification_iterator *
-bt_connection_create_notification_iterator(struct bt_connection *connection)
+bt_private_connection_create_notification_iterator(
+		struct bt_private_connection *private_connection)
 {
+	enum bt_notification_iterator_status ret_iterator;
+	enum bt_component_class_type upstream_comp_class_type;
+	struct bt_notification_iterator *iterator = NULL;
+	struct bt_port *upstream_port = NULL;
 	struct bt_component *upstream_component = NULL;
-	struct bt_notification_iterator *it = NULL;
+	struct bt_component_class *upstream_comp_class = NULL;
+	struct bt_connection *connection = NULL;
+	bt_component_class_notification_iterator_init_method init_method = NULL;
 
-	if (!connection) {
-		goto end;
+	if (!private_connection) {
+		goto error;
 	}
+
+	connection = bt_connection_from_private(private_connection);
 
 	if (!connection->upstream_port || !connection->downstream_port) {
-		goto end;
+		goto error;
 	}
 
-	upstream_component = bt_port_get_component(connection->upstream_port);
+	upstream_port = connection->upstream_port;
+	assert(upstream_port);
+	upstream_component = bt_port_get_component(upstream_port);
 	assert(upstream_component);
+	upstream_comp_class = upstream_component->class;
 
-	switch (bt_component_get_class_type(upstream_component)) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		it = bt_component_source_create_notification_iterator(
-				upstream_component);
-		break;
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		it = bt_component_filter_create_notification_iterator(
-				upstream_component);
-		break;
-	default:
-		goto end;
+	if (!upstream_component) {
+		goto error;
 	}
+
+	upstream_comp_class_type =
+		bt_component_get_class_type(upstream_component);
+	if (upstream_comp_class_type != BT_COMPONENT_CLASS_TYPE_SOURCE &&
+			upstream_comp_class_type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		/* Unsupported operation. */
+		goto error;
+	}
+
+	iterator = bt_notification_iterator_create(upstream_component);
+	if (!iterator) {
+		goto error;
+	}
+
+	switch (upstream_comp_class_type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *source_class =
+			container_of(upstream_comp_class,
+				struct bt_component_class_source, parent);
+		init_method = source_class->methods.iterator.init;
+		break;
+	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *filter_class =
+			container_of(upstream_comp_class,
+				struct bt_component_class_filter, parent);
+		init_method = filter_class->methods.iterator.init;
+		break;
+	}
+	default:
+		/* Unreachable. */
+		assert(0);
+	}
+
+	if (init_method) {
+		enum bt_notification_iterator_status status = init_method(
+			bt_private_component_from_component(upstream_component),
+			bt_private_port_from_port(upstream_port),
+			bt_private_notification_iterator_from_notification_iterator(iterator));
+		if (status < 0) {
+			goto error;
+		}
+	}
+
+	ret_iterator = bt_notification_iterator_validate(iterator);
+	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(iterator);
+
 end:
 	bt_put(upstream_component);
-	return it;
+	return iterator;
 }

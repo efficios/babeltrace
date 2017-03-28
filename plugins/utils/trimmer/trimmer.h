@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
 
 #define NSEC_PER_SEC	1000000000LL
 
@@ -51,9 +51,9 @@ struct trimmer {
 };
 
 enum bt_component_status trimmer_component_init(
-	struct bt_component *component, struct bt_value *params,
-	void *init_method_data);
+	struct bt_private_component *component,
+	struct bt_value *params, void *init_method_data);
 
-void destroy_trimmer(struct bt_component *component);
+void destroy_trimmer(struct bt_private_component *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_TRIMMER_H */

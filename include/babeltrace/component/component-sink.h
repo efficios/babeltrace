@@ -42,11 +42,6 @@ extern struct bt_port *bt_component_sink_get_input_port(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_sink_get_input_port_at_index(
 		struct bt_component *component, int index);
-
-/* Only allowed during the sink's initialization. */
-extern struct bt_port *bt_component_sink_add_input_port(
-		struct bt_component *component, const char *name);
-/* Only allowed during the sink's initialization. */
 extern struct bt_port *bt_component_sink_get_default_input_port(
 		struct bt_component *component);
 

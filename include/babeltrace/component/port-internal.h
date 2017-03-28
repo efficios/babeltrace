@@ -40,6 +40,20 @@ struct bt_port {
 	struct bt_connection *connection;
 };
 
+static inline
+struct bt_port *bt_port_from_private(
+		struct bt_private_port *private_port)
+{
+	return (void *) private_port;
+}
+
+static inline
+struct bt_private_port *bt_private_port_from_port(
+		struct bt_port *port)
+{
+	return (void *) port;
+}
+
 BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name);

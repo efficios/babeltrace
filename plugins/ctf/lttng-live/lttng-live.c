@@ -32,20 +32,20 @@
 
 BT_HIDDEN
 struct bt_notification *lttng_live_iterator_get(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator)
 {
 	return NULL;
 }
 
 BT_HIDDEN
 enum bt_notification_iterator_status lttng_live_iterator_next(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 BT_HIDDEN
-enum bt_component_status lttng_live_init(struct bt_component *component,
+enum bt_component_status lttng_live_init(struct bt_private_component *component,
 		struct bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	return BT_COMPONENT_STATUS_OK;

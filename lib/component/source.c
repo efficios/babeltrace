@@ -79,20 +79,6 @@ end:
 	return source ? &source->parent : NULL;
 }
 
-BT_HIDDEN
-struct bt_notification_iterator *bt_component_source_create_notification_iterator(
-		struct bt_component *component)
-{
-	return bt_component_create_iterator(component, NULL);
-}
-
-BT_HIDDEN
-struct bt_notification_iterator *bt_component_source_create_notification_iterator_with_init_method_data(
-		struct bt_component *component, void *init_method_data)
-{
-	return bt_component_create_iterator(component, init_method_data);
-}
-
 enum bt_component_status bt_component_source_get_output_port_count(
 		struct bt_component *component, uint64_t *count)
 {
@@ -146,10 +132,38 @@ struct bt_port *bt_component_source_get_default_output_port(
 			DEFAULT_OUTPUT_PORT_NAME);
 }
 
-struct bt_port *bt_component_source_add_output_port(
-		struct bt_component *component, const char *name)
+struct bt_private_port *bt_private_component_source_get_output_private_port(
+		struct bt_private_component *private_component,
+		const char *name)
+{
+	return bt_private_port_from_port(bt_component_source_get_output_port(
+		bt_component_from_private(private_component), name));
+}
+
+struct bt_private_port *
+bt_private_component_source_get_output_private_port_at_index(
+		struct bt_private_component *private_component, int index)
+{
+	return bt_private_port_from_port(
+		bt_component_source_get_output_port_at_index(
+			bt_component_from_private(private_component), index));
+}
+
+struct bt_private_port *bt_private_component_source_get_default_output_private_port(
+		struct bt_private_component *private_component)
+{
+	return bt_private_port_from_port(
+		bt_component_source_get_default_output_port(
+			bt_component_from_private(private_component)));
+}
+
+struct bt_private_port *bt_private_component_source_add_output_private_port(
+		struct bt_private_component *private_component,
+		const char *name)
 {
 	struct bt_port *port = NULL;
+	struct bt_component *component =
+		bt_component_from_private(private_component);
 
 	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
@@ -158,5 +172,5 @@ struct bt_port *bt_component_source_add_output_port(
 
 	port = bt_component_add_output_port(component, name);
 end:
-	return port;
+	return bt_private_port_from_port(port);
 }

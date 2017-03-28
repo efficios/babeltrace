@@ -55,7 +55,8 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		source_class = container_of(comp_class, struct bt_component_class_source, parent);
 
 		if (source_class->methods.iterator.destroy) {
-			source_class->methods.iterator.destroy(iterator);
+			source_class->methods.iterator.destroy(
+				bt_private_notification_iterator_from_notification_iterator(iterator));
 		}
 		break;
 	}
@@ -66,7 +67,8 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		filter_class = container_of(comp_class, struct bt_component_class_filter, parent);
 
 		if (filter_class->methods.iterator.destroy) {
-			filter_class->methods.iterator.destroy(iterator);
+			filter_class->methods.iterator.destroy(
+				bt_private_notification_iterator_from_notification_iterator(iterator));
 		}
 		break;
 	}
@@ -125,18 +127,24 @@ end:
 	return ret;
 }
 
-void *bt_notification_iterator_get_private_data(
-		struct bt_notification_iterator *iterator)
+void *bt_private_notification_iterator_get_user_data(
+		struct bt_private_notification_iterator *private_iterator)
 {
+	struct bt_notification_iterator *iterator =
+		bt_notification_iterator_from_private(private_iterator);
+
 	return iterator ? iterator->user_data : NULL;
 }
 
 enum bt_notification_iterator_status
-bt_notification_iterator_set_private_data(
-		struct bt_notification_iterator *iterator, void *data)
+bt_private_notification_iterator_set_user_data(
+		struct bt_private_notification_iterator *private_iterator,
+		void *data)
 {
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct bt_notification_iterator *iterator =
+		bt_notification_iterator_from_private(private_iterator);
 
 	if (!iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
@@ -151,6 +159,8 @@ end:
 struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator)
 {
+	struct bt_private_notification_iterator *priv_iterator =
+		bt_private_notification_iterator_from_notification_iterator(iterator);
 	bt_component_class_notification_iterator_get_method get_method = NULL;
 
 	assert(iterator);
@@ -184,12 +194,14 @@ struct bt_notification *bt_notification_iterator_get_notification(
 	}
 
 	assert(get_method);
-	return get_method(iterator);
+	return get_method(priv_iterator);
 }
 
 enum bt_notification_iterator_status
 bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 {
+	struct bt_private_notification_iterator *priv_iterator =
+		bt_private_notification_iterator_from_notification_iterator(iterator);
 	bt_component_class_notification_iterator_next_method next_method = NULL;
 
 	assert(iterator);
@@ -223,7 +235,7 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	}
 
 	assert(next_method);
-	return next_method(iterator);
+	return next_method(priv_iterator);
 }
 
 struct bt_component *bt_notification_iterator_get_component(

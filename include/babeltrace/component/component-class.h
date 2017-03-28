@@ -34,10 +34,10 @@ extern "C" {
 
 struct bt_component_class;
 struct bt_component;
-struct bt_port;
-struct bt_connection;
+struct bt_private_component;
+struct bt_private_port;
 struct bt_value;
-struct bt_notification_iterator;
+struct bt_private_notification_iterator;
 
 /**
  * Component class type.
@@ -56,38 +56,43 @@ enum bt_component_class_type {
 };
 
 typedef enum bt_component_status (*bt_component_class_init_method)(
-		struct bt_component *component, struct bt_value *params,
-		void *init_method_data);
+		struct bt_private_component *private_component,
+		struct bt_value *params, void *init_method_data);
 
-typedef void (*bt_component_class_destroy_method)(struct bt_component *component);
+typedef void (*bt_component_class_destroy_method)(
+		struct bt_private_component *private_component);
 
 typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_init_method)(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator, void *init_method_data);
+		struct bt_private_component *private_component,
+		struct bt_private_port *private_port,
+		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef void (*bt_component_class_notification_iterator_destroy_method)(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef struct bt_notification *(*bt_component_class_notification_iterator_get_method)(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef enum bt_notification_iterator_status (*bt_component_class_notification_iterator_next_method)(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_seek_time_method)(
-		struct bt_notification_iterator *iterator, int64_t time);
+		struct bt_private_notification_iterator *private_notification_iterator,
+		int64_t time);
 
 typedef struct bt_value *(*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
 		const char *object, struct bt_value *params);
 
 typedef enum bt_component_status (*bt_component_class_accept_port_connection_method)(
-		struct bt_component *component, struct bt_port *port);
+		struct bt_private_component *private_component,
+		struct bt_private_port *private_port);
 
 typedef void (*bt_component_class_port_disconnected_method)(
-		struct bt_component *component, struct bt_port *port);
+		struct bt_private_component *private_component,
+		struct bt_private_port *private_port);
 
 extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,

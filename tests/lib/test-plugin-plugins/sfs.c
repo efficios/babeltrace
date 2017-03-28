@@ -21,38 +21,40 @@
 #include <babeltrace/ref.h>
 #include <assert.h>
 
-static enum bt_component_status sink_consume(struct bt_component *component)
+static enum bt_component_status sink_consume(
+		struct bt_private_component *private_component)
 {
 	return BT_COMPONENT_STATUS_OK;
 }
 
 static enum bt_notification_iterator_status dummy_iterator_init_method(
-		struct bt_component *component,
-		struct bt_notification_iterator *iterator,
-		void *init_method_data)
+		struct bt_private_component *private_component,
+		struct bt_private_port *private_port,
+		struct bt_private_notification_iterator *private_iterator)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_destroy_method(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *private_iterator)
 {
 }
 
 static struct bt_notification *dummy_iterator_get_method(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *private_iterator)
 {
 	return NULL;
 }
 
 static enum bt_notification_iterator_status dummy_iterator_next_method(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *private_iterator)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
-		struct bt_notification_iterator *iterator, int64_t time)
+		struct bt_private_notification_iterator *private_iterator,
+		int64_t time)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }

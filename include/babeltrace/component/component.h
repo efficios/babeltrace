@@ -86,24 +86,6 @@ extern struct bt_component *bt_component_create_with_init_method_data(
 		struct bt_value *params, void *init_method_data);
 
 /**
- * Get a component's private data.
- *
- * @param component	Component of which to get the private data
- * @returns		Component's private data
- */
-extern void *bt_component_get_private_data(struct bt_component *component);
-
-/**
- * Set a component's private data.
- *
- * @param component	Component of which to set the private data
- * @param data		Component private data
- * @returns		One of #bt_component_status values
- */
-extern enum bt_component_status bt_component_set_private_data(
-		struct bt_component *component, void *data);
-
-/**
  * Get component's name.
  *
  * @param component	Component instance of which to get the name

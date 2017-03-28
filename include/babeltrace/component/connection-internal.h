@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/component/connection.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/object-internal.h>
 
 struct bt_graph;
@@ -48,6 +49,20 @@ struct bt_connection {
 	/* Upstream port. */
 	struct bt_port *upstream_port;
 };
+
+static inline
+struct bt_connection *bt_connection_from_private(
+		struct bt_private_connection *private_connection)
+{
+	return (void *) private_connection;
+}
+
+static inline
+struct bt_private_connection *bt_private_connection_from_connection(
+		struct bt_connection *connection)
+{
+	return (void *) connection;
+}
 
 BT_HIDDEN
 struct bt_connection *bt_connection_create(struct bt_graph *graph,

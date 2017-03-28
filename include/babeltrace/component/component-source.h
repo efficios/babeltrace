@@ -46,10 +46,6 @@ extern struct bt_port *bt_component_source_get_output_port_at_index(
 extern struct bt_port *bt_component_source_get_default_output_port(
 		struct bt_component *component);
 
-/* Only allowed during the source's initialization. */
-extern struct bt_port *bt_component_source_add_output_port(
-		struct bt_component *component, const char *name);
-
 #ifdef __cplusplus
 }
 #endif

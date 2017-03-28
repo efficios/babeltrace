@@ -41,9 +41,6 @@ extern struct bt_port *bt_connection_get_downstream_port(
 extern struct bt_port *bt_connection_get_upstream_port(
 		struct bt_connection *connection);
 
-extern struct bt_notification_iterator *
-bt_connection_create_notification_iterator(struct bt_connection *connection);
-
 #ifdef __cplusplus
 }
 #endif

@@ -95,7 +95,7 @@ enum bt_component_status bt_component_sink_consume(
 
 	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
 	assert(sink_class->methods.consume);
-	ret = sink_class->methods.consume(component);
+	ret = sink_class->methods.consume(bt_private_component_from_component(component));
 end:
 	return ret;
 }
@@ -153,10 +153,30 @@ struct bt_port *bt_component_sink_get_default_input_port(
 			DEFAULT_INPUT_PORT_NAME);
 }
 
-struct bt_port *bt_component_sink_add_input_port(
-		struct bt_component *component, const char *name)
+struct bt_private_port *
+bt_private_component_sink_get_input_private_port_at_index(
+		struct bt_private_component *private_component, int index)
+{
+	return bt_private_port_from_port(
+		bt_component_sink_get_input_port_at_index(
+			bt_component_from_private(private_component), index));
+}
+
+struct bt_private_port *bt_private_component_sink_get_default_private_input_port(
+		struct bt_private_component *private_component)
+{
+	return bt_private_port_from_port(
+		bt_component_sink_get_default_input_port(
+			bt_component_from_private(private_component)));
+}
+
+struct bt_private_port *bt_private_component_sink_add_input_private_port(
+		struct bt_private_component *private_component,
+		const char *name)
 {
 	struct bt_port *port = NULL;
+	struct bt_component *component =
+		bt_component_from_private(private_component);
 
 	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
@@ -165,5 +185,5 @@ struct bt_port *bt_component_sink_add_input_port(
 
 	port = bt_component_add_input_port(component, name);
 end:
-	return port;
+	return bt_private_port_from_port(port);
 }

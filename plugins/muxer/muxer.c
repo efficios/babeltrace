@@ -55,15 +55,15 @@ end:
 }
 
 static
-void destroy_muxer(struct bt_component *component)
+void destroy_muxer(struct bt_private_component *component)
 {
-	void *data = bt_component_get_private_data(component);
+	void *data = bt_private_component_get_user_data(component);
 
 	destroy_muxer_data(data);
 }
 
 enum bt_component_status muxer_component_init(
-	struct bt_component *component, struct bt_value *params,
+	struct bt_private_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -74,7 +74,7 @@ enum bt_component_status muxer_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_private_data(component, muxer);
+	ret = bt_private_component_set_user_data(component, muxer);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -87,14 +87,14 @@ error:
 
 static
 struct bt_notification *muxer_iterator_get(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator)
 {
 	return NULL;
 }
 
 static
 enum bt_notification_iterator_status muxer_iterator_next(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }

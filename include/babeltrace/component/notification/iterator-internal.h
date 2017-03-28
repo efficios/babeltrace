@@ -28,14 +28,31 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/component/notification/private-iterator.h>
 
 struct bt_notification_iterator {
 	struct bt_object base;
 	struct bt_component *component;
 	void *user_data;
 };
+
+static inline
+struct bt_notification_iterator *bt_notification_iterator_from_private(
+		struct bt_private_notification_iterator *private_notification_iterator)
+{
+	return (void *) private_notification_iterator;
+}
+
+static inline
+struct bt_private_notification_iterator *
+bt_private_notification_iterator_from_notification_iterator(
+		struct bt_notification_iterator *notification_iterator)
+{
+	return (void *) notification_iterator;
+}
 
 /**
  * Allocate a notification iterator.

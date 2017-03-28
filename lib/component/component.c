@@ -26,15 +26,18 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/component/private-component.h>
 #include <babeltrace/component/component.h>
 #include <babeltrace/component/component-internal.h>
 #include <babeltrace/component/component-class-internal.h>
 #include <babeltrace/component/component-source-internal.h>
 #include <babeltrace/component/component-filter-internal.h>
 #include <babeltrace/component/component-sink-internal.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/connection-internal.h>
 #include <babeltrace/component/graph-internal.h>
 #include <babeltrace/component/notification/iterator-internal.h>
+#include <babeltrace/component/notification/private-iterator.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
@@ -80,7 +83,8 @@ void bt_component_destroy(struct bt_object *obj)
 	 * instance.
 	 */
 	if (component->class->methods.destroy) {
-		component->class->methods.destroy(component);
+		component->class->methods.destroy(
+			bt_private_component_from_component(component));
 	}
 
 	if (component->destroy) {
@@ -100,84 +104,16 @@ void bt_component_destroy(struct bt_object *obj)
 	g_free(component);
 }
 
+struct bt_component *bt_component_from_private_component(
+		struct bt_private_component *private_component)
+{
+	return bt_get(bt_component_from_private(private_component));
+}
+
 enum bt_component_class_type bt_component_get_class_type(
 		struct bt_component *component)
 {
 	return component ? component->class->type : BT_COMPONENT_CLASS_TYPE_UNKNOWN;
-}
-
-BT_HIDDEN
-struct bt_notification_iterator *bt_component_create_iterator(
-		struct bt_component *component, void *init_method_data)
-{
-	enum bt_notification_iterator_status ret_iterator;
-	enum bt_component_class_type type;
-	struct bt_notification_iterator *iterator = NULL;
-	struct bt_component_class *class = component->class;
-
-	if (!component) {
-		goto error;
-	}
-
-	type = bt_component_get_class_type(component);
-	if (type != BT_COMPONENT_CLASS_TYPE_SOURCE &&
-			type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		/* Unsupported operation. */
-		goto error;
-	}
-
-	iterator = bt_notification_iterator_create(component);
-	if (!iterator) {
-		goto error;
-	}
-
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *source_class;
-		enum bt_notification_iterator_status status;
-
-		source_class = container_of(class, struct bt_component_class_source, parent);
-
-		if (source_class->methods.iterator.init) {
-			status = source_class->methods.iterator.init(component,
-					iterator, init_method_data);
-			if (status < 0) {
-				goto error;
-			}
-		}
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *filter_class;
-		enum bt_notification_iterator_status status;
-
-		filter_class = container_of(class, struct bt_component_class_filter, parent);
-
-		if (filter_class->methods.iterator.init) {
-			status = filter_class->methods.iterator.init(component,
-					iterator, init_method_data);
-			if (status < 0) {
-				goto error;
-			}
-		}
-		break;
-	}
-	default:
-		/* Unreachable. */
-		assert(0);
-	}
-
-	ret_iterator = bt_notification_iterator_validate(iterator);
-	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		goto error;
-	}
-
-	return iterator;
-error:
-	BT_PUT(iterator);
-	return iterator;
 }
 
 static
@@ -326,7 +262,8 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->initializing = true;
 
 	if (component_class->methods.init) {
-		ret = component_class->methods.init(component, params,
+		ret = component_class->methods.init(
+			bt_private_component_from_component(component), params,
 			init_method_data);
 		component->initializing = false;
 		if (ret != BT_COMPONENT_STATUS_OK) {
@@ -390,15 +327,21 @@ struct bt_component_class *bt_component_get_class(
 	return component ? bt_get(component->class) : NULL;
 }
 
-void *bt_component_get_private_data(struct bt_component *component)
+void *bt_private_component_get_user_data(
+		struct bt_private_component *private_component)
 {
+	struct bt_component *component =
+		bt_component_from_private(private_component);
+
 	return component ? component->user_data : NULL;
 }
 
-enum bt_component_status
-bt_component_set_private_data(struct bt_component *component,
+enum bt_component_status bt_private_component_set_user_data(
+		struct bt_private_component *private_component,
 		void *data)
 {
+	struct bt_component *component =
+		bt_component_from_private(private_component);
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component || !component->initializing) {
@@ -600,7 +543,8 @@ enum bt_component_status bt_component_accept_port_connection(
 
 	if (comp->class->methods.accept_port_connection) {
 		status = comp->class->methods.accept_port_connection(
-			comp, port);
+			bt_private_component_from_component(comp),
+			bt_private_port_from_port(port));
 	}
 
 	return status;
@@ -614,6 +558,8 @@ void bt_component_port_disconnected(struct bt_component *comp,
 	assert(port);
 
 	if (comp->class->methods.port_disconnected) {
-		comp->class->methods.port_disconnected(comp, port);
+		comp->class->methods.port_disconnected(
+			bt_private_component_from_component(comp),
+			bt_private_port_from_port(port));
 	}
 }

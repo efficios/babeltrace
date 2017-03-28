@@ -126,26 +126,6 @@ extern enum bt_notification_iterator_status bt_notification_iterator_seek_time(
 extern struct bt_component *bt_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator);
 
-/**
- * Set an iterator's private data.
- *
- * @param iterator	Notification iterator instance
- * @param data		Iterator private data
- * @returns		One of #bt_notification_iterator_status values
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_set_private_data(
-		struct bt_notification_iterator *iterator, void *data);
-
-/**
- * Get an iterator's private data.
- *
- * @param iterator	Notification iterator instance
- * @returns		Iterator instance private data
- */
-extern void *bt_notification_iterator_get_private_data(
-		struct bt_notification_iterator *iterator);
-
 #ifdef __cplusplus
 }
 #endif

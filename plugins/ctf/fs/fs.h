@@ -106,25 +106,25 @@ struct ctf_fs_component {
 };
 
 BT_HIDDEN
-enum bt_component_status ctf_fs_init(struct bt_component *source,
+enum bt_component_status ctf_fs_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void ctf_fs_destroy(struct bt_component *component);
+void ctf_fs_destroy(struct bt_private_component *component);
 
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_component *source,
-		struct bt_notification_iterator *it,
-		void *init_method_data);
+		struct bt_private_component *source,
+		struct bt_private_port *port,
+		struct bt_private_notification_iterator *it);
 
-void ctf_fs_iterator_destroy(struct bt_notification_iterator *it);
+void ctf_fs_iterator_destroy(struct bt_private_notification_iterator *it);
 
 enum bt_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *iterator);
 
 struct bt_notification *ctf_fs_iterator_get(
-		struct bt_notification_iterator *iterator);
+		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN
 struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,

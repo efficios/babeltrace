@@ -49,7 +49,8 @@ babeltracecomponentnotifinclude_HEADERS = \
 	babeltrace/component/notification/packet.h \
 	babeltrace/component/notification/schema.h \
 	babeltrace/component/notification/stream.h \
-	babeltrace/component/notification/heap.h
+	babeltrace/component/notification/heap.h \
+	babeltrace/component/notification/private-iterator.h
 
 babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/component.h \
@@ -62,7 +63,13 @@ babeltracecomponentinclude_HEADERS = \
 	babeltrace/component/graph.h \
 	babeltrace/component/component-source.h \
 	babeltrace/component/component-sink.h \
-	babeltrace/component/component-filter.h
+	babeltrace/component/component-filter.h \
+	babeltrace/component/private-connection.h \
+	babeltrace/component/private-port.h \
+	babeltrace/component/private-component.h \
+	babeltrace/component/private-component-source.h \
+	babeltrace/component/private-component-sink.h \
+	babeltrace/component/private-component-filter.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \

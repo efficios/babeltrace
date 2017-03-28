@@ -29,9 +29,11 @@
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
 #include <babeltrace/component/component-sink.h>
-#include <babeltrace/component/port.h>
-#include <babeltrace/component/connection.h>
+#include <babeltrace/component/private-component-sink.h>
+#include <babeltrace/component/private-port.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
@@ -55,10 +57,10 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 }
 
 static
-void destroy_writer_component(struct bt_component *component)
+void destroy_writer_component(struct bt_private_component *component)
 {
 	struct writer_component *writer_component = (struct writer_component *)
-		bt_component_get_private_data(component);
+		bt_private_component_get_user_data(component);
 
 	destroy_writer_component_data(writer_component);
 	g_free(writer_component);
@@ -186,19 +188,20 @@ end:
 
 static
 enum bt_component_status writer_component_accept_port_connection(
-		struct bt_component *component, struct bt_port *self_port)
+		struct bt_private_component *component,
+		struct bt_private_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_connection *connection;
+	struct bt_private_connection *connection;
 	struct writer_component *writer;
 
-	writer = bt_component_get_private_data(component);
+	writer = bt_private_component_get_user_data(component);
 	assert(writer);
 	assert(!writer->input_iterator);
-	connection = bt_port_get_connection(self_port);
+	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-        writer->input_iterator = bt_connection_create_notification_iterator(
-			connection);
+        writer->input_iterator =
+        	bt_private_connection_create_notification_iterator(connection);
 
 	if (!writer->input_iterator) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -208,14 +211,14 @@ enum bt_component_status writer_component_accept_port_connection(
 }
 
 static
-enum bt_component_status run(struct bt_component *component)
+enum bt_component_status run(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
 	enum bt_notification_iterator_status it_status;
 	struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
-		bt_component_get_private_data(component);
+		bt_private_component_get_user_data(component);
 
 	it = writer_component->input_iterator;
 	assert(it);
@@ -241,7 +244,7 @@ end:
 
 static
 enum bt_component_status writer_component_init(
-	struct bt_component *component, struct bt_value *params,
+	struct bt_private_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -275,7 +278,7 @@ enum bt_component_status writer_component_init(
 		goto error;
 	}
 
-	ret = bt_component_set_private_data(component, writer_component);
+	ret = bt_private_component_set_user_data(component, writer_component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}

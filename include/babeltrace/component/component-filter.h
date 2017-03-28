@@ -36,7 +36,6 @@ extern "C" {
 
 struct bt_port;
 struct bt_component;
-struct bt_notification_iterator;
 
 extern enum bt_component_status bt_component_filter_get_input_port_count(
 		struct bt_component *component, uint64_t *count);

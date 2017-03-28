@@ -22,6 +22,9 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
+#include <babeltrace/component/private-port.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/notification.h>
@@ -38,17 +41,17 @@ void destroy_private_dummy_data(struct dummy *dummy)
 	g_free(dummy);
 }
 
-void dummy_destroy(struct bt_component *component)
+void dummy_destroy(struct bt_private_component *component)
 {
 	struct dummy *dummy;
 
 	assert(component);
-	dummy = bt_component_get_private_data(component);
+	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
 	destroy_private_dummy_data(dummy);
 }
 
-enum bt_component_status dummy_init(struct bt_component *component,
+enum bt_component_status dummy_init(struct bt_private_component *component,
 		struct bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -66,7 +69,7 @@ enum bt_component_status dummy_init(struct bt_component *component,
 		goto end;
 	}
 
-	ret = bt_component_set_private_data(component, dummy);
+	ret = bt_private_component_set_user_data(component, dummy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -77,21 +80,23 @@ error:
 	return ret;
 }
 
-enum bt_component_status dummy_accept_port_connection(struct bt_component *component,
-		struct bt_port *self_port)
+enum bt_component_status dummy_accept_port_connection(
+		struct bt_private_component *component,
+		struct bt_private_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
-	struct bt_connection *connection;
 	struct bt_notification_iterator *iterator;
+	struct bt_private_connection *connection;
 
-	dummy = bt_component_get_private_data(component);
+	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
 
-	connection = bt_port_get_connection(self_port);
+	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
 
-	iterator = bt_connection_create_notification_iterator(connection);
+	iterator = bt_private_connection_create_notification_iterator(
+		connection);
 	if (!iterator) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -103,14 +108,14 @@ end:
 	return ret;
 }
 
-enum bt_component_status dummy_consume(struct bt_component *component)
+enum bt_component_status dummy_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
 	struct bt_notification *notif = NULL;
 	size_t i;
 	struct dummy *dummy;
 
-	dummy = bt_component_get_private_data(component);
+	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
 
 	/* Consume one notification from each iterator. */

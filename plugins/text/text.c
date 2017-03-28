@@ -29,9 +29,12 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
 #include <babeltrace/component/component-sink.h>
 #include <babeltrace/component/port.h>
+#include <babeltrace/component/private-port.h>
 #include <babeltrace/component/connection.h>
+#include <babeltrace/component/private-connection.h>
 #include <babeltrace/component/notification/notification.h>
 #include <babeltrace/component/notification/iterator.h>
 #include <babeltrace/component/notification/event.h>
@@ -106,9 +109,9 @@ error:
 }
 
 static
-void destroy_text(struct bt_component *component)
+void destroy_text(struct bt_private_component *component)
 {
-	void *data = bt_component_get_private_data(component);
+	void *data = bt_private_component_get_user_data(component);
 
 	destroy_text_data(data);
 }
@@ -158,20 +161,21 @@ end:
 }
 
 static
-enum bt_component_status text_accept_port_connection(struct bt_component *component,
-		struct bt_port *self_port)
+enum bt_component_status text_accept_port_connection(
+		struct bt_private_component *component,
+		struct bt_private_port *self_port)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_connection *connection;
+	struct bt_private_connection *connection;
 	struct text_component *text;
 
-	text = bt_component_get_private_data(component);
+	text = bt_private_component_get_user_data(component);
 	assert(text);
 	assert(!text->input_iterator);
-	connection = bt_port_get_connection(self_port);
+	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-	text->input_iterator = bt_connection_create_notification_iterator(
-			connection);
+	text->input_iterator =
+		bt_private_connection_create_notification_iterator(connection);
 
 	if (!text->input_iterator) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -182,12 +186,13 @@ enum bt_component_status text_accept_port_connection(struct bt_component *compon
 }
 
 static
-enum bt_component_status run(struct bt_component *component)
+enum bt_component_status run(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
 	struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
-	struct text_component *text = bt_component_get_private_data(component);
+	struct text_component *text =
+		bt_private_component_get_user_data(component);
 
 	it = text->input_iterator;
 
@@ -711,7 +716,8 @@ void init_stream_packet_context_quarks(void)
 
 static
 enum bt_component_status text_component_init(
-		struct bt_component *component, struct bt_value *params,
+		struct bt_private_component *component,
+		struct bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -738,7 +744,7 @@ enum bt_component_status text_component_init(
 
 	set_use_colors(text);
 
-	ret = bt_component_set_private_data(component, text);
+	ret = bt_private_component_set_user_data(component, text);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}

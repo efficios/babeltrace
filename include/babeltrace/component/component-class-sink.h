@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/component/private-component.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ extern "C" {
 struct bt_component_class;
 
 typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
-        struct bt_component *);
+        struct bt_private_component *private_component);
 
 extern
 struct bt_component_class *bt_component_class_sink_create(const char *name,

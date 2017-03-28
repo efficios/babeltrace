@@ -47,7 +47,7 @@ struct bt_component {
 	 * Internal destroy function specific to a source, filter, or
 	 * sink component object.
 	 */
-	bt_component_class_destroy_method destroy;
+	void (*destroy)(struct bt_component *);
 
 	/* User-defined data */
 	void *user_data;
@@ -63,9 +63,19 @@ struct bt_component {
 	GPtrArray *output_ports;
 };
 
-BT_HIDDEN
-struct bt_notification_iterator *bt_component_create_iterator(
-		struct bt_component *component, void *init_method_data);
+static inline
+struct bt_component *bt_component_from_private(
+		struct bt_private_component *private_component)
+{
+	return (void *) private_component;
+}
+
+static inline
+struct bt_private_component *bt_private_component_from_component(
+		struct bt_component *component)
+{
+	return (void *) component;
+}
 
 BT_HIDDEN
 enum bt_component_status bt_component_accept_port_connection(
