@@ -42,7 +42,7 @@ void destroy_private_dummy_data(struct dummy *dummy)
 	g_free(dummy);
 }
 
-void dummy_destroy(struct bt_private_component *component)
+void dummy_finalize(struct bt_private_component *component)
 {
 	struct dummy *dummy;
 

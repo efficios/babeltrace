@@ -54,6 +54,6 @@ enum bt_component_status trimmer_component_init(
 	struct bt_private_component *component,
 	struct bt_value *params, void *init_method_data);
 
-void destroy_trimmer(struct bt_private_component *component);
+void finalize_trimmer(struct bt_private_component *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_TRIMMER_H */

@@ -370,7 +370,7 @@ void ctf_fs_iterator_destroy_data(struct ctf_fs_iterator *ctf_it)
 	g_free(ctf_it);
 }
 
-void ctf_fs_iterator_destroy(struct bt_private_notification_iterator *it)
+void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it)
 {
 	void *data = bt_private_notification_iterator_get_user_data(it);
 
@@ -662,7 +662,7 @@ void ctf_fs_destroy_data(struct ctf_fs_component *ctf_fs)
 	g_free(ctf_fs);
 }
 
-void ctf_fs_destroy(struct bt_private_component *component)
+void ctf_fs_finalize(struct bt_private_component *component)
 {
 	void *data = bt_private_component_get_user_data(component);
 

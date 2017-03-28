@@ -109,7 +109,7 @@ error:
 }
 
 static
-void destroy_text(struct bt_private_component *component)
+void finalize_text(struct bt_private_component *component)
 {
 	void *data = bt_private_component_get_user_data(component);
 
@@ -767,6 +767,6 @@ BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(text, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(text, text_component_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(text, text_accept_port_connection);
-BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(text, destroy_text);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(text, finalize_text);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(text,
 	"Formats CTF-IR to text. Formerly known as ctf-text.");

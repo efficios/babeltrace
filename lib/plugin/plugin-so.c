@@ -251,7 +251,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		const char *description;
 		const char *help;
 		bt_component_class_init_method init_method;
-		bt_component_class_destroy_method destroy_method;
+		bt_component_class_finalize_method finalize_method;
 		bt_component_class_query_method query_method;
 		bt_component_class_accept_port_connection_method accept_port_connection_method;
 		bt_component_class_port_disconnected_method port_disconnected_method;
@@ -375,9 +375,9 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->init_method =
 						cur_cc_descr_attr->value.init_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD:
-					cc_full_descr->destroy_method =
-						cur_cc_descr_attr->value.destroy_method;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD:
+					cc_full_descr->finalize_method =
+						cur_cc_descr_attr->value.finalize_method;
 					break;
 				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD:
 					cc_full_descr->query_method =
@@ -395,9 +395,9 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->iterator_methods.init =
 						cur_cc_descr_attr->value.notif_iter_init_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD:
-					cc_full_descr->iterator_methods.destroy =
-						cur_cc_descr_attr->value.notif_iter_destroy_method;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD:
+					cc_full_descr->iterator_methods.finalize =
+						cur_cc_descr_attr->value.notif_iter_finalize_method;
 					break;
 				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD:
 					cc_full_descr->iterator_methods.seek_time =
@@ -496,9 +496,9 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 		}
 
-		if (cc_full_descr->destroy_method) {
-			ret = bt_component_class_set_destroy_method(comp_class,
-				cc_full_descr->destroy_method);
+		if (cc_full_descr->finalize_method) {
+			ret = bt_component_class_set_finalize_method(comp_class,
+				cc_full_descr->finalize_method);
 			if (ret) {
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
@@ -549,10 +549,10 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->iterator_methods.destroy) {
-				ret = bt_component_class_source_set_notification_iterator_destroy_method(
+			if (cc_full_descr->iterator_methods.finalize) {
+				ret = bt_component_class_source_set_notification_iterator_finalize_method(
 					comp_class,
-					cc_full_descr->iterator_methods.destroy);
+					cc_full_descr->iterator_methods.finalize);
 				if (ret) {
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
@@ -583,10 +583,10 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->iterator_methods.destroy) {
-				ret = bt_component_class_filter_set_notification_iterator_destroy_method(
+			if (cc_full_descr->iterator_methods.finalize) {
+				ret = bt_component_class_filter_set_notification_iterator_finalize_method(
 					comp_class,
-					cc_full_descr->iterator_methods.destroy);
+					cc_full_descr->iterator_methods.finalize);
 				if (ret) {
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);

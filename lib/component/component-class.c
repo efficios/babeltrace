@@ -279,18 +279,18 @@ end:
 	return ret;
 }
 
-int bt_component_class_set_destroy_method(
+int bt_component_class_set_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_destroy_method destroy_method)
+		bt_component_class_finalize_method finalize_method)
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !destroy_method) {
+	if (!component_class || component_class->frozen || !finalize_method) {
 		ret = -1;
 		goto end;
 	}
 
-	component_class->methods.destroy = destroy_method;
+	component_class->methods.finalize = finalize_method;
 
 end:
 	return ret;
@@ -318,15 +318,15 @@ end:
 	return ret;
 }
 
-int bt_component_class_source_set_notification_iterator_destroy_method(
+int bt_component_class_source_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method)
+		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method)
 {
 	struct bt_component_class_source *source_class;
 	int ret = 0;
 
 	if (!component_class || component_class->frozen ||
-			!notification_iterator_destroy_method ||
+			!notification_iterator_finalize_method ||
 			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
 		ret = -1;
 		goto end;
@@ -334,8 +334,8 @@ int bt_component_class_source_set_notification_iterator_destroy_method(
 
 	source_class = container_of(component_class,
 		struct bt_component_class_source, parent);
-	source_class->methods.iterator.destroy =
-		notification_iterator_destroy_method;
+	source_class->methods.iterator.finalize =
+		notification_iterator_finalize_method;
 
 end:
 	return ret;
@@ -386,15 +386,15 @@ end:
 	return ret;
 }
 
-int bt_component_class_filter_set_notification_iterator_destroy_method(
+int bt_component_class_filter_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_destroy_method notification_iterator_destroy_method)
+		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method)
 {
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
 
 	if (!component_class || component_class->frozen ||
-			!notification_iterator_destroy_method ||
+			!notification_iterator_finalize_method ||
 			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
 		ret = -1;
 		goto end;
@@ -402,8 +402,8 @@ int bt_component_class_filter_set_notification_iterator_destroy_method(
 
 	filter_class = container_of(component_class,
 		struct bt_component_class_filter, parent);
-	filter_class->methods.iterator.destroy =
-		notification_iterator_destroy_method;
+	filter_class->methods.iterator.finalize =
+		notification_iterator_finalize_method;
 
 end:
 	return ret;

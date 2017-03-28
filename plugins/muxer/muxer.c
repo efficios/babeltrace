@@ -55,7 +55,7 @@ end:
 }
 
 static
-void destroy_muxer(struct bt_private_component *component)
+void finalize_muxer(struct bt_private_component *component)
 {
 	void *data = bt_private_component_get_user_data(component);
 
@@ -109,4 +109,4 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_iterator_get,
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
 	"Time-correlate multiple traces.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_component_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(muxer, destroy_muxer);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(muxer, finalize_muxer);

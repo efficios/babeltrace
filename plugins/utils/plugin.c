@@ -33,7 +33,7 @@ BT_PLUGIN_LICENSE("MIT");
 /* dummy sink */
 BT_PLUGIN_SINK_COMPONENT_CLASS(dummy, dummy_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(dummy, dummy_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(dummy, dummy_destroy);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(dummy, dummy_accept_port_connection);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
     "Dummy sink component class: does absolutely nothing!");
@@ -44,10 +44,10 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_get,
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
     "Ensure that trace notifications outside of a given range are filtered-out.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(trimmer, destroy_trimmer);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(trimmer, finalize_trimmer);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
     trimmer_iterator_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(trimmer,
-    trimmer_iterator_destroy);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(trimmer,
+    trimmer_iterator_finalize);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(trimmer,
     trimmer_iterator_seek_time);

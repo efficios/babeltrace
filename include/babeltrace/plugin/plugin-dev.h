@@ -167,12 +167,12 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION				= 0,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP				= 1,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD				= 2,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD			= 3,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD			= 3,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD			= 4,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD	= 5,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD		= 6,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD		= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD		= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD		= 8,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD		= 9,
 };
 
@@ -201,8 +201,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD */
 		bt_component_class_init_method init_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD */
-		bt_component_class_destroy_method destroy_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD */
+		bt_component_class_finalize_method finalize_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD */
 		bt_component_class_query_method query_method;
@@ -216,8 +216,8 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD */
 		bt_component_class_notification_iterator_init_method notif_iter_init_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD */
-		bt_component_class_notification_iterator_destroy_method notif_iter_destroy_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD */
+		bt_component_class_notification_iterator_finalize_method notif_iter_finalize_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD */
 		bt_component_class_notification_iterator_seek_time_method notif_iter_seek_time_method;
@@ -558,37 +558,37 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
- * Defines a destroy method attribute attached to a specific source
+ * Defines a finalize method attribute attached to a specific source
  * component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_destroy_method).
+ * _x:             Finalize method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
- * Defines a destroy method attribute attached to a specific filter
+ * Defines a finalize method attribute attached to a specific filter
  * component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_destroy_method).
+ * _x:             Finalize method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
- * Defines a destroy method attribute attached to a specific sink
+ * Defines a finalize method attribute attached to a specific sink
  * component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_destroy_method).
+ * _x:             Finalize method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESTROY_METHOD, _id, _comp_class_id, sink, _x)
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
  * Defines a query method attribute attached to a specific source
@@ -596,7 +596,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_query_method).
+ * _x:             Finalize method (bt_component_class_query_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, source, _x)
@@ -607,7 +607,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_query_method).
+ * _x:             Finalize method (bt_component_class_query_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, filter, _x)
@@ -618,7 +618,7 @@ struct __bt_plugin_component_class_descriptor_attribute {
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Destroy method (bt_component_class_query_method).
+ * _x:             Finalize method (bt_component_class_query_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, sink, _x)
@@ -708,16 +708,16 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, source, _x)
 
 /*
- * Defines an iterator destroy method attribute attached to a specific
+ * Defines an iterator finalize method attribute attached to a specific
  * source component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Iterator destroy method
- *                 (bt_component_class_notification_iterator_destroy_method).
+ * _x:             Iterator finalize method
+ *                 (bt_component_class_notification_iterator_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
  * Defines an iterator seek time method attribute attached to a specific
@@ -744,16 +744,16 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
- * Defines an iterator destroy method attribute attached to a specific
+ * Defines an iterator finalize method attribute attached to a specific
  * filter component class descriptor.
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Iterator destroy method
- *                 (bt_component_class_notification_iterator_destroy_method).
+ * _x:             Iterator finalize method
+ *                 (bt_component_class_notification_iterator_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_destroy_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_DESTROY_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines an iterator seek time method attribute attached to a specific
@@ -959,36 +959,36 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines a destroy method attribute attached to a source component
+ * Defines a finalize method attribute attached to a source component
  * class descriptor which is attached to the automatic plugin
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_destroy_method).
+ * _x:    Initialization method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines a destroy method attribute attached to a filter component
+ * Defines a finalize method attribute attached to a filter component
  * class descriptor which is attached to the automatic plugin
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_destroy_method).
+ * _x:    Initialization method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines a destroy method attribute attached to a sink component class
+ * Defines a finalize method attribute attached to a sink component class
  * descriptor which is attached to the automatic plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_destroy_method).
+ * _x:    Initialization method (bt_component_class_finalize_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(_name, _x) \
-	BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines a query method attribute attached to a source component
@@ -1105,16 +1105,16 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines an iterator destroy method attribute attached to a source
+ * Defines an iterator finalize method attribute attached to a source
  * component class descriptor which is attached to the automatic plugin
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Iterator destroy method
- *        (bt_component_class_notification_iterator_destroy_method).
+ * _x:    Iterator finalize method
+ *        (bt_component_class_notification_iterator_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator seek time method attribute attached to a source
@@ -1141,16 +1141,16 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines an iterator destroy method attribute attached to a filter
+ * Defines an iterator finalize method attribute attached to a filter
  * component class descriptor which is attached to the automatic plugin
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Iterator destroy method
- *        (bt_component_class_notification_iterator_destroy_method).
+ * _x:    Iterator finalize method
+ *        (bt_component_class_notification_iterator_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator seek time method attribute attached to a filter

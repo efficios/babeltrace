@@ -56,7 +56,7 @@ struct bt_component_class {
 	GString *help;
 	struct {
 		bt_component_class_init_method init;
-		bt_component_class_destroy_method destroy;
+		bt_component_class_finalize_method finalize;
 		bt_component_class_query_method query;
 		bt_component_class_accept_port_connection_method accept_port_connection;
 		bt_component_class_port_disconnected_method port_disconnected;
@@ -68,7 +68,7 @@ struct bt_component_class {
 
 struct bt_component_class_iterator_methods {
 	bt_component_class_notification_iterator_init_method init;
-	bt_component_class_notification_iterator_destroy_method destroy;
+	bt_component_class_notification_iterator_finalize_method finalize;
 	bt_component_class_notification_iterator_get_method get;
 	bt_component_class_notification_iterator_next_method next;
 	bt_component_class_notification_iterator_seek_time_method seek_time;

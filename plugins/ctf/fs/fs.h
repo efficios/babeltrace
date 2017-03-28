@@ -110,7 +110,7 @@ enum bt_component_status ctf_fs_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void ctf_fs_destroy(struct bt_private_component *component);
+void ctf_fs_finalize(struct bt_private_component *component);
 
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_iterator_init(
@@ -118,7 +118,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		struct bt_private_port *port,
 		struct bt_private_notification_iterator *it);
 
-void ctf_fs_iterator_destroy(struct bt_private_notification_iterator *it);
+void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it);
 
 enum bt_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator);

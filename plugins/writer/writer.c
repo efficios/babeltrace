@@ -57,7 +57,7 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 }
 
 static
-void destroy_writer_component(struct bt_private_component *component)
+void finalize_writer_component(struct bt_private_component *component)
 {
 	struct writer_component *writer_component = (struct writer_component *)
 		bt_private_component_get_user_data(component);
@@ -301,5 +301,5 @@ BT_PLUGIN_SINK_COMPONENT_CLASS(writer, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(writer, writer_component_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(writer,
 		writer_component_accept_port_connection);
-BT_PLUGIN_SINK_COMPONENT_CLASS_DESTROY_METHOD(writer, destroy_writer_component);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(writer, finalize_writer_component);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(writer, "Formats CTF-IR to CTF.");

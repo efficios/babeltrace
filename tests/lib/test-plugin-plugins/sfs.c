@@ -35,7 +35,7 @@ static enum bt_notification_iterator_status dummy_iterator_init_method(
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
-static void dummy_iterator_destroy_method(
+static void dummy_iterator_finalize_method(
 		struct bt_private_notification_iterator *private_iterator)
 {
 }
@@ -85,8 +85,8 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_iterator_get_method,
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
 	dummy_iterator_init_method);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(source,
-	dummy_iterator_destroy_method);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(source,
+	dummy_iterator_finalize_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(source,
 	dummy_iterator_seek_time_method);
 
@@ -104,8 +104,8 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_get_method,
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
 	dummy_iterator_init_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(filter,
-	dummy_iterator_destroy_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(filter,
+	dummy_iterator_finalize_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
 	dummy_iterator_seek_time_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, query_method);

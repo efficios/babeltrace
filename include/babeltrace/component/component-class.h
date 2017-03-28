@@ -60,7 +60,7 @@ typedef enum bt_component_status (*bt_component_class_init_method)(
 		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data);
 
-typedef void (*bt_component_class_destroy_method)(
+typedef void (*bt_component_class_finalize_method)(
 		struct bt_private_component *private_component);
 
 typedef enum bt_notification_iterator_status
@@ -69,7 +69,7 @@ typedef enum bt_notification_iterator_status
 		struct bt_private_port *private_port,
 		struct bt_private_notification_iterator *private_notification_iterator);
 
-typedef void (*bt_component_class_notification_iterator_destroy_method)(
+typedef void (*bt_component_class_notification_iterator_finalize_method)(
 		struct bt_private_notification_iterator *private_notification_iterator);
 
 typedef struct bt_notification *(*bt_component_class_notification_iterator_get_method)(
@@ -100,9 +100,9 @@ extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
 		bt_component_class_init_method init_method);
 
-extern int bt_component_class_set_destroy_method(
+extern int bt_component_class_set_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_destroy_method destroy_method);
+		bt_component_class_finalize_method finalize_method);
 
 extern int bt_component_class_set_accept_port_connection_method(
 		struct bt_component_class *component_class,

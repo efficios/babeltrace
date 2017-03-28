@@ -58,7 +58,7 @@ end:
 	return trimmer;
 }
 
-void destroy_trimmer(struct bt_private_component *component)
+void finalize_trimmer(struct bt_private_component *component)
 {
 	void *data = bt_private_component_get_user_data(component);
 

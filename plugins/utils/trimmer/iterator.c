@@ -50,7 +50,7 @@
 #include <plugins-common.h>
 
 BT_HIDDEN
-void trimmer_iterator_destroy(struct bt_private_notification_iterator *it)
+void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 {
 	struct trimmer_iterator *it_data;
 

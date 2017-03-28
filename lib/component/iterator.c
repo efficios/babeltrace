@@ -54,8 +54,8 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 
 		source_class = container_of(comp_class, struct bt_component_class_source, parent);
 
-		if (source_class->methods.iterator.destroy) {
-			source_class->methods.iterator.destroy(
+		if (source_class->methods.iterator.finalize) {
+			source_class->methods.iterator.finalize(
 				bt_private_notification_iterator_from_notification_iterator(iterator));
 		}
 		break;
@@ -66,8 +66,8 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 
 		filter_class = container_of(comp_class, struct bt_component_class_filter, parent);
 
-		if (filter_class->methods.iterator.destroy) {
-			filter_class->methods.iterator.destroy(
+		if (filter_class->methods.iterator.finalize) {
+			filter_class->methods.iterator.finalize(
 				bt_private_notification_iterator_from_notification_iterator(iterator));
 		}
 		break;

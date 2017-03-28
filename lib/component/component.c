@@ -82,8 +82,8 @@ void bt_component_destroy(struct bt_object *obj)
 	 * User data is destroyed first, followed by the concrete component
 	 * instance.
 	 */
-	if (component->class->methods.destroy) {
-		component->class->methods.destroy(
+	if (component->class->methods.finalize) {
+		component->class->methods.finalize(
 			bt_private_component_from_component(component));
 	}
 

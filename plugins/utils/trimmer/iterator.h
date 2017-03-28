@@ -46,7 +46,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 		struct bt_private_notification_iterator *iterator);
 
 BT_HIDDEN
-void trimmer_iterator_destroy(struct bt_private_notification_iterator *it);
+void trimmer_iterator_finalize(struct bt_private_notification_iterator *it);
 
 BT_HIDDEN
 struct bt_notification *trimmer_iterator_get(
