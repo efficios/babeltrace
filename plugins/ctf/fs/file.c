@@ -35,11 +35,13 @@
 BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {
-	struct ctf_fs_component *ctf_fs = file->ctf_fs;
+	struct ctf_fs_component *ctf_fs;;
 
 	if (!file) {
 		return;
 	}
+
+	ctf_fs = file->ctf_fs;
 
 	if (file->fp) {
 		PDBG("Closing file \"%s\" (%p)\n", file->path->str, file->fp);

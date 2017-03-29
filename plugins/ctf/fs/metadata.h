@@ -38,7 +38,7 @@ BT_HIDDEN
 void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
 
 BT_HIDDEN
-void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs);
+int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs);
 
 BT_HIDDEN
 FILE *ctf_fs_metadata_open_file(const char *trace_path);

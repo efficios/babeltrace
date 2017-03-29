@@ -38,8 +38,6 @@
 BT_HIDDEN
 extern bool ctf_fs_debug;
 
-struct bt_notification_heap;
-
 struct ctf_fs_file {
 	struct ctf_fs_component *ctf_fs;
 	GString *path;
@@ -58,7 +56,6 @@ struct ctf_fs_metadata {
 struct ctf_fs_stream {
 	struct ctf_fs_file *file;
 	struct bt_ctf_stream *stream;
-	/* FIXME There should be many and ctf_fs_stream should not own them. */
 	struct bt_ctf_notif_iter *notif_iter;
 	/* A stream is assumed to be indexed. */
 	struct index index;
@@ -79,29 +76,23 @@ struct ctf_fs_stream {
 	bool end_reached;
 };
 
-struct ctf_fs_iterator {
-	struct bt_notification_heap *pending_notifications;
-	/*
-	 * struct ctf_fs_data_stream* which have not yet been associated to a
-	 * bt_ctf_stream. The association is performed on the first packet
-	 * read by the stream (since, at that point, we have read a packet
-	 * header).
-	 */
-	GPtrArray *pending_streams;
-	/* bt_ctf_stream -> ctf_fs_stream */
-	GHashTable *stream_ht;
+struct ctf_fs_component_options {
 };
 
-struct ctf_fs_component_options {
-	bool opt_dummy : 1;
+struct ctf_fs_port_data {
+	GString *path;
 };
 
 struct ctf_fs_component {
+	struct bt_private_component *priv_comp;
 	GString *trace_path;
 	FILE *error_fp;
 	size_t page_size;
 	struct ctf_fs_component_options options;
 	struct ctf_fs_metadata *metadata;
+
+	/* Array of struct ctf_fs_port_data *, owned by this */
+	GPtrArray *port_data;
 };
 
 BT_HIDDEN

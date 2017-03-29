@@ -31,6 +31,9 @@
 #include <sys/mman.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/notification-packet.h>
 #include "file.h"
 #include "metadata.h"
 #include "../common/notif-iter/notif-iter.h"
@@ -41,7 +44,7 @@
 #define PRINT_PREFIX		"ctf-fs-data-stream"
 #include "print.h"
 
-static
+static inline
 size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
 {
 	return stream->mmap_valid_len - stream->request_offset;
@@ -326,9 +329,7 @@ invalid_index:
 static
 int build_index_from_stream(struct ctf_fs_stream *stream)
 {
-	int ret = 0;
-end:
-	return ret;
+	return 0;
 }
 
 static
@@ -348,7 +349,7 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file)
+		struct ctf_fs_component *ctf_fs, const char *path)
 {
 	int ret;
 	struct ctf_fs_stream *stream = g_new0(struct ctf_fs_stream, 1);
@@ -357,7 +358,17 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 		goto error;
 	}
 
-	stream->file = file;
+	stream->file = ctf_fs_file_create(ctf_fs);
+	if (!stream->file) {
+		goto error;
+	}
+
+	g_string_assign(stream->file->path, path);
+	ret = ctf_fs_file_open(ctf_fs, stream->file, "rb");
+	if (ret) {
+		goto error;
+	}
+
 	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata->trace,
 			ctf_fs->page_size, medops, stream, ctf_fs->error_fp);
 	if (!stream->notif_iter) {
@@ -372,7 +383,6 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 	goto end;
 error:
 	/* Do not touch "borrowed" file. */
-	stream->file = NULL;
 	ctf_fs_stream_destroy(stream);
 	stream = NULL;
 end:
@@ -403,4 +413,64 @@ void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 	}
 
 	g_free(stream);
+}
+
+BT_HIDDEN
+struct bt_notification_iterator_next_return ctf_fs_stream_next(
+		struct ctf_fs_stream *stream)
+{
+	enum bt_ctf_notif_iter_status notif_iter_status;
+	struct bt_notification_iterator_next_return ret = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
+		.notification = NULL,
+	};
+
+	if (stream->end_reached) {
+		notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_EOF;
+		goto translate_status;
+	}
+
+	notif_iter_status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
+			&ret.notification);
+	if (notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_OK &&
+			notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		goto translate_status;
+	}
+
+	/* Should be handled in bt_ctf_notif_iter_get_next_notification. */
+	if (notif_iter_status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		ret.notification = bt_notification_stream_end_create(
+			stream->stream);
+		if (!ret.notification) {
+			notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+			goto translate_status;
+		}
+
+		notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_OK;
+		stream->end_reached = true;
+	}
+
+translate_status:
+	switch (notif_iter_status) {
+	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_OK:
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+		/*
+		 * Should not make it this far as this is
+		 * medium-specific; there is nothing for the user to do
+		 * and it should have been handled upstream.
+		 */
+		assert(false);
+	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	default:
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		break;
+	}
+
+	return ret;
 }

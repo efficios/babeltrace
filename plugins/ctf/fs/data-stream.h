@@ -48,12 +48,16 @@ struct index {
 
 BT_HIDDEN
 struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file);
+		struct ctf_fs_component *ctf_fs, const char *path);
 
 BT_HIDDEN
 void ctf_fs_stream_destroy(struct ctf_fs_stream *stream);
 
 BT_HIDDEN
 int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs);
+
+BT_HIDDEN
+struct bt_notification_iterator_next_return ctf_fs_stream_next(
+		struct ctf_fs_stream *stream);
 
 #endif /* CTF_FS_DATA_STREAM_H */

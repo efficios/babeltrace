@@ -313,7 +313,7 @@ end:
 	return ret;
 }
 
-void ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
+int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 {
 	int ret = 0;
 	struct ctf_fs_file *file = get_file(ctf_fs, ctf_fs->trace_path->str);
@@ -412,6 +412,8 @@ error:
 		ctf_fs->metadata->text = NULL;
 	}
 
+	ret = -1;
+
 end:
 	if (file) {
 		ctf_fs_file_destroy(file);
@@ -420,6 +422,8 @@ end:
 	if (scanner) {
 		ctf_scanner_free(scanner);
 	}
+
+	return ret;
 }
 
 int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
