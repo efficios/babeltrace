@@ -38,6 +38,7 @@ struct bt_port {
 	enum bt_port_type type;
 	GString *name;
 	struct bt_connection *connection;
+	void *user_data;
 };
 
 static inline

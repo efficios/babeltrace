@@ -187,3 +187,26 @@ int bt_port_is_connected(struct bt_port *port)
 end:
 	return ret;
 }
+
+int bt_private_port_set_user_data(
+		struct bt_private_port *private_port, void *user_data)
+{
+	int ret = 0;
+
+	if (!private_port) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_port_from_private(private_port)->user_data = user_data;
+
+end:
+	return ret;
+}
+
+void *bt_private_port_get_user_data(
+		struct bt_private_port *private_port)
+{
+	return private_port ?
+		bt_port_from_private(private_port)->user_data : NULL;
+}

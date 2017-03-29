@@ -39,6 +39,10 @@ extern struct bt_private_component *bt_private_port_get_private_component(
 		struct bt_private_port *private_port);
 extern int bt_private_port_remove_from_component(
 		struct bt_private_port *private_port);
+extern int bt_private_port_set_user_data(
+		struct bt_private_port *private_port, void *user_data);
+extern void *bt_private_port_get_user_data(
+		struct bt_private_port *private_port);
 
 #ifdef __cplusplus
 }
