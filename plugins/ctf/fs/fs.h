@@ -113,9 +113,8 @@ void ctf_fs_finalize(struct bt_private_component *component);
 
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_component *source,
-		struct bt_private_port *port,
-		struct bt_private_notification_iterator *it);
+		struct bt_private_notification_iterator *it,
+		struct bt_private_port *port);
 
 void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it);
 

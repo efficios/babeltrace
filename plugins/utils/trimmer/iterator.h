@@ -40,9 +40,8 @@ struct trimmer_iterator {
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_private_component *component,
-		struct bt_private_port *port,
-		struct bt_private_notification_iterator *iterator);
+		struct bt_private_notification_iterator *iterator,
+		struct bt_private_port *port);
 
 BT_HIDDEN
 void trimmer_iterator_finalize(struct bt_private_notification_iterator *it);

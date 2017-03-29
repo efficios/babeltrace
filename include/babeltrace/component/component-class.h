@@ -65,9 +65,8 @@ typedef void (*bt_component_class_finalize_method)(
 
 typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_init_method)(
-		struct bt_private_component *private_component,
-		struct bt_private_port *private_port,
-		struct bt_private_notification_iterator *private_notification_iterator);
+		struct bt_private_notification_iterator *private_notification_iterator,
+		struct bt_private_port *private_port);
 
 typedef void (*bt_component_class_notification_iterator_finalize_method)(
 		struct bt_private_notification_iterator *private_notification_iterator);

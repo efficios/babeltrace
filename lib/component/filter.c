@@ -196,7 +196,7 @@ bt_private_component_filter_get_input_private_port_at_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_default_private_input_port(
+bt_private_component_filter_get_default_input_private_port(
 		struct bt_private_component *private_component)
 {
 	return bt_private_port_from_port(
@@ -232,7 +232,7 @@ bt_private_component_filter_get_output_private_port_at_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_default_private_output_port(
+bt_private_component_filter_get_default_output_private_port(
 		struct bt_private_component *private_component)
 {
 	return bt_private_port_from_port(

@@ -223,9 +223,8 @@ bt_private_connection_create_notification_iterator(
 
 	if (init_method) {
 		enum bt_notification_iterator_status status = init_method(
-			bt_private_component_from_component(upstream_component),
-			bt_private_port_from_port(upstream_port),
-			bt_private_notification_iterator_from_notification_iterator(iterator));
+			bt_private_notification_iterator_from_notification_iterator(iterator),
+			bt_private_port_from_port(upstream_port));
 		if (status < 0) {
 			goto error;
 		}

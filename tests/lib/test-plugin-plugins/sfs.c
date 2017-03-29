@@ -28,9 +28,8 @@ static enum bt_component_status sink_consume(
 }
 
 static enum bt_notification_iterator_status dummy_iterator_init_method(
-		struct bt_private_component *private_component,
-		struct bt_private_port *private_port,
-		struct bt_private_notification_iterator *private_iterator)
+		struct bt_private_notification_iterator *private_iterator,
+		struct bt_private_port *private_port)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }

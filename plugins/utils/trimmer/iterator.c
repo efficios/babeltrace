@@ -63,15 +63,16 @@ void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_private_component *component,
-		struct bt_private_port *port,
-		struct bt_private_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator,
+		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
+	struct bt_private_component *component =
+		bt_private_notification_iterator_get_private_component(iterator);
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
 
 	if (!it_data) {
@@ -99,6 +100,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 		goto end;
 	}
 end:
+	bt_put(component);
 	bt_put(connection);
 	bt_put(input_port);
 	return ret;

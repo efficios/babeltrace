@@ -577,12 +577,13 @@ end:
 }
 
 enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_component *source,
-		struct bt_private_port *port,
-		struct bt_private_notification_iterator *it)
+		struct bt_private_notification_iterator *it,
+		struct bt_private_port *port)
 {
 	struct ctf_fs_iterator *ctf_it;
 	struct ctf_fs_component *ctf_fs;
+	struct bt_private_component *source =
+		bt_private_notification_iterator_get_private_component(it);
 	enum bt_notification_iterator_status ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	assert(source && it);
@@ -625,12 +626,15 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
-end:
-	return ret;
+	goto end;
+
 error:
 	(void) bt_private_notification_iterator_set_user_data(it, NULL);
 	ctf_fs_iterator_destroy_data(ctf_it);
-	goto end;
+
+end:
+	bt_put(source);
+	return ret;
 }
 
 static

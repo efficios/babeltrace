@@ -238,6 +238,15 @@ struct bt_component *bt_notification_iterator_get_component(
 	return bt_get(iterator->component);
 }
 
+struct bt_private_component *
+bt_private_notification_iterator_get_private_component(
+		struct bt_private_notification_iterator *private_iterator)
+{
+	return bt_private_component_from_component(
+		bt_notification_iterator_get_component(
+			bt_notification_iterator_from_private(private_iterator)));
+}
+
 enum bt_notification_iterator_status bt_notification_iterator_seek_time(
 		struct bt_notification_iterator *iterator,
 		enum bt_notification_iterator_seek_origin seek_origin,
