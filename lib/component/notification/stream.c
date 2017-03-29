@@ -25,7 +25,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/notification/stream-internal.h>
+#include <babeltrace/graph/notification-stream-internal.h>
 
 static
 void bt_notification_stream_end_destroy(struct bt_object *obj)

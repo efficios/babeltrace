@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_PLUGINS_UTILS_TRIMMER_H
-#define BABELTRACE_PLUGINS_UTILS_TRIMMER_H
+#ifndef BABELTRACE_COMPONENT_SOURCE_INTERNAL_H
+#define BABELTRACE_COMPONENT_SOURCE_INTERNAL_H
 
 /*
- * BabelTrace - Trace Trimmer Plug-in
+ * BabelTrace - Source Component internal
  *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,33 +27,38 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 
-#define NSEC_PER_SEC	1000000000LL
+struct bt_value;
 
-struct trimmer_bound {
-	int64_t value;
-	bool set;
-	bool lazy;
-	struct {
-		int hh, mm, ss, ns;
-		bool gmt;
-	} lazy_values;
+struct bt_component_source {
+	struct bt_component parent;
 };
 
-struct trimmer {
-	struct trimmer_bound begin, end;
-	bool date;
-	int year, month, day;
-};
+/**
+ * Allocate a source component.
+ *
+ * @param class			Component class
+ * @param params		A dictionary of component parameters
+ * @returns			A source component instance
+ */
+BT_HIDDEN
+struct bt_component *bt_component_source_create(
+		struct bt_component_class *class, struct bt_value *params);
 
-enum bt_component_status trimmer_component_init(
-	struct bt_private_component *component,
-	struct bt_value *params, void *init_method_data);
+BT_HIDDEN
+void bt_component_source_destroy(struct bt_component *component);
 
-void finalize_trimmer(struct bt_private_component *component);
+/**
+ * Validate a source component.
+ *
+ * @param component		Source component instance to validate
+ * @returns			One of #bt_component_status
+ */
+BT_HIDDEN
+enum bt_component_status bt_component_source_validate(
+		struct bt_component *component);
 
-#endif /* BABELTRACE_PLUGINS_UTILS_TRIMMER_H */
+#endif /* BABELTRACE_COMPONENT_SOURCE_INTERNAL_H */

@@ -25,7 +25,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/notification/event-internal.h>
+#include <babeltrace/graph/notification-event-internal.h>
 
 static
 void bt_notification_event_destroy(struct bt_object *obj)

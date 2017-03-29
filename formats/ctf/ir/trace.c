@@ -40,7 +40,7 @@
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
-#include <babeltrace/component/notification/schema.h>
+#include <babeltrace/graph/notification-schema.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>

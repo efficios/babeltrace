@@ -28,11 +28,11 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
-#include <babeltrace/component/component-filter-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/notification/notification.h>
-#include <babeltrace/component/notification/iterator-internal.h>
+#include <babeltrace/graph/component-filter-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
 
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component)

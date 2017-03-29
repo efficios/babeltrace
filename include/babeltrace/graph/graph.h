@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {

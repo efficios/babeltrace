@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_SOURCE_H
-#define BABELTRACE_COMPONENT_SOURCE_H
+#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H
+#define BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H
 
 /*
- * BabelTrace - Source Plug-in Interface
+ * Babeltrace - Component Class Interface.
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,27 +25,35 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_notification_iterator;
+struct bt_component_class;
 
-extern enum bt_component_status bt_component_source_get_output_port_count(
-		struct bt_component *component, uint64_t *count);
-extern struct bt_port *bt_component_source_get_output_port(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_source_get_output_port_at_index(
-		struct bt_component *component, int index);
-extern struct bt_port *bt_component_source_get_default_output_port(
-		struct bt_component *component);
+extern
+struct bt_component_class *bt_component_class_filter_create(const char *name,
+		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_init_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_finalize_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method);
+
+extern
+int bt_component_class_filter_set_notification_iterator_seek_time_method(
+		struct bt_component_class *component_class,
+		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H */

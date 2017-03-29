@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_SOURCE_INTERNAL_H
-#define BABELTRACE_COMPONENT_SOURCE_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_FILTER_INTERNAL_H
+#define BABELTRACE_COMPONENT_FILTER_INTERNAL_H
 
 /*
- * BabelTrace - Source Component internal
+ * BabelTrace - Filter Component Internal
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,37 +28,37 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 
 struct bt_value;
 
-struct bt_component_source {
+struct bt_component_filter {
 	struct bt_component parent;
 };
 
 /**
- * Allocate a source component.
+ * Allocate a filter component.
  *
  * @param class			Component class
  * @param params		A dictionary of component parameters
- * @returns			A source component instance
+ * @returns			A filter component instance
  */
 BT_HIDDEN
-struct bt_component *bt_component_source_create(
+struct bt_component *bt_component_filter_create(
 		struct bt_component_class *class, struct bt_value *params);
 
 BT_HIDDEN
-void bt_component_source_destroy(struct bt_component *component);
+void bt_component_filter_destroy(struct bt_component *component);
 
 /**
- * Validate a source component.
+ * Validate a filter component.
  *
- * @param component		Source component instance to validate
+ * @param component		Filter component instance to validate
  * @returns			One of #bt_component_status
  */
 BT_HIDDEN
-enum bt_component_status bt_component_source_validate(
+enum bt_component_status bt_component_filter_validate(
 		struct bt_component *component);
 
-#endif /* BABELTRACE_COMPONENT_SOURCE_INTERNAL_H */
+#endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */

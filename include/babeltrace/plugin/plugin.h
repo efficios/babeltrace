@@ -30,7 +30,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <babeltrace/component/component-class.h>
+#include <babeltrace/graph/component-class.h>
 
 #ifdef __cplusplus
 extern "C" {

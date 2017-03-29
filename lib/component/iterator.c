@@ -28,11 +28,11 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/component-source-internal.h>
-#include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/iterator-internal.h>
+#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-source-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
 
 static
 void bt_notification_iterator_destroy(struct bt_object *obj)

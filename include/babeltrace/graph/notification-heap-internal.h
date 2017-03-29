@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PACKET_INTERNAL_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_PACKET_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_HEAP_INTERNAL_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_HEAP_INTERNAL_H
 
 /*
- * BabelTrace - Packet-related Notifications
+ * Babeltrace - CTF notification heap priority heap
  *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,17 +25,17 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/component/notification/notification-internal.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/graph/notification-heap.h>
+#include <babeltrace/graph/notification.h>
+#include <glib.h>
 
-struct bt_notification_packet_begin {
-	struct bt_notification parent;
-	struct bt_ctf_packet *packet;
+struct bt_notification_heap {
+	struct bt_object base;
+	GPtrArray *ptrs;
+	size_t count;
+	bt_notification_time_compare_func compare;
+	void *compare_data;
 };
 
-struct bt_notification_packet_end {
-	struct bt_notification parent;
-	struct bt_ctf_packet *packet;
-};
-
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PACKET_INTERNAL_H */
+#endif /* BABELTRACE_COMPONENT_NOTIFICATION_HEAP_INTERNAL_H */

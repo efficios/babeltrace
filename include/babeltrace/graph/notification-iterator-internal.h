@@ -30,9 +30,9 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref-internal.h>
-#include <babeltrace/component/notification/notification.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/private-iterator.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/private-notification-iterator.h>
 
 struct bt_notification_iterator {
 	struct bt_object base;

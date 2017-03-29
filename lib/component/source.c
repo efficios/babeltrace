@@ -28,11 +28,11 @@
 
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/component-source-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/port-internal.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/iterator-internal.h>
+#include <babeltrace/graph/component-source-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/port-internal.h>
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
 
 BT_HIDDEN
 enum bt_component_status bt_component_source_validate(

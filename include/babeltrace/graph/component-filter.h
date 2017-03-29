@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_WRITER_H
-#define BABELTRACE_PLUGIN_WRITER_H
+#ifndef BABELTRACE_COMPONENT_FILTER_H
+#define BABELTRACE_COMPONENT_FILTER_H
 
 /*
- * BabelTrace - CTF Writer Output Plug-in
+ * BabelTrace - Filter Plug-in Interface
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,34 +27,36 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <stdint.h>
 #include <babeltrace/graph/component.h>
-#include <babeltrace/ctf-writer/writer.h>
 
-struct writer_component {
-	GString *base_path;
-	GString *trace_name_base;
-	/* For the directory name suffix. */
-	int trace_id;
-	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
-	GHashTable *trace_map;
-	/* Map between reader and writer stream. */
-	GHashTable *stream_map;
-	/* Map between reader and writer stream class. */
-	GHashTable *stream_class_map;
-	FILE *err;
-	struct bt_notification_iterator *input_iterator;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-BT_HIDDEN
-enum bt_component_status writer_output_event(struct writer_component *writer,
-		struct bt_ctf_event *event);
-BT_HIDDEN
-enum bt_component_status writer_new_packet(struct writer_component *writer,
-		struct bt_ctf_packet *packet);
-BT_HIDDEN
-enum bt_component_status writer_close_packet(struct writer_component *writer,
-		struct bt_ctf_packet *packet);
+struct bt_port;
+struct bt_component;
 
-#endif /* BABELTRACE_PLUGIN_WRITER_H */
+extern enum bt_component_status bt_component_filter_get_input_port_count(
+		struct bt_component *component, uint64_t *count);
+extern struct bt_port *bt_component_filter_get_input_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_filter_get_input_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_filter_get_default_input_port(
+		struct bt_component *component);
+
+extern enum bt_component_status bt_component_filter_get_output_port_count(
+		struct bt_component *component, uint64_t *count);
+extern struct bt_port *bt_component_filter_get_output_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_filter_get_output_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_filter_get_default_output_port(
+		struct bt_component *component);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_FILTER_H */

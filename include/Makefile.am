@@ -41,35 +41,33 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/plugin-dev.h
 
-babeltracecomponentnotifinclude_HEADERS = \
-	babeltrace/component/notification/eot.h \
-	babeltrace/component/notification/notification.h \
-	babeltrace/component/notification/event.h \
-	babeltrace/component/notification/iterator.h \
-	babeltrace/component/notification/packet.h \
-	babeltrace/component/notification/schema.h \
-	babeltrace/component/notification/stream.h \
-	babeltrace/component/notification/heap.h \
-	babeltrace/component/notification/private-iterator.h
-
-babeltracecomponentinclude_HEADERS = \
-	babeltrace/component/component.h \
-	babeltrace/component/component-class.h \
-	babeltrace/component/component-class-source.h \
-	babeltrace/component/component-class-filter.h \
-	babeltrace/component/component-class-sink.h \
-	babeltrace/component/connection.h \
-	babeltrace/component/port.h \
-	babeltrace/component/graph.h \
-	babeltrace/component/component-source.h \
-	babeltrace/component/component-sink.h \
-	babeltrace/component/component-filter.h \
-	babeltrace/component/private-connection.h \
-	babeltrace/component/private-port.h \
-	babeltrace/component/private-component.h \
-	babeltrace/component/private-component-source.h \
-	babeltrace/component/private-component-sink.h \
-	babeltrace/component/private-component-filter.h
+babeltracegraphinclude_HEADERS = \
+	babeltrace/graph/component-class-filter.h \
+	babeltrace/graph/component-class-sink.h \
+	babeltrace/graph/component-class-source.h \
+	babeltrace/graph/component-class.h \
+	babeltrace/graph/component-filter.h \
+	babeltrace/graph/component-sink.h \
+	babeltrace/graph/component-source.h \
+	babeltrace/graph/component.h \
+	babeltrace/graph/connection.h \
+	babeltrace/graph/graph.h \
+	babeltrace/graph/notification-eot.h \
+	babeltrace/graph/notification-event.h \
+	babeltrace/graph/notification-heap.h \
+	babeltrace/graph/notification-iterator.h \
+	babeltrace/graph/notification.h \
+	babeltrace/graph/notification-packet.h \
+	babeltrace/graph/notification-schema.h \
+	babeltrace/graph/notification-stream.h \
+	babeltrace/graph/port.h \
+	babeltrace/graph/private-component-filter.h \
+	babeltrace/graph/private-component-sink.h \
+	babeltrace/graph/private-component-source.h \
+	babeltrace/graph/private-component.h \
+	babeltrace/graph/private-connection.h \
+	babeltrace/graph/private-notification-iterator.h \
+	babeltrace/graph/private-port.h
 
 noinst_HEADERS = \
 	babeltrace/align.h \
@@ -133,18 +131,18 @@ noinst_HEADERS = \
 	babeltrace/mmap-align.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
-	babeltrace/component/component-class-internal.h \
-	babeltrace/component/connection-internal.h \
-	babeltrace/component/port-internal.h \
-	babeltrace/component/component-internal.h \
-	babeltrace/component/graph-internal.h \
-	babeltrace/component/component-filter-internal.h \
-	babeltrace/component/component-sink-internal.h \
-	babeltrace/component/component-source-internal.h \
-	babeltrace/component/notification/eot-internal.h \
-	babeltrace/component/notification/event-internal.h \
-	babeltrace/component/notification/iterator-internal.h \
-	babeltrace/component/notification/notification-internal.h \
-	babeltrace/component/notification/packet-internal.h \
-	babeltrace/component/notification/stream-internal.h \
-	babeltrace/component/notification/heap-internal.h
+	babeltrace/graph/component-class-internal.h \
+	babeltrace/graph/connection-internal.h \
+	babeltrace/graph/port-internal.h \
+	babeltrace/graph/component-internal.h \
+	babeltrace/graph/graph-internal.h \
+	babeltrace/graph/component-filter-internal.h \
+	babeltrace/graph/component-sink-internal.h \
+	babeltrace/graph/component-source-internal.h \
+	babeltrace/graph/notification-eot-internal.h \
+	babeltrace/graph/notification-event-internal.h \
+	babeltrace/graph/notification-iterator-internal.h \
+	babeltrace/graph/notification-internal.h \
+	babeltrace/graph/notification-packet-internal.h \
+	babeltrace/graph/notification-stream-internal.h \
+	babeltrace/graph/notification-heap-internal.h

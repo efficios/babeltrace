@@ -1,10 +1,12 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H
-#define BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H
 
 /*
- * Babeltrace - Component Class Interface.
+ * BabelTrace - Plug-in Stream-related Notifications
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,35 +27,21 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/ctf-ir/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class;
-
-extern
-struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
-
-extern
-int bt_component_class_source_set_notification_iterator_init_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
-
-extern
-int bt_component_class_source_set_notification_iterator_finalize_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method);
-
-extern
-int bt_component_class_source_set_notification_iterator_seek_time_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
+/*** BT_NOTIFICATION_TYPE_STREAM_END ***/
+struct bt_notification *bt_notification_stream_end_create(
+		struct bt_ctf_stream *stream);
+struct bt_ctf_stream *bt_notification_stream_end_get_stream(
+		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_SOURCE_H */
+#endif /* BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H */

@@ -29,7 +29,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 #include "data-stream.h"
 
 #define CTF_FS_COMPONENT_DESCRIPTION \

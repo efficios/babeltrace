@@ -28,9 +28,9 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/values.h>
-#include <babeltrace/component/component-sink-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/graph/component-sink-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/notification.h>
 
 BT_HIDDEN
 enum bt_component_status bt_component_sink_validate(

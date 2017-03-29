@@ -26,9 +26,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/port-internal.h>
-#include <babeltrace/component/connection-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/port-internal.h>
+#include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 

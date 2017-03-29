@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H
-#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H
+#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H
+#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,20 +33,38 @@ struct bt_private_component;
 struct bt_private_port;
 
 extern struct bt_private_port *
-bt_private_component_source_get_output_private_port(
+bt_private_component_filter_get_output_private_port(
 		struct bt_private_component *private_component,
 		const char *name);
 
 extern struct bt_private_port *
-bt_private_component_source_get_output_private_port_at_index(
+bt_private_component_filter_get_output_private_port_at_index(
 		struct bt_private_component *private_component, int index);
 
 extern struct bt_private_port *
-bt_private_component_source_get_default_output_private_port(
+bt_private_component_filter_get_default_output_private_port(
 		struct bt_private_component *private_component);
 
 extern struct bt_private_port *
-bt_private_component_source_add_output_private_port(
+bt_private_component_filter_add_output_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
+
+extern struct bt_private_port *
+bt_private_component_filter_get_input_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
+
+extern struct bt_private_port *
+bt_private_component_filter_get_input_private_port_at_index(
+		struct bt_private_component *private_component, int index);
+
+extern struct bt_private_port *
+bt_private_component_filter_get_default_input_private_port(
+		struct bt_private_component *private_component);
+
+extern struct bt_private_port *
+bt_private_component_filter_add_input_private_port(
 		struct bt_private_component *private_component,
 		const char *name);
 
@@ -54,4 +72,4 @@ bt_private_component_source_add_output_private_port(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H */

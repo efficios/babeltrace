@@ -21,14 +21,14 @@
  */
 
 #include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/private-port.h>
-#include <babeltrace/component/port.h>
-#include <babeltrace/component/private-connection.h>
-#include <babeltrace/component/component-sink.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/port.h>
+#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/component-sink.h>
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/notification.h>
 #include <plugins-common.h>
 #include <assert.h>
 #include "dummy.h"

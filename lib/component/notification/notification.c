@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/notification/notification-internal.h>
+#include <babeltrace/graph/notification-internal.h>
 
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,

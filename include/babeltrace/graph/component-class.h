@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

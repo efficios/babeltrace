@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_SINK_H
-#define BABELTRACE_COMPONENT_SINK_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
 
 /*
- * BabelTrace - Sink Component Interface
+ * BabelTrace - Plug-in Packet-related Notifications
  *
- * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,26 +27,28 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/notification.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_notification;
+struct bt_ctf_packet;
 
-extern enum bt_component_status bt_component_sink_get_input_port_count(
-		struct bt_component *component, uint64_t *count);
-extern struct bt_port *bt_component_sink_get_input_port(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_sink_get_input_port_at_index(
-		struct bt_component *component, int index);
-extern struct bt_port *bt_component_sink_get_default_input_port(
-		struct bt_component *component);
+/*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
+struct bt_notification *bt_notification_packet_begin_create(
+		struct bt_ctf_packet *packet);
+struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
+		struct bt_notification *notification);
+
+/*** BT_NOTIFICATION_TYPE_PACKET_END ***/
+struct bt_notification *bt_notification_packet_end_create(
+		struct bt_ctf_packet *packet);
+struct bt_ctf_packet *bt_notification_packet_end_get_packet(
+		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_SINK_H */
+#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H */

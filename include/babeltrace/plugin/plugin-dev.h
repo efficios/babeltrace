@@ -33,10 +33,10 @@
 
 #include <stdint.h>
 #include <babeltrace/plugin/plugin.h>
-#include <babeltrace/component/component-class.h>
-#include <babeltrace/component/component-class-source.h>
-#include <babeltrace/component/component-class-filter.h>
-#include <babeltrace/component/component-class-sink.h>
+#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-sink.h>
 
 #ifdef __cplusplus
 extern "C" {

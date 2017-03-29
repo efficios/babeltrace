@@ -24,9 +24,9 @@
  */
 
 #include <glib.h>
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/private-port.h>
-#include <babeltrace/component/port.h>
+#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/port.h>
 
 struct dummy {
 	GPtrArray *iterators;

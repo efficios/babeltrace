@@ -28,11 +28,11 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/component-class.h>
-#include <babeltrace/component/component-class-source.h>
-#include <babeltrace/component/component-class-filter.h>
-#include <babeltrace/component/component-class-sink.h>
+#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <stdbool.h>

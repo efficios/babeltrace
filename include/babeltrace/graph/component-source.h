@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_EVENT_INTERNAL_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_EVENT_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_SOURCE_H
+#define BABELTRACE_COMPONENT_SOURCE_H
 
 /*
- * BabelTrace - Plug-in Event Notification internal
+ * BabelTrace - Source Plug-in Interface
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,20 +27,27 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/component/notification/notification-internal.h>
+#include <stdint.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification_event {
-	struct bt_notification parent;
-	struct bt_ctf_event *event;
-};
+struct bt_component;
+struct bt_notification_iterator;
+
+extern enum bt_component_status bt_component_source_get_output_port_count(
+		struct bt_component *component, uint64_t *count);
+extern struct bt_port *bt_component_source_get_output_port(
+		struct bt_component *component, const char *name);
+extern struct bt_port *bt_component_source_get_output_port_at_index(
+		struct bt_component *component, int index);
+extern struct bt_port *bt_component_source_get_default_output_port(
+		struct bt_component *component);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACECOMPONENTPLUGIN_NOTIFICATION_EVENT_INTERNAL_H */
+#endif /* BABELTRACE_COMPONENT_SOURCE_H */

@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
+#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H
+#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H
 
 /*
- * BabelTrace - Plug-in Packet-related Notifications
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,28 +23,35 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_ctf_packet;
+struct bt_private_component;
+struct bt_private_port;
 
-/*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
-struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_ctf_packet *packet);
-struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
-		struct bt_notification *notification);
+extern struct bt_private_port *
+bt_private_component_source_get_output_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
 
-/*** BT_NOTIFICATION_TYPE_PACKET_END ***/
-struct bt_notification *bt_notification_packet_end_create(
-		struct bt_ctf_packet *packet);
-struct bt_ctf_packet *bt_notification_packet_end_get_packet(
-		struct bt_notification *notification);
+extern struct bt_private_port *
+bt_private_component_source_get_output_private_port_at_index(
+		struct bt_private_component *private_component, int index);
+
+extern struct bt_private_port *
+bt_private_component_source_get_default_output_private_port(
+		struct bt_private_component *private_component);
+
+extern struct bt_private_port *
+bt_private_component_source_add_output_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H */
+#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SOURCE_H */

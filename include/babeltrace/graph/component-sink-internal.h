@@ -28,9 +28,9 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component-sink.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/graph/component-sink.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 
 struct bt_value;
 

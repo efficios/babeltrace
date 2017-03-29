@@ -25,7 +25,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/notification/packet-internal.h>
+#include <babeltrace/graph/notification-packet-internal.h>
 
 static
 void bt_notification_packet_begin_destroy(struct bt_object *obj)

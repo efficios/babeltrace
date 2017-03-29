@@ -26,14 +26,14 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/notification/iterator-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-source-internal.h>
-#include <babeltrace/component/component-filter-internal.h>
-#include <babeltrace/component/connection-internal.h>
-#include <babeltrace/component/private-connection.h>
-#include <babeltrace/component/graph-internal.h>
-#include <babeltrace/component/port-internal.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-source-internal.h>
+#include <babeltrace/graph/component-filter-internal.h>
+#include <babeltrace/graph/connection-internal.h>
+#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/graph-internal.h>
+#include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
 #include <glib.h>

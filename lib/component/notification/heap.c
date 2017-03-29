@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/notification/heap-internal.h>
+#include <babeltrace/graph/notification-heap-internal.h>
 
 #ifdef DEBUG_HEAP
 static

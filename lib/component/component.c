@@ -26,18 +26,18 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
-#include <babeltrace/component/component-source-internal.h>
-#include <babeltrace/component/component-filter-internal.h>
-#include <babeltrace/component/component-sink-internal.h>
-#include <babeltrace/component/private-connection.h>
-#include <babeltrace/component/connection-internal.h>
-#include <babeltrace/component/graph-internal.h>
-#include <babeltrace/component/notification/iterator-internal.h>
-#include <babeltrace/component/notification/private-iterator.h>
+#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/component-source-internal.h>
+#include <babeltrace/graph/component-filter-internal.h>
+#include <babeltrace/graph/component-sink-internal.h>
+#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/connection-internal.h>
+#include <babeltrace/graph/graph-internal.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler.h>
 #include <babeltrace/ref.h>

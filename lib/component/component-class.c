@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/ref.h>
 #include <stdbool.h>
 #include <glib.h>

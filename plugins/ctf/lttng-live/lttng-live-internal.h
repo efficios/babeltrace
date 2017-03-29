@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 #define LTTNG_LIVE_COMPONENT_DESCRIPTION "Component implementing an LTTng-live client."
 

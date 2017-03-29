@@ -31,7 +31,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler.h>
-#include <babeltrace/component/component-class.h>
+#include <babeltrace/graph/component-class.h>
 #include <glib.h>
 
 struct bt_config_component {

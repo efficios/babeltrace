@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_H
-#define BABELTRACE_COMPONENT_FILTER_H
+#ifndef BABELTRACE_COMPONENT_SINK_H
+#define BABELTRACE_COMPONENT_SINK_H
 
 /*
- * BabelTrace - Filter Plug-in Interface
+ * BabelTrace - Sink Component Interface
  *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,36 +27,26 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
 struct bt_component;
+struct bt_notification;
 
-extern enum bt_component_status bt_component_filter_get_input_port_count(
+extern enum bt_component_status bt_component_sink_get_input_port_count(
 		struct bt_component *component, uint64_t *count);
-extern struct bt_port *bt_component_filter_get_input_port(
+extern struct bt_port *bt_component_sink_get_input_port(
 		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_filter_get_input_port_at_index(
+extern struct bt_port *bt_component_sink_get_input_port_at_index(
 		struct bt_component *component, int index);
-extern struct bt_port *bt_component_filter_get_default_input_port(
-		struct bt_component *component);
-
-extern enum bt_component_status bt_component_filter_get_output_port_count(
-		struct bt_component *component, uint64_t *count);
-extern struct bt_port *bt_component_filter_get_output_port(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_filter_get_output_port_at_index(
-		struct bt_component *component, int index);
-extern struct bt_port *bt_component_filter_get_default_output_port(
+extern struct bt_port *bt_component_sink_get_default_input_port(
 		struct bt_component *component);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_FILTER_H */
+#endif /* BABELTRACE_COMPONENT_SINK_H */

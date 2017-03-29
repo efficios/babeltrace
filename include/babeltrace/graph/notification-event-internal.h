@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_NOTIFICATION_INTERNAL_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_NOTIFICATION_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_EVENT_INTERNAL_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_EVENT_INTERNAL_H
 
 /*
- * BabelTrace - Plug-in Notification internal
+ * BabelTrace - Plug-in Event Notification internal
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,32 +27,20 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ref-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/component/notification/notification.h>
-#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/graph/notification-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct bt_ctf_stream *(*get_stream_func)(
-		struct bt_notification *notification);
-
-struct bt_notification {
-	struct bt_object base;
-	enum bt_notification_type type;
-	get_stream_func get_stream;
+struct bt_notification_event {
+	struct bt_notification parent;
+	struct bt_ctf_event *event;
 };
-
-BT_HIDDEN
-void bt_notification_init(struct bt_notification *notification,
-		enum bt_notification_type type,
-		bt_object_release_func release);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_NOTIFICATION_INTERNAL_H */
+#endif /* BABELTRACECOMPONENTPLUGIN_NOTIFICATION_EVENT_INTERNAL_H */

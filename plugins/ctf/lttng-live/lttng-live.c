@@ -27,7 +27,7 @@
  */
 
 #include "lttng-live-internal.h"
-#include <babeltrace/component/component-source.h>
+#include <babeltrace/graph/component-source.h>
 #include <plugins-common.h>
 
 BT_HIDDEN

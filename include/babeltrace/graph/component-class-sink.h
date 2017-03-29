@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
-#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
+#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
+#define BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Babeltrace - Component Class Interface.
+ *
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +25,23 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/private-component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_private_component;
+struct bt_component_class;
 
-struct bt_component *bt_component_from_private_component(
-		struct bt_private_component *private_component);
+typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
+        struct bt_private_component *private_component);
 
-extern void *bt_private_component_get_user_data(
-		struct bt_private_component *private_component);
-
-extern enum bt_component_status bt_private_component_set_user_data(
-		struct bt_private_component *private_component,
-		void *user_data);
+extern
+struct bt_component_class *bt_component_class_sink_create(const char *name,
+		bt_component_class_sink_consume_method consume_method);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H */
+#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H */

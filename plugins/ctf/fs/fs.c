@@ -28,14 +28,14 @@
 
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/component/private-component.h>
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/private-iterator.h>
-#include <babeltrace/component/notification/stream.h>
-#include <babeltrace/component/notification/event.h>
-#include <babeltrace/component/notification/packet.h>
-#include <babeltrace/component/notification/heap.h>
+#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/graph/notification-heap.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <assert.h>

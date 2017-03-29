@@ -28,7 +28,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <babeltrace/component/notification/notification.h>
+#include <babeltrace/graph/notification.h>
 #include <babeltrace/babeltrace-internal.h>
 
 /**

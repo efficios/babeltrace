@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H
+#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H
 
 /*
- * BabelTrace - Stream-related Notifications
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +23,35 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/component/notification/notification-internal.h>
+#include <babeltrace/graph/component.h>
 
-struct bt_notification_stream_end {
-	struct bt_notification parent;
-	struct bt_ctf_stream *stream;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H */
+struct bt_private_component;
+struct bt_private_port;
+
+extern struct bt_private_port *
+bt_private_component_sink_get_input_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
+
+extern struct bt_private_port *
+bt_private_component_sink_get_input_private_port_at_index(
+		struct bt_private_component *private_component, int index);
+
+extern struct bt_private_port *
+bt_private_component_sink_get_default_input_private_port(
+		struct bt_private_component *private_component);
+
+extern struct bt_private_port *
+bt_private_component_sink_add_input_private_port(
+		struct bt_private_component *private_component,
+		const char *name);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_SINK_H */

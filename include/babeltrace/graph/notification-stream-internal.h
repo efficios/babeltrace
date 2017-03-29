@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_INTERNAL_H
-#define BABELTRACE_COMPONENT_FILTER_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H
+#define BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H
 
 /*
- * BabelTrace - Filter Component Internal
+ * BabelTrace - Stream-related Notifications
  *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,38 +27,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component-internal.h>
-#include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/graph/notification-internal.h>
 
-struct bt_value;
-
-struct bt_component_filter {
-	struct bt_component parent;
+struct bt_notification_stream_end {
+	struct bt_notification parent;
+	struct bt_ctf_stream *stream;
 };
 
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
-BT_HIDDEN
-struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params);
-
-BT_HIDDEN
-void bt_component_filter_destroy(struct bt_component *component);
-
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
-BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
-
-#endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */
+#endif /* BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H */

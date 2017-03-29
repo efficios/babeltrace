@@ -27,8 +27,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/component-class.h>
-#include <babeltrace/component/notification/iterator.h>
+#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/values.h>
 #include <stdio.h>
 

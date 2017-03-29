@@ -29,7 +29,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/component/component.h>
+#include <babeltrace/graph/component.h>
 
 enum text_default {
 	TEXT_DEFAULT_UNSET,

@@ -33,7 +33,7 @@
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/component/component-class-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 #include <string.h>
 #include <stdbool.h>
 #include <glib.h>

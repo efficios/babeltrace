@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H
-#define BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H
+#ifndef BABELTRACE_COMPONENT_PORT_INTERNAL_H
+#define BABELTRACE_COMPONENT_PORT_INTERNAL_H
 
 /*
- * BabelTrace - Component Connection Internal
+ * BabelTrace - Babeltrace Component Port
  *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,50 +27,43 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/component/connection.h>
-#include <babeltrace/component/private-connection.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/graph/port.h>
 
-struct bt_graph;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct bt_connection {
-	/*
-	 * The graph is a connection's parent and the connection is the parent
-	 * of all iterators it has created.
-	 */
+struct bt_port {
 	struct bt_object base;
-	/*
-	 * Weak references are held to both ports. Their existence is guaranteed
-	 * by the existence of the graph and thus, of their respective
-	 * components.
-	 */
-	/* Downstream port. */
-	struct bt_port *downstream_port;
-	/* Upstream port. */
-	struct bt_port *upstream_port;
+	enum bt_port_type type;
+	GString *name;
+	struct bt_connection *connection;
 };
 
 static inline
-struct bt_connection *bt_connection_from_private(
-		struct bt_private_connection *private_connection)
+struct bt_port *bt_port_from_private(
+		struct bt_private_port *private_port)
 {
-	return (void *) private_connection;
+	return (void *) private_port;
 }
 
 static inline
-struct bt_private_connection *bt_private_connection_from_connection(
-		struct bt_connection *connection)
+struct bt_private_port *bt_private_port_from_port(
+		struct bt_port *port)
 {
-	return (void *) connection;
+	return (void *) port;
 }
 
 BT_HIDDEN
-struct bt_connection *bt_connection_create(struct bt_graph *graph,
-		struct bt_port *upstream_port,
-		struct bt_port *downstream_port);
+struct bt_port *bt_port_create(struct bt_component *parent_component,
+		enum bt_port_type type, const char *name);
 
 BT_HIDDEN
-void bt_connection_disconnect_ports(struct bt_connection *conn,
-		struct bt_component *comp);
+void bt_port_set_connection(struct bt_port *port,
+		struct bt_connection *connection);
 
-#endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_COMPONENT_PORT_INTERNAL_H */
