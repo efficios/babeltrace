@@ -598,7 +598,7 @@ int connect_source_sink(struct bt_graph *graph,
 			goto end;
 		}
 
-		connection = bt_graph_connect(graph, source_port,
+		connection = bt_graph_connect_ports(graph, source_port,
 				trimmer_input_port);
 		if (!connection) {
 			fprintf(stderr, "Failed to connect source to trimmer. Aborting...\n");
@@ -610,7 +610,7 @@ int connect_source_sink(struct bt_graph *graph,
 		BT_MOVE(to_sink_port, source_port);
 	}
 
-	connection = bt_graph_connect(graph, to_sink_port, sink_port);
+	connection = bt_graph_connect_ports(graph, to_sink_port, sink_port);
 	if (!connection) {
 		fprintf(stderr, "Failed to connect to sink. Aborting...\n");
 		ret = -1;

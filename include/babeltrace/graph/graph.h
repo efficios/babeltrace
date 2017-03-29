@@ -70,7 +70,7 @@ extern struct bt_graph *bt_graph_create(void);
  * Creates a connection between two components using the two ports specified
  * and adds the connection and components (if not already added) to the graph.
  */
-extern struct bt_connection *bt_graph_connect(struct bt_graph *graph,
+extern struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 		struct bt_port *upstream,
 		struct bt_port *downstream);
 

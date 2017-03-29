@@ -145,7 +145,7 @@ error:
 	goto end;
 }
 
-struct bt_connection *bt_graph_connect(struct bt_graph *graph,
+struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 		struct bt_port *upstream_port,
 		struct bt_port *downstream_port)
 {
@@ -473,8 +473,8 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 				goto error_disconnect;
 			}
 
-			new_connection = bt_graph_connect(graph, upstream_port,
-					new_port);
+			new_connection = bt_graph_connect_ports(graph,
+				upstream_port, new_port);
 			if (!new_connection) {
 				goto error_disconnect;
 			}
@@ -510,8 +510,8 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 				goto error_disconnect;
 			}
 
-			new_connection = bt_graph_connect(graph, new_port,
-					downstream_port);
+			new_connection = bt_graph_connect_ports(graph,
+				new_port, downstream_port);
 			if (!new_connection) {
 				goto error_disconnect;
 			}
