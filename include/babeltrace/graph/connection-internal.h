@@ -70,7 +70,6 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		struct bt_port *downstream_port);
 
 BT_HIDDEN
-void bt_connection_disconnect_ports(struct bt_connection *conn,
-		struct bt_component *comp);
+void bt_connection_disconnect_ports(struct bt_connection *conn);
 
 #endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */

@@ -477,7 +477,7 @@ void bt_component_remove_port_at_index(struct bt_component *component,
 
 	/* Disconnect both ports of this port's connection, if any */
 	if (port->connection) {
-		bt_connection_disconnect_ports(port->connection, component);
+		bt_connection_disconnect_ports(port->connection);
 	}
 
 	/* Remove from parent's array of ports (weak refs) */

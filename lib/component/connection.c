@@ -89,8 +89,7 @@ end:
 }
 
 BT_HIDDEN
-void bt_connection_disconnect_ports(struct bt_connection *conn,
-		struct bt_component *acting_comp)
+void bt_connection_disconnect_ports(struct bt_connection *conn)
 {
 	struct bt_component *downstream_comp = NULL;
 	struct bt_component *upstream_comp = NULL;
@@ -109,12 +108,12 @@ void bt_connection_disconnect_ports(struct bt_connection *conn,
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp && downstream_comp != acting_comp) {
+	if (downstream_comp) {
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
 	}
 
-	if (upstream_comp && upstream_comp != acting_comp) {
+	if (upstream_comp) {
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 

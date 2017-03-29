@@ -166,7 +166,7 @@ int bt_port_disconnect(struct bt_port *port)
 	}
 
 	if (port->connection) {
-		bt_connection_disconnect_ports(port->connection, NULL);
+		bt_connection_disconnect_ports(port->connection);
 	}
 
 end:

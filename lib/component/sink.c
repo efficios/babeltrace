@@ -162,7 +162,7 @@ bt_private_component_sink_get_input_private_port_at_index(
 			bt_component_from_private(private_component), index));
 }
 
-struct bt_private_port *bt_private_component_sink_get_default_private_input_port(
+struct bt_private_port *bt_private_component_sink_get_default_input_private_port(
 		struct bt_private_component *private_component)
 {
 	return bt_private_port_from_port(
