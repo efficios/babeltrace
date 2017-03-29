@@ -58,10 +58,12 @@ typedef void (*bt_graph_port_added_listener)(struct bt_port *port,
 		void *data);
 typedef void (*bt_graph_port_removed_listener)(struct bt_component *component,
 		struct bt_port *port, void *data);
-typedef void (*bt_graph_port_connected_listener)(struct bt_port *port,
-		void *data);
-typedef void (*bt_graph_port_disconnected_listener)(
-		struct bt_component *component, struct bt_port *port,
+typedef void (*bt_graph_ports_connected_listener)(struct bt_port *upstream_port,
+		struct bt_port *downstream_port, void *data);
+typedef void (*bt_graph_ports_disconnected_listener)(
+		struct bt_component *upstream_component,
+		struct bt_component *downstream_component,
+		struct bt_port *upstream_port, struct bt_port *downstream_port,
 		void *data);
 
 extern struct bt_graph *bt_graph_create(void);
@@ -106,13 +108,13 @@ extern enum bt_graph_status bt_graph_add_port_removed_listener(
 		struct bt_graph *graph,
 		bt_graph_port_removed_listener listener, void *data);
 
-extern enum bt_graph_status bt_graph_add_port_connected_listener(
+extern enum bt_graph_status bt_graph_add_ports_connected_listener(
 		struct bt_graph *graph,
-		bt_graph_port_connected_listener listener, void *data);
+		bt_graph_ports_connected_listener listener, void *data);
 
-extern enum bt_graph_status bt_graph_add_port_disconnected_listener(
+extern enum bt_graph_status bt_graph_add_ports_disconnected_listener(
 		struct bt_graph *graph,
-		bt_graph_port_disconnected_listener listener, void *data);
+		bt_graph_ports_disconnected_listener listener, void *data);
 
 #ifdef __cplusplus
 }

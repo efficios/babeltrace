@@ -95,6 +95,7 @@ void bt_connection_disconnect_ports(struct bt_connection *conn)
 	struct bt_component *upstream_comp = NULL;
 	struct bt_port *downstream_port = conn->downstream_port;
 	struct bt_port *upstream_port = conn->upstream_port;
+	struct bt_graph *graph = (void *) bt_object_get_parent(conn);
 
 	if (downstream_port) {
 		downstream_comp = bt_port_get_component(downstream_port);
@@ -117,27 +118,12 @@ void bt_connection_disconnect_ports(struct bt_connection *conn)
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 
-	if (upstream_comp) {
-		struct bt_graph *graph = bt_component_get_graph(upstream_comp);
-
-		assert(graph);
-		bt_graph_notify_port_disconnected(graph, upstream_comp,
-			upstream_port);
-		bt_put(graph);
-	}
-
-	if (downstream_comp) {
-		struct bt_graph *graph =
-			bt_component_get_graph(downstream_comp);
-
-		assert(graph);
-		bt_graph_notify_port_disconnected(graph, downstream_comp,
-			downstream_port);
-		bt_put(graph);
-	}
-
+	assert(graph);
+	bt_graph_notify_ports_disconnected(graph, upstream_comp,
+		downstream_comp, upstream_port, downstream_port);
 	bt_put(downstream_comp);
 	bt_put(upstream_comp);
+	bt_put(graph);
 }
 
 struct bt_port *bt_connection_get_upstream_port(

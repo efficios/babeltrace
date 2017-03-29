@@ -58,8 +58,8 @@ struct bt_graph {
 	struct {
 		GArray *port_added;
 		GArray *port_removed;
-		GArray *port_connected;
-		GArray *port_disconnected;
+		GArray *ports_connected;
+		GArray *ports_disconnected;
 	} listeners;
 };
 
@@ -71,11 +71,14 @@ void bt_graph_notify_port_removed(struct bt_graph *graph,
 		struct bt_component *comp, struct bt_port *port);
 
 BT_HIDDEN
-void bt_graph_notify_port_connected(struct bt_graph *graph,
-		struct bt_port *port);
+void bt_graph_notify_ports_connected(struct bt_graph *graph,
+		struct bt_port *upstream_port, struct bt_port *downstream_port);
 
 BT_HIDDEN
-void bt_graph_notify_port_disconnected(struct bt_graph *graph,
-		struct bt_component *comp, struct bt_port *port);
+void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
+		struct bt_component *upstream_comp,
+		struct bt_component *downstream_comp,
+		struct bt_port *upstream_port,
+		struct bt_port *downstream_port);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_GRAPH_INTERNAL_H */

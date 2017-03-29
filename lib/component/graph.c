@@ -66,12 +66,12 @@ void bt_graph_destroy(struct bt_object *obj)
 		g_array_free(graph->listeners.port_removed, TRUE);
 	}
 
-	if (graph->listeners.port_connected) {
-		g_array_free(graph->listeners.port_connected, TRUE);
+	if (graph->listeners.ports_connected) {
+		g_array_free(graph->listeners.ports_connected, TRUE);
 	}
 
-	if (graph->listeners.port_disconnected) {
-		g_array_free(graph->listeners.port_disconnected, TRUE);
+	if (graph->listeners.ports_disconnected) {
+		g_array_free(graph->listeners.ports_disconnected, TRUE);
 	}
 
 	g_free(graph);
@@ -128,12 +128,12 @@ struct bt_graph *bt_graph_create(void)
 		goto error;
 	}
 
-	ret = init_listeners_array(&graph->listeners.port_connected);
+	ret = init_listeners_array(&graph->listeners.ports_connected);
 	if (ret) {
 		goto error;
 	}
 
-	ret = init_listeners_array(&graph->listeners.port_disconnected);
+	ret = init_listeners_array(&graph->listeners.ports_disconnected);
 	if (ret) {
 		goto error;
 	}
@@ -270,8 +270,7 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	 * Both components accepted the connection. Notify the graph's
 	 * creator that both ports are connected.
 	 */
-	bt_graph_notify_port_connected(graph, upstream_port);
-	bt_graph_notify_port_connected(graph, downstream_port);
+	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
 
 end:
 	bt_put(upstream_graph);
@@ -673,9 +672,9 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_add_port_connected_listener(
+enum bt_graph_status bt_graph_add_ports_connected_listener(
 		struct bt_graph *graph,
-		bt_graph_port_connected_listener listener, void *data)
+		bt_graph_ports_connected_listener listener, void *data)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 
@@ -684,15 +683,15 @@ enum bt_graph_status bt_graph_add_port_connected_listener(
 		goto end;
 	}
 
-	add_listener(graph->listeners.port_connected, listener, data);
+	add_listener(graph->listeners.ports_connected, listener, data);
 
 end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_add_port_disconnected_listener(
+enum bt_graph_status bt_graph_add_ports_disconnected_listener(
 		struct bt_graph *graph,
-		bt_graph_port_disconnected_listener listener, void *data)
+		bt_graph_ports_disconnected_listener listener, void *data)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 
@@ -701,7 +700,7 @@ enum bt_graph_status bt_graph_add_port_disconnected_listener(
 		goto end;
 	}
 
-	add_listener(graph->listeners.port_disconnected, listener, data);
+	add_listener(graph->listeners.ports_disconnected, listener, data);
 
 end:
 	return status;
@@ -741,35 +740,38 @@ void bt_graph_notify_port_removed(struct bt_graph *graph,
 }
 
 BT_HIDDEN
-void bt_graph_notify_port_connected(struct bt_graph *graph,
-		struct bt_port *port)
+void bt_graph_notify_ports_connected(struct bt_graph *graph,
+		struct bt_port *upstream_port, struct bt_port *downstream_port)
 {
 	size_t i;
 
-	for (i = 0; i < graph->listeners.port_connected->len; i++) {
+	for (i = 0; i < graph->listeners.ports_connected->len; i++) {
 		struct bt_graph_listener listener =
-			g_array_index(graph->listeners.port_connected,
+			g_array_index(graph->listeners.ports_connected,
 				struct bt_graph_listener, i);
-		bt_graph_port_connected_listener func = listener.func;
+		bt_graph_ports_connected_listener func = listener.func;
 
 		assert(func);
-		func(port, listener.data);
+		func(upstream_port, downstream_port, listener.data);
 	}
 }
 
 BT_HIDDEN
-void bt_graph_notify_port_disconnected(struct bt_graph *graph,
-		struct bt_component *comp, struct bt_port *port)
+void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
+		struct bt_component *upstream_comp,
+		struct bt_component *downstream_comp,
+		struct bt_port *upstream_port, struct bt_port *downstream_port)
 {
 	size_t i;
 
-	for (i = 0; i < graph->listeners.port_disconnected->len; i++) {
+	for (i = 0; i < graph->listeners.ports_disconnected->len; i++) {
 		struct bt_graph_listener listener =
-			g_array_index(graph->listeners.port_disconnected,
+			g_array_index(graph->listeners.ports_disconnected,
 				struct bt_graph_listener, i);
-		bt_graph_port_disconnected_listener func = listener.func;
+		bt_graph_ports_disconnected_listener func = listener.func;
 
 		assert(func);
-		func(comp, port, listener.data);
+		func(upstream_comp, downstream_comp, upstream_port,
+			downstream_port, listener.data);
 	}
 }
