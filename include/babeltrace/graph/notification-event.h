@@ -33,6 +33,7 @@ extern "C" {
 
 struct bt_notification;
 struct bt_ctf_event;
+struct bt_clock_class_priority_map;
 
 /***BT_NOTIFICATION_TYPE_EVENT ***/
 /**
@@ -44,7 +45,8 @@ struct bt_ctf_event;
  * @see #bt_notification_type
  */
 extern struct bt_notification *bt_notification_event_create(
-		struct bt_ctf_event *event);
+		struct bt_ctf_event *event,
+		struct bt_clock_class_priority_map *clock_class_priority_map);
 
 /**
  * Get an event notification's event.
@@ -55,6 +57,10 @@ extern struct bt_notification *bt_notification_event_create(
  * @see #bt_ctf_event
  */
 extern struct bt_ctf_event *bt_notification_event_get_event(
+		struct bt_notification *notification);
+
+extern struct bt_clock_class_priority_map *
+bt_notification_event_get_clock_class_priority_map(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

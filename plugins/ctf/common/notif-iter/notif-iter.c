@@ -41,6 +41,7 @@
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/ref.h>
 #include <glib.h>
 
@@ -160,6 +161,9 @@ struct bt_ctf_notif_iter {
 		struct bt_ctf_stream_class *stream_class;
 		struct bt_ctf_event_class *event_class;
 	} meta;
+
+	/* Clock class priority map (owned by this) */
+	struct bt_clock_class_priority_map *cc_prio_map;
 
 	/* Current packet (NULL if not created yet) */
 	struct bt_ctf_packet *packet;
@@ -2195,7 +2199,7 @@ void notify_event(struct bt_ctf_notif_iter *notit,
 		goto end;
 	}
 
-	ret = bt_notification_event_create(event);
+	ret = bt_notification_event_create(event, notit->cc_prio_map);
 	if (!ret) {
 		goto end;
 	}
@@ -2303,6 +2307,7 @@ end:
 
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
+		struct bt_clock_class_priority_map *cc_prio_map,
 		size_t max_request_sz,
 		struct bt_ctf_notif_iter_medium_ops medops,
 		void *data, FILE *err_stream)
@@ -2327,6 +2332,7 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 	};
 
 	assert(trace);
+	assert(cc_prio_map);
 	assert(medops.request_bytes);
 	assert(medops.get_stream);
 	notit = g_new0(struct bt_ctf_notif_iter, 1);
@@ -2345,6 +2351,7 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		PERR("Failed to initialize stream clock states\n");
 		goto error;
 	}
+	notit->cc_prio_map = bt_get(cc_prio_map);
 	notit->meta.trace = bt_get(trace);
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
@@ -2388,6 +2395,7 @@ error:
 
 void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 {
+	BT_PUT(notit->cc_prio_map);
 	BT_PUT(notit->meta.trace);
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);

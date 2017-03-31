@@ -30,6 +30,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/clock-class-priority-map.h>
 #include "data-stream.h"
 
 #define CTF_FS_COMPONENT_DESCRIPTION \
@@ -90,6 +91,7 @@ struct ctf_fs_component {
 	size_t page_size;
 	struct ctf_fs_component_options options;
 	struct ctf_fs_metadata *metadata;
+	struct bt_clock_class_priority_map *cc_prio_map;
 
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;

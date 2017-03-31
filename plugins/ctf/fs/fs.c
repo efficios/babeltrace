@@ -34,6 +34,7 @@
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/clock-class-priority-map.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <assert.h>
@@ -140,6 +141,7 @@ void ctf_fs_destroy_data(struct ctf_fs_component *ctf_fs)
 		g_free(ctf_fs->metadata);
 	}
 
+	bt_put(ctf_fs->cc_prio_map);
 	g_free(ctf_fs);
 }
 
@@ -326,6 +328,42 @@ end:
 }
 
 static
+int create_cc_prio_map(struct ctf_fs_component *ctf_fs)
+{
+	int ret = 0;
+	size_t i;
+	int count;
+
+	assert(ctf_fs);
+	ctf_fs->cc_prio_map = bt_clock_class_priority_map_create();
+	if (!ctf_fs->cc_prio_map) {
+		ret = -1;
+		goto end;
+	}
+
+	count = bt_ctf_trace_get_clock_class_count(ctf_fs->metadata->trace);
+	assert(count >= 0);
+
+	for (i = 0; i < count; i++) {
+		struct bt_ctf_clock_class *clock_class =
+			bt_ctf_trace_get_clock_class(ctf_fs->metadata->trace,
+				i);
+
+		assert(clock_class);
+		ret = bt_clock_class_priority_map_add_clock_class(
+			ctf_fs->cc_prio_map, clock_class, 0);
+		BT_PUT(clock_class);
+
+		if (ret) {
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
+static
 struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		struct bt_value *params)
 {
@@ -376,6 +414,11 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	}
 
 	ret = ctf_fs_metadata_set_trace(ctf_fs);
+	if (ret) {
+		goto error;
+	}
+
+	ret = create_cc_prio_map(ctf_fs);
 	if (ret) {
 		goto error;
 	}

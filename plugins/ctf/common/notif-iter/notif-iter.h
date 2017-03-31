@@ -32,6 +32,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/babeltrace-internal.h>
 
 /**
@@ -233,6 +234,8 @@ struct bt_ctf_notif_iter_notif_event {
  * incremented.
  *
  * @param trace			Trace to read
+ * @param cc_prio_map		Clock class priority map to use when
+ *				creating the event notifications
  * @param max_request_sz	Maximum buffer size, in bytes, to
  *				request to
  *				bt_ctf_notif_iter_medium_ops::request_bytes()
@@ -245,6 +248,7 @@ struct bt_ctf_notif_iter_notif_event {
  */
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
+	struct bt_clock_class_priority_map *cc_prio_map,
 	size_t max_request_sz, struct bt_ctf_notif_iter_medium_ops medops,
 	void *medops_data, FILE *err_stream);
 

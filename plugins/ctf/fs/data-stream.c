@@ -370,7 +370,8 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 	}
 
 	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata->trace,
-			ctf_fs->page_size, medops, stream, ctf_fs->error_fp);
+			ctf_fs->cc_prio_map, ctf_fs->page_size, medops, stream,
+			ctf_fs->error_fp);
 	if (!stream->notif_iter) {
 		goto error;
 	}
