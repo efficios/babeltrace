@@ -26,16 +26,18 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/graph/component-filter.h>
+#include <babeltrace/graph/private-component-filter.h>
+#include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-component.h>
 #include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/component/component.h>
-#include <babeltrace/component/component-filter.h>
-#include <babeltrace/component/port.h>
-#include <babeltrace/component/connection.h>
-#include <babeltrace/component/notification/notification.h>
-#include <babeltrace/component/notification/iterator.h>
-#include <babeltrace/component/notification/event.h>
-#include <babeltrace/component/notification/packet.h>
-#include <babeltrace/component/notification/stream.h>
 #include <plugins-common.h>
 #include <assert.h>
 #include "debug-info.h"
@@ -49,9 +51,9 @@ void destroy_debug_info_data(struct debug_info_component *debug_info)
 }
 
 static
-void destroy_debug_info_component(struct bt_component *component)
+void destroy_debug_info_component(struct bt_private_component *component)
 {
-	void *data = bt_component_get_private_data(component);
+	void *data = bt_private_component_get_user_data(component);
 	destroy_debug_info_data(data);
 }
 
@@ -101,11 +103,11 @@ void unref_stream_class(struct bt_ctf_stream_class *stream_class)
 }
 
 static
-void debug_info_iterator_destroy(struct bt_notification_iterator *it)
+void debug_info_iterator_destroy(struct bt_private_notification_iterator *it)
 {
 	struct debug_info_iterator *it_data;
 
-	it_data = bt_notification_iterator_get_private_data(it);
+	it_data = bt_private_notification_iterator_get_user_data(it);
 	assert(it_data);
 
 	if (it_data->input_iterator_group) {
@@ -216,58 +218,59 @@ end:
 }
 
 static
-enum bt_notification_iterator_status debug_info_iterator_next(
-		struct bt_notification_iterator *iterator)
+struct bt_notification_iterator_next_return debug_info_iterator_next(
+		struct bt_private_notification_iterator *iterator)
 {
 	struct debug_info_iterator *debug_it = NULL;
-	struct bt_component *component = NULL;
+	struct bt_private_component *component = NULL;
 	struct debug_info_component *debug_info = NULL;
 	struct bt_notification_iterator *source_it = NULL;
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct bt_notification *notification, *new_notification;
+	struct bt_notification *notification;
+	struct bt_notification_iterator_next_return ret = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+		.notification = NULL,
+	};
 
-	debug_it = bt_notification_iterator_get_private_data(iterator);
+	debug_it = bt_private_notification_iterator_get_user_data(iterator);
 	assert(debug_it);
 
-	component = bt_notification_iterator_get_component(iterator);
+	component = bt_private_notification_iterator_get_private_component(iterator);
 	assert(component);
-	debug_info = bt_component_get_private_data(component);
+	debug_info = bt_private_component_get_user_data(component);
 	assert(debug_info);
 
 	source_it = debug_it->input_iterator;
 
-	ret = bt_notification_iterator_next(source_it);
-	if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	ret.status = bt_notification_iterator_next(source_it);
+	if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 
 	notification = bt_notification_iterator_get_notification(
 			source_it);
 	if (!notification) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	new_notification = handle_notification(debug_info->err, debug_it,
+	ret.notification = handle_notification(debug_info->err, debug_it,
 			notification);
-	assert(new_notification);
+	assert(ret.notification);
 	bt_put(notification);
-
-	BT_MOVE(debug_it->current_notification, new_notification);
 
 end:
 	bt_put(component);
 	return ret;
 }
 
+/*
 static
 struct bt_notification *debug_info_iterator_get(
-		struct bt_notification_iterator *iterator)
+		struct bt_private_notification_iterator *iterator)
 {
 	struct debug_info_iterator *debug_it;
 
-	debug_it = bt_notification_iterator_get_private_data(iterator);
+	debug_it = bt_private_notification_iterator_get_user_data(iterator);
 	assert(debug_it);
 
 	if (!debug_it->current_notification) {
@@ -282,10 +285,11 @@ struct bt_notification *debug_info_iterator_get(
 end:
 	return bt_get(debug_it->current_notification);
 }
+*/
 
 static
 enum bt_notification_iterator_status debug_info_iterator_seek_time(
-		struct bt_notification_iterator *iterator, int64_t time)
+		struct bt_private_notification_iterator *iterator, int64_t time)
 {
 	enum bt_notification_iterator_status ret;
 
@@ -295,15 +299,17 @@ enum bt_notification_iterator_status debug_info_iterator_seek_time(
 }
 
 static
-enum bt_notification_iterator_status debug_info_iterator_init(struct bt_component *component,
-		struct bt_notification_iterator *iterator,
-		UNUSED_VAR void *init_method_data)
+enum bt_notification_iterator_status debug_info_iterator_init(
+		struct bt_private_notification_iterator *iterator,
+		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
-	struct bt_port *input_port = NULL;
-	struct bt_connection *connection = NULL;
+	struct bt_private_port *input_port = NULL;
+	struct bt_private_connection *connection = NULL;
+	struct bt_private_component *component =
+		bt_private_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
 
 	if (!it_data) {
@@ -312,19 +318,19 @@ enum bt_notification_iterator_status debug_info_iterator_init(struct bt_componen
 	}
 
 	/* Create a new iterator on the upstream component. */
-	input_port = bt_component_filter_get_default_input_port(component);
+	input_port = bt_private_component_filter_get_default_input_private_port(component);
 	assert(input_port);
-	connection = bt_port_get_connection(input_port, 0);
+	connection = bt_private_port_get_private_connection(input_port);
 	assert(connection);
 
-	it_data->input_iterator = bt_connection_create_notification_iterator(
+	it_data->input_iterator = bt_private_connection_create_notification_iterator(
 			connection);
 	if (!it_data->input_iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
 	it_data->debug_info_component = (struct debug_info_component *)
-		bt_component_get_private_data(component);
+		bt_private_component_get_user_data(component);
 
 	it_data->err = it_data->debug_info_component->err;
 	it_data->trace_map = g_hash_table_new_full(g_direct_hash,
@@ -338,7 +344,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(struct bt_componen
 	it_data->trace_debug_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_debug_info);
 
-	it_ret = bt_notification_iterator_set_private_data(iterator, it_data);
+	it_ret = bt_private_notification_iterator_set_user_data(iterator, it_data);
 	if (it_ret) {
 		goto end;
 	}
@@ -442,7 +448,7 @@ end:
 }
 
 enum bt_component_status debug_info_component_init(
-	struct bt_component *component, struct bt_value *params,
+	struct bt_private_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -453,7 +459,7 @@ enum bt_component_status debug_info_component_init(
 		goto end;
 	}
 
-	ret = bt_component_set_private_data(component, debug_info);
+	ret = bt_private_component_set_user_data(component, debug_info);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -472,15 +478,14 @@ BT_PLUGIN_DESCRIPTION("Babeltrace Debug Informations Plug-In.");
 BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 
-BT_PLUGIN_FILTER_COMPONENT_CLASS(debug_info, debug_info_iterator_get,
-	debug_info_iterator_next);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(debug_info, debug_info_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(debug_info,
 	"Add the debug information to events if possible.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(debug_info, debug_info_component_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_DESTROY_METHOD(debug_info, destroy_debug_info_component);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(debug_info, destroy_debug_info_component);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(debug_info,
 	debug_info_iterator_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_DESTROY_METHOD(debug_info,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(debug_info,
 	debug_info_iterator_destroy);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(debug_info,
 	debug_info_iterator_seek_time);

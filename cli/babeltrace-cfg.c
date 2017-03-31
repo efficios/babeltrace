@@ -1277,13 +1277,7 @@ int insert_flat_params_from_array(GString *params_arg,
 		g_string_assign(tmpstr, prefix);
 		g_string_append(tmpstr, "-default");
 		g_string_assign(default_value, "hide");
-		ret = map_insert_string_or_null(map_obj,
-				tmpstr->str,
-				default_value);
-		if (ret) {
-			print_err_oom();
-			goto end;
-		}
+		append_param_arg(params_arg, tmpstr->str, default_value->str);
 	}
 
 end:

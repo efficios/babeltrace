@@ -213,7 +213,6 @@ static
 enum bt_component_status run(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
-	enum bt_notification_iterator_status it_status;
 	struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
