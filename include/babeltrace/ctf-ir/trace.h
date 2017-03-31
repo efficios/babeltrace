@@ -94,7 +94,7 @@ As a reminder, here's the structure of a CTF packet:
 @imgpacketstructure
 
 A trace class also contains zero or more
-\link ctfirclockclass clock classes\endlink.
+\link ctfirclockclass CTF IR clock classes\endlink.
 
 @todo
 Elaborate about clock classes irt clock values.
@@ -116,7 +116,7 @@ except for:
 
 - Adding a stream class to it with
   bt_ctf_trace_add_stream_class().
-- Adding a clock class to it with bt_ctf_trace_add_clock_class().
+- Adding a CTF IR clock class to it with bt_ctf_trace_add_clock_class().
 - \link refs Reference counting\endlink.
 
 You can add a custom listener with bt_ctf_trace_add_listener() to get
@@ -527,17 +527,17 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
 /** @} */
 
 /**
-@name Clock class children functions
+@name Contained clock classes functions
 @{
 */
 
 /**
-@brief	Returns the number of clock classes contained in the
+@brief	Returns the number of CTF IR clock classes contained in the
 	CTF IR trace class \p trace_class.
 
 @param[in] trace_class	Trace class of which to get the number
-			of children clock classes.
-@returns		Number of children clock classes
+			of contained clock classes.
+@returns		Number of contained clock classes
 			contained in \p trace_class, or a negative
 			value on error.
 
@@ -547,13 +547,15 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
 extern int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace_class);
 
 /**
-@brief  Returns the clock class at index \p index in the CTF IR trace
-	class \p trace_class.
+@brief  Returns the CTF IR clock class at index \p index in the CTF
+	IR trace class \p trace_class.
 
-@param[in] trace_class	Trace class of which to get the clock class.
-@param[in] index	Index of the clock class to find.
-@returns		Clock class at index \p index, or \c NULL
-			on error.
+@param[in] trace_class	Trace class of which to get the clock class
+			contained at index \p index.
+@param[in] index	Index of the clock class to find in
+			\p trace_class.
+@returns		Clock class at index \p index in \p trace_class,
+			or \c NULL on error.
 
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of clock classes contained in
@@ -562,20 +564,22 @@ extern int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace_class);
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name.
+@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name
+	in a given trace class.
 @sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
 */
 extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
 		struct bt_ctf_trace *trace_class, int index);
 
 /**
-@brief  Returns the clock class named \c name found in the CTF IR trace
-	class \p trace_class.
+@brief  Returns the CTF IR clock class named \c name found in the CTF
+	IR trace class \p trace_class.
 
-@param[in] trace_class	Trace class of which to get the clock class.
-@param[in] name		Name of the clock class to find.
-@returns		Clock class named \p name, or \c NULL
-			on error.
+@param[in] trace_class	Trace class of which to get the clock class
+			named \p name.
+@param[in] name		Name of the clock class to find in \p trace_class.
+@returns		Clock class named \p name in \p trace_class,
+			or \c NULL on error.
 
 @prenotnull{trace_class}
 @prenotnull{name}
@@ -593,9 +597,10 @@ extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 @brief	Adds the CTF IR clock class \p clock_class to the CTF IR
 	trace class \p trace_class.
 
-On success, \p clock_class becomes the child of \p trace_class.
+On success, \p trace_class contains \p clock_class.
 
-You can call this function even if \p trace_class is frozen.
+You can call this function even if \p trace_class or \p clock_class
+are frozen.
 
 @param[in] trace_class	Trace class to which to add \p clock_class.
 @param[in] clock_class	Clock class to add to \p trace_class.
@@ -610,7 +615,8 @@ You can call this function even if \p trace_class is frozen.
 
 @sa bt_ctf_trace_get_clock_class(): Returns the clock class contained
 	in a given trace class at a given index.
-@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name.
+@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name
+	in a given trace class.
 */
 extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace_class,
 		struct bt_ctf_clock_class *clock_class);
