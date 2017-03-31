@@ -651,7 +651,6 @@ extern int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace_class)
 	the trace class \p trace_class (see
 	bt_ctf_trace_get_stream_class_count()).
 @postrefcountsame{trace_class}
-@postsuccessrefcountretinc
 
 @sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
 @sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.

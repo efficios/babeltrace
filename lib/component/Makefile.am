@@ -6,6 +6,7 @@ noinst_LTLIBRARIES = libcomponent.la
 
 # Plug-in system library
 libcomponent_la_SOURCES = \
+	clock-class-priority-map.c \
 	component.c \
 	component-class.c \
 	graph.c \

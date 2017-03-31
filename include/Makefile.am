@@ -42,6 +42,8 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin-dev.h
 
 babeltracegraphinclude_HEADERS = \
+	babeltrace/graph/clock-class-priority-map.h \
+	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/graph/component-class-filter.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
