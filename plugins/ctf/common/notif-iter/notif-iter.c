@@ -2328,6 +2328,7 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 
 	assert(trace);
 	assert(medops.request_bytes);
+	assert(medops.get_stream);
 	notit = g_new0(struct bt_ctf_notif_iter, 1);
 	if (!notit) {
 		PERR("Failed to allocate memory for CTF notification iterator\n");
