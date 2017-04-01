@@ -60,7 +60,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 602
+#define NR_TESTS 601
 
 static int64_t current_time = 42;
 
@@ -84,123 +84,6 @@ int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
 	ret = 1;
 end:
 	return ret;
-}
-
-static
-void validate_metadata(char *parser_path, char *metadata_path)
-{
-	int ret = 0;
-	char parser_output_path[] = "/tmp/parser_output_XXXXXX";
-	int parser_output_fd = -1, metadata_fd = -1;
-
-	if (!metadata_path) {
-		ret = -1;
-		goto result;
-	}
-
-	parser_output_fd = mkstemp(parser_output_path);
-	metadata_fd = open(metadata_path, O_RDONLY);
-
-	unlink(parser_output_path);
-
-	if (parser_output_fd == -1 || metadata_fd == -1) {
-		diag("Failed create temporary files for metadata parsing.");
-		ret = -1;
-		goto result;
-	}
-
-	pid_t pid = fork();
-	if (pid) {
-		int status = 0;
-		waitpid(pid, &status, 0);
-		ret = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-	} else {
-		/* ctf-parser-test expects a metadata string on stdin. */
-		ret = dup2(metadata_fd, STDIN_FILENO);
-		if (ret < 0) {
-			perror("# dup2 metadata_fd to STDIN");
-			goto result;
-		}
-
-		ret = dup2(parser_output_fd, STDOUT_FILENO);
-		if (ret < 0) {
-			perror("# dup2 parser_output_fd to STDOUT");
-			goto result;
-		}
-
-		ret = dup2(parser_output_fd, STDERR_FILENO);
-		if (ret < 0) {
-			perror("# dup2 parser_output_fd to STDERR");
-			goto result;
-		}
-
-		execl(parser_path, "ctf-parser-test", NULL);
-		perror("# Could not launch the ctf metadata parser process");
-		exit(-1);
-	}
-result:
-	ok(ret == 0, "Metadata string is valid");
-
-	if (ret && metadata_fd >= 0 && parser_output_fd >= 0) {
-		char *line;
-		size_t len = METADATA_LINE_SIZE;
-		FILE *metadata_fp = NULL, *parser_output_fp = NULL;
-
-		metadata_fp = fdopen(metadata_fd, "r");
-		if (!metadata_fp) {
-			perror("fdopen on metadata_fd");
-			goto close_fp;
-		}
-		metadata_fd = -1;
-
-		parser_output_fp = fdopen(parser_output_fd, "r");
-		if (!parser_output_fp) {
-			perror("fdopen on parser_output_fd");
-			goto close_fp;
-		}
-		parser_output_fd = -1;
-
-		line = malloc(len);
-		if (!line) {
-			diag("malloc failure");
-		}
-
-		rewind(metadata_fp);
-
-		/* Output the metadata and parser output as diagnostic */
-		while (bt_getline(&line, &len, metadata_fp) > 0) {
-			fprintf(stderr, "# %s", line);
-		}
-
-		rewind(parser_output_fp);
-		while (bt_getline(&line, &len, parser_output_fp) > 0) {
-			fprintf(stderr, "# %s", line);
-		}
-
-		free(line);
-close_fp:
-		if (metadata_fp) {
-			if (fclose(metadata_fp)) {
-				diag("fclose failure");
-			}
-		}
-		if (parser_output_fp) {
-			if (fclose(parser_output_fp)) {
-				diag("fclose failure");
-			}
-		}
-	}
-
-	if (parser_output_fd >= 0) {
-		if (close(parser_output_fd)) {
-			diag("close error");
-		}
-	}
-	if (metadata_fd >= 0) {
-		if (close(metadata_fd)) {
-			diag("close error");
-		}
-	}
 }
 
 static
@@ -2683,6 +2566,8 @@ void test_create_writer_vs_non_writer_mode(void)
 	/* Create writer, writer stream class, stream, and clock */
 	writer = bt_ctf_writer_create(trace_path);
 	assert(writer);
+	ret = bt_ctf_writer_set_byte_order(writer, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(!ret);
 	writer_trace = bt_ctf_writer_get_trace(writer);
 	ok(writer_trace, "bt_ctf_writer_get_trace() returns a trace");
 	writer_sc = bt_ctf_stream_class_create("writer_sc");
@@ -2704,6 +2589,9 @@ void test_create_writer_vs_non_writer_mode(void)
 	/* Create non-writer trace, stream class, stream, and clock */
 	non_writer_trace = bt_ctf_trace_create();
 	assert(non_writer_trace);
+	ret = bt_ctf_trace_set_byte_order(non_writer_trace,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(!ret);
 	non_writer_sc = bt_ctf_stream_class_create("nonwriter_sc");
 	assert(non_writer_sc);
 	ret = bt_ctf_stream_class_set_event_header_type(non_writer_sc,
@@ -2924,8 +2812,8 @@ int main(int argc, char **argv)
 	int64_t ret_int64_t;
 	struct bt_value *obj;
 
-	if (argc < 3) {
-		printf("Usage: tests-ctf-writer path_to_ctf_parser_test path_to_babeltrace\n");
+	if (argc < 2) {
+		printf("Usage: tests-ctf-writer path_to_babeltrace\n");
 		return -1;
 	}
 
@@ -3550,9 +3438,8 @@ int main(int argc, char **argv)
 	free(metadata_string);
 	bt_put(stream_class);
 
-	validate_metadata(argv[1], metadata_path);
-	validate_trace(argv[2], trace_path);
+	validate_trace(argv[1], trace_path);
 
-	recursive_rmdir(trace_path);
+	//recursive_rmdir(trace_path);
 	return 0;
 }

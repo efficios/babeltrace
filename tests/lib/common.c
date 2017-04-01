@@ -19,29 +19,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/context.h>
-#include <babeltrace/iterator.h>
 #include <babeltrace/compat/dirent.h>
 #include <babeltrace/compat/limits.h>
 #include <sys/stat.h>
-
-struct bt_context *create_context_with_path(const char *path)
-{
-	struct bt_context *ctx;
-	int ret;
-
-	ctx = bt_context_create();
-	if (!ctx) {
-		return NULL;
-	}
-
-	ret = bt_context_add_trace(ctx, path, "ctf", NULL, NULL, NULL);
-	if (ret < 0) {
-		bt_context_put(ctx);
-		return NULL;
-	}
-	return ctx;
-}
 
 void recursive_rmdir(const char *path)
 {

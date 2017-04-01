@@ -10,12 +10,8 @@ noinst_LTLIBRARIES = libtestcommon.la
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-test_seek_LDFLAGS = $(LD_NO_AS_NEEDED)
 COMMON_TEST_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
-
-test_seek_LDADD = $(COMMON_TEST_LDADD)
+	$(top_builddir)/lib/libbabeltrace.la
 
 test_bitfield_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
 
@@ -40,12 +36,11 @@ test_graph_topo_LDADD = $(COMMON_TEST_LDADD)
 
 test_cc_prio_map_LDADD = $(COMMON_TEST_LDADD)
 
-noinst_PROGRAMS = test_seek test_bitfield test_ctf_writer test_bt_values \
+noinst_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
 	test_ctf_ir_ref test_bt_ctf_field_type_validation test_ir_visit \
 	test_trace_listener test_bt_notification_heap test_plugin test_graph_topo \
 	test_cc_prio_map
 
-test_seek_SOURCES = test_seek.c
 test_bitfield_SOURCES = test_bitfield.c
 test_ctf_writer_SOURCES = test_ctf_writer.c
 test_bt_values_SOURCES = test_bt_values.c
@@ -58,9 +53,7 @@ test_plugin_SOURCES = test_plugin.c
 test_graph_topo_SOURCES = test_graph_topo.c
 test_cc_prio_map_SOURCES = test_cc_prio_map.c
 
-check_SCRIPTS = test_seek_big_trace \
-		test_seek_empty_packet \
-		test_ctf_writer_complete \
+check_SCRIPTS = test_ctf_writer_complete \
 		test_plugin_complete
 
 if ENABLE_DEBUG_INFO

@@ -1,7 +1,6 @@
 *~
 /tests/bin/intersection/bt_python_helper.py
 /tests/bin/intersection/test_intersection
-/tests/bin/test_formats
 /tests/bin/test_packet_seq_num
 /tests/bin/test_trace_read
 /tests/lib/test_bin_info
@@ -17,9 +16,6 @@
 /tests/lib/test_dwarf
 /tests/lib/test_dwarf_complete
 /tests/lib/test_ir_visit
-/tests/lib/test_seek
-/tests/lib/test_seek_big_trace
-/tests/lib/test_seek_empty_packet
 /tests/lib/test_trace_listener
 /tests/lib/test_plugin
 /tests/lib/test_plugin_complete
@@ -61,7 +57,6 @@ autom4te.cache/
 config/
 converter/babeltrace-log
 core
-formats/ctf/metadata/ctf-parser.output
 stamp-h1
 bindings/python/__init__.py
 bindings/python/nativebt.py

@@ -1,2 +1,0 @@
-/* CTF 1.8 */
-enum test {X = array[2].N ... 1, };

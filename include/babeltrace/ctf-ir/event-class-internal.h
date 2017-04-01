@@ -31,7 +31,6 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
-#include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
@@ -77,5 +76,13 @@ void bt_ctf_event_class_set_native_byte_order(
 BT_HIDDEN
 int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
 		uint32_t stream_id);
+
+static inline
+struct bt_ctf_stream_class *bt_ctf_event_class_borrow_stream_class(
+		struct bt_ctf_event_class *event_class)
+{
+	assert(event_class);
+	return (void *) bt_object_borrow_parent(event_class);
+}
 
 #endif /* BABELTRACE_CTF_IR_EVENT_CLASS_INTERNAL_H */

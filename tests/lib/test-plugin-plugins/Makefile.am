@@ -6,12 +6,10 @@ noinst_LTLIBRARIES = plugin-minimal.la plugin-sfs.la
 plugin_minimal_la_SOURCES = minimal.c
 plugin_minimal_la_LDFLAGS = -rpath / -avoid-version -module
 plugin_minimal_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/lib/libbabeltrace.la
 
 # source/filter/sink plugin
 plugin_sfs_la_SOURCES = sfs.c
 plugin_sfs_la_LDFLAGS = -rpath / -avoid-version -module
 plugin_sfs_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/lib/libbabeltrace.la

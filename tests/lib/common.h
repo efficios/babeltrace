@@ -25,6 +25,5 @@
 struct bt_context;
 
 void recursive_rmdir(const char *path);
-struct bt_context *create_context_with_path(const char *path);
 
 #endif /* _TESTS_COMMON_H */

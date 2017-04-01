@@ -34,7 +34,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <babeltrace/list.h>
+#include <babeltrace/list-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include "scanner.h"
 #include "parser.h"
@@ -940,12 +940,12 @@ void yyerror(struct ctf_scanner *scanner, yyscan_t yyscanner, const char *str)
 		"token \"%s\": %s\n",
 		yyget_text(scanner->scanner), str);
 }
- 
+
 BT_HIDDEN
 int yywrap(void)
 {
 	return 1;
-} 
+}
 
 #define reparent_error(scanner, str)				\
 do {								\
@@ -1105,7 +1105,7 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> direct_declarator
 %type <n> type_declarator
 %type <n> direct_type_declarator
-%type <n> pointer	
+%type <n> pointer
 %type <n> ctf_assignment_expression_list
 %type <n> ctf_assignment_expression
 
@@ -2473,7 +2473,7 @@ direct_type_declarator:
 		}
 	;
 
-pointer:	
+pointer:
 		STAR
 		{
 			$$ = make_node(scanner, NODE_POINTER);

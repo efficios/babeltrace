@@ -41,11 +41,11 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <stdlib.h>
-#include <babeltrace/ctf-ir/metadata.h>	/* for clocks */
 #include <popt.h>
 #include <string.h>
 #include <stdio.h>
 #include <glib.h>
+#include <inttypes.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-connect.h"
 #include "default-cfg.h"

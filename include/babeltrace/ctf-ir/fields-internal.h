@@ -27,11 +27,14 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf/types.h>
+#include <stdint.h>
 #include <glib.h>
+
+struct bt_ctf_stream_pos;
 
 struct bt_ctf_field {
 	struct bt_object base;
@@ -42,7 +45,10 @@ struct bt_ctf_field {
 
 struct bt_ctf_field_integer {
 	struct bt_ctf_field parent;
-	struct definition_integer definition;
+	union {
+		int64_t signd;
+		uint64_t unsignd;
+	} payload;
 };
 
 struct bt_ctf_field_enumeration {
@@ -52,8 +58,7 @@ struct bt_ctf_field_enumeration {
 
 struct bt_ctf_field_floating_point {
 	struct bt_ctf_field parent;
-	struct definition_float definition;
-	struct definition_integer sign, mantissa, exp;
+	double payload;
 };
 
 struct bt_ctf_field_structure {
@@ -101,7 +106,8 @@ int bt_ctf_field_reset(struct bt_ctf_field *field);
 
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
-		struct ctf_stream_pos *pos);
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order);
 
 BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field);

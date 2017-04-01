@@ -61,7 +61,7 @@ AC_CHECK_HEADERS([ \
 	sys/socket.h \
 ])
 
-if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
+if test ! -f "$srcdir/plugins/ctf/common/metadata/parser.h"; then
         if test x"$(basename "$YACC")" != "xbison -y"; then
                 AC_MSG_ERROR([[bison not found and is required when building from git.
                 Please install bison]])
@@ -72,7 +72,7 @@ if test ! -f "$srcdir/formats/ctf/metadata/ctf-parser.h"; then
         ])
 fi
 
-if test ! -f "$srcdir/formats/ctf/metadata/ctf-lexer.c"; then
+if test ! -f "$srcdir/plugins/ctf/common/metadata/lexer.c"; then
         if test x"$LEX" != "xflex"; then
                 AC_MSG_ERROR([[flex not found and is required when building from git.
                 Please install flex]])
@@ -398,11 +398,11 @@ AC_SUBST(DEFAULT_INCLUDES)
 babeltraceincludedir="${includedir}/babeltrace"
 AC_SUBST(babeltraceincludedir)
 
-babeltracectfincludedir="${includedir}/babeltrace/ctf"
-AC_SUBST(babeltracectfincludedir)
-
 babeltracectfwriterincludedir="${includedir}/babeltrace/ctf-writer"
 AC_SUBST(babeltracectfwriterincludedir)
+
+babeltracectfincludedir="${includedir}/babeltrace/ctf"
+AC_SUBST(babeltracectfincludedir)
 
 babeltracectfirincludedir="${includedir}/babeltrace/ctf-ir"
 AC_SUBST(babeltracectfirincludedir)
@@ -444,24 +444,12 @@ AS_IF([test "x$enable_api_doc" = "xyes"], [
 
 AC_CONFIG_FILES([
 	Makefile
-	types/Makefile
 	common/Makefile
 	compat/Makefile
-	formats/Makefile
-	formats/ctf/Makefile
-	formats/ctf/types/Makefile
-	formats/ctf-text/Makefile
-	formats/ctf-text/types/Makefile
-	formats/ctf-metadata/Makefile
-	formats/bt-dummy/Makefile
-	formats/lttng-live/Makefile
-	formats/ctf/metadata/Makefile
-	formats/ctf/writer/Makefile
-	formats/ctf/ir/Makefile
 	converter/Makefile
 	doc/Makefile
-        doc/api/Makefile
-        doc/api/Doxyfile
+	doc/api/Makefile
+	doc/api/Doxyfile
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
 	doc/images/Makefile
@@ -470,6 +458,8 @@ AC_CONFIG_FILES([
 	lib/plugin/Makefile
         lib/component/Makefile
 	lib/component/notification/Makefile
+	lib/ctf-ir/Makefile
+	lib/ctf-writer/Makefile
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile
@@ -521,7 +511,6 @@ AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/
 AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
-AC_CONFIG_FILES([tests/bin/test_formats], [chmod +x tests/bin/test_formats])
 
 AS_IF([test "x$enable_python" = "xyes"], [
 	AC_CONFIG_FILES(

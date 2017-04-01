@@ -34,8 +34,6 @@
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/ctf/events.h>
 #include <glib.h>
 
 typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
@@ -44,7 +42,8 @@ typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
 
 struct bt_ctf_field_type {
 	struct bt_object base;
-	struct bt_declaration *declaration;
+	enum bt_ctf_type_id id;
+	unsigned int alignment;
 	type_freeze_func freeze;
 	type_serialize_func serialize;
 	/*
@@ -63,16 +62,12 @@ struct bt_ctf_field_type {
 
 struct bt_ctf_field_type_integer {
 	struct bt_ctf_field_type parent;
-	struct declaration_integer declaration;
 	struct bt_ctf_clock_class *mapped_clock;
-
-	/*
-	 * This is what the user sets and is never modified by internal
-	 * code.
-	 *
-	 * This field must contain a `BT_CTF_BYTE_ORDER_*` value.
-	 */
 	enum bt_ctf_byte_order user_byte_order;
+	bool is_signed;
+	unsigned int size;
+	enum bt_ctf_integer_base base;
+	enum bt_ctf_string_encoding encoding;
 };
 
 struct enumeration_mapping {
@@ -92,7 +87,6 @@ struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_field_type *container;
 	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
-	struct declaration_enum declaration;
 	/* Only set during validation. */
 	bool has_overlapping_ranges;
 };
@@ -117,24 +111,9 @@ struct bt_ctf_field_type_enumeration_mapping_iterator {
 
 struct bt_ctf_field_type_floating_point {
 	struct bt_ctf_field_type parent;
-	struct declaration_float declaration;
-
-	/*
-	 * The `declaration` field above contains 3 pointers pointing
-	 * to the fields below. This avoids unnecessary dynamic
-	 * allocations.
-	 */
-	struct declaration_integer sign;
-	struct declaration_integer mantissa;
-	struct declaration_integer exp;
-
-	/*
-	 * This is what the user sets and is never modified by internal
-	 * code.
-	 *
-	 * This field must contain a `BT_CTF_BYTE_ORDER_*` value.
-	 */
 	enum bt_ctf_byte_order user_byte_order;
+	unsigned int exp_dig;
+	unsigned int mant_dig;
 };
 
 struct structure_field {
@@ -146,7 +125,6 @@ struct bt_ctf_field_type_structure {
 	struct bt_ctf_field_type parent;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
-	struct declaration_struct declaration;
 };
 
 struct bt_ctf_field_type_variant {
@@ -156,14 +134,12 @@ struct bt_ctf_field_type_variant {
 	struct bt_ctf_field_path *tag_field_path;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
-	struct declaration_variant declaration;
 };
 
 struct bt_ctf_field_type_array {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_field_type *element_type;
 	unsigned int length; /* Number of elements */
-	struct declaration_array declaration;
 };
 
 struct bt_ctf_field_type_sequence {
@@ -171,12 +147,11 @@ struct bt_ctf_field_type_sequence {
 	struct bt_ctf_field_type *element_type;
 	GString *length_field_name;
 	struct bt_ctf_field_path *length_field_path;
-	struct declaration_sequence declaration;
 };
 
 struct bt_ctf_field_type_string {
 	struct bt_ctf_field_type parent;
-	struct declaration_string declaration;
+	enum bt_ctf_string_encoding encoding;
 };
 
 BT_HIDDEN
@@ -196,11 +171,6 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 
 BT_HIDDEN
 int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
-
-/* Override field type's byte order only if it is set to "native" */
-BT_HIDDEN
-void bt_ctf_field_type_set_native_byte_order(
-		struct bt_ctf_field_type *type, int byte_order);
 
 BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(

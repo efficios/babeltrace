@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-CTFPARSERTEST="@abs_top_builddir@/formats/ctf/metadata/ctf-parser-test"
 BTBIN="@abs_top_builddir@/converter/babeltrace"
 
-"@abs_top_builddir@/tests/lib/test_ctf_writer" "$CTFPARSERTEST" "$BTBIN"
+"@abs_top_builddir@/tests/lib/test_ctf_writer" "$BTBIN"

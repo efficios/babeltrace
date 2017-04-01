@@ -1,9 +1,0 @@
-/* CTF 1.8 */
-// Define unsigned long
-typealias integer { ... } := unsigned long;
-
-// Define unsigned long int
-typealias integer { ... } := unsigned long int;
-
-// Define int
-typedef unsigned long int;

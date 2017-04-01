@@ -3,7 +3,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
 		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/muxer:$(PLUGINS_PATH)/writer:$(PLUGINS_PATH)/utils\"
 AM_LDFLAGS = -lpopt
 
-bin_PROGRAMS = babeltrace.bin babeltrace-log
+bin_PROGRAMS = babeltrace.bin
 noinst_PROGRAMS = babeltrace
 #check_PROGRAMS = babeltrace
 
@@ -22,12 +22,7 @@ babeltrace_bin_SOURCES = \
 babeltrace_bin_LDFLAGS = -Wl, $(LD_NO_AS_NEEDED), -export-dynamic
 babeltrace_bin_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
 	$(top_builddir)/compat/libcompat.la \
-	$(top_builddir)/formats/ctf-text/libbabeltrace-ctf-text.la \
-	$(top_builddir)/formats/ctf-metadata/libbabeltrace-ctf-metadata.la \
-	$(top_builddir)/formats/bt-dummy/libbabeltrace-dummy.la \
-	$(top_builddir)/formats/lttng-live/libbabeltrace-lttng-live.la \
 	$(top_builddir)/common/libbabeltrace-common.la
 
 if ENABLE_DEBUG_INFO
@@ -38,22 +33,7 @@ if BUILT_IN_PLUGINS
 babeltrace_bin_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
 endif
 
-babeltrace_log_SOURCES = babeltrace-log.c
-
-babeltrace_log_LDADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la \
-	$(top_builddir)/compat/libcompat.la
-
-if BABELTRACE_BUILD_WITH_LIBUUID
-babeltrace_log_LDADD += -luuid
-endif
-if BABELTRACE_BUILD_WITH_LIBC_UUID
-babeltrace_log_LDADD += -lc
-endif
-
 if BABELTRACE_BUILD_WITH_MINGW
-babeltrace_log_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 babeltrace_bin_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
 

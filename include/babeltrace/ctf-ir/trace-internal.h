@@ -52,7 +52,7 @@ struct bt_ctf_trace {
 	GString *name;
 	int frozen;
 	uuid_t uuid;
-	int byte_order; /* A value defined in Babeltrace's "endian.h" */
+	enum bt_ctf_byte_order native_byte_order;
 	struct bt_value *environment;
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock_class */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */

@@ -32,8 +32,8 @@
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf/types.h>
 #include <glib.h>
 
 struct bt_ctf_stream {
@@ -47,7 +47,7 @@ struct bt_ctf_stream {
 	/* Writer-specific members. */
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
-	struct ctf_stream_pos pos;
+	struct bt_ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
 	uint64_t size;
 };

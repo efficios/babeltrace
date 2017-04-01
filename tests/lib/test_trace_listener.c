@@ -247,6 +247,9 @@ int main(int argc, char **argv)
 
 	ok(index + 1 == state.i, "trace modification has been invoked once after addition of an event class");
 
+	BT_PUT(sc3);
+	BT_PUT(ec5);
+	BT_PUT(ec4);
 	BT_PUT(trace);
 	return exit_status();
 }

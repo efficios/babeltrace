@@ -1,2 +1,0 @@
-/* CTF 1.8 */
-struct test { array[1] blah; };

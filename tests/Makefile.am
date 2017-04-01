@@ -7,7 +7,6 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
 TESTS = bin/test_trace_read \
 	bin/test_trace_read \
 	bin/test_packet_seq_num \
-	bin/test_formats \
 	bin/test_convert_args \
 	bin/intersection/test_intersection \
 	lib/test_bitfield \

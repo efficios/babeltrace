@@ -1,2 +1,0 @@
-/* CTF 1.8 */
-stream { 42 = test; };

@@ -74,11 +74,17 @@ void generic_release(struct bt_object *obj)
 }
 
 static inline
-struct bt_object *bt_object_get_parent(void *ptr)
+struct bt_object *bt_object_borrow_parent(void *ptr)
 {
 	struct bt_object *obj = ptr;
 
-	return ptr ? bt_get(obj->parent) : NULL;
+	return obj ? obj->parent : NULL;
+}
+
+static inline
+struct bt_object *bt_object_get_parent(void *ptr)
+{
+	return bt_get(bt_object_borrow_parent(ptr));
 }
 
 static inline

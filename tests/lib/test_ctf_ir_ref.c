@@ -511,6 +511,9 @@ static void create_user_full(struct user *user)
 
 	user->writer = bt_ctf_writer_create(trace_path);
 	assert(user->writer);
+	ret = bt_ctf_writer_set_byte_order(user->writer,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(ret == 0);
 	user->tc = bt_ctf_writer_get_trace(user->writer);
 	assert(user->tc);
 	user->sc = bt_ctf_stream_class_create("sc");
@@ -521,6 +524,7 @@ static void create_user_full(struct user *user)
 	assert(!ret);
 	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
 	assert(!ret);
+	BT_PUT(clock);
 	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
 	assert(user->stream);
 	user->ec = bt_ctf_event_class_create("ec");

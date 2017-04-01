@@ -1,25 +1,16 @@
-SUBDIRS = prio_heap plugin component .
+SUBDIRS = ctf-ir ctf-writer prio_heap plugin component .
 
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libbabeltrace.la
 
-libbabeltrace_la_SOURCES = babeltrace.c \
-			   iterator.c \
-			   context.c \
-			   trace-handle.c \
-			   trace-collection.c \
-			   registry.c \
-			   values.c \
-			   ref.c
-
+libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c
 libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 
 if ENABLE_DEBUG_INFO
 noinst_LTLIBRARIES = libdebug-info.la
 
-libdebug_info_la_SOURCES = debug-info.c \
-			  bin-info.c \
+libdebug_info_la_SOURCES = bin-info.c \
 			  dwarf.c \
 			  crc32.c \
 			  utils.c
@@ -29,11 +20,12 @@ endif
 
 libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
-	$(top_builddir)/types/libbabeltrace_types.la \
 	$(top_builddir)/compat/libcompat.la \
 	component/libcomponent.la \
 	plugin/libplugin.la \
-	$(top_builddir)/common/libbabeltrace-common.la
+	$(top_builddir)/common/libbabeltrace-common.la \
+	ctf-ir/libctf-ir.la \
+	ctf-writer/libctf-writer.la
 
 if BUILT_IN_PYTHON_PLUGIN_SUPPORT
 libbabeltrace_la_LIBADD += $(top_builddir)/python-plugin-provider/libbabeltrace-python-plugin-provider.la

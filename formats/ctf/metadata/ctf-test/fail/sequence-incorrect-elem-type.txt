@@ -1,3 +1,0 @@
-/* CTF 1.8 */
-typealias integer { size = 32; align = 32; signed = false; } := uint;
-typedef nonexist testseq[uint];

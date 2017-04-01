@@ -27,9 +27,8 @@
  */
 
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/context.h>
-#include <babeltrace/ctf-text/types.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 bool babeltrace_verbose, babeltrace_debug;
 

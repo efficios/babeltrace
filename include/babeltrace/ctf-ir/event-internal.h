@@ -31,12 +31,14 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
-#include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/object-internal.h>
+#include <assert.h>
 #include <glib.h>
+
+struct bt_ctf_stream_pos;
 
 struct bt_ctf_event {
 	struct bt_object base;
@@ -56,9 +58,18 @@ int bt_ctf_event_validate(struct bt_ctf_event *event);
 
 BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct ctf_stream_pos *pos);
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order);
 
 BT_HIDDEN
 void bt_ctf_event_freeze(struct bt_ctf_event *event);
+
+static inline
+struct bt_ctf_event_class *bt_ctf_event_borrow_event_class(
+		struct bt_ctf_event *event)
+{
+	assert(event);
+	return event->event_class;
+}
 
 #endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */

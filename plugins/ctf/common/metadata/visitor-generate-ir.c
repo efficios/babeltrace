@@ -36,11 +36,9 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/ctf/metadata.h>
 #include <babeltrace/compat/uuid.h>
 #include <babeltrace/endian.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf/events-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/event.h>

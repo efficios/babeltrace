@@ -33,8 +33,8 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf/types.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <assert.h>
 #include <glib.h>
 
 struct bt_ctf_stream_class {
@@ -80,5 +80,13 @@ int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 BT_HIDDEN
 int bt_ctf_stream_class_set_id_no_check(
 		struct bt_ctf_stream_class *stream_class, uint32_t id);
+
+static inline
+struct bt_ctf_trace *bt_ctf_stream_class_borrow_trace(
+		struct bt_ctf_stream_class *stream_class)
+{
+	assert(stream_class);
+	return (void *) bt_object_borrow_parent(stream_class);
+}
 
 #endif /* BABELTRACE_CTF_IR_STREAM_CLASS_INTERNAL_H */

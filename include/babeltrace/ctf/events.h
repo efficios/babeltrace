@@ -1,26 +1,18 @@
-#ifndef _BABELTRACE_CTF_EVENTS_H
-#define _BABELTRACE_CTF_EVENTS_H
+#ifndef BABELTRACE_CTF_EVENT_H
+#define BABELTRACE_CTF_EVENT_H
 
 /*
- * BabelTrace
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
- * CTF events API
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Copyright 2011-2012 EfficiOS Inc. and Linux Foundation
- *
- * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
- *         Julien Desfossez <julien.desfossez@efficios.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -29,17 +21,21 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * The Common Trace Format (CTF) Specification is available at
+ * http://www.efficios.com/ctf
  */
-
-#include <stdint.h>
-#include <babeltrace/context.h>
-#include <babeltrace/clock-types.h>
-#include <babeltrace/ctf-ir/field-types.h>
 
 /*
- * This header must exist in Babeltrace 2 because it contained
- * enumerations that were used in CTF writer's API. Those enumerations
- * are now located in ctf-ir/field-types.h.
+ * This header still exists for backward compatibility reasons because
+ * CTF writer needed it to be included.
  */
 
-#endif /* _BABELTRACE_CTF_EVENTS_H */
+#include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-writer/event-fields.h>
+#include <babeltrace/ctf-writer/event-types.h>
+#include <babeltrace/ctf-writer/stream-class.h>
+#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/ctf-writer/writer.h>
+
+#endif /* BABELTRACE_CTF_EVENT_H */
