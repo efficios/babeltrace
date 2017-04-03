@@ -1457,7 +1457,7 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 		struct debug_info_component *component)
 {
 	struct bt_ctf_event *writer_event = NULL;
-	struct bt_ctf_field *field, *copy_field = NULL;
+	struct bt_ctf_field *field = NULL, *copy_field = NULL;
 	int ret;
 
 	writer_event = bt_ctf_event_create(writer_event_class);
@@ -1554,7 +1554,7 @@ struct bt_ctf_event *debug_info_output_event(
 	struct bt_ctf_event_class *event_class = NULL, *writer_event_class = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL, *writer_stream_class = NULL;
 	struct bt_ctf_event *writer_event = NULL;
-	struct bt_ctf_packet *packet, *writer_packet = NULL;
+	struct bt_ctf_packet *packet = NULL, *writer_packet = NULL;
 	struct bt_ctf_trace *writer_trace = NULL;
 	struct debug_info *debug_info;
 	const char *event_name;
