@@ -145,7 +145,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_magic, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_magic, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_magic, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_magic, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -159,7 +159,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_uuid_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_uuid_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_uuid_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_uuid_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -175,7 +175,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_stream_id, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_stream_id, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_stream_id, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_stream_id, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -189,7 +189,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	root_iron_listen = bt_ctf_field_type_string_create();
 	assert(root_iron_listen);
-	ret = bt_ctf_field_type_string_set_encoding(root_iron_listen, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_iron_listen, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root_iron, root_iron_listen, "listen");
 	assert(ret == 0);
@@ -199,7 +199,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_iron_dust, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_iron_dust, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_iron_dust, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_iron_dust, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -213,7 +213,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_iron_parallel_int, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_iron_parallel_int, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_iron_parallel_int, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_iron_parallel_int, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -239,7 +239,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_iron_fire_word, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_iron_fire_word, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_iron_fire_word, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_iron_fire_word, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -249,7 +249,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	root_iron_fire_rabbit = bt_ctf_field_type_string_create();
 	assert(root_iron_fire_rabbit);
-	ret = bt_ctf_field_type_string_set_encoding(root_iron_fire_rabbit, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_iron_fire_rabbit, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root_iron_fire, root_iron_fire_rabbit, "rabbit");
 	assert(ret == 0);
@@ -257,7 +257,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(root_iron_fire_keen_elem);
 	root_iron_fire_keen_elem_RED = bt_ctf_field_type_string_create();
 	assert(root_iron_fire_keen_elem_RED);
-	ret = bt_ctf_field_type_string_set_encoding(root_iron_fire_keen_elem_RED, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_iron_fire_keen_elem_RED, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_variant_add_field(root_iron_fire_keen_elem, root_iron_fire_keen_elem_RED, "RED");
 	assert(ret == 0);
@@ -267,7 +267,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_iron_fire_keen_elem_BLUE_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_iron_fire_keen_elem_BLUE_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_iron_fire_keen_elem_BLUE_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_iron_fire_keen_elem_BLUE_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -291,7 +291,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	root_iron_report_elem = bt_ctf_field_type_string_create();
 	assert(root_iron_report_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_iron_report_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_iron_report_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_iron_report = bt_ctf_field_type_sequence_create(root_iron_report_elem, "trace.packet.header.iron.dust");
 	assert(root_iron_report);
@@ -299,7 +299,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	root_iron_group_elem = bt_ctf_field_type_string_create();
 	assert(root_iron_group_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_iron_group_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_iron_group_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_iron_group = bt_ctf_field_type_sequence_create(root_iron_group_elem, "trace.packet.header.stream_id");
 	assert(root_iron_group);
@@ -313,7 +313,7 @@ struct bt_ctf_field_type *get_good_packet_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_serious, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_serious, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_serious, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_serious, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -451,7 +451,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_placid, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_placid, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_placid, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_placid, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -461,7 +461,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	root_meow = bt_ctf_field_type_string_create();
 	assert(root_meow);
-	ret = bt_ctf_field_type_string_set_encoding(root_meow, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_meow, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_meow, "meow");
 	assert(ret == 0);
@@ -471,7 +471,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_serious, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_serious, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_serious, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_serious, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -481,7 +481,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	root_naive_elem_elem = bt_ctf_field_type_string_create();
 	assert(root_naive_elem_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_naive_elem_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_naive_elem_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_naive_elem = bt_ctf_field_type_sequence_create(root_naive_elem_elem, "placid");
 	assert(root_naive_elem);
@@ -499,7 +499,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_clover_oval, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_clover_oval, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_clover_oval, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_clover_oval, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -511,7 +511,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(root_clover_whole);
 	root_clover_whole_BLUE_elem = bt_ctf_field_type_string_create();
 	assert(root_clover_whole_BLUE_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_clover_whole_BLUE_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_clover_whole_BLUE_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_clover_whole_BLUE = bt_ctf_field_type_sequence_create(root_clover_whole_BLUE_elem, "trace.packet.header.iron.fire.word");
 	assert(root_clover_whole_BLUE);
@@ -523,7 +523,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_clover_whole_RED, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_clover_whole_RED, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_clover_whole_RED, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_clover_whole_RED, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -533,7 +533,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	root_clover_whole_YELLOW = bt_ctf_field_type_string_create();
 	assert(root_clover_whole_YELLOW);
-	ret = bt_ctf_field_type_string_set_encoding(root_clover_whole_YELLOW, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_clover_whole_YELLOW, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_variant_add_field(root_clover_whole, root_clover_whole_YELLOW, "YELLOW");
 	assert(ret == 0);
@@ -545,7 +545,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_clover_egg_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_clover_egg_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_clover_egg_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_clover_egg_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -561,7 +561,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_clover_square_int, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_clover_square_int, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_clover_square_int, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_clover_square_int, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -581,7 +581,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_clover_useful_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_clover_useful_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_clover_useful_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_clover_useful_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -595,7 +595,7 @@ struct bt_ctf_field_type *get_good_packet_context_type(void)
 	assert(ret == 0);
 	root_tart = bt_ctf_field_type_string_create();
 	assert(root_tart);
-	ret = bt_ctf_field_type_string_set_encoding(root_tart, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_tart, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_tart, "tart");
 	assert(ret == 0);
@@ -702,7 +702,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_id, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_id, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_id, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_id, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -716,7 +716,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_timestamp, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_timestamp, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_timestamp, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_timestamp, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -734,7 +734,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_action_special, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_action_special, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_action_special, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_action_special, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -744,7 +744,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	root_action_lucky_elem = bt_ctf_field_type_string_create();
 	assert(root_action_lucky_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_action_lucky_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_action_lucky_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_action_lucky = bt_ctf_field_type_sequence_create(root_action_lucky_elem, "stream.packet.context.placid");
 	assert(root_action_lucky);
@@ -752,7 +752,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	root_action_dream = bt_ctf_field_type_string_create();
 	assert(root_action_dream);
-	ret = bt_ctf_field_type_string_set_encoding(root_action_dream, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_action_dream, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root_action, root_action_dream, "dream");
 	assert(ret == 0);
@@ -762,7 +762,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_action_grandiose_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_action_grandiose_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_action_grandiose_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_action_grandiose_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -776,7 +776,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	root_stiff_elem = bt_ctf_field_type_string_create();
 	assert(root_stiff_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_stiff_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_stiff_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_stiff = bt_ctf_field_type_sequence_create(root_stiff_elem, "clover.whole.RED");
 	assert(root_stiff);
@@ -792,7 +792,7 @@ struct bt_ctf_field_type *get_good_event_header_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_fruit_apple_elem, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_fruit_apple_elem, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_fruit_apple_elem, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_fruit_apple_elem, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -899,7 +899,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	root_face_branch_elem = bt_ctf_field_type_string_create();
 	assert(root_face_branch_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_face_branch_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_face_branch_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_face_branch = bt_ctf_field_type_sequence_create(root_face_branch_elem, "serious");
 	assert(root_face_branch);
@@ -907,7 +907,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	root_face_income_elem = bt_ctf_field_type_string_create();
 	assert(root_face_income_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_face_income_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_face_income_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_face_income = bt_ctf_field_type_sequence_create(root_face_income_elem, "magic");
 	assert(root_face_income);
@@ -919,7 +919,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_face_magic, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_face_magic, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_face_magic, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_face_magic, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -929,7 +929,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	root_face_lucky_elem = bt_ctf_field_type_string_create();
 	assert(root_face_lucky_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_face_lucky_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_face_lucky_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_face_lucky = bt_ctf_field_type_sequence_create(root_face_lucky_elem, "magic");
 	assert(root_face_lucky);
@@ -943,7 +943,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_cats, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_cats, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_cats, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_cats, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -953,7 +953,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	root_dream_elem_elem_elem = bt_ctf_field_type_string_create();
 	assert(root_dream_elem_elem_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_dream_elem_elem_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_dream_elem_elem_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_dream_elem_elem = bt_ctf_field_type_sequence_create(root_dream_elem_elem_elem, "stream.event.context.face.magic");
 	assert(root_dream_elem_elem);
@@ -969,7 +969,7 @@ struct bt_ctf_field_type *get_good_stream_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_stream_id, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_stream_id, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_stream_id, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_stream_id, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -1117,7 +1117,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_film, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_film, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_film, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_film, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -1131,7 +1131,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_berry_pine_elem = bt_ctf_field_type_string_create();
 	assert(root_berry_pine_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_berry_pine_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_berry_pine_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_berry_pine = bt_ctf_field_type_sequence_create(root_berry_pine_elem, "stream_id");
 	assert(root_berry_pine);
@@ -1139,7 +1139,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_berry_porter_elem = bt_ctf_field_type_string_create();
 	assert(root_berry_porter_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_berry_porter_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_berry_porter_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_berry_porter = bt_ctf_field_type_sequence_create(root_berry_porter_elem, "face.magic");
 	assert(root_berry_porter);
@@ -1147,7 +1147,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_berry_mice_elem = bt_ctf_field_type_string_create();
 	assert(root_berry_mice_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_berry_mice_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_berry_mice_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_berry_mice = bt_ctf_field_type_sequence_create(root_berry_mice_elem, "action.special");
 	assert(root_berry_mice);
@@ -1159,7 +1159,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_berry_third, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_berry_third, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_berry_third, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_berry_third, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -1169,7 +1169,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_berry_guard_elem = bt_ctf_field_type_string_create();
 	assert(root_berry_guard_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_berry_guard_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_berry_guard_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_berry_guard = bt_ctf_field_type_sequence_create(root_berry_guard_elem, "clover.oval");
 	assert(root_berry_guard);
@@ -1177,7 +1177,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_berry_one_elem = bt_ctf_field_type_string_create();
 	assert(root_berry_one_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_berry_one_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_berry_one_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_berry_one = bt_ctf_field_type_sequence_create(root_berry_one_elem, "iron.fire.word");
 	assert(root_berry_one);
@@ -1191,7 +1191,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_cats, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_cats, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_cats, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_cats, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -1205,7 +1205,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_toys_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_toys_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_toys_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_toys_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_toys = bt_ctf_field_type_sequence_create(root_loud_toys_elem, "trace.packet.header.iron.fire.word");
 	assert(root_loud_toys);
@@ -1213,7 +1213,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_spoon_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_spoon_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_spoon_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_spoon_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_spoon = bt_ctf_field_type_sequence_create(root_loud_spoon_elem, "stream.packet.context.clover.oval");
 	assert(root_loud_spoon);
@@ -1221,7 +1221,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_turkey_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_turkey_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_turkey_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_turkey_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_turkey = bt_ctf_field_type_sequence_create(root_loud_turkey_elem, "stream.event.header.action.special");
 	assert(root_loud_turkey);
@@ -1229,7 +1229,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_inform_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_inform_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_inform_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_inform_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_inform = bt_ctf_field_type_sequence_create(root_loud_inform_elem, "stream.event.context.face.magic");
 	assert(root_loud_inform);
@@ -1237,7 +1237,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_odd_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_odd_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_odd_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_odd_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_odd = bt_ctf_field_type_sequence_create(root_loud_odd_elem, "berry.third");
 	assert(root_loud_odd);
@@ -1245,7 +1245,7 @@ struct bt_ctf_field_type *get_good_event_context_type(void)
 	assert(ret == 0);
 	root_loud_amuck_elem = bt_ctf_field_type_string_create();
 	assert(root_loud_amuck_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_loud_amuck_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_loud_amuck_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_loud_amuck = bt_ctf_field_type_sequence_create(root_loud_amuck_elem, "event.context.film");
 	assert(root_loud_amuck);
@@ -1415,7 +1415,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_splendid, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_splendid, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_splendid, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_splendid, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -1429,7 +1429,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_equal_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_equal_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_equal_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_equal_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_equal = bt_ctf_field_type_sequence_create(root_relative_equal_elem, "splendid");
 	assert(root_relative_equal);
@@ -1437,7 +1437,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_amuck_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_amuck_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_amuck_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_amuck_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_amuck = bt_ctf_field_type_sequence_create(root_relative_amuck_elem, "id");
 	assert(root_relative_amuck);
@@ -1445,7 +1445,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_push_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_push_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_push_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_push_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_push = bt_ctf_field_type_sequence_create(root_relative_push_elem, "berry.third");
 	assert(root_relative_push);
@@ -1453,7 +1453,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_brick_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_brick_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_brick_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_brick_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_brick = bt_ctf_field_type_sequence_create(root_relative_brick_elem, "face.magic");
 	assert(root_relative_brick);
@@ -1461,7 +1461,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_crush_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_crush_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_crush_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_crush_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_crush = bt_ctf_field_type_sequence_create(root_relative_crush_elem, "serious");
 	assert(root_relative_crush);
@@ -1469,7 +1469,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_relative_canvas_elem = bt_ctf_field_type_string_create();
 	assert(root_relative_canvas_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_relative_canvas_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_relative_canvas_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_relative_canvas = bt_ctf_field_type_sequence_create(root_relative_canvas_elem, "iron.dust");
 	assert(root_relative_canvas);
@@ -1483,7 +1483,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_equal_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_equal_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_equal_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_equal_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_equal = bt_ctf_field_type_sequence_create(root_absolute_equal_elem, "event.fields.splendid");
 	assert(root_absolute_equal);
@@ -1491,7 +1491,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_amuck_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_amuck_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_amuck_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_amuck_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_amuck = bt_ctf_field_type_sequence_create(root_absolute_amuck_elem, "stream.event.header.id");
 	assert(root_absolute_amuck);
@@ -1499,7 +1499,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_push_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_push_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_push_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_push_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_push = bt_ctf_field_type_sequence_create(root_absolute_push_elem, "event.context.berry.third");
 	assert(root_absolute_push);
@@ -1507,7 +1507,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_brick_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_brick_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_brick_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_brick_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_brick = bt_ctf_field_type_sequence_create(root_absolute_brick_elem, "stream.event.context.face.magic");
 	assert(root_absolute_brick);
@@ -1515,7 +1515,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_crush_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_crush_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_crush_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_crush_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_crush = bt_ctf_field_type_sequence_create(root_absolute_crush_elem, "stream.packet.context.serious");
 	assert(root_absolute_crush);
@@ -1523,7 +1523,7 @@ struct bt_ctf_field_type *get_good_event_payload_type(void)
 	assert(ret == 0);
 	root_absolute_canvas_elem = bt_ctf_field_type_string_create();
 	assert(root_absolute_canvas_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_absolute_canvas_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_absolute_canvas_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_absolute_canvas = bt_ctf_field_type_sequence_create(root_absolute_canvas_elem, "trace.packet.header.iron.dust");
 	assert(root_absolute_canvas);
@@ -1638,9 +1638,9 @@ end:
 #define FIELD_PATH_END	-2
 
 static
-int validate_field_path(struct bt_ctf_field_type *field_type,
-		enum bt_ctf_scope root, ...)
+int validate_field_path(struct bt_ctf_field_type *field_type, int int_root, ...)
 {
+	enum bt_ctf_scope root = int_root;
 	int ret = 0;
 	int len;
 	int expected_index;
@@ -1649,7 +1649,7 @@ int validate_field_path(struct bt_ctf_field_type *field_type,
 	struct bt_ctf_field_path *field_path = NULL;
 	va_list ap;
 
-	va_start(ap, root);
+	va_start(ap, int_root);
 	if (bt_ctf_field_type_is_sequence(field_type)) {
 		field_path = bt_ctf_field_type_sequence_get_length_field_path(
 				field_type);
@@ -2195,7 +2195,7 @@ struct bt_ctf_field_type *test_fail_unavailable_root_get_event_payload(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2205,7 +2205,7 @@ struct bt_ctf_field_type *test_fail_unavailable_root_get_event_payload(void)
 	assert(ret == 0);
 	root_b_elem = bt_ctf_field_type_string_create();
 	assert(root_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_b = bt_ctf_field_type_sequence_create(root_b_elem, "stream.event.context.lol");
 	assert(root_b);
@@ -2213,7 +2213,7 @@ struct bt_ctf_field_type *test_fail_unavailable_root_get_event_payload(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2279,7 +2279,7 @@ struct bt_ctf_field_type *test_fail_target_is_root_get_event_payload(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2289,7 +2289,7 @@ struct bt_ctf_field_type *test_fail_target_is_root_get_event_payload(void)
 	assert(ret == 0);
 	root_b_elem = bt_ctf_field_type_string_create();
 	assert(root_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_b = bt_ctf_field_type_sequence_create(root_b_elem, "event.fields");
 	assert(root_b);
@@ -2297,7 +2297,7 @@ struct bt_ctf_field_type *test_fail_target_is_root_get_event_payload(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2367,7 +2367,7 @@ struct bt_ctf_field_type *test_fail_target_is_after_source_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2377,7 +2377,7 @@ struct bt_ctf_field_type *test_fail_target_is_after_source_get_ep(void)
 	assert(ret == 0);
 	root_b_elem = bt_ctf_field_type_string_create();
 	assert(root_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_b = bt_ctf_field_type_sequence_create(root_b_elem, "d");
 	assert(root_b);
@@ -2385,7 +2385,7 @@ struct bt_ctf_field_type *test_fail_target_is_after_source_get_ep(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2395,7 +2395,7 @@ struct bt_ctf_field_type *test_fail_target_is_after_source_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_d, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_d, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_d, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_d, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2474,7 +2474,7 @@ struct bt_ctf_field_type *test_fail_target_is_ancestor_of_source_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2488,7 +2488,7 @@ struct bt_ctf_field_type *test_fail_target_is_ancestor_of_source_get_ep(void)
 	assert(ret == 0);
 	root_z_b_elem = bt_ctf_field_type_string_create();
 	assert(root_z_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_z_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_z_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_z_b = bt_ctf_field_type_sequence_create(root_z_b_elem, "z");
 	assert(root_z_b);
@@ -2498,7 +2498,7 @@ struct bt_ctf_field_type *test_fail_target_is_ancestor_of_source_get_ep(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2508,7 +2508,7 @@ struct bt_ctf_field_type *test_fail_target_is_ancestor_of_source_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_d, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_d, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_d, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_d, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2584,7 +2584,7 @@ struct bt_ctf_field_type *test_fail_target_is_source_get_event_payload(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2594,7 +2594,7 @@ struct bt_ctf_field_type *test_fail_target_is_source_get_event_payload(void)
 	assert(ret == 0);
 	root_b_elem = bt_ctf_field_type_string_create();
 	assert(root_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_b = bt_ctf_field_type_sequence_create(root_b_elem, "event.fields.b");
 	assert(root_b);
@@ -2602,7 +2602,7 @@ struct bt_ctf_field_type *test_fail_target_is_source_get_event_payload(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2612,7 +2612,7 @@ struct bt_ctf_field_type *test_fail_target_is_source_get_event_payload(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_d, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_d, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_d, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_d, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2688,7 +2688,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_is_not_enum_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2700,7 +2700,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_is_not_enum_get_ep(void)
 	assert(root_b);
 	root_b_HELLO = bt_ctf_field_type_string_create();
 	assert(root_b_HELLO);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_HELLO, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_HELLO, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_variant_add_field(root_b, root_b_HELLO, "HELLO");
 	assert(ret == 0);
@@ -2708,7 +2708,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_is_not_enum_get_ep(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2718,7 +2718,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_is_not_enum_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_d, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_d, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_d, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_d, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2801,7 +2801,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_mismatch_mappings_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_a_int, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_a_int, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_a_int, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_a_int, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2821,7 +2821,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_mismatch_mappings_get_ep(void)
 	assert(root_b);
 	root_b_GLASS = bt_ctf_field_type_string_create();
 	assert(root_b_GLASS);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_GLASS, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_GLASS, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_variant_add_field(root_b, root_b_GLASS, "GLASS");
 	assert(ret == 0);
@@ -2831,7 +2831,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_mismatch_mappings_get_ep(void)
 	assert(ret == 0);
 	ret = bt_ctf_field_type_integer_set_base(root_b_OF, 10);
 	assert(ret == 0);
-	ret = bt_ctf_field_type_integer_set_encoding(root_b_OF, CTF_STRING_NONE);
+	ret = bt_ctf_field_type_integer_set_encoding(root_b_OF, BT_CTF_STRING_ENCODING_NONE);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_set_byte_order(root_b_OF, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
@@ -2843,7 +2843,7 @@ struct bt_ctf_field_type *test_fail_variant_tag_mismatch_mappings_get_ep(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
@@ -2906,13 +2906,13 @@ struct bt_ctf_field_type *test_fail_sequence_tag_is_not_int_get_ep(void)
 	assert(ret == 0);
 	root_a = bt_ctf_field_type_string_create();
 	assert(root_a);
-	ret = bt_ctf_field_type_string_set_encoding(root_a, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_a, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_a, "a");
 	assert(ret == 0);
 	root_b_elem = bt_ctf_field_type_string_create();
 	assert(root_b_elem);
-	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_b_elem, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	root_b = bt_ctf_field_type_sequence_create(root_b_elem, "a");
 	assert(root_b);
@@ -2920,7 +2920,7 @@ struct bt_ctf_field_type *test_fail_sequence_tag_is_not_int_get_ep(void)
 	assert(ret == 0);
 	root_c = bt_ctf_field_type_string_create();
 	assert(root_c);
-	ret = bt_ctf_field_type_string_set_encoding(root_c, CTF_STRING_UTF8);
+	ret = bt_ctf_field_type_string_set_encoding(root_c, BT_CTF_STRING_ENCODING_UTF8);
 	assert(ret == 0);
 	ret = bt_ctf_field_type_structure_add_field(root, root_c, "c");
 	assert(ret == 0);
