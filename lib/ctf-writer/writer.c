@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/endian.h>
 #include <babeltrace/compiler.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,6 +50,7 @@ void bt_ctf_writer_destroy(struct bt_object *obj);
 
 struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
+	int ret;
 	struct bt_ctf_writer *writer = NULL;
 
 	if (!path) {
@@ -74,6 +76,11 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	writer->trace->is_created_by_writer = 1;
 	bt_object_set_parent(writer->trace, writer);
 	bt_put(writer->trace);
+
+	/* Default to little-endian */
+	ret = bt_ctf_writer_set_byte_order(writer, BT_CTF_BYTE_ORDER_NATIVE);
+	assert(ret == 0);
+
 	/* Create trace directory if necessary and open a metadata file */
 	if (g_mkdir_with_parents(path, S_IRWXU | S_IRWXG)) {
 		perror("g_mkdir_with_parents");
@@ -296,6 +303,10 @@ int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 	if (!writer || writer->frozen) {
 		ret = -1;
 		goto end;
+	}
+
+	if (byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		byte_order = BT_CTF_MY_BYTE_ORDER;
 	}
 
 	ret = bt_ctf_trace_set_native_byte_order(writer->trace,

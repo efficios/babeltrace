@@ -43,13 +43,6 @@
 #include <babeltrace/compat/fcntl.h>
 #include <glib.h>
 
-/* "Native" to CTF IR byte order */
-#if (BYTE_ORDER == LITTLE_ENDIAN)
-# define MY_BT_CTF_BYTE_ORDER BT_CTF_BYTE_ORDER_LITTLE_ENDIAN
-#else
-# define MY_BT_CTF_BYTE_ORDER BT_CTF_BYTE_ORDER_BIG_ENDIAN
-#endif
-
 #if (FLT_RADIX != 2)
 # error "Unsupported floating point radix"
 #endif
@@ -69,7 +62,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 		union intval value, unsigned int alignment, unsigned int size,
 		bool is_signed, enum bt_ctf_byte_order byte_order)
 {
-	bool rbo = (byte_order != MY_BT_CTF_BYTE_ORDER); /* reverse byte order */
+	bool rbo = (byte_order != BT_CTF_MY_BYTE_ORDER); /* reverse byte order */
 
 	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;
