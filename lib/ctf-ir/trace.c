@@ -89,7 +89,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 		goto error;
 	}
 
-	bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE);
+	trace->native_byte_order = BT_CTF_BYTE_ORDER_NATIVE;
 	bt_object_init(trace, bt_ctf_trace_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
@@ -995,7 +995,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace,
+int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order byte_order)
 {
 	int ret = 0;

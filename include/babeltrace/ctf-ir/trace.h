@@ -170,7 +170,7 @@ The created trace class has the following initial properties:
 - <strong>Name</strong>: none. You can set a name
   with bt_ctf_trace_set_name().
 - <strong>Default byte order</strong>: #BT_CTF_BYTE_ORDER_NATIVE. You
-  can set a default byte order with bt_ctf_trace_set_byte_order().
+  can set a default byte order with bt_ctf_trace_set_native_byte_order().
 
   Note that you \em must set the default byte order if any field type
   contained in the created trace class, in its stream classes, or in
@@ -250,31 +250,31 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
 
 /**
 @brief	Sets the default byte order of the CTF IR trace class
-	\p trace_class to \p name.
+	\p trace_class to \p native_byte_order.
 
-\p byte_order \em must be one of:
+\p native_byte_order \em must be one of:
 
 - #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN
 - #BT_CTF_BYTE_ORDER_BIG_ENDIAN
 - #BT_CTF_BYTE_ORDER_NETWORK
 
-@param[in] trace_class	Trace class of which to set the default byte
-			order.
-@param[in] byte_order	Default byte order of the trace class.
-@returns		0 on success, or a negative value on error.
+@param[in] trace_class		Trace class of which to set the default byte
+				order.
+@param[in] native_byte_order	Default byte order of the trace class.
+@returns			0 on success, or a negative value on error.
 
 @prenotnull{trace_class}
 @prenotnull{name}
 @prehot{trace_class}
-@pre \p byte_order is either #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
+@pre \p native_byte_order is either #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
 	#BT_CTF_BYTE_ORDER_BIG_ENDIAN, or
 	#BT_CTF_BYTE_ORDER_NETWORK.
 @postrefcountsame{trace_class}
 
 @sa bt_ctf_trace_get_name(): Returns the name of a given trace class.
 */
-extern int bt_ctf_trace_set_byte_order(struct bt_ctf_trace *trace_class,
-		enum bt_ctf_byte_order byte_order);
+extern int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace_class,
+		enum bt_ctf_byte_order native_byte_order);
 
 /**
 @brief	Returns the number of entries contained in the environment of

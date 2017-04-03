@@ -2589,7 +2589,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	/* Create non-writer trace, stream class, stream, and clock */
 	non_writer_trace = bt_ctf_trace_create();
 	assert(non_writer_trace);
-	ret = bt_ctf_trace_set_byte_order(non_writer_trace,
+	ret = bt_ctf_trace_set_native_byte_order(non_writer_trace,
 		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(!ret);
 	non_writer_sc = bt_ctf_stream_class_create("nonwriter_sc");
@@ -2834,7 +2834,7 @@ int main(int argc, char **argv)
 	trace = bt_ctf_writer_get_trace(writer);
 	ok(trace,
 		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
-	ok(bt_ctf_trace_set_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,
+	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,
 		"Set a trace's byte order to big endian");
 	ok(bt_ctf_trace_get_byte_order(trace) == BT_CTF_BYTE_ORDER_BIG_ENDIAN,
 		"bt_ctf_trace_get_byte_order returns a correct endianness");

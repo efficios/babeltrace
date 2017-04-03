@@ -4123,7 +4123,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 					goto error;
 				}
 
-				ret = bt_ctf_trace_set_byte_order(
+				ret = bt_ctf_trace_set_native_byte_order(
 					ctx->trace, bo);
 				if (ret) {
 					_PERROR("cannot set trace's byte order (%d)",

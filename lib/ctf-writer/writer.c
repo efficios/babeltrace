@@ -298,7 +298,7 @@ int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_ctf_trace_set_byte_order(writer->trace,
+	ret = bt_ctf_trace_set_native_byte_order(writer->trace,
 		byte_order);
 end:
 	return ret;
