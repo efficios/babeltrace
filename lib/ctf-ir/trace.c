@@ -389,7 +389,6 @@ int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock_class *clock_class)
 {
 	int ret = 0;
-	struct search_query query = { .value = clock_class, .found = 0 };
 
 	if (!trace || !bt_ctf_clock_class_is_valid(clock_class)) {
 		ret = -1;
@@ -397,8 +396,7 @@ int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 	}
 
 	/* Check for duplicate clock classes */
-	g_ptr_array_foreach(trace->clocks, value_exists, &query);
-	if (query.found) {
+	if (bt_ctf_trace_has_clock_class(trace, clock_class)) {
 		ret = -1;
 		goto end;
 	}
@@ -803,6 +801,19 @@ struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 
 end:
 	return clock_class;
+}
+
+BT_HIDDEN
+bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
+		struct bt_ctf_clock_class *clock_class)
+{
+	struct search_query query = { .value = clock_class, .found = 0 };
+
+	assert(trace);
+	assert(clock_class);
+
+	g_ptr_array_foreach(trace->clocks, value_exists, &query);
+	return query.found;
 }
 
 BT_HIDDEN

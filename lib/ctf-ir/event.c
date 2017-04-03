@@ -586,15 +586,34 @@ int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
 		struct bt_ctf_clock_value *value)
 {
 	int ret = 0;
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_clock_class *clock_class = NULL;
 
 	if (!event || !value || event->frozen) {
 		ret = -1;
 		goto end;
 	}
 
-	g_hash_table_insert(event->clock_values,
-		bt_ctf_clock_value_get_class(value), bt_get(value));
+	clock_class = bt_ctf_clock_value_get_class(value);
+	event_class = bt_ctf_event_borrow_event_class(event);
+	assert(event_class);
+	stream_class = bt_ctf_event_class_borrow_stream_class(event_class);
+	assert(stream_class);
+	trace = bt_ctf_stream_class_borrow_trace(stream_class);
+	assert(trace);
+
+	if (!bt_ctf_trace_has_clock_class(trace, clock_class)) {
+		ret = -1;
+		goto end;
+	}
+
+	g_hash_table_insert(event->clock_values, clock_class, bt_get(value));
+	clock_class = NULL;
+
 end:
+	bt_put(clock_class);
 	return ret;
 }
 

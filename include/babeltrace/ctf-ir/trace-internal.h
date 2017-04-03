@@ -85,4 +85,8 @@ BT_HIDDEN
 int bt_ctf_trace_object_modification(struct bt_ctf_object *object,
 		void *trace_ptr);
 
+BT_HIDDEN
+bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
+		struct bt_ctf_clock_class *clock_class);
+
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */
