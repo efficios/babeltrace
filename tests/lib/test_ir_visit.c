@@ -27,6 +27,7 @@
 #include <babeltrace/ctf-ir/visitor.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #define NR_TESTS 13
 
@@ -104,6 +105,9 @@ struct bt_ctf_trace *init_trace(void)
 		goto end;
 	}
 
+	ret = bt_ctf_trace_set_native_byte_order(trace,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(ret == 0);
 	ret = bt_ctf_stream_class_add_event_class(sc1, ec1);
 	if (ret) {
 		goto error;

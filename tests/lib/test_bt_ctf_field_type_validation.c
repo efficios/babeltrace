@@ -2069,6 +2069,9 @@ void test_pass(void)
 
 	trace = bt_ctf_trace_create();
 	assert(trace);
+	ret = bt_ctf_trace_set_native_byte_order(trace,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(ret == 0);
 	sc = bt_ctf_stream_class_create("nice_piece_of_stream_class");
 	assert(sc);
 	ec = bt_ctf_event_class_create("oh_what_an_event_class");

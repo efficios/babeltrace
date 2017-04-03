@@ -306,6 +306,9 @@ static struct bt_ctf_trace *create_tc1(void)
 		goto error;
 	}
 
+	ret = bt_ctf_trace_set_native_byte_order(tc1,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(ret == 0);
 	sc1 = create_sc1();
 	ok(sc1, "Create SC1");
 	if (!sc1) {

@@ -465,6 +465,15 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
+	/*
+	 * At the end of this function we freeze the trace, so its
+	 * native byte order must NOT be BT_CTF_BYTE_ORDER_NATIVE.
+	 */
+	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		ret = -1;
+		goto end;
+	}
+
 	current_parent_trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (current_parent_trace) {
 		/* Stream class is already associated to a trace, abort. */
