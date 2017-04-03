@@ -17,7 +17,7 @@
 
 TESTDIR=@abs_top_srcdir@/tests
 
-BABELTRACE_BIN=@abs_top_builddir@/converter/babeltrace
+BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
 CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 
 source $TESTDIR/utils/tap/tap.sh

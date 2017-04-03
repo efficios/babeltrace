@@ -14,7 +14,7 @@ endif
 SUBDIRS +=			\
 	lib			\
 	plugins			\
-	converter		\
+	cli			\
 	bindings		\
 	tests			\
 	doc			\

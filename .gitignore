@@ -37,8 +37,8 @@ plugins/ctf/common/metadata/lexer.c
 plugins/ctf/common/metadata/parser.c
 plugins/ctf/common/metadata/parser.h
 plugins/ctf/common/metadata/parser.output
-/converter/babeltrace
-/converter/babeltrace.bin
+/cli/babeltrace
+/cli/babeltrace.bin
 /config.h
 /config.h.in
 /config.status
@@ -55,7 +55,7 @@ Makefile
 Makefile.in
 autom4te.cache/
 config/
-converter/babeltrace-log
+cli/babeltrace-log
 core
 stamp-h1
 bindings/python/__init__.py

@@ -18,7 +18,7 @@
 CURDIR=$(dirname $0)
 TESTDIR=$CURDIR/..
 
-BABELTRACE_BIN=$CURDIR/../../converter/babeltrace
+BABELTRACE_BIN=$CURDIR/../../cli/babeltrace
 
 CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 

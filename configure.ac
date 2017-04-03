@@ -446,7 +446,7 @@ AC_CONFIG_FILES([
 	Makefile
 	common/Makefile
 	compat/Makefile
-	converter/Makefile
+	cli/Makefile
 	doc/Makefile
 	doc/api/Makefile
 	doc/api/Doxyfile

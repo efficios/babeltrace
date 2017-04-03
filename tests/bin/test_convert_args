@@ -17,7 +17,7 @@
 
 curdir="$(dirname $0)"
 testdir="$curdir/.."
-babeltrace_bin="$curdir/../../converter/babeltrace"
+babeltrace_bin="$curdir/../../cli/babeltrace"
 
 source $testdir/utils/tap/tap.sh
 
