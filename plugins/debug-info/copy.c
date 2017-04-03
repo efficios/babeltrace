@@ -61,7 +61,7 @@ struct bt_ctf_field *get_payload_field(FILE *err,
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(sec_type) != BT_CTF_TYPE_ID_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(sec_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto end;
@@ -96,7 +96,7 @@ struct bt_ctf_field *get_stream_event_context_field(FILE *err,
 		goto end;
 	}
 
-	if (bt_ctf_field_type_get_type_id(sec_type) != BT_CTF_TYPE_ID_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(sec_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto end;
@@ -133,7 +133,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -176,7 +176,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_ctf_event *eve
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -222,7 +222,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -267,7 +267,7 @@ int get_payload_int_field_value(FILE *err, struct bt_ctf_event *event,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -313,7 +313,7 @@ int get_payload_string_field_value(FILE *err,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_STRING) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_STRING) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -364,7 +364,7 @@ int get_payload_build_id_field_value(FILE *err,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_SEQUENCE) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -1273,7 +1273,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 	 * If it is not a structure, we did not modify it to add the debug info
 	 * fields, so just assign it as is.
 	 */
-	if (bt_ctf_field_type_get_type_id(writer_event_context_type) != BT_CTF_TYPE_ID_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(writer_event_context_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		ret = bt_ctf_event_set_event_context(writer_event, event_context);
 		goto end;
 	}

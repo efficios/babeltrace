@@ -348,7 +348,7 @@ int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
 	}
 
 	if (bt_ctf_field_type_get_type_id(payload_type) !=
-			BT_CTF_TYPE_ID_STRUCT) {
+			BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}

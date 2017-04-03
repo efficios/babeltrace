@@ -124,23 +124,23 @@ int find_update_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 	int ret;
 
 	switch (bt_ctf_field_type_get_type_id(type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		return update_header_clock_int_field_type(err, type,
 				writer_clock_class);
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		return find_update_struct_clock_fields(err, type,
 				writer_clock_class);
-	case BT_CTF_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		return find_update_array_clock_fields(err, type,
 				writer_clock_class);
-	case BT_CTF_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		return find_update_sequence_clock_fields(err, type,
 				writer_clock_class);
 	case BT_CTF_TYPE_ID_UNTAGGED_VARIANT:
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		return find_update_variant_clock_fields(err, type,
 				writer_clock_class);
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		return find_update_enum_clock_fields(err, type,
 				writer_clock_class);
 		break;
@@ -343,7 +343,7 @@ struct bt_ctf_field_type *override_header_type(FILE *err,
 		goto error;
 	}
 
-	if (bt_ctf_field_type_get_type_id(new_type) != BT_CTF_TYPE_ID_STRUCT) {
+	if (bt_ctf_field_type_get_type_id(new_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		fprintf(err, "[error] Unexpected header field type\n");
 		goto error;
 	}
@@ -440,39 +440,39 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 	}
 
 	switch (bt_ctf_field_type_get_type_id(type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		ret = copy_find_clock_int_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		ret = copy_find_clock_struct_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_FLOAT:
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
 		ret = copy_float_field(err, field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		ret = copy_find_clock_enum_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_STRING:
+	case BT_CTF_FIELD_TYPE_ID_STRING:
 		ret = copy_string_field(err, field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		ret = copy_find_clock_array_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		ret = copy_find_clock_sequence_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
 	case BT_CTF_TYPE_ID_UNTAGGED_VARIANT:
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		ret = copy_find_clock_variant_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
 	/* No default, we want to catch missing field types. */
-	case BT_CTF_TYPE_ID_UNKNOWN:
+	case BT_CTF_FIELD_TYPE_ID_UNKNOWN:
 	case BT_CTF_NR_TYPE_IDS:
 		break;
 	}

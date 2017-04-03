@@ -601,14 +601,14 @@ static inline
 bool is_struct_type(struct bt_ctf_field_type *field_type)
 {
 	return bt_ctf_field_type_get_type_id(field_type) ==
-			BT_CTF_TYPE_ID_STRUCT;
+			BT_CTF_FIELD_TYPE_ID_STRUCT;
 }
 
 static inline
 bool is_variant_type(struct bt_ctf_field_type *field_type)
 {
 	return bt_ctf_field_type_get_type_id(field_type) ==
-			BT_CTF_TYPE_ID_VARIANT;
+			BT_CTF_FIELD_TYPE_ID_VARIANT;
 }
 
 static
@@ -1412,17 +1412,17 @@ struct bt_ctf_field *get_next_field(struct bt_ctf_notif_iter *notit)
 	}
 
 	switch (bt_ctf_field_type_get_type_id(base_type)) {
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		next_field = bt_ctf_field_structure_get_field_by_index(
 			base_field, index);
 		break;
-	case BT_CTF_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		next_field = bt_ctf_field_array_get_field(base_field, index);
 		break;
-	case BT_CTF_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		next_field = bt_ctf_field_sequence_get_field(base_field, index);
 		break;
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		next_field = bt_ctf_field_variant_get_current_field(base_field);
 		break;
 	default:
@@ -1555,12 +1555,12 @@ enum bt_ctf_btr_status btr_unsigned_int_common(uint64_t value,
 	}
 
 	switch(bt_ctf_field_type_get_type_id(type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
 		bt_get(type);
 		break;
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		int_field = bt_ctf_field_enumeration_get_container(field);
 		type = bt_ctf_field_get_type(int_field);
 		break;
@@ -1650,12 +1650,12 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 	}
 
 	switch(bt_ctf_field_type_get_type_id(type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
 		bt_get(type);
 		break;
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		int_field = bt_ctf_field_enumeration_get_container(field);
 		type = bt_ctf_field_get_type(int_field);
 		break;

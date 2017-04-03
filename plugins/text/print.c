@@ -1003,7 +1003,7 @@ enum bt_component_status print_array(struct text_component *text,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field_type *array_type = NULL, *field_type = NULL;
-	enum bt_ctf_type_id type_id;
+	enum bt_ctf_field_type_id type_id;
 	int64_t len;
 	uint64_t i;
 	bool is_string = false;
@@ -1024,7 +1024,7 @@ enum bt_component_status print_array(struct text_component *text,
 		goto end;
 	}
 	type_id = bt_ctf_field_type_get_type_id(field_type);
-	if (type_id == BT_CTF_TYPE_ID_INTEGER) {
+	if (type_id == BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		enum bt_ctf_string_encoding encoding;
 
 		encoding = bt_ctf_field_type_integer_get_encoding(field_type);
@@ -1115,7 +1115,7 @@ enum bt_component_status print_sequence(struct text_component *text,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field_type *seq_type = NULL, *field_type = NULL;
 	struct bt_ctf_field *length_field = NULL;
-	enum bt_ctf_type_id type_id;
+	enum bt_ctf_field_type_id type_id;
 	uint64_t len;
 	uint64_t i;
 	bool is_string = false;
@@ -1140,7 +1140,7 @@ enum bt_component_status print_sequence(struct text_component *text,
 		goto end;
 	}
 	type_id = bt_ctf_field_type_get_type_id(field_type);
-	if (type_id == BT_CTF_TYPE_ID_INTEGER) {
+	if (type_id == BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		enum bt_ctf_string_encoding encoding;
 
 		encoding = bt_ctf_field_type_integer_get_encoding(field_type);
@@ -1261,7 +1261,7 @@ enum bt_component_status print_field(struct text_component *text,
 		struct bt_ctf_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_ctf_type_id type_id;
+	enum bt_ctf_field_type_id type_id;
 
 	type_id = bt_ctf_field_get_type_id(field);
 	switch (type_id) {

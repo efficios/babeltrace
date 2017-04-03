@@ -42,7 +42,7 @@ typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
 
 struct bt_ctf_field_type {
 	struct bt_object base;
-	enum bt_ctf_type_id id;
+	enum bt_ctf_field_type_id id;
 	unsigned int alignment;
 	type_freeze_func freeze;
 	type_serialize_func serialize;

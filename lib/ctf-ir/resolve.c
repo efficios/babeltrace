@@ -394,7 +394,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		int child_index;
 		struct bt_ctf_field_type *child_type;
 		const char *field_name = ptoken_get_string(cur_ptoken);
-		enum bt_ctf_type_id type_id =
+		enum bt_ctf_field_type_id type_id =
 			bt_ctf_field_type_get_type_id(type);
 
 		/* Find to which index corresponds the current path token */

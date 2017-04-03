@@ -121,7 +121,7 @@ enum bt_component_status update_packet_context_field(FILE *err,
 			BT_PUT(field);
 			continue;
 		}
-		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 			fprintf(err, "[error] Unexpected packet context field type\n");
 			goto error;
 		}

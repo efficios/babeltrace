@@ -97,49 +97,49 @@ The standard CTF field types are:
     <th>CTF IR field which you can create from this field type
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_INTEGER
+    <td>#BT_CTF_FIELD_TYPE_ID_INTEGER
     <td>\ref ctfirintfieldtype
     <td>\ref ctfirintfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_FLOAT
+    <td>#BT_CTF_FIELD_TYPE_ID_FLOAT
     <td>\ref ctfirfloatfieldtype
     <td>\ref ctfirfloatfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_ENUM
+    <td>#BT_CTF_FIELD_TYPE_ID_ENUM
     <td>\ref ctfirenumfieldtype
     <td>\ref ctfirenumfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_STRING
+    <td>#BT_CTF_FIELD_TYPE_ID_STRING
     <td>\ref ctfirstringfieldtype
     <td>\ref ctfirstringfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_STRUCT
+    <td>#BT_CTF_FIELD_TYPE_ID_STRUCT
     <td>\ref ctfirstructfieldtype
     <td>\ref ctfirstructfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_ARRAY
+    <td>#BT_CTF_FIELD_TYPE_ID_ARRAY
     <td>\ref ctfirarrayfieldtype
     <td>\ref ctfirarrayfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_SEQUENCE
+    <td>#BT_CTF_FIELD_TYPE_ID_SEQUENCE
     <td>\ref ctfirseqfieldtype
     <td>\ref ctfirseqfield
   </tr>
   <tr>
-    <td>#BT_CTF_TYPE_ID_VARIANT
+    <td>#BT_CTF_FIELD_TYPE_ID_VARIANT
     <td>\ref ctfirvarfieldtype
     <td>\ref ctfirvarfield
   </tr>
 </table>
 
 Each field type has its own <strong>type ID</strong> (see
-#bt_ctf_type_id). You get the type ID of a field type object
+#bt_ctf_field_type_id). You get the type ID of a field type object
 with bt_ctf_field_type_get_type_id().
 
 You can get a deep copy of a field type with bt_ctf_field_type_copy().
@@ -206,7 +206,7 @@ struct bt_ctf_field_type_enumeration_mapping_iterator;
 /*
  * Babeltrace 1.x enumerations that were also used in CTF writer's API.
  * They are left here for backward compatibility reasons, but
- * enum bt_ctf_type_id and enum bt_ctf_string_encoding should be used
+ * enum bt_ctf_field_type_id and enum bt_ctf_string_encoding should be used
  * in new code. Both new enumerations are compatible with their legacy
  * counterpart.
  */
@@ -275,37 +275,37 @@ enum bt_ctf_scope {
 /**
 @brief	Type ID of a @ft.
 */
-enum bt_ctf_type_id {
+enum bt_ctf_field_type_id {
 	/// Unknown, used for errors.
-	BT_CTF_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
+	BT_CTF_FIELD_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
 
 	/// \ref ctfirintfieldtype
-	BT_CTF_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
+	BT_CTF_FIELD_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
 
 	/// \ref ctfirfloatfieldtype
-	BT_CTF_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
+	BT_CTF_FIELD_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
 
 	/// \ref ctfirenumfieldtype
-	BT_CTF_TYPE_ID_ENUM = CTF_TYPE_ENUM,
+	BT_CTF_FIELD_TYPE_ID_ENUM = CTF_TYPE_ENUM,
 
 	/// \ref ctfirstringfieldtype
-	BT_CTF_TYPE_ID_STRING = CTF_TYPE_STRING,
+	BT_CTF_FIELD_TYPE_ID_STRING = CTF_TYPE_STRING,
 
 	/// \ref ctfirstructfieldtype
-	BT_CTF_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
+	BT_CTF_FIELD_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
 
 	/// @cond DOCUMENT
 	BT_CTF_TYPE_ID_UNTAGGED_VARIANT = CTF_TYPE_UNTAGGED_VARIANT,
 	/// @endcond
 
 	/// \ref ctfirarrayfieldtype
-	BT_CTF_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
+	BT_CTF_FIELD_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
 
 	/// \ref ctfirseqfieldtype
-	BT_CTF_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
+	BT_CTF_FIELD_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
 
 	/// \ref ctfirvarfieldtype
-	BT_CTF_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
+	BT_CTF_FIELD_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
 
 	/// Number of enumeration entries.
 	BT_CTF_NR_TYPE_IDS = NR_CTF_TYPES,
@@ -316,12 +316,12 @@ enum bt_ctf_type_id {
 
 @param[in] field_type	Field type of which to get the type ID.
 @returns		Type ID of \p field_type,
-			or #BT_CTF_TYPE_ID_UNKNOWN on error.
+			or #BT_CTF_FIELD_TYPE_ID_UNKNOWN on error.
 
 @prenotnull{field_type}
 @postrefcountsame{field_type}
 
-@sa #bt_ctf_type_id: CTF IR field type ID.
+@sa #bt_ctf_field_type_id: CTF IR field type ID.
 @sa bt_ctf_field_type_is_integer(): Returns whether or not a given
 	field type is a @intft.
 @sa bt_ctf_field_type_is_floating_point(): Returns whether or not a
@@ -339,7 +339,7 @@ enum bt_ctf_type_id {
 @sa bt_ctf_field_type_is_variant(): Returns whether or not a given
 	field type is a @varft.
 */
-extern enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
+extern enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *field_type);
 
 /**

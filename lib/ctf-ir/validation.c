@@ -190,15 +190,15 @@ static
 int field_type_contains_sequence_or_variant_ft(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
-	enum bt_ctf_type_id type_id = bt_ctf_field_type_get_type_id(type);
+	enum bt_ctf_field_type_id type_id = bt_ctf_field_type_get_type_id(type);
 
 	switch (type_id) {
-	case BT_CTF_TYPE_ID_SEQUENCE:
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		ret = 1;
 		goto end;
-	case BT_CTF_TYPE_ID_ARRAY:
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 	{
 		int i;
 		int field_count = bt_ctf_field_type_get_field_count(type);

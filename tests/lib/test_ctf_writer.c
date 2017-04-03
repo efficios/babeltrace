@@ -1800,10 +1800,10 @@ void type_field_tests()
 		"bt_ctf_field_type_get_byte_order handles NULL correctly");
 
 	ok(bt_ctf_field_type_get_type_id(NULL) ==
-		BT_CTF_TYPE_ID_UNKNOWN,
+		BT_CTF_FIELD_TYPE_ID_UNKNOWN,
 		"bt_ctf_field_type_get_type_id handles NULL correctly");
 	ok(bt_ctf_field_type_get_type_id(uint_12_type) ==
-		BT_CTF_TYPE_ID_INTEGER,
+		BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"bt_ctf_field_type_get_type_id returns a correct value with an integer type");
 
 	ok(bt_ctf_field_type_integer_get_base(NULL) ==
@@ -1840,7 +1840,7 @@ void type_field_tests()
 		bt_ctf_field_type_sequence_create(int_16_type, "seq_len");
 	ok(sequence_type, "Create a sequence of int16_t type");
 	ok(bt_ctf_field_type_get_type_id(sequence_type) ==
-		BT_CTF_TYPE_ID_SEQUENCE,
+		BT_CTF_FIELD_TYPE_ID_SEQUENCE,
 		"bt_ctf_field_type_get_type_id returns a correct value with a sequence type");
 
 	ok(bt_ctf_field_type_sequence_get_length_field_name(NULL) == NULL,
@@ -1878,7 +1878,7 @@ void type_field_tests()
 
 	structure_seq_type = bt_ctf_field_type_structure_create();
 	ok(bt_ctf_field_type_get_type_id(structure_seq_type) ==
-		BT_CTF_TYPE_ID_STRUCT,
+		BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"bt_ctf_field_type_get_type_id returns a correct value with a structure type");
 	ok(structure_seq_type, "Create a structure type");
 	ok(bt_ctf_field_type_structure_add_field(structure_seq_type,
@@ -3166,7 +3166,7 @@ int main(int argc, char **argv)
 		stream_class);
 	ok(ret_field_type,
 		"bt_ctf_stream_class_get_event_header_type returns an event header type");
-	ok(bt_ctf_field_type_get_type_id(ret_field_type) == BT_CTF_TYPE_ID_STRUCT,
+	ok(bt_ctf_field_type_get_type_id(ret_field_type) == BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Default event header type is a structure");
 	event_header_field_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(
@@ -3174,7 +3174,7 @@ int main(int argc, char **argv)
 	ok(event_header_field_type,
 		"Default event header type contains an \"id\" field");
 	ok(bt_ctf_field_type_get_type_id(
-		event_header_field_type) == BT_CTF_TYPE_ID_INTEGER,
+		event_header_field_type) == BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Default event header \"id\" field is an integer");
 	bt_put(event_header_field_type);
 	event_header_field_type =
@@ -3183,7 +3183,7 @@ int main(int argc, char **argv)
 	ok(event_header_field_type,
 		"Default event header type contains a \"timestamp\" field");
 	ok(bt_ctf_field_type_get_type_id(
-		event_header_field_type) == BT_CTF_TYPE_ID_INTEGER,
+		event_header_field_type) == BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Default event header \"timestamp\" field is an integer");
 	bt_put(event_header_field_type);
 	bt_put(ret_field_type);
@@ -3194,7 +3194,7 @@ int main(int argc, char **argv)
 	packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
 	ok(packet_header_type,
 		"bt_ctf_trace_get_packet_header_type returns a packet header");
-	ok(bt_ctf_field_type_get_type_id(packet_header_type) == BT_CTF_TYPE_ID_STRUCT,
+	ok(bt_ctf_field_type_get_type_id(packet_header_type) == BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"bt_ctf_trace_get_packet_header_type returns a packet header of type struct");
 	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		packet_header_type, "magic");
@@ -3226,7 +3226,7 @@ int main(int argc, char **argv)
 	packet_context_type = bt_ctf_stream_class_get_packet_context_type(stream_class);
 	ok(packet_context_type,
 		"bt_ctf_stream_class_get_packet_context_type returns a packet context type.");
-	ok(bt_ctf_field_type_get_type_id(packet_context_type) == BT_CTF_TYPE_ID_STRUCT,
+	ok(bt_ctf_field_type_get_type_id(packet_context_type) == BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Packet context is a structure");
 
 	ok(bt_ctf_stream_class_set_packet_context_type(NULL, packet_context_type),

@@ -93,7 +93,7 @@ name within a @structfield with bt_ctf_field_structure_set_field().
 
 You can get a reference to the @ft which was used to create a field with
 bt_ctf_field_get_type(). You can get the
-\link #bt_ctf_type_id type ID\endlink of this field type directly with
+\link #bt_ctf_field_type_id type ID\endlink of this field type directly with
 bt_ctf_field_get_type_id().
 
 You can get a deep copy of a field with bt_ctf_field_copy(). The field
@@ -187,12 +187,12 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 @param[in] field	Field of which to get the type ID of its
 			parent field type..
 @returns		Type ID of the parent field type of \p field,
-			or #BT_CTF_TYPE_ID_UNKNOWN on error.
+			or #BT_CTF_FIELD_TYPE_ID_UNKNOWN on error.
 
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa #bt_ctf_type_id: CTF IR field type ID.
+@sa #bt_ctf_field_type_id: CTF IR field type ID.
 @sa bt_ctf_field_is_integer(): Returns whether or not a given field is a
 	@intfield.
 @sa bt_ctf_field_is_floating_point(): Returns whether or not a given
@@ -210,7 +210,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 @sa bt_ctf_field_is_variant(): Returns whether or not a given field is a
 	@varfield.
 */
-extern enum bt_ctf_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+extern enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
 
 /*
  * bt_ctf_field_signed_integer_get_value: get a signed integer field's value

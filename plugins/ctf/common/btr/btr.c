@@ -206,18 +206,18 @@ int64_t get_compound_field_type_length(struct bt_ctf_btr *btr,
 	int64_t length;
 
 	switch (bt_ctf_field_type_get_type_id(field_type)) {
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		length = (int64_t) bt_ctf_field_type_structure_get_field_count(
 			field_type);
 		break;
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		/* Variant field types always "contain" a single type */
 		length = 1;
 		break;
-	case BT_CTF_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		length = bt_ctf_field_type_array_get_length(field_type);
 		break;
-	case BT_CTF_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		length = btr->user.cbs.query.get_sequence_length(field_type,
 			btr->user.data);
 		break;
@@ -373,10 +373,10 @@ int get_basic_field_type_size(struct bt_ctf_btr *btr,
 	int size;
 
 	switch (bt_ctf_field_type_get_type_id(field_type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		size = bt_ctf_field_type_integer_get_size(field_type);
 		break;
-	case BT_CTF_TYPE_ID_FLOAT:
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
 	{
 		int exp_dig, mant_dig;
 
@@ -394,7 +394,7 @@ int get_basic_field_type_size(struct bt_ctf_btr *btr,
 		size = exp_dig + mant_dig;
 		break;
 	}
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 	{
 		struct bt_ctf_field_type *int_type;
 
@@ -986,16 +986,16 @@ enum bt_ctf_btr_status read_basic_begin_state(struct bt_ctf_btr *btr)
 	assert(btr->cur_basic_field_type);
 
 	switch (bt_ctf_field_type_get_type_id(btr->cur_basic_field_type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		status = read_basic_int_type_and_call_begin(btr);
 		break;
-	case BT_CTF_TYPE_ID_FLOAT:
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
 		status = read_basic_float_type_and_call_begin(btr);
 		break;
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		status = read_basic_enum_type_and_call_begin(btr);
 		break;
-	case BT_CTF_TYPE_ID_STRING:
+	case BT_CTF_FIELD_TYPE_ID_STRING:
 		status = read_basic_string_type_and_call(btr, true);
 		break;
 	default:
@@ -1013,16 +1013,16 @@ enum bt_ctf_btr_status read_basic_continue_state(struct bt_ctf_btr *btr)
 	assert(btr->cur_basic_field_type);
 
 	switch (bt_ctf_field_type_get_type_id(btr->cur_basic_field_type)) {
-	case BT_CTF_TYPE_ID_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		status = read_basic_int_type_and_call_continue(btr);
 		break;
-	case BT_CTF_TYPE_ID_FLOAT:
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
 		status = read_basic_float_type_and_call_continue(btr);
 		break;
-	case BT_CTF_TYPE_ID_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		status = read_basic_enum_type_and_call_continue(btr);
 		break;
-	case BT_CTF_TYPE_ID_STRING:
+	case BT_CTF_FIELD_TYPE_ID_STRING:
 		status = read_basic_string_type_and_call(btr, false);
 		break;
 	default:
@@ -1103,10 +1103,10 @@ end:
 static inline
 bool is_compound_type(struct bt_ctf_field_type *field_type)
 {
-	enum bt_ctf_type_id id = bt_ctf_field_type_get_type_id(field_type);
+	enum bt_ctf_field_type_id id = bt_ctf_field_type_get_type_id(field_type);
 
-	return id == BT_CTF_TYPE_ID_STRUCT || id == BT_CTF_TYPE_ID_ARRAY ||
-		id == BT_CTF_TYPE_ID_SEQUENCE || id == BT_CTF_TYPE_ID_VARIANT;
+	return id == BT_CTF_FIELD_TYPE_ID_STRUCT || id == BT_CTF_FIELD_TYPE_ID_ARRAY ||
+		id == BT_CTF_FIELD_TYPE_ID_SEQUENCE || id == BT_CTF_FIELD_TYPE_ID_VARIANT;
 }
 
 static inline
@@ -1148,7 +1148,7 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 
 	/* Get next field's type */
 	switch (bt_ctf_field_type_get_type_id(top->base_type)) {
-	case BT_CTF_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		ret = bt_ctf_field_type_structure_get_field(
 			top->base_type, NULL, &next_field_type,
 			top->index);
@@ -1156,17 +1156,17 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 			next_field_type = NULL;
 		}
 		break;
-	case BT_CTF_TYPE_ID_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		next_field_type =
 			bt_ctf_field_type_array_get_element_type(
 				top->base_type);
 		break;
-	case BT_CTF_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		next_field_type =
 			bt_ctf_field_type_sequence_get_element_type(
 				top->base_type);
 		break;
-	case BT_CTF_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		/* Variant types are dynamic: query the user, he should know! */
 		next_field_type =
 			btr->user.cbs.query.get_variant_type(

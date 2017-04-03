@@ -475,7 +475,7 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 	/*
 	 * Only support for integers for now.
 	 */
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 		fprintf(err, "[error] Unsupported packet context field type\n");
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto error;
@@ -593,7 +593,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 			continue;
 		}
 
-		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_TYPE_ID_INTEGER) {
+		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 			fprintf(err, "[error] Unexpected packet context field type\n");
 			goto error;
 		}
