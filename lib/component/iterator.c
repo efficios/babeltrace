@@ -33,6 +33,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/notification-internal.h>
 
 static
 void bt_notification_iterator_destroy(struct bt_object *obj)
@@ -226,6 +227,7 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 
 		BT_MOVE(iterator->current_notification,
 			next_return.notification);
+		bt_notification_freeze(iterator->current_notification);
 	}
 
 end:

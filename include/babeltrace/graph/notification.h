@@ -69,6 +69,8 @@ enum bt_notification_type {
 	/** End of trace notification, see eot.h */
 	BT_NOTIFICATION_TYPE_END_OF_TRACE = 8,
 
+	BT_NOTIFICATION_TYPE_INACTIVITY = 9,
+
 	BT_NOTIFICATION_TYPE_NR, /* Not part of ABI. */
 };
 
