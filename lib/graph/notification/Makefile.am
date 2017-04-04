@@ -1,9 +1,8 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-noinst_LTLIBRARIES = libcomponent-notification.la
+noinst_LTLIBRARIES = libgraph-notification.la
 
-# Plug-in system library
-libcomponent_notification_la_SOURCES = \
+libgraph_notification_la_SOURCES = \
 	notification.c \
 	packet.c \
 	event.c \

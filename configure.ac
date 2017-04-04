@@ -466,8 +466,8 @@ AC_CONFIG_FILES([
 	lib/Makefile
 	lib/prio_heap/Makefile
 	lib/plugin/Makefile
-        lib/component/Makefile
-	lib/component/notification/Makefile
+	lib/graph/Makefile
+	lib/graph/notification/Makefile
 	lib/ctf-ir/Makefile
 	lib/ctf-writer/Makefile
 	include/Makefile

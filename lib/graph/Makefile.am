@@ -2,10 +2,10 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 SUBDIRS = notification
 
-noinst_LTLIBRARIES = libcomponent.la
+noinst_LTLIBRARIES = libgraph.la
 
-# Plug-in system library
-libcomponent_la_SOURCES = \
+# Graph library
+libgraph_la_SOURCES = \
 	clock-class-priority-map.c \
 	component.c \
 	component-class.c \
@@ -17,5 +17,5 @@ libcomponent_la_SOURCES = \
 	filter.c \
 	iterator.c
 
-libcomponent_la_LIBADD = \
-	notification/libcomponent-notification.la
+libgraph_la_LIBADD = \
+	notification/libgraph-notification.la

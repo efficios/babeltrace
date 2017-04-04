@@ -1,4 +1,4 @@
-SUBDIRS = ctf-ir ctf-writer prio_heap plugin component .
+SUBDIRS = ctf-ir ctf-writer prio_heap plugin graph .
 
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
@@ -10,7 +10,7 @@ libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
 	$(top_builddir)/compat/libcompat.la \
-	component/libcomponent.la \
+	graph/libgraph.la \
 	plugin/libplugin.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	ctf-ir/libctf-ir.la \
