@@ -8,4 +8,5 @@ libcomponent_notification_la_SOURCES = \
 	packet.c \
 	event.c \
 	stream.c \
-	heap.c
+	heap.c \
+	inactivity.c
