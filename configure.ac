@@ -499,6 +499,7 @@ AC_CONFIG_FILES([
 	plugins/ctf/lttng-live/Makefile
 	plugins/muxer/Makefile
 	plugins/text/Makefile
+	plugins/text/pretty/Makefile
 	plugins/writer/Makefile
 	plugins/utils/Makefile
 	plugins/utils/dummy/Makefile

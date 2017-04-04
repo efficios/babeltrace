@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_TEXT_H
-#define BABELTRACE_PLUGIN_TEXT_H
+#ifndef BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H
+#define BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H
 
 /*
  * BabelTrace - CTF Text Output Plug-in
@@ -30,26 +30,29 @@
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/private-port.h>
+#include <babeltrace/ctf-ir/event.h>
 
-enum text_default {
-	TEXT_DEFAULT_UNSET,
-	TEXT_DEFAULT_SHOW,
-	TEXT_DEFAULT_HIDE,
+enum pretty_default {
+	PRETTY_DEFAULT_UNSET,
+	PRETTY_DEFAULT_SHOW,
+	PRETTY_DEFAULT_HIDE,
 };
 
-enum text_color_option {
-	TEXT_COLOR_OPT_NEVER,
-	TEXT_COLOR_OPT_AUTO,
-	TEXT_COLOR_OPT_ALWAYS,
+enum pretty_color_option {
+	PRETTY_COLOR_OPT_NEVER,
+	PRETTY_COLOR_OPT_AUTO,
+	PRETTY_COLOR_OPT_ALWAYS,
 };
 
-struct text_options {
+struct pretty_options {
 	char *output_path;
 	char *debug_info_dir;
 	char *debug_info_target_prefix;
 
-	enum text_default name_default;
-	enum text_default field_default;
+	enum pretty_default name_default;
+	enum pretty_default field_default;
 
 	bool print_scope_field_names;
 	bool print_header_field_names;
@@ -71,12 +74,12 @@ struct text_options {
 	bool clock_date;
 	bool clock_gmt;
 	bool debug_info_full_path;
-	enum text_color_option color;
+	enum pretty_color_option color;
 	bool verbose;
 };
 
-struct text_component {
-	struct text_options options;
+struct pretty_component {
+	struct pretty_options options;
 	struct bt_notification_iterator *input_iterator;
 	FILE *out, *err;
 	bool processed_first_event; /* Should be per-iterator. */
@@ -106,7 +109,25 @@ enum stream_packet_context_quarks_enum {
 GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 
 BT_HIDDEN
-enum bt_component_status text_print_event(struct text_component *text,
+enum bt_component_status pretty_init(
+		struct bt_private_component *component,
+		struct bt_value *params,
+		void *init_method_data);
+
+BT_HIDDEN
+enum bt_component_status pretty_consume(struct bt_private_component *component);
+
+BT_HIDDEN
+enum bt_component_status pretty_accept_port_connection(
+		struct bt_private_component *component,
+		struct bt_private_port *self_port,
+		struct bt_port *other_port);
+
+BT_HIDDEN
+void pretty_finalize(struct bt_private_component *component);
+
+BT_HIDDEN
+enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 		struct bt_ctf_event *event);
 
-#endif /* BABELTRACE_PLUGIN_TEXT_H */
+#endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */
