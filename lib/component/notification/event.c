@@ -26,6 +26,7 @@
 
 #include <babeltrace/compiler.h>
 #include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/trace.h>
@@ -94,14 +95,16 @@ end:
 struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	struct bt_notification_event *notification;
+	struct bt_notification_event *notification = NULL;
 
 	if (!event || !cc_prio_map) {
 		goto error;
 	}
 
-	// FIXME - Validate that the event is associated to a packet
-	//         and freeze the event.
+	if (!bt_ctf_event_borrow_packet(event)) {
+		goto error;
+	}
+
 	notification = g_new0(struct bt_notification_event, 1);
 	if (!notification) {
 		goto error;
@@ -111,14 +114,14 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 			bt_notification_event_destroy);
 	notification->event = bt_get(event);
 	notification->cc_prio_map = bt_get(cc_prio_map);
-
 	if (!validate_clock_classes(notification)) {
-		bt_put(notification);
 		goto error;
 	}
 
+	bt_ctf_event_freeze(notification->event);
 	return &notification->parent;
 error:
+	bt_put(notification);
 	return NULL;
 }
 
