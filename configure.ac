@@ -1,13 +1,23 @@
 AC_PREREQ([2.50])
-AC_INIT([babeltrace],[2.0.0-pre],[jeremie dot galarneau at efficios dot com])
+m4_define([bt_version_major], [2])
+m4_define([bt_version_minor], [0])
+m4_define([bt_version_patch], [0])
+m4_define([bt_version_extra], [-pre])
+m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_extra)
+AC_INIT([babeltrace],bt_version,[jeremie dot galarneau at efficios dot com])
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([BABELTRACE_LIBRARY_VERSION], [2:0:0])
+AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_version_major[:]bt_version_minor[:]bt_version_patch)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
+
+AC_DEFINE([BT_VERSION_MAJOR], bt_version_major, [Babeltrace library major version])
+AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace library minor version])
+AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace library patch version])
+AC_DEFINE([BT_VERSION_EXTRA], ["]bt_version_extra["], [Babeltrace library extra version])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST

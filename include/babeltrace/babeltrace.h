@@ -25,9 +25,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/context.h>
-#include <babeltrace/format.h>
-#include <babeltrace/iterator.h>
-#include <babeltrace/trace-handle.h>
+extern int bt_version_get_major(void);
+extern int bt_version_get_minor(void);
+extern int bt_version_get_patch(void);
+extern const char *bt_version_get_extra(void);
 
 #endif /* _BABELTRACE_H */

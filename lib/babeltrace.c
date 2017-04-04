@@ -40,3 +40,22 @@ void __attribute__((constructor)) init_babeltrace_lib(void)
 	if (getenv("BABELTRACE_DEBUG"))
 		babeltrace_debug = 1;
 }
+
+int bt_version_get_major(void)
+{
+	return BT_VERSION_MAJOR;
+}
+
+int bt_version_get_minor(void)
+{
+	return BT_VERSION_MINOR;
+}
+
+int bt_version_get_patch(void) {
+	return BT_VERSION_PATCH;
+}
+
+const char *bt_version_get_extra(void)
+{
+	return BT_VERSION_EXTRA;
+}
