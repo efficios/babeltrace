@@ -17,8 +17,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <babeltrace/compat/uuid.h>
-#include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/compat/memstream-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <glib.h>
 

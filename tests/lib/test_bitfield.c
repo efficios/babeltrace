@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/bitfield.h>
+#include <babeltrace/bitfield-internal.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>

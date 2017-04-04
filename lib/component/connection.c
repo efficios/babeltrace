@@ -35,7 +35,7 @@
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <glib.h>
 
 static

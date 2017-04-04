@@ -36,8 +36,8 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/compat/uuid.h>
-#include <babeltrace/endian.h>
+#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/endian-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/stream-class.h>

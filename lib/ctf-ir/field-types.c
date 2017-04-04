@@ -35,8 +35,8 @@
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/compiler.h>
-#include <babeltrace/endian.h>
+#include <babeltrace/compiler-internal.h>
+#include <babeltrace/endian-internal.h>
 #include <float.h>
 #include <inttypes.h>
 #include <stdlib.h>

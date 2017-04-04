@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component-sink-internal.h>
 #include <babeltrace/graph/component-internal.h>

@@ -33,7 +33,7 @@
 #include <babeltrace/graph/component-source.h>
 #include <babeltrace/graph/component-filter.h>
 #include <babeltrace/graph/port.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <unistd.h>
 #include <glib.h>
 

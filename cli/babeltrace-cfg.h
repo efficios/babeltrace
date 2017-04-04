@@ -30,7 +30,7 @@
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <glib.h>
 

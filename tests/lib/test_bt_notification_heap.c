@@ -22,7 +22,7 @@
 #include "tap/tap.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/graph/notification-heap.h>
 #include <babeltrace/graph/notification.h>

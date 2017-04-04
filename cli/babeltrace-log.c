@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <babeltrace/compat/dirent.h>
+#include <babeltrace/compat/dirent-internal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -43,10 +43,10 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf/types.h>
-#include <babeltrace/compat/uuid.h>
-#include <babeltrace/compat/utc.h>
-#include <babeltrace/compat/stdio.h>
-#include <babeltrace/endian.h>
+#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/compat/utc-internal.h>
+#include <babeltrace/compat/stdio-internal.h>
+#include <babeltrace/endian-internal.h>
 
 #define NSEC_PER_USEC 1000UL
 #define NSEC_PER_MSEC 1000000UL

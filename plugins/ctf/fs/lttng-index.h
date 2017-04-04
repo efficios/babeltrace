@@ -25,7 +25,7 @@
 #ifndef LTTNG_INDEX_H
 #define LTTNG_INDEX_H
 
-#include <babeltrace/compat/limits.h>
+#include <babeltrace/compat/limits-internal.h>
 
 #define CTF_INDEX_MAGIC 0xC1F1DCC1
 #define CTF_INDEX_MAJOR 1

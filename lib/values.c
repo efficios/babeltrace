@@ -29,11 +29,11 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
-#include <babeltrace/compat/glib.h>
+#include <babeltrace/compat/glib-internal.h>
 
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))

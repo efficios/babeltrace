@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>

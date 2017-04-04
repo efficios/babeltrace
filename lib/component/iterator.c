@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source-internal.h>

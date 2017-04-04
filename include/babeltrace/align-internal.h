@@ -25,9 +25,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <unistd.h>
-#include <babeltrace/compat/limits.h>
+#include <babeltrace/compat/limits-internal.h>
 
 #ifndef PAGE_SIZE		/* Cygwin limits.h defines its own PAGE_SIZE */
 #define PAGE_SIZE		sysconf(_SC_PAGE_SIZE)

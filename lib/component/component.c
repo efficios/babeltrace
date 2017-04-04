@@ -39,7 +39,7 @@
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 
 static

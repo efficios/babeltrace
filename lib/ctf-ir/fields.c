@@ -31,9 +31,9 @@
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/compiler.h>
-#include <babeltrace/compat/fcntl.h>
-#include <babeltrace/align.h>
+#include <babeltrace/compiler-internal.h>
+#include <babeltrace/compat/fcntl-internal.h>
+#include <babeltrace/align-internal.h>
 
 #define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)
 

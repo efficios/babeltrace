@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <glib.h>
-#include <babeltrace/list.h>
+#include <babeltrace/list-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/babeltrace-internal.h>
 

@@ -30,7 +30,7 @@
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/compat/stdlib.h>
+#include <babeltrace/compat/stdlib-internal.h>
 #include <assert.h>
 #include "common.h"
 

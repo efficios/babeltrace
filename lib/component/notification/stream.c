@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 
 static

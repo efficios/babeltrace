@@ -30,7 +30,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 
 static
 void bt_port_destroy(struct bt_object *obj)

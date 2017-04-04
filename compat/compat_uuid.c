@@ -26,7 +26,7 @@
 
 #include <windows.h>
 #include <stdlib.h>
-#include <babeltrace/compat/uuid.h>
+#include <babeltrace/compat/uuid-internal.h>
 
 /* MinGW does not provide byteswap - implement our own version. */
 static

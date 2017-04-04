@@ -21,7 +21,7 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/notification-internal.h>

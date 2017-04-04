@@ -35,8 +35,8 @@
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/endian.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/endian-internal.h>
+#include <babeltrace/compiler-internal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>

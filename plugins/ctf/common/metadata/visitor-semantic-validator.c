@@ -33,7 +33,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/list.h>
+#include <babeltrace/list-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"

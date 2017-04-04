@@ -36,7 +36,7 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/bitfield.h>
+#include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
 #include <inttypes.h>
 #include <ctype.h>

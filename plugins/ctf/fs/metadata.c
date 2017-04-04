@@ -29,8 +29,8 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <glib.h>
-#include <babeltrace/compat/uuid.h>
-#include <babeltrace/compat/memstream.h>
+#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/compat/memstream-internal.h>
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-metadata"

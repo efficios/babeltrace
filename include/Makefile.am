@@ -65,12 +65,12 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/private-port.h
 
 noinst_HEADERS = \
-	babeltrace/align.h \
+	babeltrace/align-internal.h \
 	babeltrace/babeltrace-internal.h \
-	babeltrace/bitfield.h \
+	babeltrace/bitfield-internal.h \
 	babeltrace/common-internal.h \
-	babeltrace/compiler.h \
-	babeltrace/prio_heap.h \
+	babeltrace/compiler-internal.h \
+	babeltrace/prio-heap-internal.h \
 	babeltrace/ref-internal.h \
 	babeltrace/object-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
@@ -91,20 +91,20 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/visitor-internal.h \
 	babeltrace/ctf-writer/clock-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
-	babeltrace/compat/uuid.h \
-	babeltrace/compat/memstream.h \
-	babeltrace/compat/string.h \
-	babeltrace/compat/utc.h \
-	babeltrace/compat/limits.h \
-	babeltrace/compat/glib.h \
-	babeltrace/compat/send.h \
-	babeltrace/compat/fcntl.h \
-	babeltrace/compat/stdlib.h \
-	babeltrace/compat/dirent.h \
-	babeltrace/compat/stdio.h \
-	babeltrace/compat/mman.h \
-	babeltrace/endian.h \
-	babeltrace/mmap-align.h \
+	babeltrace/compat/uuid-internal.h \
+	babeltrace/compat/memstream-internal.h \
+	babeltrace/compat/string-internal.h \
+	babeltrace/compat/utc-internal.h \
+	babeltrace/compat/limits-internal.h \
+	babeltrace/compat/glib-internal.h \
+	babeltrace/compat/send-internal.h \
+	babeltrace/compat/fcntl-internal.h \
+	babeltrace/compat/stdlib-internal.h \
+	babeltrace/compat/dirent-internal.h \
+	babeltrace/compat/stdio-internal.h \
+	babeltrace/compat/mman-internal.h \
+	babeltrace/endian-internal.h \
+	babeltrace/mmap-align-internal.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
 	babeltrace/graph/component-class-internal.h \

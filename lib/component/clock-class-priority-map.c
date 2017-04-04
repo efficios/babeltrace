@@ -27,7 +27,7 @@
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <glib.h>
 

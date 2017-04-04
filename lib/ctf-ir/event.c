@@ -44,7 +44,7 @@
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 
 static
 void bt_ctf_event_destroy(struct bt_object *obj);

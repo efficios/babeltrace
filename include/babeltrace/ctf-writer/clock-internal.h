@@ -31,7 +31,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
-#include <babeltrace/compat/uuid.h>
+#include <babeltrace/compat/uuid-internal.h>
 
 struct bt_ctf_clock {
 	struct bt_object base;

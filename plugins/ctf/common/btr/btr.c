@@ -29,10 +29,10 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
-#include <babeltrace/bitfield.h>
+#include <babeltrace/bitfield-internal.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/align.h>
+#include <babeltrace/align-internal.h>
 #include <glib.h>
 
 #include "btr.h"

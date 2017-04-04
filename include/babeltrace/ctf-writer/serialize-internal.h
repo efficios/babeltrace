@@ -35,8 +35,8 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
-#include <babeltrace/align.h>
-#include <babeltrace/mmap-align.h>
+#include <babeltrace/align-internal.h>
+#include <babeltrace/mmap-align-internal.h>
 
 struct bt_ctf_stream_pos {
 	int fd;

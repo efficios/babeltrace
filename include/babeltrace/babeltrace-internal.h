@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
-#include <babeltrace/compat/string.h>
+#include <babeltrace/compat/string-internal.h>
 
 #define PERROR_BUFLEN	200
 

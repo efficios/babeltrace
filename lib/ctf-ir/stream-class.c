@@ -41,9 +41,9 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/compiler.h>
-#include <babeltrace/align.h>
-#include <babeltrace/endian.h>
+#include <babeltrace/compiler-internal.h>
+#include <babeltrace/align-internal.h>
+#include <babeltrace/endian-internal.h>
 #include <inttypes.h>
 
 static

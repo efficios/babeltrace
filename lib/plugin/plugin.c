@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>

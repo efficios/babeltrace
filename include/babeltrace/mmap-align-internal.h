@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/align.h>
+#include <babeltrace/align-internal.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 

@@ -36,11 +36,11 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
-#include <babeltrace/align.h>
-#include <babeltrace/mmap-align.h>
-#include <babeltrace/endian.h>
-#include <babeltrace/bitfield.h>
-#include <babeltrace/compat/fcntl.h>
+#include <babeltrace/align-internal.h>
+#include <babeltrace/mmap-align-internal.h>
+#include <babeltrace/endian-internal.h>
+#include <babeltrace/bitfield-internal.h>
+#include <babeltrace/compat/fcntl-internal.h>
 #include <glib.h>
 
 #if (FLT_RADIX != 2)

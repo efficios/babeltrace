@@ -21,8 +21,8 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <babeltrace/compat/dirent.h>
-#include <babeltrace/compat/limits.h>
+#include <babeltrace/compat/dirent-internal.h>
+#include <babeltrace/compat/limits-internal.h>
 #include <sys/stat.h>
 
 void recursive_rmdir(const char *path)

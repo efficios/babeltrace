@@ -25,9 +25,9 @@
  */
 
 #include <stdlib.h>
-#include <babeltrace/list.h>
+#include <babeltrace/list-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/align.h>
+#include <babeltrace/align-internal.h>
 
 #define OBJSTACK_ALIGN			8	/* Object stack alignment */
 #define OBJSTACK_INIT_LEN		128

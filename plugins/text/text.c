@@ -39,7 +39,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/values.h>
-#include <babeltrace/compiler.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
 #include <plugins-common.h>
 #include <stdio.h>
