@@ -185,12 +185,11 @@ end:
 }
 
 static
-enum bt_component_status writer_component_accept_port_connection(
+void writer_component_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
 
@@ -203,10 +202,10 @@ enum bt_component_status writer_component_accept_port_connection(
         	bt_private_connection_create_notification_iterator(connection);
 
 	if (!writer->input_iterator) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		writer->error = true;
 	}
+
 	bt_put(connection);
-	return ret;
 }
 
 static
@@ -220,6 +219,11 @@ enum bt_component_status run(struct bt_private_component *component)
 
 	it = writer_component->input_iterator;
 	assert(it);
+
+	if (unlikely(writer_component->error)) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 
 	if (likely(writer_component->processed_first_event)) {
 		enum bt_notification_iterator_status it_ret;
@@ -308,7 +312,7 @@ BT_PLUGIN_AUTHOR("Jérémie Galarneau");
 BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(writer, run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(writer, writer_component_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(writer,
-		writer_component_accept_port_connection);
+BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(writer,
+		writer_component_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(writer, finalize_writer_component);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(writer, "Formats CTF-IR to CTF.");

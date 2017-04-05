@@ -154,12 +154,9 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_graph *downstream_graph = NULL;
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
-	struct bt_connection *existing_conn = NULL;
 	enum bt_component_status component_status;
 	bool upstream_was_already_in_graph;
 	bool downstream_was_already_in_graph;
-	int components_to_remove = 0;
-	int i;
 
 	if (!graph || !upstream_port || !downstream_port) {
 		goto end;
@@ -174,16 +171,12 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	}
 
 	/* Ensure that both ports are currently unconnected. */
-	existing_conn = bt_port_get_connection(upstream_port);
-	bt_put(existing_conn);
-	if (existing_conn) {
+	if (bt_port_is_connected(upstream_port)) {
 		fprintf(stderr, "Upstream port is already connected\n");
 		goto end;
 	}
 
-	existing_conn = bt_port_get_connection(downstream_port);
-	bt_put(existing_conn);
-	if (existing_conn) {
+	if (bt_port_is_connected(downstream_port)) {
 		fprintf(stderr, "Downstream port is already connected\n");
 		goto end;
 	}
@@ -218,6 +211,22 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	}
 	downstream_was_already_in_graph = (graph == downstream_graph);
 
+	/*
+	 * At this point the ports are not connected yet. Both
+	 * components need to accept an eventual connection to their
+	 * port by the other port before we continue.
+	 */
+	component_status = bt_component_accept_port_connection(
+		upstream_component, upstream_port, downstream_port);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+	component_status = bt_component_accept_port_connection(
+		downstream_component, downstream_port, upstream_port);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
 	connection = bt_connection_create(graph, upstream_port,
 			downstream_port);
 	if (!connection) {
@@ -245,30 +254,21 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	}
 
 	/*
-	 * The graph is now the parent of these components which garantees their
-	 * existence for the duration of the graph's lifetime.
+	 * The graph is now the parent of these components which
+	 * garantees their existence for the duration of the graph's
+	 * lifetime.
 	 */
 
 	/*
-	 * The components and connection are added to the graph before
-	 * invoking the `accept_port_connection` method in order to make
-	 * them visible to the components during the method's
-	 * invocation.
+	 * Notify both components that their port is connected.
 	 */
-	component_status = bt_component_accept_port_connection(
-		upstream_component, upstream_port, downstream_port);
-	if (component_status != BT_COMPONENT_STATUS_OK) {
-		goto error_rollback;
-	}
-	component_status = bt_component_accept_port_connection(
-		downstream_component, downstream_port, upstream_port);
-	if (component_status != BT_COMPONENT_STATUS_OK) {
-		goto error_rollback;
-	}
+	bt_component_port_connected(upstream_component, upstream_port,
+		downstream_port);
+	bt_component_port_connected(downstream_component, downstream_port,
+		upstream_port);
 
 	/*
-	 * Both components accepted the connection. Notify the graph's
-	 * creator that both ports are connected.
+	 * Notify the graph's creator that both ports are connected.
 	 */
 	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
 
@@ -278,68 +278,7 @@ end:
 	bt_put(upstream_component);
 	bt_put(downstream_component);
 	return connection;
-error_rollback:
-	/*
-	 * Remove newly-added components from the graph, being careful
-	 * not to remove a component that was already present in the graph
-	 * and is connected to other components.
-	 */
-	components_to_remove += upstream_was_already_in_graph ? 0 : 1;
-	components_to_remove += downstream_was_already_in_graph ? 0 : 1;
 
-	if (!downstream_was_already_in_graph) {
-		if (bt_component_get_class_type(downstream_component) ==
-				BT_COMPONENT_CLASS_TYPE_SINK) {
-			g_queue_pop_tail(graph->sinks_to_consume);
-		}
-	}
-	/* Remove newly created connection. */
-	g_ptr_array_set_size(graph->connections,
-			graph->connections->len - 1);
-
-	/*
-	 * Remove newly added components.
-	 *
-	 * Note that this is a tricky situation. The graph, being the parent
-	 * of the components, does not hold a reference to them. Normally,
-	 * components are destroyed right away when the graph is released since
-	 * the graph, being their parent, bounds their lifetime
-	 * (see doc/ref-counting.md).
-	 *
-	 * In this particular case, we must take a number of steps:
-	 *   1) unset the components' parent to rollback the initial state of
-	 *      the components being connected.
-	 *      Note that the reference taken by the component on its graph is
-	 *      released by the set_parent call.
-	 *   2) set the pointer in the components array to NULL so that the
-	 *      destruction function called on the array's resize in invoked on
-	 *      NULL (no effect),
-	 *
-	 * NOTE: Point #1 assumes that *something* holds a reference to both
-	 *       components being connected. The fact that a reference is being
-	 *       held to a component means that it must hold a reference to its
-	 *       parent to prevent the parent from being destroyed (again, refer
-	 *       to doc/red-counting.md). This reference to a component is
-	 *       most likely being held *transitively* by the caller which holds
-	 *       a reference to both ports (a port has its component as a
-	 *       parent).
-	 *
-	 *       This assumes that a graph is not connecting components by
-	 *       itself while not holding a reference to the ports/components
-	 *       being connected (i.e. "cheating" by using internal APIs).
-	 */
-	for (i = 0; i < components_to_remove; i++) {
-		struct bt_component *component = g_ptr_array_index(
-				graph->components, graph->components->len - 1);
-
-		bt_component_set_graph(component, NULL);
-		g_ptr_array_index(graph->components,
-				graph->components->len - 1) = NULL;
-		g_ptr_array_set_size(graph->components,
-				graph->components->len - 1);
-	}
-	/* NOTE: Resizing the ptr_arrays invokes the destruction of the elements. */
-	goto end;
 error:
 	BT_PUT(upstream_component);
 	BT_PUT(downstream_component);

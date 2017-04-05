@@ -27,16 +27,17 @@
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/port.h>
+#include <stdbool.h>
 
 struct dummy {
 	GPtrArray *iterators;
+	bool error;
 };
 
 enum bt_component_status dummy_init(struct bt_private_component *component,
 		struct bt_value *params, void *init_method_data);
 void dummy_finalize(struct bt_private_component *component);
-enum bt_component_status dummy_accept_port_connection(
-		struct bt_private_component *component,
+void dummy_port_connected(struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port);
 enum bt_component_status dummy_consume(struct bt_private_component *component);

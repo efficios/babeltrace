@@ -168,10 +168,11 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD			= 3,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD			= 4,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD	= 5,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD		= 6,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD		= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD		= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD		= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD		= 7,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD		= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD		= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD		= 10,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD		= 11,
 };
 
 /* Component class attribute (internal use) */
@@ -207,6 +208,9 @@ struct __bt_plugin_component_class_descriptor_attribute {
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD */
 		bt_component_class_accept_port_connection_method accept_port_connection_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD */
+		bt_component_class_port_connected_method port_connected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD */
 		bt_component_class_port_disconnected_method port_disconnected_method;
@@ -652,6 +656,42 @@ struct __bt_plugin_component_class_descriptor_attribute {
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(accept_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
+ * Defines a port connected method attribute attached to a specific
+ * source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Port connected method
+ *                 (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a port connected method attribute attached to a specific
+ * filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Port connected method
+ *                 (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines a port connected method attribute attached to a specific
+ * sink component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Port connected method
+ *                 (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD, _id, _comp_class_id, sink, _x)
+
+/*
  * Defines a port disconnected method attribute attached to a specific
  * source component class descriptor.
  *
@@ -1046,6 +1086,39 @@ struct __bt_plugin_component_class_descriptor_attribute {
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a port connected method attribute attached to a source
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Port connected (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_PORT_CONNECTED_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a port connected method attribute attached to a filter
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Port connected (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_CONNECTED_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a port connected method attribute attached to a sink
+ * component class descriptor which is attached to the automatic plugin
+ * descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Port connected (bt_component_class_port_connected_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines a port disconnected method attribute attached to a source

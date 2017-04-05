@@ -29,6 +29,7 @@
 #include <babeltrace/graph/component-sink.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <plugins-common.h>
 #include <assert.h>
 #include "dummy.h"
@@ -81,33 +82,30 @@ error:
 	return ret;
 }
 
-enum bt_component_status dummy_accept_port_connection(
+void dummy_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
 	struct bt_notification_iterator *iterator;
 	struct bt_private_connection *connection;
 
 	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
-
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-
 	iterator = bt_private_connection_create_notification_iterator(
 		connection);
 	if (!iterator) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		dummy->error = true;
 		goto end;
 	}
 
 	g_ptr_array_add(dummy->iterators, iterator);
+
 end:
 	bt_put(connection);
-	return ret;
 }
 
 enum bt_component_status dummy_consume(struct bt_private_component *component)
@@ -119,6 +117,11 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 
 	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
+
+	if (unlikely(dummy->error)) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
 
 	/* Consume one notification from each iterator. */
 	for (i = 0; i < dummy->iterators->len; i++) {

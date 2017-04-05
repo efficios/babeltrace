@@ -554,6 +554,21 @@ enum bt_component_status bt_component_accept_port_connection(
 }
 
 BT_HIDDEN
+void bt_component_port_connected(struct bt_component *comp,
+		struct bt_port *self_port, struct bt_port *other_port)
+{
+	assert(comp);
+	assert(self_port);
+	assert(other_port);
+
+	if (comp->class->methods.port_connected) {
+		comp->class->methods.port_connected(
+			bt_private_component_from_component(comp),
+			bt_private_port_from_port(self_port), other_port);
+	}
+}
+
+BT_HIDDEN
 void bt_component_port_disconnected(struct bt_component *comp,
 		struct bt_port *port)
 {

@@ -59,6 +59,7 @@ struct bt_component_class {
 		bt_component_class_finalize_method finalize;
 		bt_component_class_query_method query;
 		bt_component_class_accept_port_connection_method accept_port_connection;
+		bt_component_class_port_connected_method port_connected;
 		bt_component_class_port_disconnected_method port_disconnected;
 	} methods;
 	/* Array of struct bt_component_class_destroy_listener */

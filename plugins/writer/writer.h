@@ -46,6 +46,7 @@ struct writer_component {
 	FILE *err;
 	struct bt_notification_iterator *input_iterator;
 	bool processed_first_event;
+	bool error;
 };
 
 BT_HIDDEN

@@ -256,6 +256,23 @@ end:
 	return ret;
 }
 
+int bt_component_class_set_port_connected_method(
+		struct bt_component_class *component_class,
+		bt_component_class_port_connected_method method)
+{
+	int ret = 0;
+
+	if (!component_class || component_class->frozen || !method) {
+		ret = -1;
+		goto end;
+	}
+
+	component_class->methods.port_connected = method;
+
+end:
+	return ret;
+}
+
 int bt_component_class_set_port_disconnected_method(
 		struct bt_component_class *component_class,
 		bt_component_class_port_disconnected_method method)

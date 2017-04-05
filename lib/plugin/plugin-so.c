@@ -254,6 +254,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		bt_component_class_finalize_method finalize_method;
 		bt_component_class_query_method query_method;
 		bt_component_class_accept_port_connection_method accept_port_connection_method;
+		bt_component_class_port_connected_method port_connected_method;
 		bt_component_class_port_disconnected_method port_disconnected_method;
 		struct bt_component_class_iterator_methods iterator_methods;
 	};
@@ -387,6 +388,10 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->accept_port_connection_method =
 						cur_cc_descr_attr->value.accept_port_connection_method;
 					break;
+				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD:
+					cc_full_descr->port_connected_method =
+						cur_cc_descr_attr->value.port_connected_method;
+					break;
 				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD:
 					cc_full_descr->port_disconnected_method =
 						cur_cc_descr_attr->value.port_disconnected_method;
@@ -517,6 +522,16 @@ enum bt_plugin_status bt_plugin_so_init(
 		if (cc_full_descr->accept_port_connection_method) {
 			ret = bt_component_class_set_accept_port_connection_method(
 				comp_class, cc_full_descr->accept_port_connection_method);
+			if (ret) {
+				status = BT_PLUGIN_STATUS_ERROR;
+				BT_PUT(comp_class);
+				goto end;
+			}
+		}
+
+		if (cc_full_descr->port_connected_method) {
+			ret = bt_component_class_set_port_connected_method(
+				comp_class, cc_full_descr->port_connected_method);
 			if (ret) {
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);

@@ -34,7 +34,8 @@ BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(dummy, dummy_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(dummy, dummy_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
-BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD(dummy, dummy_accept_port_connection);
+BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(dummy,
+	dummy_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
     "Dummy sink component class: does absolutely nothing!");
 

@@ -88,6 +88,11 @@ typedef enum bt_component_status (*bt_component_class_accept_port_connection_met
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port);
 
+typedef void (*bt_component_class_port_connected_method)(
+		struct bt_private_component *private_component,
+		struct bt_private_port *self_private_port,
+		struct bt_port *other_port);
+
 typedef void (*bt_component_class_port_disconnected_method)(
 		struct bt_private_component *private_component,
 		struct bt_private_port *private_port);
@@ -103,6 +108,10 @@ extern int bt_component_class_set_finalize_method(
 extern int bt_component_class_set_accept_port_connection_method(
 		struct bt_component_class *component_class,
 		bt_component_class_accept_port_connection_method accept_port_connection_method);
+
+extern int bt_component_class_set_port_connected_method(
+		struct bt_component_class *component_class,
+		bt_component_class_port_connected_method port_connected_method);
 
 extern int bt_component_class_set_port_disconnected_method(
 		struct bt_component_class *component_class,
