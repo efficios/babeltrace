@@ -129,7 +129,6 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 	ctf_fs->metadata->trace = ctf_metadata_decoder_get_trace(
 		metadata_decoder);
 	assert(ctf_fs->metadata->trace);
-	ret = -1;
 
 end:
 	ctf_fs_file_destroy(file);
