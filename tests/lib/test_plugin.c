@@ -22,6 +22,7 @@
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
+#include <babeltrace/graph/component.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

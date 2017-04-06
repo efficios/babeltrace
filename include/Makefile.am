@@ -43,6 +43,7 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/component-filter.h \
 	babeltrace/graph/component-sink.h \
 	babeltrace/graph/component-source.h \
+	babeltrace/graph/component-status.h \
 	babeltrace/graph/component.h \
 	babeltrace/graph/connection.h \
 	babeltrace/graph/graph.h \

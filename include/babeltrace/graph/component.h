@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/values.h>
@@ -41,33 +42,6 @@ struct bt_component_graph;
 struct bt_component;
 struct bt_value;
 struct bt_port;
-
-/**
- * Status code. Errors are always negative.
- */
-enum bt_component_status {
-	/** No error, okay. */
-	BT_COMPONENT_STATUS_OK				= 0,
-	/** No more work to be done by this component. **/
-	BT_COMPONENT_STATUS_END				= 1,
-	/**
-	 * Component can't process a notification at this time
-	 * (e.g. would block), try again later.
-	 */
-	BT_COMPONENT_STATUS_AGAIN			= 2,
-	/** Refuse port connection. */
-	BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION	= 3,
-	/** General error. */
-	BT_COMPONENT_STATUS_ERROR			= -1,
-	/** Unsupported component feature. */
-	BT_COMPONENT_STATUS_UNSUPPORTED			= -2,
-	/** Invalid arguments. */
-	BT_COMPONENT_STATUS_INVALID			= -3,
-	/** Memory allocation failure. */
-	BT_COMPONENT_STATUS_NOMEM			= -4,
-	/** Element not found. */
-	BT_COMPONENT_STATUS_NOT_FOUND			= -5,
-};
 
 /**
  * Create an instance of a component from a component class.

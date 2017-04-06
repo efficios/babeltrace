@@ -25,8 +25,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
 #include <stdint.h>
+#include <babeltrace/graph/component-status.h>
+#include <babeltrace/graph/notification-iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
