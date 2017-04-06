@@ -38,20 +38,18 @@ struct bt_connection;
 
 enum bt_graph_status {
 	/** No sink can consume at the moment. */
-	BT_GRAPH_STATUS_AGAIN = 2,
+	BT_GRAPH_STATUS_AGAIN = 11,
 	/** Downstream component does not support multiple inputs. */
 	BT_GRAPH_STATUS_END = 1,
 	BT_GRAPH_STATUS_OK = 0,
-	/** Downstream component does not support multiple inputs. */
-	BT_GRAPH_STATUS_MULTIPLE_INPUTS_UNSUPPORTED = -1,
 	/** Component is already part of another graph. */
 	BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH = -2,
 	/** Invalid arguments. */
-	BT_GRAPH_STATUS_INVALID = -3,
+	BT_GRAPH_STATUS_INVALID = -22,
 	/** No sink in graph. */
-	BT_GRAPH_STATUS_NO_SINK = -4,
+	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
-	BT_GRAPH_STATUS_ERROR = -5,
+	BT_GRAPH_STATUS_ERROR = -1,
 };
 
 typedef void (*bt_graph_port_added_listener)(struct bt_port *port,

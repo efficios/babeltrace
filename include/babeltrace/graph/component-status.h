@@ -43,19 +43,19 @@ enum bt_component_status {
 	 * Component can't process a notification at this time
 	 * (e.g. would block), try again later.
 	 */
-	BT_COMPONENT_STATUS_AGAIN			= 2,
+	BT_COMPONENT_STATUS_AGAIN			= 11,
 	/** Refuse port connection. */
-	BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION	= 3,
+	BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION	= 111,
 	/** General error. */
 	BT_COMPONENT_STATUS_ERROR			= -1,
 	/** Unsupported component feature. */
 	BT_COMPONENT_STATUS_UNSUPPORTED			= -2,
 	/** Invalid arguments. */
-	BT_COMPONENT_STATUS_INVALID			= -3,
+	BT_COMPONENT_STATUS_INVALID			= -22,
 	/** Memory allocation failure. */
-	BT_COMPONENT_STATUS_NOMEM			= -4,
+	BT_COMPONENT_STATUS_NOMEM			= -12,
 	/** Element not found. */
-	BT_COMPONENT_STATUS_NOT_FOUND			= -5,
+	BT_COMPONENT_STATUS_NOT_FOUND			= -19,
 };
 
 #ifdef __cplusplus

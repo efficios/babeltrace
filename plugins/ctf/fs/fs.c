@@ -86,13 +86,13 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 
 	ctf_fs = bt_private_component_get_user_data(priv_comp);
 	if (!ctf_fs) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto error;
 	}
 
 	port_data = bt_private_port_get_user_data(port);
 	if (!port_data) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto error;
 	}
 

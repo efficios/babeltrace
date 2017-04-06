@@ -122,7 +122,7 @@ enum bt_notification_iterator_status bt_notification_iterator_validate(
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!iterator) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto end;
 	}
 end:
@@ -149,7 +149,7 @@ bt_private_notification_iterator_set_user_data(
 		bt_notification_iterator_from_private(private_iterator);
 
 	if (!iterator) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto end;
 	}
 
@@ -179,12 +179,13 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	struct bt_private_notification_iterator *priv_iterator =
 		bt_private_notification_iterator_from_notification_iterator(iterator);
 	bt_component_class_notification_iterator_next_method next_method = NULL;
-	struct bt_notification_iterator_next_return next_return;
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct bt_notification_iterator_next_return next_return = {
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+		.notification = NULL,
+	};
 
 	if (!iterator) {
-		status = BT_NOTIFICATION_ITERATOR_STATUS_INVAL;
+		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto end;
 	}
 
@@ -221,7 +222,8 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	next_return = next_method(priv_iterator);
 	if (next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		if (!next_return.notification) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			next_return.status =
+				BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 

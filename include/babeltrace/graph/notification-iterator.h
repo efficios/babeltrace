@@ -41,19 +41,19 @@ struct bt_notification_iterator;
  */
 enum bt_notification_iterator_status {
 	/** Try again. */
-	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 2,
+	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 11,
 	/** No more notifications to be delivered. */
 	BT_NOTIFICATION_ITERATOR_STATUS_END = 1,
 	/** No error, okay. */
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,
 	/** Invalid arguments. */
-	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -1,
+	BT_NOTIFICATION_ITERATOR_STATUS_INVALID = -22,
 	/** General error. */
-	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -2,
+	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -1,
 	/** Out of memory. */
-	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -3,
+	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -12,
 	/** Unsupported iterator feature. */
-	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -4,
+	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
 
 };
 
