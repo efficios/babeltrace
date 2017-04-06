@@ -82,7 +82,6 @@ struct pretty_component {
 	struct pretty_options options;
 	struct bt_notification_iterator *input_iterator;
 	FILE *out, *err;
-	bool processed_first_event; /* Should be per-iterator. */
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
 	GString *string;
@@ -129,6 +128,6 @@ void pretty_finalize(struct bt_private_component *component);
 
 BT_HIDDEN
 enum bt_component_status pretty_print_event(struct pretty_component *pretty,
-		struct bt_ctf_event *event);
+		struct bt_notification *event_notif);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

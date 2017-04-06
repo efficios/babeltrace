@@ -144,15 +144,7 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 		break;
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		struct bt_ctf_event *event = bt_notification_event_get_event(
-				notification);
-
-		if (!event) {
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
-		ret = pretty_print_event(pretty, event);
-		bt_put(event);
+		ret = pretty_print_event(pretty, notification);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
@@ -224,7 +216,6 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	notification = bt_notification_iterator_get_notification(it);
 	assert(notification);
 	ret = handle_notification(pretty, notification);
-	pretty->processed_first_event = true;
 end:
 	bt_put(notification);
 	return ret;

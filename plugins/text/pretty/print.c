@@ -36,6 +36,8 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
 #include <inttypes.h>
@@ -234,7 +236,9 @@ end:
 
 static
 enum bt_component_status print_event_timestamp(struct pretty_component *pretty,
-		struct bt_ctf_event *event, bool *start_line)
+		struct bt_ctf_event *event,
+		struct bt_clock_class_priority_map *cc_prio_map,
+		bool *start_line)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
@@ -260,7 +264,15 @@ enum bt_component_status print_event_timestamp(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+
+	if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) == 0) {
+		/* No clock class: skip the timestamp without an error */
+		goto end;
+	}
+
+	clock_class =
+		bt_clock_class_priority_map_get_highest_priority_clock_class(
+			cc_prio_map);
 	if (!clock_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -328,7 +340,8 @@ end:
 
 static
 enum bt_component_status print_event_header(struct pretty_component *pretty,
-		struct bt_ctf_event *event)
+		struct bt_ctf_event *event,
+		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
@@ -352,7 +365,8 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	ret = print_event_timestamp(pretty, event, &pretty->start_line);
+	ret = print_event_timestamp(pretty, event, cc_prio_map,
+		&pretty->start_line);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -1446,12 +1460,18 @@ end:
 
 BT_HIDDEN
 enum bt_component_status pretty_print_event(struct pretty_component *pretty,
-		struct bt_ctf_event *event)
+		struct bt_notification *event_notif)
 {
 	enum bt_component_status ret;
+	struct bt_ctf_event *event =
+		bt_notification_event_get_event(event_notif);
+	struct bt_clock_class_priority_map *cc_prio_map =
+		bt_notification_event_get_clock_class_priority_map(event_notif);
 
+	assert(event);
+	assert(cc_prio_map);
 	pretty->start_line = true;
-	ret = print_event_header(pretty, event);
+	ret = print_event_header(pretty, event, cc_prio_map);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -1485,5 +1505,7 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 
 	fputc('\n', pretty->out);
 end:
+	bt_put(event);
+	bt_put(cc_prio_map);
 	return ret;
 }
