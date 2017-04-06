@@ -1491,18 +1491,23 @@ end:
 
 static
 enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
-		struct bt_ctf_field_type *int_field_type,
 		struct bt_ctf_field *int_field)
 {
 	gboolean clock_class_found;
 	uint64_t *clock_state;
+	struct bt_ctf_field_type *int_field_type = NULL;
 	enum bt_ctf_btr_status ret = BT_CTF_BTR_STATUS_OK;
-	struct bt_ctf_clock_class *clock_class =
-		bt_ctf_field_type_integer_get_mapped_clock_class(
-			int_field_type);
+	struct bt_ctf_clock_class *clock_class = NULL;
 
+	int_field_type = bt_ctf_field_get_type(int_field);
+	if (unlikely(!int_field_type)) {
+		goto end;
+	}
+
+	clock_class = bt_ctf_field_type_integer_get_mapped_clock_class(
+		int_field_type);
 	if (likely(!clock_class)) {
-		goto end_no_clock;
+		goto end;
 	}
 
 	clock_class_found = g_hash_table_lookup_extended(notit->clock_states,
@@ -1530,15 +1535,15 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 	/* Update the clock's state. */
 	update_clock_state(clock_state, int_field);
 end:
+	bt_put(int_field_type);
 	bt_put(clock_class);
-end_no_clock:
 	return ret;
 }
 
 static
 enum bt_ctf_btr_status btr_unsigned_int_common(uint64_t value,
 		struct bt_ctf_field_type *type, void *data,
-		struct bt_ctf_field **_field)
+		struct bt_ctf_field **out_int_field)
 {
 	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
 	struct bt_ctf_field *field = NULL;
@@ -1579,7 +1584,7 @@ enum bt_ctf_btr_status btr_unsigned_int_common(uint64_t value,
 	ret = bt_ctf_field_unsigned_integer_set_value(int_field, value);
 	assert(!ret);
 	stack_top(notit->stack)->index++;
-	*_field = int_field;
+	*out_int_field = int_field;
 
 end:
 	BT_PUT(field);
@@ -1625,7 +1630,7 @@ enum bt_ctf_btr_status btr_unsigned_int_cb(uint64_t value,
 		goto end;
 	}
 
-	status = update_clock(notit, type, field);
+	status = update_clock(notit, field);
 	BT_PUT(field);
 end:
 	return status;
@@ -1674,7 +1679,7 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 	ret = bt_ctf_field_signed_integer_set_value(int_field, value);
 	assert(!ret);
 	stack_top(notit->stack)->index++;
-	status = update_clock(notit, type, int_field);
+	status = update_clock(notit, int_field);
 end:
 	BT_PUT(field);
 	BT_PUT(int_field);
@@ -2469,8 +2474,8 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 						bt_ctf_field_get_type(
 							notit->cur_timestamp_end);
 
-				btr_status = update_clock(notit, field_type,
-						notit->cur_timestamp_end);
+				btr_status = update_clock(notit,
+					notit->cur_timestamp_end);
 				BT_PUT(field_type);
 				if (btr_status != BT_CTF_BTR_STATUS_OK) {
 					status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
