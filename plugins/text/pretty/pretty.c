@@ -53,9 +53,6 @@ static
 const char *plugin_options[] = {
 	"color",
 	"output-path",
-	"debug-info-dir",
-	"debug-info-target-prefix",
-	"debug-info-full-path",
 	"no-delta",
 	"clock-cycles",
 	"clock-seconds",
@@ -92,8 +89,6 @@ void destroy_pretty_data(struct pretty_component *pretty)
 		}
 	}
 	g_free(pretty->options.output_path);
-	g_free(pretty->options.debug_info_dir);
-	g_free(pretty->options.debug_info_target_prefix);
 	g_free(pretty);
 }
 
@@ -413,27 +408,6 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
-
-	ret = apply_one_string("debug-info-dir",
-			params,
-			&pretty->options.debug_info_dir);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
-
-	ret = apply_one_string("debug-info-target-prefix",
-			params,
-			&pretty->options.debug_info_target_prefix);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
-
-	value = false;		/* Default. */
-	ret = apply_one_bool("debug-info-full-path", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
-	pretty->options.debug_info_full_path = value;
 
 	value = false;		/* Default. */
 	ret = apply_one_bool("no-delta", params, &value, NULL);

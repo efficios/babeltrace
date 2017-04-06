@@ -48,8 +48,6 @@ enum pretty_color_option {
 
 struct pretty_options {
 	char *output_path;
-	char *debug_info_dir;
-	char *debug_info_target_prefix;
 
 	enum pretty_default name_default;
 	enum pretty_default field_default;
@@ -73,7 +71,6 @@ struct pretty_options {
 	bool clock_seconds;
 	bool clock_date;
 	bool clock_gmt;
-	bool debug_info_full_path;
 	enum pretty_color_option color;
 	bool verbose;
 };
