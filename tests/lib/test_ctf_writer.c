@@ -94,7 +94,7 @@ void validate_metadata(char *parser_path, char *metadata_path)
 			goto result;
 		}
 
-		execl(parser_path, "ctf-parser-test", (char *) NULL);
+		execl(parser_path, parser_path, (char *) NULL);
 		perror("# Could not launch the ctf metadata parser process");
 		exit(-1);
 	}
@@ -201,7 +201,7 @@ void validate_trace(char *parser_path, char *trace_path)
 			goto result;
 		}
 
-		execl(parser_path, "babeltrace", trace_path, (char *) NULL);
+		execl(parser_path, parser_path, trace_path, (char *) NULL);
 		perror("# Could not launch the babeltrace process");
 		exit(-1);
 	}
