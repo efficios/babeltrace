@@ -1,12 +1,9 @@
-#ifndef BABELTRACE_PLUGIN_MUXER_H
-#define BABELTRACE_PLUGIN_MUXER_H
+#ifndef BABELTRACE_PLUGINS_UTILS_MUXER_H
+#define BABELTRACE_PLUGINS_UTILS_MUXER_H
 
 /*
- * BabelTrace - Trace Muxer Plug-in
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +24,39 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 
-struct muxer {
-	GHashTable *trace_clocks;
-};
+BT_HIDDEN
+enum bt_component_status muxer_init(
+		struct bt_private_component *priv_comp,
+		struct bt_value *params, void *init_data);
 
-#endif /* BABELTRACE_PLUGIN_MUXER_H */
+BT_HIDDEN
+void muxer_finalize(
+		struct bt_private_component *priv_comp);
+
+BT_HIDDEN
+enum bt_notification_iterator_status muxer_notif_iter_init(
+		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_port *priv_port);
+
+BT_HIDDEN
+void muxer_notif_iter_finalize(
+		struct bt_private_notification_iterator *priv_notif_iter);
+
+BT_HIDDEN
+struct bt_notification_iterator_next_return muxer_notif_iter_next(
+		struct bt_private_notification_iterator *priv_notif_iter);
+
+BT_HIDDEN
+void muxer_port_connected(
+		struct bt_private_component *priv_comp,
+		struct bt_private_port *self_private_port,
+		struct bt_port *other_port);
+
+BT_HIDDEN
+void muxer_port_disconnected(
+		struct bt_private_component *priv_comp,
+		struct bt_private_port *priv_port);
+
+#endif /* BABELTRACE_PLUGINS_UTILS_MUXER_H */

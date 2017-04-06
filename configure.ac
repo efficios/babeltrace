@@ -497,13 +497,13 @@ AC_CONFIG_FILES([
 	plugins/ctf/common/notif-iter/Makefile
 	plugins/ctf/fs/Makefile
 	plugins/ctf/lttng-live/Makefile
-	plugins/muxer/Makefile
 	plugins/text/Makefile
 	plugins/text/pretty/Makefile
 	plugins/writer/Makefile
 	plugins/utils/Makefile
 	plugins/utils/dummy/Makefile
 	plugins/utils/trimmer/Makefile
+	plugins/utils/muxer/Makefile
 	python-plugin-provider/Makefile
 	plugins/libctfcopytrace/Makefile
 	plugins/debug-info/Makefile
