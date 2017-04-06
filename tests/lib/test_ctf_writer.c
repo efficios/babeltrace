@@ -125,7 +125,7 @@ void validate_trace(char *parser_path, char *trace_path)
 			goto result;
 		}
 
-		execl(parser_path, "babeltrace", trace_path, NULL);
+		execl(parser_path, parser_path, trace_path, NULL);
 		perror("# Could not launch the babeltrace process");
 		exit(-1);
 	}
