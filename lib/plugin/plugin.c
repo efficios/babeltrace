@@ -131,7 +131,7 @@ void free_plugins(struct bt_plugin **plugins) {
 	}
 }
 
-struct bt_plugin *bt_plugin_create_from_name(const char *plugin_name)
+struct bt_plugin *bt_plugin_find(const char *plugin_name)
 {
 	const char *system_plugin_dir;
 	char *home_plugin_dir = NULL;
@@ -244,6 +244,30 @@ end:
 	}
 
 	return plugin;
+}
+
+struct bt_component_class *bt_plugin_find_component_class(
+		const char *plugin_name, const char *comp_cls_name,
+		enum bt_component_class_type comp_cls_type)
+{
+	struct bt_plugin *plugin = NULL;
+	struct bt_component_class *comp_cls = NULL;
+
+	if (!plugin_name || !comp_cls_name) {
+		goto end;
+	}
+
+	plugin = bt_plugin_find(plugin_name);
+	if (!plugin) {
+		goto end;
+	}
+
+	comp_cls = bt_plugin_get_component_class_by_name_and_type(
+		plugin, comp_cls_name, comp_cls_type);
+
+end:
+	bt_put(plugin);
+	return comp_cls;
 }
 
 /* Allocate dirent as recommended by READDIR(3), NOTES on readdir_r */

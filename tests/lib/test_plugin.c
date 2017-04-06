@@ -32,7 +32,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		51
+#define NR_TESTS 		58
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -217,15 +217,15 @@ static void test_sfs(const char *plugin_dir)
 
 	diag("> putting the plugin object here");
 	BT_PUT(plugin);
-	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
 	ok(sink_component, "bt_component_create() still works after the plugin object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(source_comp_class);
-	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
 	ok(sink_component, "bt_component_create() still works after the source component class object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(filter_comp_class);
-	sink_component = bt_component_create(sink_comp_class, NULL, bt_value_null);
+	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
 	ok(sink_component, "bt_component_create() still works after the filter component class object is destroyed");
 	BT_PUT(sink_comp_class);
 	BT_PUT(sink_component);
@@ -265,26 +265,49 @@ static void test_create_all_from_dir(const char *plugin_dir)
 	free(plugins);
 }
 
-static void test_create_from_name(const char *plugin_dir)
+static void test_find(const char *plugin_dir)
 {
 	struct bt_plugin *plugin;
+	struct bt_component_class *comp_cls_sink;
+	struct bt_component_class *comp_cls_source;
 	char *plugin_path;
 
-	ok(!bt_plugin_create_from_name(NULL),
-		"bt_plugin_create_from_name() handles NULL");
-	ok(!bt_plugin_create_from_name(NON_EXISTING_PATH),
-		"bt_plugin_create_from_name() returns NULL with an unknown plugin name");
+	ok(!bt_plugin_find(NULL),
+		"bt_plugin_find() handles NULL");
+	ok(!bt_plugin_find(NON_EXISTING_PATH),
+		"bt_plugin_find() returns NULL with an unknown plugin name");
 	plugin_path = malloc(PATH_MAX * 5);
 	assert(plugin_path);
 	sprintf(plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
 		NON_EXISTING_PATH, plugin_dir);
 	setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
-	plugin = bt_plugin_create_from_name("test_minimal");
+	plugin = bt_plugin_find("test_minimal");
 	ok(plugin,
-		"bt_plugin_create_from_name() succeeds with a plugin name it can find");
+		"bt_plugin_find() succeeds with a plugin name it can find");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
-		"bt_plugin_create_from_name() finds the correct plugin for a given name");
+		"bt_plugin_find() finds the correct plugin for a given name");
 	BT_PUT(plugin);
+	comp_cls_sink = bt_plugin_find_component_class(NULL, "sink",
+		BT_COMPONENT_CLASS_TYPE_SINK);
+	ok(!comp_cls_sink, "bt_plugin_find_component_class() handles NULL (plugin name)");
+	comp_cls_sink = bt_plugin_find_component_class("test_sfs", NULL,
+		BT_COMPONENT_CLASS_TYPE_SINK);
+	ok(!comp_cls_sink, "bt_plugin_find_component_class() handles NULL (component class name)");
+	comp_cls_sink = bt_plugin_find_component_class("test_sfs", "sink2",
+		BT_COMPONENT_CLASS_TYPE_SINK);
+	ok(!comp_cls_sink, "bt_plugin_find_component_class() fails with an unknown component class name");
+	comp_cls_sink = bt_plugin_find_component_class("test_sfs", "sink",
+		BT_COMPONENT_CLASS_TYPE_SINK);
+	ok(comp_cls_sink, "bt_plugin_find_component_class() succeeds with valid parameters");
+	ok(strcmp(bt_component_class_get_name(comp_cls_sink), "sink") == 0,
+		"bt_plugin_find_component_class() returns the appropriate component class (sink)");
+	comp_cls_source = bt_plugin_find_component_class("test_sfs", "source",
+		BT_COMPONENT_CLASS_TYPE_SOURCE);
+	ok(comp_cls_sink, "bt_plugin_find_component_class() succeeds with another component class name (same plugin)");
+	ok(strcmp(bt_component_class_get_name(comp_cls_source), "source") == 0,
+		"bt_plugin_find_component_class() returns the appropriate component class (source)");
+	BT_PUT(comp_cls_sink);
+	BT_PUT(comp_cls_source);
 	free(plugin_path);
 }
 
@@ -305,7 +328,7 @@ int main(int argc, char **argv)
 	test_minimal(plugin_dir);
 	test_sfs(plugin_dir);
 	test_create_all_from_dir(plugin_dir);
-	test_create_from_name(plugin_dir);
+	test_find(plugin_dir);
 	ret = exit_status();
 end:
 	return ret;

@@ -51,7 +51,11 @@ enum bt_plugin_status {
 	BT_PLUGIN_STATUS_NOMEM =	-4,
 };
 
-extern struct bt_plugin *bt_plugin_create_from_name(const char *plugin_name);
+extern struct bt_plugin *bt_plugin_find(const char *plugin_name);
+
+extern struct bt_component_class *bt_plugin_find_component_class(
+		const char *plugin_name, const char *component_class_name,
+		enum bt_component_class_type component_class_type);
 
 extern struct bt_plugin **bt_plugin_create_all_from_file(const char *path);
 
