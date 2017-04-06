@@ -219,6 +219,9 @@ struct ctx {
 	/* 1 if trace declaration is visited */
 	int is_trace_visited;
 
+	/* 1 if this is an LTTng trace */
+	bool is_lttng;
+
 	/* Offset (ns) to apply to clock classes on creation */
 	uint64_t clock_class_offset_ns;
 
@@ -4079,6 +4082,12 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
+			if (strcmp(left, "tracer_name") == 0) {
+				if (strncmp(right, "lttng", 5) == 0) {
+					ctx->is_lttng = 1;
+				}
+			}
+
 			printf_verbose("env.%s = \"%s\"\n", left, right);
 			ret = bt_ctf_trace_set_environment_field_string(
 				ctx->trace, left, right);
@@ -4488,6 +4497,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	struct bt_ctf_clock_class *clock;
 	struct ctf_node *entry_node;
 	struct bt_list_head *decl_list = &clock_node->u.clock.declaration_list;
+	const char *clock_class_name;
 
 	if (clock_node->visited) {
 		return 0;
@@ -4515,10 +4525,20 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		goto error;
 	}
 
-	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 0) {
-		_PERROR("%s", "only CTF traces with a single clock class declaration are supported as of this version");
-		ret = -EINVAL;
-		goto error;
+	clock_class_name = bt_ctf_clock_class_get_name(clock);
+	assert(clock_class_name);
+	if (ctx->is_lttng && strcmp(clock_class_name, "monotonic") == 0) {
+		/*
+		 * Old versions of LTTng forgot to set its clock class
+		 * as absolute, even if it is. This is important because
+		 * it's a condition to be able to sort notifications
+		 * from different sources.
+		 */
+		ret = bt_ctf_clock_class_set_is_absolute(clock, 1);
+		if (ret) {
+			_PERROR("%s", "cannot set clock class's absolute option");
+			goto error;
+		}
 	}
 
 	ret = apply_clock_class_offset(ctx, clock);
@@ -4730,9 +4750,21 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		assert(ctx->current_scope &&
 			ctx->current_scope->parent_scope == NULL);
 
+		/* Environment */
+		bt_list_for_each_entry(iter, &node->u.root.env, siblings) {
+			ret = visit_env(ctx, iter);
+			if (ret) {
+				_PERROR("error while visiting environment block (%d)",
+					ret);
+				goto end;
+			}
+		}
+
+		assert(ctx->current_scope &&
+			ctx->current_scope->parent_scope == NULL);
+
 		/*
-		 * Visit clocks first since any early integer can be mapped
-		 * to one.
+		 * Visit clock blocks.
 		 */
 		bt_list_for_each_entry(iter, &node->u.root.clock, siblings) {
 			ret = visit_clock_decl(ctx, iter);
@@ -4775,19 +4807,6 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		if (found_callsite) {
 			_PWARNING("%s", "\"callsite\" blocks are not supported as of this version");
 		}
-
-		/* Environment */
-		bt_list_for_each_entry(iter, &node->u.root.env, siblings) {
-			ret = visit_env(ctx, iter);
-			if (ret) {
-				_PERROR("error while visiting environment block (%d)",
-					ret);
-				goto end;
-			}
-		}
-
-		assert(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
 
 		/* Trace */
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
