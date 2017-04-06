@@ -195,6 +195,8 @@ struct bt_component *bt_component_create_with_init_method_data(
 	enum bt_component_class_type type;
 	struct bt_port *default_port = NULL;
 
+	bt_get(params);
+
 	if (!component_class) {
 		goto end;
 	}
@@ -203,6 +205,21 @@ struct bt_component *bt_component_create_with_init_method_data(
 	if (type <= BT_COMPONENT_CLASS_TYPE_UNKNOWN ||
 			type > BT_COMPONENT_CLASS_TYPE_FILTER) {
 		goto end;
+	}
+
+	/*
+	 * Parameters must be a map value, but we create a convenient
+	 * empty one if it's NULL.
+	 */
+	if (params) {
+		if (!bt_value_is_map(params)) {
+			goto end;
+		}
+	} else {
+		params = bt_value_map_create();
+		if (!params) {
+			goto end;
+		}
 	}
 
 	component = component_create_funcs[type](component_class, params);
@@ -281,6 +298,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 
 	bt_component_class_freeze(component->class);
 end:
+	bt_put(params);
 	bt_put(default_port);
 	return component;
 }
