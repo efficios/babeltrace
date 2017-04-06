@@ -40,6 +40,8 @@ struct bt_notification_iterator;
  * Status code. Errors are always negative.
  */
 enum bt_notification_iterator_status {
+	/** Try again. */
+	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 2,
 	/** No more notifications to be delivered. */
 	BT_NOTIFICATION_ITERATOR_STATUS_END = 1,
 	/** No error, okay. */
