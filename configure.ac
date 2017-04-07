@@ -142,6 +142,7 @@ AS_CASE([$host_os],
   [cygwin*],
     [
 	LT_NO_UNDEFINED="-no-undefined"
+	DEFAULT_ENABLE_DEBUG_INFO=no
     ]
 )
 
