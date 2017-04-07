@@ -27,8 +27,8 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/event-internal.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/event-class-internal.h>
+#include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/notification-event-internal.h>
@@ -48,47 +48,72 @@ static
 bool validate_clock_classes(struct bt_notification_event *notif)
 {
 	/*
-	 * For each clock class found in the event's trace, get the
-	 * event's clock value for this clock class, and if it exists,
-	 * make sure that this clock class has a priority in the
-	 * notification's clock class priority map.
+	 * For each clock class found in the notification's clock class
+	 * priority map, make sure the event has a clock value set for
+	 * this clock class. Also make sure that those clock classes
+	 * are part of the trace to which the event belongs.
 	 */
 	bool is_valid = true;
-	int ret;
-	int count;
-	size_t i;
+	int trace_cc_count;
+	int cc_prio_map_cc_count;
+	size_t cc_prio_map_cc_i, trace_cc_i;
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
-	uint64_t prio;
 
-	event_class = bt_ctf_event_get_class(notif->event);
+	event_class = bt_ctf_event_borrow_event_class(notif->event);
 	assert(event_class);
-	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	stream_class = bt_ctf_event_class_borrow_stream_class(event_class);
 	assert(stream_class);
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_ctf_stream_class_borrow_trace(stream_class);
 	assert(trace);
-	count = bt_ctf_trace_get_clock_class_count(trace);
-	assert(count >= 0);
+	trace_cc_count = bt_ctf_trace_get_clock_class_count(trace);
+	assert(trace_cc_count >= 0);
+	cc_prio_map_cc_count =
+		bt_clock_class_priority_map_get_clock_class_count(
+			notif->cc_prio_map);
+	assert(cc_prio_map_cc_count >= 0);
 
-	for (i = 0; i < count; i++) {
+	for (cc_prio_map_cc_i = 0; cc_prio_map_cc_i < cc_prio_map_cc_count;
+			cc_prio_map_cc_i++) {
 		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class(trace, i);
+			bt_clock_class_priority_map_get_clock_class(
+				notif->cc_prio_map, cc_prio_map_cc_i);
+		struct bt_ctf_clock_value *clock_value;
+		bool found_in_trace = false;
 
 		assert(clock_class);
-		ret = bt_clock_class_priority_map_get_clock_class_priority(
-			notif->cc_prio_map, clock_class, &prio);
+		clock_value = bt_ctf_event_get_clock_value(notif->event,
+			clock_class);
+		if (!clock_value) {
+			is_valid = false;
+			goto end;
+		}
+
+		bt_put(clock_value);
+
+		for (trace_cc_i = 0; trace_cc_i < trace_cc_count;
+				trace_cc_i++) {
+			struct bt_ctf_clock_class *trace_clock_class =
+				bt_ctf_trace_get_clock_class(trace, trace_cc_i);
+
+			assert(trace_clock_class);
+
+			if (trace_clock_class == clock_class) {
+				found_in_trace = true;
+				break;
+			}
+		}
+
 		bt_put(clock_class);
-		if (ret) {
+
+		if (!found_in_trace) {
 			is_valid = false;
 			goto end;
 		}
 	}
 
 end:
-	bt_put(trace);
-	bt_put(stream_class);
-	bt_put(event_class);
 	return is_valid;
 }
 
