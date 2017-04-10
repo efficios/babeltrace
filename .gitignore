@@ -20,6 +20,8 @@
 /tests/lib/test_plugin
 /tests/lib/test_plugin_complete
 /tests/lib/writer/bt_python_helper.py
+/tests/plugins/test-utils-muxer
+/tests/plugins/test-utils-muxer-complete
 *.o
 *.a
 *.la

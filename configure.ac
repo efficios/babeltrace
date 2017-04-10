@@ -487,6 +487,7 @@ AC_CONFIG_FILES([
 	tests/bindings/Makefile
 	tests/bindings/python/Makefile
 	tests/bindings/python/bt2/Makefile
+	tests/plugins/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
@@ -518,6 +519,8 @@ AC_CONFIG_FILES([tests/lib/test_seek_big_trace], [chmod +x tests/lib/test_seek_b
 AC_CONFIG_FILES([tests/lib/test_seek_empty_packet], [chmod +x tests/lib/test_seek_empty_packet])
 AC_CONFIG_FILES([tests/lib/test_dwarf_complete], [chmod +x tests/lib/test_dwarf_complete])
 AC_CONFIG_FILES([tests/lib/test_bin_info_complete], [chmod +x tests/lib/test_bin_info_complete])
+
+AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
 
 AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read])
 AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/intersection/test_intersection])

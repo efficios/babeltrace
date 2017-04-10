@@ -1,4 +1,4 @@
-SUBDIRS = utils bin lib bindings
+SUBDIRS = utils bin lib bindings plugins
 
 LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
@@ -21,7 +21,8 @@ TESTS = bin/test_trace_read \
 	lib/test_bt_notification_heap \
 	lib/test_plugin_complete \
 	lib/test_graph_topo \
-	lib/test_cc_prio_map
+	lib/test_cc_prio_map \
+	plugins/test-utils-muxer
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** \
 	     $(srcdir)/debug-info-data/** \
