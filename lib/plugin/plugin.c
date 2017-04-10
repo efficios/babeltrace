@@ -329,7 +329,8 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 
 	directory = opendir(file_path);
 	if (!directory) {
-		perror("Failed to open plug-in directory");
+		printf_verbose("Failed to open plugin directory \"%s\"\n",
+			file_path);
 		ret = BT_PLUGIN_STATUS_ERROR;
 		goto end;
 	}
