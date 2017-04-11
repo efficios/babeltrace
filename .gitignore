@@ -47,8 +47,12 @@ converter/babeltrace-log
 core
 formats/ctf/metadata/ctf-parser.output
 stamp-h1
-bindings/python/babeltrace.i
-bindings/python/babeltrace.py
-bindings/python/babeltrace_wrap.c
+bindings/python/setup.py
+bindings/python/installed_files.txt
+bindings/python/build
+bindings/python/babeltrace/__init__.py
+bindings/python/babeltrace/babeltrace.i
+bindings/python/babeltrace/babeltrace.py
+bindings/python/babeltrace/babeltrace_wrap.c
 babeltrace.pc
 babeltrace-ctf.pc
