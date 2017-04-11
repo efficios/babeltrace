@@ -235,11 +235,6 @@ if test "x${enable_python:-yes}" = xyes; then
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
   AM_PATH_PYTHON([3.0], [], [ AC_MSG_ERROR([Python 3.0 or newer is needed]) ])
 
-  AM_PATH_PYTHON_MODULES([PYTHON])
-  # pythondir is the path where extra modules are to be installed
-  pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
-  # pyexecdir is the path that contains shared objects used by the extra modules
-  pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
   AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
   AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
   AS_IF([test -z "$PYTHON_INCLUDE"], [
@@ -323,7 +318,9 @@ AC_CONFIG_FILES([
 	include/Makefile
 	bindings/Makefile
 	bindings/python/Makefile
+	bindings/python/setup.py
 	bindings/python/babeltrace/Makefile
+	bindings/python/babeltrace/__init__.py
 	tests/Makefile
 	tests/bin/Makefile
 	tests/bin/intersection/Makefile
@@ -346,6 +343,13 @@ AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read
 AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/intersection/test_intersection])
 AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
+
+# Create link for Babeltrace complements files for out-of-tree builds
+AC_CONFIG_LINKS([
+	bindings/python/babeltrace/python-complements.c:bindings/python/babeltrace/python-complements.c
+	bindings/python/babeltrace/python-complements.h:bindings/python/babeltrace/python-complements.h
+	bindings/python/babeltrace/babeltrace.i.in:bindings/python/babeltrace/babeltrace.i.in
+])
 
 AC_OUTPUT
 
