@@ -3502,7 +3502,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		event_id);
 	if (eevent_class) {
 		BT_PUT(eevent_class);
-		_PERROR("%s", "duplicate event with ID %" PRId64 " in same stream");
+		_PERROR("duplicate event with ID %" PRId64 " in same stream", event_id);
 		ret = -EEXIST;
 		goto error;
 	}
