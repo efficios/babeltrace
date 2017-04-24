@@ -50,6 +50,7 @@ struct muxer_comp {
 	unsigned int next_port_num;
 	size_t available_input_ports;
 	bool error;
+	bool initializing_muxer_notif_iter;
 };
 
 struct muxer_upstream_notif_iter {
@@ -514,7 +515,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		cc_prio_map =
-			bt_notification_event_get_clock_class_priority_map(
+			bt_notification_inactivity_get_clock_class_priority_map(
 				notif);
 		break;
 	default:
@@ -867,14 +868,19 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 	assert(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
 	assert(muxer_comp);
-	muxer_notif_iter = g_new0(struct muxer_notif_iter, 1);
-	if (!muxer_notif_iter) {
+
+	if (muxer_comp->initializing_muxer_notif_iter) {
+		/*
+		 * Weird, unhandled situation: downstream creates a
+		 * muxer notification iterator while creating another
+		 * muxer notification iterator (same component).
+		 */
 		goto error;
 	}
 
-	ret = muxer_notif_iter_init_newly_connected_ports(muxer_comp,
-		muxer_notif_iter);
-	if (ret) {
+	muxer_comp->initializing_muxer_notif_iter = true;
+	muxer_notif_iter = g_new0(struct muxer_notif_iter, 1);
+	if (!muxer_notif_iter) {
 		goto error;
 	}
 
@@ -883,6 +889,21 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) destroy_muxer_upstream_notif_iter);
 	if (!muxer_notif_iter->muxer_upstream_notif_iters) {
+		goto error;
+	}
+
+	/*
+	 * Add the muxer notification iterator to the component's array
+	 * of muxer notification iterators here because
+	 * muxer_notif_iter_init_newly_connected_ports() can cause
+	 * muxer_port_connected() to be called, which adds the newly
+	 * connected port to each muxer notification iterator's list of
+	 * newly connected ports.
+	 */
+	g_ptr_array_add(muxer_comp->muxer_notif_iters, muxer_notif_iter);
+	ret = muxer_notif_iter_init_newly_connected_ports(muxer_comp,
+		muxer_notif_iter);
+	if (ret) {
 		goto error;
 	}
 
@@ -896,10 +917,15 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
 		muxer_notif_iter);
 	assert(ret == 0);
-	g_ptr_array_add(muxer_comp->muxer_notif_iters, muxer_notif_iter);
 	goto end;
 
 error:
+	if (g_ptr_array_index(muxer_comp->muxer_notif_iters,
+			muxer_comp->muxer_notif_iters->len - 1) == muxer_notif_iter) {
+		g_ptr_array_remove_index(muxer_comp->muxer_notif_iters,
+			muxer_comp->muxer_notif_iters->len - 1);
+	}
+
 	destroy_muxer_notif_iter(muxer_notif_iter);
 	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
 		NULL);
@@ -907,6 +933,7 @@ error:
 	status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 
 end:
+	muxer_comp->initializing_muxer_notif_iter = false;
 	bt_put(priv_comp);
 	return status;
 }
