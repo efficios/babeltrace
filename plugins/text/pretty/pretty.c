@@ -127,30 +127,12 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!pretty) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
+	assert(pretty);
+
+	if (bt_notification_get_type(notification) == BT_NOTIFICATION_TYPE_EVENT) {
+		ret = pretty_print_event(pretty, notification);
 	}
 
-	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		break;
-	case BT_NOTIFICATION_TYPE_PACKET_END:
-		break;
-	case BT_NOTIFICATION_TYPE_EVENT:
-	{
-		ret = pretty_print_event(pretty, notification);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			goto end;
-		}
-		break;
-	}
-	case BT_NOTIFICATION_TYPE_STREAM_END:
-		break;
-	default:
-		puts("Unhandled notification type");
-	}
-end:
 	return ret;
 }
 
