@@ -186,13 +186,20 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 		ret = BT_COMPONENT_STATUS_END;
 		BT_PUT(pretty->input_iterator);
 		goto end;
-	default:
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		ret = BT_COMPONENT_STATUS_AGAIN;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 		break;
+	default:
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
 	}
 
 	notification = bt_notification_iterator_get_notification(it);
 	assert(notification);
 	ret = handle_notification(pretty, notification);
+
 end:
 	bt_put(notification);
 	return ret;
