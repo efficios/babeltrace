@@ -54,7 +54,6 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-iterator.h \
 	babeltrace/graph/notification.h \
 	babeltrace/graph/notification-packet.h \
-	babeltrace/graph/notification-schema.h \
 	babeltrace/graph/notification-stream.h \
 	babeltrace/graph/port.h \
 	babeltrace/graph/private-component-filter.h \
