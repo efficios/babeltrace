@@ -1551,6 +1551,7 @@ A mapping in \p enum_field_type can exist with the name \p name.
 
 @prenotnull{enum_field_type}
 @prenotnull{name}
+@prehot{enum_field_type}
 @preisenumft{enum_field_type}
 @pre The wrapped @intft of \p enum_field_type is signed.
 @pre \p range_end is greater than or equal to \p range_begin.
@@ -1589,6 +1590,7 @@ A mapping in \p enum_field_type can exist with the name \p name.
 
 @prenotnull{enum_field_type}
 @prenotnull{name}
+@prehot{enum_field_type}
 @preisenumft{enum_field_type}
 @pre The wrapped @intft of \p enum_field_type is unsigned.
 @pre \p range_end is greater than or equal to \p range_begin.
