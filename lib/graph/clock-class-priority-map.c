@@ -234,12 +234,12 @@ int bt_clock_class_priority_map_add_clock_class(
 		goto end;
 	}
 
-	/* Check for duplicate clock classes */
+	/* Check for existing clock class */
 	prio_ptr = g_hash_table_lookup(cc_prio_map->prios, clock_class);
 	if (prio_ptr) {
+		*prio_ptr = priority;
 		prio_ptr = NULL;
-		ret = -1;
-		goto end;
+		goto set_highest_prio;
 	}
 
 	prio_ptr = g_new(uint64_t, 1);
@@ -253,6 +253,8 @@ int bt_clock_class_priority_map_add_clock_class(
 	g_ptr_array_add(cc_prio_map->entries, clock_class);
 	g_hash_table_insert(cc_prio_map->prios, clock_class, prio_ptr);
 	prio_ptr = NULL;
+
+set_highest_prio:
 	cc_prio = bt_ctf_clock_class_priority_map_current_highest_prio(
 		cc_prio_map);
 	assert(cc_prio.clock_class);

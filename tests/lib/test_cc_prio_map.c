@@ -23,7 +23,7 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	18
+#define NR_TESTS	21
 
 static void test_clock_class_priority_map(void)
 {
@@ -100,7 +100,17 @@ static void test_clock_class_priority_map(void)
 		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (3, copy)");
 	cc = bt_clock_class_priority_map_get_highest_priority_clock_class(cc_prio_map_copy);
 	ok(cc == cc3,
-		"bt_clock_class_priority_map_get_highest_priority_clock_class() returns the expected clock class (3, copy)");
+		"bt_clock_class_priority_map_get_highest_priority_clock_class() returns the expected clock class (copy)");
+	BT_PUT(cc);
+	ret = bt_clock_class_priority_map_add_clock_class(cc_prio_map_copy, cc3, 253);
+	ok(ret == 0, "bt_clock_class_priority_map_add_clock_class() succeeds for an existing clock class");
+	ret = bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map_copy, cc3, &prio);
+	assert(ret == 0);
+	ok(prio == 253,
+		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (updated, copy)");
+	cc = bt_clock_class_priority_map_get_highest_priority_clock_class(cc_prio_map_copy);
+	ok(cc == cc2,
+		"bt_clock_class_priority_map_get_highest_priority_clock_class() returns the expected clock class (updated, copy)");
 	BT_PUT(cc);
 
 	BT_PUT(cc3);
