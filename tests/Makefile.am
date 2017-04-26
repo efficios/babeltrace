@@ -22,6 +22,7 @@ TESTS = bin/test_trace_read \
 	lib/test_plugin_complete \
 	lib/test_graph_topo \
 	lib/test_cc_prio_map \
+	lib/test_bt_notification_iterator \
 	plugins/test-utils-muxer
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** \
