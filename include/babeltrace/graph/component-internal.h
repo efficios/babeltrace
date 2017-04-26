@@ -38,6 +38,14 @@
 #define DEFAULT_INPUT_PORT_NAME		"default"
 #define DEFAULT_OUTPUT_PORT_NAME	"default"
 
+typedef void (*bt_component_destroy_listener_func)(
+		struct bt_component *class, void *data);
+
+struct bt_component_destroy_listener {
+	bt_component_destroy_listener_func func;
+	void *data;
+};
+
 struct bt_component {
 	struct bt_object base;
 	struct bt_component_class *class;
@@ -61,6 +69,9 @@ struct bt_component {
 	/* Input and output ports (weak references) */
 	GPtrArray *input_ports;
 	GPtrArray *output_ports;
+
+	/* Array of struct bt_component_destroy_listener */
+	GArray *destroy_listeners;
 };
 
 static inline
@@ -127,5 +138,13 @@ struct bt_port *bt_component_add_output_port(
 BT_HIDDEN
 enum bt_component_status bt_component_remove_port(
 		struct bt_component *component, struct bt_port *port);
+
+BT_HIDDEN
+void bt_component_add_destroy_listener(struct bt_component *component,
+		bt_component_destroy_listener_func func, void *data);
+
+BT_HIDDEN
+void bt_component_remove_destroy_listener(struct bt_component *component,
+		bt_component_destroy_listener_func func, void *data);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H */

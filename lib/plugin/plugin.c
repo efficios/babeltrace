@@ -555,7 +555,6 @@ enum bt_plugin_status bt_plugin_add_component_class(
 {
 	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
 	struct bt_component_class *comp_class_dup = NULL;
-	int ret;
 	int comp_class_index = -1;
 
 	if (!plugin || !comp_class || plugin->frozen) {
@@ -580,10 +579,7 @@ enum bt_plugin_status bt_plugin_add_component_class(
 
 	/* Special case for a shared object plugin */
 	if (plugin->type == BT_PLUGIN_TYPE_SO) {
-		ret = bt_plugin_so_on_add_component_class(plugin, comp_class);
-		if (ret) {
-			goto error;
-		}
+		bt_plugin_so_on_add_component_class(plugin, comp_class);
 	}
 
 	goto end;

@@ -96,7 +96,7 @@ struct bt_component_class_filter {
 };
 
 BT_HIDDEN
-int bt_component_class_add_destroy_listener(struct bt_component_class *class,
+void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 		bt_component_class_destroy_listener_func func, void *data);
 
 #endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_INTERNAL_H */

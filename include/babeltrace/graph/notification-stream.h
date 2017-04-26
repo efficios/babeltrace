@@ -34,10 +34,16 @@
 extern "C" {
 #endif
 
-/*** BT_NOTIFICATION_TYPE_STREAM_END ***/
-struct bt_notification *bt_notification_stream_end_create(
+extern struct bt_notification *bt_notification_stream_begin_create(
 		struct bt_ctf_stream *stream);
-struct bt_ctf_stream *bt_notification_stream_end_get_stream(
+
+extern struct bt_notification *bt_notification_stream_end_create(
+		struct bt_ctf_stream *stream);
+
+extern struct bt_ctf_stream *bt_notification_stream_begin_get_stream(
+		struct bt_notification *notification);
+
+extern struct bt_ctf_stream *bt_notification_stream_end_get_stream(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

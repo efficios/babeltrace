@@ -25,6 +25,7 @@
  */
 
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 
 static
@@ -42,7 +43,7 @@ struct bt_notification *bt_notification_stream_end_create(
 {
 	struct bt_notification_stream_end *notification;
 
-	if (!stream) {
+	if (!stream || stream->pos.fd >= 0) {
 		goto error;
 	}
 
@@ -64,4 +65,43 @@ struct bt_ctf_packet *bt_notification_stream_end_get_stream(
 	stream_end = container_of(notification,
 			struct bt_notification_stream_end, parent);
 	return bt_get(stream_end->stream);
+}
+
+static
+void bt_notification_stream_begin_destroy(struct bt_object *obj)
+{
+	struct bt_notification_stream_begin *notification =
+			(struct bt_notification_stream_begin *) obj;
+
+	BT_PUT(notification->stream);
+	g_free(notification);
+}
+
+struct bt_notification *bt_notification_stream_begin_create(
+		struct bt_ctf_stream *stream)
+{
+	struct bt_notification_stream_begin *notification;
+
+	if (!stream || stream->pos.fd >= 0) {
+		goto error;
+	}
+
+	notification = g_new0(struct bt_notification_stream_begin, 1);
+	bt_notification_init(&notification->parent,
+			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
+			bt_notification_stream_begin_destroy);
+	notification->stream = bt_get(stream);
+	return &notification->parent;
+error:
+	return NULL;
+}
+
+struct bt_ctf_packet *bt_notification_stream_begin_get_stream(
+		struct bt_notification *notification)
+{
+	struct bt_notification_stream_begin *stream_begin;
+
+	stream_begin = container_of(notification,
+			struct bt_notification_stream_begin, parent);
+	return bt_get(stream_begin->stream);
 }

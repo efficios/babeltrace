@@ -55,12 +55,11 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	14
+#define NR_TESTS	12
 
 enum test {
 	TEST_NO_TS,
 	TEST_NO_UPSTREAM_CONNECTION,
-	TEST_EVENT_NOTIF_VS_THE_REST,
 	TEST_SIMPLE_4_PORTS,
 	TEST_4_PORTS_WITH_RETRIES,
 	TEST_SINGLE_END_THEN_MULTIPLE_FULL,
@@ -73,6 +72,8 @@ enum test_event_type {
 	TEST_EV_TYPE_NOTIF_INACTIVITY,
 	TEST_EV_TYPE_NOTIF_PACKET_BEGIN,
 	TEST_EV_TYPE_NOTIF_PACKET_END,
+	TEST_EV_TYPE_NOTIF_STREAM_BEGIN,
+	TEST_EV_TYPE_NOTIF_STREAM_END,
 	TEST_EV_TYPE_AGAIN,
 	TEST_EV_TYPE_END,
 	TEST_EV_TYPE_SENTINEL,
@@ -104,7 +105,10 @@ static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_ctf_clock_class *src_clock_class;
 static struct bt_ctf_stream_class *src_stream_class;
 static struct bt_ctf_event_class *src_event_class;
-static struct bt_ctf_packet *src_packet;
+static struct bt_ctf_packet *src_packet0;
+static struct bt_ctf_packet *src_packet1;
+static struct bt_ctf_packet *src_packet2;
+static struct bt_ctf_packet *src_packet3;
 
 enum {
 	SEQ_END = -1,
@@ -117,6 +121,7 @@ struct src_iter_user_data {
 	size_t iter_index;
 	int64_t *seq;
 	size_t at;
+	struct bt_ctf_packet *packet;
 };
 
 struct sink_user_data {
@@ -173,14 +178,6 @@ static int64_t seq5[] = {
 	1, 4, 189, 1001, SEQ_END,
 };
 
-static int64_t seq6[] = {
-	1, 2, 12, SEQ_PACKET_BEGIN, 14, 19, SEQ_END,
-};
-
-static int64_t seq7[] = {
-	8, 9, SEQ_PACKET_BEGIN, 10, 13, SEQ_PACKET_END, 22, SEQ_END,
-};
-
 static
 void clear_test_events(void)
 {
@@ -207,6 +204,12 @@ void print_test_event(FILE *fp, const struct test_event *event)
 		break;
 	case TEST_EV_TYPE_NOTIF_PACKET_END:
 		fprintf(fp, "TEST_EV_TYPE_NOTIF_PACKET_END");
+		break;
+	case TEST_EV_TYPE_NOTIF_STREAM_BEGIN:
+		fprintf(fp, "TEST_EV_TYPE_NOTIF_STREAM_BEGIN");
+		break;
+	case TEST_EV_TYPE_NOTIF_STREAM_END:
+		fprintf(fp, "TEST_EV_TYPE_NOTIF_STREAM_END");
 		break;
 	case TEST_EV_TYPE_AGAIN:
 		fprintf(fp, "TEST_EV_TYPE_AGAIN");
@@ -363,13 +366,28 @@ void init_static_data(void)
 	assert(ret == 0);
 	ret = bt_ctf_trace_add_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	stream = bt_ctf_stream_create(src_stream_class, "my-stream");
+	stream = bt_ctf_stream_create(src_stream_class, "stream0");
 	assert(stream);
-	src_packet = bt_ctf_packet_create(stream);
-	assert(src_packet);
+	src_packet0 = bt_ctf_packet_create(stream);
+	assert(src_packet0);
+	bt_put(stream);
+	stream = bt_ctf_stream_create(src_stream_class, "stream1");
+	assert(stream);
+	src_packet1 = bt_ctf_packet_create(stream);
+	assert(src_packet0);
+	bt_put(stream);
+	stream = bt_ctf_stream_create(src_stream_class, "stream2");
+	assert(stream);
+	src_packet2 = bt_ctf_packet_create(stream);
+	assert(src_packet0);
+	bt_put(stream);
+	stream = bt_ctf_stream_create(src_stream_class, "stream3");
+	assert(stream);
+	src_packet3 = bt_ctf_packet_create(stream);
+	assert(src_packet0);
+	bt_put(stream);
 
 	bt_put(trace);
-	bt_put(stream);
 	bt_put(empty_struct_ft);
 }
 
@@ -385,6 +403,10 @@ void fini_static_data(void)
 	bt_put(src_clock_class);
 	bt_put(src_stream_class);
 	bt_put(src_event_class);
+	bt_put(src_packet0);
+	bt_put(src_packet1);
+	bt_put(src_packet2);
+	bt_put(src_packet3);
 }
 
 static
@@ -421,17 +443,27 @@ enum bt_notification_iterator_status src_iter_init(
 	user_data->iter_index = port_name[3] - '0';
 	bt_put(port);
 
+	switch (user_data->iter_index) {
+	case 0:
+		user_data->packet = src_packet0;
+		break;
+	case 1:
+		user_data->packet = src_packet1;
+		break;
+	case 2:
+		user_data->packet = src_packet2;
+		break;
+	case 3:
+		user_data->packet = src_packet3;
+		break;
+	default:
+		assert(false);
+	}
+
 	switch (current_test) {
 	case TEST_NO_TS:
 		if (user_data->iter_index == 1) {
 			user_data->seq = seq5;
-		}
-		break;
-	case TEST_EVENT_NOTIF_VS_THE_REST:
-		if (user_data->iter_index == 0) {
-			user_data->seq = seq6;
-		} else {
-			user_data->seq = seq7;
 		}
 		break;
 	case TEST_SIMPLE_4_PORTS:
@@ -474,13 +506,14 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_ctf_event *src_create_event(int64_t ts_ns)
+struct bt_ctf_event *src_create_event(struct bt_ctf_packet *packet,
+		int64_t ts_ns)
 {
 	struct bt_ctf_event *event = bt_ctf_event_create(src_event_class);
 	int ret;
 
 	assert(event);
-	ret = bt_ctf_event_set_packet(event, src_packet);
+	ret = bt_ctf_event_set_packet(event, packet);
 	assert(ret == 0);
 
 	if (ts_ns != -1) {
@@ -519,17 +552,18 @@ struct bt_notification_iterator_next_return src_iter_next_seq(
 		break;
 	case SEQ_PACKET_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_packet);
+			bt_notification_packet_begin_create(user_data->packet);
 		assert(next_return.notification);
 		break;
 	case SEQ_PACKET_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_packet);
+			bt_notification_packet_end_create(user_data->packet);
 		assert(next_return.notification);
 		break;
 	default:
 	{
-		struct bt_ctf_event *event = src_create_event(cur_ts_ns);
+		struct bt_ctf_event *event = src_create_event(
+			user_data->packet, cur_ts_ns);
 
 		assert(event);
 		next_return.notification = bt_notification_event_create(event,
@@ -568,10 +602,12 @@ struct bt_notification_iterator_next_return src_iter_next(
 		if (user_data->iter_index == 0) {
 			if (user_data->at == 0) {
 				next_return.notification =
-					bt_notification_packet_begin_create(src_packet);
+					bt_notification_packet_begin_create(
+						user_data->packet);
 				assert(next_return.notification);
 			} else if (user_data->at < 6) {
-				struct bt_ctf_event *event = src_create_event(-1);
+				struct bt_ctf_event *event = src_create_event(
+					user_data->packet, -1);
 
 				assert(event);
 				next_return.notification =
@@ -589,7 +625,6 @@ struct bt_notification_iterator_next_return src_iter_next(
 			next_return = src_iter_next_seq(user_data);
 		}
 		break;
-	case TEST_EVENT_NOTIF_VS_THE_REST:
 	case TEST_SIMPLE_4_PORTS:
 	case TEST_4_PORTS_WITH_RETRIES:
 		next_return = src_iter_next_seq(user_data);
@@ -660,7 +695,6 @@ enum bt_component_status src_init(
 
 	switch (current_test) {
 	case TEST_NO_TS:
-	case TEST_EVENT_NOTIF_VS_THE_REST:
 		nb_ports = 2;
 		break;
 	case TEST_SINGLE_END_THEN_MULTIPLE_FULL:
@@ -821,6 +855,12 @@ enum bt_component_status sink_consume(
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		test_event.type = TEST_EV_TYPE_NOTIF_PACKET_END;
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
 		break;
 	default:
 		test_event.type = TEST_EV_TYPE_NOTIF_UNEXPECTED;
@@ -1008,16 +1048,23 @@ static
 void test_no_ts(void)
 {
 	const struct test_event expected_test_events[] = {
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = -1, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = -1, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = -1, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = -1, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = -1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 1, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 4, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 189, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 1001, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1039,35 +1086,17 @@ void test_no_upstream_connection(void)
 }
 
 static
-void test_event_notif_vs_the_rest(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 8, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 9, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 10, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 12, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 13, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 14, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 19, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 22, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_EVENT_NOTIF_VS_THE_REST, "event notifications vs. the rest",
-		expected_test_events, true);
-}
-
-
-static
 void test_simple_4_ports(void)
 {
 	const struct test_event expected_test_events[] = {
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 8 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 24 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 41 },
@@ -1146,6 +1175,8 @@ void test_simple_4_ports(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 820 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 825 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 836 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 850 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 852 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 857 },
@@ -1162,8 +1193,14 @@ void test_simple_4_ports(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 956 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 985 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 996 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 998 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 999 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1177,6 +1214,14 @@ void test_4_ports_with_retries(void)
 {
 	const struct test_event expected_test_events[] = {
 		{ .type = TEST_EV_TYPE_AGAIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 8 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 24 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 41 },
@@ -1258,6 +1303,8 @@ void test_4_ports_with_retries(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 825 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 836 },
 		{ .type = TEST_EV_TYPE_AGAIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 850 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 852 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 857 },
@@ -1274,8 +1321,14 @@ void test_4_ports_with_retries(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 956 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 985 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 996 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 998 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 999 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1356,6 +1409,10 @@ void test_single_end_then_multiple_full(void)
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 	struct graph_listener_data graph_listener_data;
 	const struct test_event expected_test_events[] = {
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 8 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 51 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 59 },
@@ -1396,11 +1453,15 @@ void test_single_end_then_multiple_full(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 819 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 820 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 836 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 857 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 892 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 903 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 944 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 998 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1477,6 +1538,10 @@ void test_single_again_end_then_multiple_full(void)
 	struct graph_listener_data graph_listener_data;
 	const struct test_event expected_test_events[] = {
 		{ .type = TEST_EV_TYPE_AGAIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 8 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 51 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 59 },
@@ -1517,11 +1582,15 @@ void test_single_again_end_then_multiple_full(void)
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 819 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 820 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 836 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 857 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 892 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 903 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 944 },
 		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .ts_ns = 998 },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1593,7 +1662,6 @@ int main(int argc, char **argv)
 	init_static_data();
 	test_no_ts();
 	test_no_upstream_connection();
-	test_event_notif_vs_the_rest();
 	test_simple_4_ports();
 	test_4_ports_with_retries();
 	test_single_end_then_multiple_full();

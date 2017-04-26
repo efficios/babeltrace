@@ -70,12 +70,23 @@ void bt_component_destroy(struct bt_object *obj)
 {
 	struct bt_component *component = NULL;
 	struct bt_component_class *component_class = NULL;
+	int i;
 
 	if (!obj) {
 		return;
 	}
 
 	component = container_of(obj, struct bt_component, base);
+
+	/* Call destroy listeners in reverse registration order */
+	for (i = component->destroy_listeners->len - 1; i >= 0; i--) {
+		struct bt_component_destroy_listener *listener =
+			&g_array_index(component->destroy_listeners,
+				struct bt_component_destroy_listener, i);
+
+		listener->func(component, listener->data);
+	}
+
 	component_class = component->class;
 
 	/*
@@ -97,6 +108,10 @@ void bt_component_destroy(struct bt_object *obj)
 
 	if (component->output_ports) {
 		g_ptr_array_free(component->output_ports, TRUE);
+	}
+
+	if (component->destroy_listeners) {
+		g_array_free(component->destroy_listeners, TRUE);
 	}
 
 	g_string_free(component->name, TRUE);
@@ -246,6 +261,13 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->output_ports = g_ptr_array_new_with_free_func(
 		bt_object_release);
 	if (!component->output_ports) {
+		BT_PUT(component);
+		goto end;
+	}
+
+	component->destroy_listeners = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_component_destroy_listener));
+	if (!component->destroy_listeners) {
 		BT_PUT(component);
 		goto end;
 	}
@@ -597,5 +619,39 @@ void bt_component_port_disconnected(struct bt_component *comp,
 		comp->class->methods.port_disconnected(
 			bt_private_component_from_component(comp),
 			bt_private_port_from_port(port));
+	}
+}
+
+BT_HIDDEN
+void bt_component_add_destroy_listener(struct bt_component *component,
+		bt_component_destroy_listener_func func, void *data)
+{
+	struct bt_component_destroy_listener listener;
+
+	assert(component);
+	assert(func);
+	listener.func = func;
+	listener.data = data;
+	g_array_append_val(component->destroy_listeners, listener);
+}
+
+BT_HIDDEN
+void bt_component_remove_destroy_listener(struct bt_component *component,
+		bt_component_destroy_listener_func func, void *data)
+{
+	size_t i;
+
+	assert(component);
+	assert(func);
+
+	for (i = 0; i < component->destroy_listeners->len; i++) {
+		struct bt_component_destroy_listener *listener =
+			&g_array_index(component->destroy_listeners,
+				struct bt_component_destroy_listener, i);
+
+		if (listener->func == func && listener->data == data) {
+			g_array_remove_index(component->destroy_listeners, i);
+			i--;
+		}
 	}
 }

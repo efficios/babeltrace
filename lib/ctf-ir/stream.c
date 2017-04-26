@@ -38,6 +38,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/graph/component-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -340,6 +341,14 @@ end:
 	return ret;
 }
 
+static
+void component_destroy_listener(struct bt_component *component, void *data)
+{
+	struct bt_ctf_stream *stream = data;
+
+	g_hash_table_remove(stream->comp_cur_port, component);
+}
+
 struct bt_ctf_stream *bt_ctf_stream_create(
 		struct bt_ctf_stream_class *stream_class,
 		const char *name)
@@ -372,6 +381,12 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
 	stream->pos.fd = -1;
+
+	stream->destroy_listeners = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_ctf_stream_destroy_listener));
+	if (!stream->destroy_listeners) {
+		goto error;
+	}
 
 	if (name) {
 		stream->name = g_string_new(name);
@@ -446,6 +461,12 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		/* Non-writer stream indicated by a negative FD */
 		ret = set_stream_fd(stream, -1);
 		if (ret) {
+			goto error;
+		}
+
+		stream->comp_cur_port = g_hash_table_new(g_direct_hash,
+			g_direct_equal);
+		if (!stream->comp_cur_port) {
 			goto error;
 		}
 	}
@@ -1095,8 +1116,19 @@ static
 void bt_ctf_stream_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_stream *stream;
+	int i;
 
 	stream = container_of(obj, struct bt_ctf_stream, base);
+
+	/* Call destroy listeners in reverse registration order */
+	for (i = stream->destroy_listeners->len - 1; i >= 0; i--) {
+		struct bt_ctf_stream_destroy_listener *listener =
+			&g_array_index(stream->destroy_listeners,
+				struct bt_ctf_stream_destroy_listener, i);
+
+		listener->func(stream, listener->data);
+	}
+
 	(void) bt_ctf_stream_pos_fini(&stream->pos);
 	if (stream->pos.fd >= 0) {
 		int ret;
@@ -1124,6 +1156,32 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 
 	if (stream->name) {
 		g_string_free(stream->name, TRUE);
+	}
+
+	if (stream->comp_cur_port) {
+		GHashTableIter ht_iter;
+		gpointer comp_gptr, port_gptr;
+
+		/*
+		 * Since we're destroying the stream, remove the destroy
+		 * listeners that it registered for each component in
+		 * its component-port mapping hash table. Otherwise they
+		 * would be called and the stream would be accessed once
+		 * it's freed or another stream would be accessed.
+		 */
+		g_hash_table_iter_init(&ht_iter, stream->comp_cur_port);
+
+		while (g_hash_table_iter_next(&ht_iter, &comp_gptr, &port_gptr)) {
+			assert(comp_gptr);
+			bt_component_remove_destroy_listener((void *) comp_gptr,
+				component_destroy_listener, stream);
+		}
+
+		g_hash_table_destroy(stream->comp_cur_port);
+	}
+
+	if (stream->destroy_listeners) {
+		g_array_free(stream->destroy_listeners, TRUE);
 	}
 
 	bt_put(stream->packet_header);
@@ -1227,4 +1285,70 @@ int bt_ctf_stream_is_writer(struct bt_ctf_stream *stream)
 
 end:
 	return ret;
+}
+
+BT_HIDDEN
+void bt_ctf_stream_map_component_to_port(struct bt_ctf_stream *stream,
+		struct bt_component *comp,
+		struct bt_port *port)
+{
+	assert(stream);
+	assert(comp);
+	assert(port);
+	assert(stream->comp_cur_port);
+
+	/*
+	 * Do not take a reference to the component here because we
+	 * don't want the component to exist as long as this stream
+	 * exists. Instead, keep a weak reference, but add a destroy
+	 * listener so that we remove this hash table entry when we know
+	 * the component is destroyed.
+	 */
+	bt_component_add_destroy_listener(comp, component_destroy_listener,
+		stream);
+	g_hash_table_insert(stream->comp_cur_port, comp, port);
+}
+
+BT_HIDDEN
+struct bt_port *bt_ctf_stream_port_for_component(struct bt_ctf_stream *stream,
+		struct bt_component *comp)
+{
+	assert(stream);
+	assert(comp);
+	assert(stream->comp_cur_port);
+	return g_hash_table_lookup(stream->comp_cur_port, comp);
+}
+
+BT_HIDDEN
+void bt_ctf_stream_add_destroy_listener(struct bt_ctf_stream *stream,
+		bt_ctf_stream_destroy_listener_func func, void *data)
+{
+	struct bt_ctf_stream_destroy_listener listener;
+
+	assert(stream);
+	assert(func);
+	listener.func = func;
+	listener.data = data;
+	g_array_append_val(stream->destroy_listeners, listener);
+}
+
+BT_HIDDEN
+void bt_ctf_stream_remove_destroy_listener(struct bt_ctf_stream *stream,
+		bt_ctf_stream_destroy_listener_func func, void *data)
+{
+	size_t i;
+
+	assert(stream);
+	assert(func);
+
+	for (i = 0; i < stream->destroy_listeners->len; i++) {
+		struct bt_ctf_stream_destroy_listener *listener =
+			&g_array_index(stream->destroy_listeners,
+				struct bt_ctf_stream_destroy_listener, i);
+
+		if (listener->func == func && listener->data == data) {
+			g_array_remove_index(stream->destroy_listeners, i);
+			i--;
+		}
+	}
 }

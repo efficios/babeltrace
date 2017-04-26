@@ -37,40 +37,15 @@ struct bt_notification;
  * Notification types. Unhandled notification types should be ignored.
  */
 enum bt_notification_type {
-	BT_NOTIFICATION_TYPE_UNKNOWN = -1,
-
-	/**
-	 * All types of notifications (used to register to notification
-	 * delivery).
-	 */
-	BT_NOTIFICATION_TYPE_ALL = 0,
-
-	/** Event delivery notification, see event.h */
-	BT_NOTIFICATION_TYPE_EVENT = 1,
-
-	/** Beginning of stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_PACKET_BEGIN = 2,
-
-	/** End of stream packet notification, see packet.h */
-	BT_NOTIFICATION_TYPE_PACKET_END = 3,
-
-	/** End of stream packet notification, see stream.h */
-	BT_NOTIFICATION_TYPE_STREAM_END = 4,
-
-	/** New trace notification, see model.h */
-	BT_NOTIFICATION_TYPE_NEW_TRACE = 5,
-
-	/** New stream class notification, see model.h */
-	BT_NOTIFICATION_TYPE_NEW_STREAM_CLASS = 6,
-
-	/** New event class notification, see model.h */
-	BT_NOTIFICATION_TYPE_NEW_EVENT_CLASS = 7,
-
-	/** End of trace notification, see eot.h */
-	BT_NOTIFICATION_TYPE_END_OF_TRACE = 8,
-
-	BT_NOTIFICATION_TYPE_INACTIVITY = 9,
-
+	BT_NOTIFICATION_TYPE_SENTINEL =		-2,
+	BT_NOTIFICATION_TYPE_UNKNOWN =		-1,
+	BT_NOTIFICATION_TYPE_ALL =		0,
+	BT_NOTIFICATION_TYPE_EVENT =		1,
+	BT_NOTIFICATION_TYPE_INACTIVITY =	2,
+	BT_NOTIFICATION_TYPE_STREAM_BEGIN =	3,
+	BT_NOTIFICATION_TYPE_STREAM_END =	4,
+	BT_NOTIFICATION_TYPE_PACKET_BEGIN =	5,
+	BT_NOTIFICATION_TYPE_PACKET_END =	6,
 	BT_NOTIFICATION_TYPE_NR, /* Not part of ABI. */
 };
 

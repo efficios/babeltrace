@@ -507,23 +507,16 @@ const char *bt_component_class_get_help(
 }
 
 BT_HIDDEN
-int bt_component_class_add_destroy_listener(struct bt_component_class *class,
+void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 		bt_component_class_destroy_listener_func func, void *data)
 {
-	int ret = 0;
 	struct bt_component_class_destroy_listener listener;
 
-	if (!class || class->frozen || !func) {
-		ret = -1;
-		goto end;
-	}
-
+	assert(class);
+	assert(func);
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(class->destroy_listeners, listener);
-
-end:
-	return ret;
 }
 
 int bt_component_class_freeze(

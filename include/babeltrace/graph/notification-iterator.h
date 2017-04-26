@@ -54,7 +54,6 @@ enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -12,
 	/** Unsupported iterator feature. */
 	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
-
 };
 
 /**

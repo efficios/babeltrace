@@ -943,10 +943,9 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 }
 
 BT_HIDDEN
-int bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
+void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class)
 {
-	int ret;
 	struct bt_plugin_so_spec_data *spec = plugin->spec_data;
 
 	assert(plugin->spec_data);
@@ -957,18 +956,6 @@ int bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		bt_get(spec->shared_lib_handle));
 
 	/* Add our custom destroy listener */
-	ret = bt_component_class_add_destroy_listener(comp_class,
+	bt_component_class_add_destroy_listener(comp_class,
 		plugin_comp_class_destroy_listener, NULL);
-	if (ret) {
-		goto error;
-	}
-	goto end;
-
-error:
-	/* Remove entry from global hash table (if exists) */
-	g_hash_table_remove(comp_classes_to_shlib_handles,
-		comp_class);
-
-end:
-	return ret;
 }

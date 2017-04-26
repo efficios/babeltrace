@@ -179,7 +179,8 @@ bt_private_connection_create_notification_iterator(
 		goto error;
 	}
 
-	iterator = bt_notification_iterator_create(upstream_component);
+	iterator = bt_notification_iterator_create(upstream_component,
+		upstream_port);
 	if (!iterator) {
 		goto error;
 	}

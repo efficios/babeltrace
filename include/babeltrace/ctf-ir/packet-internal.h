@@ -29,6 +29,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <assert.h>
 
 struct bt_ctf_packet {
 	struct bt_object base;
@@ -40,5 +41,13 @@ struct bt_ctf_packet {
 
 BT_HIDDEN
 void bt_ctf_packet_freeze(struct bt_ctf_packet *packet);
+
+static inline
+struct bt_ctf_stream *bt_ctf_packet_borrow_stream(
+		struct bt_ctf_packet *packet)
+{
+	assert(packet);
+	return packet->stream;
+}
 
 #endif /* BABELTRACE_CTF_IR_PACKET_INTERNAL_H */

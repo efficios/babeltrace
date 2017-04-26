@@ -5,8 +5,7 @@
  * BabelTrace - Notification Iterator Internal
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +33,43 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 
+struct bt_port;
+
 struct bt_notification_iterator {
 	struct bt_object base;
-	struct bt_component *component;
-	struct bt_notification *current_notification;
+	struct bt_component *upstream_component; /* owned by this */
+	struct bt_port *upstream_port; /* owned by this */
+	struct bt_notification *current_notification; /* owned by this */
+	GQueue *queue; /* struct bt_notification * (owned by this) */
+
+	/*
+	 * This hash table keeps the state of a stream as viewed by
+	 * this notification iterator. This is used to:
+	 *
+	 * * Automatically enqueue "stream begin", "packet begin",
+	 *   "packet end", and "stream end" notifications depending
+	 *   on the stream's state and on the next notification returned
+	 *   by the upstream component.
+	 *
+	 * * Make sure that, once the notification iterator has seen
+	 *   a "stream end" notification for a given stream, that no
+	 *   other notifications which refer to this stream can be
+	 *   delivered by this iterator.
+	 *
+	 * The key (struct bt_ctf_stream *) is not owned by this. The
+	 * value is an allocated state structure.
+	 */
+	GHashTable *stream_states;
+
+	/*
+	 * This is an array of actions which can be rolled back. It's
+	 * similar to the memento pattern, but it's not exactly that. It
+	 * is allocated once and reset for each notification to process.
+	 * More details near the implementation.
+	 */
+	GArray *actions;
+
+	bool is_ended;
 	void *user_data;
 };
 
@@ -64,7 +96,8 @@ bt_private_notification_iterator_from_notification_iterator(
  */
 BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
-		struct bt_component *component);
+		struct bt_component *upstream_component,
+		struct bt_port *upstream_port);
 
 /**
  * Validate a notification iterator.

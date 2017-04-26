@@ -35,16 +35,18 @@ extern "C" {
 
 struct bt_ctf_packet;
 
-/*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
-struct bt_notification *bt_notification_packet_begin_create(
+extern struct bt_notification *bt_notification_packet_begin_create(
 		struct bt_ctf_packet *packet);
-struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
+
+extern struct bt_notification *bt_notification_packet_end_create(
+		struct bt_ctf_packet *packet);
+
+/*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
+extern struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
 		struct bt_notification *notification);
 
 /*** BT_NOTIFICATION_TYPE_PACKET_END ***/
-struct bt_notification *bt_notification_packet_end_create(
-		struct bt_ctf_packet *packet);
-struct bt_ctf_packet *bt_notification_packet_end_get_packet(
+extern struct bt_ctf_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

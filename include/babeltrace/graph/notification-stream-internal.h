@@ -27,12 +27,42 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/graph/notification-internal.h>
+
+struct bt_notification_stream_begin {
+	struct bt_notification parent;
+	struct bt_ctf_stream *stream;
+};
 
 struct bt_notification_stream_end {
 	struct bt_notification parent;
 	struct bt_ctf_stream *stream;
 };
+
+static inline
+struct bt_ctf_stream *bt_notification_stream_begin_borrow_stream(
+		struct bt_notification *notif)
+{
+	struct bt_notification_stream_begin *notif_stream_begin =
+		container_of(notif,
+			struct bt_notification_stream_begin, parent);
+
+	assert(notif_stream_begin);
+	return notif_stream_begin->stream;
+}
+
+static inline
+struct bt_ctf_stream *bt_notification_stream_end_borrow_stream(
+		struct bt_notification *notif)
+{
+	struct bt_notification_stream_end *notif_stream_end =
+		container_of(notif,
+			struct bt_notification_stream_end, parent);
+
+	assert(notif_stream_end);
+	return notif_stream_end->stream;
+}
 
 #endif /* BABELTRACE_COMPONENT_NOTIFICATION_STREAM_INTERNAL_H */

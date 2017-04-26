@@ -89,4 +89,35 @@ BT_HIDDEN
 bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock_class *clock_class);
 
+/**
+@brief	User function type to use with bt_ctf_trace_add_listener().
+
+@param[in] obj	New CTF IR object which is part of the trace
+		class hierarchy.
+@param[in] data	User data.
+
+@prenotnull{obj}
+*/
+typedef void (*bt_ctf_listener_cb)(struct bt_ctf_object *obj, void *data);
+
+/**
+@brief	Adds the trace class modification listener \p listener to
+	the CTF IR trace class \p trace_class.
+
+Once you add \p listener to \p trace_class, whenever \p trace_class
+is modified, \p listener is called with the new element and with
+\p data (user data).
+
+@param[in] trace_class	Trace class to which to add \p listener.
+@param[in] listener	Modification listener function.
+@param[in] data		User data.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{trace_class}
+@prenotnull{listener}
+@postrefcountsame{trace_class}
+*/
+extern int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
+		bt_ctf_listener_cb listener, void *data);
+
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */
