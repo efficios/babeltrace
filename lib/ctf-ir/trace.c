@@ -715,6 +715,36 @@ end:
 	return ret;
 }
 
+int bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
+{
+	int ret;
+
+	if (!trace) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = trace->streams->len;
+
+end:
+	return ret;
+}
+
+struct bt_ctf_stream *bt_ctf_trace_get_stream(struct bt_ctf_trace *trace,
+		int index)
+{
+	struct bt_ctf_stream *stream = NULL;
+
+	if (!trace || index >= trace->streams->len) {
+		goto end;
+	}
+
+	stream = bt_get(g_ptr_array_index(trace->streams, index));
+
+end:
+	return stream;
+}
+
 int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 {
 	int ret;

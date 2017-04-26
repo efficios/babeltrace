@@ -2795,6 +2795,7 @@ int main(int argc, char **argv)
 	struct bt_ctf_clock_class *ret_clock_class;
 	struct bt_ctf_stream_class *stream_class, *ret_stream_class;
 	struct bt_ctf_stream *stream1;
+	struct bt_ctf_stream *stream;
 	const char *ret_string;
 	const unsigned char *ret_uuid;
 	unsigned char tmp_uuid[16] = { 0 };
@@ -3272,8 +3273,16 @@ int main(int argc, char **argv)
 	/* Instantiate a stream and append events */
 	ret = bt_ctf_writer_add_clock(writer, clock);
 	assert(ret == 0);
+	ok(bt_ctf_trace_get_stream_count(trace) == 0,
+		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (0)");
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
 	ok(stream1, "Instanciate a stream class from writer");
+	ok(bt_ctf_trace_get_stream_count(trace) == 1,
+		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (1)");
+	stream = bt_ctf_trace_get_stream(trace, 0);
+	ok(stream == stream1,
+		"bt_ctf_trace_get_stream() succeeds and returns the correct value");
+	BT_PUT(stream);
 
 	/*
 	 * Creating a stream through a writer adds the given stream

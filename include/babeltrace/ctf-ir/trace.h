@@ -76,6 +76,10 @@ can add an event class to a stream class with
 bt_ctf_stream_class_add_event_class(). You can add a stream class to a
 trace class with bt_ctf_trace_add_stream_class().
 
+You can access the streams of a trace, that is, the streams which were
+created from the trace's stream classes with bt_ctf_stream_create(),
+with bt_ctf_trace_get_stream().
+
 A trace class owns the <strong>trace packet header</strong>
 \link ctfirfieldtypes field type\endlink, which represents the
 \c trace.packet.header CTF scope. This field type describes the
@@ -717,6 +721,46 @@ resolving fails, then this function fails.
 */
 extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,
 		struct bt_ctf_stream_class *stream_class);
+
+/** @} */
+
+/**
+@name Stream children functions
+@{
+*/
+
+/**
+@brief  Returns the number of streams contained in the CTF IR trace
+	class \p trace_class.
+
+@param[in] trace_class	Trace class of which to get the number
+			of children streams.
+@returns		Number of children streams
+			contained in \p trace_class, or a negative
+			value on error.
+
+@prenotnull{trace_class}
+@postrefcountsame{trace_class}
+*/
+extern int bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
+
+/**
+@brief  Returns the stream at index \p index in the CTF IR trace
+	class \p trace_class.
+
+@param[in] trace_class	Trace class of which to get the stream.
+@param[in] index	Index of the stream to find.
+@returns		Stream at index \p index, or \c NULL
+			on error.
+
+@prenotnull{trace_class}
+@pre \p index is lesser than the number of streams contained in
+	the trace class \p trace_class (see
+	bt_ctf_trace_get_stream_count()).
+@postrefcountsame{trace_class}
+*/
+extern struct bt_ctf_stream *bt_ctf_trace_get_stream(
+		struct bt_ctf_trace *trace_class, int index);
 
 /** @} */
 
