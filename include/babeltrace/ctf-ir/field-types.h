@@ -708,8 +708,8 @@ An integer field type has the following properties:
   <tr>
     <td><strong>Signedness</strong> of the described integer fields
     <td>Unsigned
-    <td>bt_ctf_field_type_integer_get_signed()
-    <td>bt_ctf_field_type_integer_set_signed()
+    <td>bt_ctf_field_type_integer_is_signed()
+    <td>bt_ctf_field_type_integer_set_is_signed()
   </tr>
   <tr>
     <td><strong>Preferred display base</strong> of the described
@@ -838,11 +838,14 @@ extern int bt_ctf_field_type_integer_set_size(
 @preisintft{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_set_signed(): Sets the signedness of the
+@sa bt_ctf_field_type_integer_set_is_signed(): Sets the signedness of the
 	integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_get_signed(
+extern int bt_ctf_field_type_integer_is_signed(
 		struct bt_ctf_field_type *int_field_type);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type_integer_get_signed bt_ctf_field_type_integer_is_signed
 
 /**
 @brief	Sets whether or not the @intfields described by
@@ -862,11 +865,14 @@ extern int bt_ctf_field_type_integer_get_signed(
 @pre \p is_signed is 0 or 1.
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_get_signed(): Returns the signedness of
+@sa bt_ctf_field_type_integer_is_signed(): Returns the signedness of
 	the integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_signed(
+extern int bt_ctf_field_type_integer_set_is_signed(
 		struct bt_ctf_field_type *int_field_type, int is_signed);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type_integer_set_signed bt_ctf_field_type_integer_set_is_signed
 
 /**
 @brief  Returns the preferred display base (radix) of the @intfields
