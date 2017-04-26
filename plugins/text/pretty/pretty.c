@@ -52,7 +52,7 @@
 static
 const char *plugin_options[] = {
 	"color",
-	"output-path",
+	"path",
 	"no-delta",
 	"clock-cycles",
 	"clock-seconds",
@@ -387,9 +387,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		bt_put(color_value);
 	}
 
-	ret = apply_one_string("output-path",
-			params,
-			&pretty->options.output_path);
+	ret = apply_one_string("path", params, &pretty->options.output_path);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -728,7 +726,6 @@ enum bt_component_status pretty_init(
 	}
 
 	set_use_colors(pretty);
-
 	ret = bt_private_component_set_user_data(component, pretty);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
