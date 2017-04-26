@@ -345,9 +345,10 @@ end:
 }
 
 G_MODULE_EXPORT
-struct bt_plugin **bt_plugin_python_create_all_from_file(const char *path)
+struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 {
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set = NULL;
+	struct bt_plugin *plugin = NULL;
 	PyObject *py_plugin_info = NULL;
 	gchar *basename = NULL;
 	size_t path_len;
@@ -422,33 +423,27 @@ struct bt_plugin **bt_plugin_python_create_all_from_file(const char *path)
 
 	/*
 	 * Get bt_plugin from plugin info object.
-	 *
-	 * calloc(2, ...) because a single Python plugin file always
-	 * provides a single Babeltrace plugin (second item is the
-	 * sentinel).
 	 */
-	plugins = calloc(2, sizeof(*plugins));
-	if (!plugins) {
+	plugin = bt_plugin_from_python_plugin_info(py_plugin_info);
+	if (!plugin) {
 		goto error;
 	}
 
-	plugins[0] = bt_plugin_from_python_plugin_info(py_plugin_info);
-	if (!plugins[0]) {
+	bt_plugin_set_path(plugin, path);
+	plugin_set = bt_plugin_set_create();
+	if (!plugin_set) {
 		goto error;
 	}
 
-	bt_plugin_set_path(plugins[0], path);
+	bt_plugin_set_add_plugin(plugin_set, plugin);
 	goto end;
 
 error:
-	if (plugins) {
-		BT_PUT(plugins[0]);
-		free(plugins);
-		plugins = NULL;
-	}
+	BT_PUT(plugin_set);
 
 end:
+	bt_put(plugin);
 	Py_XDECREF(py_plugin_info);
 	g_free(basename);
-	return plugins;
+	return plugin_set;
 }

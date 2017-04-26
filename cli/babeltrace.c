@@ -40,6 +40,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <popt.h>
 #include <string.h>
@@ -626,25 +627,33 @@ end:
 }
 
 static
-void add_to_loaded_plugins(struct bt_plugin **plugins)
+void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 {
-	while (*plugins) {
-		struct bt_plugin *plugin = *plugins;
-		/* Check if it's already loaded (from another path). */
+	int i;
+	int count;
+
+	count = bt_plugin_set_get_plugin_count(plugin_set);
+	assert(count >= 0);
+
+	for (i = 0; i < count; i++) {
+		struct bt_plugin *plugin =
+			bt_plugin_set_get_plugin(plugin_set, i);
 		struct bt_plugin *loaded_plugin =
 				find_plugin(bt_plugin_get_name(plugin));
+
+		assert(plugin);
 
 		if (loaded_plugin) {
 			printf_verbose("Not loading plugin `%s`: already loaded from `%s`\n",
 					bt_plugin_get_path(plugin),
 					bt_plugin_get_path(loaded_plugin));
-			BT_PUT(loaded_plugin);
-			BT_PUT(plugin);
+			bt_put(loaded_plugin);
 		} else {
-			/* Transfer ownership to global array. */
-			g_ptr_array_add(loaded_plugins, plugin);
+			/* Add to global array. */
+			g_ptr_array_add(loaded_plugins, bt_get(plugin));
 		}
-		*(plugins++) = NULL;
+
+		bt_put(plugin);
 	}
 }
 
@@ -662,7 +671,7 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 	for (i = 0; i < nr_paths; i++) {
 		struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
-		struct bt_plugin **plugins;
+		struct bt_plugin_set *plugin_set;
 
 		plugin_path_value = bt_value_array_get(plugin_paths, i);
 		if (bt_value_string_get(plugin_path_value,
@@ -671,17 +680,16 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 			continue;
 		}
 
-		plugins = bt_plugin_create_all_from_dir(plugin_path, false);
-		if (!plugins) {
+		plugin_set = bt_plugin_create_all_from_dir(plugin_path, false);
+		if (!plugin_set) {
 			printf_debug("Unable to dynamically load plugins from path %s.\n",
 				plugin_path);
 			BT_PUT(plugin_path_value);
 			continue;
 		}
 
-		add_to_loaded_plugins(plugins);
-		free(plugins);
-
+		add_to_loaded_plugins(plugin_set);
+		bt_put(plugin_set);
 		BT_PUT(plugin_path_value);
 	}
 end:
@@ -692,17 +700,17 @@ static
 int load_static_plugins(void)
 {
 	int ret = 0;
-	struct bt_plugin **plugins;
+	struct bt_plugin_set *plugin_set;
 
-	plugins = bt_plugin_create_all_from_static();
-	if (!plugins) {
+	plugin_set = bt_plugin_create_all_from_static();
+	if (!plugin_set) {
 		printf_debug("Unable to load static plugins.\n");
 		ret = -1;
 		goto end;
 	}
 
-	add_to_loaded_plugins(plugins);
-	free(plugins);
+	add_to_loaded_plugins(plugin_set);
+	bt_put(plugin_set);
 end:
 	return ret;
 }

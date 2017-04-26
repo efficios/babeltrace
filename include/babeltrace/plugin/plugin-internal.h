@@ -72,6 +72,13 @@ struct bt_plugin {
 	void (*destroy_spec_data)(struct bt_plugin *);
 };
 
+struct bt_plugin_set {
+	struct bt_object base;
+
+	/* Array of struct bt_plugin * */
+	GPtrArray *plugins;
+};
+
 static inline
 void bt_plugin_destroy(struct bt_object *obj)
 {
@@ -242,6 +249,54 @@ void bt_plugin_freeze(struct bt_plugin *plugin)
 {
 	assert(plugin);
 	plugin->frozen = true;
+}
+
+static
+void bt_plugin_set_destroy(struct bt_object *obj)
+{
+	struct bt_plugin_set *plugin_set =
+		container_of(obj, struct bt_plugin_set, base);
+
+	if (!plugin_set) {
+		return;
+	}
+
+	if (plugin_set->plugins) {
+		g_ptr_array_free(plugin_set->plugins, TRUE);
+	}
+
+	g_free(plugin_set);
+}
+
+static inline
+struct bt_plugin_set *bt_plugin_set_create(void)
+{
+	struct bt_plugin_set *plugin_set = g_new0(struct bt_plugin_set, 1);
+
+	if (!plugin_set) {
+		goto end;
+	}
+
+	bt_object_init(plugin_set, bt_plugin_set_destroy);
+
+	plugin_set->plugins = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_put);
+	if (!plugin_set->plugins) {
+		BT_PUT(plugin_set);
+		goto end;
+	}
+
+end:
+	return plugin_set;
+}
+
+static inline
+void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
+		struct bt_plugin *plugin)
+{
+	assert(plugin_set);
+	assert(plugin);
+	g_ptr_array_add(plugin_set->plugins, bt_get(plugin));
 }
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

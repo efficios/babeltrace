@@ -688,7 +688,7 @@ end:
 }
 
 static
-struct bt_plugin **bt_plugin_so_create_all_from_sections(
+struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 		struct bt_plugin_so_shared_lib_handle *shared_lib_handle,
 		struct __bt_plugin_descriptor const * const *descriptors_begin,
 		struct __bt_plugin_descriptor const * const *descriptors_end,
@@ -704,7 +704,7 @@ struct bt_plugin **bt_plugin_so_create_all_from_sections(
 	size_t cc_descriptors_count;
 	size_t cc_descr_attrs_count;
 	size_t i;
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set = NULL;
 
 	descriptor_count = descriptors_end - descriptors_begin;
 	attrs_count = attrs_end - attrs_begin;
@@ -718,8 +718,8 @@ struct bt_plugin **bt_plugin_so_create_all_from_sections(
 		cc_descriptors_begin, cc_descriptors_end, cc_descriptors_count);
 	printf_verbose("Section: Plugin component class descriptor attributes: [%p - %p], (%zu elements)\n",
 		cc_descr_attrs_begin, cc_descr_attrs_end, cc_descr_attrs_count);
-	plugins = calloc(descriptor_count + 1, sizeof(*plugins));
-	if (!plugins) {
+	plugin_set = bt_plugin_set_create();
+	if (!plugin_set) {
 		goto error;
 	}
 
@@ -759,24 +759,24 @@ struct bt_plugin **bt_plugin_so_create_all_from_sections(
 			goto error;
 		}
 
-		/* Transfer ownership to the array */
-		plugins[i] = plugin;
+		/* Add to plugin set */
+		bt_plugin_set_add_plugin(plugin_set, plugin);
+		bt_put(plugin);
 	}
 
 	goto end;
 
 error:
-	g_free(plugins);
-	plugins = NULL;
+	BT_PUT(plugin_set);
 
 end:
-	return plugins;
+	return plugin_set;
 }
 
 BT_HIDDEN
-struct bt_plugin **bt_plugin_so_create_all_from_static(void)
+struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
 {
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set = NULL;
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle =
 		bt_plugin_so_shared_lib_handle_create(NULL);
 
@@ -784,7 +784,7 @@ struct bt_plugin **bt_plugin_so_create_all_from_static(void)
 		goto end;
 	}
 
-	plugins = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
 		SECTION_BEGIN(__bt_plugin_descriptors),
 		SECTION_END(__bt_plugin_descriptors),
 		SECTION_BEGIN(__bt_plugin_descriptor_attributes),
@@ -797,14 +797,14 @@ struct bt_plugin **bt_plugin_so_create_all_from_static(void)
 end:
 	BT_PUT(shared_lib_handle);
 
-	return plugins;
+	return plugin_set;
 }
 
 BT_HIDDEN
-struct bt_plugin **bt_plugin_so_create_all_from_file(const char *path)
+struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 {
 	size_t path_len;
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set = NULL;
 	struct __bt_plugin_descriptor const * const *descriptors_begin = NULL;
 	struct __bt_plugin_descriptor const * const *descriptors_end = NULL;
 	struct __bt_plugin_descriptor_attribute const * const *attrs_begin = NULL;
@@ -923,14 +923,14 @@ struct bt_plugin **bt_plugin_so_create_all_from_file(const char *path)
 	}
 
 	/* Initialize plugin */
-	plugins = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
 		descriptors_begin, descriptors_end, attrs_begin, attrs_end,
 		cc_descriptors_begin, cc_descriptors_end,
 		cc_descr_attrs_begin, cc_descr_attrs_end);
 
 end:
 	BT_PUT(shared_lib_handle);
-	return plugins;
+	return plugin_set;
 }
 
 static

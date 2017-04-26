@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 struct bt_plugin;
+struct bt_plugin_set;
 struct bt_component_class;
 
 /**
@@ -57,12 +58,12 @@ extern struct bt_component_class *bt_plugin_find_component_class(
 		const char *plugin_name, const char *component_class_name,
 		enum bt_component_class_type component_class_type);
 
-extern struct bt_plugin **bt_plugin_create_all_from_file(const char *path);
+extern struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path);
 
-extern struct bt_plugin **bt_plugin_create_all_from_dir(const char *path,
+extern struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
 		bool recurse);
 
-extern struct bt_plugin **bt_plugin_create_all_from_static(void);
+extern struct bt_plugin_set *bt_plugin_create_all_from_static(void);
 
 /**
  * Get the name of a plug-in.
@@ -117,6 +118,13 @@ extern
 struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		struct bt_plugin *plugin, const char *name,
 		enum bt_component_class_type type);
+
+extern
+int bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set);
+
+extern
+struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
+		unsigned int index);
 
 #ifdef __cplusplus
 }

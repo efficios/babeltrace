@@ -46,12 +46,12 @@
 #ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
 #include <babeltrace/plugin/python-plugin-provider-internal.h>
 static
-struct bt_plugin **(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
+struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
 	bt_plugin_python_create_all_from_file;
 #else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
 static GModule *python_plugin_provider_module;
 static
-struct bt_plugin **(*bt_plugin_python_create_all_from_file_sym)(const char *path);
+struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path);
 
 __attribute__((constructor)) static
 void init_python_plugin_provider(void) {
@@ -80,14 +80,45 @@ void fini_python_plugin_provider(void) {
 }
 #endif
 
-struct bt_plugin **bt_plugin_create_all_from_static(void)
+extern
+int bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
+{
+	int count = -1;
+
+	if (!plugin_set) {
+		goto end;
+	}
+
+	count = plugin_set->plugins->len;
+
+end:
+	return count;
+}
+
+extern
+struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
+		unsigned int index)
+{
+	struct bt_plugin *plugin = NULL;
+
+	if (!plugin_set || index >= plugin_set->plugins->len) {
+		goto end;
+	}
+
+	plugin = bt_get(g_ptr_array_index(plugin_set->plugins, index));
+
+end:
+	return plugin;
+}
+
+struct bt_plugin_set *bt_plugin_create_all_from_static(void)
 {
 	return bt_plugin_so_create_all_from_static();
 }
 
-struct bt_plugin **bt_plugin_create_all_from_file(const char *path)
+struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
 {
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set = NULL;
 
 	if (!path) {
 		goto end;
@@ -96,39 +127,26 @@ struct bt_plugin **bt_plugin_create_all_from_file(const char *path)
 	printf_verbose("Trying to load plugins from `%s`\n", path);
 
 	/* Try shared object plugins */
-	plugins = bt_plugin_so_create_all_from_file(path);
-	if (plugins) {
+	plugin_set = bt_plugin_so_create_all_from_file(path);
+	if (plugin_set) {
 		goto end;
 	}
 
 	/* Try Python plugins if support is available */
 	if (bt_plugin_python_create_all_from_file_sym) {
-		plugins = bt_plugin_python_create_all_from_file_sym(path);
-		if (plugins) {
+		plugin_set = bt_plugin_python_create_all_from_file_sym(path);
+		if (plugin_set) {
 			goto end;
 		}
 	}
 
 end:
-	return plugins;
+	return plugin_set;
 }
 
 static void destroy_gstring(void *data)
 {
 	g_string_free(data, TRUE);
-}
-
-void free_plugins(struct bt_plugin **plugins) {
-	if (plugins) {
-		struct bt_plugin **cur_plugin = plugins;
-
-		while (*cur_plugin) {
-			bt_put(*cur_plugin);
-			cur_plugin++;
-		}
-
-		free(plugins);
-	}
 }
 
 struct bt_plugin *bt_plugin_find(const char *plugin_name)
@@ -137,11 +155,10 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	char *home_plugin_dir = NULL;
 	const char *envvar;
 	struct bt_plugin *plugin = NULL;
-	struct bt_plugin **plugins = NULL;
-	struct bt_plugin **cur_plugin;
+	struct bt_plugin_set *plugin_set = NULL;
 	GPtrArray *dirs = NULL;
 	int ret;
-	size_t i;
+	size_t i, j;
 
 	if (!plugin_name) {
 		goto end;
@@ -203,41 +220,41 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 		printf_verbose("Trying to load plugins from directory `%s`\n",
 			dir->str);
-		free_plugins(plugins);
-		plugins = bt_plugin_create_all_from_dir(dir->str, false);
-		if (!plugins) {
+		BT_PUT(plugin_set);
+		plugin_set = bt_plugin_create_all_from_dir(dir->str, false);
+		if (!plugin_set) {
 			continue;
 		}
 
-		cur_plugin = plugins;
+		for (j = 0; j < plugin_set->plugins->len; j++) {
+			struct bt_plugin *candidate_plugin =
+				g_ptr_array_index(plugin_set->plugins, j);
 
-		while (*cur_plugin) {
-			if (strcmp(bt_plugin_get_name(*cur_plugin), plugin_name)
-					== 0) {
-				plugin = bt_get(*cur_plugin);
+			if (strcmp(bt_plugin_get_name(candidate_plugin),
+					plugin_name) == 0) {
+				plugin = bt_get(candidate_plugin);
 				goto end;
 			}
-
-			cur_plugin++;
 		}
 	}
 
-	free_plugins(plugins);
-	plugins = bt_plugin_create_all_from_static();
-	cur_plugin = plugins;
+	bt_put(plugin_set);
+	plugin_set = bt_plugin_create_all_from_static();
 
-	while (*cur_plugin) {
-		if (strcmp(bt_plugin_get_name(*cur_plugin), plugin_name) == 0) {
-			plugin = bt_get(*cur_plugin);
+	for (j = 0; j < plugin_set->plugins->len; j++) {
+		struct bt_plugin *candidate_plugin =
+			g_ptr_array_index(plugin_set->plugins, j);
+
+		if (strcmp(bt_plugin_get_name(candidate_plugin),
+				plugin_name) == 0) {
+			plugin = bt_get(candidate_plugin);
 			goto end;
 		}
-
-		cur_plugin++;
 	}
 
 end:
 	free(home_plugin_dir);
-	free_plugins(plugins);
+	bt_put(plugin_set);
 
 	if (dirs) {
 		g_ptr_array_free(dirs, TRUE);
@@ -289,7 +306,8 @@ struct dirent *alloc_dirent(const char *path)
 
 static
 enum bt_plugin_status bt_plugin_create_append_all_from_dir(
-		GPtrArray *plugins, const char *path, bool recurse)
+		struct bt_plugin_set *plugin_set, const char *path,
+		bool recurse)
 {
 	DIR *directory = NULL;
 	struct dirent *entry = NULL, *result = NULL;
@@ -362,24 +380,27 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		}
 
 		if (S_ISDIR(st.st_mode) && recurse) {
-			ret = bt_plugin_create_append_all_from_dir(plugins,
+			ret = bt_plugin_create_append_all_from_dir(plugin_set,
 				file_path, true);
 			if (ret < 0) {
 				goto end;
 			}
 		} else if (S_ISREG(st.st_mode)) {
-			struct bt_plugin **plugins_from_file =
+			struct bt_plugin_set *plugins_from_file =
 				bt_plugin_create_all_from_file(file_path);
 
 			if (plugins_from_file) {
-				struct bt_plugin **plugin;
+				size_t j;
 
-				for (plugin = plugins_from_file; *plugin; plugin++) {
-					/* Transfer ownership to array */
-					g_ptr_array_add(plugins, *plugin);
+				for (j = 0; j < plugins_from_file->plugins->len; j++) {
+					struct bt_plugin *plugin =
+						g_ptr_array_index(plugins_from_file->plugins, j);
+
+					bt_plugin_set_add_plugin(plugin_set,
+						plugin);
 				}
 
-				free(plugins_from_file);
+				bt_put(plugins_from_file);
 			}
 		}
 	}
@@ -398,37 +419,31 @@ end:
 	return ret;
 }
 
-struct bt_plugin **bt_plugin_create_all_from_dir(const char *path,
+struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
 		bool recurse)
 {
-	GPtrArray *plugins_array = g_ptr_array_new();
-	struct bt_plugin **plugins = NULL;
+	struct bt_plugin_set *plugin_set;
 	enum bt_plugin_status status;
 
+	plugin_set = bt_plugin_set_create();
+	if (!plugin_set) {
+		goto error;
+	}
+
 	/* Append found plugins to array */
-	status = bt_plugin_create_append_all_from_dir(plugins_array, path,
+	status = bt_plugin_create_append_all_from_dir(plugin_set, path,
 		recurse);
 	if (status < 0) {
 		goto error;
 	}
 
-	/* Add sentinel to array */
-	g_ptr_array_add(plugins_array, NULL);
-	plugins = (struct bt_plugin **) plugins_array->pdata;
 	goto end;
 
 error:
-	if (plugins_array) {
-		g_ptr_array_free(plugins_array, TRUE);
-		plugins_array = NULL;
-	}
+	BT_PUT(plugin_set);
 
 end:
-	if (plugins_array) {
-		g_ptr_array_free(plugins_array, FALSE);
-	}
-
-	return plugins;
+	return plugin_set;
 }
 
 const char *bt_plugin_get_name(struct bt_plugin *plugin)
