@@ -57,6 +57,7 @@ struct ctf_fs_metadata {
 struct ctf_fs_stream {
 	struct ctf_fs_file *file;
 	struct bt_ctf_stream *stream;
+	struct bt_clock_class_priority_map *cc_prio_map;
 	struct bt_ctf_notif_iter *notif_iter;
 	/* A stream is assumed to be indexed. */
 	struct index index;

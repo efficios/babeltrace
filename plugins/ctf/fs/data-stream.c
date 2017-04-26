@@ -363,6 +363,7 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 		goto error;
 	}
 
+	stream->cc_prio_map = bt_get(ctf_fs->cc_prio_map);
 	g_string_assign(stream->file->path, path);
 	ret = ctf_fs_file_open(ctf_fs, stream->file, "rb");
 	if (ret) {
@@ -370,7 +371,7 @@ struct ctf_fs_stream *ctf_fs_stream_create(
 	}
 
 	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata->trace,
-			ctf_fs->cc_prio_map, ctf_fs->page_size, medops, stream,
+			ctf_fs->page_size, medops, stream,
 			ctf_fs->error_fp);
 	if (!stream->notif_iter) {
 		goto error;
@@ -396,6 +397,8 @@ void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
 	if (!stream) {
 		return;
 	}
+
+	bt_put(stream->cc_prio_map);
 
 	if (stream->file) {
 		ctf_fs_file_destroy(stream->file);
@@ -432,7 +435,7 @@ struct bt_notification_iterator_next_return ctf_fs_stream_next(
 	}
 
 	notif_iter_status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
-			&ret.notification);
+			stream->cc_prio_map, &ret.notification);
 	if (notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_OK &&
 			notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
 		goto translate_status;

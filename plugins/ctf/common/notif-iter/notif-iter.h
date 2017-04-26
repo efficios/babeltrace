@@ -234,8 +234,6 @@ struct bt_ctf_notif_iter_notif_event {
  * incremented.
  *
  * @param trace			Trace to read
- * @param cc_prio_map		Clock class priority map to use when
- *				creating the event notifications
  * @param max_request_sz	Maximum buffer size, in bytes, to
  *				request to
  *				bt_ctf_notif_iter_medium_ops::request_bytes()
@@ -248,7 +246,6 @@ struct bt_ctf_notif_iter_notif_event {
  */
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
-	struct bt_clock_class_priority_map *cc_prio_map,
 	size_t max_request_sz, struct bt_ctf_notif_iter_medium_ops medops,
 	void *medops_data, FILE *err_stream);
 
@@ -275,6 +272,8 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notif_iter);
  * call this function again, until another status is returned.
  *
  * @param notif_iter		CTF notification iterator
+ * @param cc_prio_map		Clock class priority map to use when
+ *				creating an event notification
  * @param notification		Returned notification if the function's
  *				return value is #BT_CTF_NOTIF_ITER_STATUS_OK
  * @returns			One of #bt_ctf_notif_iter_status values
@@ -282,6 +281,7 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notif_iter);
 BT_HIDDEN
 enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 		struct bt_ctf_notif_iter *notit,
+		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_notification **notification);
 
 #endif /* CTF_NOTIF_ITER_H */
