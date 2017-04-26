@@ -389,7 +389,8 @@ int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || !bt_ctf_clock_class_is_valid(clock_class)) {
+	if (!trace || trace->is_static ||
+			!bt_ctf_clock_class_is_valid(clock_class)) {
 		ret = -1;
 		goto end;
 	}
@@ -457,7 +458,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	int event_class_count;
 	struct bt_ctf_trace *current_parent_trace = NULL;
 
-	if (!trace || !stream_class) {
+	if (!trace || !stream_class || trace->is_static) {
 		ret = -1;
 		goto end;
 	}
@@ -1298,5 +1299,35 @@ end:
 	bt_put(magic);
 	bt_put(uuid_array);
 	bt_put(trace_packet_header_type);
+	return ret;
+}
+
+bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace)
+{
+	bool is_static = false;
+
+	if (!trace) {
+		goto end;
+	}
+
+	is_static = trace->is_static;
+
+end:
+	return is_static;
+}
+
+int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace)
+{
+	int ret = 0;
+
+	if (!trace) {
+		ret = -1;
+		goto end;
+	}
+
+	trace->is_static = true;
+	bt_ctf_trace_freeze(trace);
+
+end:
 	return ret;
 }

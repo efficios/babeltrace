@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
+#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/graph/component-internal.h>
@@ -364,6 +365,15 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (!trace) {
+		goto error;
+	}
+
+	if (bt_ctf_trace_is_static(trace)) {
+		/*
+		 * A static trace has the property that all its stream
+		 * classes, clock classes, and streams are definitive:
+		 * no more can be added, and each object is also frozen.
+		 */
 		goto error;
 	}
 

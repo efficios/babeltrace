@@ -336,6 +336,12 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (trace && trace->is_static) {
+		ret = -1;
+		goto end;
+	}
+
 	event_id = g_new(int64_t, 1);
 	if (!event_id) {
 		ret = -1;
@@ -358,7 +364,6 @@ int bt_ctf_stream_class_add_event_class(
 		goto end;
 	}
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (trace) {
 		/*
 		 * If the stream class is associated with a trace, then

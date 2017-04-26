@@ -67,6 +67,7 @@ struct bt_ctf_trace {
 	 */
 	int valid;
 	GPtrArray *listeners; /* Array of struct listener_wrapper */
+	bool is_static;
 };
 
 struct metadata_context {

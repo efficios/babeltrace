@@ -770,6 +770,48 @@ extern struct bt_ctf_stream *bt_ctf_trace_get_stream(
 */
 
 /**
+@brief	Returns whether or not the CTF IR trace class \p trace_class
+	is static.
+
+It is guaranteed that a static trace class will never contain new
+streams, stream classes, or clock classes. A static class is always
+frozen.
+
+This function returns \c true if bt_ctf_trace_set_is_static() was
+previously called on it.
+
+@param[in] trace_class	Trace class to check.
+@returns		\c true if \p trace_class is static,
+
+@sa bt_ctf_trace_set_is_static(): Makes a trace class static.
+*/
+extern bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace_class);
+
+/**
+@brief	Makes the CTF IR trace class \p trace_class static.
+
+A static trace class is frozen and you cannot call any modifying
+function on it:
+
+- bt_ctf_trace_add_stream_class()
+- bt_ctf_trace_add_clock_class()
+
+You cannot create a stream with bt_ctf_stream_create() with any of the
+stream classes of a static trace class.
+
+@param[in] trace_class	Trace class to make static.
+@returns		0 on success, or a negative value on error.
+
+@prenotnull{trace_class}
+@postrefcountsame{trace_class}
+@postsuccessfrozen{trace_class}
+
+@sa bt_ctf_trace_is_static(): Checks whether or not a given trace class
+	is static.
+*/
+extern int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace_class);
+
+/**
 @brief	Accepts the visitor \p visitor to visit the hierarchy of the
 	CTF IR trace class \p trace_class.
 
