@@ -66,7 +66,7 @@ extern int bt_ctf_clock_class_get_offset_cycles(
 		struct bt_ctf_clock_class *clock_class, int64_t *cycles);
 extern int bt_ctf_clock_class_set_offset_cycles(
 		struct bt_ctf_clock_class *clock_class, int64_t cycles);
-extern int bt_ctf_clock_class_get_is_absolute(
+extern int bt_ctf_clock_class_is_absolute(
 		struct bt_ctf_clock_class *clock_class);
 extern int bt_ctf_clock_class_set_is_absolute(
 		struct bt_ctf_clock_class *clock_class, int is_absolute);

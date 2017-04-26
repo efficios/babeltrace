@@ -269,7 +269,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_get_is_absolute(struct bt_ctf_clock_class *clock_class)
+int bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class)
 {
 	int ret = -1;
 

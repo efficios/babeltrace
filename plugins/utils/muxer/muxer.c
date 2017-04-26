@@ -548,7 +548,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	if (!bt_ctf_clock_class_get_is_absolute(clock_class)) {
+	if (!bt_ctf_clock_class_is_absolute(clock_class)) {
 		// TODO: Allow this with an explicit parameter
 		goto error;
 	}

@@ -201,7 +201,7 @@ int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock)
 	int is_absolute = -1;
 
 	if (clock) {
-		is_absolute = bt_ctf_clock_class_get_is_absolute(
+		is_absolute = bt_ctf_clock_class_is_absolute(
 			clock->clock_class);
 	}
 

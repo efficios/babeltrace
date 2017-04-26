@@ -134,7 +134,7 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 		goto end_destroy;
 	}
 
-	int_ret = bt_ctf_clock_class_get_is_absolute(clock_class);
+	int_ret = bt_ctf_clock_class_is_absolute(clock_class);
 	if (int_ret == -1) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);

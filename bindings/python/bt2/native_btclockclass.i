@@ -51,7 +51,7 @@ int bt_ctf_clock_class_get_offset_cycles(struct bt_ctf_clock_class *clock_class,
 		int64_t *OUTPUT);
 int bt_ctf_clock_class_set_offset_cycles(struct bt_ctf_clock_class *clock_class,
 		int64_t offset);
-int bt_ctf_clock_class_get_is_absolute(struct bt_ctf_clock_class *clock_class);
+int bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class);
 int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
 		int is_absolute);
 BTUUID bt_ctf_clock_class_get_uuid(struct bt_ctf_clock_class *clock_class);
