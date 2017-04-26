@@ -28,6 +28,7 @@
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
@@ -60,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 601
+#define NR_TESTS 611
 
 static int64_t current_time = 42;
 
@@ -2772,6 +2773,51 @@ void test_set_clock_non_writer_stream_class(void)
 	bt_put(sc);
 }
 
+static
+void test_static_trace(void)
+{
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_stream_class *stream_class2;
+	struct bt_ctf_stream *stream;
+	struct bt_ctf_clock_class *clock_class;
+	int ret;
+
+	trace = bt_ctf_trace_create();
+	assert(trace);
+	ret = bt_ctf_trace_set_native_byte_order(trace,
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+	assert(ret == 0);
+	stream_class = bt_ctf_stream_class_create(NULL);
+	assert(stream_class);
+	ret = bt_ctf_trace_add_stream_class(trace, stream_class);
+	assert(ret == 0);
+	stream = bt_ctf_stream_create(stream_class, "hello");
+	ok(stream, "bt_ctf_stream_create() succeeds with a non-static trace");
+	bt_put(stream);
+	ok(!bt_ctf_trace_is_static(trace),
+		"bt_ctf_trace_is_static() returns the expected value");
+	ok(bt_ctf_trace_set_is_static(trace) == 0,
+		"bt_ctf_trace_set_is_static() succeeds");
+	ok(bt_ctf_trace_is_static(trace),
+		"bt_ctf_trace_is_static() returns the expected value");
+	clock_class = bt_ctf_clock_class_create("yes");
+	assert(clock_class);
+	stream_class2 = bt_ctf_stream_class_create(NULL);
+	assert(stream_class2);
+	ok(bt_ctf_trace_add_stream_class(trace, stream_class2),
+		"bt_ctf_trace_add_stream_class() fails with a static trace");
+	ok(bt_ctf_trace_add_clock_class(trace, clock_class),
+		"bt_ctf_trace_add_clock_class() fails with a static trace");
+	ok(!bt_ctf_stream_create(stream_class, "hello2"),
+		"bt_ctf_stream_create() fails with a static trace");
+
+	bt_put(trace);
+	bt_put(stream_class);
+	bt_put(stream_class2);
+	bt_put(clock_class);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -3424,6 +3470,8 @@ int main(int argc, char **argv)
 	test_empty_stream(writer);
 
 	test_custom_event_header_stream(writer, clock);
+
+	test_static_trace();
 
 	metadata_string = bt_ctf_writer_get_metadata_string(writer);
 	ok(metadata_string, "Get metadata string");
