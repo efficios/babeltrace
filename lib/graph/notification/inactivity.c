@@ -24,6 +24,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 
@@ -67,6 +68,7 @@ struct bt_notification *bt_notification_inactivity_create(
 	}
 
 	notification->cc_prio_map = bt_get(cc_prio_map);
+	bt_clock_class_priority_map_freeze(cc_prio_map);
 	goto end;
 
 error:

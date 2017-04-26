@@ -28,6 +28,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
+#include <assert.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/object-internal.h>
 #include <glib.h>
@@ -43,6 +45,16 @@ struct bt_clock_class_priority_map {
 
 	/* Clock class (weak) with the currently highest priority */
 	struct bt_ctf_clock_class *highest_prio_cc;
+
+	bool frozen;
 };
+
+static inline
+void bt_clock_class_priority_map_freeze(
+		struct bt_clock_class_priority_map *cc_prio_map)
+{
+	assert(cc_prio_map);
+	cc_prio_map->frozen = true;
+}
 
 #endif /* BABELTRACE_GRAPH_CLOCK_CLASS_PRIORITY_MAP_INTERNAL_H */

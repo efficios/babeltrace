@@ -229,7 +229,7 @@ int bt_clock_class_priority_map_add_clock_class(
 
 	// FIXME when available: check
 	// bt_ctf_clock_class_is_valid(clock_class)
-	if (!cc_prio_map) {
+	if (!cc_prio_map || !clock_class || cc_prio_map->frozen) {
 		ret = -1;
 		goto end;
 	}

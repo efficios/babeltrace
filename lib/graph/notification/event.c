@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
 
 static
@@ -144,6 +145,7 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 	}
 
 	bt_ctf_event_freeze(notification->event);
+	bt_clock_class_priority_map_freeze(notification->cc_prio_map);
 	return &notification->parent;
 error:
 	bt_put(notification);

@@ -56,6 +56,16 @@ A priority is a 64-bit unsigned integer. A lower value has a
 \em higher priority. Multiple clock classes can have the same priority
 within a given clock class priority map.
 
+The following functions can \em freeze clock class priority map objects:
+
+- bt_notification_event_create() freezes its clock class priority
+  map parameter.
+- bt_notification_inactivity_create() freezes its clock class priority
+  map parameter.
+
+You cannot modify a frozen clock class priority map object: it is
+considered immutable, except for \link refs reference counting\endlink.
+
 As with any Babeltrace object, clock class priority map objects have
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
 counts</a>. See \ref refs to learn more about the reference counting
@@ -256,6 +266,7 @@ map.
 
 @prenotnull{clock_class_priority_map}
 @prenotnull{clock_class}
+@prehot{clock_class_priority_map}
 @postrefcountsame{clock_class_priority_map}
 @postsuccessrefcountinc{clock_class}
 
