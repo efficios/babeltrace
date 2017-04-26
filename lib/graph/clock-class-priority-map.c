@@ -265,3 +265,37 @@ end:
 
 	return ret;
 }
+
+struct bt_clock_class_priority_map *bt_clock_class_priority_map_copy(
+		struct bt_clock_class_priority_map *orig_cc_prio_map)
+{
+	struct bt_clock_class_priority_map *cc_prio_map;
+	size_t i;
+
+	cc_prio_map = bt_clock_class_priority_map_create();
+	if (!cc_prio_map) {
+		goto error;
+	}
+
+	for (i = 0; i < orig_cc_prio_map->entries->len; i++) {
+		struct bt_ctf_clock_class *clock_class =
+			g_ptr_array_index(orig_cc_prio_map->entries, i);
+		uint64_t *prio = g_hash_table_lookup(orig_cc_prio_map->prios,
+			clock_class);
+		int ret = bt_clock_class_priority_map_add_clock_class(
+			cc_prio_map, clock_class, *prio);
+
+		if (ret) {
+			goto error;
+		}
+	}
+
+	cc_prio_map->highest_prio_cc = orig_cc_prio_map->highest_prio_cc;
+	goto end;
+
+error:
+	BT_PUT(cc_prio_map);
+
+end:
+	return cc_prio_map;
+}

@@ -280,6 +280,27 @@ extern int bt_clock_class_priority_map_add_clock_class(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
 		struct bt_ctf_clock_class *clock_class, uint64_t priority);
 
+/**
+@brief	Creates a copy of the clock class priority map
+	\p clock_class_priority_map.
+
+You can copy a frozen clock class priority map: the resulting copy is
+<em>not frozen</em>.
+
+@param[in] clock_class_priority_map	Clock class priority map to copy.
+@returns				Copy of \p clock_class_priority_map
+					on success, or a negative value
+					on error.
+
+@prenotnull{clock_class_priority_map}
+@postrefcountsame{clock_class_priority_map}
+@postsuccessrefcountret1
+@post <strong>On success</strong>, the returned clock class priority map
+	is not frozen.
+*/
+extern struct bt_clock_class_priority_map *bt_clock_class_priority_map_copy(
+		struct bt_clock_class_priority_map *clock_class_priority_map);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -40,7 +40,7 @@ struct bt_clock_class_priority_map {
 	/* Array of struct bt_ctf_clock_class *, owned by this */
 	GPtrArray *entries;
 
-	/* struct bt_ctf_clock_class * (weak) to priority (uint64_t) */
+	/* struct bt_ctf_clock_class * (weak) to priority (uint64_t *) */
 	GHashTable *prios;
 
 	/* Clock class (weak) with the currently highest priority */

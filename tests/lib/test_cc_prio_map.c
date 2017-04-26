@@ -23,11 +23,12 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	13
+#define NR_TESTS	18
 
 static void test_clock_class_priority_map(void)
 {
 	struct bt_clock_class_priority_map *cc_prio_map;
+	struct bt_clock_class_priority_map *cc_prio_map_copy;
 	struct bt_ctf_clock_class *cc1;
 	struct bt_ctf_clock_class *cc2;
 	struct bt_ctf_clock_class *cc3;
@@ -83,12 +84,30 @@ static void test_clock_class_priority_map(void)
 	assert(ret == 0);
 	ok(prio == 11,
 		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (3)");
-
+	cc_prio_map_copy = bt_clock_class_priority_map_copy(cc_prio_map);
+	ok(cc_prio_map_copy, "bt_clock_class_priority_map_copy() succeeds");
+	ret = bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map_copy, cc1, &prio);
+	assert(ret == 0);
+	ok(prio == 1001,
+		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (1, copy)");
+	ret = bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map_copy, cc2, &prio);
+	assert(ret == 0);
+	ok(prio == 75,
+		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (2, copy)");
+	ret = bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map_copy, cc3, &prio);
+	assert(ret == 0);
+	ok(prio == 11,
+		"bt_clock_class_priority_map_get_clock_class_priority() returns the expected priority (3, copy)");
+	cc = bt_clock_class_priority_map_get_highest_priority_clock_class(cc_prio_map_copy);
+	ok(cc == cc3,
+		"bt_clock_class_priority_map_get_highest_priority_clock_class() returns the expected clock class (3, copy)");
 	BT_PUT(cc);
+
 	BT_PUT(cc3);
 	BT_PUT(cc2);
 	BT_PUT(cc1);
 	BT_PUT(cc_prio_map);
+	BT_PUT(cc_prio_map_copy);
 }
 
 int main(int argc, char **argv)
