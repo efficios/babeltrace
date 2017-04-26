@@ -106,10 +106,10 @@ void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(struct bt_component *comp);
+int64_t bt_component_get_input_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(struct bt_component *comp);
+int64_t bt_component_get_output_port_count(struct bt_component *comp);
 
 BT_HIDDEN
 struct bt_port *bt_component_get_input_port_at_index(struct bt_component *comp,

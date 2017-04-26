@@ -629,8 +629,8 @@ end:
 static
 void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 {
-	int i;
-	int count;
+	int64_t i;
+	int64_t count;
 
 	count = bt_plugin_set_get_plugin_count(plugin_set);
 	assert(count >= 0);
@@ -864,7 +864,7 @@ static int cmd_help(struct bt_config *cfg)
 	printf("  %sComponent classes%s: %d\n",
 			bt_common_color_bold(),
 			bt_common_color_reset(),
-			bt_plugin_get_component_class_count(plugin));
+			(int) bt_plugin_get_component_class_count(plugin));
 
 
 	if (cfg->cmd_data.help.cfg_component->type !=

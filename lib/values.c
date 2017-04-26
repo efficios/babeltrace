@@ -812,9 +812,9 @@ end:
 	return ret;
 }
 
-int bt_value_array_size(const struct bt_value *array_obj)
+int64_t bt_value_array_size(const struct bt_value *array_obj)
 {
-	int ret;
+	int64_t ret;
 	struct bt_value_array *typed_array_obj =
 		BT_VALUE_TO_ARRAY(array_obj);
 
@@ -823,7 +823,7 @@ int bt_value_array_size(const struct bt_value *array_obj)
 		goto end;
 	}
 
-	ret = (int) typed_array_obj->garray->len;
+	ret = (int64_t) typed_array_obj->garray->len;
 
 end:
 	return ret;
@@ -981,9 +981,9 @@ end:
 	return ret;
 }
 
-int bt_value_map_size(const struct bt_value *map_obj)
+int64_t bt_value_map_size(const struct bt_value *map_obj)
 {
-	int ret;
+	int64_t ret;
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_value_is_map(map_obj)) {
@@ -991,7 +991,7 @@ int bt_value_map_size(const struct bt_value *map_obj)
 		goto end;
 	}
 
-	ret = (int) g_hash_table_size(typed_map_obj->ght);
+	ret = (int64_t) g_hash_table_size(typed_map_obj->ght);
 
 end:
 	return ret;

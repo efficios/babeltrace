@@ -28,6 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
 #include <babeltrace/ctf-ir/field-types.h>
 
 #ifdef __cplusplus
@@ -109,7 +110,7 @@ extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 @prenotnull{field_path}
 @postrefcountsame{field_path}
 */
-extern int bt_ctf_field_path_get_index_count(
+extern int64_t bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path);
 
 /**

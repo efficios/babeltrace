@@ -110,7 +110,7 @@ char *bt_ctf_stream_pos_get_addr(struct bt_ctf_stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	assert(!(pos->offset % CHAR_BIT));
-	return mmap_align_addr(pos->base_mma) +
+	return ((char *) mmap_align_addr(pos->base_mma)) +
 		pos->mmap_base_offset + (pos->offset / CHAR_BIT);
 }
 

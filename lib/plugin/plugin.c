@@ -81,9 +81,9 @@ void fini_python_plugin_provider(void) {
 #endif
 
 extern
-int bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
+int64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
 {
-	int count = -1;
+	int64_t count = -1;
 
 	if (!plugin_set) {
 		goto end;
@@ -502,7 +502,7 @@ end:
 	return status;
 }
 
-int bt_plugin_get_component_class_count(struct bt_plugin *plugin)
+int64_t bt_plugin_get_component_class_count(struct bt_plugin *plugin)
 {
 	return plugin ? plugin->comp_classes->len : -1;
 }

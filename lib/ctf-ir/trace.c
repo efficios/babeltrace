@@ -45,6 +45,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/endian-internal.h>
 #include <inttypes.h>
+#include <stdint.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
@@ -322,9 +323,9 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
+int64_t bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
 {
-	int ret = 0;
+	int64_t ret = 0;
 
 	if (!trace) {
 		ret = -1;
@@ -411,9 +412,9 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
+int64_t bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
 {
-	int ret = -1;
+	int64_t ret = -1;
 
 	if (!trace) {
 		goto end;
@@ -442,7 +443,8 @@ end:
 int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_stream_class *stream_class)
 {
-	int ret, i;
+	int ret;
+	int64_t i;
 	int64_t stream_id;
 	struct bt_ctf_validation_output trace_sc_validation_output = { 0 };
 	struct bt_ctf_validation_output *ec_validation_outputs = NULL;
@@ -455,7 +457,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	struct bt_ctf_field_type *packet_context_type = NULL;
 	struct bt_ctf_field_type *event_header_type = NULL;
 	struct bt_ctf_field_type *stream_event_ctx_type = NULL;
-	int event_class_count;
+	int64_t event_class_count;
 	struct bt_ctf_trace *current_parent_trace = NULL;
 
 	if (!trace || !stream_class || trace->is_static) {
@@ -716,9 +718,9 @@ end:
 	return ret;
 }
 
-int bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
+int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
 {
-	int ret;
+	int64_t ret;
 
 	if (!trace) {
 		ret = -1;
@@ -746,9 +748,9 @@ end:
 	return stream;
 }
 
-int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
+int64_t bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 {
-	int ret;
+	int64_t ret;
 
 	if (!trace) {
 		ret = -1;
@@ -910,8 +912,8 @@ static
 void append_env_metadata(struct bt_ctf_trace *trace,
 		struct metadata_context *context)
 {
-	int i;
-	int env_size;
+	int64_t i;
+	int64_t env_size;
 
 	env_size = bt_ctf_attributes_get_count(trace->environment);
 
@@ -1108,7 +1110,7 @@ end:
 }
 
 static
-int get_stream_class_count(void *element)
+int64_t get_stream_class_count(void *element)
 {
 	return bt_ctf_trace_get_stream_class_count(
 			(struct bt_ctf_trace *) element);

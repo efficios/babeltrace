@@ -241,7 +241,7 @@ extern int bt_ctf_event_class_set_id(
 @sa bt_ctf_event_class_get_attribute_value(): Returns the value of
 	the attribute of a given event class at a given index.
 */
-extern int bt_ctf_event_class_get_attribute_count(
+extern int64_t bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class);
 
 /**
@@ -482,7 +482,7 @@ bt_ctf_field_type_structure_get_field_count().
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 */
-extern int bt_ctf_event_class_get_field_count(
+extern int64_t bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class);
 
 /**

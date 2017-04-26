@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/writer.h>
@@ -214,7 +215,7 @@ int bt_ctf_field_type_sequence_set_element_type(struct bt_ctf_field_type *array,
 		struct bt_ctf_field_type *element_type);
 
 BT_HIDDEN
-int bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *type);
+int64_t bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *type);
 
 BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_get_field_at_index(

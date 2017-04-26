@@ -181,7 +181,7 @@ enum bt_value_status {
 	BT_VALUE_STATUS_CANCELLED =	-3,
 
 	/* -22 for compatibility with -EINVAL */
-	/// Invalid arguments.
+	/// Invalid argument.
 	BT_VALUE_STATUS_INVAL =		-22,
 
 	/// General error.
@@ -843,7 +843,7 @@ extern struct bt_value *bt_value_array_create(void);
 @sa bt_value_array_is_empty(): Checks whether or not a given array
 	value object is empty.
 */
-extern int bt_value_array_size(const struct bt_value *array_obj);
+extern int64_t bt_value_array_size(const struct bt_value *array_obj);
 
 /**
 @brief	Checks whether or not the array value object \p array_obj
@@ -879,7 +879,7 @@ extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
 @postrefcountsame{array_obj}
 */
 extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
-		size_t index);
+		uint64_t index);
 
 /**
 @brief	Appends the value object \p element_obj to the array value
@@ -1076,7 +1076,7 @@ extern enum bt_value_status bt_value_array_append_empty_map(
 @postrefcountsame{array_obj}
 */
 extern enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
-		size_t index, struct bt_value *element_obj);
+		uint64_t index, struct bt_value *element_obj);
 
 /** @} */
 
@@ -1111,7 +1111,7 @@ extern struct bt_value *bt_value_map_create(void);
 @sa bt_value_map_is_empty(): Checks whether or not a given map value
 	object is empty.
 */
-extern int bt_value_map_size(const struct bt_value *map_obj);
+extern int64_t bt_value_map_size(const struct bt_value *map_obj);
 
 /**
 @brief	Checks whether or not the map value object \p map_obj is empty.

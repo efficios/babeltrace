@@ -32,6 +32,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <babeltrace/ctf-ir/field-types.h>
 
 #ifdef __cplusplus
 extern "C" {

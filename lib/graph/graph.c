@@ -287,35 +287,39 @@ error:
 
 static
 enum bt_component_status get_component_port_counts(
-		struct bt_component *component, uint64_t *input_count,
-		uint64_t *output_count)
+		struct bt_component *component, int64_t *input_count,
+		int64_t *output_count)
 {
 	enum bt_component_status ret;
 
 	switch (bt_component_get_class_type(component)) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		ret = bt_component_source_get_output_port_count(component,
-				output_count);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		*output_count =
+			bt_component_source_get_output_port_count(component);
+		if (*output_count < 0) {
+			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 		break;
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		ret = bt_component_filter_get_output_port_count(component,
-				output_count);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		*output_count =
+			bt_component_filter_get_output_port_count(component);
+		if (*output_count < 0) {
+			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		ret = bt_component_filter_get_input_port_count(component,
-				input_count);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		*input_count =
+			bt_component_filter_get_input_port_count(component);
+		if (*input_count < 0) {
+			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 		break;
 	case BT_COMPONENT_CLASS_TYPE_SINK:
-		ret = bt_component_sink_get_input_port_count(component,
-				input_count);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		*input_count =
+			bt_component_sink_get_input_port_count(component);
+		if (*input_count < 0) {
+			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 		break;
@@ -332,10 +336,10 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 		struct bt_component *origin,
 		struct bt_component *new_component)
 {
-	uint64_t origin_input_port_count = 0;
-	uint64_t origin_output_port_count = 0;
-	uint64_t new_input_port_count = 0;
-	uint64_t new_output_port_count = 0;
+	int64_t origin_input_port_count = 0;
+	int64_t origin_output_port_count = 0;
+	int64_t new_input_port_count = 0;
+	int64_t new_output_port_count = 0;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	struct bt_graph *origin_graph = NULL;
 	struct bt_graph *new_graph = NULL;

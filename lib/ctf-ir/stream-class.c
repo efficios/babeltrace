@@ -45,6 +45,7 @@
 #include <babeltrace/align-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <inttypes.h>
+#include <stdint.h>
 
 static
 void bt_ctf_stream_class_destroy(struct bt_object *obj);
@@ -488,10 +489,10 @@ end:
 	return ret;
 }
 
-int bt_ctf_stream_class_get_event_class_count(
+int64_t bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class)
 {
-	int ret;
+	int64_t ret;
 
 	if (!stream_class) {
 		ret = -1;
@@ -694,7 +695,7 @@ void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 }
 
 static
-int get_event_class_count(void *element)
+int64_t get_event_class_count(void *element)
 {
 	return bt_ctf_stream_class_get_event_class_count(
 			(struct bt_ctf_stream_class *) element);

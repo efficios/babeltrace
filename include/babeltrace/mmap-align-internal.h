@@ -27,6 +27,7 @@
 
 #include <babeltrace/align-internal.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/mman.h>
 
 /*
@@ -71,7 +72,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 		free(mma);
 		return MAP_FAILED;
 	}
-	mma->addr = mma->page_aligned_addr + (offset - page_aligned_offset);
+	mma->addr = ((uint8_t *) mma->page_aligned_addr) + (offset - page_aligned_offset);
 	return mma;
 }
 

@@ -28,6 +28,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <babeltrace/graph/component-class.h>
@@ -109,7 +110,7 @@ extern enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
 		unsigned int *major, unsigned int *minor, unsigned int *patch,
 		const char **extra);
 
-extern int bt_plugin_get_component_class_count(struct bt_plugin *plugin);
+extern int64_t bt_plugin_get_component_class_count(struct bt_plugin *plugin);
 
 extern struct bt_component_class *bt_plugin_get_component_class(
 		struct bt_plugin *plugin, size_t index);
@@ -120,7 +121,7 @@ struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		enum bt_component_class_type type);
 
 extern
-int bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set);
+int64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set);
 
 extern
 struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,

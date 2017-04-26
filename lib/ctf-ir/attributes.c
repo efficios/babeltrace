@@ -58,7 +58,7 @@ void bt_ctf_attributes_destroy(struct bt_value *attr_obj)
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_get_count(struct bt_value *attr_obj)
+int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj)
 {
 	return bt_value_array_size(attr_obj);
 }

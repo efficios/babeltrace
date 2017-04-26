@@ -109,7 +109,7 @@ extern struct bt_clock_class_priority_map *bt_clock_class_priority_map_create();
 @prenotnull{clock_class_priority_map}
 @postrefcountsame{clock_class_priority_map}
 */
-extern int bt_clock_class_priority_map_get_clock_class_count(
+extern int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
 /**

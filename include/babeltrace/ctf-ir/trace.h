@@ -293,7 +293,7 @@ extern int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_get_environment_field_count(
+extern int64_t bt_ctf_trace_get_environment_field_count(
 		struct bt_ctf_trace *trace_class);
 
 /**
@@ -548,7 +548,8 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace_class);
+extern int64_t bt_ctf_trace_get_clock_class_count(
+		struct bt_ctf_trace *trace_class);
 
 /**
 @brief  Returns the CTF IR clock class at index \p index in the CTF
@@ -645,7 +646,8 @@ extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace_class);
+extern int64_t bt_ctf_trace_get_stream_class_count(
+		struct bt_ctf_trace *trace_class);
 
 /**
 @brief  Returns the stream class at index \p index in the CTF IR trace
@@ -742,7 +744,7 @@ extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
+extern int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
 
 /**
 @brief  Returns the stream at index \p index in the CTF IR trace

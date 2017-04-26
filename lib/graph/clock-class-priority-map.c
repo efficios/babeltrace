@@ -82,16 +82,16 @@ end:
 	return cc_prio_map;
 }
 
-int bt_clock_class_priority_map_get_clock_class_count(
+int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	int ret = -1;
+	int64_t ret = -1;
 
 	if (!cc_prio_map) {
 		goto end;
 	}
 
-	ret = (int) cc_prio_map->entries->len;
+	ret = (int64_t) cc_prio_map->entries->len;
 
 end:
 	return ret;

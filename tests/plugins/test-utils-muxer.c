@@ -983,10 +983,9 @@ void do_std_test(enum test test, const char *name,
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
 	struct bt_graph *graph;
-	size_t i;
-	uint64_t count;
+	int64_t i;
+	int64_t count;
 	void *conn;
-	int ret;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
@@ -998,8 +997,8 @@ void do_std_test(enum test test, const char *name,
 
 	/* Connect source output ports to muxer input ports */
 	if (with_upstream) {
-		ret = bt_component_source_get_output_port_count(src_comp, &count);
-		assert(ret == 0);
+		count = bt_component_source_get_output_port_count(src_comp);
+		assert(count >= 0);
 
 		for (i = 0; i < count; i++) {
 			upstream_port = bt_component_source_get_output_port_at_index(
@@ -1344,12 +1343,11 @@ void connect_port_to_first_avail_muxer_port(struct bt_graph *graph,
 {
 	struct bt_port *avail_muxer_port = NULL;
 	void *conn;
-	uint64_t i;
-	uint64_t count;
-	int ret;
+	int64_t i;
+	int64_t count;
 
-	ret = bt_component_filter_get_input_port_count(muxer_comp, &count);
-	assert(ret == 0);
+	count = bt_component_filter_get_input_port_count(muxer_comp);
+	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_port *muxer_port =
@@ -1402,8 +1400,8 @@ void test_single_end_then_multiple_full(void)
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
 	struct bt_graph *graph;
-	size_t i;
-	uint64_t count;
+	int64_t i;
+	int64_t count;
 	void *conn;
 	int ret;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
@@ -1482,7 +1480,7 @@ void test_single_end_then_multiple_full(void)
 	assert(ret == 0);
 
 	/* Connect source output ports to muxer input ports */
-	ret = bt_component_source_get_output_port_count(src_comp, &count);
+	count = bt_component_source_get_output_port_count(src_comp);
 	assert(ret == 0);
 
 	for (i = 0; i < count; i++) {
@@ -1530,8 +1528,8 @@ void test_single_again_end_then_multiple_full(void)
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
 	struct bt_graph *graph;
-	size_t i;
-	uint64_t count;
+	int64_t i;
+	int64_t count;
 	void *conn;
 	int ret;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
@@ -1611,7 +1609,7 @@ void test_single_again_end_then_multiple_full(void)
 	assert(ret == 0);
 
 	/* Connect source output ports to muxer input ports */
-	ret = bt_component_source_get_output_port_count(src_comp, &count);
+	count = bt_component_source_get_output_port_count(src_comp);
 	assert(ret == 0);
 
 	for (i = 0; i < count; i++) {

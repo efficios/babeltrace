@@ -188,14 +188,14 @@ end:
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(struct bt_component *comp)
+int64_t bt_component_get_input_port_count(struct bt_component *comp)
 {
 	assert(comp);
 	return comp->input_ports->len;
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(struct bt_component *comp)
+int64_t bt_component_get_output_port_count(struct bt_component *comp)
 {
 	assert(comp);
 	return comp->output_ports->len;

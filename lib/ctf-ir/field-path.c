@@ -29,6 +29,7 @@
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <limits.h>
+#include <stdint.h>
 #include <glib.h>
 
 static
@@ -111,10 +112,10 @@ end:
 	return scope;
 }
 
-int bt_ctf_field_path_get_index_count(
+int64_t bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path)
 {
-	int ret = -1;
+	int64_t ret = -1;
 
 	if (!field_path) {
 		goto end;

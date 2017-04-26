@@ -100,20 +100,19 @@ end:
 	return ret;
 }
 
-enum bt_component_status bt_component_sink_get_input_port_count(
-		struct bt_component *component, uint64_t *count)
+int64_t bt_component_sink_get_input_port_count(struct bt_component *component)
 {
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	int64_t ret;
 
-	if (!component || !count ||
+	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-	        status = BT_COMPONENT_STATUS_INVALID;
+	        ret = -1;
 		goto end;
 	}
 
-	*count = bt_component_get_input_port_count(component);
+	ret = bt_component_get_input_port_count(component);
 end:
-	return status;
+	return ret;
 }
 
 struct bt_port *bt_component_sink_get_input_port(

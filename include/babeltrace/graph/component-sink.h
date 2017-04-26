@@ -36,8 +36,8 @@ extern "C" {
 struct bt_component;
 struct bt_notification;
 
-extern enum bt_component_status bt_component_sink_get_input_port_count(
-		struct bt_component *component, uint64_t *count);
+extern int64_t bt_component_sink_get_input_port_count(
+		struct bt_component *component);
 extern struct bt_port *bt_component_sink_get_input_port(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_sink_get_input_port_at_index(

@@ -31,7 +31,7 @@
 #include <babeltrace/babeltrace-internal.h>
 
 typedef void *(*bt_child_accessor)(void *object, int index);
-typedef int (*bt_child_count_accessor)(void *object);
+typedef int64_t (*bt_child_count_accessor)(void *object);
 typedef int (*bt_child_visitor)(void *object, bt_ctf_visitor visitor,
 		void *data);
 

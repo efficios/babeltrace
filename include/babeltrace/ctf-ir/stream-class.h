@@ -474,7 +474,7 @@ extern int bt_ctf_stream_class_set_event_context_type(
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
 */
-extern int bt_ctf_stream_class_get_event_class_count(
+extern int64_t bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class);
 
 /**

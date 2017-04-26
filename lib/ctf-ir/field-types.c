@@ -590,8 +590,8 @@ int bt_ctf_field_type_structure_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *child_type = NULL;
-	int field_count = bt_ctf_field_type_structure_get_field_count(type);
-	int i;
+	int64_t field_count = bt_ctf_field_type_structure_get_field_count(type);
+	int64_t i;
 
 	if (field_count < 0) {
 		ret = -1;
@@ -660,13 +660,13 @@ static
 int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
-	int field_count;
+	int64_t field_count;
 	struct bt_ctf_field_type *child_type = NULL;
 	struct bt_ctf_field_type_variant *variant =
 		container_of(type, struct bt_ctf_field_type_variant,
 			parent);
-	int i;
-	int tag_mappings_count;
+	int64_t i;
+	int64_t tag_mappings_count;
 
 	if (variant->tag_name->len == 0 || !variant->tag) {
 		ret = -1;
@@ -1421,10 +1421,10 @@ end:
 	return ret;
 }
 
-int bt_ctf_field_type_enumeration_get_mapping_count(
+int64_t bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *type)
 {
-	int ret = 0;
+	int64_t ret = 0;
 	struct bt_ctf_field_type_enumeration *enumeration;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_ENUM)) {
@@ -1434,7 +1434,7 @@ int bt_ctf_field_type_enumeration_get_mapping_count(
 
 	enumeration = container_of(type, struct bt_ctf_field_type_enumeration,
 		parent);
-	ret = (int) enumeration->entries->len;
+	ret = (int64_t) enumeration->entries->len;
 end:
 	return ret;
 }
@@ -1597,10 +1597,10 @@ end:
 	return ret;
 }
 
-int bt_ctf_field_type_structure_get_field_count(
+int64_t bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *type)
 {
-	int ret = 0;
+	int64_t ret = 0;
 	struct bt_ctf_field_type_structure *structure;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_STRUCT)) {
@@ -1610,7 +1610,7 @@ int bt_ctf_field_type_structure_get_field_count(
 
 	structure = container_of(type, struct bt_ctf_field_type_structure,
 		parent);
-	ret = (int) structure->fields->len;
+	ret = (int64_t) structure->fields->len;
 end:
 	return ret;
 }
@@ -1891,9 +1891,9 @@ end:
 	return field_type;
 }
 
-int bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type)
+int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type)
 {
-	int ret = 0;
+	int64_t ret = 0;
 	struct bt_ctf_field_type_variant *variant;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_VARIANT)) {
@@ -1903,7 +1903,7 @@ int bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type)
 
 	variant = container_of(type, struct bt_ctf_field_type_variant,
 		parent);
-	ret = (int) variant->fields->len;
+	ret = (int64_t) variant->fields->len;
 end:
 	return ret;
 
@@ -2211,7 +2211,7 @@ int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type)
 	}
 	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 	{
-		int i, element_count;
+		int64_t i, element_count;
 
 		element_count = bt_ctf_field_type_structure_get_field_count(
 			type);
@@ -4088,9 +4088,9 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *field_type)
+int64_t bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *field_type)
 {
-	int field_count = -1;
+	int64_t field_count = -1;
 	enum bt_ctf_field_type_id type_id = bt_ctf_field_type_get_type_id(field_type);
 
 	switch (type_id) {

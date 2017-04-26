@@ -1336,7 +1336,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 @preisenumft{enum_field_type}
 @postrefcountsame{enum_field_type}
 */
-extern int bt_ctf_field_type_enumeration_get_mapping_count(
+extern int64_t bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enum_field_type);
 
 /**
@@ -1921,7 +1921,7 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
 @preisstructft{struct_field_type}
 @postrefcountsame{struct_field_type}
 */
-extern int bt_ctf_field_type_structure_get_field_count(
+extern int64_t bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *struct_field_type);
 
 /**
@@ -2400,7 +2400,7 @@ extern struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 @preisvarft{variant_field_type}
 @postrefcountsame{variant_field_type}
 */
-extern int bt_ctf_field_type_variant_get_field_count(
+extern int64_t bt_ctf_field_type_variant_get_field_count(
 		struct bt_ctf_field_type *variant_field_type);
 
 /**

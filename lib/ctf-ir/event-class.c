@@ -262,10 +262,10 @@ end:
 	return ret;
 }
 
-int bt_ctf_event_class_get_attribute_count(
+int64_t bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class)
 {
-	int ret = 0;
+	int64_t ret = 0;
 
 	if (!event_class) {
 		ret = -1;
@@ -400,10 +400,10 @@ end:
 	return ret;
 }
 
-int bt_ctf_event_class_get_field_count(
+int64_t bt_ctf_event_class_get_field_count(
 		struct bt_ctf_event_class *event_class)
 {
-	int ret;
+	int64_t ret;
 
 	if (!event_class) {
 		ret = -1;
@@ -577,8 +577,8 @@ BT_HIDDEN
 int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context)
 {
-	int i;
-	int count;
+	int64_t i;
+	int64_t count;
 	int ret = 0;
 	struct bt_value *attr_value = NULL;
 

@@ -802,8 +802,8 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter)
 {
 	struct bt_component *comp;
-	uint64_t count;
-	uint64_t i;
+	int64_t count;
+	int64_t i;
 	int ret = 0;
 
 	/*
@@ -813,8 +813,8 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 */
 	comp = bt_component_from_private_component(muxer_comp->priv_comp);
 	assert(comp);
-	ret = bt_component_filter_get_input_port_count(comp, &count);
-	if (ret) {
+	count = bt_component_filter_get_input_port_count(comp);
+	if (count < 0) {
 		goto end;
 	}
 
