@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 611
+#define NR_TESTS 607
 
 static int64_t current_time = 42;
 
@@ -432,17 +432,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_stream_class_get_event_class_by_id(stream_class, 13);
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class_by_id returns a correct event class");
-	bt_put(ret_event_class);
-
-	ok(bt_ctf_stream_class_get_event_class_by_name(NULL, "some event name") == NULL,
-		"bt_ctf_stream_class_get_event_class_by_name handles a NULL stream class correctly");
-	ok(bt_ctf_stream_class_get_event_class_by_name(stream_class, NULL) == NULL,
-		"bt_ctf_stream_class_get_event_class_by_name handles a NULL event class name correctly");
-	ok(bt_ctf_stream_class_get_event_class_by_name(stream_class, "some event name") == NULL,
-		"bt_ctf_stream_class_get_event_class_by_name handles non-existing event class names correctly");
-	ret_event_class = bt_ctf_stream_class_get_event_class_by_name(stream_class, "Simple Event");
-	ok(ret_event_class == simple_event_class,
-		"bt_ctf_stream_class_get_event_class_by_name returns a correct event class");
 	bt_put(ret_event_class);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
@@ -2500,8 +2489,8 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 
 	event_class = bt_ctf_event_class_create("Simple Event");
 	assert(event_class);
-	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
-		"two event classes with the same name cannot cohabit within the same stream class");
+	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class) == 0,
+		"two event classes with the same name may cohabit within the same stream class");
 	bt_put(event_class);
 
 	event_class = bt_ctf_event_class_create("different name, ok");

@@ -3506,16 +3506,6 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	eevent_class = bt_ctf_stream_class_get_event_class_by_name(stream_class,
-		event_name);
-	if (eevent_class) {
-		BT_PUT(eevent_class);
-		_PERROR("%s",
-			"duplicate event with name \"%s\" in same stream");
-		ret = -EEXIST;
-		goto error;
-	}
-
 	ret = bt_ctf_stream_class_add_event_class(stream_class, event_class);
 	BT_PUT(event_class);
 	if (ret) {

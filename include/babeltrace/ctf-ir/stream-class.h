@@ -496,31 +496,9 @@ extern int64_t bt_ctf_stream_class_get_event_class_count(
 
 @sa bt_ctf_stream_class_get_event_class_by_id(): Finds an event class
 	by ID.
-@sa bt_ctf_stream_class_get_event_class_by_name(): Finds an event class
-	by name.
 */
 extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 		struct bt_ctf_stream_class *stream_class, uint64_t index);
-
-/**
-@brief  Returns the event class named \c name found in the CTF IR stream
-	class \p stream_class.
-
-@param[in] stream_class	Stream class of which to get the event class.
-@param[in] name		Name of the event class to find.
-@returns		Event class named \p name, or \c NULL
-			on error.
-
-@prenotnull{stream_class}
-@prenotnull{name}
-@postrefcountsame{stream_class}
-@postsuccessrefcountretinc
-
-@sa bt_ctf_stream_class_get_event_class_by_id(): Finds an event class
-	by ID.
-*/
-extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
-		struct bt_ctf_stream_class *stream_class, const char *name);
 
 /**
 @brief  Returns the event class with ID \c id found in the CTF IR stream
@@ -534,9 +512,6 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
 @postsuccessrefcountretinc
-
-@sa bt_ctf_stream_class_get_event_class_by_name(): Finds an event class
-	by name.
 */
 extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint64_t id);

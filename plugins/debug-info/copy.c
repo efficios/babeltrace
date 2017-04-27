@@ -981,8 +981,8 @@ struct bt_ctf_event_class *get_event_class(struct debug_info_iterator *debug_it,
 		struct bt_ctf_stream_class *writer_stream_class,
 		struct bt_ctf_event_class *event_class)
 {
-	return bt_ctf_stream_class_get_event_class_by_name(writer_stream_class,
-			bt_ctf_event_class_get_name(event_class));
+	return bt_ctf_stream_class_get_event_class_by_id(writer_stream_class,
+			bt_ctf_event_class_get_id(event_class));
 }
 
 static
