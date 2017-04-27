@@ -22,4 +22,5 @@ libbabeltrace_plugin_debug_info_la_LDFLAGS = \
 	-version-info $(BABELTRACE_LIBRARY_VERSION) -lelf -ldw
 
 libbabeltrace_plugin_debug_info_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la

@@ -1,4 +1,4 @@
-SUBDIRS = ctf text utils libctfcopytrace writer
+SUBDIRS = libctfcopytrace ctf text utils writer
 
 if ENABLE_DEBUG_INFO
 SUBDIRS += debug-info

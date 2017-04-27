@@ -9,3 +9,6 @@ libbabeltrace_plugin_trimmer_la_SOURCES = \
 	trimmer.h \
 	iterator.h \
 	copy.h
+
+libbabeltrace_plugin_trimmer_la_LIBADD = \
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
