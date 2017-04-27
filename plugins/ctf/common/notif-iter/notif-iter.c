@@ -2082,7 +2082,7 @@ struct bt_ctf_event *create_event(struct bt_ctf_notif_iter *notit)
 		goto error;
 	}
 
-	ret = bt_ctf_event_set_payload_field(event,
+	ret = bt_ctf_event_set_event_payload(event,
 		notit->dscopes.event_payload);
 	if (ret) {
 		goto error;
@@ -2249,7 +2249,7 @@ int init_clock_states(GHashTable *clock_states, struct bt_ctf_trace *trace)
 	for (i = 0; i < clock_class_count; i++) {
 		struct bt_ctf_clock_class *clock_class;
 
-		clock_class = bt_ctf_trace_get_clock_class(trace, i);
+		clock_class = bt_ctf_trace_get_clock_class_by_index(trace, i);
 		if (!clock_class) {
 			ret = -1;
 			goto end;

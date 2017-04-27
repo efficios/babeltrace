@@ -171,7 +171,7 @@ int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 {
 	int ret = 0;
 
-	if (!clock_class || clock_class->frozen) {
+	if (!clock_class || clock_class->frozen || freq == -1ULL) {
 		ret = -1;
 		goto end;
 	}
@@ -199,7 +199,7 @@ int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
 {
 	int ret = 0;
 
-	if (!clock_class || clock_class->frozen) {
+	if (!clock_class || clock_class->frozen || precision == -1ULL) {
 		ret = -1;
 		goto end;
 	}
@@ -467,7 +467,7 @@ int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
 	}
 
 	/* Initialize nanosecond timestamp to clock's offset in seconds. */
-	ns = value->clock_class->offset_s * 1000000000;
+	ns = value->clock_class->offset_s * (int64_t) 1000000000;
 
 	/* Add offset in cycles, converted to nanoseconds. */
 	ns += ns_from_value(value->clock_class->frequency,

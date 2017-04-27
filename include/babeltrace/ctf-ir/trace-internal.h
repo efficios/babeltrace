@@ -58,7 +58,7 @@ struct bt_ctf_trace {
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
 	struct bt_ctf_field_type *packet_header_type;
-	uint64_t next_stream_id;
+	int64_t next_stream_id;
 	int is_created_by_writer;
 
 	/*

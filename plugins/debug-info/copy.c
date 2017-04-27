@@ -825,7 +825,7 @@ int add_clock_classes(FILE *err, struct bt_ctf_trace *writer_trace,
 
 	for (i = 0; i < clock_class_count; i++) {
 		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class(trace, i);
+			bt_ctf_trace_get_clock_class_by_index(trace, i);
 
 		if (!clock_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -1366,7 +1366,7 @@ struct bt_ctf_clock_class *stream_class_get_clock_class(FILE *err,
 	}
 
 	/* FIXME multi-clock? */
-	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
 
 	bt_put(trace);
 
@@ -1518,7 +1518,7 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 	}
 	BT_PUT(field);
 
-	field = bt_ctf_event_get_payload_field(event);
+	field = bt_ctf_event_get_event_payload(event);
 	if (!field) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
@@ -1526,7 +1526,7 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 	}
 	copy_field = bt_ctf_field_copy(field);
 	if (copy_field) {
-		ret = bt_ctf_event_set_payload_field(writer_event, copy_field);
+		ret = bt_ctf_event_set_event_payload(writer_event, copy_field);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);

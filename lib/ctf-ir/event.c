@@ -316,7 +316,7 @@ end:
 	return ret;
 }
 
-struct bt_ctf_field *bt_ctf_event_get_payload_field(struct bt_ctf_event *event)
+struct bt_ctf_field *bt_ctf_event_get_event_payload(struct bt_ctf_event *event)
 {
 	struct bt_ctf_field *payload = NULL;
 
@@ -330,7 +330,7 @@ end:
 	return payload;
 }
 
-int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload)
 {
 	int ret = 0;
@@ -381,11 +381,11 @@ end:
 }
 
 struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
-		struct bt_ctf_event *event, int index)
+		struct bt_ctf_event *event, uint64_t index)
 {
 	struct bt_ctf_field *field = NULL;
 
-	if (!event || index < 0) {
+	if (!event) {
 		goto end;
 	}
 

@@ -820,7 +820,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 
 	for (i = 0; i < count; i++) {
 		struct bt_private_port *priv_port =
-			bt_private_component_filter_get_input_private_port_at_index(
+			bt_private_component_filter_get_input_private_port_by_index(
 				muxer_comp->priv_comp, i);
 		struct bt_port *port;
 

@@ -166,7 +166,8 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 
 	for (i = 0; i < stream_class_count; i++) {
 		struct bt_ctf_stream_class *existing_stream_class =
-			bt_ctf_trace_get_stream_class(writer->trace, i);
+			bt_ctf_trace_get_stream_class_by_index(
+				writer->trace, i);
 
 		if (existing_stream_class == stream_class) {
 			stream_class_found = true;
@@ -217,8 +218,7 @@ end:
 }
 
 int bt_ctf_writer_add_environment_field_int64(struct bt_ctf_writer *writer,
-		const char *name,
-		int64_t value)
+		const char *name, int64_t value)
 {
 	int ret = -1;
 

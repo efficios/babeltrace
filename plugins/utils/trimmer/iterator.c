@@ -214,7 +214,7 @@ struct bt_notification *evaluate_event_notification(
 	assert(trace);
 
 	/* FIXME multi-clock? */
-	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
 	if (!clock_class) {
 		goto end;
 	}
@@ -348,7 +348,8 @@ int64_t get_raw_timestamp(struct bt_ctf_packet *writer_packet,
 	assert(writer_trace);
 
 	/* FIXME multi-clock? */
-	writer_clock_class = bt_ctf_trace_get_clock_class(writer_trace, 0);
+	writer_clock_class = bt_ctf_trace_get_clock_class_by_index(
+		writer_trace, 0);
 	assert(writer_clock_class);
 
 	ret = bt_ctf_clock_class_get_offset_s(writer_clock_class, &sec_offset);

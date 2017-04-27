@@ -863,8 +863,11 @@ exist.
 @sa bt_ctf_field_structure_set_field(): Sets the field of a given
 	structure field.
 */
-extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
+extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *struct_field, const char *name);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_structure_get_field bt_ctf_field_structure_get_field_by_name
 
 /**
 @brief  Returns the @field at index \p index in the @structfield
@@ -890,7 +893,7 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field(
 	structure field.
 */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
-		struct bt_ctf_field *struct_field, int index);
+		struct bt_ctf_field *struct_field, uint64_t index);
 
 /**
 @brief	Sets the field of the @structfield \p struct_field named \p name

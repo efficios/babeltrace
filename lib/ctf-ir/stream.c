@@ -200,8 +200,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 				uuid_element, (int64_t) trace->uuid[i]);
 		} else {
 			ret = bt_ctf_field_unsigned_integer_set_value(
-				uuid_element,
-				(uint64_t) trace->uuid[i]);
+				uuid_element, (uint64_t) trace->uuid[i]);
 		}
 		bt_put(uuid_element);
 		if (ret) {
@@ -610,6 +609,7 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 	}
 
 	new_count = previous_count + event_count;
+	assert(new_count >= previous_count);
 	if (field_signed) {
 		ret = bt_ctf_field_signed_integer_set_value(
 			events_discarded_field, (int64_t) new_count);

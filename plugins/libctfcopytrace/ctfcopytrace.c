@@ -39,6 +39,7 @@
 #include "ctfcopytrace.h"
 #include "clock-fields.h"
 
+BT_HIDDEN
 struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 		struct bt_ctf_clock_class *clock_class)
 {
@@ -156,6 +157,7 @@ end:
 	return writer_clock_class;
 }
 
+BT_HIDDEN
 enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_ctf_trace *writer_trace,
 		struct bt_ctf_stream_class *writer_stream_class,
@@ -169,7 +171,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 	for (i = 0; i < clock_class_count; i++) {
 		struct bt_ctf_clock_class *writer_clock_class;
 		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class(trace, i);
+			bt_ctf_trace_get_clock_class_by_index(trace, i);
 
 		if (!clock_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -207,6 +209,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		struct bt_ctf_event_class *event_class)
 {
@@ -234,13 +237,15 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		struct bt_value *attr_value;
 		int ret;
 
-		attr_name = bt_ctf_event_class_get_attribute_name(event_class, i);
+		attr_name = bt_ctf_event_class_get_attribute_name_by_index(
+			event_class, i);
 		if (!attr_name) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
 			goto error;
 		}
-		attr_value = bt_ctf_event_class_get_attribute_value(event_class, i);
+		attr_value = bt_ctf_event_class_get_attribute_value_by_index(
+			event_class, i);
 		if (!attr_value) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
@@ -257,14 +262,14 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		}
 	}
 
-	count = bt_ctf_event_class_get_field_count(event_class);
+	count = bt_ctf_event_class_get_payload_type_field_count(event_class);
 	for (i = 0; i < count; i++) {
 		const char *field_name;
 		struct bt_ctf_field_type *field_type;
 		int ret;
 
-		ret = bt_ctf_event_class_get_field(event_class, &field_name,
-				&field_type, i);
+		ret = bt_ctf_event_class_get_payload_type_field_by_index(
+				event_class, &field_name, &field_type, i);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
 			goto error;
@@ -288,6 +293,7 @@ end:
 	return writer_event_class;
 }
 
+BT_HIDDEN
 enum bt_component_status ctf_copy_event_classes(FILE *err,
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream_class *writer_stream_class)
@@ -307,7 +313,7 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 		struct bt_ctf_field_type *context;
 		int int_ret;
 
-		event_class = bt_ctf_stream_class_get_event_class(
+		event_class = bt_ctf_stream_class_get_event_class_by_index(
 				stream_class, i);
 		if (!event_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
@@ -360,6 +366,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_trace *writer_trace,
@@ -454,6 +461,7 @@ end:
 	return writer_stream_class;
 }
 
+BT_HIDDEN
 enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 		struct bt_ctf_field *field, const char *field_name,
 		struct bt_ctf_field *writer_packet_context,
@@ -482,8 +490,8 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 	}
 	BT_PUT(field_type);
 
-	writer_field = bt_ctf_field_structure_get_field(writer_packet_context,
-			field_name);
+	writer_field = bt_ctf_field_structure_get_field_by_name(
+		writer_packet_context, field_name);
 	if (!writer_field) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
@@ -519,6 +527,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream)
@@ -579,7 +588,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 					__FILE__, __LINE__);
 			goto error;
 		}
-		if (bt_ctf_field_type_structure_get_field(struct_type,
+		if (bt_ctf_field_type_structure_get_field_by_index(struct_type,
 					&field_name, &field_type, i) < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
@@ -623,6 +632,7 @@ end:
 	return writer_packet_context;
 }
 
+BT_HIDDEN
 int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
 		struct bt_ctf_event *writer_event,
@@ -706,6 +716,7 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
 		bool override_ts64)
@@ -788,7 +799,7 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	BT_PUT(field);
 	BT_PUT(copy_field);
 
-	field = bt_ctf_event_get_payload_field(event);
+	field = bt_ctf_event_get_event_payload(event);
 	if (!field) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
@@ -796,7 +807,7 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	}
 	copy_field = bt_ctf_field_copy(field);
 	if (copy_field) {
-		ret = bt_ctf_event_set_payload_field(writer_event, copy_field);
+		ret = bt_ctf_event_set_event_payload(writer_event, copy_field);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
@@ -816,6 +827,7 @@ end:
 	return writer_event;
 }
 
+BT_HIDDEN
 enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		struct bt_ctf_trace *writer_trace)
 {
@@ -829,14 +841,16 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		const char *name;
 		struct bt_value *value = NULL;
 
-		name = bt_ctf_trace_get_environment_field_name(trace, i);
+		name = bt_ctf_trace_get_environment_field_name_by_index(
+			trace, i);
 		if (!name) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		value = bt_ctf_trace_get_environment_field_value(trace, i);
+		value = bt_ctf_trace_get_environment_field_value_by_index(
+			trace, i);
 		if (!value) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);

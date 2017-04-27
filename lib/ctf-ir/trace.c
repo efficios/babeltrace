@@ -328,7 +328,7 @@ int64_t bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
 	int64_t ret = 0;
 
 	if (!trace) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -339,8 +339,8 @@ end:
 }
 
 const char *
-bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace,
-		int index)
+bt_ctf_trace_get_environment_field_name_by_index(struct bt_ctf_trace *trace,
+		uint64_t index)
 {
 	const char *ret = NULL;
 
@@ -354,8 +354,8 @@ end:
 	return ret;
 }
 
-struct bt_value *bt_ctf_trace_get_environment_field_value(
-		struct bt_ctf_trace *trace, int index)
+struct bt_value *bt_ctf_trace_get_environment_field_value_by_index(
+		struct bt_ctf_trace *trace, uint64_t index)
 {
 	struct bt_value *ret = NULL;
 
@@ -414,7 +414,7 @@ end:
 
 int64_t bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
 {
-	int64_t ret = -1;
+	int64_t ret = (int64_t) -1;
 
 	if (!trace) {
 		goto end;
@@ -425,12 +425,12 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
-		struct bt_ctf_trace *trace, int index)
+struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
+		struct bt_ctf_trace *trace, uint64_t index)
 {
 	struct bt_ctf_clock_class *clock_class = NULL;
 
-	if (!trace || index < 0 || index >= trace->clocks->len) {
+	if (!trace || index >= trace->clocks->len) {
 		goto end;
 	}
 
@@ -589,7 +589,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	/* Validate each event class individually */
 	for (i = 0; i < event_class_count; i++) {
 		struct bt_ctf_event_class *event_class =
-			bt_ctf_stream_class_get_event_class(stream_class, i);
+			bt_ctf_stream_class_get_event_class_by_index(
+				stream_class, i);
 		struct bt_ctf_field_type *event_context_type = NULL;
 		struct bt_ctf_field_type *event_payload_type = NULL;
 
@@ -630,6 +631,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	stream_id = bt_ctf_stream_class_get_id(stream_class);
 	if (stream_id < 0) {
 		stream_id = trace->next_stream_id++;
+		if (stream_id < 0) {
+			ret = -1;
+			goto end;
+		}
 
 		/* Try to assign a new stream id */
 		for (i = 0; i < trace->stream_classes->len; i++) {
@@ -672,7 +677,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 
 	for (i = 0; i < event_class_count; i++) {
 		struct bt_ctf_event_class *event_class =
-			bt_ctf_stream_class_get_event_class(stream_class, i);
+			bt_ctf_stream_class_get_event_class_by_index(
+				stream_class, i);
 
 		bt_ctf_validation_replace_types(NULL, NULL, event_class,
 			&ec_validation_outputs[i], ec_validation_flags);
@@ -723,18 +729,19 @@ int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
 	int64_t ret;
 
 	if (!trace) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
-	ret = trace->streams->len;
+	ret = (int64_t) trace->streams->len;
 
 end:
 	return ret;
 }
 
-struct bt_ctf_stream *bt_ctf_trace_get_stream(struct bt_ctf_trace *trace,
-		int index)
+struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
+		struct bt_ctf_trace *trace,
+		uint64_t index)
 {
 	struct bt_ctf_stream *stream = NULL;
 
@@ -753,21 +760,21 @@ int64_t bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 	int64_t ret;
 
 	if (!trace) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
-	ret = trace->stream_classes->len;
+	ret = (int64_t) trace->stream_classes->len;
 end:
 	return ret;
 }
 
-struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
-		struct bt_ctf_trace *trace, int index)
+struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
+		struct bt_ctf_trace *trace, uint64_t index)
 {
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!trace || index < 0 || index >= trace->stream_classes->len) {
+	if (!trace || index >= trace->stream_classes->len) {
 		goto end;
 	}
 
@@ -778,12 +785,13 @@ end:
 }
 
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
-		struct bt_ctf_trace *trace, uint32_t id)
+		struct bt_ctf_trace *trace, uint64_t id_param)
 {
 	int i;
 	struct bt_ctf_stream_class *stream_class = NULL;
+	int64_t id = (int64_t) id_param;
 
-	if (!trace) {
+	if (!trace || id < 0) {
 		goto end;
 	}
 
@@ -1119,7 +1127,7 @@ int64_t get_stream_class_count(void *element)
 static
 void *get_stream_class(void *element, int i)
 {
-	return bt_ctf_trace_get_stream_class(
+	return bt_ctf_trace_get_stream_class_by_index(
 			(struct bt_ctf_trace *) element, i);
 }
 

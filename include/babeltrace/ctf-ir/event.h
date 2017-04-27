@@ -140,7 +140,7 @@ struct bt_ctf_packet;
 On success, the four fields of the created event object are not set. You
 can set them with bt_ctf_event_set_header(),
 bt_ctf_event_set_stream_event_context(),
-bt_ctf_event_set_event_context(), and bt_ctf_event_set_payload_field().
+bt_ctf_event_set_event_context(), and bt_ctf_event_set_event_payload().
 
 This function tries to resolve the needed
 \link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
@@ -411,10 +411,10 @@ extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_payload_field(): Sets the payload field of a given
+@sa bt_ctf_event_set_event_payload(): Sets the payload field of a given
 	event.
 */
-extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
+extern struct bt_ctf_field *bt_ctf_event_get_event_payload(
 		struct bt_ctf_event *event);
 
 /**
@@ -440,7 +440,7 @@ bt_ctf_event_class_get_payload_type() for the parent class of \p event.
 
 @sa bt_ctf_event_get_payload(): Returns the payload field of a given event.
 */
-extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+extern int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload);
 
 /** @cond DOCUMENT */
@@ -482,7 +482,7 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
  * Note: Will return an error if the payload's type is not a structure.
  */
 extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
-		struct bt_ctf_event *event, int index);
+		struct bt_ctf_event *event, uint64_t index);
 
 /*
  * TODO: Doxygenize.
@@ -536,7 +536,8 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 @sa bt_ctf_event_set_clock_value(): Sets the clock value of a given event.
 */
 extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
-		struct bt_ctf_event *event, struct bt_ctf_clock_class *clock_class);
+		struct bt_ctf_event *event,
+		struct bt_ctf_clock_class *clock_class);
 
 /**
 @brief	Sets the value, as of the CTF IR event \p event, of the

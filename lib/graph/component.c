@@ -41,6 +41,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
+#include <stdint.h>
 
 static
 struct bt_component * (* const component_create_funcs[])(
@@ -191,14 +192,14 @@ BT_HIDDEN
 int64_t bt_component_get_input_port_count(struct bt_component *comp)
 {
 	assert(comp);
-	return comp->input_ports->len;
+	return (int64_t) comp->input_ports->len;
 }
 
 BT_HIDDEN
 int64_t bt_component_get_output_port_count(struct bt_component *comp)
 {
 	assert(comp);
-	return comp->output_ports->len;
+	return (int64_t) comp->output_ports->len;
 }
 
 struct bt_component *bt_component_create_with_init_method_data(
@@ -414,7 +415,8 @@ struct bt_graph *bt_component_get_graph(
 }
 
 static
-struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name)
+struct bt_port *bt_component_get_port_by_name(GPtrArray *ports,
+		const char *name)
 {
 	size_t i;
 	struct bt_port *ret_port = NULL;
@@ -439,29 +441,29 @@ struct bt_port *bt_component_get_port(GPtrArray *ports, const char *name)
 }
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port(struct bt_component *comp,
+struct bt_port *bt_component_get_input_port_by_name(struct bt_component *comp,
 		const char *name)
 {
 	assert(comp);
 
-	return bt_component_get_port(comp->input_ports, name);
+	return bt_component_get_port_by_name(comp->input_ports, name);
 }
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port(struct bt_component *comp,
+struct bt_port *bt_component_get_output_port_by_name(struct bt_component *comp,
 		const char *name)
 {
 	assert(comp);
 
-	return bt_component_get_port(comp->output_ports, name);
+	return bt_component_get_port_by_name(comp->output_ports, name);
 }
 
 static
-struct bt_port *bt_component_get_port_at_index(GPtrArray *ports, int index)
+struct bt_port *bt_component_get_port_by_index(GPtrArray *ports, uint64_t index)
 {
 	struct bt_port *port = NULL;
 
-	if (index < 0 || index >= ports->len) {
+	if (index >= ports->len) {
 		goto end;
 	}
 
@@ -471,21 +473,21 @@ end:
 }
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port_at_index(struct bt_component *comp,
-		int index)
+struct bt_port *bt_component_get_input_port_by_index(struct bt_component *comp,
+		uint64_t index)
 {
 	assert(comp);
 
-	return bt_component_get_port_at_index(comp->input_ports, index);
+	return bt_component_get_port_by_index(comp->input_ports, index);
 }
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port_at_index(struct bt_component *comp,
-		int index)
+struct bt_port *bt_component_get_output_port_by_index(struct bt_component *comp,
+		uint64_t index)
 {
 	assert(comp);
 
-	return bt_component_get_port_at_index(comp->output_ports, index);
+	return bt_component_get_port_by_index(comp->output_ports, index);
 }
 
 BT_HIDDEN
@@ -505,7 +507,7 @@ struct bt_port *bt_component_add_output_port(
 }
 
 static
-void bt_component_remove_port_at_index(struct bt_component *component,
+void bt_component_remove_port_by_index(struct bt_component *component,
 		GPtrArray *ports, size_t index)
 {
 	struct bt_port *port;
@@ -561,7 +563,7 @@ enum bt_component_status bt_component_remove_port(
 		struct bt_port *cur_port = g_ptr_array_index(ports, i);
 
 		if (cur_port == port) {
-			bt_component_remove_port_at_index(component,
+			bt_component_remove_port_by_index(component,
 				ports, i);
 			goto end;
 		}

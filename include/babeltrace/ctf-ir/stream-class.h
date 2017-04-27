@@ -274,13 +274,14 @@ of the trace class to which you eventually add \p stream_class.
 
 @prenotnull{stream_class}
 @prehot{stream_class}
+@pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
 @postrefcountsame{stream_class}
 
 @sa bt_ctf_stream_class_get_id(): Returns the numeric ID of a given
 	stream class.
 */
 extern int bt_ctf_stream_class_set_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id);
+		struct bt_ctf_stream_class *stream_class, uint64_t id);
 
 /** @} */
 
@@ -498,8 +499,8 @@ extern int64_t bt_ctf_stream_class_get_event_class_count(
 @sa bt_ctf_stream_class_get_event_class_by_name(): Finds an event class
 	by name.
 */
-extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
-		struct bt_ctf_stream_class *stream_class, int index);
+extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
+		struct bt_ctf_stream_class *stream_class, uint64_t index);
 
 /**
 @brief  Returns the event class named \c name found in the CTF IR stream
@@ -538,7 +539,7 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
 	by name.
 */
 extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id);
+		struct bt_ctf_stream_class *stream_class, uint64_t id);
 
 /**
 @brief	Adds the CTF IR event class \p event_class to the

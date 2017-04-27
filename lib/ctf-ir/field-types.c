@@ -599,7 +599,7 @@ int bt_ctf_field_type_structure_validate(struct bt_ctf_field_type *type)
 	}
 
 	for (i = 0; i < field_count; ++i) {
-		ret = bt_ctf_field_type_structure_get_field(type,
+		ret = bt_ctf_field_type_structure_get_field_by_index(type,
 			NULL, &child_type, i);
 		if (ret) {
 			goto end;
@@ -720,7 +720,7 @@ int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 	}
 
 	for (i = 0; i < field_count; ++i) {
-		ret = bt_ctf_field_type_variant_get_field(type,
+		ret = bt_ctf_field_type_variant_get_field_by_index(type,
 			NULL, &child_type, i);
 		if (ret) {
 			goto end;
@@ -1201,14 +1201,13 @@ end:
 
 int bt_ctf_field_type_enumeration_get_mapping_signed(
 		struct bt_ctf_field_type *enum_field_type,
-		int index,
-		const char **mapping_name, int64_t *range_begin,
+		uint64_t index, const char **mapping_name, int64_t *range_begin,
 		int64_t *range_end)
 {
 	int ret = 0;
 	struct enumeration_mapping *mapping;
 
-	if (!enum_field_type || index < 0) {
+	if (!enum_field_type) {
 		ret = -1;
 		goto end;
 	}
@@ -1236,14 +1235,14 @@ end:
 
 int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		struct bt_ctf_field_type *enum_field_type,
-		int index,
+		uint64_t index,
 		const char **mapping_name, uint64_t *range_begin,
 		uint64_t *range_end)
 {
 	int ret = 0;
 	struct enumeration_mapping *mapping;
 
-	if (!enum_field_type || index < 0) {
+	if (!enum_field_type) {
 		ret = -1;
 		goto end;
 	}
@@ -1428,7 +1427,7 @@ int64_t bt_ctf_field_type_enumeration_get_mapping_count(
 	struct bt_ctf_field_type_enumeration *enumeration;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_ENUM)) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -1604,7 +1603,7 @@ int64_t bt_ctf_field_type_structure_get_field_count(
 	struct bt_ctf_field_type_structure *structure;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_STRUCT)) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -1615,16 +1614,16 @@ end:
 	return ret;
 }
 
-int bt_ctf_field_type_structure_get_field(struct bt_ctf_field_type *type,
+int bt_ctf_field_type_structure_get_field_by_index(
+		struct bt_ctf_field_type *type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		int index)
+		uint64_t index)
 {
 	struct bt_ctf_field_type_structure *structure;
 	struct structure_field *field;
 	int ret = 0;
 
-	if (!type || index < 0 ||
-			(type->id != BT_CTF_FIELD_TYPE_ID_STRUCT)) {
+	if (!type || type->id != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		ret = -1;
 		goto end;
 	}
@@ -1897,7 +1896,7 @@ int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *type
 	struct bt_ctf_field_type_variant *variant;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_VARIANT)) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -1909,16 +1908,15 @@ end:
 
 }
 
-int bt_ctf_field_type_variant_get_field(struct bt_ctf_field_type *type,
+int bt_ctf_field_type_variant_get_field_by_index(struct bt_ctf_field_type *type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		int index)
+		uint64_t index)
 {
 	struct bt_ctf_field_type_variant *variant;
 	struct structure_field *field;
 	int ret = 0;
 
-	if (!type || index < 0 ||
-			(type->id != BT_CTF_FIELD_TYPE_ID_VARIANT)) {
+	if (!type || type->id != BT_CTF_FIELD_TYPE_ID_VARIANT) {
 		ret = -1;
 		goto end;
 	}
@@ -2016,7 +2014,7 @@ int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_array *array;
 
 	if (!type || (type->id != BT_CTF_FIELD_TYPE_ID_ARRAY)) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -2224,8 +2222,8 @@ int bt_ctf_field_type_get_alignment(struct bt_ctf_field_type *type)
 			struct bt_ctf_field_type *field;
 			int field_alignment;
 
-			ret = bt_ctf_field_type_structure_get_field(type, NULL,
-				&field, i);
+			ret = bt_ctf_field_type_structure_get_field_by_index(
+				type, NULL, &field, i);
 			if (ret) {
 				goto end;
 			}
@@ -4126,13 +4124,13 @@ struct bt_ctf_field_type *bt_ctf_field_type_get_field_at_index(
 
 	switch (type_id) {
 	case CTF_TYPE_STRUCT:
-		bt_ctf_field_type_structure_get_field(field_type, NULL, &field,
-			index);
+		bt_ctf_field_type_structure_get_field_by_index(field_type,
+			NULL, &field, index);
 		break;
 	case CTF_TYPE_VARIANT:
 	{
-		int ret = bt_ctf_field_type_variant_get_field(field_type, NULL,
-			&field, index);
+		int ret = bt_ctf_field_type_variant_get_field_by_index(
+			field_type, NULL, &field, index);
 		if (ret) {
 			field = NULL;
 			goto end;

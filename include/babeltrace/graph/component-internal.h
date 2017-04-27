@@ -112,19 +112,19 @@ BT_HIDDEN
 int64_t bt_component_get_output_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port_at_index(struct bt_component *comp,
-		int index);
+struct bt_port *bt_component_get_input_port_by_index(struct bt_component *comp,
+		uint64_t index);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port_at_index(struct bt_component *comp,
-		int index);
+struct bt_port *bt_component_get_output_port_by_index(struct bt_component *comp,
+		uint64_t index);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port(struct bt_component *comp,
+struct bt_port *bt_component_get_input_port_by_name(struct bt_component *comp,
 		const char *name);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port(struct bt_component *comp,
+struct bt_port *bt_component_get_output_port_by_name(struct bt_component *comp,
 		const char *name);
 
 BT_HIDDEN

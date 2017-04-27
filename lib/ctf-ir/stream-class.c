@@ -196,45 +196,45 @@ int64_t bt_ctf_stream_class_get_id(struct bt_ctf_stream_class *stream_class)
 	int64_t ret;
 
 	if (!stream_class || !stream_class->id_set) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
-	ret = (int64_t) stream_class->id;
+	ret = stream_class->id;
 end:
 	return ret;
 }
 
 BT_HIDDEN
 int _bt_ctf_stream_class_set_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id)
+		struct bt_ctf_stream_class *stream_class, int64_t id)
 {
 	stream_class->id = id;
 	stream_class->id_set = 1;
 	return 0;
 }
 
-struct event_class_set_stream_id_data {
-	uint32_t stream_id;
+struct event_class_set_stream_class_id_data {
+	int64_t stream_class_id;
 	int ret;
 };
 
 static
 void event_class_set_stream_id(gpointer event_class, gpointer data)
 {
-	struct event_class_set_stream_id_data *typed_data = data;
+	struct event_class_set_stream_class_id_data *typed_data = data;
 
 	typed_data->ret |= bt_ctf_event_class_set_stream_id(event_class,
-		typed_data->stream_id);
+		typed_data->stream_class_id);
 }
 
 BT_HIDDEN
 int bt_ctf_stream_class_set_id_no_check(
-		struct bt_ctf_stream_class *stream_class, uint32_t id)
+		struct bt_ctf_stream_class *stream_class, int64_t id)
 {
 	int ret = 0;
-	struct event_class_set_stream_id_data data =
-		{ .stream_id = id, .ret = 0 };
+	struct event_class_set_stream_class_id_data data =
+		{ .stream_class_id = id, .ret = 0 };
 
 	/*
 	 * Make sure all event classes have their "stream_id" attribute
@@ -256,11 +256,12 @@ end:
 }
 
 int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-		uint32_t id)
+		uint64_t id_param)
 {
 	int ret = 0;
+	int64_t id = (int64_t) id_param;
 
-	if (!stream_class || stream_class->frozen) {
+	if (!stream_class || stream_class->frozen || id < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -495,22 +496,21 @@ int64_t bt_ctf_stream_class_get_event_class_count(
 	int64_t ret;
 
 	if (!stream_class) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
-	ret = (int) stream_class->event_classes->len;
+	ret = (int64_t) stream_class->event_classes->len;
 end:
 	return ret;
 }
 
-struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
-		struct bt_ctf_stream_class *stream_class, int index)
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
+		struct bt_ctf_stream_class *stream_class, uint64_t index)
 {
 	struct bt_ctf_event_class *event_class = NULL;
 
-	if (!stream_class || index < 0 ||
-		index >= stream_class->event_classes->len) {
+	if (!stream_class || index >= stream_class->event_classes->len) {
 		goto end;
 	}
 
@@ -547,12 +547,12 @@ end:
 }
 
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id)
+		struct bt_ctf_stream_class *stream_class, uint64_t id)
 {
-	int64_t id_key = id;
+	int64_t id_key = (int64_t) id;
 	struct bt_ctf_event_class *event_class = NULL;
 
-	if (!stream_class) {
+	if (!stream_class || id_key < 0) {
 		goto end;
 	}
 
@@ -704,7 +704,7 @@ int64_t get_event_class_count(void *element)
 static
 void *get_event_class(void *element, int i)
 {
-	return bt_ctf_stream_class_get_event_class(
+	return bt_ctf_stream_class_get_event_class_by_index(
 			(struct bt_ctf_stream_class *) element, i);
 }
 
@@ -759,7 +759,7 @@ BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context)
 {
-	int64_t ret = 0;
+	int ret = 0;
 	size_t i;
 
 	g_string_assign(context->field_name, "");
@@ -770,7 +770,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	}
 
 	g_string_append_printf(context->string,
-		"stream {\n\tid = %" PRIu32 ";\n\tevent.header := ",
+		"stream {\n\tid = %" PRId64 ";\n\tevent.header := ",
 		stream_class->id);
 	ret = bt_ctf_field_type_serialize(stream_class->event_header_type,
 		context);

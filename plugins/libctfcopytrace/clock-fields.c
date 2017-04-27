@@ -329,7 +329,7 @@ struct bt_ctf_field_type *override_header_type(FILE *err,
 	int ret;
 
 	/* FIXME multi-clock? */
-	writer_clock_class = bt_ctf_trace_get_clock_class(writer_trace, 0);
+	writer_clock_class = bt_ctf_trace_get_clock_class_by_index(writer_trace, 0);
 	if (!writer_clock_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
@@ -516,7 +516,7 @@ int copy_find_clock_enum_field(FILE *err, struct bt_ctf_event *event,
 				__LINE__);
 		goto error;
 	}
-	
+
 	ret = 0;
 	goto end;
 
@@ -818,7 +818,7 @@ struct bt_ctf_clock_class *stream_class_get_clock_class(FILE *err,
 	}
 
 	/* FIXME multi-clock? */
-	clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
 
 	bt_put(trace);
 end:

@@ -139,9 +139,10 @@ extern int64_t bt_clock_class_priority_map_get_clock_class_count(
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_ctf_clock_class *bt_clock_class_priority_map_get_clock_class(
+extern struct bt_ctf_clock_class *
+bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		unsigned int index);
+		uint64_t index);
 
 /**
 @brief  Returns the CTF IR clock class named \c name found in the clock
@@ -161,7 +162,7 @@ extern struct bt_ctf_clock_class *bt_clock_class_priority_map_get_clock_class(
 @postrefcountsame{clock_class_priority_map}
 @postsuccessrefcountretinc
 
-@sa bt_clock_class_priority_map_get_clock_class(): Returns the clock
+@sa bt_clock_class_priority_map_get_clock_class_by_index(): Returns the clock
 	class contained in a given clock class priority map at
 	a given index.
 @sa bt_clock_class_priority_map_get_highest_priority_clock_class():
@@ -198,7 +199,7 @@ this function returns.
 @postrefcountsame{clock_class_priority_map}
 @postsuccessrefcountretinc
 
-@sa bt_clock_class_priority_map_get_clock_class(): Returns the clock
+@sa bt_clock_class_priority_map_get_clock_class_by_index(): Returns the clock
 	class contained in a given clock class priority map at
 	a given index.
 @sa bt_clock_class_priority_map_get_clock_class_by_name(): Finds a
@@ -270,7 +271,7 @@ map.
 @postrefcountsame{clock_class_priority_map}
 @postsuccessrefcountinc{clock_class}
 
-@sa bt_clock_class_priority_map_get_clock_class(): Returns the clock
+@sa bt_clock_class_priority_map_get_clock_class_by_index(): Returns the clock
 	class contained in a given clock class priority map
 	at a given index.
 @sa bt_clock_class_priority_map_get_clock_class_by_name(): Finds a

@@ -1440,7 +1440,7 @@ enum bt_component_status print_event_payload(struct pretty_component *pretty,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_ctf_field *main_field = NULL;
 
-	main_field = bt_ctf_event_get_payload_field(event);
+	main_field = bt_ctf_event_get_event_payload(event);
 	if (!main_field) {
 		goto end;
 	}

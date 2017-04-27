@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
@@ -33,13 +34,14 @@ struct bt_private_component;
 struct bt_private_port;
 
 extern struct bt_private_port *
-bt_private_component_source_get_output_private_port(
+bt_private_component_source_get_output_private_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name);
 
 extern struct bt_private_port *
-bt_private_component_source_get_output_private_port_at_index(
-		struct bt_private_component *private_component, int index);
+bt_private_component_source_get_output_private_port_by_index(
+		struct bt_private_component *private_component,
+		uint64_t index);
 
 extern struct bt_private_port *
 bt_private_component_source_get_default_output_private_port(

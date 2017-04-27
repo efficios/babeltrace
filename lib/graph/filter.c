@@ -81,22 +81,22 @@ end:
 }
 
 int64_t bt_component_filter_get_input_port_count(
-		struct bt_component *component, uint64_t *count)
+		struct bt_component *component)
 {
 	int64_t ret;
 
 	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-	        ret = -1;
+	        ret = (int64_t) -1;
 		goto end;
 	}
 
-	ret = bt_component_get_input_port_count(component);
+	ret = (int64_t) bt_component_get_input_port_count(component);
 end:
 	return ret;
 }
 
-struct bt_port *bt_component_filter_get_input_port(
+struct bt_port *bt_component_filter_get_input_port_by_name(
 		struct bt_component *component, const char *name)
 {
 	struct bt_port *port = NULL;
@@ -106,13 +106,13 @@ struct bt_port *bt_component_filter_get_input_port(
 		goto end;
 	}
 
-	port = bt_component_get_input_port(component, name);
+	port = bt_component_get_input_port_by_name(component, name);
 end:
 	return port;
 }
 
-struct bt_port *bt_component_filter_get_input_port_at_index(
-		struct bt_component *component, int index)
+struct bt_port *bt_component_filter_get_input_port_by_index(
+		struct bt_component *component, uint64_t index)
 {
 	struct bt_port *port = NULL;
 
@@ -121,7 +121,7 @@ struct bt_port *bt_component_filter_get_input_port_at_index(
 		goto end;
 	}
 
-	port = bt_component_get_input_port_at_index(component, index);
+	port = bt_component_get_input_port_by_index(component, index);
 end:
 	return port;
 }
@@ -129,18 +129,18 @@ end:
 struct bt_port *bt_component_filter_get_default_input_port(
 		struct bt_component *component)
 {
-	return bt_component_filter_get_input_port(component,
+	return bt_component_filter_get_input_port_by_name(component,
 			DEFAULT_INPUT_PORT_NAME);
 }
 
 int64_t bt_component_filter_get_output_port_count(
-		struct bt_component *component, uint64_t *count)
+		struct bt_component *component)
 {
 	int64_t ret;
 
-	if (!component || !count ||
+	if (!component ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-	        ret = -1;
+	        ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -149,7 +149,7 @@ end:
 	return ret;
 }
 
-struct bt_port *bt_component_filter_get_output_port(
+struct bt_port *bt_component_filter_get_output_port_by_name(
 		struct bt_component *component, const char *name)
 {
 	struct bt_port *port = NULL;
@@ -159,13 +159,13 @@ struct bt_port *bt_component_filter_get_output_port(
 		goto end;
 	}
 
-	port = bt_component_get_output_port(component, name);
+	port = bt_component_get_output_port_by_name(component, name);
 end:
 	return port;
 }
 
-struct bt_port *bt_component_filter_get_output_port_at_index(
-		struct bt_component *component, int index)
+struct bt_port *bt_component_filter_get_output_port_by_index(
+		struct bt_component *component, uint64_t index)
 {
 	struct bt_port *port = NULL;
 
@@ -174,7 +174,7 @@ struct bt_port *bt_component_filter_get_output_port_at_index(
 		goto end;
 	}
 
-	port = bt_component_get_output_port_at_index(component, index);
+	port = bt_component_get_output_port_by_index(component, index);
 end:
 	return port;
 }
@@ -182,16 +182,16 @@ end:
 struct bt_port *bt_component_filter_get_default_output_port(
 		struct bt_component *component)
 {
-	return bt_component_filter_get_output_port(component,
+	return bt_component_filter_get_output_port_by_name(component,
 			DEFAULT_OUTPUT_PORT_NAME);
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_input_private_port_at_index(
-		struct bt_private_component *private_component, int index)
+bt_private_component_filter_get_input_private_port_by_index(
+		struct bt_private_component *private_component, uint64_t index)
 {
 	return bt_private_port_from_port(
-		bt_component_filter_get_input_port_at_index(
+		bt_component_filter_get_input_port_by_index(
 			bt_component_from_private(private_component), index));
 }
 
@@ -223,11 +223,11 @@ end:
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_output_private_port_at_index(
-		struct bt_private_component *private_component, int index)
+bt_private_component_filter_get_output_private_port_by_index(
+		struct bt_private_component *private_component, uint64_t index)
 {
 	return bt_private_port_from_port(
-		bt_component_filter_get_output_port_at_index(
+		bt_component_filter_get_output_port_by_index(
 			bt_component_from_private(private_component), index));
 }
 

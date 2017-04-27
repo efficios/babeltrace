@@ -3437,8 +3437,9 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 			} else {
 				assert(bt_ctf_trace_get_stream_class_count(
 					ctx->trace) == 1);
-				stream_class = bt_ctf_trace_get_stream_class(
-					ctx->trace, 0);
+				stream_class =
+					bt_ctf_trace_get_stream_class_by_index(
+						ctx->trace, 0);
 				assert(stream_class);
 				stream_id = bt_ctf_stream_class_get_id(
 					stream_class);

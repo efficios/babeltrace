@@ -78,7 +78,7 @@ trace class with bt_ctf_trace_add_stream_class().
 
 You can access the streams of a trace, that is, the streams which were
 created from the trace's stream classes with bt_ctf_stream_create(),
-with bt_ctf_trace_get_stream().
+with bt_ctf_trace_get_stream_by_index().
 
 A trace class owns the <strong>trace packet header</strong>
 \link ctfirfieldtypes field type\endlink, which represents the
@@ -315,7 +315,7 @@ the returned string.
 	\p trace_class (see bt_ctf_trace_get_environment_field_count()).
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_environment_field_value(): Finds a trace class's
+@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
 @sa bt_ctf_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
@@ -323,8 +323,8 @@ the returned string.
 	class's environment entry.
 */
 extern const char *
-bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace_class,
-		int index);
+bt_ctf_trace_get_environment_field_name_by_index(
+		struct bt_ctf_trace *trace_class, uint64_t index);
 
 /**
 @brief	Returns the value of the environment entry at index
@@ -348,8 +348,8 @@ bt_ctf_trace_get_environment_field_name(struct bt_ctf_trace *trace_class,
 	class's environment entry.
 */
 extern struct bt_value *
-bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace_class,
-		int index);
+bt_ctf_trace_get_environment_field_value_by_index(struct bt_ctf_trace *trace_class,
+		uint64_t index);
 
 /**
 @brief	Returns the value of the environment entry named \p name
@@ -367,7 +367,7 @@ bt_ctf_trace_get_environment_field_value(struct bt_ctf_trace *trace_class,
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_environment_field_value(): Finds a trace class's
+@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
 @sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
@@ -401,7 +401,7 @@ value is first put, and then replaced by \p value.
 @postrefcountsame{trace_class}
 @postsuccessrefcountinc{value}
 
-@sa bt_ctf_trace_get_environment_field_value(): Finds a trace class's
+@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
 @sa bt_ctf_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
@@ -573,8 +573,8 @@ extern int64_t bt_ctf_trace_get_clock_class_count(
 	in a given trace class.
 @sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
-		struct bt_ctf_trace *trace_class, int index);
+extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
+		struct bt_ctf_trace *trace_class, uint64_t index);
 
 /**
 @brief  Returns the CTF IR clock class named \c name found in the CTF
@@ -591,7 +591,7 @@ extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock_class(): Returns the clock class contained
+@sa bt_ctf_trace_get_clock_class_by_index(): Returns the clock class contained
 	in a given trace class at a given index.
 @sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
 */
@@ -618,7 +618,7 @@ are frozen.
 @post <strong>On success, if \p trace_class is frozen</strong>,
 	\p clock_class is frozen.
 
-@sa bt_ctf_trace_get_clock_class(): Returns the clock class contained
+@sa bt_ctf_trace_get_clock_class_by_index(): Returns the clock class contained
 	in a given trace class at a given index.
 @sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name
 	in a given trace class.
@@ -667,8 +667,8 @@ extern int64_t bt_ctf_trace_get_stream_class_count(
 @sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
 @sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
-		struct bt_ctf_trace *trace_class, int index);
+extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
+		struct bt_ctf_trace *trace_class, uint64_t index);
 
 /**
 @brief  Returns the stream class with ID \c id found in the CTF IR
@@ -683,12 +683,12 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_stream_class(): Returns the stream class contained
+@sa bt_ctf_trace_get_stream_class_by_index(): Returns the stream class contained
 	in a given trace class at a given index.
 @sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.
 */
 extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
-		struct bt_ctf_trace *trace_class, uint32_t id);
+		struct bt_ctf_trace *trace_class, uint64_t id);
 
 /**
 @brief	Adds the CTF IR stream class \p stream_class to the
@@ -717,7 +717,7 @@ resolving fails, then this function fails.
 @postsuccessrefcountinc{stream_class}
 @postsuccessfrozen{stream_class}
 
-@sa bt_ctf_trace_get_stream_class(): Returns the stream class contained
+@sa bt_ctf_trace_get_stream_class_by_index(): Returns the stream class contained
 	in a given trace class at a given index.
 @sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
 */
@@ -761,8 +761,8 @@ extern int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
 	bt_ctf_trace_get_stream_count()).
 @postrefcountsame{trace_class}
 */
-extern struct bt_ctf_stream *bt_ctf_trace_get_stream(
-		struct bt_ctf_trace *trace_class, int index);
+extern struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
+		struct bt_ctf_trace *trace_class, uint64_t index);
 
 /** @} */
 

@@ -87,8 +87,8 @@ static void test_invalid(const char *plugin_dir)
 		"bt_plugin_get_path() handles NULL correctly");
 	ok(bt_plugin_get_component_class_count(NULL) < 0,
 		"bt_plugin_get_component_class_count() handles NULL correctly");
-	ok(!bt_plugin_get_component_class(NULL, 0),
-		"bt_plugin_get_component_class() handles NULL correctly");
+	ok(!bt_plugin_get_component_class_by_index(NULL, 0),
+		"bt_plugin_get_component_class_by_index() handles NULL correctly");
 	ok(!bt_plugin_get_component_class_by_name_and_type(NULL, NULL, 0),
 		"bt_plugin_get_component_class_by_name_and_type() handles NULL correctly");
 }

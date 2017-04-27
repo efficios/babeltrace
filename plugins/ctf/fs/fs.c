@@ -347,8 +347,8 @@ int create_cc_prio_map(struct ctf_fs_component *ctf_fs)
 
 	for (i = 0; i < count; i++) {
 		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class(ctf_fs->metadata->trace,
-				i);
+			bt_ctf_trace_get_clock_class_by_index(
+				ctf_fs->metadata->trace, i);
 
 		assert(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(

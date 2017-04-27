@@ -51,6 +51,7 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
+BT_HIDDEN
 enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_ctf_trace *writer_trace,
 		struct bt_ctf_stream_class *writer_stream_class,
@@ -61,6 +62,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
  *
  * Returns NULL on error.
  */
+BT_HIDDEN
 struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		struct bt_ctf_event_class *event_class);
 
@@ -71,6 +73,7 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
+BT_HIDDEN
 enum bt_component_status ctf_copy_event_classes(FILE *err,
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream_class *writer_stream_class);
@@ -80,6 +83,7 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
  *
  * Returns NULL or error.
  */
+BT_HIDDEN
 struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_trace *writer_trace,
@@ -92,6 +96,7 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
+BT_HIDDEN
 enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 		struct bt_ctf_field *field, const char *field_name,
 		struct bt_ctf_field *writer_packet_context,
@@ -106,6 +111,7 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
+BT_HIDDEN
 struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream);
@@ -116,6 +122,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
  *
  * Returns NULL on error.
  */
+BT_HIDDEN
 struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
 		bool override_ts64);
@@ -125,6 +132,7 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
  *
  * Returns 0 on success, -1 on error.
  */
+BT_HIDDEN
 int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
 		struct bt_ctf_event *writer_event,
@@ -137,6 +145,7 @@ int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
  */
+BT_HIDDEN
 enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		struct bt_ctf_trace *writer_trace);
 

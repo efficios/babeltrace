@@ -130,8 +130,7 @@ extern int64_t bt_ctf_field_path_get_index_count(
 @postrefcountsame{field_path}
 */
 extern int bt_ctf_field_path_get_index(
-		const struct bt_ctf_field_path *field_path,
-		int index);
+		const struct bt_ctf_field_path *field_path, uint64_t index);
 
 /** @} */
 

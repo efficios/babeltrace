@@ -1378,7 +1378,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	at a given index.
 */
 extern int bt_ctf_field_type_enumeration_get_mapping_signed(
-		struct bt_ctf_field_type *enum_field_type, int index,
+		struct bt_ctf_field_type *enum_field_type, uint64_t index,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
 /**
@@ -1420,7 +1420,7 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	at a given index.
 */
 extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
-		struct bt_ctf_field_type *enum_field_type, int index,
+		struct bt_ctf_field_type *enum_field_type, uint64_t index,
 		const char **name, uint64_t *range_begin,
 		uint64_t *range_end);
 
@@ -1955,10 +1955,13 @@ On success, the field's type is placed in \p *field_type if
 @sa bt_ctf_field_type_structure_get_field_type_by_name(): Finds a
 	structure field type's field by name.
 */
-extern int bt_ctf_field_type_structure_get_field(
+extern int bt_ctf_field_type_structure_get_field_by_index(
 		struct bt_ctf_field_type *struct_field_type,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		int index);
+		uint64_t index);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type_structure_get_field bt_ctf_field_type_structure_get_field_by_index
 
 /**
 @brief  Returns the type of the field named \p field_name found in
@@ -1977,7 +1980,7 @@ extern int bt_ctf_field_type_structure_get_field(
 @postrefcountsame{struct_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_structure_get_field(): Finds a
+@sa bt_ctf_field_type_structure_get_field_by_index(): Finds a
 	structure field type's field by index.
 */
 extern
@@ -2436,10 +2439,13 @@ On success, the field's type is placed in \p *field_type if
 @sa bt_ctf_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
 */
-extern int bt_ctf_field_type_variant_get_field(
+extern int bt_ctf_field_type_variant_get_field_by_index(
 		struct bt_ctf_field_type *variant_field_type,
 		const char **field_name,
-		struct bt_ctf_field_type **field_type, int index);
+		struct bt_ctf_field_type **field_type, uint64_t index);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type_variant_get_field bt_ctf_field_type_variant_get_field_by_index
 
 /**
 @brief  Returns the type of the field (choice) named \p field_name
@@ -2458,7 +2464,7 @@ extern int bt_ctf_field_type_variant_get_field(
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_variant_get_field(): Finds a variant field type's
+@sa bt_ctf_field_type_variant_get_field_by_index(): Finds a variant field type's
 	field by index.
 @sa bt_ctf_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
@@ -2494,7 +2500,7 @@ bt_ctf_field_type_variant_get_tag_type() for \p variant_field_type.
 @postrefcountsame{tag_field}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_variant_get_field(): Finds a variant field type's
+@sa bt_ctf_field_type_variant_get_field_by_index(): Finds a variant field type's
 	field by index.
 @sa bt_ctf_field_type_variant_get_field_type_by_name(): Finds a variant
 	field type's field by name.

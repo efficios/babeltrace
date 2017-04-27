@@ -946,7 +946,8 @@ void test_src_adds_port_in_port_connected(void)
 	assert(sink_def_port);
 	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
 	assert(conn);
-	src_hello_port = bt_component_source_get_output_port(src, "hello");
+	src_hello_port = bt_component_source_get_output_port_by_name(src,
+		"hello");
 	assert(src_hello_port);
 
 	/* We're supposed to have 6 events */

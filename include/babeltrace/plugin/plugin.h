@@ -112,8 +112,8 @@ extern enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
 
 extern int64_t bt_plugin_get_component_class_count(struct bt_plugin *plugin);
 
-extern struct bt_component_class *bt_plugin_get_component_class(
-		struct bt_plugin *plugin, size_t index);
+extern struct bt_component_class *bt_plugin_get_component_class_by_index(
+		struct bt_plugin *plugin, uint64_t index);
 
 extern
 struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
@@ -125,7 +125,7 @@ int64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set);
 
 extern
 struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
-		unsigned int index);
+		uint64_t index);
 
 #ifdef __cplusplus
 }

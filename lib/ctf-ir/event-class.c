@@ -140,12 +140,12 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 	int64_t ret = 0;
 
 	if (!event_class) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
 	if (event_class->id >= 0) {
-		ret = event_class->id;
+		ret = (int64_t) event_class->id;
 		goto end;
 	}
 
@@ -156,12 +156,12 @@ int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 	}
 
 	if (bt_value_integer_get(obj, &ret)) {
-		ret = -1;
+		ret = (int64_t) -1;
 	}
 
 	if (ret < 0) {
 		/* means ID is not set */
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -171,14 +171,14 @@ end:
 }
 
 int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
-		uint32_t id)
+		uint64_t id_param)
 {
 	int ret = 0;
 	struct bt_value *obj = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
+	int64_t id = (int64_t) id_param;
 
-
-	if (!event_class) {
+	if (!event_class || id < 0) {
 		ret = -1;
 		goto end;
 	}
@@ -265,10 +265,10 @@ end:
 int64_t bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class)
 {
-	int64_t ret = 0;
+	int64_t ret;
 
 	if (!event_class) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -279,8 +279,8 @@ end:
 }
 
 const char *
-bt_ctf_event_class_get_attribute_name(
-		struct bt_ctf_event_class *event_class, int index)
+bt_ctf_event_class_get_attribute_name_by_index(
+		struct bt_ctf_event_class *event_class, uint64_t index)
 {
 	const char *ret;
 
@@ -296,8 +296,8 @@ end:
 }
 
 struct bt_value *
-bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
-		int index)
+bt_ctf_event_class_get_attribute_value_by_index(
+		struct bt_ctf_event_class *event_class, uint64_t index)
 {
 	struct bt_value *ret;
 
@@ -400,19 +400,19 @@ end:
 	return ret;
 }
 
-int64_t bt_ctf_event_class_get_field_count(
+int64_t bt_ctf_event_class_get_payload_type_field_count(
 		struct bt_ctf_event_class *event_class)
 {
 	int64_t ret;
 
 	if (!event_class) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
 	if (bt_ctf_field_type_get_type_id(event_class->fields) !=
 		BT_CTF_FIELD_TYPE_ID_STRUCT) {
-		ret = -1;
+		ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -421,13 +421,14 @@ end:
 	return ret;
 }
 
-int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
+int bt_ctf_event_class_get_payload_type_field_by_index(
+		struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		int index)
+		uint64_t index)
 {
 	int ret;
 
-	if (!event_class || index < 0) {
+	if (!event_class) {
 		ret = -1;
 		goto end;
 	}
@@ -444,7 +445,8 @@ end:
 	return ret;
 }
 
-struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+struct bt_ctf_field_type *
+bt_ctf_event_class_get_payload_type_field_type_by_name(
 		struct bt_ctf_event_class *event_class, const char *name)
 {
 	GQuark name_quark;
@@ -525,10 +527,18 @@ void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 
 BT_HIDDEN
 int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
-		uint32_t stream_id)
+		uint64_t stream_id_param)
 {
 	int ret = 0;
-	struct bt_value *obj;
+	struct bt_value *obj = NULL;
+	int64_t stream_id = (int64_t) stream_id_param;
+
+	assert(event_class);
+
+	if (stream_id < 0) {
+		ret = -1;
+		goto end;
+	}
 
 	obj = bt_value_integer_create_init(stream_id);
 
@@ -598,9 +608,9 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	for (i = 0; i < count; ++i) {
 		const char *attr_name = NULL;
 
-		attr_name = bt_ctf_event_class_get_attribute_name(
+		attr_name = bt_ctf_event_class_get_attribute_name_by_index(
 			event_class, i);
-		attr_value = bt_ctf_event_class_get_attribute_value(
+		attr_value = bt_ctf_event_class_get_attribute_value_by_index(
 			event_class, i);
 
 		if (!attr_name || !attr_value) {

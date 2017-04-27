@@ -894,7 +894,7 @@ static int cmd_help(struct bt_config *cfg)
 
 	for (i = 0; i < bt_plugin_get_component_class_count(plugin); i++) {
 		struct bt_component_class *comp_cls =
-			bt_plugin_get_component_class(plugin, i);
+			bt_plugin_get_component_class_by_index(plugin, i);
 		const char *comp_class_name =
 			bt_component_class_get_name(comp_cls);
 		const char *comp_class_description =
@@ -1000,7 +1000,8 @@ static int cmd_list_plugins(struct bt_config *cfg)
 
 		for (j = 0; j < component_classes_count; j++) {
 			struct bt_component_class *comp_class =
-				bt_plugin_get_component_class(plugin, j);
+				bt_plugin_get_component_class_by_index(
+					plugin, j);
 			const char *comp_class_name =
 				bt_component_class_get_name(comp_class);
 			const char *comp_class_description =

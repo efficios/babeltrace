@@ -348,11 +348,11 @@ static void init_weak_refs(struct bt_ctf_trace *tc,
 		struct bt_ctf_event_class **ec3)
 {
 	*tc1 = tc;
-	*sc1 = bt_ctf_trace_get_stream_class(tc, 0);
-	*sc2 = bt_ctf_trace_get_stream_class(tc, 1);
-	*ec1 = bt_ctf_stream_class_get_event_class(*sc1, 0);
-	*ec2 = bt_ctf_stream_class_get_event_class(*sc1, 1);
-	*ec3 = bt_ctf_stream_class_get_event_class(*sc2, 0);
+	*sc1 = bt_ctf_trace_get_stream_class_by_index(tc, 0);
+	*sc2 = bt_ctf_trace_get_stream_class_by_index(tc, 1);
+	*ec1 = bt_ctf_stream_class_get_event_class_by_index(*sc1, 0);
+	*ec2 = bt_ctf_stream_class_get_event_class_by_index(*sc1, 1);
+	*ec3 = bt_ctf_stream_class_get_event_class_by_index(*sc2, 0);
 	bt_put(*sc1);
 	bt_put(*sc2);
 	bt_put(*ec1);
@@ -402,7 +402,7 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_ctf_trace_get_stream_class(user_a.tc, 1);
+	user_a.sc = bt_ctf_trace_get_stream_class_by_index(user_a.tc, 1);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
 	ok(bt_object_get_ref_count(weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -410,7 +410,7 @@ static void test_example_scenario(void)
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
-	user_a.ec = bt_ctf_stream_class_get_event_class(user_a.sc, 0);
+	user_a.ec = bt_ctf_stream_class_get_event_class_by_index(user_a.sc, 0);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
 	ok(bt_object_get_ref_count(weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -457,7 +457,7 @@ static void test_example_scenario(void)
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
-	user_c.ec = bt_ctf_stream_class_get_event_class(user_b.sc, 0);
+	user_c.ec = bt_ctf_stream_class_get_event_class_by_index(user_b.sc, 0);
 	ok(bt_object_get_ref_count(weak_ec1) == 1,
 			"EC1 reference count is 1");
 	ok(bt_object_get_ref_count(weak_sc1) == 2,

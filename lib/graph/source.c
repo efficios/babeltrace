@@ -86,7 +86,7 @@ int64_t bt_component_source_get_output_port_count(
 
 	if (!component || !count ||
 			component->class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
-	        ret = -1;
+	        ret = (int64_t) -1;
 		goto end;
 	}
 
@@ -95,7 +95,7 @@ end:
 	return ret;
 }
 
-struct bt_port *bt_component_source_get_output_port(
+struct bt_port *bt_component_source_get_output_port_by_name(
 		struct bt_component *component, const char *name)
 {
 	struct bt_port *port = NULL;
@@ -105,13 +105,13 @@ struct bt_port *bt_component_source_get_output_port(
 		goto end;
 	}
 
-	port = bt_component_get_output_port(component, name);
+	port = bt_component_get_output_port_by_name(component, name);
 end:
 	return port;
 }
 
-struct bt_port *bt_component_source_get_output_port_at_index(
-		struct bt_component *component, int index)
+struct bt_port *bt_component_source_get_output_port_by_index(
+		struct bt_component *component, uint64_t index)
 {
 	struct bt_port *port = NULL;
 
@@ -120,7 +120,7 @@ struct bt_port *bt_component_source_get_output_port_at_index(
 		goto end;
 	}
 
-	port = bt_component_get_output_port_at_index(component, index);
+	port = bt_component_get_output_port_by_index(component, index);
 end:
 	return port;
 }
@@ -128,24 +128,26 @@ end:
 struct bt_port *bt_component_source_get_default_output_port(
 		struct bt_component *component)
 {
-	return bt_component_source_get_output_port(component,
+	return bt_component_source_get_output_port_by_name(component,
 			DEFAULT_OUTPUT_PORT_NAME);
 }
 
-struct bt_private_port *bt_private_component_source_get_output_private_port(
+struct bt_private_port *
+bt_private_component_source_get_output_private_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
-	return bt_private_port_from_port(bt_component_source_get_output_port(
-		bt_component_from_private(private_component), name));
+	return bt_private_port_from_port(
+		bt_component_source_get_output_port_by_name(
+			bt_component_from_private(private_component), name));
 }
 
 struct bt_private_port *
-bt_private_component_source_get_output_private_port_at_index(
-		struct bt_private_component *private_component, int index)
+bt_private_component_source_get_output_private_port_by_index(
+		struct bt_private_component *private_component, uint64_t index)
 {
 	return bt_private_port_from_port(
-		bt_component_source_get_output_port_at_index(
+		bt_component_source_get_output_port_by_index(
 			bt_component_from_private(private_component), index));
 }
 

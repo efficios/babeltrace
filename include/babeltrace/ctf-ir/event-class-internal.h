@@ -76,7 +76,7 @@ void bt_ctf_event_class_set_native_byte_order(
 
 BT_HIDDEN
 int bt_ctf_event_class_set_stream_id(struct bt_ctf_event_class *event_class,
-		uint32_t stream_id);
+		uint64_t stream_id);
 
 static inline
 struct bt_ctf_stream_class *bt_ctf_event_class_borrow_stream_class(

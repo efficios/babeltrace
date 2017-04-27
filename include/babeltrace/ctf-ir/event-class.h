@@ -216,13 +216,14 @@ of the stream class to which you eventually add \p event_class.
 
 @prenotnull{event_class}
 @prehot{event_class}
+@pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
 @postrefcountsame{event_class}
 
 @sa bt_ctf_event_class_get_id(): Returns the numeric ID of a given
 	event class.
 */
 extern int bt_ctf_event_class_set_id(
-		struct bt_ctf_event_class *event_class, uint32_t id);
+		struct bt_ctf_event_class *event_class, uint64_t id);
 
 /**
 @brief	Returns the number of attributes contained in the CTF IR event
@@ -236,10 +237,10 @@ extern int bt_ctf_event_class_set_id(
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_attribute_name(): Returns the name of
-	the attribute of a given event class at a given index.
-@sa bt_ctf_event_class_get_attribute_value(): Returns the value of
-	the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_get_attribute_name_by_index(): Returns the name
+	of the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_get_attribute_value_by_index(): Returns the value
+	of the attribute of a given event class at a given index.
 */
 extern int64_t bt_ctf_event_class_get_attribute_count(
 		struct bt_ctf_event_class *event_class);
@@ -261,12 +262,12 @@ string.
 	\p event_class.
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_attribute_value(): Returns the value of
-	the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_get_attribute_value_by_index(): Returns the value
+	of the attribute of a given event class at a given index.
 */
 extern const char *
-bt_ctf_event_class_get_attribute_name(
-		struct bt_ctf_event_class *event_class, int index);
+bt_ctf_event_class_get_attribute_name_by_index(
+		struct bt_ctf_event_class *event_class, uint64_t index);
 
 /**
 @brief	Returns the value of the attribute at the index \p index of the
@@ -283,12 +284,12 @@ bt_ctf_event_class_get_attribute_name(
 @postsuccessrefcountretinc
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_attribute_name(): Returns the name of
-	the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_get_attribute_name_by_index(): Returns the name
+	of the attribute of a given event class at a given index.
 */
 extern struct bt_value *
-bt_ctf_event_class_get_attribute_value(struct bt_ctf_event_class *event_class,
-		int index);
+bt_ctf_event_class_get_attribute_value_by_index(
+		struct bt_ctf_event_class *event_class, uint64_t index);
 
 /**
 @brief	Returns the value of the attribute named \p name of the CTF IR
@@ -482,7 +483,7 @@ bt_ctf_field_type_structure_get_field_count().
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 */
-extern int64_t bt_ctf_event_class_get_field_count(
+extern int64_t bt_ctf_event_class_get_payload_type_field_count(
 		struct bt_ctf_event_class *event_class);
 
 /**
@@ -518,14 +519,15 @@ bt_ctf_field_type_structure_get_field().
 @prenotnull{event_class}
 @pre \p index is lesser than the number of fields contained in the
 	payload field type of \p event_class (see
-	bt_ctf_event_class_get_field_count()).
+	bt_ctf_event_class_get_payload_type_field_count()).
 @postrefcountsame{event_class}
 @post <strong>On success, if \p field_type is not \c NULL</strong>, the
 	reference count of \p *field_type is incremented.
 */
-extern int bt_ctf_event_class_get_field(struct bt_ctf_event_class *event_class,
+extern int bt_ctf_event_class_get_payload_type_field_by_index(
+		struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
-		int index);
+		uint64_t index);
 
 /**
 @brief  Returns the type of the field named \p name in the payload
@@ -550,8 +552,12 @@ bt_ctf_field_type_structure_get_field_type_by_name().
 @postrefcountsame{event_class}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+extern struct bt_ctf_field_type *
+bt_ctf_event_class_get_payload_type_field_type_by_name(
 		struct bt_ctf_event_class *event_class, const char *name);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_event_class_get_field_by_name bt_ctf_event_class_get_payload_type_field_type_by_name
 
 /**
 @brief	Adds a field named \p name with the type \p field_type to the

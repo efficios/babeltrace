@@ -115,24 +115,15 @@ end:
 int64_t bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path)
 {
-	int64_t ret = -1;
-
-	if (!field_path) {
-		goto end;
-	}
-
-	ret = field_path->indexes->len;
-
-end:
-	return ret;
+	return field_path ? (int64_t) field_path->indexes->len : (int64_t) -1;
 }
 
 int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
-		int index)
+		uint64_t index)
 {
 	int ret = INT_MIN;
 
-	if (!field_path || index < 0) {
+	if (!field_path) {
 		goto end;
 	}
 

@@ -349,7 +349,7 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 	struct bt_port *downstream_port = NULL;
 	struct bt_connection *origin_connection = NULL;
 	struct bt_connection *new_connection = NULL;
-        int port_index;
+        int64_t port_index;
 
 	if (!graph || !origin || !new_component) {
 		status = BT_GRAPH_STATUS_INVALID;
@@ -393,14 +393,14 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 
 	/* Replicate input connections. */
 	for (port_index = 0; port_index< origin_input_port_count; port_index++) {
-		origin_port = bt_component_get_input_port_at_index(origin,
+		origin_port = bt_component_get_input_port_by_index(origin,
 			port_index);
 		if (!origin_port) {
 			status = BT_GRAPH_STATUS_ERROR;
 			goto error_disconnect;
 		}
 
-		new_port = bt_component_get_input_port_at_index(new_component,
+		new_port = bt_component_get_input_port_by_index(new_component,
 			port_index);
 		if (!new_port) {
 			status = BT_GRAPH_STATUS_ERROR;
@@ -431,13 +431,13 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 
 	/* Replicate output connections. */
 	for (port_index = 0; port_index < origin_output_port_count; port_index++) {
-		origin_port = bt_component_get_output_port_at_index(origin,
+		origin_port = bt_component_get_output_port_by_index(origin,
 			port_index);
 		if (!origin_port) {
 			status = BT_GRAPH_STATUS_ERROR;
 			goto error_disconnect;
 		}
-		new_port = bt_component_get_output_port_at_index(new_component,
+		new_port = bt_component_get_output_port_by_index(new_component,
 			port_index);
 		if (!new_port) {
 			status = BT_GRAPH_STATUS_ERROR;

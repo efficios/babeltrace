@@ -416,11 +416,11 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_stream_class_get_event_class_count handles NULL correctly");
 	ok(bt_ctf_stream_class_get_event_class_count(stream_class) == 1,
 		"bt_ctf_stream_class_get_event_class_count returns a correct number of event classes");
-	ok(bt_ctf_stream_class_get_event_class(NULL, 0) == NULL,
+	ok(bt_ctf_stream_class_get_event_class_by_index(NULL, 0) == NULL,
 		"bt_ctf_stream_class_get_event_class handles NULL correctly");
-	ok(bt_ctf_stream_class_get_event_class(stream_class, 8724) == NULL,
+	ok(bt_ctf_stream_class_get_event_class_by_index(stream_class, 8724) == NULL,
 		"bt_ctf_stream_class_get_event_class handles invalid indexes correctly");
-	ret_event_class = bt_ctf_stream_class_get_event_class(stream_class, 0);
+	ret_event_class = bt_ctf_stream_class_get_event_class_by_index(stream_class, 0);
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class returns the correct event class");
 	bt_put(ret_event_class);
@@ -892,21 +892,22 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_attribute_count handles a NULL event class");
 	ok(bt_ctf_event_class_get_attribute_count(event_class) == 4,
 		"bt_ctf_event_class_get_attribute_count returns the correct count");
-	ok(!bt_ctf_event_class_get_attribute_name(NULL, 0),
+	ok(!bt_ctf_event_class_get_attribute_name_by_index(NULL, 0),
 		"bt_ctf_event_class_get_attribute_name handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_get_attribute_name(event_class, 4),
+	ok(!bt_ctf_event_class_get_attribute_name_by_index(event_class, 4),
 		"bt_ctf_event_class_get_attribute_name handles a too large index correctly");
-	ok(!bt_ctf_event_class_get_attribute_value(NULL, 0),
+	ok(!bt_ctf_event_class_get_attribute_value_by_index(NULL, 0),
 		"bt_ctf_event_class_get_attribute_value handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_get_attribute_value(event_class, 4),
+	ok(!bt_ctf_event_class_get_attribute_value_by_index(event_class, 4),
 		"bt_ctf_event_class_get_attribute_value handles a too large index correctly");
 
 	memset(&attrs_count, 0, sizeof(attrs_count));
 
 	for (i = 0; i < 4; ++i) {
-		ret_string = bt_ctf_event_class_get_attribute_name(event_class,
-			i);
-		obj = bt_ctf_event_class_get_attribute_value(event_class, i);
+		ret_string = bt_ctf_event_class_get_attribute_name_by_index(
+			event_class, i);
+		obj = bt_ctf_event_class_get_attribute_value_by_index(
+			event_class, i);
 		assert(ret_string && obj);
 
 		if (!strcmp(ret_string, "id")) {
@@ -954,25 +955,25 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_stream_class returns the correct stream class");
 	bt_put(ret_stream_class);
 
-	ok(bt_ctf_event_class_get_field_count(NULL) < 0,
+	ok(bt_ctf_event_class_get_payload_type_field_count(NULL) < 0,
 		"bt_ctf_event_class_get_field_count handles NULL correctly");
-	ok(bt_ctf_event_class_get_field_count(event_class) == 3,
+	ok(bt_ctf_event_class_get_payload_type_field_count(event_class) == 3,
 		"bt_ctf_event_class_get_field_count returns a correct value");
 
-	ok(bt_ctf_event_class_get_field(NULL, &ret_string,
+	ok(bt_ctf_event_class_get_payload_type_field_by_index(NULL, &ret_string,
 		&ret_field_type, 0) < 0,
 		"bt_ctf_event_class_get_field handles a NULL event class correctly");
-	ok(bt_ctf_event_class_get_field(event_class, NULL,
+	ok(bt_ctf_event_class_get_payload_type_field_by_index(event_class, NULL,
 		&ret_field_type, 0) == 0,
 		"bt_ctf_event_class_get_field handles a NULL field name correctly");
 	bt_put(ret_field_type);
-	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+	ok(bt_ctf_event_class_get_payload_type_field_by_index(event_class, &ret_string,
 		NULL, 0) == 0,
 		"bt_ctf_event_class_get_field handles a NULL field type correctly");
-	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+	ok(bt_ctf_event_class_get_payload_type_field_by_index(event_class, &ret_string,
 		&ret_field_type, 42) < 0,
 		"bt_ctf_event_class_get_field handles an invalid index correctly");
-	ok(bt_ctf_event_class_get_field(event_class, &ret_string,
+	ok(bt_ctf_event_class_get_payload_type_field_by_index(event_class, &ret_string,
 		&ret_field_type, 0) == 0,
 		"bt_ctf_event_class_get_field returns a field");
 	ok(bt_ctf_field_type_compare(ret_field_type, uint_35_type) == 0,
@@ -2954,41 +2955,41 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_environment_field_count returns a correct number of environment fields");
 
 	/* Test bt_ctf_trace_get_environment_field_name */
-	ok(bt_ctf_trace_get_environment_field_name(NULL, 0) == NULL,
+	ok(bt_ctf_trace_get_environment_field_name_by_index(NULL, 0) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_name(trace, -1) == NULL,
+	ok(bt_ctf_trace_get_environment_field_name_by_index(trace, -1) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (negative)");
-	ok(bt_ctf_trace_get_environment_field_name(trace, 5) == NULL,
+	ok(bt_ctf_trace_get_environment_field_name_by_index(trace, 5) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (too large)");
-	ret_string = bt_ctf_trace_get_environment_field_name(trace, 0);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 0);
 	ok(ret_string && !strcmp(ret_string, "host"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name(trace, 1);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 1);
 	ok(ret_string && !strcmp(ret_string, "test_env_int_obj"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name(trace, 2);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 2);
 	ok(ret_string && !strcmp(ret_string, "test_env_str_obj"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name(trace, 3);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 3);
 	ok(ret_string && !strcmp(ret_string, "test_env_int"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name(trace, 4);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 4);
 	ok(ret_string && !strcmp(ret_string, "test_env_str"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
 
 	/* Test bt_ctf_trace_get_environment_field_value */
-	ok(bt_ctf_trace_get_environment_field_value(NULL, 0) == NULL,
+	ok(bt_ctf_trace_get_environment_field_value_by_index(NULL, 0) == NULL,
 		"bt_ctf_trace_get_environment_field_value handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_value(trace, -1) == NULL,
+	ok(bt_ctf_trace_get_environment_field_value_by_index(trace, -1) == NULL,
 		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (negative)");
-	ok(bt_ctf_trace_get_environment_field_value(trace, 5) == NULL,
+	ok(bt_ctf_trace_get_environment_field_value_by_index(trace, 5) == NULL,
 		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (too large)");
-	obj = bt_ctf_trace_get_environment_field_value(trace, 1);
+	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 1);
 	ret = bt_value_integer_get(obj, &ret_int64_t);
 	ok(!ret && ret_int64_t == 23,
 		"bt_ctf_trace_get_environment_field_value succeeds in getting an integer value");
 	BT_PUT(obj);
-	obj = bt_ctf_trace_get_environment_field_value(trace, 2);
+	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 2);
 	ret = bt_value_string_get(obj, &ret_string);
 	ok(!ret && ret_string && !strcmp(ret_string, "the value"),
 		"bt_ctf_trace_get_environment_field_value succeeds in getting a string value");
@@ -3015,7 +3016,7 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_set_environment_field_integer succeeds with an existing name");
 	ok(bt_ctf_trace_get_environment_field_count(trace) == 5,
 		"bt_ctf_trace_set_environment_field_integer with an existing key does not increase the environment size");
-	obj = bt_ctf_trace_get_environment_field_value(trace, 3);
+	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 3);
 	ret = bt_value_integer_get(obj, &ret_int64_t);
 	ok(!ret && ret_int64_t == 654321,
 		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");
@@ -3325,9 +3326,9 @@ int main(int argc, char **argv)
 	ok(stream1, "Instanciate a stream class from writer");
 	ok(bt_ctf_trace_get_stream_count(trace) == 1,
 		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (1)");
-	stream = bt_ctf_trace_get_stream(trace, 0);
+	stream = bt_ctf_trace_get_stream_by_index(trace, 0);
 	ok(stream == stream1,
-		"bt_ctf_trace_get_stream() succeeds and returns the correct value");
+		"bt_ctf_trace_get_stream_by_index() succeeds and returns the correct value");
 	BT_PUT(stream);
 
 	/*
@@ -3339,13 +3340,13 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_clock_class_count correctly handles NULL");
 	ok(bt_ctf_trace_get_clock_class_count(trace) == 1,
 		"bt_ctf_trace_get_clock_class_count returns the correct number of clocks");
-	ok(!bt_ctf_trace_get_clock_class(NULL, 0),
+	ok(!bt_ctf_trace_get_clock_class_by_index(NULL, 0),
 		"bt_ctf_trace_get_clock_class correctly handles NULL");
-	ok(!bt_ctf_trace_get_clock_class(trace, -1),
+	ok(!bt_ctf_trace_get_clock_class_by_index(trace, -1),
 		"bt_ctf_trace_get_clock_class correctly handles negative indexes");
-	ok(!bt_ctf_trace_get_clock_class(trace, 1),
+	ok(!bt_ctf_trace_get_clock_class_by_index(trace, 1),
 		"bt_ctf_trace_get_clock_class correctly handles out of bound accesses");
-	ret_clock_class = bt_ctf_trace_get_clock_class(trace, 0);
+	ret_clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
 	ok(strcmp(bt_ctf_clock_class_get_name(ret_clock_class),
 		bt_ctf_clock_get_name(clock)) == 0,
 		"bt_ctf_trace_get_clock_class returns the right clock instance");

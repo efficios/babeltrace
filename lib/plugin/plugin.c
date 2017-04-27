@@ -36,6 +36,7 @@
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -89,7 +90,7 @@ int64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
 		goto end;
 	}
 
-	count = plugin_set->plugins->len;
+	count = (int64_t) plugin_set->plugins->len;
 
 end:
 	return count;
@@ -97,7 +98,7 @@ end:
 
 extern
 struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
-		unsigned int index)
+		uint64_t index)
 {
 	struct bt_plugin *plugin = NULL;
 
@@ -504,11 +505,11 @@ end:
 
 int64_t bt_plugin_get_component_class_count(struct bt_plugin *plugin)
 {
-	return plugin ? plugin->comp_classes->len : -1;
+	return plugin ? plugin->comp_classes->len : (int64_t) -1;
 }
 
-struct bt_component_class *bt_plugin_get_component_class(
-		struct bt_plugin *plugin, size_t index)
+struct bt_component_class *bt_plugin_get_component_class_by_index(
+		struct bt_plugin *plugin, uint64_t index)
 {
 	struct bt_component_class *comp_class = NULL;
 

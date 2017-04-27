@@ -469,7 +469,7 @@ end:
 	return ret;
 }
 
-struct bt_ctf_field *bt_ctf_field_structure_get_field(
+struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *field, const char *name)
 {
 	struct bt_ctf_field *new_field = NULL;
@@ -520,7 +520,7 @@ error:
 }
 
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
-		struct bt_ctf_field *field, int index)
+		struct bt_ctf_field *field, uint64_t index)
 {
 	int ret;
 	const char *field_name;
@@ -674,7 +674,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	}
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
-	if (!sequence->elements || sequence->elements->len <= index) {
+	if (!sequence->elements || index >= sequence->elements->len) {
 		goto end;
 	}
 

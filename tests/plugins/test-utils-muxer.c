@@ -1001,10 +1001,10 @@ void do_std_test(enum test test, const char *name,
 		assert(count >= 0);
 
 		for (i = 0; i < count; i++) {
-			upstream_port = bt_component_source_get_output_port_at_index(
+			upstream_port = bt_component_source_get_output_port_by_index(
 				src_comp, i);
 			assert(upstream_port);
-			downstream_port = bt_component_filter_get_input_port_at_index(
+			downstream_port = bt_component_filter_get_input_port_by_index(
 				muxer_comp, i);
 			assert(downstream_port);
 			conn = bt_graph_connect_ports(graph,
@@ -1017,7 +1017,7 @@ void do_std_test(enum test test, const char *name,
 	}
 
 	/* Connect muxer output port to sink input port */
-	upstream_port = bt_component_filter_get_output_port(muxer_comp,
+	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
 	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
@@ -1351,7 +1351,7 @@ void connect_port_to_first_avail_muxer_port(struct bt_graph *graph,
 
 	for (i = 0; i < count; i++) {
 		struct bt_port *muxer_port =
-			bt_component_filter_get_input_port_at_index(
+			bt_component_filter_get_input_port_by_index(
 				muxer_comp, i);
 
 		assert(muxer_port);
@@ -1484,7 +1484,7 @@ void test_single_end_then_multiple_full(void)
 	assert(ret == 0);
 
 	for (i = 0; i < count; i++) {
-		upstream_port = bt_component_source_get_output_port_at_index(
+		upstream_port = bt_component_source_get_output_port_by_index(
 			src_comp, i);
 		assert(upstream_port);
 		connect_port_to_first_avail_muxer_port(graph,
@@ -1493,7 +1493,7 @@ void test_single_end_then_multiple_full(void)
 	}
 
 	/* Connect muxer output port to sink input port */
-	upstream_port = bt_component_filter_get_output_port(muxer_comp,
+	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
 	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
@@ -1613,7 +1613,7 @@ void test_single_again_end_then_multiple_full(void)
 	assert(ret == 0);
 
 	for (i = 0; i < count; i++) {
-		upstream_port = bt_component_source_get_output_port_at_index(
+		upstream_port = bt_component_source_get_output_port_by_index(
 			src_comp, i);
 		assert(upstream_port);
 		connect_port_to_first_avail_muxer_port(graph,
@@ -1622,7 +1622,7 @@ void test_single_again_end_then_multiple_full(void)
 	}
 
 	/* Connect muxer output port to sink input port */
-	upstream_port = bt_component_filter_get_output_port(muxer_comp,
+	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
 	downstream_port = bt_component_sink_get_default_input_port(sink_comp);

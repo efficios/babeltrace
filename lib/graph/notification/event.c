@@ -78,7 +78,7 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 	for (cc_prio_map_cc_i = 0; cc_prio_map_cc_i < cc_prio_map_cc_count;
 			cc_prio_map_cc_i++) {
 		struct bt_ctf_clock_class *clock_class =
-			bt_clock_class_priority_map_get_clock_class(
+			bt_clock_class_priority_map_get_clock_class_by_index(
 				notif->cc_prio_map, cc_prio_map_cc_i);
 		struct bt_ctf_clock_value *clock_value;
 		bool found_in_trace = false;
@@ -96,7 +96,8 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 		for (trace_cc_i = 0; trace_cc_i < trace_cc_count;
 				trace_cc_i++) {
 			struct bt_ctf_clock_class *trace_clock_class =
-				bt_ctf_trace_get_clock_class(trace, trace_cc_i);
+				bt_ctf_trace_get_clock_class_by_index(trace,
+					trace_cc_i);
 
 			assert(trace_clock_class);
 

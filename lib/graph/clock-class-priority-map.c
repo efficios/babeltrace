@@ -29,6 +29,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
+#include <stdint.h>
 #include <glib.h>
 
 static
@@ -85,7 +86,7 @@ end:
 int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	int64_t ret = -1;
+	int64_t ret = (int64_t) -1;
 
 	if (!cc_prio_map) {
 		goto end;
@@ -97,9 +98,9 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock_class *bt_clock_class_priority_map_get_clock_class(
+struct bt_ctf_clock_class *bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *cc_prio_map,
-		unsigned int index)
+		uint64_t index)
 {
 	struct bt_ctf_clock_class *clock_class = NULL;
 

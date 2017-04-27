@@ -45,9 +45,9 @@ struct bt_ctf_stream_class {
 	/* event class id (int64_t) to event class */
 	GHashTable *event_classes_ht;
 	int id_set;
-	uint32_t id;
-	uint32_t next_event_id;
-	uint32_t next_stream_id;
+	int64_t id;
+	int64_t next_event_id;
+	int64_t next_stream_id;
 	struct bt_ctf_field_type *packet_context_type;
 	struct bt_ctf_field_type *event_header_type;
 	struct bt_ctf_field_type *event_context_type;
@@ -75,11 +75,11 @@ void bt_ctf_stream_class_set_byte_order(
 /* Set stream_class id without checking if the stream class is frozen */
 BT_HIDDEN
 int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
-		uint32_t id);
+		int64_t id);
 
 BT_HIDDEN
 int bt_ctf_stream_class_set_id_no_check(
-		struct bt_ctf_stream_class *stream_class, uint32_t id);
+		struct bt_ctf_stream_class *stream_class, int64_t id);
 
 static inline
 struct bt_ctf_trace *bt_ctf_stream_class_borrow_trace(

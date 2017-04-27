@@ -819,7 +819,7 @@ int64_t bt_value_array_size(const struct bt_value *array_obj)
 		BT_VALUE_TO_ARRAY(array_obj);
 
 	if (!array_obj || !bt_value_is_array(array_obj)) {
-		ret = BT_VALUE_STATUS_INVAL;
+		ret = (int64_t) BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
 
@@ -987,7 +987,7 @@ int64_t bt_value_map_size(const struct bt_value *map_obj)
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
 
 	if (!map_obj || !bt_value_is_map(map_obj)) {
-		ret = BT_VALUE_STATUS_INVAL;
+		ret = (int64_t) BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
 

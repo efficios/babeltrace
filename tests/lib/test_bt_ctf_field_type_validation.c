@@ -1717,9 +1717,9 @@ void validate_test_pass(struct bt_ctf_trace *trace)
 	struct bt_ctf_field_type *ft_target = NULL;
 	struct bt_ctf_field_type *ft_tag = NULL;
 
-	sc = bt_ctf_trace_get_stream_class(trace, 0);
+	sc = bt_ctf_trace_get_stream_class_by_index(trace, 0);
 	assert(sc);
-	ec = bt_ctf_stream_class_get_event_class(sc, 0);
+	ec = bt_ctf_stream_class_get_event_class_by_index(sc, 0);
 	assert(ec);
 
 	ph = bt_ctf_trace_get_packet_header_type(trace);
