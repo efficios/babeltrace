@@ -338,7 +338,7 @@ void src_port_connected(struct bt_private_component *private_component,
 	switch (current_test) {
 	case TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED:
 		port = bt_private_component_source_add_output_private_port(
-			private_component, "hello");
+			private_component, "hello", NULL);
 		assert(port);
 		bt_put(port);
 		break;

@@ -135,7 +135,7 @@ enum bt_component_class_type bt_component_get_class_type(
 static
 struct bt_port *bt_component_add_port(
 		struct bt_component *component, GPtrArray *ports,
-		enum bt_port_type port_type, const char *name)
+		enum bt_port_type port_type, const char *name, void *user_data)
 {
 	size_t i;
 	struct bt_port *new_port = NULL;
@@ -162,7 +162,7 @@ struct bt_port *bt_component_add_port(
 		}
 	}
 
-	new_port = bt_port_create(component, port_type, name);
+	new_port = bt_port_create(component, port_type, name, user_data);
 	if (!new_port) {
 		goto end;
 	}
@@ -277,7 +277,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 			type == BT_COMPONENT_CLASS_TYPE_FILTER) {
 		default_port = bt_component_add_port(component,
 			component->output_ports, BT_PORT_TYPE_OUTPUT,
-			DEFAULT_OUTPUT_PORT_NAME);
+			DEFAULT_OUTPUT_PORT_NAME, NULL);
 		if (!default_port) {
 			BT_PUT(component);
 			goto end;
@@ -290,7 +290,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 			type == BT_COMPONENT_CLASS_TYPE_SINK) {
 		default_port = bt_component_add_port(component,
 			component->input_ports, BT_PORT_TYPE_INPUT,
-			DEFAULT_INPUT_PORT_NAME);
+			DEFAULT_INPUT_PORT_NAME, NULL);
 		if (!default_port) {
 			BT_PUT(component);
 			goto end;
@@ -492,18 +492,20 @@ struct bt_port *bt_component_get_output_port_by_index(struct bt_component *comp,
 
 BT_HIDDEN
 struct bt_port *bt_component_add_input_port(
-		struct bt_component *component, const char *name)
+		struct bt_component *component, const char *name,
+		void *user_data)
 {
 	return bt_component_add_port(component, component->input_ports,
-		BT_PORT_TYPE_INPUT, name);
+		BT_PORT_TYPE_INPUT, name, user_data);
 }
 
 BT_HIDDEN
 struct bt_port *bt_component_add_output_port(
-		struct bt_component *component, const char *name)
+		struct bt_component *component, const char *name,
+		void *user_data)
 {
 	return bt_component_add_port(component, component->output_ports,
-		BT_PORT_TYPE_OUTPUT, name);
+		BT_PORT_TYPE_OUTPUT, name, user_data);
 }
 
 static

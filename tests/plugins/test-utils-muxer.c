@@ -634,11 +634,11 @@ struct bt_notification_iterator_next_return src_iter_next(
 			struct bt_private_port *priv_port;
 
 			priv_port = bt_private_component_source_add_output_private_port(
-				private_component, "out1");
+				private_component, "out1", NULL);
 			assert(priv_port);
 			bt_put(priv_port);
 			priv_port = bt_private_component_source_add_output_private_port(
-				private_component, "out2");
+				private_component, "out2", NULL);
 			assert(priv_port);
 			bt_put(priv_port);
 			next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -655,11 +655,11 @@ struct bt_notification_iterator_next_return src_iter_next(
 				struct bt_private_port *priv_port;
 
 				priv_port = bt_private_component_source_add_output_private_port(
-					private_component, "out1");
+					private_component, "out1", NULL);
 				assert(priv_port);
 				bt_put(priv_port);
 				priv_port = bt_private_component_source_add_output_private_port(
-					private_component, "out2");
+					private_component, "out2", NULL);
 				assert(priv_port);
 				bt_put(priv_port);
 				next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -708,28 +708,28 @@ enum bt_component_status src_init(
 
 	if (nb_ports >= 1) {
 		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out0");
+			private_component, "out0", NULL);
 		assert(priv_port);
 		bt_put(priv_port);
 	}
 
 	if (nb_ports >= 2) {
 		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out1");
+			private_component, "out1", NULL);
 		assert(priv_port);
 		bt_put(priv_port);
 	}
 
 	if (nb_ports >= 3) {
 		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out2");
+			private_component, "out2", NULL);
 		assert(priv_port);
 		bt_put(priv_port);
 	}
 
 	if (nb_ports >= 4) {
 		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out3");
+			private_component, "out3", NULL);
 		assert(priv_port);
 		bt_put(priv_port);
 	}

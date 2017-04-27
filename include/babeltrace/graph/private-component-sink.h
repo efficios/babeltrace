@@ -49,7 +49,7 @@ bt_private_component_sink_get_default_input_private_port(
 extern struct bt_private_port *
 bt_private_component_sink_add_input_private_port(
 		struct bt_private_component *private_component,
-		const char *name);
+		const char *name, void *user_data);
 
 #ifdef __cplusplus
 }

@@ -173,7 +173,7 @@ int ensure_available_input_port(struct bt_private_component *priv_comp)
 
 	g_string_append_printf(port_name, "%u", muxer_comp->next_port_num);
 	priv_port = bt_private_component_filter_add_input_private_port(
-		priv_comp, port_name->str);
+		priv_comp, port_name->str, NULL);
 	if (!priv_port) {
 		ret = -1;
 		goto end;
@@ -228,7 +228,7 @@ int create_output_port(struct bt_private_component *priv_comp)
 	int ret = 0;
 
 	priv_port = bt_private_component_filter_add_output_private_port(
-		priv_comp, "out");
+		priv_comp, "out", NULL);
 	if (!priv_port) {
 		ret = -1;
 	}

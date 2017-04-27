@@ -161,7 +161,7 @@ struct bt_private_port *bt_private_component_source_get_default_output_private_p
 
 struct bt_private_port *bt_private_component_source_add_output_private_port(
 		struct bt_private_component *private_component,
-		const char *name)
+		const char *name, void *user_data)
 {
 	struct bt_port *port = NULL;
 	struct bt_component *component =
@@ -172,7 +172,7 @@ struct bt_private_port *bt_private_component_source_add_output_private_port(
 		goto end;
 	}
 
-	port = bt_component_add_output_port(component, name);
+	port = bt_component_add_output_port(component, name, user_data);
 end:
 	return bt_private_port_from_port(port);
 }

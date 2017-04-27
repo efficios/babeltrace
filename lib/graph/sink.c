@@ -171,7 +171,7 @@ struct bt_private_port *bt_private_component_sink_get_default_input_private_port
 
 struct bt_private_port *bt_private_component_sink_add_input_private_port(
 		struct bt_private_component *private_component,
-		const char *name)
+		const char *name, void *user_data)
 {
 	struct bt_port *port = NULL;
 	struct bt_component *component =
@@ -182,7 +182,7 @@ struct bt_private_port *bt_private_component_sink_add_input_private_port(
 		goto end;
 	}
 
-	port = bt_component_add_input_port(component, name);
+	port = bt_component_add_input_port(component, name, user_data);
 end:
 	return bt_private_port_from_port(port);
 }

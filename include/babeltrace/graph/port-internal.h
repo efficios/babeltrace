@@ -57,7 +57,7 @@ struct bt_private_port *bt_private_port_from_port(
 
 BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
-		enum bt_port_type type, const char *name);
+		enum bt_port_type type, const char *name, void *user_data);
 
 BT_HIDDEN
 void bt_port_set_connection(struct bt_port *port,

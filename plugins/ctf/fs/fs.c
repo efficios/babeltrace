@@ -189,12 +189,6 @@ int create_one_port(struct ctf_fs_component *ctf_fs,
 		port_name->str, stream_path);
 
 	/* Create output port for this file */
-	port = bt_private_component_source_add_output_private_port(
-		ctf_fs->priv_comp, port_name->str);
-	if (!port) {
-		goto error;
-	}
-
 	port_data = g_new0(struct ctf_fs_port_data, 1);
 	if (!port_data) {
 		goto error;
@@ -205,8 +199,9 @@ int create_one_port(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
-	ret = bt_private_port_set_user_data(port, port_data);
-	if (ret) {
+	port = bt_private_component_source_add_output_private_port(
+		ctf_fs->priv_comp, port_name->str, port_data);
+	if (!port) {
 		goto error;
 	}
 

@@ -51,7 +51,7 @@ struct bt_port *bt_port_from_private_port(
 
 BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
-		enum bt_port_type type, const char *name)
+		enum bt_port_type type, const char *name, void *user_data)
 {
 	struct bt_port *port = NULL;
 
@@ -76,6 +76,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	}
 
 	port->type = type;
+	port->user_data = user_data;
 
 	bt_object_set_parent(port, &parent_component->base);
 end:
@@ -183,22 +184,6 @@ int bt_port_is_connected(struct bt_port *port)
 	}
 
 	ret = port->connection ? 1 : 0;
-
-end:
-	return ret;
-}
-
-int bt_private_port_set_user_data(
-		struct bt_private_port *private_port, void *user_data)
-{
-	int ret = 0;
-
-	if (!private_port) {
-		ret = -1;
-		goto end;
-	}
-
-	bt_port_from_private(private_port)->user_data = user_data;
 
 end:
 	return ret;

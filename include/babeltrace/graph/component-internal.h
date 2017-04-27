@@ -129,11 +129,13 @@ struct bt_port *bt_component_get_output_port_by_name(struct bt_component *comp,
 
 BT_HIDDEN
 struct bt_port *bt_component_add_input_port(
-		struct bt_component *component, const char *name);
+		struct bt_component *component, const char *name,
+		void *user_data);
 
 BT_HIDDEN
 struct bt_port *bt_component_add_output_port(
-		struct bt_component *component, const char *name);
+		struct bt_component *component, const char *name,
+		void *user_data);
 
 BT_HIDDEN
 enum bt_component_status bt_component_remove_port(

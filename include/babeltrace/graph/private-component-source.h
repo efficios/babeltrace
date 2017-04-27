@@ -50,7 +50,7 @@ bt_private_component_source_get_default_output_private_port(
 extern struct bt_private_port *
 bt_private_component_source_add_output_private_port(
 		struct bt_private_component *private_component,
-		const char *name);
+		const char *name, void *user_data);
 
 #ifdef __cplusplus
 }
