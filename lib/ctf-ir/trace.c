@@ -46,6 +46,7 @@
 #include <babeltrace/endian-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <string.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
@@ -101,8 +102,6 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 		goto error;
 	}
 
-	/* Generate a trace UUID */
-	uuid_generate(trace->uuid);
 	if (init_trace_packet_header(trace)) {
 		goto error;
 	}
@@ -154,6 +153,27 @@ int bt_ctf_trace_set_name(struct bt_ctf_trace *trace, const char *name)
 		ret = -1;
 		goto end;
 	}
+end:
+	return ret;
+}
+
+const unsigned char *bt_ctf_trace_get_uuid(struct bt_ctf_trace *trace)
+{
+	return trace && trace->uuid_set ? trace->uuid : NULL;
+}
+
+int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace, const unsigned char *uuid)
+{
+	int ret = 0;
+
+	if (!trace || !uuid || trace->frozen) {
+		ret = -1;
+		goto end;
+	}
+
+	memcpy(trace->uuid, uuid, sizeof(uuid_t));
+	trace->uuid_set = true;
+
 end:
 	return ret;
 }
@@ -885,19 +905,27 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	unsigned char *uuid = trace->uuid;
 	int ret;
 
-	g_string_append(context->string, "trace {\n");
+	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		ret = -1;
+		goto end;
+	}
 
+	g_string_append(context->string, "trace {\n");
 	g_string_append(context->string, "\tmajor = 1;\n");
 	g_string_append(context->string, "\tminor = 8;\n");
 	assert(trace->native_byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
 		trace->native_byte_order == BT_CTF_BYTE_ORDER_BIG_ENDIAN ||
 		trace->native_byte_order == BT_CTF_BYTE_ORDER_NETWORK);
-	g_string_append_printf(context->string,
-		"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
-		uuid[0], uuid[1], uuid[2], uuid[3],
-		uuid[4], uuid[5], uuid[6], uuid[7],
-		uuid[8], uuid[9], uuid[10], uuid[11],
-		uuid[12], uuid[13], uuid[14], uuid[15]);
+
+	if (trace->uuid_set) {
+		g_string_append_printf(context->string,
+			"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
+			uuid[0], uuid[1], uuid[2], uuid[3],
+			uuid[4], uuid[5], uuid[6], uuid[7],
+			uuid[8], uuid[9], uuid[10], uuid[11],
+			uuid[12], uuid[13], uuid[14], uuid[15]);
+	}
+
 	g_string_append_printf(context->string, "\tbyte_order = %s;\n",
 		get_byte_order_string(trace->native_byte_order));
 

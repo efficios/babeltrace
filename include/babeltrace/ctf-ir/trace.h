@@ -66,6 +66,7 @@ A trace class has the following properties:
   \link ctfirfieldtypes field types\endlink eventually part of the trace
   class with a byte order set to #BT_CTF_BYTE_ORDER_NATIVE have this
   "real" byte order.
+- A \b UUID.
 - An \b environment, which is a custom key-value mapping. Keys are
   strings and values can be strings or integers.
 
@@ -279,6 +280,45 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(
 */
 extern int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace_class,
 		enum bt_ctf_byte_order native_byte_order);
+
+/**
+@brief	Returns the UUID of the CTF IR trace class \p trace_class.
+
+On success, the return value is an array of 16 bytes.
+
+@param[in] trace_class	Trace class of which to get the UUID.
+@returns		UUID of trace class \p trace_class, or
+			\c NULL if \p trace_class has no UUID or on error.
+
+@prenotnull{trace_class}
+@postrefcountsame{trace_class}
+
+@sa bt_ctf_trace_set_uuid(): Sets the UUID of a given trace class.
+*/
+extern const unsigned char *bt_ctf_trace_get_uuid(
+		struct bt_ctf_trace *trace_class);
+
+/**
+@brief  Sets the UUID of the CTF IR trace class \p trace_class to
+	\p uuid.
+
+\p uuid \em must be an array of 16 bytes.
+
+@param[in] trace_class		Trace class of which to set the UUID.
+@param[in] uuid			UUID of the \p trace_class (copied on
+				success).
+@returns			0 on success, or a negative value on error.
+
+@prenotnull{trace_class}
+@prenotnull{uuid}
+@prehot{trace_class}
+@pre \p uuid is an array of 16 bytes.
+@postrefcountsame{trace_class}
+
+@sa bt_ctf_trace_get_uuid(): Returns the UUID of a given trace class.
+*/
+extern int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace_class,
+		const unsigned char *uuid);
 
 /**
 @brief	Returns the number of entries contained in the environment of

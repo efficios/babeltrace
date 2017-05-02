@@ -37,6 +37,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/compat/uuid-internal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -52,6 +53,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
 	int ret;
 	struct bt_ctf_writer *writer = NULL;
+	unsigned char uuid[16];
 
 	if (!path) {
 		goto error;
@@ -70,6 +72,13 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 	writer->trace = bt_ctf_trace_create();
 	if (!writer->trace) {
+		goto error_destroy;
+	}
+
+	/* Generate a UUID for this writer's trace */
+	uuid_generate(uuid);
+	ret = bt_ctf_trace_set_uuid(writer->trace, uuid);
+	if (ret) {
 		goto error_destroy;
 	}
 

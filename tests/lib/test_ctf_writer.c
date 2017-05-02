@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 607
+#define NR_TESTS 614
 
 static int64_t current_time = 42;
 
@@ -2808,6 +2808,36 @@ void test_static_trace(void)
 	bt_put(clock_class);
 }
 
+static
+void test_trace_uuid(void)
+{
+	struct bt_ctf_trace *trace;
+	const unsigned char uuid[] = {
+		0x35, 0x92, 0x63, 0xab, 0xb4, 0xbe, 0x40, 0xb4,
+		0xb2, 0x60, 0xd3, 0xf1, 0x3b, 0xb0, 0xd8, 0x59,
+	};
+	const unsigned char *ret_uuid;
+
+	trace = bt_ctf_trace_create();
+	assert(trace);
+	ok(!bt_ctf_trace_get_uuid(NULL),
+		"bt_ctf_trace_get_uuid() handles NULL");
+	ok(!bt_ctf_trace_get_uuid(trace),
+		"bt_ctf_trace_get_uuid() returns NULL initially");
+	ok(bt_ctf_trace_set_uuid(NULL, uuid),
+		"bt_ctf_trace_set_uuid() handles NULL (trace)");
+	ok(bt_ctf_trace_set_uuid(trace, NULL),
+		"bt_ctf_trace_set_uuid() handles NULL (UUID)");
+	ok(bt_ctf_trace_set_uuid(trace, uuid) == 0,
+		"bt_ctf_trace_set_uuid() succeeds with a valid UUID");
+	ret_uuid = bt_ctf_trace_get_uuid(trace);
+	ok(ret_uuid, "bt_ctf_trace_get_uuid() returns a UUID");
+	ok(memcmp(uuid, ret_uuid, 16) == 0,
+		"bt_ctf_trace_get_uuid() returns the expected UUID");
+
+	bt_put(trace);
+}
+
 int main(int argc, char **argv)
 {
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
@@ -3462,6 +3492,8 @@ int main(int argc, char **argv)
 	test_custom_event_header_stream(writer, clock);
 
 	test_static_trace();
+
+	test_trace_uuid();
 
 	metadata_string = bt_ctf_writer_get_metadata_string(writer);
 	ok(metadata_string, "Get metadata string");

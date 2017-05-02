@@ -52,6 +52,7 @@ struct bt_ctf_trace {
 	GString *name;
 	int frozen;
 	uuid_t uuid;
+	bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
 	struct bt_value *environment;
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock_class */
