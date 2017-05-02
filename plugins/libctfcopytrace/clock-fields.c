@@ -136,7 +136,6 @@ int find_update_clock_fields(FILE *err, struct bt_ctf_field_type *type,
 	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		return find_update_sequence_clock_fields(err, type,
 				writer_clock_class);
-	case BT_CTF_TYPE_ID_UNTAGGED_VARIANT:
 	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		return find_update_variant_clock_fields(err, type,
 				writer_clock_class);
@@ -466,7 +465,6 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 		ret = copy_find_clock_sequence_field(err, event, writer_event,
 				field, type, copy_field);
 		break;
-	case BT_CTF_TYPE_ID_UNTAGGED_VARIANT:
 	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		ret = copy_find_clock_variant_field(err, event, writer_event,
 				field, type, copy_field);

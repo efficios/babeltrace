@@ -1311,7 +1311,6 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 	case CTF_TYPE_STRUCT:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case CTF_TYPE_UNTAGGED_VARIANT:
 	case CTF_TYPE_VARIANT:
 		return print_variant(pretty, field, print_names);
 	case CTF_TYPE_ARRAY:

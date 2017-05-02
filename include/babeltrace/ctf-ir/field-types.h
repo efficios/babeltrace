@@ -211,16 +211,16 @@ struct bt_ctf_field_type_enumeration_mapping_iterator;
  * counterpart.
  */
 enum ctf_type_id {
-	CTF_TYPE_UNKNOWN = 0,
-	CTF_TYPE_INTEGER,
-	CTF_TYPE_FLOAT,
-	CTF_TYPE_ENUM,
-	CTF_TYPE_STRING,
-	CTF_TYPE_STRUCT,
-	CTF_TYPE_UNTAGGED_VARIANT,
-	CTF_TYPE_VARIANT,
-	CTF_TYPE_ARRAY,
-	CTF_TYPE_SEQUENCE,
+	CTF_TYPE_UNKNOWN = -1,
+	CTF_TYPE_INTEGER = 0,
+	CTF_TYPE_FLOAT = 1,
+	CTF_TYPE_ENUM = 2,
+	CTF_TYPE_STRING = 3,
+	CTF_TYPE_STRUCT = 4,
+	CTF_TYPE_UNTAGGED_VARIANT = 5,
+	CTF_TYPE_VARIANT = 5,
+	CTF_TYPE_ARRAY = 6,
+	CTF_TYPE_SEQUENCE = 7,
 	NR_CTF_TYPES,
 };
 
@@ -293,10 +293,6 @@ enum bt_ctf_field_type_id {
 
 	/// \ref ctfirstructfieldtype
 	BT_CTF_FIELD_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
-
-	/// @cond DOCUMENT
-	BT_CTF_TYPE_ID_UNTAGGED_VARIANT = CTF_TYPE_UNTAGGED_VARIANT,
-	/// @endcond
 
 	/// \ref ctfirarrayfieldtype
 	BT_CTF_FIELD_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
