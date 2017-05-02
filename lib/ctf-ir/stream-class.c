@@ -56,7 +56,33 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class);
 
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 {
+	struct bt_ctf_stream_class *stream_class =
+		bt_ctf_stream_class_create_empty(name);
 	int ret;
+
+	if (!stream_class) {
+		goto error;
+	}
+
+	ret = init_event_header(stream_class);
+	if (ret) {
+		goto error;
+	}
+
+	ret = init_packet_context(stream_class);
+	if (ret) {
+		goto error;
+	}
+
+	return stream_class;
+
+error:
+	BT_PUT(stream_class);
+	return stream_class;
+}
+
+struct bt_ctf_stream_class *bt_ctf_stream_class_create_empty(const char *name)
+{
 	struct bt_ctf_stream_class *stream_class = NULL;
 
 	if (name && bt_ctf_validate_identifier(name)) {
@@ -78,13 +104,18 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	stream_class->event_classes_ht = g_hash_table_new_full(g_int64_hash,
 			g_int64_equal, g_free, NULL);
 
-	ret = init_event_header(stream_class);
-	if (ret) {
+	stream_class->packet_context_type = bt_ctf_field_type_structure_create();
+	if (!stream_class->packet_context_type) {
 		goto error;
 	}
 
-	ret = init_packet_context(stream_class);
-	if (ret) {
+	stream_class->event_header_type = bt_ctf_field_type_structure_create();
+	if (!stream_class->event_header_type) {
+		goto error;
+	}
+
+	stream_class->event_context_type = bt_ctf_field_type_structure_create();
+	if (!stream_class->event_context_type) {
 		goto error;
 	}
 
@@ -92,7 +123,7 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	return stream_class;
 
 error:
-        BT_PUT(stream_class);
+	BT_PUT(stream_class);
 	return stream_class;
 }
 
@@ -828,10 +859,7 @@ int init_event_header(struct bt_ctf_stream_class *stream_class)
 		goto end;
 	}
 
-	if (stream_class->event_header_type) {
-		bt_put(stream_class->event_header_type);
-	}
-	stream_class->event_header_type = event_header_type;
+	BT_MOVE(stream_class->event_header_type, event_header_type);
 end:
 	if (ret) {
 		bt_put(event_header_type);
@@ -890,8 +918,7 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 		goto end;
 	}
 
-	bt_put(stream_class->packet_context_type);
-	stream_class->packet_context_type = packet_context_type;
+	BT_MOVE(stream_class->packet_context_type, packet_context_type);
 end:
 	if (ret) {
 		bt_put(packet_context_type);

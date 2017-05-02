@@ -110,7 +110,10 @@ You cannot modify a frozen stream class: it is considered immutable,
 except for:
 
 - Adding an event class to it with
-  bt_ctf_stream_class_add_event_class().
+  bt_ctf_stream_class_add_event_class(). If the stream class's parent
+  \link ctfirtraceclass trace class\endlink is static, however,
+  you cannot call bt_ctf_stream_class_add_event_class()
+  (see bt_ctf_trace_is_static() and bt_ctf_trace_set_is_static()).
 - \link refs Reference counting\endlink.
 
 @sa ctfirstream
@@ -141,6 +144,28 @@ struct bt_ctf_clock;
 */
 
 /**
+@brief	Creates an empty CTF IR stream class named \p name, or an
+	unnamed empty stream class if \p name is \c NULL.
+
+On success, the packet context, event header, and event context field
+types are empty structure field types. You can modify those default
+field types after the stream class is created with
+bt_ctf_stream_class_set_packet_context_type(),
+bt_ctf_stream_class_set_event_header_type(), and
+bt_ctf_stream_class_set_event_context_type().
+
+@param[in] name	Name of the stream class to create (copied on success),
+		or \c NULL to create an unnamed stream class.
+@returns	Created empty stream class, or \c NULL on error.
+
+@postsuccessrefcountret1
+
+@sa bt_ctf_stream_class_create(): Creates a default stream class.
+*/
+extern struct bt_ctf_stream_class *bt_ctf_stream_class_create_empty(
+		const char *name);
+
+/**
 @brief	Creates a default CTF IR stream class named \p name­, or a
 	default unnamed stream class if \p name is \c NULL.
 
@@ -163,11 +188,13 @@ You can modify those default field types after the stream class is
 created with bt_ctf_stream_class_set_packet_context_type() and
 bt_ctf_stream_class_set_event_header_type().
 
-@param[in] name	Name of the stream class to create (can be \c NULL to
-		create an unnamed stream class).
-@returns	Created stream class, or \c NULL on error.
+@param[in] name	Name of the stream class to create (copied on success),
+		or \c NULL to create an unnamed stream class.
+@returns	Created default stream class, or \c NULL on error.
 
 @postsuccessrefcountret1
+
+@sa bt_ctf_stream_class_create_empty(): Creates an empty stream class.
 */
 extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 
