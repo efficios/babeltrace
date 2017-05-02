@@ -198,8 +198,9 @@ void writer_component_port_connected(
 	assert(!writer->input_iterator);
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-        writer->input_iterator =
-        	bt_private_connection_create_notification_iterator(connection);
+	writer->input_iterator =
+		bt_private_connection_create_notification_iterator(connection,
+			NULL);
 
 	if (!writer->input_iterator) {
 		writer->error = true;

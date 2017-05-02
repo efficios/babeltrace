@@ -884,7 +884,8 @@ void sink_port_connected(struct bt_private_component *private_component,
 	assert(user_data);
 	assert(priv_conn);
 	user_data->notif_iter =
-		bt_private_connection_create_notification_iterator(priv_conn);
+		bt_private_connection_create_notification_iterator(priv_conn,
+			NULL);
 	assert(user_data->notif_iter);
 	bt_put(priv_conn);
 }

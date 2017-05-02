@@ -35,6 +35,15 @@
 
 struct bt_port;
 
+enum bt_notification_iterator_notif_type {
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT =		(1U << 0),
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY =	(1U << 1),
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN =	(1U << 2),
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END =	(1U << 3),
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN =	(1U << 4),
+	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END =	(1U << 5),
+};
+
 struct bt_notification_iterator {
 	struct bt_object base;
 	struct bt_component *upstream_component; /* owned by this */
@@ -69,6 +78,13 @@ struct bt_notification_iterator {
 	 */
 	GArray *actions;
 
+	/*
+	 * This is a mask of notifications to which the user of this
+	 * iterator is subscribed
+	 * (see enum bt_notification_iterator_notif_type above).
+	 */
+	uint32_t subscription_mask;
+
 	bool is_ended;
 	void *user_data;
 };
@@ -97,7 +113,8 @@ bt_private_notification_iterator_from_notification_iterator(
 BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_component *upstream_component,
-		struct bt_port *upstream_port);
+		struct bt_port *upstream_port,
+		const enum bt_notification_type *notification_types);
 
 /**
  * Validate a notification iterator.

@@ -91,7 +91,8 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	assert(connection);
 
 	it_data->input_iterator =
-		bt_private_connection_create_notification_iterator(connection);
+		bt_private_connection_create_notification_iterator(connection,
+			NULL);
 	if (!it_data->input_iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;

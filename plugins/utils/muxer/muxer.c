@@ -359,7 +359,7 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	//       returned notification by the muxer notification
 	//       iterator which creates it.
 	notif_iter = bt_private_connection_create_notification_iterator(
-		priv_conn);
+		priv_conn, NULL);
 	if (!notif_iter) {
 		*ret = -1;
 		goto end;

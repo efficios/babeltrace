@@ -145,6 +145,10 @@ void pretty_port_connected(
 {
 	struct bt_private_connection *connection;
 	struct pretty_component *pretty;
+	static const enum bt_notification_type notif_types[] = {
+		BT_NOTIFICATION_TYPE_EVENT,
+		BT_NOTIFICATION_TYPE_SENTINEL,
+	};
 
 	pretty = bt_private_component_get_user_data(component);
 	assert(pretty);
@@ -152,7 +156,8 @@ void pretty_port_connected(
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
 	pretty->input_iterator =
-		bt_private_connection_create_notification_iterator(connection);
+		bt_private_connection_create_notification_iterator(connection,
+			notif_types);
 
 	if (!pretty->input_iterator) {
 		pretty->error = true;

@@ -33,6 +33,7 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/notification-internal.h>
@@ -43,6 +44,7 @@
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/graph/port.h>
+#include <stdint.h>
 
 struct stream_state {
 	struct bt_ctf_stream *stream; /* owned by this */
@@ -341,16 +343,70 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 	g_free(iterator);
 }
 
+static
+int create_subscription_mask_from_notification_types(
+		struct bt_notification_iterator *iterator,
+		const enum bt_notification_type *notif_types)
+{
+	const enum bt_notification_type *notif_type;
+	int ret = 0;
+
+	assert(notif_types);
+	iterator->subscription_mask = 0;
+
+	for (notif_type = notif_types;
+			*notif_type != BT_NOTIFICATION_TYPE_SENTINEL;
+			notif_type++) {
+		switch (*notif_type) {
+		case BT_NOTIFICATION_TYPE_ALL:
+			iterator->subscription_mask |=
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT |
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY |
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN |
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END |
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN |
+				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
+			break;
+		case BT_NOTIFICATION_TYPE_EVENT:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
+			break;
+		case BT_NOTIFICATION_TYPE_INACTIVITY:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
+			break;
+		case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
+			break;
+		case BT_NOTIFICATION_TYPE_STREAM_END:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
+			break;
+		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
+			break;
+		case BT_NOTIFICATION_TYPE_PACKET_END:
+			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
+			break;
+		default:
+			ret = -1;
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
 BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_component *upstream_comp,
-		struct bt_port *upstream_port)
+		struct bt_port *upstream_port,
+		const enum bt_notification_type *notification_types)
 {
 	enum bt_component_class_type type;
 	struct bt_notification_iterator *iterator = NULL;
 
 	assert(upstream_comp);
 	assert(upstream_port);
+	assert(notification_types);
 	assert(bt_port_is_connected(upstream_port));
 
 	type = bt_component_get_class_type(upstream_comp);
@@ -368,6 +424,11 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	}
 
 	bt_object_init(iterator, bt_notification_iterator_destroy);
+
+	if (create_subscription_mask_from_notification_types(iterator,
+			notification_types)) {
+		goto error;
+	}
 
 	iterator->stream_states = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL, (GDestroyNotify) destroy_stream_state);
@@ -453,6 +514,39 @@ struct bt_notification *bt_notification_iterator_get_notification(
 
 end:
 	return notification;
+}
+
+static
+enum bt_notification_iterator_notif_type
+bt_notification_iterator_notif_type_from_notif_type(
+		enum bt_notification_type notif_type)
+{
+	enum bt_notification_iterator_notif_type iter_notif_type;
+
+	switch (notif_type) {
+	case BT_NOTIFICATION_TYPE_EVENT:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
+		break;
+	case BT_NOTIFICATION_TYPE_INACTIVITY:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
+		break;
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
+		break;
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
+		break;
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
+		break;
+	default:
+		assert(false);
+	}
+
+	return iter_notif_type;
 }
 
 static
@@ -543,17 +637,31 @@ end:
 }
 
 static
+bool is_subscribed_to_notification_type(struct bt_notification_iterator *iterator,
+		enum bt_notification_type notif_type)
+{
+	uint32_t iter_notif_type =
+		(uint32_t) bt_notification_iterator_notif_type_from_notif_type(
+			notif_type);
+
+	return (iter_notif_type & iterator->subscription_mask) ? true : false;
+}
+
+static
 void add_action_push_notif(struct bt_notification_iterator *iterator,
 		struct bt_notification *notif)
 {
 	struct action action = {
 		.type = ACTION_TYPE_PUSH_NOTIF,
-		.payload.push_notif = {
-			.notif = bt_get(notif),
-		},
 	};
 
 	assert(notif);
+
+	if (!is_subscribed_to_notification_type(iterator, notif->type)) {
+		return;
+	}
+
+	action.payload.push_notif.notif = bt_get(notif);
 	add_action(iterator, &action);
 }
 
@@ -564,6 +672,11 @@ int add_action_push_notif_stream_begin(
 {
 	int ret = 0;
 	struct bt_notification *stream_begin_notif = NULL;
+
+	if (!is_subscribed_to_notification_type(iterator,
+			BT_NOTIFICATION_TYPE_STREAM_BEGIN)) {
+		goto end;
+	}
 
 	assert(stream);
 	stream_begin_notif = bt_notification_stream_begin_create(stream);
@@ -590,6 +703,11 @@ int add_action_push_notif_stream_end(
 	int ret = 0;
 	struct bt_notification *stream_end_notif = NULL;
 
+	if (!is_subscribed_to_notification_type(iterator,
+			BT_NOTIFICATION_TYPE_STREAM_END)) {
+		goto end;
+	}
+
 	assert(stream);
 	stream_end_notif = bt_notification_stream_end_create(stream);
 	if (!stream_end_notif) {
@@ -615,6 +733,11 @@ int add_action_push_notif_packet_begin(
 	int ret = 0;
 	struct bt_notification *packet_begin_notif = NULL;
 
+	if (!is_subscribed_to_notification_type(iterator,
+			BT_NOTIFICATION_TYPE_PACKET_BEGIN)) {
+		goto end;
+	}
+
 	assert(packet);
 	packet_begin_notif = bt_notification_packet_begin_create(packet);
 	if (!packet_begin_notif) {
@@ -639,6 +762,11 @@ int add_action_push_notif_packet_end(
 {
 	int ret = 0;
 	struct bt_notification *packet_end_notif = NULL;
+
+	if (!is_subscribed_to_notification_type(iterator,
+			BT_NOTIFICATION_TYPE_PACKET_END)) {
+		goto end;
+	}
 
 	assert(packet);
 	packet_end_notif = bt_notification_packet_end_create(packet);
@@ -967,6 +1095,9 @@ int enqueue_notification_and_automatic(
 
 	assert(notif);
 
+	// TODO: Skip most of this if the iterator is only subscribed
+	//       to event/inactivity notifications.
+
 	/* Get the stream and packet referred by the notification */
 	switch (notif->type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -1165,55 +1296,57 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 
 	/*
 	 * Call the user's "next" method to get the next notification
-	 * and status, skipping the forwarded automatic notifications
-	 * if any.
+	 * and status.
 	 */
 	assert(next_method);
-	next_return = next_method(priv_iterator);
-	if (next_return.status < 0) {
-		status = next_return.status;
-		goto end;
-	}
 
-	switch (next_return.status) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		ret = handle_end(iterator);
-		if (ret) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	while (iterator->queue->length == 0) {
+		next_return = next_method(priv_iterator);
+		if (next_return.status < 0) {
+			status = next_return.status;
 			goto end;
 		}
 
-		if (iterator->queue->length == 0) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_END;
-		}
+		switch (next_return.status) {
+		case BT_NOTIFICATION_ITERATOR_STATUS_END:
+			ret = handle_end(iterator);
+			if (ret) {
+				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
 
-		iterator->is_ended = true;
-		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
-		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
-		if (!next_return.notification) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
+			if (iterator->queue->length == 0) {
+				status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+			}
 
-		/*
-		 * We know the notification is valid. Before we push it
-		 * to the head of the queue, push the appropriate
-		 * automatic notifications if any.
-		 */
-		ret = enqueue_notification_and_automatic(iterator,
-			next_return.notification);
-		BT_PUT(next_return.notification);
-		if (ret) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			iterator->is_ended = true;
 			goto end;
+		case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
+			goto end;
+		case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+			if (!next_return.notification) {
+				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
+			/*
+			 * We know the notification is valid. Before we
+			 * push it to the head of the queue, push the
+			 * appropriate automatic notifications if any.
+			 */
+			ret = enqueue_notification_and_automatic(iterator,
+				next_return.notification);
+			BT_PUT(next_return.notification);
+			if (ret) {
+				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+			break;
+		default:
+			/* Unknown non-error status */
+			assert(false);
 		}
-		break;
-	default:
-		/* Unknown non-error status */
-		assert(false);
 	}
 
 end:

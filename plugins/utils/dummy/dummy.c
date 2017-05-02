@@ -106,7 +106,7 @@ void dummy_port_connected(
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
 	iterator = bt_private_connection_create_notification_iterator(
-		connection);
+		connection, NULL);
 	if (!iterator) {
 		dummy->error = true;
 		goto end;

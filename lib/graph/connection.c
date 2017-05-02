@@ -140,7 +140,8 @@ struct bt_port *bt_connection_get_downstream_port(
 
 struct bt_notification_iterator *
 bt_private_connection_create_notification_iterator(
-		struct bt_private_connection *private_connection)
+		struct bt_private_connection *private_connection,
+		const enum bt_notification_type *notification_types)
 {
 	enum bt_notification_iterator_status ret_iterator;
 	enum bt_component_class_type upstream_comp_class_type;
@@ -150,9 +151,17 @@ bt_private_connection_create_notification_iterator(
 	struct bt_component_class *upstream_comp_class = NULL;
 	struct bt_connection *connection = NULL;
 	bt_component_class_notification_iterator_init_method init_method = NULL;
+	static const enum bt_notification_type all_notif_types[] = {
+		BT_NOTIFICATION_TYPE_ALL,
+		BT_NOTIFICATION_TYPE_SENTINEL,
+	};
 
 	if (!private_connection) {
 		goto error;
+	}
+
+	if (!notification_types) {
+		notification_types = all_notif_types;
 	}
 
 	connection = bt_connection_from_private(private_connection);
@@ -180,7 +189,7 @@ bt_private_connection_create_notification_iterator(
 	}
 
 	iterator = bt_notification_iterator_create(upstream_component,
-		upstream_port);
+		upstream_port, notification_types);
 	if (!iterator) {
 		goto error;
 	}

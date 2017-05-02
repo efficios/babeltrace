@@ -23,6 +23,8 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/graph/notification.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,7 +38,8 @@ struct bt_connection *bt_connection_from_private_connection(
 
 extern struct bt_notification_iterator *
 bt_private_connection_create_notification_iterator(
-		struct bt_private_connection *private_connection);
+		struct bt_private_connection *private_connection,
+		const enum bt_notification_type *notification_types);
 
 #ifdef __cplusplus
 }
