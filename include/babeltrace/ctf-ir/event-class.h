@@ -121,9 +121,11 @@ struct bt_ctf_stream_class;
 /**
 @brief	Creates a default CTF IR event class named \p name­.
 
-The event class is created \em without an event context
-\link ctfirfieldtypes field type\endlink and with an empty event
-payload field type.
+On success, the context and payload field types are empty structure
+field types. You can modify those default field types after the
+event class is created with
+bt_ctf_event_class_set_context_type() and
+bt_ctf_event_class_set_payload_type().
 
 Upon creation, the event class's ID is <em>not set</em>. You
 can set it to a specific value with bt_ctf_event_class_set_id(). If it

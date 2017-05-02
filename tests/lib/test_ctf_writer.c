@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 614
+#define NR_TESTS 612
 
 static int64_t current_time = 42;
 
@@ -371,8 +371,6 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Add event specific context field");
 	ok(bt_ctf_event_class_get_context_type(NULL) == NULL,
 		"bt_ctf_event_class_get_context_type handles NULL correctly");
-	ok(bt_ctf_event_class_get_context_type(simple_event_class) == NULL,
-		"bt_ctf_event_class_get_context_type returns NULL when no event context type is set");
 
 	ok(bt_ctf_event_class_set_context_type(NULL, event_context_type) < 0,
 		"bt_ctf_event_class_set_context_type handles a NULL event class correctly");
@@ -3313,9 +3311,6 @@ int main(int argc, char **argv)
 	/* Define a stream event context containing a my_integer field. */
 	ok(bt_ctf_stream_class_get_event_context_type(NULL) == NULL,
 		"bt_ctf_stream_class_get_event_context_type handles NULL correctly");
-	ok(bt_ctf_stream_class_get_event_context_type(
-		stream_class) == NULL,
-		"bt_ctf_stream_class_get_event_context_type returns NULL when no stream event context type was set.");
 	stream_event_context_type = bt_ctf_field_type_structure_create();
 	bt_ctf_field_type_structure_add_field(stream_event_context_type,
 		integer_type, "common_event_context");
