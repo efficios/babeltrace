@@ -124,11 +124,6 @@ except for:
 - Adding a CTF IR clock class to it with bt_ctf_trace_add_clock_class().
 - \link refs Reference counting\endlink.
 
-You can add a custom listener with bt_ctf_trace_add_listener() to get
-notified if anything changes in a trace class, that is, if an event
-class is added to one of its stream class, if a stream class is added,
-or if a clock class is added.
-
 @sa ctfirstreamclass
 @sa ctfireventclass
 @sa ctfirclockclass
