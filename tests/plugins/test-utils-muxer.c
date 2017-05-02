@@ -151,21 +151,20 @@ static int64_t seq4[] = {
 };
 
 static int64_t seq1_with_again[] = {
-	24, 53, 97, 105, 119, 210, SEQ_AGAIN, SEQ_AGAIN, 222, 240, 292,
-	317, 353, 407, 433, 473, 487, 504, 572, 615, 708, 766, 850, 852,
-	931, 951, 956, 996, SEQ_END,
+	24, 53, 97, 105, 119, 210, SEQ_AGAIN, 222, 240, 292, 317, 353,
+	407, 433, 473, 487, 504, 572, 615, 708, 766, 850, 852, 931, 951,
+	956, 996, SEQ_END,
 };
 
 static int64_t seq2_with_again[] = {
 	51, 59, 68, 77, 91, 121, 139, 170, 179, 266, 352, 454, 478, 631,
-	644, 668, 714, 744, 750, 778, 790, 836, SEQ_AGAIN, SEQ_AGAIN,
-	SEQ_END,
+	644, 668, 714, 744, 750, 778, 790, 836, SEQ_AGAIN, SEQ_END,
 };
 
 static int64_t seq3_with_again[] = {
 	8, 71, 209, 254, 298, 320, 350, 393, 419, 624, 651, SEQ_AGAIN,
-	SEQ_AGAIN, 678, 717, 731, 733, 788, 819, 820, 857, 892, 903,
-	944, 998, SEQ_END,
+	678, 717, 731, 733, 788, 819, 820, 857, 892, 903, 944, 998,
+	SEQ_END,
 };
 
 static int64_t seq4_with_again[] = {
@@ -302,6 +301,10 @@ bool compare_test_events(const struct test_event *expected_events)
 	}
 
 	if (i != test_events->len) {
+		if (debug) {
+			fprintf(stderr, ":: Length mismatch\n");
+		}
+
 		return false;
 	}
 

@@ -59,6 +59,19 @@ struct muxer_upstream_notif_iter {
 
 	/* Owned by this*/
 	struct bt_private_port *priv_port;
+
+	/*
+	 * This flag is true if the upstream notification iterator's
+	 * current notification must be considered for the multiplexing
+	 * operations. If the upstream iterator returns
+	 * BT_NOTIFICATION_ITERATOR_STATUS_AGAIN, then this object
+	 * is considered invalid, because its current notification is
+	 * still the previous one, but we already took it into account.
+	 *
+	 * The value of this flag is not important if notif_iter above
+	 * is NULL (which means the upstream iterator is finished).
+	 */
+	bool is_valid;
 };
 
 struct muxer_notif_iter {
@@ -71,9 +84,6 @@ struct muxer_notif_iter {
 	 * use cases.
 	 */
 	GPtrArray *muxer_upstream_notif_iters;
-
-	/* Array of struct muxer_upstream_notif_iter * (weak refs) */
-	GList *muxer_upstream_notif_iters_to_retry;
 
 	/*
 	 * List of "recently" connected input ports (owned by this) to
@@ -88,7 +98,6 @@ struct muxer_notif_iter {
 
 	/* Next thing to return by the "next" method */
 	struct bt_notification_iterator_next_return next_next_return;
-	int64_t next_next_return_ts_ns;
 
 	/* Last time returned in a notification */
 	int64_t last_returned_ts_ns;
@@ -122,32 +131,12 @@ struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
 
 	muxer_upstream_notif_iter->notif_iter = bt_get(notif_iter);
 	muxer_upstream_notif_iter->priv_port = bt_get(priv_port);
+	muxer_upstream_notif_iter->is_valid = false;
 	g_ptr_array_add(muxer_notif_iter->muxer_upstream_notif_iters,
 		muxer_upstream_notif_iter);
 
 end:
 	return muxer_upstream_notif_iter;
-}
-
-static inline
-bool muxer_notif_iter_has_upstream_notif_iter_to_retry(
-		struct muxer_notif_iter *muxer_notif_iter)
-{
-	assert(muxer_notif_iter);
-	return muxer_notif_iter->muxer_upstream_notif_iters_to_retry != NULL;
-}
-
-static
-void muxer_notif_iter_add_upstream_notif_iter_to_retry(
-		struct muxer_notif_iter *muxer_notif_iter,
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
-{
-	assert(muxer_notif_iter);
-	assert(muxer_upstream_notif_iter);
-	muxer_notif_iter->muxer_upstream_notif_iters_to_retry =
-		g_list_append(
-			muxer_notif_iter->muxer_upstream_notif_iters_to_retry,
-			muxer_upstream_notif_iter);
 }
 
 static
@@ -344,22 +333,30 @@ end:
 }
 
 static
-int muxer_upstream_notif_iter_next(struct muxer_notif_iter *muxer_notif_iter,
+enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
 {
-	int ret = 0;
-	enum bt_notification_iterator_status next_status;
+	enum bt_notification_iterator_status status;
 
-	next_status = bt_notification_iterator_next(
+	status = bt_notification_iterator_next(
 		muxer_upstream_notif_iter->notif_iter);
 
-	switch (next_status) {
+	switch (status) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
-		/* Everything okay */
+		/*
+		 * Notification iterator's current notification is valid:
+		 * it must be considered for muxing operations.
+		 */
+		muxer_upstream_notif_iter->is_valid = true;
 		break;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		muxer_notif_iter_add_upstream_notif_iter_to_retry(
-			muxer_notif_iter, muxer_upstream_notif_iter);
+		/*
+		 * Notification iterator's current notification is not
+		 * valid anymore. Return
+		 * BT_NOTIFICATION_ITERATOR_STATUS_AGAIN
+		 * immediately.
+		 */
+		muxer_upstream_notif_iter->is_valid = false;
 		break;
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		/*
@@ -368,57 +365,31 @@ int muxer_upstream_notif_iter_next(struct muxer_notif_iter *muxer_notif_iter,
 		 * notification.
 		 */
 		BT_PUT(muxer_upstream_notif_iter->notif_iter);
-		goto end;
+		muxer_upstream_notif_iter->is_valid = false;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		break;
 	default:
 		/* Error or unsupported status code */
-		ret = next_status;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		break;
 	}
 
-end:
-	return ret;
+	return status;
 }
 
 static
-int muxer_notif_iter_handle_newly_connected_ports(struct muxer_comp *muxer_comp,
+int muxer_notif_iter_handle_newly_connected_ports(
 		struct muxer_notif_iter *muxer_notif_iter)
 {
-	struct bt_component *comp = NULL;
 	int ret = 0;
-
-	comp = bt_component_from_private_component(muxer_comp->priv_comp);
-	assert(comp);
 
 	/*
 	 * Here we create one upstream notification iterator for each
-	 * newly connected port. The list of newly connected ports to
-	 * handle here is updated by muxer_port_connected().
-	 *
-	 * An initial "next" operation is performed on each new upstream
-	 * notification iterator. The possible return values of this
-	 * initial "next" operation are:
-	 *
-	 * * BT_NOTIFICATION_ITERATOR_STATUS_OK: Perfect, we have a
-	 *   current notification.
-	 *
-	 * * BT_NOTIFICATION_ITERATOR_STATUS_AGAIN: No notification so
-	 *   far, but the muxer upstream notification iterator is added
-	 *   to the list of upstream notification iterators to retry
-	 *   before finding the next youngest notification.
-	 *
-	 * * BT_NOTIFICATION_ITERATOR_STATUS_END: No notification, and
-	 *   we immediately release the upstream notification iterator
-	 *   because it's useless.
-	 *
-	 * A possible side effect of this initial "next" operation, on
-	 * each notification iterator, is the connection of a new port.
-	 * In this case the list of newly connected ports is updated and
-	 * this loop continues.
-	 *
-	 * Once this loop finishes successfully, the set of upstream
-	 * notification iterators is considered _stable_, that is, it is
-	 * safe, if no notification iterators must be retried, to select
-	 * the youngest notification amongst them to be returned by the
-	 * next "next" method call.
+	 * newly connected port. We do not perform an initial "next" on
+	 * those new upstream notification iterators: they are
+	 * invalidated, to be validated later. The list of newly
+	 * connected ports to handle here is updated by
+	 * muxer_port_connected().
 	 */
 	while (true) {
 		GList *node = muxer_notif_iter->newly_connected_priv_ports;
@@ -439,8 +410,8 @@ int muxer_notif_iter_handle_newly_connected_ports(struct muxer_comp *muxer_comp,
 			/*
 			 * Looks like this port is not connected
 			 * anymore: we can't create an upstream
-			 * notification iterator on its connection in
-			 * this case.
+			 * notification iterator on its (non-existing)
+			 * connection in this case.
 			 */
 			goto remove_node;
 		}
@@ -464,12 +435,6 @@ int muxer_notif_iter_handle_newly_connected_ports(struct muxer_comp *muxer_comp,
 			goto error;
 		}
 
-		ret = muxer_upstream_notif_iter_next(muxer_notif_iter,
-			muxer_upstream_notif_iter);
-		if (ret) {
-			goto error;
-		}
-
 remove_node:
 		bt_put(upstream_notif_iter);
 		bt_put(port);
@@ -483,12 +448,11 @@ remove_node:
 	goto end;
 
 error:
-	if (ret == 0) {
+	if (ret >= 0) {
 		ret = -1;
 	}
 
 end:
-	bt_put(comp);
 	return ret;
 }
 
@@ -519,10 +483,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 				notif);
 		break;
 	default:
-		/*
-		 * All the other notifications have a higher
-		 * priority.
-		 */
+		/* All the other notifications have a higher priority */
 		*ts_ns = last_returned_ts_ns;
 		goto end;
 	}
@@ -637,6 +598,7 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 			continue;
 		}
 
+		assert(cur_muxer_upstream_notif_iter->is_valid);
 		notif = bt_notification_iterator_get_notification(
 			cur_muxer_upstream_notif_iter->notif_iter);
 		assert(notif);
@@ -667,107 +629,127 @@ end:
 }
 
 static
-int muxer_notif_iter_set_next_next_return(struct muxer_comp *muxer_comp,
+enum bt_notification_iterator_status validate_muxer_upstream_notif_iter(
+	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
+{
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+
+	if (muxer_upstream_notif_iter->is_valid ||
+			!muxer_upstream_notif_iter->notif_iter) {
+		goto end;
+	}
+
+	status = muxer_upstream_notif_iter_next(muxer_upstream_notif_iter);
+
+end:
+	return status;
+}
+
+static
+enum bt_notification_iterator_status validate_muxer_upstream_notif_iters(
+	struct muxer_notif_iter *muxer_notif_iter)
+{
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	size_t i;
+
+	for (i = 0; i < muxer_notif_iter->muxer_upstream_notif_iters->len; i++) {
+		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter =
+			g_ptr_array_index(
+				muxer_notif_iter->muxer_upstream_notif_iters,
+				i);
+
+		status = validate_muxer_upstream_notif_iter(
+			muxer_upstream_notif_iter);
+		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			goto end;
+		}
+	}
+
+end:
+	return status;
+}
+
+static
+struct bt_notification_iterator_next_return muxer_notif_iter_do_next(
+		struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter)
 {
-	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter;
-	enum bt_notification_iterator_status notif_iter_status;
-	int ret = 0;
+	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter = NULL;
+	struct bt_notification_iterator_next_return next_return = {
+		.notification = NULL,
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+	};
+	int64_t next_return_ts;
 
-	/*
-	 * Previous operations might have connected ports. They must be
-	 * considered when finding the youngest notification because
-	 * their upstream notification iterator does not exist yet.
-	 */
-	ret = muxer_notif_iter_handle_newly_connected_ports(muxer_comp,
-		muxer_notif_iter);
-	if (ret) {
-		muxer_notif_iter->next_next_return.status =
-			BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-		BT_PUT(muxer_notif_iter->next_next_return.notification);
-		goto end;
+	while (true) {
+		int ret = muxer_notif_iter_handle_newly_connected_ports(
+			muxer_notif_iter);
+
+		if (ret) {
+			next_return.status =
+				BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
+
+		next_return.status =
+			validate_muxer_upstream_notif_iters(muxer_notif_iter);
+		if (next_return.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			goto end;
+		}
+
+		/*
+		 * At this point, we know that all the existing upstream
+		 * notification iterators are valid. However the
+		 * operations to validate them (during
+		 * validate_muxer_upstream_notif_iters()) may have
+		 * connected new ports. If no ports were connected
+		 * during this operation, exit the loop.
+		 */
+		if (!muxer_notif_iter->newly_connected_priv_ports) {
+			break;
+		}
 	}
 
 	assert(!muxer_notif_iter->newly_connected_priv_ports);
 
-	if (muxer_notif_iter_has_upstream_notif_iter_to_retry(
-			muxer_notif_iter)) {
-		/*
-		 * At least one upstream notification iterator to retry:
-		 * try again later, because we cannot find the youngest
-		 * notification if we don't have the current
-		 * notification of each upstream notification iterator.
-		 */
-		muxer_notif_iter->next_next_return.status =
-			BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
-		BT_PUT(muxer_notif_iter->next_next_return.notification);
-		goto end;
-	}
-
 	/*
-	 * At this point we know that all our connected ports have an
-	 * upstream notification iterator, and that all those iterators
-	 * have a current notification (stable state). It is safe to
-	 * find the youngest notification. It is possible that calling
-	 * "next" on its iterator will connect new ports. This will be
-	 * handled by the next call to
-	 * muxer_notif_iter_set_next_next_return().
+	 * At this point we know that all the existing upstream
+	 * notification iterators are valid. We can find the one,
+	 * amongst those, of which the current notification is the
+	 * youngest.
 	 */
-	notif_iter_status =
+	next_return.status =
 		muxer_notif_iter_youngest_upstream_notif_iter(muxer_comp,
 			muxer_notif_iter, &muxer_upstream_notif_iter,
-			&muxer_notif_iter->next_next_return_ts_ns);
-	if (notif_iter_status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
-		/* No more active upstream notification iterator */
-		muxer_notif_iter->next_next_return.status =
-			BT_NOTIFICATION_ITERATOR_STATUS_END;
-		BT_PUT(muxer_notif_iter->next_next_return.notification);
+			&next_return_ts);
+	if (next_return.status < 0 ||
+			next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
 		goto end;
 	}
 
-	if (notif_iter_status < 0) {
-		ret = -1;
+	if (next_return_ts < muxer_notif_iter->last_returned_ts_ns) {
+		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	assert(notif_iter_status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
-	BT_PUT(muxer_notif_iter->next_next_return.notification);
-	muxer_notif_iter->next_next_return.notification =
-		bt_notification_iterator_get_notification(
-			muxer_upstream_notif_iter->notif_iter);
-	assert(muxer_notif_iter->next_next_return.notification);
-	muxer_notif_iter->next_next_return.status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	ret = muxer_upstream_notif_iter_next(muxer_notif_iter,
-		muxer_upstream_notif_iter);
-	if (ret) {
-		goto end;
-	}
+	assert(next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
+	assert(muxer_upstream_notif_iter);
+	next_return.notification = bt_notification_iterator_get_notification(
+		muxer_upstream_notif_iter->notif_iter);
+	assert(next_return.notification);
 
 	/*
-	 * Here we have the next "next" return value. It won't change
-	 * until it is returned by the next call to our "next" method.
-	 * If its time is less than the time of the last notification
-	 * that our "next" method returned, then fail because the
-	 * muxer's output wouldn't be monotonic.
+	 * We invalidate the upstream notification iterator so that, the
+	 * next time this function is called,
+	 * validate_muxer_upstream_notif_iters() will make it valid.
 	 */
-	if (muxer_notif_iter->next_next_return_ts_ns <
-			muxer_notif_iter->last_returned_ts_ns) {
-		ret = -1;
-		goto end;
-	}
-
-	/*
-	 * We are now sure that the next "next" return value will not
-	 * change until it is returned by this muxer notification
-	 * iterator (unless there's a fatal error). It is now safe to
-	 * set the last returned time to this one.
-	 */
-	muxer_notif_iter->last_returned_ts_ns =
-		muxer_notif_iter->next_next_return_ts_ns;
+	muxer_upstream_notif_iter->is_valid = false;
+	muxer_notif_iter->last_returned_ts_ns = next_return_ts;
 
 end:
-	return ret;
+	return next_return;
 }
 
 static
@@ -782,10 +764,6 @@ void destroy_muxer_notif_iter(struct muxer_notif_iter *muxer_notif_iter)
 	if (muxer_notif_iter->muxer_upstream_notif_iters) {
 		g_ptr_array_free(
 			muxer_notif_iter->muxer_upstream_notif_iters, TRUE);
-	}
-
-	if (muxer_notif_iter->muxer_upstream_notif_iters_to_retry) {
-		g_list_free(muxer_notif_iter->muxer_upstream_notif_iters_to_retry);
 	}
 
 	for (node = muxer_notif_iter->newly_connected_priv_ports;
@@ -871,9 +849,9 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 
 	if (muxer_comp->initializing_muxer_notif_iter) {
 		/*
-		 * Weird, unhandled situation: downstream creates a
-		 * muxer notification iterator while creating another
-		 * muxer notification iterator (same component).
+		 * Weird, unhandled situation detected: downstream
+		 * creates a muxer notification iterator while creating
+		 * another muxer notification iterator (same component).
 		 */
 		goto error;
 	}
@@ -902,13 +880,6 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 	 */
 	g_ptr_array_add(muxer_comp->muxer_notif_iters, muxer_notif_iter);
 	ret = muxer_notif_iter_init_newly_connected_ports(muxer_comp,
-		muxer_notif_iter);
-	if (ret) {
-		goto error;
-	}
-
-	/* Set the initial "next" return value */
-	ret = muxer_notif_iter_set_next_next_return(muxer_comp,
 		muxer_notif_iter);
 	if (ret) {
 		goto error;
@@ -965,15 +936,11 @@ BT_HIDDEN
 struct bt_notification_iterator_next_return muxer_notif_iter_next(
 		struct bt_private_notification_iterator *priv_notif_iter)
 {
-	struct bt_notification_iterator_next_return next_ret = {
-		.notification = NULL,
-	};
+	struct bt_notification_iterator_next_return next_ret;
 	struct muxer_notif_iter *muxer_notif_iter =
 		bt_private_notification_iterator_get_user_data(priv_notif_iter);
 	struct bt_private_component *priv_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
-	GList *retry_node;
-	int ret;
 
 	assert(muxer_notif_iter);
 	priv_comp = bt_private_notification_iterator_get_private_component(
@@ -984,83 +951,12 @@ struct bt_notification_iterator_next_return muxer_notif_iter_next(
 
 	/* Are we in an error state set elsewhere? */
 	if (unlikely(muxer_comp->error)) {
-		goto error;
+		next_ret.notification = NULL;
+		next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		goto end;
 	}
 
-	/*
-	 * If we have upstream notification iterators to retry, retry
-	 * them now. Each one we find which now has a notification or
-	 * is in "end" state, we set it to NULL in this array. Then
-	 * we remove all the NULL values from this array.
-	 */
-	retry_node = muxer_notif_iter->muxer_upstream_notif_iters_to_retry;
-	while (retry_node) {
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter =
-			retry_node->data;
-		enum bt_notification_iterator_status status;
-		GList *next_retry_node = g_list_next(retry_node);
-
-		assert(muxer_upstream_notif_iter->notif_iter);
-		status = bt_notification_iterator_next(
-			muxer_upstream_notif_iter->notif_iter);
-		if (status < 0) {
-			goto error;
-		}
-
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
-			/*
-			 * This upstream notification iterator is done.
-			 * Put the iterator and remove node from list.
-			 */
-			BT_PUT(muxer_upstream_notif_iter->notif_iter);
-			muxer_notif_iter->muxer_upstream_notif_iters_to_retry =
-				g_list_delete_link(
-					muxer_notif_iter->muxer_upstream_notif_iters_to_retry,
-					retry_node);
-			retry_node = next_retry_node;
-			continue;
-		}
-
-		assert(status == BT_NOTIFICATION_ITERATOR_STATUS_OK ||
-			status == BT_NOTIFICATION_ITERATOR_STATUS_AGAIN);
-
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-			/*
-			 * This upstream notification iterator now has.
-			 * a notification. Remove it from this list.
-			 */
-			muxer_notif_iter->muxer_upstream_notif_iters_to_retry =
-				g_list_delete_link(
-					muxer_notif_iter->muxer_upstream_notif_iters_to_retry,
-					retry_node);
-		}
-
-		retry_node = next_retry_node;
-	}
-
-	/* Take our next "next" next return value */
-	next_ret = muxer_notif_iter->next_next_return;
-	muxer_notif_iter->next_next_return.status =
-		BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-	muxer_notif_iter->next_next_return.notification = NULL;
-
-	/* Set the next "next" return value */
-	ret = muxer_notif_iter_set_next_next_return(muxer_comp,
-		muxer_notif_iter);
-	if (ret) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	/*
-	 * Technically we already have a next "next" return value which
-	 * is ready for this call, but we're failing within this call,
-	 * so discard this buffer and return the error ASAP.
-	 */
-	BT_PUT(next_ret.notification);
-	next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	next_ret = muxer_notif_iter_do_next(muxer_comp, muxer_notif_iter);
 
 end:
 	bt_put(priv_comp);
@@ -1089,6 +985,10 @@ void muxer_port_connected(
 		muxer_comp->available_input_ports--;
 		ret = ensure_available_input_port(priv_comp);
 		if (ret) {
+			/*
+			 * Only way to report an error later since this
+			 * method does not return anything.
+			 */
 			muxer_comp->error = true;
 			goto end;
 		}
@@ -1112,6 +1012,7 @@ void muxer_port_connected(
 				muxer_notif_iter->newly_connected_priv_ports,
 				bt_get(self_private_port));
 		if (!muxer_notif_iter->newly_connected_priv_ports) {
+			/* Put reference taken by bt_get() above */
 			bt_put(self_private_port);
 			muxer_comp->error = true;
 			goto end;
@@ -1139,9 +1040,10 @@ void muxer_port_disconnected(struct bt_private_component *priv_comp,
 	 * iterators which were already created thanks to connected
 	 * ports. The fact that the port is disconnected does not cancel
 	 * the upstream notification iterators created using its
-	 * connection: they still exist. The only way to remove an
-	 * upstream notification iterator is for its "next" operation to
-	 * return BT_NOTIFICATION_ITERATOR_STATUS_END.
+	 * connection: they still exist, even if the connection is dead.
+	 * The only way to remove an upstream notification iterator is
+	 * for its "next" operation to return
+	 * BT_NOTIFICATION_ITERATOR_STATUS_END.
 	 */
 	if (bt_port_get_type(port) == BT_PORT_TYPE_INPUT) {
 		/* One more available input port */
