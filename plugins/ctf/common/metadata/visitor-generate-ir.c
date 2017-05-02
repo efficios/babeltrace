@@ -1291,7 +1291,7 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			nested_decl_copy = bt_ctf_field_type_copy(nested_decl);
 			BT_PUT(nested_decl);
 			if (!nested_decl_copy) {
-				_PERROR("%s", "cannot copy nested declaration");
+				_PERROR("%s", "cannot copy nested field type");
 				ret = -EINVAL;
 				goto error;
 			}
@@ -1366,7 +1366,7 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			BT_PUT(nested_decl);
 			if (!array_decl) {
 				_PERROR("%s",
-					"cannot create array declaration");
+					"cannot create array field type");
 				ret = -ENOMEM;
 				goto error;
 			}
@@ -1391,7 +1391,7 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			BT_PUT(nested_decl);
 			if (!seq_decl) {
 				_PERROR("%s",
-					"cannot create sequence declaration");
+					"cannot create sequence field type");
 				ret = -ENOMEM;
 				goto error;
 			}
@@ -1464,7 +1464,7 @@ int visit_struct_decl_field(struct ctx *ctx,
 			&qfield_name, iter, &field_decl, NULL);
 		if (ret) {
 			assert(!field_decl);
-			_PERROR("%s", "unable to find structure field declaration type");
+			_PERROR("%s", "cannot visit type declarator");
 			goto error;
 		}
 
@@ -1523,7 +1523,7 @@ int visit_variant_decl_field(struct ctx *ctx,
 		if (ret) {
 			assert(!field_decl);
 			_PERROR("%s",
-				"unable to find variant field declaration type");
+				"cannot visit type declarator");
 			goto error;
 		}
 
@@ -1574,7 +1574,7 @@ int visit_typedef(struct ctx *ctx, struct ctf_node *type_specifier_list,
 		ret = visit_type_declarator(ctx, type_specifier_list,
 			&qidentifier, iter, &type_decl, NULL);
 		if (ret) {
-			_PERROR("%s", "problem creating type declaration");
+			_PERROR("%s", "cannot visit type declarator");
 			ret = -EINVAL;
 			goto end;
 		}
@@ -1627,7 +1627,7 @@ int visit_typealias(struct ctx *ctx, struct ctf_node *target,
 		&qdummy_field_name, node, &type_decl, NULL);
 	if (ret) {
 		assert(!type_decl);
-		_PERROR("%s", "problem creating type declaration");
+		_PERROR("%s", "cannot visit type declarator");
 		goto end;
 	}
 
@@ -1795,7 +1795,7 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 		struct_decl_copy = bt_ctf_field_type_copy(*struct_decl);
 		if (!struct_decl_copy) {
 			_PERROR("%s",
-				"cannot create copy of structure declaration");
+				"cannot create copy of structure field type");
 			ret = -EINVAL;
 			goto error;
 		}
@@ -1829,7 +1829,7 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 
 		*struct_decl = bt_ctf_field_type_structure_create();
 		if (!*struct_decl) {
-			_PERROR("%s", "cannot create structure declaration");
+			_PERROR("%s", "cannot create structure field type");
 			ret = -ENOMEM;
 			goto error;
 		}
@@ -1912,7 +1912,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 			untagged_variant_decl);
 		if (!variant_decl_copy) {
 			_PERROR("%s",
-				"cannot create copy of structure declaration");
+				"cannot create copy of variant field type");
 			ret = -EINVAL;
 			goto error;
 		}
@@ -1938,7 +1938,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		untagged_variant_decl = bt_ctf_field_type_variant_create(NULL,
 			NULL);
 		if (!untagged_variant_decl) {
-			_PERROR("%s", "cannot create variant declaration");
+			_PERROR("%s", "cannot create variant field type");
 			ret = -ENOMEM;
 			goto error;
 		}
@@ -2119,7 +2119,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		enum_decl_copy = bt_ctf_field_type_copy(*enum_decl);
 		if (!enum_decl_copy) {
 			_PERROR("%s",
-				"cannot create copy of enumeration declaration");
+				"cannot create copy of enumeration field type");
 			ret = -EINVAL;
 			goto error;
 		}
@@ -2172,7 +2172,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 
 		*enum_decl = bt_ctf_field_type_enumeration_create(integer_decl);
 		if (!*enum_decl) {
-			_PERROR("%s", "cannot create enumeration declaration");
+			_PERROR("%s", "cannot create enumeration field type");
 			ret = -ENOMEM;
 			goto error;
 		}
@@ -2232,7 +2232,7 @@ int visit_type_specifier(struct ctx *ctx,
 	/* Make a copy of the type declaration */
 	decl_copy = bt_ctf_field_type_copy(*decl);
 	if (!decl_copy) {
-		_PERROR("%s", "cannot create copy of type declaration");
+		_PERROR("%s", "cannot create field type copy");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -2565,7 +2565,7 @@ int visit_integer_decl(struct ctx *ctx,
 
 	*integer_decl = bt_ctf_field_type_integer_create((unsigned int) size);
 	if (!*integer_decl) {
-		_PERROR("%s", "cannot create integer declaration");
+		_PERROR("%s", "cannot create integer field type");
 		ret = -ENOMEM;
 		goto error;
 	}
@@ -2586,7 +2586,7 @@ int visit_integer_decl(struct ctx *ctx,
 	}
 
 	if (ret) {
-		_PERROR("%s", "cannot configure integer declaration");
+		_PERROR("%s", "cannot configure integer field type");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -2741,7 +2741,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 	*float_decl = bt_ctf_field_type_floating_point_create();
 	if (!*float_decl) {
 		_PERROR("%s",
-			"cannot create floating point number declaration");
+			"cannot create floating point number field type");
 		ret = -ENOMEM;
 		goto error;
 	}
@@ -2754,7 +2754,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 	ret |= bt_ctf_field_type_set_alignment(*float_decl, alignment);
 	if (ret) {
 		_PERROR("%s",
-			"cannot configure floating point number declaration");
+			"cannot configure floating point number field type");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -2845,14 +2845,14 @@ int visit_string_decl(struct ctx *ctx,
 
 	*string_decl = bt_ctf_field_type_string_create();
 	if (!*string_decl) {
-		_PERROR("%s", "cannot create string declaration");
+		_PERROR("%s", "cannot create string field type");
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	ret = bt_ctf_field_type_string_set_encoding(*string_decl, encoding);
 	if (ret) {
-		_PERROR("%s", "cannot configure string declaration");
+		_PERROR("%s", "cannot configure string field type");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -3107,7 +3107,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 					struct ctf_node, siblings),
 				&decl);
 			if (ret) {
-				_PERROR("%s", "cannot create event payload declaration");
+				_PERROR("%s", "cannot create event payload field type");
 				goto error;
 			}
 
@@ -3116,7 +3116,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				event_class, decl);
 			BT_PUT(decl);
 			if (ret) {
-				_PERROR("%s", "cannot set event's payload declaration");
+				_PERROR("%s", "cannot set event's payload field type");
 				goto error;
 			}
 
@@ -3592,7 +3592,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			ret = bt_ctf_stream_class_set_id(stream_class, id);
 			if (ret) {
 				_PERROR("%s",
-					"cannot set stream declaration's ID");
+					"cannot set stream class's ID");
 				goto error;
 			}
 
@@ -3610,7 +3610,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 					struct ctf_node, siblings),
 				&decl);
 			if (ret) {
-				_PERROR("%s", "cannot create event header declaration");
+				_PERROR("%s", "cannot create event header field type");
 				goto error;
 			}
 
@@ -3620,7 +3620,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
-				_PERROR("%s", "cannot set stream's event header declaration");
+				_PERROR("%s", "cannot set stream's event header field type");
 				goto error;
 			}
 
@@ -3638,7 +3638,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 					struct ctf_node, siblings),
 				&decl);
 			if (ret) {
-				_PERROR("%s", "cannot create stream event context declaration");
+				_PERROR("%s", "cannot create stream event context field type");
 				goto error;
 			}
 
@@ -3648,7 +3648,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
-				_PERROR("%s", "cannot set stream's event context declaration");
+				_PERROR("%s", "cannot set stream's event context field type");
 				goto error;
 			}
 
@@ -3666,7 +3666,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 					struct ctf_node, siblings),
 				&decl);
 			if (ret) {
-				_PERROR("%s", "cannot create packet context declaration");
+				_PERROR("%s", "cannot create packet context field type");
 				goto error;
 			}
 
@@ -3676,7 +3676,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
-				_PERROR("%s", "cannot set stream's packet context declaration");
+				_PERROR("%s", "cannot set stream's packet context field type");
 				goto error;
 			}
 
@@ -3752,7 +3752,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 			bt_ctf_trace_get_packet_header_type(ctx->trace);
 		if (!packet_header_decl) {
 			_PERROR("%s",
-				"cannot get trace packet header declaration");
+				"cannot get trace packet header field type");
 			goto error;
 		}
 
@@ -3936,7 +3936,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 					struct ctf_node, siblings),
 				&packet_header_decl);
 			if (ret) {
-				_PERROR("%s", "cannot create packet header declaration");
+				_PERROR("%s", "cannot create packet header field type");
 				goto error;
 			}
 
@@ -3945,7 +3945,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				packet_header_decl);
 			BT_PUT(packet_header_decl);
 			if (ret) {
-				_PERROR("%s", "cannot set trace declaration's packet header declaration");
+				_PERROR("%s", "cannot set trace's packet header field type");
 				goto error;
 			}
 
