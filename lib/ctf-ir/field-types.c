@@ -683,11 +683,14 @@ int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 		bt_ctf_field_type_enumeration_get_mapping_count(
 			(struct bt_ctf_field_type *) variant->tag);
 
-	if (tag_mappings_count != variant->fields->len) {
-		ret = -1;
-		goto end;
-	}
-
+	/*
+	 * Validate that each mapping found in the tag has a name which
+	 * is also the name of a field in this variant field type.
+	 *
+	 * The opposite is accepted: variant FT fields which cannot be
+	 * selected because the variant FT tag has no mapping named as
+	 * such. This scenario, while not ideal, cannot cause any error.
+	 */
 	for (i = 0; i < tag_mappings_count; ++i) {
 		const char *label;
 		struct bt_ctf_field_type *ft;
