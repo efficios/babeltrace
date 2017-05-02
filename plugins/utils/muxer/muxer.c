@@ -41,6 +41,8 @@
 #include <glib.h>
 #include <assert.h>
 
+#define IGNORE_ABSOLUTE_PARAM_NAME	"ignore-absolute"
+
 struct muxer_comp {
 	/* Array of struct bt_private_notification_iterator * (weak refs) */
 	GPtrArray *muxer_notif_iters;
@@ -51,6 +53,7 @@ struct muxer_comp {
 	size_t available_input_ports;
 	bool error;
 	bool initializing_muxer_notif_iter;
+	bool ignore_absolute;
 };
 
 struct muxer_upstream_notif_iter {
@@ -210,6 +213,72 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 	g_free(muxer_comp);
 }
 
+static
+struct bt_value *get_default_params(void)
+{
+	struct bt_value *params;
+	int ret;
+
+	params = bt_value_map_create();
+	if (!params) {
+		goto error;
+	}
+
+	ret = bt_value_map_insert_bool(params, IGNORE_ABSOLUTE_PARAM_NAME,
+		false);
+	if (ret) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(params);
+
+end:
+	return params;
+}
+
+static
+int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
+{
+	struct bt_value *default_params = NULL;
+	struct bt_value *real_params = NULL;
+	struct bt_value *ignore_absolute = NULL;
+	int ret = 0;
+
+	default_params = get_default_params();
+	if (!default_params) {
+		goto error;
+	}
+
+	real_params = bt_value_map_extend(default_params, params);
+	if (!real_params) {
+		goto error;
+	}
+
+	ignore_absolute = bt_value_map_get(real_params,
+		IGNORE_ABSOLUTE_PARAM_NAME);
+	if (!bt_value_is_bool(ignore_absolute)) {
+		goto error;
+	}
+
+	if (bt_value_bool_get(ignore_absolute, &muxer_comp->ignore_absolute)) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	bt_put(default_params);
+	bt_put(real_params);
+	bt_put(ignore_absolute);
+	return ret;
+}
+
 BT_HIDDEN
 enum bt_component_status muxer_init(
 		struct bt_private_component *priv_comp,
@@ -220,6 +289,11 @@ enum bt_component_status muxer_init(
 	struct muxer_comp *muxer_comp = g_new0(struct muxer_comp, 1);
 
 	if (!muxer_comp) {
+		goto error;
+	}
+
+	ret = configure_muxer_comp(muxer_comp, params);
+	if (ret) {
 		goto error;
 	}
 
@@ -474,8 +548,8 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	if (!bt_ctf_clock_class_is_absolute(clock_class)) {
-		// TODO: Allow this with an explicit parameter
+	if (!muxer_comp->ignore_absolute &&
+			!bt_ctf_clock_class_is_absolute(clock_class)) {
 		goto error;
 	}
 
