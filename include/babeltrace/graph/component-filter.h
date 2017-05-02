@@ -43,8 +43,6 @@ extern struct bt_port *bt_component_filter_get_input_port_by_name(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_filter_get_input_port_by_index(
 		struct bt_component *component, uint64_t index);
-extern struct bt_port *bt_component_filter_get_default_input_port(
-		struct bt_component *component);
 
 extern int64_t bt_component_filter_get_output_port_count(
 		struct bt_component *component);
@@ -52,8 +50,6 @@ extern struct bt_port *bt_component_filter_get_output_port_by_name(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_filter_get_output_port_by_index(
 		struct bt_component *component, uint64_t index);
-extern struct bt_port *bt_component_filter_get_default_output_port(
-		struct bt_component *component);
 
 #ifdef __cplusplus
 }

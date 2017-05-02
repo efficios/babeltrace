@@ -45,6 +45,7 @@
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/private-component-source.h>
+#include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-notification-iterator.h>
@@ -701,6 +702,12 @@ enum bt_component_status src_init(
 		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data)
 {
+	void *priv_port;
+
+	priv_port = bt_private_component_source_add_output_private_port(
+		private_component, "out", NULL);
+	assert(priv_port);
+	bt_put(priv_port);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -836,11 +843,16 @@ enum bt_component_status sink_init(
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
+	void *priv_port;
 
 	assert(user_data);
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
 	assert(ret == 0);
+	priv_port = bt_private_component_sink_add_input_private_port(
+		private_component, "in", NULL);
+	assert(priv_port);
+	bt_put(priv_port);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -917,9 +929,9 @@ void do_std_test(enum test test, const char *name,
 	assert(graph);
 
 	/* Connect source to sink */
-	upstream_port = bt_component_source_get_default_output_port(src_comp);
+	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
 	assert(upstream_port);
-	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
+	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	assert(downstream_port);
 	conn = bt_graph_connect_ports(graph, upstream_port, downstream_port);
 	assert(conn);

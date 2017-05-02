@@ -374,6 +374,19 @@ void src_port_disconnected(struct bt_private_component *private_component,
 }
 
 static
+enum bt_component_status src_init(struct bt_private_component *priv_comp,
+	struct bt_value *params, void *init_method_data)
+{
+	void *priv_port;
+
+	priv_port = bt_private_component_source_add_output_private_port(
+		priv_comp, "out", NULL);
+	assert(priv_port);
+	bt_put(priv_port);
+	return BT_COMPONENT_STATUS_OK;
+}
+
+static
 enum bt_component_status sink_consume(
 		struct bt_private_component *priv_component)
 {
@@ -383,8 +396,8 @@ enum bt_component_status sink_consume(
 	switch (current_test) {
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME:
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
-		def_port = bt_private_component_sink_get_default_input_private_port(
-			priv_component);
+		def_port = bt_private_component_sink_get_input_private_port_by_name(
+			priv_component, "in");
 		assert(def_port);
 		ret = bt_private_port_remove_from_component(def_port);
 		assert(ret == 0);
@@ -431,6 +444,19 @@ void sink_port_disconnected(struct bt_private_component *private_component,
 	bt_put(event.data.comp_port_disconnected.comp);
 	bt_put(event.data.comp_port_disconnected.port);
 	append_event(&event);
+}
+
+static
+enum bt_component_status sink_init(struct bt_private_component *priv_comp,
+	struct bt_value *params, void *init_method_data)
+{
+	void *priv_port;
+
+	priv_port = bt_private_component_sink_add_input_private_port(priv_comp,
+		"in", NULL);
+	assert(priv_port);
+	bt_put(priv_port);
+	return BT_COMPONENT_STATUS_OK;
 }
 
 static
@@ -526,6 +552,8 @@ void init_test(void)
 
 	src_comp_class = bt_component_class_source_create("src", src_iter_next);
 	assert(src_comp_class);
+	ret = bt_component_class_set_init_method(src_comp_class, src_init);
+	assert(ret == 0);
 	ret = bt_component_class_set_accept_port_connection_method(
 		src_comp_class, accept_port_connection);
 	assert(ret == 0);
@@ -537,6 +565,8 @@ void init_test(void)
 	assert(ret == 0);
 	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
 	assert(sink_comp_class);
+	ret = bt_component_class_set_init_method(sink_comp_class, sink_init);
+	assert(ret == 0);
 	ret = bt_component_class_set_accept_port_connection_method(
 		sink_comp_class, accept_port_connection);
 	assert(ret == 0);
@@ -636,9 +666,9 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	src = create_src();
 	sink = create_sink();
 	graph = create_graph();
-	src_def_port = bt_component_source_get_default_output_port(src);
+	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
-	sink_def_port = bt_component_sink_get_default_input_port(sink);
+	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
 	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
 	assert(conn);
@@ -797,9 +827,9 @@ void test_sink_removes_port_in_port_connected(void)
 	src = create_src();
 	sink = create_sink();
 	graph = create_graph();
-	src_def_port = bt_component_source_get_default_output_port(src);
+	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
-	sink_def_port = bt_component_sink_get_default_input_port(sink);
+	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
 	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
 	assert(conn);
@@ -940,9 +970,9 @@ void test_src_adds_port_in_port_connected(void)
 	src = create_src();
 	sink = create_sink();
 	graph = create_graph();
-	src_def_port = bt_component_source_get_default_output_port(src);
+	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
-	sink_def_port = bt_component_sink_get_default_input_port(sink);
+	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
 	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
 	assert(conn);
@@ -1045,9 +1075,9 @@ void test_simple(void)
 	src = create_src();
 	sink = create_sink();
 	graph = create_graph();
-	src_def_port = bt_component_source_get_default_output_port(src);
+	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
-	sink_def_port = bt_component_sink_get_default_input_port(sink);
+	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
 	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
 	assert(conn);

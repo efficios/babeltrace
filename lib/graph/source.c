@@ -125,13 +125,6 @@ end:
 	return port;
 }
 
-struct bt_port *bt_component_source_get_default_output_port(
-		struct bt_component *component)
-{
-	return bt_component_source_get_output_port_by_name(component,
-			DEFAULT_OUTPUT_PORT_NAME);
-}
-
 struct bt_private_port *
 bt_private_component_source_get_output_private_port_by_name(
 		struct bt_private_component *private_component,
@@ -149,14 +142,6 @@ bt_private_component_source_get_output_private_port_by_index(
 	return bt_private_port_from_port(
 		bt_component_source_get_output_port_by_index(
 			bt_component_from_private(private_component), index));
-}
-
-struct bt_private_port *bt_private_component_source_get_default_output_private_port(
-		struct bt_private_component *private_component)
-{
-	return bt_private_port_from_port(
-		bt_component_source_get_default_output_port(
-			bt_component_from_private(private_component)));
 }
 
 struct bt_private_port *bt_private_component_source_add_output_private_port(

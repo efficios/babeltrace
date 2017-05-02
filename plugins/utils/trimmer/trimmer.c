@@ -33,6 +33,7 @@
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-component-filter.h>
 #include <babeltrace/graph/notification-event.h>
 #include <plugins-common.h>
 #include "trimmer.h"
@@ -357,10 +358,25 @@ enum bt_component_status trimmer_component_init(
 {
 	enum bt_component_status ret;
 	struct trimmer *trimmer = create_trimmer_data();
+	struct bt_private_port *priv_port = NULL;
 
 	if (!trimmer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
+	}
+
+	/* Create input and output ports */
+	priv_port = bt_private_component_filter_add_input_private_port(
+		component, "in", NULL);
+	if (!priv_port) {
+		goto error;
+	}
+
+	bt_put(priv_port);
+	priv_port = bt_private_component_filter_add_output_private_port(
+		component, "out", NULL);
+	if (!priv_port) {
+		goto error;
 	}
 
 	ret = bt_private_component_set_user_data(component, trimmer);
@@ -370,8 +386,10 @@ enum bt_component_status trimmer_component_init(
 
 	ret = init_from_params(trimmer, params);
 end:
+	bt_put(priv_port);
 	return ret;
 error:
 	destroy_trimmer_data(trimmer);
+	ret = BT_COMPONENT_STATUS_ERROR;
 	return ret;
 }

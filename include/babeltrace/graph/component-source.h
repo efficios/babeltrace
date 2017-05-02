@@ -43,8 +43,6 @@ extern struct bt_port *bt_component_source_get_output_port_by_name(
 		struct bt_component *component, const char *name);
 extern struct bt_port *bt_component_source_get_output_port_by_index(
 		struct bt_component *component, uint64_t index);
-extern struct bt_port *bt_component_source_get_default_output_port(
-		struct bt_component *component);
 
 #ifdef __cplusplus
 }

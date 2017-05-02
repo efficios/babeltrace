@@ -318,7 +318,8 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 	/* Create a new iterator on the upstream component. */
-	input_port = bt_private_component_filter_get_default_input_private_port(component);
+	input_port = bt_private_component_filter_get_input_private_port_by_name(
+		component, "in");
 	assert(input_port);
 	connection = bt_private_port_get_private_connection(input_port);
 	assert(connection);

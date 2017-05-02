@@ -209,7 +209,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 	int ret;
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
-	struct bt_port *default_port = NULL;
 
 	bt_get(params);
 
@@ -273,32 +272,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 		goto end;
 	}
 
-	if (type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
-			type == BT_COMPONENT_CLASS_TYPE_FILTER) {
-		default_port = bt_component_add_port(component,
-			component->output_ports, BT_PORT_TYPE_OUTPUT,
-			DEFAULT_OUTPUT_PORT_NAME, NULL);
-		if (!default_port) {
-			BT_PUT(component);
-			goto end;
-		}
-
-		BT_PUT(default_port);
-	}
-
-	if (type == BT_COMPONENT_CLASS_TYPE_FILTER ||
-			type == BT_COMPONENT_CLASS_TYPE_SINK) {
-		default_port = bt_component_add_port(component,
-			component->input_ports, BT_PORT_TYPE_INPUT,
-			DEFAULT_INPUT_PORT_NAME, NULL);
-		if (!default_port) {
-			BT_PUT(component);
-			goto end;
-		}
-
-		BT_PUT(default_port);
-	}
-
 	component->initializing = true;
 
 	if (component_class->methods.init) {
@@ -322,7 +295,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 	bt_component_class_freeze(component->class);
 end:
 	bt_put(params);
-	bt_put(default_port);
 	return component;
 }
 

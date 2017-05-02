@@ -181,36 +181,6 @@ end:
 }
 
 static
-int remove_default_ports(struct bt_private_component *priv_comp)
-{
-	struct bt_private_port *priv_port;
-	int ret = 0;
-
-	priv_port = bt_private_component_filter_get_default_input_private_port(
-		priv_comp);
-	if (priv_port) {
-		ret = bt_private_port_remove_from_component(priv_port);
-		if (ret) {
-			goto end;
-		}
-	}
-
-	bt_put(priv_port);
-	priv_port = bt_private_component_filter_get_default_output_private_port(
-		priv_comp);
-	if (priv_port) {
-		ret = bt_private_port_remove_from_component(priv_port);
-		if (ret) {
-			goto end;
-		}
-	}
-
-end:
-	bt_put(priv_port);
-	return ret;
-}
-
-static
 int create_output_port(struct bt_private_component *priv_comp)
 {
 	void *priv_port;
@@ -261,11 +231,6 @@ enum bt_component_status muxer_init(
 	muxer_comp->priv_comp = priv_comp;
 	ret = bt_private_component_set_user_data(priv_comp, muxer_comp);
 	assert(ret == 0);
-	ret = remove_default_ports(priv_comp);
-	if (ret) {
-		goto error;
-	}
-
 	ret = ensure_available_input_port(priv_comp);
 	if (ret) {
 		goto error;

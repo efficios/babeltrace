@@ -45,6 +45,7 @@
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/private-component-source.h>
+#include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-notification-iterator.h>
@@ -685,16 +686,7 @@ enum bt_component_status src_init(
 		struct bt_value *params, void *init_method_data)
 {
 	struct bt_private_port *priv_port;
-	int ret;
 	size_t nb_ports;
-
-	priv_port = bt_private_component_source_get_default_output_private_port(
-		private_component);
-	if (priv_port) {
-		ret = bt_private_port_remove_from_component(priv_port);
-		assert(ret == 0);
-		bt_put(priv_port);
-	}
 
 	switch (current_test) {
 	case TEST_NO_TS:
@@ -904,11 +896,16 @@ enum bt_component_status sink_init(
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
+	void *priv_port;
 
 	assert(user_data);
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
 	assert(ret == 0);
+	priv_port = bt_private_component_sink_add_input_private_port(
+		private_component, "in", NULL);
+	assert(priv_port);
+	bt_put(priv_port);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -1023,7 +1020,7 @@ void do_std_test(enum test test, const char *name,
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
-	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
+	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	assert(downstream_port);
 	conn = bt_graph_connect_ports(graph, upstream_port, downstream_port);
 	assert(conn);
@@ -1499,7 +1496,7 @@ void test_single_end_then_multiple_full(void)
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
-	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
+	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	assert(downstream_port);
 	conn = bt_graph_connect_ports(graph, upstream_port, downstream_port);
 	assert(conn);
@@ -1628,7 +1625,7 @@ void test_single_again_end_then_multiple_full(void)
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
 	assert(upstream_port);
-	downstream_port = bt_component_sink_get_default_input_port(sink_comp);
+	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	assert(downstream_port);
 	conn = bt_graph_connect_ports(graph, upstream_port, downstream_port);
 	assert(conn);

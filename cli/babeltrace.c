@@ -554,6 +554,8 @@ int connect_source_sink(struct bt_graph *graph,
 		struct bt_component *sink)
 {
 	int ret = 0;
+
+#if 0
 	struct bt_connection *connection = NULL;
 	struct bt_component *trimmer = NULL;
 	struct bt_port *source_port =
@@ -623,6 +625,8 @@ end:
 	bt_put(sink_port);
 	bt_put(to_sink_port);
 	bt_put(connection);
+
+#endif
 	return ret;
 }
 

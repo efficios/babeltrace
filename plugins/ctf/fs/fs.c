@@ -229,16 +229,7 @@ int create_ports(struct ctf_fs_component *ctf_fs)
 	const char *basename;
 	GError *error = NULL;
 	GDir *dir = NULL;
-	struct bt_private_port *def_port;
 	struct ctf_fs_file *file = NULL;
-
-	/* Remove default port if needed */
-	def_port = bt_private_component_source_get_default_output_private_port(
-		ctf_fs->priv_comp);
-	if (def_port) {
-		bt_private_port_remove_from_component(def_port);
-		bt_put(def_port);
-	}
 
 	/* Create one output port for each stream file */
 	dir = g_dir_open(ctf_fs->trace_path->str, 0, &error);

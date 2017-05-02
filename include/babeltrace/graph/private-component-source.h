@@ -44,10 +44,6 @@ bt_private_component_source_get_output_private_port_by_index(
 		uint64_t index);
 
 extern struct bt_private_port *
-bt_private_component_source_get_default_output_private_port(
-		struct bt_private_component *private_component);
-
-extern struct bt_private_port *
 bt_private_component_source_add_output_private_port(
 		struct bt_private_component *private_component,
 		const char *name, void *user_data);

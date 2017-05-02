@@ -126,13 +126,6 @@ end:
 	return port;
 }
 
-struct bt_port *bt_component_filter_get_default_input_port(
-		struct bt_component *component)
-{
-	return bt_component_filter_get_input_port_by_name(component,
-			DEFAULT_INPUT_PORT_NAME);
-}
-
 int64_t bt_component_filter_get_output_port_count(
 		struct bt_component *component)
 {
@@ -179,13 +172,6 @@ end:
 	return port;
 }
 
-struct bt_port *bt_component_filter_get_default_output_port(
-		struct bt_component *component)
-{
-	return bt_component_filter_get_output_port_by_name(component,
-			DEFAULT_OUTPUT_PORT_NAME);
-}
-
 struct bt_private_port *
 bt_private_component_filter_get_input_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
@@ -196,12 +182,13 @@ bt_private_component_filter_get_input_private_port_by_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_default_input_private_port(
-		struct bt_private_component *private_component)
+bt_private_component_filter_get_input_private_port_by_name(
+		struct bt_private_component *private_component,
+		const char *name)
 {
 	return bt_private_port_from_port(
-		bt_component_filter_get_default_input_port(
-			bt_component_from_private(private_component)));
+		bt_component_filter_get_input_port_by_name(
+			bt_component_from_private(private_component), name));
 }
 
 struct bt_private_port *bt_private_component_filter_add_input_private_port(
@@ -232,12 +219,13 @@ bt_private_component_filter_get_output_private_port_by_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_default_output_private_port(
-		struct bt_private_component *private_component)
+bt_private_component_filter_get_output_private_port_by_name(
+		struct bt_private_component *private_component,
+		const char *name)
 {
 	return bt_private_port_from_port(
-		bt_component_filter_get_default_output_port(
-			bt_component_from_private(private_component)));
+		bt_component_filter_get_output_port_by_name(
+			bt_component_from_private(private_component), name));
 }
 
 struct bt_private_port *bt_private_component_filter_add_output_private_port(

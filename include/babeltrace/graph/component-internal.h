@@ -35,9 +35,6 @@
 #include <glib.h>
 #include <stdio.h>
 
-#define DEFAULT_INPUT_PORT_NAME		"default"
-#define DEFAULT_OUTPUT_PORT_NAME	"default"
-
 typedef void (*bt_component_destroy_listener_func)(
 		struct bt_component *class, void *data);
 

@@ -49,8 +49,6 @@ enum bt_port_type {
 	BT_PORT_TYPE_UNKOWN = -1,
 };
 
-extern const char *BT_DEFAULT_PORT_NAME;
-
 extern const char *bt_port_get_name(struct bt_port *port);
 extern enum bt_port_type bt_port_get_type(struct bt_port *port);
 extern struct bt_connection *bt_port_get_connection(struct bt_port *port);

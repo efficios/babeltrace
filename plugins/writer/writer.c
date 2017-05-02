@@ -265,11 +265,21 @@ enum bt_component_status writer_component_init(
 	struct writer_component *writer_component = create_writer_component();
 	struct bt_value *value = NULL;
 	const char *path;
+	void *priv_port;
 
 	if (!writer_component) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
+
+	priv_port = bt_private_component_sink_add_input_private_port(component,
+		"in", NULL);
+	if (!priv_port) {
+		ret = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	bt_put(priv_port);
 
 	value = bt_value_map_get(params, "path");
 	if (!value || bt_value_is_null(value) || !bt_value_is_string(value)) {
