@@ -59,8 +59,6 @@ struct listener_wrapper {
 static
 void bt_ctf_trace_destroy(struct bt_object *obj);
 static
-int init_trace_packet_header(struct bt_ctf_trace *trace);
-static
 void bt_ctf_trace_freeze(struct bt_ctf_trace *trace);
 
 static
@@ -84,6 +82,7 @@ const unsigned int field_type_aliases_sizes[] = {
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
 	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_field_type *packet_header_type = NULL;
 
 	trace = g_new0(struct bt_ctf_trace, 1);
 	if (!trace) {
@@ -102,9 +101,12 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 		goto error;
 	}
 
-	if (init_trace_packet_header(trace)) {
+	packet_header_type = bt_ctf_field_type_structure_create();
+	if (!packet_header_type) {
 		goto error;
 	}
+
+	BT_MOVE(trace->packet_header_type, packet_header_type);
 
 	/* Create the environment array object */
 	trace->environment = bt_ctf_attributes_create();
@@ -122,6 +124,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 
 error:
 	BT_PUT(trace);
+	bt_put(packet_header_type);
 	return trace;
 }
 
@@ -1287,58 +1290,6 @@ void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 	}
 
 	trace->frozen = 1;
-}
-
-static
-int init_trace_packet_header(struct bt_ctf_trace *trace)
-{
-	int ret = 0;
-	struct bt_ctf_field *magic = NULL, *uuid_array = NULL;
-	struct bt_ctf_field_type *_uint32_t =
-		get_field_type(FIELD_TYPE_ALIAS_UINT32_T);
-	struct bt_ctf_field_type *_uint8_t =
-		get_field_type(FIELD_TYPE_ALIAS_UINT8_T);
-	struct bt_ctf_field_type *trace_packet_header_type =
-		bt_ctf_field_type_structure_create();
-	struct bt_ctf_field_type *uuid_array_type =
-		bt_ctf_field_type_array_create(_uint8_t, 16);
-
-	if (!trace_packet_header_type || !uuid_array_type) {
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_structure_add_field(trace_packet_header_type,
-		_uint32_t, "magic");
-	if (ret) {
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_structure_add_field(trace_packet_header_type,
-		uuid_array_type, "uuid");
-	if (ret) {
-		goto end;
-	}
-
-	ret = bt_ctf_field_type_structure_add_field(trace_packet_header_type,
-		_uint32_t, "stream_id");
-	if (ret) {
-		goto end;
-	}
-
-	ret = bt_ctf_trace_set_packet_header_type(trace,
-		trace_packet_header_type);
-	if (ret) {
-		goto end;
-	}
-end:
-	bt_put(uuid_array_type);
-	bt_put(_uint32_t);
-	bt_put(_uint8_t);
-	bt_put(magic);
-	bt_put(uuid_array);
-	bt_put(trace_packet_header_type);
-	return ret;
 }
 
 bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace)

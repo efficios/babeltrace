@@ -155,21 +155,18 @@ struct bt_ctf_clock_class;
 @brief	Creates a default CTF IR trace class.
 
 On success, the trace packet header field type of the created trace
-class has the following fields:
-
-- <code>magic</code>: a 32-bit unsigned integer field type.
-- <code>uuid</code>: an array field type of 16 8-bit unsigned integer
-  field types.
-- <code>stream_id</code>: a 32-bit unsigned integer field type.
-
-You can modify this default trace packet header field type after the
-trace class is created with bt_ctf_trace_set_packet_header_type().
+class is an empty structure field type. You can modify this default
+trace packet header field type after the trace class is created with
+bt_ctf_trace_get_packet_header_type() and
+bt_ctf_trace_set_packet_header_type().
 
 The created trace class has the following initial properties:
 
 - <strong>Name</strong>: none. You can set a name
   with bt_ctf_trace_set_name().
-- <strong>Default byte order</strong>: #BT_CTF_BYTE_ORDER_NATIVE. You
+- <strong>UUID</strong>: none. You can set a UUID with
+  bt_ctf_trace_set_uuid().
+- <strong>Native byte order</strong>: #BT_CTF_BYTE_ORDER_NATIVE. You
   can set a native byte order with bt_ctf_trace_set_native_byte_order().
 
   Note that you \em must set the native byte order if any field type
@@ -236,7 +233,7 @@ extern int bt_ctf_trace_set_name(struct bt_ctf_trace *trace_class,
 
 @param[in] trace_class	Trace class of which to get the default byte
 			order.
-@returns		Default byte order of \p trace_class,
+@returns		Native byte order of \p trace_class,
 			or #BT_CTF_BYTE_ORDER_UNKNOWN on error.
 
 @prenotnull{trace_class}
@@ -260,7 +257,7 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 
 @param[in] trace_class		Trace class of which to set the native byte
 				order.
-@param[in] native_byte_order	Default byte order of the trace class.
+@param[in] native_byte_order	Native byte order of the trace class.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{trace_class}
