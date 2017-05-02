@@ -949,7 +949,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 	trace = bt_ctf_stream_class_borrow_trace(stream->stream_class);
 	assert(trace);
-	native_byte_order = bt_ctf_trace_get_byte_order(trace);
+	native_byte_order = bt_ctf_trace_get_native_byte_order(trace);
 	empty_packet = (stream->events->len == 0);
 
 	/* mmap the next packet */

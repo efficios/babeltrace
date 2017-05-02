@@ -1044,7 +1044,7 @@ enum bt_ctf_byte_order get_real_byte_order(struct ctx *ctx,
 	enum bt_ctf_byte_order bo = byte_order_from_unary_expr(ctx->efd, uexpr);
 
 	if (bo == BT_CTF_BYTE_ORDER_NATIVE) {
-		bo = bt_ctf_trace_get_byte_order(ctx->trace);
+		bo = bt_ctf_trace_get_native_byte_order(ctx->trace);
 	}
 
 	return bo;
@@ -2267,7 +2267,7 @@ int visit_integer_decl(struct ctx *ctx,
 	enum bt_ctf_string_encoding encoding = BT_CTF_STRING_ENCODING_NONE;
 	enum bt_ctf_integer_base base = BT_CTF_INTEGER_BASE_DECIMAL;
 	enum bt_ctf_byte_order byte_order =
-		bt_ctf_trace_get_byte_order(ctx->trace);
+		bt_ctf_trace_get_native_byte_order(ctx->trace);
 
 	*integer_decl = NULL;
 
@@ -2613,7 +2613,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 	struct ctf_node *expression;
 	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0;
 	enum bt_ctf_byte_order byte_order =
-		bt_ctf_trace_get_byte_order(ctx->trace);
+		bt_ctf_trace_get_native_byte_order(ctx->trace);
 
 	*float_decl = NULL;
 

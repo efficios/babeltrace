@@ -1069,7 +1069,8 @@ end:
 	return metadata;
 }
 
-enum bt_ctf_byte_order bt_ctf_trace_get_byte_order(struct bt_ctf_trace *trace)
+enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
+		struct bt_ctf_trace *trace)
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
 
