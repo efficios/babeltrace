@@ -870,18 +870,6 @@ extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace_class,
 
 /** @} */
 
-/*
- * bt_ctf_trace_get_metadata_string: get metadata string.
- *
- * Get the trace's TSDL metadata. The caller assumes the ownership of the
- * returned string.
- *
- * @param trace Trace instance.
- *
- * Returns the metadata string on success, NULL on error.
- */
-extern char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
-
 #ifdef __cplusplus
 }
 #endif

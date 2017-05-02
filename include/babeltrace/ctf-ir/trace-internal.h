@@ -119,7 +119,21 @@ is modified, \p listener is called with the new element and with
 @prenotnull{listener}
 @postrefcountsame{trace_class}
 */
-extern int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
+BT_HIDDEN
+int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
 		bt_ctf_listener_cb listener, void *data);
+
+/*
+ * bt_ctf_trace_get_metadata_string: get metadata string.
+ *
+ * Get the trace's TSDL metadata. The caller assumes the ownership of the
+ * returned string.
+ *
+ * @param trace Trace instance.
+ *
+ * Returns the metadata string on success, NULL on error.
+ */
+BT_HIDDEN
+char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
 
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */
