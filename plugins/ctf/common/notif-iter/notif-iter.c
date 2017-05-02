@@ -361,7 +361,7 @@ static inline
 enum bt_ctf_notif_iter_status notif_iter_status_from_m_status(
 		enum bt_ctf_notif_iter_medium_status m_status)
 {
-	return m_status;
+	return (int) m_status;
 }
 
 static inline
@@ -383,35 +383,9 @@ size_t packet_at(struct bt_ctf_notif_iter *notit)
 }
 
 static inline
-size_t remaining_content_bits(struct bt_ctf_notif_iter *notit)
-{
-	if (notit->cur_content_size == -1) {
-		return -1;
-	}
-
-	return notit->cur_content_size - packet_at(notit);
-}
-
-static inline
-size_t remaining_packet_bits(struct bt_ctf_notif_iter *notit)
-{
-	if (notit->cur_packet_size == -1) {
-		return -1;
-	}
-
-	return notit->cur_packet_size - packet_at(notit);
-}
-
-static inline
 void buf_consume_bits(struct bt_ctf_notif_iter *notit, size_t incr)
 {
 	notit->buf.at += incr;
-}
-
-static inline
-bool buf_has_enough_bits(struct bt_ctf_notif_iter *notit, size_t sz)
-{
-	return buf_available_bits(notit) >= sz;
 }
 
 static
@@ -2209,30 +2183,6 @@ void notify_event(struct bt_ctf_notif_iter *notit,
 	*notification = ret;
 end:
 	BT_PUT(event);
-}
-
-//FIXME: not used ?
-static
-void notify_eos(struct bt_ctf_notif_iter *notit,
-		struct bt_notification **notification)
-{
-	struct bt_ctf_stream *stream = NULL;
-	struct bt_notification *ret = NULL;
-
-	/* Ask the user for the stream */
-	stream = notit->medium.medops.get_stream(notit->meta.stream_class,
-			notit->medium.data);
-	if (!stream) {
-		goto end;
-	}
-
-	ret = bt_notification_stream_end_create(stream);
-	if (!ret) {
-		goto end;
-	}
-	*notification = ret;
-end:
-	BT_PUT(stream);
 }
 
 static

@@ -68,7 +68,7 @@ enum bt_ctf_notif_iter_medium_status {
 	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR =	-1,
 
 	/** Everything okay. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK =		0,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK = 	0,
 };
 
 /**
@@ -81,7 +81,7 @@ enum bt_ctf_notif_iter_status {
 	 * The medium function called by the notification iterator
 	 * function reached the end of the file.
 	 */
-	BT_CTF_NOTIF_ITER_STATUS_EOF =	-4,
+	BT_CTF_NOTIF_ITER_STATUS_EOF = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF,
 
 	/**
 	 * There is no data available right now, try again later.
@@ -92,13 +92,13 @@ enum bt_ctf_notif_iter_status {
 	 * last called notification iterator function once the situation
 	 * is resolved.
 	 */
-	BT_CTF_NOTIF_ITER_STATUS_AGAIN =	-3,
+	BT_CTF_NOTIF_ITER_STATUS_AGAIN = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN,
 
 	/** Invalid argument. */
-	BT_CTF_NOTIF_ITER_STATUS_INVAL =	-2,
+	BT_CTF_NOTIF_ITER_STATUS_INVAL = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL,
 
 	/** General error. */
-	BT_CTF_NOTIF_ITER_STATUS_ERROR =	-1,
+	BT_CTF_NOTIF_ITER_STATUS_ERROR = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR,
 
 	/** Everything okay. */
 	BT_CTF_NOTIF_ITER_STATUS_OK =	0,
