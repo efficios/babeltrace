@@ -3905,6 +3905,13 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
+			ret = bt_ctf_trace_set_uuid(ctx->trace, ctx->trace_uuid);
+			if (ret) {
+				_PERROR("%s",
+					"cannot set trace's UUID");
+				goto error;
+			}
+
 			_SET(set, _TRACE_UUID_SET);
 		} else if (!strcmp(left, "byte_order")) {
 			/* Native byte order is already known at this stage */
