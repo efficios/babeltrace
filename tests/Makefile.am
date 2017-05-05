@@ -1,4 +1,4 @@
-SUBDIRS = utils bin lib bindings plugins
+SUBDIRS = utils cli lib bindings plugins
 
 EXTRA_DIST = $(srcdir)/ctf-traces/** \
 	     $(srcdir)/debug-info-data/** \

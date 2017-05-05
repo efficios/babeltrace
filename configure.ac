@@ -479,8 +479,8 @@ AC_CONFIG_FILES([
 	bindings/python/bt2/Makefile
 	bindings/python/bt2/__init__.py
 	tests/Makefile
-	tests/bin/Makefile
-	tests/bin/intersection/Makefile
+	tests/cli/Makefile
+	tests/cli/intersection/Makefile
 	tests/lib/Makefile
 	tests/lib/writer/Makefile
 	tests/lib/test-plugin-plugins/Makefile
@@ -524,11 +524,11 @@ AC_CONFIG_FILES([tests/lib/test_bin_info_complete], [chmod +x tests/lib/test_bin
 
 AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
 
-AC_CONFIG_FILES([tests/bin/test_trace_read], [chmod +x tests/bin/test_trace_read])
-AC_CONFIG_FILES([tests/bin/intersection/test_intersection], [chmod +x tests/bin/intersection/test_intersection])
-AC_CONFIG_FILES([tests/bin/intersection/bt_python_helper.py])
+AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read])
+AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
+AC_CONFIG_FILES([tests/cli/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
-AC_CONFIG_FILES([tests/bin/test_packet_seq_num], [chmod +x tests/bin/test_packet_seq_num])
+AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet_seq_num])
 
 AS_IF([test "x$enable_python" = "xyes"], [
 	AC_CONFIG_FILES(
