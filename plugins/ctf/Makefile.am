@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
-SUBDIRS = common fs lttng-live
+SUBDIRS = common fs-src fs-sink lttng-live
 
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = libbabeltrace-plugin-ctf.la
@@ -13,5 +13,6 @@ libbabeltrace_plugin_ctf_la_LDFLAGS = \
 
 libbabeltrace_plugin_ctf_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
-	fs/libbabeltrace-plugin-ctf-fs.la \
-	lttng-live/libbabeltrace-plugin-ctf-lttng-live.la
+	fs-src/libbabeltrace-plugin-ctf-fs.la \
+	lttng-live/libbabeltrace-plugin-ctf-lttng-live.la \
+	fs-sink/libbabeltrace-plugin-ctf-writer.la

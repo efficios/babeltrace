@@ -27,18 +27,20 @@
  */
 
 #include <babeltrace/plugin/plugin-dev.h>
-#include "fs/fs.h"
+#include "fs-src/fs.h"
+#include "fs-sink/writer.h"
 #include "lttng-live/lttng-live-internal.h"
 
 /* Initialize plug-in description. */
 BT_PLUGIN(ctf);
-BT_PLUGIN_DESCRIPTION("Built-in Babeltrace plug-in providing CTF read support.");
-BT_PLUGIN_AUTHOR("Jérémie Galarneau");
+BT_PLUGIN_DESCRIPTION("CTF source and sink support");
+BT_PLUGIN_AUTHOR("Julien Desfossez, Mathieu Desnoyers, Jérémie Galarneau, Philippe Proulx");
 BT_PLUGIN_LICENSE("MIT");
 
-/* Declare component classes implemented by this plug-in. */
+/* ctf.fs soource */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(fs, ctf_fs_iterator_next);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(fs, CTF_FS_COMPONENT_DESCRIPTION);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(fs,
+	"Read CTF traces from the file system.");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(fs, ctf_fs_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD(fs, ctf_fs_query);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(fs, ctf_fs_finalize);
@@ -47,9 +49,18 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(fs,
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(fs,
 	ctf_fs_iterator_finalize);
 
+/* ctf.lttng-live source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, lttng_live, "lttng-live",
 	lttng_live_iterator_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, lttng_live,
 	lttng_live_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, lttng_live,
-        LTTNG_LIVE_COMPONENT_DESCRIPTION);
+        "Connect to an LTTng relay daemon and receive CTF streams.");
+
+/* ctf.fs sink */
+BT_PLUGIN_SINK_COMPONENT_CLASS(fs, writer_run);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(fs, writer_component_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(fs,
+		writer_component_port_connected);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(fs, writer_component_finalize);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(fs, "Write CTF traces to the file system.");

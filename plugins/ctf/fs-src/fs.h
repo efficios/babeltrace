@@ -33,9 +33,6 @@
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include "data-stream.h"
 
-#define CTF_FS_COMPONENT_DESCRIPTION \
-	"Component used to read a CTF trace located on a file system."
-
 BT_HIDDEN
 extern bool ctf_fs_debug;
 

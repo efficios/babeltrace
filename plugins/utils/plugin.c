@@ -38,12 +38,12 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(dummy,
 	dummy_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
-	"Dummy sink component class: does absolutely nothing!");
+	"Consume notifications and discard them.");
 
 /* trimmer filter */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
-	"Ensure that trace notifications outside of a given range are filtered-out.");
+	"Keep notifications that occur within a specific time range.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(trimmer, finalize_trimmer);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
@@ -56,7 +56,7 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(trimmer,
 /* muxer filter */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_notif_iter_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
-	"Notification multiplexer");
+	"Sort notifications from multiple input ports to a single output port by time.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(muxer, muxer_finalize);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_DISCONNECTED_METHOD(muxer,

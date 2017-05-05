@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_WRITER_H
-#define BABELTRACE_PLUGIN_WRITER_H
+#ifndef BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H
+#define BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H
 
 /*
- * BabelTrace - CTF Writer Output Plug-in
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,33 +26,26 @@
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
-#include <babeltrace/ctf-writer/writer.h>
-
-struct writer_component {
-	GString *base_path;
-	GString *trace_name_base;
-	/* For the directory name suffix. */
-	int trace_id;
-	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
-	GHashTable *trace_map;
-	/* Map between reader and writer stream. */
-	GHashTable *stream_map;
-	/* Map between reader and writer stream class. */
-	GHashTable *stream_class_map;
-	FILE *err;
-	struct bt_notification_iterator *input_iterator;
-	bool processed_first_event;
-	bool error;
-};
+#include <babeltrace/graph/clock-class-priority-map.h>
 
 BT_HIDDEN
-enum bt_component_status writer_output_event(struct writer_component *writer,
-		struct bt_ctf_event *event);
-BT_HIDDEN
-enum bt_component_status writer_new_packet(struct writer_component *writer,
-		struct bt_ctf_packet *packet);
-BT_HIDDEN
-enum bt_component_status writer_close_packet(struct writer_component *writer,
-		struct bt_ctf_packet *packet);
+enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
+		struct bt_value *params, void *init_method_data);
 
-#endif /* BABELTRACE_PLUGIN_WRITER_H */
+BT_HIDDEN
+void dmesg_finalize(struct bt_private_component *priv_comp);
+
+BT_HIDDEN
+enum bt_notification_iterator_status dmesg_notif_iter_init(
+		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_port *priv_port);
+
+BT_HIDDEN
+void dmesg_iterator_finalize(
+		struct bt_private_notification_iterator *priv_notif_iter);
+
+BT_HIDDEN
+struct bt_notification_iterator_next_return dmesg_notif_iter_next(
+		struct bt_private_notification_iterator *priv_notif_iter);
+
+#endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */

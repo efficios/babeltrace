@@ -35,4 +35,4 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(pretty, pretty_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(pretty,
 	pretty_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(pretty,
-	"Pretty-printing text output (`text` format of Babeltrace 1)");
+	"Pretty-printing text output (`text` format of Babeltrace 1).");

@@ -56,8 +56,8 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 	g_string_free(writer_component->trace_name_base, true);
 }
 
-static
-void finalize_writer_component(struct bt_private_component *component)
+BT_HIDDEN
+void writer_component_finalize(struct bt_private_component *component)
 {
 	struct writer_component *writer_component = (struct writer_component *)
 		bt_private_component_get_user_data(component);
@@ -184,7 +184,7 @@ end:
 	return ret;
 }
 
-static
+BT_HIDDEN
 void writer_component_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
@@ -209,8 +209,8 @@ void writer_component_port_connected(
 	bt_put(connection);
 }
 
-static
-enum bt_component_status run(struct bt_private_component *component)
+BT_HIDDEN
+enum bt_component_status writer_run(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
 	struct bt_notification *notification = NULL;
@@ -256,7 +256,7 @@ end:
 	return ret;
 }
 
-static
+BT_HIDDEN
 enum bt_component_status writer_component_init(
 	struct bt_private_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
@@ -315,15 +315,3 @@ error:
 	g_free(writer_component);
 	return ret;
 }
-
-/* Initialize plug-in entry points. */
-BT_PLUGIN(writer);
-BT_PLUGIN_DESCRIPTION("Babeltrace CTF-Writer output plug-in.");
-BT_PLUGIN_AUTHOR("Jérémie Galarneau");
-BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_SINK_COMPONENT_CLASS(writer, run);
-BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(writer, writer_component_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(writer,
-		writer_component_port_connected);
-BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(writer, finalize_writer_component);
-BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(writer, "Formats CTF-IR to CTF.");

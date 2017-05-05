@@ -496,11 +496,11 @@ AC_CONFIG_FILES([
 	plugins/ctf/common/btr/Makefile
 	plugins/ctf/common/metadata/Makefile
 	plugins/ctf/common/notif-iter/Makefile
-	plugins/ctf/fs/Makefile
+	plugins/ctf/fs-src/Makefile
+	plugins/ctf/fs-sink/Makefile
 	plugins/ctf/lttng-live/Makefile
 	plugins/text/Makefile
 	plugins/text/pretty/Makefile
-	plugins/writer/Makefile
 	plugins/utils/Makefile
 	plugins/utils/dummy/Makefile
 	plugins/utils/trimmer/Makefile

@@ -30,8 +30,6 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
 
-#define LTTNG_LIVE_COMPONENT_DESCRIPTION "Component implementing an LTTng-live client."
-
 BT_HIDDEN
 enum bt_component_status lttng_live_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
