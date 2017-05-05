@@ -109,6 +109,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 	file = get_file(ctf_fs, ctf_fs->trace_path->str);
 	if (!file) {
 		PERR("Cannot create metadata file object\n");
+		ret = -1;
 		goto end;
 	}
 
@@ -117,6 +118,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 		ctf_fs->options.clock_offset_ns);
 	if (!metadata_decoder) {
 		PERR("Cannot create metadata decoder object\n");
+		ret = -1;
 		goto end;
 	}
 

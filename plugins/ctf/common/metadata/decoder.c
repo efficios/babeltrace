@@ -248,6 +248,7 @@ error:
 
 	if (*buf) {
 		free(*buf);
+		*buf = NULL;
 	}
 
 end:
