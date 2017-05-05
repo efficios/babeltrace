@@ -368,6 +368,8 @@ AC_ARG_ENABLE([debug-info],
 	[AS_IF([test "x$enableval" = xyes], [_enable_debug_info=yes], [_enable_debug_info=no])], [])
 
 AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$_enable_debug_info" = xyes])
+AC_DEFINE([BT_ENABLE_DEBUG_INFO], [1], [Enable debug info support])
+
 AS_IF([test "x$_enable_debug_info" = xyes], [
 	    # Check if libelf and libdw are present
 	    AC_CHECK_LIB([elf], [elf_version], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
