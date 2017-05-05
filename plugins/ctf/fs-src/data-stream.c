@@ -434,8 +434,8 @@ struct bt_notification_iterator_next_return ctf_fs_stream_next(
 		goto translate_status;
 	}
 
-	notif_iter_status = bt_ctf_notif_iter_get_next_notification(stream->notif_iter,
-			stream->cc_prio_map, &ret.notification);
+	notif_iter_status = bt_ctf_notif_iter_get_next_notification(
+		stream->notif_iter, stream->cc_prio_map, &ret.notification);
 	if (notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_OK &&
 			notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
 		goto translate_status;
