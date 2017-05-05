@@ -36,7 +36,7 @@ test_cc_prio_map_LDADD = $(COMMON_TEST_LDADD)
 
 test_bt_notification_iterator_LDADD = $(COMMON_TEST_LDADD)
 
-noinst_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
+check_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
 	test_ctf_ir_ref test_bt_ctf_field_type_validation test_ir_visit \
 	test_bt_notification_heap test_plugin test_graph_topo \
 	test_cc_prio_map test_bt_notification_iterator
@@ -73,3 +73,29 @@ check_SCRIPTS = test_ctf_writer_complete \
 #noinst_PROGRAMS += test_dwarf test_bin_info
 #check_SCRIPTS += test_dwarf_complete test_bin_info_complete
 #endif
+
+LOG_DRIVER_FLAGS='--merge'
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
+
+TESTS = test_bitfield \
+	test_ctf_writer_complete \
+	test_bt_values \
+	test_ctf_ir_ref \
+	test_bt_ctf_field_type_validation \
+	test_ir_visit \
+	test_bt_notification_heap \
+	test_plugin_complete \
+	test_graph_topo \
+	test_cc_prio_map \
+	test_bt_notification_iterator
+
+if ENABLE_DEBUG_INFO
+TESTS += test_dwarf_complete \
+	test_bin_info_complete
+endif
+
+if USE_PYTHON
+TESTS +=
+	writer/test_ctf_writer_no_packet_context.py \
+	writer/test_ctf_writer_empty_packet.py
+endif
