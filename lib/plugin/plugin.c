@@ -60,7 +60,7 @@ void init_python_plugin_provider(void) {
 		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME,
 			G_MODULE_BIND_LOCAL);
 	if (!python_plugin_provider_module) {
-		printf_warning("Cannot find `%s`: Python plugin support is disabled\n",
+		printf_verbose("Cannot find `%s`: Python plugin support is disabled\n",
 			PYTHON_PLUGIN_PROVIDER_FILENAME);
 		return;
 	}
@@ -68,7 +68,7 @@ void init_python_plugin_provider(void) {
 	if (!g_module_symbol(python_plugin_provider_module,
 			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR,
 			(gpointer) &bt_plugin_python_create_all_from_file_sym)) {
-		printf_warning("Cannot find the Python plugin provider loading symbole: Python plugin support is disabled\n");
+		printf_verbose("Cannot find the Python plugin provider loading symbole: Python plugin support is disabled\n");
 	}
 }
 
