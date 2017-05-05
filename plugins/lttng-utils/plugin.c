@@ -288,17 +288,6 @@ end:
 */
 
 static
-enum bt_notification_iterator_status debug_info_iterator_seek_time(
-		struct bt_private_notification_iterator *iterator, int64_t time)
-{
-	enum bt_notification_iterator_status ret;
-
-	ret = BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	return ret;
-}
-
-static
 enum bt_notification_iterator_status debug_info_iterator_init(
 		struct bt_private_notification_iterator *iterator,
 		struct bt_private_port *port)
@@ -474,19 +463,20 @@ error:
 }
 
 /* Initialize plug-in entry points. */
-BT_PLUGIN(debug_info);
-BT_PLUGIN_DESCRIPTION("Babeltrace Debug Informations Plug-In.");
-BT_PLUGIN_AUTHOR("Julien Desfossez");
-BT_PLUGIN_LICENSE("MIT");
+BT_PLUGIN_WITH_ID(lttng_utils, "lttng-utils");
+BT_PLUGIN_DESCRIPTION_WITH_ID(lttng_utils, "LTTng utilities");
+BT_PLUGIN_AUTHOR_WITH_ID(lttng_utils, "Julien Desfossez");
+BT_PLUGIN_LICENSE_WITH_ID(lttng_utils, "MIT");
 
-BT_PLUGIN_FILTER_COMPONENT_CLASS(debug_info, debug_info_iterator_next);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(debug_info,
-	"Add the debug information to events if possible.");
-BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(debug_info, debug_info_component_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(debug_info, destroy_debug_info_component);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(debug_info,
-	debug_info_iterator_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(debug_info,
-	debug_info_iterator_destroy);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(debug_info,
-	debug_info_iterator_seek_time);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(lttng_utils, debug_info, "debug-info",
+	debug_info_iterator_next);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION_WITH_ID(lttng_utils, debug_info,
+	"Augment compatible events with debugging information.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(lttng_utils,
+	debug_info, debug_info_component_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(lttng_utils,
+	debug_info, destroy_debug_info_component);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(
+	lttng_utils, debug_info, debug_info_iterator_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(
+	lttng_utils, debug_info, debug_info_iterator_destroy);

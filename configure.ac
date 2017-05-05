@@ -507,7 +507,7 @@ AC_CONFIG_FILES([
 	plugins/utils/muxer/Makefile
 	python-plugin-provider/Makefile
 	plugins/libctfcopytrace/Makefile
-	plugins/debug-info/Makefile
+	plugins/lttng-utils/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])

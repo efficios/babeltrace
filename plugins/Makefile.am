@@ -1,7 +1,7 @@
 SUBDIRS = libctfcopytrace ctf text utils writer
 
 if ENABLE_DEBUG_INFO
-SUBDIRS += debug-info
+SUBDIRS += lttng-utils
 endif
 
 noinst_HEADERS = plugins-common.h
