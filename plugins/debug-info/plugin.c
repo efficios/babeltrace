@@ -476,7 +476,7 @@ error:
 /* Initialize plug-in entry points. */
 BT_PLUGIN(debug_info);
 BT_PLUGIN_DESCRIPTION("Babeltrace Debug Informations Plug-In.");
-BT_PLUGIN_AUTHOR("Jérémie Galarneau");
+BT_PLUGIN_AUTHOR("Julien Desfossez");
 BT_PLUGIN_LICENSE("MIT");
 
 BT_PLUGIN_FILTER_COMPONENT_CLASS(debug_info, debug_info_iterator_next);

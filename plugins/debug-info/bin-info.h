@@ -60,6 +60,8 @@ struct bin_info {
 	/* FDs to ELF and DWARF files. */
 	int elf_fd;
 	int dwarf_fd;
+	/* Configuration. */
+	char *debug_info_dir;
 	/* Denotes whether the executable is position independent code. */
 	bool is_pic:1;
 	/*
@@ -92,12 +94,16 @@ int bin_info_init(void);
  * @param memsz	In-memory size of the executable
  * @param is_pic	Whether the executable is position independent
  *			code (PIC)
+ * @param debug_info_dir Directory containing debug info or NULL.
+ * @param target_prefix  Path to the root file system of the target
+ *                       or NULL.
  * @returns		Pointer to the new bin_info on success,
  *			NULL on failure.
  */
 BT_HIDDEN
 struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic);
+		uint64_t memsz, bool is_pic, const char *debug_info_dir,
+		const char *target_prefix);
 
 /**
  * Destroy the given bin_info instance

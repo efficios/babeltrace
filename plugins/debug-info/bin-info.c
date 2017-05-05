@@ -66,7 +66,8 @@ int bin_info_init(void)
 
 BT_HIDDEN
 struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic)
+		uint64_t memsz, bool is_pic, const char *debug_info_dir,
+		const char *target_prefix)
 {
 	struct bin_info *bin = NULL;
 
@@ -79,8 +80,8 @@ struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 		goto error;
 	}
 
-	if (opt_debug_info_target_prefix) {
-		bin->elf_path = g_build_path("/", opt_debug_info_target_prefix,
+	if (target_prefix) {
+		bin->elf_path = g_build_path("/", target_prefix,
 						path, NULL);
 	} else {
 		bin->elf_path = strdup(path);
@@ -88,6 +89,13 @@ struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 
 	if (!bin->elf_path) {
 		goto error;
+	}
+
+	if (debug_info_dir) {
+		bin->debug_info_dir = strdup(debug_info_dir);
+		if (!bin->debug_info_dir) {
+			goto error;
+		}
 	}
 
 	bin->is_pic = is_pic;
@@ -111,6 +119,7 @@ void bin_info_destroy(struct bin_info *bin)
 
 	dwarf_end(bin->dwarf_info);
 
+	free(bin->debug_info_dir);
 	free(bin->elf_path);
 	free(bin->dwarf_path);
 	g_free(bin->build_id);
@@ -270,7 +279,7 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 		goto error;
 	}
 
-	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
+	dbg_dir = bin->debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
 	/* 2 characters per byte printed in hex, +1 for '/' and +1 for '\0' */
 	build_id_file_len = (2 * bin->build_id_len) + 1 +
@@ -372,7 +381,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 		goto error;
 	}
 
-	dbg_dir = opt_debug_info_dir ? : DEFAULT_DEBUG_DIR;
+	dbg_dir = bin->debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
 	dir_name = dirname(bin->elf_path);
 	if (!dir_name) {
@@ -909,8 +918,8 @@ error:
 }
 
 BT_HIDDEN
-int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
-		char **func_name)
+int bin_info_lookup_function_name(struct bin_info *bin,
+		uint64_t addr, char **func_name)
 {
 	int ret = 0;
 	char *_func_name = NULL;

@@ -80,7 +80,7 @@ struct debug_info_source {
 };
 
 BT_HIDDEN
-struct debug_info *debug_info_create(void);
+struct debug_info *debug_info_create(struct debug_info_component *comp);
 
 BT_HIDDEN
 void debug_info_destroy(struct debug_info *debug_info);

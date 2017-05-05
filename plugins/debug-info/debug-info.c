@@ -47,6 +47,8 @@ struct proc_debug_info_sources {
 };
 
 struct debug_info {
+	struct debug_info_component *comp;
+
 	/*
 	 * Hash table of VPIDs (pointer to int64_t) to
 	 * (struct ctf_proc_debug_infos*); owned by debug_info.
@@ -320,7 +322,7 @@ end:
 }
 
 BT_HIDDEN
-struct debug_info *debug_info_create(void)
+struct debug_info *debug_info_create(struct debug_info_component *comp)
 {
 	int ret;
 	struct debug_info *debug_info;
@@ -337,6 +339,7 @@ struct debug_info *debug_info_create(void)
 		goto error;
 	}
 
+	debug_info->comp = comp;
 	ret = debug_info_init(debug_info);
 	if (ret) {
 		goto error;
@@ -600,7 +603,9 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		goto end;
 	}
 
-	bin = bin_info_create(path, baddr, memsz, is_pic);
+	bin = bin_info_create(path, baddr, memsz, is_pic,
+		debug_info->comp->arg_debug_dir,
+		debug_info->comp->arg_target_prefix);
 	if (!bin) {
 		goto end;
 	}

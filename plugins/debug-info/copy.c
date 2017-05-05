@@ -479,7 +479,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	}
 	BT_PUT(field);
 
-	debug_info = debug_info_create();
+	debug_info = debug_info_create(debug_it->debug_info_component);
 	if (!debug_info) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
