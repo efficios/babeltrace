@@ -177,51 +177,7 @@ extern bool babeltrace_verbose, babeltrace_debug;
  */
 #define BT_HIDDEN __attribute__((visibility("hidden")))
 
-#define BT_CTF_MAJOR	1
-#define BT_CTF_MINOR	8
-
 #define __STRINGIFY(x)	#x
 #define TOSTRING(x)	__STRINGIFY(x)
-
-struct bt_trace_descriptor;
-struct trace_collection {
-	GPtrArray *array;	/* struct bt_trace_descriptor */
-	GHashTable *clocks;	/* struct ctf_clock */
-
-	int64_t single_clock_offset_avg;
-	int64_t offset_first;
-	int64_t delta_offset_first_sum;
-	int offset_nr;
-	int clock_use_offset_avg;
-};
-
-extern int opt_all_field_names,
-	opt_scope_field_names,
-	opt_header_field_names,
-	opt_context_field_names,
-	opt_payload_field_names,
-	opt_all_fields,
-	opt_trace_field,
-	opt_trace_domain_field,
-	opt_trace_procname_field,
-	opt_trace_vpid_field,
-	opt_trace_hostname_field,
-	opt_trace_default_fields,
-	opt_loglevel_field,
-	opt_emf_field,
-	opt_callsite_field,
-	opt_delta_field,
-	opt_clock_cycles,
-	opt_clock_seconds,
-	opt_clock_date,
-	opt_clock_gmt,
-	opt_clock_force_correlate,
-	opt_debug_info_full_path;
-
-extern int64_t opt_clock_offset;
-extern int64_t opt_clock_offset_ns;
-extern int babeltrace_ctf_console_output;
-extern char *opt_debug_info_dir;
-extern char *opt_debug_info_target_prefix;
 
 #endif
