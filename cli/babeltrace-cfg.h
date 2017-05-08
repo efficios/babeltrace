@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CONVERTER_CFG_H
-#define BABELTRACE_CONVERTER_CFG_H
+#ifndef CLI_BABELTRACE_CFG_H
+#define CLI_BABELTRACE_CFG_H
 
 /*
- * Babeltrace trace converter - configuration
+ * Babeltrace trace converter - CLI tool's configuration
  *
- * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016-2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,15 @@
 #include <babeltrace/graph/component-class.h>
 #include <glib.h>
 
+enum bt_config_command {
+	BT_CONFIG_COMMAND_RUN,
+	BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
+	BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
+	BT_CONFIG_COMMAND_LIST_PLUGINS,
+	BT_CONFIG_COMMAND_HELP,
+	BT_CONFIG_COMMAND_QUERY,
+};
+
 struct bt_config_component {
 	struct bt_object base;
 	enum bt_component_class_type type;
@@ -43,13 +52,12 @@ struct bt_config_component {
 	GString *instance_name;
 };
 
-enum bt_config_command {
-	BT_CONFIG_COMMAND_RUN,
-	BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
-	BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
-	BT_CONFIG_COMMAND_LIST_PLUGINS,
-	BT_CONFIG_COMMAND_HELP,
-	BT_CONFIG_COMMAND_QUERY,
+struct bt_config_connection {
+	GString *upstream_comp_name;
+	GString *downstream_comp_name;
+	GString *upstream_port_glob;
+	GString *downstream_port_glob;
+	GString *arg;
 };
 
 struct bt_config {
@@ -76,6 +84,12 @@ struct bt_config {
 
 			/* Array of pointers to struct bt_config_connection */
 			GPtrArray *connections;
+
+			/*
+			 * Number of microseconds to sleep when we need
+			 * to retry to run the graph.
+			 */
+			uint64_t retry_duration_us;
 		} run;
 
 		/* BT_CONFIG_COMMAND_HELP */
@@ -108,15 +122,9 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 	return bt_get(g_ptr_array_index(array, index));
 }
 
-struct bt_config *bt_config_from_args(int argc, const char *argv[],
-		int *retcode, bool omit_system_plugin_path,
-		bool omit_home_plugin_path,
-		struct bt_value *initial_plugin_paths);
-
-struct bt_config_component *bt_config_component_from_arg(
-		enum bt_component_class_type type, const char *arg);
-
 enum bt_value_status bt_config_append_plugin_paths(
 		struct bt_value *plugin_paths, const char *arg);
 
-#endif /* BABELTRACE_CONVERTER_CFG_H */
+void bt_config_connection_destroy(struct bt_config_connection *connection);
+
+#endif /* CLI_BABELTRACE_CFG_H */

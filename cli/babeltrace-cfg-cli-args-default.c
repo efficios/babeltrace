@@ -1,11 +1,6 @@
 /*
- * default-cfg.c
- *
- * Babeltrace Trace Converter - Default Configuration
- *
  * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 - Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +23,12 @@
 
 #include <babeltrace/values.h>
 #include "babeltrace-cfg.h"
-#include "default-cfg.h"
-#include "config.h"
+#include "babeltrace-cfg-cli-args.h"
+#include "babeltrace-cfg-cli-args-default.h"
 
 #ifdef BT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
-struct bt_config *bt_config_from_args_with_defaults(int argc,
+struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode)
 {
 	struct bt_value *initial_plugin_paths;
@@ -51,8 +46,8 @@ struct bt_config *bt_config_from_args_with_defaults(int argc,
 		goto error;
 	}
 
-	cfg = bt_config_from_args(argc, argv, retcode, true, true,
-		initial_plugin_paths);
+	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
+		BT_ENABLE_DEBUG_INFO == 0, initial_plugin_paths);
 	goto end;
 
 error:
@@ -66,10 +61,11 @@ end:
 
 #else /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
 
-struct bt_config *bt_config_from_args_with_defaults(int argc,
+struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode)
 {
-	return bt_config_from_args(argc, argv, retcode, false, false, NULL);
+	return bt_config_cli_args_create(argc, argv, retcode, false, false,
+		BT_ENABLE_DEBUG_INFO == 0, NULL);
 }
 
 #endif /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */

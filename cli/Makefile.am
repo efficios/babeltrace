@@ -1,6 +1,6 @@
 PLUGINS_PATH = $(abs_top_builddir)/plugins
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/muxer:$(PLUGINS_PATH)/writer:$(PLUGINS_PATH)/utils\"
+		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/lttng-utils:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/writer:$(PLUGINS_PATH)/utils\"
 AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin
@@ -11,10 +11,12 @@ babeltrace_bin_SOURCES = \
 	babeltrace.c \
 	babeltrace-cfg.c \
 	babeltrace-cfg.h \
-	default-cfg.h \
-	default-cfg.c \
-	babeltrace-cfg-connect.h \
-	babeltrace-cfg-connect.c
+	babeltrace-cfg-cli-args.c \
+	babeltrace-cfg-cli-args.h \
+	babeltrace-cfg-cli-args-connect.c \
+	babeltrace-cfg-cli-args-connect.h \
+	babeltrace-cfg-cli-args-default.h \
+	babeltrace-cfg-cli-args-default.c
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
@@ -34,7 +36,7 @@ babeltrace_bin_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
 
 # Only used for in-tree execution and tests
-babeltrace_SOURCES = 	$(babeltrace_bin_SOURCES)
-babeltrace_LDFLAGS = 	$(babeltrace_bin_LDFLAGS)
+babeltrace_SOURCES = $(babeltrace_bin_SOURCES)
+babeltrace_LDFLAGS = $(babeltrace_bin_LDFLAGS)
 babeltrace_LDADD = 	$(babeltrace_bin_LDADD)
 babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION

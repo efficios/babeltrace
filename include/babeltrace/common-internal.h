@@ -119,4 +119,11 @@ BT_HIDDEN
 struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 		const char *url, char *error_buf, size_t error_buf_size);
 
+BT_HIDDEN
+void bt_common_normalize_star_glob_pattern(char *pattern);
+
+BT_HIDDEN
+bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
+                const char *candidate, size_t candidate_len);
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

@@ -48,19 +48,21 @@
 #include <glib.h>
 #include <inttypes.h>
 #include "babeltrace-cfg.h"
-#include "babeltrace-cfg-connect.h"
-#include "default-cfg.h"
+#include "babeltrace-cfg-cli-args.h"
+#include "babeltrace-cfg-cli-args-default.h"
+
+#define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 
 GPtrArray *loaded_plugins;
 
 static
-void init_loaded_plugins_array(void)
+void init_static_data(void)
 {
-	loaded_plugins = g_ptr_array_new_full(8, bt_put);
+	loaded_plugins = g_ptr_array_new_with_free_func(bt_put);
 }
 
 static
-void fini_loaded_plugins_array(void)
+void fini_static_data(void)
 {
 	g_ptr_array_free(loaded_plugins, TRUE);
 }
@@ -113,43 +115,6 @@ void print_indent(size_t indent)
 	}
 }
 
-static char *escape_name_for_shell(const char *input)
-{
-	char *output = g_malloc0(strlen(input) * 5 + 1);
-	const char *in;
-	char *out = output;
-
-	if (!output) {
-		goto end;
-	}
-
-	for (in = input; *in != '\0'; in++) {
-		switch (*in) {
-		case '\\':
-			*out++ = '\\';
-			*out++ = '\\';
-			break;
-		case '\'':
-			*out++ = '\'';
-			*out++ = '"';
-			*out++ = '\'';
-			*out++ = '"';
-			*out++ = '\'';
-			break;
-		case '.':
-			*out++ = '\\';
-			*out++ = '.';
-			break;
-		default:
-			*out++ = *in;
-			break;
-		}
-	}
-
-end:
-	return output;
-}
-
 static
 const char *component_type_str(enum bt_component_class_type type)
 {
@@ -166,18 +131,19 @@ const char *component_type_str(enum bt_component_class_type type)
 	}
 }
 
-static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
+static
+void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		const char *comp_cls_name, enum bt_component_class_type type)
 {
-	char *shell_plugin_name = NULL;
-	char *shell_comp_cls_name = NULL;
+	GString *shell_plugin_name = NULL;
+	GString *shell_comp_cls_name = NULL;
 
-	shell_plugin_name = escape_name_for_shell(plugin_name);
+	shell_plugin_name = bt_common_shell_quote(plugin_name, false);
 	if (!shell_plugin_name) {
 		goto end;
 	}
 
-	shell_comp_cls_name = escape_name_for_shell(comp_cls_name);
+	shell_comp_cls_name = bt_common_shell_quote(comp_cls_name, false);
 	if (!shell_comp_cls_name) {
 		goto end;
 	}
@@ -190,15 +156,20 @@ static void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		bt_common_color_fg_default(),
 		bt_common_color_bold(),
 		bt_common_color_fg_blue(),
-		shell_plugin_name,
+		shell_plugin_name->str,
 		bt_common_color_fg_default(),
 		bt_common_color_fg_yellow(),
-		shell_comp_cls_name,
+		shell_comp_cls_name->str,
 		bt_common_color_reset());
 
 end:
-	g_free(shell_plugin_name);
-	g_free(shell_comp_cls_name);
+	if (shell_plugin_name) {
+		g_string_free(shell_plugin_name, TRUE);
+	}
+
+	if (shell_comp_cls_name) {
+		g_string_free(shell_comp_cls_name, TRUE);
+	}
 }
 
 static
@@ -404,12 +375,12 @@ void print_cfg_run(struct bt_config *cfg)
 				i);
 
 		printf("    %s%s%s -> %s%s%s\n",
-			cfg_connection->src_instance_name->str,
-			cfg_connection->src_port_name->len > 0 ? "." : "",
-			cfg_connection->src_port_name->str,
-			cfg_connection->dst_instance_name->str,
-			cfg_connection->dst_port_name->len > 0 ? "." : "",
-			cfg_connection->dst_port_name->str);
+			cfg_connection->upstream_comp_name->str,
+			cfg_connection->upstream_port_glob->len > 0 ? "." : "",
+			cfg_connection->upstream_port_glob->str,
+			cfg_connection->downstream_comp_name->str,
+			cfg_connection->downstream_port_glob->len > 0 ? "." : "",
+			cfg_connection->downstream_port_glob->str);
 	}
 }
 
@@ -481,153 +452,6 @@ void print_cfg(struct bt_config *cfg)
 	default:
 		assert(false);
 	}
-}
-
-static
-struct bt_component *create_trimmer(struct bt_config_component *source_cfg)
-{
-	struct bt_component *trimmer = NULL;
-	struct bt_component_class *trimmer_class = NULL;
-	struct bt_value *trimmer_params = NULL;
-	struct bt_value *value;
-
-	trimmer_params = bt_value_map_create();
-	if (!trimmer_params) {
-		goto end;
-	}
-
-	value = bt_value_map_get(source_cfg->params, "begin");
-	if (value) {
-	        enum bt_value_status ret;
-
-		ret = bt_value_map_insert(trimmer_params, "begin",
-				value);
-	        BT_PUT(value);
-		if (ret) {
-			goto end;
-		}
-	}
-	value = bt_value_map_get(source_cfg->params, "end");
-	if (value) {
-		enum bt_value_status ret;
-
-		ret = bt_value_map_insert(trimmer_params, "end",
-				value);
-		BT_PUT(value);
-		if (ret) {
-			goto end;
-		}
-	}
-	value = bt_value_map_get(source_cfg->params, "clock-gmt");
-	if (value) {
-		enum bt_value_status ret;
-
-		ret = bt_value_map_insert(trimmer_params, "clock-gmt",
-				value);
-		BT_PUT(value);
-		if (ret) {
-			goto end;
-		}
-	}
-
-	trimmer_class = find_component_class("utils", "trimmer",
-		BT_COMPONENT_CLASS_TYPE_FILTER);
-	if (!trimmer_class) {
-		fprintf(stderr, "Could not find trimmer component class. Aborting...\n");
-		goto end;
-	}
-	trimmer = bt_component_create(trimmer_class, "source_trimmer",
-			trimmer_params);
-	if (!trimmer) {
-		goto end;
-	}
-end:
-	bt_put(trimmer_params);
-	bt_put(trimmer_class);
-	return trimmer;
-}
-
-static
-int connect_source_sink(struct bt_graph *graph,
-		struct bt_component *source,
-		struct bt_config_component *source_cfg,
-		struct bt_component *sink)
-{
-	int ret = 0;
-
-#if 0
-	struct bt_connection *connection = NULL;
-	struct bt_component *trimmer = NULL;
-	struct bt_port *source_port =
-			bt_component_source_get_default_output_port(source);
-	struct bt_port *sink_port =
-			bt_component_sink_get_default_input_port(sink);
-	struct bt_port *to_sink_port = NULL;
-	struct bt_port *trimmer_input_port = NULL;
-
-	if (!source_port) {
-		fprintf(stderr, "Failed to find default source output port. Aborting...\n");
-		ret = -1;
-		goto end;
-	}
-	if (!sink_port) {
-		fprintf(stderr, "Failed to find default sink input port. Aborting...\n");
-		ret = -1;
-		goto end;
-	}
-
-	if (bt_value_map_has_key(source_cfg->params, "begin")
-			|| bt_value_map_has_key(source_cfg->params, "end")) {
-		/* A trimmer must be inserted in the graph. */
-		trimmer = create_trimmer(source_cfg);
-		if (!trimmer) {
-			fprintf(stderr, "Failed to create trimmer component. Aborting...\n");
-			ret = -1;
-			goto end;
-		}
-
-		trimmer_input_port = bt_component_filter_get_default_input_port(
-				trimmer);
-		if (!trimmer_input_port) {
-			fprintf(stderr, "Failed to find trimmer input port. Aborting...\n");
-			ret = -1;
-			goto end;
-		}
-		to_sink_port = bt_component_filter_get_default_output_port(
-				trimmer);
-		if (!to_sink_port) {
-			fprintf(stderr, "Failed to find trimmer output port. Aborting...\n");
-			ret = -1;
-			goto end;
-		}
-
-		connection = bt_graph_connect_ports(graph, source_port,
-				trimmer_input_port);
-		if (!connection) {
-			fprintf(stderr, "Failed to connect source to trimmer. Aborting...\n");
-			ret = -1;
-			goto end;
-		}
-		BT_PUT(connection);
-	} else {
-		BT_MOVE(to_sink_port, source_port);
-	}
-
-	connection = bt_graph_connect_ports(graph, to_sink_port, sink_port);
-	if (!connection) {
-		fprintf(stderr, "Failed to connect to sink. Aborting...\n");
-		ret = -1;
-		goto end;
-	}
-end:
-	bt_put(trimmer);
-	bt_put(source_port);
-	bt_put(sink_port);
-	bt_put(to_sink_port);
-	bt_put(connection);
-
-#endif
-	return ret;
 }
 
 static
@@ -719,7 +543,8 @@ end:
 	return ret;
 }
 
-static int load_all_plugins(struct bt_value *plugin_paths)
+static
+int load_all_plugins(struct bt_value *plugin_paths)
 {
 	int ret = 0;
 
@@ -739,7 +564,8 @@ end:
 	return ret;
 }
 
-static void print_plugin_info(struct bt_plugin *plugin)
+static
+void print_plugin_info(struct bt_plugin *plugin)
 {
 	unsigned int major, minor, patch;
 	const char *extra;
@@ -785,7 +611,8 @@ static void print_plugin_info(struct bt_plugin *plugin)
 		license ? license : "(Unknown)");
 }
 
-static int cmd_query(struct bt_config *cfg)
+static
+int cmd_query(struct bt_config *cfg)
 {
 	int ret;
 	struct bt_component_class *comp_cls = NULL;
@@ -842,7 +669,8 @@ end:
 	return ret;
 }
 
-static int cmd_help(struct bt_config *cfg)
+static
+int cmd_help(struct bt_config *cfg)
 {
 	int ret;
 	struct bt_plugin *plugin = NULL;
@@ -943,7 +771,8 @@ end:
 	return ret;
 }
 
-static int cmd_list_plugins(struct bt_config *cfg)
+static
+int cmd_list_plugins(struct bt_config *cfg)
 {
 	int ret;
 	int plugins_count, component_classes_count = 0, i;
@@ -993,7 +822,7 @@ static int cmd_list_plugins(struct bt_config *cfg)
 		print_plugin_info(plugin);
 
 		if (component_classes_count == 0) {
-			printf("  %sComponent classes%s: (None)\n",
+			printf("  %sComponent classes%s: (none)\n",
 				bt_common_color_bold(),
 				bt_common_color_reset());
 		} else {
@@ -1031,13 +860,15 @@ end:
 	return ret;
 }
 
-static int cmd_print_lttng_live_sessions(struct bt_config *cfg)
+static
+int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 {
 	printf("TODO\n");
 	return -1;
 }
 
-static int cmd_print_ctf_metadata(struct bt_config *cfg)
+static
+int cmd_print_ctf_metadata(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
@@ -1107,117 +938,534 @@ end:
 	return 0;
 }
 
-static int cmd_run(struct bt_config *cfg)
+struct cmd_run_ctx {
+	/* Owned by this */
+	GHashTable *components;
+
+	/* Owned by this */
+	struct bt_graph *graph;
+
+	/* Weak */
+	struct bt_config *cfg;
+
+	bool connect_ports;
+};
+
+static
+int cmd_run_ctx_connect_upstream_port_to_downstream_component(
+		struct cmd_run_ctx *ctx, struct bt_component *upstream_comp,
+		struct bt_port *upstream_port,
+		struct bt_config_connection *cfg_conn)
 {
 	int ret = 0;
-	struct bt_component_class *source_class = NULL;
-	struct bt_component_class *sink_class = NULL;
-	struct bt_component *source = NULL, *sink = NULL;
-	struct bt_value *source_params = NULL, *sink_params = NULL;
-	struct bt_config_component *source_cfg = NULL, *sink_cfg = NULL;
-	struct bt_graph *graph = NULL;
+	GQuark downstreamp_comp_name_quark;
+	struct bt_component *downstream_comp;
+	int64_t downstream_port_count;
+	uint64_t i;
+	int64_t (*port_count_fn)(struct bt_component *);
+	struct bt_port *(*port_by_index_fn)(struct bt_component *, uint64_t);
+	void *conn = NULL;
 
-	ret = load_all_plugins(cfg->plugin_paths);
-	if (ret) {
-		goto end;
+	downstreamp_comp_name_quark = g_quark_from_string(
+		cfg_conn->downstream_comp_name->str);
+	assert(downstreamp_comp_name_quark > 0);
+	downstream_comp = g_hash_table_lookup(ctx->components,
+		(gpointer) (long) downstreamp_comp_name_quark);
+	if (!downstream_comp) {
+		fprintf(stderr, "Cannot create connection: cannot find downstream component: %s\n",
+			cfg_conn->arg->str);
+		goto error;
 	}
 
-	/* TODO handle more than 1 source and 1 sink. */
-	if (cfg->cmd_data.run.sources->len != 1 ||
-			cfg->cmd_data.run.sinks->len != 1) {
-		fprintf(stderr, "Only one source and one sink component class are supported. Aborting...\n");
-		ret = -1;
-		goto end;
+	if (bt_component_is_filter(downstream_comp)) {
+		port_count_fn = bt_component_filter_get_input_port_count;
+		port_by_index_fn = bt_component_filter_get_input_port_by_index;
+	} else if (bt_component_is_sink(downstream_comp)) {
+		port_count_fn = bt_component_sink_get_input_port_count;
+		port_by_index_fn = bt_component_sink_get_input_port_by_index;
+	} else {
+		/*
+		 * Should never happen because the connections are
+		 * validated before we get here.
+		 */
+		assert(false);
 	}
 
-	source_cfg = bt_config_get_component(cfg->cmd_data.run.sources, 0);
-	source_params = bt_get(source_cfg->params);
-	source_class = find_component_class(source_cfg->plugin_name->str,
-			source_cfg->comp_cls_name->str,
-			BT_COMPONENT_CLASS_TYPE_SOURCE);
-	if (!source_class) {
-		fprintf(stderr, "Could not find ");
-		print_plugin_comp_cls_opt(stderr, source_cfg->plugin_name->str,
-			source_cfg->comp_cls_name->str, BT_COMPONENT_CLASS_TYPE_SOURCE);
-		fprintf(stderr, ". Aborting...\n");
-		ret = -1;
-		goto end;
-	}
+	downstream_port_count = port_count_fn(downstream_comp);
+	assert(downstream_port_count >= 0);
 
-	sink_cfg = bt_config_get_component(cfg->cmd_data.run.sinks, 0);
-	sink_params = bt_get(sink_cfg->params);
-	sink_class = find_component_class(sink_cfg->plugin_name->str,
-			sink_cfg->comp_cls_name->str,
-			BT_COMPONENT_CLASS_TYPE_SINK);
-	if (!sink_class) {
-		fprintf(stderr, "Could not find ");
-		print_plugin_comp_cls_opt(stderr, sink_cfg->plugin_name->str,
-			sink_cfg->comp_cls_name->str, BT_COMPONENT_CLASS_TYPE_SINK);
-		fprintf(stderr, ". Aborting...\n");
-		ret = -1;
-		goto end;
-	}
+	for (i = 0; i < downstream_port_count; i++) {
+		struct bt_port *downstream_port =
+			port_by_index_fn(downstream_comp, i);
+		const char *downstream_port_name;
 
-	graph = bt_graph_create();
-	if (!graph) {
-		ret = -1;
-		goto end;
-	}
+		assert(downstream_port);
 
-	source = bt_component_create(source_class, "source", source_params);
-	if (!source) {
-		fprintf(stderr, "Failed to instantiate selected source component. Aborting...\n");
-                ret = -1;
-                goto end;
-        }
+		/* Skip port if it's already connected */
+		if (bt_port_is_connected(downstream_port)) {
+			bt_put(downstream_port);
+			continue;
+		}
 
-	sink = bt_component_create(sink_class, "sink", sink_params);
-	if (!sink) {
-		fprintf(stderr, "Failed to instantiate selected output component. Aborting...\n");
-		ret = -1;
-		goto end;
-	}
+		downstream_port_name = bt_port_get_name(downstream_port);
+		assert(downstream_port_name);
 
-	ret = connect_source_sink(graph, source, source_cfg, sink);
-	if (ret) {
-		ret = -1;
-		goto end;
-	}
+		if (bt_common_star_glob_match(
+				cfg_conn->downstream_port_glob->str, -1ULL,
+				downstream_port_name, -1ULL)) {
+			/* We have a winner! */
+			conn = bt_graph_connect_ports(ctx->graph,
+				upstream_port, downstream_port);
+			bt_put(downstream_port);
+			if (!conn) {
+				fprintf(stderr,
+					"Cannot create connection: graph refuses to connect ports (`%s` to `%s`): %s\n",
+					bt_port_get_name(upstream_port),
+					downstream_port_name,
+					cfg_conn->arg->str);
+				goto error;
+			}
 
-	while (true) {
-		enum bt_graph_status graph_status;
-
-		graph_status = bt_graph_run(graph);
-		switch (graph_status) {
-		case BT_GRAPH_STATUS_AGAIN:
-			/* Wait for an arbitraty 500 ms. */
-			usleep(500000);
-			break;
-		case BT_COMPONENT_STATUS_END:
 			goto end;
-		default:
-			fprintf(stderr, "Sink component returned an error, aborting...\n");
-			ret = -1;
+		}
+
+		bt_put(downstream_port);
+	}
+
+	if (!conn) {
+		fprintf(stderr,
+			"Cannot create connection: cannot find a matching downstream port for upstream port `%s`: %s\n",
+			bt_port_get_name(upstream_port), cfg_conn->arg->str);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	bt_put(conn);
+	return ret;
+}
+
+static
+int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
+		struct bt_port *upstream_port)
+{
+	int ret = 0;
+	const char *upstream_port_name;
+	const char *upstream_comp_name;
+	struct bt_component *upstream_comp = NULL;
+	size_t i;
+
+	assert(ctx);
+	assert(upstream_port);
+	upstream_port_name = bt_port_get_name(upstream_port);
+	assert(upstream_port_name);
+	upstream_comp = bt_port_get_component(upstream_port);
+	if (!upstream_comp) {
+		// TODO: log warning
+		ret = -1;
+		goto end;
+	}
+
+	upstream_comp_name = bt_component_get_name(upstream_comp);
+	assert(upstream_comp_name);
+
+	for (i = 0; i < ctx->cfg->cmd_data.run.connections->len; i++) {
+		struct bt_config_connection *cfg_conn =
+			g_ptr_array_index(
+				ctx->cfg->cmd_data.run.connections, i);
+
+		if (strcmp(cfg_conn->upstream_comp_name->str,
+				upstream_comp_name) == 0) {
+			if (bt_common_star_glob_match(
+					cfg_conn->upstream_port_glob->str,
+					-1ULL, upstream_port_name, -1ULL)) {
+				ret = cmd_run_ctx_connect_upstream_port_to_downstream_component(
+					ctx, upstream_comp, upstream_port,
+					cfg_conn);
+				if (ret) {
+					fprintf(stderr,
+						"Cannot connect port `%s` of component `%s` to a downstream port: %s\n",
+						upstream_port_name,
+						upstream_comp_name,
+						cfg_conn->arg->str);
+					goto error;
+				}
+
+				goto end;
+			}
+		}
+	}
+
+	fprintf(stderr,
+		"Cannot create connection: upstream port `%s` does not match any connection\n",
+		bt_port_get_name(upstream_port));
+
+error:
+	ret = -1;
+
+end:
+	bt_put(upstream_comp);
+	return ret;
+}
+
+static
+void graph_port_added_listener(struct bt_port *port, void *data)
+{
+	struct bt_component *comp = NULL;
+	struct cmd_run_ctx *ctx = data;
+
+	if (bt_port_is_connected(port)) {
+		// TODO: log warning
+		goto end;
+	}
+
+	comp = bt_port_get_component(port);
+	if (!comp) {
+		// TODO: log warning
+		goto end;
+	}
+
+	if (!bt_port_is_output(port)) {
+		// TODO: log info
+		goto end;
+	}
+
+	if (cmd_run_ctx_connect_upstream_port(ctx, port)) {
+		// TODO: log fatal
+		fprintf(stderr, "Added port could not be connected: aborting\n");
+		abort();
+	}
+
+end:
+	bt_put(comp);
+	return;
+}
+
+static
+void graph_port_removed_listener(struct bt_component *component,
+		struct bt_port *port, void *data)
+{
+	// TODO: log info
+}
+
+static
+void graph_ports_connected_listener(struct bt_port *upstream_port,
+		struct bt_port *downstream_port, void *data)
+{
+	// TODO: log info
+}
+
+static
+void graph_ports_disconnected_listener(
+		struct bt_component *upstream_component,
+		struct bt_component *downstream_component,
+		struct bt_port *upstream_port, struct bt_port *downstream_port,
+		void *data)
+{
+	// TODO: log info
+}
+
+static
+void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
+{
+	if (!ctx) {
+		return;
+	}
+
+	if (ctx->components) {
+		g_hash_table_destroy(ctx->components);
+		ctx->components = NULL;
+	}
+
+	BT_PUT(ctx->graph);
+	ctx->cfg = NULL;
+}
+
+static
+int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
+{
+	int ret = 0;
+
+	ctx->cfg = cfg;
+	ctx->connect_ports = false;
+	ctx->components = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+		NULL, bt_put);
+	if (!ctx->components) {
+		goto error;
+	}
+
+	ctx->graph = bt_graph_create();
+	if (!ctx->graph) {
+		goto error;
+	}
+
+	ret = bt_graph_add_port_added_listener(ctx->graph,
+		graph_port_added_listener, ctx);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_graph_add_port_removed_listener(ctx->graph,
+		graph_port_removed_listener, ctx);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_graph_add_ports_connected_listener(ctx->graph,
+		graph_ports_connected_listener, ctx);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_graph_add_ports_disconnected_listener(ctx->graph,
+		graph_ports_disconnected_listener, ctx);
+	if (ret) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	cmd_run_ctx_destroy(ctx);
+	ret = -1;
+
+end:
+	return ret;
+}
+
+static
+int cmd_run_ctx_create_components_from_config_components(
+		struct cmd_run_ctx *ctx, GPtrArray *cfg_components)
+{
+	size_t i;
+	struct bt_component_class *comp_cls = NULL;
+	struct bt_component *comp = NULL;
+	int ret = 0;
+
+	for (i = 0; i < cfg_components->len; i++) {
+		struct bt_config_component *cfg_comp =
+			g_ptr_array_index(cfg_components, i);
+		GQuark quark;
+
+		comp_cls = find_component_class(cfg_comp->plugin_name->str,
+			cfg_comp->comp_cls_name->str, cfg_comp->type);
+		if (!comp_cls) {
+			fprintf(stderr, "%s%sCannot find component class %s",
+				bt_common_color_bold(),
+				bt_common_color_fg_red(),
+				bt_common_color_reset());
+			print_plugin_comp_cls_opt(stderr,
+				cfg_comp->plugin_name->str,
+				cfg_comp->comp_cls_name->str,
+				cfg_comp->type);
+			fprintf(stderr, "\n");
+			goto error;
+		}
+
+		comp = bt_component_create(comp_cls,
+			cfg_comp->instance_name->str, cfg_comp->params);
+		if (!comp) {
+			fprintf(stderr, "%s%sCannot create component `%s`%s\n",
+				bt_common_color_bold(),
+				bt_common_color_fg_red(),
+				cfg_comp->instance_name->str,
+				bt_common_color_reset());
+			goto error;
+		}
+
+		quark = g_quark_from_string(cfg_comp->instance_name->str);
+		assert(quark > 0);
+		g_hash_table_insert(ctx->components,
+			(gpointer) (long) quark, comp);
+		comp = NULL;
+		BT_PUT(comp_cls);
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	bt_put(comp);
+	bt_put(comp_cls);
+	return ret;
+}
+
+static
+int cmd_run_ctx_create_components(struct cmd_run_ctx *ctx)
+{
+	int ret = 0;
+
+	/*
+	 * Make sure that, during this phase, our graph's "port added"
+	 * listener does not connect ports while we are creating the
+	 * components because we have a special, initial phase for
+	 * this.
+	 */
+	ctx->connect_ports = false;
+
+	ret = cmd_run_ctx_create_components_from_config_components(
+		ctx, ctx->cfg->cmd_data.run.sources);
+	if (ret) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = cmd_run_ctx_create_components_from_config_components(
+		ctx, ctx->cfg->cmd_data.run.filters);
+	if (ret) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = cmd_run_ctx_create_components_from_config_components(
+		ctx, ctx->cfg->cmd_data.run.sinks);
+	if (ret) {
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
+		struct bt_component *comp,
+		int64_t (*port_count_fn)(struct bt_component *),
+		struct bt_port *(*port_by_index_fn)(struct bt_component *, uint64_t))
+{
+	int ret = 0;
+	int64_t count;
+	uint64_t i;
+
+	count = port_count_fn(comp);
+	assert(count >= 0);
+
+	for (i = 0; i < count; i++) {
+		struct bt_port *upstream_port = port_by_index_fn(comp, i);
+
+		assert(upstream_port);
+		ret = cmd_run_ctx_connect_upstream_port(ctx, upstream_port);
+		bt_put(upstream_port);
+		if (ret) {
 			goto end;
 		}
 	}
 
 end:
-	bt_put(sink_class);
-	bt_put(source_class);
-	bt_put(source);
-	bt_put(sink);
-	bt_put(source_params);
-	bt_put(sink_params);
-	bt_put(sink_cfg);
-	bt_put(source_cfg);
-	bt_put(graph);
 	return ret;
 }
 
-static void warn_command_name_and_directory_clash(struct bt_config *cfg)
+static
+int cmd_run_ctx_connect_ports(struct cmd_run_ctx *ctx)
 {
+	int ret = 0;
+	GHashTableIter iter;
+	gpointer g_name_quark, g_comp;
+
+	ctx->connect_ports = true;
+	g_hash_table_iter_init(&iter, ctx->components);
+
+	while (g_hash_table_iter_next(&iter, &g_name_quark, &g_comp)) {
+		if (bt_component_is_source(g_comp)) {
+			ret = cmd_run_ctx_connect_comp_ports(ctx,
+				g_comp, bt_component_source_get_output_port_count,
+				bt_component_source_get_output_port_by_index);
+		} else if (bt_component_is_filter(g_comp)) {
+			ret = cmd_run_ctx_connect_comp_ports(ctx,
+				g_comp, bt_component_filter_get_output_port_count,
+				bt_component_filter_get_output_port_by_index);
+		}
+
+		if (ret) {
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
+static
+int cmd_run(struct bt_config *cfg)
+{
+	int ret = 0;
+	struct cmd_run_ctx ctx = { 0 };
+
+	ret = load_all_plugins(cfg->plugin_paths);
+	if (ret) {
+		goto error;
+	}
+
+	/* Initialize the command's context and the graph object */
+	if (cmd_run_ctx_init(&ctx, cfg)) {
+		fprintf(stderr, "Cannot initialize the command's context\n");
+		goto error;
+	}
+
+	/* Create the requested component instances */
+	if (cmd_run_ctx_create_components(&ctx)) {
+		fprintf(stderr, "Cannot create components\n");
+		goto error;
+	}
+
+	/* Connect the initially visible component ports */
+	if (cmd_run_ctx_connect_ports(&ctx)) {
+		fprintf(stderr, "Cannot connect initial component ports\n");
+		goto error;
+	}
+
+	/* Run the graph */
+	while (true) {
+		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
+
+		switch (graph_status) {
+		case BT_GRAPH_STATUS_OK:
+			break;
+		case BT_GRAPH_STATUS_AGAIN:
+			if (cfg->cmd_data.run.retry_duration_us > 0) {
+				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
+					// TODO: check EINTR and signal handler
+				}
+			}
+			break;
+		case BT_COMPONENT_STATUS_END:
+			goto end;
+		default:
+			fprintf(stderr, "Sink component returned an error, aborting...\n");
+			goto error;
+		}
+	}
+
+	goto end;
+
+error:
+	if (ret == 0) {
+		ret = -1;
+	}
+
+end:
+	cmd_run_ctx_destroy(&ctx);
+	return ret;
+}
+
+static
+void warn_command_name_and_directory_clash(struct bt_config *cfg)
+{
+	const char *env_clash;
+
 	if (!cfg->command_name) {
+		return;
+	}
+
+	env_clash = getenv(ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH);
+	if (env_clash && strcmp(env_clash, "0") == 0) {
 		return;
 	}
 
@@ -1239,8 +1487,8 @@ int main(int argc, const char **argv)
 	int retcode;
 	struct bt_config *cfg;
 
-	init_loaded_plugins_array();
-	cfg = bt_config_from_args_with_defaults(argc, argv, &retcode);
+	init_static_data();
+	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
 
 	if (retcode < 0) {
 		/* Quit without errors; typically usage/version */
@@ -1298,6 +1546,6 @@ int main(int argc, const char **argv)
 
 end:
 	BT_PUT(cfg);
-	fini_loaded_plugins_array();
+	fini_static_data();
 	return retcode;
 }

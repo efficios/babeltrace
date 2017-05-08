@@ -673,3 +673,296 @@ error:
 end:
 	return parts;
 }
+
+BT_HIDDEN
+void bt_common_normalize_star_glob_pattern(char *pattern)
+{
+	const char *p;
+	char *np;
+	bool got_star = false;
+
+	assert(pattern);
+
+	for (p = pattern, np = pattern; *p != '\0'; p++) {
+		switch (*p) {
+		case '*':
+			if (got_star) {
+				/* Avoid consecutive stars. */
+				continue;
+			}
+
+			got_star = true;
+			break;
+		case '\\':
+			/* Copy backslash character. */
+			*np = *p;
+			np++;
+			p++;
+
+			if (*p == '\0') {
+				goto end;
+			}
+
+			/* Fall through default case. */
+		default:
+			got_star = false;
+			break;
+		}
+
+		/* Copy single character. */
+		*np = *p;
+		np++;
+	}
+
+end:
+	*np = '\0';
+}
+
+static inline
+bool at_end_of_pattern(const char *p, const char *pattern, size_t pattern_len)
+{
+	return (p - pattern) == pattern_len || *p == '\0';
+}
+
+/*
+ * Globbing matching function with the star feature only (`?` and
+ * character sets are not supported). This matches `candidate` (plain
+ * string) against `pattern`. A literal star can be escaped with `\` in
+ * `pattern`.
+ *
+ * `pattern_len` or `candidate_len` can be greater than the actual
+ * string length of `pattern` or `candidate` if the string is
+ * null-terminated.
+ */
+BT_HIDDEN
+bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
+		const char *candidate, size_t candidate_len) {
+	const char *retry_c = candidate, *retry_p = pattern, *c, *p;
+	bool got_a_star = false;
+
+retry:
+	c = retry_c;
+	p = retry_p;
+
+	/*
+	 * The concept here is to retry a match in the specific case
+	 * where we already got a star. The retry position for the
+	 * pattern is just after the most recent star, and the retry
+	 * position for the candidate is the character following the
+	 * last try's first character.
+	 *
+	 * Example:
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                ^
+	 *     pattern:   hi*every*one
+	 *                ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                 ^
+	 *     pattern:   hi*every*one
+	 *                 ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                  ^
+	 *     pattern:   hi*every*one
+	 *                  ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                  ^
+	 *     pattern:   hi*every*one
+	 *                   ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                   ^
+	 *     pattern:   hi*every*one
+	 *                   ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                   ^^
+	 *     pattern:   hi*every*one
+	 *                   ^^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                   ^ ^
+	 *     pattern:   hi*every*one
+	 *                   ^ ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                    ^
+	 *     pattern:   hi*every*one
+	 *                   ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                     ^
+	 *     pattern:   hi*every*one
+	 *                   ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                      ^
+	 *     pattern:   hi*every*one
+	 *                   ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                      ^^
+	 *     pattern:   hi*every*one
+	 *                   ^^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                      ^ ^
+	 *     pattern:   hi*every*one
+	 *                   ^ ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                      ^  ^
+	 *     pattern:   hi*every*one
+	 *                   ^  ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                      ^   ^
+	 *     pattern:   hi*every*one
+	 *                   ^   ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                           ^
+	 *     pattern:   hi*every*one
+	 *                        ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                           ^
+	 *     pattern:   hi*every*one
+	 *                         ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                            ^
+	 *     pattern:   hi*every*one
+	 *                         ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                            ^^
+	 *     pattern:   hi*every*one
+	 *                         ^^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                            ^ ^
+	 *     pattern:   hi*every*one
+	 *                         ^ ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                             ^
+	 *     pattern:   hi*every*one
+	 *                         ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                              ^
+	 *     pattern:   hi*every*one
+	 *                         ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                               ^
+	 *     pattern:   hi*every*one
+	 *                         ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                                ^
+	 *     pattern:   hi*every*one
+	 *                         ^ MISMATCH
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                                 ^
+	 *     pattern:   hi*every*one
+	 *                         ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                                 ^^
+	 *     pattern:   hi*every*one
+	 *                         ^^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                                 ^ ^
+	 *     pattern:   hi*every*one
+	 *                         ^ ^
+	 *
+	 *     candidate: hi ev every onyx one
+	 *                                 ^  ^
+	 *     pattern:   hi*every*one
+	 *                         ^  ^ SUCCESS
+	 */
+	while ((c - candidate) < candidate_len && *c != '\0') {
+		assert(*c);
+
+		if (at_end_of_pattern(p, pattern, pattern_len)) {
+			goto end_of_pattern;
+		}
+
+		switch (*p) {
+		case '*':
+			got_a_star = true;
+
+			/*
+			 * Our first try starts at the current candidate
+			 * character and after the star in the pattern.
+			 */
+			retry_c = c;
+			retry_p = p + 1;
+
+			if (at_end_of_pattern(retry_p, pattern, pattern_len)) {
+				/*
+				 * Star at the end of the pattern at
+				 * this point: automatic match.
+				 */
+				return true;
+			}
+
+			goto retry;
+		case '\\':
+			/* Go to escaped character. */
+			p++;
+
+			/*
+			 * Fall through the default case which compares
+			 * the escaped character now.
+			 */
+		default:
+			if (at_end_of_pattern(p, pattern, pattern_len) ||
+					*c != *p) {
+end_of_pattern:
+				/* Character mismatch OR end of pattern. */
+				if (!got_a_star) {
+					/*
+					 * We didn't get any star yet,
+					 * so this first mismatch
+					 * automatically makes the whole
+					 * test fail.
+					 */
+					return false;
+				}
+
+				/*
+				 * Next try: next candidate character,
+				 * original pattern character (following
+				 * the most recent star).
+				 */
+				retry_c++;
+				goto retry;
+			}
+			break;
+		}
+
+		/* Next pattern and candidate characters. */
+		c++;
+		p++;
+	}
+
+	/*
+	 * We checked every candidate character and we're still in a
+	 * success state: the only pattern character allowed to remain
+	 * is a star.
+	 */
+	if (at_end_of_pattern(p, pattern, pattern_len)) {
+		return true;
+	}
+
+	p++;
+	return p[-1] == '*' && at_end_of_pattern(p, pattern, pattern_len);
+}

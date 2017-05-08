@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CONNECT_H
-#define BABELTRACE_CONNECT_H
+#ifndef CLI_BABELTRACE_CFG_CLI_ARGS_H
+#define CLI_BABELTRACE_CFG_CLI_ARGS_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016-2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +26,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <babeltrace/values.h>
+#include <babeltrace/ref.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/compiler-internal.h>
+#include <babeltrace/graph/component-class.h>
 #include <glib.h>
+
 #include "babeltrace-cfg.h"
 
-struct bt_config_connection {
-	GString *src_instance_name;
-	GString *dst_instance_name;
-	GString *src_port_name;
-	GString *dst_port_name;
-	GString *arg;
-};
+struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
+		int *retcode, bool force_omit_system_plugin_path,
+		bool force_omit_home_plugin_path, bool force_no_debug_info,
+		struct bt_value *initial_plugin_paths);
 
-int bt_config_create_connections(struct bt_config *cfg,
-		struct bt_value *connection_args,
-		char *error_buf, size_t error_buf_size);
-
-void bt_config_connection_destroy(struct bt_config_connection *connection);
-
-#endif /* BABELTRACE_CONNECT_H */
+#endif /* CLI_BABELTRACE_CFG_CLI_ARGS_H */
