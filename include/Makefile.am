@@ -1,7 +1,8 @@
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/values.h \
-	babeltrace/ref.h
+	babeltrace/ref.h \
+	babeltrace/logging.h
 
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h
@@ -35,7 +36,6 @@ babeltraceplugininclude_HEADERS = \
 
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/clock-class-priority-map.h \
-	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/graph/component-class-filter.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
@@ -69,57 +69,60 @@ noinst_HEADERS = \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/common-internal.h \
+	babeltrace/compat/dirent-internal.h \
+	babeltrace/compat/fcntl-internal.h \
+	babeltrace/compat/glib-internal.h \
+	babeltrace/compat/limits-internal.h \
+	babeltrace/compat/memstream-internal.h \
+	babeltrace/compat/mman-internal.h \
+	babeltrace/compat/send-internal.h \
+	babeltrace/compat/stdio-internal.h \
+	babeltrace/compat/stdlib-internal.h \
+	babeltrace/compat/string-internal.h \
+	babeltrace/compat/utc-internal.h \
+	babeltrace/compat/uuid-internal.h \
 	babeltrace/compiler-internal.h \
-	babeltrace/prio-heap-internal.h \
-	babeltrace/ref-internal.h \
-	babeltrace/object-internal.h \
-	babeltrace/ctf-writer/writer-internal.h \
-	babeltrace/ctf-writer/serialize-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
+	babeltrace/ctf-ir/clock-class-internal.h \
+	babeltrace/ctf-ir/event-class-internal.h \
+	babeltrace/ctf-ir/event-internal.h \
+	babeltrace/ctf-ir/field-path-internal.h \
 	babeltrace/ctf-ir/field-types-internal.h \
 	babeltrace/ctf-ir/fields-internal.h \
-	babeltrace/ctf-ir/event-internal.h \
-	babeltrace/ctf-ir/event-class-internal.h \
-	babeltrace/ctf-ir/field-path-internal.h \
-	babeltrace/ctf-ir/clock-class-internal.h \
+	babeltrace/ctf-ir/packet-internal.h \
 	babeltrace/ctf-ir/resolve-internal.h \
 	babeltrace/ctf-ir/stream-class-internal.h \
 	babeltrace/ctf-ir/stream-internal.h \
-	babeltrace/ctf-ir/packet-internal.h \
 	babeltrace/ctf-ir/trace-internal.h \
 	babeltrace/ctf-ir/validation-internal.h \
 	babeltrace/ctf-ir/visitor-internal.h \
 	babeltrace/ctf-writer/clock-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
-	babeltrace/compat/uuid-internal.h \
-	babeltrace/compat/memstream-internal.h \
-	babeltrace/compat/string-internal.h \
-	babeltrace/compat/utc-internal.h \
-	babeltrace/compat/limits-internal.h \
-	babeltrace/compat/glib-internal.h \
-	babeltrace/compat/send-internal.h \
-	babeltrace/compat/fcntl-internal.h \
-	babeltrace/compat/stdlib-internal.h \
-	babeltrace/compat/dirent-internal.h \
-	babeltrace/compat/stdio-internal.h \
-	babeltrace/compat/mman-internal.h \
+	babeltrace/ctf-writer/serialize-internal.h \
+	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/endian-internal.h \
-	babeltrace/mmap-align-internal.h \
-	babeltrace/plugin/plugin-internal.h \
-	babeltrace/plugin/plugin-so-internal.h \
+	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/graph/component-class-internal.h \
-	babeltrace/graph/connection-internal.h \
-	babeltrace/graph/port-internal.h \
-	babeltrace/graph/component-internal.h \
-	babeltrace/graph/graph-internal.h \
 	babeltrace/graph/component-filter-internal.h \
+	babeltrace/graph/component-internal.h \
 	babeltrace/graph/component-sink-internal.h \
 	babeltrace/graph/component-source-internal.h \
+	babeltrace/graph/connection-internal.h \
+	babeltrace/graph/graph-internal.h \
 	babeltrace/graph/notification-eot-internal.h \
 	babeltrace/graph/notification-event-internal.h \
+	babeltrace/graph/notification-heap-internal.h \
 	babeltrace/graph/notification-inactivity-internal.h \
-	babeltrace/graph/notification-iterator-internal.h \
 	babeltrace/graph/notification-internal.h \
+	babeltrace/graph/notification-iterator-internal.h \
 	babeltrace/graph/notification-packet-internal.h \
 	babeltrace/graph/notification-stream-internal.h \
-	babeltrace/graph/notification-heap-internal.h
+	babeltrace/graph/port-internal.h \
+	babeltrace/lib-logging-internal.h \
+	babeltrace/logging-internal.h \
+	babeltrace/mmap-align-internal.h \
+	babeltrace/object-internal.h \
+	babeltrace/plugin/plugin-internal.h \
+	babeltrace/plugin/plugin-so-internal.h \
+	babeltrace/prio-heap-internal.h \
+	babeltrace/ref-internal.h

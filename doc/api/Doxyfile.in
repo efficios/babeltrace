@@ -146,6 +146,7 @@ INPUT                  = "@top_srcdir@/include/babeltrace/ctf-ir" \
                          "@top_srcdir@/include/babeltrace/plugin" \
                          "@top_srcdir@/include/babeltrace/ref.h" \
                          "@top_srcdir@/include/babeltrace/values.h" \
+                         "@top_srcdir@/include/babeltrace/logging.h" \
                          "@srcdir@/dox/main-page.dox" \
                          "@srcdir@/dox/includes-build.dox" \
                          "@srcdir@/dox/write-plugin.dox" \

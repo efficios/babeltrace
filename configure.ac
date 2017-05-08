@@ -400,6 +400,14 @@ AM_CONDITIONAL([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$built_in_python_plugin
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= 2.0.0])
 
+# Logging
+AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (VERBOSE, DEBUG, INFO, WARN, ERROR (default), FATAL, or NONE)])
+AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = "x"], [BABELTRACE_MINIMAL_LOG_LEVEL=DEBUG])
+AS_IF([test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "VERBOSE" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "DEBUG" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "INFO" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "WARN" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "ERROR" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "FATAL" && test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "NONE"], [
+	AC_MSG_ERROR([Invalid BABELTRACE_MINIMAL_LOG_LEVEL value ($BABELTRACE_MINIMAL_LOG_LEVEL): use VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL, or NONE.])
+])
+AC_DEFINE_UNQUOTED([BT_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level])
+
 LIBS="$LIBS $GMODULE_LIBS"
 PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
 AC_SUBST(PACKAGE_CFLAGS)
@@ -473,6 +481,7 @@ AC_CONFIG_FILES([
 	lib/ctf-ir/Makefile
 	lib/ctf-writer/Makefile
 	include/Makefile
+	logging/Makefile
 	bindings/Makefile
 	bindings/python/Makefile
 	bindings/python/babeltrace/Makefile
@@ -565,6 +574,9 @@ for f in $CFLAGS; do
 done
 ]
 PPRINT_PROP_STRING([Target architecture], $target_arch)
+
+# Minimal log level
+PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
 
 # API doc
 test "x$enable_api_doc" = "xyes" && value=1 || value=0

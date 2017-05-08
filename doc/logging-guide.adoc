@@ -1,0 +1,685 @@
+= Babeltrace logging guide
+Philippe Proulx
+7 May 2017
+:toc:
+:toclevels: 5
+
+This guide explains to the Babeltrace developer how to insert logging
+statements in Babeltrace's CLI, library, and plugins.
+
+
+== Motive
+
+Logging is a great instrument for a developer to be able to collect
+information about a running software.
+
+Babeltrace is a complex software with many layers. When a Babeltrace
+graph fails to run, what caused the failure? It could be caused by any
+component, any notification iterator, and any deeply nested validation
+of a CTR IR object, for example. With the appropriate logging statements
+manually placed in the source code, we can find the cause of a bug
+faster.
+
+While <<level,care must be taken>> when placing _INFO_ to _FATAL_
+logging statements, you should deliberately instrument your Babeltrace
+module with _DEBUG_ and _VERBOSE_ logging statements to help future
+you and other developers understand what's happening at run-time.
+
+
+== API
+
+The Babeltrace logging API is internal: it is not exposed to the users
+of the library, only to their developers. The only thing that a library
+user can control is the current log level of the library with
+`bt_logging_set_global_level()` and the initial library's log level with
+the `BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable.
+
+This API is based on https://github.com/wonder-mice/zf_log[zf_log], a
+lightweight, yet featureful, MIT-licensed core logging library for C and
+$$C++$$. The zf_log source files were modified to have the `BT_` and
+`bt_` prefixes, and other small changes.
+
+The logging functions are implemented in the logging convenience
+library (`logging` directory).
+
+
+=== Headers
+
+The logging API headers are:
+
+`<babeltrace/logging.h>`::
+    Public header which a library user can use to control and read
+    libbabeltrace's current log level.
+
+`<babeltrace/logging-internal.h>`::
+    Internal, generic logging API which you can use in any Babeltrace
+    subproject. This is the translation of `zf_log.h`.
+
+`<babeltrace/lib-logging-internal.h>`::
+    Specific internal header to use within the library. This header
+    defines `BT_LOG_OUTPUT_LEVEL` to a custom, library-wide hidden
+    symbol which is the library's current log level before including
+    `<babeltrace/logging-internal.h>`.
+
+Do not include `<babeltrace/logging-internal.h>` or
+`<babeltrace/lib-logging-internal.h>` in a header which contains logging
+statements: this header could be included in source files which define a
+different <<tag,tag>>, for example.
+
+
+=== Log levels ===
+
+The API offers the following log levels:
+
+* _VERBOSE_
+* _DEBUG_
+* _INFO_
+* _WARN_
+* _ERROR_
+* _FATAL_
+
+See <<level,how to decide which one to use>> below.
+
+There are two important log level variables:
+
+[[build-time-log-level]]Build-time, minimal log level::
+    The minimal log level, or build-time log level, is set at build
+    time and determines the minimal log level which can be executed.
+    This applies to all the subprojects and modules (CLI, library,
+    plugins, etc.).
++
+All the logging statements with a level below this level are **not built
+at all**. All the logging statements with a level equal to or greater
+than this level _can_ be executed, depending on the run-time log level
+(see below).
++
+You can set this level at configuration time with the
+`BABELTRACE_MINIMAL_LOG_LEVEL` environment variable, for example:
++
+--
+----
+$ BABELTRACE_MINIMAL_LOG_LEVEL=WARN ./configure
+----
+--
++
+The default build-time log level is `DEBUG`. For optimal performance,
+set it to `NONE`, which effectively disables all logging in all the
+Babeltrace subprojects.
++
+The library's public API provides `bt_logging_get_minimal_level()` to
+get the configured minimal log level.
+
+[[run-time-log-level]]Run-time, dynamic log level::
+    The dynamic log level is set at run-time and determines the current,
+    active log level. All the logging statements with a level below this
+    level are not executed, but they evaluate the condition. All the
+    logging statements with a level equal to or greater than this level
+    are executed, provided that their level is also enabled at build
+    time (see above).
++
+In `zf_log`, there is a concept of a global run-time log level which
+uses the `_bt_log_global_output_lvl` symbol. In practice, we never use
+this symbol, and always make sure that `BT_LOG_OUTPUT_LEVEL` is defined
+to a module-wise or subproject-wise hidden symbol before including
+`<babeltrace/logging-internal.h>`. In the library,
+`<babeltrace/lib-logging-internal.h>` does this job: just include
+this header which defines `BT_LOG_OUTPUT_LEVEL` to the appropriate
+symbol before it includes `<babeltrace/logging-internal.h>`. In plugins,
+for example, there is one log level per component class, which makes
+log filtering easier during execution.
++
+In libbabeltrace, the user can set the current run-time log level with
+the `bt_logging_set_global_level()` function, for example:
++
+--
+[source,c]
+----
+bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
+----
+--
++
+The library's initial run-time log level is defined by the
+`BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable (`VERBOSE`, `DEBUG`,
+`INFO`, `WARN`, `ERROR`, `FATAL`, or `NONE`), or set to _NONE_ if this
+environment variable is undefined.
++
+Other subprojects have their own way of setting their run-time log
+level. For example, the CLI uses the `BABELTRACE_CLI_LOG_LEVEL`
+environment variable, and the `text.pretty` sink component class
+initializes its log level thanks to the
+`BABELTRACE_PLUGIN_TEXT_PRETTY_SINK_LOG_LEVEL` environment variable
+(also _NONE_ by default).
++
+Make sure that there is a documented way to initialize or modify the
+log level of your subproject or module, and that it's set to _NONE_
+by default.
+
+
+=== Logging statement macros
+
+The Babeltrace logging statement macros work just like `printf()` and
+contain their log level in their name:
+
+`BT_LOGV("format string", ...)`::
+    Standard verbose logging statement.
+
+`BT_LOGD("format string", ...)`::
+    Standard debug logging statement.
+
+`BT_LOGI("format string", ...)`::
+    Standard info logging statement.
+
+`BT_LOGW("format string", ...)`::
+    Standard warning logging statement.
+
+`BT_LOGE("format string", ...)`::
+    Standard error logging statement.
+
+`BT_LOGF("format string", ...)`::
+    Standard fatal logging statement.
+
+`BT_LOGV_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory verbose logging statement.
+
+`BT_LOGD_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory debug logging statement.
+
+`BT_LOGI_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory info logging statement.
+
+`BT_LOGW_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory warning logging statement.
+
+`BT_LOGE_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory error logging statement.
+
+`BT_LOGF_MEM(data_ptr, data_size, "format string", ...)`::
+    Memory fatal logging statement.
+
+`BT_LOGV_STR("preformatted string")`::
+    Preformatted string verbose logging statement.
+
+`BT_LOGD_STR("preformatted string")`::
+    Preformatted string debug logging statement.
+
+`BT_LOGI_STR("preformatted string")`::
+    Preformatted string info logging statement.
+
+`BT_LOGW_STR("preformatted string")`::
+    Preformatted string warning logging statement.
+
+`BT_LOGE_STR("preformatted string")`::
+    Preformatted string error logging statement.
+
+`BT_LOGF_STR("preformatted string")`::
+    Preformatted string fatal logging statement.
+
+
+=== Conditional logging
+
+`BT_LOG_IF(cond, statement)`::
+    Execute `statement` only if `cond` is true.
++
+Example:
++
+--
+[source,c]
+----
+BT_LOG_IF(i < count / 2, BT_LOGD("Log this: i=%d", i));
+----
+--
+
+To check the <<build-time-log-level,build-time log level>>:
+
+[source,c]
+----
+#if BT_LOG_ENABLED_DEBUG
+...
+#endif
+----
+
+This tests if the _DEBUG_ level was enabled at build-time. This
+means that the current, dynamic log level _could_ be _DEBUG_, but it
+could also be higher. The rule of thumb is to use only logging
+statements at the same level in a `BT_LOG_ENABLED_*` conditional block.
+
+The available definitions for build-time conditions are:
+
+* `BT_LOG_ENABLED_VERBOSE`
+* `BT_LOG_ENABLED_DEBUG`
+* `BT_LOG_ENABLED_INFO`
+* `BT_LOG_ENABLED_WARN`
+* `BT_LOG_ENABLED_ERROR`
+* `BT_LOG_ENABLED_FATAL`
+
+To check the current, <<run-time-log-level,run-time log level>>:
+
+[source,c]
+----
+if (BT_LOG_ON_DEBUG) {
+    ...
+}
+----
+
+This tests if the _DEBUG_ log level is dynamically turned on
+(implies that it's also enabled at build-time). This check could have a
+noticeable impact on performance.
+
+The available definitions for run-time conditions are:
+
+* `BT_LOG_ON_VERBOSE`
+* `BT_LOG_ON_DEBUG`
+* `BT_LOG_ON_INFO`
+* `BT_LOG_ON_WARN`
+* `BT_LOG_ON_ERROR`
+* `BT_LOG_ON_FATAL`
+
+Those macros check the subproject-specific or module-specific log level
+symbol (defined by `BT_LOG_OUTPUT_LEVEL`).
+
+Never, ever write code which would be executed only to compute the
+fields of a logging statement outside a conditional logging scope,
+for example:
+
+[source,c]
+----
+int number = get_number_of_event_classes_with_property_x(...);
+BT_LOGD("Bla bla: number=%d", number);
+----
+
+Do this instead:
+
+[source,c]
+----
+if (BT_LOG_ON_DEBUG) {
+    int number = get_number_of_event_classes_with_property_x(...);
+    BT_LOGD("Bla bla: number=%d", number);
+}
+----
+
+Or even this:
+
+[source,c]
+----
+BT_LOGD("Bla bla: number=%d", get_number_of_event_classes_with_property_x(...));
+----
+
+
+[[tag]]
+== Tag
+
+Before including `<babeltrace/logging-internal.h>` (or
+`<babeltrace/lib-logging-internal.h>`) in your C source file, define
+`BT_LOG_TAG` to a name which represents your module. The tag name _must_
+be only uppercase letters/digits and the hyphen (`-`) character.
+
+For example:
+
+[source,c]
+----
+#define BT_LOG_TAG "EVENT-CLASS"
+#include <babeltrace/logging-internal.h>
+----
+
+A tag is conceptually similar to a logger name.
+
+
+=== Babeltrace tags
+
+==== CTF IR (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Attributes |`ATTRS`
+|Clock class and values |`CLOCK-CLASS`
+|Event class |`EVENT-CLASS`
+|Event |`EVENT`
+|Field path |`FIELD-PATH`
+|Field types |`FIELD-TYPES`
+|Fields |`FIELDS`
+|Packet |`PACKET`
+|Resolver |`RESOLVE`
+|Stream class |`STREAM-CLASS`
+|Stream |`STREAM`
+|Trace |`TRACE`
+|Validation |`VALIDATION`
+|Visitor |`VISITOR`
+|===
+
+
+==== CTF writer (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Clock |`CTF-WRITER-CLOCK`
+|CTF writer |`CTF-WRITER`
+|Serialization |`CTF-WRITER-SER`
+|===
+
+
+==== Graph (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Clock class priority map |`CC-PRIO-MAP`
+|Component (common) |`COMP`
+|Component class |`COMP-CLASS`
+|Connection |`CONNECTION`
+|Filter component |`COMP-FILTER`
+|Graph |`GRAPH`
+|Notification iterator |`NOTIF-ITER`
+|Port |`PORT`
+|Sink component |`COMP-SINK`
+|Source component |`COMP-SOURCE`
+|===
+
+==== Notifications (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Event notification |`NOTIF-EVENT`
+|Inacitivity notification |`NOTIF-INACTIVITY`
+|Notification |`NOTIF`
+|Packet notification |`NOTIF-PACKET`
+|Stream notification |`NOTIF-STREAM`
+|===
+
+
+==== Plugin (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Plugin |`PLUGIN`
+|Python plugin provider |`PLUGIN-PY`
+|Shared object plugin provider |`PLUGIN-SO`
+|===
+
+
+==== Values (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Values |`VALUES`
+|===
+
+
+==== Reference counting (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Reference counting |`REF`
+|===
+
+
+==== Common (library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Common |`COMMON`
+|===
+
+
+==== CLI
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|CLI (main) |`CLI`
+|CLI configuration (common) |`CLI-CFG`
+|CLI configuration from CLI arguments |`CLI-CFG-ARGS`
+|CLI connection configuration from CLI arguments |`CLI-CFG-ARGS-CONNECT`
+|===
+
+
+==== libctfcopytrace (plugin convenience library)
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Clock fields |`LIBCTFCOPYTRACE-CLOCK-FIELDS`
+|libctfcopytrace |`LIBCTFCOPYTRACE`
+|===
+
+
+==== `ctf` plugin
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Plugin (main) |`PLUGIN-CTF`
+|Common: BTR |`PLUGIN-CTF-BTR`
+|Common: CTF IR generation metadata visitor |`PLUGIN-CTF-METADATA-IR-VISITOR`
+|Common: Metadata decoder |`PLUGIN-CTF-METADATA-DECODER`
+|Common: Metadata lexer |`PLUGIN-CTF-METADATA-LEXER`
+|Common: Metadata parser |`PLUGIN-CTF-METADATA-PARSER`
+|Common: Notification iterator |`PLUGIN-CTF-NOTIF-ITER`
+|`fs` sink (main) |`PLUGIN-CTF-FS-SINK`
+|`fs` sink: write |`PLUGIN-CTF-FS-SINK-WRITE`
+|`fs` source (main) |`PLUGIN-CTF-FS-SRC`
+|`fs` source: data stream |`PLUGIN-CTF-FS-SRC-DS`
+|`fs` source: file |`PLUGIN-CTF-FS-SRC-FILE`
+|`fs` source: metadata |`PLUGIN-CTF-FS-SRC-METADATA`
+|`lttng-live` source (main) |`PLUGIN-CTF-LTTNG-LIVE`
+|`lttng-live` source: data stream |`PLUGIN-CTF-LTTNG-LIVE-DS`
+|`lttng-live` source: metadata |`PLUGIN-CTF-LTTNG-LIVE-METADATA`
+|`lttng-live` source: viewer connection |`PLUGIN-CTF-LTTNG-LIVE-VIEWER`
+|===
+
+
+==== `lttng-utils` plugin
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Plugin (main) |`PLUGIN-LTTNG-UTILS`
+|`debug-info` filter (main) |`PLUGIN-LTTNG-UTILS-DBG-INFO`
+|`debug-info` filter: binary info |`PLUGIN-LTTNG-UTILS-DBG-INFO-BIN-INFO`
+|`debug-info` filter: copy |`PLUGIN-LTTNG-UTILS-DBG-INFO-COPY`
+|`debug-info` filter: CRC32 |`PLUGIN-LTTNG-UTILS-DBG-INFO-CRC32`
+|`debug-info` filter: DWARF |`PLUGIN-LTTNG-UTILS-DBG-INFO-DWARF`
+|===
+
+
+==== `text` plugin
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Plugin (main) |`PLUGIN-TEXT`
+|`pretty` filter (main) |`PLUGIN-TEXT-PRETTY`
+|`pretty` filter: print |`PLUGIN-TEXT-PRETTY-PRINT`
+|===
+
+
+==== `utils` plugin
+
+[options="header,autowidth"]
+|===
+|Subsystem/object |Tag name
+
+|Plugin (main) |`PLUGIN-UTILS`
+|`dummy` sink (main) |`PLUGIN-UTILS-DUMMY`
+|`muxer` filter (main) |`PLUGIN-UTILS-MUXER`
+|`trimmer` filter (main) |`PLUGIN-UTILS-TRIMMER`
+|`trimmer` filter: copy |`PLUGIN-UTILS-TRIMMER-COPY`
+|`trimmer` filter: iterator |`PLUGIN-UTILS-TRIMMER-ITER`
+|===
+
+
+[[level]]
+== Log level
+
+Choosing the appropriate level for your logging statement is very
+important.
+
+[options="header,autowidth",cols="default,default,asciidoc,default"]
+|===
+|Log level |Description |Use cases |Impact on performance
+
+|_FATAL_
+|The program, library, or plugin cannot continue to work in this
+condition: it must be terminated immediately.
+
+An assertion is usually an indicator of where you should put a
+_FATAL_-level logging statement. In Babeltrace, however, memory
+allocation errors are usually propagated back to the caller, so they
+belong to the _ERROR_ log level.
+|
+* Unexpected return values from system calls.
+|Almost none: should be executed in production.
+
+|_ERROR_
+|An important error which is somewhat not fatal, that is, the program,
+library, or plugin can continue to work after this, but you judge that
+it should be reported to the user.
+
+Usually, the program cannot recover from such an error, but it can at
+least exit cleanly.
+|
+* Memory allocation errors.
+* Failed to perform an operation which should work considering the
+  implementation and the satisfied preconditions. For example, the
+  failure to create an empty object (no parameters): most probably
+  failed internally because of an allocation error.
+|Almost none: should be executed in production.
+
+|_WARN_
+|A logic error which still allows the execution to continue.
+|
+* Unexpected values for function parameters.
+* Other user-induced errors (the user does not honor a function's
+  preconditions).
++
+For example, the caller tries to set a property of a frozen stream
+class.
+|Almost none: can be executed in production.
+
+|_INFO_
+|Any useful information which a non-developer user would understand.
+|
+* Successful loading of a plugin (with name, version, etc.).
+* Successful connection to or disconnection from another system.
+* An optional subsystem cannot be loaded.
+|Very little: can be executed in production if
+_INFO_ level information is desired.
+
+|_DEBUG_
+|Something that only Babeltrace developers would be interested into.
+|
+* High-level function entry/exit.
+* Object creation, destruction, copying, and freezing.
+* The result of some computation/validation.
+|Noticeable, but not as much as the _VERBOSE_ level: not executed in
+production.
+
+|_VERBOSE_
+|Low-level debugging context information. More appropriate for tracing
+in general.
+|
+* Reference count change.
+* Status of each iteration of a loop.
+* State machine's state change.
+* Data structure lookup/modification.
+* List of ELF sections found in a plugin.
+* Get or set an object's property.
+* Object comparison's intermediate results.
+|Huge: not executed in production.
+|===
+
+
+== Message
+
+Follow those rules when you write a logging statement's message:
+
+* Use an english sentence which starts with a capital letter. Start the
+  sentence with the appropriate verb tense depending on the context. For
+  example:
++
+--
+** _Creating ..._
+** _Created ..._ or _Successfully created ..._
+--
++
+For warning and error messages, you can start the message with _Cannot_
+followed by a verb if it's appropriate.
+
+* Do not include the log level in the message itself. For example,
+  do not start the message with _Error while_ or _Warning:_.
+
+* Do not put newlines, tabs, or other special characters in the
+  message, unless you want to log a string with such characters. Note
+  that multiline log messages can be hard to parse, analyze, and filter,
+  however.
+
+* **If there are fields that your logging statement must record**,
+  follow the message with `:` followed by a space, then with the list of
+  fields (more about this below). If there are no fields, end the
+  sentence with a period.
+
+The statement's fields _must_ be a comma-separated list of
++__name__=__value__+ tokens. Keep +__name__+ as simple as possible
+(lowercase if possible). If +__value__+ is a string, put it between
+double quotes.
+
+Example:
+
+    "Cannot add event class to stream class: stream-class-addr=%p, "
+    "stream-class-name=\"%s\", stream-class-id=%" PRId64
+    "event-class-addr=%p, event-class-name=\"%s\", event-class-id=%" PRId64
+
+By following a standard format for the statement fields, it is easier
+to use tools like https://www.elastic.co/products/logstash[Logstash]
+to split fields and analyze logs.
+
+Prefer the following suffixes in field names:
+
+[options="header,autowidth"]
+|===
+|Field name suffix |Description |Format specifier
+
+|`-addr` |Memory address |`%p`
+|`-fd` |File descriptor |`%d`
+|`-fp` |File stream (`FILE *`) |`%p`
+|`-id` |Object's ID |`%" PRId64 "` or `%" PRIu64 "`
+|`-name` |Object's name |`\"%s\"`
+|`-ref-cnt` |Object's reference count |`%u`
+|===
+
+
+== Output
+
+The log is printed to the standard error stream. A log line contains the
+time, the process and thread IDs, the log level, the tag, the source's
+function name, file name and line number, and the message.
+
+Example:
+
+    05-11 00:58:03.691 23402 23402 D VALUES bt_value_destroy@values.c:498 Destroying value: addr=0xb9c3eb0
+
+You can easily filter the log with `grep` or `ag`. For example, to
+keep only the _WARN_-level log messages that the `VALUES` module
+generates:
+
+    $ export BABELTRACE_LOGGING_GLOBAL_LEVEL=VERBOSE
+    $ ./test_ctf_writer_complete 2>&1 | ag 'W VALUES'

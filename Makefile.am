@@ -5,7 +5,8 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS =			\
 	include			\
 	common			\
-	compat
+	compat			\
+	logging
 
 if WITH_PYTHON_PLUGINS
 SUBDIRS += python-plugin-provider

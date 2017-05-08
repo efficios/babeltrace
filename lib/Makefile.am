@@ -4,7 +4,7 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libbabeltrace.la
 
-libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c
+libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c logging.c
 libbabeltrace_la_LDFLAGS = -version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_la_LIBADD = \
@@ -13,6 +13,7 @@ libbabeltrace_la_LIBADD = \
 	graph/libgraph.la \
 	plugin/libplugin.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la \
 	ctf-ir/libctf-ir.la \
 	ctf-writer/libctf-writer.la
 
