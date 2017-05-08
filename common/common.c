@@ -398,7 +398,7 @@ end:
 }
 
 BT_HIDDEN
-GString *bt_common_shell_quote(const char *input)
+GString *bt_common_shell_quote(const char *input, bool with_single_quotes)
 {
 	GString *output = g_string_new(NULL);
 	const char *ch;
@@ -409,7 +409,10 @@ GString *bt_common_shell_quote(const char *input)
 	}
 
 	if (strlen(input) == 0) {
-		g_string_assign(output, "''");
+		if (with_single_quotes) {
+			g_string_assign(output, "''");
+		}
+
 		goto end;
 	}
 
@@ -430,7 +433,9 @@ GString *bt_common_shell_quote(const char *input)
 		goto end;
 	}
 
-	g_string_assign(output, "'");
+	if (with_single_quotes) {
+		g_string_assign(output, "'");
+	}
 
 	for (ch = input; *ch != '\0'; ch++) {
 		if (*ch == '\'') {
@@ -440,7 +445,9 @@ GString *bt_common_shell_quote(const char *input)
 		}
 	}
 
-	g_string_append_c(output, '\'');
+	if (with_single_quotes) {
+		g_string_append_c(output, '\'');
+	}
 
 end:
 	return output;

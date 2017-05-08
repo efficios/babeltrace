@@ -106,7 +106,7 @@ GString *bt_common_string_until(const char *input, const char *escapable_chars,
                     const char *end_chars, size_t *end_pos);
 
 BT_HIDDEN
-GString *bt_common_shell_quote(const char *input);
+GString *bt_common_shell_quote(const char *input, bool with_single_quotes);
 
 BT_HIDDEN
 bool bt_common_string_is_printable(const char *input);
