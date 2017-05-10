@@ -37,6 +37,50 @@
 #define HOME_ENV_VAR		"HOME"
 #define HOME_PLUGIN_SUBPATH	"/.local/lib/babeltrace/plugins"
 
+static const char *bt_common_color_code_reset = "";
+static const char *bt_common_color_code_bold = "";
+static const char *bt_common_color_code_fg_default = "";
+static const char *bt_common_color_code_fg_red = "";
+static const char *bt_common_color_code_fg_green = "";
+static const char *bt_common_color_code_fg_yellow = "";
+static const char *bt_common_color_code_fg_blue = "";
+static const char *bt_common_color_code_fg_magenta = "";
+static const char *bt_common_color_code_fg_cyan = "";
+static const char *bt_common_color_code_fg_light_gray = "";
+static const char *bt_common_color_code_bg_default = "";
+static const char *bt_common_color_code_bg_red = "";
+static const char *bt_common_color_code_bg_green = "";
+static const char *bt_common_color_code_bg_yellow = "";
+static const char *bt_common_color_code_bg_blue = "";
+static const char *bt_common_color_code_bg_magenta = "";
+static const char *bt_common_color_code_bg_cyan = "";
+static const char *bt_common_color_code_bg_light_gray = "";
+
+static
+void __attribute__((constructor)) bt_common_color_ctor(void)
+{
+	if (bt_common_colors_supported()) {
+		bt_common_color_code_reset = BT_COMMON_COLOR_RESET;
+		bt_common_color_code_bold = BT_COMMON_COLOR_BOLD;
+		bt_common_color_code_fg_default = BT_COMMON_COLOR_FG_DEFAULT;
+		bt_common_color_code_fg_red = BT_COMMON_COLOR_FG_RED;
+		bt_common_color_code_fg_green = BT_COMMON_COLOR_FG_GREEN;
+		bt_common_color_code_fg_yellow = BT_COMMON_COLOR_FG_YELLOW;
+		bt_common_color_code_fg_blue = BT_COMMON_COLOR_FG_BLUE;
+		bt_common_color_code_fg_magenta = BT_COMMON_COLOR_FG_MAGENTA;
+		bt_common_color_code_fg_cyan = BT_COMMON_COLOR_FG_CYAN;
+		bt_common_color_code_fg_light_gray = BT_COMMON_COLOR_FG_LIGHT_GRAY;
+		bt_common_color_code_bg_default = BT_COMMON_COLOR_BG_DEFAULT;
+		bt_common_color_code_bg_red = BT_COMMON_COLOR_BG_RED;
+		bt_common_color_code_bg_green = BT_COMMON_COLOR_BG_GREEN;
+		bt_common_color_code_bg_yellow = BT_COMMON_COLOR_BG_YELLOW;
+		bt_common_color_code_bg_blue = BT_COMMON_COLOR_BG_BLUE;
+		bt_common_color_code_bg_magenta = BT_COMMON_COLOR_BG_MAGENTA;
+		bt_common_color_code_bg_cyan = BT_COMMON_COLOR_BG_CYAN;
+		bt_common_color_code_bg_light_gray = BT_COMMON_COLOR_BG_LIGHT_GRAY;
+	}
+}
+
 BT_HIDDEN
 const char *bt_common_get_system_plugin_path(void)
 {
@@ -208,111 +252,109 @@ end:
 BT_HIDDEN
 const char *bt_common_color_reset(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_RESET : "";
+	return bt_common_color_code_reset;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bold(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BOLD : "";
+	return bt_common_color_code_bold;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_default(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_DEFAULT : "";
+	return bt_common_color_code_fg_default;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_red(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_RED : "";
+	return bt_common_color_code_fg_red;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_green(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_GREEN : "";
+	return bt_common_color_code_fg_green;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_yellow(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_YELLOW : "";
+	return bt_common_color_code_fg_yellow;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_blue(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_BLUE : "";
+	return bt_common_color_code_fg_blue;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_magenta(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_MAGENTA : "";
+	return bt_common_color_code_fg_magenta;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_cyan(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_FG_CYAN : "";
+	return bt_common_color_code_fg_cyan;
 }
 
 BT_HIDDEN
 const char *bt_common_color_fg_light_gray(void)
 {
-	return bt_common_colors_supported() ?
-		BT_COMMON_COLOR_FG_LIGHT_GRAY : "";
+	return bt_common_color_code_fg_light_gray;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_default(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_DEFAULT : "";
+	return bt_common_color_code_bg_default;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_red(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_RED : "";
+	return bt_common_color_code_bg_red;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_green(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_GREEN : "";
+	return bt_common_color_code_bg_green;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_yellow(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_YELLOW : "";
+	return bt_common_color_code_bg_yellow;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_blue(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_BLUE : "";
+	return bt_common_color_code_bg_blue;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_magenta(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_MAGENTA : "";
+	return bt_common_color_code_bg_magenta;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_cyan(void)
 {
-	return bt_common_colors_supported() ? BT_COMMON_COLOR_BG_CYAN : "";
+	return bt_common_color_code_bg_cyan;
 }
 
 BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void)
 {
-	return bt_common_colors_supported() ?
-		BT_COMMON_COLOR_BG_LIGHT_GRAY : "";
+	return bt_common_color_code_bg_light_gray;
 }
 
 BT_HIDDEN
