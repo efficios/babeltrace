@@ -40,6 +40,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
+#include <babeltrace/logging.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <popt.h>
@@ -51,9 +52,15 @@
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
 
+#define BT_LOG_TAG "CLI"
+#include "logging.h"
+
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 
 GPtrArray *loaded_plugins;
+
+BT_HIDDEN
+int bt_cli_log_level = BT_LOG_NONE;
 
 static
 void init_static_data(void)
@@ -73,6 +80,9 @@ struct bt_plugin *find_plugin(const char *name)
 	int i;
 	struct bt_plugin *plugin = NULL;
 
+	assert(name);
+	BT_LOGD("Finding plugin: name=\"%s\"", name);
+
 	for (i = 0; i < loaded_plugins->len; i++) {
 		plugin = g_ptr_array_index(loaded_plugins, i);
 
@@ -81,6 +91,14 @@ struct bt_plugin *find_plugin(const char *name)
 		}
 
 		plugin = NULL;
+	}
+
+	if (BT_LOG_ON_DEBUG) {
+		if (plugin) {
+			BT_LOGD("Found plugin: plugin-addr=%p", plugin);
+		} else {
+			BT_LOGD("Cannot find plugin.");
+		}
 	}
 
 	return bt_get(plugin);
@@ -92,7 +110,13 @@ struct bt_component_class *find_component_class(const char *plugin_name,
 		enum bt_component_class_type comp_class_type)
 {
 	struct bt_component_class *comp_class = NULL;
-	struct bt_plugin *plugin = find_plugin(plugin_name);
+	struct bt_plugin *plugin;
+
+	BT_LOGD("Finding component class: plugin-name=\"%s\", "
+		"comp-cls-name=\"%s\", comp-cls-type=%d",
+		plugin_name, comp_class_name, comp_class_type);
+
+	plugin = find_plugin(plugin_name);
 
 	if (!plugin) {
 		goto end;
@@ -101,17 +125,27 @@ struct bt_component_class *find_component_class(const char *plugin_name,
 	comp_class = bt_plugin_get_component_class_by_name_and_type(plugin,
 			comp_class_name, comp_class_type);
 	BT_PUT(plugin);
+
 end:
+	if (BT_LOG_ON_DEBUG) {
+		if (comp_class) {
+			BT_LOGD("Found component class: comp-cls-addr=%p",
+				comp_class);
+		} else {
+			BT_LOGD("Cannot find component class.");
+		}
+	}
+
 	return comp_class;
 }
 
 static
-void print_indent(size_t indent)
+void print_indent(FILE *fp, size_t indent)
 {
 	size_t i;
 
 	for (i = 0; i < indent; i++) {
-		printf(" ");
+		fprintf(fp, " ");
 	}
 }
 
@@ -173,42 +207,48 @@ end:
 }
 
 static
-void print_value(struct bt_value *, size_t);
+void print_value(FILE *, struct bt_value *, size_t);
 
 static
-void print_value_rec(struct bt_value *, size_t);
+void print_value_rec(FILE *, struct bt_value *, size_t);
+
+struct print_map_value_data {
+	size_t indent;
+	FILE *fp;
+};
 
 static
 bool print_map_value(const char *key, struct bt_value *object, void *data)
 {
-	size_t *indent = data;
+	struct print_map_value_data *print_map_value_data = data;
 
-	print_indent(*indent);
-	printf("%s: ", key);
+	print_indent(print_map_value_data->fp, print_map_value_data->indent);
+	fprintf(print_map_value_data->fp, "%s: ", key);
 
 	if (bt_value_is_array(object) &&
 			bt_value_array_is_empty(object)) {
-		printf("[ ]\n");
+		fprintf(print_map_value_data->fp, "[ ]\n");
 		return true;
 	}
 
 	if (bt_value_is_map(object) &&
 			bt_value_map_is_empty(object)) {
-		printf("{ }\n");
+		fprintf(print_map_value_data->fp, "{ }\n");
 		return true;
 	}
 
 	if (bt_value_is_array(object) ||
 			bt_value_is_map(object)) {
-		printf("\n");
+		fprintf(print_map_value_data->fp, "\n");
 	}
 
-	print_value_rec(object, *indent + 2);
+	print_value_rec(print_map_value_data->fp, object,
+		print_map_value_data->indent + 2);
 	return true;
 }
 
 static
-void print_value_rec(struct bt_value *value, size_t indent)
+void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 {
 	bool bool_val;
 	int64_t int_val;
@@ -223,30 +263,30 @@ void print_value_rec(struct bt_value *value, size_t indent)
 
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
-		printf("%snull%s\n", bt_common_color_bold(),
+		fprintf(fp, "%snull%s\n", bt_common_color_bold(),
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_BOOL:
 		bt_value_bool_get(value, &bool_val);
-		printf("%s%s%s%s\n", bt_common_color_bold(),
+		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_INTEGER:
 		bt_value_integer_get(value, &int_val);
-		printf("%s%s%" PRId64 "%s\n", bt_common_color_bold(),
+		fprintf(fp, "%s%s%" PRId64 "%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), int_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_FLOAT:
 		bt_value_float_get(value, &dbl_val);
-		printf("%s%s%lf%s\n", bt_common_color_bold(),
+		fprintf(fp, "%s%s%lf%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), dbl_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_STRING:
 		bt_value_string_get(value, &str_val);
-		printf("%s%s%s%s\n", bt_common_color_bold(),
+		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_green(), str_val,
 			bt_common_color_reset());
 		break;
@@ -255,8 +295,8 @@ void print_value_rec(struct bt_value *value, size_t indent)
 		assert(size >= 0);
 
 		if (size == 0) {
-			print_indent(indent);
-			printf("[ ]\n");
+			print_indent(fp, indent);
+			fprintf(fp, "[ ]\n");
 			break;
 		}
 
@@ -265,70 +305,77 @@ void print_value_rec(struct bt_value *value, size_t indent)
 					bt_value_array_get(value, i);
 
 			assert(element);
-			print_indent(indent);
-			printf("- ");
+			print_indent(fp, indent);
+			fprintf(fp, "- ");
 
 			if (bt_value_is_array(element) &&
 					bt_value_array_is_empty(element)) {
-				printf("[ ]\n");
+				fprintf(fp, "[ ]\n");
 				continue;
 			}
 
 			if (bt_value_is_map(element) &&
 					bt_value_map_is_empty(element)) {
-				printf("{ }\n");
+				fprintf(fp, "{ }\n");
 				continue;
 			}
 
 			if (bt_value_is_array(element) ||
 					bt_value_is_map(element)) {
-				printf("\n");
+				fprintf(fp, "\n");
 			}
 
-			print_value_rec(element, indent + 2);
+			print_value_rec(fp, element, indent + 2);
 			BT_PUT(element);
 		}
 		break;
 	case BT_VALUE_TYPE_MAP:
+	{
+		struct print_map_value_data data = {
+			.indent = indent,
+			.fp = fp,
+		};
+
 		if (bt_value_map_is_empty(value)) {
-			print_indent(indent);
-			printf("{ }\n");
+			print_indent(fp, indent);
+			fprintf(fp, "{ }\n");
 			break;
 		}
 
-		bt_value_map_foreach(value, print_map_value, &indent);
+		bt_value_map_foreach(value, print_map_value, &data);
 		break;
+	}
 	default:
 		assert(false);
 	}
 }
 
 static
-void print_value(struct bt_value *value, size_t indent)
+void print_value(FILE *fp, struct bt_value *value, size_t indent)
 {
 	if (!bt_value_is_array(value) && !bt_value_is_map(value)) {
-		print_indent(indent);
+		print_indent(fp, indent);
 	}
 
-	print_value_rec(value, indent);
+	print_value_rec(fp, value, indent);
 }
 
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	printf("    ");
-	print_plugin_comp_cls_opt(stdout, bt_config_component->plugin_name->str,
+	fprintf(stderr, "    ");
+	print_plugin_comp_cls_opt(stderr, bt_config_component->plugin_name->str,
 		bt_config_component->comp_cls_name->str,
 		bt_config_component->type);
-	printf(":\n");
+	fprintf(stderr, ":\n");
 
 	if (bt_config_component->instance_name->len > 0) {
-		printf("      Name: %s\n",
+		fprintf(stderr, "      Name: %s\n",
 			bt_config_component->instance_name->str);
 	}
 
-	printf("      Parameters:\n");
-	print_value(bt_config_component->params, 8);
+	fprintf(stderr, "      Parameters:\n");
+	print_value(stderr, bt_config_component->params, 8);
 }
 
 static
@@ -347,8 +394,8 @@ void print_bt_config_components(GPtrArray *array)
 static
 void print_plugin_paths(struct bt_value *plugin_paths)
 {
-	printf("  Plugin paths:\n");
-	print_value(plugin_paths, 4);
+	fprintf(stderr, "  Plugin paths:\n");
+	print_value(stderr, plugin_paths, 4);
 }
 
 static
@@ -357,24 +404,24 @@ void print_cfg_run(struct bt_config *cfg)
 	size_t i;
 
 	print_plugin_paths(cfg->plugin_paths);
-	printf("  Source component instances:\n");
+	fprintf(stderr, "  Source component instances:\n");
 	print_bt_config_components(cfg->cmd_data.run.sources);
 
 	if (cfg->cmd_data.run.filters->len > 0) {
-		printf("  Filter component instances:\n");
+		fprintf(stderr, "  Filter component instances:\n");
 		print_bt_config_components(cfg->cmd_data.run.filters);
 	}
 
-	printf("  Sink component instances:\n");
+	fprintf(stderr, "  Sink component instances:\n");
 	print_bt_config_components(cfg->cmd_data.run.sinks);
-	printf("  Connections:\n");
+	fprintf(stderr, "  Connections:\n");
 
 	for (i = 0; i < cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *cfg_connection =
 			g_ptr_array_index(cfg->cmd_data.run.connections,
 				i);
 
-		printf("    %s%s%s -> %s%s%s\n",
+		fprintf(stderr, "    %s%s%s -> %s%s%s\n",
 			cfg_connection->upstream_comp_name->str,
 			cfg_connection->upstream_port_glob->len > 0 ? "." : "",
 			cfg_connection->upstream_port_glob->str,
@@ -400,35 +447,37 @@ static
 void print_cfg_print_ctf_metadata(struct bt_config *cfg)
 {
 	print_plugin_paths(cfg->plugin_paths);
-	printf("  Path: %s\n", cfg->cmd_data.print_ctf_metadata.path->str);
+	fprintf(stderr, "  Path: %s\n",
+		cfg->cmd_data.print_ctf_metadata.path->str);
 }
 
 static
 void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
 {
 	print_plugin_paths(cfg->plugin_paths);
-	printf("  URL: %s\n", cfg->cmd_data.print_lttng_live_sessions.url->str);
+	fprintf(stderr, "  URL: %s\n",
+		cfg->cmd_data.print_lttng_live_sessions.url->str);
 }
 
 static
 void print_cfg_query(struct bt_config *cfg)
 {
 	print_plugin_paths(cfg->plugin_paths);
-	printf("  Object: `%s`\n", cfg->cmd_data.query.object->str);
-	printf("  Component class:\n");
+	fprintf(stderr, "  Object: `%s`\n", cfg->cmd_data.query.object->str);
+	fprintf(stderr, "  Component class:\n");
 	print_bt_config_component(cfg->cmd_data.query.cfg_component);
 }
 
 static
 void print_cfg(struct bt_config *cfg)
 {
-	if (!babeltrace_verbose) {
+	if (!BT_LOG_ON_INFO) {
 		return;
 	}
 
-	printf("Configuration:\n");
-	printf("  Debug mode: %s\n", cfg->debug ? "yes" : "no");
-	printf("  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
+	BT_LOGI_STR("Configuration:");
+	fprintf(stderr, "  Debug mode: %s\n", cfg->debug ? "yes" : "no");
+	fprintf(stderr, "  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -472,12 +521,17 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 		assert(plugin);
 
 		if (loaded_plugin) {
-			printf_verbose("Not loading plugin `%s`: already loaded from `%s`\n",
-					bt_plugin_get_path(plugin),
-					bt_plugin_get_path(loaded_plugin));
+			BT_LOGI("Not using plugin: another one already exists with the same name: "
+				"plugin-name=\"%s\", plugin-path=\"%s\", "
+				"existing-plugin-path=\"%s\"",
+				bt_plugin_get_name(plugin),
+				bt_plugin_get_path(plugin),
+				bt_plugin_get_path(loaded_plugin));
 			bt_put(loaded_plugin);
 		} else {
 			/* Add to global array. */
+			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
+				bt_plugin_get_name(plugin));
 			g_ptr_array_add(loaded_plugins, bt_get(plugin));
 		}
 
@@ -492,9 +546,12 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 
 	nr_paths = bt_value_array_size(plugin_paths);
 	if (nr_paths < 0) {
+		BT_LOGE_STR("Cannot load dynamic plugins: no plugin path.");
 		ret = -1;
 		goto end;
 	}
+
+	BT_LOGI("Loading dynamic plugins.");
 
 	for (i = 0; i < nr_paths; i++) {
 		struct bt_value *plugin_path_value = NULL;
@@ -502,15 +559,11 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		struct bt_plugin_set *plugin_set;
 
 		plugin_path_value = bt_value_array_get(plugin_paths, i);
-		if (bt_value_string_get(plugin_path_value,
-				&plugin_path)) {
-			BT_PUT(plugin_path_value);
-			continue;
-		}
-
+		bt_value_string_get(plugin_path_value, &plugin_path);
+		assert(plugin_path);
 		plugin_set = bt_plugin_create_all_from_dir(plugin_path, false);
 		if (!plugin_set) {
-			printf_debug("Unable to dynamically load plugins from path %s.\n",
+			BT_LOGD("Unable to load dynamic plugins: path=\"%s\"",
 				plugin_path);
 			BT_PUT(plugin_path_value);
 			continue;
@@ -530,9 +583,10 @@ int load_static_plugins(void)
 	int ret = 0;
 	struct bt_plugin_set *plugin_set;
 
+	BT_LOGI("Loading static plugins.");
 	plugin_set = bt_plugin_create_all_from_static();
 	if (!plugin_set) {
-		printf_debug("Unable to load static plugins.\n");
+		BT_LOGE("Unable to load static plugins.");
 		ret = -1;
 		goto end;
 	}
@@ -549,16 +603,16 @@ int load_all_plugins(struct bt_value *plugin_paths)
 	int ret = 0;
 
 	if (load_dynamic_plugins(plugin_paths)) {
-		fprintf(stderr, "Failed to load dynamic plugins.\n");
 		ret = -1;
 		goto end;
 	}
 
 	if (load_static_plugins()) {
-		fprintf(stderr, "Failed to load static plugins.\n");
 		ret = -1;
 		goto end;
 	}
+
+	BT_LOGI("Loaded all plugins: count=%u", loaded_plugins->len);
 
 end:
 	return ret;
@@ -627,6 +681,11 @@ int cmd_query(struct bt_config *cfg)
 		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 		cfg->cmd_data.query.cfg_component->type);
 	if (!comp_cls) {
+		BT_LOGE("Cannot find component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			cfg->cmd_data.query.cfg_component->plugin_name->str,
+			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
+			cfg->cmd_data.query.cfg_component->type);
 		fprintf(stderr, "%s%sCannot find component class %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
@@ -644,6 +703,13 @@ int cmd_query(struct bt_config *cfg)
 		cfg->cmd_data.query.object->str,
 		cfg->cmd_data.query.cfg_component->params);
 	if (!results) {
+		BT_LOGE("Failed to query component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d "
+			"object=\"%s\"",
+			cfg->cmd_data.query.cfg_component->plugin_name->str,
+			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
+			cfg->cmd_data.query.cfg_component->type,
+			cfg->cmd_data.query.object->str);
 		fprintf(stderr, "%s%sFailed to query info to %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
@@ -661,7 +727,7 @@ int cmd_query(struct bt_config *cfg)
 		goto end;
 	}
 
-	print_value(results, 0);
+	print_value(stdout, results, 0);
 
 end:
 	bt_put(comp_cls);
@@ -683,6 +749,8 @@ int cmd_help(struct bt_config *cfg)
 
 	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
+		BT_LOGE("Cannot find plugin: plugin-name=\"%s\"",
+			cfg->cmd_data.help.cfg_component->plugin_name->str);
 		fprintf(stderr, "%s%sCannot find plugin %s%s%s\n",
 			bt_common_color_bold(), bt_common_color_fg_red(),
 			bt_common_color_fg_blue(),
@@ -708,6 +776,11 @@ int cmd_help(struct bt_config *cfg)
 				cfg->cmd_data.help.cfg_component->type);
 
 		if (!needed_comp_cls) {
+			BT_LOGE("Cannot find component class: plugin-name=\"%s\", "
+				"comp-cls-name=\"%s\", comp-cls-type=%d",
+				cfg->cmd_data.help.cfg_component->plugin_name->str,
+				cfg->cmd_data.help.cfg_component->comp_cls_name->str,
+				cfg->cmd_data.help.cfg_component->type);
 			fprintf(stderr, "\n%s%sCannot find component class %s",
 				bt_common_color_bold(),
 				bt_common_color_fg_red(),
@@ -774,7 +847,7 @@ end:
 static
 int cmd_list_plugins(struct bt_config *cfg)
 {
-	int ret;
+	int ret = 0;
 	int plugins_count, component_classes_count = 0, i;
 
 	ret = load_all_plugins(cfg->plugin_paths);
@@ -783,18 +856,11 @@ int cmd_list_plugins(struct bt_config *cfg)
 	}
 
 	printf("From the following plugin paths:\n\n");
-	print_value(cfg->plugin_paths, 2);
+	print_value(stdout, cfg->plugin_paths, 2);
 	printf("\n");
 	plugins_count = loaded_plugins->len;
 	if (plugins_count == 0) {
-		fprintf(stderr, "%s%sNo plugins found.%s\n",
-			bt_common_color_bold(), bt_common_color_fg_red(),
-			bt_common_color_reset());
-		fprintf(stderr, "\n");
-		fprintf(stderr, "Please make sure your plugin search path is set correctly. You can use\n");
-		fprintf(stderr, "the --plugin-path command-line option or the BABELTRACE_PLUGIN_PATH\n");
-		fprintf(stderr, "environment variable.\n");
-		ret = -1;
+		printf("No plugins found.\n");
 		goto end;
 	}
 
@@ -885,6 +951,10 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
 		comp_cls_type);
 	if (!comp_cls) {
+		BT_LOGE("Cannot find component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			plugin_name, comp_cls_name,
+			BT_COMPONENT_CLASS_TYPE_SOURCE);
 		fprintf(stderr, "%s%sCannot find component class %s",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
@@ -913,6 +983,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		params);
 	if (!results) {
 		ret = -1;
+		BT_LOGE_STR("Failed to query for metadata info.");
 		fprintf(stderr, "%s%sFailed to request metadata info%s\n",
 			bt_common_color_bold(),
 			bt_common_color_fg_red(),
@@ -922,6 +993,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 
 	metadata_text_value = bt_value_map_get(results, "text");
 	if (!metadata_text_value) {
+		BT_LOGE_STR("Cannot find `text` string value in the resulting metadata info object.");
 		ret = -1;
 		goto end;
 	}
@@ -966,12 +1038,21 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	struct bt_port *(*port_by_index_fn)(struct bt_component *, uint64_t);
 	void *conn = NULL;
 
+	BT_LOGI("Connecting upstream port to the next available downstream port: "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"downstream-comp-name=\"%s\", conn-arg=\"%s\"",
+		upstream_port, bt_port_get_name(upstream_port),
+		cfg_conn->downstream_comp_name->str,
+		cfg_conn->arg->str);
 	downstreamp_comp_name_quark = g_quark_from_string(
 		cfg_conn->downstream_comp_name->str);
 	assert(downstreamp_comp_name_quark > 0);
 	downstream_comp = g_hash_table_lookup(ctx->components,
 		(gpointer) (long) downstreamp_comp_name_quark);
 	if (!downstream_comp) {
+		BT_LOGE("Cannot find downstream component:  comp-name=\"%s\", "
+			"conn-arg=\"%s\"", cfg_conn->downstream_comp_name->str,
+			cfg_conn->arg->str);
 		fprintf(stderr, "Cannot create connection: cannot find downstream component: %s\n",
 			cfg_conn->arg->str);
 		goto error;
@@ -988,6 +1069,8 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		 * Should never happen because the connections are
 		 * validated before we get here.
 		 */
+		BT_LOGF("Invalid connection: downstream component is a source: "
+			"conn-arg=\"%s\"", cfg_conn->arg->str);
 		assert(false);
 	}
 
@@ -1004,6 +1087,10 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		/* Skip port if it's already connected */
 		if (bt_port_is_connected(downstream_port)) {
 			bt_put(downstream_port);
+			BT_LOGD("Skipping downstream port: already connected: "
+				"port-addr=%p, port-name=\"%s\"",
+				downstream_port,
+				bt_port_get_name(downstream_port));
 			continue;
 		}
 
@@ -1018,6 +1105,17 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				upstream_port, downstream_port);
 			bt_put(downstream_port);
 			if (!conn) {
+				BT_LOGE("Cannot create connection: graph refuses to connect ports: "
+					"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+					"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+					"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
+					"downstream-port-addr=%p, downstream-port-name=\"%s\", "
+					"conn-arg=\"%s\"",
+					upstream_comp, bt_component_get_name(upstream_comp),
+					upstream_port, bt_port_get_name(upstream_port),
+					downstream_comp, cfg_conn->downstream_comp_name->str,
+					downstream_port, downstream_port_name,
+					cfg_conn->arg->str);
 				fprintf(stderr,
 					"Cannot create connection: graph refuses to connect ports (`%s` to `%s`): %s\n",
 					bt_port_get_name(upstream_port),
@@ -1026,6 +1124,18 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				goto error;
 			}
 
+			BT_LOGI("Connected component ports: "
+				"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+				"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+				"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
+				"downstream-port-addr=%p, downstream-port-name=\"%s\", "
+				"conn-arg=\"%s\"",
+				upstream_comp, bt_component_get_name(upstream_comp),
+				upstream_port, bt_port_get_name(upstream_port),
+				downstream_comp, cfg_conn->downstream_comp_name->str,
+				downstream_port, downstream_port_name,
+				cfg_conn->arg->str);
+
 			goto end;
 		}
 
@@ -1033,6 +1143,12 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	}
 
 	if (!conn) {
+		BT_LOGE("Cannot create connection: cannot find a matching downstream port for upstream port: "
+			"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+			"downstream-comp-name=\"%s\", conn-arg=\"%s\"",
+			upstream_port, bt_port_get_name(upstream_port),
+			cfg_conn->downstream_comp_name->str,
+			cfg_conn->arg->str);
 		fprintf(stderr,
 			"Cannot create connection: cannot find a matching downstream port for upstream port `%s`: %s\n",
 			bt_port_get_name(upstream_port), cfg_conn->arg->str);
@@ -1065,13 +1181,19 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 	assert(upstream_port_name);
 	upstream_comp = bt_port_get_component(upstream_port);
 	if (!upstream_comp) {
-		// TODO: log warning
+		BT_LOGW("Upstream port to connect is not part of a component: "
+			"port-addr=%p, port-name=\"%s\"",
+			upstream_port, upstream_port_name);
 		ret = -1;
 		goto end;
 	}
 
 	upstream_comp_name = bt_component_get_name(upstream_comp);
 	assert(upstream_comp_name);
+	BT_LOGI("Connecting upstream port: comp-addr=%p, comp-name=\"%s\", "
+		"port-addr=%p, port-name=\"%s\"",
+		upstream_comp, upstream_comp_name,
+		upstream_port, upstream_port_name);
 
 	for (i = 0; i < ctx->cfg->cmd_data.run.connections->len; i++) {
 		struct bt_config_connection *cfg_conn =
@@ -1087,6 +1209,10 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 					ctx, upstream_comp, upstream_port,
 					cfg_conn);
 				if (ret) {
+					BT_LOGE("Cannot connect upstream port: "
+						"port-addr=%p, port-name=\"%s\"",
+						upstream_port,
+						upstream_port_name);
 					fprintf(stderr,
 						"Cannot connect port `%s` of component `%s` to a downstream port: %s\n",
 						upstream_port_name,
@@ -1100,9 +1226,12 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 		}
 	}
 
+	BT_LOGE("Cannot connect upstream port: port does not match any connection argument: "
+		"port-addr=%p, port-name=\"%s\"", upstream_port,
+		upstream_port_name);
 	fprintf(stderr,
 		"Cannot create connection: upstream port `%s` does not match any connection\n",
-		bt_port_get_name(upstream_port));
+		upstream_port_name);
 
 error:
 	ret = -1;
@@ -1118,24 +1247,27 @@ void graph_port_added_listener(struct bt_port *port, void *data)
 	struct bt_component *comp = NULL;
 	struct cmd_run_ctx *ctx = data;
 
+	BT_LOGI("Port added to a graph's component: port-addr=%p, port-name=\"%s\"",
+		port, bt_port_get_name(port));
+
 	if (bt_port_is_connected(port)) {
-		// TODO: log warning
+		BT_LOGW_STR("Port is already connected.");
 		goto end;
 	}
 
 	comp = bt_port_get_component(port);
 	if (!comp) {
-		// TODO: log warning
+		BT_LOGW_STR("Port has no component.");
 		goto end;
 	}
 
 	if (!bt_port_is_output(port)) {
-		// TODO: log info
+		BT_LOGI_STR("Skipping input port.");
 		goto end;
 	}
 
 	if (cmd_run_ctx_connect_upstream_port(ctx, port)) {
-		// TODO: log fatal
+		BT_LOGF_STR("Cannot connect upstream port.");
 		fprintf(stderr, "Added port could not be connected: aborting\n");
 		abort();
 	}
@@ -1149,14 +1281,21 @@ static
 void graph_port_removed_listener(struct bt_component *component,
 		struct bt_port *port, void *data)
 {
-	// TODO: log info
+	BT_LOGI("Port removed from a graph's component: comp-addr=%p, "
+		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
+		component, bt_component_get_name(component),
+		port, bt_port_get_name(port));
 }
 
 static
 void graph_ports_connected_listener(struct bt_port *upstream_port,
 		struct bt_port *downstream_port, void *data)
 {
-	// TODO: log info
+	BT_LOGI("Graph's component ports connected: "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"downstream-port-addr=%p, downstream-port-name=\"%s\"",
+		upstream_port, bt_port_get_name(upstream_port),
+		downstream_port, bt_port_get_name(downstream_port));
 }
 
 static
@@ -1166,7 +1305,11 @@ void graph_ports_disconnected_listener(
 		struct bt_port *upstream_port, struct bt_port *downstream_port,
 		void *data)
 {
-	// TODO: log info
+	BT_LOGI("Graph's component ports disconnected: "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"downstream-port-addr=%p, downstream-port-name=\"%s\"",
+		upstream_port, bt_port_get_name(upstream_port),
+		downstream_port, bt_port_get_name(downstream_port));
 }
 
 static
@@ -1254,6 +1397,11 @@ int cmd_run_ctx_create_components_from_config_components(
 		comp_cls = find_component_class(cfg_comp->plugin_name->str,
 			cfg_comp->comp_cls_name->str, cfg_comp->type);
 		if (!comp_cls) {
+			BT_LOGE("Cannot find component class: plugin-name=\"%s\", "
+				"comp-cls-name=\"%s\", comp-cls-type=%d",
+				cfg_comp->plugin_name->str,
+				cfg_comp->comp_cls_name->str,
+				cfg_comp->type);
 			fprintf(stderr, "%s%sCannot find component class %s",
 				bt_common_color_bold(),
 				bt_common_color_fg_red(),
@@ -1269,6 +1417,12 @@ int cmd_run_ctx_create_components_from_config_components(
 		comp = bt_component_create(comp_cls,
 			cfg_comp->instance_name->str, cfg_comp->params);
 		if (!comp) {
+			BT_LOGE("Cannot create component: plugin-name=\"%s\", "
+				"comp-cls-name=\"%s\", comp-cls-type=%d",
+				"comp-name=\"%s\"",
+				cfg_comp->plugin_name->str,
+				cfg_comp->comp_cls_name->str,
+				cfg_comp->type, cfg_comp->instance_name->str);
 			fprintf(stderr, "%s%sCannot create component `%s`%s\n",
 				bt_common_color_bold(),
 				bt_common_color_fg_red(),
@@ -1277,6 +1431,8 @@ int cmd_run_ctx_create_components_from_config_components(
 			goto error;
 		}
 
+		BT_LOGI("Created and inserted component: comp-addr=%p, comp-name=\"%s\"",
+			comp, cfg_comp->instance_name->str);
 		quark = g_quark_from_string(cfg_comp->instance_name->str);
 		assert(quark > 0);
 		g_hash_table_insert(ctx->components,
@@ -1405,21 +1561,26 @@ int cmd_run(struct bt_config *cfg)
 
 	/* Initialize the command's context and the graph object */
 	if (cmd_run_ctx_init(&ctx, cfg)) {
+		BT_LOGE_STR("Cannot initialize the command's context.");
 		fprintf(stderr, "Cannot initialize the command's context\n");
 		goto error;
 	}
 
 	/* Create the requested component instances */
 	if (cmd_run_ctx_create_components(&ctx)) {
+		BT_LOGE_STR("Cannot create components.");
 		fprintf(stderr, "Cannot create components\n");
 		goto error;
 	}
 
 	/* Connect the initially visible component ports */
 	if (cmd_run_ctx_connect_ports(&ctx)) {
+		BT_LOGE_STR("Cannot connect initial component ports.");
 		fprintf(stderr, "Cannot connect initial component ports\n");
 		goto error;
 	}
+
+	BT_LOGI_STR("Running the graph.");
 
 	/* Run the graph */
 	while (true) {
@@ -1430,6 +1591,10 @@ int cmd_run(struct bt_config *cfg)
 			break;
 		case BT_GRAPH_STATUS_AGAIN:
 			if (cfg->cmd_data.run.retry_duration_us > 0) {
+				BT_LOGV("Got BT_GRAPH_STATUS_AGAIN: sleeping: "
+					"time-us=%" PRIu64,
+					cfg->cmd_data.run.retry_duration_us);
+
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
 					// TODO: check EINTR and signal handler
 				}
@@ -1438,7 +1603,8 @@ int cmd_run(struct bt_config *cfg)
 		case BT_COMPONENT_STATUS_END:
 			goto end;
 		default:
-			fprintf(stderr, "Sink component returned an error, aborting...\n");
+			BT_LOGE_STR("Graph failed to complete successfully");
+			fprintf(stderr, "Graph failed to complete successfully\n");
 			goto error;
 		}
 	}
@@ -1481,29 +1647,77 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 	}
 }
 
+static
+void init_log_level(void)
+{
+	enum bt_logging_level log_level = BT_LOG_NONE;
+	const char *log_level_env = getenv("BABELTRACE_CLI_LOG_LEVEL");
+
+	if (!log_level_env) {
+		goto set_level;
+	}
+
+	if (strcmp(log_level_env, "VERBOSE") == 0) {
+		log_level = BT_LOGGING_LEVEL_VERBOSE;
+	} else if (strcmp(log_level_env, "DEBUG") == 0) {
+		log_level = BT_LOGGING_LEVEL_DEBUG;
+	} else if (strcmp(log_level_env, "INFO") == 0) {
+		log_level = BT_LOGGING_LEVEL_INFO;
+	} else if (strcmp(log_level_env, "WARN") == 0) {
+		log_level = BT_LOGGING_LEVEL_WARN;
+	} else if (strcmp(log_level_env, "ERROR") == 0) {
+		log_level = BT_LOGGING_LEVEL_ERROR;
+	} else if (strcmp(log_level_env, "FATAL") == 0) {
+		log_level = BT_LOGGING_LEVEL_FATAL;
+	} else if (strcmp(log_level_env, "NONE") == 0) {
+		log_level = BT_LOGGING_LEVEL_NONE;
+	}
+
+set_level:
+	bt_cli_log_level = log_level;
+}
+
 int main(int argc, const char **argv)
 {
 	int ret;
 	int retcode;
 	struct bt_config *cfg;
 
+	init_log_level();
 	init_static_data();
 	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
 
 	if (retcode < 0) {
 		/* Quit without errors; typically usage/version */
 		retcode = 0;
+		BT_LOGI_STR("Quitting without errors.");
 		goto end;
 	}
 
 	if (retcode > 0) {
+		BT_LOGE("Command-line error: retcode=%d", retcode);
 		goto end;
 	}
 
 	if (!cfg) {
+		BT_LOGE_STR("Failed to create a valid Babeltrace configuration.");
 		fprintf(stderr, "Failed to create Babeltrace configuration\n");
 		retcode = 1;
 		goto end;
+	}
+
+	if (cfg->verbose) {
+		bt_cli_log_level = BT_LOGGING_LEVEL_VERBOSE;
+		bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
+		// TODO: for backward compat., set the log level
+		//       environment variables of the known plugins
+		//       to VERBOSE
+	} else if (cfg->debug) {
+		bt_cli_log_level = BT_LOGGING_LEVEL_DEBUG;
+		bt_logging_set_global_level(BT_LOGGING_LEVEL_DEBUG);
+		// TODO: for backward compat., set the log level
+		//       environment variables of the known plugins
+		//       to DEBUG
 	}
 
 	babeltrace_debug = cfg->debug;
@@ -1513,10 +1727,14 @@ int main(int argc, const char **argv)
 	if (cfg->command_needs_plugins) {
 		ret = load_all_plugins(cfg->plugin_paths);
 		if (ret) {
+			BT_LOGE("Failed to load plugins: ret=%d", ret);
 			retcode = 1;
 			goto end;
 		}
 	}
+
+	BT_LOGI("Executing command: cmd=%d, command-name=\"%s\"",
+		cfg->command, cfg->command_name);
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -1538,6 +1756,7 @@ int main(int argc, const char **argv)
 		ret = cmd_print_lttng_live_sessions(cfg);
 		break;
 	default:
+		BT_LOGF("Invalid command: cmd=%d", cfg->command);
 		assert(false);
 	}
 

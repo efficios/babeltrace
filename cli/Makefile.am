@@ -16,7 +16,8 @@ babeltrace_bin_SOURCES = \
 	babeltrace-cfg-cli-args-connect.c \
 	babeltrace-cfg-cli-args-connect.h \
 	babeltrace-cfg-cli-args-default.h \
-	babeltrace-cfg-cli-args-default.c
+	babeltrace-cfg-cli-args-default.c \
+	logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
@@ -25,7 +26,8 @@ babeltrace_bin_LDFLAGS = -Wl, $(LD_NO_AS_NEEDED), -export-dynamic
 babeltrace_bin_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/compat/libcompat.la \
-	$(top_builddir)/common/libbabeltrace-common.la
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la
 
 if BUILT_IN_PLUGINS
 babeltrace_bin_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive

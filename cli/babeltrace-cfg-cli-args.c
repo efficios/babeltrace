@@ -40,6 +40,9 @@
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-connect.h"
 
+#define BT_LOG_TAG "CLI-CFG-ARGS"
+#include "logging.h"
+
 /*
  * Error printf() macro which prepends "Error: " the first time it's
  * called. This gives a nicer feel than having a bunch of error prefixes
