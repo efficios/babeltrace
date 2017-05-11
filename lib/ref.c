@@ -27,6 +27,9 @@
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
+#define BT_LOG_TAG "REF"
+#include <babeltrace/lib-logging-internal.h>
+
 void *bt_get(void *ptr)
 {
 	struct bt_object *obj = ptr;
@@ -36,9 +39,14 @@ void *bt_get(void *ptr)
 	}
 
 	if (unlikely(obj->parent && bt_object_get_ref_count(obj) == 0)) {
+		BT_LOGV("Incrementing object's parent's reference count: "
+			"addr=%p, parent-addr=%p", ptr, obj->parent);
 		bt_get(obj->parent);
 	}
 	bt_ref_get(&obj->ref_count);
+	BT_LOGV("Incremented object's reference count: %lu -> %lu: "
+		"addr=%p, new-count=%lu", obj->ref_count.count - 1,
+		obj->ref_count.count, ptr, obj->ref_count.count);
 end:
 	return obj;
 }
@@ -51,5 +59,8 @@ void bt_put(void *ptr)
 		return;
 	}
 
+	BT_LOGV("Decrementing object's reference count: %lu -> %lu: "
+		"addr=%p, cur-count=%lu", obj->ref_count.count,
+		obj->ref_count.count - 1, ptr, obj->ref_count.count);
 	bt_ref_put(&obj->ref_count);
 }
