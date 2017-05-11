@@ -47,7 +47,6 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/component.h \
 	babeltrace/graph/connection.h \
 	babeltrace/graph/graph.h \
-	babeltrace/graph/notification-eot.h \
 	babeltrace/graph/notification-event.h \
 	babeltrace/graph/notification-heap.h \
 	babeltrace/graph/notification-inactivity.h \
@@ -109,7 +108,6 @@ noinst_HEADERS = \
 	babeltrace/graph/component-source-internal.h \
 	babeltrace/graph/connection-internal.h \
 	babeltrace/graph/graph-internal.h \
-	babeltrace/graph/notification-eot-internal.h \
 	babeltrace/graph/notification-event-internal.h \
 	babeltrace/graph/notification-heap-internal.h \
 	babeltrace/graph/notification-inactivity-internal.h \
