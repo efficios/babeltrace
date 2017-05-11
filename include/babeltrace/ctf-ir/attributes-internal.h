@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
 
@@ -46,11 +47,11 @@ int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj);
 
 BT_HIDDEN
 const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
-		int index);
+		uint64_t index);
 
 BT_HIDDEN
 struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
-		int index);
+		uint64_t index);
 
 BT_HIDDEN
 int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,

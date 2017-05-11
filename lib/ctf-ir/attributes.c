@@ -65,7 +65,7 @@ int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj)
 
 BT_HIDDEN
 const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
-		int index)
+		uint64_t index)
 {
 	int rc;
 	const char *ret = NULL;
@@ -103,7 +103,7 @@ end:
 
 BT_HIDDEN
 struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
-		int index)
+		uint64_t index)
 {
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
@@ -130,8 +130,8 @@ static
 struct bt_value *bt_ctf_attributes_get_field_by_name(
 		struct bt_value *attr_obj, const char *name)
 {
-	int i;
-	int attr_size;
+	uint64_t i;
+	int64_t attr_size;
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_name_obj = NULL;
 
@@ -251,8 +251,8 @@ end:
 BT_HIDDEN
 int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
 {
-	int i;
-	int count;
+	uint64_t i;
+	int64_t count;
 	int ret = 0;
 
 	if (!attr_obj) {
