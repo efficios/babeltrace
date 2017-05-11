@@ -32,6 +32,7 @@
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/types.h>
 
 struct bt_port;
 
@@ -85,7 +86,7 @@ struct bt_notification_iterator {
 	 */
 	uint32_t subscription_mask;
 
-	bool is_ended;
+	bt_bool is_ended;
 	void *user_data;
 };
 

@@ -37,6 +37,7 @@
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/mmap-align-internal.h>
+#include <babeltrace/types.h>
 
 struct bt_ctf_stream_pos {
 	int fd;
@@ -130,7 +131,7 @@ int bt_ctf_stream_pos_init(struct bt_ctf_stream_pos *pos,
 		pos->flags = MAP_SHARED;
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 	}
 
 	return 0;

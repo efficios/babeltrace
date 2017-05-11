@@ -41,6 +41,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 
 static
@@ -272,20 +273,20 @@ struct bt_component *bt_component_create_with_init_method_data(
 		goto end;
 	}
 
-	component->initializing = true;
+	component->initializing = BT_TRUE;
 
 	if (component_class->methods.init) {
 		ret = component_class->methods.init(
 			bt_private_component_from_component(component), params,
 			init_method_data);
-		component->initializing = false;
+		component->initializing = BT_FALSE;
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			BT_PUT(component);
 			goto end;
 		}
 	}
 
-	component->initializing = false;
+	component->initializing = BT_FALSE;
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_PUT(component);

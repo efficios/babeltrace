@@ -31,6 +31,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/types.h>
 #include <inttypes.h>
 
 #define BT_LOG_TAG "CLOCK-CLASS"
@@ -40,7 +41,7 @@ static
 void bt_ctf_clock_class_destroy(struct bt_object *obj);
 
 BT_HIDDEN
-bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
+bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
 {
 	return clock_class && clock_class->name;
 }

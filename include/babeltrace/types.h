@@ -1,11 +1,8 @@
+#ifndef BABELTRACE_TYPES_H
+#define BABELTRACE_TYPES_H
+
 /*
- * babeltrace.c
- *
- * Babeltrace Library
- *
- * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
- *
- * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,36 +23,59 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+@defgroup ctypes Babeltrace C types
+@ingroup apiref
+@brief Babeltrace C types.
+
+@code
 #include <babeltrace/types.h>
-#include <stdlib.h>
+@endcode
 
-bt_bool babeltrace_verbose, babeltrace_debug;
+This header contains custom type definitions used across the library.
 
-static
-void __attribute__((constructor)) init_babeltrace_lib(void)
-{
-	if (getenv("BABELTRACE_VERBOSE"))
-		babeltrace_verbose = BT_TRUE;
-	if (getenv("BABELTRACE_DEBUG"))
-		babeltrace_debug = BT_TRUE;
+@file
+@brief Babeltrace C types.
+@sa ctypes
+
+@addtogroup ctypes
+@{
+*/
+
+/// False boolean value for the #bt_bool type.
+#define BT_FALSE	0
+
+/// True boolean value for the #bt_bool type.
+#define BT_TRUE		1
+
+/**
+@brief	Babeltrace's boolean type.
+
+Use only the #BT_FALSE and #BT_TRUE definitions for #bt_bool parameters.
+It is guaranteed that the library functions which return a #bt_bool
+value return either #BT_FALSE or #BT_TRUE.
+
+You can always test the truthness of a #bt_bool value directly, without
+comparing it to #BT_TRUE directly:
+
+@code
+bt_bool ret = bt_some_function(...);
+
+if (ret) {
+	// ret is true
 }
+@endcode
+*/
+typedef int bt_bool;
 
-int bt_version_get_major(void)
-{
-	return BT_VERSION_MAJOR;
-}
+/** @} */
 
-int bt_version_get_minor(void)
-{
-	return BT_VERSION_MINOR;
+#ifdef __cplusplus
 }
+#endif
 
-int bt_version_get_patch(void) {
-	return BT_VERSION_PATCH;
-}
-
-const char *bt_version_get_extra(void)
-{
-	return BT_VERSION_EXTRA;
-}
+#endif /* BABELTRACE_TYPES_H */

@@ -20,7 +20,6 @@
  */
 
 #include "tap/tap.h"
-#include <stdbool.h>
 #include <stdlib.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
@@ -71,7 +70,7 @@ error:
 }
 
 static
-bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
+bt_bool compare_notifications(struct bt_notification *a, struct bt_notification *b,
 		void *unused)
 {
 	uint64_t val_a = ((struct dummy_notification *) a)->value;

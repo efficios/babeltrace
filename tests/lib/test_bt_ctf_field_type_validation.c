@@ -26,6 +26,7 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdarg.h>
 #include <glib.h>

@@ -34,8 +34,8 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/types.h>
 #include <string.h>
-#include <stdbool.h>
 #include <glib.h>
 #include <gmodule.h>
 
@@ -431,7 +431,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		}
 	}
 
-	spec->shared_lib_handle->init_called = true;
+	spec->shared_lib_handle->init_called = BT_TRUE;
 
 	/* Add described component classes to plugin */
 	for (i = 0; i < comp_class_full_descriptors->len; i++) {
@@ -621,7 +621,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			break;
 		default:
-			assert(false);
+			assert(BT_FALSE);
 			break;
 		}
 
@@ -813,7 +813,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	struct __bt_plugin_component_class_descriptor const * const *cc_descriptors_end = NULL;
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_begin = NULL;
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_end = NULL;
-	bool is_libtool_wrapper = false, is_shared_object = false;
+	bt_bool is_libtool_wrapper = BT_FALSE, is_shared_object = BT_FALSE;
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
 	if (!path) {

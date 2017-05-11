@@ -30,6 +30,7 @@
 
 #include <glib.h>
 #include <gmodule.h>
+#include <babeltrace/types.h>
 
 struct bt_plugin;
 struct bt_component_class;
@@ -40,7 +41,7 @@ struct bt_plugin_so_shared_lib_handle {
 	GModule *module;
 
 	/* True if initialization function was called */
-	bool init_called;
+	bt_bool init_called;
 	bt_plugin_exit_func exit;
 };
 

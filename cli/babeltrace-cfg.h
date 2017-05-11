@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>

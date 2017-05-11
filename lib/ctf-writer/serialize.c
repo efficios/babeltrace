@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/fields.h>
@@ -41,6 +40,7 @@
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/compat/fcntl-internal.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 
 #if (FLT_RADIX != 2)
@@ -60,9 +60,9 @@ union intval {
 static
 int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 		union intval value, unsigned int alignment, unsigned int size,
-		bool is_signed, enum bt_ctf_byte_order byte_order)
+		bt_bool is_signed, enum bt_ctf_byte_order byte_order)
 {
-	bool rbo = (byte_order != BT_CTF_MY_BYTE_ORDER); /* reverse byte order */
+	bt_bool rbo = (byte_order != BT_CTF_MY_BYTE_ORDER); /* reverse byte order */
 
 	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;
@@ -108,7 +108,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 			break;
 		}
 		default:
-			assert(false);
+			assert(BT_FALSE);
 		}
 	} else {
 		switch (size) {
@@ -147,7 +147,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 			break;
 		}
 		default:
-			assert(false);
+			assert(BT_FALSE);
 		}
 	}
 
@@ -158,7 +158,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 
 static
 int integer_write(struct bt_ctf_stream_pos *pos, union intval value,
-	unsigned int alignment, unsigned int size, bool is_signed,
+	unsigned int alignment, unsigned int size, bt_bool is_signed,
 	enum bt_ctf_byte_order byte_order)
 {
 	if (!(alignment % CHAR_BIT)
@@ -259,7 +259,7 @@ int bt_ctf_field_floating_point_write(
 		return -EINVAL;
 	}
 
-	return integer_write(pos, value, type->alignment, size, false,
+	return integer_write(pos, value, type->alignment, size, BT_FALSE,
 		byte_order);
 }
 
@@ -275,7 +275,7 @@ void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 		/* unmap old base */
 		ret = munmap_align(pos->base_mma);
 		if (ret) {
-			assert(false);
+			assert(BT_FALSE);
 		}
 		pos->base_mma = NULL;
 	}
@@ -295,6 +295,6 @@ void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
 		pos->flags, pos->fd, pos->mmap_offset);
 	if (pos->base_mma == MAP_FAILED) {
-		assert(false);
+		assert(BT_FALSE);
 	}
 }

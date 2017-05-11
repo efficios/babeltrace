@@ -26,6 +26,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/visitor.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 

@@ -28,6 +28,7 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/clock-class-priority-map.h>

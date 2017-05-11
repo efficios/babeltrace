@@ -919,13 +919,13 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	struct bt_ctf_stream_pos packet_context_pos;
 	struct bt_ctf_trace *trace;
 	enum bt_ctf_byte_order native_byte_order;
-	bool empty_packet;
+	bt_bool empty_packet;
 	uint64_t packet_size_bits;
 	struct {
-		bool timestamp_begin;
-		bool timestamp_end;
-		bool content_size;
-		bool packet_size;
+		bt_bool timestamp_begin;
+		bt_bool timestamp_end;
+		bt_bool content_size;
+		bt_bool packet_size;
 	} auto_set_fields = { 0 };
 
 	if (!stream || stream->pos.fd < 0) {
@@ -1201,7 +1201,7 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 
 static
 int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
-		uint64_t value, bool force)
+		uint64_t value, bt_bool force)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
@@ -1253,7 +1253,7 @@ static
 int set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		uint64_t value)
 {
-	return _set_structure_field_integer(structure, name, value, true);
+	return _set_structure_field_integer(structure, name, value, BT_TRUE);
 }
 
 /*
@@ -1266,7 +1266,7 @@ static
 int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		uint64_t value)
 {
-	return _set_structure_field_integer(structure, name, value, false);
+	return _set_structure_field_integer(structure, name, value, BT_FALSE);
 }
 
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)

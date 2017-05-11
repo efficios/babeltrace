@@ -43,6 +43,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -175,7 +176,7 @@ int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace, const unsigned char *uuid)
 	}
 
 	memcpy(trace->uuid, uuid, sizeof(uuid_t));
-	trace->uuid_set = true;
+	trace->uuid_set = BT_TRUE;
 
 end:
 	return ret;
@@ -867,7 +868,7 @@ end:
 }
 
 BT_HIDDEN
-bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
+bt_bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock_class *clock_class)
 {
 	struct search_query query = { .value = clock_class, .found = 0 };
@@ -895,7 +896,7 @@ const char *get_byte_order_string(enum bt_ctf_byte_order byte_order)
 		string = "native";
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 	}
 
 	return string;
@@ -1292,9 +1293,9 @@ void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 	trace->frozen = 1;
 }
 
-bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace)
+bt_bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace)
 {
-	bool is_static = false;
+	bt_bool is_static = BT_FALSE;
 
 	if (!trace) {
 		goto end;
@@ -1315,7 +1316,7 @@ int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace)
 		goto end;
 	}
 
-	trace->is_static = true;
+	trace->is_static = BT_TRUE;
 	bt_ctf_trace_freeze(trace);
 
 end:

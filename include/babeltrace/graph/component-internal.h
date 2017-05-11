@@ -32,6 +32,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 #include <stdio.h>
 
@@ -61,7 +62,7 @@ struct bt_component {
 	 * Used to protect operations which may only be used during
 	 * a component's initialization.
 	 */
-	bool initializing;
+	bt_bool initializing;
 
 	/* Input and output ports (weak references) */
 	GPtrArray *input_ports;

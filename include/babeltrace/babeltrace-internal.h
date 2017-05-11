@@ -29,12 +29,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <babeltrace/compat/string-internal.h>
+#include <babeltrace/types.h>
 
 #define PERROR_BUFLEN	200
 
-extern bool babeltrace_verbose, babeltrace_debug;
+extern bt_bool babeltrace_verbose, babeltrace_debug;
 
 #define printf_verbose(fmt, args...)					\
 	do {								\

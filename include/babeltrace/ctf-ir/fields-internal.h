@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -106,6 +107,6 @@ BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field);
 
 BT_HIDDEN
-bool bt_ctf_field_is_set(struct bt_ctf_field *field);
+bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

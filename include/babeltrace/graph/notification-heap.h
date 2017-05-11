@@ -27,9 +27,9 @@
  */
 
 #include <stddef.h>
-#include <stdbool.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/types.h>
 
 /**
  * bt_notification_time_compare - Compare two notifications' timestamps
@@ -40,7 +40,7 @@
  * used to order the notifications. This criterion shall ensure a consistent
  * ordering over multiple runs.
  */
-typedef bool (*bt_notification_time_compare_func)(
+typedef bt_bool (*bt_notification_time_compare_func)(
 		struct bt_notification *a, struct bt_notification *b,
 		void *user_data);
 

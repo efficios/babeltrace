@@ -27,9 +27,9 @@
  */
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -235,7 +235,7 @@ enum bt_value_type {
 	/// Null value object.
 	BT_VALUE_TYPE_NULL =		0,
 
-	/// Boolean value object (holds \c true or \c false).
+	/// Boolean value object (holds #BT_TRUE or #BT_FALSE).
 	BT_VALUE_TYPE_BOOL =		1,
 
 	/// Integer value object (holds a signed 64-bit integer raw value).
@@ -292,7 +292,7 @@ An alternative to calling this function is to directly compare the value
 object pointer to the \ref bt_value_null variable.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is the null value object.
+@returns		#BT_TRUE if \p object is the null value object.
 
 @prenotnull{object}
 @postrefcountsame{object}
@@ -300,7 +300,7 @@ object pointer to the \ref bt_value_null variable.
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_null(const struct bt_value *object)
+bt_bool bt_value_is_null(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_NULL;
 }
@@ -310,7 +310,7 @@ bool bt_value_is_null(const struct bt_value *object)
 	value object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is a boolean value object.
+@returns		#BT_TRUE if \p object is a boolean value object.
 
 @prenotnull{object}
 @postrefcountsame{object}
@@ -318,7 +318,7 @@ bool bt_value_is_null(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_bool(const struct bt_value *object)
+bt_bool bt_value_is_bool(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_BOOL;
 }
@@ -328,12 +328,12 @@ bool bt_value_is_bool(const struct bt_value *object)
 	value object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is an integer value object.
+@returns		#BT_TRUE if \p object is an integer value object.
 
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_integer(const struct bt_value *object)
+bt_bool bt_value_is_integer(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_INTEGER;
 }
@@ -343,7 +343,7 @@ bool bt_value_is_integer(const struct bt_value *object)
 	point number value object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is a floating point
+@returns		#BT_TRUE if \p object is a floating point
 			number value object.
 
 @prenotnull{object}
@@ -352,7 +352,7 @@ bool bt_value_is_integer(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_float(const struct bt_value *object)
+bt_bool bt_value_is_float(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_FLOAT;
 }
@@ -362,7 +362,7 @@ bool bt_value_is_float(const struct bt_value *object)
 	value object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is a string value object.
+@returns		#BT_TRUE if \p object is a string value object.
 
 @prenotnull{object}
 @postrefcountsame{object}
@@ -370,7 +370,7 @@ bool bt_value_is_float(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_string(const struct bt_value *object)
+bt_bool bt_value_is_string(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_STRING;
 }
@@ -380,7 +380,7 @@ bool bt_value_is_string(const struct bt_value *object)
 	value object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is an array value object.
+@returns		#BT_TRUE if \p object is an array value object.
 
 @prenotnull{object}
 @postrefcountsame{object}
@@ -388,7 +388,7 @@ bool bt_value_is_string(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_array(const struct bt_value *object)
+bt_bool bt_value_is_array(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_ARRAY;
 }
@@ -398,7 +398,7 @@ bool bt_value_is_array(const struct bt_value *object)
 	object.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is a map value object.
+@returns		#BT_TRUE if \p object is a map value object.
 
 @prenotnull{object}
 @postrefcountsame{object}
@@ -406,7 +406,7 @@ bool bt_value_is_array(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bool bt_value_is_map(const struct bt_value *object)
+bt_bool bt_value_is_map(const struct bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
@@ -451,12 +451,12 @@ extern enum bt_value_status bt_value_freeze(struct bt_value *object);
 @brief	Returns whether or not the value object \p object is frozen.
 
 @param[in] object	Value object to check.
-@returns		\c true if \p object is frozen.
+@returns		#BT_TRUE if \p object is frozen.
 
 @prenotnull{object}
 @postrefcountsame{object}
 */
-extern bool bt_value_is_frozen(const struct bt_value *object);
+extern bt_bool bt_value_is_frozen(const struct bt_value *object);
 
 /**
 @brief	Creates a \em deep copy of the value object \p object.
@@ -477,19 +477,19 @@ extern struct bt_value *bt_value_copy(const struct bt_value *object);
 
 /**
 @brief	Recursively compares the value objects \p object_a and
-	\p object_b and returns \c true if they have the same
+	\p object_b and returns #BT_TRUE if they have the same
 	\em content (raw values).
 
 @param[in] object_a	Value object A to compare to \p object_b.
 @param[in] object_b	Value object B to compare to \p object_a.
-@returns		\c true if \p object_a and \p object_b have the
-			same \em content, or \c false if they differ
+@returns		#BT_TRUE if \p object_a and \p object_b have the
+			same \em content, or #BT_FALSE if they differ
 			or on error.
 
 @postrefcountsame{object_a}
 @postrefcountsame{object_b}
 */
-extern bool bt_value_compare(const struct bt_value *object_a,
+extern bt_bool bt_value_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b);
 
 /** @} */
@@ -502,7 +502,7 @@ extern bool bt_value_compare(const struct bt_value *object_a,
 /**
 @brief	Creates a default boolean value object.
 
-The created boolean value object's initial raw value is \c false.
+The created boolean value object's initial raw value is #BT_FALSE.
 
 @returns	Created boolean value object on success, or \c NULL
 		on error.
@@ -526,7 +526,7 @@ extern struct bt_value *bt_value_bool_create(void);
 
 @sa bt_value_bool_create(): Creates a default boolean value object.
 */
-extern struct bt_value *bt_value_bool_create_init(bool val);
+extern struct bt_value *bt_value_bool_create_init(bt_bool val);
 
 /**
 @brief	Returns the boolean raw value of the boolean value object
@@ -545,7 +545,7 @@ extern struct bt_value *bt_value_bool_create_init(bool val);
 @sa bt_value_bool_set(): Sets the raw value of a boolean value object.
 */
 extern enum bt_value_status bt_value_bool_get(
-		const struct bt_value *bool_obj, bool *val);
+		const struct bt_value *bool_obj, bt_bool *val);
 
 /**
 @brief	Sets the boolean raw value of the boolean value object
@@ -565,7 +565,7 @@ extern enum bt_value_status bt_value_bool_get(
 	value object.
 */
 extern enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
-		bool val);
+		bt_bool val);
 
 /** @} */
 
@@ -850,7 +850,7 @@ extern int64_t bt_value_array_size(const struct bt_value *array_obj);
 	is empty.
 
 @param[in] array_obj	Array value object to check.
-@returns		\c true if \p array_obj is empty.
+@returns		#BT_TRUE if \p array_obj is empty.
 
 @prenotnull{array_obj}
 @pre \p array_obj is an array value object.
@@ -859,7 +859,7 @@ extern int64_t bt_value_array_size(const struct bt_value *array_obj);
 @sa bt_value_array_size(): Returns the size of a given array value
 	object.
 */
-extern bool bt_value_array_is_empty(const struct bt_value *array_obj);
+extern bt_bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
 /**
 @brief	Returns the value object contained in the array value object
@@ -934,7 +934,7 @@ value object before appending it.
 	array value object.
 */
 extern enum bt_value_status bt_value_array_append_bool(
-		struct bt_value *array_obj, bool val);
+		struct bt_value *array_obj, bt_bool val);
 
 /**
 @brief	Appends the integer raw value \p val to the array value object
@@ -1117,7 +1117,7 @@ extern int64_t bt_value_map_size(const struct bt_value *map_obj);
 @brief	Checks whether or not the map value object \p map_obj is empty.
 
 @param[in] map_obj	Map value object to check.
-@returns		\c true if \p map_obj is empty.
+@returns		#BT_TRUE if \p map_obj is empty.
 
 @prenotnull{map_obj}
 @pre \p map_obj is a map value object.
@@ -1125,7 +1125,7 @@ extern int64_t bt_value_map_size(const struct bt_value *map_obj);
 
 @sa bt_value_map_size(): Returns the size of a given map value object.
 */
-extern bool bt_value_map_is_empty(const struct bt_value *map_obj);
+extern bt_bool bt_value_map_is_empty(const struct bt_value *map_obj);
 
 /**
 @brief	Returns the value object associated with the key \p key within
@@ -1152,20 +1152,20 @@ extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 \p object is a <em>weak reference</em>: you \em must pass it to bt_get()
 if you need to keep a reference after this function returns.
 
-This function \em must return \c true to continue the map value object
-traversal, or \c false to break it.
+This function \em must return #BT_TRUE to continue the map value object
+traversal, or #BT_FALSE to break it.
 
 @param[in] key		Key of map entry.
 @param[in] object	Value object of map entry (weak reference).
 @param[in] data		User data.
-@returns		\c true to continue the loop, or \c false to break it.
+@returns		#BT_TRUE to continue the loop, or #BT_FALSE to break it.
 
 @prenotnull{key}
 @prenotnull{object}
 @post The reference count of \p object is not lesser than what it is
 	when the function is called.
 */
-typedef bool (* bt_value_map_foreach_cb)(const char *key,
+typedef bt_bool (* bt_value_map_foreach_cb)(const char *key,
 	struct bt_value *object, void *data);
 
 /**
@@ -1179,8 +1179,8 @@ reference after the user function returns.
 The key passed to the user function is only valid in the scope of
 this user function call.
 
-The user function \em must return \c true to continue the traversal of
-\p map_obj, or \c false to break it.
+The user function \em must return #BT_TRUE to continue the traversal of
+\p map_obj, or #BT_FALSE to break it.
 
 @param[in] map_obj	Map value object on which to iterate.
 @param[in] cb		User function to call back.
@@ -1205,8 +1205,8 @@ extern enum bt_value_status bt_value_map_foreach(
 
 @param[in] map_obj	Map value object to check.
 @param[in] key		Key to check.
-@returns		\c true if \p map_obj has an entry mapped to the
-			key \p key, or \c false if it does not or
+@returns		#BT_TRUE if \p map_obj has an entry mapped to the
+			key \p key, or #BT_FALSE if it does not or
 			on error.
 
 @prenotnull{map_obj}
@@ -1214,7 +1214,7 @@ extern enum bt_value_status bt_value_map_foreach(
 @pre \p map_obj is a map value object.
 @postrefcountsame{map_obj}
 */
-extern bool bt_value_map_has_key(const struct bt_value *map_obj,
+extern bt_bool bt_value_map_has_key(const struct bt_value *map_obj,
 		const char *key);
 
 /**
@@ -1287,7 +1287,7 @@ On success, \p key is copied.
 	value object.
 */
 extern enum bt_value_status bt_value_map_insert_bool(
-		struct bt_value *map_obj, const char *key, bool val);
+		struct bt_value *map_obj, const char *key, bt_bool val);
 
 /**
 @brief	Inserts the integer raw value \p val mapped to the key \p key

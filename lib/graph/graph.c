@@ -34,6 +34,7 @@
 #include <babeltrace/graph/component-filter.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/types.h>
 #include <unistd.h>
 #include <glib.h>
 
@@ -155,8 +156,8 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
-	bool upstream_was_already_in_graph;
-	bool downstream_was_already_in_graph;
+	bt_bool upstream_was_already_in_graph;
+	bt_bool downstream_was_already_in_graph;
 
 	if (!graph || !upstream_port || !downstream_port) {
 		goto end;
@@ -324,7 +325,7 @@ enum bt_component_status get_component_port_counts(
 		}
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 		break;
 	}
 	ret = BT_COMPONENT_STATUS_OK;

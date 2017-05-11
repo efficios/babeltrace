@@ -218,7 +218,7 @@ struct print_map_value_data {
 };
 
 static
-bool print_map_value(const char *key, struct bt_value *object, void *data)
+bt_bool print_map_value(const char *key, struct bt_value *object, void *data)
 {
 	struct print_map_value_data *print_map_value_data = data;
 
@@ -244,13 +244,13 @@ bool print_map_value(const char *key, struct bt_value *object, void *data)
 
 	print_value_rec(print_map_value_data->fp, object,
 		print_map_value_data->indent + 2);
-	return true;
+	return BT_TRUE;
 }
 
 static
 void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 {
-	bool bool_val;
+	bt_bool bool_val;
 	int64_t int_val;
 	double dbl_val;
 	const char *str_val;

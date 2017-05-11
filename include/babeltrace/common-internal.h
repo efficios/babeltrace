@@ -1,6 +1,7 @@
 #ifndef BABELTRACE_COMMON_INTERNAL_H
 #define BABELTRACE_COMMON_INTERNAL_H
 
+#include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"

@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 
 typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
@@ -65,7 +66,7 @@ struct bt_ctf_field_type_integer {
 	struct bt_ctf_field_type parent;
 	struct bt_ctf_clock_class *mapped_clock;
 	enum bt_ctf_byte_order user_byte_order;
-	bool is_signed;
+	bt_bool is_signed;
 	unsigned int size;
 	enum bt_ctf_integer_base base;
 	enum bt_ctf_string_encoding encoding;
@@ -89,7 +90,7 @@ struct bt_ctf_field_type_enumeration {
 	struct bt_ctf_field_type *container;
 	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	/* Only set during validation. */
-	bool has_overlapping_ranges;
+	bt_bool has_overlapping_ranges;
 };
 
 enum bt_ctf_field_type_enumeration_mapping_iterator_type {

@@ -356,7 +356,7 @@ gint compare_enumeration_mappings_unsigned(struct enumeration_mapping **a,
 }
 
 static
-void bt_ctf_field_type_init(struct bt_ctf_field_type *type, bool init_bo)
+void bt_ctf_field_type_init(struct bt_ctf_field_type *type, bt_bool init_bo)
 {
 	assert(type && (type->id > BT_CTF_FIELD_TYPE_ID_UNKNOWN) &&
 		(type->id < BT_CTF_NR_TYPE_IDS));
@@ -491,7 +491,7 @@ void set_enumeration_range_overlap(
 							<= mapping[1]->range_end._signed
 						&& mapping[0]->range_end._signed
 							>= mapping[1]->range_start._signed) {
-					enumeration_type->has_overlapping_ranges = true;
+					enumeration_type->has_overlapping_ranges = BT_TRUE;
 					return;
 				}
 			} else {
@@ -499,7 +499,7 @@ void set_enumeration_range_overlap(
 							<= mapping[1]->range_end._unsigned
 						&& mapping[0]->range_end._unsigned
 							>= mapping[1]->range_start._unsigned) {
-					enumeration_type->has_overlapping_ranges = true;
+					enumeration_type->has_overlapping_ranges = BT_TRUE;
 					return;
 				}
 			}
@@ -620,7 +620,7 @@ end:
 }
 
 static
-bool bt_ctf_field_type_enumeration_has_overlapping_ranges(
+bt_bool bt_ctf_field_type_enumeration_has_overlapping_ranges(
 		struct bt_ctf_field_type_enumeration *enumeration_type)
 {
 	if (!enumeration_type->parent.frozen) {

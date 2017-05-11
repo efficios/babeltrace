@@ -33,6 +33,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 #include <sys/types.h>
 #include <uuid/uuid.h>
@@ -52,7 +53,7 @@ struct bt_ctf_trace {
 	GString *name;
 	int frozen;
 	uuid_t uuid;
-	bool uuid_set;
+	bt_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
 	struct bt_value *environment;
 	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock_class */
@@ -68,7 +69,7 @@ struct bt_ctf_trace {
 	 */
 	int valid;
 	GPtrArray *listeners; /* Array of struct listener_wrapper */
-	bool is_static;
+	bt_bool is_static;
 };
 
 struct metadata_context {
@@ -88,7 +89,7 @@ int bt_ctf_trace_object_modification(struct bt_ctf_object *object,
 		void *trace_ptr);
 
 BT_HIDDEN
-bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
+bt_bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock_class *clock_class);
 
 /**

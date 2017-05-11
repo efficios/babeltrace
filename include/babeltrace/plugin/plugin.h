@@ -30,8 +30,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdbool.h>
 #include <babeltrace/graph/component-class.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,7 +62,7 @@ extern struct bt_component_class *bt_plugin_find_component_class(
 extern struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path);
 
 extern struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
-		bool recurse);
+		bt_bool recurse);
 
 extern struct bt_plugin_set *bt_plugin_create_all_from_static(void);
 

@@ -29,7 +29,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/ref.h>
-#include <stdbool.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 
 static
@@ -529,7 +529,7 @@ int bt_component_class_freeze(
 		goto end;
 	}
 
-	component_class->frozen = true;
+	component_class->frozen = BT_TRUE;
 
 end:
 	return ret;

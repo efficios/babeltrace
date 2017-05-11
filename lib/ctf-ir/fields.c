@@ -164,17 +164,17 @@ static
 void bt_ctf_field_sequence_freeze(struct bt_ctf_field *);
 
 static
-bool bt_ctf_field_generic_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_generic_is_set(struct bt_ctf_field *);
 static
-bool bt_ctf_field_structure_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_structure_is_set(struct bt_ctf_field *);
 static
-bool bt_ctf_field_variant_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_variant_is_set(struct bt_ctf_field *);
 static
-bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *);
 static
-bool bt_ctf_field_array_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_array_is_set(struct bt_ctf_field *);
 static
-bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *);
+bt_bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *);
 
 static
 int increase_packet_size(struct bt_ctf_stream_pos *pos);
@@ -270,7 +270,7 @@ void (* const field_freeze_funcs[])(struct bt_ctf_field *) = {
 };
 
 static
-bool (* const field_is_set_funcs[])(struct bt_ctf_field *) = {
+bt_bool (* const field_is_set_funcs[])(struct bt_ctf_field *) = {
 	[BT_CTF_FIELD_TYPE_ID_INTEGER] = bt_ctf_field_generic_is_set,
 	[BT_CTF_FIELD_TYPE_ID_ENUM] = bt_ctf_field_enumeration_is_set,
 	[BT_CTF_FIELD_TYPE_ID_FLOAT] = bt_ctf_field_generic_is_set,
@@ -1269,9 +1269,9 @@ end:
 
 
 BT_HIDDEN
-bool bt_ctf_field_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field)
 {
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	enum bt_ctf_field_type_id type_id;
 
 	if (!field) {
@@ -2423,15 +2423,15 @@ end:
 }
 
 static
-bool bt_ctf_field_generic_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_generic_is_set(struct bt_ctf_field *field)
 {
 	return field && field->payload_set;
 }
 
 static
-bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_enumeration_is_set(struct bt_ctf_field *field)
 {
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	struct bt_ctf_field_enumeration *enumeration;
 
 	if (!field) {
@@ -2450,9 +2450,9 @@ end:
 }
 
 static
-bool bt_ctf_field_structure_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_structure_is_set(struct bt_ctf_field *field)
 {
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	size_t i;
 	struct bt_ctf_field_structure *structure;
 
@@ -2472,9 +2472,9 @@ end:
 }
 
 static
-bool bt_ctf_field_variant_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_variant_is_set(struct bt_ctf_field *field)
 {
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	struct bt_ctf_field_variant *variant;
 
 	if (!field) {
@@ -2488,10 +2488,10 @@ end:
 }
 
 static
-bool bt_ctf_field_array_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_array_is_set(struct bt_ctf_field *field)
 {
 	size_t i;
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	struct bt_ctf_field_array *array;
 
 	if (!field) {
@@ -2510,10 +2510,10 @@ end:
 }
 
 static
-bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_sequence_is_set(struct bt_ctf_field *field)
 {
 	size_t i;
-	bool is_set = false;
+	bt_bool is_set = BT_FALSE;
 	struct bt_ctf_field_sequence *sequence;
 
 	if (!field) {

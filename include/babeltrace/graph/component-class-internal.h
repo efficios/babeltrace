@@ -35,7 +35,7 @@
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
-#include <stdbool.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 
 struct bt_component_class;
@@ -64,7 +64,7 @@ struct bt_component_class {
 	} methods;
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
-	bool frozen;
+	bt_bool frozen;
 };
 
 struct bt_component_class_iterator_methods {

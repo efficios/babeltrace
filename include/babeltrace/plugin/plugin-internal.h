@@ -30,7 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/object-internal.h>
-#include <stdbool.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 
 enum bt_plugin_type {
@@ -41,7 +41,7 @@ enum bt_plugin_type {
 struct bt_plugin {
 	struct bt_object base;
 	enum bt_plugin_type type;
-	bool frozen;
+	bt_bool frozen;
 
 	/* Array of pointers to bt_component_class (owned by this) */
 	GPtrArray *comp_classes;
@@ -59,12 +59,12 @@ struct bt_plugin {
 			unsigned int patch;
 			GString *extra;
 		} version;
-		bool path_set;
-		bool name_set;
-		bool author_set;
-		bool license_set;
-		bool description_set;
-		bool version_set;
+		bt_bool path_set;
+		bt_bool name_set;
+		bt_bool author_set;
+		bt_bool license_set;
+		bt_bool description_set;
+		bt_bool version_set;
 	} info;
 
 	/* Value depends on the specific plugin type */
@@ -188,7 +188,7 @@ void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 	assert(plugin);
 	assert(path);
 	g_string_assign(plugin->info.path, path);
-	plugin->info.path_set = true;
+	plugin->info.path_set = BT_TRUE;
 }
 
 static inline
@@ -197,7 +197,7 @@ void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
 	assert(plugin);
 	assert(name);
 	g_string_assign(plugin->info.name, name);
-	plugin->info.name_set = true;
+	plugin->info.name_set = BT_TRUE;
 }
 
 static inline
@@ -207,7 +207,7 @@ void bt_plugin_set_description(struct bt_plugin *plugin,
 	assert(plugin);
 	assert(description);
 	g_string_assign(plugin->info.description, description);
-	plugin->info.description_set = true;
+	plugin->info.description_set = BT_TRUE;
 }
 
 static inline
@@ -216,7 +216,7 @@ void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 	assert(plugin);
 	assert(author);
 	g_string_assign(plugin->info.author, author);
-	plugin->info.author_set = true;
+	plugin->info.author_set = BT_TRUE;
 }
 
 static inline
@@ -225,7 +225,7 @@ void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
 	assert(plugin);
 	assert(license);
 	g_string_assign(plugin->info.license, license);
-	plugin->info.license_set = true;
+	plugin->info.license_set = BT_TRUE;
 }
 
 static inline
@@ -241,14 +241,14 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 		g_string_assign(plugin->info.version.extra, extra);
 	}
 
-	plugin->info.version_set = true;
+	plugin->info.version_set = BT_TRUE;
 }
 
 static inline
 void bt_plugin_freeze(struct bt_plugin *plugin)
 {
 	assert(plugin);
-	plugin->frozen = true;
+	plugin->frozen = BT_TRUE;
 }
 
 static

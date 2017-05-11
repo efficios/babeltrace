@@ -27,12 +27,12 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +45,7 @@ struct bt_notification {
 	struct bt_object base;
 	enum bt_notification_type type;
 	get_stream_func get_stream;
-	bool frozen;
+	bt_bool frozen;
 };
 
 BT_HIDDEN
@@ -56,7 +56,7 @@ void bt_notification_init(struct bt_notification *notification,
 BT_HIDDEN
 static inline void bt_notification_freeze(struct bt_notification *notification)
 {
-	notification->frozen = true;
+	notification->frozen = BT_TRUE;
 }
 
 #ifdef __cplusplus

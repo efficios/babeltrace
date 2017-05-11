@@ -51,18 +51,18 @@ static
 void test_bool(void)
 {
 	int ret;
-	bool value;
+	bt_bool value;
 	struct bt_value *obj;
 
 	obj = bt_value_bool_create();
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_bool_create() returns a boolean value object");
 
-	value = true;
+	value = BT_TRUE;
 	ret = bt_value_bool_get(obj, &value);
-	ok(!ret && !value, "default boolean value object value is false");
+	ok(!ret && !value, "default boolean value object value is BT_FALSE");
 
-	ret = bt_value_bool_set(NULL, true);
+	ret = bt_value_bool_set(NULL, BT_TRUE);
 	ok(ret == BT_VALUE_STATUS_INVAL,
 		"bt_value_bool_set() fails with an value object set to NULL");
 	ret = bt_value_bool_get(NULL, &value);
@@ -72,8 +72,8 @@ void test_bool(void)
 	ok(ret == BT_VALUE_STATUS_INVAL,
 		"bt_value_bool_get() fails with a return value set to NULL");
 
-	assert(!bt_value_bool_set(obj, false));
-	ret = bt_value_bool_set(obj, true);
+	assert(!bt_value_bool_set(obj, BT_FALSE));
+	ret = bt_value_bool_set(obj, BT_TRUE);
 	ok(!ret, "bt_value_bool_set() succeeds");
 	ret = bt_value_bool_get(obj, &value);
 	ok(!ret && value, "bt_value_bool_set() works");
@@ -81,8 +81,8 @@ void test_bool(void)
 	BT_PUT(obj);
 	pass("putting an existing boolean value object does not cause a crash")
 
-	value = false;
-	obj = bt_value_bool_create_init(true);
+	value = BT_FALSE;
+	obj = bt_value_bool_create_init(BT_TRUE);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_bool_create_init() returns a boolean value object");
 	ret = bt_value_bool_get(obj, &value);
@@ -90,9 +90,9 @@ void test_bool(void)
 		"bt_value_bool_create_init() sets the appropriate initial value");
 
 	assert(!bt_value_freeze(obj));
-	ok(bt_value_bool_set(obj, false) == BT_VALUE_STATUS_FROZEN,
+	ok(bt_value_bool_set(obj, BT_FALSE) == BT_VALUE_STATUS_FROZEN,
 		"bt_value_bool_set() cannot be called on a frozen boolean value object");
-	value = false;
+	value = BT_FALSE;
 	ret = bt_value_bool_get(obj, &value);
 	ok(!ret && value,
 		"bt_value_bool_set() does not alter a frozen floating point number value object");
@@ -264,7 +264,7 @@ static
 void test_array(void)
 {
 	int ret;
-	bool bool_value;
+	bt_bool bool_value;
 	int64_t int_value;
 	double float_value;
 	struct bt_value *obj;
@@ -274,8 +274,8 @@ void test_array(void)
 	array_obj = bt_value_array_create();
 	ok(array_obj && bt_value_is_array(array_obj),
 		"bt_value_array_create() returns an array value object");
-	ok(bt_value_array_is_empty(NULL) == false,
-		"bt_value_array_is_empty() returns false with an value object set to NULL");
+	ok(bt_value_array_is_empty(NULL) == BT_FALSE,
+		"bt_value_array_is_empty() returns BT_FALSE with an value object set to NULL");
 	ok(bt_value_array_is_empty(array_obj),
 		"initial array value object size is 0");
 	ok(bt_value_array_size(NULL) == BT_VALUE_STATUS_INVAL,
@@ -293,7 +293,7 @@ void test_array(void)
 	obj = bt_value_float_create_init(-17.45);
 	ret |= bt_value_array_append(array_obj, obj);
 	BT_PUT(obj);
-	obj = bt_value_bool_create_init(true);
+	obj = bt_value_bool_create_init(BT_TRUE);
 	ret |= bt_value_array_append(array_obj, obj);
 	BT_PUT(obj);
 	ret |= bt_value_array_append(array_obj, bt_value_null);
@@ -356,9 +356,9 @@ void test_array(void)
 		"bt_value_array_set() inserts an value object with the appropriate value");
 	BT_PUT(obj);
 
-	ret = bt_value_array_append_bool(array_obj, false);
+	ret = bt_value_array_append_bool(array_obj, BT_FALSE);
 	ok(!ret, "bt_value_array_append_bool() succeeds");
-	ok(bt_value_array_append_bool(NULL, true) == BT_VALUE_STATUS_INVAL,
+	ok(bt_value_array_append_bool(NULL, BT_TRUE) == BT_VALUE_STATUS_INVAL,
 		"bt_value_array_append_bool() fails with an array value object set to NULL");
 	ret = bt_value_array_append_integer(array_obj, 98765);
 	ok(!ret, "bt_value_array_append_integer() succeeds");
@@ -434,7 +434,7 @@ void test_array(void)
 	ok(bt_value_array_append(array_obj, bt_value_null) ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_array_append() fails with a frozen array value object");
-	ok(bt_value_array_append_bool(array_obj, false) ==
+	ok(bt_value_array_append_bool(array_obj, BT_FALSE) ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_array_append_bool() fails with a frozen array value object");
 	ok(bt_value_array_append_integer(array_obj, 23) ==
@@ -469,54 +469,54 @@ void test_array(void)
 }
 
 static
-bool test_map_foreach_cb_count(const char *key, struct bt_value *object,
+bt_bool test_map_foreach_cb_count(const char *key, struct bt_value *object,
 	void *data)
 {
 	int *count = data;
 
 	if (*count == 3) {
-		return false;
+		return BT_FALSE;
 	}
 
 	(*count)++;
 
-	return true;
+	return BT_TRUE;
 }
 
 struct map_foreach_checklist {
-	bool bool1;
-	bool int1;
-	bool float1;
-	bool null1;
-	bool bool2;
-	bool int2;
-	bool float2;
-	bool string2;
-	bool array2;
-	bool map2;
+	bt_bool bool1;
+	bt_bool int1;
+	bt_bool float1;
+	bt_bool null1;
+	bt_bool bool2;
+	bt_bool int2;
+	bt_bool float2;
+	bt_bool string2;
+	bt_bool array2;
+	bt_bool map2;
 };
 
 static
-bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
+bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 	void *data)
 {
 	int ret;
 	struct map_foreach_checklist *checklist = data;
 
-	if (!strcmp(key, "bool")) {
+	if (!strcmp(key, "bt_bool")) {
 		if (checklist->bool1) {
-			fail("test_map_foreach_cb_check(): duplicate key \"bool\"");
+			fail("test_map_foreach_cb_check(): duplicate key \"bt_bool\"");
 		} else {
-			bool val = false;
+			bt_bool val = BT_FALSE;
 
 			ret = bt_value_bool_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"bool\" value");
+			ok(!ret, "test_map_foreach_cb_check(): success getting \"bt_bool\" value");
 
 			if (val) {
-				pass("test_map_foreach_cb_check(): \"bool\" value object has the right value");
-				checklist->bool1 = true;
+				pass("test_map_foreach_cb_check(): \"bt_bool\" value object has the right value");
+				checklist->bool1 = BT_TRUE;
 			} else {
-				fail("test_map_foreach_cb_check(): \"bool\" value object has the wrong value");
+				fail("test_map_foreach_cb_check(): \"bt_bool\" value object has the wrong value");
 			}
 		}
 	} else if (!strcmp(key, "int")) {
@@ -530,7 +530,7 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 
 			if (val == 19457) {
 				pass("test_map_foreach_cb_check(): \"int\" value object has the right value");
-				checklist->int1 = true;
+				checklist->int1 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"int\" value object has the wrong value");
 			}
@@ -546,30 +546,30 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 
 			if (val == 5.444) {
 				pass("test_map_foreach_cb_check(): \"float\" value object has the right value");
-				checklist->float1 = true;
+				checklist->float1 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"float\" value object has the wrong value");
 			}
 		}
 	} else if (!strcmp(key, "null")) {
 		if (checklist->null1) {
-			fail("test_map_foreach_cb_check(): duplicate key \"bool\"");
+			fail("test_map_foreach_cb_check(): duplicate key \"bt_bool\"");
 		} else {
 			ok(bt_value_is_null(object), "test_map_foreach_cb_check(): success getting \"null\" value object");
-			checklist->null1 = true;
+			checklist->null1 = BT_TRUE;
 		}
 	} else if (!strcmp(key, "bool2")) {
 		if (checklist->bool2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"bool2\"");
 		} else {
-			bool val = false;
+			bt_bool val = BT_FALSE;
 
 			ret = bt_value_bool_get(object, &val);
 			ok(!ret, "test_map_foreach_cb_check(): success getting \"bool2\" value");
 
 			if (val) {
 				pass("test_map_foreach_cb_check(): \"bool2\" value object has the right value");
-				checklist->bool2 = true;
+				checklist->bool2 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"bool2\" value object has the wrong value");
 			}
@@ -585,7 +585,7 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 
 			if (val == 98765) {
 				pass("test_map_foreach_cb_check(): \"int2\" value object has the right value");
-				checklist->int2 = true;
+				checklist->int2 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"int2\" value object has the wrong value");
 			}
@@ -601,7 +601,7 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 
 			if (val == -49.0001) {
 				pass("test_map_foreach_cb_check(): \"float2\" value object has the right value");
-				checklist->float2 = true;
+				checklist->float2 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"float2\" value object has the wrong value");
 			}
@@ -617,7 +617,7 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 
 			if (val && !strcmp(val, "bt_value")) {
 				pass("test_map_foreach_cb_check(): \"string2\" value object has the right value");
-				checklist->string2 = true;
+				checklist->string2 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"string2\" value object has the wrong value");
 			}
@@ -629,7 +629,7 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 			ok(bt_value_is_array(object), "test_map_foreach_cb_check(): success getting \"array2\" value object");
 			ok(bt_value_array_is_empty(object),
 				"test_map_foreach_cb_check(): \"array2\" value object is empty");
-			checklist->array2 = true;
+			checklist->array2 = BT_TRUE;
 		}
 	} else if (!strcmp(key, "map2")) {
 		if (checklist->map2) {
@@ -638,13 +638,13 @@ bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 			ok(bt_value_is_map(object), "test_map_foreach_cb_check(): success getting \"map2\" value object");
 			ok(bt_value_map_is_empty(object),
 				"test_map_foreach_cb_check(): \"map2\" value object is empty");
-			checklist->map2 = true;
+			checklist->map2 = BT_TRUE;
 		}
 	} else {
 		fail("test_map_foreach_cb_check(): unknown map key \"%s\"", key);
 	}
 
-	return true;
+	return BT_TRUE;
 }
 
 static
@@ -652,7 +652,7 @@ void test_map(void)
 {
 	int ret;
 	int count = 0;
-	bool bool_value;
+	bt_bool bool_value;
 	int64_t int_value;
 	double float_value;
 	struct bt_value *obj;
@@ -684,21 +684,21 @@ void test_map(void)
 	ret |= bt_value_map_insert(map_obj, "float", obj);
 	BT_PUT(obj);
 	obj = bt_value_bool_create();
-	ret |= bt_value_map_insert(map_obj, "bool", obj);
+	ret |= bt_value_map_insert(map_obj, "bt_bool", obj);
 	BT_PUT(obj);
 	ret |= bt_value_map_insert(map_obj, "null", bt_value_null);
 	ok(!ret, "bt_value_map_insert() succeeds");
 	ok(bt_value_map_size(map_obj) == 4,
 		"inserting an element into a map value object increment its size");
 
-	obj = bt_value_bool_create_init(true);
-	ret = bt_value_map_insert(map_obj, "bool", obj);
+	obj = bt_value_bool_create_init(BT_TRUE);
+	ret = bt_value_map_insert(map_obj, "bt_bool", obj);
 	BT_PUT(obj);
 	ok(!ret, "bt_value_map_insert() accepts an existing key");
 
 	obj = bt_value_map_get(map_obj, NULL);
 	ok(!obj, "bt_value_map_get() fails with a key set to NULL");
-	obj = bt_value_map_get(NULL, "bool");
+	obj = bt_value_map_get(NULL, "bt_bool");
 	ok(!obj, "bt_value_map_get() fails with a map value object set to NULL");
 
 	obj = bt_value_map_get(map_obj, "life");
@@ -720,7 +720,7 @@ void test_map(void)
 	obj = bt_value_map_get(map_obj, "null");
 	ok(obj && bt_value_is_null(obj),
 		"bt_value_map_get() returns an value object with the appropriate type (null)");
-	obj = bt_value_map_get(map_obj, "bool");
+	obj = bt_value_map_get(map_obj, "bt_bool");
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_map_get() returns an value object with the appropriate type (boolean)");
 	ret = bt_value_bool_get(obj, &bool_value);
@@ -728,9 +728,9 @@ void test_map(void)
 		"bt_value_map_get() returns an value object with the appropriate value (boolean)");
 	BT_PUT(obj);
 
-	ret = bt_value_map_insert_bool(map_obj, "bool2", true);
+	ret = bt_value_map_insert_bool(map_obj, "bool2", BT_TRUE);
 	ok(!ret, "bt_value_map_insert_bool() succeeds");
-	ok(bt_value_map_insert_bool(NULL, "bool2", false) ==
+	ok(bt_value_map_insert_bool(NULL, "bool2", BT_FALSE) ==
 		BT_VALUE_STATUS_INVAL,
 		"bt_value_map_insert_bool() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_integer(map_obj, "int2", 98765);
@@ -762,8 +762,8 @@ void test_map(void)
 
 	ok(!bt_value_map_has_key(map_obj, "hello"),
 		"map value object does not have key \"hello\"");
-	ok(bt_value_map_has_key(map_obj, "bool"),
-		"map value object has key \"bool\"");
+	ok(bt_value_map_has_key(map_obj, "bt_bool"),
+		"map value object has key \"bt_bool\"");
 	ok(bt_value_map_has_key(map_obj, "int"),
 		"map value object has key \"int\"");
 	ok(bt_value_map_has_key(map_obj, "float"),
@@ -791,7 +791,7 @@ void test_map(void)
 		"bt_value_map_foreach() fails with a user function set to NULL");
 	ret = bt_value_map_foreach(map_obj, test_map_foreach_cb_count, &count);
 	ok(ret == BT_VALUE_STATUS_CANCELLED && count == 3,
-		"bt_value_map_foreach() breaks the loop when the user function returns false");
+		"bt_value_map_foreach() breaks the loop when the user function returns BT_FALSE");
 
 	memset(&checklist, 0, sizeof(checklist));
 	ret = bt_value_map_foreach(map_obj, test_map_foreach_cb_check,
@@ -808,7 +808,7 @@ void test_map(void)
 	ok(bt_value_map_insert(map_obj, "allo", bt_value_null) ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_map_insert() fails with a frozen map value object");
-	ok(bt_value_map_insert_bool(map_obj, "duh", false) ==
+	ok(bt_value_map_insert_bool(map_obj, "duh", BT_FALSE) ==
 		BT_VALUE_STATUS_FROZEN,
 		"bt_value_map_insert_bool() fails with a frozen array value object");
 	ok(bt_value_map_insert_integer(map_obj, "duh", 23) ==
@@ -859,17 +859,17 @@ void test_compare_null(void)
 static
 void test_compare_bool(void)
 {
-	struct bt_value *bool1 = bt_value_bool_create_init(false);
-	struct bt_value *bool2 = bt_value_bool_create_init(true);
-	struct bt_value *bool3 = bt_value_bool_create_init(false);
+	struct bt_value *bool1 = bt_value_bool_create_init(BT_FALSE);
+	struct bt_value *bool2 = bt_value_bool_create_init(BT_TRUE);
+	struct bt_value *bool3 = bt_value_bool_create_init(BT_FALSE);
 
 	assert(bool1 && bool2 && bool3);
 	ok(!bt_value_compare(bt_value_null, bool1),
-		"cannot compare null value object and bool value object");
+		"cannot compare null value object and bt_bool value object");
 	ok(!bt_value_compare(bool1, bool2),
-		"integer value objects are not equivalent (false and true)");
+		"boolean value objects are not equivalent (BT_FALSE and BT_TRUE)");
 	ok(bt_value_compare(bool1, bool3),
-		"integer value objects are equivalent (false and false)");
+		"boolean value objects are equivalent (BT_FALSE and BT_FALSE)");
 
 	BT_PUT(bool1);
 	BT_PUT(bool2);
@@ -952,13 +952,13 @@ void test_compare_array(void)
 
 	assert(!bt_value_array_append_integer(array1, 23));
 	assert(!bt_value_array_append_float(array1, 14.2));
-	assert(!bt_value_array_append_bool(array1, false));
+	assert(!bt_value_array_append_bool(array1, BT_FALSE));
 	assert(!bt_value_array_append_float(array2, 14.2));
 	assert(!bt_value_array_append_integer(array2, 23));
-	assert(!bt_value_array_append_bool(array2, false));
+	assert(!bt_value_array_append_bool(array2, BT_FALSE));
 	assert(!bt_value_array_append_integer(array3, 23));
 	assert(!bt_value_array_append_float(array3, 14.2));
-	assert(!bt_value_array_append_bool(array3, false));
+	assert(!bt_value_array_append_bool(array3, BT_FALSE));
 	assert(bt_value_array_size(array1) == 3);
 	assert(bt_value_array_size(array2) == 3);
 	assert(bt_value_array_size(array3) == 3);
@@ -966,9 +966,9 @@ void test_compare_array(void)
 	ok(!bt_value_compare(bt_value_null, array1),
 		"cannot compare null value object and array value object");
 	ok(!bt_value_compare(array1, array2),
-		"array value objects are not equivalent ([23, 14.2, false] and [14.2, 23, false])");
+		"array value objects are not equivalent ([23, 14.2, BT_FALSE] and [14.2, 23, BT_FALSE])");
 	ok(bt_value_compare(array1, array3),
-		"array value objects are equivalent ([23, 14.2, false] and [23, 14.2, false])");
+		"array value objects are equivalent ([23, 14.2, BT_FALSE] and [23, 14.2, BT_FALSE])");
 
 	BT_PUT(array1);
 	BT_PUT(array2);
@@ -989,11 +989,11 @@ void test_compare_map(void)
 
 	assert(!bt_value_map_insert_integer(map1, "one", 23));
 	assert(!bt_value_map_insert_float(map1, "two", 14.2));
-	assert(!bt_value_map_insert_bool(map1, "three", false));
+	assert(!bt_value_map_insert_bool(map1, "three", BT_FALSE));
 	assert(!bt_value_map_insert_float(map2, "one", 14.2));
 	assert(!bt_value_map_insert_integer(map2, "two", 23));
-	assert(!bt_value_map_insert_bool(map2, "three", false));
-	assert(!bt_value_map_insert_bool(map3, "three", false));
+	assert(!bt_value_map_insert_bool(map2, "three", BT_FALSE));
+	assert(!bt_value_map_insert_bool(map3, "three", BT_FALSE));
 	assert(!bt_value_map_insert_integer(map3, "one", 23));
 	assert(!bt_value_map_insert_float(map3, "two", 14.2));
 	assert(bt_value_map_size(map1) == 3);
@@ -1031,7 +1031,7 @@ void test_copy(void)
 	/*
 	 * Here's the deal here. If we make sure that each value object
 	 * of our deep copy has a different address than its source,
-	 * and that bt_value_compare() returns true for the top-level
+	 * and that bt_value_compare() returns BT_TRUE for the top-level
 	 * value object, taking into account that we test the correctness of
 	 * bt_value_compare() elsewhere, then the deep copy is a
 	 * success.
@@ -1044,7 +1044,7 @@ void test_copy(void)
 	struct bt_value *array_obj, *array_copy_obj;
 	struct bt_value *map_obj, *map_copy_obj;
 
-	bool_obj = bt_value_bool_create_init(true);
+	bool_obj = bt_value_bool_create_init(BT_TRUE);
 	integer_obj = bt_value_integer_create_init(23);
 	float_obj = bt_value_float_create_init(-3.1416);
 	string_obj = bt_value_string_create_init("test");
@@ -1079,7 +1079,7 @@ void test_copy(void)
 		"bt_value_copy() returns a different pointer (array)");
 	bool_copy_obj = bt_value_array_get(array_copy_obj, 0);
 	ok(bool_copy_obj != bool_obj,
-		"bt_value_copy() returns a different pointer (bool)");
+		"bt_value_copy() returns a different pointer (bt_bool)");
 	integer_copy_obj = bt_value_array_get(array_copy_obj, 1);
 	ok(integer_copy_obj != integer_obj,
 		"bt_value_copy() returns a different pointer (integer)");
@@ -1108,12 +1108,12 @@ void test_copy(void)
 }
 
 static
-bool compare_map_elements(struct bt_value *map_a, struct bt_value *map_b,
+bt_bool compare_map_elements(struct bt_value *map_a, struct bt_value *map_b,
 		const char *key)
 {
 	struct bt_value *elem_a = NULL;
 	struct bt_value *elem_b = NULL;
-	bool equal;
+	bt_bool equal;
 
 	elem_a = bt_value_map_get(map_a, key);
 	elem_b = bt_value_map_get(map_b, key);
@@ -1136,15 +1136,15 @@ void test_extend(void)
 	assert(base_map);
 	assert(extension_map);
 	assert(array);
-	status = bt_value_map_insert_bool(base_map, "file", true);
+	status = bt_value_map_insert_bool(base_map, "file", BT_TRUE);
 	assert(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_bool(base_map, "edit", false);
+	status = bt_value_map_insert_bool(base_map, "edit", BT_FALSE);
 	assert(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(base_map, "selection", 17);
 	assert(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(base_map, "find", -34);
 	assert(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_bool(extension_map, "edit", true);
+	status = bt_value_map_insert_bool(extension_map, "edit", BT_TRUE);
 	assert(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(extension_map, "find", 101);
 	assert(status == BT_VALUE_STATUS_OK);
@@ -1219,12 +1219,12 @@ void test_freeze(void)
 	obj = bt_value_integer_create();
 	assert(obj);
 	ok(!bt_value_is_frozen(obj),
-		"bt_value_is_frozen() returns false with a fresh value object");
+		"bt_value_is_frozen() returns BT_FALSE with a fresh value object");
 	assert(!bt_value_freeze(obj));
 	ok(!bt_value_freeze(obj),
 		"bt_value_freeze() passes with a frozen value object");
 	ok(bt_value_is_frozen(obj),
-		"bt_value_is_frozen() returns true with a frozen value object");
+		"bt_value_is_frozen() returns BT_TRUE with a frozen value object");
 
 	BT_PUT(obj);
 }

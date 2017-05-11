@@ -38,6 +38,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/types.h>
 #include <limits.h>
 #include <glib.h>
 
@@ -170,7 +171,7 @@ end:
  * Checks whether or not `stack` is empty.
  */
 static
-bool type_stack_empty(type_stack *stack)
+bt_bool type_stack_empty(type_stack *stack)
 {
 	return stack->len == 0;
 }
@@ -384,7 +385,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 {
 	int ret = 0;
 	GList *cur_ptoken = ptokens;
-	bool first_level_done = false;
+	bt_bool first_level_done = BT_FALSE;
 
 	/* Get our own reference */
 	bt_get(type);
@@ -422,7 +423,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 
 			/* Next path token */
 			cur_ptoken = g_list_next(cur_ptoken);
-			first_level_done = true;
+			first_level_done = BT_TRUE;
 		}
 
 		/* Create new field path entry */
@@ -527,7 +528,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			int tail_field_path_len =
 				tail_field_path->indexes->len;
 
-			while (true) {
+			while (BT_TRUE) {
 				struct bt_ctf_field_type *cur_type =
 					type_stack_at(ctx->type_stack, i)->type;
 				int index = type_stack_at(
@@ -764,7 +765,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 	field_path1_len = field_path1->indexes->len;
 	field_path2_len = field_path2->indexes->len;
 
-	while (true) {
+	while (BT_TRUE) {
 		int target_index, ctx_index;
 
 		if (lca_index == field_path2_len ||
@@ -893,7 +894,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 			goto end;
 		}
 	} else {
-		assert(false);
+		assert(BT_FALSE);
 	}
 
 end:
@@ -927,7 +928,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			bt_ctf_field_type_variant_get_tag_name(type);
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 		ret = -1;
 		goto end;
 	}
@@ -980,7 +981,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			goto end;
 		}
 	} else {
-		assert(false);
+		assert(BT_FALSE);
 	}
 
 end:

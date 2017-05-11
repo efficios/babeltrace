@@ -26,9 +26,9 @@
  */
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,21 +172,21 @@ extern enum bt_component_class_type bt_component_class_get_type(
 		struct bt_component_class *component_class);
 
 static inline
-bool bt_component_class_is_source(struct bt_component_class *component_class)
+bt_bool bt_component_class_is_source(struct bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 }
 
 static inline
-bool bt_component_class_is_filter(struct bt_component_class *component_class)
+bt_bool bt_component_class_is_filter(struct bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_FILTER;
 }
 
 static inline
-bool bt_component_class_is_sink(struct bt_component_class *component_class)
+bt_bool bt_component_class_is_sink(struct bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SINK;

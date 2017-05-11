@@ -84,7 +84,7 @@ void finalize_trimmer(struct bt_private_component *component)
  */
 static
 int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
-		struct trimmer_bound *result_bound, bool gmt)
+		struct trimmer_bound *result_bound, bt_bool gmt)
 {
 	int ret;
 	int64_t value;
@@ -292,7 +292,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		struct bt_value *params)
 {
 	struct bt_value *value = NULL;
-	bool gmt = false;
+	bt_bool gmt = BT_FALSE;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	assert(params);

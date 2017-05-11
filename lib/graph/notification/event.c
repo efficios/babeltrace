@@ -33,6 +33,7 @@
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
+#include <babeltrace/types.h>
 
 static
 void bt_notification_event_destroy(struct bt_object *obj)
@@ -46,7 +47,7 @@ void bt_notification_event_destroy(struct bt_object *obj)
 }
 
 static
-bool validate_clock_classes(struct bt_notification_event *notif)
+bt_bool validate_clock_classes(struct bt_notification_event *notif)
 {
 	/*
 	 * For each clock class found in the notification's clock class
@@ -54,7 +55,7 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 	 * this clock class. Also make sure that those clock classes
 	 * are part of the trace to which the event belongs.
 	 */
-	bool is_valid = true;
+	bt_bool is_valid = BT_TRUE;
 	int trace_cc_count;
 	int cc_prio_map_cc_count;
 	size_t cc_prio_map_cc_i, trace_cc_i;
@@ -81,13 +82,13 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 			bt_clock_class_priority_map_get_clock_class_by_index(
 				notif->cc_prio_map, cc_prio_map_cc_i);
 		struct bt_ctf_clock_value *clock_value;
-		bool found_in_trace = false;
+		bt_bool found_in_trace = BT_FALSE;
 
 		assert(clock_class);
 		clock_value = bt_ctf_event_get_clock_value(notif->event,
 			clock_class);
 		if (!clock_value) {
-			is_valid = false;
+			is_valid = BT_FALSE;
 			goto end;
 		}
 
@@ -102,7 +103,7 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 			assert(trace_clock_class);
 
 			if (trace_clock_class == clock_class) {
-				found_in_trace = true;
+				found_in_trace = BT_TRUE;
 				break;
 			}
 		}
@@ -110,7 +111,7 @@ bool validate_clock_classes(struct bt_notification_event *notif)
 		bt_put(clock_class);
 
 		if (!found_in_trace) {
-			is_valid = false;
+			is_valid = BT_FALSE;
 			goto end;
 		}
 	}

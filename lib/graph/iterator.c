@@ -44,12 +44,13 @@
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/graph/port.h>
+#include <babeltrace/types.h>
 #include <stdint.h>
 
 struct stream_state {
 	struct bt_ctf_stream *stream; /* owned by this */
 	struct bt_ctf_packet *cur_packet; /* owned by this */
-	bool is_ended;
+	bt_bool is_ended;
 };
 
 enum action_type {
@@ -141,7 +142,7 @@ void destroy_action(struct action *action)
 	case ACTION_TYPE_SET_STREAM_STATE_IS_ENDED:
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 	}
 }
 
@@ -219,7 +220,7 @@ void apply_actions(struct bt_notification_iterator *iterator)
 			bt_ctf_stream_add_destroy_listener(
 				action->payload.set_stream_state_is_ended.stream_state->stream,
 				stream_destroy_listener, iterator);
-			action->payload.set_stream_state_is_ended.stream_state->is_ended = true;
+			action->payload.set_stream_state_is_ended.stream_state->is_ended = BT_TRUE;
 			BT_PUT(action->payload.set_stream_state_is_ended.stream_state->stream);
 			break;
 		case ACTION_TYPE_SET_STREAM_STATE_CUR_PACKET:
@@ -228,7 +229,7 @@ void apply_actions(struct bt_notification_iterator *iterator)
 				action->payload.set_stream_state_cur_packet.packet);
 			break;
 		default:
-			assert(false);
+			assert(BT_FALSE);
 		}
 	}
 
@@ -543,19 +544,19 @@ bt_notification_iterator_notif_type_from_notif_type(
 		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
 		break;
 	default:
-		assert(false);
+		assert(BT_FALSE);
 	}
 
 	return iter_notif_type;
 }
 
 static
-bool validate_notification(struct bt_notification_iterator *iterator,
+bt_bool validate_notification(struct bt_notification_iterator *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream,
 		struct bt_ctf_packet *notif_packet)
 {
-	bool is_valid = true;
+	bt_bool is_valid = BT_TRUE;
 	struct stream_state *stream_state;
 	struct bt_port *stream_comp_cur_port;
 
@@ -589,7 +590,7 @@ bool validate_notification(struct bt_notification_iterator *iterator,
 			 * bad: the API guarantees that it can never
 			 * happen.
 			 */
-			is_valid = false;
+			is_valid = BT_FALSE;
 			goto end;
 		}
 
@@ -607,7 +608,7 @@ bool validate_notification(struct bt_notification_iterator *iterator,
 			 * bad: the API guarantees that it can never
 			 * happen.
 			 */
-			is_valid = false;
+			is_valid = BT_FALSE;
 			goto end;
 		}
 
@@ -618,12 +619,12 @@ bool validate_notification(struct bt_notification_iterator *iterator,
 			 * we already returned a "stream begin"
 			 * notification: this is an invalid duplicate.
 			 */
-			is_valid = false;
+			is_valid = BT_FALSE;
 			goto end;
 		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 			if (notif_packet == stream_state->cur_packet) {
 				/* Duplicate "packet begin" notification */
-				is_valid = false;
+				is_valid = BT_FALSE;
 				goto end;
 			}
 			break;
@@ -637,14 +638,14 @@ end:
 }
 
 static
-bool is_subscribed_to_notification_type(struct bt_notification_iterator *iterator,
+bt_bool is_subscribed_to_notification_type(struct bt_notification_iterator *iterator,
 		enum bt_notification_type notif_type)
 {
 	uint32_t iter_notif_type =
 		(uint32_t) bt_notification_iterator_notif_type_from_notif_type(
 			notif_type);
 
-	return (iter_notif_type & iterator->subscription_mask) ? true : false;
+	return (iter_notif_type & iterator->subscription_mask) ? BT_TRUE : BT_FALSE;
 }
 
 static
@@ -1290,7 +1291,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 		break;
 	}
 	default:
-		assert(false);
+		assert(BT_FALSE);
 		break;
 	}
 
@@ -1319,7 +1320,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 				status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 			}
 
-			iterator->is_ended = true;
+			iterator->is_ended = BT_TRUE;
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 			status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
@@ -1345,7 +1346,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 			break;
 		default:
 			/* Unknown non-error status */
-			assert(false);
+			assert(BT_FALSE);
 		}
 	}
 

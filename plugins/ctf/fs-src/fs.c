@@ -38,6 +38,7 @@
 #include <plugins-common.h>
 #include <glib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include "fs.h"
 #include "metadata.h"

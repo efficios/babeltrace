@@ -70,7 +70,7 @@ static void test_invalid(const char *plugin_dir)
 
 	ok(!bt_plugin_create_all_from_file(NULL),
 		"bt_plugin_create_all_from_file() handles NULL correctly");
-	ok(!bt_plugin_create_all_from_dir(NULL, false),
+	ok(!bt_plugin_create_all_from_dir(NULL, BT_FALSE),
 		"bt_plugin_create_all_from_dir() handles NULL correctly");
 	ok(!bt_plugin_get_name(NULL),
 		"bt_plugin_get_name() handles NULL correctly");
@@ -245,11 +245,11 @@ static void test_create_all_from_dir(const char *plugin_dir)
 
 	diag("create from all test below");
 
-	plugin_set = bt_plugin_create_all_from_dir(NON_EXISTING_PATH, false);
+	plugin_set = bt_plugin_create_all_from_dir(NON_EXISTING_PATH, BT_FALSE);
 	ok(!plugin_set,
 		"bt_plugin_create_all_from_dir() fails with an invalid path");
 
-	plugin_set = bt_plugin_create_all_from_dir(plugin_dir, false);
+	plugin_set = bt_plugin_create_all_from_dir(plugin_dir, BT_FALSE);
 	ok(plugin_set, "bt_plugin_create_all_from_dir() succeeds with a valid path");
 
 	/* 2 or 4, if `.la` files are considered or not */

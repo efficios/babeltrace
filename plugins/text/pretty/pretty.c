@@ -235,7 +235,7 @@ end:
 }
 
 static
-bool check_param_exists(const char *key, struct bt_value *object, void *data)
+bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 {
 	struct pretty_component *pretty = data;
 	struct bt_value *plugin_opt_map = pretty->plugin_opt_map;
@@ -244,7 +244,7 @@ bool check_param_exists(const char *key, struct bt_value *object, void *data)
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
 	}
-	return true;
+	return BT_TRUE;
 }
 
 static
@@ -287,12 +287,13 @@ enum bt_component_status apply_one_bool(const char *key,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_value *value = NULL;
 	enum bt_value_status status;
+	bt_bool bool_val;
 
 	value = bt_value_map_get(params, key);
 	if (!value) {
 		goto end;
 	}
-	status = bt_value_bool_get(value, option);
+	status = bt_value_bool_get(value, &bool_val);
 	switch (status) {
 	case BT_VALUE_STATUS_OK:
 		break;
@@ -300,6 +301,7 @@ enum bt_component_status apply_one_bool(const char *key,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
+	*option = (bool) bool_val;
 	if (found) {
 		*found = true;
 	}

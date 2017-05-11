@@ -39,6 +39,7 @@
 #include <babeltrace/graph/private-port.h>
 #include <plugins-common.h>
 #include <glib.h>
+#include <stdbool.h>
 #include <assert.h>
 
 #define IGNORE_ABSOLUTE_PARAM_NAME	"ignore-absolute"
@@ -246,6 +247,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	struct bt_value *real_params = NULL;
 	struct bt_value *ignore_absolute = NULL;
 	int ret = 0;
+	bt_bool bool_val;
 
 	default_params = get_default_params();
 	if (!default_params) {
@@ -263,9 +265,11 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	if (bt_value_bool_get(ignore_absolute, &muxer_comp->ignore_absolute)) {
+	if (bt_value_bool_get(ignore_absolute, &bool_val)) {
 		goto error;
 	}
+
+	muxer_comp->ignore_absolute = (bool) bool_val;
 
 	goto end;
 

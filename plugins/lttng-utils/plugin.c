@@ -419,14 +419,17 @@ enum bt_component_status init_from_params(
         value = bt_value_map_get(params, "full-path");
 	if (value) {
 		enum bt_value_status value_ret;
+		bt_bool bool_val;
 
 		value_ret = bt_value_bool_get(value,
-				&debug_info_component->arg_full_path);
+				&bool_val);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
 			printf_error("Failed to retrieve full-path value. "
 					"Expecting a boolean");
 		}
+
+		debug_info_component->arg_full_path = bool_val;
 	}
 	bt_put(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {

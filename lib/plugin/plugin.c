@@ -33,6 +33,7 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
+#include <babeltrace/types.h>
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -222,7 +223,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		printf_verbose("Trying to load plugins from directory `%s`\n",
 			dir->str);
 		BT_PUT(plugin_set);
-		plugin_set = bt_plugin_create_all_from_dir(dir->str, false);
+		plugin_set = bt_plugin_create_all_from_dir(dir->str, BT_FALSE);
 		if (!plugin_set) {
 			continue;
 		}
@@ -308,7 +309,7 @@ struct dirent *alloc_dirent(const char *path)
 static
 enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		struct bt_plugin_set *plugin_set, const char *path,
-		bool recurse)
+		bt_bool recurse)
 {
 	DIR *directory = NULL;
 	struct dirent *entry = NULL, *result = NULL;
@@ -382,7 +383,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 
 		if (S_ISDIR(st.st_mode) && recurse) {
 			ret = bt_plugin_create_append_all_from_dir(plugin_set,
-				file_path, true);
+				file_path, BT_TRUE);
 			if (ret < 0) {
 				goto end;
 			}
@@ -421,7 +422,7 @@ end:
 }
 
 struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
-		bool recurse)
+		bt_bool recurse)
 {
 	struct bt_plugin_set *plugin_set;
 	enum bt_plugin_status status;

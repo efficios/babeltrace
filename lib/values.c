@@ -35,6 +35,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compat/glib-internal.h>
+#include <babeltrace/types.h>
 
 #define BT_LOG_TAG "VALUES"
 #include <babeltrace/lib-logging-internal.h>
@@ -50,7 +51,7 @@
 struct bt_value {
 	struct bt_object base;
 	enum bt_value_type type;
-	bool is_frozen;
+	bt_bool is_frozen;
 };
 
 static
@@ -64,14 +65,14 @@ struct bt_value bt_value_null_instance = {
 		.parent = NULL,
 	},
 	.type = BT_VALUE_TYPE_NULL,
-	.is_frozen = true,
+	.is_frozen = BT_TRUE,
 };
 
 struct bt_value *bt_value_null = &bt_value_null_instance;
 
 struct bt_value_bool {
 	struct bt_value base;
-	bool value;
+	bt_bool value;
 };
 
 struct bt_value_integer {
@@ -292,19 +293,19 @@ struct bt_value *(* const copy_funcs[])(const struct bt_value *) = {
 };
 
 static
-bool bt_value_null_compare(const struct bt_value *object_a,
+bt_bool bt_value_null_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	/*
-	 * Always true since bt_value_compare() already checks if both
+	 * Always BT_TRUE since bt_value_compare() already checks if both
 	 * object_a and object_b have the same type, and in the case of
 	 * null value objects, they're always the same if it is so.
 	 */
-	return true;
+	return BT_TRUE;
 }
 
 static
-bool bt_value_bool_compare(const struct bt_value *object_a,
+bt_bool bt_value_bool_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	return BT_VALUE_TO_BOOL(object_a)->value ==
@@ -312,7 +313,7 @@ bool bt_value_bool_compare(const struct bt_value *object_a,
 }
 
 static
-bool bt_value_integer_compare(const struct bt_value *object_a,
+bt_bool bt_value_integer_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	return BT_VALUE_TO_INTEGER(object_a)->value ==
@@ -320,7 +321,7 @@ bool bt_value_integer_compare(const struct bt_value *object_a,
 }
 
 static
-bool bt_value_float_compare(const struct bt_value *object_a,
+bt_bool bt_value_float_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	return BT_VALUE_TO_FLOAT(object_a)->value ==
@@ -328,7 +329,7 @@ bool bt_value_float_compare(const struct bt_value *object_a,
 }
 
 static
-bool bt_value_string_compare(const struct bt_value *object_a,
+bt_bool bt_value_string_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	return !strcmp(BT_VALUE_TO_STRING(object_a)->gstr->str,
@@ -336,11 +337,11 @@ bool bt_value_string_compare(const struct bt_value *object_a,
 }
 
 static
-bool bt_value_array_compare(const struct bt_value *object_a,
+bt_bool bt_value_array_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	int i;
-	bool ret = true;
+	bt_bool ret = BT_TRUE;
 	const struct bt_value_array *array_obj_a =
 		BT_VALUE_TO_ARRAY(object_a);
 
@@ -351,7 +352,7 @@ bool bt_value_array_compare(const struct bt_value *object_a,
 			object_a, object_b,
 			bt_value_array_size(object_a),
 			bt_value_array_size(object_b));
-		ret = false;
+		ret = BT_FALSE;
 		goto end;
 	}
 
@@ -368,7 +369,7 @@ bool bt_value_array_compare(const struct bt_value *object_a,
 				element_obj_a, element_obj_b, index);
 			BT_PUT(element_obj_a);
 			BT_PUT(element_obj_b);
-			ret = false;
+			ret = BT_FALSE;
 			goto end;
 		}
 
@@ -381,10 +382,10 @@ end:
 }
 
 static
-bool bt_value_map_compare(const struct bt_value *object_a,
+bt_bool bt_value_map_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	bool ret = true;
+	bt_bool ret = BT_TRUE;
 	GHashTableIter iter;
 	gpointer key, element_obj_a;
 	const struct bt_value_map *map_obj_a = BT_VALUE_TO_MAP(object_a);
@@ -396,7 +397,7 @@ bool bt_value_map_compare(const struct bt_value *object_a,
 			object_a, object_b,
 			bt_value_map_size(object_a),
 			bt_value_map_size(object_b));
-		ret = false;
+		ret = BT_FALSE;
 		goto end;
 	}
 
@@ -413,7 +414,7 @@ bool bt_value_map_compare(const struct bt_value *object_a,
 				"value-a-addr=%p, value-b-addr=%p, key=\"%s\"",
 				element_obj_a, element_obj_b, key_str);
 			BT_PUT(element_obj_b);
-			ret = false;
+			ret = BT_FALSE;
 			goto end;
 		}
 
@@ -425,7 +426,7 @@ end:
 }
 
 static
-bool (* const compare_funcs[])(const struct bt_value *,
+bt_bool (* const compare_funcs[])(const struct bt_value *,
 		const struct bt_value *) = {
 	[BT_VALUE_TYPE_NULL] =		bt_value_null_compare,
 	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_compare,
@@ -442,7 +443,7 @@ void bt_value_null_freeze(struct bt_value *object)
 
 void bt_value_generic_freeze(struct bt_value *object)
 {
-	object->is_frozen = true;
+	object->is_frozen = BT_TRUE;
 }
 
 void bt_value_array_freeze(struct bt_value *object)
@@ -530,7 +531,7 @@ end:
 	return ret;
 }
 
-bool bt_value_is_frozen(const struct bt_value *object)
+bt_bool bt_value_is_frozen(const struct bt_value *object)
 {
 	return object && object->is_frozen;
 }
@@ -551,12 +552,12 @@ struct bt_value bt_value_create_base(enum bt_value_type type)
 	struct bt_value base;
 
 	base.type = type;
-	base.is_frozen = false;
+	base.is_frozen = BT_FALSE;
 	bt_object_init(&base, bt_value_destroy);
 	return base;
 }
 
-struct bt_value *bt_value_bool_create_init(bool val)
+struct bt_value *bt_value_bool_create_init(bt_bool val)
 {
 	struct bt_value_bool *bool_obj;
 
@@ -578,7 +579,7 @@ end:
 
 struct bt_value *bt_value_bool_create(void)
 {
-	return bt_value_bool_create_init(false);
+	return bt_value_bool_create_init(BT_FALSE);
 }
 
 struct bt_value *bt_value_integer_create_init(int64_t val)
@@ -733,7 +734,7 @@ end:
 }
 
 enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
-		bool *val)
+		bt_bool *val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_bool *typed_bool_obj = BT_VALUE_TO_BOOL(bool_obj);
@@ -759,7 +760,7 @@ end:
 	return ret;
 }
 
-enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj, bool val)
+enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	struct bt_value_bool *typed_bool_obj = BT_VALUE_TO_BOOL(bool_obj);
@@ -1008,7 +1009,7 @@ end:
 	return ret;
 }
 
-bool bt_value_array_is_empty(const struct bt_value *array_obj)
+bt_bool bt_value_array_is_empty(const struct bt_value *array_obj)
 {
 	return bt_value_array_size(array_obj) == 0;
 }
@@ -1089,7 +1090,7 @@ end:
 }
 
 enum bt_value_status bt_value_array_append_bool(struct bt_value *array_obj,
-		bool val)
+		bt_bool val)
 {
 	enum bt_value_status ret;
 	struct bt_value *bool_obj = NULL;
@@ -1231,7 +1232,7 @@ end:
 	return ret;
 }
 
-bool bt_value_map_is_empty(const struct bt_value *map_obj)
+bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
 {
 	return bt_value_map_size(map_obj) == 0;
 }
@@ -1268,23 +1269,23 @@ end:
 	return ret;
 }
 
-bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)
+bt_bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)
 {
-	bool ret;
+	bt_bool ret;
 	GQuark quark;
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
 
 	if (!map_obj || !key) {
 		BT_LOGW("Invalid parameter: value object or key is NULL: "
 			"value-addr=%p, key-addr=%p", map_obj, key);
-		ret = false;
+		ret = BT_FALSE;
 		goto end;
 	}
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
 			"type=%d", map_obj, map_obj->type);
-		ret = false;
+		ret = BT_FALSE;
 		goto end;
 	}
 
@@ -1338,7 +1339,7 @@ end:
 }
 
 enum bt_value_status bt_value_map_insert_bool(struct bt_value *map_obj,
-		const char *key, bool val)
+		const char *key, bt_bool val)
 {
 	enum bt_value_status ret;
 	struct bt_value *bool_obj = NULL;
@@ -1451,14 +1452,14 @@ end:
 
 struct extend_map_element_data {
 	struct bt_value *extended_obj;
-	bool got_error;
+	bt_bool got_error;
 };
 
 static
-bool extend_map_element(const char *key,
+bt_bool extend_map_element(const char *key,
 		struct bt_value *extension_obj_elem, void *data)
 {
-	bool ret = true;
+	bt_bool ret = BT_TRUE;
 
 	struct extend_map_element_data *extend_data = data;
 
@@ -1479,8 +1480,8 @@ bool extend_map_element(const char *key,
 	goto end;
 
 error:
-	ret = false;
-	extend_data->got_error = true;
+	ret = BT_FALSE;
+	extend_data->got_error = BT_TRUE;
 
 end:
 	BT_PUT(extension_obj_elem_copy);
@@ -1575,10 +1576,10 @@ end:
 	return copy_obj;
 }
 
-bool bt_value_compare(const struct bt_value *object_a,
+bt_bool bt_value_compare(const struct bt_value *object_a,
 	const struct bt_value *object_b)
 {
-	bool ret = false;
+	bt_bool ret = BT_FALSE;
 
 	if (!object_a || !object_b) {
 		BT_LOGW("Invalid parameter: value A or value B is NULL: "

@@ -39,6 +39,7 @@
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
+#include <babeltrace/types.h>
 #include <inttypes.h>
 
 static
@@ -656,7 +657,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 		default:
 			/* should never happen */
-			assert(false);
+			assert(BT_FALSE);
 			break;
 		}
 
