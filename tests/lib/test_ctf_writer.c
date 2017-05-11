@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 612
+#define NR_TESTS 609
 
 static int64_t current_time = 42;
 
@@ -2974,8 +2974,6 @@ int main(int argc, char **argv)
 	/* Test bt_ctf_trace_get_environment_field_name */
 	ok(bt_ctf_trace_get_environment_field_name_by_index(NULL, 0) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_name_by_index(trace, -1) == NULL,
-		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (negative)");
 	ok(bt_ctf_trace_get_environment_field_name_by_index(trace, 5) == NULL,
 		"bt_ctf_trace_get_environment_field_name handles an invalid index correctly (too large)");
 	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 0);
@@ -2997,8 +2995,6 @@ int main(int argc, char **argv)
 	/* Test bt_ctf_trace_get_environment_field_value */
 	ok(bt_ctf_trace_get_environment_field_value_by_index(NULL, 0) == NULL,
 		"bt_ctf_trace_get_environment_field_value handles a NULL trace correctly");
-	ok(bt_ctf_trace_get_environment_field_value_by_index(trace, -1) == NULL,
-		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (negative)");
 	ok(bt_ctf_trace_get_environment_field_value_by_index(trace, 5) == NULL,
 		"bt_ctf_trace_get_environment_field_value handles an invalid index correctly (too large)");
 	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 1);
@@ -3356,8 +3352,6 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_clock_class_count returns the correct number of clocks");
 	ok(!bt_ctf_trace_get_clock_class_by_index(NULL, 0),
 		"bt_ctf_trace_get_clock_class correctly handles NULL");
-	ok(!bt_ctf_trace_get_clock_class_by_index(trace, -1),
-		"bt_ctf_trace_get_clock_class correctly handles negative indexes");
 	ok(!bt_ctf_trace_get_clock_class_by_index(trace, 1),
 		"bt_ctf_trace_get_clock_class correctly handles out of bound accesses");
 	ret_clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
