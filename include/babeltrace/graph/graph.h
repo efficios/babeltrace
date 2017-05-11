@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/graph/component.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,8 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
 	BT_GRAPH_STATUS_ERROR = -1,
+	/** Canceled. */
+	BT_GRAPH_STATUS_CANCELED = -125,
 };
 
 typedef void (*bt_graph_port_added_listener)(struct bt_port *port,
@@ -113,6 +116,9 @@ extern enum bt_graph_status bt_graph_add_ports_connected_listener(
 extern enum bt_graph_status bt_graph_add_ports_disconnected_listener(
 		struct bt_graph *graph,
 		bt_graph_ports_disconnected_listener listener, void *data);
+
+extern enum bt_graph_status bt_graph_cancel(struct bt_graph *graph);
+extern bt_bool bt_graph_is_canceled(struct bt_graph *graph);
 
 #ifdef __cplusplus
 }

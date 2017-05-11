@@ -163,6 +163,10 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 		goto end;
 	}
 
+	if (graph->canceled) {
+		goto end;
+	}
+
 	/* Ensure appropriate types for upstream and downstream ports. */
 	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
 		goto end;
@@ -357,6 +361,11 @@ enum bt_graph_status bt_graph_add_component_as_sibling(struct bt_graph *graph,
 		goto end;
 	}
 
+	if (graph->canceled) {
+		status = BT_GRAPH_STATUS_CANCELED;
+		goto end;
+	}
+
 	if (bt_component_get_class_type(origin) !=
 			bt_component_get_class_type(new_component)) {
 		status = BT_GRAPH_STATUS_INVALID;
@@ -494,6 +503,11 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 		goto end;
 	}
 
+	if (graph->canceled) {
+		status = BT_GRAPH_STATUS_CANCELED;
+		goto end;
+	}
+
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		status = BT_GRAPH_STATUS_END;
 		goto end;
@@ -542,21 +556,27 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 
 	if (!graph) {
 		status = BT_GRAPH_STATUS_INVALID;
-		goto error;
+		goto end;
 	}
 
 	do {
+		if (graph->canceled) {
+			status = BT_GRAPH_STATUS_CANCELED;
+			goto end;
+		}
+
 		status = bt_graph_consume(graph);
 		if (status == BT_GRAPH_STATUS_AGAIN) {
 			/*
-			 * If AGAIN is received and there are multiple sinks,
-			 * go ahead and consume from the next sink.
+			 * If AGAIN is received and there are multiple
+			 * sinks, go ahead and consume from the next
+			 * sink.
 			 *
-			 * However, in the case where a single sink is left,
-			 * the caller can decide to busy-wait and call
-			 * bt_graph_run continuously until the source is ready
-			 * or it can decide to sleep for an arbitrary amount of
-			 * time.
+			 * However, in the case where a single sink is
+			 * left, the caller can decide to busy-wait and
+			 * call bt_graph_run() continuously until the
+			 * source is ready or it can decide to sleep for
+			 * an arbitrary amount of time.
 			 */
 			if (graph->sinks_to_consume->length > 1) {
 				status = BT_GRAPH_STATUS_OK;
@@ -567,7 +587,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		status = BT_GRAPH_STATUS_END;
 	}
-error:
+end:
 	return status;
 }
 
@@ -718,4 +738,24 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 		func(upstream_comp, downstream_comp, upstream_port,
 			downstream_port, listener.data);
 	}
+}
+
+extern enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
+{
+	enum bt_graph_status ret = BT_GRAPH_STATUS_OK;
+
+	if (!graph) {
+		ret = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	graph->canceled = BT_TRUE;
+
+end:
+	return ret;
+}
+
+extern bt_bool bt_graph_is_canceled(struct bt_graph *graph)
+{
+	return graph ? graph->canceled : BT_FALSE;
 }

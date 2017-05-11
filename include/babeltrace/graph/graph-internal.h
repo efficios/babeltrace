@@ -55,6 +55,8 @@ struct bt_graph {
 	/* Queue of pointers (weak references) to sink bt_components. */
 	GQueue *sinks_to_consume;
 
+	bt_bool canceled;
+
 	struct {
 		GArray *port_added;
 		GArray *port_removed;
