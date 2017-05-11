@@ -36,7 +36,7 @@ test_cc_prio_map_LDADD = $(COMMON_TEST_LDADD)
 
 test_bt_notification_iterator_LDADD = $(COMMON_TEST_LDADD)
 
-check_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
+noinst_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
 	test_ctf_ir_ref test_bt_ctf_field_type_validation test_ir_visit \
 	test_bt_notification_heap test_plugin test_graph_topo \
 	test_cc_prio_map test_bt_notification_iterator
