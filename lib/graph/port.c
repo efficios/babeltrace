@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/graph/port.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/graph/connection-internal.h>
@@ -174,7 +175,7 @@ end:
 	return ret;
 }
 
-int bt_port_is_connected(struct bt_port *port)
+bt_bool bt_port_is_connected(struct bt_port *port)
 {
 	int ret;
 

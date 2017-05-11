@@ -55,7 +55,7 @@ extern struct bt_connection *bt_port_get_connection(struct bt_port *port);
 extern struct bt_component *bt_port_get_component(struct bt_port *port);
 extern int bt_port_remove_from_component(struct bt_port *port);
 extern int bt_port_disconnect(struct bt_port *port);
-extern int bt_port_is_connected(struct bt_port *port);
+extern bt_bool bt_port_is_connected(struct bt_port *port);
 
 static inline
 bt_bool bt_port_is_input(struct bt_port *port)
