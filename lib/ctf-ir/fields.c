@@ -356,42 +356,42 @@ end:
 	return ret;
 }
 
-int bt_ctf_field_is_integer(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_integer(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_INTEGER;
 }
 
-int bt_ctf_field_is_floating_point(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_floating_point(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_FLOAT;
 }
 
-int bt_ctf_field_is_enumeration(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_enumeration(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_ENUM;
 }
 
-int bt_ctf_field_is_string(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_string(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_STRING;
 }
 
-int bt_ctf_field_is_structure(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_structure(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_STRUCT;
 }
 
-int bt_ctf_field_is_array(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_array(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_ARRAY;
 }
 
-int bt_ctf_field_is_sequence(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_sequence(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_SEQUENCE;
 }
 
-int bt_ctf_field_is_variant(struct bt_ctf_field *field)
+bt_bool bt_ctf_field_is_variant(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_get_type_id(field) == BT_CTF_FIELD_TYPE_ID_VARIANT;
 }

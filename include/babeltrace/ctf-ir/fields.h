@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -230,8 +231,8 @@ extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
 @brief	Returns whether or not the @field \p field is a @intfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is an integer field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is an integer field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -240,14 +241,14 @@ extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_integer(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_integer(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @floatfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is a floating point number field,
-			or 0 otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is a floating point number fiel
+			#BT_FALSE or 0 otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -256,14 +257,14 @@ extern int bt_ctf_field_is_integer(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @enumfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is an enumeration field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is an enumeration field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -272,14 +273,14 @@ extern int bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @stringfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is a string field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is a string field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -288,14 +289,14 @@ extern int bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_string(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_string(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @structfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is a structure field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is a structure field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -304,14 +305,14 @@ extern int bt_ctf_field_is_string(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_structure(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_structure(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @arrayfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is an array field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is an array field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -320,14 +321,14 @@ extern int bt_ctf_field_is_structure(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_array(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_array(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @seqfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is a sequence field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is a sequence field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -336,14 +337,14 @@ extern int bt_ctf_field_is_array(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_sequence(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_sequence(struct bt_ctf_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @varfield.
 
 @param[in] field	Field to check (can be \c NULL).
-@returns                1 if \p field is a variant field, or 0
-			otherwise (including if \p field is
+@returns                #BT_TRUE if \p field is a variant field, or
+			#BT_FALSE otherwise (including if \p field is
 			\c NULL).
 
 @prenotnull{field}
@@ -352,7 +353,7 @@ extern int bt_ctf_field_is_sequence(struct bt_ctf_field *field);
 @sa bt_ctf_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern int bt_ctf_field_is_variant(struct bt_ctf_field *field);
+extern bt_bool bt_ctf_field_is_variant(struct bt_ctf_field *field);
 
 /** @} */
 

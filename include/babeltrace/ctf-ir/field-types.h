@@ -30,6 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/types.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -342,8 +343,8 @@ extern enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
 @brief	Returns whether or not the @ft \p field_type is a @intft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is an integer field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is an integer field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @prenotnull{field_type}
@@ -352,14 +353,15 @@ extern enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_integer(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @floatft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is a floating point
-			number field type,
+@returns		#BT_TRUE if \p field_type is a floating point
+			#BT_FALSE field type,
 			or 0 otherwise (including if \p field_type is
 			\c NULL).
 
@@ -368,14 +370,15 @@ extern int bt_ctf_field_type_is_integer(struct bt_ctf_field_type *field_type);
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_floating_point(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @enumft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is an enumeration field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is an enumeration field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -383,14 +386,15 @@ extern int bt_ctf_field_type_is_floating_point(struct bt_ctf_field_type *field_t
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_enumeration(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @stringft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is a string field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is a string field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -398,14 +402,15 @@ extern int bt_ctf_field_type_is_enumeration(struct bt_ctf_field_type *field_type
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_string(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_string(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @structft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is a structure field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is a structure field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -413,14 +418,15 @@ extern int bt_ctf_field_type_is_string(struct bt_ctf_field_type *field_type);
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_structure(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @arrayft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is an array field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is an array field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -428,14 +434,15 @@ extern int bt_ctf_field_type_is_structure(struct bt_ctf_field_type *field_type);
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_array(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_array(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @seqft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is a sequence field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is a sequence field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -443,14 +450,15 @@ extern int bt_ctf_field_type_is_array(struct bt_ctf_field_type *field_type);
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_sequence(
+		struct bt_ctf_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @varft.
 
 @param[in] field_type	Field type to check (can be \c NULL).
-@returns		1 if \p field_type is a variant field type,
-			or 0 otherwise (including if \p field_type is
+@returns		#BT_TRUE if \p field_type is a variant field type,
+			or #BT_FALSE otherwise (including if \p field_type is
 			\c NULL).
 
 @postrefcountsame{field_type}
@@ -458,7 +466,8 @@ extern int bt_ctf_field_type_is_sequence(struct bt_ctf_field_type *field_type);
 @sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern int bt_ctf_field_type_is_variant(struct bt_ctf_field_type *field_type);
+extern bt_bool bt_ctf_field_type_is_variant(
+		struct bt_ctf_field_type *field_type);
 
 /** @} */
 
@@ -825,10 +834,9 @@ extern int bt_ctf_field_type_integer_set_size(
 @param[in] int_field_type	Integer field type which describes the
 				integer fields of which to get the
 				signedness.
-@returns			1 if the integer fields described by
-				\p int_field_type are signed, 0 if they
-				are unsigned, or a negative value on
-				error.
+@returns			#BT_TRUE if the integer fields described by
+				\p int_field_type are signed, #BT_FALSE if they
+				are unsigned.
 
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
@@ -837,11 +845,15 @@ extern int bt_ctf_field_type_integer_set_size(
 @sa bt_ctf_field_type_integer_set_is_signed(): Sets the signedness of the
 	integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_is_signed(
+extern bt_bool bt_ctf_field_type_integer_is_signed(
 		struct bt_ctf_field_type *int_field_type);
 
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type_integer_get_signed bt_ctf_field_type_integer_is_signed
+/** @cond DOCUMENT */
+
+extern int bt_ctf_field_type_integer_get_signed(
+		struct bt_ctf_field_type *int_field_type);
+
+/** @endcond */
 
 /**
 @brief	Sets whether or not the @intfields described by
@@ -851,21 +863,20 @@ extern int bt_ctf_field_type_integer_is_signed(
 				integer fields of which to set the
 				signedness.
 @param[in] is_signed		Signedness of the integer fields
-				described by \p int_field_type; 0 means
-				\em unsigned, 1 means \em signed.
+				described by \p int_field_type; #BT_FALSE means
+				\em unsigned, #BT_TRUE means \em signed.
 @returns			0 on success, or a negative value on error.
 
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @prehot{int_field_type}
-@pre \p is_signed is 0 or 1.
 @postrefcountsame{int_field_type}
 
 @sa bt_ctf_field_type_integer_is_signed(): Returns the signedness of
 	the integer fields described by a given integer field type.
 */
 extern int bt_ctf_field_type_integer_set_is_signed(
-		struct bt_ctf_field_type *int_field_type, int is_signed);
+		struct bt_ctf_field_type *int_field_type, bt_bool is_signed);
 
 /* Pre-2.0 CTF writer compatibility */
 #define bt_ctf_field_type_integer_set_signed bt_ctf_field_type_integer_set_is_signed

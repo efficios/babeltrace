@@ -827,8 +827,15 @@ end:
 	return ret;
 }
 
+bt_bool bt_ctf_field_type_integer_is_signed(
+		struct bt_ctf_field_type *int_field_type)
+{
+	return bt_ctf_field_type_integer_get_signed(int_field_type) ?
+		BT_TRUE : BT_FALSE;
+}
+
 int bt_ctf_field_type_integer_set_signed(struct bt_ctf_field_type *type,
-		int is_signed)
+		bt_bool is_signed)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_integer *integer;
