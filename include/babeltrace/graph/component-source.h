@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_SOURCE_H
-#define BABELTRACE_COMPONENT_SOURCE_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_SOURCE_H
+#define BABELTRACE_GRAPH_COMPONENT_SOURCE_H
 
 /*
  * BabelTrace - Source Plug-in Interface
@@ -48,4 +48,4 @@ extern struct bt_port *bt_component_source_get_output_port_by_index(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_SOURCE_H */

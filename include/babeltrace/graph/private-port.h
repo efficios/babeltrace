@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PRIVATE_PORT_H
-#define BABELTRACE_COMPONENT_PRIVATE_PORT_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_PORT_H
+#define BABELTRACE_GRAPH_PRIVATE_PORT_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -46,4 +46,4 @@ extern void *bt_private_port_get_user_data(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PRIVATE_PORT_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_PORT_H */

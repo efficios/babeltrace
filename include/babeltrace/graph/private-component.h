@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
-#define BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_H
+#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -45,4 +45,4 @@ extern enum bt_component_status bt_private_component_set_user_data(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PRIVATE_COMPONENT_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_STREAM_H
+#define BABELTRACE_GRAPH_NOTIFICATION_STREAM_H
 
 /*
  * BabelTrace - Plug-in Stream-related Notifications
@@ -50,4 +50,4 @@ extern struct bt_ctf_stream *bt_notification_stream_end_get_stream(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_STREAM_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_STREAM_H */

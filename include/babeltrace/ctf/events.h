@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_EVENT_H
-#define BABELTRACE_CTF_EVENT_H
+#ifndef BABELTRACE_CTF_EVENTS_H
+#define BABELTRACE_CTF_EVENTS_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -38,4 +38,4 @@
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/writer.h>
 
-#endif /* BABELTRACE_CTF_EVENT_H */
+#endif /* BABELTRACE_CTF_EVENTS_H */

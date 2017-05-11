@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H
-#define BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_H
 
 /*
  * Babeltrace - Component Class Interface.
@@ -56,4 +56,4 @@ int bt_component_class_filter_set_notification_iterator_seek_time_method(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_FILTER_H */
+#endif /* BABELTRACEGRAPHCOMPONENT_COMPONENT_CLASS_FILTER_H */

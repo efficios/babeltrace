@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_IR_FIELD_PATH
-#define BABELTRACE_CTF_IR_FIELD_PATH
+#ifndef BABELTRACE_CTF_IR_FIELD_PATH_H
+#define BABELTRACE_CTF_IR_FIELD_PATH_H
 
 /*
  * BabelTrace - CTF IR: Field path
@@ -138,4 +138,4 @@ extern int bt_ctf_field_path_get_index(
 }
 #endif
 
-#endif /* BABELTRACE_CTF_IR_FIELD_PATH */
+#endif /* BABELTRACE_CTF_IR_FIELD_PATH_H */

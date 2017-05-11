@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_H
-#define BABELTRACE_COMPONENT_COMPONENT_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_H
+#define BABELTRACE_GRAPH_COMPONENT_H
 
 /*
  * BabelTrace - Babeltrace Component Interface
@@ -106,4 +106,4 @@ extern struct bt_graph *bt_component_get_graph(struct bt_component *component);
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_H */

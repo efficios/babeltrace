@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_H
-#define BABELTRACE_COMPONENT_FILTER_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_FILTER_H
+#define BABELTRACE_GRAPH_COMPONENT_FILTER_H
 
 /*
  * BabelTrace - Filter Plug-in Interface
@@ -55,4 +55,4 @@ extern struct bt_port *bt_component_filter_get_output_port_by_index(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_FILTER_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_FILTER_H */

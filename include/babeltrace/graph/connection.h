@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_CONNECTION_H
-#define BABELTRACE_COMPONENT_CONNECTION_H
+#ifndef BABELTRACE_GRAPH_CONNECTION_H
+#define BABELTRACE_GRAPH_CONNECTION_H
 
 /*
  * BabelTrace - Babeltrace Component Connection Interface
@@ -45,4 +45,4 @@ extern struct bt_port *bt_connection_get_upstream_port(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_CONNECTION_H */
+#endif /* BABELTRACE_GRAPH_CONNECTION_H */

@@ -1,5 +1,5 @@
-#ifndef _BABELTRACE_VALUES_H
-#define _BABELTRACE_VALUES_H
+#ifndef BABELTRACE_VALUES_H
+#define BABELTRACE_VALUES_H
 
 /*
  * Babeltrace - Value objects
@@ -1499,4 +1499,4 @@ extern struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
 }
 #endif
 
-#endif /* _BABELTRACE_VALUES_H */
+#endif /* BABELTRACE_VALUES_H */

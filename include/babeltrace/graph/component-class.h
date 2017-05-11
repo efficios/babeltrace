@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_H
-#define BABELTRACE_COMPONENT_COMPONENT_CLASS_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_H
 
 /*
  * Babeltrace - Component Class Interface.
@@ -196,4 +196,4 @@ bool bt_component_class_is_sink(struct bt_component_class *component_class)
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_H */

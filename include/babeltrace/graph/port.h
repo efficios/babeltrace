@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PORT_H
-#define BABELTRACE_COMPONENT_PORT_H
+#ifndef BABELTRACE_GRAPH_PORT_H
+#define BABELTRACE_GRAPH_PORT_H
 
 /*
  * BabelTrace - Babeltrace Component Connection Interface
@@ -73,4 +73,4 @@ bool bt_port_is_output(struct bt_port *port)
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PORT_H */
+#endif /* BABELTRACE_GRAPH_PORT_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
-#define BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
 
 /*
  * Babeltrace - Component Class Interface.
@@ -44,4 +44,4 @@ struct bt_component_class *bt_component_class_sink_create(const char *name,
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_SINK_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H */

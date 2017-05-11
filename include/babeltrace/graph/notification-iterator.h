@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_ITERATOR_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_ITERATOR_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_ITERATOR_H
+#define BABELTRACE_GRAPH_NOTIFICATION_ITERATOR_H
 
 /*
  * BabelTrace - Plug-in Notification Iterator
@@ -136,4 +136,4 @@ extern struct bt_component *bt_notification_iterator_get_component(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_ITERATOR_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_ITERATOR_H */

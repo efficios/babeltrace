@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_SINK_H
-#define BABELTRACE_COMPONENT_SINK_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_SINK_H
+#define BABELTRACE_GRAPH_COMPONENT_SINK_H
 
 /*
  * BabelTrace - Sink Component Interface
@@ -48,4 +48,4 @@ extern struct bt_port *bt_component_sink_get_input_port_by_index(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_SINK_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_SINK_H */

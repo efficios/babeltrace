@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_GRAPH_H
-#define BABELTRACE_COMPONENT_GRAPH_H
+#ifndef BABELTRACE_GRAPH_GRAPH_H
+#define BABELTRACE_GRAPH_GRAPH_H
 
 /*
  * BabelTrace - Babeltrace Graph Interface
@@ -118,4 +118,4 @@ extern enum bt_graph_status bt_graph_add_ports_disconnected_listener(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_GRAPH_H */
+#endif /* BABELTRACE_GRAPH_GRAPH_H */

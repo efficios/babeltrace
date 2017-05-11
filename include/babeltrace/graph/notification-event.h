@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_EVENT_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_EVENT_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_EVENT_H
+#define BABELTRACE_GRAPH_NOTIFICATION_EVENT_H
 
 /*
  * BabelTrace - Plug-in Event Notification
@@ -67,4 +67,4 @@ bt_notification_event_get_clock_class_priority_map(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_EVENT_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_EVENT_H */

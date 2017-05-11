@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_HEAP_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_HEAP_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_HEAP_H
+#define BABELTRACE_GRAPH_NOTIFICATION_HEAP_H
 
 /*
  * Babeltrace - Notification Heap
@@ -90,4 +90,4 @@ extern struct bt_notification *bt_notification_heap_peek(
 extern struct bt_notification *bt_notification_heap_pop(
 		struct bt_notification_heap *heap);
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_HEAP_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_HEAP_H */

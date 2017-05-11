@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_PACKET_H
+#define BABELTRACE_GRAPH_NOTIFICATION_PACKET_H
 
 /*
  * BabelTrace - Plug-in Packet-related Notifications
@@ -53,4 +53,4 @@ extern struct bt_ctf_packet *bt_notification_packet_end_get_packet(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PACKET_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_PACKET_H */

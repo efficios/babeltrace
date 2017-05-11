@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PRIVATE_CONNECTION_H
-#define BABELTRACE_COMPONENT_PRIVATE_CONNECTION_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_CONNECTION_H
+#define BABELTRACE_GRAPH_PRIVATE_CONNECTION_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -45,4 +45,4 @@ bt_private_connection_create_notification_iterator(
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_PRIVATE_CONNECTION_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_CONNECTION_H */

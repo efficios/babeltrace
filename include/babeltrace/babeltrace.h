@@ -1,5 +1,5 @@
-#ifndef _BABELTRACE_H
-#define _BABELTRACE_H
+#ifndef BABELTRACE_BABELTRACE_H
+#define BABELTRACE_BABELTRACE_H
 
 /*
  * BabelTrace API
@@ -30,4 +30,4 @@ extern int bt_version_get_minor(void);
 extern int bt_version_get_patch(void);
 extern const char *bt_version_get_extra(void);
 
-#endif /* _BABELTRACE_H */
+#endif /* BABELTRACE_BABELTRACE_H */
