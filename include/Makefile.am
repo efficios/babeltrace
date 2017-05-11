@@ -3,7 +3,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/values.h \
 	babeltrace/ref.h \
-	babeltrace/logging.h
+	babeltrace/logging.h \
+	babeltrace/version.h
 
 # Legacy API (for CTF writer)
 babeltracectfinclude_HEADERS = \

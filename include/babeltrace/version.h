@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_BABELTRACE_H
-#define BABELTRACE_BABELTRACE_H
+#ifndef BABELTRACE_VERSION_H
+#define BABELTRACE_VERSION_H
 
 /*
- * BabelTrace API
- *
- * Copyright 2010-2011 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2017 - Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,4 +23,9 @@
  * SOFTWARE.
  */
 
-#endif /* BABELTRACE_BABELTRACE_H */
+extern int bt_version_get_major(void);
+extern int bt_version_get_minor(void);
+extern int bt_version_get_patch(void);
+extern const char *bt_version_get_extra(void);
+
+#endif /* BABELTRACE_VERSION_H */
