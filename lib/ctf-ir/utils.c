@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <babeltrace/ctf-ir/utils.h>
 
 static
 const char * const reserved_keywords_str[] = {"align", "callsite",
@@ -103,4 +104,9 @@ int bt_ctf_validate_identifier(const char *input_string)
 end:
 	free(string);
 	return ret;
+}
+
+bt_bool bt_ctf_identifier_is_valid(const char *identifier)
+{
+	return bt_ctf_validate_identifier(identifier);
 }

@@ -30,6 +30,8 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,14 +61,17 @@ This function returns a negative value if \p identifier is a CTF keyword
 or if it does not meet any other imposed requirement.
 
 @param[in] identifier	String to test.
-@returns		0 if \p identifier is a valid identifier, or
-			a negative value otherwise or on error.
+@returns		#BT_TRUE if \p identifier is a valid CTF
+			identifier, or #BT_FALSE otherwise.
 
 @prenotnull{identifier}
 */
-extern int bt_ctf_validate_identifier(const char *identifier);
+extern bt_bool bt_ctf_identifier_is_valid(const char *identifier);
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+extern int bt_ctf_validate_identifier(const char *identifier);
 
 #ifdef __cplusplus
 }
