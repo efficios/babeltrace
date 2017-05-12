@@ -31,10 +31,7 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
 
-#define PRINT_ERR_STREAM	lttng_live->error_fp
-#define PRINT_PREFIX		"lttng-live-metadata"
-#define PRINT_DBG_CHECK		lttng_live_debug
-#include "../print.h"
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-METADATA"
 
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
@@ -98,7 +95,6 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		struct lttng_live_trace *trace)
 {
 	struct lttng_live_session *session = trace->session;
-	struct lttng_live_component *lttng_live = session->lttng_live;
 	struct lttng_live_metadata *metadata = trace->metadata;
 	ssize_t ret = 0;
 	size_t size, len_read = 0;
@@ -126,7 +122,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 	/* Open for writing */
 	fp = bt_open_memstream(&metadata_buf, &size);
 	if (!fp) {
-		PERR("Metadata open_memstream: %s\n", strerror(errno));
+		BT_LOGE("Metadata open_memstream: %s", strerror(errno));
 		goto error;
 	}
 
@@ -182,7 +178,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
-		PERR("Cannot memory-open metadata buffer: %s\n",
+		BT_LOGE("Cannot memory-open metadata buffer: %s",
 			strerror(errno));
 		goto error;
 	}
@@ -216,7 +212,7 @@ end:
 
 		closeret = fclose(fp);
 		if (closeret) {
-			PERR("Error on fclose");
+			BT_LOGE("Error on fclose");
 		}
 	}
 	return status;
@@ -236,8 +232,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	}
 	metadata->stream_id = stream_id;
 	//TODO: add clock offset option
-	metadata->decoder = ctf_metadata_decoder_create(
-			session->lttng_live->error_fp, 0);
+	metadata->decoder = ctf_metadata_decoder_create(stderr, 0);
 	if (!metadata->decoder) {
 		goto error;
 	}

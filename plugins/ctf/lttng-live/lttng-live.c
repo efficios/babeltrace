@@ -47,20 +47,15 @@
 #include <unistd.h>
 #include <plugins-common.h>
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE"
+
 #include "lttng-live-internal.h"
 #include "data-stream.h"
 #include "metadata.h"
 
-#define PRINT_ERR_STREAM	(lttng_live->error_fp)
-#define PRINT_PREFIX		"lttng-live"
-#define PRINT_DBG_CHECK		lttng_live_debug
 #define MAX_QUERY_SIZE		(256*1024)
-#include "../print.h"
 
-#ifdef LIVE_DEBUG
-#define print_dbg(fmt, args...)	\
-	fprintf(stderr, "%s() at " __FILE__ ":%d " fmt "\n",	\
-		__func__, __LINE__, ## args)
+#define print_dbg(fmt, ...)	BT_LOGD(fmt, ## __VA_ARGS__)
 
 static const char *print_state(struct lttng_live_stream_iterator *s)
 {
@@ -79,9 +74,6 @@ static const char *print_state(struct lttng_live_stream_iterator *s)
 		return "ERROR";
 	}
 }
-#else
-#define print_dbg(fmt, args...)
-#endif
 
 #define print_stream_state(stream)	\
 	print_dbg("stream %s state %s last_inact_ts %" PRId64 " cur_inact_ts %" PRId64,	\
@@ -90,7 +82,7 @@ static const char *print_state(struct lttng_live_stream_iterator *s)
 			stream->current_inactivity_timestamp)
 
 BT_HIDDEN
-bool lttng_live_debug;
+int bt_lttng_live_log_level = BT_LOG_NONE;
 
 BT_HIDDEN
 int lttng_live_add_port(struct lttng_live_component *lttng_live,
@@ -108,7 +100,7 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	if (!private_port) {
 		return -1;
 	}
-	PDBG("Added port %s\n", name);
+	BT_LOGI("Added port %s", name);
 
 	if (lttng_live->no_stream_port) {
 		ret = bt_private_port_remove_from_component(lttng_live->no_stream_port);
@@ -172,7 +164,7 @@ void lttng_live_destroy_trace(struct bt_object *obj)
 {
 	struct lttng_live_trace *trace = container_of(obj, struct lttng_live_trace, obj);
 
-	PDBG("Destroy trace\n");
+	BT_LOGI("Destroy trace");
 	assert(bt_list_empty(&trace->streams));
 	bt_list_del(&trace->node);
 	lttng_live_metadata_fini(trace);
@@ -196,6 +188,7 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 	trace->new_metadata_needed = true;
 	bt_list_add(&trace->node, &session->traces);
 	bt_object_init(&trace->obj, lttng_live_destroy_trace);
+	BT_LOGI("Create trace");
 	goto end;
 error:
 	g_free(trace);
@@ -251,11 +244,11 @@ int lttng_live_add_session(struct lttng_live_component *lttng_live, uint64_t ses
 	s->lttng_live = lttng_live;
 	s->new_streams_needed = true;
 
-	PDBG("Reading from session %" PRIu64 "\n", s->id);
+	BT_LOGI("Reading from session %" PRIu64, s->id);
 	bt_list_add(&s->node, &lttng_live->sessions);
 	goto end;
 error:
-	PERR("Error adding session\n");
+	BT_LOGE("Error adding session");
 	g_free(s);
 	ret = -1;
 end:
@@ -267,11 +260,11 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 {
 	struct lttng_live_trace *trace, *t;
 
-	PDBG("Destroy session\n");
+	BT_LOGI("Destroy session");
 	if (session->id != -1ULL) {
 		if (lttng_live_detach_session(session)) {
 			/* Old relayd cannot detach sessions. */
-			PDBG("Unable to detach session %" PRIu64 "\n",
+			BT_LOGD("Unable to detach session %" PRIu64,
 				session->id);
 		}
 		session->id = -1ULL;
@@ -317,12 +310,12 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_check_stream_sta
 		break;
 	case LTTNG_LIVE_STREAM_ACTIVE_NO_DATA:
 		/* Invalid state. */
-		PERR("Unexpected stream state \"ACTIVE_NO_DATA\"\n");
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		BT_LOGF("Unexpected stream state \"ACTIVE_NO_DATA\"");
+		abort();
 	case LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA:
 		/* Invalid state. */
-		PERR("Unexpected stream state \"QUIESCENT_NO_DATA\"\n");
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		BT_LOGF("Unexpected stream state \"QUIESCENT_NO_DATA\"");
+		abort();
 	case LTTNG_LIVE_STREAM_EOF:
 		break;
 	}
@@ -853,7 +846,6 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct lttng_live_stream_iterator_generic *s;
-	struct lttng_live_component *lttng_live;
 
 	assert(it);
 
@@ -864,7 +856,6 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_no_stream_iterator *no_stream_iter =
 			container_of(s, struct lttng_live_no_stream_iterator, p);
-		lttng_live = no_stream_iter->lttng_live;
 		ret = bt_private_notification_iterator_set_user_data(it, no_stream_iter);
 		if (ret) {
 			goto error;
@@ -875,7 +866,6 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_stream_iterator *stream_iter =
 			container_of(s, struct lttng_live_stream_iterator, p);
-		lttng_live = stream_iter->trace->session->lttng_live;
 		ret = bt_private_notification_iterator_set_user_data(it, stream_iter);
 		if (ret) {
 			goto error;
@@ -892,7 +882,7 @@ end:
 error:
 	if (bt_private_notification_iterator_set_user_data(it, NULL)
 			!= BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		PERR("Error setting private data to NULL\n");
+		BT_LOGE("Error setting private data to NULL");
 	}
 	goto end;
 }
@@ -909,13 +899,13 @@ struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_
 
 	url_value = bt_value_map_get(params, "url");
 	if (!url_value || bt_value_is_null(url_value) || !bt_value_is_string(url_value)) {
-		fprintf(stderr, "Mandatory \"url\" parameter missing\n");
+		BT_LOGW("Mandatory \"url\" parameter missing");
 		goto error;
 	}
 
 	ret = bt_value_string_get(url_value, &url);
 	if (ret != BT_VALUE_STATUS_OK) {
-		fprintf(stderr, "\"url\" parameter is required to be a string value\n");
+		BT_LOGW("\"url\" parameter is required to be a string value");
 		goto error;
 	}
 
@@ -945,7 +935,7 @@ struct bt_value *lttng_live_query(struct bt_component_class *comp_class,
 		return lttng_live_query_list_sessions(comp_class,
 			params);
 	}
-	fprintf(stderr, "Unknown query object `%s`\n", object);
+	BT_LOGW("Unknown query object `%s`", object);
 	return NULL;
 }
 
@@ -997,18 +987,17 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 	if (!lttng_live) {
 		goto end;
 	}
-	lttng_live->error_fp = stderr;
 	/* TODO: make this an overridable parameter. */
 	lttng_live->max_query_size = MAX_QUERY_SIZE;
 	BT_INIT_LIST_HEAD(&lttng_live->sessions);
 	value = bt_value_map_get(params, "url");
 	if (!value || bt_value_is_null(value) || !bt_value_is_string(value)) {
-		fprintf(stderr, "Mandatory \"url\" parameter missing\n");
+		BT_LOGW("Mandatory \"url\" parameter missing");
 		goto error;
 	}
 	ret = bt_value_string_get(value, &url);
 	if (ret != BT_VALUE_STATUS_OK) {
-		fprintf(stderr, "\"url\" parameter is required to be a string value\n");
+		BT_LOGW("\"url\" parameter is required to be a string value");
 		goto error;
 	}
 	lttng_live->url = g_string_new(url);
@@ -1044,8 +1033,6 @@ enum bt_component_status lttng_live_component_init(struct bt_private_component *
 	struct lttng_live_component *lttng_live;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	lttng_live_debug = g_strcmp0(getenv("LTTNG_LIVE_DEBUG"), "1") == 0;
-
 	/* Passes ownership of iter ref to lttng_live_component_create. */
 	lttng_live = lttng_live_component_create(params, component);
 	if (!lttng_live) {
@@ -1074,4 +1061,31 @@ error:
 	(void) bt_private_component_set_user_data(component, NULL);
 	lttng_live_component_destroy_data(lttng_live);
 	return ret;
+}
+
+static
+void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
+{
+	enum bt_logging_level log_level = BT_LOG_NONE;
+	const char *log_level_env = getenv("BABELTRACE_PLUGIN_LTTNG_LIVE_LOG_LEVEL");
+
+	if (!log_level_env) {
+		return;
+	}
+
+	if (strcmp(log_level_env, "VERBOSE") == 0) {
+		log_level = BT_LOGGING_LEVEL_VERBOSE;
+	} else if (strcmp(log_level_env, "DEBUG") == 0) {
+		log_level = BT_LOGGING_LEVEL_DEBUG;
+	} else if (strcmp(log_level_env, "INFO") == 0) {
+		log_level = BT_LOGGING_LEVEL_INFO;
+	} else if (strcmp(log_level_env, "WARN") == 0) {
+		log_level = BT_LOGGING_LEVEL_WARN;
+	} else if (strcmp(log_level_env, "ERROR") == 0) {
+		log_level = BT_LOGGING_LEVEL_ERROR;
+	} else if (strcmp(log_level_env, "FATAL") == 0) {
+		log_level = BT_LOGGING_LEVEL_FATAL;
+	}
+
+        bt_lttng_live_log_level = log_level;
 }

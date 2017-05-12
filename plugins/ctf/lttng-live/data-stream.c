@@ -32,12 +32,10 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
-#include "data-stream.h"
 
-#define PRINT_ERR_STREAM	lttng_live->error_fp
-#define PRINT_PREFIX		"lttng-live-data-stream"
-#define PRINT_DBG_CHECK		lttng_live_debug
-#include "../print.h"
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-DS"
+
+#include "data-stream.h"
 
 static
 enum bt_ctf_notif_iter_medium_status medop_request_bytes(
@@ -66,12 +64,7 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	status = lttng_live_get_stream_bytes(lttng_live,
 			stream, stream->buf, stream->offset,
 			read_len, &recv_len);
-#if 0	//DEBUG
-	for (i = 0; i < recv_len; i++) {
-		fprintf(stderr, "%x ", stream->buf[i]);
-	}
-	fprintf(stderr, "\n");
-#endif
+	BT_LOGV_MEM(stream->buf, recv_len, "Live receive payload");
 	*buffer_addr = stream->buf;
 	*buffer_sz = recv_len;
 	stream->offset += recv_len;
@@ -83,19 +76,16 @@ struct bt_ctf_stream *medop_get_stream(
 		struct bt_ctf_stream_class *stream_class, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
-	struct lttng_live_trace *trace = lttng_live_stream->trace;
-	struct lttng_live_session *session = trace->session;
-	struct lttng_live_component *lttng_live = session->lttng_live;
 
 	if (!lttng_live_stream->stream) {
 		int64_t id = bt_ctf_stream_class_get_id(stream_class);
 
-		PDBG("Creating stream %s out of stream class %" PRId64 "\n",
+		BT_LOGD("Creating stream %s out of stream class %" PRId64,
 			lttng_live_stream->name, id);
 		lttng_live_stream->stream = bt_ctf_stream_create(stream_class,
 				lttng_live_stream->name);
 		if (!lttng_live_stream->stream) {
-			PERR("Cannot create stream %s (stream class %" PRId64 ")\n",
+			BT_LOGE("Cannot create stream %s (stream class %" PRId64 ")",
 					lttng_live_stream->name, id);
 		}
 	}
@@ -128,7 +118,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
 			}
 			stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
 					lttng_live->max_query_size, medops,
-					stream, lttng_live->error_fp);
+					stream, stderr);
 			if (!stream->notif_iter) {
 				goto error;
 			}
@@ -170,7 +160,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	if (trace->trace) {
 		stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
 				lttng_live->max_query_size, medops,
-				stream, lttng_live->error_fp);
+				stream, stderr);
 		if (!stream->notif_iter) {
 			goto error;
 		}

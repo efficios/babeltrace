@@ -31,6 +31,10 @@
 #include <stdbool.h>
 
 #include <babeltrace/babeltrace-internal.h>
+
+#define BT_LOG_OUTPUT_LEVEL bt_lttng_live_log_level
+#include <babeltrace/logging-internal.h>
+
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
@@ -47,7 +51,7 @@
 #define U64_STR_MAX_LEN		20
 #define STREAM_NAME_MAX_LEN	(sizeof(STREAM_NAME_PREFIX) + U64_STR_MAX_LEN)
 
-extern bool lttng_live_debug;
+extern int bt_lttng_live_log_level;
 
 struct lttng_live_component;
 struct lttng_live_session;
@@ -182,7 +186,6 @@ struct lttng_live_component {
 	struct bt_list_head sessions;
 
 	GString *url;
-	FILE *error_fp;
 	size_t max_query_size;
 	struct lttng_live_component_options options;
 
