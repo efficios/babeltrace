@@ -934,8 +934,135 @@ end:
 static
 int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 {
-	printf("TODO\n");
-	return -1;
+	int ret = 0;
+	struct bt_component_class *comp_cls = NULL;
+	struct bt_value *results = NULL;
+	struct bt_value *params = NULL;
+	struct bt_value *map = NULL;
+	struct bt_value *v = NULL;
+	static const char * const plugin_name = "ctf";
+	static const char * const comp_cls_name = "lttng-live";
+	static const enum bt_component_class_type comp_cls_type =
+		BT_COMPONENT_CLASS_TYPE_SOURCE;
+	int64_t array_size, i;
+
+	assert(cfg->cmd_data.print_lttng_live_sessions.url);
+	comp_cls = find_component_class(plugin_name, comp_cls_name,
+		comp_cls_type);
+	if (!comp_cls) {
+		BT_LOGE("Cannot find component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			plugin_name, comp_cls_name,
+			BT_COMPONENT_CLASS_TYPE_SOURCE);
+		fprintf(stderr, "%s%sCannot find component class %s",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		print_plugin_comp_cls_opt(stderr, plugin_name,
+			comp_cls_name, comp_cls_type);
+		fprintf(stderr, "\n");
+		goto error;
+	}
+
+	params = bt_value_map_create();
+	if (!params) {
+		goto error;
+	}
+
+	ret = bt_value_map_insert_string(params, "url",
+		cfg->cmd_data.print_lttng_live_sessions.url->str);
+	if (ret) {
+		goto error;
+	}
+
+	results = bt_component_class_query(comp_cls, "sessions",
+		params);
+	if (!results) {
+		BT_LOGE_STR("Failed to query for sessions.");
+		fprintf(stderr, "%s%sFailed to request sessions%s\n",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		goto error;
+	}
+
+	if (!bt_value_is_array(results)) {
+		BT_LOGE_STR("Expecting an array for sessions query.");
+		fprintf(stderr, "%s%sUnexpected type returned by session query%s\n",
+			bt_common_color_bold(),
+			bt_common_color_fg_red(),
+			bt_common_color_reset());
+		goto error;
+	}
+
+	array_size = bt_value_array_size(results);
+	for (i = 0; i < array_size; i++) {
+		const char *url_text;
+		int64_t timer_us, streams, clients;
+
+		map = bt_value_array_get(results, i);
+		if (!map) {
+			BT_LOGE_STR("Unexpected empty array entry.");
+			goto error;
+		}
+		if (!bt_value_is_map(map)) {
+			BT_LOGE_STR("Unexpected entry type.");
+			goto error;
+		}
+
+		v = bt_value_map_get(map, "url");
+		if (!v) {
+			BT_LOGE_STR("Unexpected empty array \"url\" entry.");
+			goto error;
+		}
+		ret = bt_value_string_get(v, &url_text);
+		assert(ret == 0);
+		printf("%s", url_text);
+		BT_PUT(v);
+
+		v = bt_value_map_get(map, "timer-us");
+		if (!v) {
+			BT_LOGE_STR("Unexpected empty array \"timer-us\" entry.");
+			goto error;
+		}
+		ret = bt_value_integer_get(v, &timer_us);
+		assert(ret == 0);
+		printf(" (timer = %" PRIu64 ", ", timer_us);
+		BT_PUT(v);
+
+		v = bt_value_map_get(map, "stream-count");
+		if (!v) {
+			BT_LOGE_STR("Unexpected empty array \"stream-count\" entry.");
+			goto error;
+		}
+		ret = bt_value_integer_get(v, &streams);
+		assert(ret == 0);
+		printf("%" PRIu64 " stream(s), ", streams);
+		BT_PUT(v);
+
+		v = bt_value_map_get(map, "client-count");
+		if (!v) {
+			BT_LOGE_STR("Unexpected empty array \"client-count\" entry.");
+			goto error;
+		}
+		ret = bt_value_integer_get(v, &clients);
+		assert(ret == 0);
+		printf("%" PRIu64 " client(s) connected)\n", clients);
+		BT_PUT(v);
+
+		BT_PUT(map);
+	}
+end:
+	bt_put(v);
+	bt_put(map);
+	bt_put(results);
+	bt_put(params);
+	bt_put(comp_cls);
+	return 0;
+
+error:
+	ret = -1;
+	goto end;
 }
 
 static
