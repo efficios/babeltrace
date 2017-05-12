@@ -61,7 +61,7 @@ struct muxer_upstream_notif_iter {
 	/* Owned by this, NULL if ended */
 	struct bt_notification_iterator *notif_iter;
 
-	/* Owned by this*/
+	/* Weak */
 	struct bt_private_port *priv_port;
 
 	/*
@@ -90,7 +90,7 @@ struct muxer_notif_iter {
 	GPtrArray *muxer_upstream_notif_iters;
 
 	/*
-	 * List of "recently" connected input ports (owned by this) to
+	 * List of "recently" connected input ports (weak) to
 	 * handle by this muxer notification iterator.
 	 * muxer_port_connected() adds entries to this list, and the
 	 * entries are removed when a notification iterator is created
@@ -116,7 +116,6 @@ void destroy_muxer_upstream_notif_iter(
 	}
 
 	bt_put(muxer_upstream_notif_iter->notif_iter);
-	bt_put(muxer_upstream_notif_iter->priv_port);
 	g_free(muxer_upstream_notif_iter);
 }
 
@@ -134,7 +133,7 @@ struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
 	}
 
 	muxer_upstream_notif_iter->notif_iter = bt_get(notif_iter);
-	muxer_upstream_notif_iter->priv_port = bt_get(priv_port);
+	muxer_upstream_notif_iter->priv_port = priv_port;
 	muxer_upstream_notif_iter->is_valid = false;
 	g_ptr_array_add(muxer_notif_iter->muxer_upstream_notif_iters,
 		muxer_upstream_notif_iter);
@@ -180,7 +179,7 @@ end:
 		g_string_free(port_name, TRUE);
 	}
 
-	BT_PUT(priv_port);
+	bt_put(priv_port);
 	return ret;
 }
 
@@ -464,7 +463,6 @@ int muxer_notif_iter_handle_newly_connected_ports(
 			&ret);
 		if (ret) {
 			assert(!upstream_notif_iter);
-			bt_put(priv_port);
 			goto error;
 		}
 
@@ -472,7 +470,6 @@ int muxer_notif_iter_handle_newly_connected_ports(
 			muxer_notif_iter_add_upstream_notif_iter(
 				muxer_notif_iter, upstream_notif_iter,
 				priv_port);
-		BT_PUT(priv_port);
 		BT_PUT(upstream_notif_iter);
 		if (!muxer_upstream_notif_iter) {
 			goto error;
@@ -481,7 +478,6 @@ int muxer_notif_iter_handle_newly_connected_ports(
 remove_node:
 		bt_put(upstream_notif_iter);
 		bt_put(port);
-		bt_put(priv_port);
 		muxer_notif_iter->newly_connected_priv_ports =
 			g_list_delete_link(
 				muxer_notif_iter->newly_connected_priv_ports,
@@ -798,8 +794,6 @@ end:
 static
 void destroy_muxer_notif_iter(struct muxer_notif_iter *muxer_notif_iter)
 {
-	GList *node;
-
 	if (!muxer_notif_iter) {
 		return;
 	}
@@ -807,11 +801,6 @@ void destroy_muxer_notif_iter(struct muxer_notif_iter *muxer_notif_iter)
 	if (muxer_notif_iter->muxer_upstream_notif_iters) {
 		g_ptr_array_free(
 			muxer_notif_iter->muxer_upstream_notif_iters, TRUE);
-	}
-
-	for (node = muxer_notif_iter->newly_connected_priv_ports;
-			node; node = g_list_next(node)) {
-		bt_put(node->data);
 	}
 
 	g_list_free(muxer_notif_iter->newly_connected_priv_ports);
@@ -856,12 +845,12 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		}
 
 		bt_put(port);
+		bt_put(priv_port);
 		muxer_notif_iter->newly_connected_priv_ports =
 			g_list_append(
 				muxer_notif_iter->newly_connected_priv_ports,
 				priv_port);
 		if (!muxer_notif_iter->newly_connected_priv_ports) {
-			bt_put(priv_port);
 			ret = -1;
 			goto end;
 		}
@@ -1017,24 +1006,13 @@ void muxer_port_connected(
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 	size_t i;
+	int ret;
 
 	assert(self_port);
 	assert(muxer_comp);
 
-	if (bt_port_get_type(self_port) == BT_PORT_TYPE_INPUT) {
-		int ret;
-
-		/* One less available input port */
-		muxer_comp->available_input_ports--;
-		ret = ensure_available_input_port(priv_comp);
-		if (ret) {
-			/*
-			 * Only way to report an error later since this
-			 * method does not return anything.
-			 */
-			muxer_comp->error = true;
-			goto end;
-		}
+	if (bt_port_get_type(self_port) == BT_PORT_TYPE_OUTPUT) {
+		goto end;
 	}
 
 	for (i = 0; i < muxer_comp->muxer_notif_iters->len; i++) {
@@ -1053,13 +1031,24 @@ void muxer_port_connected(
 		muxer_notif_iter->newly_connected_priv_ports =
 			g_list_append(
 				muxer_notif_iter->newly_connected_priv_ports,
-				bt_get(self_private_port));
+				self_private_port);
 		if (!muxer_notif_iter->newly_connected_priv_ports) {
 			/* Put reference taken by bt_get() above */
-			bt_put(self_private_port);
 			muxer_comp->error = true;
 			goto end;
 		}
+	}
+
+	/* One less available input port */
+	muxer_comp->available_input_ports--;
+	ret = ensure_available_input_port(priv_comp);
+	if (ret) {
+		/*
+		 * Only way to report an error later since this
+		 * method does not return anything.
+		 */
+		muxer_comp->error = true;
+		goto end;
 	}
 
 end:
