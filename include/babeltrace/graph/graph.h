@@ -38,6 +38,8 @@ struct bt_port;
 struct bt_connection;
 
 enum bt_graph_status {
+	/** Canceled. */
+	BT_GRAPH_STATUS_CANCELED = 125,
 	/** No sink can consume at the moment. */
 	BT_GRAPH_STATUS_AGAIN = 11,
 	/** Downstream component does not support multiple inputs. */
@@ -51,8 +53,6 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
 	BT_GRAPH_STATUS_ERROR = -1,
-	/** Canceled. */
-	BT_GRAPH_STATUS_CANCELED = -125,
 };
 
 typedef void (*bt_graph_port_added_listener)(struct bt_port *port,
