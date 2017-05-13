@@ -688,14 +688,9 @@ void print_plugin_info(struct bt_plugin *plugin)
 static
 int cmd_query(struct bt_config *cfg)
 {
-	int ret;
+	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
 	struct bt_value *results = NULL;
-
-	ret = load_all_plugins(cfg->plugin_paths);
-	if (ret) {
-		goto end;
-	}
 
 	comp_cls = find_component_class(cfg->cmd_data.query.cfg_component->plugin_name->str,
 		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
@@ -758,14 +753,9 @@ end:
 static
 int cmd_help(struct bt_config *cfg)
 {
-	int ret;
+	int ret = 0;
 	struct bt_plugin *plugin = NULL;
 	size_t i;
-
-	ret = load_all_plugins(cfg->plugin_paths);
-	if (ret) {
-		goto end;
-	}
 
 	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
@@ -869,11 +859,6 @@ int cmd_list_plugins(struct bt_config *cfg)
 {
 	int ret = 0;
 	int plugins_count, component_classes_count = 0, i;
-
-	ret = load_all_plugins(cfg->plugin_paths);
-	if (ret) {
-		goto end;
-	}
 
 	printf("From the following plugin paths:\n\n");
 	print_value(stdout, cfg->plugin_paths, 2);
@@ -1575,11 +1560,6 @@ int cmd_run(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct cmd_run_ctx ctx = { 0 };
-
-	ret = load_all_plugins(cfg->plugin_paths);
-	if (ret) {
-		goto error;
-	}
 
 	/* Initialize the command's context and the graph object */
 	if (cmd_run_ctx_init(&ctx, cfg)) {
