@@ -82,6 +82,45 @@ void bt_connection_destroy(struct bt_object *obj)
 	g_free(connection);
 }
 
+static
+void bt_connection_try_remove_from_graph(struct bt_connection *connection)
+{
+	void *graph = bt_object_borrow_parent(&connection->base);
+
+	if (connection->base.ref_count.count > 0 ||
+			connection->downstream_port ||
+			connection->upstream_port ||
+			connection->iterators->len > 0) {
+		return;
+	}
+
+	/*
+	 * At this point we know that:
+	 *
+	 * 1. The connection is dead (ports were disconnected).
+	 * 2. All the notification iterators that this connection
+	 *    created, if any, are finalized.
+	 * 3. The connection's reference count is 0, so only the
+	 *    parent (graph) owns this connection after this call.
+	 *
+	 * In other words, no other object than the graph knows this
+	 * connection.
+	 *
+	 * It is safe to remove the connection from the graph, therefore
+	 * destroying it.
+	 */
+	bt_graph_remove_connection(graph, connection);
+}
+
+static
+void bt_connection_parent_is_owner(struct bt_object *obj)
+{
+	struct bt_connection *connection = container_of(obj,
+			struct bt_connection, base);
+
+	bt_connection_try_remove_from_graph(connection);
+}
+
 struct bt_connection *bt_connection_from_private_connection(
 		struct bt_private_connection *private_connection)
 {
@@ -109,6 +148,8 @@ struct bt_connection *bt_connection_create(
 	}
 
 	bt_object_init(connection, bt_connection_destroy);
+	bt_object_set_parent_is_owner_listener(connection,
+		bt_connection_parent_is_owner);
 	connection->iterators = g_ptr_array_new();
 	if (!connection->iterators) {
 		BT_PUT(connection);
@@ -132,7 +173,8 @@ void bt_connection_disconnect_ports(struct bt_connection *conn)
 	struct bt_component *upstream_comp = NULL;
 	struct bt_port *downstream_port = conn->downstream_port;
 	struct bt_port *upstream_port = conn->upstream_port;
-	struct bt_graph *graph = (void *) bt_object_get_parent(conn);
+	struct bt_graph *graph = (void *) bt_object_borrow_parent(conn);
+	size_t i;
 
 	if (downstream_port) {
 		downstream_comp = bt_port_get_component(downstream_port);
@@ -160,7 +202,28 @@ void bt_connection_disconnect_ports(struct bt_connection *conn)
 		downstream_comp, upstream_port, downstream_port);
 	bt_put(downstream_comp);
 	bt_put(upstream_comp);
-	bt_put(graph);
+
+	/*
+	 * Because this connection is dead, finalize (cancel) each
+	 * notification iterator created from it.
+	 */
+	for (i = 0; i < conn->iterators->len; i++) {
+		struct bt_notification_iterator *iterator =
+			g_ptr_array_index(conn->iterators, i);
+
+		bt_notification_iterator_finalize(iterator);
+
+		/*
+		 * Make sure this iterator does not try to remove itself
+		 * from this connection's iterators on destruction
+		 * because this connection won't exist anymore.
+		 */
+		bt_notification_iterator_set_connection(iterator,
+			NULL);
+	}
+
+	g_ptr_array_set_size(conn->iterators, 0);
+	bt_connection_try_remove_from_graph(conn);
 }
 
 struct bt_port *bt_connection_get_upstream_port(
@@ -282,4 +345,5 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_notification_iterator *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
+	bt_connection_try_remove_from_graph(conn);
 }

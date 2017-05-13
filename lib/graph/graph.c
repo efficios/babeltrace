@@ -782,3 +782,12 @@ extern bt_bool bt_graph_is_canceled(struct bt_graph *graph)
 {
 	return graph ? graph->canceled : BT_FALSE;
 }
+
+BT_HIDDEN
+void bt_graph_remove_connection(struct bt_graph *graph,
+		struct bt_connection *connection)
+{
+	assert(graph);
+	assert(connection);
+	g_ptr_array_remove(graph->connections, connection);
+}

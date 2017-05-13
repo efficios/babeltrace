@@ -38,8 +38,10 @@
  */
 struct bt_object {
 	struct bt_ref ref_count;
-	/* Class-specific release function. */
+	/* Class-specific, optional release function. */
 	bt_object_release_func release;
+	/* Class-specific, optional "parent is owner" notification listener. */
+	bt_object_release_func parent_is_owner_listener;
 	/* @see doc/ref-counting.md */
 	struct bt_object *parent;
 };
@@ -66,8 +68,20 @@ static inline
 void generic_release(struct bt_object *obj)
 {
 	if (obj->parent) {
+		void *parent = obj->parent;
+
+		if (obj->parent_is_owner_listener) {
+			/*
+			 * Object has a chance to destroy itself here
+			 * under certain conditions and notify its
+			 * parent. At this point the parent is
+			 * guaranteed to exist because it's not put yet.
+			 */
+			obj->parent_is_owner_listener(obj);
+		}
+
 		/* The release function will be invoked by the parent. */
-		bt_put(obj->parent);
+		bt_put(parent);
 	} else {
 		bt_object_release(obj);
 	}
@@ -114,6 +128,14 @@ void bt_object_init(void *ptr, bt_object_release_func release)
 	obj->release = release;
 	obj->parent = NULL;
 	bt_ref_init(&obj->ref_count, generic_release);
+}
+
+static inline
+void bt_object_set_parent_is_owner_listener(void *obj,
+		bt_object_release_func cb)
+{
+	assert(obj);
+	((struct bt_object *) obj)->parent_is_owner_listener = cb;
 }
 
 #endif /* BABELTRACE_OBJECT_INTERNAL_H */

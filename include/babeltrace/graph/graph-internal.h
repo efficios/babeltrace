@@ -83,4 +83,8 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 		struct bt_port *upstream_port,
 		struct bt_port *downstream_port);
 
+BT_HIDDEN
+void bt_graph_remove_connection(struct bt_graph *graph,
+		struct bt_connection *connection);
+
 #endif /* BABELTRACE_COMPONENT_COMPONENT_GRAPH_INTERNAL_H */
