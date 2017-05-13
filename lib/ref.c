@@ -24,11 +24,11 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "REF"
+
+#include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
-
-#define BT_LOG_TAG "REF"
-#include <babeltrace/lib-logging-internal.h>
 
 void *bt_get(void *ptr)
 {

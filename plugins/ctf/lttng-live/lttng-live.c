@@ -49,9 +49,9 @@
 
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE"
 
-#include "lttng-live-internal.h"
 #include "data-stream.h"
 #include "metadata.h"
+#include "lttng-live-internal.h"
 
 #define MAX_QUERY_SIZE		(256*1024)
 

@@ -30,7 +30,7 @@
 
 //TODO: this should not be used by plugins. Should copy code into plugin
 //instead.
-#include "babeltrace/object-internal.h"
+#include <babeltrace/object-internal.h>
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
 

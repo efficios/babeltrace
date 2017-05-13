@@ -28,6 +28,8 @@
  * SOFTWARE.
  */
 
+extern int bt_lttng_live_log_level;
+
 #include <stdbool.h>
 
 #include <babeltrace/babeltrace-internal.h>
@@ -50,8 +52,6 @@
 /* Account for u64 max string length. */
 #define U64_STR_MAX_LEN		20
 #define STREAM_NAME_MAX_LEN	(sizeof(STREAM_NAME_PREFIX) + U64_STR_MAX_LEN)
-
-extern int bt_lttng_live_log_level;
 
 struct lttng_live_component;
 struct lttng_live_session;

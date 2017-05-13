@@ -26,16 +26,16 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CLOCK-CLASS"
+
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <inttypes.h>
-
-#define BT_LOG_TAG "CLOCK-CLASS"
 #include <babeltrace/lib-logging-internal.h>
+#include <babeltrace/object-internal.h>
 
 static
 void bt_ctf_clock_class_destroy(struct bt_object *obj);

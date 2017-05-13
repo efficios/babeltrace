@@ -59,6 +59,11 @@ void bt_object_release(void *ptr)
 {
 	struct bt_object *obj = ptr;
 
+#ifdef BT_LOGV
+	BT_LOGV("Releasing object: addr=%p, ref-count=%lu", ptr,
+		obj->ref_count.count);
+#endif
+
 	if (obj && obj->release && !bt_object_get_ref_count(obj)) {
 		obj->release(obj);
 	}
@@ -68,7 +73,14 @@ static inline
 void generic_release(struct bt_object *obj)
 {
 	if (obj->parent) {
-		void *parent = obj->parent;
+		struct bt_object *parent = obj->parent;
+
+#ifdef BT_LOGV
+		BT_LOGV("Releasing parented object: addr=%p, ref-count=%lu, "
+			"parent-addr=%p, parent-ref-count=%lu",
+			obj, obj->ref_count.count,
+			parent, parent->ref_count.count);
+#endif
 
 		if (obj->parent_is_owner_listener) {
 			/*
@@ -109,6 +121,11 @@ void bt_object_set_parent(void *child_ptr, void *parent)
 	if (!child) {
 		return;
 	}
+
+#ifdef BT_LOGV
+	BT_LOGV("Setting object's parent: addr=%p, parent-addr=%p",
+		child_ptr, parent);
+#endif
 
 	/*
 	 * It is assumed that a "child" being "parented" is publicly reachable.
