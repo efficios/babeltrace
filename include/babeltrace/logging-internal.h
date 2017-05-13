@@ -16,7 +16,7 @@
  * compiler command line):
  *
  *   #define BT_LOG_VERSION_REQUIRED 4
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * Compilation will fail when included file has different version.
  */
@@ -74,7 +74,7 @@
  * before including bt_log.h:
  *
  *   #define BT_LOG_LEVEL BT_LOG_VERBOSE
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * If both BT_LOG_DEF_LEVEL and BT_LOG_LEVEL are undefined, then BT_LOG_INFO
  * will be used for release builds (NDEBUG is defined) and BT_LOG_DEBUG
@@ -119,7 +119,7 @@
  * Example:
  *
  *   #define BT_LOG_OUTPUT_LEVEL g_module_log_level
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *   static int g_module_log_level = BT_LOG_INFO;
  *   static void foo() {
  *       BT_LOGI("Will check g_module_log_level for output log level");
@@ -137,7 +137,7 @@
  * must be the first field in this structure:
  *
  *   #define BT_LOG_OUTPUT_LEVEL (g_config.log_level)
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *   struct config {
  *       int log_level;
  *       unsigned other_field;
@@ -182,7 +182,7 @@
  * before including bt_log.h:
  *
  *   #define BT_LOG_TAG "MAIN"
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * If both BT_LOG_DEF_TAG and BT_LOG_TAG are undefined no tag will be added to
  * the log message (tag prefix still could be added though).
@@ -231,7 +231,7 @@
  * before including bt_log.h:
  *
  *   #define BT_LOG_SRCLOC BT_LOG_SRCLOC_NONE
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * If both BT_LOG_DEF_SRCLOC and BT_LOG_SRCLOC are undefined, then
  * BT_LOG_SRCLOC_NONE will be used for release builds (NDEBUG is defined) and
@@ -279,7 +279,7 @@
  * very careful not to push such temporary changes to source control):
  *
  *   #define BT_LOG_CENSORING BT_LOG_UNCENSORED
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * If both BT_LOG_DEF_CENSORING and BT_LOG_CENSORING are undefined, then
  * BT_LOG_CENSORED will be used for release builds (NDEBUG is defined) and
@@ -328,7 +328,7 @@
  *
  * For example, in log_config.c:
  *
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *   BT_LOG_DEFINE_TAG_PREFIX = "MyApp";
  *   BT_LOG_DEFINE_GLOBAL_FORMAT = {CUSTOM_MEM_WIDTH};
  *   BT_LOG_DEFINE_GLOBAL_OUTPUT = {BT_LOG_PUT_STD, custom_output_callback, 0};
@@ -400,7 +400,7 @@
  *
  *   // KittyHttpLogging.h
  *   #define BT_LOG_LIBRARY_PREFIX KittyHttp_
- *   #include <babeltrace/log-internal.h>
+ *   #include <babeltrace/logging-internal.h>
  *
  * Regardless of the method chosen, the end result is that bt_log symbols will
  * be prefixed with "KittyHttp_", so if a user of KittyHttp (say DogeBrowser)
