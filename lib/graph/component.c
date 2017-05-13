@@ -78,6 +78,16 @@ void bt_component_destroy(struct bt_object *obj)
 		return;
 	}
 
+	/*
+	 * The component's reference count is 0 if we're here. Increment
+	 * it to avoid a double-destroy (possibly infinitely recursive).
+	 * This could happen for example if the component's finalization
+	 * function does bt_get() (or anything that causes bt_get() to
+	 * be called) on itself (ref. count goes from 0 to 1), and then
+	 * bt_put(): the reference count would go from 1 to 0 again and
+	 * this function would be called again.
+	 */
+	obj->ref_count.count++;
 	component = container_of(obj, struct bt_component, base);
 
 	/* Call destroy listeners in reverse registration order */

@@ -30,6 +30,7 @@
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
@@ -263,44 +264,22 @@ static
 void bt_notification_iterator_destroy(struct bt_object *obj)
 {
 	struct bt_notification_iterator *iterator;
-	struct bt_component_class *comp_class;
 
 	assert(obj);
-	iterator = container_of(obj, struct bt_notification_iterator,
-			base);
-	assert(iterator->upstream_component);
-	comp_class = iterator->upstream_component->class;
 
-	/* Call user-defined destroy method */
-	switch (comp_class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *source_class;
-
-		source_class = container_of(comp_class, struct bt_component_class_source, parent);
-
-		if (source_class->methods.iterator.finalize) {
-			source_class->methods.iterator.finalize(
-				bt_private_notification_iterator_from_notification_iterator(iterator));
-		}
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *filter_class;
-
-		filter_class = container_of(comp_class, struct bt_component_class_filter, parent);
-
-		if (filter_class->methods.iterator.finalize) {
-			filter_class->methods.iterator.finalize(
-				bt_private_notification_iterator_from_notification_iterator(iterator));
-		}
-		break;
-	}
-	default:
-		/* Unreachable */
-		assert(0);
-	}
+	/*
+	 * The notification iterator's reference count is 0 if we're
+	 * here. Increment it to avoid a double-destroy (possibly
+	 * infinitely recursive). This could happen for example if the
+	 * notification iterator's finalization function does bt_get()
+	 * (or anything that causes bt_get() to be called) on itself
+	 * (ref. count goes from 0 to 1), and then bt_put(): the
+	 * reference count would go from 1 to 0 again and this function
+	 * would be called again.
+	 */
+	obj->ref_count.count++;
+	iterator = container_of(obj, struct bt_notification_iterator, base);
+	bt_notification_iterator_finalize(iterator);
 
 	if (iterator->queue) {
 		struct bt_notification *notif;
@@ -338,10 +317,86 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		g_array_free(iterator->actions, TRUE);
 	}
 
+	if (iterator->connection) {
+		/*
+		 * Remove ourself from the originating connection so
+		 * that it does not try to finalize a dangling pointer
+		 * later.
+		 */
+		bt_connection_remove_iterator(iterator->connection, iterator);
+	}
+
 	bt_put(iterator->current_notification);
-	bt_put(iterator->upstream_component);
-	bt_put(iterator->upstream_port);
 	g_free(iterator);
+}
+
+BT_HIDDEN
+void bt_notification_iterator_finalize(
+		struct bt_notification_iterator *iterator)
+{
+	struct bt_component_class *comp_class = NULL;
+	bt_component_class_notification_iterator_finalize_method
+		finalize_method = NULL;
+
+	assert(iterator);
+
+	switch (iterator->state) {
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+		/* Already finalized */
+		return;
+	default:
+		break;
+	}
+
+	assert(iterator->upstream_component);
+	comp_class = iterator->upstream_component->class;
+
+	/* Call user-defined destroy method */
+	switch (comp_class->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *source_class;
+
+		source_class = container_of(comp_class, struct bt_component_class_source, parent);
+		finalize_method = source_class->methods.iterator.finalize;
+		break;
+	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *filter_class;
+
+		filter_class = container_of(comp_class, struct bt_component_class_filter, parent);
+		finalize_method = filter_class->methods.iterator.finalize;
+		break;
+	}
+	default:
+		/* Unreachable */
+		assert(0);
+	}
+
+	if (finalize_method) {
+		finalize_method(
+			bt_private_notification_iterator_from_notification_iterator(iterator));
+	}
+
+	if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_ENDED) {
+		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
+	} else {
+		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED;
+	}
+
+	iterator->upstream_component = NULL;
+	iterator->upstream_port = NULL;
+}
+
+BT_HIDDEN
+void bt_notification_iterator_set_connection(
+		struct bt_notification_iterator *iterator,
+		struct bt_connection *connection)
+{
+	assert(iterator);
+	iterator->connection = connection;
 }
 
 static
@@ -400,7 +455,8 @@ BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_component *upstream_comp,
 		struct bt_port *upstream_port,
-		const enum bt_notification_type *notification_types)
+		const enum bt_notification_type *notification_types,
+		struct bt_connection *connection)
 {
 	enum bt_component_class_type type;
 	struct bt_notification_iterator *iterator = NULL;
@@ -447,8 +503,10 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		goto error;
 	}
 
-	iterator->upstream_component = bt_get(upstream_comp);
-	iterator->upstream_port = bt_get(upstream_port);
+	iterator->upstream_component = upstream_comp;
+	iterator->upstream_port = upstream_port;
+	iterator->connection = connection;
+	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ACTIVE;
 	goto end;
 
 error:
@@ -1264,9 +1322,15 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 		goto end;
 	}
 
-	if (iterator->is_ended) {
+	switch (iterator->state) {
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+		status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATE_ENDED:
 		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
+	default:
+		break;
 	}
 
 	assert(iterator->upstream_component);
@@ -1320,11 +1384,21 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 				goto end;
 			}
 
-			if (iterator->queue->length == 0) {
-				status = BT_NOTIFICATION_ITERATOR_STATUS_END;
-			}
+			if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED) {
+				iterator->state =
+					BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
 
-			iterator->is_ended = BT_TRUE;
+				if (iterator->queue->length == 0) {
+					status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
+				}
+			} else {
+				iterator->state =
+					BT_NOTIFICATION_ITERATOR_STATE_ENDED;
+
+				if (iterator->queue->length == 0) {
+					status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+				}
+			}
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 			status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;

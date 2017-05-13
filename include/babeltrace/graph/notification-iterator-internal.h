@@ -29,6 +29,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref-internal.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
@@ -45,10 +46,36 @@ enum bt_notification_iterator_notif_type {
 	BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END =	(1U << 5),
 };
 
+enum bt_notification_iterator_state {
+	/* Iterator is active, not at the end yet, and not finalized. */
+	BT_NOTIFICATION_ITERATOR_STATE_ACTIVE,
+
+	/*
+	 * Iterator is ended, not finalized yet: the "next" method
+	 * returns BT_NOTIFICATION_ITERATOR_STATUS_END.
+	 */
+	BT_NOTIFICATION_ITERATOR_STATE_ENDED,
+
+	/*
+	 * Iterator is finalized, but not at the end yet. This means
+	 * that the "next" method can still return queued notifications
+	 * before returning the BT_NOTIFICATION_ITERATOR_STATUS_CANCELED
+	 * status.
+	 */
+	BT_NOTIFICATION_ITERATOR_STATE_FINALIZED,
+
+	/*
+	 * Iterator is finalized and ended: the "next" method always
+	 * returns BT_NOTIFICATION_ITERATOR_STATUS_CANCELED.
+	 */
+	BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED,
+};
+
 struct bt_notification_iterator {
 	struct bt_object base;
-	struct bt_component *upstream_component; /* owned by this */
-	struct bt_port *upstream_port; /* owned by this */
+	struct bt_component *upstream_component; /* Weak */
+	struct bt_port *upstream_port; /* Weak */
+	struct bt_connection *connection; /* Weak */
 	struct bt_notification *current_notification; /* owned by this */
 	GQueue *queue; /* struct bt_notification * (owned by this) */
 
@@ -86,7 +113,7 @@ struct bt_notification_iterator {
 	 */
 	uint32_t subscription_mask;
 
-	bt_bool is_ended;
+	enum bt_notification_iterator_state state;
 	void *user_data;
 };
 
@@ -115,7 +142,8 @@ BT_HIDDEN
 struct bt_notification_iterator *bt_notification_iterator_create(
 		struct bt_component *upstream_component,
 		struct bt_port *upstream_port,
-		const enum bt_notification_type *notification_types);
+		const enum bt_notification_type *notification_types,
+		struct bt_connection *connection);
 
 /**
  * Validate a notification iterator.
@@ -126,5 +154,14 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 BT_HIDDEN
 enum bt_notification_iterator_status bt_notification_iterator_validate(
 		struct bt_notification_iterator *iterator);
+
+BT_HIDDEN
+void bt_notification_iterator_finalize(
+		struct bt_notification_iterator *iterator);
+
+BT_HIDDEN
+void bt_notification_iterator_set_connection(
+		struct bt_notification_iterator *iterator,
+		struct bt_connection *connection);
 
 #endif /* BABELTRACE_COMPONENT_NOTIFICATION_ITERATOR_INTERNAL_H */

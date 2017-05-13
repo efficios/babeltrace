@@ -43,6 +43,37 @@ void bt_connection_destroy(struct bt_object *obj)
 {
 	struct bt_connection *connection = container_of(obj,
 			struct bt_connection, base);
+	size_t i;
+
+	/*
+	 * Make sure that each notification iterator which was created
+	 * for this connection is finalized before we destroy it. Once a
+	 * notification iterator is finalized, all its method return
+	 * NULL or the BT_NOTIFICATION_ITERATOR_STATUS_CANCELED status.
+	 *
+	 * Because connections are destroyed before components within a
+	 * graph, this ensures that notification iterators are always
+	 * finalized before their upstream component.
+	 */
+	if (connection->iterators) {
+		for (i = 0; i < connection->iterators->len; i++) {
+			struct bt_notification_iterator *iterator =
+				g_ptr_array_index(connection->iterators, i);
+
+			bt_notification_iterator_finalize(iterator);
+
+			/*
+			 * Make sure this iterator does not try to
+			 * remove itself from this connection's
+			 * iterators on destruction because this
+			 * connection won't exist anymore.
+			 */
+			bt_notification_iterator_set_connection(iterator,
+				NULL);
+		}
+
+		g_ptr_array_free(connection->iterators, TRUE);
+	}
 
 	/*
 	 * No bt_put on ports as a connection only holds _weak_ references
@@ -78,6 +109,12 @@ struct bt_connection *bt_connection_create(
 	}
 
 	bt_object_init(connection, bt_connection_destroy);
+	connection->iterators = g_ptr_array_new();
+	if (!connection->iterators) {
+		BT_PUT(connection);
+		goto end;
+	}
+
 	/* Weak references are taken, see comment in header. */
 	connection->upstream_port = upstream_port;
 	connection->downstream_port = downstream_port;
@@ -165,7 +202,6 @@ bt_private_connection_create_notification_iterator(
 	}
 
 	connection = bt_connection_from_private(private_connection);
-
 	if (!connection->upstream_port || !connection->downstream_port) {
 		goto error;
 	}
@@ -189,7 +225,7 @@ bt_private_connection_create_notification_iterator(
 	}
 
 	iterator = bt_notification_iterator_create(upstream_component,
-		upstream_port, notification_types);
+		upstream_port, notification_types, connection);
 	if (!iterator) {
 		goto error;
 	}
@@ -230,6 +266,7 @@ bt_private_connection_create_notification_iterator(
 		goto error;
 	}
 
+	g_ptr_array_add(connection->iterators, iterator);
 	goto end;
 
 error:
@@ -238,4 +275,11 @@ error:
 end:
 	bt_put(upstream_component);
 	return iterator;
+}
+
+BT_HIDDEN
+void bt_connection_remove_iterator(struct bt_connection *conn,
+		struct bt_notification_iterator *iterator)
+{
+	g_ptr_array_remove(conn->iterators, iterator);
 }

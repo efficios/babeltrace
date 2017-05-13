@@ -48,6 +48,12 @@ struct bt_connection {
 	struct bt_port *downstream_port;
 	/* Upstream port. */
 	struct bt_port *upstream_port;
+
+	/*
+	 * Weak references to all the notification iterators that were
+	 * created on this connection.
+	 */
+	GPtrArray *iterators;
 };
 
 static inline
@@ -71,5 +77,9 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 
 BT_HIDDEN
 void bt_connection_disconnect_ports(struct bt_connection *conn);
+
+BT_HIDDEN
+void bt_connection_remove_iterator(struct bt_connection *conn,
+		struct bt_notification_iterator *iterator);
 
 #endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */

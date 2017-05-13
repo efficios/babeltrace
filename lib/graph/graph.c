@@ -49,11 +49,39 @@ void bt_graph_destroy(struct bt_object *obj)
 	struct bt_graph *graph = container_of(obj,
 			struct bt_graph, base);
 
-	if (graph->components) {
-		g_ptr_array_free(graph->components, TRUE);
-	}
+	/*
+	 * The graph's reference count is 0 if we're here. Increment
+	 * it to avoid a double-destroy (possibly infinitely recursive)
+	 * in this situation:
+	 *
+	 * 1. We put and destroy a connection.
+	 * 2. This connection's destructor finalizes its active
+	 *    notification iterators.
+	 * 3. A notification iterator's finalization function gets a
+	 *    new reference on its component (reference count goes from
+	 *    0 to 1).
+	 * 4. Since this component's reference count goes to 1, it takes
+	 *    a reference on its parent (this graph). This graph's
+	 *    reference count goes from 0 to 1.
+	 * 5. The notification iterator's finalization function puts its
+	 *    component reference (reference count goes from 1 to 0).
+	 * 6. Since this component's reference count goes from 1 to 0,
+	 *    it puts its parent (this graph). This graph's reference
+	 *    count goes from 1 to 0.
+	 * 7. Since this graph's reference count goes from 1 to 0,
+	 *    its destructor is called (this function).
+	 *
+	 * With the incrementation below, the graph's reference count at
+	 * step 4 goes from 1 to 2, and from 2 to 1 at step 6. This
+	 * ensures that this function is not called two times.
+	 */
+	obj->ref_count.count++;
+
 	if (graph->connections) {
 		g_ptr_array_free(graph->connections, TRUE);
+	}
+	if (graph->components) {
+		g_ptr_array_free(graph->components, TRUE);
 	}
 	if (graph->sinks_to_consume) {
 		g_queue_free(graph->sinks_to_consume);
