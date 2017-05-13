@@ -588,11 +588,6 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 	}
 
 	do {
-		if (graph->canceled) {
-			status = BT_GRAPH_STATUS_CANCELED;
-			goto end;
-		}
-
 		status = bt_graph_consume(graph);
 		if (status == BT_GRAPH_STATUS_AGAIN) {
 			/*

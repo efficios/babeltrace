@@ -49,6 +49,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <signal.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
@@ -58,10 +59,28 @@
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 
+/* Application's processing graph (weak) */
+static struct bt_graph *the_graph;
+static bool canceled = false;
+
 GPtrArray *loaded_plugins;
 
 BT_HIDDEN
 int bt_cli_log_level = BT_LOG_NONE;
+
+static
+void sigint_handler(int signum)
+{
+	if (signum != SIGINT) {
+		return;
+	}
+
+	if (the_graph) {
+		bt_graph_cancel(the_graph);
+	}
+
+	canceled = true;
+}
 
 static
 void init_static_data(void)
@@ -1326,6 +1345,7 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 	}
 
 	BT_PUT(ctx->graph);
+	the_graph = NULL;
 	ctx->cfg = NULL;
 }
 
@@ -1347,6 +1367,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		goto error;
 	}
 
+	the_graph = ctx->graph;
 	ret = bt_graph_add_port_added_listener(ctx->graph,
 		graph_port_added_listener, ctx);
 	if (ret) {
@@ -1581,6 +1602,10 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
+	if (canceled) {
+		goto end;
+	}
+
 	BT_LOGI_STR("Running the graph.");
 
 	/* Run the graph */
@@ -1590,7 +1615,17 @@ int cmd_run(struct bt_config *cfg)
 		switch (graph_status) {
 		case BT_GRAPH_STATUS_OK:
 			break;
+		case BT_GRAPH_STATUS_CANCELED:
+			BT_LOGI("Graph was canceled by user: status=%d",
+				graph_status);
+			goto error;
 		case BT_GRAPH_STATUS_AGAIN:
+			if (bt_graph_is_canceled(ctx.graph)) {
+				BT_LOGI("Graph was canceled by user: status=%d",
+					graph_status);
+				goto error;
+			}
+
 			if (cfg->cmd_data.run.retry_duration_us > 0) {
 				BT_LOGV("Got BT_GRAPH_STATUS_AGAIN: sleeping: "
 					"time-us=%" PRIu64,
@@ -1678,6 +1713,20 @@ set_level:
 	bt_cli_log_level = log_level;
 }
 
+void set_sigint_handler(void)
+{
+	struct sigaction new_action, old_action;
+
+	new_action.sa_handler = sigint_handler;
+	sigemptyset(&new_action.sa_mask);
+	new_action.sa_flags = 0;
+	sigaction(SIGINT, NULL, &old_action);
+
+	if (old_action.sa_handler != SIG_IGN) {
+		sigaction(SIGINT, &new_action, NULL);
+	}
+}
+
 int main(int argc, const char **argv)
 {
 	int ret;
@@ -1685,6 +1734,7 @@ int main(int argc, const char **argv)
 	struct bt_config *cfg;
 
 	init_log_level();
+	set_sigint_handler();
 	init_static_data();
 	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
 
