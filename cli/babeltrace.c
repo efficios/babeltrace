@@ -1612,7 +1612,10 @@ int cmd_run(struct bt_config *cfg)
 					cfg->cmd_data.run.retry_duration_us);
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
-					// TODO: check EINTR and signal handler
+					if (bt_graph_is_canceled(ctx.graph)) {
+						BT_LOGI_STR("Graph was canceled by user.");
+						goto error;
+					}
 				}
 			}
 			break;
