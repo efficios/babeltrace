@@ -1555,6 +1555,31 @@ end:
 	return ret;
 }
 
+static inline
+const char *bt_graph_status_str(enum bt_graph_status status)
+{
+	switch (status) {
+	case BT_GRAPH_STATUS_CANCELED:
+		return "BT_GRAPH_STATUS_CANCELED";
+	case BT_GRAPH_STATUS_AGAIN:
+		return "BT_GRAPH_STATUS_AGAIN";
+	case BT_GRAPH_STATUS_END:
+		return "BT_GRAPH_STATUS_END";
+	case BT_GRAPH_STATUS_OK:
+		return "BT_GRAPH_STATUS_OK";
+	case BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH:
+		return "BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH";
+	case BT_GRAPH_STATUS_INVALID:
+		return "BT_GRAPH_STATUS_INVALID";
+	case BT_GRAPH_STATUS_NO_SINK:
+		return "BT_GRAPH_STATUS_NO_SINK";
+	case BT_GRAPH_STATUS_ERROR:
+		return "BT_GRAPH_STATUS_ERROR";
+	default:
+		return "(unknown)";
+	}
+}
+
 static
 int cmd_run(struct bt_config *cfg)
 {
@@ -1592,17 +1617,18 @@ int cmd_run(struct bt_config *cfg)
 	while (true) {
 		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
 
+		BT_LOGV("bt_graph_run() returned: status=%s",
+			bt_graph_status_str(graph_status));
+
 		switch (graph_status) {
 		case BT_GRAPH_STATUS_OK:
 			break;
 		case BT_GRAPH_STATUS_CANCELED:
-			BT_LOGI("Graph was canceled by user: status=%d",
-				graph_status);
+			BT_LOGI_STR("Graph was canceled by user.");
 			goto error;
 		case BT_GRAPH_STATUS_AGAIN:
 			if (bt_graph_is_canceled(ctx.graph)) {
-				BT_LOGI("Graph was canceled by user: status=%d",
-					graph_status);
+				BT_LOGI_STR("Graph was canceled by user.");
 				goto error;
 			}
 
