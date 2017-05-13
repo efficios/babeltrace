@@ -1811,6 +1811,8 @@ int main(int argc, const char **argv)
 		assert(false);
 	}
 
+	BT_LOGI("Command completed: cmd=%d, command-name=\"%s\", ret=%d",
+		cfg->command, cfg->command_name, ret);
 	warn_command_name_and_directory_clash(cfg);
 	retcode = ret ? 1 : 0;
 
