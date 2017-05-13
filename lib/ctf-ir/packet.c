@@ -24,6 +24,8 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PACKET"
+
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
@@ -33,6 +35,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
 
@@ -56,7 +59,15 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 	struct bt_ctf_field_type *header_field_type = NULL;
 	struct bt_ctf_field_type *expected_header_field_type = NULL;
 
-	if (!packet || packet->frozen) {
+	if (!packet) {
+		BT_LOGW_STR("Invalid parameter: packet is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (packet->frozen) {
+		BT_LOGW("Invalid parameter: packet is frozen: addr=%p",
+			packet);
 		ret = -1;
 		goto end;
 	}
@@ -75,6 +86,9 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 
 	if (bt_ctf_field_type_compare(header_field_type,
 			expected_header_field_type)) {
+		BT_LOGW("Invalid parameter: packet header's field type is different from the trace's packet header field type: "
+			"packet-addr=%p, packet-header-addr=%p",
+			packet, header);
 		ret = -1;
 		goto end;
 	}
@@ -82,6 +96,8 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 skip_validation:
 	bt_put(packet->header);
 	packet->header = bt_get(header);
+	BT_LOGV("Set packet's header field: packet-addr=%p, packet-header-addr=%p",
+		packet, header);
 
 end:
 	BT_PUT(trace);
@@ -106,7 +122,15 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 	struct bt_ctf_field_type *context_field_type = NULL;
 	struct bt_ctf_field_type *expected_context_field_type = NULL;
 
-	if (!packet || packet->frozen) {
+	if (!packet) {
+		BT_LOGW_STR("Invalid parameter: packet is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (packet->frozen) {
+		BT_LOGW("Invalid parameter: packet is frozen: addr=%p",
+			packet);
 		ret = -1;
 		goto end;
 	}
@@ -124,6 +148,9 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 
 	if (bt_ctf_field_type_compare(context_field_type,
 			expected_context_field_type)) {
+		BT_LOGW("Invalid parameter: packet context's field type is different from the stream class's packet context field type: "
+			"packet-addr=%p, packet-context-addr=%p",
+			packet, context);
 		ret = -1;
 		goto end;
 	}
@@ -131,22 +158,24 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 skip_validation:
 	bt_put(packet->context);
 	packet->context = bt_get(context);
+	BT_LOGV("Set packet's context field: packet-addr=%p, packet-context-addr=%p",
+		packet, context);
 
 end:
 	BT_PUT(stream_class);
 	BT_PUT(context_field_type);
 	BT_PUT(expected_context_field_type);
-
 	return ret;
 }
 
 BT_HIDDEN
 void bt_ctf_packet_freeze(struct bt_ctf_packet *packet)
 {
-	if (!packet) {
+	if (!packet || packet->frozen) {
 		return;
 	}
 
+	BT_LOGD("Freezing packet: addr=%p", packet);
 	bt_ctf_field_freeze(packet->header);
 	bt_ctf_field_freeze(packet->context);
 	packet->frozen = 1;
@@ -158,6 +187,7 @@ void bt_ctf_packet_destroy(struct bt_object *obj)
 	struct bt_ctf_packet *packet;
 
 	packet = container_of(obj, struct bt_ctf_packet, base);
+	BT_LOGD("Destroying packet: addr=%p", packet);
 	bt_put(packet->header);
 	bt_put(packet->context);
 	bt_put(packet->stream);
@@ -171,7 +201,15 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
 
-	if (!stream || stream->pos.fd >= 0) {
+	BT_LOGD("Creating packet object: stream-addr=%p", stream);
+
+	if (!stream) {
+		BT_LOGW_STR("Invalid parameter: stream is NULL.");
+		goto end;
+	}
+
+	if (stream->pos.fd >= 0) {
+		BT_LOGW_STR("Invalid parameter: stream is a CTF writer stream.");
 		goto end;
 	}
 
@@ -181,6 +219,7 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	assert(trace);
 	packet = g_new0(struct bt_ctf_packet, 1);
 	if (!packet) {
+		BT_LOGE_STR("Failed to allocate one packet object.");
 		goto end;
 	}
 
@@ -188,6 +227,7 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	packet->stream = bt_get(stream);
 	packet->header = bt_ctf_field_create(trace->packet_header_type);
 	if (!packet->header && trace->packet_header_type) {
+		BT_LOGE_STR("Cannot create initial packet header field object.");
 		BT_PUT(packet);
 		goto end;
 	}
@@ -195,9 +235,12 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	packet->context = bt_ctf_field_create(
 		stream->stream_class->packet_context_type);
 	if (!packet->context && stream->stream_class->packet_context_type) {
+		BT_LOGE_STR("Cannot create initial packet header field object.");
 		BT_PUT(packet);
 		goto end;
 	}
+
+	BT_LOGD("Created packet object: addr=%p", packet);
 
 end:
 	BT_PUT(trace);
