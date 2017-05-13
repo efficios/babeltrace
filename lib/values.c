@@ -26,6 +26,7 @@
  */
 
 #define BT_LOG_TAG "VALUES"
+#include <babeltrace/lib-logging-internal.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,8 +38,6 @@
 #include <babeltrace/values.h>
 #include <babeltrace/compat/glib-internal.h>
 #include <babeltrace/types.h>
-
-#include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/object-internal.h>
 
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))

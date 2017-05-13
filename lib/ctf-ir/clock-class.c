@@ -27,6 +27,7 @@
  */
 
 #define BT_LOG_TAG "CLOCK-CLASS"
+#include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
@@ -34,7 +35,6 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <inttypes.h>
-#include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/object-internal.h>
 
 static

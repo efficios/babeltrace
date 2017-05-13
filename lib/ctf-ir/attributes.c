@@ -26,11 +26,11 @@
  */
 
 #define BT_LOG_TAG "ATTRS"
+#include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
 #include <inttypes.h>
-#include <babeltrace/lib-logging-internal.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX		1

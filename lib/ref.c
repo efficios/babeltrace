@@ -25,8 +25,8 @@
  */
 
 #define BT_LOG_TAG "REF"
-
 #include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
