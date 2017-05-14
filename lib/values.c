@@ -1047,8 +1047,8 @@ struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 
 	if (index >= typed_array_obj->garray->len) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, index=%" PRIu64,
-			array_obj, index);
+			"addr=%p, index=%" PRIu64 ", size=%u",
+			array_obj, index, typed_array_obj->garray->len);
 		ret = NULL;
 		goto end;
 	}
@@ -1196,8 +1196,8 @@ enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
 
 	if (index >= typed_array_obj->garray->len) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, index=%" PRIu64,
-			array_obj, index);
+			"addr=%p, index=%" PRIu64 ", size=%u",
+			array_obj, index, typed_array_obj->garray->len);
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1274,7 +1274,6 @@ struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 
 	quark = g_quark_from_string(key);
 	ret = g_hash_table_lookup(typed_map_obj->ght, GUINT_TO_POINTER(quark));
-
 	if (ret) {
 		bt_get(ret);
 	}
