@@ -74,7 +74,7 @@ void bt_ctf_stream_class_set_byte_order(
 
 /* Set stream_class id without checking if the stream class is frozen */
 BT_HIDDEN
-int _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
+void _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
 		int64_t id);
 
 BT_HIDDEN
