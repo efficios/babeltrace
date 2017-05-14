@@ -94,11 +94,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 * associated to a stream class.
 	 */
 	if (!stream_class) {
-		BT_LOGW("Event class is not part of a stream class: "
-			"addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event, bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event_class));
+		BT_LOGW_STR("Event class is not part of a stream class.");
 		goto error;
 	}
 
@@ -111,10 +107,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	/* Validate the trace (if any), the stream class, and the event class */
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (trace) {
-		BT_LOGD("Event's class is part of a trace: "
-			"event-class-name=\"%s\", event-class-id=%" PRId64,
-			bt_ctf_event_class_get_name(event_class),
-			bt_ctf_event_class_get_id(event_class));
+		BT_LOGD_STR("Event's class is part of a trace.");
 		packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
 		trace_valid = trace->valid;
 		assert(trace_valid);
@@ -145,10 +138,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		 * This means something went wrong during the validation
 		 * process, not that the objects are invalid.
 		 */
-		BT_LOGE("Failed to validate event: addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event, bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event_class));
+		BT_LOGE("Failed to validate event and parents: ret=%d", ret);
 		goto error;
 	}
 
@@ -156,11 +146,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 			validation_flags) {
 		/* Invalid trace/stream class/event class */
 		BT_LOGE("Invalid trace, stream class, or event class: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", valid-flags=0x%x",
-			event, bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event_class),
-			validation_output.valid_flags);
+			"valid-flags=0x%x", validation_output.valid_flags);
 		goto error;
 	}
 
