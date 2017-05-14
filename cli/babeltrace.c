@@ -1252,17 +1252,18 @@ void graph_port_added_listener(struct bt_port *port, void *data)
 	struct bt_component *comp = NULL;
 	struct cmd_run_ctx *ctx = data;
 
-	BT_LOGI("Port added to a graph's component: port-addr=%p, port-name=\"%s\"",
+	comp = bt_port_get_component(port);
+	BT_LOGI("Port added to a graph's component: comp-addr=%p, "
+		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
+		comp, comp ? bt_component_get_name(comp) : "",
 		port, bt_port_get_name(port));
-
-	if (bt_port_is_connected(port)) {
-		BT_LOGW_STR("Port is already connected.");
+	if (!comp) {
+		BT_LOGW_STR("Port has no component.");
 		goto end;
 	}
 
-	comp = bt_port_get_component(port);
-	if (!comp) {
-		BT_LOGW_STR("Port has no component.");
+	if (bt_port_is_connected(port)) {
+		BT_LOGW_STR("Port is already connected.");
 		goto end;
 	}
 
@@ -1296,11 +1297,22 @@ static
 void graph_ports_connected_listener(struct bt_port *upstream_port,
 		struct bt_port *downstream_port, void *data)
 {
+	struct bt_component *upstream_comp = bt_port_get_component(upstream_port);
+	struct bt_component *downstream_comp = bt_port_get_component(downstream_port);
+
+	assert(upstream_comp);
+	assert(downstream_comp);
 	BT_LOGI("Graph's component ports connected: "
+		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
 		"downstream-port-addr=%p, downstream-port-name=\"%s\"",
+		upstream_comp, bt_component_get_name(upstream_comp),
 		upstream_port, bt_port_get_name(upstream_port),
+		downstream_comp, bt_component_get_name(downstream_comp),
 		downstream_port, bt_port_get_name(downstream_port));
+	bt_put(upstream_comp);
+	bt_put(downstream_comp);
 }
 
 static
