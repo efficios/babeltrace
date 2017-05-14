@@ -39,6 +39,7 @@
 #include <babeltrace/compat/glib-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/values-internal.h>
 
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
@@ -495,7 +496,6 @@ void bt_value_destroy(struct bt_object *obj)
 
 	value = container_of(obj, struct bt_value, base);
 	assert(value->type != BT_VALUE_TYPE_UNKNOWN);
-
 	BT_LOGD("Destroying value: addr=%p", value);
 
 	if (bt_value_is_null(value)) {
@@ -749,7 +749,8 @@ enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
 
 	if (!bt_value_is_bool(bool_obj)) {
 		BT_LOGW("Invalid parameter: value is not a boolean value: addr=%p, "
-			"type=%d", bool_obj, bool_obj->type);
+			"type=%s", bool_obj, bool_obj->type,
+			bt_value_type_string(bool_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -773,7 +774,8 @@ enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 
 	if (!bt_value_is_bool(bool_obj)) {
 		BT_LOGW("Invalid parameter: value is not a boolean value: addr=%p, "
-			"type=%d", bool_obj, bool_obj->type);
+			"type=%s", bool_obj,
+			bt_value_type_string(bool_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -810,7 +812,8 @@ enum bt_value_status bt_value_integer_get(const struct bt_value *integer_obj,
 
 	if (!bt_value_is_integer(integer_obj)) {
 		BT_LOGW("Invalid parameter: value is not an integer value: addr=%p, "
-			"type=%d", integer_obj, integer_obj->type);
+			"type=%s", integer_obj,
+			bt_value_type_string(integer_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -836,7 +839,8 @@ enum bt_value_status bt_value_integer_set(struct bt_value *integer_obj,
 
 	if (!bt_value_is_integer(integer_obj)) {
 		BT_LOGW("Invalid parameter: value is not an integer value: addr=%p, "
-			"type=%d", integer_obj, integer_obj->type);
+			"type=%s", integer_obj,
+			bt_value_type_string(integer_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -873,7 +877,8 @@ enum bt_value_status bt_value_float_get(const struct bt_value *float_obj,
 
 	if (!bt_value_is_float(float_obj)) {
 		BT_LOGW("Invalid parameter: value is not a floating point number value: addr=%p, "
-			"type=%d", float_obj, float_obj->type);
+			"type=%s", float_obj,
+			bt_value_type_string(float_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -899,7 +904,8 @@ enum bt_value_status bt_value_float_set(struct bt_value *float_obj,
 
 	if (!bt_value_is_float(float_obj)) {
 		BT_LOGW("Invalid parameter: value is not a floating point number value: addr=%p, "
-			"type=%d", float_obj, float_obj->type);
+			"type=%s", float_obj,
+			bt_value_type_string(float_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -936,7 +942,8 @@ enum bt_value_status bt_value_string_get(const struct bt_value *string_obj,
 
 	if (!bt_value_is_string(string_obj)) {
 		BT_LOGW("Invalid parameter: value is not a string value: addr=%p, "
-			"type=%d", string_obj, string_obj->type);
+			"type=%s", string_obj,
+			bt_value_type_string(string_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -964,7 +971,8 @@ enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
 
 	if (!bt_value_is_string(string_obj)) {
 		BT_LOGW("Invalid parameter: value is not a string value: addr=%p, "
-			"type=%d", string_obj, string_obj->type);
+			"type=%s", string_obj,
+			bt_value_type_string(string_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -998,7 +1006,8 @@ int64_t bt_value_array_size(const struct bt_value *array_obj)
 
 	if (!bt_value_is_array(array_obj)) {
 		BT_LOGW("Invalid parameter: value is not an array value: addr=%p, "
-			"type=%d", array_obj, array_obj->type);
+			"type=%s", array_obj,
+			bt_value_type_string(array_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1030,7 +1039,8 @@ struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 
 	if (!bt_value_is_array(array_obj)) {
 		BT_LOGW("Invalid parameter: value is not an array value: addr=%p, "
-			"type=%d", array_obj, array_obj->type);
+			"type=%s", array_obj,
+			bt_value_type_string(array_obj->type));
 		ret = NULL;
 		goto end;
 	}
@@ -1067,7 +1077,8 @@ enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
 
 	if (!bt_value_is_array(array_obj)) {
 		BT_LOGW("Invalid parameter: value is not an array value: addr=%p, "
-			"type=%d", array_obj, array_obj->type);
+			"type=%s", array_obj,
+			bt_value_type_string(array_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1177,7 +1188,8 @@ enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
 
 	if (!bt_value_is_array(array_obj)) {
 		BT_LOGW("Invalid parameter: value is not an array value: addr=%p, "
-			"type=%d", array_obj, array_obj->type);
+			"type=%s", array_obj,
+			bt_value_type_string(array_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1221,7 +1233,8 @@ int64_t bt_value_map_size(const struct bt_value *map_obj)
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", map_obj, map_obj->type);
+			"type=%s", map_obj,
+			bt_value_type_string(map_obj->type));
 		ret = (int64_t) BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1253,7 +1266,8 @@ struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", map_obj, map_obj->type);
+			"type=%s", map_obj,
+			bt_value_type_string(map_obj->type));
 		ret = NULL;
 		goto end;
 	}
@@ -1284,7 +1298,8 @@ bt_bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", map_obj, map_obj->type);
+			"type=%s", map_obj,
+			bt_value_type_string(map_obj->type));
 		ret = BT_FALSE;
 		goto end;
 	}
@@ -1314,7 +1329,8 @@ enum bt_value_status bt_value_map_insert(struct bt_value *map_obj,
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", map_obj, map_obj->type);
+			"type=%s", map_obj,
+			bt_value_type_string(map_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1427,7 +1443,8 @@ enum bt_value_status bt_value_map_foreach(const struct bt_value *map_obj,
 
 	if (!bt_value_is_map(map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", map_obj, map_obj->type);
+			"type=%s", map_obj,
+			bt_value_type_string(map_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
 	}
@@ -1438,7 +1455,7 @@ enum bt_value_status bt_value_map_foreach(const struct bt_value *map_obj,
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		if (!cb(key_str, element_obj, data)) {
-			BT_LOGD("User cancelled the loop: key=\"%s\", "
+			BT_LOGV("User cancelled the loop: key=\"%s\", "
 				"value-addr=%p, data=%p",
 				key_str, element_obj, data);
 			ret = BT_VALUE_STATUS_CANCELLED;
@@ -1503,13 +1520,15 @@ struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
 
 	if (!bt_value_is_map(base_map_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", base_map_obj, base_map_obj->type);
+			"type=%s", base_map_obj,
+			bt_value_type_string(base_map_obj->type));
 		goto error;
 	}
 
 	if (!bt_value_is_map(extension_obj)) {
 		BT_LOGW("Invalid parameter: value is not a map value: addr=%p, "
-			"type=%d", extension_obj, extension_obj->type);
+			"type=%s", extension_obj,
+			bt_value_type_string(extension_obj->type));
 		goto error;
 	}
 
@@ -1591,9 +1610,10 @@ bt_bool bt_value_compare(const struct bt_value *object_a,
 	if (object_a->type != object_b->type) {
 		BT_LOGV("Values are different: type mismatch: "
 			"value-a-addr=%p, value-b-addr=%p, "
-			"value-a-type=%d, value-b-type=%d",
+			"value-a-type=%s, value-b-type=%s",
 			object_a, object_b,
-			object_a->type, object_b->type);
+			bt_value_type_string(object_a->type),
+			bt_value_type_string(object_b->type));
 		goto end;
 	}
 

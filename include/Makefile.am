@@ -131,4 +131,5 @@ noinst_HEADERS = \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
 	babeltrace/prio-heap-internal.h \
-	babeltrace/ref-internal.h
+	babeltrace/ref-internal.h \
+	babeltrace/values-internal.h
