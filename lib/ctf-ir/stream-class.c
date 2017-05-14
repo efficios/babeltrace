@@ -436,7 +436,7 @@ void event_class_exists(gpointer element, gpointer query)
 	}
 
 	if (id_a == id_b) {
-		BT_LOGD("Event class with this ID already exists in the stream class: "
+		BT_LOGW("Event class with this ID already exists in the stream class: "
 			"id=%" PRId64 ", name=\"%s\"",
 			id_a, bt_ctf_event_class_get_name(event_class_a));
 		search_query->found = 1;
@@ -573,7 +573,7 @@ int bt_ctf_stream_class_add_event_class(
 		if ((validation_output.valid_flags & validation_flags) !=
 				validation_flags) {
 			/* Invalid event class */
-			BT_LOGE("Invalid trace, stream class, or event class: "
+			BT_LOGW("Invalid trace, stream class, or event class: "
 				"valid-flags=0x%x",
 				validation_output.valid_flags);
 			ret = -1;
@@ -1052,7 +1052,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	ret = bt_ctf_field_type_serialize(stream_class->event_header_type,
 		context);
 	if (ret) {
-		BT_LOGE("Cannot serialize stream class's event header field type's metadata: "
+		BT_LOGW("Cannot serialize stream class's event header field type's metadata: "
 			"ret=%d", ret);
 		goto end;
 	}
@@ -1062,7 +1062,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		ret = bt_ctf_field_type_serialize(stream_class->packet_context_type,
 			context);
 		if (ret) {
-			BT_LOGE("Cannot serialize stream class's packet context field type's metadata: "
+			BT_LOGW("Cannot serialize stream class's packet context field type's metadata: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1073,7 +1073,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		ret = bt_ctf_field_type_serialize(
 			stream_class->event_context_type, context);
 		if (ret) {
-			BT_LOGE("Cannot serialize stream class's event context field type's metadata: "
+			BT_LOGW("Cannot serialize stream class's event context field type's metadata: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1086,7 +1086,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 
 		ret = bt_ctf_event_class_serialize(event_class, context);
 		if (ret) {
-			BT_LOGE("Cannot serialize event class's metadata: "
+			BT_LOGW("Cannot serialize event class's metadata: "
 				"event-class-addr=%p, event-class-name=\"%s\", "
 				"event-class-id=%" PRId64,
 				event_class,

@@ -881,7 +881,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		ret = bt_ctf_field_type_serialize(event_class->context,
 			context);
 		if (ret) {
-			BT_LOGE("Cannot serialize event class's context field type's metadata: "
+			BT_LOGW("Cannot serialize event class's context field type's metadata: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -892,7 +892,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		g_string_append(context->string, "\tfields := ");
 		ret = bt_ctf_field_type_serialize(event_class->fields, context);
 		if (ret) {
-			BT_LOGE("Cannot serialize event class's payload field type's metadata: "
+			BT_LOGW("Cannot serialize event class's payload field type's metadata: "
 				"ret=%d", ret);
 			goto end;
 		}
