@@ -226,4 +226,50 @@ BT_HIDDEN
 int bt_ctf_field_type_get_field_index(struct bt_ctf_field_type *type,
 		const char *name);
 
+static inline
+const char *bt_ctf_field_type_id_string(enum bt_ctf_field_type_id type_id)
+{
+	switch (type_id) {
+	case BT_CTF_FIELD_TYPE_ID_UNKNOWN:
+		return "BT_CTF_FIELD_TYPE_ID_UNKNOWN";
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
+		return "BT_CTF_FIELD_TYPE_ID_INTEGER";
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
+		return "BT_CTF_FIELD_TYPE_ID_FLOAT";
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
+		return "BT_CTF_FIELD_TYPE_ID_ENUM";
+	case BT_CTF_FIELD_TYPE_ID_STRING:
+		return "BT_CTF_FIELD_TYPE_ID_STRING";
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
+		return "BT_CTF_FIELD_TYPE_ID_STRUCT";
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
+		return "BT_CTF_FIELD_TYPE_ID_ARRAY";
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+		return "BT_CTF_FIELD_TYPE_ID_SEQUENCE";
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+		return "BT_CTF_FIELD_TYPE_ID_VARIANT";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_ctf_field_type_byte_order_string(enum bt_ctf_byte_order bo)
+{
+	switch (bo) {
+	case BT_CTF_BYTE_ORDER_UNKNOWN:
+		return "BT_CTF_BYTE_ORDER_UNKNOWN";
+	case BT_CTF_BYTE_ORDER_NATIVE:
+		return "BT_CTF_BYTE_ORDER_NATIVE";
+	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+		return "BT_CTF_BYTE_ORDER_LITTLE_ENDIAN";
+	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
+		return "BT_CTF_BYTE_ORDER_BIG_ENDIAN";
+	case BT_CTF_BYTE_ORDER_NETWORK:
+		return "BT_CTF_BYTE_ORDER_NETWORK";
+	default:
+		return "(unknown)";
+	}
+};
+
 #endif /* BABELTRACE_CTF_IR_FIELD_TYPES_INTERNAL_H */
