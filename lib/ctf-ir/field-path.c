@@ -25,17 +25,23 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "FIELD-PATH"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <limits.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <glib.h>
 
 static
 void field_path_destroy(struct bt_object *obj)
 {
 	struct bt_ctf_field_path *field_path = (struct bt_ctf_field_path *) obj;
+
+	BT_LOGD("Destroying field path: addr=%p", obj);
 
 	if (!field_path) {
 		return;
@@ -52,8 +58,11 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 {
 	struct bt_ctf_field_path *field_path = NULL;
 
+	BT_LOGD_STR("Creating empty field path object.");
+
 	field_path = g_new0(struct bt_ctf_field_path, 1);
 	if (!field_path) {
+		BT_LOGE_STR("Failed to allocate one field path.");
 		goto error;
 	}
 
@@ -61,9 +70,11 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 	field_path->root = BT_CTF_SCOPE_UNKNOWN;
 	field_path->indexes = g_array_new(TRUE, FALSE, sizeof(int));
 	if (!field_path->indexes) {
+		BT_LOGE_STR("Failed to allocate a GArray.");
 		goto error;
 	}
 
+	BT_LOGD("Created empty field path object: addr=%p", field_path);
 	return field_path;
 
 error:
@@ -84,15 +95,22 @@ BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path)
 {
-	struct bt_ctf_field_path *new_path = bt_ctf_field_path_create();
+	struct bt_ctf_field_path *new_path;
 
+	assert(path);
+	BT_LOGD("Copying field path: addr=%p, index-count=%u",
+		path, path->indexes->len);
+	new_path = bt_ctf_field_path_create();
 	if (!new_path) {
+		BT_LOGE_STR("Cannot create empty field path.");
 		goto end;
 	}
 
 	new_path->root = path->root;
 	g_array_insert_vals(new_path->indexes, 0,
 		path->indexes->data, path->indexes->len);
+	BT_LOGD("Copied field path: original-addr=%p, copy-addr=%p",
+		path, new_path);
 end:
 	return new_path;
 }
@@ -103,6 +121,7 @@ enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 	enum bt_ctf_scope scope = BT_CTF_SCOPE_UNKNOWN;
 
 	if (!field_path) {
+		BT_LOGW_STR("Invalid parameter: field path is NULL.");
 		goto end;
 	}
 
@@ -115,7 +134,17 @@ end:
 int64_t bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path)
 {
-	return field_path ? (int64_t) field_path->indexes->len : (int64_t) -1;
+	int64_t count = (int64_t) -1;
+
+	if (!field_path) {
+		BT_LOGW_STR("Invalid parameter: field path is NULL.");
+		goto end;
+	}
+
+	count = (int64_t) field_path->indexes->len;
+
+end:
+	return count;
 }
 
 int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
@@ -124,10 +153,14 @@ int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
 	int ret = INT_MIN;
 
 	if (!field_path) {
+		BT_LOGW_STR("Invalid parameter: field path is NULL.");
 		goto end;
 	}
 
 	if (index >= field_path->indexes->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, index=%" PRIu64 ", count=%u",
+			field_path, index, field_path->indexes->len);
 		goto end;
 	}
 
