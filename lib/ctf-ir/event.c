@@ -26,9 +26,13 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "EVENT"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
@@ -45,6 +49,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <inttypes.h>
 
 static
 void bt_ctf_event_destroy(struct bt_object *obj);
@@ -72,7 +77,13 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	struct bt_ctf_validation_output validation_output = { 0 };
 	int trace_valid = 0;
 
+	BT_LOGD("Creating event object: event-class-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64,
+		event_class, bt_ctf_event_class_get_name(event_class),
+		bt_ctf_event_class_get_id(event_class));
+
 	if (!event_class) {
+		BT_LOGW_STR("Invalid parameter: event class is NULL.");
 		goto error;
 	}
 
@@ -83,6 +94,11 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 * associated to a stream class.
 	 */
 	if (!stream_class) {
+		BT_LOGW("Event class is not part of a stream class: "
+			"addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event_class));
 		goto error;
 	}
 
@@ -95,6 +111,10 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	/* Validate the trace (if any), the stream class, and the event class */
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (trace) {
+		BT_LOGD("Event's class is part of a trace: "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			bt_ctf_event_class_get_name(event_class),
+			bt_ctf_event_class_get_id(event_class));
 		packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
 		trace_valid = trace->valid;
 		assert(trace_valid);
@@ -125,12 +145,22 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		 * This means something went wrong during the validation
 		 * process, not that the objects are invalid.
 		 */
+		BT_LOGE("Failed to validate event: addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event_class));
 		goto error;
 	}
 
 	if ((validation_output.valid_flags & validation_flags) !=
 			validation_flags) {
 		/* Invalid trace/stream class/event class */
+		BT_LOGE("Invalid trace, stream class, or event class: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64 ", valid-flags=0x%x",
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event_class),
+			validation_output.valid_flags);
 		goto error;
 	}
 
@@ -142,6 +172,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	 */
 	event = g_new0(struct bt_ctf_event, 1);
 	if (!event) {
+		BT_LOGE_STR("Failed to allocate one event.");
 		goto error;
 	}
 
@@ -160,6 +191,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	event_header =
 		bt_ctf_field_create(validation_output.event_header_type);
 	if (!event_header) {
+		BT_LOGE_STR("Cannot create initial event header field object.");
 		goto error;
 	}
 
@@ -167,6 +199,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		stream_event_context = bt_ctf_field_create(
 			validation_output.stream_event_ctx_type);
 		if (!stream_event_context) {
+			BT_LOGE_STR("Cannot create initial stream event context field object.");
 			goto error;
 		}
 	}
@@ -175,6 +208,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		event_context = bt_ctf_field_create(
 			validation_output.event_context_type);
 		if (!event_context) {
+			BT_LOGE_STR("Cannot create initial event context field object.");
 			goto error;
 		}
 	}
@@ -183,6 +217,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		event_payload = bt_ctf_field_create(
 			validation_output.event_payload_type);
 		if (!event_payload) {
+			BT_LOGE_STR("Cannot create initial event payload field object.");
 			goto error;
 		}
 	}
@@ -221,7 +256,10 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	/* Put stuff we borrowed from the event class */
 	BT_PUT(stream_class);
 	BT_PUT(trace);
-
+	BT_LOGD("Created event object: addr=%p, event-class-name=\"%s\", "
+		"event-class-id=%" PRId64,
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event_class));
 	return event;
 
 error:
@@ -248,6 +286,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 	struct bt_ctf_event_class *event_class = NULL;
 
 	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
 		goto end;
 	}
 
@@ -262,6 +301,7 @@ struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 	struct bt_ctf_stream *stream = NULL;
 
 	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
 		goto end;
 	}
 
@@ -288,7 +328,19 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 {
 	int ret = 0;
 
-	if (!event || !payload || event->frozen) {
+	if (!event || !payload) {
+		BT_LOGW("Invalid parameter: event or payload field is NULL: "
+			"event-addr=%p, payload-field-addr=%p",
+			event, payload);
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -307,11 +359,34 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 			bt_get(payload);
 			event->fields_payload = payload;
 		} else {
+			BT_LOGW("Invalid parameter: payload field type is different from the expected field type: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
 			ret = -1;
 		}
 
 		bt_put(payload_type);
 	}
+
+	if (ret) {
+		BT_LOGW("Failed to set event's payload field: event-addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+			"payload-field-name=\"%s\", payload-field-addr=%p",
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class),
+			name, payload);
+	} else {
+		BT_LOGV("Set event's payload field: event-addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+			"payload-field-name=\"%s\", payload-field-addr=%p",
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class),
+			name, payload);
+	}
+
 end:
 	return ret;
 }
@@ -320,7 +395,16 @@ struct bt_ctf_field *bt_ctf_event_get_event_payload(struct bt_ctf_event *event)
 {
 	struct bt_ctf_field *payload = NULL;
 
-	if (!event || !event->fields_payload) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		goto end;
+	}
+
+	if (!event->fields_payload) {
+		BT_LOGV("Event has no current payload field: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -333,31 +417,7 @@ end:
 int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload)
 {
-	int ret = 0;
-	struct bt_ctf_field_type *payload_type = NULL;
-
-	if (!event || event->frozen) {
-		ret = -1;
-		goto end;
-	}
-
-	payload_type = bt_ctf_field_get_type(payload);
-	if (!payload_type) {
-		ret = -1;
-		goto end;
-	}
-
-	if (bt_ctf_field_type_get_type_id(payload_type) !=
-			BT_CTF_FIELD_TYPE_ID_STRUCT) {
-		ret = -1;
-		goto end;
-	}
-
-	bt_put(event->fields_payload);
-	event->fields_payload = bt_get(payload);
-end:
-	bt_put(payload_type);
-	return ret;
+	return bt_ctf_event_set_payload(event, NULL, payload);
 }
 
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
@@ -366,6 +426,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 	struct bt_ctf_field *field = NULL;
 
 	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
 		goto end;
 	}
 
@@ -386,6 +447,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
 	struct bt_ctf_field *field = NULL;
 
 	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
 		goto end;
 	}
 
@@ -400,7 +462,16 @@ struct bt_ctf_field *bt_ctf_event_get_header(
 {
 	struct bt_ctf_field *header = NULL;
 
-	if (!event || !event->event_header) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		goto end;
+	}
+
+	if (!event->event_header) {
+		BT_LOGV("Event has no current header field: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -417,7 +488,17 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || event->frozen) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -431,12 +512,23 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	field_type = bt_ctf_field_get_type(header);
 	if (bt_ctf_field_type_compare(field_type,
 			stream_class->event_header_type)) {
+		BT_LOGW("Invalid parameter: header field type is different from the expected field type: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
 
 	bt_put(event->event_header);
 	event->event_header = bt_get(header);
+	BT_LOGV("Set event's header field: event-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"header-field-addr=%p",
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class), header);
 end:
 	bt_put(stream_class);
 	bt_put(field_type);
@@ -448,7 +540,16 @@ struct bt_ctf_field *bt_ctf_event_get_event_context(
 {
 	struct bt_ctf_field *context = NULL;
 
-	if (!event || !event->context_payload) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		goto end;
+	}
+
+	if (!event->context_payload) {
+		BT_LOGV("Event has no current context field: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -464,7 +565,17 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
 
-	if (!event || event->frozen) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -472,12 +583,23 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 	field_type = bt_ctf_field_get_type(context);
 	if (bt_ctf_field_type_compare(field_type,
 			event->event_class->context)) {
+		BT_LOGW("Invalid parameter: context field type is different from the expected field type: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
 
 	bt_put(event->context_payload);
 	event->context_payload = bt_get(context);
+	BT_LOGV("Set event's context field: event-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"context-field-addr=%p",
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class), context);
 end:
 	bt_put(field_type);
 	return ret;
@@ -488,7 +610,16 @@ struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 {
 	struct bt_ctf_field *stream_event_context = NULL;
 
-	if (!event || !event->stream_event_context) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		goto end;
+	}
+
+	if (!event->stream_event_context) {
+		BT_LOGV("Event has no current stream event context field: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -504,7 +635,17 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!event || event->frozen) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -519,23 +660,37 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 	field_type = bt_ctf_field_get_type(stream_event_context);
 	if (bt_ctf_field_type_compare(field_type,
 			stream_class->event_context_type)) {
+		BT_LOGW("Invalid parameter: stream event context field type is different from the expected field type: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
 
 	bt_get(stream_event_context);
 	BT_MOVE(event->stream_event_context, stream_event_context);
+	BT_LOGV("Set event's stream event context field: event-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"stream-event-context-field-addr=%p",
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class),
+		stream_event_context);
 end:
 	BT_PUT(stream_class);
 	bt_put(field_type);
 	return ret;
 }
 
+/* Pre-2.0 CTF writer backward compatibility */
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
 	bt_get(event);
 }
 
+/* Pre-2.0 CTF writer backward compatibility */
 void bt_ctf_event_put(struct bt_ctf_event *event)
 {
 	bt_put(event);
@@ -546,6 +701,11 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 	struct bt_ctf_event *event;
 
 	event = container_of(obj, struct bt_ctf_event, base);
+	BT_LOGD("Destroying event: addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64,
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class));
+
 	if (!event->base.parent) {
 		/*
 		 * Event was keeping a reference to its class since it shared no
@@ -569,11 +729,21 @@ struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
 	struct bt_ctf_clock_value *clock_value = NULL;
 
 	if (!event || !clock_class) {
+		BT_LOGW("Invalid parameter: event or clock class is NULL: "
+			"event-addr=%p, clock-class-addr=%p",
+			event, clock_class);
 		goto end;
 	}
 
 	clock_value = g_hash_table_lookup(event->clock_values, clock_class);
 	if (!clock_value) {
+		BT_LOGV("No clock value associated to the given clock class: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64 ", clock-class-addr=%p, "
+			"clock-class-name=\"%s\"", event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class),
+			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		goto end;
 	}
 
@@ -591,7 +761,19 @@ int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
 	struct bt_ctf_event_class *event_class;
 	struct bt_ctf_clock_class *clock_class = NULL;
 
-	if (!event || !value || event->frozen) {
+	if (!event || !value) {
+		BT_LOGW("Invalid parameter: event or clock value is NULL: "
+			"event-addr=%p, clock-value-addr=%p",
+			event, value);
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -605,11 +787,27 @@ int bt_ctf_event_set_clock_value(struct bt_ctf_event *event,
 	assert(trace);
 
 	if (!bt_ctf_trace_has_clock_class(trace, clock_class)) {
+		BT_LOGW("Invalid parameter: clock class is not part of event's trace: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64 ", clock-class-addr=%p, "
+			"clock-class-name=\"%s\"",
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class),
+			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	g_hash_table_insert(event->clock_values, clock_class, bt_get(value));
+	BT_LOGV("Set event's clock value: "
+		"event-addr=%p, event-class-name=\"%s\", "
+		"event-class-id=%" PRId64 ", clock-class-addr=%p, "
+		"clock-class-name=\"%s\", clock-value-addr=%p, "
+		"clock-value-cycles=%" PRIu64,
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class),
+		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		value, value->value);
 	clock_class = NULL;
 
 end:
@@ -627,6 +825,11 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 	assert(event);
 	ret = bt_ctf_field_validate(event->event_header);
 	if (ret) {
+		BT_LOGD("Invalid event's header field: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -639,16 +842,34 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 	if (stream_class->event_context_type) {
 		ret = bt_ctf_field_validate(event->stream_event_context);
 		if (ret) {
+			BT_LOGD("Invalid event's stream event context field: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
 			goto end;
 		}
 	}
 
 	ret = bt_ctf_field_validate(event->fields_payload);
 	if (ret) {
+		BT_LOGD("Invalid event's payload field: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
 	if (event->event_class->context) {
+		BT_LOGD("Invalid event's context field: "
+			"event-addr=%p, event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event,
+			bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = bt_ctf_field_validate(event->context_payload);
 	}
 end:
@@ -666,10 +887,24 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 	assert(event);
 	assert(pos);
 
+	BT_LOGD("Serializing event: "
+		"event-addr=%p, event-class-name=\"%s\", "
+		"event-class-id=%" PRId64 ", pos-addr=%p, "
+		"native-bo=%s",
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class),
+		pos, bt_ctf_field_type_byte_order_string(native_byte_order));
+
 	if (event->context_payload) {
 		ret = bt_ctf_field_serialize(event->context_payload, pos,
 			native_byte_order);
 		if (ret) {
+			BT_LOGE("Cannot serialize event's context field: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
 			goto end;
 		}
 	}
@@ -678,6 +913,12 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		ret = bt_ctf_field_serialize(event->fields_payload, pos,
 			native_byte_order);
 		if (ret) {
+			BT_LOGE("Cannot serialize event's payload field: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
 			goto end;
 		}
 	}
@@ -689,7 +930,16 @@ struct bt_ctf_packet *bt_ctf_event_get_packet(struct bt_ctf_event *event)
 {
 	struct bt_ctf_packet *packet = NULL;
 
-	if (!event || !event->packet) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
+		goto end;
+	}
+
+	if (!event->packet) {
+		BT_LOGV("Event has no current packet: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		goto end;
 	}
 
@@ -706,7 +956,19 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 	struct bt_ctf_stream *stream = NULL;
 	int ret = 0;
 
-	if (!event || !packet || event->frozen) {
+	if (!event || !packet) {
+		BT_LOGW("Invalid parameter: event or packet is NULL: "
+			"event-addr=%p, packet-addr=%p",
+			event, packet);
+		ret = -1;
+		goto end;
+	}
+
+	if (event->frozen) {
+		BT_LOGW("Invalid parameter: event is frozen: addr=%p, "
+			"event-class-name=\"%s\", event-class-id=%" PRId64,
+			event, bt_ctf_event_class_get_name(event->event_class),
+			bt_ctf_event_class_get_id(event->event_class));
 		ret = -1;
 		goto end;
 	}
@@ -718,6 +980,13 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 	stream = bt_ctf_event_get_stream(event);
 	if (stream) {
 		if (packet->stream != stream) {
+			BT_LOGW("Invalid parameter: packet's stream and event's stream differ: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", packet-stream-addr=%p, "
+				"event-stream-addr=%p",
+				event, bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class),
+				packet->stream, stream);
 			ret = -1;
 			goto end;
 		}
@@ -731,6 +1000,13 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 		assert(packet_stream_class);
 
 		if (event_stream_class != packet_stream_class) {
+			BT_LOGW("Invalid parameter: packet's stream class and event's stream class differ: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", packet-stream-class-addr=%p, "
+				"event-stream-class-addr=%p",
+				event, bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class),
+				packet_stream_class, event_stream_class);
 			ret = -1;
 			goto end;
 		}
@@ -738,6 +1014,11 @@ int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 
 	bt_get(packet);
 	BT_MOVE(event->packet, packet);
+	BT_LOGV("Set event's packet: event-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"packet-addr=%p",
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class), packet);
 
 end:
 	BT_PUT(stream);
@@ -751,6 +1032,15 @@ BT_HIDDEN
 void bt_ctf_event_freeze(struct bt_ctf_event *event)
 {
 	assert(event);
+
+	if (event->frozen) {
+		return;
+	}
+
+	BT_LOGD("Freezing event: addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64,
+		event, bt_ctf_event_class_get_name(event->event_class),
+		bt_ctf_event_class_get_id(event->event_class));
 	bt_ctf_packet_freeze(event->packet);
 	bt_ctf_field_freeze(event->event_header);
 	bt_ctf_field_freeze(event->stream_event_context);
