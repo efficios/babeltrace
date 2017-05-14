@@ -43,10 +43,12 @@ void *bt_get(void *ptr)
 			"addr=%p, parent-addr=%p", ptr, obj->parent);
 		bt_get(obj->parent);
 	}
+	BT_LOGV("Incrementing object's reference count: %lu -> %lu: "
+		"addr=%p, cur-count=%lu, new-count=%lu",
+		obj->ref_count.count, obj->ref_count.count + 1,
+		ptr,
+		obj->ref_count.count, obj->ref_count.count + 1);
 	bt_ref_get(&obj->ref_count);
-	BT_LOGV("Incremented object's reference count: %lu -> %lu: "
-		"addr=%p, new-count=%lu", obj->ref_count.count - 1,
-		obj->ref_count.count, ptr, obj->ref_count.count);
 end:
 	return obj;
 }
@@ -60,7 +62,9 @@ void bt_put(void *ptr)
 	}
 
 	BT_LOGV("Decrementing object's reference count: %lu -> %lu: "
-		"addr=%p, cur-count=%lu", obj->ref_count.count,
-		obj->ref_count.count - 1, ptr, obj->ref_count.count);
+		"addr=%p, cur-count=%lu, new-count=%lu",
+		obj->ref_count.count, obj->ref_count.count - 1,
+		ptr,
+		obj->ref_count.count, obj->ref_count.count - 1);
 	bt_ref_put(&obj->ref_count);
 }
