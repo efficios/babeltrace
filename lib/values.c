@@ -196,17 +196,9 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 		struct bt_value *element_obj_copy;
 		struct bt_value *element_obj = bt_value_array_get(array_obj, i);
 
-		if (!element_obj) {
-			BT_LOGE("Cannot get array value's element: "
-				"addr=%p, index=%d",
-				array_obj, i);
-			BT_PUT(copy_obj);
-			goto end;
-		}
-
+		assert(element_obj);
 		element_obj_copy = bt_value_copy(element_obj);
 		BT_PUT(element_obj);
-
 		if (!element_obj_copy) {
 			BT_LOGE("Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
@@ -217,7 +209,6 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 
 		ret = bt_value_array_append(copy_obj, element_obj_copy);
 		BT_PUT(element_obj_copy);
-
 		if (ret) {
 			BT_LOGE("Cannot append to array value: addr=%p",
 				array_obj);
@@ -257,7 +248,6 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		element_obj_copy = bt_value_copy(element_obj);
-
 		if (!element_obj_copy) {
 			BT_LOGE("Cannot copy map value's element: "
 				"map-addr=%p, key=\"%s\"",
@@ -268,7 +258,6 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 
 		ret = bt_value_map_insert(copy_obj, key_str, element_obj_copy);
 		BT_PUT(element_obj_copy);
-
 		if (ret) {
 			BT_LOGE("Cannot insert into map value: addr=%p, key=\"%s\"",
 				map_obj, key_str);
