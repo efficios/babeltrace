@@ -125,19 +125,19 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create_empty(const char *name)
 
 	stream_class->packet_context_type = bt_ctf_field_type_structure_create();
 	if (!stream_class->packet_context_type) {
-		BT_LOGE_STR("Cannot stream class's initial packet context field type.");
+		BT_LOGE_STR("Cannot create stream class's initial packet context field type.");
 		goto error;
 	}
 
 	stream_class->event_header_type = bt_ctf_field_type_structure_create();
 	if (!stream_class->event_header_type) {
-		BT_LOGE_STR("Cannot stream class's initial event header field type.");
+		BT_LOGE_STR("Cannot create stream class's initial event header field type.");
 		goto error;
 	}
 
 	stream_class->event_context_type = bt_ctf_field_type_structure_create();
 	if (!stream_class->event_context_type) {
-		BT_LOGE_STR("Cannot stream class's initial event context field type.");
+		BT_LOGE_STR("Cannot create stream class's initial event context field type.");
 		goto error;
 	}
 
