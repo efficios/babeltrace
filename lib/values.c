@@ -226,7 +226,8 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 		}
 	}
 
-	BT_LOGD("Copied array value: addr=%p", array_obj);
+	BT_LOGD("Copied array value: original-addr=%p, copy-addr=%p",
+		array_obj, copy_obj);
 
 end:
 	return copy_obj;
