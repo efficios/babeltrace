@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-writer/writer.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
@@ -201,12 +202,6 @@ BT_HIDDEN
 int bt_ctf_field_type_variant_set_tag_field_type(struct bt_ctf_field_type *type,
 		struct bt_ctf_field_type *tag_type);
 
-/* Replace an existing field's type in a variant */
-BT_HIDDEN
-int bt_ctf_field_type_variant_set_field_index(
-		struct bt_ctf_field_type *variant,
-		struct bt_ctf_field_type *field, int index);
-
 BT_HIDDEN
 int bt_ctf_field_type_array_set_element_type(struct bt_ctf_field_type *array,
 		struct bt_ctf_field_type *element_type);
@@ -254,7 +249,7 @@ const char *bt_ctf_field_type_id_string(enum bt_ctf_field_type_id type_id)
 };
 
 static inline
-const char *bt_ctf_field_type_byte_order_string(enum bt_ctf_byte_order bo)
+const char *bt_ctf_byte_order_string(enum bt_ctf_byte_order bo)
 {
 	switch (bo) {
 	case BT_CTF_BYTE_ORDER_UNKNOWN:
@@ -271,5 +266,66 @@ const char *bt_ctf_field_type_byte_order_string(enum bt_ctf_byte_order bo)
 		return "(unknown)";
 	}
 };
+
+static inline
+const char *bt_ctf_string_encoding_string(enum bt_ctf_string_encoding encoding)
+{
+	switch (encoding) {
+	case BT_CTF_STRING_ENCODING_UNKNOWN:
+		return "BT_CTF_STRING_ENCODING_UNKNOWN";
+	case BT_CTF_STRING_ENCODING_NONE:
+		return "BT_CTF_STRING_ENCODING_NONE";
+	case BT_CTF_STRING_ENCODING_UTF8:
+		return "BT_CTF_STRING_ENCODING_UTF8";
+	case BT_CTF_STRING_ENCODING_ASCII:
+		return "BT_CTF_STRING_ENCODING_ASCII";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_ctf_integer_base_string(enum bt_ctf_integer_base base)
+{
+	switch (base) {
+	case BT_CTF_INTEGER_BASE_UNKNOWN:
+		return "BT_CTF_INTEGER_BASE_UNKNOWN";
+	case BT_CTF_INTEGER_BASE_BINARY:
+		return "BT_CTF_INTEGER_BASE_BINARY";
+	case BT_CTF_INTEGER_BASE_OCTAL:
+		return "BT_CTF_INTEGER_BASE_OCTAL";
+	case BT_CTF_INTEGER_BASE_DECIMAL:
+		return "BT_CTF_INTEGER_BASE_DECIMAL";
+	case BT_CTF_INTEGER_BASE_HEXADECIMAL:
+		return "BT_CTF_INTEGER_BASE_HEXADECIMAL";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_ctf_scope_string(enum bt_ctf_scope scope)
+{
+	switch (scope) {
+	case BT_CTF_SCOPE_UNKNOWN:
+		return "BT_CTF_SCOPE_UNKNOWN";
+	case BT_CTF_SCOPE_TRACE_PACKET_HEADER:
+		return "BT_CTF_SCOPE_TRACE_PACKET_HEADER";
+	case BT_CTF_SCOPE_STREAM_PACKET_CONTEXT:
+		return "BT_CTF_SCOPE_STREAM_PACKET_CONTEXT";
+	case BT_CTF_SCOPE_STREAM_EVENT_HEADER:
+		return "BT_CTF_SCOPE_STREAM_EVENT_HEADER";
+	case BT_CTF_SCOPE_STREAM_EVENT_CONTEXT:
+		return "BT_CTF_SCOPE_STREAM_EVENT_CONTEXT";
+	case BT_CTF_SCOPE_EVENT_CONTEXT:
+		return "BT_CTF_SCOPE_EVENT_CONTEXT";
+	case BT_CTF_SCOPE_EVENT_PAYLOAD:
+		return "BT_CTF_SCOPE_EVENT_PAYLOAD";
+	case BT_CTF_SCOPE_ENV:
+		return "BT_CTF_SCOPE_ENV";
+	default:
+		return "(unknown)";
+	}
+}
 
 #endif /* BABELTRACE_CTF_IR_FIELD_TYPES_INTERNAL_H */

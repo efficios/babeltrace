@@ -879,7 +879,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		"native-bo=%s",
 		event, bt_ctf_event_class_get_name(event->event_class),
 		bt_ctf_event_class_get_id(event->event_class),
-		pos, bt_ctf_field_type_byte_order_string(native_byte_order));
+		pos, bt_ctf_byte_order_string(native_byte_order));
 
 	if (event->context_payload) {
 		ret = bt_ctf_field_serialize(event->context_payload, pos,
