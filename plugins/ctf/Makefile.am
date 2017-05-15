@@ -18,4 +18,5 @@ libbabeltrace_plugin_ctf_la_LIBADD = \
 	fs-src/libbabeltrace-plugin-ctf-fs.la \
 	lttng-live/libbabeltrace-plugin-ctf-lttng-live.la \
 	fs-sink/libbabeltrace-plugin-ctf-writer.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la
+	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace-common.la

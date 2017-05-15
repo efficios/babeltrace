@@ -4305,7 +4305,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		if (implicit_lttng_live_args.exists) {
 			lttng_live_url_parts =
 				bt_common_parse_lttng_live_url(leftover,
-					error_buf, 256);
+					error_buf, sizeof(error_buf));
 			if (!lttng_live_url_parts.proto) {
 				printf_err("Invalid LTTng live URL format: %s\n",
 					error_buf);

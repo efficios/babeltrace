@@ -44,9 +44,10 @@ struct bt_live_viewer_connection {
 
 	GString *url;
 
-	char relay_hostname[MAXNAMLEN];
-	char target_hostname[MAXNAMLEN];
-	char session_name[MAXNAMLEN];
+	GString *relay_hostname;
+	GString *target_hostname;
+	GString *session_name;
+
 	int control_sock;
 	int port;
 

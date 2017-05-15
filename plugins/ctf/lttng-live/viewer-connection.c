@@ -36,6 +36,7 @@
 
 #include <babeltrace/compat/send-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/common-internal.h>
 
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-VIEWER"
 
@@ -75,114 +76,58 @@ static ssize_t lttng_live_send(int fd, const void *buf, size_t len)
 	return ret;
 }
 
-/*
- * hostname parameter needs to hold MAXNAMLEN chars.
- */
 static int parse_url(struct bt_live_viewer_connection *viewer_connection)
 {
-	char remain[3][MAXNAMLEN];
-	int ret = -1, proto, proto_offset = 0;
+	char error_buf[256] = { 0 };
+	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
+	int ret = -1;
 	const char *path = viewer_connection->url->str;
-	size_t path_len;
 
 	if (!path) {
 		goto end;
 	}
-	path_len = strlen(path); /* not accounting \0 */
 
-	/*
-	 * Since sscanf API does not allow easily checking string length
-	 * against a size defined by a macro. Test it beforehand on the
-	 * input. We know the output is always <= than the input length.
-	 */
-	if (path_len >= MAXNAMLEN) {
+	lttng_live_url_parts = bt_common_parse_lttng_live_url(path,
+			error_buf, sizeof(error_buf));
+	if (!lttng_live_url_parts.proto) {
+		BT_LOGW("Invalid LTTng live URL format: %s", error_buf);
 		goto end;
 	}
-	ret = sscanf(path, "net%d://", &proto);
-	if (ret < 1) {
-		proto = 4;
-		/* net:// */
-		proto_offset = strlen("net://");
+
+	viewer_connection->relay_hostname =
+			lttng_live_url_parts.hostname;
+	lttng_live_url_parts.hostname = NULL;
+
+	if (lttng_live_url_parts.port >= 0) {
+		viewer_connection->port = lttng_live_url_parts.port;
 	} else {
-		/* net4:// or net6:// */
-		proto_offset = strlen("netX://");
-	}
-	if (proto_offset > path_len) {
-		goto end;
-	}
-	if (proto == 6) {
-		BT_LOGW("IPv6 is currently unsupported by lttng-live");
-		goto end;
-	}
-	/* TODO : parse for IPv6 as well */
-	/* Parse the hostname or IP */
-	ret = sscanf(&path[proto_offset], "%[a-zA-Z.0-9%-]%s",
-		viewer_connection->relay_hostname, remain[0]);
-	if (ret == 2) {
-		/* Optional port number */
-		switch (remain[0][0]) {
-		case ':':
-			ret = sscanf(remain[0], ":%d%s", &viewer_connection->port, remain[1]);
-			/* Optional session ID with port number */
-			if (ret == 2) {
-				ret = sscanf(remain[1], "/%s", remain[2]);
-				/* Accept 0 or 1 (optional) */
-				if (ret < 0) {
-					goto end;
-				}
-			} else if (ret == 0) {
-				BT_LOGW("Missing port number after delimitor ':'");
-				ret = -1;
-				goto end;
-			}
-			break;
-		case '/':
-			/* Optional session ID */
-			ret = sscanf(remain[0], "/%s", remain[2]);
-			/* Accept 0 or 1 (optional) */
-			if (ret < 0) {
-				goto end;
-			}
-			break;
-		default:
-			BT_LOGW("wrong delimitor : %c", remain[0][0]);
-			ret = -1;
-			goto end;
-		}
-	}
-
-	if (viewer_connection->port < 0) {
 		viewer_connection->port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
 	}
 
-	if (strlen(remain[2]) == 0) {
-		BT_LOGD("Connecting to hostname : %s, port : %d, "
-				"proto : IPv%d",
-				viewer_connection->relay_hostname,
-				viewer_connection->port,
-				proto);
-		ret = 0;
-		goto end;
-	}
-	ret = sscanf(remain[2], "host/%[a-zA-Z.0-9%-]/%s",
-			viewer_connection->target_hostname,
-			viewer_connection->session_name);
-	if (ret != 2) {
-		BT_LOGW("Format : "
-			"net://<hostname>/host/<target_hostname>/<session_name>");
-		goto end;
+	viewer_connection->target_hostname =
+			lttng_live_url_parts.target_hostname;
+	lttng_live_url_parts.target_hostname = NULL;
+
+	if (lttng_live_url_parts.session_name) {
+		viewer_connection->session_name =
+				lttng_live_url_parts.session_name;
+		lttng_live_url_parts.session_name = NULL;
 	}
 
 	BT_LOGD("Connecting to hostname : %s, port : %d, "
 			"target hostname : %s, session name : %s, "
-			"proto : IPv%d",
-			viewer_connection->relay_hostname,
+			"proto : %s",
+			viewer_connection->relay_hostname->str,
 			viewer_connection->port,
-			viewer_connection->target_hostname,
-			viewer_connection->session_name, proto);
+			viewer_connection->target_hostname == NULL ?
+				"<none>" : viewer_connection->target_hostname->str,
+			viewer_connection->session_name == NULL ?
+				"<none>" : viewer_connection->session_name->str,
+			lttng_live_url_parts.proto->str);
 	ret = 0;
 
 end:
+	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
 	return ret;
 }
 
@@ -261,10 +206,10 @@ static int lttng_live_connect_viewer(struct bt_live_viewer_connection *viewer_co
 		goto error;
 	}
 
-	host = gethostbyname(viewer_connection->relay_hostname);
+	host = gethostbyname(viewer_connection->relay_hostname->str);
 	if (!host) {
 		BT_LOGE("Cannot lookup hostname %s",
-			viewer_connection->relay_hostname);
+			viewer_connection->relay_hostname->str);
 		goto error;
 	}
 
@@ -702,9 +647,9 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 		session_id = be64toh(lsession.id);
 
 		if ((strncmp(lsession.session_name,
-			viewer_connection->session_name,
+			viewer_connection->session_name->str,
 			MAXNAMLEN) == 0) && (strncmp(lsession.hostname,
-				viewer_connection->target_hostname,
+				viewer_connection->target_hostname->str,
 				MAXNAMLEN) == 0)) {
 			if (lttng_live_add_session(lttng_live, session_id)) {
 				goto error;
@@ -1474,5 +1419,14 @@ void bt_live_viewer_connection_destroy(struct bt_live_viewer_connection *viewer_
 	BT_LOGD("Closing connection to url \"%s\"", viewer_connection->url->str);
 	lttng_live_disconnect_viewer(viewer_connection);
 	g_string_free(viewer_connection->url, TRUE);
+	if (viewer_connection->relay_hostname) {
+		g_string_free(viewer_connection->relay_hostname, TRUE);
+	}
+	if (viewer_connection->target_hostname) {
+		g_string_free(viewer_connection->target_hostname, TRUE);
+	}
+	if (viewer_connection->session_name) {
+		g_string_free(viewer_connection->session_name, TRUE);
+	}
 	g_free(viewer_connection);
 }
