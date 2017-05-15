@@ -400,7 +400,8 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		 */
 		muxer_upstream_notif_iter->is_valid = false;
 		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:	/* Fall-through. */
+	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
 		/*
 		 * Notification iterator reached the end: release it. It
 		 * won't be considered again to find the youngest
@@ -764,7 +765,8 @@ struct bt_notification_iterator_next_return muxer_notif_iter_do_next(
 			muxer_notif_iter, &muxer_upstream_notif_iter,
 			&next_return_ts);
 	if (next_return.status < 0 ||
-			next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
+			next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_END ||
+			next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_CANCELED) {
 		goto end;
 	}
 
