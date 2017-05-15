@@ -1063,6 +1063,43 @@ error:
 	return ret;
 }
 
+BT_HIDDEN
+enum bt_component_status lttng_live_accept_port_connection(
+		struct bt_private_component *private_component,
+		struct bt_private_port *self_private_port,
+		struct bt_port *other_port)
+{
+	struct lttng_live_component *lttng_live =
+			bt_private_component_get_user_data(private_component);
+	struct bt_component *other_component;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	struct bt_port *self_port = bt_port_from_private_port(self_private_port);
+
+	other_component = bt_port_get_component(other_port);
+	bt_put(other_component);	/* weak */
+
+	if (!lttng_live->downstream_component) {
+		lttng_live->downstream_component = other_component;
+		goto end;
+	}
+
+	/*
+	 * Compare prior component to ensure we are connected to the
+	 * same downstream component as prior ports.
+	 */
+	if (lttng_live->downstream_component != other_component) {
+		BT_LOGW("Cannot connect ctf.lttng-live component port \"%s\" to component \"%s\": already connected to component \"%s\".",
+			bt_port_get_name(self_port),
+			bt_component_get_name(other_component),
+			bt_component_get_name(lttng_live->downstream_component));
+		status = BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION;
+		goto end;
+	}
+end:
+	bt_put(self_port);
+	return status;
+}
+
 static
 void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
 {
@@ -1085,6 +1122,10 @@ void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
 		log_level = BT_LOGGING_LEVEL_ERROR;
 	} else if (strcmp(log_level_env, "FATAL") == 0) {
 		log_level = BT_LOGGING_LEVEL_FATAL;
+	} else {
+		bt_lttng_live_log_level = BT_LOGGING_LEVEL_FATAL;
+		BT_LOGF("Incorrect log level specified in BABELTRACE_PLUGIN_LTTNG_LIVE_LOG_LEVEL");
+		abort();
 	}
 
         bt_lttng_live_log_level = log_level;

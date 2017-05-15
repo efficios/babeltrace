@@ -191,6 +191,8 @@ struct lttng_live_component {
 
 	struct bt_private_port *no_stream_port;
 	struct lttng_live_no_stream_iterator *no_stream_iter;
+
+	struct bt_component *downstream_component;
 };
 
 enum bt_ctf_lttng_live_iterator_status {
@@ -212,7 +214,6 @@ enum bt_ctf_lttng_live_iterator_status {
 	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
-BT_HIDDEN
 enum bt_component_status lttng_live_component_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
 
@@ -221,10 +222,13 @@ struct bt_value *lttng_live_query(struct bt_component_class *comp_class,
 
 void lttng_live_component_finalize(struct bt_private_component *component);
 
-BT_HIDDEN
 struct bt_notification_iterator_next_return lttng_live_iterator_next(
         struct bt_private_notification_iterator *iterator);
 
+enum bt_component_status lttng_live_accept_port_connection(
+		struct bt_private_component *private_component,
+		struct bt_private_port *self_private_port,
+		struct bt_port *other_port);
 
 enum bt_notification_iterator_status lttng_live_iterator_init(
 		struct bt_private_notification_iterator *it,
