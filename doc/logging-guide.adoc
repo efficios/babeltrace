@@ -67,6 +67,7 @@ statements: this header could be included in source files which define a
 different <<tag,tag>>, for example.
 
 
+
 === Log levels ===
 
 The API offers the following log levels:
@@ -528,7 +529,7 @@ A tag is conceptually similar to a logger name.
 
 
 [[level]]
-== Log level
+== Choose a log level
 
 Choosing the appropriate level for your logging statement is very
 important.
@@ -541,12 +542,12 @@ important.
 |The program, library, or plugin cannot continue to work in this
 condition: it must be terminated immediately.
 
-An assertion is usually an indicator of where you should put a
-_FATAL_-level logging statement. In Babeltrace, however, memory
-allocation errors are usually propagated back to the caller, so they
-belong to the _ERROR_ log level.
+A _FATAL_-level logging statement should always be followed by
+`abort()` or `assert(false)`.
 |
 * Unexpected return values from system calls.
+* Logic error in internal code, for example an unknown value in a
+  `switch` statement which should only deal with .
 |Almost none: should be executed in production.
 
 |_ERROR_
@@ -607,8 +608,20 @@ in general.
 |Huge: not executed in production.
 |===
 
+Make sure not to use a _WARN_ (or higher) log level when the condition
+leading to the logging statement can occur under normal circumstances.
+For example, a public function to get some object or property from an
+object by name or key that fails to find the value is not a warning: the
+user could legitimately use this function to check if the name/key
+exists in the object. In this case, use the _VERBOSE_ level (or do not
+log at all). If a numeric index is out of bounds, however, this
+qualifies for a _WARN_ level: such API functions have documented
+preconditions that the index must be in bounds (the user can always
+check with a count or size function).
 
-== Message
+
+[[message]]
+== Write an appropriate message
 
 Follow those rules when you write a logging statement's message:
 
@@ -617,12 +630,15 @@ Follow those rules when you write a logging statement's message:
   example:
 +
 --
-** _Creating ..._
-** _Created ..._ or _Successfully created ..._
+** Beginning of operation (present continuous): _Creating ..._,
+   _Copying ..._, _Serializing ..._, _Freezing ..._, _Destroying ..._
+** End of operation (simple past): _Created ..._, _Successfully created ..._,
+   _Failed to create ..._, _Set ..._ (simple past of _to set_ which is
+   also _set_)
 --
 +
 For warning and error messages, you can start the message with _Cannot_
-followed by a verb if it's appropriate.
+or _Failed to_ followed by a verb if it's appropriate.
 
 * Do not include the log level in the message itself. For example,
   do not start the message with _Error while_ or _Warning:_.
@@ -630,7 +646,8 @@ followed by a verb if it's appropriate.
 * Do not put newlines, tabs, or other special characters in the
   message, unless you want to log a string with such characters. Note
   that multiline log messages can be hard to parse, analyze, and filter,
-  however.
+  however, so prefer multiple `BT_LOG*()` statements over a single
+  statement with newlines.
 
 * **If there are fields that your logging statement must record**,
   follow the message with `:` followed by a space, then with the list of
@@ -639,13 +656,14 @@ followed by a verb if it's appropriate.
 
 The statement's fields _must_ be a comma-separated list of
 +__name__=__value__+ tokens. Keep +__name__+ as simple as possible
-(lowercase if possible). If +__value__+ is a string, put it between
-double quotes.
+(lowercase if possible). If +__value__+ is a non-alphanumeric string,
+put it between double quotes. Always use the `PRId64` and `PRIu64`
+specifiers when logging `int64_t` and `uint64_t` values.
 
 Example:
 
     "Cannot add event class to stream class: stream-class-addr=%p, "
-    "stream-class-name=\"%s\", stream-class-id=%" PRId64
+    "stream-class-name=\"%s\", stream-class-id=%" PRId64 ", "
     "event-class-addr=%p, event-class-name=\"%s\", event-class-id=%" PRId64
 
 By following a standard format for the statement fields, it is easier
@@ -663,15 +681,15 @@ Prefer the following suffixes in field names:
 |`-fp` |File stream (`FILE *`) |`%p`
 |`-id` |Object's ID |`%" PRId64 "` or `%" PRIu64 "`
 |`-name` |Object's name |`\"%s\"`
-|`-ref-cnt` |Object's reference count |`%u`
 |===
 
 
 == Output
 
 The log is printed to the standard error stream. A log line contains the
-time, the process and thread IDs, the log level, the tag, the source's
-function name, file name and line number, and the message.
+time, the process and thread IDs, the <<level,log level>>, the <<tag,tag>>,
+the source's function name, file name and line number, and the
+<<message,message>>.
 
 Example:
 
