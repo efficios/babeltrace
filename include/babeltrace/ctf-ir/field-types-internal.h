@@ -179,12 +179,6 @@ BT_HIDDEN
 int bt_ctf_field_type_structure_get_field_name_index(
 		struct bt_ctf_field_type *structure, const char *name);
 
-/* Replace an existing field's type in a structure */
-BT_HIDDEN
-int bt_ctf_field_type_structure_set_field_index(
-		struct bt_ctf_field_type *structure,
-		struct bt_ctf_field_type *field, int index);
-
 BT_HIDDEN
 int bt_ctf_field_type_variant_get_field_name_index(
 		struct bt_ctf_field_type *variant, const char *name);

@@ -1246,7 +1246,7 @@ An enumeration mapping has:
   value, both included in the range.
 
 You can add a mapping to an enumeration field type with
-bt_ctf_field_type_enumeration_add_mapping() or
+bt_ctf_field_type_enumeration_add_mapping_signed() or
 bt_ctf_field_type_enumeration_add_mapping_unsigned(), depending on the
 signedness of the wrapped @intft.
 
@@ -1573,9 +1573,12 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @sa bt_ctf_field_type_enumeration_add_mapping_unsigned(): Adds an
 	unsigned mapping to a given enumeration field type.
 */
-extern int bt_ctf_field_type_enumeration_add_mapping(
+extern int bt_ctf_field_type_enumeration_add_mapping_signed(
 		struct bt_ctf_field_type *enum_field_type, const char *name,
 		int64_t range_begin, int64_t range_end);
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type_enumeration_add_mapping bt_ctf_field_type_enumeration_add_mapping_signed
 
 /**
 @brief	Adds a mapping to the @enumft \p enum_field_type which maps
@@ -1609,7 +1612,7 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_add_mapping(): Adds a signed
+@sa bt_ctf_field_type_enumeration_add_mapping_signed(): Adds a signed
 	mapping to a given enumeration field type.
 */
 extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
