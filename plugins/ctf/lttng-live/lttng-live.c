@@ -48,6 +48,7 @@
 #include <plugins-common.h>
 
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE"
+#define BT_LOGLEVEL_NAME "BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_LOG_LEVEL"
 
 #include "data-stream.h"
 #include "metadata.h"
@@ -1104,7 +1105,7 @@ static
 void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
 {
 	enum bt_logging_level log_level = BT_LOG_NONE;
-	const char *log_level_env = getenv("BABELTRACE_PLUGIN_LTTNG_LIVE_LOG_LEVEL");
+	const char *log_level_env = getenv(BT_LOGLEVEL_NAME);
 
 	if (!log_level_env) {
 		return;
@@ -1124,7 +1125,8 @@ void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
 		log_level = BT_LOGGING_LEVEL_FATAL;
 	} else {
 		bt_lttng_live_log_level = BT_LOGGING_LEVEL_FATAL;
-		BT_LOGF("Incorrect log level specified in BABELTRACE_PLUGIN_LTTNG_LIVE_LOG_LEVEL");
+		BT_LOGF("Incorrect log level specified in %s",
+				BT_LOGLEVEL_NAME);
 		abort();
 	}
 
