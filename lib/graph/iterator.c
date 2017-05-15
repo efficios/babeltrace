@@ -349,6 +349,12 @@ void bt_notification_iterator_finalize(
 		break;
 	}
 
+	if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_ENDED) {
+		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
+	} else {
+		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED;
+	}
+
 	assert(iterator->upstream_component);
 	comp_class = iterator->upstream_component->class;
 
@@ -378,12 +384,6 @@ void bt_notification_iterator_finalize(
 	if (finalize_method) {
 		finalize_method(
 			bt_private_notification_iterator_from_notification_iterator(iterator));
-	}
-
-	if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_ENDED) {
-		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
-	} else {
-		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED;
 	}
 
 	iterator->upstream_component = NULL;
