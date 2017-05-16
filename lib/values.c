@@ -197,6 +197,8 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 		struct bt_value *element_obj = bt_value_array_get(array_obj, i);
 
 		assert(element_obj);
+		BT_LOGD("Copying array value's element: element-addr=%p, "
+			"index=%d", element_obj, i);
 		element_obj_copy = bt_value_copy(element_obj);
 		BT_PUT(element_obj);
 		if (!element_obj_copy) {
@@ -247,6 +249,9 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
+		assert(key_str);
+		BT_LOGD("Copying map value's element: element-addr=%p, "
+			"key=\"%s\"", element_obj, key_str);
 		element_obj_copy = bt_value_copy(element_obj);
 		if (!element_obj_copy) {
 			BT_LOGE("Cannot copy map value's element: "
@@ -299,32 +304,64 @@ static
 bt_bool bt_value_bool_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	return BT_VALUE_TO_BOOL(object_a)->value ==
-		BT_VALUE_TO_BOOL(object_b)->value;
+	if (BT_VALUE_TO_BOOL(object_a)->value !=
+			BT_VALUE_TO_BOOL(object_b)->value) {
+		BT_LOGV("Boolean value objects are different: "
+			"bool-a-val=%d, bool-b-val=%d",
+			BT_VALUE_TO_BOOL(object_a)->value,
+			BT_VALUE_TO_BOOL(object_b)->value);
+		return BT_FALSE;
+	}
+
+	return BT_TRUE;
 }
 
 static
 bt_bool bt_value_integer_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	return BT_VALUE_TO_INTEGER(object_a)->value ==
-		BT_VALUE_TO_INTEGER(object_b)->value;
+	if (BT_VALUE_TO_INTEGER(object_a)->value !=
+			BT_VALUE_TO_INTEGER(object_b)->value) {
+		BT_LOGV("Integer value objects are different: "
+			"int-a-val=%" PRId64 ", int-b-val=%" PRId64,
+			BT_VALUE_TO_INTEGER(object_a)->value,
+			BT_VALUE_TO_INTEGER(object_b)->value);
+		return BT_FALSE;
+	}
+
+	return BT_TRUE;
 }
 
 static
 bt_bool bt_value_float_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	return BT_VALUE_TO_FLOAT(object_a)->value ==
-		BT_VALUE_TO_FLOAT(object_b)->value;
+	if (BT_VALUE_TO_FLOAT(object_a)->value !=
+			BT_VALUE_TO_FLOAT(object_b)->value) {
+		BT_LOGV("Floating point number value objects are different: "
+			"float-a-val=%f, float-b-val=%f",
+			BT_VALUE_TO_FLOAT(object_a)->value,
+			BT_VALUE_TO_FLOAT(object_b)->value);
+		return BT_FALSE;
+	}
+
+	return BT_TRUE;
 }
 
 static
 bt_bool bt_value_string_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	return !strcmp(BT_VALUE_TO_STRING(object_a)->gstr->str,
-		BT_VALUE_TO_STRING(object_b)->gstr->str);
+	if (strcmp(BT_VALUE_TO_STRING(object_a)->gstr->str,
+			BT_VALUE_TO_STRING(object_b)->gstr->str) != 0) {
+		BT_LOGV("String value objects are different: "
+			"string-a-val=\"%s\", string-b-val=\"%s\"",
+			BT_VALUE_TO_STRING(object_a)->gstr->str,
+			BT_VALUE_TO_STRING(object_b)->gstr->str);
+		return BT_FALSE;
+	}
+
+	return BT_TRUE;
 }
 
 static
@@ -422,9 +459,9 @@ bt_bool (* const compare_funcs[])(const struct bt_value *,
 	[BT_VALUE_TYPE_NULL] =		bt_value_null_compare,
 	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_compare,
 	[BT_VALUE_TYPE_INTEGER] =	bt_value_integer_compare,
-	[BT_VALUE_TYPE_FLOAT] =	bt_value_float_compare,
+	[BT_VALUE_TYPE_FLOAT] =		bt_value_float_compare,
 	[BT_VALUE_TYPE_STRING] =	bt_value_string_compare,
-	[BT_VALUE_TYPE_ARRAY] =	bt_value_array_compare,
+	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_compare,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_compare,
 };
 
