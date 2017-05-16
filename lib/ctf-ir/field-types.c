@@ -306,6 +306,13 @@ void destroy_enumeration_mapping(struct enumeration_mapping *mapping)
 static
 void destroy_structure_field(struct structure_field *field)
 {
+	if (!field) {
+		return;
+	}
+
+	BT_LOGD("Destroying structure/variant field type's field object: "
+		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
+		field, field->type, g_quark_to_string(field->name));
 	bt_put(field->type);
 	g_free(field);
 }
