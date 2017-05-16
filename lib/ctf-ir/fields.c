@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "FIELDS"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
@@ -34,6 +37,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/align-internal.h>
+#include <inttypes.h>
 
 #define PACKET_LEN_INCREMENT	(getpagesize() * 8 * CHAR_BIT)
 
@@ -288,20 +292,24 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 	int ret;
 
 	if (!type) {
+		BT_LOGW_STR("Invalid parameter: field type is NULL.");
 		goto error;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN ||
 			type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"ft-addr=%p, ft-id=%d", type, type_id);
 		goto error;
 	}
 
 	/* Field class MUST be valid */
 	ret = bt_ctf_field_type_validate(type);
-
 	if (ret) {
 		/* Invalid */
+		BT_LOGW("Invalid parameter: field type is invalid: "
+			"ft-addr=%p", type);
 		goto error;
 	}
 
@@ -319,11 +327,13 @@ error:
 	return field;
 }
 
+/* Pre-2.0 CTF writer backward compatibility */
 void bt_ctf_field_get(struct bt_ctf_field *field)
 {
 	bt_get(field);
 }
 
+/* Pre-2.0 CTF writer backward compatibility */
 void bt_ctf_field_put(struct bt_ctf_field *field)
 {
 	bt_put(field);
@@ -334,6 +344,7 @@ struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 	struct bt_ctf_field_type *ret = NULL;
 
 	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		goto end;
 	}
 
@@ -348,6 +359,7 @@ enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 	enum bt_ctf_field_type_id ret = BT_CTF_FIELD_TYPE_ID_UNKNOWN;
 
 	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		goto end;
 	}
 
@@ -403,11 +415,16 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_length(
 	struct bt_ctf_field_sequence *sequence;
 
 	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		goto end;
 	}
 
 	if (bt_ctf_field_type_get_type_id(field->type) !=
-		BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+			BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+		BT_LOGW("Invalid parameter: field's type is not a sequence field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
@@ -427,12 +444,31 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	struct bt_ctf_field_sequence *sequence;
 	uint64_t sequence_length;
 
-	if (!field || !length_field || field->frozen) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
+
+	if (!length_field) {
+		BT_LOGW_STR("Invalid parameter: length field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
 	if (bt_ctf_field_type_get_type_id(length_field->type) !=
-		BT_CTF_FIELD_TYPE_ID_INTEGER) {
+			BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: length field's type is not an integer field type: "
+			"field-addr=%p, length-field-addr=%p, length-ft-addr=%p, length-ft-id=%s",
+			field, length_field, length_field->type,
+			bt_ctf_field_type_id_string(length_field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -441,6 +477,10 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		struct bt_ctf_field_type_integer, parent);
 	/* The length field must be unsigned */
 	if (length_type->is_signed) {
+		BT_LOGW("Invalid parameter: length field's type is signed: "
+			"field-addr=%p, length-field-addr=%p, "
+			"length-field-ft-addr=%p", field, length_field,
+			length_field->type);
 		ret = -1;
 		goto end;
 	}
@@ -456,6 +496,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 
 	sequence->elements = g_ptr_array_sized_new((size_t)sequence_length);
 	if (!sequence->elements) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -478,9 +519,22 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 	struct bt_ctf_field_type *field_type = NULL;
 	size_t index;
 
-	if (!field || !name ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto error;
+	}
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: field name is NULL.");
+		goto error;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRUCT) {
+		BT_LOGW("Invalid parameter: field's type is not a structure field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto error;
 	}
 
@@ -490,7 +544,12 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		bt_ctf_field_type_structure_get_field_type_by_name(field->type,
 		name);
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
-		GUINT_TO_POINTER(field_quark), NULL, (gpointer *)&index)) {
+			GUINT_TO_POINTER(field_quark),
+			NULL, (gpointer *)&index)) {
+		BT_LOGW("Invalid parameter: no such field in structure field's type: "
+			"struct-field-addr=%p, struct-ft-addr=%p, "
+			"field-ft-addr=%p, name=\"%s\"",
+			field, field->type, field_type, name);
 		goto error;
 	}
 
@@ -501,11 +560,17 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
 		goto end;
 	}
 
 	new_field = bt_ctf_field_create(field_type);
 	if (!new_field) {
+		BT_LOGW("Cannot create field: "
+			"struct-field-addr=%p, struct-ft-addr=%p, "
+			"field-ft-addr=%p, name=\"%s\"",
+			field, field->type, field_type, name);
 		goto error;
 	}
 
@@ -529,14 +594,25 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field *ret_field = NULL;
 
-	if (!field ||
-		bt_ctf_field_type_get_type_id(field->type) !=
-		BT_CTF_FIELD_TYPE_ID_STRUCT) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_STRUCT) {
+		BT_LOGW("Invalid parameter: field's type is not a structure field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
 	if (index >= structure->fields->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, index=%" PRIu64 ", count=%u",
+			field, index, structure->fields->len);
 		goto error;
 	}
 
@@ -547,24 +623,24 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
 		goto end;
 	}
 
 	/* Field has not been instanciated yet, create it */
 	structure_type = bt_ctf_field_get_type(field);
-	if (!structure_type) {
-		goto error;
-	}
-
+	assert(structure_type);
 	ret = bt_ctf_field_type_structure_get_field(structure_type,
 		&field_name, &field_type, index);
+	assert(ret == 0);
 	bt_put(structure_type);
-	if (ret) {
-		goto error;
-	}
-
 	ret_field = bt_ctf_field_create(field_type);
 	if (!ret_field) {
+		BT_LOGW("Cannot create field: "
+			"struct-field-addr=%p, struct-ft-addr=%p, "
+			"field-ft-addr=%p, index=%" PRIu64,
+			field, field->type, field_type, index);
 		goto error;
 	}
 
@@ -585,9 +661,30 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_type *expected_field_type = NULL;
 	size_t index;
 
-	if (!field || !name || !value || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: structure field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: field name is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRUCT) {
+		BT_LOGW("Invalid parameter: field's type is not a structure field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -599,12 +696,21 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 		name);
 
 	if (bt_ctf_field_type_compare(expected_field_type, value->type)) {
+		BT_LOGW("Invalid parameter: field type of field to set is different from the expected field type: "
+			"struct-field-addr=%p, field-addr=%p, "
+			"field-ft-addr=%p, expected-ft-addr=%p",
+			field, value, value->type, expected_field_type);
 		ret = -1;
 		goto end;
 	}
 
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
-		GUINT_TO_POINTER(field_quark), NULL, (gpointer *) &index)) {
+			GUINT_TO_POINTER(field_quark), NULL, (gpointer *) &index)) {
+		BT_LOGW("Invalid parameter: no such field in structure field's type: "
+			"struct-field-addr=%p, struct-ft-addr=%p, "
+			"field-ft-addr=%p, name=\"%s\"",
+			field, field->type, value->type, name);
+		ret = -1;
 		goto end;
 	}
 
@@ -628,13 +734,25 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field_array *array;
 
-	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
-		BT_CTF_FIELD_TYPE_ID_ARRAY) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_ARRAY) {
+		BT_LOGW("Invalid parameter: field's type is not an array field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
 	array = container_of(field, struct bt_ctf_field_array, parent);
 	if (index >= array->elements->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, index=%" PRIu64 ", count=%u",
+			field, index, array->elements->len);
 		goto end;
 	}
 
@@ -646,6 +764,8 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
 		goto end;
 	}
 
@@ -668,13 +788,31 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_type *field_type = NULL;
 	struct bt_ctf_field_sequence *sequence;
 
-	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
-		BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+		BT_LOGW("Invalid parameter: field's type is not a sequence field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
-	if (!sequence->elements || index >= sequence->elements->len) {
+	if (!sequence->elements) {
+		BT_LOGW("Sequence field's elements do not exist: addr=%p",
+			field);
+		goto end;
+	}
+
+	if (index >= sequence->elements->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, index=%" PRIu64 ", count=%u",
+			field, index, sequence->elements->len);
 		goto end;
 	}
 
@@ -686,6 +824,8 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
 		goto end;
 	}
 
@@ -712,11 +852,31 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_integer *tag_enum_integer;
 	int64_t tag_enum_value;
 
-	if (!field || !tag_field ||
-		bt_ctf_field_type_get_type_id(field->type) !=
-			BT_CTF_FIELD_TYPE_ID_VARIANT ||
-		bt_ctf_field_type_get_type_id(tag_field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (!tag_field) {
+		BT_LOGW_STR("Invalid parameter: tag field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_VARIANT) {
+		BT_LOGW("Invalid parameter: field's type is not a variant field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(tag_field->type) !=
 			BT_CTF_FIELD_TYPE_ID_ENUM) {
+		BT_LOGW("Invalid parameter: tag field's type is not an enumeration field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", tag_field,
+			tag_field->type,
+			bt_ctf_field_type_id_string(tag_field->type->id));
 		goto end;
 	}
 
@@ -732,6 +892,9 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		parent);
 
 	if (bt_ctf_field_validate(tag_field) < 0) {
+		BT_LOGW("Invalid parameter: tag field is invalid: "
+			"variant-field-addr=%p, tag-field-addr=%p",
+			field, tag_field);
 		goto end;
 	}
 
@@ -764,17 +927,26 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
 		goto end;
 	}
 
 	field_type = bt_ctf_field_type_variant_get_field_type_signed(
 		variant_type, tag_enum_value);
 	if (!field_type) {
+		BT_LOGW("Cannot get variant field type's field: "
+			"variant-field-addr=%p, variant-ft-addr=%p, "
+			"tag-value-signed=%" PRId64,
+			field, variant_type, tag_enum_value);
 		goto end;
 	}
 
 	new_field = bt_ctf_field_create(field_type);
 	if (!new_field) {
+		BT_LOGW("Cannot create field: "
+			"variant-field-addr=%p, variant-ft-addr=%p, "
+			"field-ft-addr=%p", field, field->type, field_type);
 		goto end;
 	}
 
@@ -795,9 +967,17 @@ struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 	struct bt_ctf_field *current_field = NULL;
 	struct bt_ctf_field_variant *variant;
 
-	if (!variant_field ||
-		bt_ctf_field_type_get_type_id(variant_field->type) !=
+	if (!variant_field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(variant_field->type) !=
 			BT_CTF_FIELD_TYPE_ID_VARIANT) {
+		BT_LOGW("Invalid parameter: field's type is not a variant field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", variant_field,
+			variant_field->type,
+			bt_ctf_field_type_id_string(variant_field->type->id));
 		goto end;
 	}
 
@@ -820,9 +1000,17 @@ struct bt_ctf_field *bt_ctf_field_variant_get_tag(
 	struct bt_ctf_field *tag = NULL;
 	struct bt_ctf_field_variant *variant;
 
-	if (!variant_field ||
-			bt_ctf_field_type_get_type_id(variant_field->type) !=
+	if (!variant_field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(variant_field->type) !=
 			BT_CTF_FIELD_TYPE_ID_VARIANT) {
+		BT_LOGW("Invalid parameter: field's type is not a variant field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", variant_field,
+			variant_field->type,
+			bt_ctf_field_type_id_string(variant_field->type->id));
 		goto end;
 	}
 
@@ -841,8 +1029,17 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	struct bt_ctf_field *container = NULL;
 	struct bt_ctf_field_enumeration *enumeration;
 
-	if (!field || bt_ctf_field_type_get_type_id(field->type) !=
-		BT_CTF_FIELD_TYPE_ID_ENUM) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_ENUM) {
+		BT_LOGW("Invalid parameter: field's type is not an enumeration field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
@@ -851,6 +1048,8 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	if (!enumeration->payload) {
 		/* We don't want to modify this field if it's frozen */
 		if (field->frozen) {
+			BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+				field);
 			goto end;
 		}
 
@@ -878,14 +1077,13 @@ bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *field)
 
 	container = bt_ctf_field_enumeration_get_container(field);
 	if (!container) {
+		BT_LOGW("Invalid parameter: enumeration field has no container field: "
+			"addr=%p", field);
 		goto end;
 	}
 
 	container_type = bt_ctf_field_get_type(container);
-	if (!container_type) {
-		goto error_put_container;
-	}
-
+	assert(container_type);
 	integer_type = container_of(container_type,
 		struct bt_ctf_field_type_integer, parent);
 
@@ -895,6 +1093,9 @@ bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *field)
 		ret = bt_ctf_field_unsigned_integer_get_value(container,
 		      &value);
 		if (ret) {
+			BT_LOGW("Cannot get value from signed enumeration field's payload field: "
+				"enum-field-addr=%p, payload-field-addr=%p",
+				field, container);
 			goto error_put_container_type;
 		}
 		iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
@@ -905,6 +1106,9 @@ bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *field)
 		ret = bt_ctf_field_signed_integer_get_value(container,
 		      &value);
 		if (ret) {
+			BT_LOGW("Cannot get value from unsigned enumeration field's payload field: "
+				"enum-field-addr=%p, payload-field-addr=%p",
+				field, container);
 			goto error_put_container_type;
 		}
 		iter = bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
@@ -913,7 +1117,6 @@ bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *field)
 
 error_put_container_type:
 	bt_put(container_type);
-error_put_container:
 	bt_put(container);
 end:
 	return iter;
@@ -926,9 +1129,30 @@ int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *field,
 	struct bt_ctf_field_integer *integer;
 	struct bt_ctf_field_type_integer *integer_type;
 
-	if (!field || !value || !field->payload_set ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!field->payload_set) {
+		BT_LOGV("Field's payload is not set: addr=%p", field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -936,6 +1160,8 @@ int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *field,
 	integer_type = container_of(field->type,
 		struct bt_ctf_field_type_integer, parent);
 	if (!integer_type->is_signed) {
+		BT_LOGW("Invalid parameter: integer field's type is not signed: "
+			"field-addr=%p, ft-addr=%p", field, field->type);
 		ret = -1;
 		goto end;
 	}
@@ -956,9 +1182,25 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	unsigned int size;
 	int64_t min_value, max_value;
 
-	if (!field || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -967,6 +1209,8 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	integer_type = container_of(field->type,
 		struct bt_ctf_field_type_integer, parent);
 	if (!integer_type->is_signed) {
+		BT_LOGW("Invalid parameter: integer field's type is not signed: "
+			"field-addr=%p, ft-addr=%p", field, field->type);
 		ret = -1;
 		goto end;
 	}
@@ -975,6 +1219,10 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	min_value = -(1ULL << (size - 1));
 	max_value = (1ULL << (size - 1)) - 1;
 	if (value < min_value || value > max_value) {
+		BT_LOGW("Invalid parameter: value is out of bounds: "
+			"addr=%p, value=%" PRId64 ", "
+			"min-value=%" PRId64 ", max-value=%" PRId64,
+			field, value, min_value, max_value);
 		ret = -1;
 		goto end;
 	}
@@ -992,9 +1240,30 @@ int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *field,
 	struct bt_ctf_field_integer *integer;
 	struct bt_ctf_field_type_integer *integer_type;
 
-	if (!field || !value || !field->payload_set ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!field->payload_set) {
+		BT_LOGV("Field's payload is not set: addr=%p", field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1002,6 +1271,8 @@ int bt_ctf_field_unsigned_integer_get_value(struct bt_ctf_field *field,
 	integer_type = container_of(field->type,
 		struct bt_ctf_field_type_integer, parent);
 	if (integer_type->is_signed) {
+		BT_LOGW("Invalid parameter: integer field's type is signed: "
+			"field-addr=%p, ft-addr=%p", field, field->type);
 		ret = -1;
 		goto end;
 	}
@@ -1022,9 +1293,25 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	unsigned int size;
 	uint64_t max_value;
 
-	if (!field || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1033,6 +1320,8 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	integer_type = container_of(field->type,
 		struct bt_ctf_field_type_integer, parent);
 	if (integer_type->is_signed) {
+		BT_LOGW("Invalid parameter: integer field's type is signed: "
+			"field-addr=%p, ft-addr=%p", field, field->type);
 		ret = -1;
 		goto end;
 	}
@@ -1040,6 +1329,10 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	size = integer_type->size;
 	max_value = (size == 64) ? UINT64_MAX : ((uint64_t) 1 << size) - 1;
 	if (value > max_value) {
+		BT_LOGW("Invalid parameter: value is out of bounds: "
+			"addr=%p, value=%" PRIu64 ", "
+			"min-value=%" PRIu64 ", max-value=%" PRIu64,
+			field, value, (uint64_t) 0, max_value);
 		ret = -1;
 		goto end;
 	}
@@ -1056,9 +1349,30 @@ int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_floating_point *floating_point;
 
-	if (!field || !value || !field->payload_set ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!field->payload_set) {
+		BT_LOGV("Field's payload is not set: addr=%p", field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_FLOAT) {
+		BT_LOGW("Invalid parameter: field's type is not a floating point number field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1076,12 +1390,29 @@ int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_floating_point *floating_point;
 
-	if (!field || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
-			BT_CTF_FIELD_TYPE_ID_FLOAT) {
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
+			BT_CTF_FIELD_TYPE_ID_FLOAT) {
+		BT_LOGW("Invalid parameter: field's type is not a floating point number field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
+		ret = -1;
+		goto end;
+	}
+
 	floating_point = container_of(field, struct bt_ctf_field_floating_point,
 		parent);
 	floating_point->payload = value;
@@ -1095,9 +1426,22 @@ const char *bt_ctf_field_string_get_value(struct bt_ctf_field *field)
 	const char *ret = NULL;
 	struct bt_ctf_field_string *string;
 
-	if (!field || !field->payload_set ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		goto end;
+	}
+
+	if (!field->payload_set) {
+		BT_LOGV("Field's payload is not set: addr=%p", field);
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRING) {
+		BT_LOGW("Invalid parameter: field's type is not a string field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		goto end;
 	}
 
@@ -1114,9 +1458,31 @@ int bt_ctf_field_string_set_value(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_string *string;
 
-	if (!field || !value || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRING) {
+		BT_LOGW("Invalid parameter: field's type is not a string field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1139,9 +1505,31 @@ int bt_ctf_field_string_append(struct bt_ctf_field *field,
 	int ret = 0;
 	struct bt_ctf_field_string *string_field;
 
-	if (!field || !value || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRING) {
+		BT_LOGW("Invalid parameter: field's type is not a string field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1168,9 +1556,31 @@ int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 	unsigned int effective_length = length;
 	struct bt_ctf_field_string *string_field;
 
-	if (!field || !value || field->frozen ||
-		bt_ctf_field_type_get_type_id(field->type) !=
+	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (field->frozen) {
+		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
+			field);
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_field_type_get_type_id(field->type) !=
 			BT_CTF_FIELD_TYPE_ID_STRING) {
+		BT_LOGW("Invalid parameter: field's type is not a string field type: "
+			"field-addr=%p, ft-addr=%p, ft-id=%s", field,
+			field->type,
+			bt_ctf_field_type_id_string(field->type->id));
 		ret = -1;
 		goto end;
 	}
@@ -1206,12 +1616,16 @@ int bt_ctf_field_validate(struct bt_ctf_field *field)
 	enum bt_ctf_field_type_id type_id;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(field->type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"addr=%p, ft-addr=%p, ft-id=%d",
+			field, field->type, type_id);
 		ret = -1;
 		goto end;
 	}
@@ -1228,12 +1642,16 @@ int bt_ctf_field_reset(struct bt_ctf_field *field)
 	enum bt_ctf_field_type_id type_id;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(field->type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"addr=%p, ft-addr=%p, ft-id=%d",
+			field, field->type, type_id);
 		ret = -1;
 		goto end;
 	}
@@ -1251,13 +1669,19 @@ int bt_ctf_field_serialize(struct bt_ctf_field *field,
 	int ret = 0;
 	enum bt_ctf_field_type_id type_id;
 
-	if (!field || !pos) {
+	assert(pos);
+
+	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(field->type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"addr=%p, ft-addr=%p, ft-id=%d",
+			field, field->type, type_id);
 		ret = -1;
 		goto end;
 	}
@@ -1280,6 +1704,9 @@ bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field)
 
 	type_id = bt_ctf_field_type_get_type_id(field->type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"field-addr=%p, ft-addr=%p, ft-id=%d",
+			field, field->type, type_id);
 		goto end;
 	}
 
@@ -1295,16 +1722,21 @@ struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 	enum bt_ctf_field_type_id type_id;
 
 	if (!field) {
+		BT_LOGW_STR("Invalid parameter: field is NULL.");
 		goto end;
 	}
 
 	type_id = bt_ctf_field_type_get_type_id(field->type);
 	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN || type_id >= BT_CTF_NR_TYPE_IDS) {
+		BT_LOGW("Invalid parameter: unknown field type ID: "
+			"field-addr=%p, ft-addr=%p, ft-id=%d",
+			field, field->type, type_id);
 		goto end;
 	}
 
 	copy = bt_ctf_field_create(field->type);
 	if (!copy) {
+		BT_LOGW("Cannot create field: ft-addr=%p", field->type);
 		goto end;
 	}
 
@@ -1324,6 +1756,15 @@ struct bt_ctf_field *bt_ctf_field_integer_create(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_integer *integer = g_new0(
 		struct bt_ctf_field_integer, 1);
 
+	BT_LOGD("Creating integer field object: ft-addr=%p", type);
+
+	if (integer) {
+		BT_LOGD("Created integer field object: addr=%p, ft-addr=%p",
+			&integer->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one integer field.");
+	}
+
 	return integer ? &integer->parent : NULL;
 }
 
@@ -1334,6 +1775,15 @@ struct bt_ctf_field *bt_ctf_field_enumeration_create(
 	struct bt_ctf_field_enumeration *enumeration = g_new0(
 		struct bt_ctf_field_enumeration, 1);
 
+	BT_LOGD("Creating enumeration field object: ft-addr=%p", type);
+
+	if (enumeration) {
+		BT_LOGD("Created enumeration field object: addr=%p, ft-addr=%p",
+			&enumeration->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one enumeration field.");
+	}
+
 	return enumeration ? &enumeration->parent : NULL;
 }
 
@@ -1343,7 +1793,16 @@ struct bt_ctf_field *bt_ctf_field_floating_point_create(
 {
 	struct bt_ctf_field_floating_point *floating_point;
 
+	BT_LOGD("Creating floating point number field object: ft-addr=%p", type);
 	floating_point = g_new0(struct bt_ctf_field_floating_point, 1);
+
+	if (floating_point) {
+		BT_LOGD("Created floating point number field object: addr=%p, ft-addr=%p",
+			&floating_point->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one floating point number field.");
+	}
+
 	return floating_point ? &floating_point->parent : NULL;
 }
 
@@ -1357,7 +1816,10 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 		struct bt_ctf_field_structure, 1);
 	struct bt_ctf_field *field = NULL;
 
+	BT_LOGD("Creating structure field object: ft-addr=%p", type);
+
 	if (!structure) {
+		BT_LOGE_STR("Failed to allocate one structure field.");
 		goto end;
 	}
 
@@ -1367,6 +1829,8 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 	g_ptr_array_set_size(structure->fields,
 		g_hash_table_size(structure->field_name_to_index));
 	field = &structure->parent;
+	BT_LOGD("Created structure field object: addr=%p, ft-addr=%p",
+		field, type);
 end:
 	return field;
 }
@@ -1376,6 +1840,16 @@ struct bt_ctf_field *bt_ctf_field_variant_create(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_variant *variant = g_new0(
 		struct bt_ctf_field_variant, 1);
+
+	BT_LOGD("Creating variant field object: ft-addr=%p", type);
+
+	if (variant) {
+		BT_LOGD("Created variant field object: addr=%p, ft-addr=%p",
+			&variant->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one variant field.");
+	}
+
 	return variant ? &variant->parent : NULL;
 }
 
@@ -1386,7 +1860,11 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 	struct bt_ctf_field_type_array *array_type;
 	unsigned int array_length;
 
-	if (!array || !type) {
+	BT_LOGD("Creating array field object: ft-addr=%p", type);
+	assert(type);
+
+	if (!array) {
+		BT_LOGE_STR("Failed to allocate one array field.");
 		goto error;
 	}
 
@@ -1400,6 +1878,8 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 	g_ptr_array_set_free_func(array->elements,
 		(GDestroyNotify)bt_ctf_field_put);
 	g_ptr_array_set_size(array->elements, array_length);
+	BT_LOGD("Created array field object: addr=%p, ft-addr=%p",
+		&array->parent, type);
 	return &array->parent;
 error:
 	g_free(array);
@@ -1412,6 +1892,16 @@ struct bt_ctf_field *bt_ctf_field_sequence_create(
 {
 	struct bt_ctf_field_sequence *sequence = g_new0(
 		struct bt_ctf_field_sequence, 1);
+
+	BT_LOGD("Creating sequence field object: ft-addr=%p", type);
+
+	if (sequence) {
+		BT_LOGD("Created sequence field object: addr=%p, ft-addr=%p",
+			&sequence->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one sequence field.");
+	}
+
 	return sequence ? &sequence->parent : NULL;
 }
 
@@ -1420,6 +1910,16 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_string *string = g_new0(
 		struct bt_ctf_field_string, 1);
+
+	BT_LOGD("Creating string field object: ft-addr=%p", type);
+
+	if (string) {
+		BT_LOGD("Created string field object: addr=%p, ft-addr=%p",
+			&string->parent, type);
+	} else {
+		BT_LOGE_STR("Failed to allocate one string field.");
+	}
+
 	return string ? &string->parent : NULL;
 }
 
@@ -1433,12 +1933,10 @@ void bt_ctf_field_destroy(struct bt_object *obj)
 	field = container_of(obj, struct bt_ctf_field, base);
 	type = field->type;
 	type_id = bt_ctf_field_type_get_type_id(type);
-	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN ||
-		type_id >= BT_CTF_NR_TYPE_IDS) {
-		return;
-	}
-
+	assert(type_id > BT_CTF_FIELD_TYPE_ID_UNKNOWN &&
+		type_id < BT_CTF_NR_TYPE_IDS);
 	field_destroy_funcs[type_id](field);
+	BT_LOGD_STR("Putting field's type.");
 	bt_put(type);
 }
 
@@ -1451,6 +1949,7 @@ void bt_ctf_field_integer_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying integer field object: addr=%p", field);
 	integer = container_of(field, struct bt_ctf_field_integer, parent);
 	g_free(integer);
 }
@@ -1464,8 +1963,10 @@ void bt_ctf_field_enumeration_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying enumeration field object: addr=%p", field);
 	enumeration = container_of(field, struct bt_ctf_field_enumeration,
 		parent);
+	BT_LOGD_STR("Putting payload field.");
 	bt_put(enumeration->payload);
 	g_free(enumeration);
 }
@@ -1479,6 +1980,7 @@ void bt_ctf_field_floating_point_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying floating point number field object: addr=%p", field);
 	floating_point = container_of(field, struct bt_ctf_field_floating_point,
 		parent);
 	g_free(floating_point);
@@ -1493,6 +1995,7 @@ void bt_ctf_field_structure_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying structure field object: addr=%p", field);
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
 	g_ptr_array_free(structure->fields, TRUE);
 	g_free(structure);
@@ -1507,8 +2010,11 @@ void bt_ctf_field_variant_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying variant field object: addr=%p", field);
 	variant = container_of(field, struct bt_ctf_field_variant, parent);
+	BT_LOGD_STR("Putting tag field.");
 	bt_put(variant->tag);
+	BT_LOGD_STR("Putting payload field.");
 	bt_put(variant->payload);
 	g_free(variant);
 }
@@ -1522,6 +2028,7 @@ void bt_ctf_field_array_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying array field object: addr=%p", field);
 	array = container_of(field, struct bt_ctf_field_array, parent);
 	g_ptr_array_free(array->elements, TRUE);
 	g_free(array);
@@ -1536,10 +2043,12 @@ void bt_ctf_field_sequence_destroy(struct bt_ctf_field *field)
 		return;
 	}
 
+	BT_LOGD("Destroying sequence field object: addr=%p", field);
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
 	if (sequence->elements) {
 		g_ptr_array_free(sequence->elements, TRUE);
 	}
+	BT_LOGD_STR("Putting length field.");
 	bt_put(sequence->length);
 	g_free(sequence);
 }
@@ -1548,10 +2057,12 @@ static
 void bt_ctf_field_string_destroy(struct bt_ctf_field *field)
 {
 	struct bt_ctf_field_string *string;
+
 	if (!field) {
 		return;
 	}
 
+	BT_LOGD("Destroying string field object: addr=%p", field);
 	string = container_of(field, struct bt_ctf_field_string, parent);
 	if (string->payload) {
 		g_string_free(string->payload, TRUE);
@@ -1572,6 +2083,7 @@ int bt_ctf_field_enumeration_validate(struct bt_ctf_field *field)
 	struct bt_ctf_field_enumeration *enumeration;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1579,6 +2091,8 @@ int bt_ctf_field_enumeration_validate(struct bt_ctf_field *field)
 	enumeration = container_of(field, struct bt_ctf_field_enumeration,
 		parent);
 	if (!enumeration->payload) {
+		BT_LOGW("Invalid enumeration field: payload is not set: "
+			"addr=%p", field);
 		ret = -1;
 		goto end;
 	}
@@ -1591,27 +2105,34 @@ end:
 static
 int bt_ctf_field_structure_validate(struct bt_ctf_field *field)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_structure *structure;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
 	for (i = 0; i < structure->fields->len; i++) {
-		ret = bt_ctf_field_validate(structure->fields->pdata[i]);
+		struct bt_ctf_field *entry_field = structure->fields->pdata[i];
+		ret = bt_ctf_field_validate(entry_field);
+
 		if (ret) {
+			int this_ret;
 			const char *name;
 			struct bt_ctf_field_type *field_type =
 					bt_ctf_field_get_type(field);
 
-			(void) bt_ctf_field_type_structure_get_field(field_type,
-					&name, NULL, i);
-			fprintf(stderr, "Field %s failed validation\n",
-					name ? name : "NULL");
+			this_ret = bt_ctf_field_type_structure_get_field(
+				field_type, &name, NULL, i);
+			assert(this_ret == 0);
+			BT_LOGW("Invalid structure field's field: "
+				"struct-field-addr=%p, field-addr=%p, "
+				"field-name=\"%s\", index=%" PRId64,
+				field, entry_field, name, i);
 			bt_put(field_type);
 			goto end;
 		}
@@ -1627,12 +2148,18 @@ int bt_ctf_field_variant_validate(struct bt_ctf_field *field)
 	struct bt_ctf_field_variant *variant;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	variant = container_of(field, struct bt_ctf_field_variant, parent);
 	ret = bt_ctf_field_validate(variant->payload);
+	if (ret) {
+		BT_LOGW("Invalid variant field's payload field: "
+			"variant-field-addr=%p, variant-payload-field-addr=%p",
+			field, variant->payload);
+	}
 end:
 	return ret;
 }
@@ -1640,20 +2167,25 @@ end:
 static
 int bt_ctf_field_array_validate(struct bt_ctf_field *field)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_array *array;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	array = container_of(field, struct bt_ctf_field_array, parent);
 	for (i = 0; i < array->elements->len; i++) {
-		ret = bt_ctf_field_validate(array->elements->pdata[i]);
+		struct bt_ctf_field *elem_field = array->elements->pdata[i];
+
+		ret = bt_ctf_field_validate(elem_field);
 		if (ret) {
-			fprintf(stderr, "Failed to validate array field #%zu\n", i);
+			BT_LOGW("Invalid array field's element field: "
+				"array-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, elem_field, i);
 			goto end;
 		}
 	}
@@ -1669,15 +2201,20 @@ int bt_ctf_field_sequence_validate(struct bt_ctf_field *field)
 	struct bt_ctf_field_sequence *sequence;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
 	for (i = 0; i < sequence->elements->len; i++) {
-		ret = bt_ctf_field_validate(sequence->elements->pdata[i]);
+		struct bt_ctf_field *elem_field = sequence->elements->pdata[i];
+
+		ret = bt_ctf_field_validate(elem_field);
 		if (ret) {
-			fprintf(stderr, "Failed to validate sequence field #%zu\n", i);
+			BT_LOGW("Invalid sequence field's element field: "
+				"sequence-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, elem_field, i);
 			goto end;
 		}
 	}
@@ -1691,6 +2228,7 @@ int bt_ctf_field_generic_reset(struct bt_ctf_field *field)
 	int ret = 0;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1707,6 +2245,7 @@ int bt_ctf_field_enumeration_reset(struct bt_ctf_field *field)
 	struct bt_ctf_field_enumeration *enumeration;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1725,11 +2264,12 @@ end:
 static
 int bt_ctf_field_structure_reset(struct bt_ctf_field *field)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_structure *structure;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1748,6 +2288,9 @@ int bt_ctf_field_structure_reset(struct bt_ctf_field *field)
 
 		ret = bt_ctf_field_reset(member);
 		if (ret) {
+			BT_LOGE("Failed to reset structure field's field: "
+				"struct-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, member, i);
 			goto end;
 		}
 	}
@@ -1762,6 +2305,7 @@ int bt_ctf_field_variant_reset(struct bt_ctf_field *field)
 	struct bt_ctf_field_variant *variant;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1769,6 +2313,11 @@ int bt_ctf_field_variant_reset(struct bt_ctf_field *field)
 	variant = container_of(field, struct bt_ctf_field_variant, parent);
 	if (variant->payload) {
 		ret = bt_ctf_field_reset(variant->payload);
+		if (ret) {
+			BT_LOGW("Failed to reset variant field's payload field: "
+				"variant-field-addr=%p, payload-field-addr=%p",
+				field, variant->payload);
+		}
 	}
 end:
 	return ret;
@@ -1782,6 +2331,7 @@ int bt_ctf_field_array_reset(struct bt_ctf_field *field)
 	struct bt_ctf_field_array *array;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1800,6 +2350,9 @@ int bt_ctf_field_array_reset(struct bt_ctf_field *field)
 
 		ret = bt_ctf_field_reset(member);
 		if (ret) {
+			BT_LOGE("Failed to reset array field's field: "
+				"array-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, member, i);
 			goto end;
 		}
 	}
@@ -1815,6 +2368,7 @@ int bt_ctf_field_sequence_reset(struct bt_ctf_field *field)
 	struct bt_ctf_field_sequence *sequence;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1833,6 +2387,9 @@ int bt_ctf_field_sequence_reset(struct bt_ctf_field *field)
 
 		ret = bt_ctf_field_reset(member);
 		if (ret) {
+			BT_LOGE("Failed to reset sequence field's field: "
+				"sequence-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, member, i);
 			goto end;
 		}
 	}
@@ -1847,6 +2404,7 @@ int bt_ctf_field_string_reset(struct bt_ctf_field *field)
 	struct bt_ctf_field_string *string;
 
 	if (!field) {
+		BT_LOGD_STR("Invalid parameter: field is NULL.");
 		ret = -1;
 		goto end;
 	}
@@ -1873,7 +2431,12 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_integer *integer = container_of(field,
 		struct bt_ctf_field_integer, parent);
 
+	BT_LOGV("Serializing integer field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+
 	if (!bt_ctf_field_generic_is_set(field)) {
+		BT_LOGW_STR("Field's payload is not set.");
 		ret = -1;
 		goto end;
 	}
@@ -1886,6 +2449,7 @@ retry:
 		 */
 		ret = increase_packet_size(pos);
 		if (ret) {
+			BT_LOGE("Cannot increase packet size: ret=%d", ret);
 			goto end;
 		}
 		goto retry;
@@ -1902,6 +2466,10 @@ int bt_ctf_field_enumeration_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_enumeration *enumeration = container_of(
 		field, struct bt_ctf_field_enumeration, parent);
 
+	BT_LOGV("Serializing enumeration field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+	BT_LOGV_STR("Serializing enumeration field's payload field.");
 	return bt_ctf_field_serialize(enumeration->payload, pos,
 		native_byte_order);
 }
@@ -1915,7 +2483,12 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_floating_point *floating_point = container_of(field,
 		struct bt_ctf_field_floating_point, parent);
 
+	BT_LOGV("Serializing floating point number field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+
 	if (!bt_ctf_field_generic_is_set(field)) {
+		BT_LOGW_STR("Field's payload is not set.");
 		ret = -1;
 		goto end;
 	}
@@ -1929,6 +2502,7 @@ retry:
 		 */
 		ret = increase_packet_size(pos);
 		if (ret) {
+			BT_LOGE("Cannot increase packet size: ret=%d", ret);
 			goto end;
 		}
 		goto retry;
@@ -1942,20 +2516,27 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_structure *structure = container_of(
 		field, struct bt_ctf_field_structure, parent);
+
+	BT_LOGV("Serializing structure field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
 
 	while (!bt_ctf_stream_pos_access_ok(pos,
 		offset_align(pos->offset, field->type->alignment))) {
 		ret = increase_packet_size(pos);
 		if (ret) {
+			BT_LOGE("Cannot increase packet size: ret=%d", ret);
 			goto end;
 		}
 	}
 
 	if (!bt_ctf_stream_pos_align(pos, field->type->alignment)) {
+		BT_LOGE("Cannot align packet's position: pos-offset=%" PRId64 ", "
+			"align=%u", pos->offset, field->type->alignment);
 		ret = -1;
 		goto end;
 	}
@@ -1964,16 +2545,23 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_field *member = g_ptr_array_index(
 			structure->fields, i);
 
+		BT_LOGV("Serializing structure field's field: pos-offset=%" PRId64 ", "
+			"field-addr=%p, index=%" PRId64,
+			pos->offset, member, i);
 		ret = bt_ctf_field_serialize(member, pos, native_byte_order);
 		if (ret) {
+			int this_ret;
 			const char *name;
 			struct bt_ctf_field_type *structure_type =
 					bt_ctf_field_get_type(field);
 
-			(void) bt_ctf_field_type_structure_get_field(
-					structure_type, &name, NULL, i);
-			fprintf(stderr, "Field %s failed to serialize\n",
-					name ? name : "NULL");
+			this_ret = bt_ctf_field_type_structure_get_field(
+				structure_type, &name, NULL, i);
+			assert(this_ret == 0);
+			BT_LOGW("Cannot serialize structure field's field: "
+				"struct-field-addr=%p, field-addr=%p, "
+				"field-name=\"%s\", index=%" PRId64,
+				field, member, name, i);
 			bt_put(structure_type);
 			break;
 		}
@@ -1990,6 +2578,10 @@ int bt_ctf_field_variant_serialize(struct bt_ctf_field *field,
 	struct bt_ctf_field_variant *variant = container_of(
 		field, struct bt_ctf_field_variant, parent);
 
+	BT_LOGV("Serializing variant field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+	BT_LOGV_STR("Serializing variant field's payload field.");
 	return bt_ctf_field_serialize(variant->payload, pos,
 		native_byte_order);
 }
@@ -1999,17 +2591,28 @@ int bt_ctf_field_array_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_array *array = container_of(
 		field, struct bt_ctf_field_array, parent);
 
+	BT_LOGV("Serializing array field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+
 	for (i = 0; i < array->elements->len; i++) {
-		ret = bt_ctf_field_serialize(
-			g_ptr_array_index(array->elements, i), pos,
+		struct bt_ctf_field *elem_field =
+			g_ptr_array_index(array->elements, i);
+
+		BT_LOGV("Serializing array field's element field: "
+			"pos-offset=%" PRId64 ", field-addr=%p, index=%" PRId64,
+			pos->offset, elem_field, i);
+		ret = bt_ctf_field_serialize(elem_field, pos,
 			native_byte_order);
 		if (ret) {
-			fprintf(stderr, "Failed to serialize array element #%zu\n", i);
+			BT_LOGW("Cannot serialize array field's element field: "
+				"array-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, elem_field, i);
 			goto end;
 		}
 	}
@@ -2022,17 +2625,28 @@ int bt_ctf_field_sequence_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_sequence *sequence = container_of(
 		field, struct bt_ctf_field_sequence, parent);
 
+	BT_LOGV("Serializing sequence field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+
 	for (i = 0; i < sequence->elements->len; i++) {
-		ret = bt_ctf_field_serialize(
-			g_ptr_array_index(sequence->elements, i), pos,
+		struct bt_ctf_field *elem_field =
+			g_ptr_array_index(sequence->elements, i);
+
+		BT_LOGV("Serializing sequence field's element field: "
+			"pos-offset=%" PRId64 ", field-addr=%p, index=%" PRId64,
+			pos->offset, elem_field, i);
+		ret = bt_ctf_field_serialize(elem_field, pos,
 			native_byte_order);
 		if (ret) {
-			fprintf(stderr, "Failed to serialize sequence element #%zu\n", i);
+			BT_LOGW("Cannot serialize sequence field's element field: "
+				"sequence-field-addr=%p, field-addr=%p, "
+				"index=%" PRId64, field, elem_field, i);
 			goto end;
 		}
 	}
@@ -2045,24 +2659,41 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_string *string = container_of(field,
 		struct bt_ctf_field_string, parent);
 	struct bt_ctf_field_type *character_type =
 		get_field_type(FIELD_TYPE_ALIAS_UINT8_T);
-	struct bt_ctf_field *character = bt_ctf_field_create(character_type);
+	struct bt_ctf_field *character;
+
+	BT_LOGV("Serializing string field: addr=%p, pos-offset=%" PRId64 ", "
+		"native-bo=%s", field, pos->offset,
+		bt_ctf_byte_order_string(native_byte_order));
+
+	BT_LOGV_STR("Creating character field from string field's character field type.");
+	character = bt_ctf_field_create(character_type);
 
 	for (i = 0; i < string->payload->len + 1; i++) {
-		ret = bt_ctf_field_unsigned_integer_set_value(character,
-			(uint64_t) string->payload->str[i]);
+		const uint64_t chr = (uint64_t) string->payload->str[i];
+
+		ret = bt_ctf_field_unsigned_integer_set_value(character, chr);
 		if (ret) {
+			BT_LOGE("Cannot set character field's value: "
+				"pos-offset=%" PRId64 ", field-addr=%p, "
+				"index=%" PRId64 ", char-int=%" PRIu64,
+				pos->offset, character, i, chr);
 			goto end;
 		}
 
+		BT_LOGV("Serializing string field's character field: "
+			"pos-offset=%" PRId64 ", field-addr=%p, "
+			"index=%" PRId64 ", char-int=%" PRIu64,
+			pos->offset, character, i, chr);
 		ret = bt_ctf_field_integer_serialize(character, pos,
 			native_byte_order);
 		if (ret) {
+			BT_LOGE_STR("Cannot serialize character field.");
 			goto end;
 		}
 	}
@@ -2078,9 +2709,12 @@ int bt_ctf_field_integer_copy(struct bt_ctf_field *src,
 {
 	struct bt_ctf_field_integer *integer_src, *integer_dst;
 
+	BT_LOGD("Copying integer field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	integer_src = container_of(src, struct bt_ctf_field_integer, parent);
 	integer_dst = container_of(dst, struct bt_ctf_field_integer, parent);
 	integer_dst->payload = integer_src->payload;
+	BT_LOGD_STR("Copied integer field.");
 	return 0;
 }
 
@@ -2091,16 +2725,22 @@ int bt_ctf_field_enumeration_copy(struct bt_ctf_field *src,
 	int ret = 0;
 	struct bt_ctf_field_enumeration *enum_src, *enum_dst;
 
+	BT_LOGD("Copying enumeration field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	enum_src = container_of(src, struct bt_ctf_field_enumeration, parent);
 	enum_dst = container_of(dst, struct bt_ctf_field_enumeration, parent);
 
 	if (enum_src->payload) {
+		BT_LOGD_STR("Copying enumeration field's payload field.");
 		enum_dst->payload = bt_ctf_field_copy(enum_src->payload);
 		if (!enum_dst->payload) {
+			BT_LOGE_STR("Cannot copy enumeration field's payload field.");
 			ret = -1;
 			goto end;
 		}
 	}
+
+	BT_LOGD_STR("Copied enumeration field.");
 end:
 	return ret;
 }
@@ -2111,11 +2751,14 @@ int bt_ctf_field_floating_point_copy(
 {
 	struct bt_ctf_field_floating_point *float_src, *float_dst;
 
+	BT_LOGD("Copying floating point number field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	float_src = container_of(src, struct bt_ctf_field_floating_point,
 		parent);
 	float_dst = container_of(dst, struct bt_ctf_field_floating_point,
 		parent);
 	float_dst->payload = float_src->payload;
+	BT_LOGD_STR("Copied floating point number field.");
 	return 0;
 }
 
@@ -2123,9 +2766,12 @@ static
 int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *dst)
 {
-	int ret = 0, i;
+	int ret = 0;
+	int64_t i;
 	struct bt_ctf_field_structure *struct_src, *struct_dst;
 
+	BT_LOGD("Copying structure field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	struct_src = container_of(src, struct bt_ctf_field_structure, parent);
 	struct_dst = container_of(dst, struct bt_ctf_field_structure, parent);
 
@@ -2139,9 +2785,13 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *field_copy = NULL;
 
 		if (field) {
+			BT_LOGD("Copying structure field's field: src-field-addr=%p",
+				"index=%" PRId64, field, i);
 			field_copy = bt_ctf_field_copy(field);
-
 			if (!field_copy) {
+				BT_LOGE("Cannot copy structure field's field: "
+					"src-field-addr=%p, index=%" PRId64,
+					field, i);
 				ret = -1;
 				goto end;
 			}
@@ -2149,6 +2799,9 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 
 		g_ptr_array_index(struct_dst->fields, i) = field_copy;
 	}
+
+	BT_LOGD_STR("Copied structure field.");
+
 end:
 	return ret;
 }
@@ -2160,23 +2813,32 @@ int bt_ctf_field_variant_copy(struct bt_ctf_field *src,
 	int ret = 0;
 	struct bt_ctf_field_variant *variant_src, *variant_dst;
 
+	BT_LOGD("Copying variant field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	variant_src = container_of(src, struct bt_ctf_field_variant, parent);
 	variant_dst = container_of(dst, struct bt_ctf_field_variant, parent);
 
 	if (variant_src->tag) {
+		BT_LOGD_STR("Copying variant field's tag field.");
 		variant_dst->tag = bt_ctf_field_copy(variant_src->tag);
 		if (!variant_dst->tag) {
+			BT_LOGE_STR("Cannot copy variant field's tag field.");
 			ret = -1;
 			goto end;
 		}
 	}
 	if (variant_src->payload) {
+		BT_LOGD_STR("Copying variant field's payload field.");
 		variant_dst->payload = bt_ctf_field_copy(variant_src->payload);
 		if (!variant_dst->payload) {
+			BT_LOGE_STR("Cannot copy variant field's payload field.");
 			ret = -1;
 			goto end;
 		}
 	}
+
+	BT_LOGD_STR("Copied variant field.");
+
 end:
 	return ret;
 }
@@ -2185,9 +2847,12 @@ static
 int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *dst)
 {
-	int ret = 0, i;
+	int ret = 0;
+	int64_t i;
 	struct bt_ctf_field_array *array_src, *array_dst;
 
+	BT_LOGD("Copying array field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	array_src = container_of(src, struct bt_ctf_field_array, parent);
 	array_dst = container_of(dst, struct bt_ctf_field_array, parent);
 
@@ -2198,9 +2863,13 @@ int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *field_copy = NULL;
 
 		if (field) {
+			BT_LOGD("Copying array field's element field: field-addr=%p, "
+				"index=%" PRId64, field, i);
 			field_copy = bt_ctf_field_copy(field);
-
 			if (!field_copy) {
+				BT_LOGE("Cannot copy array field's element field: "
+					"src-field-addr=%p, index=%" PRId64,
+					field, i);
 				ret = -1;
 				goto end;
 			}
@@ -2208,6 +2877,9 @@ int bt_ctf_field_array_copy(struct bt_ctf_field *src,
 
 		g_ptr_array_index(array_dst->elements, i) = field_copy;
 	}
+
+	BT_LOGD_STR("Copied array field.");
+
 end:
 	return ret;
 }
@@ -2216,26 +2888,29 @@ static
 int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *dst)
 {
-	int ret = 0, i;
+	int ret = 0;
+	int64_t i;
 	struct bt_ctf_field_sequence *sequence_src, *sequence_dst;
 	struct bt_ctf_field *src_length;
 	struct bt_ctf_field *dst_length;
 
+	BT_LOGD("Copying sequence field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	sequence_src = container_of(src, struct bt_ctf_field_sequence, parent);
 	sequence_dst = container_of(dst, struct bt_ctf_field_sequence, parent);
 
 	src_length = bt_ctf_field_sequence_get_length(src);
-
 	if (!src_length) {
 		/* no length set yet: keep destination sequence empty */
 		goto end;
 	}
 
 	/* copy source length */
+	BT_LOGD_STR("Copying sequence field's length field.");
 	dst_length = bt_ctf_field_copy(src_length);
-	bt_put(src_length);
-
+	BT_PUT(src_length);
 	if (!dst_length) {
+		BT_LOGE_STR("Cannot copy sequence field's length field.");
 		ret = -1;
 		goto end;
 	}
@@ -2243,8 +2918,10 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 	/* this will initialize the destination sequence's internal array */
 	ret = bt_ctf_field_sequence_set_length(dst, dst_length);
 	bt_put(dst_length);
-
 	if (ret) {
+		BT_LOGE("Cannot set sequence field copy's length field: "
+			"dst-length-field-addr=%p", dst_length);
+		ret = -1;
 		goto end;
 	}
 
@@ -2256,9 +2933,13 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *field_copy = NULL;
 
 		if (field) {
+			BT_LOGD("Copying sequence field's element field: field-addr=%p, "
+				"index=%" PRId64, field, i);
 			field_copy = bt_ctf_field_copy(field);
-
 			if (!field_copy) {
+				BT_LOGE("Cannot copy sequence field's element field: "
+					"src-field-addr=%p, index=%" PRId64,
+					field, i);
 				ret = -1;
 				goto end;
 			}
@@ -2266,6 +2947,9 @@ int bt_ctf_field_sequence_copy(struct bt_ctf_field *src,
 
 		g_ptr_array_index(sequence_dst->elements, i) = field_copy;
 	}
+
+	BT_LOGD_STR("Copied sequence field.");
+
 end:
 	return ret;
 }
@@ -2277,16 +2961,22 @@ int bt_ctf_field_string_copy(struct bt_ctf_field *src,
 	int ret = 0;
 	struct bt_ctf_field_string *string_src, *string_dst;
 
+	BT_LOGD("Copying string field: src-field-addr=%p, dst-field-addr=%p",
+		src, dst);
 	string_src = container_of(src, struct bt_ctf_field_string, parent);
 	string_dst = container_of(dst, struct bt_ctf_field_string, parent);
 
 	if (string_src->payload) {
 		string_dst->payload = g_string_new(string_src->payload->str);
 		if (!string_dst->payload) {
+			BT_LOGE_STR("Failed to allocate a GString.");
 			ret = -1;
 			goto end;
 		}
 	}
+
+	BT_LOGD_STR("Copied string field.");
+
 end:
 	return ret;
 }
@@ -2297,8 +2987,13 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 	int ret;
 
 	assert(pos);
+	BT_LOGV("Increasing packet size: pos-offset=%" PRId64 ", "
+		"cur-packet-size=%" PRIu64,
+		pos->offset, pos->packet_size);
 	ret = munmap_align(pos->base_mma);
 	if (ret) {
+		BT_LOGE("Failed to perform an aligned memory unmapping: "
+			"ret=%d, errno=%d", ret, errno);
 		goto end;
 	}
 
@@ -2308,6 +3003,8 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 			pos->packet_size / CHAR_BIT);
 	} while (ret == EINTR);
 	if (ret) {
+		BT_LOGE("Failed to preallocate memory space: ret=%d, errno=%d",
+			ret, errno);
 		errno = EINTR;
 		ret = -1;
 		goto end;
@@ -2316,8 +3013,14 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
 		pos->flags, pos->fd, pos->mmap_offset);
 	if (pos->base_mma == MAP_FAILED) {
+		BT_LOGE("Failed to perform an aligned memory mapping: "
+			"ret=%d, errno=%d", ret, errno);
 		ret = -1;
 	}
+
+	BT_LOGV("Increased packet size: pos-offset=%" PRId64 ", "
+		"new-packet-size=%" PRIu64,
+		pos->offset, pos->packet_size);
 end:
 	return ret;
 }
@@ -2334,6 +3037,8 @@ void bt_ctf_field_enumeration_freeze(struct bt_ctf_field *field)
 	struct bt_ctf_field_enumeration *enum_field =
 		container_of(field, struct bt_ctf_field_enumeration, parent);
 
+	BT_LOGD("Freezing enumeration field object: addr=%p", field);
+	BT_LOGD("Freezing enumeration field object's contained payload field: payload-field-addr=%p", enum_field->payload);
 	bt_ctf_field_freeze(enum_field->payload);
 	generic_field_freeze(field);
 }
@@ -2341,14 +3046,18 @@ void bt_ctf_field_enumeration_freeze(struct bt_ctf_field *field)
 static
 void bt_ctf_field_structure_freeze(struct bt_ctf_field *field)
 {
-	int i;
+	int64_t i;
 	struct bt_ctf_field_structure *structure_field =
 		container_of(field, struct bt_ctf_field_structure, parent);
+
+	BT_LOGD("Freezing structure field object: addr=%p", field);
 
 	for (i = 0; i < structure_field->fields->len; i++) {
 		struct bt_ctf_field *field =
 			g_ptr_array_index(structure_field->fields, i);
 
+		BT_LOGD("Freezing structure field's field: field-addr=%p, index=%" PRId64,
+			field, i);
 		bt_ctf_field_freeze(field);
 	}
 
@@ -2361,7 +3070,10 @@ void bt_ctf_field_variant_freeze(struct bt_ctf_field *field)
 	struct bt_ctf_field_variant *variant_field =
 		container_of(field, struct bt_ctf_field_variant, parent);
 
+	BT_LOGD("Freezing variant field object: addr=%p", field);
+	BT_LOGD("Freezing variant field object's tag field: tag-field-addr=%p", variant_field->tag);
 	bt_ctf_field_freeze(variant_field->tag);
+	BT_LOGD("Freezing variant field object's payload field: payload-field-addr=%p", variant_field->payload);
 	bt_ctf_field_freeze(variant_field->payload);
 	generic_field_freeze(field);
 }
@@ -2369,15 +3081,20 @@ void bt_ctf_field_variant_freeze(struct bt_ctf_field *field)
 static
 void bt_ctf_field_array_freeze(struct bt_ctf_field *field)
 {
-	int i;
+	int64_t i;
 	struct bt_ctf_field_array *array_field =
 		container_of(field, struct bt_ctf_field_array, parent);
 
+	BT_LOGD("Freezing array field object: addr=%p", field);
+
 	for (i = 0; i < array_field->elements->len; i++) {
-		struct bt_ctf_field *field =
+		struct bt_ctf_field *elem_field =
 			g_ptr_array_index(array_field->elements, i);
 
-		bt_ctf_field_freeze(field);
+		BT_LOGD("Freezing array field object's element field: "
+			"element-field-addr=%p, index=%" PRId64,
+			elem_field, i);
+		bt_ctf_field_freeze(elem_field);
 	}
 
 	generic_field_freeze(field);
@@ -2386,17 +3103,23 @@ void bt_ctf_field_array_freeze(struct bt_ctf_field *field)
 static
 void bt_ctf_field_sequence_freeze(struct bt_ctf_field *field)
 {
-	int i;
+	int64_t i;
 	struct bt_ctf_field_sequence *sequence_field =
 		container_of(field, struct bt_ctf_field_sequence, parent);
 
+	BT_LOGD("Freezing sequence field object: addr=%p", field);
+	BT_LOGD("Freezing sequence field object's length field: length-field-addr=%p",
+		sequence_field->length);
 	bt_ctf_field_freeze(sequence_field->length);
 
 	for (i = 0; i < sequence_field->elements->len; i++) {
-		struct bt_ctf_field *field =
+		struct bt_ctf_field *elem_field =
 			g_ptr_array_index(sequence_field->elements, i);
 
-		bt_ctf_field_freeze(field);
+		BT_LOGD("Freezing sequence field object's element field: "
+			"element-field-addr=%p, index=%" PRId64,
+			elem_field, i);
+		bt_ctf_field_freeze(elem_field);
 	}
 
 	generic_field_freeze(field);
@@ -2411,12 +3134,14 @@ void bt_ctf_field_freeze(struct bt_ctf_field *field)
 		goto end;
 	}
 
-	type_id = bt_ctf_field_get_type_id(field);
-	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN ||
-			type_id >= BT_CTF_NR_TYPE_IDS) {
+	if (field->frozen) {
 		goto end;
 	}
 
+	BT_LOGD("Freezing field object: addr=%p", field);
+	type_id = bt_ctf_field_get_type_id(field);
+	assert(type_id > BT_CTF_FIELD_TYPE_ID_UNKNOWN &&
+			type_id < BT_CTF_NR_TYPE_IDS);
 	field_freeze_funcs[type_id](field);
 end:
 	return;
