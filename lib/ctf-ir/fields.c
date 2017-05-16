@@ -546,7 +546,7 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
 			GUINT_TO_POINTER(field_quark),
 			NULL, (gpointer *)&index)) {
-		BT_LOGW("Invalid parameter: no such field in structure field's type: "
+		BT_LOGV("Invalid parameter: no such field in structure field's type: "
 			"struct-field-addr=%p, struct-ft-addr=%p, "
 			"field-ft-addr=%p, name=\"%s\"",
 			field, field->type, field_type, name);
@@ -706,7 +706,7 @@ int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
 
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
 			GUINT_TO_POINTER(field_quark), NULL, (gpointer *) &index)) {
-		BT_LOGW("Invalid parameter: no such field in structure field's type: "
+		BT_LOGV("Invalid parameter: no such field in structure field's type: "
 			"struct-field-addr=%p, struct-ft-addr=%p, "
 			"field-ft-addr=%p, name=\"%s\"",
 			field, field->type, value->type, name);
@@ -804,7 +804,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 
 	sequence = container_of(field, struct bt_ctf_field_sequence, parent);
 	if (!sequence->elements) {
-		BT_LOGW("Sequence field's elements do not exist: addr=%p",
+		BT_LOGV("Sequence field's elements do not exist: addr=%p",
 			field);
 		goto end;
 	}

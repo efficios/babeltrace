@@ -1295,13 +1295,18 @@ bt_ctf_field_type_enumeration_find_mappings_by_name(
 
 	iter->u.name_quark = g_quark_try_string(name);
 	if (!iter->u.name_quark) {
-		BT_LOGE("Cannot get GQuark: string=\"%s\"", name);
+		BT_LOGV("No such enumeration field type mapping name: "
+			"ft-addr=%p, mapping-name=\"%s\"",
+			type, name);
 		goto error;
 	}
 
 	/* Advance iterator to first entry, or leave index at -1. */
 	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
 		/* No entry found. */
+		BT_LOGV("No such enumeration field type mapping name: "
+			"ft-addr=%p, mapping-name=\"%s\"",
+			type, name);
 		goto error;
 	}
 
@@ -2198,14 +2203,19 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGE("Cannot get GQuark: string=\"%s\"", name);
+		BT_LOGV("No such structure field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		goto end;
 	}
 
 	structure = container_of(type, struct bt_ctf_field_type_structure,
 		parent);
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
-		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+			GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+		BT_LOGV("No such structure field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		goto end;
 	}
 
@@ -2482,13 +2492,18 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 
 	name_quark = g_quark_try_string(field_name);
 	if (!name_quark) {
-		BT_LOGE("Cannot get GQuark: string=\"%s\"", field_name);
+		BT_LOGV("No such variant field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, field_name);
 		goto end;
 	}
 
 	variant = container_of(type, struct bt_ctf_field_type_variant, parent);
 	if (!g_hash_table_lookup_extended(variant->field_name_to_index,
-		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+			GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+		BT_LOGV("No such variant field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, field_name);
 		goto end;
 	}
 
@@ -3414,7 +3429,9 @@ int bt_ctf_field_type_structure_get_field_name_index(
 
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGE("Cannot get GQuark: string=\"%s\"", name);
+		BT_LOGV("No such structure field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		ret = -1;
 		goto end;
 	}
@@ -3424,6 +3441,9 @@ int bt_ctf_field_type_structure_get_field_name_index(
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
 			GUINT_TO_POINTER(name_quark),
 			NULL, (gpointer *)&index)) {
+		BT_LOGV("No such structure field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		ret = -1;
 		goto end;
 	}
@@ -3463,7 +3483,9 @@ int bt_ctf_field_type_variant_get_field_name_index(
 
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGE("Cannot get GQuark: string=\"%s\"", name);
+		BT_LOGV("No such variant field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		ret = -1;
 		goto end;
 	}
@@ -3473,6 +3495,9 @@ int bt_ctf_field_type_variant_get_field_name_index(
 	if (!g_hash_table_lookup_extended(variant->field_name_to_index,
 			GUINT_TO_POINTER(name_quark),
 			NULL, (gpointer *)&index)) {
+		BT_LOGV("No such variant field type field name: "
+			"ft-addr=%p, field-name=\"%s\"",
+			type, name);
 		ret = -1;
 		goto end;
 	}
