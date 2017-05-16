@@ -495,17 +495,32 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 	 * Ensure the provided header's type matches the one registered to the
 	 * stream class.
 	 */
-	field_type = bt_ctf_field_get_type(header);
-	if (bt_ctf_field_type_compare(field_type,
-			stream_class->event_header_type)) {
-		BT_LOGW("Invalid parameter: header field type is different from the expected field type: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event,
-			bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event->event_class));
-		ret = -1;
-		goto end;
+	if (header) {
+		field_type = bt_ctf_field_get_type(header);
+		if (bt_ctf_field_type_compare(field_type,
+				stream_class->event_header_type)) {
+			BT_LOGW("Invalid parameter: header field type is different from the expected field type: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
+			ret = -1;
+			goto end;
+		}
+	} else {
+		if (stream_class->event_header_type) {
+			BT_LOGW("Invalid parameter: setting no event header but event header field type is not NULL: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", "
+				"event-header-ft-addr=%p",
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class),
+				stream_class->event_header_type);
+			ret = -1;
+			goto end;
+		}
 	}
 
 	bt_put(event->event_header);
@@ -566,17 +581,33 @@ int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		goto end;
 	}
 
-	field_type = bt_ctf_field_get_type(context);
-	if (bt_ctf_field_type_compare(field_type,
-			event->event_class->context)) {
-		BT_LOGW("Invalid parameter: context field type is different from the expected field type: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event,
-			bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event->event_class));
-		ret = -1;
-		goto end;
+	if (context) {
+		field_type = bt_ctf_field_get_type(context);
+
+		if (bt_ctf_field_type_compare(field_type,
+				event->event_class->context)) {
+			BT_LOGW("Invalid parameter: context field type is different from the expected field type: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
+			ret = -1;
+			goto end;
+		}
+	} else {
+		if (event->event_class->context) {
+			BT_LOGW("Invalid parameter: setting no event context but event context field type is not NULL: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", "
+				"event-context-ft-addr=%p",
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class),
+				event->event_class->context);
+			ret = -1;
+			goto end;
+		}
 	}
 
 	bt_put(event->context_payload);
@@ -643,17 +674,32 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 	 */
 	assert(stream_class);
 
-	field_type = bt_ctf_field_get_type(stream_event_context);
-	if (bt_ctf_field_type_compare(field_type,
-			stream_class->event_context_type)) {
-		BT_LOGW("Invalid parameter: stream event context field type is different from the expected field type: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event,
-			bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event->event_class));
-		ret = -1;
-		goto end;
+	if (stream_event_context) {
+		field_type = bt_ctf_field_get_type(stream_event_context);
+		if (bt_ctf_field_type_compare(field_type,
+				stream_class->event_context_type)) {
+			BT_LOGW("Invalid parameter: stream event context field type is different from the expected field type: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64,
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class));
+			ret = -1;
+			goto end;
+		}
+	} else {
+		if (stream_class->event_context_type) {
+			BT_LOGW("Invalid parameter: setting no stream event context but stream event context field type is not NULL: "
+				"event-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", "
+				"stream-event-context-ft-addr=%p",
+				event,
+				bt_ctf_event_class_get_name(event->event_class),
+				bt_ctf_event_class_get_id(event->event_class),
+				stream_class->event_context_type);
+			ret = -1;
+			goto end;
+		}
 	}
 
 	bt_get(stream_event_context);

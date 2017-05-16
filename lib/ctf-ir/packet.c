@@ -72,17 +72,26 @@ int bt_ctf_packet_set_header(struct bt_ctf_packet *packet,
 		goto end;
 	}
 
-	if (!header) {
-		goto skip_validation;
-	}
-
 	stream_class = bt_ctf_stream_get_class(packet->stream);
 	assert(stream_class);
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	assert(trace);
+	expected_header_field_type = bt_ctf_trace_get_packet_header_type(trace);
+
+	if (!header) {
+		if (expected_header_field_type) {
+			BT_LOGW("Invalid parameter: setting no packet header but packet header field type is not NULL: "
+				"packet-addr=%p, packet-header-ft-addr=%p",
+				packet, expected_header_field_type);
+			ret = -1;
+			goto end;
+		}
+
+		goto skip_validation;
+	}
+
 	header_field_type = bt_ctf_field_get_type(header);
 	assert(header_field_type);
-	expected_header_field_type = bt_ctf_trace_get_packet_header_type(trace);
 
 	if (bt_ctf_field_type_compare(header_field_type,
 			expected_header_field_type)) {
@@ -135,16 +144,25 @@ int bt_ctf_packet_set_context(struct bt_ctf_packet *packet,
 		goto end;
 	}
 
+	stream_class = bt_ctf_stream_get_class(packet->stream);
+	assert(stream_class);
+	expected_context_field_type =
+		bt_ctf_stream_class_get_packet_context_type(stream_class);
+
 	if (!context) {
+		if (expected_context_field_type) {
+			BT_LOGW("Invalid parameter: setting no packet context but packet context field type is not NULL: "
+				"packet-addr=%p, packet-context-ft-addr=%p",
+				packet, expected_context_field_type);
+			ret = -1;
+			goto end;
+		}
+
 		goto skip_validation;
 	}
 
-	stream_class = bt_ctf_stream_get_class(packet->stream);
-	assert(stream_class);
 	context_field_type = bt_ctf_field_get_type(context);
 	assert(context_field_type);
-	expected_context_field_type =
-		bt_ctf_stream_class_get_packet_context_type(stream_class);
 
 	if (bt_ctf_field_type_compare(context_field_type,
 			expected_context_field_type)) {
