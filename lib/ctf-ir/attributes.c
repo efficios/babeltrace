@@ -31,6 +31,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX		1
@@ -313,12 +314,7 @@ int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
 	count = bt_value_array_size(attr_obj);
-	if (count < 0) {
-		BT_LOGE("Cannot get array value's size: value-addr=%p",
-			attr_obj);
-		ret = -1;
-		goto end;
-	}
+	assert(count >= 0);
 
 	/*
 	 * We do not freeze the array value object itself here, since
