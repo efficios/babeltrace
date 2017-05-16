@@ -567,10 +567,15 @@ least exit cleanly.
 
 |_WARN_
 |A logic error which still allows the execution to continue.
+
+_WARN_-level logging statements are for any error or weird action that
+is directly or indirectly caused by the user. For example, not having
+enough memory is beyond user control.
 |
-* Unexpected values for function parameters.
-* Other user-induced errors (the user does not honor a function's
-  preconditions).
+* Not honoring a public function's preconditions (NULL parameters,
+  index out of bounds, etc.).
+* Adding an invalid event class to a stream class which is already
+  part of a trace.
 +
 For example, the caller tries to set a property of a frozen stream
 class.
