@@ -176,7 +176,9 @@ void bt_ctf_packet_freeze(struct bt_ctf_packet *packet)
 	}
 
 	BT_LOGD("Freezing packet: addr=%p", packet);
+	BT_LOGD_STR("Freezing packet's header field.");
 	bt_ctf_field_freeze(packet->header);
+	BT_LOGD_STR("Freezing packet's context field.");
 	bt_ctf_field_freeze(packet->context);
 	packet->frozen = 1;
 }
@@ -188,8 +190,11 @@ void bt_ctf_packet_destroy(struct bt_object *obj)
 
 	packet = container_of(obj, struct bt_ctf_packet, base);
 	BT_LOGD("Destroying packet: addr=%p", packet);
+	BT_LOGD_STR("Putting packet's header field.");
 	bt_put(packet->header);
+	BT_LOGD_STR("Putting packet's context field.");
 	bt_put(packet->context);
+	BT_LOGD_STR("Putting packet's stream.");
 	bt_put(packet->stream);
 	g_free(packet);
 }
