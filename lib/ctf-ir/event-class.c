@@ -304,6 +304,7 @@ int bt_ctf_event_class_set_attribute(
 
 		ret = bt_value_integer_get(value, &val);
 		assert(ret == 0);
+		BT_LOGV("Setting event's ID: id=%" PRId64, val);
 		ret = bt_ctf_event_class_set_id(event_class, (uint64_t) val);
 		if (ret) {
 			goto end;
@@ -786,8 +787,11 @@ void bt_ctf_event_class_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying event class: addr=%p, name=\"%s\", id=%" PRId64,
 		event_class, bt_ctf_event_class_get_name(event_class),
 		bt_ctf_event_class_get_id(event_class));
+	BT_LOGD_STR("Destroying event class's attributes.");
 	bt_ctf_attributes_destroy(event_class->attributes);
+	BT_LOGD_STR("Putting event class's context field type.");
 	bt_put(event_class->context);
+	BT_LOGD_STR("Putting event class's payload field type.");
 	bt_put(event_class->fields);
 	g_free(event_class);
 }
@@ -807,8 +811,11 @@ void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class)
 	event_class->frozen = 1;
 	event_class->name = bt_ctf_event_class_get_name(event_class);
 	event_class->id = bt_ctf_event_class_get_id(event_class);
+	BT_LOGD_STR("Freezing event class's context field type.");
 	bt_ctf_field_type_freeze(event_class->context);
+	BT_LOGD_STR("Freezing event class's payload field type.");
 	bt_ctf_field_type_freeze(event_class->fields);
+	BT_LOGD_STR("Freezing event class's attributes.");
 	bt_ctf_attributes_freeze(event_class->attributes);
 }
 
@@ -878,6 +885,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 	if (event_class->context) {
 		g_string_append(context->string, "\tcontext := ");
+		BT_LOGD_STR("Serializing event class's context field type metadata.");
 		ret = bt_ctf_field_type_serialize(event_class->context,
 			context);
 		if (ret) {
@@ -890,6 +898,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 	if (event_class->fields) {
 		g_string_append(context->string, "\tfields := ");
+		BT_LOGD_STR("Serializing event class's payload field type metadata.");
 		ret = bt_ctf_field_type_serialize(event_class->fields, context);
 		if (ret) {
 			BT_LOGW("Cannot serialize event class's payload field type's metadata: "
