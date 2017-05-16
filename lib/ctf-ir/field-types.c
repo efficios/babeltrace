@@ -3727,13 +3727,17 @@ void bt_ctf_field_type_enumeration_freeze(struct bt_ctf_field_type *type)
 	BT_LOGD("Freezing enumeration field type object: addr=%p", type);
 	set_enumeration_range_overlap(type);
 	generic_field_type_freeze(type);
+	BT_LOGD("Freezing enumeration field type object's container field type: int-ft-addr=%p",
+		enumeration_type->container);
 	bt_ctf_field_type_freeze(enumeration_type->container);
 }
 
 static
 void freeze_structure_field(struct structure_field *field)
 {
-	BT_LOGD("Freezing structure field type field: addr=%p", field);
+	BT_LOGD("Freezing structure/variant field type field: field-addr=%p, "
+		"field-ft-addr=%p, field-name=\"%s\"", field,
+		field->type, g_quark_to_string(field->name));
 	bt_ctf_field_type_freeze(field->type);
 }
 
@@ -3773,6 +3777,8 @@ void bt_ctf_field_type_array_freeze(struct bt_ctf_field_type *type)
 	BT_LOGD("Freezing array field type object: addr=%p", type);
 	type->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
+	BT_LOGD("Freezing array field type object's element field type: element-ft-addr=%p",
+		array_type->element_type);
 	bt_ctf_field_type_freeze(array_type->element_type);
 }
 
@@ -3786,6 +3792,8 @@ void bt_ctf_field_type_sequence_freeze(struct bt_ctf_field_type *type)
 	BT_LOGD("Freezing sequence field type object: addr=%p", type);
 	type->alignment = bt_ctf_field_type_get_alignment(type);
 	generic_field_type_freeze(type);
+	BT_LOGD("Freezing sequence field type object's element field type: element-ft-addr=%p",
+		sequence_type->element_type);
 	bt_ctf_field_type_freeze(sequence_type->element_type);
 }
 
