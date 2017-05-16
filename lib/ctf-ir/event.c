@@ -701,10 +701,15 @@ void bt_ctf_event_destroy(struct bt_object *obj)
 		bt_put(event->event_class);
 	}
 	g_hash_table_destroy(event->clock_values);
+	BT_LOGD_STR("Putting event's header field.");
 	bt_put(event->event_header);
+	BT_LOGD_STR("Putting event's stream event context field.");
 	bt_put(event->stream_event_context);
+	BT_LOGD_STR("Putting event's context field.");
 	bt_put(event->context_payload);
+	BT_LOGD_STR("Putting event's payload field.");
 	bt_put(event->fields_payload);
+	BT_LOGD_STR("Putting event's packet.");
 	bt_put(event->packet);
 	g_free(event);
 }
@@ -873,14 +878,15 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 	assert(event);
 	assert(pos);
 
-	BT_LOGD("Serializing event: "
+	BT_LOGV("Serializing event: "
 		"event-addr=%p, event-class-name=\"%s\", "
-		"event-class-id=%" PRId64 ", pos-addr=%p, "
+		"event-class-id=%" PRId64 ", pos-offset=%" PRId64 ", "
 		"native-bo=%s",
 		event, bt_ctf_event_class_get_name(event->event_class),
 		bt_ctf_event_class_get_id(event->event_class),
-		pos, bt_ctf_byte_order_string(native_byte_order));
+		pos->offset, bt_ctf_byte_order_string(native_byte_order));
 
+	BT_LOGV_STR("Serializing context field.");
 	if (event->context_payload) {
 		ret = bt_ctf_field_serialize(event->context_payload, pos,
 			native_byte_order);
@@ -895,6 +901,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		}
 	}
 
+	BT_LOGV_STR("Serializing payload field.");
 	if (event->fields_payload) {
 		ret = bt_ctf_field_serialize(event->fields_payload, pos,
 			native_byte_order);
@@ -1028,9 +1035,13 @@ void bt_ctf_event_freeze(struct bt_ctf_event *event)
 		event, bt_ctf_event_class_get_name(event->event_class),
 		bt_ctf_event_class_get_id(event->event_class));
 	bt_ctf_packet_freeze(event->packet);
+	BT_LOGD_STR("Freezing event's header field.");
 	bt_ctf_field_freeze(event->event_header);
+	BT_LOGD_STR("Freezing event's stream event context field.");
 	bt_ctf_field_freeze(event->stream_event_context);
+	BT_LOGD_STR("Freezing event's context field.");
 	bt_ctf_field_freeze(event->context_payload);
+	BT_LOGD_STR("Freezing event's payload field.");
 	bt_ctf_field_freeze(event->fields_payload);
 	event->frozen = 1;
 }
