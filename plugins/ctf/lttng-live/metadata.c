@@ -30,6 +30,7 @@
 #include <glib.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
+#include <babeltrace/graph/graph.h>
 
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-METADATA"
 
@@ -154,6 +155,12 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 			 * the data streams are done.
 			 */
 			lttng_live_unref_trace(metadata->trace);
+		}
+		if (errno == EINTR) {
+			if (bt_graph_is_canceled(session->lttng_live->graph)) {
+				status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+				goto end;
+			}
 		}
 	}
 

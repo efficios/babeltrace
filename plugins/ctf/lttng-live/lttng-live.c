@@ -40,6 +40,7 @@
 #include <babeltrace/graph/notification-heap.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-inactivity.h>
+#include <babeltrace/graph/graph.h>
 #include <babeltrace/compiler-internal.h>
 #include <inttypes.h>
 #include <glib.h>
@@ -269,9 +270,11 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 	BT_LOGI("Destroy session");
 	if (session->id != -1ULL) {
 		if (lttng_live_detach_session(session)) {
-			/* Old relayd cannot detach sessions. */
-			BT_LOGD("Unable to detach session %" PRIu64,
-				session->id);
+			if (!bt_graph_is_canceled(session->lttng_live->graph)) {
+				/* Old relayd cannot detach sessions. */
+				BT_LOGD("Unable to detach session %" PRIu64,
+					session->id);
+			}
 		}
 		session->id = -1ULL;
 	}
@@ -401,7 +404,11 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_session(
 	struct lttng_live_trace *trace, *t;
 
 	if (lttng_live_attach_session(session)) {
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		if (bt_graph_is_canceled(lttng_live->graph)) {
+			return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		} else {
+			return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		}
 	}
 	status = lttng_live_get_new_streams(session);
 	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK &&
@@ -911,7 +918,7 @@ struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_
 		goto error;
 	}
 
-	viewer_connection = bt_live_viewer_connection_create(url, stderr);
+	viewer_connection = bt_live_viewer_connection_create(url, NULL);
 	if (!viewer_connection) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto error;
@@ -984,6 +991,7 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 	struct bt_value *value = NULL;
 	const char *url;
 	enum bt_value_status ret;
+	struct bt_component *component;
 
 	lttng_live = g_new0(struct lttng_live_component, 1);
 	if (!lttng_live) {
@@ -1007,17 +1015,29 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 		goto error;
 	}
 	lttng_live->viewer_connection =
-		bt_live_viewer_connection_create(lttng_live->url->str,
-			stderr);
+		bt_live_viewer_connection_create(lttng_live->url->str, lttng_live);
 	if (!lttng_live->viewer_connection) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+		if (bt_graph_is_canceled(lttng_live->graph)) {
+			ret = BT_COMPONENT_STATUS_AGAIN;
+		} else {
+			ret = BT_COMPONENT_STATUS_NOMEM;
+		}
 		goto error;
 	}
 	if (lttng_live_create_viewer_session(lttng_live)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		if (bt_graph_is_canceled(lttng_live->graph)) {
+			ret = BT_COMPONENT_STATUS_AGAIN;
+		} else {
+			ret = BT_COMPONENT_STATUS_NOMEM;
+		}
 		goto error;
 	}
 	lttng_live->private_component = private_component;
+
+	component = bt_component_from_private_component(private_component);
+	lttng_live->graph = bt_component_get_graph(component);
+	bt_put(lttng_live->graph);	/* weak */
+	bt_put(component);
 
 	goto end;
 

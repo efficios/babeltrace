@@ -37,10 +37,10 @@
 #define LTTNG_LIVE_MAJOR			2
 #define LTTNG_LIVE_MINOR			4
 
+struct lttng_live_component;
+
 struct bt_live_viewer_connection {
 	struct bt_object obj;
-
-	FILE *error_fp;
 
 	GString *url;
 
@@ -53,6 +53,8 @@ struct bt_live_viewer_connection {
 
 	int32_t major;
 	int32_t minor;
+
+	struct lttng_live_component *lttng_live;
 };
 
 struct packet_index_time {
@@ -75,7 +77,7 @@ struct packet_index {
 };
 
 struct bt_live_viewer_connection *
-	bt_live_viewer_connection_create(const char *url, FILE *error_fp);
+	bt_live_viewer_connection_create(const char *url, struct lttng_live_component *lttng_live);
 
 void bt_live_viewer_connection_destroy(struct bt_live_viewer_connection *conn);
 

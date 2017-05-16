@@ -193,6 +193,7 @@ struct lttng_live_component {
 	struct lttng_live_no_stream_iterator *no_stream_iter;
 
 	struct bt_component *downstream_component;
+	struct bt_graph *graph;	 /* weak */
 };
 
 enum bt_ctf_lttng_live_iterator_status {
