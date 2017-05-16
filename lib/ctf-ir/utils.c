@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CTF-IR-UTILS"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -79,13 +82,20 @@ int bt_ctf_validate_identifier(const char *input_string)
 	char *string = NULL;
 	char *save_ptr, *token;
 
-	if (!input_string || input_string[0] == '\0') {
+	if (!input_string) {
+		BT_LOGV_STR("Invalid parameter: input string is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (input_string[0] == '\0') {
 		ret = -1;
 		goto end;
 	}
 
 	string = strdup(input_string);
 	if (!string) {
+		BT_LOGE("strdup() failed.");
 		ret = -1;
 		goto end;
 	}
