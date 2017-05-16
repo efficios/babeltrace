@@ -313,6 +313,7 @@ void destroy_structure_field(struct structure_field *field)
 	BT_LOGD("Destroying structure/variant field type's field object: "
 		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
 		field, field->type, g_quark_to_string(field->name));
+	BT_LOGD_STR("Putting field type.");
 	bt_put(field->type);
 	g_free(field);
 }
@@ -404,8 +405,12 @@ void bt_ctf_field_type_init(struct bt_ctf_field_type *type, bt_bool init_bo)
 	type->serialize = type_serialize_funcs[type->id];
 
 	if (init_bo) {
-		int ret = bt_ctf_field_type_set_byte_order(type,
-			BT_CTF_BYTE_ORDER_NATIVE);
+		int ret;
+		const enum bt_ctf_byte_order bo = BT_CTF_BYTE_ORDER_NATIVE;
+
+		BT_LOGD("Setting initial field type's byte order: bo=%s",
+			bt_ctf_byte_order_string(bo));
+		ret = bt_ctf_field_type_set_byte_order(type, bo);
 		assert(ret == 0);
 	}
 
@@ -751,6 +756,7 @@ int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 	tag_mappings_count =
 		bt_ctf_field_type_enumeration_get_mapping_count(
 			(struct bt_ctf_field_type *) variant->tag);
+	assert(tag_mappings_count >= 0);
 
 	/*
 	 * Validate that each mapping found in the tag has a name which
@@ -846,6 +852,7 @@ int bt_ctf_field_type_validate(struct bt_ctf_field_type *type)
 
 	if (!ret && type->frozen) {
 		/* Field type is valid */
+		BT_LOGV("Marking field type as valid: addr=%p", type);
 		type->valid = 1;
 	}
 
@@ -1227,6 +1234,9 @@ void bt_ctf_field_type_enum_iter_destroy(struct bt_object *obj)
 			struct bt_ctf_field_type_enumeration_mapping_iterator,
 			base);
 
+	BT_LOGD("Destroying enumeration field type mapping iterator: addr=%p",
+		obj);
+	BT_LOGD_STR("Putting parent enumeration field type.");
 	bt_put(&iter->enumeration_type->parent);
 	g_free(iter);
 }
@@ -1351,6 +1361,8 @@ int bt_ctf_field_type_enumeration_mapping_iterator_next(
 			break;
 		}
 		default:
+			BT_LOGF("Invalid enumeration field type mapping iterator type: "
+				"type=%d", iter->type);
 			abort();
 		}
 	}
@@ -1499,6 +1511,7 @@ int bt_ctf_field_type_enumeration_get_mapping_signed(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
+		assert(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -1536,6 +1549,7 @@ int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
+		assert(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -2156,6 +2170,7 @@ int bt_ctf_field_type_structure_get_field_by_index(
 	}
 	if (field_name) {
 		*field_name = g_quark_to_string(field->name);
+		assert(*field_name);
 	}
 end:
 	return ret;
@@ -2598,6 +2613,7 @@ int bt_ctf_field_type_variant_get_field_by_index(struct bt_ctf_field_type *type,
 	}
 	if (field_name) {
 		*field_name = g_quark_to_string(field->name);
+		assert(*field_name);
 	}
 end:
 	return ret;
@@ -3280,7 +3296,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_signed(
 
 	field_name_quark = query.mapping_name;
 	if (!g_hash_table_lookup_extended(variant->field_name_to_index,
-		GUINT_TO_POINTER(field_name_quark), NULL, &index)) {
+			GUINT_TO_POINTER(field_name_quark), NULL, &index)) {
 		goto end;
 	}
 
@@ -3406,7 +3422,8 @@ int bt_ctf_field_type_structure_get_field_name_index(
 	structure = container_of(type, struct bt_ctf_field_type_structure,
 		parent);
 	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
-		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+			GUINT_TO_POINTER(name_quark),
+			NULL, (gpointer *)&index)) {
 		ret = -1;
 		goto end;
 	}
@@ -3454,7 +3471,8 @@ int bt_ctf_field_type_variant_get_field_name_index(
 	variant = container_of(type, struct bt_ctf_field_type_variant,
 		parent);
 	if (!g_hash_table_lookup_extended(variant->field_name_to_index,
-		GUINT_TO_POINTER(name_quark), NULL, (gpointer *)&index)) {
+			GUINT_TO_POINTER(name_quark),
+			NULL, (gpointer *)&index)) {
 		ret = -1;
 		goto end;
 	}
@@ -3578,6 +3596,7 @@ void bt_ctf_field_type_integer_destroy(struct bt_ctf_field_type *type)
 	}
 
 	BT_LOGD("Destroying integer field type object: addr=%p", type);
+	BT_LOGD_STR("Putting mapped clock class.");
 	bt_put(integer->mapped_clock);
 	g_free(integer);
 }
@@ -3594,6 +3613,7 @@ void bt_ctf_field_type_enumeration_destroy(struct bt_ctf_field_type *type)
 
 	BT_LOGD("Destroying enumeration field type object: addr=%p", type);
 	g_ptr_array_free(enumeration->entries, TRUE);
+	BT_LOGD_STR("Putting container field type.");
 	bt_put(enumeration->container);
 	g_free(enumeration);
 }
@@ -3642,6 +3662,7 @@ void bt_ctf_field_type_variant_destroy(struct bt_ctf_field_type *type)
 	g_ptr_array_free(variant->fields, TRUE);
 	g_hash_table_destroy(variant->field_name_to_index);
 	g_string_free(variant->tag_name, TRUE);
+	BT_LOGD_STR("Putting tag field type.");
 	bt_put(&variant->tag->parent);
 	BT_PUT(variant->tag_field_path);
 	g_free(variant);
@@ -3658,6 +3679,7 @@ void bt_ctf_field_type_array_destroy(struct bt_ctf_field_type *type)
 	}
 
 	BT_LOGD("Destroying array field type object: addr=%p", type);
+	BT_LOGD_STR("Putting element field type.");
 	bt_put(array->element_type);
 	g_free(array);
 }
@@ -3673,8 +3695,10 @@ void bt_ctf_field_type_sequence_destroy(struct bt_ctf_field_type *type)
 	}
 
 	BT_LOGD("Destroying sequence field type object: addr=%p", type);
+	BT_LOGD_STR("Putting element field type.");
 	bt_put(sequence->element_type);
 	g_string_free(sequence->length_field_name, TRUE);
+	BT_LOGD_STR("Putting length field path.");
 	BT_PUT(sequence->length_field_path);
 	g_free(sequence);
 }
@@ -3708,6 +3732,7 @@ void bt_ctf_field_type_integer_freeze(struct bt_ctf_field_type *type)
 	BT_LOGD("Freezing integer field type object: addr=%p", type);
 
 	if (integer_type->mapped_clock) {
+		BT_LOGD_STR("Freezing integer field type's mapped clock class.");
 		bt_ctf_clock_class_freeze(integer_type->mapped_clock);
 	}
 
@@ -3890,6 +3915,7 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 	container_signed = bt_ctf_field_type_integer_get_signed(container_type);
 	assert(container_signed >= 0);
 	g_string_append(context->string, "enum : ");
+	BT_LOGD_STR("Serializing enumeration field type's container field type's metadata.");
 	ret = bt_ctf_field_type_serialize(enumeration->container, context);
 	if (ret) {
 		BT_LOGW("Cannot serialize enumeration field type's container field type's metadata: "
@@ -3986,7 +4012,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 	for (i = 0; i < structure->fields->len; i++) {
 		struct structure_field *field = structure->fields->pdata[i];
 
-		BT_LOGV("Serializing structure field type's field metadata: "
+		BT_LOGD("Serializing structure field type's field metadata: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, field, g_quark_to_string(field->name));
@@ -4054,7 +4080,7 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 	for (i = 0; i < variant->fields->len; i++) {
 		struct structure_field *field = variant->fields->pdata[i];
 
-		BT_LOGV("Serializing variant field type's field metadata: "
+		BT_LOGD("Serializing variant field type's field metadata: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, field, g_quark_to_string(field->name));
@@ -4109,6 +4135,7 @@ int bt_ctf_field_type_array_serialize(struct bt_ctf_field_type *type,
 
 	BT_LOGD("Serializing array field type's metadata: "
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
+	BT_LOGD_STR("Serializing array field type's element field type's metadata.");
 	ret = bt_ctf_field_type_serialize(array->element_type, context);
 	if (ret) {
 		BT_LOGW("Cannot serialize array field type's element field type's metadata: "
@@ -4137,6 +4164,7 @@ int bt_ctf_field_type_sequence_serialize(struct bt_ctf_field_type *type,
 
 	BT_LOGD("Serializing sequence field type's metadata: "
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
+	BT_LOGD_STR("Serializing sequence field type's element field type's metadata.");
 	ret = bt_ctf_field_type_serialize(sequence->element_type, context);
 	if (ret) {
 		BT_LOGW("Cannot serialize sequence field type's element field type's metadata: "
@@ -4320,6 +4348,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_copy(
 		parent);
 
 	/* Copy the source enumeration's container */
+	BT_LOGD_STR("Copying enumeration field type's container field type.");
 	copy_container = bt_ctf_field_type_copy(enumeration->container);
 	if (!copy_container) {
 		BT_LOGE_STR("Cannot copy enumeration field type's container field type.");
@@ -4423,7 +4452,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_copy(
 		struct bt_ctf_field_type *copy_field;
 
 		entry = g_ptr_array_index(structure->fields, i);
-		BT_LOGV("Copying structure field type's field: "
+		BT_LOGD("Copying structure field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
@@ -4472,6 +4501,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy(
 	variant = container_of(type, struct bt_ctf_field_type_variant,
 		parent);
 	if (variant->tag) {
+		BT_LOGD_STR("Copying variant field type's tag field type.");
 		copy_tag = bt_ctf_field_type_copy(&variant->tag->parent);
 		if (!copy_tag) {
 			BT_LOGE_STR("Cannot copy variant field type's tag field type.");
@@ -4501,7 +4531,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy(
 		struct bt_ctf_field_type *copy_field;
 
 		entry = g_ptr_array_index(variant->fields, i);
-		BT_LOGV("Copying variant field type's field: "
+		BT_LOGD("Copying variant field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
@@ -4527,7 +4557,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy(
 	}
 
 	if (variant->tag_field_path) {
-		BT_LOGV_STR("Copying variant field type's tag field path.");
+		BT_LOGD_STR("Copying variant field type's tag field path.");
 		copy_variant->tag_field_path = bt_ctf_field_path_copy(
 			variant->tag_field_path);
 		if (!copy_variant->tag_field_path) {
@@ -4558,6 +4588,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_copy(
 	BT_LOGD("Copying array field type's: addr=%p", type);
 	array = container_of(type, struct bt_ctf_field_type_array,
 		parent);
+	BT_LOGD_STR("Copying array field type's element field type.");
 	copy_element = bt_ctf_field_type_copy(array->element_type);
 	if (!copy_element) {
 		BT_LOGE_STR("Cannot copy array field type's element field type.");
@@ -4588,6 +4619,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy(
 	BT_LOGD("Copying sequence field type's: addr=%p", type);
 	sequence = container_of(type, struct bt_ctf_field_type_sequence,
 		parent);
+	BT_LOGD_STR("Copying sequence field type's element field type.");
 	copy_element = bt_ctf_field_type_copy(sequence->element_type);
 	if (!copy_element) {
 		BT_LOGE_STR("Cannot copy sequence field type's element field type.");
@@ -4605,7 +4637,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy(
 	copy_sequence = container_of(copy, struct bt_ctf_field_type_sequence,
 		parent);
 	if (sequence->length_field_path) {
-		BT_LOGV_STR("Copying sequence field type's length field path.");
+		BT_LOGD_STR("Copying sequence field type's length field path.");
 		copy_sequence->length_field_path = bt_ctf_field_path_copy(
 			sequence->length_field_path);
 		if (!copy_sequence->length_field_path) {
