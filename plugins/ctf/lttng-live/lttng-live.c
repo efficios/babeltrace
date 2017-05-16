@@ -164,10 +164,15 @@ static
 void lttng_live_destroy_trace(struct bt_object *obj)
 {
 	struct lttng_live_trace *trace = container_of(obj, struct lttng_live_trace, obj);
+	int retval;
 
 	BT_LOGI("Destroy trace");
 	assert(bt_list_empty(&trace->streams));
 	bt_list_del(&trace->node);
+
+	retval = bt_ctf_trace_set_is_static(trace->trace);
+	assert(!retval);
+
 	lttng_live_metadata_fini(trace);
 	BT_PUT(trace->cc_prio_map);
 	g_free(trace);
@@ -405,12 +410,8 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_session(
 	}
 	bt_list_for_each_entry_safe(trace, t, &session->traces, node) {
 		status = lttng_live_metadata_update(trace);
-		if (status == BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END) {
-			int retval;
-
-			retval = bt_ctf_trace_set_is_static(trace->trace);
-			assert(!retval);
-		} else if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+		if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK &&
+				status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END) {
 			return status;
 		}
 	}
