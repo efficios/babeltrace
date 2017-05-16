@@ -450,15 +450,10 @@ void bt_ctf_field_type_destroy(struct bt_object *obj)
 	struct bt_ctf_field_type *type;
 	enum bt_ctf_field_type_id type_id;
 
-	BT_LOGD("Destroying field type object: addr=%p", obj);
 	type = container_of(obj, struct bt_ctf_field_type, base);
 	type_id = type->id;
-	if (type_id <= BT_CTF_FIELD_TYPE_ID_UNKNOWN ||
-			type_id >= BT_CTF_NR_TYPE_IDS) {
-		BT_LOGW("Unknown field type ID: addr=%p, id=%d", obj, type_id);
-		return;
-	}
-
+	assert(type_id > BT_CTF_FIELD_TYPE_ID_UNKNOWN &&
+		type_id < BT_CTF_NR_TYPE_IDS);
 	type_destroy_funcs[type_id](type);
 }
 
@@ -3251,7 +3246,6 @@ void bt_ctf_field_type_freeze(struct bt_ctf_field_type *type)
 		return;
 	}
 
-	BT_LOGD("Freezing field type: addr=%p", type);
 	type->freeze(type);
 }
 
@@ -3333,13 +3327,11 @@ int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
 	assert(type);
 	assert(context);
 
-	BT_LOGD("Serializing field type's metadata: "
-		"ft-addr=%p, metadata-context-addr=%p", type, context);
-
 	/* Make sure field type is valid before serializing it */
 	ret = bt_ctf_field_type_validate(type);
 	if (ret) {
-		BT_LOGW_STR("Cannot serialize field type's metadata: field type is invalid.");
+		BT_LOGW("Cannot serialize field type's metadata: field type is invalid: "
+			"addr=%p", type);
 		goto end;
 	}
 
@@ -3351,8 +3343,6 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_copy(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type *copy = NULL;
-
-	BT_LOGD("Copying field type object: addr=%p", type);
 
 	if (!type) {
 		BT_LOGW_STR("Invalid parameter: field type is NULL.");
@@ -3366,7 +3356,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_copy(struct bt_ctf_field_type *type)
 	}
 
 	copy->alignment = type->alignment;
-	BT_LOGD("Copied field type object: copy-ft-addr=%p", copy);
 end:
 	return copy;
 }
