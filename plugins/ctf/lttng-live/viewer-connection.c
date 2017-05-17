@@ -1411,9 +1411,9 @@ end:
 
 error:
 	if (bt_graph_is_canceled(lttng_live->graph)) {
-		status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
-		status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	}
 	return status;
 }

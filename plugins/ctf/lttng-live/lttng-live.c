@@ -451,7 +451,7 @@ void lttng_live_force_new_streams_and_metadata(struct lttng_live_component *lttn
 }
 
 static
-enum bt_notification_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
+enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
 		struct lttng_live_component *lttng_live)
 {
 	enum bt_ctf_lttng_live_iterator_status ret =
@@ -904,7 +904,6 @@ struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_
 	struct bt_value *results = NULL;
 	const char *url;
 	struct bt_live_viewer_connection *viewer_connection = NULL;
-	enum bt_value_status ret;
 
 	url_value = bt_value_map_get(params, "url");
 	if (!url_value || bt_value_is_null(url_value) || !bt_value_is_string(url_value)) {
@@ -912,15 +911,13 @@ struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_
 		goto error;
 	}
 
-	ret = bt_value_string_get(url_value, &url);
-	if (ret != BT_VALUE_STATUS_OK) {
+	if (bt_value_string_get(url_value, &url) != BT_VALUE_STATUS_OK) {
 		BT_LOGW("\"url\" parameter is required to be a string value");
 		goto error;
 	}
 
 	viewer_connection = bt_live_viewer_connection_create(url, NULL);
 	if (!viewer_connection) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto error;
 	}
 
@@ -985,13 +982,13 @@ void lttng_live_component_finalize(struct bt_private_component *component)
 
 static
 struct lttng_live_component *lttng_live_component_create(struct bt_value *params,
-		struct bt_private_component *private_component)
+		struct bt_private_component *private_component,
+		struct bt_graph *graph)
 {
 	struct lttng_live_component *lttng_live;
 	struct bt_value *value = NULL;
 	const char *url;
 	enum bt_value_status ret;
-	struct bt_component *component;
 
 	lttng_live = g_new0(struct lttng_live_component, 1);
 	if (!lttng_live) {
@@ -1017,27 +1014,13 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 	lttng_live->viewer_connection =
 		bt_live_viewer_connection_create(lttng_live->url->str, lttng_live);
 	if (!lttng_live->viewer_connection) {
-		if (bt_graph_is_canceled(lttng_live->graph)) {
-			ret = BT_COMPONENT_STATUS_AGAIN;
-		} else {
-			ret = BT_COMPONENT_STATUS_NOMEM;
-		}
 		goto error;
 	}
 	if (lttng_live_create_viewer_session(lttng_live)) {
-		if (bt_graph_is_canceled(lttng_live->graph)) {
-			ret = BT_COMPONENT_STATUS_AGAIN;
-		} else {
-			ret = BT_COMPONENT_STATUS_NOMEM;
-		}
 		goto error;
 	}
 	lttng_live->private_component = private_component;
-
-	component = bt_component_from_private_component(private_component);
-	lttng_live->graph = bt_component_get_graph(component);
-	bt_put(lttng_live->graph);	/* weak */
-	bt_put(component);
+	lttng_live->graph = graph;
 
 	goto end;
 
@@ -1049,16 +1032,29 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status lttng_live_component_init(struct bt_private_component *component,
+enum bt_component_status lttng_live_component_init(
+		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_component *component;
+	struct bt_graph *graph;
+
+	component = bt_component_from_private_component(private_component);
+	graph = bt_component_get_graph(component);
+	bt_put(graph);	/* weak */
+	bt_put(component);
 
 	/* Passes ownership of iter ref to lttng_live_component_create. */
-	lttng_live = lttng_live_component_create(params, component);
+	lttng_live = lttng_live_component_create(params, private_component,
+			graph);
 	if (!lttng_live) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+		if (bt_graph_is_canceled(graph)) {
+			ret = BT_COMPONENT_STATUS_AGAIN;
+		} else {
+			ret = BT_COMPONENT_STATUS_NOMEM;
+		}
 		goto end;
 	}
 
@@ -1072,7 +1068,7 @@ enum bt_component_status lttng_live_component_init(struct bt_private_component *
 				lttng_live->no_stream_iter);
 	lttng_live->no_stream_iter->port = lttng_live->no_stream_port;
 
-	ret = bt_private_component_set_user_data(component, lttng_live);
+	ret = bt_private_component_set_user_data(private_component, lttng_live);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -1080,7 +1076,7 @@ enum bt_component_status lttng_live_component_init(struct bt_private_component *
 end:
 	return ret;
 error:
-	(void) bt_private_component_set_user_data(component, NULL);
+	(void) bt_private_component_set_user_data(private_component, NULL);
 	lttng_live_component_destroy_data(lttng_live);
 	return ret;
 }
