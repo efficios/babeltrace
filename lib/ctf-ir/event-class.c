@@ -378,7 +378,7 @@ bt_ctf_event_class_get_attribute_name_by_index(
 	}
 
 	ret = bt_ctf_attributes_get_field_name(event_class->attributes, index);
-	if (ret) {
+	if (!ret) {
 		BT_LOGW("Cannot get event class's attribute name by index: "
 			"addr=%p, name=\"%s\", id=%" PRId64 ", index=%" PRIu64,
 			event_class, bt_ctf_event_class_get_name(event_class),
@@ -402,7 +402,7 @@ bt_ctf_event_class_get_attribute_value_by_index(
 	}
 
 	ret = bt_ctf_attributes_get_field_value(event_class->attributes, index);
-	if (ret) {
+	if (!ret) {
 		BT_LOGW("Cannot get event class's attribute value by index: "
 			"addr=%p, name=\"%s\", id=%" PRId64 ", index=%" PRIu64,
 			event_class, bt_ctf_event_class_get_name(event_class),
@@ -429,7 +429,7 @@ bt_ctf_event_class_get_attribute_value_by_name(
 
 	ret = bt_ctf_attributes_get_field_value_by_name(event_class->attributes,
 		name);
-	if (ret) {
+	if (!ret) {
 		BT_LOGV("Cannot find event class's attribute: "
 			"addr=%p, event-class-name=\"%s\", id=%" PRId64 ", "
 			"attr-name=\"%s\"",
