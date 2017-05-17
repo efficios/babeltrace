@@ -4022,7 +4022,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 {
 	size_t i;
 	unsigned int indent;
-	int64_t ret = 0;
+	int ret = 0;
 	struct bt_ctf_field_type_structure *structure = container_of(type,
 		struct bt_ctf_field_type_structure, parent);
 	GString *structure_field_name = context->field_name;
