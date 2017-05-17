@@ -194,7 +194,7 @@ struct bt_ctf_packet *trimmer_new_packet(
 	bt_get(writer_packet);
 
 	writer_packet_context = ctf_copy_packet_context(trim_it->err, packet,
-			stream);
+			stream, 0);
 	if (!writer_packet_context) {
 		fprintf(trim_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);

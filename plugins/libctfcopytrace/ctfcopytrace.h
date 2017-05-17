@@ -105,8 +105,8 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 /*
  * Copy all the field values of the packet context from the packet passed in
  * parameter and set it to the current packet in the writer stream.
- * The content_size and packet_size fields are not copied since they are
- * already handled by the ctf_writer library.
+ * The content_size and packet_size fields are not copied if skip_content_size
+ * is not 0.
  *
  * Returns BT_COMPONENT_STATUS_OK on success, and BT_COMPONENT_STATUS_ERROR on
  * error.
@@ -114,7 +114,8 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 BT_HIDDEN
 struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
-		struct bt_ctf_stream *writer_stream);
+		struct bt_ctf_stream *writer_stream,
+		int skip_content_size);
 
 /*
  * Create and return a copy of the event passed in parameter. The caller has to

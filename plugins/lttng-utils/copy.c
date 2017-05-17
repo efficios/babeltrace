@@ -1058,7 +1058,7 @@ struct bt_ctf_packet *debug_info_new_packet(
 	bt_get(writer_packet);
 
 	writer_packet_context = ctf_copy_packet_context(debug_it->err, packet,
-			writer_stream);
+			writer_stream, 0);
 	if (!writer_packet_context) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);

@@ -530,7 +530,8 @@ end:
 BT_HIDDEN
 struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 		struct bt_ctf_packet *packet,
-		struct bt_ctf_stream *writer_stream)
+		struct bt_ctf_stream *writer_stream,
+		int skip_content_size)
 {
 	enum bt_component_status ret;
 	struct bt_ctf_field *packet_context = NULL, *writer_packet_context = NULL;
@@ -592,9 +593,9 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 					__FILE__, __LINE__);
 			goto error;
 		}
-		if (!strncmp(field_name, "content_size", strlen("content_size")) ||
-				!strncmp(field_name, "packet_size",
-					strlen("packet_size"))) {
+		if (skip_content_size &&
+				(!strncmp(field_name, "content_size", strlen("content_size")) ||
+				!strncmp(field_name, "packet_size", strlen("packet_size")))) {
 			BT_PUT(field_type);
 			BT_PUT(field);
 			continue;
