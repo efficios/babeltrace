@@ -833,6 +833,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int field_count, i, int_ret;
 	struct bt_ctf_field_type *header_type = NULL;
+	enum bt_ctf_byte_order order;
 
 	field_count = bt_ctf_trace_get_environment_field_count(trace);
 	for (i = 0; i < field_count; i++) {
@@ -868,6 +869,20 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
+	}
+
+	order = bt_ctf_trace_get_native_byte_order(trace);
+	if (order == BT_CTF_BYTE_ORDER_UNKNOWN) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = bt_ctf_trace_set_native_byte_order(writer_trace, order);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
 	}
 
 	header_type = bt_ctf_trace_get_packet_header_type(writer_trace);
