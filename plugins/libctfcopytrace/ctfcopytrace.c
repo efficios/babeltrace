@@ -542,9 +542,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 
 	packet_context = bt_ctf_packet_get_context(packet);
 	if (!packet_context) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
+		goto end;
 	}
 
 	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
