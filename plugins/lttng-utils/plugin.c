@@ -209,6 +209,11 @@ struct bt_notification *handle_notification(FILE *err,
 		bt_put(writer_stream);
 		break;
 	}
+	case BT_NOTIFICATION_TYPE_INACTIVITY:
+	{
+		new_notification = bt_get(notification);
+		break;
+	}
 	default:
 		puts("Unhandled notification type");
 	}
@@ -295,33 +300,47 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
-	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
 	struct bt_private_component *component =
 		bt_private_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
+	struct bt_private_port *input_port;
+	static const enum bt_notification_type notif_types[] = {
+		BT_NOTIFICATION_TYPE_EVENT,
+		BT_NOTIFICATION_TYPE_STREAM_END,
+		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
+		BT_NOTIFICATION_TYPE_PACKET_END,
+		BT_NOTIFICATION_TYPE_SENTINEL,
+	};
 
 	if (!it_data) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
 
-	/* Create a new iterator on the upstream component. */
 	input_port = bt_private_component_filter_get_input_private_port_by_name(
-		component, "in");
-	assert(input_port);
+			component, "in");
+	if (!input_port) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		goto end;
+	}
+
 	connection = bt_private_port_get_private_connection(input_port);
-	assert(connection);
+	bt_put(input_port);
+	if (!connection) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		goto end;
+	}
 
 	it_data->input_iterator = bt_private_connection_create_notification_iterator(
-			connection, NULL);
+			connection, notif_types);
 	if (!it_data->input_iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
+
 	it_data->debug_info_component = (struct debug_info_component *)
 		bt_private_component_get_user_data(component);
-
 	it_data->err = it_data->debug_info_component->err;
 	it_data->trace_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_trace);
@@ -341,7 +360,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 
 end:
 	bt_put(connection);
-	bt_put(input_port);
+	bt_put(component);
 	return ret;
 }
 
@@ -446,6 +465,7 @@ enum bt_component_status debug_info_component_init(
 {
 	enum bt_component_status ret;
 	struct debug_info_component *debug_info = create_debug_info_component_data();
+	struct bt_private_port *priv_port = NULL;
 
 	if (!debug_info) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
@@ -456,6 +476,22 @@ enum bt_component_status debug_info_component_init(
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
+
+	priv_port = bt_private_component_filter_add_input_private_port(
+		component, "in", NULL);
+	if (!priv_port) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	BT_PUT(priv_port);
+
+	priv_port = bt_private_component_filter_add_output_private_port(
+		component, "out", NULL);
+	if (!priv_port) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	BT_PUT(priv_port);
 
 	ret = init_from_params(debug_info, params);
 end:
