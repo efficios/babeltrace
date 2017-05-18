@@ -924,15 +924,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 	assert(event);
 	assert(pos);
 
-	BT_LOGV("Serializing event: "
-		"event-addr=%p, event-class-name=\"%s\", "
-		"event-class-id=%" PRId64 ", pos-offset=%" PRId64 ", "
-		"native-bo=%s",
-		event, bt_ctf_event_class_get_name(event->event_class),
-		bt_ctf_event_class_get_id(event->event_class),
-		pos->offset, bt_ctf_byte_order_string(native_byte_order));
-
-	BT_LOGV_STR("Serializing context field.");
+	BT_LOGV_STR("Serializing event's context field.");
 	if (event->context_payload) {
 		ret = bt_ctf_field_serialize(event->context_payload, pos,
 			native_byte_order);
@@ -947,7 +939,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		}
 	}
 
-	BT_LOGV_STR("Serializing payload field.");
+	BT_LOGV_STR("Serializing event's payload field.");
 	if (event->fields_payload) {
 		ret = bt_ctf_field_serialize(event->fields_payload, pos,
 			native_byte_order);
