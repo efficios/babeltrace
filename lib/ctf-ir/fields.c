@@ -560,8 +560,14 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
-		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-			field);
+		/*
+		 * Not logging a warning here because the user could
+		 * legitimately check if a structure field is set with
+		 * this function: if the preconditions are satisfied,
+		 * a NULL return value means this.
+		 */
+		BT_LOGV("Not creating a field because structure field is frozen: "
+			"struct-field-addr=%p, name=\"%s\"", field, name);
 		goto end;
 	}
 
@@ -623,8 +629,14 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
-		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-			field);
+		/*
+		 * Not logging a warning here because the user could
+		 * legitimately check if a structure field is set with
+		 * this function: if the preconditions are satisfied,
+		 * a NULL return value means this.
+		 */
+		BT_LOGV("Not creating a field because structure field is frozen: "
+			"struct-field-addr=%p, index=%" PRIu64, field, index);
 		goto end;
 	}
 
@@ -764,8 +776,14 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
-		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-			field);
+		/*
+		 * Not logging a warning here because the user could
+		 * legitimately check if a array field is set with
+		 * this function: if the preconditions are satisfied,
+		 * a NULL return value means this.
+		 */
+		BT_LOGV("Not creating a field because array field is frozen: "
+			"array-field-addr=%p, index=%" PRIu64, field, index);
 		goto end;
 	}
 
@@ -824,8 +842,14 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
-		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-			field);
+		/*
+		 * Not logging a warning here because the user could
+		 * legitimately check if a sequence field is set with
+		 * this function: if the preconditions are satisfied,
+		 * a NULL return value means this.
+		 */
+		BT_LOGV("Not creating a field because sequence field is frozen: "
+			"sequence-field-addr=%p, index=%" PRIu64, field, index);
 		goto end;
 	}
 
@@ -927,8 +951,15 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 
 	/* We don't want to modify this field if it's frozen */
 	if (field->frozen) {
-		BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-			field);
+		/*
+		 * Not logging a warning here because the user could
+		 * legitimately check if a variant field is set with
+		 * this function: if the preconditions are satisfied,
+		 * a NULL return value means this.
+		 */
+		BT_LOGV("Not creating a field because variant field is frozen: "
+			"variant-field-addr=%p, tag-field-addr=%p",
+			field, tag_field);
 		goto end;
 	}
 
@@ -1048,8 +1079,15 @@ struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	if (!enumeration->payload) {
 		/* We don't want to modify this field if it's frozen */
 		if (field->frozen) {
-			BT_LOGW("Invalid parameter: field is frozen: addr=%p",
-				field);
+			/*
+			 * Not logging a warning here because the user
+			 * could legitimately check if an enumeration's
+			 * container field is set with this function: if
+			 * the preconditions are satisfied, a NULL
+			 * return value means this.
+			 */
+			BT_LOGV("Not creating a field because enumeration field is frozen: "
+				"enum-field-addr=%p", field);
 			goto end;
 		}
 
