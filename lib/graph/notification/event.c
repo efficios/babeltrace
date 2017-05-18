@@ -34,6 +34,7 @@
 #include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/types.h>
+#include <stdbool.h>
 
 static
 void bt_notification_event_destroy(struct bt_object *obj)
@@ -120,6 +121,19 @@ end:
 	return is_valid;
 }
 
+static
+bool event_has_trace(struct bt_ctf_event *event)
+{
+	struct bt_ctf_event_class *event_class;
+	struct bt_ctf_stream_class *stream_class;
+
+	event_class = bt_ctf_event_borrow_event_class(event);
+	assert(event_class);
+	stream_class = bt_ctf_event_class_borrow_stream_class(event_class);
+	assert(stream_class);
+	return bt_ctf_stream_class_borrow_trace(stream_class) != NULL;
+}
+
 struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
@@ -130,6 +144,10 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 	}
 
 	if (!bt_ctf_event_borrow_packet(event)) {
+		goto error;
+	}
+
+	if (!event_has_trace(event)) {
 		goto error;
 	}
 
