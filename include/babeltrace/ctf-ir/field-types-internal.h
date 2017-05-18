@@ -215,6 +215,11 @@ BT_HIDDEN
 int bt_ctf_field_type_get_field_index(struct bt_ctf_field_type *type,
 		const char *name);
 
+BT_HIDDEN
+int bt_ctf_field_type_integer_set_mapped_clock_class_no_check(
+		struct bt_ctf_field_type *int_field_type,
+		struct bt_ctf_clock_class *clock_class);
+
 static inline
 const char *bt_ctf_field_type_id_string(enum bt_ctf_field_type_id type_id)
 {

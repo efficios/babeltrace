@@ -49,6 +49,7 @@
 #include <babeltrace/endian-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 static
 void bt_ctf_stream_class_destroy(struct bt_object *obj);
@@ -249,30 +250,6 @@ int bt_ctf_stream_class_set_clock(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	/*
-	 * Look for a "timestamp" integer field type in the stream
-	 * class's event header field type and map the stream class's
-	 * clock's class to that field type if there's no current
-	 * mapping.
-	 */
-	timestamp_field = bt_ctf_field_type_structure_get_field_type_by_name(
-		stream_class->event_header_type, "timestamp");
-	if (timestamp_field) {
-		struct bt_ctf_clock_class *mapped_clock_class =
-			bt_ctf_field_type_integer_get_mapped_clock_class(
-				timestamp_field);
-
-		if (!mapped_clock_class) {
-			ret = bt_ctf_field_type_integer_set_mapped_clock_class(
-				timestamp_field, clock->clock_class);
-			if (ret) {
-				goto end;
-			}
-		}
-
-		BT_PUT(mapped_clock_class);
-	}
-
 	/* Replace the current clock of this stream class. */
 	bt_put(stream_class->clock);
 	stream_class->clock = bt_get(clock);
@@ -465,6 +442,14 @@ int bt_ctf_stream_class_add_event_class(
 	const enum bt_ctf_validation_flag validation_flags =
 		BT_CTF_VALIDATION_FLAG_EVENT;
 
+	if (!stream_class || !event_class) {
+		BT_LOGW("Invalid parameter: stream class or event class is NULL: "
+			"stream-class-addr=%p, event-class-addr=%p",
+			stream_class, event_class);
+		ret = -1;
+		goto end;
+	}
+
 	BT_LOGD("Adding event class to stream class: "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64 ", event-class-addr=%p, "
@@ -474,14 +459,6 @@ int bt_ctf_stream_class_add_event_class(
 		event_class,
 		bt_ctf_event_class_get_name(event_class),
 		bt_ctf_event_class_get_id(event_class));
-
-	if (!stream_class || !event_class) {
-		BT_LOGW("Invalid parameter: stream class or event class is NULL: "
-			"stream-class-addr=%p, event-class-addr=%p",
-			stream_class, event_class);
-		ret = -1;
-		goto end;
-	}
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (trace && trace->is_static) {
@@ -1047,18 +1024,24 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	}
 
 	g_string_append_printf(context->string,
-		"stream {\n\tid = %" PRId64 ";\n\tevent.header := ",
-		stream_class->id);
-	ret = bt_ctf_field_type_serialize(stream_class->event_header_type,
-		context);
-	if (ret) {
-		BT_LOGW("Cannot serialize stream class's event header field type's metadata: "
-			"ret=%d", ret);
-		goto end;
+		"stream {\n\tid = %" PRId64 ";\n", stream_class->id);
+	if (stream_class->event_header_type) {
+		BT_LOGD_STR("Serializing stream class's event header field type's metadata.");
+		g_string_append(context->string, "\tevent.header := ");
+		ret = bt_ctf_field_type_serialize(stream_class->event_header_type,
+			context);
+		if (ret) {
+			BT_LOGW("Cannot serialize stream class's event header field type's metadata: "
+				"ret=%d", ret);
+			goto end;
+		}
+		g_string_append(context->string, ";");
 	}
 
+
 	if (stream_class->packet_context_type) {
-		g_string_append(context->string, ";\n\n\tpacket.context := ");
+		BT_LOGD_STR("Serializing stream class's packet context field type's metadata.");
+		g_string_append(context->string, "\n\n\tpacket.context := ");
 		ret = bt_ctf_field_type_serialize(stream_class->packet_context_type,
 			context);
 		if (ret) {
@@ -1066,10 +1049,12 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 				"ret=%d", ret);
 			goto end;
 		}
+		g_string_append(context->string, ";");
 	}
 
 	if (stream_class->event_context_type) {
-		g_string_append(context->string, ";\n\n\tevent.context := ");
+		BT_LOGD_STR("Serializing stream class's event context field type's metadata.");
+		g_string_append(context->string, "\n\n\tevent.context := ");
 		ret = bt_ctf_field_type_serialize(
 			stream_class->event_context_type, context);
 		if (ret) {
@@ -1077,9 +1062,11 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 				"ret=%d", ret);
 			goto end;
 		}
+		g_string_append(context->string, ";");
 	}
 
-	g_string_append(context->string, ";\n};\n\n");
+	g_string_append(context->string, "\n};\n\n");
+
 	for (i = 0; i < stream_class->event_classes->len; i++) {
 		struct bt_ctf_event_class *event_class =
 			stream_class->event_classes->pdata[i];
@@ -1178,9 +1165,17 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 		bt_ctf_field_type_structure_create();
 	struct bt_ctf_field_type *_uint64_t =
 		get_field_type(FIELD_TYPE_ALIAS_UINT64_T);
+	struct bt_ctf_field_type *ts_begin_end_uint64_t;
 
 	if (!packet_context_type) {
 		BT_LOGE_STR("Cannot create empty structure field type.");
+		ret = -1;
+		goto end;
+	}
+
+	ts_begin_end_uint64_t = bt_ctf_field_type_copy(_uint64_t);
+	if (!ts_begin_end_uint64_t) {
+		BT_LOGE_STR("Cannot copy integer field type for `timestamp_begin` and `timestamp_end` fields.");
 		ret = -1;
 		goto end;
 	}
@@ -1190,14 +1185,14 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 	 * specification.
 	 */
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
-		_uint64_t, "timestamp_begin");
+		ts_begin_end_uint64_t, "timestamp_begin");
 	if (ret) {
 		BT_LOGE_STR("Cannot add `timestamp_begin` field to event header field type.");
 		goto end;
 	}
 
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
-		_uint64_t, "timestamp_end");
+		ts_begin_end_uint64_t, "timestamp_end");
 	if (ret) {
 		BT_LOGE_STR("Cannot add `timestamp_end` field to event header field type.");
 		goto end;
@@ -1232,5 +1227,103 @@ end:
 	}
 
 	bt_put(_uint64_t);
+	bt_put(ts_begin_end_uint64_t);
+	return ret;
+}
+
+static
+int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *ft)
+{
+	struct bt_ctf_clock_class *mapped_clock_class = NULL;
+	int ret = 0;
+
+	if (!ft) {
+		/* Field does not exist: not an error */
+		goto end;
+	}
+
+	assert(bt_ctf_field_type_is_integer(ft));
+	mapped_clock_class =
+		bt_ctf_field_type_integer_get_mapped_clock_class(ft);
+	if (!mapped_clock_class) {
+		if (!stream_class->clock) {
+			BT_LOGW("Cannot automatically set field's type mapped clock class: stream class's clock is not set: "
+				"stream-class-addr=%p, stream-class-name=\"%s\", "
+				"stream-class-id=%" PRId64 ", ft-addr=%p",
+				stream_class, bt_ctf_stream_class_get_name(stream_class),
+				bt_ctf_stream_class_get_id(stream_class), ft);
+			ret = -1;
+			goto end;
+		}
+
+		ret = bt_ctf_field_type_integer_set_mapped_clock_class_no_check(
+			ft, stream_class->clock->clock_class);
+		if (ret) {
+			BT_LOGW("Cannot set field type's mapped clock class: "
+				"stream-class-addr=%p, stream-class-name=\"%s\", "
+				"stream-class-id=%" PRId64 ", ft-addr=%p",
+				stream_class, bt_ctf_stream_class_get_name(stream_class),
+				bt_ctf_stream_class_get_id(stream_class), ft);
+			goto end;
+		}
+
+		BT_LOGV("Automatically mapped field type to stream class's clock class: "
+			"stream-class-addr=%p, stream-class-name=\"%s\", "
+			"stream-class-id=%" PRId64 ", ft-addr=%p",
+			stream_class, bt_ctf_stream_class_get_name(stream_class),
+			bt_ctf_stream_class_get_id(stream_class), ft);
+	}
+
+end:
+	bt_put(mapped_clock_class);
+	return ret;
+}
+
+BT_HIDDEN
+int bt_ctf_stream_class_map_clock_class(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type)
+{
+	struct bt_ctf_field_type *ft = NULL;
+	int ret = 0;
+
+	assert(stream_class);
+
+	if (packet_context_type) {
+		ft = bt_ctf_field_type_structure_get_field_type_by_name(
+			packet_context_type, "timestamp_begin");
+		if (try_map_clock_class(stream_class, ft)) {
+			BT_LOGE_STR("Cannot automatically set stream class's packet context field type's `timestamp_begin` field's mapped clock class.");
+			ret = -1;
+			goto end;
+		}
+
+		bt_put(ft);
+		ft = bt_ctf_field_type_structure_get_field_type_by_name(
+			packet_context_type, "timestamp_end");
+		if (try_map_clock_class(stream_class, ft)) {
+			BT_LOGE_STR("Cannot automatically set stream class's packet context field type's `timestamp_end` field's mapped clock class.");
+			ret = -1;
+			goto end;
+		}
+
+		BT_PUT(ft);
+	}
+
+	if (event_header_type) {
+		ft = bt_ctf_field_type_structure_get_field_type_by_name(
+			event_header_type, "timestamp");
+		if (try_map_clock_class(stream_class, ft)) {
+			BT_LOGE_STR("Cannot automatically set stream class's event header field type's `timestamp` field's mapped clock class.");
+			ret = -1;
+			goto end;
+		}
+
+		BT_PUT(ft);
+	}
+
+end:
 	return ret;
 }

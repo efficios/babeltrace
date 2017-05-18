@@ -1181,7 +1181,8 @@ end:
 	return clock_class;
 }
 
-int bt_ctf_field_type_integer_set_mapped_clock_class(
+BT_HIDDEN
+int bt_ctf_field_type_integer_set_mapped_clock_class_no_check(
 		struct bt_ctf_field_type *type,
 		struct bt_ctf_clock_class *clock_class)
 {
@@ -1200,10 +1201,10 @@ int bt_ctf_field_type_integer_set_mapped_clock_class(
 		goto end;
 	}
 
-	if (type->frozen) {
-		BT_LOGW("Invalid parameter: field type is frozen: addr=%p",
-			type);
-		ret = -1;
+	if (type->id != BT_CTF_FIELD_TYPE_ID_INTEGER) {
+		BT_LOGW("Invalid parameter: field type is not an integer field type: "
+			"addr=%p, ft-id=%s", type,
+			bt_ctf_field_type_id_string(type->id));
 		goto end;
 	}
 
@@ -1222,6 +1223,32 @@ int bt_ctf_field_type_integer_set_mapped_clock_class(
 	BT_LOGV("Set integer field type's mapped clock class: ft-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\"",
 		type, clock_class, bt_ctf_clock_class_get_name(clock_class));
+end:
+	return ret;
+}
+
+int bt_ctf_field_type_integer_set_mapped_clock_class(
+		struct bt_ctf_field_type *type,
+		struct bt_ctf_clock_class *clock_class)
+{
+	int ret = 0;
+
+	if (!type) {
+		BT_LOGW_STR("Invalid parameter: field type is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (type->frozen) {
+		BT_LOGW("Invalid parameter: field type is frozen: addr=%p",
+			type);
+		ret = -1;
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_integer_set_mapped_clock_class_no_check(
+		type, clock_class);
+
 end:
 	return ret;
 }

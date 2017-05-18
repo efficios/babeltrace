@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "TRACE"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
@@ -464,6 +467,452 @@ end:
 	return clock_class;
 }
 
+static
+bool packet_header_field_type_is_valid(struct bt_ctf_trace *trace,
+		struct bt_ctf_field_type *packet_header_type)
+{
+	int ret;
+	bool is_valid = true;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!packet_header_type) {
+		/*
+		 * No packet header field type: trace must have only
+		 * one stream. At this point the stream class being
+		 * added is not part of the trace yet, so we validate
+		 * that the trace contains no stream classes yet.
+		 */
+		if (trace->stream_classes->len >= 1) {
+			BT_LOGW_STR("Invalid packet header field type: "
+				"packet header field type does not exist but there's more than one stream class in the trace.");
+			goto invalid;
+		}
+
+		/* No packet header field type: valid at this point */
+		goto end;
+	}
+
+	/* Packet header field type, if it exists, must be a structure */
+	if (!bt_ctf_field_type_is_structure(packet_header_type)) {
+		BT_LOGW("Invalid packet header field type: must be a structure field type if it exists: "
+			"ft-addr=%p, ft-id=%s",
+			packet_header_type,
+			bt_ctf_field_type_id_string(packet_header_type->id));
+		goto invalid;
+	}
+
+	/*
+	 * If there's a `magic` field, it must be a 32-bit unsigned
+	 * integer field type. Also it must be the first field of the
+	 * packet header field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "magic");
+	if (field_type) {
+		const char *field_name;
+
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet header field type: `magic` field must be an integer field type: "
+				"magic-ft-addr=%p, magic-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet header field type: `magic` field must be an unsigned integer field type: "
+				"magic-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_get_size(field_type) != 32) {
+			BT_LOGW("Invalid packet header field type: `magic` field must be a 32-bit unsigned integer field type: "
+				"magic-ft-addr=%p, magic-ft-size=%u",
+				field_type,
+				bt_ctf_field_type_integer_get_size(field_type));
+			goto invalid;
+		}
+
+		ret = bt_ctf_field_type_structure_get_field_by_index(
+			packet_header_type, &field_name, NULL, 0);
+		assert(ret == 0);
+
+		if (strcmp(field_name, "magic") != 0) {
+			BT_LOGW("Invalid packet header field type: `magic` field must be the first field: "
+				"magic-ft-addr=%p, first-field-name=\"%s\"",
+				field_type, field_name);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * If there's a `uuid` field, it must be an array field type of
+	 * length 16 with an 8-bit unsigned integer element field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "uuid");
+	if (field_type) {
+		struct bt_ctf_field_type *elem_ft;
+
+		if (!bt_ctf_field_type_is_array(field_type)) {
+			BT_LOGW("Invalid packet header field type: `uuid` field must be an array field type: "
+				"uuid-ft-addr=%p, uuid-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_array_get_length(field_type) != 16) {
+			BT_LOGW("Invalid packet header field type: `uuid` array field type's length must be 16: "
+				"uuid-ft-addr=%p, uuid-ft-length=%" PRId64,
+				field_type,
+				bt_ctf_field_type_array_get_length(field_type));
+			goto invalid;
+		}
+
+		elem_ft = bt_ctf_field_type_array_get_element_type(field_type);
+		assert(elem_ft);
+
+		if (!bt_ctf_field_type_is_integer(elem_ft)) {
+			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an integer field type: "
+				"elem-ft-addr=%p, elem-ft-id=%s",
+				elem_ft,
+				bt_ctf_field_type_id_string(elem_ft->id));
+			bt_put(elem_ft);
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(elem_ft)) {
+			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an unsigned integer field type: "
+				"elem-ft-addr=%p", elem_ft);
+			bt_put(elem_ft);
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_get_size(elem_ft) != 8) {
+			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an 8-bit unsigned integer field type: "
+				"elem-ft-addr=%p, elem-ft-size=%u",
+				elem_ft,
+				bt_ctf_field_type_integer_get_size(elem_ft));
+			bt_put(elem_ft);
+			goto invalid;
+		}
+
+		bt_put(elem_ft);
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * The `stream_id` field must exist if there's more than one
+	 * stream classes in the trace.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "stream_id");
+
+	if (!field_type && trace->stream_classes->len >= 1) {
+		BT_LOGW_STR("Invalid packet header field type: "
+			"`stream_id` field does not exist but there's more than one stream class in the trace.");
+		goto invalid;
+	}
+
+	/*
+	 * If there's a `stream_id` field, it must be an unsigned
+	 * integer field type.
+	 */
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet header field type: `stream_id` field must be an integer field type: "
+				"stream-id-ft-addr=%p, stream-id-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet header field type: `stream_id` field must be an unsigned integer field type: "
+				"stream-id-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
+	goto end;
+
+invalid:
+	is_valid = false;
+
+end:
+	bt_put(field_type);
+	return is_valid;
+}
+
+static
+bool packet_context_field_type_is_valid(struct bt_ctf_trace *trace,
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *packet_context_type)
+{
+	bool is_valid = true;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	if (!packet_context_type) {
+		/* No packet context field type: valid at this point */
+		goto end;
+	}
+
+	/* Packet context field type, if it exists, must be a structure */
+	if (!bt_ctf_field_type_is_structure(packet_context_type)) {
+		BT_LOGW("Invalid packet context field type: must be a structure field type if it exists: "
+			"ft-addr=%p, ft-id=%s",
+			packet_context_type,
+			bt_ctf_field_type_id_string(packet_context_type->id));
+		goto invalid;
+	}
+
+	/*
+	 * If there's a `packet_size` field, it must be an unsigned
+	 * integer field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_context_type, "packet_size");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet context field type: `packet_size` field must be an integer field type: "
+				"packet-size-ft-addr=%p, packet-size-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet context field type: `packet_size` field must be an unsigned integer field type: "
+				"packet-size-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * If there's a `content_size` field, it must be an unsigned
+	 * integer field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_context_type, "content_size");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet context field type: `content_size` field must be an integer field type: "
+				"content-size-ft-addr=%p, content-size-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet context field type: `content_size` field must be an unsigned integer field type: "
+				"content-size-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * If there's a `events_discarded` field, it must be an unsigned
+	 * integer field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_context_type, "events_discarded");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet context field type: `events_discarded` field must be an integer field type: "
+				"events-discarded-ft-addr=%p, events-discarded-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet context field type: `events_discarded` field must be an unsigned integer field type: "
+				"events-discarded-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * If there's a `timestamp_begin` field, it must be an unsigned
+	 * integer field type. Also, if the trace is not a CTF writer's
+	 * trace, then we cannot automatically set the mapped clock
+	 * class of this field, so it must have a mapped clock class.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_context_type, "timestamp_begin");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet context field type: `timestamp_begin` field must be an integer field type: "
+				"timestamp-begin-ft-addr=%p, timestamp-begin-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet context field type: `timestamp_begin` field must be an unsigned integer field type: "
+				"timestamp-begin-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		if (!trace->is_created_by_writer) {
+			struct bt_ctf_clock_class *clock_class =
+				bt_ctf_field_type_integer_get_mapped_clock_class(
+					field_type);
+
+			bt_put(clock_class);
+			if (!clock_class) {
+				BT_LOGW("Invalid packet context field type: `timestamp_begin` field must be mapped to a clock class: "
+					"timestamp-begin-ft-addr=%p", field_type);
+				goto invalid;
+			}
+		}
+
+		BT_PUT(field_type);
+	}
+
+	/*
+	 * If there's a `timestamp_end` field, it must be an unsigned
+	 * integer field type. Also, if the trace is not a CTF writer's
+	 * trace, then we cannot automatically set the mapped clock
+	 * class of this field, so it must have a mapped clock class.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_context_type, "timestamp_end");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet context field type: `timestamp_end` field must be an integer field type: "
+				"timestamp-end-ft-addr=%p, timestamp-end-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet context field type: `timestamp_end` field must be an unsigned integer field type: "
+				"timestamp-end-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		if (!trace->is_created_by_writer) {
+			struct bt_ctf_clock_class *clock_class =
+				bt_ctf_field_type_integer_get_mapped_clock_class(
+					field_type);
+
+			bt_put(clock_class);
+			if (!clock_class) {
+				BT_LOGW("Invalid packet context field type: `timestamp_end` field must be mapped to a clock class: "
+					"timestamp-end-ft-addr=%p", field_type);
+				goto invalid;
+			}
+		}
+
+		BT_PUT(field_type);
+	}
+
+	goto end;
+
+invalid:
+	is_valid = false;
+
+end:
+	bt_put(field_type);
+	return is_valid;
+}
+
+static
+bool event_header_field_type_is_valid(struct bt_ctf_trace *trace,
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *event_header_type)
+{
+	bool is_valid = true;
+	struct bt_ctf_field_type *field_type = NULL;
+
+	/*
+	 * We do not validate that the `timestamp` field exists here
+	 * because CTF does not require this exact name to be mapped to
+	 * a clock class.
+	 */
+
+	if (!event_header_type) {
+		/*
+		 * No event header field type: stream class must have
+		 * only one event class.
+		 */
+		if (bt_ctf_stream_class_get_event_class_count(stream_class) > 1) {
+			BT_LOGW_STR("Invalid event header field type: "
+				"event header field type does not exist but there's more than one event class in the stream class.");
+			goto invalid;
+		}
+
+		/* No event header field type: valid at this point */
+		goto end;
+	}
+
+	/* Event header field type, if it exists, must be a structure */
+	if (!bt_ctf_field_type_is_structure(event_header_type)) {
+		BT_LOGW("Invalid event header field type: must be a structure field type if it exists: "
+			"ft-addr=%p, ft-id=%s",
+			event_header_type,
+			bt_ctf_field_type_id_string(event_header_type->id));
+		goto invalid;
+	}
+
+	/*
+	 * If there's an `id` field, it must be an unsigned integer
+	 * field type or an enumeration field type with an unsigned
+	 * integer container field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		event_header_type, "id");
+	if (field_type) {
+		struct bt_ctf_field_type *int_ft;
+
+		if (bt_ctf_field_type_is_integer(field_type)) {
+			int_ft = bt_get(field_type);
+		} else if (bt_ctf_field_type_is_enumeration(field_type)) {
+			int_ft = bt_ctf_field_type_enumeration_get_container_type(
+				field_type);
+		} else {
+			BT_LOGW("Invalid event header field type: `id` field must be an integer or enumeration field type: "
+				"id-ft-addr=%p, id-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		assert(int_ft);
+		if (bt_ctf_field_type_integer_is_signed(int_ft)) {
+			BT_LOGW("Invalid event header field type: `id` field must be an unsigned integer or enumeration field type: "
+				"id-ft-addr=%p", int_ft);
+			goto invalid;
+		}
+
+		bt_put(int_ft);
+		BT_PUT(field_type);
+	}
+
+	goto end;
+
+invalid:
+	is_valid = false;
+
+end:
+	bt_put(field_type);
+	return is_valid;
+}
+
 int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -673,6 +1122,49 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		if (bt_ctf_stream_class_set_id_no_check(stream_class,
 			stream_id)) {
 			/* TODO Should retry with a different stream id */
+			ret = -1;
+			goto end;
+		}
+	}
+
+	/*
+	 * At this point all the field types in the validation output
+	 * are valid. Validate the semantics of some scopes according to
+	 * the CTF specification.
+	 */
+	if (!packet_header_field_type_is_valid(trace,
+			trace_sc_validation_output.packet_header_type)) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!packet_context_field_type_is_valid(trace,
+			stream_class,
+			trace_sc_validation_output.packet_context_type)) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!event_header_field_type_is_valid(trace,
+			stream_class,
+			trace_sc_validation_output.event_header_type)) {
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Now is the time to automatically map specific field types of
+	 * the stream class's packet context and event header field
+	 * types to the stream class's clock's class if they are not
+	 * mapped to a clock class yet. We do it here because we know
+	 * that after this point, everything is frozen so it won't be
+	 * possible for the user to modify the stream class's clock, or
+	 * to map those field types to other clock classes.
+	 */
+	if (trace->is_created_by_writer) {
+		if (bt_ctf_stream_class_map_clock_class(stream_class,
+				trace_sc_validation_output.packet_context_type,
+				trace_sc_validation_output.event_header_type)) {
 			ret = -1;
 			goto end;
 		}
@@ -907,7 +1399,7 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 		struct metadata_context *context)
 {
 	unsigned char *uuid = trace->uuid;
-	int ret;
+	int ret = 0;
 
 	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
 		ret = -1;
@@ -933,15 +1425,17 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	g_string_append_printf(context->string, "\tbyte_order = %s;\n",
 		get_byte_order_string(trace->native_byte_order));
 
-	g_string_append(context->string, "\tpacket.header := ");
-	context->current_indentation_level++;
-	g_string_assign(context->field_name, "");
-	ret = bt_ctf_field_type_serialize(trace->packet_header_type,
-		context);
-	if (ret) {
-		goto end;
+	if (trace->packet_header_type) {
+		g_string_append(context->string, "\tpacket.header := ");
+		context->current_indentation_level++;
+		g_string_assign(context->field_name, "");
+		ret = bt_ctf_field_type_serialize(trace->packet_header_type,
+			context);
+		if (ret) {
+			goto end;
+		}
+		context->current_indentation_level--;
 	}
-	context->current_indentation_level--;
 
 	g_string_append(context->string, ";\n};\n\n");
 end:

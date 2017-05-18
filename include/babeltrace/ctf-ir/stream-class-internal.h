@@ -81,6 +81,12 @@ BT_HIDDEN
 int bt_ctf_stream_class_set_id_no_check(
 		struct bt_ctf_stream_class *stream_class, int64_t id);
 
+BT_HIDDEN
+int bt_ctf_stream_class_map_clock_class(
+		struct bt_ctf_stream_class *stream_class,
+		struct bt_ctf_field_type *packet_context_type,
+		struct bt_ctf_field_type *event_header_type);
+
 static inline
 struct bt_ctf_trace *bt_ctf_stream_class_borrow_trace(
 		struct bt_ctf_stream_class *stream_class)

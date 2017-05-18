@@ -2165,6 +2165,11 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 		goto end;
 	}
 
+	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, NULL);
+	assert(ret == 0);
+	ret = bt_ctf_stream_class_set_event_header_type(stream_class, NULL);
+	assert(ret == 0);
+
 	ok(bt_ctf_stream_class_get_trace(NULL) == NULL,
 		"bt_ctf_stream_class_get_trace handles NULL correctly");
 	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
@@ -2555,6 +2560,10 @@ void test_create_writer_vs_non_writer_mode(void)
 	/* Create writer, writer stream class, stream, and clock */
 	writer = bt_ctf_writer_create(trace_path);
 	assert(writer);
+	writer_clock = bt_ctf_clock_create("writer_clock");
+	assert(writer_clock);
+	ret = bt_ctf_writer_add_clock(writer, writer_clock);
+	assert(!ret);
 	ret = bt_ctf_writer_set_byte_order(writer, BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(!ret);
 	writer_trace = bt_ctf_writer_get_trace(writer);
@@ -2564,16 +2573,14 @@ void test_create_writer_vs_non_writer_mode(void)
 	ret = bt_ctf_stream_class_set_event_header_type(writer_sc,
 		empty_struct_ft);
 	assert(!ret);
+	ret = bt_ctf_stream_class_set_clock(writer_sc, writer_clock);
+	assert(!ret);
 	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_sc);
 	assert(!ret);
 	writer_stream = bt_ctf_stream_create(writer_sc, writer_stream_name);
 	assert(writer_stream);
 	ok(!strcmp(bt_ctf_stream_get_name(writer_stream), writer_stream_name),
 		"bt_ctf_stream_get_name() returns the stream's name");
-	writer_clock = bt_ctf_clock_create("writer_clock");
-	assert(writer_clock);
-	ret = bt_ctf_writer_add_clock(writer, writer_clock);
-	assert(!ret);
 
 	/* Create non-writer trace, stream class, stream, and clock */
 	non_writer_trace = bt_ctf_trace_create();
@@ -2585,6 +2592,8 @@ void test_create_writer_vs_non_writer_mode(void)
 	assert(non_writer_sc);
 	ret = bt_ctf_stream_class_set_event_header_type(non_writer_sc,
 		empty_struct_ft);
+	assert(!ret);
+	ret = bt_ctf_stream_class_set_packet_context_type(non_writer_sc, NULL);
 	assert(!ret);
 	ret = bt_ctf_trace_add_stream_class(non_writer_trace, non_writer_sc);
 	assert(!ret);
@@ -2778,6 +2787,8 @@ void test_static_trace(void)
 	assert(ret == 0);
 	stream_class = bt_ctf_stream_class_create(NULL);
 	assert(stream_class);
+	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, NULL);
+	assert(ret == 0);
 	ret = bt_ctf_trace_add_stream_class(trace, stream_class);
 	assert(ret == 0);
 	stream = bt_ctf_stream_create(stream_class, "hello");
