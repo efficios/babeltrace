@@ -49,7 +49,7 @@ extern "C" {
  *
  * Returns the number of discarded events, a negative value on error.
  */
-extern int bt_ctf_stream_get_discarded_events_count(
+extern int64_t bt_ctf_stream_get_discarded_events_count(
 		struct bt_ctf_stream *stream, uint64_t *count);
 
 /*

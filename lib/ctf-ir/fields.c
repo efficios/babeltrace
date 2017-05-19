@@ -2582,25 +2582,33 @@ int bt_ctf_field_structure_serialize(struct bt_ctf_field *field,
 	for (i = 0; i < structure->fields->len; i++) {
 		struct bt_ctf_field *member = g_ptr_array_index(
 			structure->fields, i);
+		const char *field_name = NULL;
+
+		if (BT_LOG_ON_WARN) {
+			ret = bt_ctf_field_type_structure_get_field(
+				field->type, &field_name, NULL, i);
+			assert(ret == 0);
+		}
 
 		BT_LOGV("Serializing structure field's field: pos-offset=%" PRId64 ", "
 			"field-addr=%p, index=%" PRId64,
 			pos->offset, member, i);
+
+		if (!member) {
+			BT_LOGW("Cannot serialize structure field's field: field is not set: "
+				"struct-field-addr=%p, "
+				"field-name=\"%s\", index=%" PRId64,
+				field, field_name, i);
+			ret = -1;
+			goto end;
+		}
+
 		ret = bt_ctf_field_serialize(member, pos, native_byte_order);
 		if (ret) {
-			int this_ret;
-			const char *name;
-			struct bt_ctf_field_type *structure_type =
-					bt_ctf_field_get_type(field);
-
-			this_ret = bt_ctf_field_type_structure_get_field(
-				structure_type, &name, NULL, i);
-			assert(this_ret == 0);
 			BT_LOGW("Cannot serialize structure field's field: "
 				"struct-field-addr=%p, field-addr=%p, "
 				"field-name=\"%s\", index=%" PRId64,
-				field, member, name, i);
-			bt_put(structure_type);
+				field->type, member, field_name, i);
 			break;
 		}
 	}
@@ -2717,7 +2725,7 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *field,
 
 		ret = bt_ctf_field_unsigned_integer_set_value(character, chr);
 		if (ret) {
-			BT_LOGE("Cannot set character field's value: "
+			BT_LOGW("Cannot set character field's value: "
 				"pos-offset=%" PRId64 ", field-addr=%p, "
 				"index=%" PRId64 ", char-int=%" PRIu64,
 				pos->offset, character, i, chr);
@@ -2731,7 +2739,7 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field *field,
 		ret = bt_ctf_field_integer_serialize(character, pos,
 			native_byte_order);
 		if (ret) {
-			BT_LOGE_STR("Cannot serialize character field.");
+			BT_LOGW_STR("Cannot serialize character field.");
 			goto end;
 		}
 	}
@@ -3059,6 +3067,8 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 	BT_LOGV("Increased packet size: pos-offset=%" PRId64 ", "
 		"new-packet-size=%" PRIu64,
 		pos->offset, pos->packet_size);
+	assert(pos->packet_size % 8 == 0);
+
 end:
 	return ret;
 }

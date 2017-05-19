@@ -48,7 +48,6 @@ struct bt_ctf_stream_pos {
 	off_t mmap_offset;	/* mmap offset in the file, in bytes */
 	off_t mmap_base_offset;	/* offset of start of packet in mmap, in bytes */
 	uint64_t packet_size;	/* current packet size, in bits */
-	uint64_t content_size;	/* current content size, in bits */
 	int64_t offset;		/* offset from base, in bits. EOF for end of file. */
 	struct mmap_align *base_mma;/* mmap base address */
 };
@@ -70,12 +69,13 @@ int bt_ctf_stream_pos_access_ok(struct bt_ctf_stream_pos *pos, uint64_t bit_len)
 
 	if (unlikely(pos->offset == EOF))
 		return 0;
+
 	if (pos->prot == PROT_READ) {
 		/*
 		 * Reads may only reach up to the "content_size",
 		 * regardless of the packet_size.
 		 */
-		max_len = pos->content_size;
+		max_len = pos->offset;
 	} else {
 		/* Writes may take place up to the end of the packet. */
 		max_len = pos->packet_size;

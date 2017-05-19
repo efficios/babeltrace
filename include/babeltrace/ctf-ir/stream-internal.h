@@ -80,6 +80,7 @@ struct bt_ctf_stream {
 	GPtrArray *events;
 	struct bt_ctf_stream_pos pos;
 	unsigned int flushed_packet_count;
+	uint64_t discarded_events;
 	uint64_t size;
 
 	/* Array of struct bt_ctf_stream_destroy_listener */
