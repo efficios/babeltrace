@@ -145,7 +145,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	if ((validation_output.valid_flags & validation_flags) !=
 			validation_flags) {
 		/* Invalid trace/stream class/event class */
-		BT_LOGE("Invalid trace, stream class, or event class: "
+		BT_LOGW("Invalid trace, stream class, or event class: "
 			"valid-flags=0x%x", validation_output.valid_flags);
 		goto error;
 	}
@@ -929,7 +929,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		ret = bt_ctf_field_serialize(event->context_payload, pos,
 			native_byte_order);
 		if (ret) {
-			BT_LOGE("Cannot serialize event's context field: "
+			BT_LOGW("Cannot serialize event's context field: "
 				"event-addr=%p, event-class-name=\"%s\", "
 				"event-class-id=%" PRId64,
 				event,
@@ -944,7 +944,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		ret = bt_ctf_field_serialize(event->fields_payload, pos,
 			native_byte_order);
 		if (ret) {
-			BT_LOGE("Cannot serialize event's payload field: "
+			BT_LOGW("Cannot serialize event's payload field: "
 				"event-addr=%p, event-class-name=\"%s\", "
 				"event-class-id=%" PRId64,
 				event,
