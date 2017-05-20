@@ -64,7 +64,6 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 BT_HIDDEN
 void bt_ctf_event_freeze(struct bt_ctf_event *event);
 
-BT_HIDDEN
 static inline struct bt_ctf_packet *bt_ctf_event_borrow_packet(
 		struct bt_ctf_event *event)
 {

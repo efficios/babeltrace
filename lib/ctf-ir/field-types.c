@@ -4714,7 +4714,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_copy(
 		struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field_type *copy;
-	struct bt_ctf_field_type_string *string;
 
 	BT_LOGD("Copying string field type's: addr=%p", type);
 	copy = bt_ctf_field_type_string_create();
@@ -4723,8 +4722,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_string_copy(
 		goto end;
 	}
 
-	string = container_of(type, struct bt_ctf_field_type_string,
-		parent);
 	BT_LOGD("Copied string field type: original-ft-addr=%p, copy-ft-addr=%p",
 		type, copy);
 end:

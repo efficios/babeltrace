@@ -53,7 +53,6 @@ void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
 		bt_object_release_func release);
 
-BT_HIDDEN
 static inline void bt_notification_freeze(struct bt_notification *notification)
 {
 	notification->frozen = BT_TRUE;

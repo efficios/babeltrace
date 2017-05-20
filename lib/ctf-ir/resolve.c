@@ -399,7 +399,8 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 			bt_ctf_field_type_get_type_id(type);
 
 		/* Find to which index corresponds the current path token */
-		if (type_id == CTF_TYPE_ARRAY || type_id == CTF_TYPE_SEQUENCE) {
+		if (type_id == BT_CTF_FIELD_TYPE_ID_ARRAY ||
+				type_id == BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
 			child_index = -1;
 		} else {
 			child_index = bt_ctf_field_type_get_field_index(type,
