@@ -1756,6 +1756,13 @@ int cmd_run(struct bt_config *cfg)
 	while (true) {
 		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
 
+		/*
+		 * Reset console in case something messed with console
+		 * codes during the graph's execution.
+		 */
+		printf("%s", bt_common_color_reset());
+		fflush(stdout);
+		fprintf(stderr, "%s", bt_common_color_reset());
 		BT_LOGV("bt_graph_run() returned: status=%s",
 			bt_graph_status_str(graph_status));
 
