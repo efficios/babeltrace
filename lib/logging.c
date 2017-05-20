@@ -22,6 +22,9 @@
 
 #include <stdlib.h>
 #include <babeltrace/logging.h>
+#include <babeltrace/version.h>
+
+#define BT_LOG_TAG "LIB"
 #include <babeltrace/lib-logging-internal.h>
 
 BT_HIDDEN
@@ -47,6 +50,8 @@ void __attribute__((constructor)) bt_logging_ctor(void)
 {
 	enum bt_logging_level log_level = BT_LOG_NONE;
 	const char *log_level_env = getenv("BABELTRACE_LOGGING_GLOBAL_LEVEL");
+	const char *v_extra = bt_version_get_extra() ? bt_version_get_extra() :
+		"";
 
 	if (!log_level_env) {
 		goto set_level;
@@ -68,4 +73,10 @@ void __attribute__((constructor)) bt_logging_ctor(void)
 
 set_level:
 	bt_logging_set_global_level(log_level);
+	BT_LOGI("Babeltrace %d.%d.%d%s library loaded: "
+		"major=%d, minor=%d, patch=%d, extra=\"%s\"",
+		bt_version_get_major(), bt_version_get_minor(),
+		bt_version_get_patch(), v_extra,
+		bt_version_get_major(), bt_version_get_minor(),
+		bt_version_get_patch(), v_extra);
 }
