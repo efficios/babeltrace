@@ -394,7 +394,7 @@ bt_bool bt_value_array_compare(const struct bt_value *object_a,
 		if (!bt_value_compare(element_obj_a, element_obj_b)) {
 			BT_LOGV("Array values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, index=%d",
-				element_obj_a, element_obj_b, index);
+				element_obj_a, element_obj_b, i);
 			BT_PUT(element_obj_a);
 			BT_PUT(element_obj_b);
 			ret = BT_FALSE;
@@ -670,7 +670,7 @@ struct bt_value *bt_value_string_create_init(const char *val)
 		goto end;
 	}
 
-	BT_LOGD("Creating string value object: val-len=%u", strlen(val));
+	BT_LOGD("Creating string value object: val-len=%lu", strlen(val));
 	string_obj = g_new0(struct bt_value_string, 1);
 
 	if (!string_obj) {
@@ -776,7 +776,7 @@ enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
 
 	if (!bt_value_is_bool(bool_obj)) {
 		BT_LOGW("Invalid parameter: value is not a boolean value: addr=%p, "
-			"type=%s", bool_obj, bool_obj->type,
+			"type=%s", bool_obj,
 			bt_value_type_string(bool_obj->type));
 		ret = BT_VALUE_STATUS_INVAL;
 		goto end;
@@ -1577,13 +1577,13 @@ struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
 
 	if (bt_value_map_foreach(extension_obj, extend_map_element,
 			&extend_data)) {
-		BT_LOGE("Cannot iterate on the extension object's elements: ",
+		BT_LOGE("Cannot iterate on the extension object's elements: "
 			"extension-value-addr=%p", extension_obj);
 		goto error;
 	}
 
 	if (extend_data.got_error) {
-		BT_LOGE("Failed to successfully iterate on the extension object's elements: ",
+		BT_LOGE("Failed to successfully iterate on the extension object's elements: "
 			"extension-value-addr=%p", extension_obj);
 		goto error;
 	}

@@ -420,7 +420,7 @@ bt_ctf_event_class_get_attribute_value_by_name(
 	struct bt_value *ret;
 
 	if (!event_class || !name) {
-		BT_LOGW("Invalid parameter: event class or name is NULL: ",
+		BT_LOGW("Invalid parameter: event class or name is NULL: "
 			"event-class-addr=%p, name-addr=%p",
 			event_class, name);
 		ret = NULL;
@@ -621,7 +621,7 @@ bt_ctf_event_class_get_payload_type_field_type_by_name(
 	struct bt_ctf_field_type *field_type = NULL;
 
 	if (!event_class || !name) {
-		BT_LOGW("Invalid parameter: event class or name is NULL: ",
+		BT_LOGW("Invalid parameter: event class or name is NULL: "
 			"event-class-addr=%p, name-addr=%p",
 			event_class, name);
 		goto end;

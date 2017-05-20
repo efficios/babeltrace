@@ -1009,14 +1009,14 @@ int bt_ctf_field_type_integer_set_size(struct bt_ctf_field_type *type,
 
 	if (size == 0 || size > 64) {
 		BT_LOGW("Invalid parameter: size must be between 1 and 64: "
-			"addr=%p, size=%u", type, size);
+			"addr=%p, size=%zu", type, size);
 		ret = -1;
 		goto end;
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
 	integer->size = size;
-	BT_LOGV("Set integer field type's size: addr=%p, size=%u",
+	BT_LOGV("Set integer field type's size: addr=%p, size=%zu",
 		type, size);
 end:
 	return ret;
@@ -4792,8 +4792,8 @@ int bt_ctf_field_type_integer_compare(struct bt_ctf_field_type *type_a,
 	if (int_type_a->mapped_clock != int_type_b->mapped_clock) {
 		BT_LOGV("Integer field types differ: different mapped clock classes: "
 			"ft-a-mapped-clock-class-addr=%p, "
-			"ft-b-mapped-clock-class-addr=%p, ",
-			"ft-a-mapped-clock-class-name=\"%s\", ",
+			"ft-b-mapped-clock-class-addr=%p, "
+			"ft-a-mapped-clock-class-name=\"%s\", "
 			"ft-b-mapped-clock-class-name=\"%s\"",
 			int_type_a->mapped_clock, int_type_b->mapped_clock,
 			int_type_a->mapped_clock ? bt_ctf_clock_class_get_name(int_type_a->mapped_clock) : "",
@@ -4833,7 +4833,7 @@ int bt_ctf_field_type_floating_point_compare(struct bt_ctf_field_type *type_a,
 	/* Exponent length */
 	if (float_a->exp_dig != float_b->exp_dig) {
 		BT_LOGV("Floating point number field types differ: different exponent sizes: "
-			"ft-a-exp-size=%s, ft-b-exp-size=%s",
+			"ft-a-exp-size=%u, ft-b-exp-size=%u",
 			float_a->exp_dig, float_b->exp_dig);
 		goto end;
 	}
@@ -4841,7 +4841,7 @@ int bt_ctf_field_type_floating_point_compare(struct bt_ctf_field_type *type_a,
 	/* Mantissa length */
 	if (float_a->mant_dig != float_b->mant_dig) {
 		BT_LOGV("Floating point number field types differ: different mantissa sizes: "
-			"ft-a-mant-size=%s, ft-b-mant-size=%s",
+			"ft-a-mant-size=%u, ft-b-mant-size=%u",
 			float_a->mant_dig, float_b->mant_dig);
 		goto end;
 	}
@@ -4999,7 +4999,7 @@ int compare_structure_fields(struct structure_field *field_a,
 	ret = bt_ctf_field_type_compare(field_a->type, field_b->type);
 	if (ret == 1) {
 		BT_LOGV("Structure/variant field type fields differ: different field types: "
-			"field-name=\"%s\", field-a-ft-addr=%s, field-b-ft-addr=%s",
+			"field-name=\"%s\", field-a-ft-addr=%p, field-b-ft-addr=%p",
 			g_quark_to_string(field_a->name),
 			field_a->type, field_b->type);
 	}
@@ -5078,7 +5078,7 @@ int bt_ctf_field_type_variant_compare(struct bt_ctf_field_type *type_a,
 	/* Tag name */
 	if (strcmp(variant_a->tag_name->str, variant_b->tag_name->str)) {
 		BT_LOGV("Variant field types differ: different tag field names: "
-			"ft-a-tag-field-name=%u, ft-b-tag-field-name=%u",
+			"ft-a-tag-field-name=\"%s\", ft-b-tag-field-name=\"%s\"",
 			variant_a->tag_name->str, variant_b->tag_name->str);
 		goto end;
 	}
@@ -5176,7 +5176,8 @@ int bt_ctf_field_type_sequence_compare(struct bt_ctf_field_type *type_a,
 	if (strcmp(sequence_a->length_field_name->str,
 			sequence_b->length_field_name->str)) {
 		BT_LOGV("Sequence field types differ: different length field names: "
-			"ft-a-length-field-name=%u, ft-b-length-field-name=%u",
+			"ft-a-length-field-name=\"%s\", "
+			"ft-b-length-field-name=\"%s\"",
 			sequence_a->length_field_name->str,
 			sequence_b->length_field_name->str);
 		goto end;

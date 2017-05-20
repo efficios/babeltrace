@@ -1564,7 +1564,7 @@ int cmd_run_ctx_create_components_from_config_components(
 			cfg_comp->instance_name->str, cfg_comp->params);
 		if (!comp) {
 			BT_LOGE("Cannot create component: plugin-name=\"%s\", "
-				"comp-cls-name=\"%s\", comp-cls-type=%d",
+				"comp-cls-name=\"%s\", comp-cls-type=%d, "
 				"comp-name=\"%s\"",
 				cfg_comp->plugin_name->str,
 				cfg_comp->comp_cls_name->str,

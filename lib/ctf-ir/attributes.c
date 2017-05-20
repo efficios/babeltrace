@@ -186,7 +186,7 @@ struct bt_value *bt_ctf_attributes_get_field_by_name(
 		if (!attr_field_name_obj) {
 			BT_LOGE("Cannot get attribute array value's element by index: "
 				"value-addr=%p, index=%" PRIu64,
-				value_obj, 0);
+				value_obj, (int64_t) 0);
 			goto error;
 		}
 

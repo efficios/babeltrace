@@ -2831,7 +2831,7 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 		struct bt_ctf_field *field_copy = NULL;
 
 		if (field) {
-			BT_LOGD("Copying structure field's field: src-field-addr=%p",
+			BT_LOGD("Copying structure field's field: src-field-addr=%p"
 				"index=%" PRId64, field, i);
 			field_copy = bt_ctf_field_copy(field);
 			if (!field_copy) {
