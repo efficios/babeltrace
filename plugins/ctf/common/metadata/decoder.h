@@ -34,13 +34,14 @@ enum ctf_metadata_decoder_status {
 /*
  * Creates a CTF metadata decoder with `err` as the error stream (can
  * be `NULL` to disable error output). `clock_class_offset_ns` is an
- * offset to apply to the decoded clock classes's offsets.
+ * offset to apply to the decoded clock classes's offsets. `name` is
+ * this decoder's trace's name.
  *
  * Returns `NULL` on error.
  */
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(FILE *err,
-		uint64_t clock_class_offset_ns);
+		uint64_t clock_class_offset_ns, const char *name);
 
 /*
  * Destroys a CTF metadata decoder that you created with

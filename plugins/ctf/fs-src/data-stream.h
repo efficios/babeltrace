@@ -33,6 +33,7 @@
 
 struct ctf_fs_component;
 struct ctf_fs_file;
+struct ctf_fs_trace;
 struct ctf_fs_stream;
 
 struct index_entry {
@@ -48,7 +49,7 @@ struct index {
 
 BT_HIDDEN
 struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_component *ctf_fs, const char *path);
+		struct ctf_fs_trace *ctf_fs_trace, const char *path);
 
 BT_HIDDEN
 void ctf_fs_stream_destroy(struct ctf_fs_stream *stream);

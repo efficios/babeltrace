@@ -265,7 +265,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf(
 
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(FILE *err,
-		uint64_t clock_class_offset_ns)
+		uint64_t clock_class_offset_ns, const char *name)
 {
 	struct ctf_metadata_decoder *mdec =
 		g_new0(struct ctf_metadata_decoder, 1);
@@ -276,7 +276,7 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(FILE *err,
 
 	mdec->err_stream = err;
 	mdec->visitor = ctf_visitor_generate_ir_create(err,
-		clock_class_offset_ns);
+		clock_class_offset_ns, name);
 	if (!mdec->visitor) {
 		ctf_metadata_decoder_destroy(mdec);
 		mdec = NULL;

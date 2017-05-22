@@ -350,74 +350,78 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_component *ctf_fs, const char *path)
+		struct ctf_fs_trace *ctf_fs_trace, const char *path)
 {
 	int ret;
-	struct ctf_fs_stream *stream = g_new0(struct ctf_fs_stream, 1);
+	struct ctf_fs_stream *ctf_fs_stream = g_new0(struct ctf_fs_stream, 1);
 
-	if (!stream) {
+	if (!ctf_fs_stream) {
 		goto error;
 	}
 
-	stream->file = ctf_fs_file_create(ctf_fs);
-	if (!stream->file) {
+	ctf_fs_stream->file = ctf_fs_file_create(ctf_fs_trace->ctf_fs);
+	if (!ctf_fs_stream->file) {
 		goto error;
 	}
 
-	stream->cc_prio_map = bt_get(ctf_fs->cc_prio_map);
-	g_string_assign(stream->file->path, path);
-	ret = ctf_fs_file_open(ctf_fs, stream->file, "rb");
+	ctf_fs_stream->cc_prio_map = bt_get(ctf_fs_trace->cc_prio_map);
+	g_string_assign(ctf_fs_stream->file->path, path);
+	ret = ctf_fs_file_open(ctf_fs_trace->ctf_fs, ctf_fs_stream->file, "rb");
 	if (ret) {
 		goto error;
 	}
 
-	stream->notif_iter = bt_ctf_notif_iter_create(ctf_fs->metadata->trace,
-			ctf_fs->page_size, medops, stream,
-			ctf_fs->error_fp);
-	if (!stream->notif_iter) {
+	ctf_fs_stream->notif_iter = bt_ctf_notif_iter_create(
+		ctf_fs_trace->metadata->trace,
+		ctf_fs_trace->ctf_fs->page_size, medops, ctf_fs_stream,
+		ctf_fs_trace->ctf_fs->error_fp);
+	if (!ctf_fs_stream->notif_iter) {
 		goto error;
 	}
 
-	stream->mmap_max_len = ctf_fs->page_size * 2048;
-	ret = init_stream_index(stream);
+	ctf_fs_stream->mmap_max_len = ctf_fs_trace->ctf_fs->page_size * 2048;
+	ret = init_stream_index(ctf_fs_stream);
 	if (ret) {
 		goto error;
 	}
+
 	goto end;
+
 error:
 	/* Do not touch "borrowed" file. */
-	ctf_fs_stream_destroy(stream);
-	stream = NULL;
+	ctf_fs_stream_destroy(ctf_fs_stream);
+	ctf_fs_stream = NULL;
+
 end:
-	return stream;
+	return ctf_fs_stream;
 }
 
 BT_HIDDEN
-void ctf_fs_stream_destroy(struct ctf_fs_stream *stream)
+void ctf_fs_stream_destroy(struct ctf_fs_stream *ctf_fs_stream)
 {
-	if (!stream) {
+	if (!ctf_fs_stream) {
 		return;
 	}
 
-	bt_put(stream->cc_prio_map);
+	bt_put(ctf_fs_stream->cc_prio_map);
 
-	if (stream->file) {
-		ctf_fs_file_destroy(stream->file);
+	if (ctf_fs_stream->file) {
+		ctf_fs_file_destroy(ctf_fs_stream->file);
 	}
 
-	if (stream->stream) {
-		BT_PUT(stream->stream);
+	if (ctf_fs_stream->stream) {
+		BT_PUT(ctf_fs_stream->stream);
 	}
 
-	if (stream->notif_iter) {
-		bt_ctf_notif_iter_destroy(stream->notif_iter);
+	if (ctf_fs_stream->notif_iter) {
+		bt_ctf_notif_iter_destroy(ctf_fs_stream->notif_iter);
 	}
 
-	if (stream->index.entries) {
-		g_array_free(stream->index.entries, TRUE);
+	if (ctf_fs_stream->index.entries) {
+		g_array_free(ctf_fs_stream->index.entries, TRUE);
 	}
 
-	g_free(stream);
+	g_free(ctf_fs_stream);
 }
 
 BT_HIDDEN

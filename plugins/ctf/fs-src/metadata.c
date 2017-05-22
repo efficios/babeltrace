@@ -101,13 +101,14 @@ end:
 	return file;
 }
 
-int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
+int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace)
 {
 	int ret = 0;
+	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder *metadata_decoder = NULL;
 
-	file = get_file(ctf_fs, ctf_fs->trace_path->str);
+	file = get_file(ctf_fs, ctf_fs_trace->path->str);
 	if (!file) {
 		PERR("Cannot create metadata file object\n");
 		ret = -1;
@@ -116,7 +117,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 
 	metadata_decoder = ctf_metadata_decoder_create(ctf_fs->error_fp,
 		ctf_fs->options.clock_offset * NSEC_PER_SEC +
-		ctf_fs->options.clock_offset_ns);
+		ctf_fs->options.clock_offset_ns, ctf_fs_trace->name->str);
 	if (!metadata_decoder) {
 		PERR("Cannot create metadata decoder object\n");
 		ret = -1;
@@ -129,9 +130,9 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_component *ctf_fs)
 		goto end;
 	}
 
-	ctf_fs->metadata->trace = ctf_metadata_decoder_get_trace(
+	ctf_fs_trace->metadata->trace = ctf_metadata_decoder_get_trace(
 		metadata_decoder);
-	assert(ctf_fs->metadata->trace);
+	assert(ctf_fs_trace->metadata->trace);
 
 end:
 	ctf_fs_file_destroy(file);

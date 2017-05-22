@@ -309,7 +309,7 @@ const char *node_type(struct ctf_node *node);
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
-		uint64_t clock_class_offset_ns);
+		uint64_t clock_class_offset_ns, const char *name);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 

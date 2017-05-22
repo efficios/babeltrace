@@ -239,7 +239,9 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	}
 	metadata->stream_id = stream_id;
 	//TODO: add clock offset option
-	metadata->decoder = ctf_metadata_decoder_create(stderr, 0);
+	//TODO: add (preferably unique) trace's name
+	metadata->decoder = ctf_metadata_decoder_create(stderr, 0,
+		"lttng-live");
 	if (!metadata->decoder) {
 		goto error;
 	}

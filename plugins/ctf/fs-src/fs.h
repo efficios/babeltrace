@@ -38,25 +38,43 @@ BT_HIDDEN
 extern bool ctf_fs_debug;
 
 struct ctf_fs_file {
+	/* Weak */
 	struct ctf_fs_component *ctf_fs;
+
+	/* Owned by this */
 	GString *path;
+
+	/* Owned by this */
 	FILE *fp;
+
 	off_t size;
 };
 
 struct ctf_fs_metadata {
+	/* Owned by this */
 	struct bt_ctf_trace *trace;
+
+	/* Owned by this */
+	char *text;
+
 	uint8_t uuid[16];
 	bool is_uuid_set;
 	int bo;
-	char *text;
 };
 
 struct ctf_fs_stream {
+	/* Owned by this */
 	struct ctf_fs_file *file;
+
+	/* Owned by this */
 	struct bt_ctf_stream *stream;
+
+	/* Owned by this */
 	struct bt_clock_class_priority_map *cc_prio_map;
+
+	/* Owned by this */
 	struct bt_ctf_notif_iter *notif_iter;
+
 	/* A stream is assumed to be indexed. */
 	struct index index;
 	void *mmap_addr;
@@ -81,21 +99,44 @@ struct ctf_fs_component_options {
 	uint64_t clock_offset_ns;
 };
 
-struct ctf_fs_port_data {
-	GString *path;
-};
-
 struct ctf_fs_component {
+	/* Weak */
 	struct bt_private_component *priv_comp;
-	GString *trace_path;
-	FILE *error_fp;
-	size_t page_size;
-	struct ctf_fs_component_options options;
-	struct ctf_fs_metadata *metadata;
-	struct bt_clock_class_priority_map *cc_prio_map;
 
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;
+
+	/* Array of struct ctf_fs_trace *, owned by this */
+	GPtrArray *traces;
+
+	struct ctf_fs_component_options options;
+	FILE *error_fp;
+	size_t page_size;
+};
+
+struct ctf_fs_trace {
+	/* Weak */
+	struct ctf_fs_component *ctf_fs;
+
+	/* Owned by this */
+	struct ctf_fs_metadata *metadata;
+
+	/* Owned by this */
+	struct bt_clock_class_priority_map *cc_prio_map;
+
+	/* Owned by this */
+	GString *path;
+
+	/* Owned by this */
+	GString *name;
+};
+
+struct ctf_fs_port_data {
+	/* Owned by this */
+	GString *path;
+
+	/* Weak */
+	struct ctf_fs_trace *ctf_fs_trace;
 };
 
 BT_HIDDEN

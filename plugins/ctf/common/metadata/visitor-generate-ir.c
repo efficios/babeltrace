@@ -4641,7 +4641,7 @@ end:
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
-		uint64_t clock_class_offset_ns)
+		uint64_t clock_class_offset_ns, const char *name)
 {
 	int ret;
 	struct ctx *ctx = NULL;
@@ -4650,6 +4650,12 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
 	trace = bt_ctf_trace_create();
 	if (!trace) {
 		_FPERROR(efd, "%s", "cannot create trace");
+		goto error;
+	}
+
+	ret = bt_ctf_trace_set_name(trace, name);
+	if (ret) {
+		_FPERROR(efd, "cannot set trace's name to `%s`", name);
 		goto error;
 	}
 
