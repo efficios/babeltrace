@@ -77,6 +77,13 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	struct bt_private_component *component =
 		bt_private_notification_iterator_get_private_component(iterator);
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
+	static const enum bt_notification_type notif_types[] = {
+		BT_NOTIFICATION_TYPE_EVENT,
+		BT_NOTIFICATION_TYPE_STREAM_END,
+		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
+		BT_NOTIFICATION_TYPE_PACKET_END,
+		BT_NOTIFICATION_TYPE_SENTINEL,
+	};
 
 	if (!it_data) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
@@ -92,7 +99,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 
 	it_data->input_iterator =
 		bt_private_connection_create_notification_iterator(connection,
-			NULL);
+			notif_types);
 	if (!it_data->input_iterator) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto end;
@@ -538,7 +545,7 @@ enum bt_notification_iterator_status evaluate_notification(
 				trim_it);
 		break;
 	default:
-		/* Accept all other notifications. */
+		puts("Unhandled notification type");
 		break;
 	}
 	BT_PUT(*notification);
