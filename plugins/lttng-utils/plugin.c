@@ -268,30 +268,6 @@ end:
 	return ret;
 }
 
-/*
-static
-struct bt_notification *debug_info_iterator_get(
-		struct bt_private_notification_iterator *iterator)
-{
-	struct debug_info_iterator *debug_it;
-
-	debug_it = bt_private_notification_iterator_get_user_data(iterator);
-	assert(debug_it);
-
-	if (!debug_it->current_notification) {
-		enum bt_notification_iterator_status it_ret;
-
-		it_ret = debug_info_iterator_next(iterator);
-		if (it_ret) {
-			goto end;
-		}
-	}
-
-end:
-	return bt_get(debug_it->current_notification);
-}
-*/
-
 static
 enum bt_notification_iterator_status debug_info_iterator_init(
 		struct bt_private_notification_iterator *iterator,
