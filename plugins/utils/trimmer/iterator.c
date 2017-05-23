@@ -186,7 +186,7 @@ struct bt_notification *evaluate_event_notification(
 		struct bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
-		bool *_event_in_range)
+		bool *_event_in_range, bool *finished)
 {
 	int64_t ts;
 	int clock_ret;
@@ -256,6 +256,7 @@ struct bt_notification *evaluate_event_notification(
 	}
 	if (end->set && ts > end->value) {
 		in_range = false;
+		*finished = true;
 	}
 
 	goto end;
@@ -385,7 +386,7 @@ struct bt_notification *evaluate_packet_notification(
 		struct bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
-		bool *_packet_in_range)
+		bool *_packet_in_range, bool *finished)
 {
 	int64_t begin_ns, pkt_begin_ns, end_ns, pkt_end_ns;
 	bool in_range = true;
@@ -465,6 +466,9 @@ struct bt_notification *evaluate_packet_notification(
 	if (!in_range) {
 		goto end_no_notif;
 	}
+	if (pkt_begin_ns > end_ns) {
+		*finished = true;
+	}
 
 	if (begin_ns > pkt_begin_ns) {
 		ret = update_packet_context_field(trim_it->err, writer_packet,
@@ -527,18 +531,19 @@ enum bt_notification_iterator_status evaluate_notification(
 {
 	enum bt_notification_type type;
 	struct bt_notification *new_notification = NULL;
+	bool finished = false;
 
 	*in_range = true;
 	type = bt_notification_get_type(*notification);
 	switch (type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 	        new_notification = evaluate_event_notification(*notification,
-				trim_it, begin, end, in_range);
+				trim_it, begin, end, in_range, &finished);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	        new_notification = evaluate_packet_notification(*notification,
-				trim_it, begin, end, in_range);
+				trim_it, begin, end, in_range, &finished);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 		new_notification = evaluate_stream_notification(*notification,
@@ -550,6 +555,10 @@ enum bt_notification_iterator_status evaluate_notification(
 	}
 	BT_PUT(*notification);
 	*notification = new_notification;
+
+	if (finished) {
+		return BT_NOTIFICATION_ITERATOR_STATUS_END;
+	}
 
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
