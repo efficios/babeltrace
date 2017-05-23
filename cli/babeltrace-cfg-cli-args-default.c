@@ -26,6 +26,12 @@
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
 
+#ifdef ENABLE_DEBUG_INFO
+# define BT_ENABLE_DEBUG_INFO	1
+#else
+# define BT_ENABLE_DEBUG_INFO	0
+#endif
+
 #ifdef BT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
