@@ -662,10 +662,11 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 				trace_path->str);
 			goto error;
 		}
+
+		g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
+		ctf_fs_trace = NULL;
 	}
 
-	g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
-	ctf_fs_trace = NULL;
 	goto end;
 
 error:
