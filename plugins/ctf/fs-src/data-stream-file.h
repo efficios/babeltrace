@@ -1,5 +1,5 @@
-#ifndef CTF_FS_DATA_STREAM_H
-#define CTF_FS_DATA_STREAM_H
+#ifndef CTF_FS_DS_FILE_H
+#define CTF_FS_DS_FILE_H
 
 /*
  * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
@@ -24,6 +24,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
@@ -34,7 +35,7 @@
 struct ctf_fs_component;
 struct ctf_fs_file;
 struct ctf_fs_trace;
-struct ctf_fs_stream;
+struct ctf_fs_ds_file;
 
 struct index_entry {
 	uint64_t offset; /* in bytes. */
@@ -48,17 +49,22 @@ struct index {
 };
 
 BT_HIDDEN
-struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_trace *ctf_fs_trace, const char *path);
+struct ctf_fs_ds_file *ctf_fs_ds_file_create(
+		struct ctf_fs_trace *ctf_fs_trace,
+		struct bt_ctf_stream *stream, const char *path,
+		bool build_index);
 
 BT_HIDDEN
-void ctf_fs_stream_destroy(struct ctf_fs_stream *stream);
+int ctf_fs_ds_file_get_packet_header_context_fields(
+		struct ctf_fs_trace *ctf_fs_trace, const char *path,
+		struct bt_ctf_field **packet_header_field,
+		struct bt_ctf_field **packet_context_field);
 
 BT_HIDDEN
-int ctf_fs_data_stream_open_streams(struct ctf_fs_component *ctf_fs);
+void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return ctf_fs_stream_next(
-		struct ctf_fs_stream *stream);
+struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
+		struct ctf_fs_ds_file *stream);
 
-#endif /* CTF_FS_DATA_STREAM_H */
+#endif /* CTF_FS_DS_FILE_H */

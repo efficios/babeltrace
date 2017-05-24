@@ -32,13 +32,13 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
-#include "data-stream.h"
+#include "data-stream-file.h"
 
 BT_HIDDEN
 extern bool ctf_fs_debug;
 
 struct ctf_fs_file {
-	/* Weak */
+	/* Weak, belongs to component */
 	struct ctf_fs_component *ctf_fs;
 
 	/* Owned by this */
@@ -62,7 +62,12 @@ struct ctf_fs_metadata {
 	int bo;
 };
 
-struct ctf_fs_stream {
+struct ctf_fs_ds_file_info {
+	GString *path;
+	uint64_t begin_ns;
+};
+
+struct ctf_fs_ds_file {
 	/* Owned by this */
 	struct ctf_fs_file *file;
 
@@ -100,7 +105,7 @@ struct ctf_fs_component_options {
 };
 
 struct ctf_fs_component {
-	/* Weak */
+	/* Weak, guaranteed to exist */
 	struct bt_private_component *priv_comp;
 
 	/* Array of struct ctf_fs_port_data *, owned by this */
@@ -115,7 +120,7 @@ struct ctf_fs_component {
 };
 
 struct ctf_fs_trace {
-	/* Weak */
+	/* Weak, belongs to component */
 	struct ctf_fs_component *ctf_fs;
 
 	/* Owned by this */
@@ -124,6 +129,9 @@ struct ctf_fs_trace {
 	/* Owned by this */
 	struct bt_clock_class_priority_map *cc_prio_map;
 
+	/* Array of struct ctf_fs_ds_file_group *, owned by this */
+	GPtrArray *ds_file_groups;
+
 	/* Owned by this */
 	GString *path;
 
@@ -131,12 +139,39 @@ struct ctf_fs_trace {
 	GString *name;
 };
 
-struct ctf_fs_port_data {
-	/* Owned by this */
-	GString *path;
+struct ctf_fs_ds_file_group {
+	/*
+	 * Array of struct ctf_fs_ds_file_info, owned by this.
+	 *
+	 * This is an _ordered_ array of data stream file infos which
+	 * belong to this group (a single stream instance).
+	 *
+	 * You can call ctf_fs_ds_file_create() with one of those paths
+	 * and the CTF IR stream below.
+	 */
+	GPtrArray *ds_file_infos;
 
-	/* Weak */
+	/* Owned by this */
+	struct bt_ctf_stream *stream;
+
+	/* Weak, belongs to component */
 	struct ctf_fs_trace *ctf_fs_trace;
+};
+
+struct ctf_fs_port_data {
+	/* Weak, belongs to ctf_fs_trace */
+	struct ctf_fs_ds_file_group *ds_file_group;
+};
+
+struct ctf_fs_notif_iter_data {
+	/* Weak, belongs to ctf_fs_trace */
+	struct ctf_fs_ds_file_group *ds_file_group;
+
+	/* Owned by this */
+	struct ctf_fs_ds_file *ds_file;
+
+	/* Which file the iterator is _currently_ operating on */
+	size_t ds_file_info_index;
 };
 
 BT_HIDDEN

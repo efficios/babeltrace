@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016-2017 - Philippe Proulx <pproulx@efficios.com>
  * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2010-2011 - EfficiOS Inc. and Linux Foundation
  *
@@ -38,7 +38,7 @@
 #include "metadata.h"
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
-#include "data-stream.h"
+#include "data-stream-file.h"
 
 #define PRINT_ERR_STREAM	ctf_fs->error_fp
 #define PRINT_PREFIX		"ctf-fs-data-stream"
@@ -46,71 +46,79 @@
 #include "../print.h"
 
 static inline
-size_t remaining_mmap_bytes(struct ctf_fs_stream *stream)
+size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {
-	return stream->mmap_valid_len - stream->request_offset;
+	return ds_file->mmap_valid_len - ds_file->request_offset;
 }
 
 static
-int stream_munmap(struct ctf_fs_stream *stream)
+int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 {
 	int ret = 0;
-	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
 
-	if (munmap(stream->mmap_addr, stream->mmap_len)) {
+	if (!ds_file->mmap_addr) {
+		goto end;
+	}
+
+	if (munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
 		PERR("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s\n",
-			stream->mmap_addr, stream->mmap_len,
-			stream->file->path->str, stream->file->fp,
+			ds_file->mmap_addr, ds_file->mmap_len,
+			ds_file->file->path->str, ds_file->file->fp,
 			strerror(errno));
 		ret = -1;
 		goto end;
 	}
+
+	ds_file->mmap_addr = NULL;
+
 end:
 	return ret;
 }
 
 static
-enum bt_ctf_notif_iter_medium_status mmap_next(struct ctf_fs_stream *stream)
+enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
+		struct ctf_fs_ds_file *ds_file)
 {
 	enum bt_ctf_notif_iter_medium_status ret =
 			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
-	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
 
 	/* Unmap old region */
-	if (stream->mmap_addr) {
-		if (stream_munmap(stream)) {
+	if (ds_file->mmap_addr) {
+		if (ds_file_munmap(ds_file)) {
 			goto error;
 		}
 
-		stream->mmap_offset += stream->mmap_valid_len;
-		stream->request_offset = 0;
+		ds_file->mmap_offset += ds_file->mmap_valid_len;
+		ds_file->request_offset = 0;
 	}
 
-	stream->mmap_valid_len = MIN(stream->file->size - stream->mmap_offset,
-			stream->mmap_max_len);
-	if (stream->mmap_valid_len == 0) {
+	ds_file->mmap_valid_len = MIN(ds_file->file->size - ds_file->mmap_offset,
+			ds_file->mmap_max_len);
+	if (ds_file->mmap_valid_len == 0) {
 		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
 	/* Round up to next page, assuming page size being a power of 2. */
-	stream->mmap_len = (stream->mmap_valid_len + ctf_fs->page_size - 1)
+	ds_file->mmap_len = (ds_file->mmap_valid_len + ctf_fs->page_size - 1)
 			& ~(ctf_fs->page_size - 1);
 	/* Map new region */
-	assert(stream->mmap_len);
-	stream->mmap_addr = mmap((void *) 0, stream->mmap_len,
-			PROT_READ, MAP_PRIVATE, fileno(stream->file->fp),
-			stream->mmap_offset);
-	if (stream->mmap_addr == MAP_FAILED) {
+	assert(ds_file->mmap_len);
+	ds_file->mmap_addr = mmap((void *) 0, ds_file->mmap_len,
+			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
+			ds_file->mmap_offset);
+	if (ds_file->mmap_addr == MAP_FAILED) {
 		PERR("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %zu: %s\n",
-				stream->mmap_len, stream->file->path->str,
-				stream->file->fp, stream->mmap_offset,
+				ds_file->mmap_len, ds_file->file->path->str,
+				ds_file->file->fp, ds_file->mmap_offset,
 				strerror(errno));
 		goto error;
 	}
 
 	goto end;
 error:
-	stream_munmap(stream);
+	ds_file_munmap(ds_file);
 	ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 end:
 	return ret;
@@ -123,24 +131,24 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 {
 	enum bt_ctf_notif_iter_medium_status status =
 		BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
-	struct ctf_fs_stream *stream = data;
-	struct ctf_fs_component *ctf_fs = stream->file->ctf_fs;
+	struct ctf_fs_ds_file *ds_file = data;
+	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
 
 	if (request_sz == 0) {
 		goto end;
 	}
 
 	/* Check if we have at least one memory-mapped byte left */
-	if (remaining_mmap_bytes(stream) == 0) {
+	if (remaining_mmap_bytes(ds_file) == 0) {
 		/* Are we at the end of the file? */
-		if (stream->mmap_offset >= stream->file->size) {
+		if (ds_file->mmap_offset >= ds_file->file->size) {
 			PDBG("Reached end of file \"%s\" (%p)\n",
-				stream->file->path->str, stream->file->fp);
+				ds_file->file->path->str, ds_file->file->fp);
 			status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
 			goto end;
 		}
 
-		status = mmap_next(stream);
+		status = ds_file_mmap_next(ds_file);
 		switch (status) {
 		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK:
 			break;
@@ -148,15 +156,15 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 			goto end;
 		default:
 			PERR("Cannot memory-map next region of file \"%s\" (%p)\n",
-					stream->file->path->str,
-					stream->file->fp);
+					ds_file->file->path->str,
+					ds_file->file->fp);
 			goto error;
 		}
 	}
 
-	*buffer_sz = MIN(remaining_mmap_bytes(stream), request_sz);
-	*buffer_addr = ((uint8_t *) stream->mmap_addr) + stream->request_offset;
-	stream->request_offset += *buffer_sz;
+	*buffer_sz = MIN(remaining_mmap_bytes(ds_file), request_sz);
+	*buffer_addr = ((uint8_t *) ds_file->mmap_addr) + ds_file->request_offset;
+	ds_file->request_offset += *buffer_sz;
 	goto end;
 
 error:
@@ -170,22 +178,25 @@ static
 struct bt_ctf_stream *medop_get_stream(
 		struct bt_ctf_stream_class *stream_class, void *data)
 {
-	struct ctf_fs_stream *fs_stream = data;
-	struct ctf_fs_component *ctf_fs = fs_stream->file->ctf_fs;
+	struct ctf_fs_ds_file *ds_file = data;
+	struct bt_ctf_stream_class *ds_file_stream_class;
+	struct bt_ctf_stream *stream = NULL;
 
-	if (!fs_stream->stream) {
-		int64_t id = bt_ctf_stream_class_get_id(stream_class);
+	ds_file_stream_class = bt_ctf_stream_get_class(ds_file->stream);
+	bt_put(ds_file_stream_class);
 
-		PDBG("Creating stream out of stream class %" PRId64 "\n", id);
-		fs_stream->stream = bt_ctf_stream_create(stream_class,
-				fs_stream->file->path->str);
-		if (!fs_stream->stream) {
-			PERR("Cannot create stream (stream class %" PRId64 ")\n",
-					id);
-		}
+	if (stream_class != ds_file_stream_class) {
+		/*
+		 * Not supported: two packets described by two different
+		 * stream classes within the same data stream file.
+		 */
+		goto end;
 	}
 
-	return fs_stream->stream;
+	stream = ds_file->stream;
+
+end:
+	return stream;
 }
 
 static struct bt_ctf_notif_iter_medium_ops medops = {
@@ -194,7 +205,7 @@ static struct bt_ctf_notif_iter_medium_ops medops = {
 };
 
 static
-int build_index_from_idx_file(struct ctf_fs_stream *stream)
+int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 {
 	int ret = 0;
 	gchar *directory = NULL;
@@ -212,13 +223,13 @@ int build_index_from_idx_file(struct ctf_fs_stream *stream)
 	size_t i;
 
 	/* Look for index file in relative path index/name.idx. */
-	basename = g_path_get_basename(stream->file->path->str);
+	basename = g_path_get_basename(ds_file->file->path->str);
 	if (!basename) {
 		ret = -1;
 		goto end;
 	}
 
-	directory = g_path_get_dirname(stream->file->path->str);
+	directory = g_path_get_dirname(ds_file->file->path->str);
 	if (!directory) {
 		ret = -1;
 		goto end;
@@ -263,13 +274,13 @@ int build_index_from_idx_file(struct ctf_fs_stream *stream)
 		goto end;
 	}
 
-	stream->index.entries = g_array_sized_new(FALSE, TRUE,
+	ds_file->index.entries = g_array_sized_new(FALSE, TRUE,
 			sizeof(struct index_entry), file_entry_count);
-	if (!stream->index.entries) {
+	if (!ds_file->index.entries) {
 		ret = -1;
 		goto end;
 	}
-	index = (struct index_entry *) stream->index.entries->data;
+	index = (struct index_entry *) ds_file->index.entries->data;
 	for (i = 0; i < file_entry_count; i++) {
 		struct ctf_packet_index *file_index =
 				(struct ctf_packet_index *) file_pos;
@@ -306,7 +317,7 @@ int build_index_from_idx_file(struct ctf_fs_stream *stream)
 	}
 
 	/* Validate that the index addresses the complete stream. */
-	if (stream->file->size != total_packets_size) {
+	if (ds_file->file->size != total_packets_size) {
 		printf_error("Invalid index; indexed size != stream file size");
 		ret = -1;
 		goto invalid_index;
@@ -323,110 +334,114 @@ end:
 	}
 	return ret;
 invalid_index:
-	g_array_free(stream->index.entries, TRUE);
+	g_array_free(ds_file->index.entries, TRUE);
 	goto end;
 }
 
 static
-int build_index_from_stream(struct ctf_fs_stream *stream)
+int build_index_from_data_stream_file(struct ctf_fs_ds_file *stream)
 {
 	return 0;
 }
 
 static
-int init_stream_index(struct ctf_fs_stream *stream)
+int init_stream_index(struct ctf_fs_ds_file *ds_file)
 {
 	int ret;
 
-	ret = build_index_from_idx_file(stream);
+	ret = build_index_from_idx_file(ds_file);
 	if (!ret) {
 		goto end;
 	}
 
-	ret = build_index_from_stream(stream);
+	ret = build_index_from_data_stream_file(ds_file);
 end:
 	return ret;
 }
 
 BT_HIDDEN
-struct ctf_fs_stream *ctf_fs_stream_create(
-		struct ctf_fs_trace *ctf_fs_trace, const char *path)
+struct ctf_fs_ds_file *ctf_fs_ds_file_create(
+		struct ctf_fs_trace *ctf_fs_trace,
+		struct bt_ctf_stream *stream, const char *path,
+		bool build_index)
 {
 	int ret;
-	struct ctf_fs_stream *ctf_fs_stream = g_new0(struct ctf_fs_stream, 1);
+	struct ctf_fs_ds_file *ds_file = g_new0(struct ctf_fs_ds_file, 1);
 
-	if (!ctf_fs_stream) {
+	if (!ds_file) {
 		goto error;
 	}
 
-	ctf_fs_stream->file = ctf_fs_file_create(ctf_fs_trace->ctf_fs);
-	if (!ctf_fs_stream->file) {
+	ds_file->file = ctf_fs_file_create(ctf_fs_trace->ctf_fs);
+	if (!ds_file->file) {
 		goto error;
 	}
 
-	ctf_fs_stream->cc_prio_map = bt_get(ctf_fs_trace->cc_prio_map);
-	g_string_assign(ctf_fs_stream->file->path, path);
-	ret = ctf_fs_file_open(ctf_fs_trace->ctf_fs, ctf_fs_stream->file, "rb");
+	ds_file->stream = bt_get(stream);
+	ds_file->cc_prio_map = bt_get(ctf_fs_trace->cc_prio_map);
+	g_string_assign(ds_file->file->path, path);
+	ret = ctf_fs_file_open(ctf_fs_trace->ctf_fs, ds_file->file, "rb");
 	if (ret) {
 		goto error;
 	}
 
-	ctf_fs_stream->notif_iter = bt_ctf_notif_iter_create(
+	ds_file->notif_iter = bt_ctf_notif_iter_create(
 		ctf_fs_trace->metadata->trace,
-		ctf_fs_trace->ctf_fs->page_size, medops, ctf_fs_stream,
+		ctf_fs_trace->ctf_fs->page_size, medops, ds_file,
 		ctf_fs_trace->ctf_fs->error_fp);
-	if (!ctf_fs_stream->notif_iter) {
+	if (!ds_file->notif_iter) {
 		goto error;
 	}
 
-	ctf_fs_stream->mmap_max_len = ctf_fs_trace->ctf_fs->page_size * 2048;
-	ret = init_stream_index(ctf_fs_stream);
-	if (ret) {
-		goto error;
+	ds_file->mmap_max_len = ctf_fs_trace->ctf_fs->page_size * 2048;
+
+	if (build_index) {
+		ret = init_stream_index(ds_file);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	goto end;
 
 error:
 	/* Do not touch "borrowed" file. */
-	ctf_fs_stream_destroy(ctf_fs_stream);
-	ctf_fs_stream = NULL;
+	ctf_fs_ds_file_destroy(ds_file);
+	ds_file = NULL;
 
 end:
-	return ctf_fs_stream;
+	return ds_file;
 }
 
 BT_HIDDEN
-void ctf_fs_stream_destroy(struct ctf_fs_stream *ctf_fs_stream)
+void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 {
-	if (!ctf_fs_stream) {
+	if (!ds_file) {
 		return;
 	}
 
-	bt_put(ctf_fs_stream->cc_prio_map);
+	bt_put(ds_file->cc_prio_map);
+	bt_put(ds_file->stream);
+	(void) ds_file_munmap(ds_file);
 
-	if (ctf_fs_stream->file) {
-		ctf_fs_file_destroy(ctf_fs_stream->file);
+	if (ds_file->file) {
+		ctf_fs_file_destroy(ds_file->file);
 	}
 
-	if (ctf_fs_stream->stream) {
-		BT_PUT(ctf_fs_stream->stream);
+	if (ds_file->notif_iter) {
+		bt_ctf_notif_iter_destroy(ds_file->notif_iter);
 	}
 
-	if (ctf_fs_stream->notif_iter) {
-		bt_ctf_notif_iter_destroy(ctf_fs_stream->notif_iter);
+	if (ds_file->index.entries) {
+		g_array_free(ds_file->index.entries, TRUE);
 	}
 
-	if (ctf_fs_stream->index.entries) {
-		g_array_free(ctf_fs_stream->index.entries, TRUE);
-	}
-
-	g_free(ctf_fs_stream);
+	g_free(ds_file);
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return ctf_fs_stream_next(
-		struct ctf_fs_stream *stream)
+struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
+		struct ctf_fs_ds_file *ds_file)
 {
 	enum bt_ctf_notif_iter_status notif_iter_status;
 	struct bt_notification_iterator_next_return ret = {
@@ -434,32 +449,9 @@ struct bt_notification_iterator_next_return ctf_fs_stream_next(
 		.notification = NULL,
 	};
 
-	if (stream->end_reached) {
-		notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_EOF;
-		goto translate_status;
-	}
-
 	notif_iter_status = bt_ctf_notif_iter_get_next_notification(
-		stream->notif_iter, stream->cc_prio_map, &ret.notification);
-	if (notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_OK &&
-			notif_iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		goto translate_status;
-	}
+		ds_file->notif_iter, ds_file->cc_prio_map, &ret.notification);
 
-	/* Should be handled in bt_ctf_notif_iter_get_next_notification. */
-	if (notif_iter_status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
-		ret.notification = bt_notification_stream_end_create(
-			stream->stream);
-		if (!ret.notification) {
-			notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
-			goto translate_status;
-		}
-
-		notif_iter_status = BT_CTF_NOTIF_ITER_STATUS_OK;
-		stream->end_reached = true;
-	}
-
-translate_status:
 	switch (notif_iter_status) {
 	case BT_CTF_NOTIF_ITER_STATUS_EOF:
 		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -481,5 +473,53 @@ translate_status:
 		break;
 	}
 
+	return ret;
+}
+
+BT_HIDDEN
+int ctf_fs_ds_file_get_packet_header_context_fields(
+		struct ctf_fs_trace *ctf_fs_trace, const char *path,
+		struct bt_ctf_field **packet_header_field,
+		struct bt_ctf_field **packet_context_field)
+{
+	enum bt_ctf_notif_iter_status notif_iter_status;
+	struct ctf_fs_ds_file *ds_file;
+	int ret = 0;
+
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, path, false);
+	if (!ds_file) {
+		goto error;
+	}
+
+	notif_iter_status = bt_ctf_notif_iter_get_packet_header_context_fields(
+		ds_file->notif_iter, packet_header_field, packet_context_field);
+	switch (notif_iter_status) {
+	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+	case BT_CTF_NOTIF_ITER_STATUS_OK:
+		break;
+	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+		assert(false);
+	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	default:
+		goto error;
+		break;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+	if (packet_header_field) {
+		bt_put(*packet_header_field);
+	}
+
+	if (packet_context_field) {
+		bt_put(*packet_context_field);
+	}
+
+end:
+	ctf_fs_ds_file_destroy(ds_file);
 	return ret;
 }
