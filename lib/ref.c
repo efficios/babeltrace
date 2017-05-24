@@ -70,6 +70,11 @@ void bt_put(void *ptr)
 		return;
 	}
 
+	if (BT_LOG_ON_WARN && unlikely(bt_object_get_ref_count(obj) == 0)) {
+		BT_LOGW("Decrementing a reference count set to 0: addr=%p",
+			ptr);
+	}
+
 	BT_LOGV("Decrementing object's reference count: %lu -> %lu: "
 		"addr=%p, cur-count=%lu, new-count=%lu",
 		obj->ref_count.count, obj->ref_count.count - 1,
