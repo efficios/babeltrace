@@ -49,7 +49,7 @@ struct bt_ctf_stream_destroy_listener {
 
 struct bt_ctf_stream {
 	struct bt_object base;
-	uint32_t id;
+	int64_t id;
 	struct bt_ctf_stream_class *stream_class;
 	GString *name;
 	struct bt_ctf_field *packet_header;

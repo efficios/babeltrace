@@ -55,8 +55,9 @@ A CTF IR <strong><em>stream</em></strong> is an instance of a
 
 You can obtain a CTF IR stream object in two different modes:
 
-- <strong>Normal mode</strong>: use bt_ctf_stream_create() with a stream
-  class having a \link ctfirtraceclass CTF IR trace class\endlink parent
+- <strong>Normal mode</strong>: use bt_ctf_stream_create() or
+  bt_ctf_stream_create_with_id() with a stream class having a
+  \link ctfirtraceclass CTF IR trace class\endlink parent
   \em not created by a \link ctfwriter CTF writer\endlink object to
   create a default stream.
 - <strong>CTF writer mode</strong>: use bt_ctf_stream_create() with
@@ -123,10 +124,47 @@ functions documented in this module on it.
 @prenotnull{stream_class}
 @pre \p stream_class has a parent trace class.
 @postsuccessrefcountret1
+
+@sa bt_ctf_stream_create_with_id(): Create a CTF IR stream with a
+	specific ID.
 */
 extern struct bt_ctf_stream *bt_ctf_stream_create(
 		struct bt_ctf_stream_class *stream_class,
 		const char *name);
+
+/**
+@brief  Creates a default CTF IR stream named \p name with ID \p id
+	from the CTF IR stream class \p stream_class.
+
+\p stream_class \em must have a parent
+\link ctfirtraceclass CTF IR trace class\endlink.
+
+You \em must have created the trace class of \p stream class directly
+with bt_ctf_trace_create(), not through bt_ctf_writer_create() (use
+bt_ctf_stream_create() for this).
+
+\p id \em must be unique amongst the IDs of all the streams created
+from \p stream_class with bt_ctf_stream_create_with_id().
+
+\p name can be \c NULL to create an unnamed stream object.
+
+@param[in] stream_class	CTF IR stream class to use to create the
+			CTF IR stream.
+@param[in] name		Name of the stream object to create (copied on
+			success) or \c NULL to create an unnamed stream.
+@param[in] id		ID of the stream object to create.
+@returns		Created stream object, or \c NULL on error.
+
+@prenotnull{stream_class}
+@pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
+@pre \p stream_class has a parent trace class.
+@postsuccessrefcountret1
+
+@sa bt_ctf_stream_create(): Create a CTF IR stream without an ID.
+*/
+extern struct bt_ctf_stream *bt_ctf_stream_create_with_id(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name, uint64_t id);
 
 /**
 @brief	Returns the name of the CTF IR stream \p stream.
@@ -141,6 +179,18 @@ On success, \p stream remains the sole owner of the returned string.
 @postrefcountsame{stream}
 */
 extern const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
+
+/**
+@brief	Returns the numeric ID of the CTF IR stream \p stream.
+
+@param[in] stream	Stream of which to get the numeric ID.
+@returns		ID of stream \p stream, or a negative value
+			on error.
+
+@prenotnull{stream}
+@postrefcountsame{stream}
+*/
+extern int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
 
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR

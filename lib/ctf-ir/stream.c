@@ -658,7 +658,7 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		g_string_printf(filename, "stream_%" PRId64, ret);
 	}
 
-	g_string_append_printf(filename, "_%" PRIu32, stream->id);
+	g_string_append_printf(filename, "_%" PRId64, stream->id);
 	fd = openat(writer->trace_dir_fd, filename->str,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
@@ -697,9 +697,10 @@ void component_destroy_listener(struct bt_component *component, void *data)
 	g_hash_table_remove(stream->comp_cur_port, component);
 }
 
-struct bt_ctf_stream *bt_ctf_stream_create(
+static
+struct bt_ctf_stream *bt_ctf_stream_create_with_id_no_check(
 		struct bt_ctf_stream_class *stream_class,
-		const char *name)
+		const char *name, uint64_t id)
 {
 	int ret;
 	struct bt_ctf_stream *stream = NULL;
@@ -712,10 +713,11 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	}
 
 	BT_LOGD("Creating stream object: stream-class-addr=%p, "
-		"stream-class-name=\"%s\", stream-name=\"%s\"",
+		"stream-class-name=\"%s\", stream-name=\"%s\", "
+		"stream-id=%" PRIu64,
 		stream_class, bt_ctf_stream_class_get_name(stream_class),
-		name);
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+		name, id);
+	trace = bt_ctf_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -739,6 +741,29 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		goto error;
 	}
 
+	if (id != -1ULL) {
+		/*
+		 * Validate that the given ID is unique amongst all the
+		 * existing trace's streams created from the same stream
+		 * class.
+		 */
+		size_t i;
+
+		for (i = 0; i < trace->streams->len; i++) {
+			struct bt_ctf_stream *trace_stream =
+				g_ptr_array_index(trace->streams, i);
+
+			if (trace_stream->stream_class != stream_class) {
+				continue;
+			}
+
+			if (trace_stream->id == id) {
+				BT_LOGW_STR("Invalid parameter: another stream in the same trace already has this ID.");
+				goto error;
+			}
+		}
+	}
+
 	stream = g_new0(struct bt_ctf_stream, 1);
 	if (!stream) {
 		BT_LOGE_STR("Failed to allocate one stream.");
@@ -751,9 +776,9 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 	 * reachable; it needs its parent to remain valid.
 	 */
 	bt_object_set_parent(stream, trace);
-	stream->id = stream_class->next_stream_id++;
 	stream->stream_class = stream_class;
 	stream->pos.fd = -1;
+	stream->id = (int64_t) id;
 
 	stream->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_ctf_stream_destroy_listener));
@@ -774,8 +799,8 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 
 	if (trace->is_created_by_writer) {
 		int fd;
-		writer = (struct bt_ctf_writer *)
-			bt_object_get_parent(trace);
+		writer = (struct bt_ctf_writer *) bt_object_get_parent(trace);
+		stream->id = (int64_t) stream_class->next_stream_id++;
 
 		BT_LOGD("Stream object belongs to a writer's trace: "
 			"writer-addr=%p", writer);
@@ -859,16 +884,69 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 
 	/* Add this stream to the trace's streams */
 	g_ptr_array_add(trace->streams, stream);
-
-	BT_PUT(trace);
-	BT_PUT(writer);
 	BT_LOGD("Created stream object: addr=%p", stream);
-	return stream;
+	goto end;
+
 error:
 	BT_PUT(stream);
-	BT_PUT(trace);
-	BT_PUT(writer);
+
+end:
+	bt_put(writer);
 	return stream;
+}
+
+struct bt_ctf_stream *bt_ctf_stream_create_with_id(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name, uint64_t id_param)
+{
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_stream *stream = NULL;
+	int64_t id = (int64_t) id_param;
+
+	if (!stream_class) {
+		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
+		goto end;
+	}
+
+	if (id < 0) {
+		BT_LOGW("Invalid parameter: invalid stream's ID: "
+			"name=\"%s\", id=%" PRIu64,
+			name, id_param);
+		goto end;
+	}
+
+	trace = bt_ctf_stream_class_borrow_trace(stream_class);
+	if (!trace) {
+		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
+			"stream-class-addr=%p, stream-class-name=\"%s\", "
+			"stream-name=\"%s\", stream-id=%" PRIu64,
+			stream_class, bt_ctf_stream_class_get_name(stream_class),
+			name, id_param);
+		goto end;
+	}
+
+	if (trace->is_created_by_writer) {
+		BT_LOGW("Invalid parameter: cannot create a CTF writer stream with this function; use bt_ctf_stream_create(): "
+			"stream-class-addr=%p, stream-class-name=\"%s\", "
+			"stream-name=\"%s\", stream-id=%" PRIu64,
+			stream_class, bt_ctf_stream_class_get_name(stream_class),
+			name, id_param);
+		goto end;
+	}
+
+	stream = bt_ctf_stream_create_with_id_no_check(stream_class,
+		name, id_param);
+
+end:
+	return stream;
+}
+
+struct bt_ctf_stream *bt_ctf_stream_create(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name)
+{
+	return bt_ctf_stream_create_with_id_no_check(stream_class,
+		name, -1ULL);
 }
 
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
@@ -1837,4 +1915,24 @@ void bt_ctf_stream_remove_destroy_listener(struct bt_ctf_stream *stream,
 				func, data);
 		}
 	}
+}
+
+int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream)
+{
+	int64_t ret;
+
+	if (!stream) {
+		BT_LOGW_STR("Invalid parameter: stream is NULL.");
+		ret = (int64_t) -1;
+		goto end;
+	}
+
+	ret = stream->id;
+	if (ret < 0) {
+		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
+			stream, bt_ctf_stream_get_name(stream));
+	}
+
+end:
+	return ret;
 }
