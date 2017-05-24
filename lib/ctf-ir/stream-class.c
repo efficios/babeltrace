@@ -1102,6 +1102,7 @@ void bt_ctf_stream_class_destroy(struct bt_object *obj)
 		g_hash_table_destroy(stream_class->event_classes_ht);
 	}
 	if (stream_class->event_classes) {
+		BT_LOGD_STR("Destroying event classes.");
 		g_ptr_array_free(stream_class->event_classes, TRUE);
 	}
 
@@ -1109,8 +1110,11 @@ void bt_ctf_stream_class_destroy(struct bt_object *obj)
 		g_string_free(stream_class->name, TRUE);
 	}
 
+	BT_LOGD_STR("Putting event header field type.");
 	bt_put(stream_class->event_header_type);
+	BT_LOGD_STR("Putting packet context field type.");
 	bt_put(stream_class->packet_context_type);
+	BT_LOGD_STR("Putting event context field type.");
 	bt_put(stream_class->event_context_type);
 	g_free(stream_class);
 }
