@@ -789,9 +789,9 @@ void bt_ctf_event_class_destroy(struct bt_object *obj)
 		bt_ctf_event_class_get_id(event_class));
 	BT_LOGD_STR("Destroying event class's attributes.");
 	bt_ctf_attributes_destroy(event_class->attributes);
-	BT_LOGD_STR("Putting event class's context field type.");
+	BT_LOGD_STR("Putting context field type.");
 	bt_put(event_class->context);
-	BT_LOGD_STR("Putting event class's payload field type.");
+	BT_LOGD_STR("Putting payload field type.");
 	bt_put(event_class->fields);
 	g_free(event_class);
 }
