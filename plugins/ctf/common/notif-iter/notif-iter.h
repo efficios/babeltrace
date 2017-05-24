@@ -284,4 +284,22 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_notification **notification);
 
+/**
+ * Returns the first packet header and context fields. This function
+ * never needs to call the `get_stream()` medium operation because
+ * it does not create packet or event objects.
+ *
+ * @param notif_iter		CTF notification iterator
+ * @param packet_header_field	Packet header field (\c NULL if there's
+ *				no packet header field)
+ * @param packet_context_field	Packet context field (\c NULL if there's
+ *				no packet context field)
+ * @returns			One of #bt_ctf_notif_iter_status values
+ */
+BT_HIDDEN
+enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields(
+		struct bt_ctf_notif_iter *notit,
+		struct bt_ctf_field **packet_header_field,
+		struct bt_ctf_field **packet_context_field);
+
 #endif /* CTF_NOTIF_ITER_H */

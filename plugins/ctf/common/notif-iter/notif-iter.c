@@ -2447,3 +2447,72 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
 end:
 	return status;
 }
+
+BT_HIDDEN
+enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields(
+		struct bt_ctf_notif_iter *notit,
+		struct bt_ctf_field **packet_header_field,
+		struct bt_ctf_field **packet_context_field)
+{
+	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
+
+	assert(notit);
+
+	if (notit->state == STATE_EMIT_NOTIF_NEW_PACKET) {
+		/* We're already there */
+		goto set_fields;
+	}
+
+	while (true) {
+		status = handle_state(notit);
+		if (status == BT_CTF_NOTIF_ITER_STATUS_AGAIN) {
+			PDBG("Medium operation reported \"try again later\"");
+			goto end;
+		}
+		if (status != BT_CTF_NOTIF_ITER_STATUS_OK) {
+			if (status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+				PDBG("Medium operation reported end of stream\n");
+			} else {
+				PERR("Failed to handle state:\n");
+				PERR("\tState: %d\n", notit->state);
+			}
+			goto end;
+		}
+
+		switch (notit->state) {
+		case STATE_EMIT_NOTIF_NEW_PACKET:
+			/*
+			 * Packet header and context fields are
+			 * potentially decoded (or they don't exist).
+			 */
+			goto set_fields;
+		case STATE_INIT:
+		case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
+		case STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE:
+		case STATE_AFTER_TRACE_PACKET_HEADER:
+		case STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN:
+		case STATE_DSCOPE_STREAM_PACKET_CONTEXT_CONTINUE:
+		case STATE_AFTER_STREAM_PACKET_CONTEXT:
+			/* Non-emitting state: continue */
+			break;
+		default:
+			/*
+			 * We should never get past the
+			 * STATE_EMIT_NOTIF_NEW_PACKET state.
+			 */
+			assert(false);
+		}
+	}
+
+set_fields:
+	if (packet_header_field) {
+		*packet_header_field = bt_get(notit->dscopes.trace_packet_header);
+	}
+
+	if (packet_context_field) {
+		*packet_context_field = bt_get(notit->dscopes.stream_packet_context);
+	}
+
+end:
+	return status;
+}
