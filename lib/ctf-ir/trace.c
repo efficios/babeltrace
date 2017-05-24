@@ -45,6 +45,7 @@
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/values-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
@@ -90,18 +91,31 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 
 	trace = g_new0(struct bt_ctf_trace, 1);
 	if (!trace) {
+		BT_LOGE_STR("Failed to allocate one trace.");
 		goto error;
 	}
 
+	BT_LOGD_STR("Creating trace object.");
 	trace->native_byte_order = BT_CTF_BYTE_ORDER_NATIVE;
 	bt_object_init(trace, bt_ctf_trace_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
+	if (!trace->clocks) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		goto error;
+	}
+
 	trace->streams = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_release);
+	if (!trace->streams) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		goto error;
+	}
+
 	trace->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_release);
-	if (!trace->clocks || !trace->stream_classes || !trace->streams) {
+	if (!trace->stream_classes) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
@@ -115,15 +129,18 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	/* Create the environment array object */
 	trace->environment = bt_ctf_attributes_create();
 	if (!trace->environment) {
+		BT_LOGE_STR("Cannot create empty attributes object.");
 		goto error;
 	}
 
 	trace->listeners = g_ptr_array_new_with_free_func(
 			(GDestroyNotify) g_free);
 	if (!trace->listeners) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
+	BT_LOGD("Created trace object: addr=%p", trace);
 	return trace;
 
 error:
@@ -136,7 +153,12 @@ const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace)
 {
 	const char *name = NULL;
 
-	if (!trace || !trace->name) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (!trace->name) {
 		goto end;
 	}
 
@@ -149,7 +171,22 @@ int bt_ctf_trace_set_name(struct bt_ctf_trace *trace, const char *name)
 {
 	int ret = 0;
 
-	if (!trace || !name || trace->frozen) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->frozen) {
+		BT_LOGW("Invalid parameter: trace is frozen: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -157,9 +194,13 @@ int bt_ctf_trace_set_name(struct bt_ctf_trace *trace, const char *name)
 	trace->name = trace->name ? g_string_assign(trace->name, name) :
 			g_string_new(name);
 	if (!trace->name) {
+		BT_LOGE_STR("Failed to allocate one GString.");
 		ret = -1;
 		goto end;
 	}
+
+	BT_LOGV("Set trace's name: addr=%p, name=\"%s\"", trace, name);
+
 end:
 	return ret;
 }
@@ -173,13 +214,47 @@ int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace, const unsigned char *uuid)
 {
 	int ret = 0;
 
-	if (!trace || !uuid || trace->frozen) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!uuid) {
+		BT_LOGW_STR("Invalid parameter: UUID is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->frozen) {
+		BT_LOGW("Invalid parameter: trace is frozen: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
 
 	memcpy(trace->uuid, uuid, sizeof(uuid_t));
 	trace->uuid_set = BT_TRUE;
+	BT_LOGV("Set trace's UUID: addr=%p, name=\"%s\", "
+		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+		trace, bt_ctf_trace_get_name(trace),
+		(unsigned int) uuid[0],
+		(unsigned int) uuid[1],
+		(unsigned int) uuid[2],
+		(unsigned int) uuid[3],
+		(unsigned int) uuid[4],
+		(unsigned int) uuid[5],
+		(unsigned int) uuid[6],
+		(unsigned int) uuid[7],
+		(unsigned int) uuid[8],
+		(unsigned int) uuid[9],
+		(unsigned int) uuid[10],
+		(unsigned int) uuid[11],
+		(unsigned int) uuid[12],
+		(unsigned int) uuid[13],
+		(unsigned int) uuid[14],
+		(unsigned int) uuid[15]);
 
 end:
 	return ret;
@@ -190,7 +265,12 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	struct bt_ctf_trace *trace;
 
 	trace = container_of(obj, struct bt_ctf_trace, base);
+
+	BT_LOGD("Destroying trace object: addr=%p, name=\"%s\"",
+		trace, bt_ctf_trace_get_name(trace));
+
 	if (trace->environment) {
+		BT_LOGD_STR("Destroying environment attributes.");
 		bt_ctf_attributes_destroy(trace->environment);
 	}
 
@@ -199,14 +279,17 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	}
 
 	if (trace->clocks) {
+		BT_LOGD_STR("Putting clock classes.");
 		g_ptr_array_free(trace->clocks, TRUE);
 	}
 
 	if (trace->streams) {
+		BT_LOGD_STR("Putting streams.");
 		g_ptr_array_free(trace->streams, TRUE);
 	}
 
 	if (trace->stream_classes) {
+		BT_LOGD_STR("Putting stream classes.");
 		g_ptr_array_free(trace->stream_classes, TRUE);
 	}
 
@@ -214,6 +297,7 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 		g_ptr_array_free(trace->listeners, TRUE);
 	}
 
+	BT_LOGD_STR("Putting packet header field type.");
 	bt_put(trace->packet_header_type);
 	g_free(trace);
 }
@@ -223,14 +307,47 @@ int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || !name || !value ||
-		bt_ctf_validate_identifier(name) ||
-		!(bt_value_is_integer(value) || bt_value_is_string(value))) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = -1;
 		goto end;
 	}
 
-	if (strchr(name, ' ')) {
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (bt_ctf_validate_identifier(name)) {
+		BT_LOGW("Invalid parameter: environment field's name is not a valid CTF identifier: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"env-name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace), name);
+		ret = -1;
+		goto end;
+	}
+
+	if (!bt_value_is_integer(value) && !bt_value_is_string(value)) {
+		BT_LOGW("Invalid parameter: environment field's value is not an integer or string value: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"env-name=\"%s\", env-value-type=%s",
+			trace, bt_ctf_trace_get_name(trace), name,
+			bt_value_type_string(bt_value_get_type(value)));
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->is_static) {
+		BT_LOGW("Invalid parameter: trace is static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -247,6 +364,10 @@ int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 				trace->environment, name);
 
 		if (attribute) {
+			BT_LOGW("Invalid parameter: trace is frozen and environment field already exists with this name: "
+				"trace-addr=%p, trace-name=\"%s\", "
+				"env-name=\"%s\"",
+				trace, bt_ctf_trace_get_name(trace), name);
 			BT_PUT(attribute);
 			ret = -1;
 			goto end;
@@ -257,6 +378,17 @@ int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
 
 	ret = bt_ctf_attributes_set_field_value(trace->environment, name,
 		value);
+	if (ret) {
+		BT_LOGE("Cannot set environment field's value: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"env-name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace), name);
+	} else {
+		BT_LOGV("Set environment field's value: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"env-name=\"%s\", value-addr=%p",
+			trace, bt_ctf_trace_get_name(trace), name, value);
+	}
 
 end:
 	return ret;
@@ -268,42 +400,25 @@ int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
 	int ret = 0;
 	struct bt_value *env_value_string_obj = NULL;
 
-	if (!trace || !name || !value) {
+	if (!value) {
+		BT_LOGW_STR("Invalid parameter: value is NULL.");
 		ret = -1;
 		goto end;
-	}
-
-	if (trace->frozen) {
-		/*
-		 * New environment fields may be added to a frozen trace,
-		 * but existing fields may not be changed.
-		 */
-		struct bt_value *attribute =
-			bt_ctf_attributes_get_field_value_by_name(
-				trace->environment, name);
-
-		if (attribute) {
-			BT_PUT(attribute);
-			ret = -1;
-			goto end;
-		}
 	}
 
 	env_value_string_obj = bt_value_string_create_init(value);
-
 	if (!env_value_string_obj) {
+		BT_LOGE_STR("Cannot create string value object.");
 		ret = -1;
 		goto end;
 	}
 
-	if (trace->frozen) {
-		bt_value_freeze(env_value_string_obj);
-	}
+	/* bt_ctf_trace_set_environment_field() logs errors */
 	ret = bt_ctf_trace_set_environment_field(trace, name,
 		env_value_string_obj);
 
 end:
-	BT_PUT(env_value_string_obj);
+	bt_put(env_value_string_obj);
 	return ret;
 }
 
@@ -313,40 +428,19 @@ int bt_ctf_trace_set_environment_field_integer(struct bt_ctf_trace *trace,
 	int ret = 0;
 	struct bt_value *env_value_integer_obj = NULL;
 
-	if (!trace || !name) {
-		ret = -1;
-		goto end;
-	}
-
-	if (trace->frozen) {
-		/*
-		 * New environment fields may be added to a frozen trace,
-		 * but existing fields may not be changed.
-		 */
-		struct bt_value *attribute =
-			bt_ctf_attributes_get_field_value_by_name(
-				trace->environment, name);
-
-		if (attribute) {
-			BT_PUT(attribute);
-			ret = -1;
-			goto end;
-		}
-	}
-
 	env_value_integer_obj = bt_value_integer_create_init(value);
 	if (!env_value_integer_obj) {
+		BT_LOGE_STR("Cannot create integer value object.");
 		ret = -1;
 		goto end;
 	}
 
+	/* bt_ctf_trace_set_environment_field() logs errors */
 	ret = bt_ctf_trace_set_environment_field(trace, name,
 		env_value_integer_obj);
-	if (trace->frozen) {
-		bt_value_freeze(env_value_integer_obj);
-	}
+
 end:
-	BT_PUT(env_value_integer_obj);
+	bt_put(env_value_integer_obj);
 	return ret;
 }
 
@@ -355,11 +449,13 @@ int64_t bt_ctf_trace_get_environment_field_count(struct bt_ctf_trace *trace)
 	int64_t ret = 0;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = (int64_t) -1;
 		goto end;
 	}
 
 	ret = bt_ctf_attributes_get_count(trace->environment);
+	assert(ret >= 0);
 
 end:
 	return ret;
@@ -372,6 +468,7 @@ bt_ctf_trace_get_environment_field_name_by_index(struct bt_ctf_trace *trace,
 	const char *ret = NULL;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -387,6 +484,7 @@ struct bt_value *bt_ctf_trace_get_environment_field_value_by_index(
 	struct bt_value *ret = NULL;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -401,7 +499,13 @@ struct bt_value *bt_ctf_trace_get_environment_field_value_by_name(
 {
 	struct bt_value *ret = NULL;
 
-	if (!trace || !name) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
 
@@ -417,14 +521,37 @@ int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || trace->is_static ||
-			!bt_ctf_clock_class_is_valid(clock_class)) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->is_static) {
+		BT_LOGW("Invalid parameter: trace is static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
+		ret = -1;
+		goto end;
+	}
+
+	if (!bt_ctf_clock_class_is_valid(clock_class)) {
+		BT_LOGW("Invalid parameter: clock class is invalid: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"clock-class-addr=%p, clock-class-name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace),
+			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	/* Check for duplicate clock classes */
 	if (bt_ctf_trace_has_clock_class(trace, clock_class)) {
+		BT_LOGW("Invalid parameter: clock class already exists in trace: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"clock-class-addr=%p, clock-class-name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace),
+			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
@@ -433,8 +560,16 @@ int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 	g_ptr_array_add(trace->clocks, clock_class);
 
 	if (trace->frozen) {
+		BT_LOGV_STR("Freezing added clock class because trace is frozen.");
 		bt_ctf_clock_class_freeze(clock_class);
 	}
+
+	BT_LOGV("Added clock class to trace: "
+		"trace-addr=%p, trace-name=\"%s\", "
+		"clock-class-addr=%p, clock-class-name=\"%s\"",
+		trace, bt_ctf_trace_get_name(trace),
+		clock_class, bt_ctf_clock_class_get_name(clock_class));
+
 end:
 	return ret;
 }
@@ -444,6 +579,7 @@ int64_t bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
 	int64_t ret = (int64_t) -1;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -457,7 +593,17 @@ struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
 {
 	struct bt_ctf_clock_class *clock_class = NULL;
 
-	if (!trace || index >= trace->clocks->len) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (index >= trace->clocks->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, name=\"%s\", "
+			"index=%" PRIu64 ", count=%u",
+			trace, bt_ctf_trace_get_name(trace),
+			index, trace->clocks->len);
 		goto end;
 	}
 
@@ -933,16 +1079,39 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	int64_t event_class_count;
 	struct bt_ctf_trace *current_parent_trace = NULL;
 
-	if (!trace || !stream_class || trace->is_static) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = -1;
 		goto end;
 	}
+
+	if (!stream_class) {
+		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->is_static) {
+		BT_LOGW_STR("Invalid parameter: trace is static.");
+		ret = -1;
+		goto end;
+	}
+
+	BT_LOGD("Adding stream class to trace: "
+		"trace-addr=%p, trace-name=\"%s\", "
+		"stream-class-addr=%p, stream-class-name=\"%s\", "
+		"stream-class-id=%" PRId64,
+		trace, bt_ctf_trace_get_name(trace),
+		stream_class, bt_ctf_stream_class_get_name(stream_class),
+		bt_ctf_stream_class_get_id(stream_class));
 
 	/*
 	 * At the end of this function we freeze the trace, so its
 	 * native byte order must NOT be BT_CTF_BYTE_ORDER_NATIVE.
 	 */
 	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		BT_LOGW_STR("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE at this point; "
+			"set it with bt_ctf_trace_set_native_byte_order().");
 		ret = -1;
 		goto end;
 	}
@@ -950,6 +1119,11 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	current_parent_trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (current_parent_trace) {
 		/* Stream class is already associated to a trace, abort. */
+		BT_LOGW("Invalid parameter: stream class is already part of a trace: "
+			"stream-class-trace-addr=%p, "
+			"stream-class-trace-name=\"%s\"",
+			current_parent_trace,
+			bt_ctf_trace_get_name(current_parent_trace));
 		ret = -1;
 		goto end;
 	}
@@ -957,15 +1131,6 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	event_class_count =
 		bt_ctf_stream_class_get_event_class_count(stream_class);
 	assert(event_class_count >= 0);
-
-	/* Check for duplicate stream classes */
-	for (i = 0; i < trace->stream_classes->len; i++) {
-		if (trace->stream_classes->pdata[i] == stream_class) {
-			/* Stream class already registered to the trace */
-			ret = -1;
-			goto end;
-		}
-	}
 
 	if (stream_class->clock) {
 		struct bt_ctf_clock_class *stream_clock_class =
@@ -989,6 +1154,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 
 			if (i == trace->clocks->len) {
 				/* Not found */
+				BT_LOGW("Stream class's clock's class is not part of the trace: "
+					"clock-class-addr=%p, clock-class-name=\"%s\"",
+					stream_clock_class,
+					bt_ctf_clock_class_get_name(stream_clock_class));
 				ret = -1;
 				goto end;
 			}
@@ -1000,6 +1169,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			 * independent APIs (non-writer and writer
 			 * APIs), and isolating them simplifies things.
 			 */
+			BT_LOGW("Cannot add stream class with a clock to a trace which was not created by a CTF writer object: "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				stream_clock_class,
+				bt_ctf_clock_class_get_name(stream_clock_class));
 			ret = -1;
 			goto end;
 		}
@@ -1024,6 +1197,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		bt_ctf_stream_class_get_event_header_type(stream_class);
 	stream_event_ctx_type =
 		bt_ctf_stream_class_get_event_context_type(stream_class);
+
+	BT_LOGD("Validating trace and stream class field types.");
 	ret = bt_ctf_validate_class_types(trace->environment,
 		packet_header_type, packet_context_type, event_header_type,
 		stream_event_ctx_type, NULL, NULL, trace->valid,
@@ -1039,6 +1214,8 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		 * This means something went wrong during the validation
 		 * process, not that the objects are invalid.
 		 */
+		BT_LOGE("Failed to validate trace and stream class field types: "
+			"ret=%d", ret);
 		goto end;
 	}
 
@@ -1046,6 +1223,9 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			trace_sc_validation_flags) !=
 			trace_sc_validation_flags) {
 		/* Invalid trace/stream class */
+		BT_LOGW("Invalid trace or stream class field types: "
+			"valid-flags=0x%x",
+			trace_sc_validation_output.valid_flags);
 		ret = -1;
 		goto end;
 	}
@@ -1054,6 +1234,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		ec_validation_outputs = g_new0(struct bt_ctf_validation_output,
 			event_class_count);
 		if (!ec_validation_outputs) {
+			BT_LOGE_STR("Failed to allocate one validation output structure.");
 			ret = -1;
 			goto end;
 		}
@@ -1077,6 +1258,10 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		 * the previous trace and stream class validation here
 		 * because copies could have been made.
 		 */
+		BT_LOGD("Validating event class's field types: "
+			"addr=%p, name=\"%s\", id=%" PRId64,
+			event_class, bt_ctf_event_class_get_name(event_class),
+			bt_ctf_event_class_get_id(event_class));
 		ret = bt_ctf_validate_class_types(trace->environment,
 			trace_sc_validation_output.packet_header_type,
 			trace_sc_validation_output.packet_context_type,
@@ -1090,12 +1275,17 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		BT_PUT(event_class);
 
 		if (ret) {
+			BT_LOGE("Failed to validate event class field types: "
+				"ret=%d", ret);
 			goto end;
 		}
 
 		if ((ec_validation_outputs[i].valid_flags &
 				ec_validation_flags) != ec_validation_flags) {
 			/* Invalid event class */
+			BT_LOGW("Invalid event class field types: "
+				"valid-flags=0x%x",
+				ec_validation_outputs[i].valid_flags);
 			ret = -1;
 			goto end;
 		}
@@ -1105,6 +1295,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	if (stream_id < 0) {
 		stream_id = trace->next_stream_id++;
 		if (stream_id < 0) {
+			BT_LOGE_STR("No more stream class IDs available.");
 			ret = -1;
 			goto end;
 		}
@@ -1114,14 +1305,18 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 			if (stream_id == bt_ctf_stream_class_get_id(
 				trace->stream_classes->pdata[i])) {
 				/* Duplicate stream id found */
+				BT_LOGW("Duplicate stream class ID: "
+					"id=%" PRId64, (int64_t) stream_id);
 				ret = -1;
 				goto end;
 			}
 		}
 
 		if (bt_ctf_stream_class_set_id_no_check(stream_class,
-			stream_id)) {
+				stream_id)) {
 			/* TODO Should retry with a different stream id */
+			BT_LOGE("Cannot set stream class's ID: "
+				"id=%" PRId64, (int64_t) stream_id);
 			ret = -1;
 			goto end;
 		}
@@ -1134,6 +1329,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	 */
 	if (!packet_header_field_type_is_valid(trace,
 			trace_sc_validation_output.packet_header_type)) {
+		BT_LOGW_STR("Invalid trace's packet header field type.");
 		ret = -1;
 		goto end;
 	}
@@ -1141,6 +1337,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	if (!packet_context_field_type_is_valid(trace,
 			stream_class,
 			trace_sc_validation_output.packet_context_type)) {
+		BT_LOGW_STR("Invalid stream class's packet context field type.");
 		ret = -1;
 		goto end;
 	}
@@ -1148,6 +1345,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	if (!event_header_field_type_is_valid(trace,
 			stream_class,
 			trace_sc_validation_output.event_header_type)) {
+		BT_LOGW_STR("Invalid steam class's event header field type.");
 		ret = -1;
 		goto end;
 	}
@@ -1165,6 +1363,7 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		if (bt_ctf_stream_class_map_clock_class(stream_class,
 				trace_sc_validation_output.packet_context_type,
 				trace_sc_validation_output.event_header_type)) {
+			BT_LOGW_STR("Cannot automatically map selected stream class's field types to stream class's clock's class.");
 			ret = -1;
 			goto end;
 		}
@@ -1217,6 +1416,14 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 	/* Notifiy listeners of the trace's schema modification. */
 	bt_ctf_stream_class_visit(stream_class,
 			bt_ctf_trace_object_modification, trace);
+	BT_LOGD("Added stream class to trace: "
+		"trace-addr=%p, trace-name=\"%s\", "
+		"stream-class-addr=%p, stream-class-name=\"%s\", "
+		"stream-class-id=%" PRId64,
+		trace, bt_ctf_trace_get_name(trace),
+		stream_class, bt_ctf_stream_class_get_name(stream_class),
+		bt_ctf_stream_class_get_id(stream_class));
+
 end:
 	if (ret) {
 		bt_object_set_parent(stream_class, NULL);
@@ -1236,7 +1443,6 @@ end:
 	assert(!packet_context_type);
 	assert(!event_header_type);
 	assert(!stream_event_ctx_type);
-
 	return ret;
 }
 
@@ -1245,6 +1451,7 @@ int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
 	int64_t ret;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = (int64_t) -1;
 		goto end;
 	}
@@ -1261,7 +1468,17 @@ struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
 {
 	struct bt_ctf_stream *stream = NULL;
 
-	if (!trace || index >= trace->streams->len) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (index >= trace->streams->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, name=\"%s\", "
+			"index=%" PRIu64 ", count=%u",
+			trace, bt_ctf_trace_get_name(trace),
+			index, trace->streams->len);
 		goto end;
 	}
 
@@ -1276,6 +1493,7 @@ int64_t bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 	int64_t ret;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = (int64_t) -1;
 		goto end;
 	}
@@ -1290,7 +1508,17 @@ struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
 {
 	struct bt_ctf_stream_class *stream_class = NULL;
 
-	if (!trace || index >= trace->stream_classes->len) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (index >= trace->stream_classes->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"addr=%p, name=\"%s\", "
+			"index=%" PRIu64 ", count=%u",
+			trace, bt_ctf_trace_get_name(trace),
+			index, trace->stream_classes->len);
 		goto end;
 	}
 
@@ -1307,7 +1535,15 @@ struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 	struct bt_ctf_stream_class *stream_class = NULL;
 	int64_t id = (int64_t) id_param;
 
-	if (!trace || id < 0) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (id < 0) {
+		BT_LOGW("Invalid parameter: invalid stream class's ID: "
+			"trace-addr=%p, trace-name=\"%s\", id=%" PRIu64,
+			trace, bt_ctf_trace_get_name(trace), id_param);
 		goto end;
 	}
 
@@ -1335,7 +1571,13 @@ struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 	size_t i;
 	struct bt_ctf_clock_class *clock_class = NULL;
 
-	if (!trace || !name) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		goto end;
+	}
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
 
@@ -1402,6 +1644,10 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	int ret = 0;
 
 	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		BT_LOGW("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE at this point; "
+			"set it with bt_ctf_trace_set_native_byte_order(): "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -1429,6 +1675,7 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 		g_string_append(context->string, "\tpacket.header := ");
 		context->current_indentation_level++;
 		g_string_assign(context->field_name, "");
+		BT_LOGD_STR("Serializing trace's packet header field type's metadata.");
 		ret = bt_ctf_field_type_serialize(trace->packet_header_type,
 			context);
 		if (ret) {
@@ -1450,7 +1697,6 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 	int64_t env_size;
 
 	env_size = bt_ctf_attributes_get_count(trace->environment);
-
 	if (env_size <= 0) {
 		return;
 	}
@@ -1466,9 +1712,8 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 		env_field_value_obj = bt_ctf_attributes_get_field_value(
 			trace->environment, i);
 
-		if (!entry_name || !env_field_value_obj) {
-			goto loop_next;
-		}
+		assert(entry_name);
+		assert(env_field_value_obj);
 
 		switch (bt_value_get_type(env_field_value_obj)) {
 		case BT_VALUE_TYPE_INTEGER:
@@ -1478,11 +1723,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 
 			ret = bt_value_integer_get(env_field_value_obj,
 				&int_value);
-
-			if (ret) {
-				goto loop_next;
-			}
-
+			assert(ret == 0);
 			g_string_append_printf(context->string,
 				"\t%s = %" PRId64 ";\n", entry_name,
 				int_value);
@@ -1496,14 +1737,11 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 
 			ret = bt_value_string_get(env_field_value_obj,
 				&str_value);
-
-			if (ret) {
-				goto loop_next;
-			}
-
+			assert(ret == 0);
 			escaped_str = g_strescape(str_value, NULL);
-
 			if (!escaped_str) {
+				BT_LOGE("Cannot escape string: string=\"%s\"",
+					str_value);
 				goto loop_next;
 			}
 
@@ -1512,7 +1750,6 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 			free(escaped_str);
 			break;
 		}
-
 		default:
 			goto loop_next;
 		}
@@ -1532,11 +1769,13 @@ char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace)
 	size_t i;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
 	context = g_new0(struct metadata_context, 1);
 	if (!context) {
+		BT_LOGE_STR("Failed to allocate one metadata context.");
 		goto end;
 	}
 
@@ -1544,6 +1783,7 @@ char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace)
 	context->string = g_string_sized_new(DEFAULT_METADATA_STRING_SIZE);
 	g_string_append(context->string, "/* CTF 1.8 */\n\n");
 	if (append_trace_metadata(trace, context)) {
+		/* append_trace_metadata() logs errors */
 		goto error;
 	}
 	append_env_metadata(trace, context);
@@ -1551,18 +1791,22 @@ char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace)
 		(GFunc)bt_ctf_clock_class_serialize, context);
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
+		/* bt_ctf_stream_class_serialize() logs details */
 		err = bt_ctf_stream_class_serialize(
 			trace->stream_classes->pdata[i], context);
 		if (err) {
+			/* bt_ctf_stream_class_serialize() logs errors */
 			goto error;
 		}
 	}
 
 	metadata = context->string->str;
+
 error:
 	g_string_free(context->string, err ? TRUE : FALSE);
 	g_string_free(context->field_name, TRUE);
 	g_free(context);
+
 end:
 	return metadata;
 }
@@ -1573,6 +1817,7 @@ enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -1587,7 +1832,16 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || trace->frozen) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->frozen) {
+		BT_LOGW("Invalid parameter: trace is frozen: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -1595,11 +1849,19 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 	if (byte_order != BT_CTF_BYTE_ORDER_LITTLE_ENDIAN &&
 			byte_order != BT_CTF_BYTE_ORDER_BIG_ENDIAN &&
 			byte_order != BT_CTF_BYTE_ORDER_NETWORK) {
+		BT_LOGW("Invalid parameter: invalid byte order: "
+			"addr=%p, name=\"%s\", bo=%s",
+			trace, bt_ctf_trace_get_name(trace),
+			bt_ctf_byte_order_string(byte_order));
 		ret = -1;
 		goto end;
 	}
 
 	trace->native_byte_order = byte_order;
+	BT_LOGV("Set trace's native byte order: "
+		"addr=%p, name=\"%s\", bo=%s",
+		trace, bt_ctf_trace_get_name(trace),
+		bt_ctf_byte_order_string(byte_order));
 
 end:
 	return ret;
@@ -1611,6 +1873,7 @@ struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
 	struct bt_ctf_field_type *field_type = NULL;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -1625,21 +1888,37 @@ int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace,
 {
 	int ret = 0;
 
-	if (!trace || trace->frozen) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->frozen) {
+		BT_LOGW("Invalid parameter: trace is frozen: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
 
 	/* packet_header_type must be a structure. */
 	if (packet_header_type &&
-			bt_ctf_field_type_get_type_id(packet_header_type) !=
-				BT_CTF_FIELD_TYPE_ID_STRUCT) {
+			!bt_ctf_field_type_is_structure(packet_header_type)) {
+		BT_LOGW("Invalid parameter: packet header field type must be a structure field type if it exists: "
+			"addr=%p, name=\"%s\", ft-addr=%p, ft-id=%s",
+			trace, bt_ctf_trace_get_name(trace),
+			packet_header_type,
+			bt_ctf_field_type_id_string(packet_header_type->id));
 		ret = -1;
 		goto end;
 	}
 
 	bt_put(trace->packet_header_type);
 	trace->packet_header_type = bt_get(packet_header_type);
+	BT_LOGV("Set trace's packet header field type: "
+		"addr=%p, name=\"%s\", packet-context-ft-addr=%p",
+		trace, bt_ctf_trace_get_name(trace), packet_header_type);
 end:
 	return ret;
 }
@@ -1671,11 +1950,20 @@ int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 	struct bt_ctf_object obj =
 			{ .object = trace, .type = BT_CTF_OBJECT_TYPE_TRACE };
 
-	if (!trace || !visitor) {
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = -1;
 		goto end;
 	}
 
+	if (!visitor) {
+		BT_LOGW_STR("Invalid parameter: visitor is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	BT_LOGV("Visiting trace: addr=%p, name=\"%s\"",
+		trace, bt_ctf_trace_get_name(trace));
 	ret = visitor_helper(&obj, get_stream_class_count,
 			get_stream_class, visit_stream_class, visitor, data);
 end:
@@ -1691,6 +1979,7 @@ int invoke_listener(struct bt_ctf_object *object, void *data)
 	return 0;
 }
 
+// TODO: add logging to this function once we use it internally.
 int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace,
 		bt_ctf_listener_cb listener, void *listener_data)
 {
@@ -1774,8 +2063,20 @@ void bt_ctf_trace_freeze(struct bt_ctf_trace *trace)
 {
 	int i;
 
+	if (trace->frozen) {
+		return;
+	}
+
+	BT_LOGD("Freezing trace: addr=%p, name=\"%s\"",
+		trace, bt_ctf_trace_get_name(trace));
+	BT_LOGD_STR("Freezing packet header field type.");
 	bt_ctf_field_type_freeze(trace->packet_header_type);
+	BT_LOGD_STR("Freezing environment attributes.");
 	bt_ctf_attributes_freeze(trace->environment);
+
+	if (trace->clocks->len > 0) {
+		BT_LOGD_STR("Freezing clock classes.");
+	}
 
 	for (i = 0; i < trace->clocks->len; i++) {
 		struct bt_ctf_clock_class *clock_class =
@@ -1792,6 +2093,7 @@ bt_bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace)
 	bt_bool is_static = BT_FALSE;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		goto end;
 	}
 
@@ -1806,12 +2108,15 @@ int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace)
 	int ret = 0;
 
 	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = -1;
 		goto end;
 	}
 
 	trace->is_static = BT_TRUE;
 	bt_ctf_trace_freeze(trace);
+	BT_LOGV("Set trace static: addr=%p, name=\"%s\"",
+		trace, bt_ctf_trace_get_name(trace));
 
 end:
 	return ret;
