@@ -29,6 +29,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <limits.h>
@@ -168,4 +169,30 @@ int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
 
 end:
 	return ret;
+}
+
+BT_HIDDEN
+GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
+{
+	GString *str = g_string_new(NULL);
+	size_t i;
+
+	assert(path);
+
+	if (!str) {
+		goto end;
+	}
+
+	g_string_append_printf(str, "[%s", bt_ctf_scope_string(path->root));
+
+	for (i = 0; i < path->indexes->len; i++) {
+		int index = g_array_index(path->indexes, int, i);
+
+		g_string_append_printf(str, ", %d", index);
+	}
+
+	g_string_append(str, "]");
+
+end:
+	return str;
 }

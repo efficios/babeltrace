@@ -54,4 +54,7 @@ BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path);
 
+BT_HIDDEN
+GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path);
+
 #endif /* BABELTRACE_CTF_IR_FIELD_PATH_INTERNAL */
