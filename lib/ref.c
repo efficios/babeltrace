@@ -38,6 +38,10 @@ void *bt_get(void *ptr)
 		goto end;
 	}
 
+	if (unlikely(!obj->ref_count.release)) {
+		goto end;
+	}
+
 	if (unlikely(obj->parent && bt_object_get_ref_count(obj) == 0)) {
 		BT_LOGV("Incrementing object's parent's reference count: "
 			"addr=%p, parent-addr=%p", ptr, obj->parent);
@@ -49,6 +53,7 @@ void *bt_get(void *ptr)
 		ptr,
 		obj->ref_count.count, obj->ref_count.count + 1);
 	bt_ref_get(&obj->ref_count);
+
 end:
 	return obj;
 }
@@ -58,6 +63,10 @@ void bt_put(void *ptr)
 	struct bt_object *obj = ptr;
 
 	if (unlikely(!obj)) {
+		return;
+	}
+
+	if (unlikely(!obj->ref_count.release)) {
 		return;
 	}
 
