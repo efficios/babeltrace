@@ -138,10 +138,24 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 	}
 
 	if (shared_lib_handle->module) {
-		if (!g_module_close(shared_lib_handle->module)) {
-			printf_error("Module close error: %s\n",
-					g_module_error());
+#ifndef NDEBUG
+		/*
+		 * Valgrind shows incomplete stack traces when
+		 * dynamically loaded libraries are closed before it
+		 * finishes. Use the BABELTRACE_NO_DLCLOSE in a debug
+		 * build to avoid this.
+		 */
+		const char *var = getenv("BABELTRACE_NO_DLCLOSE");
+
+		if (!var || strcmp(var, "1") != 0) {
+#endif
+			if (!g_module_close(shared_lib_handle->module)) {
+				printf_error("Module close error: %s\n",
+						g_module_error());
+			}
+#ifndef NDEBUG
 		}
+#endif
 	}
 
 	if (shared_lib_handle->path) {
