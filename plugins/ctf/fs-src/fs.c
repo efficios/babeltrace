@@ -930,6 +930,13 @@ struct ctf_fs_trace *ctf_fs_trace_create(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
+	/*
+	 * create_ds_file_groups() created all the streams that this
+	 * trace needs. There won't be any more. Therefore it is safe to
+	 * make this trace static.
+	 */
+	(void) bt_ctf_trace_set_is_static(ctf_fs_trace->metadata->trace);
+
 	goto end;
 
 error:
