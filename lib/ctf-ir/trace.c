@@ -284,12 +284,12 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	}
 
 	if (trace->streams) {
-		BT_LOGD_STR("Putting streams.");
+		BT_LOGD_STR("Destroying streams.");
 		g_ptr_array_free(trace->streams, TRUE);
 	}
 
 	if (trace->stream_classes) {
-		BT_LOGD_STR("Putting stream classes.");
+		BT_LOGD_STR("Destroying stream classes.");
 		g_ptr_array_free(trace->stream_classes, TRUE);
 	}
 
