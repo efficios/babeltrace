@@ -1738,7 +1738,7 @@ class Event:
         :exc:`ValueError` is raised on error.
         """
 
-        if not isinstance(value, Field):
+        if not isinstance(value_field, Field):
             raise TypeError("Invalid value type.")
 
         ret = nbt._bt_ctf_event_set_payload(self._e, str(field_name),
