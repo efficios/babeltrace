@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMP-SINK"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component-sink-internal.h>
@@ -45,6 +48,7 @@ struct bt_component *bt_component_sink_create(
 
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
+		BT_LOGE_STR("Failed to allocate one sink component.");
 		goto end;
 	}
 
@@ -60,18 +64,32 @@ enum bt_component_status bt_component_sink_consume(
 	struct bt_component_class_sink *sink_class = NULL;
 
 	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
 		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
 		goto end;
 	}
 
 	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
 	assert(sink_class->methods.consume);
+	BT_LOGD("Calling user's consume method: "
+		"comp-addr=%p, comp-name=\"%s\"",
+		component, bt_component_get_name(component));
 	ret = sink_class->methods.consume(bt_private_component_from_component(component));
+	BT_LOGD("User method returned: status=%s",
+		bt_component_status_string(ret));
+	if (ret < 0) {
+		BT_LOGW_STR("Consume method failed.");
+	}
+
 end:
 	return ret;
 }
@@ -80,13 +98,24 @@ int64_t bt_component_sink_get_input_port_count(struct bt_component *component)
 {
 	int64_t ret;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-	        ret = (int64_t) -1;
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		ret = (int64_t) -1;
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		ret = (int64_t) -1;
+		goto end;
+	}
+
+	/* bt_component_get_input_port_count() logs details/errors */
 	ret = bt_component_get_input_port_count(component);
+
 end:
 	return ret;
 }
@@ -96,12 +125,27 @@ struct bt_port *bt_component_sink_get_input_port_by_name(
 {
 	struct bt_port *port = NULL;
 
-	if (!component || !name ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_input_port_by_name() logs details/errors */
 	port = bt_component_get_input_port_by_name(component, name);
+
 end:
 	return port;
 }
@@ -111,12 +155,22 @@ struct bt_port *bt_component_sink_get_input_port_by_index(
 {
 	struct bt_port *port = NULL;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_input_port_by_index() logs details/errors */
 	port = bt_component_get_input_port_by_index(component, index);
+
 end:
 	return port;
 }
@@ -125,6 +179,7 @@ struct bt_private_port *
 bt_private_component_sink_get_input_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
 {
+	/* bt_component_sink_get_input_port_by_index() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_sink_get_input_port_by_index(
 			bt_component_from_private(private_component), index));
@@ -135,6 +190,7 @@ bt_private_component_sink_get_input_private_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
+	/* bt_component_sink_get_input_port_by_name() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_sink_get_input_port_by_name(
 			bt_component_from_private(private_component), name));
@@ -148,12 +204,22 @@ struct bt_private_port *bt_private_component_sink_add_input_private_port(
 	struct bt_component *component =
 		bt_component_from_private(private_component);
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_add_input_port() logs details/errors */
 	port = bt_component_add_input_port(component, name, user_data);
+
 end:
 	return bt_private_port_from_port(port);
 }
