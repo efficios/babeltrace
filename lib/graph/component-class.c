@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMP-CLASS"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/ref.h>
@@ -41,6 +44,11 @@ void bt_component_class_destroy(struct bt_object *obj)
 	assert(obj);
 	class = container_of(obj, struct bt_component_class, base);
 
+	BT_LOGD("Destroying component class: "
+		"addr=%p, name=\"%s\", type=%s",
+		class, bt_component_class_get_name(class),
+		bt_component_class_type_string(class->type));
+
 	/* Call destroy listeners in reverse registration order */
 	for (i = class->destroy_listeners->len - 1; i >= 0; i--) {
 		struct bt_component_class_destroy_listener *listener =
@@ -48,6 +56,8 @@ void bt_component_class_destroy(struct bt_object *obj)
 				struct bt_component_class_destroy_listener,
 				i);
 
+		BT_LOGD("Calling destroy listener: func-addr=%p, data-addr=%p",
+			listener->func, listener->data);
 		listener->func(class, listener->data);
 	}
 
@@ -77,22 +87,26 @@ int bt_component_class_init(struct bt_component_class *class,
 	class->type = type;
 	class->name = g_string_new(name);
 	if (!class->name) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->description = g_string_new(NULL);
 	if (!class->description) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->help = g_string_new(NULL);
 	if (!class->help) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_component_class_destroy_listener));
 	if (!class->destroy_listeners) {
+		BT_LOGE_STR("Failed to allocate a GArray.");
 		goto error;
 	}
 
@@ -112,15 +126,26 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
-	if (!name || !notification_iterator_next_method) {
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
 
+	if (!notification_iterator_next_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		goto end;
+	}
+
+	BT_LOGD("Creating source component class: "
+		"name=\"%s\", notif-iter-next-method-addr=%p",
+		name, notification_iterator_next_method);
 	source_class = g_new0(struct bt_component_class_source, 1);
 	if (!source_class) {
+		BT_LOGE_STR("Failed to allocate one source component class.");
 		goto end;
 	}
 
+	/* bt_component_class_init() logs errors */
 	ret = bt_component_class_init(&source_class->parent,
 		BT_COMPONENT_CLASS_TYPE_SOURCE, name);
 	if (ret) {
@@ -134,6 +159,9 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 	}
 
 	source_class->methods.iterator.next = notification_iterator_next_method;
+	BT_LOGD("Created source component class: "
+		"name=\"%s\", notif-iter-next-method-addr=%p, addr=%p",
+		name, notification_iterator_next_method, &source_class->parent);
 
 end:
 	return &source_class->parent;
@@ -145,15 +173,26 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
-	if (!name || !notification_iterator_next_method) {
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
 
+	if (!notification_iterator_next_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		goto end;
+	}
+
+	BT_LOGD("Creating filter component class: "
+		"name=\"%s\", notif-iter-next-method-addr=%p",
+		name, notification_iterator_next_method);
 	filter_class = g_new0(struct bt_component_class_filter, 1);
 	if (!filter_class) {
+		BT_LOGE_STR("Failed to allocate one filter component class.");
 		goto end;
 	}
 
+	/* bt_component_class_init() logs errors */
 	ret = bt_component_class_init(&filter_class->parent,
 		BT_COMPONENT_CLASS_TYPE_FILTER, name);
 	if (ret) {
@@ -167,6 +206,9 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 	}
 
 	filter_class->methods.iterator.next = notification_iterator_next_method;
+	BT_LOGD("Created filter component class: "
+		"name=\"%s\", notif-iter-next-method-addr=%p, addr=%p",
+		name, notification_iterator_next_method, &filter_class->parent);
 
 end:
 	return &filter_class->parent;
@@ -178,15 +220,26 @@ struct bt_component_class *bt_component_class_sink_create(const char *name,
 	struct bt_component_class_sink *sink_class = NULL;
 	int ret;
 
-	if (!name || !consume_method) {
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
 
+	if (!consume_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		goto end;
+	}
+
+	BT_LOGD("Creating sink component class: "
+		"name=\"%s\", consume-method-addr=%p",
+		name, consume_method);
 	sink_class = g_new0(struct bt_component_class_sink, 1);
 	if (!sink_class) {
+		BT_LOGE_STR("Failed to allocate one sink component class.");
 		goto end;
 	}
 
+	/* bt_component_class_init() logs errors */
 	ret = bt_component_class_init(&sink_class->parent,
 		BT_COMPONENT_CLASS_TYPE_SINK, name);
 	if (ret) {
@@ -200,6 +253,9 @@ struct bt_component_class *bt_component_class_sink_create(const char *name,
 	}
 
 	sink_class->methods.consume = consume_method;
+	BT_LOGD("Created sink component class: "
+		"name=\"%s\", consume-method-addr=%p, addr=%p",
+		name, consume_method, &sink_class->parent);
 
 end:
 	return &sink_class->parent;
@@ -211,12 +267,35 @@ int bt_component_class_set_init_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !init_method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!init_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.init = init_method;
+	BT_LOGV("Set component class's initialization method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		init_method);
 
 end:
 	return ret;
@@ -228,12 +307,35 @@ int bt_component_class_set_query_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !query_method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!query_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.query = query_method;
+	BT_LOGV("Set component class's query method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		query_method);
 
 end:
 	return ret;
@@ -245,12 +347,35 @@ int bt_component_class_set_accept_port_connection_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.accept_port_connection = method;
+	BT_LOGV("Set component class's \"accept port connection\" method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		method);
 
 end:
 	return ret;
@@ -262,12 +387,35 @@ int bt_component_class_set_port_connected_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.port_connected = method;
+	BT_LOGV("Set component class's \"port connected\" method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		method);
 
 end:
 	return ret;
@@ -279,12 +427,35 @@ int bt_component_class_set_port_disconnected_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.port_disconnected = method;
+	BT_LOGV("Set component class's \"port disconnected\" method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		method);
 
 end:
 	return ret;
@@ -296,12 +467,35 @@ int bt_component_class_set_finalize_method(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !finalize_method) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!finalize_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	component_class->methods.finalize = finalize_method;
+	BT_LOGV("Set component class's finalization method: "
+		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		finalize_method);
 
 end:
 	return ret;
@@ -314,9 +508,34 @@ int bt_component_class_source_set_notification_iterator_init_method(
 	struct bt_component_class_source *source_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_init_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_init_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		BT_LOGW("Invalid parameter: component class is not a source component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -324,6 +543,11 @@ int bt_component_class_source_set_notification_iterator_init_method(
 	source_class = container_of(component_class,
 		struct bt_component_class_source, parent);
 	source_class->methods.iterator.init = notification_iterator_init_method;
+	BT_LOGV("Set filter component class's notification iterator initialization method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_init_method);
 
 end:
 	return ret;
@@ -336,9 +560,34 @@ int bt_component_class_source_set_notification_iterator_finalize_method(
 	struct bt_component_class_source *source_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_finalize_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_finalize_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		BT_LOGW("Invalid parameter: component class is not a source component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -347,6 +596,11 @@ int bt_component_class_source_set_notification_iterator_finalize_method(
 		struct bt_component_class_source, parent);
 	source_class->methods.iterator.finalize =
 		notification_iterator_finalize_method;
+	BT_LOGV("Set filter component class's notification iterator finalization method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_finalize_method);
 
 end:
 	return ret;
@@ -359,9 +613,34 @@ int bt_component_class_source_set_notification_iterator_seek_time_method(
 	struct bt_component_class_source *source_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_seek_time_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_seek_time_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		BT_LOGW("Invalid parameter: component class is not a source component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -370,6 +649,11 @@ int bt_component_class_source_set_notification_iterator_seek_time_method(
 		struct bt_component_class_source, parent);
 	source_class->methods.iterator.seek_time =
 		notification_iterator_seek_time_method;
+	BT_LOGV("Set source component class's notification iterator seek time method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_seek_time_method);
 
 end:
 	return ret;
@@ -382,9 +666,34 @@ int bt_component_class_filter_set_notification_iterator_init_method(
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_init_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_init_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component class is not a filter component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -392,6 +701,11 @@ int bt_component_class_filter_set_notification_iterator_init_method(
 	filter_class = container_of(component_class,
 		struct bt_component_class_filter, parent);
 	filter_class->methods.iterator.init = notification_iterator_init_method;
+	BT_LOGV("Set filter component class's notification iterator initialization method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_init_method);
 
 end:
 	return ret;
@@ -404,9 +718,34 @@ int bt_component_class_filter_set_notification_iterator_finalize_method(
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_finalize_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_finalize_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component class is not a filter component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -415,6 +754,11 @@ int bt_component_class_filter_set_notification_iterator_finalize_method(
 		struct bt_component_class_filter, parent);
 	filter_class->methods.iterator.finalize =
 		notification_iterator_finalize_method;
+	BT_LOGV("Set filter component class's notification iterator finalization method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_finalize_method);
 
 end:
 	return ret;
@@ -427,9 +771,34 @@ int bt_component_class_filter_set_notification_iterator_seek_time_method(
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
 
-	if (!component_class || component_class->frozen ||
-			!notification_iterator_seek_time_method ||
-			component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!notification_iterator_seek_time_method) {
+		BT_LOGW_STR("Invalid parameter: method is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component class is not a filter component class: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
@@ -438,6 +807,11 @@ int bt_component_class_filter_set_notification_iterator_seek_time_method(
 		struct bt_component_class_filter, parent);
 	filter_class->methods.iterator.seek_time =
 		notification_iterator_seek_time_method;
+	BT_LOGV("Set filter component class's notification iterator seek time method: "
+		"addr=%p, name=\"%s\", method-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		notification_iterator_seek_time_method);
 
 end:
 	return ret;
@@ -449,12 +823,34 @@ int bt_component_class_set_description(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !description) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!description) {
+		BT_LOGW_STR("Invalid parameter: description is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	g_string_assign(component_class->description, description);
+	BT_LOGV("Set component class's description: "
+		"addr=%p, name=\"%s\", type=%s",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type));
 
 end:
 	return ret;
@@ -466,12 +862,34 @@ int bt_component_class_set_help(
 {
 	int ret = 0;
 
-	if (!component_class || component_class->frozen || !help) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!help) {
+		BT_LOGW_STR("Invalid parameter: help is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (component_class->frozen) {
+		BT_LOGW("Invalid parameter: component class is frozen: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
 		ret = -1;
 		goto end;
 	}
 
 	g_string_assign(component_class->help, help);
+	BT_LOGV("Set component class's help text: "
+		"addr=%p, name=\"%s\", type=%s",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type));
 
 end:
 	return ret;
@@ -517,6 +935,13 @@ void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(class->destroy_listeners, listener);
+	BT_LOGV("Component class has no registered query method: "
+		"comp-class-addr=%p, comp-class-name=\"%s\", comp-class-type=%s"
+		"func-addr=%p, data-addr=%p",
+		class,
+		bt_component_class_get_name(class),
+		bt_component_class_type_string(class->type),
+		func, data);
 }
 
 int bt_component_class_freeze(
@@ -525,10 +950,20 @@ int bt_component_class_freeze(
 	int ret = 0;
 
 	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
 		ret = -1;
 		goto end;
 	}
 
+	if (component_class->frozen) {
+		goto end;
+	}
+
+	BT_LOGD("Freezing component class: "
+		"addr=%p, name=\"%s\", type=%s",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type));
 	component_class->frozen = BT_TRUE;
 
 end:
@@ -541,13 +976,41 @@ struct bt_value *bt_component_class_query(
 {
 	struct bt_value *results = NULL;
 
-	if (!component_class || !object || !params ||
-			!component_class->methods.query) {
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
 		goto end;
 	}
 
+	if (!object) {
+		BT_LOGW_STR("Invalid parameter: object string is NULL.");
+		goto end;
+	}
+
+	if (!params) {
+		BT_LOGW_STR("Invalid parameter: parameters value is NULL.");
+		goto end;
+	}
+
+	if (!component_class->methods.query) {
+		/* Not an error: nothing to query */
+		BT_LOGD("Component class has no registered query method: "
+			"addr=%p, name=\"%s\", type=%s",
+			component_class,
+			bt_component_class_get_name(component_class),
+			bt_component_class_type_string(component_class->type));
+		goto end;
+	}
+
+	BT_LOGD("Calling user's query method: "
+		"comp-class-addr=%p, comp-class-name=\"%s\", comp-class-type=%s"
+		"object=\"%s\", params-addr=%p",
+		component_class,
+		bt_component_class_get_name(component_class),
+		bt_component_class_type_string(component_class->type),
+		object, params);
 	results = component_class->methods.query(component_class,
 		object, params);
+	BT_LOGD("User method returned: results-addr=%p", results);
 
 end:
 	return results;
