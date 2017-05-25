@@ -336,8 +336,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 		goto end;
 	}
 
-	component->initializing = BT_TRUE;
-
 	if (component_class->methods.init) {
 		BT_LOGD_STR("Calling user's initialization method.");
 		ret = component_class->methods.init(
@@ -345,7 +343,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 			init_method_data);
 		BT_LOGD("User method returned: status=%s",
 			bt_component_status_string(ret));
-		component->initializing = BT_FALSE;
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			BT_LOGW_STR("Initialization method failed.");
 			BT_PUT(component);
@@ -353,7 +350,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 		}
 	}
 
-	component->initializing = BT_FALSE;
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_LOGW("Component is invalid: status=%s",
@@ -424,11 +420,6 @@ enum bt_component_status bt_private_component_set_user_data(
 
 	if (!component) {
 		BT_LOGW_STR("Invalid parameter: component is NULL.");
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (!component->initializing) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}

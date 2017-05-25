@@ -58,12 +58,6 @@ struct bt_component {
 	/* User-defined data */
 	void *user_data;
 
-	/*
-	 * Used to protect operations which may only be used during
-	 * a component's initialization.
-	 */
-	bt_bool initializing;
-
 	/* Input and output ports (weak references) */
 	GPtrArray *input_ports;
 	GPtrArray *output_ports;
