@@ -51,17 +51,28 @@
 #include "iterator.h"
 #include "copy.h"
 
+static
+gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
+{
+	struct bt_ctf_packet *writer_packet = value;
+
+	bt_put(writer_packet);
+	return TRUE;
+}
+
 BT_HIDDEN
 void trimmer_iterator_finalize(struct bt_private_notification_iterator *it)
 {
-	struct trimmer_iterator *it_data;
+	struct trimmer_iterator *trim_it;
 
-	it_data = bt_private_notification_iterator_get_user_data(it);
-	assert(it_data);
+	trim_it = bt_private_notification_iterator_get_user_data(it);
+	assert(trim_it);
 
-	bt_put(it_data->input_iterator);
-	g_hash_table_destroy(it_data->packet_map);
-	g_free(it_data);
+	bt_put(trim_it->input_iterator);
+	g_hash_table_foreach_remove(trim_it->packet_map,
+			close_packets, NULL);
+	g_hash_table_destroy(trim_it->packet_map);
+	g_free(trim_it);
 }
 
 BT_HIDDEN
