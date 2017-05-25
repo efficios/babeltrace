@@ -78,15 +78,6 @@ extern struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 		struct bt_port *downstream);
 
 /**
- * Add a component as a "sibling" of the origin component. Sibling share
- * connections equivalent to each other at the time of connection (same
- * upstream and downstream ports).
- */
-extern enum bt_graph_status bt_graph_add_component_as_sibling(
-		struct bt_graph *graph, struct bt_component *origin,
-		struct bt_component *new_component);
-
-/**
  * Run graph to completion or until a single sink is left and "AGAIN" is received.
  *
  * Runs "bt_component_sink_consume()" on all sinks in round-robin until they all
