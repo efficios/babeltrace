@@ -1112,6 +1112,7 @@ struct bt_ctf_stream *debug_info_stream_end(struct debug_info_iterator *debug_it
 				__func__, __FILE__, __LINE__);
 		goto end;
 	}
+	bt_get(writer_stream);
 	g_hash_table_remove(debug_it->stream_map, stream);
 
 end:
