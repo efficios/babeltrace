@@ -29,10 +29,6 @@
 
 #include <babeltrace/graph/port.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct bt_port {
 	struct bt_object base;
 	enum bt_port_type type;
@@ -63,8 +59,19 @@ BT_HIDDEN
 void bt_port_set_connection(struct bt_port *port,
 		struct bt_connection *connection);
 
-#ifdef __cplusplus
+static inline
+const char *bt_port_type_string(enum bt_port_type port_type)
+{
+	switch (port_type) {
+	case BT_PORT_TYPE_INPUT:
+		return "BT_PORT_TYPE_INPUT";
+	case BT_PORT_TYPE_OUTPUT:
+		return "BT_PORT_TYPE_OUTPUT";
+	case BT_PORT_TYPE_UNKOWN:
+		return "BT_PORT_TYPE_UNKOWN";
+	default:
+		return "(unknown)";
+	}
 }
-#endif
 
 #endif /* BABELTRACE_COMPONENT_PORT_INTERNAL_H */

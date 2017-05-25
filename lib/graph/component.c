@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMP"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-internal.h>
@@ -42,7 +45,10 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/types.h>
+#include <babeltrace/values.h>
+#include <babeltrace/values-internal.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 static
 struct bt_component * (* const component_create_funcs[])(
@@ -89,8 +95,13 @@ void bt_component_destroy(struct bt_object *obj)
 	 */
 	obj->ref_count.count++;
 	component = container_of(obj, struct bt_component, base);
+	BT_LOGD("Destroying component: addr=%p, name=\"%s\", graph-addr=%p",
+		component, bt_component_get_name(component),
+		obj->parent);
 
 	/* Call destroy listeners in reverse registration order */
+	BT_LOGD_STR("Calling destroy listeners.");
+
 	for (i = component->destroy_listeners->len - 1; i >= 0; i--) {
 		struct bt_component_destroy_listener *listener =
 			&g_array_index(component->destroy_listeners,
@@ -106,19 +117,23 @@ void bt_component_destroy(struct bt_object *obj)
 	 * instance.
 	 */
 	if (component->class->methods.finalize) {
+		BT_LOGD_STR("Calling user's finalization method.");
 		component->class->methods.finalize(
 			bt_private_component_from_component(component));
 	}
 
 	if (component->destroy) {
+		BT_LOGD_STR("Destroying type-specific data.");
 		component->destroy(component);
 	}
 
 	if (component->input_ports) {
+		BT_LOGD_STR("Destroying input ports.");
 		g_ptr_array_free(component->input_ports, TRUE);
 	}
 
 	if (component->output_ports) {
+		BT_LOGD_STR("Destroying output ports.");
 		g_ptr_array_free(component->output_ports, TRUE);
 	}
 
@@ -126,7 +141,11 @@ void bt_component_destroy(struct bt_object *obj)
 		g_array_free(component->destroy_listeners, TRUE);
 	}
 
-	g_string_free(component->name, TRUE);
+	if (component->name) {
+		g_string_free(component->name, TRUE);
+	}
+
+	BT_LOGD("Putting component class.");
 	bt_put(component_class);
 	g_free(component);
 }
@@ -152,29 +171,40 @@ struct bt_port *bt_component_add_port(
 	struct bt_port *new_port = NULL;
 	struct bt_graph *graph = NULL;
 
-	if (!name || strlen(name) == 0) {
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
 		goto end;
 	}
+
+	if (strlen(name) == 0) {
+		BT_LOGW_STR("Invalid parameter: name is an empty string.");
+		goto end;
+	}
+
+	BT_LOGD("Adding port to component: comp-addr=%p, comp-name=\"%s\", "
+		"port-type=%s, port-name=\"%s\"", component,
+		bt_component_get_name(component),
+		bt_port_type_string(port_type), name);
 
 	/* Look for a port having the same name. */
 	for (i = 0; i < ports->len; i++) {
 		const char *port_name;
-		struct bt_port *port = g_ptr_array_index(
-				ports, i);
+		struct bt_port *port = g_ptr_array_index(ports, i);
 
 		port_name = bt_port_get_name(port);
-		if (!port_name) {
-			continue;
-		}
+		assert(port_name);
 
 		if (!strcmp(name, port_name)) {
 			/* Port name clash, abort. */
+			BT_LOGW("Invalid parameter: another port with the same name already exists in the component: "
+				"other-port-addr=%p", port);
 			goto end;
 		}
 	}
 
 	new_port = bt_port_create(component, port_type, name, user_data);
 	if (!new_port) {
+		BT_LOGE("Cannot create port object.");
 		goto end;
 	}
 
@@ -194,6 +224,11 @@ struct bt_port *bt_component_add_port(
 		bt_graph_notify_port_added(graph, new_port);
 		BT_PUT(graph);
 	}
+
+	BT_LOGD("Created and added port to component: comp-addr=%p, comp-name=\"%s\", "
+		"port-type=%s, port-name=\"%s\", port-addr=%p", component,
+		bt_component_get_name(component),
+		bt_port_type_string(port_type), name, new_port);
 
 end:
 	return new_port;
@@ -224,14 +259,23 @@ struct bt_component *bt_component_create_with_init_method_data(
 	bt_get(params);
 
 	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
 		goto end;
 	}
 
 	type = bt_component_class_get_type(component_class);
 	if (type <= BT_COMPONENT_CLASS_TYPE_UNKNOWN ||
 			type > BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: unknown component class type: "
+			"type=%s", bt_component_class_type_string(type));
 		goto end;
 	}
+
+	BT_LOGD("Creating component from component class: "
+		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", "
+		"params-addr=%p, init-method-data-addr=%p",
+		component_class, bt_component_class_type_string(type),
+		name, params, init_method_data);
 
 	/*
 	 * Parameters must be a map value, but we create a convenient
@@ -239,17 +283,22 @@ struct bt_component *bt_component_create_with_init_method_data(
 	 */
 	if (params) {
 		if (!bt_value_is_map(params)) {
+			BT_LOGW("Invalid parameter: initialization parameters must be a map value: "
+				"type=%s",
+				bt_value_type_string(bt_value_get_type(params)));
 			goto end;
 		}
 	} else {
 		params = bt_value_map_create();
 		if (!params) {
+			BT_LOGE_STR("Cannot create map value object.");
 			goto end;
 		}
 	}
 
 	component = component_create_funcs[type](component_class, params);
 	if (!component) {
+		BT_LOGE_STR("Cannot create specific component object.");
 		goto end;
 	}
 
@@ -258,6 +307,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {
+		BT_LOGE_STR("Failed to allocate one GString.");
 		BT_PUT(component);
 		goto end;
 	}
@@ -265,6 +315,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->input_ports = g_ptr_array_new_with_free_func(
 		bt_object_release);
 	if (!component->input_ports) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		BT_PUT(component);
 		goto end;
 	}
@@ -272,6 +323,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->output_ports = g_ptr_array_new_with_free_func(
 		bt_object_release);
 	if (!component->output_ports) {
+		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		BT_PUT(component);
 		goto end;
 	}
@@ -279,6 +331,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_component_destroy_listener));
 	if (!component->destroy_listeners) {
+		BT_LOGE_STR("Failed to allocate one GArray.");
 		BT_PUT(component);
 		goto end;
 	}
@@ -286,11 +339,15 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->initializing = BT_TRUE;
 
 	if (component_class->methods.init) {
+		BT_LOGD_STR("Calling user's initialization method.");
 		ret = component_class->methods.init(
 			bt_private_component_from_component(component), params,
 			init_method_data);
+		BT_LOGD("User method returned: status=%s",
+			bt_component_status_string(ret));
 		component->initializing = BT_FALSE;
 		if (ret != BT_COMPONENT_STATUS_OK) {
+			BT_LOGW_STR("Initialization method failed.");
 			BT_PUT(component);
 			goto end;
 		}
@@ -299,11 +356,20 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->initializing = BT_FALSE;
 	ret = component_validation_funcs[type](component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
+		BT_LOGW("Component is invalid: status=%s",
+			bt_component_status_string(ret));
 		BT_PUT(component);
 		goto end;
 	}
 
+	BT_LOGD_STR("Freezing component class.");
 	bt_component_class_freeze(component->class);
+	BT_LOGD("Created component from component class: "
+		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", "
+		"params-addr=%p, init-method-data-addr=%p, comp-addr=%p",
+		component_class, bt_component_class_type_string(type),
+		name, params, init_method_data, component);
+
 end:
 	bt_put(params);
 	return component;
@@ -313,6 +379,7 @@ struct bt_component *bt_component_create(
 		struct bt_component_class *component_class, const char *name,
 		struct bt_value *params)
 {
+	/* bt_component_create_with_init_method_data() logs details */
 	return bt_component_create_with_init_method_data(component_class, name,
 		params, NULL);
 }
@@ -322,10 +389,12 @@ const char *bt_component_get_name(struct bt_component *component)
 	const char *ret = NULL;
 
 	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
 	ret = component->name->len == 0 ? NULL : component->name->str;
+
 end:
 	return ret;
 }
@@ -353,12 +422,22 @@ enum bt_component_status bt_private_component_set_user_data(
 		bt_component_from_private(private_component);
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	if (!component || !component->initializing) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		ret = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!component->initializing) {
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	component->user_data = data;
+	BT_LOGV("Set component's user data: "
+		"comp-addr=%p, comp-name=\"%s\", user-data-addr=%p",
+		component, bt_component_get_name(component), data);
+
 end:
 	return ret;
 }
@@ -432,6 +511,9 @@ struct bt_port *bt_component_get_port_by_index(GPtrArray *ports, uint64_t index)
 	struct bt_port *port = NULL;
 
 	if (index >= ports->len) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"index=%" PRIu64 ", count=%u",
+			index, ports->len);
 		goto end;
 	}
 
@@ -463,6 +545,7 @@ struct bt_port *bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data)
 {
+	/* bt_component_add_port() logs details */
 	return bt_component_add_port(component, component->input_ports,
 		BT_PORT_TYPE_INPUT, name, user_data);
 }
@@ -472,6 +555,7 @@ struct bt_port *bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data)
 {
+	/* bt_component_add_port() logs details */
 	return bt_component_add_port(component, component->output_ports,
 		BT_PORT_TYPE_OUTPUT, name, user_data);
 }
@@ -486,6 +570,12 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 	assert(ports);
 	assert(index < ports->len);
 	port = g_ptr_array_index(ports, index);
+
+	BT_LOGD("Removing port from component: "
+		"comp-addr=%p, comp-name=\"%s\", "
+		"port-addr=%p, port-name=\"%s\"",
+		component, bt_component_get_name(component),
+		port, bt_port_get_name(port));
 
 	/* Disconnect both ports of this port's connection, if any */
 	if (port->connection) {
@@ -506,6 +596,12 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 		bt_graph_notify_port_removed(graph, component, port);
 		BT_PUT(graph);
 	}
+
+	BT_LOGD("Removed port from component: "
+		"comp-addr=%p, comp-name=\"%s\", "
+		"port-addr=%p, port-name=\"%s\"",
+		component, bt_component_get_name(component),
+		port, bt_port_get_name(port));
 }
 
 BT_HIDDEN
@@ -516,7 +612,14 @@ enum bt_component_status bt_component_remove_port(
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	GPtrArray *ports = NULL;
 
-	if (!component || !port) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		status = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!port) {
+		BT_LOGW_STR("Invalid parameter: port is NULL.");
 		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
@@ -540,6 +643,12 @@ enum bt_component_status bt_component_remove_port(
 	}
 
 	status = BT_COMPONENT_STATUS_NOT_FOUND;
+	BT_LOGW("Port to remove from component was not found: "
+		"comp-addr=%p, comp-name=\"%s\", "
+		"port-addr=%p, port-name=\"%s\"",
+		component, bt_component_get_name(component),
+		port, bt_port_get_name(port));
+
 end:
 	return status;
 }
@@ -556,10 +665,19 @@ enum bt_component_status bt_component_accept_port_connection(
 	assert(other_port);
 
 	if (comp->class->methods.accept_port_connection) {
+		BT_LOGD("Calling user's \"accept port connection\" method: "
+			"comp-addr=%p, comp-name=\"%s\", "
+			"self-port-addr=%p, self-port-name=\"%s\", "
+			"other-port-addr=%p, other-port-name=\"%s\"",
+			comp, bt_component_get_name(comp),
+			self_port, bt_port_get_name(self_port),
+			other_port, bt_port_get_name(other_port));
 		status = comp->class->methods.accept_port_connection(
 			bt_private_component_from_component(comp),
 			bt_private_port_from_port(self_port),
 			other_port);
+		BT_LOGD("User method returned: status=%s",
+			bt_component_status_string(status));
 	}
 
 	return status;
@@ -574,6 +692,13 @@ void bt_component_port_connected(struct bt_component *comp,
 	assert(other_port);
 
 	if (comp->class->methods.port_connected) {
+		BT_LOGD("Calling user's \"port connected\" method: "
+			"comp-addr=%p, comp-name=\"%s\", "
+			"self-port-addr=%p, self-port-name=\"%s\", "
+			"other-port-addr=%p, other-port-name=\"%s\"",
+			comp, bt_component_get_name(comp),
+			self_port, bt_port_get_name(self_port),
+			other_port, bt_port_get_name(other_port));
 		comp->class->methods.port_connected(
 			bt_private_component_from_component(comp),
 			bt_private_port_from_port(self_port), other_port);
@@ -588,6 +713,11 @@ void bt_component_port_disconnected(struct bt_component *comp,
 	assert(port);
 
 	if (comp->class->methods.port_disconnected) {
+		BT_LOGD("Calling user's \"port disconnected\" method: "
+			"comp-addr=%p, comp-name=\"%s\", "
+			"port-addr=%p, port-name=\"%s\"",
+			comp, bt_component_get_name(comp),
+			port, bt_port_get_name(port));
 		comp->class->methods.port_disconnected(
 			bt_private_component_from_component(comp),
 			bt_private_port_from_port(port));
@@ -605,6 +735,11 @@ void bt_component_add_destroy_listener(struct bt_component *component,
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(component->destroy_listeners, listener);
+	BT_LOGV("Added destroy listener: "
+		"comp-addr=%p, comp-name=\"%s\", "
+		"func-addr=%p, data-addr=%p",
+		component, bt_component_get_name(component),
+		func, data);
 }
 
 BT_HIDDEN
@@ -624,6 +759,11 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 		if (listener->func == func && listener->data == data) {
 			g_array_remove_index(component->destroy_listeners, i);
 			i--;
+			BT_LOGV("Removed destroy listener: "
+				"comp-addr=%p, comp-name=\"%s\", "
+				"func-addr=%p, data-addr=%p",
+				component, bt_component_get_name(component),
+				func, data);
 		}
 	}
 }

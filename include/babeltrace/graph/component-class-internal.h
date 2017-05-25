@@ -99,4 +99,21 @@ BT_HIDDEN
 void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 		bt_component_class_destroy_listener_func func, void *data);
 
+static inline
+const char *bt_component_class_type_string(enum bt_component_class_type type)
+{
+	switch (type) {
+	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
+		return "BT_COMPONENT_CLASS_TYPE_UNKNOWN";
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		return "BT_COMPONENT_CLASS_TYPE_SOURCE";
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+		return "BT_COMPONENT_CLASS_TYPE_SINK";
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+		return "BT_COMPONENT_CLASS_TYPE_FILTER";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* BABELTRACE_COMPONENT_COMPONENT_CLASS_INTERNAL_H */
