@@ -467,14 +467,8 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	assert(bt_port_is_connected(upstream_port));
 
 	type = bt_component_get_class_type(upstream_comp);
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		break;
-	default:
-		goto error;
-	}
-
+	assert(type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
+		type == BT_COMPONENT_CLASS_TYPE_FILTER);
 	iterator = g_new0(struct bt_notification_iterator, 1);
 	if (!iterator) {
 		goto error;
