@@ -1855,15 +1855,16 @@ void bt_ctf_stream_map_component_to_port(struct bt_ctf_stream *stream,
 	 * listener so that we remove this hash table entry when we know
 	 * the component is destroyed.
 	 */
-	bt_component_add_destroy_listener(comp, component_destroy_listener,
-		stream);
-	g_hash_table_insert(stream->comp_cur_port, comp, port);
-	BT_LOGV("Mapped component to port for stream: stream-addr=%p, "
-		"stream-name=\"%s\", comp-addr=%p, comp-name=\"%s\", "
-		"port-addr=%p, port-name=\"%s\"",
+	BT_LOGV("Adding component's destroy listener for stream: "
+		"stream-addr=%p, stream-name=\"%s\", comp-addr=%p, "
+		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
 		stream, bt_ctf_stream_get_name(stream),
 		comp, bt_component_get_name(comp), port,
 		bt_port_get_name(port));
+	bt_component_add_destroy_listener(comp, component_destroy_listener,
+		stream);
+	g_hash_table_insert(stream->comp_cur_port, comp, port);
+	BT_LOGV_STR("Mapped component to port for stream.");
 }
 
 BT_HIDDEN
