@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMP-FILTER"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component-filter-internal.h>
@@ -47,6 +50,7 @@ struct bt_component *bt_component_filter_create(
 
 	filter = g_new0(struct bt_component_filter, 1);
 	if (!filter) {
+		BT_LOGE_STR("Failed to allocate one filter component.");
 		goto end;
 	}
 
@@ -59,13 +63,23 @@ int64_t bt_component_filter_get_input_port_count(
 {
 	int64_t ret;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-	        ret = (int64_t) -1;
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		ret = (int64_t) -1;
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		ret = (int64_t) -1;
 		goto end;
 	}
 
 	ret = (int64_t) bt_component_get_input_port_count(component);
+
 end:
 	return ret;
 }
@@ -75,12 +89,27 @@ struct bt_port *bt_component_filter_get_input_port_by_name(
 {
 	struct bt_port *port = NULL;
 
-	if (!component || !name ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_input_port_by_name() logs details/errors */
 	port = bt_component_get_input_port_by_name(component, name);
+
 end:
 	return port;
 }
@@ -90,12 +119,22 @@ struct bt_port *bt_component_filter_get_input_port_by_index(
 {
 	struct bt_port *port = NULL;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_input_port_by_index() logs details/errors */
 	port = bt_component_get_input_port_by_index(component, index);
+
 end:
 	return port;
 }
@@ -105,13 +144,24 @@ int64_t bt_component_filter_get_output_port_count(
 {
 	int64_t ret;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-	        ret = (int64_t) -1;
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		ret = (int64_t) -1;
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		ret = (int64_t) -1;
+		goto end;
+	}
+
+	/* bt_component_get_output_port_count() logs details/errors */
 	ret = bt_component_get_output_port_count(component);
+
 end:
 	return ret;
 }
@@ -121,12 +171,27 @@ struct bt_port *bt_component_filter_get_output_port_by_name(
 {
 	struct bt_port *port = NULL;
 
-	if (!component || !name ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		goto end;
+	}
+
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_output_port_by_name() logs details/errors */
 	port = bt_component_get_output_port_by_name(component, name);
+
 end:
 	return port;
 }
@@ -136,12 +201,22 @@ struct bt_port *bt_component_filter_get_output_port_by_index(
 {
 	struct bt_port *port = NULL;
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_get_output_port_by_index() logs details/errors */
 	port = bt_component_get_output_port_by_index(component, index);
+
 end:
 	return port;
 }
@@ -150,6 +225,7 @@ struct bt_private_port *
 bt_private_component_filter_get_input_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
 {
+	/* bt_component_filter_get_input_port_by_index() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_filter_get_input_port_by_index(
 			bt_component_from_private(private_component), index));
@@ -160,6 +236,7 @@ bt_private_component_filter_get_input_private_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
+	/* bt_component_filter_get_input_port_by_name() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_filter_get_input_port_by_name(
 			bt_component_from_private(private_component), name));
@@ -173,12 +250,22 @@ struct bt_private_port *bt_private_component_filter_add_input_private_port(
 	struct bt_component *component =
 		bt_component_from_private(private_component);
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_add_input_port() logs details/errors */
 	port = bt_component_add_input_port(component, name, user_data);
+
 end:
 	return bt_private_port_from_port(port);
 }
@@ -187,6 +274,7 @@ struct bt_private_port *
 bt_private_component_filter_get_output_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
 {
+	/* bt_component_filter_get_output_port_by_index() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_filter_get_output_port_by_index(
 			bt_component_from_private(private_component), index));
@@ -197,6 +285,7 @@ bt_private_component_filter_get_output_private_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
+	/* bt_component_filter_get_output_port_by_name() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_filter_get_output_port_by_name(
 			bt_component_from_private(private_component), name));
@@ -210,12 +299,22 @@ struct bt_private_port *bt_private_component_filter_add_output_private_port(
 	struct bt_component *component =
 		bt_component_from_private(private_component);
 
-	if (!component ||
-			component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+	if (!component) {
+		BT_LOGW_STR("Invalid parameter: component is NULL.");
 		goto end;
 	}
 
+	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
+		BT_LOGW("Invalid parameter: component's class is not a filter component class: "
+			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
+			component, bt_component_get_name(component),
+			bt_component_class_type_string(component->class->type));
+		goto end;
+	}
+
+	/* bt_component_add_output_port() logs details/errors */
 	port = bt_component_add_output_port(component, name, user_data);
+
 end:
 	return bt_private_port_from_port(port);
 }
