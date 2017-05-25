@@ -147,4 +147,31 @@ BT_HIDDEN
 void bt_component_remove_destroy_listener(struct bt_component *component,
 		bt_component_destroy_listener_func func, void *data);
 
+static inline
+const char *bt_component_status_string(enum bt_component_status status)
+{
+	switch (status) {
+	case BT_COMPONENT_STATUS_OK:
+		return "BT_COMPONENT_STATUS_OK";
+	case BT_COMPONENT_STATUS_END:
+		return "BT_COMPONENT_STATUS_END";
+	case BT_COMPONENT_STATUS_AGAIN:
+		return "BT_COMPONENT_STATUS_AGAIN";
+	case BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+		return "BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION";
+	case BT_COMPONENT_STATUS_ERROR:
+		return "BT_COMPONENT_STATUS_ERROR";
+	case BT_COMPONENT_STATUS_UNSUPPORTED:
+		return "BT_COMPONENT_STATUS_UNSUPPORTED";
+	case BT_COMPONENT_STATUS_INVALID:
+		return "BT_COMPONENT_STATUS_INVALID";
+	case BT_COMPONENT_STATUS_NOMEM:
+		return "BT_COMPONENT_STATUS_NOMEM";
+	case BT_COMPONENT_STATUS_NOT_FOUND:
+		return "BT_COMPONENT_STATUS_NOT_FOUND";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H */

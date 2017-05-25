@@ -87,4 +87,29 @@ BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection);
 
+static inline
+const char *bt_graph_status_string(enum bt_graph_status status)
+{
+	switch (status) {
+	case BT_GRAPH_STATUS_CANCELED:
+		return "BT_GRAPH_STATUS_CANCELED";
+	case BT_GRAPH_STATUS_AGAIN:
+		return "BT_GRAPH_STATUS_AGAIN";
+	case BT_GRAPH_STATUS_END:
+		return "BT_GRAPH_STATUS_END";
+	case BT_GRAPH_STATUS_OK:
+		return "BT_GRAPH_STATUS_OK";
+	case BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH:
+		return "BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH";
+	case BT_GRAPH_STATUS_INVALID:
+		return "BT_GRAPH_STATUS_INVALID";
+	case BT_GRAPH_STATUS_NO_SINK:
+		return "BT_GRAPH_STATUS_NO_SINK";
+	case BT_GRAPH_STATUS_ERROR:
+		return "BT_GRAPH_STATUS_ERROR";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* BABELTRACE_COMPONENT_COMPONENT_GRAPH_INTERNAL_H */
