@@ -165,7 +165,6 @@ struct bt_notification *handle_notification(FILE *err,
 				writer_packet);
 		assert(new_notification);
 		bt_put(packet);
-		bt_put(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:

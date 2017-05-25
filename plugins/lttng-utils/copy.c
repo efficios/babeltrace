@@ -1055,7 +1055,6 @@ struct bt_ctf_packet *debug_info_new_packet(
 				__func__, __FILE__, __LINE__);
 		goto error;
 	}
-	bt_get(writer_packet);
 
 	writer_packet_context = ctf_copy_packet_context(debug_it->err, packet,
 			writer_stream, 0);
