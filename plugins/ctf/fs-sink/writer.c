@@ -192,6 +192,11 @@ void writer_component_port_connected(
 {
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
+	static const enum bt_notification_type notif_types[] = {
+		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
+		BT_NOTIFICATION_TYPE_PACKET_END,
+		BT_NOTIFICATION_TYPE_SENTINEL,
+	};
 
 	writer = bt_private_component_get_user_data(component);
 	assert(writer);
@@ -200,7 +205,7 @@ void writer_component_port_connected(
 	assert(connection);
 	writer->input_iterator =
 		bt_private_connection_create_notification_iterator(connection,
-			NULL);
+			notif_types);
 
 	if (!writer->input_iterator) {
 		writer->error = true;
