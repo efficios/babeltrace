@@ -57,9 +57,12 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 	 * are part of the trace to which the event belongs.
 	 */
 	bt_bool is_valid = BT_TRUE;
+
 	int trace_cc_count;
 	int cc_prio_map_cc_count;
 	size_t cc_prio_map_cc_i, trace_cc_i;
+	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_ctf_event_class *event_class = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
@@ -79,12 +82,11 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 
 	for (cc_prio_map_cc_i = 0; cc_prio_map_cc_i < cc_prio_map_cc_count;
 			cc_prio_map_cc_i++) {
-		struct bt_ctf_clock_class *clock_class =
-			bt_clock_class_priority_map_get_clock_class_by_index(
-				notif->cc_prio_map, cc_prio_map_cc_i);
-		struct bt_ctf_clock_value *clock_value;
 		bt_bool found_in_trace = BT_FALSE;
 
+		clock_class =
+			bt_clock_class_priority_map_get_clock_class_by_index(
+				notif->cc_prio_map, cc_prio_map_cc_i);
 		assert(clock_class);
 		clock_value = bt_ctf_event_get_clock_value(notif->event,
 			clock_class);
@@ -93,8 +95,6 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 			goto end;
 		}
 
-		bt_put(clock_value);
-
 		for (trace_cc_i = 0; trace_cc_i < trace_cc_count;
 				trace_cc_i++) {
 			struct bt_ctf_clock_class *trace_clock_class =
@@ -102,6 +102,7 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 					trace_cc_i);
 
 			assert(trace_clock_class);
+			bt_put(trace_clock_class);
 
 			if (trace_clock_class == clock_class) {
 				found_in_trace = BT_TRUE;
@@ -109,15 +110,18 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 			}
 		}
 
-		bt_put(clock_class);
-
 		if (!found_in_trace) {
 			is_valid = BT_FALSE;
 			goto end;
 		}
+
+		BT_PUT(clock_value);
+		BT_PUT(clock_class);
 	}
 
 end:
+	bt_put(clock_value);
+	bt_put(clock_class);
 	return is_valid;
 }
 
