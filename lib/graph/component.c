@@ -330,21 +330,6 @@ end:
 	return ret;
 }
 
-enum bt_component_status bt_component_set_name(struct bt_component *component,
-		const char *name)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component || !name || name[0] == '\0') {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	g_string_assign(component->name, name);
-end:
-	return ret;
-}
-
 struct bt_component_class *bt_component_get_class(
 		struct bt_component *component)
 {
