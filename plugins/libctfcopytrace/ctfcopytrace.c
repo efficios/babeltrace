@@ -538,7 +538,7 @@ struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
 	struct bt_ctf_field_type *struct_type = NULL, *writer_packet_context_type = NULL;
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
 	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type;
+	struct bt_ctf_field_type *field_type = NULL;
 	int nr_fields, i;
 
 	packet_context = bt_ctf_packet_get_context(packet);
