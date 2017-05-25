@@ -381,9 +381,6 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err,
 			event, "_vpid", &vpid);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -392,7 +389,6 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -417,7 +413,6 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -451,9 +446,6 @@ void handle_statedump_debug_link_event(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err, event,
 			"_vpid", &vpid);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -569,9 +561,6 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err, event, "_vpid",
 			&vpid);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -656,9 +645,6 @@ void handle_lib_unload_event(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err, event, "_vpid",
 			&vpid);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -686,9 +672,6 @@ void handle_statedump_start(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err, event,
 			"_vpid", &vpid);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 

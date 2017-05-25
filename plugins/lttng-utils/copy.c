@@ -84,8 +84,6 @@ struct bt_ctf_field *get_stream_event_context_field(FILE *err,
 
 	sec = bt_ctf_event_get_stream_event_context(event);
 	if (!sec) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
 		goto end;
 	}
 
@@ -121,8 +119,6 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 
 	field = get_stream_event_context_field(err, event, field_name);
 	if (!field) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
 		goto error;
 	}
 
