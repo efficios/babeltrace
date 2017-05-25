@@ -33,30 +33,6 @@
 #include <babeltrace/graph/notification.h>
 
 BT_HIDDEN
-enum bt_component_status bt_component_sink_validate(
-		struct bt_component *component)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (!component->class) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (component->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-end:
-	return ret;
-}
-
-BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
 {
 }

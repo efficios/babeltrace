@@ -510,21 +510,6 @@ end:
 	return iterator;
 }
 
-BT_HIDDEN
-enum bt_notification_iterator_status bt_notification_iterator_validate(
-		struct bt_notification_iterator *iterator)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-
-	if (!iterator) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
-		goto end;
-	}
-end:
-	return ret;
-}
-
 void *bt_private_notification_iterator_get_user_data(
 		struct bt_private_notification_iterator *private_iterator)
 {

@@ -276,7 +276,6 @@ bt_private_connection_create_notification_iterator(
 		struct bt_private_connection *private_connection,
 		const enum bt_notification_type *notification_types)
 {
-	enum bt_notification_iterator_status ret_iterator;
 	enum bt_component_class_type upstream_comp_class_type;
 	struct bt_notification_iterator *iterator = NULL;
 	struct bt_port *upstream_port = NULL;
@@ -372,13 +371,6 @@ bt_private_connection_create_notification_iterator(
 			BT_LOGW_STR("Initialization method failed.");
 			goto error;
 		}
-	}
-
-	ret_iterator = bt_notification_iterator_validate(iterator);
-	if (ret_iterator != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		BT_LOGW("Notification iterator is invalid: status=%s",
-			bt_notification_iterator_status_string(ret_iterator));
-		goto error;
 	}
 
 	g_ptr_array_add(connection->iterators, iterator);

@@ -55,16 +55,6 @@ BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component);
 
 /**
- * Validate a sink component.
- *
- * @param component		Sink component instance to validate
- * @returns			One of #bt_component_status
- */
-BT_HIDDEN
-enum bt_component_status bt_component_sink_validate(
-		struct bt_component *component);
-
-/**
  * Process one event, consuming from sources as needed.
  *
  * @param component	Component instance

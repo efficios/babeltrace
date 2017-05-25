@@ -51,14 +51,4 @@ struct bt_component *bt_component_filter_create(
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component);
 
-/**
- * Validate a filter component.
- *
- * @param component		Filter component instance to validate
- * @returns			One of #bt_component_status
- */
-BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component);
-
 #endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */

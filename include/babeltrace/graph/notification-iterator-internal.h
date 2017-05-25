@@ -145,16 +145,6 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		const enum bt_notification_type *notification_types,
 		struct bt_connection *connection);
 
-/**
- * Validate a notification iterator.
- *
- * @param iterator		Notification iterator instance
- * @returns			One of #bt_component_status values
- */
-BT_HIDDEN
-enum bt_notification_iterator_status bt_notification_iterator_validate(
-		struct bt_notification_iterator *iterator);
-
 BT_HIDDEN
 void bt_notification_iterator_finalize(
 		struct bt_notification_iterator *iterator);

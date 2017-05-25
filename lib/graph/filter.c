@@ -54,32 +54,6 @@ end:
 	return filter ? &filter->parent : NULL;
 }
 
-BT_HIDDEN
-enum bt_component_status bt_component_filter_validate(
-		struct bt_component *component)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-
-	if (!component) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (!component->class) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (component->class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	/* Enforce iterator limits. */
-end:
-	return ret;
-}
-
 int64_t bt_component_filter_get_input_port_count(
 		struct bt_component *component)
 {

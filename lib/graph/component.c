@@ -66,14 +66,6 @@ void (*component_destroy_funcs[])(struct bt_component *) = {
 };
 
 static
-enum bt_component_status (* const component_validation_funcs[])(
-		struct bt_component *) = {
-	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_validate,
-	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_validate,
-	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_validate,
-};
-
-static
 void bt_component_destroy(struct bt_object *obj)
 {
 	struct bt_component *component = NULL;
@@ -348,14 +340,6 @@ struct bt_component *bt_component_create_with_init_method_data(
 			BT_PUT(component);
 			goto end;
 		}
-	}
-
-	ret = component_validation_funcs[type](component);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		BT_LOGW("Component is invalid: status=%s",
-			bt_component_status_string(ret));
-		BT_PUT(component);
-		goto end;
 	}
 
 	BT_LOGD_STR("Freezing component class.");
