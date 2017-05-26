@@ -145,6 +145,9 @@ struct bt_value;
  * object singleton to find out if it's a null value object, or
  * otherwise use bt_value_is_null().
  *
+ * You may pass \ref bt_value_null to bt_get() or bt_put(): it has no
+ * effect.
+ *
  * The null value object singleton is always frozen (see
  * bt_value_freeze() and bt_value_is_frozen()).
  *
