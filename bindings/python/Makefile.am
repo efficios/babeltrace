@@ -23,9 +23,10 @@ BINDINGS_DEPS=setup.py \
 		babeltrace/python-complements.h
 
 BUILD_FLAGS=CC="$(CC)" \
-		CFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GLIB_CFLAGS) $(AM_CFLAGS)" \
-		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS)" \
-		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS)"
+		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
+		CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" \
+		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS)" \
+		LIBS="$(GLIB_LIBS) $(LIBS)"
 
 build-python-bindings.stamp: $(BINDINGS_DEPS)
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
