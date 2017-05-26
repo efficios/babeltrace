@@ -240,7 +240,7 @@ AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
 
 if test "x${enable_python:-yes}" = xyes; then
   AX_PKG_SWIG($swig_version, [], [ AC_MSG_ERROR([SWIG $swig_version or newer is needed]) ])
-  AM_PATH_PYTHON
+  AM_PATH_PYTHON([3.0], [], [ AC_MSG_ERROR([Python 3.0 or newer is needed]) ])
 
   AM_PATH_PYTHON_MODULES([PYTHON])
   # pythondir is the path where extra modules are to be installed
