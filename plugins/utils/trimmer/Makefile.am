@@ -10,5 +10,9 @@ libbabeltrace_plugin_trimmer_la_SOURCES = \
 	iterator.h \
 	copy.h
 
-libbabeltrace_plugin_trimmer_la_LIBADD = \
+libbabeltrace_plugin_trimmer_la_LIBADD =
+
+if !BUILT_IN_PLUGINS
+libbabeltrace_plugin_trimmer_la_LIBADD += \
 	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
+endif

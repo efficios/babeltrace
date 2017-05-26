@@ -1,6 +1,14 @@
 PLUGINS_PATH = $(abs_top_builddir)/plugins
+LTTNG_UTILS_PLUGIN_PATH =
+
+if ENABLE_DEBUG_INFO
+LTTNG_UTILS_PLUGIN_PATH += :$(PLUGINS_PATH)/lttng-utils
+endif
+
+IN_TREE_PLUGIN_PATH = $(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/utils$(LTTNG_UTILS_PLUGIN_PATH)
+
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-		-DCONFIG_IN_TREE_PLUGIN_PATH=\"$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/lttng-utils:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/writer:$(PLUGINS_PATH)/utils\"
+		'-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
 AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin
@@ -22,15 +30,47 @@ babeltrace_bin_SOURCES = \
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-babeltrace_bin_LDFLAGS = -Wl, $(LD_NO_AS_NEEDED), -export-dynamic
+babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED) -Wl,-export-dynamic
+
+# Add all the convenience libraries used by Babeltrace plugins and the
+# library. They will be used when embedding plugins (BUILT_IN_PLUGINS),
+# otherwise we're looking after multiple definitions of the same symbols if
+# a plugin's archive (.a) includes the convenience library because
+# we're using --whole-archive below (needed to make sure the linker does
+# not discard the plugins since the CLI does not use their symbols
+# directly).
 babeltrace_bin_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la
+	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
 
 if BUILT_IN_PLUGINS
-babeltrace_bin_LDFLAGS += -Wl,--whole-archive,$(top_builddir)/plugins/ctf/.libs/libbabeltrace-plugin-ctf.a,$(top_builddir)/plugins/text/.libs/libbabeltrace-plugin-ctf-text.a,$(top_builddir)/plugins/muxer/.libs/libbabeltrace-plugin-muxer.a,$(top_builddir)/plugins/writer/.libs/libbabeltrace-plugin-ctf-writer.a,--no-whole-archive
+# Takes a plugin name and outputs the needed LDFLAGS to embed it.
+#
+# The --whole-archive option is important here. From the GNU linker's
+# documentation:
+#
+#     For each archive mentioned on the command line after the
+#     --whole-archive option, include every object file in the archive in
+#     the link, rather than searching the archive for the required object
+#     files.
+#
+# In our case, we find the plugins thanks to special sections in the
+# binary that are filled by plugin objects. If the linker discards those
+# symbols because the CLI does not use them directly, the CLI reports
+# no plugins found (plugins are effectively not embedded).
+pluginarchive = -Wl,--whole-archive,$(PLUGINS_PATH)/$(1)/.libs/libbabeltrace-plugin-$(1).a,--no-whole-archive
+
+# Built-in plugins
+babeltrace_bin_LDFLAGS += $(call pluginarchive,ctf)
+babeltrace_bin_LDFLAGS += $(call pluginarchive,text)
+babeltrace_bin_LDFLAGS += $(call pluginarchive,utils)
+
+if ENABLE_DEBUG_INFO
+babeltrace_bin_LDFLAGS += $(call pluginarchive,lttng-utils)
+endif
 endif
 
 if BABELTRACE_BUILD_WITH_MINGW

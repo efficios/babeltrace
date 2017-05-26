@@ -274,7 +274,7 @@ else
 fi
 
 if test "x$enable_python_bindings" != xno || test "x$enable_python_plugins" != xno; then
-  AM_PATH_PYTHON([3.0], , [AC_MSG_ERROR(Python3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
+  AM_PATH_PYTHON([3.0], , [AC_MSG_ERROR(Python 3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
 
   AM_PATH_PYTHON_MODULES([PYTHON])
   # pythondir is the path where extra modules are to be installed
@@ -309,6 +309,8 @@ if test "x$enable_python_bindings" != xno || test "x$enable_python_plugins" != x
     AC_MSG_RESULT([$PYTHON_LIBS])
   ])
 fi
+
+AS_IF([test "x$BUILT_IN_PLUGINS" = ""])
 
 AM_CONDITIONAL([WITH_PYTHON_PLUGINS], [test "x$enable_python_plugins" != xno])
 AS_IF(
@@ -387,11 +389,14 @@ AS_IF([test "x$BUILT_IN_PLUGINS" != x], [
 ])
 AM_CONDITIONAL([BUILT_IN_PLUGINS], [test "x$built_in_plugins" = "xyes"])
 
-AC_ARG_VAR([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [Statically-link Python plugin support into the babeltrace binary])
+AC_ARG_VAR([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [Statically-link Python plugin support into the babeltrace library])
 AS_IF([test "x$BUILT_IN_PYTHON_PLUGIN_SUPPORT" != x], [
 # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
   AS_IF([test "x$enable_static" != "xyes"], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace executable)])
   AS_IF([test "x$enable_shared" = "xyes"], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace executable)])
+  AS_IF([test "x$enable_python_plugins" = "xno"], [
+    AC_MSG_ERROR([You can't use BUILT_IN_PYTHON_PLUGIN_SUPPORT=1 without --enable-python-plugins.])
+  ])
   built_in_python_plugin_support=yes
   AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])
 ])

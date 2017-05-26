@@ -24,7 +24,7 @@ libctf_ast_la_SOURCES = \
 	decoder.c \
 	decoder.h
 
-libctf_ast_la_LIBADD = $(top_builddir)/lib/libbabeltrace.la
+libctf_ast_la_LIBADD =
 
 if BABELTRACE_BUILD_WITH_LIBUUID
 libctf_ast_la_LIBADD += -luuid
