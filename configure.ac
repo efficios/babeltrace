@@ -238,14 +238,14 @@ swig_version=2.0.0
 AC_ARG_ENABLE([python-bindings],
               [AC_HELP_STRING([--enable-python-bindings],
                               [generate Python bindings])],
-              [enable_python=yes], [enable_python=no])
+              [enable_python=$enableval], [enable_python=no])
 
 AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
 
 AC_ARG_ENABLE([python-bindings-doc],
               [AC_HELP_STRING([--enable-python-bindings-doc],
                               [generate Python bindings documentation])],
-              [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
+              [enable_python_bindings_doc=$enableval], [enable_python_bindings_doc=no])
 
 if test "x${enable_python:-no}" = xno && test "x${enable_python_bindings_doc:-yes}" = xyes; then
   AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])
