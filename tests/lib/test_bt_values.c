@@ -25,7 +25,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 238
+#define NR_TESTS 249
 
 static
 void test_null(void)
@@ -1108,6 +1108,81 @@ void test_copy(void)
 }
 
 static
+bool compare_map_elements(struct bt_value *map_a, struct bt_value *map_b,
+		const char *key)
+{
+	struct bt_value *elem_a = NULL;
+	struct bt_value *elem_b = NULL;
+	bool equal;
+
+	elem_a = bt_value_map_get(map_a, key);
+	elem_b = bt_value_map_get(map_b, key);
+	equal = bt_value_compare(elem_a, elem_b);
+	BT_PUT(elem_a);
+	BT_PUT(elem_b);
+
+	return equal;
+}
+
+static
+void test_extend(void)
+{
+	struct bt_value *base_map = bt_value_map_create();
+	struct bt_value *extension_map = bt_value_map_create();
+	struct bt_value *extended_map = NULL;
+	struct bt_value *array = bt_value_array_create();
+	enum bt_value_status status;
+
+	assert(base_map);
+	assert(extension_map);
+	assert(array);
+	status = bt_value_map_insert_bool(base_map, "file", true);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_bool(base_map, "edit", false);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_integer(base_map, "selection", 17);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_integer(base_map, "find", -34);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_bool(extension_map, "edit", true);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_integer(extension_map, "find", 101);
+	assert(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_float(extension_map, "project", -404);
+	assert(status == BT_VALUE_STATUS_OK);
+	bt_value_freeze(base_map);
+	bt_value_freeze(extension_map);
+	bt_value_freeze(array);
+	ok(!bt_value_map_extend(NULL, extension_map),
+		"bt_value_map_extend() fails with a NULL base object");
+	ok(!bt_value_map_extend(base_map, NULL),
+		"bt_value_map_extend() fails with a NULL extension object");
+	ok(!bt_value_map_extend(array, extension_map),
+		"bt_value_map_extend() fails with a non-map base object");
+	ok(!bt_value_map_extend(base_map, array),
+		"bt_value_map_extend() fails with a non-map extension object");
+	extended_map = bt_value_map_extend(base_map, extension_map);
+	ok(extended_map, "bt_value_map_extend() succeeds");
+	ok(bt_value_map_size(extended_map) == 5,
+		"bt_value_map_extend() returns a map object with the correct size");
+	ok(compare_map_elements(base_map, extended_map, "file"),
+		"bt_value_map_extend() picks the appropriate element (file)");
+	ok(compare_map_elements(extension_map, extended_map, "edit"),
+		"bt_value_map_extend() picks the appropriate element (edit)");
+	ok(compare_map_elements(base_map, extended_map, "selection"),
+		"bt_value_map_extend() picks the appropriate element (selection)");
+	ok(compare_map_elements(extension_map, extended_map, "find"),
+		"bt_value_map_extend() picks the appropriate element (find)");
+	ok(compare_map_elements(extension_map, extended_map, "project"),
+		"bt_value_map_extend() picks the appropriate element (project)");
+
+	BT_PUT(array);
+	BT_PUT(base_map);
+	BT_PUT(extension_map);
+	BT_PUT(extended_map);
+}
+
+static
 void test_macros(void)
 {
 	struct bt_value *obj = bt_value_bool_create();
@@ -1163,6 +1238,7 @@ int main(void)
 	test_types();
 	test_compare();
 	test_copy();
+	test_extend();
 
 	return 0;
 }
