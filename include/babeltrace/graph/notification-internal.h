@@ -34,10 +34,6 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct bt_ctf_stream *(*get_stream_func)(
 		struct bt_notification *notification);
 
@@ -58,8 +54,31 @@ static inline void bt_notification_freeze(struct bt_notification *notification)
 	notification->frozen = BT_TRUE;
 }
 
-#ifdef __cplusplus
+static inline
+const char *bt_notification_type_string(enum bt_notification_type type)
+{
+	switch (type) {
+	case BT_NOTIFICATION_TYPE_SENTINEL:
+		return "BT_NOTIFICATION_TYPE_SENTINEL";
+	case BT_NOTIFICATION_TYPE_UNKNOWN:
+		return "BT_NOTIFICATION_TYPE_UNKNOWN";
+	case BT_NOTIFICATION_TYPE_ALL:
+		return "BT_NOTIFICATION_TYPE_ALL";
+	case BT_NOTIFICATION_TYPE_EVENT:
+		return "BT_NOTIFICATION_TYPE_EVENT";
+	case BT_NOTIFICATION_TYPE_INACTIVITY:
+		return "BT_NOTIFICATION_TYPE_INACTIVITY";
+	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+		return "BT_NOTIFICATION_TYPE_STREAM_BEGIN";
+	case BT_NOTIFICATION_TYPE_STREAM_END:
+		return "BT_NOTIFICATION_TYPE_STREAM_END";
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+		return "BT_NOTIFICATION_TYPE_PACKET_BEGIN";
+	case BT_NOTIFICATION_TYPE_PACKET_END:
+		return "BT_NOTIFICATION_TYPE_PACKET_END";
+	default:
+		return "(unknown)";
+	}
 }
-#endif
 
 #endif /* BABELTRACE_COMPONENT_NOTIFICATION_NOTIFICATION_INTERNAL_H */

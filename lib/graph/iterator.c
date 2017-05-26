@@ -25,6 +25,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "NOTIF-ITER"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/event-internal.h>
@@ -112,7 +115,10 @@ void destroy_stream_state(struct stream_state *stream_state)
 		return;
 	}
 
+	BT_LOGV("Destroying stream state: stream-state-addr=%p", stream_state);
+	BT_LOGV_STR("Putting stream state's current packet.");
 	bt_put(stream_state->cur_packet);
+	BT_LOGV_STR("Putting stream state's stream.");
 	bt_put(stream_state->stream);
 	g_free(stream_state);
 }
@@ -169,14 +175,39 @@ void clear_actions(struct bt_notification_iterator *iterator)
 	g_array_set_size(iterator->actions, 0);
 }
 
+static inline
+const char *action_type_string(enum action_type type)
+{
+	switch (type) {
+	case ACTION_TYPE_PUSH_NOTIF:
+		return "ACTION_TYPE_PUSH_NOTIF";
+	case ACTION_TYPE_MAP_PORT_TO_COMP_IN_STREAM:
+		return "ACTION_TYPE_MAP_PORT_TO_COMP_IN_STREAM";
+	case ACTION_TYPE_ADD_STREAM_STATE:
+		return "ACTION_TYPE_ADD_STREAM_STATE";
+	case ACTION_TYPE_SET_STREAM_STATE_IS_ENDED:
+		return "ACTION_TYPE_SET_STREAM_STATE_IS_ENDED";
+	case ACTION_TYPE_SET_STREAM_STATE_CUR_PACKET:
+		return "ACTION_TYPE_SET_STREAM_STATE_CUR_PACKET";
+	default:
+		return "(unknown)";
+	}
+}
+
 static
 void apply_actions(struct bt_notification_iterator *iterator)
 {
 	size_t i;
 
+	BT_LOGV("Applying notification's iterator current actions: "
+		"count=%u", iterator->actions->len);
+
 	for (i = 0; i < iterator->actions->len; i++) {
 		struct action *action = &g_array_index(iterator->actions,
 			struct action, i);
+
+		BT_LOGV("Applying action: index=%zu, type=%s",
+			i, action_type_string(action->type));
 
 		switch (action->type) {
 		case ACTION_TYPE_PUSH_NOTIF:
@@ -243,6 +274,7 @@ struct stream_state *create_stream_state(struct bt_ctf_stream *stream)
 	struct stream_state *stream_state = g_new0(struct stream_state, 1);
 
 	if (!stream_state) {
+		BT_LOGE_STR("Failed to allocate one stream state.");
 		goto end;
 	}
 
@@ -255,6 +287,9 @@ struct stream_state *create_stream_state(struct bt_ctf_stream *stream)
 	 * We put this reference when the stream is marked as ended.
 	 */
 	stream_state->stream = bt_get(stream);
+	BT_LOGV("Created stream state: stream-addr=%p, stream-name=\"%s\", "
+		"stream-state-addr=%p",
+		stream, bt_ctf_stream_get_name(stream), stream_state);
 
 end:
 	return stream_state;
@@ -279,10 +314,14 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 	 */
 	obj->ref_count.count++;
 	iterator = container_of(obj, struct bt_notification_iterator, base);
+	BT_LOGD("Destroying notification iterator object: addr=%p",
+		iterator);
 	bt_notification_iterator_finalize(iterator);
 
 	if (iterator->queue) {
 		struct bt_notification *notif;
+
+		BT_LOGD("Putting notifications in queue.");
 
 		while ((notif = g_queue_pop_tail(iterator->queue))) {
 			bt_put(notif);
@@ -305,6 +344,8 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 
 		while (g_hash_table_iter_next(&ht_iter, &stream_gptr, &stream_state_gptr)) {
 			assert(stream_gptr);
+
+			BT_LOGD_STR("Removing stream's destroy listener for notification iterator.");
 			bt_ctf_stream_remove_destroy_listener(
 				(void *) stream_gptr, stream_destroy_listener,
 				iterator);
@@ -326,6 +367,7 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		bt_connection_remove_iterator(iterator->connection, iterator);
 	}
 
+	BT_LOGD_STR("Putting current notification.");
 	bt_put(iterator->current_notification);
 	g_free(iterator);
 }
@@ -344,14 +386,22 @@ void bt_notification_iterator_finalize(
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
 		/* Already finalized */
+		BT_LOGD("Not finalizing notification iterator: already finalized: "
+			"addr=%p", iterator);
 		return;
 	default:
 		break;
 	}
 
+	BT_LOGD("Finalizing notification iterator: addr=%p", iterator);
+
 	if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_ENDED) {
+		BT_LOGD("Updating notification iterator's state: "
+			"new-state=BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED");
 		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
 	} else {
+		BT_LOGD("Updating notification iterator's state: "
+			"new-state=BT_NOTIFICATION_ITERATOR_STATE_FINALIZED");
 		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED;
 	}
 
@@ -382,12 +432,15 @@ void bt_notification_iterator_finalize(
 	}
 
 	if (finalize_method) {
+		BT_LOGD("Calling user's finalization method: addr=%p",
+			iterator);
 		finalize_method(
 			bt_private_notification_iterator_from_notification_iterator(iterator));
 	}
 
 	iterator->upstream_component = NULL;
 	iterator->upstream_port = NULL;
+	BT_LOGD("Finalized notification iterator: addr=%p", iterator);
 }
 
 BT_HIDDEN
@@ -397,6 +450,8 @@ void bt_notification_iterator_set_connection(
 {
 	assert(iterator);
 	iterator->connection = connection;
+	BT_LOGV("Set notification iterator's connection: "
+		"iter-addr=%p, conn-addr=%p", iterator, connection);
 }
 
 static
@@ -445,6 +500,11 @@ int create_subscription_mask_from_notification_types(
 			ret = -1;
 			goto end;
 		}
+
+		BT_LOGV("Added notification type to subscription mask: "
+			"type=%s, mask=%x",
+			bt_notification_type_string(*notif_type),
+			iterator->subscription_mask);
 	}
 
 end:
@@ -465,12 +525,19 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	assert(upstream_port);
 	assert(notification_types);
 	assert(bt_port_is_connected(upstream_port));
-
+	BT_LOGD("Creating notification iterator: "
+		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"conn-addr=%p",
+		upstream_comp, bt_component_get_name(upstream_comp),
+		upstream_port, bt_port_get_name(upstream_port),
+		connection);
 	type = bt_component_get_class_type(upstream_comp);
 	assert(type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
 		type == BT_COMPONENT_CLASS_TYPE_FILTER);
 	iterator = g_new0(struct bt_notification_iterator, 1);
 	if (!iterator) {
+		BT_LOGE_STR("Failed to allocate one notification iterator.");
 		goto error;
 	}
 
@@ -478,22 +545,26 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 
 	if (create_subscription_mask_from_notification_types(iterator,
 			notification_types)) {
+		BT_LOGW_STR("Cannot create subscription mask from notification types.");
 		goto error;
 	}
 
 	iterator->stream_states = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL, (GDestroyNotify) destroy_stream_state);
 	if (!iterator->stream_states) {
+		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
 	}
 
 	iterator->queue = g_queue_new();
 	if (!iterator->queue) {
+		BT_LOGE_STR("Failed to allocate a GQueue.");
 		goto error;
 	}
 
 	iterator->actions = g_array_new(FALSE, FALSE, sizeof(struct action));
 	if (!iterator->actions) {
+		BT_LOGE_STR("Failed to allocate a GArray.");
 		goto error;
 	}
 
@@ -501,6 +572,13 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	iterator->upstream_port = upstream_port;
 	iterator->connection = connection;
 	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ACTIVE;
+	BT_LOGD("Created notification iterator: "
+		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"conn-addr=%p, iter-addr=%p",
+		upstream_comp, bt_component_get_name(upstream_comp),
+		upstream_port, bt_port_get_name(upstream_port),
+		connection, iterator);
 	goto end;
 
 error:
@@ -530,11 +608,15 @@ bt_private_notification_iterator_set_user_data(
 		bt_notification_iterator_from_private(private_iterator);
 
 	if (!iterator) {
+		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto end;
 	}
 
 	iterator->user_data = data;
+	BT_LOGV("Set notification iterator's user data: "
+		"iter-addr=%p, user-data-addr=%p", iterator, data);
+
 end:
 	return ret;
 }
@@ -545,6 +627,7 @@ struct bt_notification *bt_notification_iterator_get_notification(
 	struct bt_notification *notification = NULL;
 
 	if (!iterator) {
+		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
 		goto end;
 	}
 
@@ -627,6 +710,18 @@ bt_bool validate_notification(struct bt_notification_iterator *iterator,
 			 * bad: the API guarantees that it can never
 			 * happen.
 			 */
+			BT_LOGW("Two different ports of the same component are emitting notifications which refer to the same stream: "
+				"stream-addr=%p, stream-name=\"%s\", "
+				"stream-comp-cur-port-addr=%p, "
+				"stream-comp-cur-port-name=%p, "
+				"iter-upstream-port-addr=%p, "
+				"iter-upstream-port-name=%s",
+				notif_stream,
+				bt_ctf_stream_get_name(notif_stream),
+				stream_comp_cur_port,
+				bt_port_get_name(stream_comp_cur_port),
+				iterator->upstream_port,
+				bt_port_get_name(iterator->upstream_port));
 			is_valid = BT_FALSE;
 			goto end;
 		}
@@ -636,6 +731,12 @@ bt_bool validate_notification(struct bt_notification_iterator *iterator,
 	stream_state = g_hash_table_lookup(iterator->stream_states,
 		notif_stream);
 	if (stream_state) {
+		BT_LOGV("Stream state already exists: "
+			"stream-addr=%p, stream-name=\"%s\", "
+			"stream-state-addr=%p",
+			notif_stream,
+			bt_ctf_stream_get_name(notif_stream), stream_state);
+
 		if (stream_state->is_ended) {
 			/*
 			 * There's a new notification which has a
@@ -645,6 +746,10 @@ bt_bool validate_notification(struct bt_notification_iterator *iterator,
 			 * bad: the API guarantees that it can never
 			 * happen.
 			 */
+			BT_LOGW("Stream is already ended: "
+				"stream-addr=%p, stream-name=\"%s\"",
+				notif_stream,
+				bt_ctf_stream_get_name(notif_stream));
 			is_valid = BT_FALSE;
 			goto end;
 		}
@@ -656,11 +761,21 @@ bt_bool validate_notification(struct bt_notification_iterator *iterator,
 			 * we already returned a "stream begin"
 			 * notification: this is an invalid duplicate.
 			 */
+			BT_LOGW("Duplicate stream beginning notification: "
+				"stream-addr=%p, stream-name=\"%s\"",
+				notif_stream,
+				bt_ctf_stream_get_name(notif_stream));
 			is_valid = BT_FALSE;
 			goto end;
 		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 			if (notif_packet == stream_state->cur_packet) {
 				/* Duplicate "packet begin" notification */
+				BT_LOGW("Duplicate stream beginning notification: "
+					"stream-addr=%p, stream-name=\"%s\", "
+					"packet-addr=%p",
+					notif_stream,
+					bt_ctf_stream_get_name(notif_stream),
+					notif_packet);
 				is_valid = BT_FALSE;
 				goto end;
 			}
@@ -701,6 +816,7 @@ void add_action_push_notif(struct bt_notification_iterator *iterator,
 
 	action.payload.push_notif.notif = bt_get(notif);
 	add_action(iterator, &action);
+	BT_LOGV("Added \"push notification\" action: notif-addr=%p", notif);
 }
 
 static
@@ -713,16 +829,23 @@ int add_action_push_notif_stream_begin(
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN)) {
+		BT_LOGV("Not adding \"push stream beginning notification\" action: "
+			"notification iterator is not subscribed: addr=%p",
+			iterator);
 		goto end;
 	}
 
 	assert(stream);
 	stream_begin_notif = bt_notification_stream_begin_create(stream);
 	if (!stream_begin_notif) {
+		BT_LOGE_STR("Cannot create stream beginning notification.");
 		goto error;
 	}
 
 	add_action_push_notif(iterator, stream_begin_notif);
+	BT_LOGV("Added \"push stream beginning notification\" action: "
+		"stream-addr=%p, stream-name=\"%s\"",
+		stream, bt_ctf_stream_get_name(stream));
 	goto end;
 
 error:
@@ -743,16 +866,23 @@ int add_action_push_notif_stream_end(
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_STREAM_END)) {
+		BT_LOGV("Not adding \"push stream end notification\" action: "
+			"notification iterator is not subscribed: addr=%p",
+			iterator);
 		goto end;
 	}
 
 	assert(stream);
 	stream_end_notif = bt_notification_stream_end_create(stream);
 	if (!stream_end_notif) {
+		BT_LOGE_STR("Cannot create stream end notification.");
 		goto error;
 	}
 
 	add_action_push_notif(iterator, stream_end_notif);
+	BT_LOGV("Added \"push stream end notification\" action: "
+		"stream-addr=%p, stream-name=\"%s\"",
+		stream, bt_ctf_stream_get_name(stream));
 	goto end;
 
 error:
@@ -773,16 +903,22 @@ int add_action_push_notif_packet_begin(
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_PACKET_BEGIN)) {
+		BT_LOGV("Not adding \"push packet beginning notification\" action: "
+			"notification iterator is not subscribed: addr=%p",
+			iterator);
 		goto end;
 	}
 
 	assert(packet);
 	packet_begin_notif = bt_notification_packet_begin_create(packet);
 	if (!packet_begin_notif) {
+		BT_LOGE_STR("Cannot create packet beginning notification.");
 		goto error;
 	}
 
 	add_action_push_notif(iterator, packet_begin_notif);
+	BT_LOGV("Added \"push packet beginning notification\" action: "
+		"packet-addr=%p", packet);
 	goto end;
 
 error:
@@ -803,16 +939,22 @@ int add_action_push_notif_packet_end(
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_PACKET_END)) {
+		BT_LOGV("Not adding \"push packet end notification\" action: "
+			"notification iterator is not subscribed: addr=%p",
+			iterator);
 		goto end;
 	}
 
 	assert(packet);
 	packet_end_notif = bt_notification_packet_end_create(packet);
 	if (!packet_end_notif) {
+		BT_LOGE_STR("Cannot create packet end notification.");
 		goto error;
 	}
 
 	add_action_push_notif(iterator, packet_end_notif);
+	BT_LOGV("Added \"push packet end notification\" action: "
+		"packet-addr=%p", packet);
 	goto end;
 
 error:
@@ -837,6 +979,8 @@ void add_action_set_stream_state_is_ended(
 
 	assert(stream_state);
 	add_action(iterator, &action);
+	BT_LOGV("Added \"set stream state's ended\" action: "
+		"stream-state-addr=%p", stream_state);
 }
 
 static
@@ -855,6 +999,9 @@ void add_action_set_stream_state_cur_packet(
 
 	assert(stream_state);
 	add_action(iterator, &action);
+	BT_LOGV("Added \"set stream state's current packet\" action: "
+		"stream-state-addr=%p, packet-addr=%p",
+		stream_state, packet);
 }
 
 static
@@ -891,6 +1038,7 @@ int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 
 		*stream_state = create_stream_state(notif_stream);
 		if (!stream_state) {
+			BT_LOGE_STR("Cannot create stream state.");
 			goto error;
 		}
 
@@ -904,6 +1052,7 @@ int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 			ret = add_action_push_notif_stream_begin(iterator,
 				notif_stream);
 			if (ret) {
+				BT_LOGE_STR("Cannot add \"push stream beginning notification\" action.");
 				goto error;
 			}
 		}
@@ -931,11 +1080,16 @@ int handle_packet_switch(struct bt_notification_iterator *iterator,
 		goto end;
 	}
 
+	BT_LOGV("Handling packet switch: "
+		"cur-packet-addr=%p, new-packet-addr=%p",
+		stream_state->cur_packet, new_packet);
+
 	if (stream_state->cur_packet) {
 		/* End of the current packet */
 		ret = add_action_push_notif_packet_end(iterator,
 			stream_state->cur_packet);
 		if (ret) {
+			BT_LOGE_STR("Cannot add \"push packet end notification\" action.");
 			goto error;
 		}
 	}
@@ -947,6 +1101,7 @@ int handle_packet_switch(struct bt_notification_iterator *iterator,
 		ret = add_action_push_notif_packet_begin(iterator,
 			new_packet);
 		if (ret) {
+			BT_LOGE_STR("Cannot add \"push packet beginning notification\" action.");
 			goto error;
 		}
 	}
@@ -976,6 +1131,7 @@ int handle_notif_stream_begin(
 	ret = ensure_stream_state_exists(iterator, notif, notif_stream,
 		&stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot ensure that stream state exists.");
 		goto error;
 	}
 
@@ -1002,11 +1158,13 @@ int handle_notif_stream_end(
 	ret = ensure_stream_state_exists(iterator, NULL, notif_stream,
 		&stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot ensure that stream state exists.");
 		goto error;
 	}
 
 	ret = handle_packet_switch(iterator, NULL, NULL, stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot handle packet switch.");
 		goto error;
 	}
 
@@ -1036,11 +1194,13 @@ int handle_notif_packet_begin(
 	ret = ensure_stream_state_exists(iterator, NULL, notif_stream,
 		&stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot ensure that stream state exists.");
 		goto error;
 	}
 
 	ret = handle_packet_switch(iterator, notif, notif_packet, stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot handle packet switch.");
 		goto error;
 	}
 
@@ -1068,11 +1228,13 @@ int handle_notif_packet_end(
 	ret = ensure_stream_state_exists(iterator, NULL, notif_stream,
 		&stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot ensure that stream state exists.");
 		goto error;
 	}
 
 	ret = handle_packet_switch(iterator, NULL, notif_packet, stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot handle packet switch.");
 		goto error;
 	}
 
@@ -1103,11 +1265,13 @@ int handle_notif_event(
 	ret = ensure_stream_state_exists(iterator, NULL, notif_stream,
 		&stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot ensure that stream state exists.");
 		goto error;
 	}
 
 	ret = handle_packet_switch(iterator, NULL, notif_packet, stream_state);
 	if (ret) {
+		BT_LOGE_STR("Cannot handle packet switch.");
 		goto error;
 	}
 
@@ -1132,6 +1296,9 @@ int enqueue_notification_and_automatic(
 	struct bt_ctf_packet *notif_packet = NULL;
 
 	assert(notif);
+
+	BT_LOGV("Enqueuing user notification and automatic notifications: "
+		"iter-addr=%p, notif-addr=%p", iterator, notif);
 
 	// TODO: Skip most of this if the iterator is only subscribed
 	//       to event/inactivity notifications.
@@ -1184,11 +1351,13 @@ int enqueue_notification_and_automatic(
 		 * The notification has no reference to a stream: it
 		 * cannot cause the creation of automatic notifications.
 		 */
+		BT_LOGV_STR("Notification has no reference to any stream: skipping automatic notification generation.");
 		goto end;
 	}
 
 	if (!validate_notification(iterator, notif, notif_stream,
 			notif_packet)) {
+		BT_LOGW_STR("Invalid notification.");
 		goto error;
 	}
 
@@ -1220,10 +1389,13 @@ handle_notif:
 	}
 
 	if (ret) {
+		BT_LOGW_STR("Failed to handle notification for automatic notification generation.");
 		goto error;
 	}
 
 	apply_actions(iterator);
+	BT_LOGV("Enqueued user notification and automatic notifications: "
+		"iter-addr=%p, notif-addr=%p", iterator, notif);
 	goto end;
 
 error:
@@ -1239,6 +1411,8 @@ int handle_end(struct bt_notification_iterator *iterator)
 	GHashTableIter stream_state_iter;
 	gpointer stream_gptr, stream_state_gptr;
 	int ret = 0;
+
+	BT_LOGV("Handling end of iteration: addr=%p", iterator);
 
 	/*
 	 * Emit a "stream end" notification for each non-ended stream
@@ -1258,11 +1432,13 @@ int handle_end(struct bt_notification_iterator *iterator)
 
 		ret = handle_packet_switch(iterator, NULL, NULL, stream_state);
 		if (ret) {
+			BT_LOGE_STR("Cannot handle packet switch.");
 			goto error;
 		}
 
 		ret = add_action_push_notif_stream_end(iterator, stream_gptr);
 		if (ret) {
+			BT_LOGE_STR("Cannot add \"push stream end notification\" action.");
 			goto error;
 		}
 
@@ -1270,6 +1446,7 @@ int handle_end(struct bt_notification_iterator *iterator)
 	}
 
 	apply_actions(iterator);
+	BT_LOGV("Handled end of iteration: addr=%p", iterator);
 	goto end;
 
 error:
@@ -1295,17 +1472,23 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 	int ret;
 
 	assert(iterator);
+	BT_LOGD("Ensuring that notification iterator's queue has at least one notification: "
+		"iter-addr=%p, queue-size=%u",
+		iterator, iterator->queue->length);
 
 	if (iterator->queue->length > 0) {
 		/* We already have enough */
+		BT_LOGD_STR("Queue already has at least one notification.");
 		goto end;
 	}
 
 	switch (iterator->state) {
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+		BT_LOGD_STR("Notification iterator's \"next\" called, but it is finalized.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATE_ENDED:
+		BT_LOGD_STR("Notification iterator is ended.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	default:
@@ -1349,8 +1532,12 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 	assert(next_method);
 
 	while (iterator->queue->length == 0) {
+		BT_LOGD_STR("Calling user's \"next\" method.");
 		next_return = next_method(priv_iterator);
+		BT_LOGD("User method returned: status=%s",
+			bt_notification_iterator_status_string(next_return.status));
 		if (next_return.status < 0) {
+			BT_LOGW_STR("User method failed.");
 			status = next_return.status;
 			goto end;
 		}
@@ -1359,6 +1546,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 		case BT_NOTIFICATION_ITERATOR_STATUS_END:
 			ret = handle_end(iterator);
 			if (ret) {
+				BT_LOGW_STR("Cannot handle end of iteration.");
 				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 				goto end;
 			}
@@ -1378,12 +1566,16 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 					status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 				}
 			}
+
+			BT_LOGD("Set new status: status=%s",
+				bt_notification_iterator_status_string(status));
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 			status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
 			goto end;
 		case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 			if (!next_return.notification) {
+				BT_LOGW_STR("User method returned BT_NOTIFICATION_ITERATOR_STATUS_OK, but notification is NULL.");
 				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 				goto end;
 			}
@@ -1397,6 +1589,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 				next_return.notification);
 			BT_PUT(next_return.notification);
 			if (ret) {
+				BT_LOGW("Cannot enqueue notification and automatic notifications.");
 				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 				goto end;
 			}
@@ -1417,9 +1610,12 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	enum bt_notification_iterator_status status;
 
 	if (!iterator) {
+		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		goto end;
 	}
+
+	BT_LOGD("Notification iterator's \"next\": iter-addr=%p", iterator);
 
 	/*
 	 * Make sure that the iterator's queue contains at least one
@@ -1427,6 +1623,7 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 	 */
 	status = ensure_queue_has_notifications(iterator);
 	if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		/* Not an error */
 		goto end;
 	}
 
