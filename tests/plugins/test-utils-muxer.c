@@ -1477,7 +1477,7 @@ void test_single_end_then_multiple_full(void)
 	ret = bt_graph_add_port_added_listener(graph,
 		graph_port_added_listener_connect_to_avail_muxer_port,
 		&graph_listener_data);
-	assert(ret == 0);
+	assert(ret >= 0);
 
 	/* Connect source output ports to muxer input ports */
 	count = bt_component_source_get_output_port_count(src_comp);
@@ -1606,7 +1606,7 @@ void test_single_again_end_then_multiple_full(void)
 	ret = bt_graph_add_port_added_listener(graph,
 		graph_port_added_listener_connect_to_avail_muxer_port,
 		&graph_listener_data);
-	assert(ret == 0);
+	assert(ret >= 0);
 
 	/* Connect source output ports to muxer input ports */
 	count = bt_component_source_get_output_port_count(src_comp);

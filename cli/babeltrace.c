@@ -1494,25 +1494,29 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	the_graph = ctx->graph;
 	ret = bt_graph_add_port_added_listener(ctx->graph,
 		graph_port_added_listener, ctx);
-	if (ret) {
+	if (ret < 0) {
+		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}
 
 	ret = bt_graph_add_port_removed_listener(ctx->graph,
 		graph_port_removed_listener, ctx);
-	if (ret) {
+	if (ret < 0) {
+		BT_LOGE_STR("Cannot add \"port removed\" listener to graph.");
 		goto error;
 	}
 
 	ret = bt_graph_add_ports_connected_listener(ctx->graph,
 		graph_ports_connected_listener, ctx);
-	if (ret) {
+	if (ret < 0) {
+		BT_LOGE_STR("Cannot add \"ports connected\" listener to graph.");
 		goto error;
 	}
 
 	ret = bt_graph_add_ports_disconnected_listener(ctx->graph,
 		graph_ports_disconnected_listener, ctx);
-	if (ret) {
+	if (ret < 0) {
+		BT_LOGE_STR("Cannot add \"ports disconnected\" listener to graph.");
 		goto error;
 	}
 

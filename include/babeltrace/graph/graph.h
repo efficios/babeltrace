@@ -92,20 +92,16 @@ extern enum bt_graph_status bt_graph_run(struct bt_graph *graph);
  */
 extern enum bt_graph_status bt_graph_consume(struct bt_graph *graph);
 
-extern enum bt_graph_status bt_graph_add_port_added_listener(
-		struct bt_graph *graph,
+extern int bt_graph_add_port_added_listener(struct bt_graph *graph,
 		bt_graph_port_added_listener listener, void *data);
 
-extern enum bt_graph_status bt_graph_add_port_removed_listener(
-		struct bt_graph *graph,
+extern int bt_graph_add_port_removed_listener(struct bt_graph *graph,
 		bt_graph_port_removed_listener listener, void *data);
 
-extern enum bt_graph_status bt_graph_add_ports_connected_listener(
-		struct bt_graph *graph,
+extern int bt_graph_add_ports_connected_listener(struct bt_graph *graph,
 		bt_graph_ports_connected_listener listener, void *data);
 
-extern enum bt_graph_status bt_graph_add_ports_disconnected_listener(
-		struct bt_graph *graph,
+extern int bt_graph_add_ports_disconnected_listener(struct bt_graph *graph,
 		bt_graph_ports_disconnected_listener listener, void *data);
 
 extern enum bt_graph_status bt_graph_cancel(struct bt_graph *graph);

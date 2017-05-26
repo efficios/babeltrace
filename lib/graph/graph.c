@@ -510,7 +510,7 @@ end:
 }
 
 static
-void add_listener(GArray *listeners, void *func, void *data)
+int add_listener(GArray *listeners, void *func, void *data)
 {
 	struct bt_graph_listener listener = {
 		.func = func,
@@ -518,110 +518,115 @@ void add_listener(GArray *listeners, void *func, void *data)
 	};
 
 	g_array_append_val(listeners, listener);
+	return listeners->len - 1;
 }
 
-enum bt_graph_status bt_graph_add_port_added_listener(
+int bt_graph_add_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_port_added_listener listener, void *data)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
 	if (!listener) {
 		BT_LOGW_STR("Invalid parameter: listener is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
-	add_listener(graph->listeners.port_added, listener, data);
+	ret = add_listener(graph->listeners.port_added, listener, data);
 	BT_LOGV("Added \"port added\" listener to graph: "
-		"graph-addr=%p, listener-addr=%p", graph, listener);
+		"graph-addr=%p, listener-addr=%p, pos=%d",
+		graph, listener, ret);
 
 end:
-	return status;
+	return ret;
 }
 
-enum bt_graph_status bt_graph_add_port_removed_listener(
+int bt_graph_add_port_removed_listener(
 		struct bt_graph *graph,
 		bt_graph_port_removed_listener listener, void *data)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
 	if (!listener) {
 		BT_LOGW_STR("Invalid parameter: listener is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
-	add_listener(graph->listeners.port_removed, listener, data);
+	ret = add_listener(graph->listeners.port_removed, listener, data);
 	BT_LOGV("Added \"port removed\" listener to graph: "
-		"graph-addr=%p, listener-addr=%p", graph, listener);
+		"graph-addr=%p, listener-addr=%p, pos=%d",
+		graph, listener, ret);
 
 end:
-	return status;
+	return ret;
 }
 
-enum bt_graph_status bt_graph_add_ports_connected_listener(
+int bt_graph_add_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_ports_connected_listener listener, void *data)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
 	if (!listener) {
 		BT_LOGW_STR("Invalid parameter: listener is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
-	add_listener(graph->listeners.ports_connected, listener, data);
+	ret = add_listener(graph->listeners.ports_connected, listener, data);
 	BT_LOGV("Added \"port connected\" listener to graph: "
-		"graph-addr=%p, listener-addr=%p", graph, listener);
+		"graph-addr=%p, listener-addr=%p, pos=%d",
+		graph, listener, ret);
 
 end:
-	return status;
+	return ret;
 }
 
-enum bt_graph_status bt_graph_add_ports_disconnected_listener(
+int bt_graph_add_ports_disconnected_listener(
 		struct bt_graph *graph,
 		bt_graph_ports_disconnected_listener listener, void *data)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
 	if (!listener) {
 		BT_LOGW_STR("Invalid parameter: listener is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
+		ret = -1;
 		goto end;
 	}
 
-	add_listener(graph->listeners.ports_disconnected, listener, data);
+	ret = add_listener(graph->listeners.ports_disconnected, listener, data);
 	BT_LOGV("Added \"port disconnected\" listener to graph: "
-		"graph-addr=%p, listener-addr=%p", graph, listener);
+		"graph-addr=%p, listener-addr=%p, pos=%d",
+		graph, listener, ret);
 
 end:
-	return status;
+	return ret;
 }
 
 BT_HIDDEN
