@@ -80,7 +80,15 @@ static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
 	bt_put(pretty->input_iterator);
-	(void) g_string_free(pretty->string, TRUE);
+
+	if (pretty->string) {
+		(void) g_string_free(pretty->string, TRUE);
+	}
+
+	if (pretty->tmp_string) {
+		(void) g_string_free(pretty->tmp_string, TRUE);
+	}
+
 	if (pretty->out != stdout) {
 		int ret;
 
@@ -104,6 +112,10 @@ struct pretty_component *create_pretty(void)
 	}
 	pretty->string = g_string_new("");
 	if (!pretty->string) {
+		goto error;
+	}
+	pretty->tmp_string = g_string_new("");
+	if (!pretty->tmp_string) {
 		goto error;
 	}
 end:

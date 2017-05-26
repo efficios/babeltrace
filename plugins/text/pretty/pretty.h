@@ -82,6 +82,7 @@ struct pretty_component {
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
 	GString *string;
+	GString *tmp_string;
 	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
 	bool use_colors;
 	bool error;
