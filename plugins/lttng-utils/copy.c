@@ -1245,7 +1245,8 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_ctf_field_type *writer_event_context_type = NULL;
+	struct bt_ctf_field_type *writer_event_context_type = NULL,
+				 *event_context_type = NULL;
 	struct bt_ctf_field *writer_event_context = NULL;
 	struct bt_ctf_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
 	struct bt_ctf_field_type *field_type = NULL;
@@ -1260,6 +1261,13 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 
 	writer_event_context_type = bt_ctf_field_get_type(writer_event_context);
 	if (!writer_event_context_type) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	event_context_type = bt_ctf_field_get_type(event_context);
+	if (!event_context_type) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
@@ -1287,12 +1295,15 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 			goto error;
 		}
 
-		field = bt_ctf_field_structure_get_field_by_index(event_context, i);
+		/*
+		 * Prevent illegal access in the event_context.
+		 */
+		if (i < bt_ctf_field_type_structure_get_field_count(event_context_type)) {
+			field = bt_ctf_field_structure_get_field_by_index(event_context, i);
+		}
 		/*
 		 * The debug_info field, only exists in the writer event or
 		 * if it was set by a earlier pass of the debug_info plugin.
-		 *
-		 * FIXME: are we replacing an exisiting debug_info struct here ??
 		 */
 		if (!strcmp(field_name, component->arg_debug_info_field_name) &&
 				!field) {
@@ -1338,6 +1349,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 error:
 	ret = -1;
 end:
+	bt_put(event_context_type);
 	bt_put(writer_event_context_type);
 	bt_put(writer_event_context);
 	bt_put(field);
