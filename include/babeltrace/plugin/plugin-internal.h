@@ -299,4 +299,19 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 	g_ptr_array_add(plugin_set->plugins, bt_get(plugin));
 }
 
+static inline
+const char *bt_plugin_status_string(enum bt_plugin_status status)
+{
+	switch (status) {
+	case BT_PLUGIN_STATUS_OK:
+		return "BT_PLUGIN_STATUS_OK";
+	case BT_PLUGIN_STATUS_ERROR:
+		return "BT_PLUGIN_STATUS_ERROR";
+	case BT_PLUGIN_STATUS_NOMEM:
+		return "BT_PLUGIN_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */
