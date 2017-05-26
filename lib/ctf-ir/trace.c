@@ -52,6 +52,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define DEFAULT_IDENTIFIER_SIZE 128
 #define DEFAULT_METADATA_STRING_SIZE 4096
@@ -1630,7 +1631,7 @@ const char *get_byte_order_string(enum bt_ctf_byte_order byte_order)
 		string = "native";
 		break;
 	default:
-		assert(BT_FALSE);
+		abort();
 	}
 
 	return string;

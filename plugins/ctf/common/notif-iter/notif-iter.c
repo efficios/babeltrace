@@ -44,6 +44,7 @@
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/ref.h>
 #include <glib.h>
+#include <stdlib.h>
 
 #define PRINT_ERR_STREAM	notit->err_stream
 #define PRINT_PREFIX		"ctf-notif-iter"
@@ -1397,8 +1398,7 @@ struct bt_ctf_field *get_next_field(struct bt_ctf_notif_iter *notit)
 		next_field = bt_ctf_field_variant_get_current_field(base_field);
 		break;
 	default:
-		assert(false);
-		break;
+		abort();
 	}
 
 end:
@@ -1541,9 +1541,7 @@ enum bt_ctf_btr_status btr_unsigned_int_common(uint64_t value,
 		type = bt_ctf_field_get_type(int_field);
 		break;
 	default:
-		assert(0);
-		type = NULL;
-		break;
+		abort();
 	}
 
 	if (!int_field) {
@@ -1636,9 +1634,7 @@ enum bt_ctf_btr_status btr_signed_int_cb(int64_t value,
 		type = bt_ctf_field_get_type(int_field);
 		break;
 	default:
-		assert(0);
-		type = NULL;
-		break;
+		abort();
 	}
 
 	if (!int_field) {
@@ -2500,7 +2496,7 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields
 			 * We should never get past the
 			 * STATE_EMIT_NOTIF_NEW_PACKET state.
 			 */
-			assert(false);
+			abort();
 		}
 	}
 

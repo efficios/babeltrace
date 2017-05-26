@@ -405,7 +405,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 		state->expecting = INI_EXPECT_MAP_KEY;
 		goto success;
 	default:
-		assert(false);
+		abort();
 	}
 
 error:
@@ -889,7 +889,7 @@ void bt_config_destroy(struct bt_object *obj)
 		}
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	g_free(cfg);
@@ -1336,7 +1336,7 @@ void add_run_cfg_comp(struct bt_config *cfg,
 		g_ptr_array_add(cfg->cmd_data.run.sinks, cfg_comp);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 }
 
@@ -1855,7 +1855,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 					BT_COMPONENT_CLASS_TYPE_SINK;
 				break;
 			default:
-				assert(false);
+				abort();
 			}
 			plug_comp_cls_names = strdup(arg);
 			if (!plug_comp_cls_names) {
@@ -2068,7 +2068,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 				type = BT_COMPONENT_CLASS_TYPE_SINK;
 				break;
 			default:
-				assert(false);
+				abort();
 			}
 
 			cfg->cmd_data.query.cfg_component =
@@ -2536,7 +2536,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				opt_name = "--sink";
 				break;
 			default:
-				assert(false);
+				abort();
 			}
 
 			if (cur_cfg_comp) {
@@ -3085,7 +3085,7 @@ int append_run_args_for_implicit_component(
 		}
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	if (bt_value_array_append_string(run_args,
@@ -3322,7 +3322,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			*sink_names = g_list_append(*sink_names, name);
 			break;
 		default:
-			assert(false);
+			abort();
 		}
 
 		g_string_assign(cur_name_prefix, "");
@@ -3754,7 +3754,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				}
 				break;
 			default:
-				assert(false);
+				abort();
 			}
 
 			if (bt_value_array_append_string(run_args, arg)) {
@@ -4759,7 +4759,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			force_omit_home_plugin_path, initial_plugin_paths);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	if (config) {

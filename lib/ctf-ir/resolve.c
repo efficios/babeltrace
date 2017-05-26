@@ -44,6 +44,7 @@
 #include <babeltrace/types.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <stdlib.h>
 #include <glib.h>
 
 typedef GPtrArray type_stack;
@@ -979,7 +980,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 			goto end;
 		}
 	} else {
-		assert(BT_FALSE);
+		abort();
 	}
 
 end:
@@ -1016,9 +1017,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			bt_ctf_field_type_variant_get_tag_name(type);
 		break;
 	default:
-		assert(BT_FALSE);
-		ret = -1;
-		goto end;
+		abort();
 	}
 
 	/* Get target field path out of path string */
@@ -1084,7 +1083,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			goto end;
 		}
 	} else {
-		assert(BT_FALSE);
+		abort();
 	}
 
 end:

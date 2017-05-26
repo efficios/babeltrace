@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -465,7 +466,7 @@ struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
 		 * medium-specific; there is nothing for the user to do
 		 * and it should have been handled upstream.
 		 */
-		assert(false);
+		abort();
 	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
 	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
 	default:
@@ -498,7 +499,7 @@ int ctf_fs_ds_file_get_packet_header_context_fields(
 	case BT_CTF_NOTIF_ITER_STATUS_OK:
 		break;
 	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
-		assert(false);
+		abort();
 	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
 	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
 	default:

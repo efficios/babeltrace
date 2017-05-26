@@ -366,7 +366,7 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 		break;
 	}
 	default:
-		assert(false);
+		abort();
 	}
 }
 
@@ -519,7 +519,7 @@ void print_cfg(struct bt_config *cfg)
 		print_cfg_print_lttng_live_sessions(cfg);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 }
 
@@ -1203,7 +1203,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		 */
 		BT_LOGF("Invalid connection: downstream component is a source: "
 			"conn-arg=\"%s\"", cfg_conn->arg->str);
-		assert(false);
+		abort();
 	}
 
 	downstream_port_count = port_count_fn(downstream_comp);
@@ -1962,8 +1962,8 @@ int main(int argc, const char **argv)
 		ret = cmd_print_lttng_live_sessions(cfg);
 		break;
 	default:
-		BT_LOGF("Invalid command: cmd=%d", cfg->command);
-		assert(false);
+		BT_LOGF("Invalid/unknown command: cmd=%d", cfg->command);
+		abort();
 	}
 
 	BT_LOGI("Command completed: cmd=%d, command-name=\"%s\", ret=%d",

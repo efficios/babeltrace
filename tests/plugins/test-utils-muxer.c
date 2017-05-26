@@ -462,7 +462,7 @@ enum bt_notification_iterator_status src_iter_init(
 		user_data->packet = src_packet3;
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	switch (current_test) {
@@ -504,7 +504,7 @@ enum bt_notification_iterator_status src_iter_init(
 		}
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
@@ -674,7 +674,7 @@ struct bt_notification_iterator_next_return src_iter_next(
 		}
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	bt_put(private_component);

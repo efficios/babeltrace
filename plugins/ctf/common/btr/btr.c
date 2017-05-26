@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -999,7 +1000,7 @@ enum bt_ctf_btr_status read_basic_begin_state(struct bt_ctf_btr *btr)
 		status = read_basic_string_type_and_call(btr, true);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	return status;
@@ -1026,7 +1027,7 @@ enum bt_ctf_btr_status read_basic_continue_state(struct bt_ctf_btr *btr)
 		status = read_basic_string_type_and_call(btr, false);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	return status;

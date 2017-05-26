@@ -39,6 +39,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <stdlib.h>
 #include <glib.h>
 
 static
@@ -354,7 +355,7 @@ bt_private_connection_create_notification_iterator(
 	}
 	default:
 		/* Unreachable. */
-		assert(0);
+		abort();
 	}
 
 	if (init_method) {

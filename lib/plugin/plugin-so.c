@@ -36,6 +36,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
 #include <string.h>
+#include <stdlib.h>
 #include <glib.h>
 #include <gmodule.h>
 
@@ -635,8 +636,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			break;
 		default:
-			assert(BT_FALSE);
-			break;
+			abort();
 		}
 
 		/*

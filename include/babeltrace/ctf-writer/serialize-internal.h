@@ -26,6 +26,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
 #include <sys/mman.h>
@@ -131,7 +132,7 @@ int bt_ctf_stream_pos_init(struct bt_ctf_stream_pos *pos,
 		pos->flags = MAP_SHARED;
 		break;
 	default:
-		assert(BT_FALSE);
+		abort();
 	}
 
 	return 0;

@@ -245,7 +245,7 @@ bool compare_events(struct event *ev_a, struct event *ev_b)
 			}
 			break;
 		default:
-			assert(false);
+			abort();
 	}
 
 	return true;

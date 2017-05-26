@@ -41,6 +41,7 @@
 #include <glib.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #define IGNORE_ABSOLUTE_PARAM_NAME	"ignore-absolute"
 
@@ -566,7 +567,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 			notif, clock_class);
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	if (!clock_value) {

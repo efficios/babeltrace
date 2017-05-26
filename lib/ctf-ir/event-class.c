@@ -45,6 +45,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/values-internal.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 static
 void bt_ctf_event_class_destroy(struct bt_object *obj);
@@ -876,7 +877,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 		default:
 			/* should never happen */
-			assert(BT_FALSE);
+			abort();
 			break;
 		}
 

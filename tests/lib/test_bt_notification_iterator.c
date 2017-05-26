@@ -548,7 +548,7 @@ enum bt_notification_iterator_status src_iter_init(
 		user_data->seq = seq_multiple_auto_packet_end_stream_end_from_end;
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
@@ -662,7 +662,7 @@ struct bt_notification_iterator_next_return src_iter_next_seq(
 		event_packet = src_stream2_packet2;
 		break;
 	default:
-		assert(false);
+		abort();
 	}
 
 	if (event_packet) {
@@ -745,7 +745,7 @@ enum bt_component_status sink_consume(
 		BT_PUT(user_data->notif_iter);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		assert(false);
+		abort();
 	default:
 		break;
 	}

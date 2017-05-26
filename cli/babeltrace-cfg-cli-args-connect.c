@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <babeltrace/values.h>
 #include <babeltrace/common-internal.h>
 #include "babeltrace-cfg.h"
@@ -268,7 +269,7 @@ static struct bt_config_connection *cfg_connection_from_arg(const char *arg)
 			}
 			break;
 		default:
-			assert(false);
+			abort();
 		}
 	}
 

@@ -50,6 +50,7 @@
 #include <babeltrace/graph/port.h>
 #include <babeltrace/types.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 struct stream_state {
 	struct bt_ctf_stream *stream; /* owned by this */
@@ -149,7 +150,7 @@ void destroy_action(struct action *action)
 	case ACTION_TYPE_SET_STREAM_STATE_IS_ENDED:
 		break;
 	default:
-		assert(BT_FALSE);
+		abort();
 	}
 }
 
@@ -261,7 +262,7 @@ void apply_actions(struct bt_notification_iterator *iterator)
 				action->payload.set_stream_state_cur_packet.packet);
 			break;
 		default:
-			assert(BT_FALSE);
+			abort();
 		}
 	}
 
@@ -428,7 +429,7 @@ void bt_notification_iterator_finalize(
 	}
 	default:
 		/* Unreachable */
-		assert(0);
+		abort();
 	}
 
 	if (finalize_method) {
@@ -664,7 +665,7 @@ bt_notification_iterator_notif_type_from_notif_type(
 		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
 		break;
 	default:
-		assert(BT_FALSE);
+		abort();
 	}
 
 	return iter_notif_type;
@@ -1521,8 +1522,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 		break;
 	}
 	default:
-		assert(BT_FALSE);
-		break;
+		abort();
 	}
 
 	/*
@@ -1596,7 +1596,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 			break;
 		default:
 			/* Unknown non-error status */
-			assert(BT_FALSE);
+			abort();
 		}
 	}
 

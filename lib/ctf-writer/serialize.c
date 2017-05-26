@@ -28,6 +28,7 @@
  * SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <babeltrace/ctf-ir/field-types.h>
@@ -108,7 +109,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 			break;
 		}
 		default:
-			assert(BT_FALSE);
+			abort();
 		}
 	} else {
 		switch (size) {
@@ -147,7 +148,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos,
 			break;
 		}
 		default:
-			assert(BT_FALSE);
+			abort();
 		}
 	}
 
@@ -275,7 +276,8 @@ void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 		/* unmap old base */
 		ret = munmap_align(pos->base_mma);
 		if (ret) {
-			assert(BT_FALSE);
+			// FIXME: this can legitimately fail?
+			abort();
 		}
 		pos->base_mma = NULL;
 	}
@@ -294,6 +296,7 @@ void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
 		pos->flags, pos->fd, pos->mmap_offset);
 	if (pos->base_mma == MAP_FAILED) {
-		assert(BT_FALSE);
+		// FIXME: this can legitimately fail?
+		abort();
 	}
 }
