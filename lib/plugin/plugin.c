@@ -441,7 +441,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 			goto end;
 		}
 
-		BT_LOGE("Cannot open directory: %s: "
+		BT_LOGW("Cannot open directory: %s: "
 			"path=\"%s\", errno=%d",
 			strerror(errno), file_path, errno);
 		ret = BT_PLUGIN_STATUS_ERROR;
@@ -556,7 +556,8 @@ struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
 		recurse);
 	if (status < 0) {
 		BT_LOGW("Cannot append plugins found in directory: "
-			"status=%s", bt_plugin_status_string(status));
+			"path=\"%s\", status=%s",
+			path, bt_plugin_status_string(status));
 		goto error;
 	}
 
