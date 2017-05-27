@@ -62,6 +62,11 @@ struct listener_wrapper {
 	void *data;
 };
 
+struct bt_ctf_trace_is_static_listener_elem {
+	bt_ctf_trace_is_static_listener func;
+	void *data;
+};
+
 static
 void bt_ctf_trace_destroy(struct bt_object *obj);
 static
@@ -138,6 +143,13 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 			(GDestroyNotify) g_free);
 	if (!trace->listeners) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		goto error;
+	}
+
+	trace->is_static_listeners = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_ctf_trace_is_static_listener_elem));
+	if (!trace->is_static_listeners) {
+		BT_LOGE_STR("Failed to allocate one GArray.");
 		goto error;
 	}
 
@@ -296,6 +308,10 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 
 	if (trace->listeners) {
 		g_ptr_array_free(trace->listeners, TRUE);
+	}
+
+	if (trace->is_static_listeners) {
+		g_array_free(trace->is_static_listeners, TRUE);
 	}
 
 	BT_LOGD_STR("Putting packet header field type.");
@@ -2107,6 +2123,7 @@ end:
 int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace)
 {
 	int ret = 0;
+	size_t i;
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -2118,6 +2135,123 @@ int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace)
 	bt_ctf_trace_freeze(trace);
 	BT_LOGV("Set trace static: addr=%p, name=\"%s\"",
 		trace, bt_ctf_trace_get_name(trace));
+
+	/* Call all the "trace is static" listeners */
+	for (i = 0; i < trace->is_static_listeners->len; i++) {
+		struct bt_ctf_trace_is_static_listener_elem elem =
+			g_array_index(trace->is_static_listeners,
+				struct bt_ctf_trace_is_static_listener_elem, i);
+
+		if (elem.func) {
+			elem.func(trace, elem.data);
+		}
+	}
+
+end:
+	return ret;
+}
+
+int bt_ctf_trace_add_is_static_listener(struct bt_ctf_trace *trace,
+		bt_ctf_trace_is_static_listener listener, void *data)
+{
+	int i;
+	struct bt_ctf_trace_is_static_listener_elem new_elem = {
+		.func = listener,
+		.data = data,
+	};
+
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		i = -1;
+		goto end;
+	}
+
+	if (!listener) {
+		BT_LOGW_STR("Invalid parameter: listener is NULL.");
+		i = -1;
+		goto end;
+	}
+
+	if (trace->is_static) {
+		BT_LOGW("Invalid parameter: trace is already static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
+		i = -1;
+		goto end;
+	}
+
+	/* Find the next available spot */
+	for (i = 0; i < trace->is_static_listeners->len; i++) {
+		struct bt_ctf_trace_is_static_listener_elem elem =
+			g_array_index(trace->is_static_listeners,
+				struct bt_ctf_trace_is_static_listener_elem, i);
+
+		if (!elem.func) {
+			break;
+		}
+	}
+
+	if (i == trace->is_static_listeners->len) {
+		g_array_append_val(trace->is_static_listeners, new_elem);
+	} else {
+		g_array_insert_val(trace->is_static_listeners, i, new_elem);
+	}
+
+	BT_LOGV("Added \"trace is static\" listener: "
+		"trace-addr=%p, trace-name=\"%s\", func-addr=%p, "
+		"data-addr=%p, listener-id=%d",
+		trace, bt_ctf_trace_get_name(trace), listener, data, i);
+
+end:
+	return i;
+}
+
+int bt_ctf_trace_remove_is_static_listener(
+		struct bt_ctf_trace *trace, int listener_id)
+{
+	int ret = 0;
+	struct bt_ctf_trace_is_static_listener_elem *elem;
+
+	if (!trace) {
+		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (listener_id < 0) {
+		BT_LOGW("Invalid listener ID: must be zero or positive: "
+			"listener-id=%d", listener_id);
+		ret = -1;
+		goto end;
+	}
+
+	if (listener_id >= trace->is_static_listeners->len) {
+		BT_LOGW("Invalid parameter: no listener with this listener ID: "
+			"addr=%p, name=\"%s\", listener-id=%d",
+			trace, bt_ctf_trace_get_name(trace),
+			listener_id);
+		ret = -1;
+		goto end;
+	}
+
+	elem = &g_array_index(trace->is_static_listeners,
+			struct bt_ctf_trace_is_static_listener_elem,
+			listener_id);
+	if (!elem->func) {
+		BT_LOGW("Invalid parameter: no listener with this listener ID: "
+			"addr=%p, name=\"%s\", listener-id=%d",
+			trace, bt_ctf_trace_get_name(trace),
+			listener_id);
+		ret = -1;
+		goto end;
+	}
+
+	elem->func = NULL;
+	elem->data = NULL;
+	BT_LOGV("Removed \"trace is static\" listener: "
+		"trace-addr=%p, trace-name=\"%s\", "
+		"listener-id=%d", trace, bt_ctf_trace_get_name(trace),
+		listener_id);
 
 end:
 	return ret;

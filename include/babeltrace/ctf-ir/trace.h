@@ -148,6 +148,20 @@ struct bt_ctf_stream_class;
 struct bt_ctf_clock_class;
 
 /**
+@brief	User function type to use with
+	bt_ctf_trace_add_is_static_listener().
+
+@param[in] trace_class	Trace class which is now static.
+@param[in] data		User data as passed to
+			bt_ctf_trace_add_is_static_listener() when
+			you added the listener.
+
+@prenotnull{trace_class}
+*/
+typedef void (* bt_ctf_trace_is_static_listener)(
+	struct bt_ctf_trace *trace_class, void *data);
+
+/**
 @name Creation function
 @{
 */
@@ -830,6 +844,10 @@ function on it:
 
 - bt_ctf_trace_add_stream_class()
 - bt_ctf_trace_add_clock_class()
+- bt_ctf_trace_set_environment_field()
+- bt_ctf_trace_set_environment_field_integer()
+- bt_ctf_trace_set_environment_field_string()
+- bt_ctf_trace_add_is_static_listener()
 
 You cannot create a stream with bt_ctf_stream_create() with any of the
 stream classes of a static trace class.
@@ -843,8 +861,71 @@ stream classes of a static trace class.
 
 @sa bt_ctf_trace_is_static(): Checks whether or not a given trace class
 	is static.
+@sa bt_ctf_trace_add_is_static_listener(): Adds a listener to a trace
+	class which is called when the trace class is made static.
 */
 extern int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace_class);
+
+/**
+@brief  Adds the listener \p listener to the CTF IR trace class
+	\p trace_class which is called when the trace is made static.
+
+\p listener is called with \p data, the user data, the first time
+bt_ctf_trace_set_is_static() is called on \p trace_class.
+
+This function fails if \p trace_class is already static: you need to
+check the condition first with bt_ctf_trace_is_static().
+
+On success, this function returns a unique numeric identifier for this
+listener within \p trace. You can use this identifier to remove the
+specific listener you added with
+bt_ctf_trace_remove_is_static_listener().
+
+@param[in] trace_class	Trace class to which to add the listener.
+@param[in] listener	Listener to add to \p trace_class.
+@param[in] data		User data passed when \p listener is called.
+@returns		A unique numeric identifier for this listener
+			on success (0 or greater), or a negative value
+			on error.
+
+@prenotnull{trace_class}
+@prenotnull{listener}
+@pre \p trace_class is not static.
+@postrefcountsame{trace_class}
+
+@sa bt_ctf_trace_remove_is_static_listener(): Removes a "trace is
+	static" listener from a trace class previously added with this
+	function.
+@sa bt_ctf_trace_is_static(): Checks whether or not a given trace class
+	is static.
+@sa bt_ctf_trace_set_is_static(): Makes a trace class static.
+*/
+extern int bt_ctf_trace_add_is_static_listener(
+		struct bt_ctf_trace *trace_class,
+		bt_ctf_trace_is_static_listener listener, void *data);
+
+/**
+@brief  Removes the "trace is static" listener identified by
+	\p listener_id from the trace class \p trace_class.
+
+@param[in] trace_class	Trace class from which to remove the listener
+			identified by \p listener_id.
+@param[in] listener_id	Identifier of the listener to remove from
+			\p trace_class.
+@returns		0 if this function removed the listener, or
+			a negative value on error.
+
+@prenotnull{trace_class}
+@pre \p listener_id is the identifier of a listener that you previously
+	added with bt_ctf_trace_add_is_static_listener() and did not
+	already remove with this function.
+@postrefcountsame{trace_class}
+
+@sa bt_ctf_trace_add_is_static_listener(): Adds a listener to a trace
+	class which is called when the trace class is made static.
+*/
+extern int bt_ctf_trace_remove_is_static_listener(
+		struct bt_ctf_trace *trace_class, int listener_id);
 
 /**
 @brief	Accepts the visitor \p visitor to visit the hierarchy of the
