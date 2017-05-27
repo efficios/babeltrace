@@ -855,6 +855,11 @@ int get_unary_unsigned(struct bt_list_head *head, uint64_t *value)
 	int ret = 0;
 	struct ctf_node *node;
 
+	if (bt_list_empty(head)) {
+		ret = -1;
+		goto end;
+	}
+
 	bt_list_for_each_entry(node, head, siblings) {
 		int uexpr_type = node->u.unary_expression.type;
 		int uexpr_link = node->u.unary_expression.link;
