@@ -564,7 +564,7 @@ AS_ECHO
 AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION$PPRINT_COLOR_RST")
 AS_ECHO
 
-PPRINT_SUBTITLE([Features])
+PPRINT_SUBTITLE([System])
 
 # Target architecture we're building for.
 target_arch=$host_cpu
@@ -577,48 +577,59 @@ for f in $CFLAGS; do
 	fi
 done
 ]
+
 PPRINT_PROP_STRING([Target architecture], $target_arch)
 
-# Minimal log level
-PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
-
-# API doc
-test "x$enable_api_doc" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([HTML API documentation], $value)
-
-# python bindings enabled/disabled
+AS_ECHO
+PPRINT_SUBTITLE([Python 3 language support])
 test "x$enable_python_bindings" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python bindings], $value)
-
-# python bindings doc enabled/disabled
-test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python bindings doc], $value)
-
-# python bindings tests enabled/disabled
-test "x$enable_python_bindings_tests" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python bindings tests], $value)
-
-# python plugins enabled/disabled
 test "x$enable_python_plugins" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python plugin support], $value)
+AS_IF([test "x$enable_python_bindings" = "xyes" || test "x$enable_python_plugins" = "xyes"], [
+  PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
+  PPRINT_PROP_STRING([Python libraries], [$PYTHON_LIBS])
+])
 
-# built-in Python plugin support enabled/disabled
+AS_ECHO
+PPRINT_SUBTITLE([Plugins])
+PPRINT_PROP_BOOL(['ctf' plugin], 1)
+test "x$_enable_debug_info" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL(['lttng-utils' plugin], $value)
+PPRINT_PROP_BOOL(['text' plugin], 1)
+PPRINT_PROP_BOOL(['utils' plugin], 1)
+
+AS_ECHO
+PPRINT_SUBTITLE([Built-in features])
+test "x$built_in_plugins" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Built-in plugins], $value)
 test "x$built_in_python_plugin_support" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Built-in Python plugin support], $value)
 
-# debug info enabled/disabled
-test "x$_enable_debug_info" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Debug information output], $value)
+AS_ECHO
+PPRINT_SUBTITLE([Documentation])
+test "x$enable_api_doc" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([HTML API documentation], $value)
+test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python bindings documentation], $value)
 
-# built-in plug-ins enabled/disabled
-test "x$built_in_plugins" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Built-in plug-ins], $value)
+AS_ECHO
+PPRINT_SUBTITLE([Logging])
+PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
+
+AS_ECHO
+PPRINT_SUBTITLE([Testing])
+test "x$enable_python_bindings_tests" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Python bindings tests], $value)
 
 report_bindir="`eval eval echo $bindir`"
 report_libdir="`eval eval echo $libdir`"
+report_sysconfdif="`eval eval echo $sysconfdir`"
 
 # Print the bindir and libdir this `make install' will install into.
 AS_ECHO
 PPRINT_SUBTITLE([Install directories])
 PPRINT_PROP_STRING([Binaries], [$report_bindir])
 PPRINT_PROP_STRING([Libraries], [$report_libdir])
+PPRINT_PROP_STRING([Plugins], [$report_libdir/babeltrace/plugins])
+PPRINT_PROP_STRING([Configuration], [$report_sysconfdif])
