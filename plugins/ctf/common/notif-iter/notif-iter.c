@@ -46,7 +46,7 @@
 #include <glib.h>
 #include <stdlib.h>
 
-#define PRINT_ERR_STREAM	notit->err_stream
+#define PRINT_ERR_STREAM	(notit ? notit->err_stream : stderr)
 #define PRINT_PREFIX		"ctf-notif-iter"
 #include "../print.h"
 
