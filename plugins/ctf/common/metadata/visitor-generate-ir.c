@@ -1173,7 +1173,7 @@ static
 int get_type_specifier_list_name(struct ctx *ctx,
 	struct ctf_node *type_specifier_list, GString *str)
 {
-	int ret;
+	int ret = 0;
 	struct ctf_node *iter;
 	int alias_item_nr = 0;
 	struct bt_list_head *head =
