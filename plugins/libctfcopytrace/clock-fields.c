@@ -660,6 +660,7 @@ int copy_find_clock_array_field(FILE *err,
 	for (i = 0; i < count; i++) {
 		entry_field = bt_ctf_field_array_get_field(field, i);
 		if (!entry_field) {
+			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
 			goto error;
@@ -667,6 +668,7 @@ int copy_find_clock_array_field(FILE *err,
 
 		entry_copy = bt_ctf_field_array_get_field(copy_field, i);
 		if (!entry_copy) {
+			ret = -1;
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
 			goto error;
