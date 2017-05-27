@@ -38,7 +38,7 @@
 
 #include "btr.h"
 
-#define PRINT_ERR_STREAM	btr->err_stream
+#define PRINT_ERR_STREAM	(btr ? btr->err_stream : stderr)
 #define PRINT_PREFIX		"ctf-btr"
 #include "../print.h"
 
