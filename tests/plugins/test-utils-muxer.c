@@ -528,6 +528,7 @@ struct bt_ctf_event *src_create_event(struct bt_ctf_packet *packet,
 			(uint64_t) ts_ns);
 		assert(clock_value);
 		ret = bt_ctf_event_set_clock_value(event, clock_value);
+		assert(ret == 0);
 		bt_put(clock_value);
 	}
 
