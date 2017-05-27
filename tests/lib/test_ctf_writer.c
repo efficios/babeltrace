@@ -470,6 +470,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(iter, "bt_ctf_field_enumeration_get_mappings returns an iterator to matching mappings");
 	ret = bt_ctf_field_type_enumeration_mapping_iterator_get_signed(iter, &ret_char, NULL, NULL);
 	ok(!ret && ret_char, "bt_ctf_field_type_enumeration_mapping_iterator_get_signed return a mapping name");
+	assert(ret_char);
 	ok(!strcmp(ret_char, mapping_name_negative_test),
 		"bt_ctf_field_enumeration_get_single_mapping_name returns the correct mapping name with an signed container");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
