@@ -1309,6 +1309,7 @@ enum {
 };
 
 enum bt_config_component_dest {
+	BT_CONFIG_COMPONENT_DEST_UNKNOWN = -1,
 	BT_CONFIG_COMPONENT_DEST_SOURCE,
 	BT_CONFIG_COMPONENT_DEST_FILTER,
 	BT_CONFIG_COMPONENT_DEST_SINK,
@@ -2413,7 +2414,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	poptContext pc = NULL;
 	char *arg = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
-	enum bt_config_component_dest cur_cfg_comp_dest;
+	enum bt_config_component_dest cur_cfg_comp_dest =
+			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
 	struct bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
@@ -3567,7 +3569,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
-	enum bt_config_component_dest cur_comp_dest;
+	enum bt_config_component_dest cur_comp_dest =
+			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
 	bool got_verbose_opt = false;
