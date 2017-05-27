@@ -2841,6 +2841,7 @@ void test_trace_uuid(void)
 		"bt_ctf_trace_set_uuid() succeeds with a valid UUID");
 	ret_uuid = bt_ctf_trace_get_uuid(trace);
 	ok(ret_uuid, "bt_ctf_trace_get_uuid() returns a UUID");
+	assert(ret_uuid);
 	ok(memcmp(uuid, ret_uuid, 16) == 0,
 		"bt_ctf_trace_get_uuid() returns the expected UUID");
 
