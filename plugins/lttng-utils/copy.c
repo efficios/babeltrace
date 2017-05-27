@@ -1149,7 +1149,7 @@ int set_debug_info_field(FILE *err, struct bt_ctf_field *debug_field,
 		struct debug_info_source *dbg_info_src,
 		struct debug_info_component *component)
 {
-	int i, nr_fields, ret;
+	int i, nr_fields, ret = 0;
 	struct bt_ctf_field_type *debug_field_type = NULL;
 	struct bt_ctf_field *field = NULL;
 	struct bt_ctf_field_type *field_type = NULL;
