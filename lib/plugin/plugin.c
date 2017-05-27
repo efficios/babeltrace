@@ -83,7 +83,7 @@ void init_python_plugin_provider(void) {
 		return;
 	}
 
-	BT_LOGD("Loaded Python plugin provider module: addr=%p",
+	BT_LOGI("Loaded Python plugin provider module: addr=%p",
 		python_plugin_provider_module);
 }
 
