@@ -1736,12 +1736,26 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
+	if (canceled) {
+		BT_LOGI_STR("Canceled by user before creating components.");
+		goto error;
+	}
+
+	BT_LOGI_STR("Creating components.");
+
 	/* Create the requested component instances */
 	if (cmd_run_ctx_create_components(&ctx)) {
 		BT_LOGE_STR("Cannot create components.");
 		fprintf(stderr, "Cannot create components\n");
 		goto error;
 	}
+
+	if (canceled) {
+		BT_LOGI_STR("Canceled by user before connecting components.");
+		goto error;
+	}
+
+	BT_LOGI_STR("Connecting components.");
 
 	/* Connect the initially visible component ports */
 	if (cmd_run_ctx_connect_ports(&ctx)) {
@@ -1751,7 +1765,8 @@ int cmd_run(struct bt_config *cfg)
 	}
 
 	if (canceled) {
-		goto end;
+		BT_LOGI_STR("Canceled by user before running the graph.");
+		goto error;
 	}
 
 	BT_LOGI_STR("Running the graph.");
