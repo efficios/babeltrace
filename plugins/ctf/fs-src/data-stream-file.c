@@ -56,12 +56,13 @@ static
 int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 {
 	int ret = 0;
-	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
+	struct ctf_fs_component *ctf_fs;
 
-	if (!ds_file->mmap_addr) {
+	if (!ds_file || !ds_file->mmap_addr) {
 		goto end;
 	}
 
+	ctf_fs = ds_file->file->ctf_fs;
 	if (munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
 		PERR("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s\n",
 			ds_file->mmap_addr, ds_file->mmap_len,
