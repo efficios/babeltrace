@@ -48,31 +48,11 @@ void bt_logging_set_global_level(enum bt_logging_level log_level)
 static
 void __attribute__((constructor)) bt_logging_ctor(void)
 {
-	enum bt_logging_level log_level = BT_LOG_NONE;
-	const char *log_level_env = getenv("BABELTRACE_LOGGING_GLOBAL_LEVEL");
 	const char *v_extra = bt_version_get_extra() ? bt_version_get_extra() :
 		"";
 
-	if (!log_level_env) {
-		goto set_level;
-	}
-
-	if (strcmp(log_level_env, "VERBOSE") == 0) {
-		log_level = BT_LOGGING_LEVEL_VERBOSE;
-	} else if (strcmp(log_level_env, "DEBUG") == 0) {
-		log_level = BT_LOGGING_LEVEL_DEBUG;
-	} else if (strcmp(log_level_env, "INFO") == 0) {
-		log_level = BT_LOGGING_LEVEL_INFO;
-	} else if (strcmp(log_level_env, "WARN") == 0) {
-		log_level = BT_LOGGING_LEVEL_WARN;
-	} else if (strcmp(log_level_env, "ERROR") == 0) {
-		log_level = BT_LOGGING_LEVEL_ERROR;
-	} else if (strcmp(log_level_env, "FATAL") == 0) {
-		log_level = BT_LOGGING_LEVEL_FATAL;
-	}
-
-set_level:
-	bt_logging_set_global_level(log_level);
+	bt_logging_set_global_level(
+		bt_log_get_level_from_env("BABELTRACE_LOGGING_GLOBAL_LEVEL"));
 	BT_LOGI("Babeltrace %d.%d.%d%s library loaded: "
 		"major=%d, minor=%d, patch=%d, extra=\"%s\"",
 		bt_version_get_major(), bt_version_get_minor(),

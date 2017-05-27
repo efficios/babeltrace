@@ -1860,31 +1860,7 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 static
 void init_log_level(void)
 {
-	enum bt_logging_level log_level = BT_LOG_NONE;
-	const char *log_level_env = getenv("BABELTRACE_CLI_LOG_LEVEL");
-
-	if (!log_level_env) {
-		goto set_level;
-	}
-
-	if (strcmp(log_level_env, "VERBOSE") == 0) {
-		log_level = BT_LOGGING_LEVEL_VERBOSE;
-	} else if (strcmp(log_level_env, "DEBUG") == 0) {
-		log_level = BT_LOGGING_LEVEL_DEBUG;
-	} else if (strcmp(log_level_env, "INFO") == 0) {
-		log_level = BT_LOGGING_LEVEL_INFO;
-	} else if (strcmp(log_level_env, "WARN") == 0) {
-		log_level = BT_LOGGING_LEVEL_WARN;
-	} else if (strcmp(log_level_env, "ERROR") == 0) {
-		log_level = BT_LOGGING_LEVEL_ERROR;
-	} else if (strcmp(log_level_env, "FATAL") == 0) {
-		log_level = BT_LOGGING_LEVEL_FATAL;
-	} else if (strcmp(log_level_env, "NONE") == 0) {
-		log_level = BT_LOGGING_LEVEL_NONE;
-	}
-
-set_level:
-	bt_cli_log_level = log_level;
+	bt_cli_log_level = bt_log_get_level_from_env("BABELTRACE_CLI_LOG_LEVEL");
 }
 
 void set_sigint_handler(void)

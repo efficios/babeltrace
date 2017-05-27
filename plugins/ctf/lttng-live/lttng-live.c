@@ -1121,31 +1121,5 @@ end:
 static
 void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
 {
-	enum bt_logging_level log_level = BT_LOG_NONE;
-	const char *log_level_env = getenv(BT_LOGLEVEL_NAME);
-
-	if (!log_level_env) {
-		return;
-	}
-
-	if (strcmp(log_level_env, "VERBOSE") == 0) {
-		log_level = BT_LOGGING_LEVEL_VERBOSE;
-	} else if (strcmp(log_level_env, "DEBUG") == 0) {
-		log_level = BT_LOGGING_LEVEL_DEBUG;
-	} else if (strcmp(log_level_env, "INFO") == 0) {
-		log_level = BT_LOGGING_LEVEL_INFO;
-	} else if (strcmp(log_level_env, "WARN") == 0) {
-		log_level = BT_LOGGING_LEVEL_WARN;
-	} else if (strcmp(log_level_env, "ERROR") == 0) {
-		log_level = BT_LOGGING_LEVEL_ERROR;
-	} else if (strcmp(log_level_env, "FATAL") == 0) {
-		log_level = BT_LOGGING_LEVEL_FATAL;
-	} else {
-		bt_lttng_live_log_level = BT_LOGGING_LEVEL_FATAL;
-		BT_LOGF("Incorrect log level specified in %s",
-				BT_LOGLEVEL_NAME);
-		abort();
-	}
-
-        bt_lttng_live_log_level = log_level;
+        bt_lttng_live_log_level = bt_log_get_level_from_env(BT_LOGLEVEL_NAME);
 }

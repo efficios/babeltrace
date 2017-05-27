@@ -9,6 +9,8 @@
 #ifndef BABELTRACE_LOGGING_INTERNAL_H
 #define BABELTRACE_LOGGING_INTERNAL_H
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <babeltrace/logging.h>
 
 /* To detect incompatible changes you can define BT_LOG_VERSION_REQUIRED to be
@@ -956,6 +958,46 @@ void bt_log_out_stderr_callback(const bt_log_message *const msg, void *arg);
  *       BT_LOGE_AUX(BT_LOG_STDERR, "Failed to open log file");
  */
 #define BT_LOG_STDERR (&_bt_log_stderr_spec)
+
+static inline
+int bt_log_get_level_from_env(const char *var)
+{
+	const char *varval = getenv(var);
+	int level = BT_LOG_NONE;
+
+	if (!varval) {
+		goto end;
+	}
+
+	if (strcmp(varval, "VERBOSE") == 0 ||
+			strcmp(varval, "V") == 0) {
+		level = BT_LOG_VERBOSE;
+	} else if (strcmp(varval, "DEBUG") == 0 ||
+			strcmp(varval, "D") == 0) {
+		level = BT_LOG_DEBUG;
+	} else if (strcmp(varval, "INFO") == 0 ||
+			strcmp(varval, "I") == 0) {
+		level = BT_LOG_INFO;
+	} else if (strcmp(varval, "WARN") == 0 ||
+			strcmp(varval, "WARNING") == 0 ||
+			strcmp(varval, "W") == 0) {
+		level = BT_LOG_WARN;
+	} else if (strcmp(varval, "ERROR") == 0 ||
+			strcmp(varval, "E") == 0) {
+		level = BT_LOG_ERROR;
+	} else if (strcmp(varval, "FATAL") == 0 ||
+			strcmp(varval, "F") == 0) {
+		level = BT_LOG_FATAL;
+	} else if (strcmp(varval, "NONE") == 0 ||
+			strcmp(varval, "N") == 0) {
+		level = BT_LOG_NONE;
+	} else {
+		/* Should we warn here? How? */
+	}
+
+end:
+	return level;
+}
 
 #ifdef __cplusplus
 }
