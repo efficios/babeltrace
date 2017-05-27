@@ -45,11 +45,13 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 	ctf_fs = file->ctf_fs;
 
 	if (file->fp) {
-		PDBG("Closing file \"%s\" (%p)\n", file->path->str, file->fp);
+		PDBG("Closing file \"%s\" (%p)\n",
+				file->path ? file->path->str : NULL, file->fp);
 
 		if (fclose(file->fp)) {
-			PERR("Cannot close file \"%s\": %s\n", file->path->str,
-				strerror(errno));
+			PERR("Cannot close file \"%s\": %s\n",
+					file->path ? file->path->str : "NULL",
+					strerror(errno));
 		}
 	}
 
