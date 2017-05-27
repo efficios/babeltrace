@@ -314,6 +314,7 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 		}
 	} else {
 		/* Signed clock values are unsupported. */
+		ret = -1;
 		goto end;
 	}
 
