@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/plugin/plugin.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
@@ -80,18 +81,49 @@ struct bt_plugin_set {
 };
 
 static inline
+const char *bt_plugin_status_string(enum bt_plugin_status status)
+{
+	switch (status) {
+	case BT_PLUGIN_STATUS_OK:
+		return "BT_PLUGIN_STATUS_OK";
+	case BT_PLUGIN_STATUS_ERROR:
+		return "BT_PLUGIN_STATUS_ERROR";
+	case BT_PLUGIN_STATUS_NOMEM:
+		return "BT_PLUGIN_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_plugin_type_string(enum bt_plugin_type type)
+{
+	switch (type) {
+	case BT_PLUGIN_TYPE_SO:
+		return "BT_PLUGIN_TYPE_SO";
+	case BT_PLUGIN_TYPE_PYTHON:
+		return "BT_PLUGIN_TYPE_PYTHON";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
 void bt_plugin_destroy(struct bt_object *obj)
 {
 	struct bt_plugin *plugin;
 
 	assert(obj);
 	plugin = container_of(obj, struct bt_plugin, base);
+	BT_LOGD("Destroying plugin object: addr=%p, name=\"%s\"",
+		plugin, plugin->info.name ? plugin->info.name->str : NULL);
 
 	if (plugin->destroy_spec_data) {
 		plugin->destroy_spec_data(plugin);
 	}
 
 	if (plugin->comp_classes) {
+		BT_LOGD_STR("Putting component classes.");
 		g_ptr_array_free(plugin->comp_classes, TRUE);
 	}
 
@@ -127,8 +159,12 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 {
 	struct bt_plugin *plugin = NULL;
 
+	BT_LOGD("Creating empty plugin object: type=%s",
+		bt_plugin_type_string(type));
+
 	plugin = g_new0(struct bt_plugin, 1);
 	if (!plugin) {
+		BT_LOGE_STR("Failed to allocate one plugin.");
 		goto error;
 	}
 
@@ -139,40 +175,49 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 	plugin->comp_classes =
 		g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
 	if (!plugin->comp_classes) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
 	/* Create empty info */
 	plugin->info.name = g_string_new(NULL);
 	if (!plugin->info.name) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.path = g_string_new(NULL);
 	if (!plugin->info.path) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.description = g_string_new(NULL);
 	if (!plugin->info.description) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.author = g_string_new(NULL);
 	if (!plugin->info.author) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.license = g_string_new(NULL);
 	if (!plugin->info.license) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.version.extra = g_string_new(NULL);
 	if (!plugin->info.version.extra) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
+	BT_LOGD("Created empty plugin object: type=%s, addr=%p",
+		bt_plugin_type_string(type), plugin);
 	goto end;
 
 error:
@@ -189,6 +234,8 @@ void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 	assert(path);
 	g_string_assign(plugin->info.path, path);
 	plugin->info.path_set = BT_TRUE;
+	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", path=\"%s\"",
+		plugin, bt_plugin_get_name(plugin), path);
 }
 
 static inline
@@ -198,6 +245,8 @@ void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
 	assert(name);
 	g_string_assign(plugin->info.name, name);
 	plugin->info.name_set = BT_TRUE;
+	BT_LOGV("Set plugin's name: addr=%p, name=\"%s\"",
+		plugin, name);
 }
 
 static inline
@@ -208,6 +257,8 @@ void bt_plugin_set_description(struct bt_plugin *plugin,
 	assert(description);
 	g_string_assign(plugin->info.description, description);
 	plugin->info.description_set = BT_TRUE;
+	BT_LOGV("Set plugin's description: addr=%p, name=\"%s\"",
+		plugin, bt_plugin_get_name(plugin));
 }
 
 static inline
@@ -217,6 +268,8 @@ void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 	assert(author);
 	g_string_assign(plugin->info.author, author);
 	plugin->info.author_set = BT_TRUE;
+	BT_LOGV("Set plugin's author: addr=%p, name=\"%s\", author=\"%s\"",
+		plugin, bt_plugin_get_name(plugin), author);
 }
 
 static inline
@@ -226,6 +279,8 @@ void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
 	assert(license);
 	g_string_assign(plugin->info.license, license);
 	plugin->info.license_set = BT_TRUE;
+	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", license=\"%s\"",
+		plugin, bt_plugin_get_name(plugin), license);
 }
 
 static inline
@@ -242,12 +297,24 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 	}
 
 	plugin->info.version_set = BT_TRUE;
+	BT_LOGV("Set plugin's version: addr=%p, name=\"%s\", "
+		"major=%u, minor=%u, patch=%u, extra=\"%s\"",
+		plugin, bt_plugin_get_name(plugin),
+		major, minor, patch, extra);
 }
 
 static inline
 void bt_plugin_freeze(struct bt_plugin *plugin)
 {
 	assert(plugin);
+
+	if (plugin->frozen) {
+		return;
+	}
+
+	BT_LOGD("Freezing plugin: addr=%p, name=\"%s\", path=\"%s\"",
+		plugin, bt_plugin_get_name(plugin),
+		bt_plugin_get_path(plugin));
 	plugin->frozen = BT_TRUE;
 }
 
@@ -261,7 +328,10 @@ void bt_plugin_set_destroy(struct bt_object *obj)
 		return;
 	}
 
+	BT_LOGD("Destroying plugin set: addr=%p", plugin_set);
+
 	if (plugin_set->plugins) {
+		BT_LOGD_STR("Putting plugins.");
 		g_ptr_array_free(plugin_set->plugins, TRUE);
 	}
 
@@ -277,14 +347,18 @@ struct bt_plugin_set *bt_plugin_set_create(void)
 		goto end;
 	}
 
+	BT_LOGD_STR("Creating empty plugin set.");
 	bt_object_init(plugin_set, bt_plugin_set_destroy);
 
 	plugin_set->plugins = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	if (!plugin_set->plugins) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		BT_PUT(plugin_set);
 		goto end;
 	}
+
+	BT_LOGD("Created empty plugin set: addr=%p", plugin_set);
 
 end:
 	return plugin_set;
@@ -297,21 +371,11 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 	assert(plugin_set);
 	assert(plugin);
 	g_ptr_array_add(plugin_set->plugins, bt_get(plugin));
-}
-
-static inline
-const char *bt_plugin_status_string(enum bt_plugin_status status)
-{
-	switch (status) {
-	case BT_PLUGIN_STATUS_OK:
-		return "BT_PLUGIN_STATUS_OK";
-	case BT_PLUGIN_STATUS_ERROR:
-		return "BT_PLUGIN_STATUS_ERROR";
-	case BT_PLUGIN_STATUS_NOMEM:
-		return "BT_PLUGIN_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
+	BT_LOGV("Added plugin to plugin set: "
+		"plugin-set-addr=%p, plugin-addr=%p, plugin-name=\"%s\", "
+		"plugin-path=\"%s\"",
+		plugin_set, plugin, bt_plugin_get_name(plugin),
+		bt_plugin_get_path(plugin));
 }
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

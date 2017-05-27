@@ -27,6 +27,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-SO"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/plugin/plugin-internal.h>
@@ -108,12 +111,14 @@ void init_comp_classes_to_shlib_handles(void) {
 	comp_classes_to_shlib_handles = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL, bt_put);
 	assert(comp_classes_to_shlib_handles);
+	BT_LOGD_STR("Initialized component class to shared library handle hash table.");
 }
 
 __attribute__((destructor)) static
 void fini_comp_classes_to_shlib_handles(void) {
 	if (comp_classes_to_shlib_handles) {
 		g_hash_table_destroy(comp_classes_to_shlib_handles);
+		BT_LOGD_STR("Destroyed component class to shared library handle hash table.");
 	}
 }
 
@@ -125,16 +130,23 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 	assert(obj);
 	shared_lib_handle = container_of(obj,
 		struct bt_plugin_so_shared_lib_handle, base);
+	const char *path = shared_lib_handle->path ?
+		shared_lib_handle->path->str : NULL;
+
+	BT_LOGD("Destroying shared library handle: addr=%p, path=\"%s\"",
+		shared_lib_handle, path);
 
 	if (shared_lib_handle->init_called && shared_lib_handle->exit) {
-		enum bt_plugin_status status = shared_lib_handle->exit();
+		enum bt_plugin_status status;
+
+		BT_LOGD_STR("Calling user's plugin exit function.");
+		status = shared_lib_handle->exit();
+		BT_LOGD("User function returned: %s",
+			bt_plugin_status_string(status));
 
 		if (status < 0) {
-			const char *path = shared_lib_handle->path ?
-				shared_lib_handle->path->str : "[built-in]";
-
-			printf_verbose("Plugin in module `%s` exited with error %d\n",
-				path, status);
+			BT_LOGW("User's plugin exit function failed: "
+				"path=\"%s\"", path);
 		}
 	}
 
@@ -150,11 +162,16 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 
 		if (!var || strcmp(var, "1") != 0) {
 #endif
+			BT_LOGD("Closing GModule: path=\"%s\"", path);
+
 			if (!g_module_close(shared_lib_handle->module)) {
-				printf_error("Module close error: %s\n",
-						g_module_error());
+				BT_LOGE("Cannot close GModule: %s: path=\"%s\"",
+					g_module_error(), path);
 			}
 #ifndef NDEBUG
+		} else {
+			BT_LOGD("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
+				"path=\"%s\"", path);
 		}
 #endif
 	}
@@ -172,8 +189,10 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 {
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
+	BT_LOGD("Creating shared library handle: path=\"%s\"", path);
 	shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
 	if (!shared_lib_handle) {
+		BT_LOGE_STR("Failed to allocate one shared library handle.");
 		goto error;
 	}
 
@@ -185,12 +204,14 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 
 	shared_lib_handle->path = g_string_new(path);
 	if (!shared_lib_handle->path) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	shared_lib_handle->module = g_module_open(path, 0);
 	if (!shared_lib_handle->module) {
-		printf_verbose("Module open error: %s\n", g_module_error());
+		BT_LOGW("Cannot open GModule: %s: path=\"%s\"",
+			g_module_error(), path);
 		goto error;
 	}
 
@@ -200,6 +221,11 @@ error:
 	BT_PUT(shared_lib_handle);
 
 end:
+	if (shared_lib_handle) {
+		BT_LOGD("Created shared library handle: path=\"%s\", addr=%p",
+			path, shared_lib_handle);
+	}
+
 	return shared_lib_handle;
 }
 
@@ -283,9 +309,21 @@ enum bt_plugin_status bt_plugin_so_init(
 	size_t i;
 	int ret;
 
+	BT_LOGD("Initializing plugin object from descriptors found in sections: "
+		"plugin-addr=%p, plugin-path=\"%s\", "
+		"attrs-begin-addr=%p, attrs-end-addr=%p, "
+		"cc-descr-begin-addr=%p, cc-descr-end-addr=%p, "
+		"cc-descr-attrs-begin-addr=%p, cc-descr-attrs-end-addr=%p",
+		plugin,
+		spec->shared_lib_handle->path ?
+			spec->shared_lib_handle->path->str : NULL,
+		attrs_begin, attrs_end,
+		cc_descriptors_begin, cc_descriptors_end,
+		cc_descr_attrs_begin, cc_descr_attrs_end);
 	comp_class_full_descriptors = g_array_new(FALSE, TRUE,
 		sizeof(struct comp_class_full_descriptor));
 	if (!comp_class_full_descriptors) {
+		BT_LOGE_STR("Failed to allocate a GArray.");
 		status = BT_PLUGIN_STATUS_ERROR;
 		goto end;
 	}
@@ -330,9 +368,14 @@ enum bt_plugin_status bt_plugin_so_init(
 				cur_attr->value.version.extra);
 			break;
 		default:
-			printf_verbose("WARNING: Unknown attribute \"%s\" (type %d) for plugin %s\n",
-				cur_attr->type_name, cur_attr->type,
-				descriptor->name);
+			BT_LOGW("Ignoring unknown plugin descriptor attribute: "
+				"plugin-path=\"%s\", plugin-name=\"%s\", "
+				"attr-type-name=\"%s\", attr-type-id=%d",
+				spec->shared_lib_handle->path ?
+					spec->shared_lib_handle->path->str :
+					NULL,
+				descriptor->name, cur_attr->type_name,
+				cur_attr->type);
 			break;
 		}
 	}
@@ -424,12 +467,22 @@ enum bt_plugin_status bt_plugin_so_init(
 						cur_cc_descr_attr->value.notif_iter_seek_time_method;
 					break;
 				default:
-					printf_verbose("WARNING: Unknown attribute \"%s\" (type %d) for component class %s (type %d) in plugin %s\n",
-						cur_cc_descr_attr->type_name,
-						cur_cc_descr_attr->type,
+					BT_LOGW("Ignoring unknown component class descriptor attribute: "
+						"plugin-path=\"%s\", "
+						"plugin-name=\"%s\", "
+						"comp-class-name=\"%s\", "
+						"comp-class-type=%s, "
+						"attr-type-name=\"%s\", "
+						"attr-type-id=%d",
+						spec->shared_lib_handle->path ?
+							spec->shared_lib_handle->path->str :
+							NULL,
+						descriptor->name,
 						cur_cc_descr_attr->comp_class_descriptor->name,
-						cur_cc_descr_attr->comp_class_descriptor->type,
-						descriptor->name);
+						bt_component_class_type_string(
+							cur_cc_descr_attr->comp_class_descriptor->type),
+						cur_cc_descr_attr->type_name,
+						cur_cc_descr_attr->type);
 					break;
 				}
 			}
@@ -438,10 +491,13 @@ enum bt_plugin_status bt_plugin_so_init(
 
 	/* Initialize plugin */
 	if (spec->init) {
+		BT_LOGD_STR("Calling user's plugin initialization function.");
 		status = spec->init(plugin);
+		BT_LOGD("User function returned: %s",
+			bt_plugin_status_string(status));
+
 		if (status < 0) {
-			printf_verbose("Plugin `%s` initialization error: %d\n",
-				bt_plugin_get_name(plugin), status);
+			BT_LOGW_STR("User's plugin initialization function failed.");
 			goto end;
 		}
 	}
@@ -454,6 +510,17 @@ enum bt_plugin_status bt_plugin_so_init(
 			&g_array_index(comp_class_full_descriptors,
 				struct comp_class_full_descriptor, i);
 		struct bt_component_class *comp_class;
+
+		BT_LOGD("Creating and setting properties of plugin's component class: "
+			"plugin-path=\"%s\", plugin-name=\"%s\", "
+			"comp-class-name=\"%s\", comp-class-type=%s",
+			spec->shared_lib_handle->path ?
+				spec->shared_lib_handle->path->str :
+				NULL,
+			descriptor->name,
+			cc_full_descr->descriptor->name,
+			bt_component_class_type_string(
+				cc_full_descr->descriptor->type));
 
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
@@ -472,14 +539,20 @@ enum bt_plugin_status bt_plugin_so_init(
 				cc_full_descr->descriptor->methods.sink.consume);
 			break;
 		default:
-			printf_verbose("WARNING: Unknown component class type %d for component class %s in plugin %s\n",
-				cc_full_descr->descriptor->type,
+			BT_LOGW("Ignoring unknown component class type: "
+				"plugin-path=\"%s\", plugin-name=\"%s\", "
+				"comp-class-name=\"%s\", comp-class-type=%d",
+				spec->shared_lib_handle->path->str ?
+					spec->shared_lib_handle->path->str :
+					NULL,
+				descriptor->name,
 				cc_full_descr->descriptor->name,
-				descriptor->name);
+				cc_full_descr->descriptor->type);
 			continue;
 		}
 
 		if (!comp_class) {
+			BT_LOGE_STR("Cannot create component class.");
 			status = BT_PLUGIN_STATUS_ERROR;
 			goto end;
 		}
@@ -488,6 +561,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_description(comp_class,
 				cc_full_descr->description);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's description.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -498,6 +572,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_help(comp_class,
 				cc_full_descr->help);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's help string.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -508,6 +583,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_init_method(comp_class,
 				cc_full_descr->init_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's initialization method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -518,6 +594,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_finalize_method(comp_class,
 				cc_full_descr->finalize_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's finalization method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -528,6 +605,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_query_method(
 				comp_class, cc_full_descr->query_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's query method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -538,6 +616,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_accept_port_connection_method(
 				comp_class, cc_full_descr->accept_port_connection_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's \"accept port connection\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -548,6 +627,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_port_connected_method(
 				comp_class, cc_full_descr->port_connected_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's \"port connected\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -558,6 +638,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			ret = bt_component_class_set_port_disconnected_method(
 				comp_class, cc_full_descr->port_disconnected_method);
 			if (ret) {
+				BT_LOGE_STR("Cannot set component class's \"port disconnected\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
 				BT_PUT(comp_class);
 				goto end;
@@ -571,6 +652,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.init);
 				if (ret) {
+					BT_LOGE_STR("Cannot set component class's notification iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -582,6 +664,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.finalize);
 				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's notification iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -593,6 +676,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.seek_time);
 				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's notification iterator seek to time method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -605,6 +689,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.init);
 				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's notification iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -616,6 +701,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.finalize);
 				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -627,6 +713,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					comp_class,
 					cc_full_descr->iterator_methods.seek_time);
 				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's notification iterator seek to time method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
@@ -651,10 +738,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			comp_class);
 		BT_PUT(comp_class);
 		if (status < 0) {
-			printf_verbose("Cannot add component class %s (type %d) to plugin `%s`: status = %d\n",
-				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->type,
-				bt_plugin_get_name(plugin), status);
+			BT_LOGE("Cannot add component class to plugin.");
 			goto end;
 		}
 	}
@@ -687,6 +771,7 @@ struct bt_plugin *bt_plugin_so_create_empty(
 	plugin->destroy_spec_data = bt_plugin_so_destroy_spec_data;
 	plugin->spec_data = g_new0(struct bt_plugin_so_spec_data, 1);
 	if (!plugin->spec_data) {
+		BT_LOGE_STR("Failed to allocate one SO plugin specific data structure.");
 		goto error;
 	}
 
@@ -724,16 +809,25 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 	attrs_count = attrs_end - attrs_begin;
 	cc_descriptors_count = cc_descriptors_end - cc_descriptors_begin;
 	cc_descr_attrs_count = cc_descr_attrs_end - cc_descr_attrs_begin;
-	printf_verbose("Section: Plugin descriptors: [%p - %p], (%zu elements)\n",
-		descriptors_begin, descriptors_end, descriptor_count);
-	printf_verbose("Section: Plugin descriptor attributes: [%p - %p], (%zu elements)\n",
-		attrs_begin, attrs_end, attrs_count);
-	printf_verbose("Section: Plugin component class descriptors: [%p - %p], (%zu elements)\n",
-		cc_descriptors_begin, cc_descriptors_end, cc_descriptors_count);
-	printf_verbose("Section: Plugin component class descriptor attributes: [%p - %p], (%zu elements)\n",
-		cc_descr_attrs_begin, cc_descr_attrs_end, cc_descr_attrs_count);
+
+	BT_LOGD("Creating all SO plugins from sections: "
+		"plugin-path=\"%s\", "
+		"descr-begin-addr=%p, descr-end-addr=%p, "
+		"attrs-begin-addr=%p, attrs-end-addr=%p, "
+		"cc-descr-begin-addr=%p, cc-descr-end-addr=%p, "
+		"cc-descr-attrs-begin-addr=%p, cc-descr-attrs-end-addr=%p, "
+		"descr-count=%zu, attrs-count=%zu, "
+		"cc-descr-count=%zu, cc-descr-attrs-count=%zu",
+		shared_lib_handle->path ? shared_lib_handle->path->str : NULL,
+		descriptors_begin, descriptors_end,
+		attrs_begin, attrs_end,
+		cc_descriptors_begin, cc_descriptors_end,
+		cc_descr_attrs_begin, cc_descr_attrs_end,
+		descriptor_count, attrs_count,
+		cc_descriptors_count, cc_descr_attrs_count);
 	plugin_set = bt_plugin_set_create();
 	if (!plugin_set) {
+		BT_LOGE_STR("Cannot create empty plugin set.");
 		goto error;
 	}
 
@@ -743,19 +837,19 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			descriptors_begin[i];
 		struct bt_plugin *plugin;
 
-		printf_verbose("Loading plugin %s (ABI %d.%d)\n", descriptor->name,
-			descriptor->major, descriptor->minor);
+		BT_LOGD("Creating plugin object for plugin: "
+			"name=\"%s\", abi-major=%d, abi-minor=%d",
+			descriptor->name, descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
-			printf_error("Unknown plugin's major version: %d\n",
+			BT_LOGW("Unknown ABI major version: abi-major=%d",
 				descriptor->major);
 			goto error;
 		}
 
 		plugin = bt_plugin_so_create_empty(shared_lib_handle);
 		if (!plugin) {
-			printf_error("Cannot allocate plugin object for plugin %s\n",
-				descriptor->name);
+			BT_LOGE_STR("Cannot create empty shared library handle.");
 			goto error;
 		}
 
@@ -767,8 +861,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			attrs_end, cc_descriptors_begin, cc_descriptors_end,
 			cc_descr_attrs_begin, cc_descr_attrs_end);
 		if (status < 0) {
-			printf_error("Cannot initialize plugin object %s\n",
-				descriptor->name);
+			BT_LOGW_STR("Cannot initialize SO plugin object from sections.");
 			BT_PUT(plugin);
 			goto error;
 		}
@@ -798,6 +891,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
 		goto end;
 	}
 
+	BT_LOGD_STR("Creating all SO plugins from built-in plugins.");
 	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
 		SECTION_BEGIN(__bt_plugin_descriptors),
 		SECTION_END(__bt_plugin_descriptors),
@@ -831,11 +925,15 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
 	if (!path) {
+		BT_LOGW_STR("Invalid parameter: path is NULL.");
 		goto end;
 	}
 
+	BT_LOGD("Creating all SO plugins from file: path=\"%s\"", path);
 	path_len = strlen(path);
 	if (path_len <= PLUGIN_SUFFIX_LEN) {
+		BT_LOGW("Invalid parameter: path length is too short: "
+			"path-length=%zu", path_len);
 		goto end;
 	}
 
@@ -851,92 +949,110 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 		path + path_len - NATIVE_PLUGIN_SUFFIX_LEN,
 		NATIVE_PLUGIN_SUFFIX_LEN);
 	if (!is_shared_object && !is_libtool_wrapper) {
-		/* Name indicates that this is not a plugin file. */
+		/* Name indicates this is not a plugin file; not an error */
+		BT_LOGV("File is not a SO plugin file: path=\"%s\"", path);
 		goto end;
 	}
 
 	shared_lib_handle = bt_plugin_so_shared_lib_handle_create(path);
 	if (!shared_lib_handle) {
+		BT_LOGW_STR("Cannot create shared library handle.");
 		goto end;
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_descriptors",
 			(gpointer *) &descriptors_begin)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__start___bt_plugin_descriptors",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__start___bt_plugin_descriptors");
 		goto end;
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_descriptors",
 			(gpointer *) &descriptors_end)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__stop___bt_plugin_descriptors",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__stop___bt_plugin_descriptors");
 		goto end;
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_descriptor_attributes",
 			(gpointer *) &attrs_begin)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__start___bt_plugin_descriptor_attributes",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__start___bt_plugin_descriptor_attributes");
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_descriptor_attributes",
 			(gpointer *) &attrs_end)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__stop___bt_plugin_descriptor_attributes",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__stop___bt_plugin_descriptor_attributes");
 	}
 
 	if ((!!attrs_begin - !!attrs_end) != 0) {
-		printf_verbose("Found __start___bt_plugin_descriptor_attributes or __stop___bt_plugin_descriptor_attributes symbol, but not both in %s\n",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Found section start or end symbol, but not both: "
+			"path=\"%s\", symbol-start=\"%s\", "
+			"symbol-end=\"%s\", symbol-start-addr=%p, "
+			"symbol-end-addr=%p",
+			path, "__start___bt_plugin_descriptor_attributes",
+			"__stop___bt_plugin_descriptor_attributes",
+			attrs_begin, attrs_end);
 		goto end;
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_component_class_descriptors",
 			(gpointer *) &cc_descriptors_begin)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__start___bt_plugin_component_class_descriptors",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__start___bt_plugin_component_class_descriptors");
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_component_class_descriptors",
 			(gpointer *) &cc_descriptors_end)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__stop___bt_plugin_component_class_descriptors",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__stop___bt_plugin_component_class_descriptors");
 	}
 
 	if ((!!cc_descriptors_begin - !!cc_descriptors_end) != 0) {
-		printf_verbose("Found __start___bt_plugin_component_class_descriptors or __stop___bt_plugin_component_class_descriptors symbol, but not both in %s\n",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Found section start or end symbol, but not both: "
+			"path=\"%s\", symbol-start=\"%s\", "
+			"symbol-end=\"%s\", symbol-start-addr=%p, "
+			"symbol-end-addr=%p",
+			path, "__start___bt_plugin_component_class_descriptors",
+			"__stop___bt_plugin_component_class_descriptors",
+			cc_descriptors_begin, cc_descriptors_end);
 		goto end;
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__start___bt_plugin_component_class_descriptor_attributes",
 			(gpointer *) &cc_descr_attrs_begin)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__start___bt_plugin_component_class_descriptor_attributes",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__start___bt_plugin_component_class_descriptor_attributes");
 	}
 
 	if (!g_module_symbol(shared_lib_handle->module, "__stop___bt_plugin_component_class_descriptor_attributes",
 			(gpointer *) &cc_descr_attrs_end)) {
-		printf_verbose("Unable to resolve plugin symbol %s from %s\n",
-			"__stop___bt_plugin_component_class_descriptor_attributes",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+			"symbol=\"%s\"", path,
+			"__stop___bt_plugin_component_class_descriptor_attributes");
 	}
 
 	if ((!!cc_descr_attrs_begin - !!cc_descr_attrs_end) != 0) {
-		printf_verbose("Found __start___bt_plugin_component_class_descriptor_attributes or __stop___bt_plugin_component_class_descriptor_attributes symbol, but not both in %s\n",
-			g_module_name(shared_lib_handle->module));
+		BT_LOGD("Found section start or end symbol, but not both: "
+			"path=\"%s\", symbol-start=\"%s\", "
+			"symbol-end=\"%s\", symbol-start-addr=%p, "
+			"symbol-end-addr=%p",
+			path, "__start___bt_plugin_component_class_descriptor_attributes",
+			"__stop___bt_plugin_component_class_descriptor_attributes",
+			cc_descr_attrs_begin, cc_descr_attrs_end);
 		goto end;
 	}
 
 	/* Initialize plugin */
+	BT_LOGD_STR("Initializing plugin object.");
 	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
 		descriptors_begin, descriptors_end, attrs_begin, attrs_end,
 		cc_descriptors_begin, cc_descriptors_end,
@@ -954,6 +1070,8 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 	gboolean exists = g_hash_table_remove(comp_classes_to_shlib_handles,
 		comp_class);
 	assert(exists);
+	BT_LOGV("Component class destroyed: removed entry from hash table: "
+		"comp-cls-addr=%p", comp_class);
 }
 
 BT_HIDDEN
