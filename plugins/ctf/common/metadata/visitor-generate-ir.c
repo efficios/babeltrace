@@ -4616,7 +4616,7 @@ end:
 static
 int move_ctx_stream_classes_to_trace(struct ctx *ctx)
 {
-	int ret;
+	int ret = 0;
 	GHashTableIter iter;
 	gpointer key, stream_class;
 
