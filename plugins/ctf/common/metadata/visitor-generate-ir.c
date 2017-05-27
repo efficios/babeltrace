@@ -3037,7 +3037,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
 				(uint64_t *) &id);
-			if (ret || id < 0) {
+			/* Only read "id" if get_unary_unsigned() succeeded. */
+			if (ret || (!ret && id < 0)) {
 				_PERROR("%s", "unexpected unary expression for event declaration's \"id\" attribute");
 				ret = -EINVAL;
 				goto error;
@@ -3061,7 +3062,11 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
 				(uint64_t *) stream_id);
-			if (ret || *stream_id < 0) {
+			/*
+			 * Only read "stream_id" if get_unary_unsigned()
+			 * succeeded.
+			 */
+			if (ret || (!ret && *stream_id < 0)) {
 				_PERROR("%s", "unexpected unary expression for event declaration's \"stream_id\" attribute");
 				ret = -EINVAL;
 				goto error;
@@ -3575,7 +3580,8 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
 				(uint64_t *) &id);
-			if (ret || id < 0) {
+			/* Only read "id" if get_unary_unsigned() succeeded. */
+			if (ret || (!ret && id < 0)) {
 				_PERROR("%s", "unexpected unary expression for stream declaration's \"id\" attribute");
 				ret = -EINVAL;
 				goto error;
