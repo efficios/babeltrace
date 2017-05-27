@@ -26,7 +26,7 @@
 #include "decoder.h"
 #include "scanner.h"
 
-#define PRINT_ERR_STREAM	mdec->err_stream
+#define PRINT_ERR_STREAM	(mdec ? mdec->err_stream : stderr)
 #define PRINT_PREFIX		"metadata-decoder"
 #include "../print.h"
 
