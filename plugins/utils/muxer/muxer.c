@@ -43,7 +43,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define IGNORE_ABSOLUTE_PARAM_NAME	"ignore-absolute"
+#define ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME	"assume-absolute-clock-classes"
 
 struct muxer_comp {
 	/* Array of struct bt_private_notification_iterator * (weak refs) */
@@ -225,8 +225,8 @@ struct bt_value *get_default_params(void)
 		goto error;
 	}
 
-	ret = bt_value_map_insert_bool(params, IGNORE_ABSOLUTE_PARAM_NAME,
-		false);
+	ret = bt_value_map_insert_bool(params,
+		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, false);
 	if (ret) {
 		goto error;
 	}
@@ -260,7 +260,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	}
 
 	ignore_absolute = bt_value_map_get(real_params,
-		IGNORE_ABSOLUTE_PARAM_NAME);
+		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
 	if (!bt_value_is_bool(ignore_absolute)) {
 		goto error;
 	}

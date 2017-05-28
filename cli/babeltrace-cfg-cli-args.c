@@ -4066,7 +4066,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
 			append_implicit_component_param(
-				&implicit_muxer_args, "ignore-absolute", "yes");
+				&implicit_muxer_args, "assume-absolute-clock-classes", "yes");
 			break;
 		case OPT_CLOCK_GMT:
 			append_implicit_component_param(
