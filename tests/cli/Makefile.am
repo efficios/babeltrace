@@ -5,7 +5,6 @@ LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
 TESTS = test_trace_read \
-	test_trace_read \
 	test_packet_seq_num \
 	test_convert_args \
 	intersection/test_intersection
