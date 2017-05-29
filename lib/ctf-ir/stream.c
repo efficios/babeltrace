@@ -353,18 +353,50 @@ int set_packet_context_events_discarded(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_set_value(field,
-		stream->discarded_events);
-	if (ret) {
-		BT_LOGW("Cannot set packet context field's `events_discarded` integer field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
-			stream, bt_ctf_stream_get_name(stream),
-			field, stream->discarded_events);
+	/*
+	 * If the field is set by the user, make sure that the value is
+	 * greater than or equal to the stream's current count of
+	 * discarded events. We do not allow wrapping here. If it's
+	 * valid, update the stream's current count.
+	 */
+	if (bt_ctf_field_is_set(field)) {
+		uint64_t user_val;
+
+		ret = bt_ctf_field_unsigned_integer_get_value(field,
+			&user_val);
+		if (ret) {
+			BT_LOGW("Cannot get packet context `events_discarded` field's unsigned value: "
+				"stream-addr=%p, stream-name=\"%s\", field-addr=%p",
+				stream, bt_ctf_stream_get_name(stream), field);
+			goto end;
+		}
+
+		if (user_val < stream->discarded_events) {
+			BT_LOGW("Invalid packet context `events_discarded` field's unsigned value: "
+				"value is lesser than the stream's current discarded events count: "
+				"stream-addr=%p, stream-name=\"%s\", field-addr=%p, "
+				"value=%" PRIu64 ", "
+				"stream-discarded-events-count=%" PRIu64,
+				stream, bt_ctf_stream_get_name(stream), field,
+				user_val, stream->discarded_events);
+			goto end;
+		}
+
+		stream->discarded_events = user_val;
 	} else {
-		BT_LOGV("Set packet context field's `events_discarded` field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
-			stream, bt_ctf_stream_get_name(stream),
-			field, stream->discarded_events);
+		ret = bt_ctf_field_unsigned_integer_set_value(field,
+			stream->discarded_events);
+		if (ret) {
+			BT_LOGW("Cannot set packet context field's `events_discarded` integer field's value: "
+				"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
+				stream, bt_ctf_stream_get_name(stream),
+				field, stream->discarded_events);
+		} else {
+			BT_LOGV("Set packet context field's `events_discarded` field's value: "
+				"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
+				stream, bt_ctf_stream_get_name(stream),
+				field, stream->discarded_events);
+		}
 	}
 
 end:
@@ -1621,6 +1653,7 @@ end:
 	reset_structure_field(stream->packet_context, "timestamp_end");
 	reset_structure_field(stream->packet_context, "packet_size");
 	reset_structure_field(stream->packet_context, "content_size");
+	reset_structure_field(stream->packet_context, "events_discarded");
 
 	if (ret < 0) {
 		/*
