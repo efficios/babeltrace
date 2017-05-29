@@ -1,4 +1,9 @@
 *~
+/tests/cli/intersection/bt_python_helper.py
+/tests/cli/intersection/test_intersection
+/tests/cli/test_packet_seq_num
+/tests/cli/test_trace_read
+/tests/cli/test_convert_args
 /tests/bin/intersection/bt_python_helper.py
 /tests/bin/intersection/test_intersection
 /tests/bin/test_packet_seq_num
@@ -20,6 +25,11 @@
 /tests/lib/test_plugin
 /tests/lib/test_plugin_complete
 /tests/lib/writer/bt_python_helper.py
+/tests/lib/writer/test_ctf_writer_empty_packet.py
+/tests/lib/writer/test_ctf_writer_no_packet_context.py
+/tests/lib/test_bt_notification_iterator
+/tests/lib/test_cc_prio_map
+/tests/lib/test_graph_topo
 /tests/plugins/test-utils-muxer
 /tests/plugins/test-utils-muxer-complete
 *.o
