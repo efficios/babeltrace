@@ -127,4 +127,7 @@ BT_HIDDEN
 bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
                 const char *candidate, size_t candidate_len);
 
+BT_HIDDEN
+GString *bt_common_normalize_path(const char *path, const char *wd);
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

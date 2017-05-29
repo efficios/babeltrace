@@ -1008,3 +1008,120 @@ end_of_pattern:
 	p++;
 	return p[-1] == '*' && at_end_of_pattern(p, pattern, pattern_len);
 }
+
+static
+void append_path_parts(const char *path, GPtrArray *parts)
+{
+	const char *ch = path;
+	const char *last = path;
+
+	while (true) {
+		if (*ch == G_DIR_SEPARATOR || *ch == '\0') {
+			if (ch - last > 0) {
+				GString *part = g_string_new(NULL);
+
+				assert(part);
+				g_string_append_len(part, last, ch - last);
+				g_ptr_array_add(parts, part);
+			}
+
+			if (*ch == '\0') {
+				break;
+			}
+
+			last = ch + 1;
+		}
+
+		ch++;
+	}
+}
+
+static
+void destroy_gstring(void *gstring)
+{
+	(void) g_string_free(gstring, TRUE);
+}
+
+BT_HIDDEN
+GString *bt_common_normalize_path(const char *path, const char *wd)
+{
+	size_t i;
+	GString *norm_path;
+	GPtrArray *parts = NULL;
+
+	assert(path);
+	norm_path = g_string_new(G_DIR_SEPARATOR_S);
+	if (!norm_path) {
+		goto error;
+	}
+
+	parts = g_ptr_array_new_with_free_func(destroy_gstring);
+	if (!parts) {
+		goto error;
+	}
+
+	if (path[0] != G_DIR_SEPARATOR) {
+		/* Relative path: start with working directory */
+		if (wd) {
+			append_path_parts(wd, parts);
+		} else {
+			gchar *cd = g_get_current_dir();
+
+			append_path_parts(cd, parts);
+			g_free(cd);
+		}
+	}
+
+	/* Append parts of the path parameter */
+	append_path_parts(path, parts);
+
+	/* Resolve special `..` and `.` parts */
+	for (i = 0; i < parts->len; i++) {
+		GString *part = g_ptr_array_index(parts, i);
+
+		if (strcmp(part->str, "..") == 0) {
+			if (i == 0) {
+				/*
+				 * First part of absolute path is `..`:
+				 * this is invalid.
+				 */
+				goto error;
+			}
+
+			/* Remove `..` and previous part */
+			g_ptr_array_remove_index(parts, i - 1);
+			g_ptr_array_remove_index(parts, i - 1);
+			i -= 2;
+		} else if (strcmp(part->str, ".") == 0) {
+			/* Remove `.` */
+			g_ptr_array_remove_index(parts, i);
+			i -= 1;
+		}
+	}
+
+	/* Create normalized path with what's left */
+	for (i = 0; i < parts->len; i++) {
+		GString *part = g_ptr_array_index(parts, i);
+
+		g_string_append(norm_path, part->str);
+
+		if (i < parts->len - 1) {
+			g_string_append_c(norm_path, G_DIR_SEPARATOR);
+		}
+	}
+
+	goto end;
+
+error:
+	if (norm_path) {
+		g_string_free(norm_path, TRUE);
+		norm_path = NULL;
+	}
+
+end:
+	if (parts) {
+		g_ptr_array_free(parts, TRUE);
+	}
+
+	return norm_path;
+}
