@@ -92,6 +92,71 @@ error:
 	return NULL;
 }
 
+static void set_stream_class_field_types(
+		struct bt_ctf_stream_class *stream_class)
+{
+	struct bt_ctf_field_type *packet_context_type;
+	struct bt_ctf_field_type *event_header_type;
+	struct bt_ctf_field_type *ft;
+	int ret;
+
+	packet_context_type = bt_ctf_field_type_structure_create();
+	assert(packet_context_type);
+	ft = bt_ctf_field_type_integer_create(32);
+	assert(ft);
+	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+		ft, "packet_size");
+	assert(ret == 0);
+	bt_put(ft);
+	ft = bt_ctf_field_type_integer_create(32);
+	assert(ft);
+	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+		ft, "content_size");
+	assert(ret == 0);
+	bt_put(ft);
+
+	event_header_type = bt_ctf_field_type_structure_create();
+	assert(event_header_type);
+	ft = bt_ctf_field_type_integer_create(32);
+	assert(ft);
+	ret = bt_ctf_field_type_structure_add_field(event_header_type,
+		ft, "id");
+	assert(ret == 0);
+	bt_put(ft);
+
+	ret = bt_ctf_stream_class_set_packet_context_type(stream_class,
+		packet_context_type);
+	assert(ret == 0);
+	ret = bt_ctf_stream_class_set_event_header_type(stream_class,
+		event_header_type);
+	assert(ret == 0);
+
+	bt_put(packet_context_type);
+	bt_put(event_header_type);
+}
+
+static void set_trace_packet_header(struct bt_ctf_trace *trace)
+{
+	struct bt_ctf_field_type *packet_header_type;
+	struct bt_ctf_field_type *ft;
+	int ret;
+
+	packet_header_type = bt_ctf_field_type_structure_create();
+	assert(packet_header_type);
+	ft = bt_ctf_field_type_integer_create(32);
+	assert(ft);
+	ret = bt_ctf_field_type_structure_add_field(packet_header_type,
+		ft, "stream_id");
+	assert(ret == 0);
+	bt_put(ft);
+
+	ret = bt_ctf_trace_set_packet_header_type(trace,
+		packet_header_type);
+	assert(ret == 0);
+
+	bt_put(packet_header_type);
+}
+
 struct bt_ctf_trace *init_trace(void)
 {
 	int ret;
@@ -106,6 +171,9 @@ struct bt_ctf_trace *init_trace(void)
 		goto end;
 	}
 
+	set_trace_packet_header(trace);
+	set_stream_class_field_types(sc1);
+	set_stream_class_field_types(sc2);
 	ret = bt_ctf_trace_set_native_byte_order(trace,
 		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
