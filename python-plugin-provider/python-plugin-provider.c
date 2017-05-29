@@ -24,8 +24,15 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL python_plugin_provider_log_level
 #define BT_LOG_TAG "PLUGIN-PY"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace/logging-internal.h>
+
+/*
+ * Must be before the rest because some of the headers below could
+ * contain logging statements which need this symbol when expanded.
+ */
+static int python_plugin_provider_log_level = BT_LOG_NONE;
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -57,6 +64,13 @@ enum python_state {
 } python_state = PYTHON_STATE_NOT_INITED;
 
 static PyObject *py_try_load_plugin_module_func = NULL;
+
+static
+void __attribute__((constructor)) logging_ctor(void)
+{
+	python_plugin_provider_log_level =
+		bt_log_get_level_from_env("BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL");
+}
 
 static
 void print_python_traceback_warn(void)

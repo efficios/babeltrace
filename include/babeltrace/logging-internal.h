@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <babeltrace/logging.h>
+#include <babeltrace/babeltrace-internal.h>
 
 /* To detect incompatible changes you can define BT_LOG_VERSION_REQUIRED to be
  * the current value of BT_LOG_VERSION before including this file (or via
