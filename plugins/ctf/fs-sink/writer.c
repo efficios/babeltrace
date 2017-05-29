@@ -38,6 +38,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/graph/notification-stream.h>
 #include <plugins-common.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -45,13 +46,28 @@
 #include "writer.h"
 #include <assert.h>
 
+gboolean empty_ht(gpointer key, gpointer value, gpointer user_data)
+{
+	return TRUE;
+}
+
 static
 void destroy_writer_component_data(struct writer_component *writer_component)
 {
 	bt_put(writer_component->input_iterator);
-	g_hash_table_destroy(writer_component->stream_map);
+
+	g_hash_table_foreach_remove(writer_component->stream_class_map,
+			empty_ht, NULL);
 	g_hash_table_destroy(writer_component->stream_class_map);
+
+	g_hash_table_foreach_remove(writer_component->stream_map,
+			empty_ht, NULL);
+	g_hash_table_destroy(writer_component->stream_map);
+
+	g_hash_table_foreach_remove(writer_component->trace_map,
+			empty_ht, NULL);
 	g_hash_table_destroy(writer_component->trace_map);
+
 	g_string_free(writer_component->base_path, true);
 	g_string_free(writer_component->trace_name_base, true);
 }
@@ -79,9 +95,10 @@ void unref_stream(struct bt_ctf_stream_class *writer_stream)
 }
 
 static
-void unref_trace(struct bt_ctf_writer *writer)
+void free_fs_writer(struct fs_writer *fs_writer)
 {
-	bt_put(writer);
+	bt_put(fs_writer->writer);
+	g_free(fs_writer);
 }
 
 static
@@ -108,7 +125,7 @@ struct writer_component *create_writer_component(void)
 	 * Reader to writer corresponding structures.
 	 */
 	writer_component->trace_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) unref_trace);
+			g_direct_equal, NULL, (GDestroyNotify) free_fs_writer);
 	writer_component->stream_class_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
 	writer_component->stream_map = g_hash_table_new_full(g_direct_hash,
@@ -167,7 +184,6 @@ enum bt_component_status handle_notification(
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		ret = BT_COMPONENT_STATUS_OK;
 		ret = writer_output_event(writer_component, event);
 		bt_put(event);
 		if (ret != BT_COMPONENT_STATUS_OK) {
@@ -176,7 +192,18 @@ enum bt_component_status handle_notification(
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
+	{
+		struct bt_ctf_stream *stream =
+			bt_notification_stream_end_get_stream(notification);
+
+		if (!stream) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		ret = writer_stream_end(writer_component, stream);
+		bt_put(stream);
 		break;
+	}
 	default:
 		puts("Unhandled notification type");
 	}
@@ -193,8 +220,10 @@ void writer_component_port_connected(
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
 	static const enum bt_notification_type notif_types[] = {
+		BT_NOTIFICATION_TYPE_EVENT,
 		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
 		BT_NOTIFICATION_TYPE_PACKET_END,
+		BT_NOTIFICATION_TYPE_STREAM_END,
 		BT_NOTIFICATION_TYPE_SENTINEL,
 	};
 

@@ -35,10 +35,17 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/stream.h>
+#include <assert.h>
 
 #include <ctfcopytrace.h>
 
 #include "writer.h"
+
+static
+void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
+{
+	*((int *) data) = 1;
+}
 
 static
 struct bt_ctf_stream_class *insert_new_stream_class(
@@ -159,7 +166,7 @@ struct bt_ctf_event_class *get_event_class(struct writer_component *writer_compo
 			bt_ctf_event_class_get_id(event_class));
 }
 
-struct bt_ctf_writer *insert_new_writer(
+struct fs_writer *insert_new_writer(
 		struct writer_component *writer_component,
 		struct bt_ctf_trace *trace)
 {
@@ -167,6 +174,7 @@ struct bt_ctf_writer *insert_new_writer(
 	struct bt_ctf_trace *writer_trace = NULL;
 	char trace_name[PATH_MAX];
 	enum bt_component_status ret;
+	struct fs_writer *fs_writer;
 
 	/* FIXME: replace with trace name when it will work. */
 	snprintf(trace_name, PATH_MAX, "%s/%s_%03d",
@@ -196,12 +204,38 @@ struct bt_ctf_writer *insert_new_writer(
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		BT_PUT(ctf_writer);
-		goto end;
+		goto error;
 	}
+
+	fs_writer = g_new0(struct fs_writer, 1);
+	if (!fs_writer) {
+		fprintf(writer_component->err,
+				"[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+	fs_writer->writer = ctf_writer;
+	fs_writer->writer_trace = writer_trace;
 	BT_PUT(writer_trace);
+	if (bt_ctf_trace_is_static(trace)) {
+		fs_writer->trace_static = 1;
+		fs_writer->static_listener_id = -1;
+	} else {
+		ret = bt_ctf_trace_add_is_static_listener(trace,
+				trace_is_static_listener, &fs_writer->trace_static);
+		if (ret < 0) {
+			fprintf(writer_component->err,
+					"[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			g_free(fs_writer);
+			fs_writer = NULL;
+			goto error;
+		}
+		fs_writer->static_listener_id = ret;
+	}
 
 	g_hash_table_insert(writer_component->trace_map, (gpointer) trace,
-			ctf_writer);
+			fs_writer);
 
 	goto end;
 
@@ -209,37 +243,35 @@ error:
 	bt_put(writer_trace);
 	BT_PUT(ctf_writer);
 end:
-	return ctf_writer;
+	return fs_writer;
 }
 
 static
-struct bt_ctf_writer *get_writer(struct writer_component *writer_component,
+struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 		struct bt_ctf_stream_class *stream_class)
 {
 	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_writer *ctf_writer = NULL;
+	struct fs_writer *fs_writer;
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (!trace) {
-		ctf_writer = NULL;
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		goto error;
 	}
 
-	ctf_writer = g_hash_table_lookup(writer_component->trace_map,
+	fs_writer = g_hash_table_lookup(writer_component->trace_map,
 			(gpointer) trace);
-	if (!ctf_writer) {
-		ctf_writer = insert_new_writer(writer_component, trace);
+	if (!fs_writer) {
+		fs_writer = insert_new_writer(writer_component, trace);
 	}
-	bt_get(ctf_writer);
 	BT_PUT(trace);
 	goto end;
 
 error:
-	BT_PUT(ctf_writer);
+	fs_writer = NULL;
 end:
-	return ctf_writer;
+	return fs_writer;
 }
 
 static
@@ -258,17 +290,25 @@ struct bt_ctf_stream *get_writer_stream(
 		goto error;
 	}
 
-	ctf_writer = get_writer(writer_component, stream_class);
-	if (!ctf_writer) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
-
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
+		struct fs_writer *fs_writer;
+
+		fs_writer = get_fs_writer(writer_component, stream_class);
+		if (!fs_writer) {
+			fprintf(writer_component->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto error;
+		}
+		ctf_writer = bt_get(fs_writer->writer);
 		writer_stream = insert_new_stream(writer_component, ctf_writer,
 				stream_class, stream);
+		if (!writer_stream) {
+			fprintf(writer_component->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto error;
+		}
+		fs_writer->active_streams++;
 	}
 	bt_get(writer_stream);
 
@@ -280,6 +320,70 @@ end:
 	bt_put(ctf_writer);
 	bt_put(stream_class);
 	return writer_stream;
+}
+
+BT_HIDDEN
+enum bt_component_status writer_close(
+		struct writer_component *writer_component,
+		struct fs_writer *fs_writer,
+		struct bt_ctf_trace *trace)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	if (fs_writer->static_listener_id > 0) {
+		bt_ctf_trace_remove_is_static_listener(trace,
+				fs_writer->static_listener_id);
+	}
+	g_hash_table_remove(writer_component->trace_map, trace);
+	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status writer_stream_end(
+		struct writer_component *writer_component,
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct fs_writer *fs_writer;
+	struct bt_ctf_trace *trace = NULL;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	g_hash_table_remove(writer_component->stream_map, stream);
+
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+
+	fs_writer = get_fs_writer(writer_component, stream_class);
+	if (!fs_writer) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+
+	assert(fs_writer->active_streams > 0);
+	fs_writer->active_streams--;
+	if (fs_writer->active_streams == 0 && fs_writer->trace_static) {
+		trace = bt_ctf_stream_class_get_trace(stream_class);
+		if (!trace) {
+			fprintf(writer_component->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto error;
+		}
+		ret = writer_close(writer_component, fs_writer, trace);
+	}
+
+	goto end;
+
+error:
+	ret = BT_COMPONENT_STATUS_ERROR;
+end:
+	BT_PUT(trace);
+	BT_PUT(stream_class);
+	return ret;
 }
 
 BT_HIDDEN

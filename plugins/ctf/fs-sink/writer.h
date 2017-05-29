@@ -49,6 +49,14 @@ struct writer_component {
 	bool error;
 };
 
+struct fs_writer {
+	struct bt_ctf_writer *writer;
+	struct bt_ctf_trace *writer_trace;
+	int static_listener_id;
+	unsigned int active_streams;
+	int trace_static;
+};
+
 BT_HIDDEN
 enum bt_component_status writer_output_event(struct writer_component *writer,
 		struct bt_ctf_event *event);
@@ -58,6 +66,9 @@ enum bt_component_status writer_new_packet(struct writer_component *writer,
 BT_HIDDEN
 enum bt_component_status writer_close_packet(struct writer_component *writer,
 		struct bt_ctf_packet *packet);
+BT_HIDDEN
+enum bt_component_status writer_stream_end(struct writer_component *writer,
+		struct bt_ctf_stream *stream);
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(
