@@ -25,6 +25,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/common-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/stream.h>
@@ -973,39 +974,31 @@ static
 int add_trace_path(struct ctf_fs_component *ctf_fs, GList **trace_paths,
 		const char *path)
 {
-	GString *path_str = g_string_new(NULL);
+	GString *norm_path = NULL;
 	int ret = 0;
-	char *rp = NULL;
 
-	if (!path_str) {
+	norm_path = bt_common_normalize_path(path, NULL);
+	if (!norm_path) {
+		PERR("Failed to normalize path `%s`.\n", path);
 		ret = -1;
 		goto end;
 	}
 
-	/*
-	 * Find the real path so that we don't have relative components
-	 * in the trace name. This also squashes consecutive slashes and
-	 * removes any slash at the end.
-	 */
-	rp = realpath(path, NULL);
-	if (!rp) {
-		PERR("realpath() failed: %s (%d)\n", strerror(errno), errno);
-		ret = -1;
-		goto end;
-	}
-
-	if (strcmp(rp, "/") == 0) {
+	if (strcmp(norm_path->str, "/") == 0) {
 		PERR("Opening a trace in `/` is not supported.\n");
 		ret = -1;
 		goto end;
 	}
 
-	g_string_assign(path_str, rp);
-	*trace_paths = g_list_prepend(*trace_paths, path_str);
+	*trace_paths = g_list_prepend(*trace_paths, norm_path);
 	assert(*trace_paths);
+	norm_path = NULL;
 
 end:
-	free(rp);
+	if (norm_path) {
+		g_string_free(norm_path, TRUE);
+	}
+
 	return ret;
 }
 
@@ -1026,8 +1019,8 @@ int find_ctf_traces(struct ctf_fs_component *ctf_fs,
 
 	if (ret) {
 		/*
-		 * Do not even recurse: a CTF trace cannot contain
-		 * another CTF trace.
+		 * Stop recursion: a CTF trace cannot contain another
+		 * CTF trace.
 		 */
 		ret = add_trace_path(ctf_fs, trace_paths, start_path);
 		goto end;
@@ -1082,68 +1075,52 @@ end:
 }
 
 static
-GList *create_trace_names(GList *trace_paths) {
+GList *create_trace_names(GList *trace_paths, const char *base_path) {
 	GList *trace_names = NULL;
-	size_t chars_to_strip = 0;
-	size_t at = 0;
 	GList *node;
-	bool done = false;
+	const char *last_sep;
+	size_t base_dist;
 
 	/*
-	 * Find the number of characters to strip from the beginning,
-	 * that is, the longest prefix until a common slash (also
-	 * stripped).
+	 * At this point we know that all the trace paths are
+	 * normalized, and so is the base path. This means that
+	 * they are absolute and they don't end with a separator.
+	 * We can simply find the location of the last separator
+	 * in the base path, which gives us the name of the actual
+	 * directory to look into, and use this location as the
+	 * start of each trace name within each trace path.
+	 *
+	 * For example:
+	 *
+	 *     Base path: /home/user/my-traces/some-trace
+	 *     Trace paths:
+	 *       - /home/user/my-traces/some-trace/host1/trace1
+	 *       - /home/user/my-traces/some-trace/host1/trace2
+	 *       - /home/user/my-traces/some-trace/host2/trace
+	 *       - /home/user/my-traces/some-trace/other-trace
+	 *
+	 * In this case the trace names are:
+	 *
+	 *       - some-trace/host1/trace1
+	 *       - some-trace/host1/trace2
+	 *       - some-trace/host2/trace
+	 *       - some-trace/other-trace
 	 */
-	while (true) {
-		gchar common_ch = '\0';
+	last_sep = strrchr(base_path, G_DIR_SEPARATOR);
 
-		for (node = trace_paths; node; node = g_list_next(node)) {
-			GString *gstr = node->data;
-			gchar this_ch = gstr->str[at];
+	/* We know there's at least one separator */
+	assert(last_sep);
 
-			if (this_ch == '\0') {
-				done = true;
-				break;
-			}
-
-			if (common_ch == '\0') {
-				/*
-				 * Establish the expected common
-				 * character at this position.
-				 */
-				common_ch = this_ch;
-				continue;
-			}
-
-			if (this_ch != common_ch) {
-				done = true;
-				break;
-			}
-		}
-
-		if (done) {
-			break;
-		}
-
-		if (common_ch == '/') {
-			/*
-			 * Common character is a slash: safe to include
-			 * this slash in the number of characters to
-			 * strip because the paths are guaranteed not to
-			 * end with slash.
-			 */
-			chars_to_strip = at + 1;
-		}
-
-		at++;
-	}
+	/* Distance to base */
+	base_dist = last_sep - base_path + 1;
 
 	/* Create the trace names */
 	for (node = trace_paths; node; node = g_list_next(node)) {
 		GString *trace_name = g_string_new(NULL);
 		GString *trace_path = node->data;
 
-		g_string_assign(trace_name, &trace_path->str[chars_to_strip]);
+		assert(trace_name);
+		g_string_assign(trace_name, &trace_path->str[base_dist]);
 		trace_names = g_list_append(trace_names, trace_name);
 	}
 
@@ -1156,12 +1133,20 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 {
 	struct ctf_fs_trace *ctf_fs_trace = NULL;
 	int ret = 0;
+	GString *norm_path = NULL;
 	GList *trace_paths = NULL;
 	GList *trace_names = NULL;
 	GList *tp_node;
 	GList *tn_node;
 
-	ret = find_ctf_traces(ctf_fs, &trace_paths, path_param);
+	norm_path = bt_common_normalize_path(path_param, NULL);
+	if (!norm_path) {
+		PERR("Failed to normalize path: `%s`.\n",
+			path_param);
+		goto error;
+	}
+
+	ret = find_ctf_traces(ctf_fs, &trace_paths, norm_path->str);
 	if (ret) {
 		goto error;
 	}
@@ -1172,7 +1157,7 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
-	trace_names = create_trace_names(trace_paths);
+	trace_names = create_trace_names(trace_paths, norm_path->str);
 	if (!trace_names) {
 		PERR("Cannot create trace names from trace paths.\n");
 		goto error;
@@ -1221,6 +1206,10 @@ end:
 
 	if (trace_names) {
 		g_list_free(trace_names);
+	}
+
+	if (norm_path) {
+		g_string_free(norm_path, TRUE);
 	}
 
 	return ret;
