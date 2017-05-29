@@ -210,7 +210,14 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 
 	shared_lib_handle->module = g_module_open(path, 0);
 	if (!shared_lib_handle->module) {
-		BT_LOGW("Cannot open GModule: %s: path=\"%s\"",
+		/*
+		 * DEBUG-level logging because we're only _trying_ to
+		 * open this file as a Babeltrace plugin: if it's not,
+		 * it's not an error. And because this can be tried
+		 * during bt_plugin_create_all_from_dir(), it's not even
+		 * a warning.
+		 */
+		BT_LOGD("Cannot open GModule: %s: path=\"%s\"",
 			g_module_error(), path);
 		goto error;
 	}
@@ -368,6 +375,13 @@ enum bt_plugin_status bt_plugin_so_init(
 				cur_attr->value.version.extra);
 			break;
 		default:
+			/*
+			 * WARN-level logging because this should not
+			 * happen with the appropriate ABI version. If
+			 * we're here, we know that for the reported
+			 * version of the ABI, this attribute is
+			 * unknown.
+			 */
 			BT_LOGW("Ignoring unknown plugin descriptor attribute: "
 				"plugin-path=\"%s\", plugin-name=\"%s\", "
 				"attr-type-name=\"%s\", attr-type-id=%d",
@@ -467,6 +481,15 @@ enum bt_plugin_status bt_plugin_so_init(
 						cur_cc_descr_attr->value.notif_iter_seek_time_method;
 					break;
 				default:
+					/*
+					 * WARN-level logging because
+					 * this should not happen with
+					 * the appropriate ABI version.
+					 * If we're here, we know that
+					 * for the reported version of
+					 * the ABI, this attribute is
+					 * unknown.
+					 */
 					BT_LOGW("Ignoring unknown component class descriptor attribute: "
 						"plugin-path=\"%s\", "
 						"plugin-name=\"%s\", "
@@ -539,6 +562,13 @@ enum bt_plugin_status bt_plugin_so_init(
 				cc_full_descr->descriptor->methods.sink.consume);
 			break;
 		default:
+			/*
+			 * WARN-level logging because this should not
+			 * happen with the appropriate ABI version. If
+			 * we're here, we know that for the reported
+			 * version of the ABI, this component class type
+			 * is unknown.
+			 */
 			BT_LOGW("Ignoring unknown component class type: "
 				"plugin-path=\"%s\", plugin-name=\"%s\", "
 				"comp-class-name=\"%s\", comp-class-type=%d",
@@ -842,7 +872,15 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			descriptor->name, descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
-			BT_LOGW("Unknown ABI major version: abi-major=%d",
+			/*
+			 * DEBUG-level logging because we're only
+			 * _trying_ to open this file as a compatible
+			 * Babeltrace plugin: if it's not, it's not an
+			 * error. And because this can be tried during
+			 * bt_plugin_create_all_from_dir(), it's not
+			 * even a warning.
+			 */
+			BT_LOGD("Unknown ABI major version: abi-major=%d",
 				descriptor->major);
 			goto error;
 		}
@@ -861,7 +899,15 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			attrs_end, cc_descriptors_begin, cc_descriptors_end,
 			cc_descr_attrs_begin, cc_descr_attrs_end);
 		if (status < 0) {
-			BT_LOGW_STR("Cannot initialize SO plugin object from sections.");
+			/*
+			 * DEBUG-level logging because we're only
+			 * _trying_ to open this file as a compatible
+			 * Babeltrace plugin: if it's not, it's not an
+			 * error. And because this can be tried during
+			 * bt_plugin_create_all_from_dir(), it's not
+			 * even a warning.
+			 */
+			BT_LOGD_STR("Cannot initialize SO plugin object from sections.");
 			BT_PUT(plugin);
 			goto error;
 		}
@@ -956,7 +1002,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 
 	shared_lib_handle = bt_plugin_so_shared_lib_handle_create(path);
 	if (!shared_lib_handle) {
-		BT_LOGW_STR("Cannot create shared library handle.");
+		BT_LOGD_STR("Cannot create shared library handle.");
 		goto end;
 	}
 

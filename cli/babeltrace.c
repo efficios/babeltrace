@@ -581,6 +581,19 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		plugin_path_value = bt_value_array_get(plugin_paths, i);
 		bt_value_string_get(plugin_path_value, &plugin_path);
 		assert(plugin_path);
+
+		/*
+		 * Skip this if the directory does not exist because
+		 * bt_plugin_create_all_from_dir() expects an existing
+		 * directory.
+		 */
+		if (!g_file_test(plugin_path, G_FILE_TEST_IS_DIR)) {
+			BT_LOGV("Skipping nonexistent directory path: "
+				"path=\"%s\"", plugin_path);
+			BT_PUT(plugin_path_value);
+			continue;
+		}
+
 		plugin_set = bt_plugin_create_all_from_dir(plugin_path, false);
 		if (!plugin_set) {
 			BT_LOGD("Unable to load dynamic plugins: path=\"%s\"",

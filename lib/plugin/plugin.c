@@ -269,6 +269,16 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 		BT_PUT(plugin_set);
 
+		/*
+		 * Skip this if the directory does not exist because
+		 * bt_plugin_create_all_from_dir() would log a warning.
+		 */
+		if (!g_file_test(dir->str, G_FILE_TEST_IS_DIR)) {
+			BT_LOGV("Skipping nonexistent directory path: "
+				"path=\"%s\"", dir->str);
+			continue;
+		}
+
 		/* bt_plugin_create_all_from_dir() logs details/errors */
 		plugin_set = bt_plugin_create_all_from_dir(dir->str, BT_FALSE);
 		if (!plugin_set) {
@@ -456,6 +466,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 
 		if (strcmp(result->d_name, ".") == 0 ||
 				strcmp(result->d_name, "..") == 0) {
+			/* Obviously not logging this */
 			continue;
 		}
 
