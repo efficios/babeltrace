@@ -226,6 +226,9 @@ struct ctx {
 	/* Offset (ns) to apply to clock classes on creation */
 	uint64_t clock_class_offset_ns;
 
+	/* Eventual name suffix of the trace to set */
+	char *trace_name_suffix;
+
 	/* Trace attributes */
 	enum bt_ctf_byte_order trace_bo;
 	uint64_t trace_major;
@@ -573,50 +576,6 @@ int ctx_decl_scope_register_variant(struct ctx_decl_scope *scope,
 }
 
 /**
- * Creates a new visitor context.
- *
- * @param trace	Associated trace
- * @param efd	Error stream
- * @returns	New visitor context, or NULL on error
- */
-static
-struct ctx *ctx_create(struct bt_ctf_trace *trace, FILE *efd,
-		uint64_t clock_class_offset_ns)
-{
-	struct ctx *ctx = NULL;
-	struct ctx_decl_scope *scope = NULL;
-
-	ctx = g_new0(struct ctx, 1);
-	if (!ctx) {
-		goto error;
-	}
-
-	/* Root declaration scope */
-	scope = ctx_decl_scope_create(NULL);
-	if (!scope) {
-		goto error;
-	}
-
-	ctx->stream_classes = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, (GDestroyNotify) bt_put);
-	if (!ctx->stream_classes) {
-		goto error;
-	}
-
-	ctx->trace = trace;
-	ctx->efd = efd;
-	ctx->current_scope = scope;
-	ctx->trace_bo = BT_CTF_BYTE_ORDER_NATIVE;
-	ctx->clock_class_offset_ns = clock_class_offset_ns;
-	return ctx;
-
-error:
-	g_free(ctx);
-	ctx_decl_scope_destroy(scope);
-	return NULL;
-}
-
-/**
  * Destroys a visitor context.
  *
  * @param ctx	Visitor context to destroy
@@ -643,11 +602,68 @@ void ctx_destroy(struct ctx *ctx)
 	}
 
 	bt_put(ctx->trace);
-	g_hash_table_destroy(ctx->stream_classes);
+
+	if (ctx->stream_classes) {
+		g_hash_table_destroy(ctx->stream_classes);
+	}
+
+	free(ctx->trace_name_suffix);
 	g_free(ctx);
 
 end:
 	return;
+}
+
+/**
+ * Creates a new visitor context.
+ *
+ * @param trace	Associated trace
+ * @param efd	Error stream
+ * @returns	New visitor context, or NULL on error
+ */
+static
+struct ctx *ctx_create(struct bt_ctf_trace *trace, FILE *efd,
+		uint64_t clock_class_offset_ns, const char *trace_name_suffix)
+{
+	struct ctx *ctx = NULL;
+	struct ctx_decl_scope *scope = NULL;
+
+	ctx = g_new0(struct ctx, 1);
+	if (!ctx) {
+		goto error;
+	}
+
+	/* Root declaration scope */
+	scope = ctx_decl_scope_create(NULL);
+	if (!scope) {
+		goto error;
+	}
+
+	ctx->stream_classes = g_hash_table_new_full(g_direct_hash,
+		g_direct_equal, NULL, (GDestroyNotify) bt_put);
+	if (!ctx->stream_classes) {
+		goto error;
+	}
+
+	if (trace_name_suffix) {
+		ctx->trace_name_suffix = strdup(trace_name_suffix);
+		if (!ctx->trace_name_suffix) {
+			goto error;
+		}
+	}
+
+	ctx->trace = trace;
+	ctx->efd = efd;
+	ctx->current_scope = scope;
+	scope = NULL;
+	ctx->trace_bo = BT_CTF_BYTE_ORDER_NATIVE;
+	ctx->clock_class_offset_ns = clock_class_offset_ns;
+	return ctx;
+
+error:
+	ctx_destroy(ctx);
+	ctx_decl_scope_destroy(scope);
+	return NULL;
 }
 
 /**
@@ -4625,11 +4641,81 @@ end:
 }
 
 static
+int set_trace_name(struct ctx *ctx)
+{
+	GString *name;
+	int ret = 0;
+	struct bt_value *value = NULL;
+
+	assert(bt_ctf_trace_get_stream_class_count(ctx->trace) == 0);
+	name = g_string_new(NULL);
+	if (!name) {
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Check if we have a trace environment string value named `hostname`.
+	 * If so, use it as the trace name's prefix.
+	 */
+	value = bt_ctf_trace_get_environment_field_value_by_name(ctx->trace,
+		"hostname");
+	if (bt_value_is_string(value)) {
+		const char *hostname;
+
+		ret = bt_value_string_get(value, &hostname);
+		assert(ret == 0);
+		g_string_append(name, hostname);
+
+		if (ctx->trace_name_suffix) {
+			g_string_append_c(name, G_DIR_SEPARATOR);
+		}
+	}
+
+	if (ctx->trace_name_suffix) {
+		g_string_append(name, ctx->trace_name_suffix);
+	}
+
+	ret = bt_ctf_trace_set_name(ctx->trace, name->str);
+	if (ret) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	bt_put(value);
+
+	if (name) {
+		g_string_free(name, TRUE);
+	}
+
+	return ret;
+}
+
+static
 int move_ctx_stream_classes_to_trace(struct ctx *ctx)
 {
 	int ret = 0;
 	GHashTableIter iter;
 	gpointer key, stream_class;
+
+	if (g_hash_table_size(ctx->stream_classes) > 0 &&
+			bt_ctf_trace_get_stream_class_count(ctx->trace) == 0) {
+		/*
+		 * We're about to add the first stream class to the
+		 * trace. This will freeze the trace, and after this
+		 * we cannot set the name anymore. At this point,
+		 * set the trace name.
+		 */
+		ret = set_trace_name(ctx);
+		if (ret) {
+			goto end;
+		}
+	}
 
 	g_hash_table_iter_init(&iter, ctx->stream_classes);
 
@@ -4664,12 +4750,6 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
 		goto error;
 	}
 
-	ret = bt_ctf_trace_set_name(trace, name);
-	if (ret) {
-		_FPERROR(efd, "cannot set trace's name to `%s`", name);
-		goto error;
-	}
-
 	/* Set packet header to NULL to override the default one */
 	ret = bt_ctf_trace_set_packet_header_type(trace, NULL);
 	if (ret) {
@@ -4679,7 +4759,7 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
 	}
 
 	/* Create visitor's context */
-	ctx = ctx_create(trace, efd, clock_class_offset_ns);
+	ctx = ctx_create(trace, efd, clock_class_offset_ns, name);
 	if (!ctx) {
 		_FPERROR(efd, "%s", "cannot create visitor context");
 		goto error;
