@@ -174,9 +174,6 @@ struct bt_ctf_trace *init_trace(void)
 	set_trace_packet_header(trace);
 	set_stream_class_field_types(sc1);
 	set_stream_class_field_types(sc2);
-	ret = bt_ctf_trace_set_native_byte_order(trace,
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(ret == 0);
 	ret = bt_ctf_stream_class_add_event_class(sc1, ec1);
 	if (ret) {
 		goto error;

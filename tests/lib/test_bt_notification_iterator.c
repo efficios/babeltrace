@@ -409,9 +409,6 @@ void init_static_data(void)
 	assert(empty_struct_ft);
 	trace = bt_ctf_trace_create();
 	assert(trace);
-	ret = bt_ctf_trace_set_native_byte_order(trace,
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(ret == 0);
 	ret = bt_ctf_trace_set_packet_header_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();

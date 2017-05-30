@@ -51,7 +51,7 @@
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
 #define ARRAY_TEST_LENGTH 5
-#define PACKET_RESIZE_TEST_LENGTH 100000
+#define PACKET_RESIZE_TEST_LENGTH 5
 
 #define DEFAULT_CLOCK_FREQ 1000000000
 #define DEFAULT_CLOCK_PRECISION 1
@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 632
+#define NR_TESTS 634
 
 static int64_t current_time = 42;
 
@@ -2586,9 +2586,6 @@ void test_create_writer_vs_non_writer_mode(void)
 	/* Create non-writer trace, stream class, stream, and clock */
 	non_writer_trace = bt_ctf_trace_create();
 	assert(non_writer_trace);
-	ret = bt_ctf_trace_set_native_byte_order(non_writer_trace,
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(!ret);
 	non_writer_sc = bt_ctf_stream_class_create("nonwriter_sc");
 	assert(non_writer_sc);
 	ret = bt_ctf_stream_class_set_event_header_type(non_writer_sc,
@@ -2783,9 +2780,6 @@ void test_static_trace(void)
 
 	trace = bt_ctf_trace_create();
 	assert(trace);
-	ret = bt_ctf_trace_set_native_byte_order(trace,
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(ret == 0);
 	stream_class = bt_ctf_stream_class_create(NULL);
 	assert(stream_class);
 	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, NULL);
@@ -2982,6 +2976,10 @@ int main(int argc, char **argv)
 	ok(!bt_ctf_writer_get_trace(NULL),
 		"bt_ctf_writer_get_trace correctly handles NULL");
 	trace = bt_ctf_writer_get_trace(writer);
+	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE),
+		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NATIVE");
+	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NONE),
+		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NONE");
 	ok(trace,
 		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
 	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,
