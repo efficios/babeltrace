@@ -674,7 +674,7 @@ struct bt_value *bt_value_string_create_init(const char *val)
 		goto end;
 	}
 
-	BT_LOGD("Creating string value object: val-len=%lu", strlen(val));
+	BT_LOGD("Creating string value object: val-len=%zu", strlen(val));
 	string_obj = g_new0(struct bt_value_string, 1);
 
 	if (!string_obj) {
