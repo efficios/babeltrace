@@ -3223,7 +3223,7 @@ int bt_ctf_field_type_set_byte_order(struct bt_ctf_field_type *type,
 			byte_order != BT_CTF_BYTE_ORDER_LITTLE_ENDIAN &&
 			byte_order != BT_CTF_BYTE_ORDER_BIG_ENDIAN &&
 			byte_order != BT_CTF_BYTE_ORDER_NETWORK) {
-		BT_LOGW("Invalid parameter: unknown byte order: "
+		BT_LOGW("Invalid parameter: invalid byte order: "
 			"addr=%p, bo=%s", type,
 			bt_ctf_byte_order_string(byte_order));
 		ret = -1;

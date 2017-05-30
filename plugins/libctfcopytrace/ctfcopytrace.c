@@ -878,11 +878,19 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		goto end;
 	}
 
-	ret = bt_ctf_trace_set_native_byte_order(writer_trace, order);
-	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
+	/*
+	 * Only explicitly set the writer trace's native byte order if
+	 * the original trace has a specific one. Otherwise leave what
+	 * the CTF writer object chooses, which is the machine's native
+	 * byte order.
+	 */
+	if (order != BT_CTF_BYTE_ORDER_NONE) {
+		ret = bt_ctf_trace_set_native_byte_order(writer_trace, order);
+		if (ret) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
 	}
 
 	header_type = bt_ctf_trace_get_packet_header_type(writer_trace);

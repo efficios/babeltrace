@@ -492,6 +492,12 @@ enum bt_ctf_byte_order {
 	/// Native (default) byte order.
 	BT_CTF_BYTE_ORDER_NATIVE = 0,
 
+	/**
+	No byte order; the initial native byte order of a
+	\link ctfirtraceclass CTF IR trace class\endlink.
+	*/
+	BT_CTF_BYTE_ORDER_NONE,
+
 	/// Little-endian.
 	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
 

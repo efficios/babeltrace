@@ -102,7 +102,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	}
 
 	BT_LOGD_STR("Creating trace object.");
-	trace->native_byte_order = BT_CTF_BYTE_ORDER_NATIVE;
+	trace->native_byte_order = BT_CTF_BYTE_ORDER_NONE;
 	bt_object_init(trace, bt_ctf_trace_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
@@ -1122,17 +1122,6 @@ int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace,
 		stream_class, bt_ctf_stream_class_get_name(stream_class),
 		bt_ctf_stream_class_get_id(stream_class));
 
-	/*
-	 * At the end of this function we freeze the trace, so its
-	 * native byte order must NOT be BT_CTF_BYTE_ORDER_NATIVE.
-	 */
-	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
-		BT_LOGW_STR("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE at this point; "
-			"set it with bt_ctf_trace_set_native_byte_order().");
-		ret = -1;
-		goto end;
-	}
-
 	current_parent_trace = bt_ctf_stream_class_get_trace(stream_class);
 	if (current_parent_trace) {
 		/* Stream class is already associated to a trace, abort. */
@@ -1660,8 +1649,9 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	unsigned char *uuid = trace->uuid;
 	int ret = 0;
 
-	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
-		BT_LOGW("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE at this point; "
+	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE ||
+			trace->native_byte_order == BT_CTF_BYTE_ORDER_NONE) {
+		BT_LOGW("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE or BT_CTF_BYTE_ORDER_NONE at this point; "
 			"set it with bt_ctf_trace_set_native_byte_order(): "
 			"addr=%p, name=\"%s\"",
 			trace, bt_ctf_trace_get_name(trace));
@@ -1857,6 +1847,15 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 
 	if (trace->frozen) {
 		BT_LOGW("Invalid parameter: trace is frozen: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->is_created_by_writer &&
+			byte_order == BT_CTF_BYTE_ORDER_NONE) {
+		BT_LOGW("Invalid parameter: BT_CTF_BYTE_ORDER_NONE byte order is not allowed for a CTF writer trace: "
 			"addr=%p, name=\"%s\"",
 			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;

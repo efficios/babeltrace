@@ -181,12 +181,8 @@ The created trace class has the following initial properties:
   with bt_ctf_trace_set_name().
 - <strong>UUID</strong>: none. You can set a UUID with
   bt_ctf_trace_set_uuid().
-- <strong>Native byte order</strong>: #BT_CTF_BYTE_ORDER_NATIVE. You
+- <strong>Native byte order</strong>: #BT_CTF_BYTE_ORDER_NONE. You
   can set a native byte order with bt_ctf_trace_set_native_byte_order().
-
-  Note that you \em must set the native byte order if any field type
-  contained in the created trace class, in its stream classes, or in
-  its event classes, has a byte order set to #BT_CTF_BYTE_ORDER_NATIVE.
 - <strong>Environment</strong>: empty. You can add environment entries
   with bt_ctf_trace_set_environment_field(),
   bt_ctf_trace_set_environment_field_integer(), and
@@ -269,6 +265,8 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 - #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN
 - #BT_CTF_BYTE_ORDER_BIG_ENDIAN
 - #BT_CTF_BYTE_ORDER_NETWORK
+- <strong>If the trace is not in CTF writer mode<strong>,
+  #BT_CTF_BYTE_ORDER_NONE.
 
 @param[in] trace_class		Trace class of which to set the native byte
 				order.
@@ -277,8 +275,9 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 
 @prenotnull{trace_class}
 @prehot{trace_class}
-@pre \p native_byte_order is either #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
-	#BT_CTF_BYTE_ORDER_BIG_ENDIAN, or
+@pre \p native_byte_order is either #BT_CTF_BYTE_ORDER_NONE (if the
+	trace is not in CTF writer mode),
+	#BT_CTF_BYTE_ORDER_LITTLE_ENDIAN, #BT_CTF_BYTE_ORDER_BIG_ENDIAN, or
 	#BT_CTF_BYTE_ORDER_NETWORK.
 @postrefcountsame{trace_class}
 
