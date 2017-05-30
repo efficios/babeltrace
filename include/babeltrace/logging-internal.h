@@ -443,6 +443,9 @@
 #if defined(__printflike)
 	#define _BT_LOG_PRINTFLIKE(str_index, first_to_check) \
 		__printflike(str_index, first_to_check)
+#elif defined(__MINGW_PRINTF_FORMAT)
+	#define _BT_LOG_PRINTFLIKE(str_index, first_to_check) \
+		__attribute__((format(__MINGW_PRINTF_FORMAT, str_index, first_to_check)))
 #elif defined(__GNUC__)
 	#define _BT_LOG_PRINTFLIKE(str_index, first_to_check) \
 		__attribute__((format(__printf__, str_index, first_to_check)))
