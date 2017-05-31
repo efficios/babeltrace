@@ -1,6 +1,6 @@
 = Babeltrace logging guide
 Philippe Proulx
-7 May 2017
+31 May 2017
 :toc:
 :toclevels: 5
 
@@ -30,7 +30,7 @@ you and other developers understand what's happening at run-time.
 
 The Babeltrace logging API is internal: it is not exposed to the users
 of the library, only to their developers. The only thing that a library
-user can control is the current log level of the library with
+user can control is the current log level of the library itself with
 `bt_logging_set_global_level()` and the initial library's log level with
 the `BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable.
 
@@ -156,6 +156,7 @@ log level of your subproject or module, and that it's set to _NONE_
 by default.
 
 
+[[logging-statements]]
 === Logging statement macros
 
 The Babeltrace logging statement macros work just like `printf()` and
@@ -306,26 +307,161 @@ BT_LOGD("Bla bla: number=%d", get_number_of_event_classes_with_property_x(...));
 ----
 
 
-[[tag]]
-== Tag
+[[how-to]]
+=== Instrument a module
 
-Before including `<babeltrace/logging-internal.h>` (or
-`<babeltrace/lib-logging-internal.h>`) in your C source file, define
-`BT_LOG_TAG` to a name which represents your module. The tag name _must_
-be only uppercase letters/digits and the hyphen (`-`) character.
+Follow those steps to make your module loggable:
 
-For example:
-
+. In your module's root directory, create a `logging.c` file with
+  this content:
++
+--
 [source,c]
 ----
-#define BT_LOG_TAG "EVENT-CLASS"
+/*
+ * Copyright (c) 2017 EfficiOS Inc. <http://efficios.com/>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#define BT_LOG_OUTPUT_LEVEL my_module_log_level
 #include <babeltrace/logging-internal.h>
+
+BT_LOG_INIT_LOG_LEVEL(my_module_log_level, "BABELTRACE_MY_MODULE_LOG_LEVEL");
 ----
+--
++
+Replace `my_module_log_level` with the name of the symbol which holds
+the log level for your module (should be unique amongst all the log level
+symbols of the project). Replace `BABELTRACE_MY_MODULE_LOG_LEVEL` with
+the name of the environment variable from which to initialize your
+module's log level at construction time. `BT_LOG_INIT_LOG_LEVEL()`
+defines both the hidden log level symbol and a constructor which reads
+the environment variable and sets the log level symbol accordingly.
 
-A tag is conceptually similar to a logger name.
+. In your module's root directory, create a `logging.h` file with
+  this content:
++
+--
+[source,c]
+----
+#ifndef MY_MODULE_LOGGING_H
+#define MY_MODULE_LOGGING_H
+
+/*
+ * Copyright (c) 2017 EfficiOS Inc. <http://efficios.com/>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#define BT_LOG_OUTPUT_LEVEL my_module_log_level
+#include <babeltrace/logging-internal.h>
+
+BT_LOG_LEVEL_EXTERN_SYMBOL(my_module_log_level);
+
+#endif /* MY_MODULE_LOGGING_H */
+----
+--
++
+Again, replace `my_module_log_level` with the name of your module's
+log level symbol.
+
+. Include the `logging.c` and `logging.h` in the `_SOURCES` variable
+  of your module's object in your module's root `Makefile.am`.
+
+To instrument a C source file (`.c`):
+
+. At the top of the file, before the first `#include` line (if any),
+  define your file's tag name and include the local `logging.h`:
++
+--
+[source,c]
+----
+#define BT_LOG_TAG "MY-MODULE-MY-FILE"
+#include "logging.h"
+----
+--
++
+A logging tag name is a namespace for a specific source file. Its name
+is part of every log message generated by the statements of the file. A
+logging tag name _must_ be only uppercase letters, digits, and the
+hyphen (`-`) character. See <<tags,Babeltrace standard tags>> for
+a list of standard tags.
+
+. Use the <<logging-statements,logging statement macros>> in the file's
+  functions to instrument it.
+
+To instrument a C header file (`.h`), if you have `static inline`
+functions in it:
+
+. Do not include any logging header.
+. Use the <<logging-statements,logging statement macros>> in the file's
+  functions to instrument it, making each of them conditional to the
+  existence of the macro you're using:
++
+--
+[source,c]
+----
+static inline
+void some_function(void)
+{
+    /* ... */
+
+#ifdef BT_LOGV
+    BT_LOGV(...);
+#endif
+
+    /* ... */
+
+#ifdef BT_LOGW_STR
+    BT_LOGW_STR(...);
+#endif
+
+    /* ... */
+}
+----
+--
++
+The C source files which include this header file determine if logging
+is enabled or not for them (if the source file is instrumented itself),
+and the tag of the included header's logging statement is the same as
+the C source file.
 
 
-=== Babeltrace tags
+[[tags]]
+=== Babeltrace standard tags
 
 ==== CTF IR (library)
 
@@ -479,10 +615,10 @@ A tag is conceptually similar to a logger name.
 |`fs` source: data stream |`PLUGIN-CTF-FS-SRC-DS`
 |`fs` source: file |`PLUGIN-CTF-FS-SRC-FILE`
 |`fs` source: metadata |`PLUGIN-CTF-FS-SRC-METADATA`
-|`lttng-live` source (main) |`PLUGIN-CTF-LTTNG-LIVE`
-|`lttng-live` source: data stream |`PLUGIN-CTF-LTTNG-LIVE-DS`
-|`lttng-live` source: metadata |`PLUGIN-CTF-LTTNG-LIVE-METADATA`
-|`lttng-live` source: viewer connection |`PLUGIN-CTF-LTTNG-LIVE-VIEWER`
+|`lttng-live` source (main) |`PLUGIN-CTF-LTTNG-LIVE-SRC`
+|`lttng-live` source: data stream |`PLUGIN-CTF-LTTNG-LIVE-SRC-DS`
+|`lttng-live` source: metadata |`PLUGIN-CTF-LTTNG-LIVE-SRC-METADATA`
+|`lttng-live` source: viewer connection |`PLUGIN-CTF-LTTNG-LIVE-SRC-VIEWER`
 |===
 
 
@@ -493,11 +629,11 @@ A tag is conceptually similar to a logger name.
 |Subsystem/object |Tag name
 
 |Plugin (main) |`PLUGIN-LTTNG-UTILS`
-|`debug-info` filter (main) |`PLUGIN-LTTNG-UTILS-DBG-INFO`
-|`debug-info` filter: binary info |`PLUGIN-LTTNG-UTILS-DBG-INFO-BIN-INFO`
-|`debug-info` filter: copy |`PLUGIN-LTTNG-UTILS-DBG-INFO-COPY`
-|`debug-info` filter: CRC32 |`PLUGIN-LTTNG-UTILS-DBG-INFO-CRC32`
-|`debug-info` filter: DWARF |`PLUGIN-LTTNG-UTILS-DBG-INFO-DWARF`
+|`debug-info` filter (main) |`PLUGIN-LTTNG-UTILS-DBG-INFO-FILT`
+|`debug-info` filter: binary info |`PLUGIN-LTTNG-UTILS-DBG-INFO-FILT-BIN-INFO`
+|`debug-info` filter: copy |`PLUGIN-LTTNG-UTILS-DBG-INFO-FILT-COPY`
+|`debug-info` filter: CRC32 |`PLUGIN-LTTNG-UTILS-DBG-INFO-FILT-CRC32`
+|`debug-info` filter: DWARF |`PLUGIN-LTTNG-UTILS-DBG-INFO-FILT-DWARF`
 |===
 
 
@@ -508,8 +644,8 @@ A tag is conceptually similar to a logger name.
 |Subsystem/object |Tag name
 
 |Plugin (main) |`PLUGIN-TEXT`
-|`pretty` filter (main) |`PLUGIN-TEXT-PRETTY`
-|`pretty` filter: print |`PLUGIN-TEXT-PRETTY-PRINT`
+|`pretty` filter (main) |`PLUGIN-TEXT-PRETTY-SINK`
+|`pretty` filter: print |`PLUGIN-TEXT-PRETTY-SINK-PRINT`
 |===
 
 
@@ -520,11 +656,11 @@ A tag is conceptually similar to a logger name.
 |Subsystem/object |Tag name
 
 |Plugin (main) |`PLUGIN-UTILS`
-|`dummy` sink (main) |`PLUGIN-UTILS-DUMMY`
-|`muxer` filter (main) |`PLUGIN-UTILS-MUXER`
-|`trimmer` filter (main) |`PLUGIN-UTILS-TRIMMER`
-|`trimmer` filter: copy |`PLUGIN-UTILS-TRIMMER-COPY`
-|`trimmer` filter: iterator |`PLUGIN-UTILS-TRIMMER-ITER`
+|`dummy` sink (main) |`PLUGIN-UTILS-DUMMY-SINK`
+|`muxer` filter (main) |`PLUGIN-UTILS-MUXER-FILT`
+|`trimmer` filter (main) |`PLUGIN-UTILS-TRIMMER-FILT`
+|`trimmer` filter: copy |`PLUGIN-UTILS-TRIMMER-FILT-COPY`
+|`trimmer` filter: iterator |`PLUGIN-UTILS-TRIMMER-FILT-ITER`
 |===
 
 
@@ -543,11 +679,11 @@ important.
 condition: it must be terminated immediately.
 
 A _FATAL_-level logging statement should always be followed by
-`abort()` or `assert(false)`.
+`abort()`.
 |
 * Unexpected return values from system calls.
-* Logic error in internal code, for example an unknown value in a
-  `switch` statement which should only deal with .
+* Logic error in internal code, for example an unexpected value in a
+  `switch` statement.
 |Almost none: should be executed in production.
 
 |_ERROR_
@@ -570,7 +706,9 @@ least exit cleanly.
 
 _WARN_-level logging statements are for any error or weird action that
 is directly or indirectly caused by the user. For example, not having
-enough memory is beyond user control.
+enough memory is considered beyond the user's control, so we always
+log memory errors with an _ERROR_ level (not _FATAL_ because we usually
+don't abort in this condition).
 |
 * Not honoring a public function's preconditions (NULL parameters,
   index out of bounds, etc.).
@@ -586,7 +724,7 @@ class.
 |
 * Successful loading of a plugin (with name, version, etc.).
 * Successful connection to or disconnection from another system.
-* An optional subsystem cannot be loaded.
+* An _optional_ subsystem cannot be loaded.
 |Very little: can be executed in production if
 _INFO_ level information is desired.
 
@@ -692,7 +830,7 @@ Prefer the following suffixes in field names:
 == Output
 
 The log is printed to the standard error stream. A log line contains the
-time, the process and thread IDs, the <<level,log level>>, the <<tag,tag>>,
+time, the process and thread IDs, the <<level,log level>>, the tag name,
 the source's function name, file name and line number, and the
 <<message,message>>.
 
