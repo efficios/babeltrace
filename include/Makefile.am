@@ -81,7 +81,7 @@ noinst_HEADERS = \
 	babeltrace/compat/limits-internal.h \
 	babeltrace/compat/memstream-internal.h \
 	babeltrace/compat/mman-internal.h \
-	babeltrace/compat/send-internal.h \
+	babeltrace/compat/socket-internal.h \
 	babeltrace/compat/stdio-internal.h \
 	babeltrace/compat/stdlib-internal.h \
 	babeltrace/compat/string-internal.h \
