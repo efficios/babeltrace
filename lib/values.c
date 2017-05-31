@@ -566,7 +566,11 @@ bt_bool bt_value_is_frozen(const struct bt_value *object)
 enum bt_value_type bt_value_get_type(const struct bt_value *object)
 {
 	if (!object) {
-		BT_LOGW_STR("Invalid parameter: value object is NULL.");
+		/*
+		 * Not an error: user can test NULL value object with
+		 * this function.
+		 */
+		BT_LOGV_STR("Value object is NULL.");
 		return BT_VALUE_TYPE_UNKNOWN;
 	}
 
