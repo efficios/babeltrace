@@ -25,7 +25,7 @@ babeltrace_bin_SOURCES = \
 	babeltrace-cfg-cli-args-connect.h \
 	babeltrace-cfg-cli-args-default.h \
 	babeltrace-cfg-cli-args-default.c \
-	logging.h
+	logging.c logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having

@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CLI"
+#include "logging.h"
+
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/common-internal.h>
@@ -54,9 +57,6 @@
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
 
-#define BT_LOG_TAG "CLI"
-#include "logging.h"
-
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 
 /* Application's processing graph (weak) */
@@ -64,9 +64,6 @@ static struct bt_graph *the_graph;
 static bool canceled = false;
 
 GPtrArray *loaded_plugins;
-
-BT_HIDDEN
-int bt_cli_log_level = BT_LOG_NONE;
 
 static
 void sigint_handler(int signum)
