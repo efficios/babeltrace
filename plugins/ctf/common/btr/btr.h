@@ -351,4 +351,23 @@ size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
 		const uint8_t *buf, size_t sz,
 		enum bt_ctf_btr_status *status);
 
+static inline
+const char *bt_ctf_btr_status_string(enum bt_ctf_btr_status status)
+{
+	switch (status) {
+	case BT_CTF_BTR_STATUS_ENOMEM:
+		return "BT_CTF_BTR_STATUS_ENOMEM";
+	case BT_CTF_BTR_STATUS_EOF:
+		return "BT_CTF_BTR_STATUS_EOF";
+	case BT_CTF_BTR_STATUS_INVAL:
+		return "BT_CTF_BTR_STATUS_INVAL";
+	case BT_CTF_BTR_STATUS_ERROR:
+		return "BT_CTF_BTR_STATUS_ERROR";
+	case BT_CTF_BTR_STATUS_OK:
+		return "BT_CTF_BTR_STATUS_OK";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* CTF_BTR_H */
