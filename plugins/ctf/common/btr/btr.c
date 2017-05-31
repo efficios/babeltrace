@@ -23,11 +23,8 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL btr_log_level
 #define BT_LOG_TAG "PLUGIN-CTF-BTR"
-#include <babeltrace/logging-internal.h>
-
-static int btr_log_level = BT_LOG_NONE;
+#include "logging.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -164,13 +161,6 @@ struct bt_ctf_btr {
 		void *data;
 	} user;
 };
-
-static
-void __attribute__((constructor)) logging_ctor(void)
-{
-	btr_log_level =
-		bt_log_get_level_from_env("BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL");
-}
 
 static inline
 const char *btr_state_string(enum btr_state state)
