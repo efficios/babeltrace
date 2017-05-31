@@ -67,6 +67,9 @@ BT_HIDDEN
 enum bt_component_status writer_close_packet(struct writer_component *writer,
 		struct bt_ctf_packet *packet);
 BT_HIDDEN
+enum bt_component_status writer_stream_begin(struct writer_component *writer,
+		struct bt_ctf_stream *stream);
+BT_HIDDEN
 enum bt_component_status writer_stream_end(struct writer_component *writer,
 		struct bt_ctf_stream *stream);
 

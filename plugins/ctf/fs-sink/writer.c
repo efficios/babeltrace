@@ -191,6 +191,19 @@ enum bt_component_status handle_notification(
 		}
 		break;
 	}
+	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+	{
+		struct bt_ctf_stream *stream =
+			bt_notification_stream_begin_get_stream(notification);
+
+		if (!stream) {
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+		ret = writer_stream_begin(writer_component, stream);
+		bt_put(stream);
+		break;
+	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 	{
 		struct bt_ctf_stream *stream =
@@ -223,6 +236,7 @@ void writer_component_port_connected(
 		BT_NOTIFICATION_TYPE_EVENT,
 		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
 		BT_NOTIFICATION_TYPE_PACKET_END,
+		BT_NOTIFICATION_TYPE_STREAM_BEGIN,
 		BT_NOTIFICATION_TYPE_STREAM_END,
 		BT_NOTIFICATION_TYPE_SENTINEL,
 	};

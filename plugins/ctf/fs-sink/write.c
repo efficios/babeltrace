@@ -279,36 +279,13 @@ struct bt_ctf_stream *get_writer_stream(
 		struct writer_component *writer_component,
 		struct bt_ctf_packet *packet, struct bt_ctf_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_writer *ctf_writer = NULL;
 	struct bt_ctf_stream *writer_stream = NULL;
-
-	stream_class = bt_ctf_stream_get_class(stream);
-	if (!stream_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
-		struct fs_writer *fs_writer;
-
-		fs_writer = get_fs_writer(writer_component, stream_class);
-		if (!fs_writer) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
-			goto error;
-		}
-		ctf_writer = bt_get(fs_writer->writer);
-		writer_stream = insert_new_stream(writer_component, ctf_writer,
-				stream_class, stream);
-		if (!writer_stream) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
-			goto error;
-		}
-		fs_writer->active_streams++;
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
 	}
 	bt_get(writer_stream);
 
@@ -317,8 +294,6 @@ struct bt_ctf_stream *get_writer_stream(
 error:
 	BT_PUT(writer_stream);
 end:
-	bt_put(ctf_writer);
-	bt_put(stream_class);
 	return writer_stream;
 }
 
@@ -335,6 +310,50 @@ enum bt_component_status writer_close(
 				fs_writer->static_listener_id);
 	}
 	g_hash_table_remove(writer_component->trace_map, trace);
+	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status writer_stream_begin(
+		struct writer_component *writer_component,
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct fs_writer *fs_writer;
+	struct bt_ctf_writer *ctf_writer = NULL;
+	struct bt_ctf_stream *writer_stream = NULL;
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+
+	fs_writer = get_fs_writer(writer_component, stream_class);
+	if (!fs_writer) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+	ctf_writer = bt_get(fs_writer->writer);
+	writer_stream = insert_new_stream(writer_component, ctf_writer,
+			stream_class, stream);
+	if (!writer_stream) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+	fs_writer->active_streams++;
+
+	goto end;
+
+error:
+	ret = BT_COMPONENT_STATUS_ERROR;
+end:
+	bt_put(ctf_writer);
+	bt_put(stream_class);
 	return ret;
 }
 
