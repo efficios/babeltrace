@@ -291,6 +291,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#define BT_LOG_OUTPUT_LEVEL dummy
+
 #include <babeltrace/logging-internal.h>
 #include <babeltrace/logging.h>
 

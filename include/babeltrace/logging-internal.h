@@ -156,7 +156,11 @@
 #if defined(BT_LOG_OUTPUT_LEVEL)
 	#define _BT_LOG_OUTPUT_LEVEL BT_LOG_OUTPUT_LEVEL
 #else
-	#define _BT_LOG_OUTPUT_LEVEL _bt_log_global_output_lvl
+	/*
+	 * We disallow this to make sure Babeltrace modules always
+	 * have their own local log level.
+	 */
+	#error No log level symbol specified: please define BT_LOG_OUTPUT_LEVEL before including this header.
 #endif
 
 /* "Tag" is a compound string that could be associated with a log message. It
