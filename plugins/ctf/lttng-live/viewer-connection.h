@@ -27,6 +27,7 @@
 #include <glib.h>
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/compat/socket-internal.h>
 
 //TODO: this should not be used by plugins. Should copy code into plugin
 //instead.
@@ -48,7 +49,7 @@ struct bt_live_viewer_connection {
 	GString *target_hostname;
 	GString *session_name;
 
-	int control_sock;
+	BT_SOCKET control_sock;
 	int port;
 
 	int32_t major;
