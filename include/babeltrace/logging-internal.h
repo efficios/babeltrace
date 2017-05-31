@@ -1004,8 +1004,19 @@ end:
 	return level;
 }
 
+#define BT_LOG_LEVEL_EXTERN_SYMBOL(_level_sym)				\
+	extern int _level_sym
+
+#define BT_LOG_INIT_LOG_LEVEL(_level_sym, _env_var)			\
+	BT_HIDDEN int _level_sym = BT_LOG_NONE;				\
+	static								\
+	void __attribute__((constructor)) _bt_log_level_ctor(void)	\
+	{								\
+		_level_sym = bt_log_get_level_from_env(_env_var);	\
+	}
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* BABELTRACE_LOGGING_INTERNAL_H */
