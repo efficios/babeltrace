@@ -46,8 +46,13 @@
 #include "writer.h"
 #include <assert.h>
 
-gboolean empty_ht(gpointer key, gpointer value, gpointer user_data)
+gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
 {
+	struct fs_writer *fs_writer = value;
+	struct writer_component *writer_component = user_data;
+
+	writer_close(writer_component, fs_writer);
+
 	return TRUE;
 }
 
@@ -56,16 +61,8 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 {
 	bt_put(writer_component->input_iterator);
 
-	g_hash_table_foreach_remove(writer_component->stream_class_map,
-			empty_ht, NULL);
-	g_hash_table_destroy(writer_component->stream_class_map);
-
-	g_hash_table_foreach_remove(writer_component->stream_map,
-			empty_ht, NULL);
-	g_hash_table_destroy(writer_component->stream_map);
-
 	g_hash_table_foreach_remove(writer_component->trace_map,
-			empty_ht, NULL);
+			empty_trace_map, writer_component);
 	g_hash_table_destroy(writer_component->trace_map);
 
 	g_string_free(writer_component->base_path, true);
@@ -80,18 +77,6 @@ void writer_component_finalize(struct bt_private_component *component)
 
 	destroy_writer_component_data(writer_component);
 	g_free(writer_component);
-}
-
-static
-void unref_stream_class(struct bt_ctf_stream_class *writer_stream_class)
-{
-	bt_put(writer_stream_class);
-}
-
-static
-void unref_stream(struct bt_ctf_stream_class *writer_stream)
-{
-	bt_put(writer_stream);
 }
 
 static
@@ -114,7 +99,6 @@ struct writer_component *create_writer_component(void)
 	writer_component->err = stderr;
 	writer_component->trace_id = 0;
 	writer_component->trace_name_base = g_string_new("trace");
-	writer_component->processed_first_event = false;
 	if (!writer_component->trace_name_base) {
 		g_free(writer_component);
 		writer_component = NULL;
@@ -126,10 +110,6 @@ struct writer_component *create_writer_component(void)
 	 */
 	writer_component->trace_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) free_fs_writer);
-	writer_component->stream_class_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
-	writer_component->stream_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) unref_stream);
 
 end:
 	return writer_component;

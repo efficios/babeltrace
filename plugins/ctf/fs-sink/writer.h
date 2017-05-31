@@ -39,24 +39,27 @@ struct writer_component {
 	int trace_id;
 	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
 	GHashTable *trace_map;
-	/* Map between reader and writer stream. */
-	GHashTable *stream_map;
-	/* Map between reader and writer stream class. */
-	GHashTable *stream_class_map;
 	FILE *err;
 	struct bt_notification_iterator *input_iterator;
-	bool processed_first_event;
 	bool error;
 };
 
 struct fs_writer {
 	struct bt_ctf_writer *writer;
+	struct bt_ctf_trace *trace;
 	struct bt_ctf_trace *writer_trace;
 	int static_listener_id;
 	unsigned int active_streams;
 	int trace_static;
+	/* Map between reader and writer stream. */
+	GHashTable *stream_map;
+	/* Map between reader and writer stream class. */
+	GHashTable *stream_class_map;
 };
 
+BT_HIDDEN
+void writer_close(struct writer_component *writer_component,
+		struct fs_writer *fs_writer);
 BT_HIDDEN
 enum bt_component_status writer_output_event(struct writer_component *writer,
 		struct bt_ctf_event *event);
