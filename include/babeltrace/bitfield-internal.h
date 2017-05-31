@@ -59,12 +59,22 @@
 
 #define _bt_is_signed_type(type)	((type) -1 < (type) 0)
 
+/*
+ * NOTE: The cast to (uint64_t) below ensures that we're not casting a
+ * negative value, which is undefined in C. However, this limits the
+ * maximum type size of `type` and `v` to 64-bit. The
+ * _bt_check_max_64bit() is used to check that the users of this header
+ * do not use types with a size greater than 64-bit.
+ */
 #define _bt_unsigned_cast(type, v)					\
 ({									\
 	(sizeof(v) < sizeof(type)) ?					\
-		((type) (v)) & (~(~(type) 0 << (sizeof(v) * CHAR_BIT))) : \
+		((type) (v)) & ((type) (~(~(uint64_t) 0 << (sizeof(v) * CHAR_BIT)))) : \
 		(type) (v);						\
 })
+
+#define _bt_check_max_64bit(type)					\
+	char _max_64bit_assertion[sizeof(type) <= sizeof(uint64_t) ? 1 : -1] __attribute__((unused))
 
 /*
  * bt_bitfield_write - write integer to a bitfield in native endianness
@@ -215,7 +225,7 @@ do {									\
 
 #define bt_bitfield_write_le(ptr, type, _start, _length, _v)		\
 	_bt_bitfield_write_le(ptr, type, _start, _length, _v)
-	
+
 #define bt_bitfield_write_be(ptr, type, _start, _length, _v)		\
 	_bt_bitfield_write_be(ptr, unsigned char, _start, _length, _v)
 
@@ -226,7 +236,7 @@ do {									\
 
 #define bt_bitfield_write_le(ptr, type, _start, _length, _v)		\
 	_bt_bitfield_write_le(ptr, unsigned char, _start, _length, _v)
-	
+
 #define bt_bitfield_write_be(ptr, type, _start, _length, _v)		\
 	_bt_bitfield_write_be(ptr, type, _start, _length, _v)
 
@@ -246,6 +256,10 @@ do {									\
 	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
+									\
+	{ _bt_check_max_64bit(type); }					\
+	{ _bt_check_max_64bit(typeof(*_vptr)); }			\
+	{ _bt_check_max_64bit(typeof(*_ptr)); }				\
 									\
 	if (!__length) {						\
 		*__vptr = 0;						\
@@ -313,6 +327,10 @@ do {									\
 	unsigned long ts = sizeof(type) * CHAR_BIT; /* type size */	\
 	unsigned long start_unit, end_unit, this_unit;			\
 	unsigned long end, cshift; /* cshift is "complement shift" */	\
+									\
+	{ _bt_check_max_64bit(type); }					\
+	{ _bt_check_max_64bit(typeof(*_vptr)); }			\
+	{ _bt_check_max_64bit(typeof(*_ptr)); }				\
 									\
 	if (!__length) {						\
 		*__vptr = 0;						\
@@ -383,7 +401,7 @@ do {									\
 
 #define bt_bitfield_read_le(_ptr, type, _start, _length, _vptr)		\
 	_bt_bitfield_read_le(_ptr, type, _start, _length, _vptr)
-	
+
 #define bt_bitfield_read_be(_ptr, type, _start, _length, _vptr)		\
 	_bt_bitfield_read_be(_ptr, unsigned char, _start, _length, _vptr)
 
@@ -394,7 +412,7 @@ do {									\
 
 #define bt_bitfield_read_le(_ptr, type, _start, _length, _vptr)		\
 	_bt_bitfield_read_le(_ptr, unsigned char, _start, _length, _vptr)
-	
+
 #define bt_bitfield_read_be(_ptr, type, _start, _length, _vptr)		\
 	_bt_bitfield_read_be(_ptr, type, _start, _length, _vptr)
 
