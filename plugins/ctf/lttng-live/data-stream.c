@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC-DS"
+#include "logging.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -32,8 +35,6 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
-
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-DS"
 
 #include "data-stream.h"
 

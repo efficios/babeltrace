@@ -27,6 +27,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC"
+#include "logging.h"
+
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/graph/component-source.h>
 #include <babeltrace/graph/private-port.h>
@@ -47,9 +50,6 @@
 #include <assert.h>
 #include <unistd.h>
 #include <plugins-common.h>
-
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE"
-#define BT_LOGLEVEL_NAME "BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_LOG_LEVEL"
 
 #include "data-stream.h"
 #include "metadata.h"
@@ -82,9 +82,6 @@ static const char *print_state(struct lttng_live_stream_iterator *s)
 			bt_port_get_name(bt_port_from_private_port(stream->port)),	\
 			print_state(stream), stream->last_returned_inactivity_timestamp,	\
 			stream->current_inactivity_timestamp)
-
-BT_HIDDEN
-int bt_lttng_live_log_level = BT_LOG_NONE;
 
 BT_HIDDEN
 int lttng_live_add_port(struct lttng_live_component *lttng_live,
@@ -1116,10 +1113,4 @@ enum bt_component_status lttng_live_accept_port_connection(
 end:
 	bt_put(self_port);
 	return status;
-}
-
-static
-void __attribute__((constructor)) bt_lttng_live_logging_ctor(void)
-{
-        bt_lttng_live_log_level = bt_log_get_level_from_env(BT_LOGLEVEL_NAME);
 }

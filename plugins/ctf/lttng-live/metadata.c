@@ -23,6 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC-METADATA"
+#include "logging.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -31,8 +34,6 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
 #include <babeltrace/graph/graph.h>
-
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-METADATA"
 
 #include "metadata.h"
 #include "../common/metadata/decoder.h"

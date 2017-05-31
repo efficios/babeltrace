@@ -28,15 +28,9 @@
  * SOFTWARE.
  */
 
-extern int bt_lttng_live_log_level;
-
 #include <stdbool.h>
 
 #include <babeltrace/babeltrace-internal.h>
-
-#define BT_LOG_OUTPUT_LEVEL bt_lttng_live_log_level
-#include <babeltrace/logging-internal.h>
-
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/clock-class-priority-map.h>

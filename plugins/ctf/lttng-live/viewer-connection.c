@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC-VIEWER"
+#include "logging.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -38,8 +41,6 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/graph/graph.h>
-
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-VIEWER"
 
 #include "lttng-live-internal.h"
 #include "viewer-connection.h"
