@@ -591,7 +591,10 @@ static
 struct bt_notification_iterator_next_return src_iter_next(
 		struct bt_private_notification_iterator *priv_iterator)
 {
-	struct bt_notification_iterator_next_return next_return;
+	struct bt_notification_iterator_next_return next_return = {
+		.notification = NULL,
+		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
+	};
 	struct src_iter_user_data *user_data =
 		bt_private_notification_iterator_get_user_data(priv_iterator);
 	struct bt_private_component *private_component =
