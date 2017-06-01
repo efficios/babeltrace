@@ -79,12 +79,6 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 		goto error;
 	}
 
-	event_class->context = bt_ctf_field_type_structure_create();
-	if (!event_class->context) {
-		BT_LOGE_STR("Cannot create event class's initial context field type object.");
-		goto error;
-	}
-
 	event_class->attributes = bt_ctf_attributes_create();
 	if (!event_class->attributes) {
 		BT_LOGE_STR("Cannot create event class's attributes object.");

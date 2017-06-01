@@ -93,7 +93,6 @@ const unsigned int field_type_aliases_sizes[] = {
 struct bt_ctf_trace *bt_ctf_trace_create(void)
 {
 	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_field_type *packet_header_type = NULL;
 
 	trace = g_new0(struct bt_ctf_trace, 1);
 	if (!trace) {
@@ -125,13 +124,6 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 		goto error;
 	}
 
-	packet_header_type = bt_ctf_field_type_structure_create();
-	if (!packet_header_type) {
-		goto error;
-	}
-
-	BT_MOVE(trace->packet_header_type, packet_header_type);
-
 	/* Create the environment array object */
 	trace->environment = bt_ctf_attributes_create();
 	if (!trace->environment) {
@@ -158,7 +150,6 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 
 error:
 	BT_PUT(trace);
-	bt_put(packet_header_type);
 	return trace;
 }
 
