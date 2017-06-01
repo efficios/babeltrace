@@ -62,9 +62,6 @@ struct muxer_upstream_notif_iter {
 	/* Owned by this, NULL if ended */
 	struct bt_notification_iterator *notif_iter;
 
-	/* Weak */
-	struct bt_private_port *priv_port;
-
 	/*
 	 * This flag is true if the upstream notification iterator's
 	 * current notification must be considered for the multiplexing
@@ -134,7 +131,6 @@ struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
 	}
 
 	muxer_upstream_notif_iter->notif_iter = bt_get(notif_iter);
-	muxer_upstream_notif_iter->priv_port = priv_port;
 	muxer_upstream_notif_iter->is_valid = false;
 	g_ptr_array_add(muxer_notif_iter->muxer_upstream_notif_iters,
 		muxer_upstream_notif_iter);
@@ -705,6 +701,21 @@ enum bt_notification_iterator_status validate_muxer_upstream_notif_iters(
 			muxer_upstream_notif_iter);
 		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			goto end;
+		}
+
+		/*
+		 * Remove this muxer upstream notification iterator
+		 * if it's ended or canceled.
+		 */
+		if (!muxer_upstream_notif_iter->notif_iter) {
+			/*
+			 * Use g_ptr_array_remove_fast() because the
+			 * order of those elements is not important.
+			 */
+			g_ptr_array_remove_index_fast(
+				muxer_notif_iter->muxer_upstream_notif_iters,
+				i);
+			i--;
 		}
 	}
 
