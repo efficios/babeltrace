@@ -252,7 +252,7 @@ swig_version=2.0.0
 AC_ARG_ENABLE([python-bindings],
               [AC_HELP_STRING([--enable-python-bindings],
                               [generate Python bindings])],
-              [enable_python_bindings=yes], [enable_python_bindings=no])
+              [enable_python_bindings=$enableval], [enable_python_bindings=no])
 
 AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python_bindings:-yes}" = xyes])
 
@@ -262,7 +262,7 @@ AC_ARG_ENABLE(
 		[--enable-python-plugins],
 		[add support for the Babeltrace library and converter to load Python plugins])
 	],
-	[enable_python_plugins=yes],
+	[enable_python_plugins=$enableval],
 	[enable_python_plugins=no]
 )
 
@@ -321,14 +321,14 @@ AS_IF(
 AC_ARG_ENABLE([python-bindings-doc],
               [AC_HELP_STRING([--enable-python-bindings-doc],
                               [generate Python bindings documentation])],
-              [enable_python_bindings_doc=yes], [enable_python_bindings_doc=no])
+              [enable_python_bindings_doc=$enableval], [enable_python_bindings_doc=no])
 
 AM_CONDITIONAL([BUILD_PYTHON_BINDINGS_DOC], [test "x${enable_python_bindings_doc:-yes}" = xyes])
 
 AC_ARG_ENABLE([python-bindings-tests],
               [AC_HELP_STRING([--enable-python-bindings-tests],
                               [test Python bindings])],
-              [enable_python_bindings_tests=yes], [enable_python_bindings_tests=no])
+              [enable_python_bindings_tests=$enableval], [enable_python_bindings_tests=no])
 
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_TESTS], [test "x${enable_python_bindings_tests:-yes}" = xyes])
 
