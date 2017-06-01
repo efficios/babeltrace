@@ -128,6 +128,26 @@ end:
 }
 
 static
+enum fs_writer_stream_state *insert_new_stream_state(
+		struct writer_component *writer_component,
+		struct fs_writer *fs_writer, struct bt_ctf_stream *stream)
+{
+	enum fs_writer_stream_state *v = NULL;
+
+	v = g_new0(enum fs_writer_stream_state, 1);
+	if (!v) {
+		fprintf(writer_component->err,
+				"[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+	}
+	*v = FS_WRITER_UNKNOWN_STREAM;
+
+	g_hash_table_insert(fs_writer->stream_states, stream, v);
+
+	return v;
+}
+
+static
 struct fs_writer *insert_new_writer(
 		struct writer_component *writer_component,
 		struct bt_ctf_trace *trace)
@@ -192,8 +212,6 @@ struct fs_writer *insert_new_writer(
 	/* Set all the existing streams in the unknown state. */
 	nr_stream = bt_ctf_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
-		enum fs_writer_stream_state *v;
-
 		stream = bt_ctf_trace_get_stream_by_index(trace, i);
 		if (!stream) {
 			fprintf(writer_component->err,
@@ -201,17 +219,7 @@ struct fs_writer *insert_new_writer(
 					__FILE__, __LINE__);
 			goto error;
 		}
-
-		v = g_new0(enum fs_writer_stream_state, 1);
-		if (!v) {
-			fprintf(writer_component->err,
-					"[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
-		*v = FS_WRITER_UNKNOWN_STREAM;
-
-		g_hash_table_insert(fs_writer->stream_states, stream, v);
+		insert_new_stream_state(writer_component, fs_writer, stream);
 		BT_PUT(stream);
 	}
 
@@ -452,6 +460,15 @@ enum bt_component_status writer_stream_begin(
 
 	/* Set the stream as active */
 	state = g_hash_table_lookup(fs_writer->stream_states, stream);
+	if (!state) {
+		if (fs_writer->trace_static) {
+			fprintf(writer_component->err, "[error] Adding a new "
+					"stream on a static trace\n");
+			goto error;
+		}
+		state = insert_new_stream_state(writer_component, fs_writer,
+				stream);
+	}
 	if (*state != FS_WRITER_UNKNOWN_STREAM) {
 		fprintf(writer_component->err, "[error] Unexpected stream "
 				"state %d\n", *state);
