@@ -93,12 +93,4 @@ BT_HIDDEN
 void debug_info_handle_event(FILE *err, struct bt_ctf_event *event,
 		struct debug_info *debug_info);
 
-#if 0
-static inline
-void trace_debug_info_destroy(struct bt_ctf_trace *trace)
-{
-	debug_info_destroy(trace->debug_info);
-}
-#endif
-
 #endif /* BABELTRACE_PLUGIN_DEBUG_INFO_H */
