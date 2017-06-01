@@ -48,6 +48,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 static
 void bt_ctf_stream_destroy(struct bt_object *obj);
