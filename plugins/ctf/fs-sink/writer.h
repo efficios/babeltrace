@@ -37,11 +37,23 @@ struct writer_component {
 	GString *trace_name_base;
 	/* For the directory name suffix. */
 	int trace_id;
-	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
+	/* Map between struct bt_ctf_trace and struct fs_writer. */
 	GHashTable *trace_map;
 	FILE *err;
 	struct bt_notification_iterator *input_iterator;
 	bool error;
+};
+
+enum fs_writer_stream_state {
+	/*
+	 * We know the stream exists but we have never received a
+	 * stream_begin notification for it.
+	 */
+	FS_WRITER_UNKNOWN_STREAM,
+	/* We know this stream is active (between stream_begin and _end). */
+	FS_WRITER_ACTIVE_STREAM,
+	/* We have received a stream_end for this stream. */
+	FS_WRITER_COMPLETED_STREAM,
 };
 
 struct fs_writer {
@@ -55,6 +67,7 @@ struct fs_writer {
 	GHashTable *stream_map;
 	/* Map between reader and writer stream class. */
 	GHashTable *stream_class_map;
+	GHashTable *stream_states;
 };
 
 BT_HIDDEN
