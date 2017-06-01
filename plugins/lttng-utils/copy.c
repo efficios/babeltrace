@@ -295,10 +295,11 @@ int get_payload_string_field_value(FILE *err,
 	struct bt_ctf_field_type *field_type = NULL;
 	int ret;
 
+	/*
+	 * The field might not exist, no error here.
+	 */
 	field = get_payload_field(err, event, field_name);
 	if (!field) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
 		goto error;
 	}
 

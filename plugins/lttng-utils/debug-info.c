@@ -516,7 +516,6 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
@@ -525,16 +524,16 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	if (ret) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		ret = -1;
 		goto end;
 	}
 
+	/*
+	 * This field is not produced by the dlopen event emitted before
+	 * lttng-ust 2.9.
+	 */
 	ret = get_payload_string_field_value(err,
 			event, "_path", &path);
-	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		ret = -1;
+	if (ret || !path) {
 		goto end;
 	}
 
@@ -561,10 +560,6 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	ret = get_stream_event_context_int_field_value(err, event, "_vpid",
 			&vpid);
 	if (ret) {
-		goto end;
-	}
-
-	if (!path) {
 		goto end;
 	}
 
