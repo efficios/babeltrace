@@ -214,8 +214,9 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		struct bt_ctf_event_class *event_class)
 {
 	struct bt_ctf_event_class *writer_event_class = NULL;
+	struct bt_ctf_field_type *context;
 	const char *name;
-	int count, i;
+	int count, i, ret;
 
 	name = bt_ctf_event_class_get_name(event_class);
 	if (!name) {
@@ -285,6 +286,18 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		}
 	}
 
+	context = bt_ctf_event_class_get_context_type(event_class);
+	if (context) {
+		ret = bt_ctf_event_class_set_context_type(
+				writer_event_class, context);
+		BT_PUT(context);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
+	}
+
 	goto end;
 
 error:
@@ -310,7 +323,6 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 	}
 
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_field_type *context;
 		int int_ret;
 
 		event_class = bt_ctf_stream_class_get_event_class_by_index(
@@ -326,21 +338,6 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
 			ret = BT_COMPONENT_STATUS_ERROR;
-			goto error;
-		}
-
-		context = bt_ctf_event_class_get_context_type(event_class);
-		if (!context) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto error;
-		}
-		ret = bt_ctf_event_class_set_context_type(writer_event_class, context);
-		BT_PUT(context);
-		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
 			goto error;
 		}
 
