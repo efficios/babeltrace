@@ -1,7 +1,10 @@
+API_DOC_INSTALL_DIR = "$(DESTDIR)$(docdir)/api"
+
 all-local: doxygen-doc
 
 install-data-local: doxygen-doc
-	cp -rv output/html "$(DESTDIR)$(docdir)/api"
+	$(mkdir_p) "$(API_DOC_INSTALL_DIR)"
+	cp -rv output/html "$(API_DOC_INSTALL_DIR)"
 
 @DX_RULES@
 
