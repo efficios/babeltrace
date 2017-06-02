@@ -148,26 +148,83 @@ enum fs_writer_stream_state *insert_new_stream_state(
 }
 
 static
+int make_trace_path(struct writer_component *writer_component,
+		struct bt_ctf_trace *trace, char *trace_path)
+{
+	int ret;
+	const char *trace_name;
+
+	trace_name = bt_ctf_trace_get_name(trace);
+	if (!trace_name) {
+		trace_name = writer_component->trace_name_base->str;
+	}
+	/* XXX: we might have to skip the first level, TBD. */
+
+	/* Sanitize the trace name. */
+	if (strlen(trace_name) == 2 && !strcmp(trace_name, "..")) {
+		fprintf(writer_component->err, "[error] Trace name cannot "
+				"be \"..\"\n");
+		goto error;
+	}
+
+	if (strstr(trace_name, "../")) {
+		fprintf(writer_component->err, "[error] Trace name cannot "
+				"contain \"../\", received \"%s\"\n",
+				trace_name);
+		goto error;
+
+	}
+
+	snprintf(trace_path, PATH_MAX, "%s/%s",
+			writer_component->base_path->str,
+			trace_name);
+	if (g_file_test(trace_path, G_FILE_TEST_EXISTS)) {
+		int i = 0;
+		do {
+			snprintf(trace_path, PATH_MAX, "%s/%s-%d",
+					writer_component->base_path->str,
+					trace_name, ++i);
+		} while (g_file_test(trace_path, G_FILE_TEST_EXISTS) && i < INT_MAX);
+		if (i == INT_MAX) {
+			fprintf(writer_component->err, "[error] Unable to find "
+					"a unique trace path\n");
+			goto error;
+		}
+	}
+
+	ret = 0;
+
+	goto end;
+
+error:
+	ret = -1;
+end:
+	return ret;
+}
+
+static
 struct fs_writer *insert_new_writer(
 		struct writer_component *writer_component,
 		struct bt_ctf_trace *trace)
 {
 	struct bt_ctf_writer *ctf_writer = NULL;
 	struct bt_ctf_trace *writer_trace = NULL;
-	char trace_name[PATH_MAX];
+	char trace_path[PATH_MAX];
 	enum bt_component_status ret;
 	struct bt_ctf_stream *stream = NULL;
 	struct fs_writer *fs_writer = NULL;
 	int nr_stream, i;
 
-	/* FIXME: replace with trace name when it will work. */
-	snprintf(trace_name, PATH_MAX, "%s/%s_%03d",
-			writer_component->base_path->str,
-			writer_component->trace_name_base->str,
-			writer_component->trace_id++);
-	printf_verbose("CTF-Writer creating trace in %s\n", trace_name);
+	ret = make_trace_path(writer_component, trace, trace_path);
+	if (ret) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
 
-	ctf_writer = bt_ctf_writer_create(trace_name);
+	printf("ctf.fs sink creating trace in %s\n", trace_path);
+
+	ctf_writer = bt_ctf_writer_create(trace_path);
 	if (!ctf_writer) {
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
