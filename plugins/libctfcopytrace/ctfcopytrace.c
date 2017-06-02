@@ -894,18 +894,14 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	}
 
 	header_type = bt_ctf_trace_get_packet_header_type(writer_trace);
-	if (!header_type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
-	int_ret = bt_ctf_trace_set_packet_header_type(writer_trace, header_type);
-	BT_PUT(header_type);
-	if (int_ret < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
+	if (header_type) {
+		int_ret = bt_ctf_trace_set_packet_header_type(writer_trace, header_type);
+		BT_PUT(header_type);
+		if (int_ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
 	}
 
 end:
