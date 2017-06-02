@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "WRITER"
+#define BT_LOG_TAG "CTF-WRITER"
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/ctf-writer/clock-internal.h>
