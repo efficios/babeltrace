@@ -66,18 +66,14 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 	}
 
 	description = bt_ctf_clock_class_get_description(clock_class);
-	if (!description) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
-
-	int_ret = bt_ctf_clock_class_set_description(writer_clock_class,
-			description);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
+	if (description) {
+		int_ret = bt_ctf_clock_class_set_description(writer_clock_class,
+				description);
+		if (int_ret != 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto end_destroy;
+		}
 	}
 
 	u64_ret = bt_ctf_clock_class_get_frequency(clock_class);
