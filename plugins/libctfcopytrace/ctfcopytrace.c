@@ -210,7 +210,7 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		struct bt_ctf_event_class *event_class)
 {
 	struct bt_ctf_event_class *writer_event_class = NULL;
-	struct bt_ctf_field_type *context;
+	struct bt_ctf_field_type *context, *payload_type;
 	const char *name;
 	int count, i, ret;
 
@@ -259,27 +259,16 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		}
 	}
 
-	count = bt_ctf_event_class_get_payload_type_field_count(event_class);
-	for (i = 0; i < count; i++) {
-		const char *field_name;
-		struct bt_ctf_field_type *field_type;
-		int ret;
-
-		ret = bt_ctf_event_class_get_payload_type_field_by_index(
-				event_class, &field_name, &field_type, i);
+	payload_type = bt_ctf_event_class_get_payload_type(event_class);
+	if (payload_type) {
+		ret = bt_ctf_event_class_set_payload_type(writer_event_class,
+				payload_type);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
 			goto error;
 		}
-
-		ret = bt_ctf_event_class_add_field(writer_event_class, field_type,
-				field_name);
-		BT_PUT(field_type);
-		if (ret < 0) {
-			fprintf(err, "[error] Cannot add field %s\n", field_name);
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-			goto error;
-		}
+		BT_PUT(payload_type);
 	}
 
 	context = bt_ctf_event_class_get_context_type(event_class);
