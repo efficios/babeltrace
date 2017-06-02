@@ -587,7 +587,7 @@ enum bt_component_status writer_new_packet(
 	BT_PUT(stream);
 
 	writer_packet_context = ctf_copy_packet_context(writer_component->err,
-			packet, writer_stream, 1);
+			packet, writer_stream);
 	if (!writer_packet_context) {
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
