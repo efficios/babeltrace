@@ -174,14 +174,21 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	event->event_class = bt_get(event_class);
 	event->clock_values = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, bt_put, bt_put);
-	event_header =
-		bt_ctf_field_create(validation_output.event_header_type);
-	if (!event_header) {
-		BT_LOGE_STR("Cannot create initial event header field object.");
-		goto error;
+
+	if (validation_output.event_header_type) {
+		BT_LOGD("Creating initial event header field: ft-addr=%p",
+			validation_output.event_header_type);
+		event_header =
+			bt_ctf_field_create(validation_output.event_header_type);
+		if (!event_header) {
+			BT_LOGE_STR("Cannot create initial event header field object.");
+			goto error;
+		}
 	}
 
 	if (validation_output.stream_event_ctx_type) {
+		BT_LOGD("Creating initial stream event context field: ft-addr=%p",
+			validation_output.stream_event_ctx_type);
 		stream_event_context = bt_ctf_field_create(
 			validation_output.stream_event_ctx_type);
 		if (!stream_event_context) {
@@ -191,6 +198,8 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	}
 
 	if (validation_output.event_context_type) {
+		BT_LOGD("Creating initial event context field: ft-addr=%p",
+			validation_output.event_context_type);
 		event_context = bt_ctf_field_create(
 			validation_output.event_context_type);
 		if (!event_context) {
@@ -200,6 +209,8 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	}
 
 	if (validation_output.event_payload_type) {
+		BT_LOGD("Creating initial event payload field: ft-addr=%p",
+			validation_output.event_payload_type);
 		event_payload = bt_ctf_field_create(
 			validation_output.event_payload_type);
 		if (!event_payload) {

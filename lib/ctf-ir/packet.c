@@ -25,6 +25,7 @@
  */
 
 #define BT_LOG_TAG "PACKET"
+#include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
@@ -35,9 +36,9 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
-#include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
+#include <inttypes.h>
 
 struct bt_ctf_stream *bt_ctf_packet_get_stream(struct bt_ctf_packet *packet)
 {
@@ -224,12 +225,18 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_trace *trace = NULL;
 
-	BT_LOGD("Creating packet object: stream-addr=%p", stream);
-
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
 		goto end;
 	}
+
+	BT_LOGD("Creating packet object: stream-addr=%p, "
+		"stream-name=\"%s\", stream-class-addr=%p, "
+		"stream-class-name=\"%s\", stream-class-id=%" PRId64,
+		stream, bt_ctf_stream_get_name(stream),
+		stream->stream_class,
+		bt_ctf_stream_class_get_name(stream->stream_class),
+		bt_ctf_stream_class_get_id(stream->stream_class));
 
 	if (stream->pos.fd >= 0) {
 		BT_LOGW_STR("Invalid parameter: stream is a CTF writer stream.");
@@ -248,19 +255,28 @@ struct bt_ctf_packet *bt_ctf_packet_create(
 
 	bt_object_init(packet, bt_ctf_packet_destroy);
 	packet->stream = bt_get(stream);
-	packet->header = bt_ctf_field_create(trace->packet_header_type);
-	if (!packet->header && trace->packet_header_type) {
-		BT_LOGE_STR("Cannot create initial packet header field object.");
-		BT_PUT(packet);
-		goto end;
+
+	if (trace->packet_header_type) {
+		BT_LOGD("Creating initial packet header field: ft-addr=%p",
+			trace->packet_header_type);
+		packet->header = bt_ctf_field_create(trace->packet_header_type);
+		if (!packet->header) {
+			BT_LOGE_STR("Cannot create initial packet header field object.");
+			BT_PUT(packet);
+			goto end;
+		}
 	}
 
-	packet->context = bt_ctf_field_create(
-		stream->stream_class->packet_context_type);
-	if (!packet->context && stream->stream_class->packet_context_type) {
-		BT_LOGE_STR("Cannot create initial packet header field object.");
-		BT_PUT(packet);
-		goto end;
+	if (stream->stream_class->packet_context_type) {
+		BT_LOGD("Creating initial packet context field: ft-addr=%p",
+			stream->stream_class->packet_context_type);
+		packet->context = bt_ctf_field_create(
+			stream->stream_class->packet_context_type);
+		if (!packet->context) {
+			BT_LOGE_STR("Cannot create initial packet header field object.");
+			BT_PUT(packet);
+			goto end;
+		}
 	}
 
 	BT_LOGD("Created packet object: addr=%p", packet);
