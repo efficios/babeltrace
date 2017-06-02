@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMPAT-MMAN"
+#include "logging.h"
+
 #ifdef __MINGW32__
 
 #include <assert.h>

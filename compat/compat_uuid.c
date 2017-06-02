@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMPAT-UUID"
+#include "logging.h"
+
 #ifdef __MINGW32__
 
 #include <rpc.h>
