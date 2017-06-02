@@ -94,7 +94,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 	 * boundary.
 	 */
 	mma->page_aligned_length = ALIGN(length + offset - page_aligned_offset, page_size);
-	mma->page_aligned_addr = mmap(NULL, mma->page_aligned_length,
+	mma->page_aligned_addr = bt_mmap(NULL, mma->page_aligned_length,
 		prot, flags, fd, page_aligned_offset);
 	if (mma->page_aligned_addr == MAP_FAILED) {
 		free(mma);
@@ -113,7 +113,7 @@ int munmap_align(struct mmap_align *mma)
 	page_aligned_addr = mma->page_aligned_addr;
 	page_aligned_length = mma->page_aligned_length;
 	free(mma);
-	return munmap(page_aligned_addr, page_aligned_length);
+	return bt_munmap(page_aligned_addr, page_aligned_length);
 }
 
 static inline
