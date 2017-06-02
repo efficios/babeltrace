@@ -3,7 +3,8 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libcompat.la
 
 libcompat_la_SOURCES = compat_uuid.c \
-			compat_mman.c
+		compat_mman.c \
+		logging.c logging.h
 
 libcompat_la_LDFLAGS = \
 	$(LD_NO_AS_NEEDED)
