@@ -39,7 +39,7 @@ int bt_posix_fallocate(int fd, off_t offset, off_t len)
 
 #elif defined(__MINGW32__) /* #ifdef BABELTRACE_HAVE_POSIX_FALLOCATE */
 
-#include <assert.h>
+#include <stdlib.h>
 #include <windows.h>
 #include <fcntl.h>
 
@@ -124,7 +124,7 @@ restore:
 	/* Restore the original file pointer position */
 	if (!SetFilePointerEx(handle, file_pos, NULL, FILE_BEGIN)) {
 		/* We moved the file pointer but failed to restore it. */
-		assert(0);
+		abort();
 	}
 
 end:

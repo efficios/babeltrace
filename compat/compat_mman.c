@@ -58,7 +58,7 @@ static
 void mmap_lock(void)
 {
 	if (pthread_mutex_lock(&mmap_mutex)) {
-		assert(0);
+		abort();
 	}
 }
 
@@ -66,7 +66,7 @@ static
 void mmap_unlock(void)
 {
 	if (pthread_mutex_unlock(&mmap_mutex)) {
-		assert(0);
+		abort();
 	}
 }
 
@@ -151,7 +151,7 @@ void *mmap(void *start, size_t length, int prot, int flags, int fd,
 			flProtect, 0, offset + length, NULL);
 	if (mapping.map_handle == 0) {
 		if (!CloseHandle(mapping.file_handle)) {
-			assert(0);
+			abort();
 		}
 		_set_errno(EACCES);
 		return MAP_FAILED;
@@ -163,10 +163,10 @@ void *mmap(void *start, size_t length, int prot, int flags, int fd,
 	if (mapping.start == 0) {
 		DWORD dwLastErr = GetLastError();
 		if (!CloseHandle(mapping.map_handle)) {
-			assert(0);
+			abort();
 		}
 		if (!CloseHandle(mapping.file_handle)) {
-			assert(0);
+			abort();
 		}
 
 		if (dwLastErr == ERROR_MAPPED_ALIGNMENT) {
@@ -218,10 +218,10 @@ error_mutex_unlock:
 	mmap_unlock();
 
 	if (!CloseHandle(mapping.map_handle)) {
-		assert(0);
+		abort();
 	}
 	if (!CloseHandle(mapping.file_handle)) {
-		assert(0);
+		abort();
 	}
 
 	_set_errno(ENOMEM);
@@ -246,13 +246,13 @@ int munmap(void *start, size_t length)
 
 	/* Cleanup of handles should never fail */
 	if (!UnmapViewOfFile(mmap_infos[i].start)) {
-		assert(0);
+		abort();
 	}
 	if (!CloseHandle(mmap_infos[i].map_handle)) {
-		assert(0);
+		abort();
 	}
 	if (!CloseHandle(mmap_infos[i].file_handle)) {
-		assert(0);
+		abort();
 	}
 
 	mmap_lock();
