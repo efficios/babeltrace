@@ -35,7 +35,6 @@
 #include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
-#include <pwd.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-connect.h"
