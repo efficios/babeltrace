@@ -157,6 +157,9 @@ struct lttng_live_session {
 
 	struct lttng_live_component *lttng_live;
 
+	GString *hostname;
+	GString *session_name;
+
 	uint64_t id;
 
 	/* List of struct lttng_live_trace */
@@ -237,7 +240,10 @@ int lttng_live_detach_session(struct lttng_live_session *session);
 enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session);
 
-int lttng_live_add_session(struct lttng_live_component *lttng_live, uint64_t session_id);
+int lttng_live_add_session(struct lttng_live_component *lttng_live,
+		uint64_t session_id,
+		const char *hostname,
+		const char *session_name);
 
 ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		FILE *fp);

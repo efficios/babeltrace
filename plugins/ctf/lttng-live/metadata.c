@@ -229,10 +229,12 @@ end:
 BT_HIDDEN
 int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		uint64_t ctf_trace_id,
-		uint64_t stream_id)
+		uint64_t stream_id,
+		const char *trace_name)
 {
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
+	const char *match;
 
 	metadata = g_new0(struct lttng_live_metadata, 1);
 	if (!metadata) {
@@ -240,9 +242,12 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	}
 	metadata->stream_id = stream_id;
 	//TODO: add clock offset option
-	//TODO: add (preferably unique) trace's name
+	match = strstr(trace_name, session->session_name->str);
+	if (!match) {
+		goto error;
+	}
 	metadata->decoder = ctf_metadata_decoder_create(stderr, 0,
-		"lttng-live");
+		match);
 	if (!metadata->decoder) {
 		goto error;
 	}

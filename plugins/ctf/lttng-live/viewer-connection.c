@@ -671,12 +671,17 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		session_id = be64toh(lsession.id);
 
+		BT_LOGD("Adding session %" PRIu64 " hostname: %s session_name: %s",
+			session_id, lsession.hostname, lsession.session_name);
+
 		if ((strncmp(lsession.session_name,
 			viewer_connection->session_name->str,
 			MAXNAMLEN) == 0) && (strncmp(lsession.hostname,
 				viewer_connection->target_hostname->str,
 				MAXNAMLEN) == 0)) {
-			if (lttng_live_add_session(lttng_live, session_id)) {
+			if (lttng_live_add_session(lttng_live, session_id,
+					lsession.hostname,
+					lsession.session_name)) {
 				goto error;
 			}
 		}
@@ -771,7 +776,8 @@ int receive_streams(struct lttng_live_session *session,
 					stream_id, stream.path_name,
 					stream.channel_name);
 			if (lttng_live_metadata_create_stream(session,
-					ctf_trace_id, stream_id)) {
+					ctf_trace_id, stream_id,
+					stream.path_name)) {
 				BT_LOGE("Error creating metadata stream");
 
 				goto error;

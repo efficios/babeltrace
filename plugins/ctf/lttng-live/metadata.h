@@ -30,8 +30,8 @@
 #include "lttng-live-internal.h"
 
 int lttng_live_metadata_create_stream(struct lttng_live_session *session,
-		uint64_t ctf_trace_id,
-                uint64_t stream_id);
+		uint64_t ctf_trace_id, uint64_t stream_id,
+		const char *trace_name);
 
 enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		struct lttng_live_trace *trace);

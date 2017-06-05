@@ -233,7 +233,9 @@ void lttng_live_close_trace_streams(struct lttng_live_trace *trace)
 }
 
 BT_HIDDEN
-int lttng_live_add_session(struct lttng_live_component *lttng_live, uint64_t session_id)
+int lttng_live_add_session(struct lttng_live_component *lttng_live,
+		uint64_t session_id, const char *hostname,
+		const char *session_name)
 {
 	int ret = 0;
 	struct lttng_live_session *s;
@@ -247,8 +249,11 @@ int lttng_live_add_session(struct lttng_live_component *lttng_live, uint64_t ses
 	BT_INIT_LIST_HEAD(&s->traces);
 	s->lttng_live = lttng_live;
 	s->new_streams_needed = true;
+	s->hostname = g_string_new(hostname);
+	s->session_name = g_string_new(session_name);
 
-	BT_LOGI("Reading from session %" PRIu64, s->id);
+	BT_LOGI("Reading from session: %" PRIu64 " hostname: %s session_name: %s",
+		s->id, hostname, session_name);
 	bt_list_add(&s->node, &lttng_live->sessions);
 	goto end;
 error:
@@ -279,6 +284,12 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 		lttng_live_close_trace_streams(trace);
 	}
 	bt_list_del(&session->node);
+	if (session->hostname) {
+		g_string_free(session->hostname, TRUE);
+	}
+	if (session->session_name) {
+		g_string_free(session->session_name, TRUE);
+	}
 	g_free(session);
 }
 
