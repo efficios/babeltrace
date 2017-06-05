@@ -180,4 +180,22 @@ const char *bt_notification_iterator_status_string(
 	}
 };
 
+static inline
+const char *bt_notification_iterator_state_string(
+		enum bt_notification_iterator_state state)
+{
+	switch (state) {
+	case BT_NOTIFICATION_ITERATOR_STATE_ACTIVE:
+		return "BT_NOTIFICATION_ITERATOR_STATE_ACTIVE";
+	case BT_NOTIFICATION_ITERATOR_STATE_ENDED:
+		return "BT_NOTIFICATION_ITERATOR_STATE_ENDED";
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
+		return "BT_NOTIFICATION_ITERATOR_STATE_FINALIZED";
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+		return "BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED";
+	default:
+		return "(unknown)";
+	}
+};
+
 #endif /* BABELTRACE_COMPONENT_NOTIFICATION_ITERATOR_INTERNAL_H */

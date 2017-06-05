@@ -1474,17 +1474,25 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 
 	assert(iterator);
 	BT_LOGD("Ensuring that notification iterator's queue has at least one notification: "
-		"iter-addr=%p, queue-size=%u",
-		iterator, iterator->queue->length);
+		"iter-addr=%p, queue-size=%u, iter-state=%s",
+		iterator, iterator->queue->length,
+		bt_notification_iterator_state_string(iterator->state));
 
 	if (iterator->queue->length > 0) {
-		/* We already have enough */
+		/*
+		 * We already have enough. Even if this notification
+		 * iterator is finalized, its user can still flush its
+		 * current queue's content by calling its "next" method
+		 * since this content is local and has no impact on what
+		 * used to be the iterator's upstream component.
+		 */
 		BT_LOGD_STR("Queue already has at least one notification.");
 		goto end;
 	}
 
 	switch (iterator->state) {
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
 		BT_LOGD_STR("Notification iterator's \"next\" called, but it is finalized.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
 		goto end;
@@ -1551,20 +1559,12 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 				goto end;
 			}
 
-			if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED) {
-				iterator->state =
-					BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
+			assert(iterator->state ==
+				BT_NOTIFICATION_ITERATOR_STATE_ACTIVE);
+			iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ENDED;
 
-				if (iterator->queue->length == 0) {
-					status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
-				}
-			} else {
-				iterator->state =
-					BT_NOTIFICATION_ITERATOR_STATE_ENDED;
-
-				if (iterator->queue->length == 0) {
-					status = BT_NOTIFICATION_ITERATOR_STATUS_END;
-				}
+			if (iterator->queue->length == 0) {
+				status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 			}
 
 			BT_LOGD("Set new status: status=%s",
