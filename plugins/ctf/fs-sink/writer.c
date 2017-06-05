@@ -51,6 +51,7 @@ gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
 	struct fs_writer *fs_writer = value;
 	struct writer_component *writer_component = user_data;
 
+	fs_writer->trace_static = 1;
 	writer_close(writer_component, fs_writer);
 
 	return TRUE;
