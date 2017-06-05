@@ -63,10 +63,31 @@ void destroy_stream_state_key(gpointer key)
 	g_free((enum fs_writer_stream_state *) key);
 }
 
+void check_completed_trace(gpointer key, gpointer value, gpointer user_data)
+{
+	enum fs_writer_stream_state *state = value;
+	int *trace_completed = user_data;
+
+	if (*state != FS_WRITER_COMPLETED_STREAM) {
+		*trace_completed = 0;
+	}
+}
+
 static
 void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 {
-	*((int *) data) = 1;
+	struct fs_writer *fs_writer = data;
+	int trace_completed = 1;
+
+	fs_writer->trace_static = 1;
+
+	g_hash_table_foreach(fs_writer->stream_states,
+			check_completed_trace, &trace_completed);
+	if (trace_completed) {
+		writer_close(fs_writer->writer_component, fs_writer);
+		g_hash_table_remove(fs_writer->writer_component->trace_map,
+				fs_writer->trace);
+	}
 }
 
 static
@@ -258,6 +279,7 @@ struct fs_writer *insert_new_writer(
 	fs_writer->writer = ctf_writer;
 	fs_writer->trace = trace;
 	fs_writer->writer_trace = writer_trace;
+	fs_writer->writer_component = writer_component;
 	BT_PUT(writer_trace);
 	fs_writer->stream_class_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
@@ -286,7 +308,7 @@ struct fs_writer *insert_new_writer(
 		fs_writer->static_listener_id = -1;
 	} else {
 		ret = bt_ctf_trace_add_is_static_listener(trace,
-				trace_is_static_listener, &fs_writer->trace_static);
+				trace_is_static_listener, fs_writer);
 		if (ret < 0) {
 			fprintf(writer_component->err,
 					"[error] %s in %s:%d\n", __func__, __FILE__,
@@ -549,16 +571,6 @@ error:
 end:
 	bt_put(stream_class);
 	return ret;
-}
-
-void check_completed_trace(gpointer key, gpointer value, gpointer user_data)
-{
-	enum fs_writer_stream_state *state = value;
-	int *trace_completed = user_data;
-
-	if (*state != FS_WRITER_COMPLETED_STREAM) {
-		*trace_completed = 0;
-	}
 }
 
 BT_HIDDEN

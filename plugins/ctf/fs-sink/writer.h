@@ -60,6 +60,7 @@ struct fs_writer {
 	struct bt_ctf_writer *writer;
 	struct bt_ctf_trace *trace;
 	struct bt_ctf_trace *writer_trace;
+	struct writer_component *writer_component;
 	int static_listener_id;
 	unsigned int active_streams;
 	int trace_static;
