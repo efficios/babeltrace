@@ -1550,6 +1550,32 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 			goto end;
 		}
 
+		if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED ||
+				iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED) {
+			/*
+			 * The user's "next" method, somehow, cancelled
+			 * its own notification iterator. This can
+			 * happen, for example, when the user's method
+			 * removes the port on which there's the
+			 * connection from which the iterator was
+			 * created. In this case, said connection is
+			 * ended, and all its notification iterators are
+			 * finalized.
+			 *
+			 * Only bt_put() the returned notification if
+			 * the status is
+			 * BT_NOTIFICATION_ITERATOR_STATUS_OK because
+			 * otherwise this field could be garbage.
+			 */
+			if (next_return.status ==
+					BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+				bt_put(next_return.notification);
+			}
+
+			status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
+			goto end;
+		}
+
 		switch (next_return.status) {
 		case BT_NOTIFICATION_ITERATOR_STATUS_END:
 			ret = handle_end(iterator);
