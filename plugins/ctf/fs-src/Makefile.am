@@ -12,4 +12,6 @@ libbabeltrace_plugin_ctf_fs_la_SOURCES = \
 	lttng-index.h \
 	metadata.c \
 	metadata.h \
-	print.h
+	print.h \
+	query.h \
+	query.c
