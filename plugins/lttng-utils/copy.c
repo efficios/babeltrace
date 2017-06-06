@@ -41,6 +41,30 @@
 #include "debug-info.h"
 
 static
+void unref_stream(struct bt_ctf_stream *stream)
+{
+	bt_put(stream);
+}
+
+static
+void unref_packet(struct bt_ctf_packet *packet)
+{
+	bt_put(packet);
+}
+
+static
+void unref_stream_class(struct bt_ctf_stream_class *stream_class)
+{
+	bt_put(stream_class);
+}
+
+static
+void unref_debug_info(struct debug_info *debug_info)
+{
+	debug_info_destroy(debug_info);
+}
+
+static
 struct bt_ctf_field *get_payload_field(FILE *err,
 		struct bt_ctf_event *event, const char *field_name)
 {
@@ -423,16 +447,18 @@ end:
 
 static
 struct debug_info *lookup_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace)
+		struct bt_ctf_trace *writer_trace,
+		struct debug_info_trace *di_trace)
 {
 	return (struct debug_info *) g_hash_table_lookup(
-			debug_it->trace_debug_map,
+			di_trace->trace_debug_map,
 			(gpointer) writer_trace);
 }
 
 static
 struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace)
+		struct bt_ctf_trace *writer_trace,
+		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info = NULL;
 	struct bt_value *field = NULL;
@@ -483,7 +509,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 		goto end;
 	}
 
-	g_hash_table_insert(debug_it->trace_debug_map, (gpointer) writer_trace,
+	g_hash_table_insert(di_trace->trace_debug_map, (gpointer) writer_trace,
 			debug_info);
 
 end:
@@ -493,34 +519,38 @@ end:
 
 static
 struct debug_info *get_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace)
+		struct bt_ctf_trace *writer_trace,
+		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info;
 
-	debug_info = lookup_trace_debug_info(debug_it, writer_trace);
+	debug_info = lookup_trace_debug_info(debug_it, writer_trace, di_trace);
 	if (debug_info) {
 		goto end;
 	}
 
-	debug_info = insert_new_debug_info(debug_it, writer_trace);
+	debug_info = insert_new_debug_info(debug_it, writer_trace, di_trace);
 
 end:
 	return debug_info;
 }
 
 static
-struct bt_ctf_trace *lookup_trace(struct debug_info_iterator *debug_it,
+struct debug_info_trace *lookup_trace(struct debug_info_iterator *debug_it,
 		struct bt_ctf_trace *trace)
 {
-	return (struct bt_ctf_trace *) g_hash_table_lookup(
+	return (struct debug_info_trace *) g_hash_table_lookup(
 			debug_it->trace_map,
 			(gpointer) trace);
 }
 
 static
-struct bt_ctf_trace *insert_new_trace(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *trace) {
+struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream) {
 	struct bt_ctf_trace *writer_trace = NULL;
+	struct debug_info_trace *di_trace = NULL;
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
 	int ret;
 
 	writer_trace = bt_ctf_trace_create();
@@ -529,7 +559,20 @@ struct bt_ctf_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 				__FILE__, __LINE__);
 		goto error;
 	}
-	g_hash_table_insert(debug_it->trace_map, (gpointer) trace, writer_trace);
+
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
 
 	ret = ctf_copy_trace(debug_it->err, trace, writer_trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
@@ -538,27 +581,54 @@ struct bt_ctf_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 		goto error;
 	}
 
+	di_trace = g_new0(struct debug_info_trace, 1);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	di_trace->trace = trace;
+	di_trace->writer_trace = writer_trace;
+	di_trace->debug_info_component = debug_it->debug_info_component;
+	di_trace->stream_map = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, NULL, (GDestroyNotify) unref_stream);
+	di_trace->stream_class_map = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
+	di_trace->packet_map = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, NULL, (GDestroyNotify) unref_packet);
+	di_trace->trace_debug_map = g_hash_table_new_full(g_direct_hash,
+			g_direct_equal, NULL, (GDestroyNotify) unref_debug_info);
+
+	g_hash_table_insert(debug_it->trace_map, (gpointer) trace, di_trace);
+
 	goto end;
 
 error:
 	BT_PUT(writer_trace);
+	g_free(di_trace);
+	di_trace = NULL;
 end:
-	return writer_trace;
+	bt_put(stream_class);
+	bt_put(trace);
+	return di_trace;
 }
 
 static
 struct bt_ctf_packet *lookup_packet(struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet)
+		struct bt_ctf_packet *packet,
+		struct debug_info_trace *di_trace)
 {
 	return (struct bt_ctf_packet *) g_hash_table_lookup(
-			debug_it->packet_map,
+			di_trace->packet_map,
 			(gpointer) packet);
 }
 
 static
 struct bt_ctf_packet *insert_new_packet(struct debug_info_iterator *debug_it,
 		struct bt_ctf_packet *packet,
-		struct bt_ctf_stream *writer_stream)
+		struct bt_ctf_stream *writer_stream,
+		struct debug_info_trace *di_trace)
 {
 	struct bt_ctf_packet *writer_packet;
 
@@ -568,7 +638,7 @@ struct bt_ctf_packet *insert_new_packet(struct debug_info_iterator *debug_it,
 				__FILE__, __LINE__);
 		goto end;
 	}
-	g_hash_table_insert(debug_it->packet_map, (gpointer) packet, writer_packet);
+	g_hash_table_insert(di_trace->packet_map, (gpointer) packet, writer_packet);
 
 end:
 	return writer_packet;
@@ -856,6 +926,7 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 {
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
 	struct bt_ctf_trace *trace, *writer_trace = NULL;
+	struct debug_info_trace *di_trace;
 	enum bt_component_status ret;
 	int int_ret;
 
@@ -867,16 +938,14 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		goto error;
 	}
 
-	writer_trace = lookup_trace(debug_it, trace);
-	if (!writer_trace) {
-		writer_trace = insert_new_trace(debug_it, trace);
-		if (!writer_trace) {
-			fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto error;
-		}
+	di_trace = lookup_trace(debug_it, trace);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto error;
 	}
+	writer_trace = di_trace->writer_trace;
 	bt_get(writer_trace);
 
 	writer_stream_class = copy_stream_class_debug_info(debug_it->err, stream_class,
@@ -907,7 +976,7 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 	BT_PUT(writer_trace);
 	BT_PUT(trace);
 
-	g_hash_table_insert(debug_it->stream_class_map,
+	g_hash_table_insert(di_trace->stream_class_map,
 			(gpointer) stream_class, writer_stream_class);
 
 	goto end;
@@ -923,14 +992,22 @@ end:
 static
 struct bt_ctf_stream *insert_new_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_stream *stream)
+		struct bt_ctf_stream *stream,
+		struct debug_info_trace *di_trace)
 {
 	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
 
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+
 	writer_stream_class = g_hash_table_lookup(
-			debug_it->stream_class_map,
+			di_trace->stream_class_map,
 			(gpointer) stream_class);
 
 	if (!writer_stream_class) {
@@ -952,7 +1029,7 @@ struct bt_ctf_stream *insert_new_stream(
 		goto error;
 	}
 
-	g_hash_table_insert(debug_it->stream_map, (gpointer) stream,
+	g_hash_table_insert(di_trace->stream_map, (gpointer) stream,
 			writer_stream);
 
 	goto end;
@@ -960,17 +1037,18 @@ struct bt_ctf_stream *insert_new_stream(
 error:
 	BT_PUT(writer_stream);
 end:
+	bt_put(stream_class);
 	bt_put(writer_stream_class);
 	return writer_stream;
 }
 
 static
 struct bt_ctf_stream *lookup_stream(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream)
+		struct bt_ctf_stream *stream,
+		struct debug_info_trace *di_trace)
 {
 	return (struct bt_ctf_stream *) g_hash_table_lookup(
-			debug_it->stream_map,
-			(gpointer) stream);
+			di_trace->stream_map, (gpointer) stream);
 }
 
 static
@@ -983,12 +1061,45 @@ struct bt_ctf_event_class *get_event_class(struct debug_info_iterator *debug_it,
 }
 
 static
+struct debug_info_trace *lookup_di_trace_from_stream(
+		struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_trace *trace = NULL;
+	struct debug_info_trace *di_trace = NULL;
+
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto end;
+	}
+
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto end;
+	}
+
+	di_trace = (struct debug_info_trace *) g_hash_table_lookup(
+			debug_it->trace_map, (gpointer) trace);
+
+end:
+	BT_PUT(stream_class);
+	BT_PUT(trace);
+	return di_trace;
+}
+
+static
 struct bt_ctf_stream *get_writer_stream(
 		struct debug_info_iterator *debug_it,
 		struct bt_ctf_packet *packet, struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream *writer_stream = NULL;
+	struct debug_info_trace *di_trace = NULL;
 
 	stream_class = bt_ctf_stream_get_class(stream);
 	if (!stream_class) {
@@ -997,9 +1108,18 @@ struct bt_ctf_stream *get_writer_stream(
 		goto error;
 	}
 
-	writer_stream = lookup_stream(debug_it, stream);
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
+
+	writer_stream = lookup_stream(debug_it, stream, di_trace);
 	if (!writer_stream) {
-		writer_stream = insert_new_stream(debug_it, stream_class, stream);
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
 	}
 	bt_get(writer_stream);
 
@@ -1020,6 +1140,7 @@ struct bt_ctf_packet *debug_info_new_packet(
 	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
 	struct bt_ctf_field *writer_packet_context = NULL;
 	struct bt_ctf_packet *writer_packet = NULL;
+	struct debug_info_trace *di_trace;
 	int int_ret;
 
 	stream = bt_ctf_packet_get_stream(packet);
@@ -1036,17 +1157,25 @@ struct bt_ctf_packet *debug_info_new_packet(
 		goto error;
 	}
 
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
 	/*
 	 * If a packet was already opened, close it and remove it from
 	 * the HT.
 	 */
-	writer_packet = lookup_packet(debug_it, packet);
+	writer_packet = lookup_packet(debug_it, packet, di_trace);
 	if (writer_packet) {
-		g_hash_table_remove(debug_it->packet_map, packet);
+		g_hash_table_remove(di_trace->packet_map, packet);
 		BT_PUT(writer_packet);
 	}
 
-	writer_packet = insert_new_packet(debug_it, packet, writer_stream);
+	writer_packet = insert_new_packet(debug_it, packet, writer_stream,
+			di_trace);
 	if (!writer_packet) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
@@ -1084,17 +1213,65 @@ struct bt_ctf_packet *debug_info_close_packet(
 		struct bt_ctf_packet *packet)
 {
 	struct bt_ctf_packet *writer_packet = NULL;
+	struct bt_ctf_stream *stream = NULL;
+	struct debug_info_trace *di_trace;
 
-	writer_packet = lookup_packet(debug_it, packet);
+	stream = bt_ctf_packet_get_stream(packet);
+	if (!stream) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto end;
+	}
+
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto end;
+	}
+
+	writer_packet = lookup_packet(debug_it, packet, di_trace);
 	if (!writer_packet) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		goto end;
 	}
-	g_hash_table_remove(debug_it->packet_map, packet);
+	g_hash_table_remove(di_trace->packet_map, packet);
 
 end:
+	bt_put(stream);
 	return writer_packet;
+}
+
+BT_HIDDEN
+struct bt_ctf_stream *debug_info_stream_begin(
+		struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream)
+{
+	struct bt_ctf_stream *writer_stream;
+	struct debug_info_trace *di_trace = NULL;
+
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		di_trace = insert_new_trace(debug_it, stream);
+		if (!di_trace) {
+			fprintf(debug_it->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto end;
+		}
+	}
+
+	writer_stream = lookup_stream(debug_it, stream, di_trace);
+	if (writer_stream) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto end;
+	}
+
+	writer_stream = insert_new_stream(debug_it, stream, di_trace);
+
+end:
+	return writer_stream;
 }
 
 BT_HIDDEN
@@ -1102,15 +1279,23 @@ struct bt_ctf_stream *debug_info_stream_end(struct debug_info_iterator *debug_it
 		struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_stream *writer_stream;
+	struct debug_info_trace *di_trace = NULL;
 
-	writer_stream = lookup_stream(debug_it, stream);
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto end;
+	}
+
+	writer_stream = lookup_stream(debug_it, stream, di_trace);
 	if (!writer_stream) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		goto end;
 	}
 	bt_get(writer_stream);
-	g_hash_table_remove(debug_it->stream_map, stream);
+	g_hash_table_remove(di_trace->stream_map, stream);
 
 end:
 	return writer_stream;
@@ -1567,6 +1752,8 @@ struct bt_ctf_event *debug_info_output_event(
 	struct bt_ctf_event *writer_event = NULL;
 	struct bt_ctf_packet *packet = NULL, *writer_packet = NULL;
 	struct bt_ctf_trace *writer_trace = NULL;
+	struct bt_ctf_stream *stream = NULL;
+	struct debug_info_trace *di_trace;
 	struct debug_info *debug_info;
 	const char *event_name;
 	int int_ret;
@@ -1591,15 +1778,28 @@ struct bt_ctf_event *debug_info_output_event(
 				__FILE__, __LINE__);
 		goto error;
 	}
-
-	writer_stream_class = g_hash_table_lookup(
-			debug_it->stream_class_map,
-			(gpointer) stream_class);
-	if (!writer_stream_class || !bt_get(writer_stream_class)) {
+	stream = bt_ctf_event_get_stream(event);
+	if (!stream) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
 		goto error;
 	}
+	di_trace = lookup_di_trace_from_stream(debug_it, stream);
+	if (!di_trace) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	writer_stream_class = g_hash_table_lookup(
+			di_trace->stream_class_map,
+			(gpointer) stream_class);
+	if (!writer_stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+	bt_get(writer_stream_class);
 
 	writer_event_class = get_event_class(debug_it,
 			writer_stream_class, event_class);
@@ -1627,7 +1827,7 @@ struct bt_ctf_event *debug_info_output_event(
 		goto error;
 	}
 
-	debug_info = get_trace_debug_info(debug_it, writer_trace);
+	debug_info = get_trace_debug_info(debug_it, writer_trace, di_trace);
 	if (debug_info) {
 		debug_info_handle_event(debug_it->err, event, debug_info);
 	}
@@ -1650,7 +1850,7 @@ struct bt_ctf_event *debug_info_output_event(
 		goto error;
 	}
 
-	writer_packet = lookup_packet(debug_it, packet);
+	writer_packet = lookup_packet(debug_it, packet, di_trace);
 	if (!writer_packet) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
@@ -1674,6 +1874,7 @@ error:
 	BT_PUT(writer_event);
 
 end:
+	bt_put(stream);
 	bt_put(writer_trace);
 	bt_put(writer_packet);
 	bt_put(packet);

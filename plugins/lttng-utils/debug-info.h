@@ -47,6 +47,19 @@ struct debug_info_iterator {
 	struct debug_info_component *debug_info_component;
 	/* Map between struct bt_ctf_trace and struct bt_ctf_writer. */
 	GHashTable *trace_map;
+	/* Input iterators associated with this output iterator. */
+	GPtrArray *input_iterator_group;
+	struct bt_notification *current_notification;
+	struct bt_notification_iterator *input_iterator;
+	FILE *err;
+};
+
+struct debug_info_trace {
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_trace *writer_trace;
+	struct debug_info_component *debug_info_component;
+	int static_listener_id;
+	int trace_static;
 	/* Map between reader and writer stream. */
 	GHashTable *stream_map;
 	/* Map between reader and writer stream class. */
@@ -55,11 +68,6 @@ struct debug_info_iterator {
 	GHashTable *packet_map;
 	/* Map between a trace_class and its corresponding debug_info. */
 	GHashTable *trace_debug_map;
-	/* Input iterators associated with this output iterator. */
-	GPtrArray *input_iterator_group;
-	struct bt_notification *current_notification;
-	struct bt_notification_iterator *input_iterator;
-	FILE *err;
 };
 
 struct debug_info_source {

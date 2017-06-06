@@ -42,6 +42,10 @@ BT_HIDDEN
 struct bt_ctf_packet *debug_info_close_packet(struct debug_info_iterator *debug_it,
 		struct bt_ctf_packet *packet);
 BT_HIDDEN
+struct bt_ctf_stream *debug_info_stream_begin(
+		struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream);
+BT_HIDDEN
 struct bt_ctf_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
 		struct bt_ctf_stream *stream);
 
