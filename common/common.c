@@ -1078,6 +1078,38 @@ void destroy_gstring(void *gstring)
 	(void) g_string_free(gstring, TRUE);
 }
 
+#ifdef __MINGW32__
+BT_HIDDEN
+GString *bt_common_normalize_path(const char *path, const char *wd)
+{
+	char *tmp;
+	GString *norm_path = NULL;
+
+	assert(path);
+
+	tmp = _fullpath(NULL, path, PATH_MAX);
+	if (!tmp) {
+		goto error;
+	}
+
+	norm_path = g_string_new(tmp);
+	if (!norm_path) {
+		goto error;
+	}
+
+	goto end;
+error:
+	if (norm_path) {
+		g_string_free(norm_path, TRUE);
+		norm_path = NULL;
+	}
+end:
+	if (tmp) {
+		free(tmp);
+	}
+	return norm_path;
+}
+#else
 BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd)
 {
@@ -1161,6 +1193,7 @@ end:
 
 	return norm_path;
 }
+#endif
 
 BT_HIDDEN
 size_t bt_common_get_page_size(void)
