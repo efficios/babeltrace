@@ -571,7 +571,6 @@ enum bt_component_status writer_stream_begin(
 				__func__, __FILE__, __LINE__);
 		goto error;
 	}
-	fs_writer->active_streams++;
 
 	goto end;
 
