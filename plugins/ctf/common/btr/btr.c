@@ -602,7 +602,7 @@ enum bt_ctf_btr_status validate_contiguous_bo(struct bt_ctf_btr *btr,
 	}
 
 end:
-	if (status) {
+	if (status < 0) {
 		BT_LOGW("Cannot read bit array: two different byte orders not at a byte boundary: "
 			"btr-addr=%p, last-bo=%s, next-bo=%s",
 			btr, bt_ctf_byte_order_string(btr->last_bo),
@@ -1527,9 +1527,8 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 
 	while (true) {
 		*status = handle_state(btr);
-		if (*status != BT_CTF_BTR_STATUS_OK) {
-			break;
-		} else if (btr->state == BTR_STATE_DONE) {
+		if (*status != BT_CTF_BTR_STATUS_OK ||
+				btr->state == BTR_STATE_DONE) {
 			break;
 		}
 	}
@@ -1563,9 +1562,8 @@ size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
 
 	while (true) {
 		*status = handle_state(btr);
-		if (*status != BT_CTF_BTR_STATUS_OK) {
-			break;
-		} else if (btr->state == BTR_STATE_DONE) {
+		if (*status != BT_CTF_BTR_STATUS_OK ||
+				btr->state == BTR_STATE_DONE) {
 			break;
 		}
 	}

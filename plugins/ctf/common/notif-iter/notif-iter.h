@@ -54,12 +54,12 @@ enum bt_ctf_notif_iter_medium_status {
 	 * The medium function called by the notification iterator
 	 * function reached the end of the file.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF =	-4,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF =	1,
 
 	/**
 	 * There is no data available right now, try again later.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN =	-3,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN =	11,
 
 	/** Invalid argument. */
 	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL =	-2,
@@ -301,5 +301,45 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields
 		struct bt_ctf_notif_iter *notit,
 		struct bt_ctf_field **packet_header_field,
 		struct bt_ctf_field **packet_context_field);
+
+static inline
+const char *bt_ctf_notif_iter_medium_status_string(
+		enum bt_ctf_notif_iter_medium_status status)
+{
+	switch (status) {
+	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF:
+		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF";
+	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN:
+		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN";
+	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL:
+		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL";
+	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR:
+		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR";
+	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK:
+		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_ctf_notif_iter_status_string(
+		enum bt_ctf_notif_iter_status status)
+{
+	switch (status) {
+	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+		return "BT_CTF_NOTIF_ITER_STATUS_EOF";
+	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+		return "BT_CTF_NOTIF_ITER_STATUS_AGAIN";
+	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+		return "BT_CTF_NOTIF_ITER_STATUS_INVAL";
+	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+		return "BT_CTF_NOTIF_ITER_STATUS_ERROR";
+	case BT_CTF_NOTIF_ITER_STATUS_OK:
+		return "BT_CTF_NOTIF_ITER_STATUS_OK";
+	default:
+		return "(unknown)";
+	}
+}
 
 #endif /* CTF_NOTIF_ITER_H */

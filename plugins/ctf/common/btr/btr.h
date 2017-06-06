@@ -63,7 +63,7 @@ enum bt_ctf_btr_status {
 	 * #BT_CTF_BTR_STATUS_EOF is returned to complete the decoding
 	 * process of a given type.
 	 */
-	BT_CTF_BTR_STATUS_EOF =		-4,
+	BT_CTF_BTR_STATUS_EOF =		1,
 
 	/** Invalid argument. */
 	BT_CTF_BTR_STATUS_INVAL =	-3,

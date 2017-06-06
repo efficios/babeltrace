@@ -65,7 +65,6 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	status = lttng_live_get_stream_bytes(lttng_live,
 			stream, stream->buf, stream->offset,
 			read_len, &recv_len);
-	BT_LOGV_MEM(stream->buf, recv_len, "Live receive payload");
 	*buffer_addr = stream->buf;
 	*buffer_sz = recv_len;
 	stream->offset += recv_len;

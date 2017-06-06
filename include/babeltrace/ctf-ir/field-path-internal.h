@@ -29,6 +29,7 @@
  */
 
 #include <babeltrace/object-internal.h>
+#include <assert.h>
 #include <glib.h>
 
 struct bt_ctf_field_path {
@@ -54,7 +55,30 @@ BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path);
 
-BT_HIDDEN
-GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path);
+static inline
+GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
+{
+	GString *str = g_string_new(NULL);
+	size_t i;
+
+	assert(path);
+
+	if (!str) {
+		goto end;
+	}
+
+	g_string_append_printf(str, "[%s", bt_ctf_scope_string(path->root));
+
+	for (i = 0; i < path->indexes->len; i++) {
+		int index = g_array_index(path->indexes, int, i);
+
+		g_string_append_printf(str, ", %d", index);
+	}
+
+	g_string_append(str, "]");
+
+end:
+	return str;
+}
 
 #endif /* BABELTRACE_CTF_IR_FIELD_PATH_INTERNAL */
