@@ -248,7 +248,7 @@ int make_trace_path(struct writer_component *writer_component,
 
 	}
 
-	snprintf(trace_path, PATH_MAX, "%s/%s",
+	snprintf(trace_path, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s",
 			writer_component->base_path->str,
 			trace_name);
 	/*
@@ -265,7 +265,7 @@ int make_trace_path(struct writer_component *writer_component,
 			int i = 0;
 
 			do {
-				snprintf(trace_path, PATH_MAX, "%s/%s-%d",
+				snprintf(trace_path, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s-%d",
 						writer_component->base_path->str,
 						trace_name, ++i);
 			} while (g_file_test(trace_path, G_FILE_TEST_EXISTS) && i < INT_MAX);

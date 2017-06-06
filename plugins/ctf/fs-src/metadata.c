@@ -51,7 +51,7 @@ FILE *ctf_fs_metadata_open_file(const char *trace_path)
 		goto end;
 	}
 
-	g_string_append(metadata_path, "/" CTF_FS_METADATA_FILENAME);
+	g_string_append(metadata_path, G_DIR_SEPARATOR_S CTF_FS_METADATA_FILENAME);
 	fp = fopen(metadata_path->str, "rb");
 	g_string_free(metadata_path, TRUE);
 end:
@@ -67,7 +67,7 @@ static struct ctf_fs_file *get_file(const char *trace_path)
 	}
 
 	g_string_append(file->path, trace_path);
-	g_string_append(file->path, "/" CTF_FS_METADATA_FILENAME);
+	g_string_append(file->path, G_DIR_SEPARATOR_S CTF_FS_METADATA_FILENAME);
 
 	if (ctf_fs_file_open(file, "rb")) {
 		goto error;

@@ -782,13 +782,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (!strcmp(basename, CTF_FS_METADATA_FILENAME)) {
 			/* Ignore the metadata stream. */
-			BT_LOGD("Ignoring metadata file `%s/%s`",
+			BT_LOGD("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		if (basename[0] == '.') {
-			BT_LOGD("Ignoring hidden file `%s/%s`",
+			BT_LOGD("Ignoring hidden file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
@@ -796,13 +796,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		/* Create the file. */
 		file = ctf_fs_file_create();
 		if (!file) {
-			BT_LOGE("Cannot create stream file object for file `%s/%s`",
+			BT_LOGE("Cannot create stream file object for file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			goto error;
 		}
 
 		/* Create full path string. */
-		g_string_append_printf(file->path, "%s/%s",
+		g_string_append_printf(file->path, "%s" G_DIR_SEPARATOR_S "%s",
 				ctf_fs_trace->path->str, basename);
 		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
 			BT_LOGD("Ignoring non-regular file `%s`",
@@ -1004,7 +1004,7 @@ int path_is_ctf_trace(const char *path)
 		goto end;
 	}
 
-	g_string_printf(metadata_path, "%s/%s", path, CTF_FS_METADATA_FILENAME);
+	g_string_printf(metadata_path, "%s" G_DIR_SEPARATOR_S "%s", path, CTF_FS_METADATA_FILENAME);
 
 	if (g_file_test(metadata_path->str, G_FILE_TEST_IS_REGULAR)) {
 		ret = 1;
@@ -1029,6 +1029,7 @@ int add_trace_path(GList **trace_paths, const char *path)
 		goto end;
 	}
 
+	// FIXME: Remove or ifdef for __MINGW32__
 	if (strcmp(norm_path->str, "/") == 0) {
 		BT_LOGE("Opening a trace in `/` is not supported.");
 		ret = -1;
@@ -1098,7 +1099,7 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path)
 			goto end;
 		}
 
-		g_string_printf(sub_path, "%s/%s", start_path, basename);
+		g_string_printf(sub_path, "%s" G_DIR_SEPARATOR_S "%s", start_path, basename);
 		ret = ctf_fs_find_traces(trace_paths, sub_path->str);
 		g_string_free(sub_path, TRUE);
 		if (ret) {
