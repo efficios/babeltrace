@@ -272,7 +272,7 @@ enum bt_component_status bt_private_component_filter_add_input_private_port(
 	graph = bt_component_borrow_graph(component);
 
 	if (graph && bt_graph_is_canceled(graph)) {
-		BT_LOGW("Cannot add output port to filter component: graph is canceled: "
+		BT_LOGW("Cannot add input port to filter component: graph is canceled: "
 			"comp-addr=%p, comp-name=\"%s\", graph-addr=%p",
 			component, bt_component_get_name(component),
 			bt_component_borrow_graph(component));
