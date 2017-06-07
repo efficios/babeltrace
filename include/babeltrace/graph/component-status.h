@@ -56,6 +56,7 @@ enum bt_component_status {
 	BT_COMPONENT_STATUS_NOMEM			= -12,
 	/** Element not found. */
 	BT_COMPONENT_STATUS_NOT_FOUND			= -19,
+	BT_COMPONENT_STATUS_GRAPH_IS_CANCELED		= 125,
 };
 
 #ifdef __cplusplus

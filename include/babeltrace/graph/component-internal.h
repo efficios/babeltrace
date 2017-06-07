@@ -170,6 +170,8 @@ const char *bt_component_status_string(enum bt_component_status status)
 		return "BT_COMPONENT_STATUS_NOMEM";
 	case BT_COMPONENT_STATUS_NOT_FOUND:
 		return "BT_COMPONENT_STATUS_NOT_FOUND";
+	case BT_COMPONENT_STATUS_GRAPH_IS_CANCELED:
+		return "BT_COMPONENT_STATUS_GRAPH_IS_CANCELED";
 	default:
 		return "(unknown)";
 	}

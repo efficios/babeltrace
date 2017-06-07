@@ -36,6 +36,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/graph.h>
 
 BT_HIDDEN
 void bt_component_source_destroy(struct bt_component *component)
@@ -170,6 +171,7 @@ enum bt_component_status bt_private_component_source_add_output_private_port(
 	struct bt_port *port = NULL;
 	struct bt_component *component =
 		bt_component_from_private(private_component);
+	struct bt_graph *graph;
 
 	if (!component) {
 		BT_LOGW_STR("Invalid parameter: component is NULL.");
@@ -183,6 +185,17 @@ enum bt_component_status bt_private_component_source_add_output_private_port(
 			component, bt_component_get_name(component),
 			bt_component_class_type_string(component->class->type));
 		status = BT_COMPONENT_STATUS_INVALID;
+		goto end;
+	}
+
+	graph = bt_component_borrow_graph(component);
+
+	if (graph && bt_graph_is_canceled(graph)) {
+		BT_LOGW("Cannot add output port to filter component: graph is canceled: "
+			"comp-addr=%p, comp-name=\"%s\", graph-addr=%p",
+			component, bt_component_get_name(component),
+			bt_component_borrow_graph(component));
+		status = BT_COMPONENT_STATUS_GRAPH_IS_CANCELED;
 		goto end;
 	}
 
