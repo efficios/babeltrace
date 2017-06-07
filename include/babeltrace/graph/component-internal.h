@@ -80,6 +80,13 @@ struct bt_private_component *bt_private_component_from_component(
 	return (void *) component;
 }
 
+static inline
+struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
+{
+	assert(comp);
+	return (void *) comp->base.parent;
+}
+
 BT_HIDDEN
 enum bt_component_status bt_component_accept_port_connection(
 		struct bt_component *component, struct bt_port *self_port,
