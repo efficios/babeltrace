@@ -402,3 +402,8 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 		"conn-addr=%p, iter-addr=%p", conn, iterator);
 	bt_connection_try_remove_from_graph(conn);
 }
+
+bt_bool bt_connection_is_ended(struct bt_connection *connection)
+{
+	return !connection->downstream_port && !connection->upstream_port;
+}

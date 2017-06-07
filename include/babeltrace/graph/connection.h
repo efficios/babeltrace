@@ -41,6 +41,8 @@ extern struct bt_port *bt_connection_get_downstream_port(
 extern struct bt_port *bt_connection_get_upstream_port(
 		struct bt_connection *connection);
 
+extern bt_bool bt_connection_is_ended(struct bt_connection *connection);
+
 #ifdef __cplusplus
 }
 #endif
