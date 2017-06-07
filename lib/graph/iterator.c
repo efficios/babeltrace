@@ -589,7 +589,10 @@ enum bt_connection_status bt_notification_iterator_create(
 		upstream_comp, bt_component_get_name(upstream_comp),
 		upstream_port, bt_port_get_name(upstream_port),
 		connection, iterator);
-	BT_MOVE(*user_iterator, iterator);
+
+	/* Move reference to user */
+	*user_iterator = iterator;
+	iterator = NULL;
 
 end:
 	bt_put(iterator);

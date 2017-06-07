@@ -390,7 +390,10 @@ bt_private_connection_create_notification_iterator(
 		bt_port_get_name(connection->upstream_port),
 		upstream_component, bt_component_get_name(upstream_component),
 		iterator);
-	BT_MOVE(*user_iterator, iterator);
+
+	/* Move reference to user */
+	*user_iterator = iterator;
+	iterator = NULL;
 
 end:
 	bt_put(upstream_component);

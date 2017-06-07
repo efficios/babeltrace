@@ -405,7 +405,9 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 		downstream_port, bt_port_get_name(downstream_port));
 
 	if (user_connection) {
-		BT_MOVE(*user_connection, connection);
+		/* Move reference to user */
+		*user_connection = connection;
+		connection = NULL;
 	}
 
 end:
