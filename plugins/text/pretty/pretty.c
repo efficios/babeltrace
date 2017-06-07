@@ -734,21 +734,17 @@ enum bt_component_status pretty_init(
 {
 	enum bt_component_status ret;
 	struct pretty_component *pretty = create_pretty();
-	void *priv_port;
 
 	if (!pretty) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	priv_port = bt_private_component_sink_add_input_private_port(component,
-		"in", NULL);
-	if (!priv_port) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+	ret = bt_private_component_sink_add_input_private_port(component,
+		"in", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
-
-	bt_put(priv_port);
 
 	pretty->out = stdout;
 	pretty->err = stderr;

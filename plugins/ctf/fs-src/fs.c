@@ -271,7 +271,6 @@ int create_one_port_for_trace(struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_ds_file_group *ds_file_group)
 {
 	int ret = 0;
-	struct bt_private_port *port = NULL;
 	struct ctf_fs_port_data *port_data = NULL;
 	GString *port_name = NULL;
 	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
@@ -300,9 +299,9 @@ int create_one_port_for_trace(struct ctf_fs_trace *ctf_fs_trace,
 	}
 
 	port_data->ds_file_group = ds_file_group;
-	port = bt_private_component_source_add_output_private_port(
-		ctf_fs->priv_comp, port_name->str, port_data);
-	if (!port) {
+	ret = bt_private_component_source_add_output_private_port(
+		ctf_fs->priv_comp, port_name->str, port_data, NULL);
+	if (ret) {
 		goto error;
 	}
 
@@ -318,7 +317,6 @@ end:
 		g_string_free(port_name, TRUE);
 	}
 
-	bt_put(port);
 	port_data_destroy(port_data);
 	return ret;
 }

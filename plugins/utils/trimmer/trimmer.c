@@ -359,7 +359,6 @@ enum bt_component_status trimmer_component_init(
 {
 	enum bt_component_status ret;
 	struct trimmer *trimmer = create_trimmer_data();
-	struct bt_private_port *priv_port = NULL;
 
 	if (!trimmer) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
@@ -367,16 +366,15 @@ enum bt_component_status trimmer_component_init(
 	}
 
 	/* Create input and output ports */
-	priv_port = bt_private_component_filter_add_input_private_port(
-		component, "in", NULL);
-	if (!priv_port) {
+	ret = bt_private_component_filter_add_input_private_port(
+		component, "in", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	bt_put(priv_port);
-	priv_port = bt_private_component_filter_add_output_private_port(
-		component, "out", NULL);
-	if (!priv_port) {
+	ret = bt_private_component_filter_add_output_private_port(
+		component, "out", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
@@ -387,7 +385,6 @@ enum bt_component_status trimmer_component_init(
 
 	ret = init_from_params(trimmer, params);
 end:
-	bt_put(priv_port);
 	return ret;
 error:
 	destroy_trimmer_data(trimmer);

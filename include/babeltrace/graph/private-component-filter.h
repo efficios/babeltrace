@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,10 +43,11 @@ extern struct bt_private_port *
 bt_private_component_filter_get_output_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index);
 
-extern struct bt_private_port *
+extern enum bt_component_status
 bt_private_component_filter_add_output_private_port(
 		struct bt_private_component *private_component,
-		const char *name, void *user_data);
+		const char *name, void *user_data,
+		struct bt_private_port **private_port);
 
 extern struct bt_private_port *
 bt_private_component_filter_get_input_private_port_by_name(
@@ -56,10 +58,11 @@ extern struct bt_private_port *
 bt_private_component_filter_get_input_private_port_by_index(
 		struct bt_private_component *private_component, uint64_t index);
 
-extern struct bt_private_port *
+extern enum bt_component_status
 bt_private_component_filter_add_input_private_port(
 		struct bt_private_component *private_component,
-		const char *name, void *user_data);
+		const char *name, void *user_data,
+		struct bt_private_port **private_port);
 
 #ifdef __cplusplus
 }

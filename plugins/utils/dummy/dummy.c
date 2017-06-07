@@ -59,21 +59,18 @@ enum bt_component_status dummy_init(struct bt_private_component *component,
 {
 	enum bt_component_status ret;
 	struct dummy *dummy = g_new0(struct dummy, 1);
-	void *priv_port;
 
 	if (!dummy) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	priv_port = bt_private_component_sink_add_input_private_port(component,
-		"in", NULL);
-	if (!priv_port) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+	ret = bt_private_component_sink_add_input_private_port(component,
+		"in", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
-	bt_put(priv_port);
 	dummy->iterators = g_ptr_array_new_with_free_func(
 			(GDestroyNotify) bt_put);
 	if (!dummy->iterators) {

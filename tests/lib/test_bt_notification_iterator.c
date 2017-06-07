@@ -700,12 +700,11 @@ enum bt_component_status src_init(
 		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data)
 {
-	void *priv_port;
+	int ret;
 
-	priv_port = bt_private_component_source_add_output_private_port(
-		private_component, "out", NULL);
-	assert(priv_port);
-	bt_put(priv_port);
+	ret = bt_private_component_source_add_output_private_port(
+		private_component, "out", NULL, NULL);
+	assert(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -842,16 +841,14 @@ enum bt_component_status sink_init(
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
-	void *priv_port;
 
 	assert(user_data);
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
 	assert(ret == 0);
-	priv_port = bt_private_component_sink_add_input_private_port(
-		private_component, "in", NULL);
-	assert(priv_port);
-	bt_put(priv_port);
+	ret = bt_private_component_sink_add_input_private_port(
+		private_component, "in", NULL, NULL);
+	assert(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 

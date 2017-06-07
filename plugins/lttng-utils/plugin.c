@@ -440,7 +440,6 @@ enum bt_component_status debug_info_component_init(
 {
 	enum bt_component_status ret;
 	struct debug_info_component *debug_info = create_debug_info_component_data();
-	struct bt_private_port *priv_port = NULL;
 
 	if (!debug_info) {
 		ret = BT_COMPONENT_STATUS_NOMEM;
@@ -452,21 +451,17 @@ enum bt_component_status debug_info_component_init(
 		goto error;
 	}
 
-	priv_port = bt_private_component_filter_add_input_private_port(
-		component, "in", NULL);
-	if (!priv_port) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+	ret = bt_private_component_filter_add_input_private_port(
+		component, "in", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
-	BT_PUT(priv_port);
 
-	priv_port = bt_private_component_filter_add_output_private_port(
-		component, "out", NULL);
-	if (!priv_port) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+	ret = bt_private_component_filter_add_output_private_port(
+		component, "out", NULL, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
-	BT_PUT(priv_port);
 
 	ret = init_from_params(debug_info, params);
 end:

@@ -242,16 +242,19 @@ bt_private_component_filter_get_input_private_port_by_name(
 			bt_component_from_private(private_component), name));
 }
 
-struct bt_private_port *bt_private_component_filter_add_input_private_port(
+enum bt_component_status bt_private_component_filter_add_input_private_port(
 		struct bt_private_component *private_component,
-		const char *name, void *user_data)
+		const char *name, void *user_data,
+		struct bt_private_port **user_priv_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_port *port = NULL;
 	struct bt_component *component =
 		bt_component_from_private(private_component);
 
 	if (!component) {
 		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
@@ -260,14 +263,26 @@ struct bt_private_port *bt_private_component_filter_add_input_private_port(
 			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
 			component, bt_component_get_name(component),
 			bt_component_class_type_string(component->class->type));
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	/* bt_component_add_input_port() logs details/errors */
 	port = bt_component_add_input_port(component, name, user_data);
+	if (!port) {
+		status = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	if (user_priv_port) {
+		/* Move reference to user */
+		*user_priv_port = bt_private_port_from_port(port);
+		port = NULL;
+	}
 
 end:
-	return bt_private_port_from_port(port);
+	bt_put(port);
+	return status;
 }
 
 struct bt_private_port *
@@ -291,16 +306,19 @@ bt_private_component_filter_get_output_private_port_by_name(
 			bt_component_from_private(private_component), name));
 }
 
-struct bt_private_port *bt_private_component_filter_add_output_private_port(
+enum bt_component_status bt_private_component_filter_add_output_private_port(
 		struct bt_private_component *private_component,
-		const char *name, void *user_data)
+		const char *name, void *user_data,
+		struct bt_private_port **user_priv_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_port *port = NULL;
 	struct bt_component *component =
 		bt_component_from_private(private_component);
 
 	if (!component) {
 		BT_LOGW_STR("Invalid parameter: component is NULL.");
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
@@ -309,12 +327,24 @@ struct bt_private_port *bt_private_component_filter_add_output_private_port(
 			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
 			component, bt_component_get_name(component),
 			bt_component_class_type_string(component->class->type));
+		status = BT_COMPONENT_STATUS_INVALID;
 		goto end;
 	}
 
 	/* bt_component_add_output_port() logs details/errors */
 	port = bt_component_add_output_port(component, name, user_data);
+	if (!port) {
+		status = BT_COMPONENT_STATUS_NOMEM;
+		goto end;
+	}
+
+	if (user_priv_port) {
+		/* Move reference to user */
+		*user_priv_port = bt_private_port_from_port(port);
+		port = NULL;
+	}
 
 end:
-	return bt_private_port_from_port(port);
+	bt_put(port);
+	return status;
 }

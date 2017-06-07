@@ -94,9 +94,10 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	ret = sprintf(name, STREAM_NAME_PREFIX "%" PRIu64, stream_iter->viewer_stream_id);
 	assert(ret > 0);
 	strcpy(stream_iter->name, name);
-	private_port = bt_private_component_source_add_output_private_port(
-			lttng_live->private_component, name, stream_iter);
-	if (!private_port) {
+	ret = bt_private_component_source_add_output_private_port(
+			lttng_live->private_component, name, stream_iter,
+			&private_port);
+	if (ret) {
 		return -1;
 	}
 	BT_LOGI("Added port %s", name);
@@ -129,10 +130,10 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 	BT_PUT(component);
 	if (nr_ports == 1) {
 		assert(!lttng_live->no_stream_port);
-		lttng_live->no_stream_port =
-			bt_private_component_source_add_output_private_port(lttng_live->private_component,
-				"no-stream", lttng_live->no_stream_iter);
-		if (!lttng_live->no_stream_port) {
+		ret = bt_private_component_source_add_output_private_port(lttng_live->private_component,
+				"no-stream", lttng_live->no_stream_iter,
+				&lttng_live->no_stream_port);
+		if (ret) {
 			return -1;
 		}
 		lttng_live->no_stream_iter->port = lttng_live->no_stream_port;
@@ -1069,11 +1070,14 @@ enum bt_component_status lttng_live_component_init(
 	lttng_live->no_stream_iter = g_new0(struct lttng_live_no_stream_iterator, 1);
 	lttng_live->no_stream_iter->p.type = LIVE_STREAM_TYPE_NO_STREAM;
 	lttng_live->no_stream_iter->lttng_live = lttng_live;
-
-	lttng_live->no_stream_port =
-		bt_private_component_source_add_output_private_port(
+	ret = bt_private_component_source_add_output_private_port(
 				lttng_live->private_component, "no-stream",
-				lttng_live->no_stream_iter);
+				lttng_live->no_stream_iter,
+				&lttng_live->no_stream_port);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto end;
+	}
+
 	lttng_live->no_stream_iter->port = lttng_live->no_stream_port;
 
 	ret = bt_private_component_set_user_data(private_component, lttng_live);

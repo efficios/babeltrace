@@ -140,13 +140,13 @@ end:
 }
 
 static
-int ensure_available_input_port(struct bt_private_component *priv_comp)
+enum bt_component_status ensure_available_input_port(
+		struct bt_private_component *priv_comp)
 {
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
-	int ret = 0;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	GString *port_name = NULL;
-	void *priv_port = NULL;
 
 	assert(muxer_comp);
 
@@ -156,15 +156,14 @@ int ensure_available_input_port(struct bt_private_component *priv_comp)
 
 	port_name = g_string_new("in");
 	if (!port_name) {
-		ret = -1;
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
 	g_string_append_printf(port_name, "%u", muxer_comp->next_port_num);
-	priv_port = bt_private_component_filter_add_input_private_port(
-		priv_comp, port_name->str, NULL);
-	if (!priv_port) {
-		ret = -1;
+	status = bt_private_component_filter_add_input_private_port(
+		priv_comp, port_name->str, NULL, NULL);
+	if (status != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
@@ -176,24 +175,15 @@ end:
 		g_string_free(port_name, TRUE);
 	}
 
-	bt_put(priv_port);
-	return ret;
+	return status;
 }
 
 static
-int create_output_port(struct bt_private_component *priv_comp)
+enum bt_component_status create_output_port(
+		struct bt_private_component *priv_comp)
 {
-	void *priv_port;
-	int ret = 0;
-
-	priv_port = bt_private_component_filter_add_output_private_port(
-		priv_comp, "out", NULL);
-	if (!priv_port) {
-		ret = -1;
-	}
-
-	bt_put(priv_port);
-	return ret;
+	return bt_private_component_filter_add_output_private_port(
+		priv_comp, "out", NULL, NULL);
 }
 
 static
@@ -305,8 +295,8 @@ enum bt_component_status muxer_init(
 	muxer_comp->priv_comp = priv_comp;
 	ret = bt_private_component_set_user_data(priv_comp, muxer_comp);
 	assert(ret == 0);
-	ret = ensure_available_input_port(priv_comp);
-	if (ret) {
+	status = ensure_available_input_port(priv_comp);
+	if (status != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
@@ -321,7 +311,10 @@ error:
 	destroy_muxer_comp(muxer_comp);
 	ret = bt_private_component_set_user_data(priv_comp, NULL);
 	assert(ret == 0);
-	status = BT_COMPONENT_STATUS_ERROR;
+
+	if (status == BT_COMPONENT_STATUS_OK) {
+		status = BT_COMPONENT_STATUS_ERROR;
+	}
 
 end:
 	return status;

@@ -320,7 +320,7 @@ void src_port_connected(struct bt_private_component *private_component,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port)
 {
-	struct bt_private_port *port;
+	int ret;
 
 	struct event event = {
 		.type = COMP_PORT_CONNECTED,
@@ -337,10 +337,9 @@ void src_port_connected(struct bt_private_component *private_component,
 
 	switch (current_test) {
 	case TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED:
-		port = bt_private_component_source_add_output_private_port(
-			private_component, "hello", NULL);
-		assert(port);
-		bt_put(port);
+		ret = bt_private_component_source_add_output_private_port(
+			private_component, "hello", NULL, NULL);
+		assert(ret == 0);
 		break;
 	default:
 		break;
@@ -377,12 +376,11 @@ static
 enum bt_component_status src_init(struct bt_private_component *priv_comp,
 	struct bt_value *params, void *init_method_data)
 {
-	void *priv_port;
+	int ret;
 
-	priv_port = bt_private_component_source_add_output_private_port(
-		priv_comp, "out", NULL);
-	assert(priv_port);
-	bt_put(priv_port);
+	ret = bt_private_component_source_add_output_private_port(
+		priv_comp, "out", NULL, NULL);
+	assert(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -450,12 +448,11 @@ static
 enum bt_component_status sink_init(struct bt_private_component *priv_comp,
 	struct bt_value *params, void *init_method_data)
 {
-	void *priv_port;
+	int ret;
 
-	priv_port = bt_private_component_sink_add_input_private_port(priv_comp,
-		"in", NULL);
-	assert(priv_port);
-	bt_put(priv_port);
+	ret = bt_private_component_sink_add_input_private_port(priv_comp,
+		"in", NULL, NULL);
+	assert(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 

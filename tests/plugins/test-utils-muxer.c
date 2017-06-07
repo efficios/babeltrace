@@ -599,6 +599,7 @@ struct bt_notification_iterator_next_return src_iter_next(
 		bt_private_notification_iterator_get_user_data(priv_iterator);
 	struct bt_private_component *private_component =
 		bt_private_notification_iterator_get_private_component(priv_iterator);
+	int ret;
 
 	assert(user_data);
 	assert(private_component);
@@ -637,16 +638,12 @@ struct bt_notification_iterator_next_return src_iter_next(
 		break;
 	case TEST_SINGLE_END_THEN_MULTIPLE_FULL:
 		if (user_data->iter_index == 0) {
-			struct bt_private_port *priv_port;
-
-			priv_port = bt_private_component_source_add_output_private_port(
-				private_component, "out1", NULL);
-			assert(priv_port);
-			bt_put(priv_port);
-			priv_port = bt_private_component_source_add_output_private_port(
-				private_component, "out2", NULL);
-			assert(priv_port);
-			bt_put(priv_port);
+			ret = bt_private_component_source_add_output_private_port(
+				private_component, "out1", NULL, NULL);
+			assert(ret == 0);
+			ret = bt_private_component_source_add_output_private_port(
+				private_component, "out2", NULL, NULL);
+			assert(ret == 0);
 			next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		} else {
 			next_return = src_iter_next_seq(user_data);
@@ -658,16 +655,12 @@ struct bt_notification_iterator_next_return src_iter_next(
 				next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
 				user_data->at++;
 			} else {
-				struct bt_private_port *priv_port;
-
-				priv_port = bt_private_component_source_add_output_private_port(
-					private_component, "out1", NULL);
-				assert(priv_port);
-				bt_put(priv_port);
-				priv_port = bt_private_component_source_add_output_private_port(
-					private_component, "out2", NULL);
-				assert(priv_port);
-				bt_put(priv_port);
+				ret = bt_private_component_source_add_output_private_port(
+					private_component, "out1", NULL, NULL);
+				assert(ret == 0);
+				ret = bt_private_component_source_add_output_private_port(
+					private_component, "out2", NULL, NULL);
+				assert(ret == 0);
 				next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 			}
 		} else {
@@ -687,7 +680,7 @@ enum bt_component_status src_init(
 		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data)
 {
-	struct bt_private_port *priv_port;
+	int ret;
 	size_t nb_ports;
 
 	switch (current_test) {
@@ -704,31 +697,27 @@ enum bt_component_status src_init(
 	}
 
 	if (nb_ports >= 1) {
-		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out0", NULL);
-		assert(priv_port);
-		bt_put(priv_port);
+		ret = bt_private_component_source_add_output_private_port(
+			private_component, "out0", NULL, NULL);
+		assert(ret == 0);
 	}
 
 	if (nb_ports >= 2) {
-		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out1", NULL);
-		assert(priv_port);
-		bt_put(priv_port);
+		ret = bt_private_component_source_add_output_private_port(
+			private_component, "out1", NULL, NULL);
+		assert(ret == 0);
 	}
 
 	if (nb_ports >= 3) {
-		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out2", NULL);
-		assert(priv_port);
-		bt_put(priv_port);
+		ret = bt_private_component_source_add_output_private_port(
+			private_component, "out2", NULL, NULL);
+		assert(ret == 0);
 	}
 
 	if (nb_ports >= 4) {
-		priv_port = bt_private_component_source_add_output_private_port(
-			private_component, "out3", NULL);
-		assert(priv_port);
-		bt_put(priv_port);
+		ret = bt_private_component_source_add_output_private_port(
+			private_component, "out3", NULL, NULL);
+		assert(ret == 0);
 	}
 
 	return BT_COMPONENT_STATUS_OK;
@@ -899,16 +888,14 @@ enum bt_component_status sink_init(
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
-	void *priv_port;
 
 	assert(user_data);
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
 	assert(ret == 0);
-	priv_port = bt_private_component_sink_add_input_private_port(
-		private_component, "in", NULL);
-	assert(priv_port);
-	bt_put(priv_port);
+	ret = bt_private_component_sink_add_input_private_port(
+		private_component, "in", NULL, NULL);
+	assert(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
