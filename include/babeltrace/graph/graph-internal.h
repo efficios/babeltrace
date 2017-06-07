@@ -28,8 +28,10 @@
  */
 
 #include <babeltrace/graph/graph.h>
+#include <babeltrace/graph/component-status.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <stdlib.h>
 #include <glib.h>
 
 struct bt_component;
@@ -107,8 +109,43 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_NO_SINK";
 	case BT_GRAPH_STATUS_ERROR:
 		return "BT_GRAPH_STATUS_ERROR";
+	case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
+		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
+	case BT_GRAPH_STATUS_NOMEM:
+		return "BT_GRAPH_STATUS_NOMEM";
 	default:
 		return "(unknown)";
+	}
+}
+
+static inline
+enum bt_graph_status bt_graph_status_from_component_status(
+		enum bt_component_status comp_status)
+{
+	switch (comp_status) {
+	case BT_COMPONENT_STATUS_OK:
+		return BT_GRAPH_STATUS_OK;
+	case BT_COMPONENT_STATUS_END:
+		return BT_GRAPH_STATUS_END;
+	case BT_COMPONENT_STATUS_AGAIN:
+		return BT_GRAPH_STATUS_AGAIN;
+	case BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+		return BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION;
+	case BT_COMPONENT_STATUS_ERROR:
+		return BT_GRAPH_STATUS_ERROR;
+	case BT_COMPONENT_STATUS_UNSUPPORTED:
+		return BT_GRAPH_STATUS_ERROR;
+	case BT_COMPONENT_STATUS_INVALID:
+		return BT_GRAPH_STATUS_INVALID;
+	case BT_COMPONENT_STATUS_NOMEM:
+		return BT_GRAPH_STATUS_NOMEM;
+	case BT_COMPONENT_STATUS_NOT_FOUND:
+		return BT_GRAPH_STATUS_ERROR;
+	default:
+#ifdef BT_LOGF
+		BT_LOGF("Unknown component status: status=%d", comp_status);
+#endif
+		abort();
 	}
 }
 

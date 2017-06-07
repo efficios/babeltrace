@@ -917,7 +917,6 @@ void do_std_test(enum test test, const char *name,
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
 	struct bt_graph *graph;
-	void *conn;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
@@ -932,9 +931,8 @@ void do_std_test(enum test test, const char *name,
 	assert(upstream_port);
 	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	assert(downstream_port);
-	conn = bt_graph_connect_ports(graph, upstream_port, downstream_port);
-	assert(conn);
-	bt_put(conn);
+	graph_status = bt_graph_connect_ports(graph, upstream_port,
+		downstream_port, NULL);
 	bt_put(upstream_port);
 	bt_put(downstream_port);
 

@@ -650,6 +650,7 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
 	struct event event;
+	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -670,7 +671,9 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
-	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
+	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+		&conn);
+	assert(status == 0);
 	assert(conn);
 
 	/* We're supposed to have 5 events so far */
@@ -812,6 +815,7 @@ void test_sink_removes_port_in_port_connected(void)
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
 	struct event event;
+	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -831,8 +835,9 @@ void test_sink_removes_port_in_port_connected(void)
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
-	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
-	assert(conn);
+	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+		&conn);
+	assert(status == 0);
 
 	/* We're supposed to have 5 events so far */
 	ok(events->len == 5, "we have the expected number of events (before consume)");
@@ -958,6 +963,7 @@ void test_src_adds_port_in_port_connected(void)
 	struct bt_port *src_hello_port;
 	struct bt_connection *conn;
 	struct event event;
+	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -974,8 +980,9 @@ void test_src_adds_port_in_port_connected(void)
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
-	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
-	assert(conn);
+	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+		&conn);
+	assert(status == 0);
 	src_hello_port = bt_component_source_get_output_port_by_name(src,
 		"hello");
 	assert(src_hello_port);
@@ -1065,6 +1072,7 @@ void test_simple(void)
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
 	struct event event;
+	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -1079,8 +1087,9 @@ void test_simple(void)
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	assert(sink_def_port);
-	conn = bt_graph_connect_ports(graph, src_def_port, sink_def_port);
-	assert(conn);
+	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+		&conn);
+	assert(status == 0);
 
 	/* We're supposed to have 5 events */
 	ok(events->len == 5, "we have the expected number of events");

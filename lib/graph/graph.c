@@ -191,10 +191,11 @@ error:
 	goto end;
 }
 
-struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
-		struct bt_port *upstream_port,
-		struct bt_port *downstream_port)
+enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
+		struct bt_port *upstream_port, struct bt_port *downstream_port,
+		struct bt_connection **user_connection)
 {
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	struct bt_connection *connection = NULL;
 	struct bt_graph *upstream_graph = NULL;
 	struct bt_graph *downstream_graph = NULL;
@@ -206,16 +207,19 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
 	if (!upstream_port) {
 		BT_LOGW_STR("Invalid parameter: upstream port is NULL.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
 	if (!downstream_port) {
 		BT_LOGW_STR("Invalid parameter: downstream port is NULL.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
@@ -228,27 +232,32 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 
 	if (graph->canceled) {
 		BT_LOGW_STR("Invalid parameter: graph is canceled.");
+		status = BT_GRAPH_STATUS_CANCELED;
 		goto end;
 	}
 
 	/* Ensure appropriate types for upstream and downstream ports. */
 	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
 		BT_LOGW_STR("Invalid parameter: upstream port is not an output port.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 	if (bt_port_get_type(downstream_port) != BT_PORT_TYPE_INPUT) {
 		BT_LOGW_STR("Invalid parameter: downstream port is not an input port.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
 	/* Ensure that both ports are currently unconnected. */
 	if (bt_port_is_connected(upstream_port)) {
 		BT_LOGW_STR("Invalid parameter: upstream port is already connected.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
 	if (bt_port_is_connected(downstream_port)) {
 		BT_LOGW_STR("Invalid parameter: downstream port is already connected.");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
@@ -259,12 +268,14 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	upstream_component = bt_port_get_component(upstream_port);
 	if (!upstream_component) {
 		BT_LOGW_STR("Invalid parameter: upstream port is loose (does not belong to a component)");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
 	downstream_component = bt_port_get_component(downstream_port);
 	if (!downstream_component) {
 		BT_LOGW_STR("Invalid parameter: downstream port is loose (does not belong to a component)");
+		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
 
@@ -279,14 +290,16 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 	if (upstream_graph && (graph != upstream_graph)) {
 		BT_LOGW("Invalid parameter: upstream port's component is already part of another graph: "
 			"other-graph-addr=%p", upstream_graph);
-		goto error;
+		status = BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH;
+		goto end;
 	}
 	upstream_was_already_in_graph = (graph == upstream_graph);
 	downstream_graph = bt_component_get_graph(downstream_component);
 	if (downstream_graph && (graph != downstream_graph)) {
 		BT_LOGW("Invalid parameter: downstream port's component is already part of another graph: "
 			"other-graph-addr=%p", downstream_graph);
-		goto error;
+		status = BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH;
+		goto end;
 	}
 	downstream_was_already_in_graph = (graph == downstream_graph);
 
@@ -306,7 +319,9 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 				"status=%s", bt_component_status_string(component_status));
 		}
 
-		goto error;
+		status = bt_graph_status_from_component_status(
+			component_status);
+		goto end;
 	}
 
 	BT_LOGD_STR("Asking downstream component to accept the connection.");
@@ -320,7 +335,9 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 				"status=%s", bt_component_status_string(component_status));
 		}
 
-		goto error;
+		status = bt_graph_status_from_component_status(
+			component_status);
+		goto end;
 	}
 
 	BT_LOGD_STR("Creating connection.");
@@ -328,7 +345,8 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 			downstream_port);
 	if (!connection) {
 		BT_LOGW("Cannot create connection object.");
-		goto error;
+		status = BT_GRAPH_STATUS_NOMEM;
+		goto end;
 	}
 
 	BT_LOGD("Connection object created: conn-addr=%p", connection);
@@ -386,17 +404,17 @@ struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
 		upstream_port, bt_port_get_name(upstream_port),
 		downstream_port, bt_port_get_name(downstream_port));
 
+	if (user_connection) {
+		BT_MOVE(*user_connection, connection);
+	}
+
 end:
 	bt_put(upstream_graph);
 	bt_put(downstream_graph);
 	bt_put(upstream_component);
 	bt_put(downstream_component);
-	return connection;
-
-error:
-	BT_PUT(upstream_component);
-	BT_PUT(downstream_component);
-	goto end;
+	bt_put(connection);
+	return status;
 }
 
 enum bt_graph_status bt_graph_consume(struct bt_graph *graph)

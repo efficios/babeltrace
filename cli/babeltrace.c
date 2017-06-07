@@ -1178,7 +1178,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	uint64_t i;
 	int64_t (*port_count_fn)(struct bt_component *);
 	struct bt_port *(*port_by_index_fn)(struct bt_component *, uint64_t);
-	void *conn = NULL;
+	enum bt_graph_status status = BT_GRAPH_STATUS_ERROR;
 
 	BT_LOGI("Connecting upstream port to the next available downstream port: "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
@@ -1243,10 +1243,35 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				cfg_conn->downstream_port_glob->str, -1ULL,
 				downstream_port_name, -1ULL)) {
 			/* We have a winner! */
-			conn = bt_graph_connect_ports(ctx->graph,
-				upstream_port, downstream_port);
+			status = bt_graph_connect_ports(ctx->graph,
+				upstream_port, downstream_port, NULL);
 			bt_put(downstream_port);
-			if (!conn) {
+			switch (status) {
+			case BT_GRAPH_STATUS_OK:
+				break;
+			case BT_GRAPH_STATUS_CANCELED:
+				BT_LOGI_STR("Graph was canceled by user.");
+				status = BT_GRAPH_STATUS_OK;
+				break;
+			case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
+				BT_LOGE("A component refused a connection to one of its ports: "
+					"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+					"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+					"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
+					"downstream-port-addr=%p, downstream-port-name=\"%s\", "
+					"conn-arg=\"%s\"",
+					upstream_comp, bt_component_get_name(upstream_comp),
+					upstream_port, bt_port_get_name(upstream_port),
+					downstream_comp, cfg_conn->downstream_comp_name->str,
+					downstream_port, downstream_port_name,
+					cfg_conn->arg->str);
+				fprintf(stderr,
+					"A component refused a connection to one of its ports (`%s` to `%s`): %s\n",
+					bt_port_get_name(upstream_port),
+					downstream_port_name,
+					cfg_conn->arg->str);
+				break;
+			default:
 				BT_LOGE("Cannot create connection: graph refuses to connect ports: "
 					"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 					"upstream-port-addr=%p, upstream-port-name=\"%s\", "
@@ -1284,7 +1309,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		bt_put(downstream_port);
 	}
 
-	if (!conn) {
+	if (status != BT_GRAPH_STATUS_OK) {
 		BT_LOGE("Cannot create connection: cannot find a matching downstream port for upstream port: "
 			"upstream-port-addr=%p, upstream-port-name=\"%s\", "
 			"downstream-comp-name=\"%s\", conn-arg=\"%s\"",
@@ -1303,7 +1328,6 @@ error:
 	ret = -1;
 
 end:
-	bt_put(conn);
 	return ret;
 }
 

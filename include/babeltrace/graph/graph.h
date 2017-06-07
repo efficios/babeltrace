@@ -38,6 +38,7 @@ struct bt_port;
 struct bt_connection;
 
 enum bt_graph_status {
+	BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION = 111,
 	/** Canceled. */
 	BT_GRAPH_STATUS_CANCELED = 125,
 	/** No sink can consume at the moment. */
@@ -53,6 +54,7 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
 	BT_GRAPH_STATUS_ERROR = -1,
+	BT_GRAPH_STATUS_NOMEM = -12,
 };
 
 typedef void (*bt_graph_port_added_listener)(struct bt_port *port,
@@ -73,9 +75,9 @@ extern struct bt_graph *bt_graph_create(void);
  * Creates a connection between two components using the two ports specified
  * and adds the connection and components (if not already added) to the graph.
  */
-extern struct bt_connection *bt_graph_connect_ports(struct bt_graph *graph,
-		struct bt_port *upstream,
-		struct bt_port *downstream);
+extern enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
+		struct bt_port *upstream, struct bt_port *downstream,
+		struct bt_connection **connection);
 
 /**
  * Run graph to completion or until a single sink is left and "AGAIN" is received.
