@@ -27,9 +27,11 @@
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include "fs.h"
 
 #define CTF_FS_METADATA_FILENAME	"metadata"
+
+struct ctf_fs_trace;
+struct ctf_fs_metadata;
 
 struct metadata_overrides {
 	int64_t clock_offset_s;
@@ -51,9 +53,5 @@ FILE *ctf_fs_metadata_open_file(const char *trace_path);
 
 BT_HIDDEN
 bool ctf_metadata_is_packetized(FILE *fp, int *byte_order);
-
-BT_HIDDEN
-int ctf_metadata_packetized_file_to_buf(struct ctf_fs_component *ctf_fs,
-		FILE *fp, uint8_t **buf, int byte_order);
 
 #endif /* CTF_FS_METADATA_H */

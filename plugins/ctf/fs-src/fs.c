@@ -71,7 +71,7 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 	notif_iter_data->ds_file = ctf_fs_ds_file_create(
 		notif_iter_data->ds_file_group->ctf_fs_trace,
 		notif_iter_data->ds_file_group->stream,
-		ds_file_info->path->str, true);
+		ds_file_info->path->str);
 	if (!notif_iter_data->ds_file) {
 		ret = -1;
 	}
@@ -216,11 +216,9 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
 	g_free(ctf_fs);
 }
 
-static
-void ctf_fs_trace_destroy(void *data)
+BT_HIDDEN
+void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 {
-	struct ctf_fs_trace *ctf_fs_trace = data;
-
 	if (!ctf_fs_trace) {
 		return;
 	}
@@ -244,6 +242,13 @@ void ctf_fs_trace_destroy(void *data)
 
 	bt_put(ctf_fs_trace->cc_prio_map);
 	g_free(ctf_fs_trace);
+}
+
+static
+void ctf_fs_trace_destroy_notifier(void *data)
+{
+	struct ctf_fs_trace *trace = data;
+	ctf_fs_trace_destroy(trace);
 }
 
 void ctf_fs_finalize(struct bt_private_component *component)
@@ -487,12 +492,13 @@ void ctf_fs_ds_file_info_destroy(struct ctf_fs_ds_file_info *ds_file_info)
 		g_string_free(ds_file_info->path, TRUE);
 	}
 
+	ctf_fs_ds_index_destroy(ds_file_info->index);
 	g_free(ds_file_info);
 }
 
 static
 struct ctf_fs_ds_file_info *ctf_fs_ds_file_info_create(const char *path,
-		uint64_t begin_ns)
+		uint64_t begin_ns, struct ctf_fs_ds_index *index)
 {
 	struct ctf_fs_ds_file_info *ds_file_info;
 
@@ -509,8 +515,11 @@ struct ctf_fs_ds_file_info *ctf_fs_ds_file_info_create(const char *path,
 	}
 
 	ds_file_info->begin_ns = begin_ns;
+	ds_file_info->index = index;
+	index = NULL;
 
 end:
+	ctf_fs_ds_index_destroy(index);
 	return ds_file_info;
 }
 
@@ -576,13 +585,16 @@ end:
 static
 int ctf_fs_ds_file_group_add_ds_file_info(
 		struct ctf_fs_ds_file_group *ds_file_group,
-		const char *path, uint64_t begin_ns)
+		const char *path, uint64_t begin_ns,
+		struct ctf_fs_ds_index *index)
 {
 	struct ctf_fs_ds_file_info *ds_file_info;
 	gint i = 0;
 	int ret = 0;
 
-	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns);
+	/* Onwership of index is transferred. */
+	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns, index);
+	index = NULL;
 	if (!ds_file_info) {
 		goto error;
 	}
@@ -608,8 +620,8 @@ int ctf_fs_ds_file_group_add_ds_file_info(
 
 error:
 	ctf_fs_ds_file_info_destroy(ds_file_info);
+	ctf_fs_ds_index_destroy(index);
 	ret = -1;
-
 end:
 	return ret;
 }
@@ -627,10 +639,16 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	bool add_group = false;
 	int ret;
 	size_t i;
+	struct ctf_fs_ds_file *ds_file;
+	struct ctf_fs_ds_index *index = NULL;
 
-	ret = ctf_fs_ds_file_get_packet_header_context_fields(
-		ctf_fs_trace, path, &packet_header_field,
-		&packet_context_field);
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, path);
+	if (!ds_file) {
+		goto error;
+	}
+
+	ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
+		&packet_header_field, &packet_context_field);
 	if (ret) {
 		BT_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
 			path);
@@ -645,6 +663,12 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		packet_header_field);
 	if (!stream_class) {
 		goto error;
+	}
+
+	index = ctf_fs_ds_file_build_index(ds_file);
+	if (!index) {
+		BT_LOGW("Failed to index CTF stream file \'%s\'",
+			ds_file->file->path->str);
 	}
 
 	if (begin_ns == -1ULL) {
@@ -672,7 +696,9 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		}
 
 		ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-				path, begin_ns);
+				path, begin_ns, index);
+		/* Ownership of index is transferred. */
+		index = NULL;
 		if (ret) {
 			goto error;
 		}
@@ -717,7 +743,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	}
 
 	ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-			path, begin_ns);
+			path, begin_ns, index);
+	index = NULL;
 	if (ret) {
 		goto error;
 	}
@@ -732,7 +759,8 @@ end:
 	if (add_group && ds_file_group) {
 		g_ptr_array_add(ctf_fs_trace->ds_file_groups, ds_file_group);
 	}
-
+	ctf_fs_ds_file_destroy(ds_file);
+	ctf_fs_ds_index_destroy(index);
 	bt_put(packet_header_field);
 	bt_put(packet_context_field);
 	bt_put(stream_class);
@@ -871,7 +899,7 @@ end:
 	return ret;
 }
 
-static
+BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		struct metadata_overrides *overrides)
 {
@@ -1274,7 +1302,8 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
-	ctf_fs->traces = g_ptr_array_new_with_free_func(ctf_fs_trace_destroy);
+	ctf_fs->traces = g_ptr_array_new_with_free_func(
+			ctf_fs_trace_destroy_notifier);
 	if (!ctf_fs->traces) {
 		goto error;
 	}
@@ -1321,6 +1350,8 @@ struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
 
 	if (!strcmp(object, "metadata-info")) {
 		result = metadata_info_query(comp_class, params);
+	} else if (!strcmp(object, "trace-info")) {
+		result = trace_info_query(comp_class, params);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
 		goto end;

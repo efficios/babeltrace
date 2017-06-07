@@ -33,6 +33,7 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include "data-stream-file.h"
+#include "metadata.h"
 
 BT_HIDDEN
 extern bool ctf_fs_debug;
@@ -57,43 +58,6 @@ struct ctf_fs_metadata {
 	uint8_t uuid[16];
 	bool is_uuid_set;
 	int bo;
-};
-
-struct ctf_fs_ds_file_info {
-	GString *path;
-	uint64_t begin_ns;
-};
-
-struct ctf_fs_ds_file {
-	/* Owned by this */
-	struct ctf_fs_file *file;
-
-	/* Owned by this */
-	struct bt_ctf_stream *stream;
-
-	/* Owned by this */
-	struct bt_clock_class_priority_map *cc_prio_map;
-
-	/* Owned by this */
-	struct bt_ctf_notif_iter *notif_iter;
-
-	/* A stream is assumed to be indexed. */
-	struct index index;
-	void *mmap_addr;
-	/* Max length of chunk to mmap() when updating the current mapping. */
-	size_t mmap_max_len;
-	/* Length of the current mapping. */
-	size_t mmap_len;
-	/* Length of the current mapping which *exists* in the backing file. */
-	size_t mmap_valid_len;
-	/* Offset in the file where the current mapping starts. */
-	off_t mmap_offset;
-	/*
-	 * Offset, in the current mapping, of the address to return on the next
-	 * request.
-	 */
-	off_t request_offset;
-	bool end_reached;
 };
 
 struct ctf_fs_component_options {
@@ -174,13 +138,15 @@ BT_HIDDEN
 void ctf_fs_finalize(struct bt_private_component *component);
 
 BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_notification_iterator *it,
-		struct bt_private_port *port);
-
-BT_HIDDEN
 struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
 		const char *object, struct bt_value *params);
+
+BT_HIDDEN
+struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
+		struct metadata_overrides *overrides);
+
+BT_HIDDEN
+void ctf_fs_trace_destroy(struct ctf_fs_trace *trace);
 
 BT_HIDDEN
 int ctf_fs_find_traces(GList **trace_paths, const char *start_path);
@@ -188,8 +154,14 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path);
 BT_HIDDEN
 GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
 
+BT_HIDDEN
+enum bt_notification_iterator_status ctf_fs_iterator_init(
+		struct bt_private_notification_iterator *it,
+		struct bt_private_port *port);
+BT_HIDDEN
 void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it);
 
+BT_HIDDEN
 struct bt_notification_iterator_next_return ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator);
 

@@ -33,4 +33,8 @@ BT_HIDDEN
 struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 		struct bt_value *params);
 
+BT_HIDDEN
+struct bt_value *trace_info_query(struct bt_component_class *comp_class,
+		struct bt_value *params);
+
 #endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */

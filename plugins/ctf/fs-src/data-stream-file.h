@@ -37,26 +37,97 @@ struct ctf_fs_file;
 struct ctf_fs_trace;
 struct ctf_fs_ds_file;
 
-struct index_entry {
-	uint64_t offset; /* in bytes. */
-	uint64_t packet_size; /* in bytes. */
-	/* relative to the packet context field's mapped clock. */
+struct ctf_fs_ds_index_entry {
+	/* Position, in bytes, of the packet from the beginning of the file. */
+	uint64_t offset;
+
+	/* Size of the packet, in bytes. */
+	uint64_t packet_size;
+
+	/*
+	 * Extracted from the packet context, relative to the respective fields'
+	 * mapped clock classes (in cycles).
+	 */
 	uint64_t timestamp_begin, timestamp_end;
+
+	/*
+	 * Converted from the packet context, relative to the trace's EPOCH
+	 * (in ns since EPOCH).
+	 */
+	int64_t timestamp_begin_ns, timestamp_end_ns;
 };
 
-struct index {
-	GArray *entries; /* Array of struct index_entry. */
+struct ctf_fs_ds_index {
+	/* Array of struct ctf_fs_fd_index_entry. */
+	GArray *entries;
+};
+
+struct ctf_fs_ds_file_info {
+	/*
+	 * Owned by this. May be NULL.
+	 *
+	 * A stream cannot be assumed to be indexed as the indexing might have
+	 * been skipped. Moreover, the index's fields may not all be available
+	 * depending on the producer (e.g. timestamp_begin/end are not
+	 * mandatory).
+	 *
+	 * FIXME In such cases (missing fields), the indexing is aborted as
+	 * no the index entries don't have a concept of fields being present
+	 * or not.
+	 */
+	struct ctf_fs_ds_index *index;
+
+	/* Owned by this. */
+	GString *path;
+
+	/* Guaranteed to be set, as opposed to the index. */
+	uint64_t begin_ns;
+};
+
+struct ctf_fs_ds_file {
+	/* Owned by this */
+	struct ctf_fs_file *file;
+
+	/* Owned by this */
+	struct bt_ctf_stream *stream;
+
+	/* Owned by this */
+	struct bt_clock_class_priority_map *cc_prio_map;
+
+	/* Owned by this */
+	struct bt_ctf_notif_iter *notif_iter;
+
+	void *mmap_addr;
+
+	/* Max length of chunk to mmap() when updating the current mapping. */
+	size_t mmap_max_len;
+
+	/* Length of the current mapping. */
+	size_t mmap_len;
+
+	/* Length of the current mapping which *exists* in the backing file. */
+	size_t mmap_valid_len;
+
+	/* Offset in the file where the current mapping starts. */
+	off_t mmap_offset;
+
+	/*
+	 * Offset, in the current mapping, of the address to return on the next
+	 * request.
+	 */
+	off_t request_offset;
+
+	bool end_reached;
 };
 
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_stream *stream, const char *path,
-		bool build_index);
+		struct bt_ctf_stream *stream, const char *path);
 
 BT_HIDDEN
 int ctf_fs_ds_file_get_packet_header_context_fields(
-		struct ctf_fs_trace *ctf_fs_trace, const char *path,
+		struct ctf_fs_ds_file *ds_file,
 		struct bt_ctf_field **packet_header_field,
 		struct bt_ctf_field **packet_context_field);
 
@@ -66,5 +137,12 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 BT_HIDDEN
 struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *stream);
+
+BT_HIDDEN
+struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
+		struct ctf_fs_ds_file *ds_file);
+
+BT_HIDDEN
+void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
 
 #endif /* CTF_FS_DS_FILE_H */

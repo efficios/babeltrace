@@ -28,7 +28,7 @@
 
 BT_PLUGIN(utils);
 BT_PLUGIN_DESCRIPTION("Graph utilities");
-BT_PLUGIN_AUTHOR("Julien Desfossez, Philippe Proulx");
+BT_PLUGIN_AUTHOR("Julien Desfossez, Jérémie Galarneau, Philippe Proulx");
 BT_PLUGIN_LICENSE("MIT");
 
 /* dummy sink */
