@@ -84,6 +84,13 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_notification_iterator *iterator);
 
 static inline
+struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)
+{
+	assert(conn);
+	return (void *) conn->base.parent;
+}
+
+static inline
 enum bt_connection_status
 bt_connection_status_from_notification_iterator_status(
 		enum bt_notification_iterator_status iter_status)

@@ -303,17 +303,33 @@ bt_private_connection_create_notification_iterator(
 		goto end;
 	}
 
-	if (!notification_types) {
-		BT_LOGD_STR("No notification types: subscribing to all notifications.");
-		notification_types = all_notif_types;
+	connection = bt_connection_from_private(private_connection);
+
+	if (bt_graph_is_canceled(bt_connection_borrow_graph(connection))) {
+		BT_LOGW("Cannot create notification iterator from connection: "
+			"connection's graph is canceled: "
+			"conn-addr=%p, upstream-port-addr=%p, "
+			"upstream-port-name=\"%s\", upstream-comp-addr=%p, "
+			"upstream-comp-name=\"%s\", graph-addr=%p",
+			connection, connection->upstream_port,
+			bt_port_get_name(connection->upstream_port),
+			upstream_component,
+			bt_component_get_name(upstream_component),
+			bt_connection_borrow_graph(connection));
+		status = BT_CONNECTION_STATUS_GRAPH_IS_CANCELED;
+		goto end;
 	}
 
-	connection = bt_connection_from_private(private_connection);
 	if (bt_connection_is_ended(connection)) {
 		BT_LOGW("Invalid parameter: connection is ended: "
 			"conn-addr=%p", connection);
 		status = BT_CONNECTION_STATUS_IS_ENDED;
 		goto end;
+	}
+
+	if (!notification_types) {
+		BT_LOGD_STR("No notification types: subscribing to all notifications.");
+		notification_types = all_notif_types;
 	}
 
 	upstream_port = connection->upstream_port;
