@@ -65,7 +65,7 @@ static ssize_t lttng_live_recv(struct bt_live_viewer_connection *viewer_connecti
 			to_copy -= ret;
 		}
 		if (ret < 0 && errno == EINTR) {
-			if (lttng_live && bt_graph_is_canceled(lttng_live->graph)) {
+			if (lttng_live_is_canceled(lttng_live)) {
 				break;
 			} else {
 				continue;
@@ -89,7 +89,7 @@ static ssize_t lttng_live_send(struct bt_live_viewer_connection *viewer_connecti
 	for (;;) {
 		ret = bt_send_nosigpipe(fd, buf, len);
 		if (ret < 0 && errno == EINTR) {
-			if (lttng_live && bt_graph_is_canceled(lttng_live->graph)) {
+			if (lttng_live_is_canceled(lttng_live)) {
 				break;
 			} else {
 				continue;
@@ -1206,7 +1206,7 @@ end:
 	return retstatus;
 
 error:
-	if (bt_graph_is_canceled(lttng_live->graph)) {
+	if (lttng_live_is_canceled(lttng_live)) {
 		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -1326,7 +1326,7 @@ end:
 	return retstatus;
 
 error:
-	if (bt_graph_is_canceled(lttng_live->graph)) {
+	if (lttng_live_is_canceled(lttng_live)) {
 		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
 		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
@@ -1417,7 +1417,7 @@ end:
 	return status;
 
 error:
-	if (bt_graph_is_canceled(lttng_live->graph)) {
+	if (lttng_live_is_canceled(lttng_live)) {
 		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;

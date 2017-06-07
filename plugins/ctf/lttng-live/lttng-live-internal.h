@@ -34,6 +34,7 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/types.h>
 #include "viewer-connection.h"
 
 //TODO: this should not be used by plugins. Should copy code into plugin
@@ -73,7 +74,7 @@ struct lttng_live_stream_iterator {
 
 	struct bt_ctf_stream *stream;
 	struct lttng_live_trace *trace;
-	struct bt_private_port *port;
+	struct bt_private_port *port;	/* weak ref. */
 
 	/* Node of stream list within the trace. */
 	struct bt_list_head node;
@@ -109,7 +110,7 @@ struct lttng_live_no_stream_iterator {
 	struct lttng_live_stream_iterator_generic p;
 
 	struct lttng_live_component *lttng_live;
-	struct bt_private_port *port;
+	struct bt_private_port *port;	/* weak ref. */
 };
 
 struct lttng_live_component_options {
@@ -186,11 +187,10 @@ struct lttng_live_component {
 	size_t max_query_size;
 	struct lttng_live_component_options options;
 
-	struct bt_private_port *no_stream_port;
+	struct bt_private_port *no_stream_port;	/* weak */
 	struct lttng_live_no_stream_iterator *no_stream_iter;
 
 	struct bt_component *downstream_component;
-	struct bt_graph *graph;	 /* weak */
 };
 
 enum bt_ctf_lttng_live_iterator_status {
@@ -265,5 +265,7 @@ struct lttng_live_trace *lttng_live_ref_trace(
 		struct lttng_live_session *session, uint64_t trace_id);
 void lttng_live_unref_trace(struct lttng_live_trace *trace);
 void lttng_live_need_new_streams(struct lttng_live_component *lttng_live);
+
+bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live);
 
 #endif /* BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_INTERNAL_H */

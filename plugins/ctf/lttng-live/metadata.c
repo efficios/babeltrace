@@ -117,6 +117,10 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
+	if (!metadata->trace) {
+		trace->new_metadata_needed = false;
+	}
+
 	if (!trace->new_metadata_needed) {
 		goto end;
 	}
@@ -156,9 +160,10 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 			 * the data streams are done.
 			 */
 			lttng_live_unref_trace(metadata->trace);
+			metadata->trace = NULL;
 		}
 		if (errno == EINTR) {
-			if (bt_graph_is_canceled(session->lttng_live->graph)) {
+			if (lttng_live_is_canceled(session->lttng_live)) {
 				status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 				goto end;
 			}
@@ -223,6 +228,7 @@ end:
 			BT_LOGE("Error on fclose");
 		}
 	}
+	free(metadata_buf);
 	return status;
 }
 
@@ -278,7 +284,6 @@ void lttng_live_metadata_fini(struct lttng_live_trace *trace)
 	}
 	ctf_metadata_decoder_destroy(metadata->decoder);
 	trace->metadata = NULL;
-	lttng_live_unref_trace(trace);
 	if (!metadata->closed) {
 		lttng_live_unref_trace(metadata->trace);
 	}
