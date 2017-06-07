@@ -132,18 +132,13 @@ bt_private_notification_iterator_from_notification_iterator(
 	return (void *) notification_iterator;
 }
 
-/**
- * Allocate a notification iterator.
- *
- * @param component		Component instance
- * @returns			A notification iterator instance
- */
 BT_HIDDEN
-struct bt_notification_iterator *bt_notification_iterator_create(
-		struct bt_component *upstream_component,
+enum bt_connection_status bt_notification_iterator_create(
+		struct bt_component *upstream_comp,
 		struct bt_port *upstream_port,
 		const enum bt_notification_type *notification_types,
-		struct bt_connection *connection);
+		struct bt_connection *connection,
+		struct bt_notification_iterator **iterator);
 
 BT_HIDDEN
 void bt_notification_iterator_finalize(

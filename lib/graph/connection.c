@@ -272,10 +272,11 @@ struct bt_port *bt_connection_get_downstream_port(
 	return connection ? bt_get(connection->downstream_port) : NULL;
 }
 
-struct bt_notification_iterator *
+enum bt_connection_status
 bt_private_connection_create_notification_iterator(
 		struct bt_private_connection *private_connection,
-		const enum bt_notification_type *notification_types)
+		const enum bt_notification_type *notification_types,
+		struct bt_notification_iterator **user_iterator)
 {
 	enum bt_component_class_type upstream_comp_class_type;
 	struct bt_notification_iterator *iterator = NULL;
@@ -284,6 +285,7 @@ bt_private_connection_create_notification_iterator(
 	struct bt_component_class *upstream_comp_class = NULL;
 	struct bt_connection *connection = NULL;
 	bt_component_class_notification_iterator_init_method init_method = NULL;
+	enum bt_connection_status status;
 	static const enum bt_notification_type all_notif_types[] = {
 		BT_NOTIFICATION_TYPE_ALL,
 		BT_NOTIFICATION_TYPE_SENTINEL,
@@ -291,7 +293,14 @@ bt_private_connection_create_notification_iterator(
 
 	if (!private_connection) {
 		BT_LOGW_STR("Invalid parameter: private connection is NULL.");
-		goto error;
+		status = BT_CONNECTION_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!user_iterator) {
+		BT_LOGW_STR("Invalid parameter: notification iterator pointer is NULL.");
+		status = BT_CONNECTION_STATUS_INVALID;
+		goto end;
 	}
 
 	if (!notification_types) {
@@ -300,10 +309,11 @@ bt_private_connection_create_notification_iterator(
 	}
 
 	connection = bt_connection_from_private(private_connection);
-	if (!connection->upstream_port || !connection->downstream_port) {
+	if (bt_connection_is_ended(connection)) {
 		BT_LOGW("Invalid parameter: connection is ended: "
 			"conn-addr=%p", connection);
-		goto error;
+		status = BT_CONNECTION_STATUS_IS_ENDED;
+		goto end;
 	}
 
 	upstream_port = connection->upstream_port;
@@ -320,20 +330,13 @@ bt_private_connection_create_notification_iterator(
 		upstream_component, bt_component_get_name(upstream_component));
 	upstream_comp_class_type =
 		bt_component_get_class_type(upstream_component);
-	if (upstream_comp_class_type != BT_COMPONENT_CLASS_TYPE_SOURCE &&
-			upstream_comp_class_type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		/* Unsupported operation. */
-		BT_LOGW("Upstream component's class is not a source or filter component class: "
-			"comp-class-type=%s",
-			bt_component_class_type_string(upstream_comp_class_type));
-		goto error;
-	}
-
-	iterator = bt_notification_iterator_create(upstream_component,
-		upstream_port, notification_types, connection);
-	if (!iterator) {
+	assert(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
+			upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_FILTER);
+	status = bt_notification_iterator_create(upstream_component,
+		upstream_port, notification_types, connection, &iterator);
+	if (status != BT_CONNECTION_STATUS_OK) {
 		BT_LOGW("Cannot create notification iterator from connection.");
-		goto error;
+		goto end;
 	}
 
 	switch (upstream_comp_class_type) {
@@ -355,22 +358,26 @@ bt_private_connection_create_notification_iterator(
 	}
 	default:
 		/* Unreachable. */
+		BT_LOGF("Unknown component class type: type=%d",
+			upstream_comp_class_type);
 		abort();
 	}
 
 	if (init_method) {
-		enum bt_notification_iterator_status status;
+		enum bt_notification_iterator_status iter_status;
 
 		BT_LOGD("Calling user's initialization method: iter-addr=%p",
 			iterator);
-		status = init_method(
+		iter_status = init_method(
 			bt_private_notification_iterator_from_notification_iterator(iterator),
 			bt_private_port_from_port(upstream_port));
 		BT_LOGD("User method returned: status=%s",
-			bt_notification_iterator_status_string(status));
-		if (status < 0) {
+			bt_notification_iterator_status_string(iter_status));
+		if (iter_status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			BT_LOGW_STR("Initialization method failed.");
-			goto error;
+			status = bt_connection_status_from_notification_iterator_status(
+				iter_status);
+			goto end;
 		}
 	}
 
@@ -383,14 +390,12 @@ bt_private_connection_create_notification_iterator(
 		bt_port_get_name(connection->upstream_port),
 		upstream_component, bt_component_get_name(upstream_component),
 		iterator);
-	goto end;
-
-error:
-	BT_PUT(iterator);
+	BT_MOVE(*user_iterator, iterator);
 
 end:
 	bt_put(upstream_component);
-	return iterator;
+	bt_put(iterator);
+	return status;
 }
 
 BT_HIDDEN

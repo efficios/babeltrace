@@ -27,12 +27,23 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component;
 struct bt_connection;
+
+enum bt_connection_status {
+	BT_CONNECTION_STATUS_GRAPH_IS_CANCELED = 125,
+	BT_CONNECTION_STATUS_OK = 0,
+	BT_CONNECTION_STATUS_INVALID = -22,
+	BT_CONNECTION_STATUS_ERROR = -1,
+	BT_CONNECTION_STATUS_NOMEM = -12,
+	BT_CONNECTION_STATUS_IS_ENDED = 104,
+};
 
 /* Returns the "downstream" input port. */
 extern struct bt_port *bt_connection_get_downstream_port(

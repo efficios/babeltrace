@@ -167,6 +167,7 @@ void pretty_port_connected(
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
+	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection;
 	struct pretty_component *pretty;
 	static const enum bt_notification_type notif_types[] = {
@@ -179,11 +180,9 @@ void pretty_port_connected(
 	assert(!pretty->input_iterator);
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-	pretty->input_iterator =
-		bt_private_connection_create_notification_iterator(connection,
-			notif_types);
-
-	if (!pretty->input_iterator) {
+	conn_status = bt_private_connection_create_notification_iterator(
+		connection, notif_types, &pretty->input_iterator);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		pretty->error = true;
 	}
 

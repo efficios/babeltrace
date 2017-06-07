@@ -38,6 +38,7 @@
 #include <babeltrace/graph/component-sink.h>
 #include <babeltrace/graph/component-source.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-inactivity.h>
@@ -824,13 +825,13 @@ void sink_port_connected(struct bt_private_component *private_component,
 		bt_private_port_get_private_connection(self_private_port);
 	struct sink_user_data *user_data = bt_private_component_get_user_data(
 		private_component);
+	enum bt_connection_status conn_status;
 
 	assert(user_data);
 	assert(priv_conn);
-	user_data->notif_iter =
-		bt_private_connection_create_notification_iterator(priv_conn,
-			NULL);
-	assert(user_data->notif_iter);
+	conn_status = bt_private_connection_create_notification_iterator(
+		priv_conn, NULL, &user_data->notif_iter);
+	assert(conn_status == 0);
 	bt_put(priv_conn);
 }
 

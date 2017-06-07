@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/graph/connection.h>
+#include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/object-internal.h>
 
@@ -81,5 +82,36 @@ void bt_connection_disconnect_ports(struct bt_connection *conn);
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_notification_iterator *iterator);
+
+static inline
+enum bt_connection_status
+bt_connection_status_from_notification_iterator_status(
+		enum bt_notification_iterator_status iter_status)
+{
+	switch (iter_status) {
+	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
+		return BT_CONNECTION_STATUS_ERROR;
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		return BT_CONNECTION_STATUS_ERROR;
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		return BT_CONNECTION_STATUS_ERROR;
+	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+		return BT_CONNECTION_STATUS_OK;
+	case BT_NOTIFICATION_ITERATOR_STATUS_INVALID:
+		return BT_CONNECTION_STATUS_INVALID;
+	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+		return BT_CONNECTION_STATUS_ERROR;
+	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+		return BT_CONNECTION_STATUS_NOMEM;
+	case BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED:
+		return BT_CONNECTION_STATUS_ERROR;
+	default:
+#ifdef BT_LOGF
+		BT_LOGF("Unknown notification iterator status: status=%d",
+			iter_status);
+#endif
+		abort();
+	}
+}
 
 #endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */

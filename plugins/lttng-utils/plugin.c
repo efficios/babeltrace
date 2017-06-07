@@ -28,6 +28,7 @@
 
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-stream.h>
@@ -275,6 +276,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
+	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection = NULL;
 	struct bt_private_component *component =
 		bt_private_notification_iterator_get_private_component(iterator);
@@ -307,10 +309,10 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 		goto end;
 	}
 
-	it_data->input_iterator = bt_private_connection_create_notification_iterator(
-			connection, notif_types);
-	if (!it_data->input_iterator) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+	conn_status = bt_private_connection_create_notification_iterator(
+			connection, notif_types, &it_data->input_iterator);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 

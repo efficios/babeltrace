@@ -39,6 +39,7 @@
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-class.h>
@@ -85,6 +86,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	enum bt_notification_iterator_status ret =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	enum bt_notification_iterator_status it_ret;
+	enum bt_connection_status conn_status;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
 	struct bt_private_component *component =
@@ -110,11 +112,10 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	connection = bt_private_port_get_private_connection(input_port);
 	assert(connection);
 
-	it_data->input_iterator =
-		bt_private_connection_create_notification_iterator(connection,
-			notif_types);
-	if (!it_data->input_iterator) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+	conn_status = bt_private_connection_create_notification_iterator(connection,
+			notif_types, &it_data->input_iterator);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 

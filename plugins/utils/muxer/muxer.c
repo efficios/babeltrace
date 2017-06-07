@@ -37,6 +37,7 @@
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/connection.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <stdbool.h>
@@ -336,6 +337,7 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	struct bt_port *port = bt_port_from_private_port(priv_port);
 	struct bt_notification_iterator *notif_iter = NULL;
 	struct bt_private_connection *priv_conn = NULL;
+	enum bt_connection_status conn_status;
 
 	assert(ret);
 	*ret = 0;
@@ -351,9 +353,9 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	// TODO: Advance the iterator to >= the time of the latest
 	//       returned notification by the muxer notification
 	//       iterator which creates it.
-	notif_iter = bt_private_connection_create_notification_iterator(
-		priv_conn, NULL);
-	if (!notif_iter) {
+	conn_status = bt_private_connection_create_notification_iterator(
+		priv_conn, NULL, &notif_iter);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		*ret = -1;
 		goto end;
 	}

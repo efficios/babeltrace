@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source-internal.h>
@@ -513,12 +514,14 @@ end:
 }
 
 BT_HIDDEN
-struct bt_notification_iterator *bt_notification_iterator_create(
+enum bt_connection_status bt_notification_iterator_create(
 		struct bt_component *upstream_comp,
 		struct bt_port *upstream_port,
 		const enum bt_notification_type *notification_types,
-		struct bt_connection *connection)
+		struct bt_connection *connection,
+		struct bt_notification_iterator **user_iterator)
 {
+	enum bt_connection_status status = BT_CONNECTION_STATUS_OK;
 	enum bt_component_class_type type;
 	struct bt_notification_iterator *iterator = NULL;
 
@@ -526,6 +529,7 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	assert(upstream_port);
 	assert(notification_types);
 	assert(bt_port_is_connected(upstream_port));
+	assert(user_iterator);
 	BT_LOGD("Creating notification iterator: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
@@ -539,7 +543,8 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	iterator = g_new0(struct bt_notification_iterator, 1);
 	if (!iterator) {
 		BT_LOGE_STR("Failed to allocate one notification iterator.");
-		goto error;
+		status = BT_CONNECTION_STATUS_NOMEM;
+		goto end;
 	}
 
 	bt_object_init(iterator, bt_notification_iterator_destroy);
@@ -547,26 +552,30 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 	if (create_subscription_mask_from_notification_types(iterator,
 			notification_types)) {
 		BT_LOGW_STR("Cannot create subscription mask from notification types.");
-		goto error;
+		status = BT_CONNECTION_STATUS_INVALID;
+		goto end;
 	}
 
 	iterator->stream_states = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL, (GDestroyNotify) destroy_stream_state);
 	if (!iterator->stream_states) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
-		goto error;
+		status = BT_CONNECTION_STATUS_NOMEM;
+		goto end;
 	}
 
 	iterator->queue = g_queue_new();
 	if (!iterator->queue) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
-		goto error;
+		status = BT_CONNECTION_STATUS_NOMEM;
+		goto end;
 	}
 
 	iterator->actions = g_array_new(FALSE, FALSE, sizeof(struct action));
 	if (!iterator->actions) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
-		goto error;
+		status = BT_CONNECTION_STATUS_NOMEM;
+		goto end;
 	}
 
 	iterator->upstream_component = upstream_comp;
@@ -580,13 +589,11 @@ struct bt_notification_iterator *bt_notification_iterator_create(
 		upstream_comp, bt_component_get_name(upstream_comp),
 		upstream_port, bt_port_get_name(upstream_port),
 		connection, iterator);
-	goto end;
-
-error:
-	BT_PUT(iterator);
+	BT_MOVE(*user_iterator, iterator);
 
 end:
-	return iterator;
+	bt_put(iterator);
+	return status;
 }
 
 void *bt_private_notification_iterator_get_user_data(

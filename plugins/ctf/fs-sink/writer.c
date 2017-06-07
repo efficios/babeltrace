@@ -28,6 +28,7 @@
 
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-sink.h>
@@ -213,6 +214,7 @@ void writer_component_port_connected(
 {
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
+	enum bt_connection_status conn_status;
 	static const enum bt_notification_type notif_types[] = {
 		BT_NOTIFICATION_TYPE_EVENT,
 		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
@@ -227,11 +229,9 @@ void writer_component_port_connected(
 	assert(!writer->input_iterator);
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-	writer->input_iterator =
-		bt_private_connection_create_notification_iterator(connection,
-			notif_types);
-
-	if (!writer->input_iterator) {
+	conn_status = bt_private_connection_create_notification_iterator(
+		connection, notif_types, &writer->input_iterator);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		writer->error = true;
 	}
 

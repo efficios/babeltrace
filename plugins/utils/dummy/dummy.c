@@ -21,6 +21,7 @@
  */
 
 #include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-component-sink.h>
@@ -97,14 +98,15 @@ void dummy_port_connected(
 	struct dummy *dummy;
 	struct bt_notification_iterator *iterator;
 	struct bt_private_connection *connection;
+	enum bt_connection_status conn_status;
 
 	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
 	connection = bt_private_port_get_private_connection(self_port);
 	assert(connection);
-	iterator = bt_private_connection_create_notification_iterator(
-		connection, NULL);
-	if (!iterator) {
+	conn_status = bt_private_connection_create_notification_iterator(
+		connection, NULL, &iterator);
+	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		dummy->error = true;
 		goto end;
 	}
