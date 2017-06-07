@@ -203,7 +203,7 @@ int bt_port_disconnect(struct bt_port *port)
 	}
 
 	if (port->connection) {
-		bt_connection_disconnect_ports(port->connection);
+		bt_connection_end(port->connection, true);
 		BT_LOGV("Disconnected port: "
 			"port-addr=%p, port-name=\"%s\"",
 			port, bt_port_get_name(port));

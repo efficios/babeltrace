@@ -47,7 +47,6 @@ void bt_connection_destroy(struct bt_object *obj)
 {
 	struct bt_connection *connection = container_of(obj,
 			struct bt_connection, base);
-	size_t i;
 
 	BT_LOGD("Destroying connection: addr=%p", connection);
 
@@ -60,32 +59,18 @@ void bt_connection_destroy(struct bt_object *obj)
 	 * Because connections are destroyed before components within a
 	 * graph, this ensures that notification iterators are always
 	 * finalized before their upstream component.
+	 *
+	 * Ending the connection does exactly this. We pass `false` to
+	 * bt_connection_end() here to avoid removing this connection
+	 * from the graph: if we're here, we're already in the graph's
+	 * destructor.
 	 */
-	if (connection->iterators) {
-		for (i = 0; i < connection->iterators->len; i++) {
-			struct bt_notification_iterator *iterator =
-				g_ptr_array_index(connection->iterators, i);
-
-			BT_LOGD("Finalizing notification iterator created by this connection: "
-				"iter-addr=%p", iterator);
-			bt_notification_iterator_finalize(iterator);
-
-			/*
-			 * Make sure this iterator does not try to
-			 * remove itself from this connection's
-			 * iterators on destruction because this
-			 * connection won't exist anymore.
-			 */
-			bt_notification_iterator_set_connection(iterator,
-				NULL);
-		}
-
-		g_ptr_array_free(connection->iterators, TRUE);
-	}
+	bt_connection_end(connection, false);
+	g_ptr_array_free(connection->iterators, TRUE);
 
 	/*
-	 * No bt_put on ports as a connection only holds _weak_ references
-	 * to them.
+	 * No bt_put on ports as a connection only holds _weak_
+	 * references to them.
 	 */
 	g_free(connection);
 }
@@ -196,22 +181,32 @@ end:
 }
 
 BT_HIDDEN
-void bt_connection_disconnect_ports(struct bt_connection *conn)
+void bt_connection_end(struct bt_connection *conn,
+		bool try_remove_from_graph)
 {
 	struct bt_component *downstream_comp = NULL;
 	struct bt_component *upstream_comp = NULL;
 	struct bt_port *downstream_port = conn->downstream_port;
 	struct bt_port *upstream_port = conn->upstream_port;
-	struct bt_graph *graph = (void *) bt_object_borrow_parent(conn);
+	struct bt_graph *graph = bt_connection_borrow_graph(conn);
 	size_t i;
 
+	BT_LOGD("Ending connection: conn-addr=%p, try-remove-from-graph=%d",
+		conn, try_remove_from_graph);
+
 	if (downstream_port) {
+		BT_LOGD("Disconnecting connection's downstream port: "
+			"port-addr=%p, port-name=\"%s\"",
+			downstream_port, bt_port_get_name(downstream_port));
 		downstream_comp = bt_port_get_component(downstream_port);
 		bt_port_set_connection(downstream_port, NULL);
 		conn->downstream_port = NULL;
 	}
 
 	if (upstream_port) {
+		BT_LOGD("Disconnecting connection's upstream port: "
+			"port-addr=%p, port-name=\"%s\"",
+			upstream_port, bt_port_get_name(upstream_port));
 		upstream_comp = bt_port_get_component(upstream_port);
 		bt_port_set_connection(upstream_port, NULL);
 		conn->upstream_port = NULL;
@@ -257,7 +252,10 @@ void bt_connection_disconnect_ports(struct bt_connection *conn)
 	}
 
 	g_ptr_array_set_size(conn->iterators, 0);
-	bt_connection_try_remove_from_graph(conn);
+
+	if (try_remove_from_graph) {
+		bt_connection_try_remove_from_graph(conn);
+	}
 }
 
 struct bt_port *bt_connection_get_upstream_port(

@@ -31,6 +31,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/object-internal.h>
+#include <stdbool.h>
 
 struct bt_graph;
 
@@ -77,7 +78,7 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		struct bt_port *downstream_port);
 
 BT_HIDDEN
-void bt_connection_disconnect_ports(struct bt_connection *conn);
+void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph);
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
